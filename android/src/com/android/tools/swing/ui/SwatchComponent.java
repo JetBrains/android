@@ -15,6 +15,8 @@
  */
 package com.android.tools.swing.ui;
 
+import com.android.ide.common.resources.ResourceUrl;
+import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.editors.theme.ThemeEditorConstants;
 import com.android.tools.swing.util.GraphicsUtil;
 import com.google.common.collect.Lists;
@@ -24,12 +26,14 @@ import com.intellij.openapi.editor.EditorFactory;
 import com.intellij.openapi.editor.event.DocumentListener;
 import com.intellij.openapi.editor.ex.EditorEx;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.RoundedLineBorder;
 import com.intellij.ui.TextFieldWithAutoCompletion;
 import com.intellij.util.ui.JBUI;
 import icons.AndroidIcons;
+import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -47,6 +51,11 @@ import static com.intellij.util.ui.GraphicsUtil.setupAAPainting;
  * Component that displays a clickable icon and a label or a text field with autocompletion
  */
 public class SwatchComponent extends JPanel {
+
+  private static final String PRIVATE_ERROR_PATTERN = "%s is a private framework resource";
+  private static final String NON_EXISTENT_ERROR_PATTERN = "The resource %s does not exist";
+  private static final String API_ERROR_TEXT = "This resource requires at least an API level of %d";
+
   /** Padding used between the icon and the text field */
   private static final int PADDING = JBUI.scale(3);
   /** Padding around the text in the text field */
@@ -72,6 +81,7 @@ public class SwatchComponent extends JPanel {
   private final List<ActionListener> myTextListeners = Lists.newArrayList();
 
   private Color myBorderColor;
+  private final @NotNull Project myProject;
 
   /**
    * Constructs a SwatchComponent that is composed of a clickable icon and a text field with autocompletion or a label
@@ -80,7 +90,7 @@ public class SwatchComponent extends JPanel {
   public SwatchComponent(@NotNull Project project, boolean isEditor) {
     super(new BorderLayout(PADDING, 0));
     setBorder(null);
-
+    myProject = project;
     myBorderColor = DEFAULT_BORDER_COLOR;
     mySwatchButton = new ClickableLabel();
     add(mySwatchButton, BorderLayout.LINE_START);
@@ -151,10 +161,6 @@ public class SwatchComponent extends JPanel {
     mySwatchButton.setIcon(icon);
   }
 
-  public void showStack(boolean show) {
-    ((SwatchIcon)mySwatchButton.getIcon()).setIsStack(show);
-  }
-
   public void setWarningBorder(boolean isWarning) {
     myBorderColor = isWarning ? WARNING_BORDER_COLOR : DEFAULT_BORDER_COLOR;
   }
@@ -187,6 +193,14 @@ public class SwatchComponent extends JPanel {
       return getMinimumSize();
     }
     return super.getPreferredSize();
+  }
+
+  @Override
+  public Dimension getMaximumSize() {
+    if (isMaximumSizeSet()) {
+      return super.getMaximumSize();
+    }
+    return new Dimension(super.getMaximumSize().width, getPreferredSize().height);
   }
 
   public static class ColorIcon extends SwatchIcon {
@@ -291,6 +305,32 @@ public class SwatchComponent extends JPanel {
   public void setCompletionStrings(@NotNull List<String> completionStrings) {
     assert myTextField != null;
     myTextField.setVariants(completionStrings);
+  }
+
+  @Nullable("if there is no error")
+  public ValidationInfo doValidate(int minApi, @NotNull AndroidTargetData androidTargetData) {
+    String resourceValue = getText();
+    String errorText = null;
+    if (hasWarningIcon()) {
+      errorText = NON_EXISTENT_ERROR_PATTERN;
+    }
+    else if (isResourcePrivate(resourceValue, androidTargetData)) {
+      errorText = PRIVATE_ERROR_PATTERN;
+    }
+    if (errorText != null) {
+      return new ValidationInfo(String.format(errorText, resourceValue), this);
+    }
+
+    int resourceApi = ResolutionUtils.getOriginalApiLevel(getText(), myProject);
+    if (resourceApi > minApi) {
+      return new ValidationInfo(String.format(API_ERROR_TEXT, resourceApi), this);
+    }
+    return null;
+  }
+
+  private static boolean isResourcePrivate(@NotNull String resourceValue, @NotNull AndroidTargetData targetData) {
+    ResourceUrl url = ResourceUrl.parse(resourceValue);
+    return url != null && url.framework && !targetData.isResourcePublic(url.type.getName(), url.name);
   }
 
   public abstract static class SwatchIcon implements Icon {
