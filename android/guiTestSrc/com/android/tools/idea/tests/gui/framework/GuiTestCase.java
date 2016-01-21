@@ -109,6 +109,7 @@ public abstract class GuiTestCase {
     ProjectManagerEx.getInstanceEx().blockReloadingProjectOnExternalChanges();
 
     assumeTrue("Cannot run GUI tests headless.", canRunGuiTests());
+    assumeTrue("An IDE internal error occurred previously.", !doesIdeHaveFatalErrors());  // TODO: can we restart the IDE instead?
 
     Application application = ApplicationManager.getApplication();
     assertNotNull(application); // verify that we are using the IDE's ClassLoader.
