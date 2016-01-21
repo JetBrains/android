@@ -313,10 +313,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       debug = true;
     }
 
-    if (InstantRunSettings.isInstantRunEnabled(project)) {
-      InstantRunManager.warnOnObsoletePreviewGradlePlugin(project);
-    }
-
     DeviceFutures deviceFutures = null;
     AndroidSessionInfo info = AndroidSessionInfo.findOldSession(project, executor, getUniqueID());
 
