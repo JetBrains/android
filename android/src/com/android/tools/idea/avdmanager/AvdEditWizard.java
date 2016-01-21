@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.avdmanager;
 
+import com.android.repository.io.FileOp;
+import com.android.repository.io.FileOpUtils;
 import com.android.resources.ScreenOrientation;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.ISystemImage;
@@ -26,6 +28,7 @@ import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.internal.avd.HardwareProperties;
 import com.android.tools.idea.ddms.screenshot.DeviceArtDescriptor;
 import com.android.tools.idea.wizard.dynamic.*;
+import com.android.utils.FileUtils;
 import com.google.common.base.Objects;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Maps;
@@ -38,11 +41,14 @@ import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
+import org.jetbrains.android.sdk.AndroidSdkData;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -255,6 +261,9 @@ public class AvdEditWizard extends DynamicWizard {
     Map<String, String> hardwareProperties = DeviceManager.getHardwareProperties(device);
     Map<String, Object> userEditedProperties = myState.flatten();
 
+    // Skin is handled separately below.
+    userEditedProperties.remove(AvdManager.AVD_INI_SKIN_PATH);
+
     // Remove the SD card setting that we're not using
     String sdCard = null;
 
@@ -324,7 +333,7 @@ public class AvdEditWizard extends DynamicWizard {
 
     File skinFile = myState.get(CUSTOM_SKIN_FILE_KEY);
     if (skinFile == null) {
-      skinFile = resolveSkinPath(device.getDefaultHardware().getSkinFile(), systemImageDescription);
+      skinFile = resolveSkinPath(device.getDefaultHardware().getSkinFile(), systemImageDescription, FileOpUtils.create());
     }
     File backupSkinFile = myState.get(BACKUP_SKIN_FILE_KEY);
     if (backupSkinFile != null) {
@@ -412,7 +421,7 @@ public class AvdEditWizard extends DynamicWizard {
    * @return The resolved path.
    */
   @Nullable
-  public static File resolveSkinPath(@Nullable File path, @Nullable SystemImageDescription image) {
+  public static File resolveSkinPath(@Nullable File path, @Nullable SystemImageDescription image, @NotNull FileOp fop) {
     if (path == null || path.getPath().isEmpty()) {
       return path;
     }
@@ -428,10 +437,31 @@ public class AvdEditWizard extends DynamicWizard {
           }
         }
       }
+      AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
+      File dest = null;
+      if (sdkData != null) {
+        File sdkDir = sdkData.getLocation();
+        File sdkSkinDir = new File(sdkDir, "skins");
+        dest = new File(sdkSkinDir, path.getPath());
+        if (fop.exists(dest)) {
+          return dest;
+        }
+      }
+
       File resourceDir = DeviceArtDescriptor.getBundledDescriptorsFolder();
       if (resourceDir != null) {
         File resourcePath = new File(resourceDir, path.getPath());
-        if (resourcePath.exists()) {
+        if (fop.exists(resourcePath)) {
+          if (dest != null) {
+            try {
+              FileOpUtils.recursiveCopy(resourcePath, dest.getParentFile(), fop);
+              return new File(dest, path.getPath());
+            }
+            catch (IOException e) {
+              LOG.warn(String.format("Failed to copy skin directory to %1$s, using studio-relative path %2$s",
+                                     dest, resourcePath));
+            }
+          }
           return resourcePath;
         }
       }

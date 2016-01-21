@@ -16,6 +16,7 @@
 package com.android.tools.idea.avdmanager;
 
 import com.android.ide.common.rendering.HardwareConfigHelper;
+import com.android.repository.io.FileOpUtils;
 import com.android.resources.Keyboard;
 import com.android.resources.Navigation;
 import com.android.resources.ScreenOrientation;
@@ -279,7 +280,7 @@ public final class AvdDeviceData implements Disposable{
     myHasGps.set(defaultHardware.getSensors().contains(Sensor.GPS));
     myHasProximitySensor.set(defaultHardware.getSensors().contains(Sensor.PROXIMITY_SENSOR));
 
-    File skinFile = AvdEditWizard.resolveSkinPath(defaultHardware.getSkinFile(), null);
+    File skinFile = AvdEditWizard.resolveSkinPath(defaultHardware.getSkinFile(), null, FileOpUtils.create());
     myCustomSkinFile.setValue((skinFile == null) ? AvdWizardConstants.NO_SKIN : skinFile);
 
     myIsTv.set(HardwareConfigHelper.isTv(device));
