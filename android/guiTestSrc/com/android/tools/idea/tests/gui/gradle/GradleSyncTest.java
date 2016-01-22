@@ -53,6 +53,7 @@ import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
+import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.JavaSdkVersion;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkAdditionalData;
@@ -1239,8 +1240,9 @@ public class GradleSyncTest extends GuiTestCase {
     assertEquals(JDK_1_7, getJavaLanguageLevel(app));
   }
 
-  @Test @IdeGuiTest(runWithMinimumJdkVersion = JavaSdkVersion.JDK_1_8)
+  @Test
   public void testModuleLanguageLevelWithJdk8() throws IOException {
+    assumeTrue("needs JDK 1.8 or newer", JavaSdk.getInstance().getVersion(IdeSdks.getJdk()).isAtLeast(JavaSdkVersion.JDK_1_8));
     myProjectFrame = importProjectAndWaitForProjectSyncToFinish("MultipleModuleTypes");
     Module javaLib = myProjectFrame.getModule("javaLib");
     assertEquals(JDK_1_8, getJavaLanguageLevel(javaLib));

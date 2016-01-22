@@ -45,10 +45,6 @@ public class MethodInvoker extends Statement {
 
   @Override
   public void evaluate() throws Throwable {
-    if (myTestConfigurator.shouldSkipTest()) {
-      // Message already printed in console.
-      return;
-    }
     String testFqn = getTestFqn();
     System.out.println(String.format("Executing test '%1$s'", testFqn));
 
