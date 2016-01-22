@@ -282,7 +282,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     }
 
     AndroidGradleModel model = AndroidGradleModel.get(module);
-    if (model == null || InstantRunManager.isInstantRunSupported(model)) {
+    if (model == null || InstantRunManager.modelSupportsInstantRun(model)) {
       myOldVersionLabel.setVisible(false);
       return;
     }
