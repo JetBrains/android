@@ -33,7 +33,6 @@ import static org.junit.Assert.assertNotNull;
  * access IDE's services, state and components.)
  */
 class GuiTestConfigurator {
-  private static final String CLOSE_PROJECT_BEFORE_EXECUTION_KEY = "closeProjectBeforeExecution";
   private static final String RETRY_COUNT_KEY = "retryCount";
   private static final String SKIP_SOURCE_GENERATION_ON_SYNC_KEY = "skipSourceGenerationOnSync";
   private static final String TAKE_SCREENSHOT_ON_TEST_FAILURE_KEY = "takeScreenshotOnTestFailure";
@@ -41,7 +40,6 @@ class GuiTestConfigurator {
   @NotNull private final Object myTest;
   @NotNull private final ClassLoader myClassLoader;
 
-  private final boolean myCloseProjectBeforeExecution;
   private final int myRetryCount;
   private final boolean mySkipSourceGenerationOnSync;
   private final boolean myTakeScreenshotOnTestFailure;
@@ -64,7 +62,6 @@ class GuiTestConfigurator {
     Map<String, Object> config = Maps.newHashMap();
     IdeGuiTest guiTest = testMethod.getAnnotation(IdeGuiTest.class);
     if (guiTest != null) {
-      config.put(CLOSE_PROJECT_BEFORE_EXECUTION_KEY, guiTest.closeProjectBeforeExecution());
       config.put(RETRY_COUNT_KEY, guiTest.retryCount());
     }
     IdeGuiTestSetup guiTestSetup = testMethod.getDeclaringClass().getAnnotation(IdeGuiTestSetup.class);
@@ -78,7 +75,6 @@ class GuiTestConfigurator {
   private GuiTestConfigurator(@NotNull Map<String, Object> configuration,
                               @NotNull Object test,
                               @NotNull ClassLoader classLoader) {
-    myCloseProjectBeforeExecution = getBooleanValue(CLOSE_PROJECT_BEFORE_EXECUTION_KEY, configuration, true);
     myRetryCount = getIntValue(RETRY_COUNT_KEY, configuration, 0);
     mySkipSourceGenerationOnSync = getBooleanValue(SKIP_SOURCE_GENERATION_ON_SYNC_KEY, configuration, false);
     myTakeScreenshotOnTestFailure = getBooleanValue(TAKE_SCREENSHOT_ON_TEST_FAILURE_KEY, configuration, true);
@@ -118,9 +114,7 @@ class GuiTestConfigurator {
   }
 
   private void closeAllProjects() {
-    if (myCloseProjectBeforeExecution) {
-      method("closeAllProjects").in(myTest).invoke();
-    }
+    method("closeAllProjects").in(myTest).invoke();
   }
 
   private void skipSourceGenerationOnSync() throws Throwable {
