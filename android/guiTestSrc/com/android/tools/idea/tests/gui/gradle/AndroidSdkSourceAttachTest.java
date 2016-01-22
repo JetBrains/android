@@ -16,9 +16,9 @@
 package com.android.tools.idea.tests.gui.gradle;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
-import com.android.tools.idea.tests.gui.framework.IdeGuiTestSetup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorNotificationPanelFixture;
 import com.intellij.ide.util.PropertiesComponent;
@@ -52,7 +52,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assume.assumeTrue;
 
 @BelongsToTestGroups({PROJECT_SUPPORT})
-@IdeGuiTestSetup(skipSourceGenerationOnSync = true)
 public class AndroidSdkSourceAttachTest extends GuiTestCase {
   private static final String ANDROID_PLATFORM = "android-23";
 
@@ -60,6 +59,11 @@ public class AndroidSdkSourceAttachTest extends GuiTestCase {
   private Sdk mySdk;
   private File mySdkSourcePath;
   private File mySdkSourceTmpPath;
+
+  @Before
+  public void skipSourceGenerationOnSync() {
+    GradleExperimentalSettings.getInstance().SKIP_SOURCE_GEN_ON_PROJECT_SYNC = true;
+  }
 
   @Before
   public void restoreAndroidSdkSource() throws IOException {

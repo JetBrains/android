@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.framework;
 
-import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.google.common.collect.Maps;
 import org.fest.reflect.reference.TypeRef;
 import org.jetbrains.annotations.NotNull;
@@ -32,13 +31,10 @@ import static org.junit.Assert.assertNotNull;
  * access IDE's services, state and components.)
  */
 class GuiTestConfigurator {
-  private static final String SKIP_SOURCE_GENERATION_ON_SYNC_KEY = "skipSourceGenerationOnSync";
   private static final String TAKE_SCREENSHOT_ON_TEST_FAILURE_KEY = "takeScreenshotOnTestFailure";
 
   @NotNull private final Object myTest;
-  @NotNull private final ClassLoader myClassLoader;
 
-  private final boolean mySkipSourceGenerationOnSync;
   private final boolean myTakeScreenshotOnTestFailure;
 
   @NotNull
@@ -50,7 +46,7 @@ class GuiTestConfigurator {
                                                                        .in(target)
                                                                        .invoke(testMethod);
     assertNotNull(testConfig);
-    return new GuiTestConfigurator(testConfig, test, classLoader);
+    return new GuiTestConfigurator(testConfig, test);
   }
 
   // Invoked using reflection and the IDE's ClassLoader.
@@ -59,20 +55,16 @@ class GuiTestConfigurator {
     Map<String, Object> config = Maps.newHashMap();
     IdeGuiTestSetup guiTestSetup = testMethod.getDeclaringClass().getAnnotation(IdeGuiTestSetup.class);
     if (guiTestSetup != null) {
-      config.put(SKIP_SOURCE_GENERATION_ON_SYNC_KEY, guiTestSetup.skipSourceGenerationOnSync());
       config.put(TAKE_SCREENSHOT_ON_TEST_FAILURE_KEY, guiTestSetup.takeScreenshotOnTestFailure());
     }
     return config;
   }
 
   private GuiTestConfigurator(@NotNull Map<String, Object> configuration,
-                              @NotNull Object test,
-                              @NotNull ClassLoader classLoader) {
-    mySkipSourceGenerationOnSync = getBooleanValue(SKIP_SOURCE_GENERATION_ON_SYNC_KEY, configuration, false);
+                              @NotNull Object test) {
     myTakeScreenshotOnTestFailure = getBooleanValue(TAKE_SCREENSHOT_ON_TEST_FAILURE_KEY, configuration, true);
 
     myTest = test;
-    myClassLoader = classLoader;
   }
 
   private static boolean getBooleanValue(@NotNull String key, @NotNull Map<String, Object> configuration, boolean defaultValue) {
@@ -85,32 +77,13 @@ class GuiTestConfigurator {
 
   void executeSetupTasks() throws Throwable {
     closeAllProjects();
-    skipSourceGenerationOnSync();
   }
 
   private void closeAllProjects() {
     method("closeAllProjects").in(myTest).invoke();
   }
 
-  private void skipSourceGenerationOnSync() throws Throwable {
-    if (mySkipSourceGenerationOnSync) {
-      Class<?> target = loadMyClassWithTestClassLoader();
-      method("doSkipSourceGenerationOnSync").in(target).invoke();
-    }
-  }
-
-  // Invoked using reflection and the IDE's ClassLoader.
-  private static void doSkipSourceGenerationOnSync() {
-    System.out.println("Skipping source generation on project sync.");
-    GradleExperimentalSettings.getInstance().SKIP_SOURCE_GEN_ON_PROJECT_SYNC = true;
-  }
-
   boolean shouldTakeScreenshotOnFailure() {
     return myTakeScreenshotOnTestFailure;
-  }
-
-  @NotNull
-  private Class<?> loadMyClassWithTestClassLoader() throws ClassNotFoundException {
-    return myClassLoader.loadClass(GuiTestConfigurator.class.getCanonicalName());
   }
 }
