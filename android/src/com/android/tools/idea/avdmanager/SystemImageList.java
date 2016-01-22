@@ -245,10 +245,6 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
         items.addAll(getLocalImages());
         // Update list in the UI immediately with the locally available system images
         updateListModel(items);
-        if (myTable.getRowCount() == 0) {
-          // If there are no visible rows, show the remote images.
-          myShowRemoteCheckbox.setSelected(true);
-        }
       }
     };
     RepoManager.RepoLoadedCallback remoteComplete = new RepoManager.RepoLoadedCallback() {
@@ -258,17 +254,18 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
         if (remotes != null) {
           items.addAll(remotes);
           updateListModel(items);
-          myRemoteStatusPanel.setVisible(false);
-          myRefreshButton.setEnabled(true);
+          myShowRemoteCheckbox.setEnabled(true);
         }
         else {
           myShowRemoteCheckbox.setEnabled(false);
           myShowRemoteCheckbox.setSelected(false);
-          myRemoteStatusPanel.setVisible(false);
         }
-        if (myTable.getRowCount() == 0) {
+        myRemoteStatusPanel.setVisible(false);
+        myRefreshButton.setEnabled(true);
+        if (!forceRefresh && myTable.getRowCount() == 0) {
           // If there are still no visible rows, show the non recommended system images.
           myShowRecommendedOnlyCheckbox.setSelected(false);
+          myModel.fireTableDataChanged();
         }
       }
     };
@@ -288,7 +285,7 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
 
     StudioProgressRunner runner = new StudioProgressRunner(false, true, false, "Loading Images", true, myProject);
     mySdkHandler.getSdkManager(LOGGER)
-      .load(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, ImmutableList.of(localComplete), ImmutableList.of(remoteComplete),
+      .load(forceRefresh ? 0 : RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, ImmutableList.of(localComplete), ImmutableList.of(remoteComplete),
             ImmutableList.of(error), runner, new StudioDownloader(), StudioSettingsController.getInstance(), false);
   }
 
