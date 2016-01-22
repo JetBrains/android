@@ -16,7 +16,6 @@
 package com.android.tools.idea.tests.gui.editing;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
-import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.CreateResourceFileDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.intellij.lang.annotation.HighlightSeverity;
@@ -26,7 +25,7 @@ import java.io.IOException;
 
 /** Tests creating new resources */
 public class CreateResourceTest extends GuiTestCase {
-  @Test @IdeGuiTest
+  @Test
   public void testLibraryPrefix() throws IOException {
     // Tests creating a new resource in a library project with a predefined library prefix,
     // and makes sure the prefix is correct, including checking that we don't end up with

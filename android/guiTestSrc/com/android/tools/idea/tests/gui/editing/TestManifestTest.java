@@ -16,7 +16,6 @@
 package com.android.tools.idea.tests.gui.editing;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
-import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.intellij.lang.annotation.HighlightSeverity;
 import org.junit.Test;
@@ -29,7 +28,6 @@ import java.io.IOException;
 public class TestManifestTest extends GuiTestCase {
 
   @Test
-  @IdeGuiTest
   public void testManifest() throws IOException {
     myProjectFrame = importProjectAndWaitForProjectSyncToFinish("ProjectWithUnitTests");
     EditorFixture editor = myProjectFrame.getEditor();

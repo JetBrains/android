@@ -19,7 +19,6 @@ import com.android.builder.model.AndroidProject;
 import com.android.builder.model.ApiVersion;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
-import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.FileFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.InspectionsFixture;
@@ -47,7 +46,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class NewProjectTest extends GuiTestCase {
-  @Test @IdeGuiTest
+  @Test
   public void testCreateNewMobileProject() {
     newProject("Test Application").create();
     FileFixture layoutFile = myProjectFrame.findExistingFileByRelativePath("app/src/main/res/layout/content_main.xml");
@@ -82,7 +81,7 @@ public class NewProjectTest extends GuiTestCase {
     }
   }
 
-  @Test @IdeGuiTest
+  @Test
   public void testNoWarningsInNewProjects() throws IOException {
     // Creates a new default project, and checks that if we run Analyze > Inspect Code, there are no warnings.
     // This checks that our (default) project templates are warnings-clean.
@@ -121,7 +120,7 @@ public class NewProjectTest extends GuiTestCase {
                  inspections.getResults());
   }
 
-  @Test @IdeGuiTest
+  @Test
   public void testRenderResourceInitialization() throws IOException {
     // Regression test for https://code.google.com/p/android/issues/detail?id=76966
     newProject("Test Application").withBriefNames().withMinSdk("9").create();
@@ -137,7 +136,7 @@ public class NewProjectTest extends GuiTestCase {
     myProjectFrame.waitForBackgroundTasksToFinish();
   }
 
-  @Test @IdeGuiTest
+  @Test
   public void testLanguageLevelForApi21() {
     newProject("Test Application").withBriefNames().withMinSdk("21").create();
 
@@ -157,7 +156,7 @@ public class NewProjectTest extends GuiTestCase {
     }
   }
 
-  @Test @IdeGuiTest
+  @Test
   public void testStillBuildingMessage() throws Exception {
     // Creates a new project with minSdk 15, which should use appcompat.
     // Check that if there are render-error messages on first render,

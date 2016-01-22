@@ -18,7 +18,6 @@ package com.android.tools.idea.tests.gui.gradle;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
-import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.SelectSdkDialogFixture;
 import org.junit.Test;
 
@@ -33,7 +32,7 @@ import static org.junit.Assume.assumeTrue;
 
 @BelongsToTestGroups({PROJECT_SUPPORT})
 public class GradleBuildTest extends GuiTestCase {
-  @Test @IdeGuiTest
+  @Test
   public void testBuildWithInvalidJavaHome() throws IOException {
     String jdkPathValue = System.getProperty("jdk.path");
     assumeTrue("jdk.path system property missing", !isEmpty(jdkPathValue));

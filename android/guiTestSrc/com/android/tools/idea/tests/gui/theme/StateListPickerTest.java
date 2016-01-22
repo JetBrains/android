@@ -18,7 +18,6 @@ package com.android.tools.idea.tests.gui.theme;
 import com.android.tools.idea.editors.theme.ui.ResourceComponent;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
-import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.ChooseResourceDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.*;
 import org.fest.swing.core.GenericTypeMatcher;
@@ -42,7 +41,6 @@ import static org.junit.Assert.*;
 @BelongsToTestGroups({THEME})
 public class StateListPickerTest extends GuiTestCase {
   @Test
-  @IdeGuiTest
   public void testStateList() throws IOException {
     myProjectFrame = importProjectAndWaitForProjectSyncToFinish("StateListApplication");
     ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(myProjectFrame);

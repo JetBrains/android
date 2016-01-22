@@ -18,7 +18,6 @@ package com.android.tools.idea.tests.gui.gradle;
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
-import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.intellij.openapi.compiler.CompileContext;
 import com.intellij.openapi.compiler.CompilerMessage;
 import org.junit.Test;
@@ -42,7 +41,7 @@ import static org.fest.assertions.Assertions.assertThat;
 public class MultipleModuleTypeCompilationTest extends GuiTestCase {
   private static final Pattern JPS_EXECUTING_TASKS_MSG_PATTERN = Pattern.compile("Gradle: Executing tasks: \\[(.*)\\]");
 
-  @Test @IdeGuiTest
+  @Test
   public void testAssembleTaskIsNotInvokedForLocalAarModule() throws IOException {
     myProjectFrame = importProjectAndWaitForProjectSyncToFinish("MultipleModuleTypes");
     GradleInvocationResult result = myProjectFrame.invokeProjectMake();
@@ -51,7 +50,7 @@ public class MultipleModuleTypeCompilationTest extends GuiTestCase {
     assertThat(invokedTasks).containsOnly(":app:compileDebugSources", ":app:compileDebugAndroidTestSources", ":javaLib:compileJava");
   }
 
-  @Test @IdeGuiTest
+  @Test
   public void testAssembleTaskIsNotInvokedForLocalAarModuleOnJps() throws IOException {
     myProjectFrame = importProjectAndWaitForProjectSyncToFinish("MultipleModuleTypes");
     CompileContext context = myProjectFrame.invokeProjectMakeUsingJps();

@@ -16,12 +16,11 @@
 package com.android.tools.idea.tests.gui.avdmanager;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
-import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.*;
 import org.junit.Test;
 
 public class AvdListDialogTest extends GuiTestCase {
-  @Test @IdeGuiTest
+  @Test
   public void testCreateAvd() throws Exception {
     myProjectFrame = importSimpleApplication();
     AvdManagerDialogFixture avdManagerDialog = myProjectFrame.invokeAvdManager();
@@ -52,7 +51,7 @@ public class AvdListDialogTest extends GuiTestCase {
     avdManagerDialog.close();
   }
 
-  @Test @IdeGuiTest
+  @Test
   public void testEditAvd() throws Exception {
     myProjectFrame = importSimpleApplication();
 
