@@ -475,7 +475,7 @@ public class DeviceChooser implements Disposable, AndroidDebugBridge.IDebugBridg
         case COMPATIBILITY_COLUMN_INDEX:
           // This value is also used in the method isRowCompatible(). Update that if there's a change here.
           return LaunchCompatibility
-            .canRunOnDevice(myMinSdkVersion, myProjectTarget, myRequiredHardwareFeatures, new ConnectedAndroidDevice(device, null), null);
+            .canRunOnDevice(myMinSdkVersion, myProjectTarget, myRequiredHardwareFeatures, new ConnectedAndroidDevice(device, null));
       }
       return null;
     }
