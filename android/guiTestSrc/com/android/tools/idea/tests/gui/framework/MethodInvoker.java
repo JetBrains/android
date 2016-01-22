@@ -35,7 +35,7 @@ public class MethodInvoker extends Statement {
   @NotNull private final Object myTest;
   @NotNull private final ScreenshotTaker myScreenshotTaker;
 
-  MethodInvoker(@NotNull FrameworkMethod testMethod, @NotNull Object test, @NotNull ScreenshotTaker screenshotTaker) throws Throwable {
+  MethodInvoker(@NotNull FrameworkMethod testMethod, @NotNull Object test, @NotNull ScreenshotTaker screenshotTaker) {
     myTestMethod = testMethod;
     myTest = test;
     myScreenshotTaker = screenshotTaker;
