@@ -20,7 +20,6 @@ import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
-import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.FileFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.ConfigurationToolbarFixture;
@@ -64,7 +63,7 @@ public class LayoutPreviewTest extends GuiTestCase {
   public static final String THUMBNAIL_FOLDER = "thumbnails";
 
   @Ignore("failed in http://go/aj/job/studio-ui-test/326 and from IDEA")
-  @Test @IdeGuiTest
+  @Test
   public void testConfigurationTweaks() throws Exception {
     // Open an editor, wait for the layout preview window to open, toggle
     // orientation to landscape, create a landscape variation file, ensure
@@ -131,7 +130,7 @@ public class LayoutPreviewTest extends GuiTestCase {
     editor.requireFolderName("layout");
   }
 
-  @Test @IdeGuiTest
+  @Test
   @Ignore  // TODO: Remove when issue 76009 is fixed.
   public void testPreviewConfigurationTweaks() throws Exception {
     myProjectFrame = importSimpleApplication();
@@ -164,7 +163,7 @@ public class LayoutPreviewTest extends GuiTestCase {
   }
 
   @Ignore("failed in http://go/aj/job/studio-ui-test/326 and from IDEA")
-  @Test @IdeGuiTest
+  @Test
   public void testEdits() throws Exception {
     myProjectFrame = importSimpleApplication();
 
@@ -207,7 +206,7 @@ public class LayoutPreviewTest extends GuiTestCase {
     preview.requireRenderSuccessful();
   }
 
-  @Test @IdeGuiTest
+  @Test
   public void testConfigurationMatching() throws Exception {
     // Opens the LayoutTest project, opens a layout with a custom view, checks
     // that it can't render yet (because the project hasn't been built),
@@ -267,7 +266,7 @@ public class LayoutPreviewTest extends GuiTestCase {
   }
 
   @Ignore("failed in http://go/aj/job/studio-ui-test/326 and from IDEA")
-  @Test @IdeGuiTest
+  @Test
   public void testRendering() throws Exception {
     // Opens a number of layouts in the layout test project and checks that the rendering looks roughly
     // correct.
@@ -332,7 +331,7 @@ public class LayoutPreviewTest extends GuiTestCase {
   }
 
   @Ignore("failed in http://go/aj/job/studio-ui-test/326 and from IDEA")
-  @Test @IdeGuiTest
+  @Test
   public void testEditCustomView() throws Exception {
     // Opens the LayoutTest project, opens a layout with a custom view, checks
     // that it can't render yet (because the project hasn't been built),
@@ -398,7 +397,7 @@ public class LayoutPreviewTest extends GuiTestCase {
     preview.requireRenderSuccessful(); // but our build timestamp check this time will mask the out of date warning
   }
 
-  @Test @IdeGuiTest
+  @Test
   public void testRenderingDynamicResources() throws Exception {
     // Opens a layout which contains dynamic resources (defined only in build.gradle)
     // and checks that the values have been resolved correctly (both that there are no

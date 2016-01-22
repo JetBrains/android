@@ -16,7 +16,6 @@
 package com.android.tools.idea.tests.gui.emulator;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
-import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.intellij.debugger.engine.evaluation.EvaluateException;
 import org.fest.swing.util.PatternTextMatcher;
@@ -36,7 +35,7 @@ public class LaunchAndroidApplicationTest extends GuiTestCase {
     ".*local path: (?:[^\\/]*[\\/])*SimpleApplication/app/build/outputs/apk/app-debug\\.apk.*", Pattern.DOTALL);
 
   @Ignore
-  @Test @IdeGuiTest
+  @Test
   public void testRunOnEmulator() throws IOException, ClassNotFoundException {
     myProjectFrame = importSimpleApplication();
 
@@ -53,7 +52,7 @@ public class LaunchAndroidApplicationTest extends GuiTestCase {
   }
 
   @Ignore
-  @Test @IdeGuiTest
+  @Test
   public void testDebugOnEmulator() throws IOException, ClassNotFoundException, EvaluateException {
     myProjectFrame = importSimpleApplication();
     final EditorFixture editor = myProjectFrame.getEditor();

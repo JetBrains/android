@@ -19,7 +19,6 @@ import com.android.tools.idea.gradle.GradleModel;
 import com.android.tools.idea.gradle.project.subset.ModulesToImportDialog;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
-import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.FileChooserDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeaDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeaDialogFixture.DialogAndWrapper;
@@ -102,7 +101,7 @@ public class ModulesToImportDialogTest extends GuiTestCase {
     return module;
   }
 
-  @Test @IdeGuiTest
+  @Test
   public void testModuleSelection() throws IOException {
     myDialogAndWrapper = launchDialog();
 
@@ -153,7 +152,7 @@ public class ModulesToImportDialogTest extends GuiTestCase {
     assertThat(selectedModules).containsOnly(myProjectModule, myAppModule);
   }
 
-  @Test @IdeGuiTest
+  @Test
   public void testQuickSearch() {
     myDialogAndWrapper = launchDialog();
 

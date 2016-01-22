@@ -18,7 +18,6 @@ package com.android.tools.idea.tests.gui.gradle;
 import com.android.tools.idea.gradle.project.ChooseGradleHomeDialog;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
-import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.ChooseGradleHomeDialogFixture;
 import com.intellij.openapi.application.ApplicationManager;
 import org.fest.swing.edt.GuiQuery;
@@ -39,7 +38,7 @@ import static org.junit.Assume.assumeTrue;
  */
 @BelongsToTestGroups({PROJECT_SUPPORT})
 public class ChooseGradleHomeDialogTest extends GuiTestCase {
-  @Test @IdeGuiTest
+  @Test
   public void testValidationWithInvalidMinimumGradleVersion() {
     File unsupportedGradleHome = getUnsupportedGradleHome();
     assumeTrue(unsupportedGradleHome != null);

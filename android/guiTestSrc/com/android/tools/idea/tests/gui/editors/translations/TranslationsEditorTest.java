@@ -16,7 +16,6 @@
 package com.android.tools.idea.tests.gui.editors.translations;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
-import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorNotificationPanelFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.TranslationsEditorFixture;
@@ -39,7 +38,7 @@ import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.junit.Assert.*;
 
 public class TranslationsEditorTest extends GuiTestCase {
-  @Test @IdeGuiTest
+  @Test
   public void testBasics() throws IOException {
     myProjectFrame = importSimpleApplication();
 

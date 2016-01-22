@@ -18,7 +18,6 @@ package com.android.tools.idea.tests.gui.gradle;
 import com.android.SdkConstants;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
-import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTestSetup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorNotificationPanelFixture;
@@ -78,7 +77,7 @@ public class AndroidSdkSourceAttachTest extends GuiTestCase {
   }
 
   @Ignore("failed in http://go/aj/job/studio-ui-test/326 and from IDEA")
-  @Test @IdeGuiTest
+  @Test
   public void testDownloadSdkSource() throws IOException {
     assumeTrue("SDK with platform '" + ANDROID_PLATFORM + "' not found", mySdk == null);
 
@@ -124,7 +123,7 @@ public class AndroidSdkSourceAttachTest extends GuiTestCase {
   }
 
   @Ignore("failed in http://go/aj/job/studio-ui-test/326 and from IDEA")
-  @Test @IdeGuiTest
+  @Test
   public void testRefreshSdkSource() throws IOException {
     assumeTrue("SDK with platform '" + ANDROID_PLATFORM + "' not found", mySdk == null);
     assumeTrue("Android Sdk Source for '" + mySdk.getName() + "' must be installed before running 'testRefreshSdkSource'",

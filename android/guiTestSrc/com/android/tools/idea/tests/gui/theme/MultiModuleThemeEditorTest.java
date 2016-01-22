@@ -17,7 +17,6 @@ package com.android.tools.idea.tests.gui.theme;
 
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
-import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorFixture;
 import com.intellij.notification.EventLog;
 import com.intellij.notification.LogModel;
@@ -39,7 +38,6 @@ import static org.junit.Assert.assertThat;
 @BelongsToTestGroups({THEME})
 public class MultiModuleThemeEditorTest extends GuiTestCase {
   @Test
-  @IdeGuiTest
   public void testMultipleModules() throws IOException {
     myProjectFrame = importProjectAndWaitForProjectSyncToFinish("MultiAndroidModule");
     final ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(myProjectFrame);
@@ -70,7 +68,6 @@ public class MultiModuleThemeEditorTest extends GuiTestCase {
   }
 
   @Test
-  @IdeGuiTest
   public void testModuleWithoutThemes() throws IOException {
     myProjectFrame = importProjectAndWaitForProjectSyncToFinish("MultiAndroidModule");
     final ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(myProjectFrame);
