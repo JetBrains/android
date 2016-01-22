@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project;
 
+import com.android.ide.common.repository.GradleVersion;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -23,15 +24,15 @@ public class PostProjectSetupTasksExecutorTest {
 
   @Test
   public void testCompareVersions() throws Exception {
-    assertFalse(PostProjectSetupTasksExecutor.needsUpdate("2.0.0", "2.0.0"));
-    assertFalse(PostProjectSetupTasksExecutor.needsUpdate("2.0.0", "2.0.0-alpha1"));
-    assertFalse(PostProjectSetupTasksExecutor.needsUpdate("2.0.0", "2.0.0-beta1"));
-    assertFalse(PostProjectSetupTasksExecutor.needsUpdate("2.0.0-alpha6", "2.0.0-alpha5"));
-    assertTrue(PostProjectSetupTasksExecutor.needsUpdate("2.0.0-alpha1", "2.0.0"));
-    assertTrue(PostProjectSetupTasksExecutor.needsUpdate("2.0.0-alpha1", "2.0.0-alpha2"));
-    assertTrue(PostProjectSetupTasksExecutor.needsUpdate("2.0.0-alpha1", "2.0.0-rc1"));
-    assertTrue(PostProjectSetupTasksExecutor.needsUpdate("2.0.0-alpha2", "2.0.0-rc1"));
-    assertTrue(PostProjectSetupTasksExecutor.needsUpdate("2.0.0-alpha1", "2.0.0-beta1"));
-    assertTrue(PostProjectSetupTasksExecutor.needsUpdate("2.0.0-beta1", "2.0.0"));
+    assertFalse(PostProjectSetupTasksExecutor.androidPluginNeedsUpdate(GradleVersion.parse("2.0.0"), "2.0.0"));
+    assertFalse(PostProjectSetupTasksExecutor.androidPluginNeedsUpdate(GradleVersion.parse("2.0.0"), "2.0.0-alpha1"));
+    assertFalse(PostProjectSetupTasksExecutor.androidPluginNeedsUpdate(GradleVersion.parse("2.0.0"), "2.0.0-beta1"));
+    assertFalse(PostProjectSetupTasksExecutor.androidPluginNeedsUpdate(GradleVersion.parse("2.0.0-alpha6"), "2.0.0-alpha5"));
+    assertTrue(PostProjectSetupTasksExecutor.androidPluginNeedsUpdate(GradleVersion.parse("2.0.0-alpha1"), "2.0.0"));
+    assertTrue(PostProjectSetupTasksExecutor.androidPluginNeedsUpdate(GradleVersion.parse("2.0.0-alpha1"), "2.0.0-alpha2"));
+    assertTrue(PostProjectSetupTasksExecutor.androidPluginNeedsUpdate(GradleVersion.parse("2.0.0-alpha1"), "2.0.0-rc1"));
+    assertTrue(PostProjectSetupTasksExecutor.androidPluginNeedsUpdate(GradleVersion.parse("2.0.0-alpha2"), "2.0.0-rc1"));
+    assertTrue(PostProjectSetupTasksExecutor.androidPluginNeedsUpdate(GradleVersion.parse("2.0.0-alpha1"), "2.0.0-beta1"));
+    assertTrue(PostProjectSetupTasksExecutor.androidPluginNeedsUpdate(GradleVersion.parse("2.0.0-beta1"), "2.0.0"));
   }
 }
