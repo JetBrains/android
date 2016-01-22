@@ -16,7 +16,6 @@
 package com.android.tools.idea.tests.gui;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
-import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import org.fest.swing.core.Robot;
 import org.junit.After;
 import org.junit.Before;
@@ -33,7 +32,7 @@ public class GuiTestRunnerTest extends GuiTestCase {
     myRobot = null;
   }
 
-  @Test @IdeGuiTest
+  @Test
   public void beforeMethodsOrder() {
     // If setRobotToNull was executed after @Before methods from GuiTestCase, this should pass.
     assertNull(myRobot);

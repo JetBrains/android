@@ -18,7 +18,6 @@ package com.android.tools.idea.tests.gui.theme;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
-import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.RenameRefactoringDialogFixture;
@@ -54,7 +53,7 @@ public class ThemeSelectorTest extends GuiTestCase {
    * Tests the theme renaming functionality of the theme selector
    * and that IntelliJ's Undo works can revert this action
    */
-  @Test @IdeGuiTest
+  @Test
   public void testRenameTheme() throws IOException {
     myProjectFrame = importSimpleApplication();
     ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(myProjectFrame);
@@ -122,7 +121,7 @@ public class ThemeSelectorTest extends GuiTestCase {
   /**
    * Tests the Show all themes dialog from the theme selector
    */
-  @Test @IdeGuiTest
+  @Test
   public void testShowAllThemes() throws IOException {
     myProjectFrame = importSimpleApplication();
     ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(myProjectFrame);
@@ -164,7 +163,7 @@ public class ThemeSelectorTest extends GuiTestCase {
    * Tests the theme creation functionality of the theme selector
    * and that IntelliJ's Undo can revert this action
    */
-  @Test @IdeGuiTest
+  @Test
   public void testCreateNewTheme() throws IOException {
     myProjectFrame = importSimpleApplication();
     ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(myProjectFrame);
@@ -244,7 +243,7 @@ public class ThemeSelectorTest extends GuiTestCase {
    * Test that we can open the simple application and the theme editor opens correctly.
    */
   @Ignore("failed in http://go/aj/job/studio-ui-test/326 and from IDEA")
-  @Test @IdeGuiTest
+  @Test
   public void testRemoveAppCompat() throws IOException {
     IdeFrameFixture projectFrame = importSimpleApplication();
     ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(projectFrame);

@@ -19,7 +19,6 @@ import com.android.tools.idea.gradle.dsl.model.dependencies.ModuleDependencyMode
 import com.android.tools.idea.gradle.dsl.model.dependencies.ModuleDependencyTest.ExpectedModuleDependency;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
-import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTestSetup;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleBuildModelFixture;
 import org.junit.Test;
@@ -34,7 +33,7 @@ import static org.fest.assertions.Assertions.assertThat;
 @IdeGuiTestSetup(skipSourceGenerationOnSync = true)
 public class GradleDslModuleDependenciesParsingTest extends GuiTestCase {
 
-  @Test @IdeGuiTest
+  @Test
   public void testParsingProjectDependencies() throws IOException {
     myProjectFrame = importProjectAndWaitForProjectSyncToFinish("ModuleDependencies");
 
@@ -69,7 +68,7 @@ public class GradleDslModuleDependenciesParsingTest extends GuiTestCase {
     expected.assertMatches(dependencies.get(3));
   }
 
-  @Test @IdeGuiTest
+  @Test
   public void testRenameProjectDependency() throws IOException {
     myProjectFrame = importProjectAndWaitForProjectSyncToFinish("ModuleDependencies");
 

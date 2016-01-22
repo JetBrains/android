@@ -18,7 +18,6 @@ package com.android.tools.idea.tests.gui.gradle;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
-import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTestSetup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.google.common.base.Joiner;
@@ -68,7 +67,7 @@ public class GradleTestArtifactSyncTest extends GuiTestCase {
   }
 
   @Ignore("failed in http://go/aj/job/studio-ui-test/326 but passed from IDEA")
-  @Test @IdeGuiTest
+  @Test
   public void testLoadAllTestArtifacts() throws IOException {
     myProjectFrame = importProjectAndWaitForProjectSyncToFinish("LoadMultiTestArtifacts");
     EditorFixture editor = myProjectFrame.getEditor();
@@ -108,7 +107,7 @@ public class GradleTestArtifactSyncTest extends GuiTestCase {
     assertThat(file.getPath()).endsWith(path);
   }
 
-  @Test @IdeGuiTest
+  @Test
   public void testTestFileBackground() throws Exception {
     myProjectFrame = importSimpleApplication();
     EditorFixture editor = myProjectFrame.getEditor();

@@ -17,7 +17,6 @@ package com.android.tools.idea.tests.gui.editors.hprof;
 
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
-import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTestSetup;
 import com.android.tools.idea.tests.gui.framework.fixture.CapturesToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.HprofEditorFixture;
@@ -49,7 +48,6 @@ public class HprofEditorTest extends GuiTestCase {
   }
 
   @Test
-  @IdeGuiTest
   public void testInitialState() throws IOException {
     init();
 

@@ -19,7 +19,6 @@ import com.android.SdkConstants;
 import com.android.repository.Revision;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
-import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTestSetup;
 import com.android.tools.idea.tests.gui.framework.fixture.BuildVariantsToolWindowFixture;
 import com.intellij.openapi.module.Module;
@@ -47,7 +46,7 @@ import static org.junit.Assert.assertNotNull;
 public class BuildVariantsTest extends GuiTestCase {
   private static final String MODULE_NAME = "app";
 
-  @Test @IdeGuiTest
+  @Test
   public void testSwitchVariantWithFlavor() throws IOException {
     myProjectFrame = importProjectAndWaitForProjectSyncToFinish("Flavoredlib");
 
@@ -89,7 +88,7 @@ public class BuildVariantsTest extends GuiTestCase {
   }
 
   @Ignore("failed in http://go/aj/job/studio-ui-test/326 but passed from IDEA")
-  @Test @IdeGuiTest
+  @Test
   public void switchingTestArtifacts() throws IOException {
     myProjectFrame = importProjectAndWaitForProjectSyncToFinish("SimpleApplication");
 
@@ -108,23 +107,23 @@ public class BuildVariantsTest extends GuiTestCase {
     assertThat(testSourceFolders).contains(unitTestSrc).excludes(androidTestSrc);
   }
 
-  @Test @IdeGuiTest
+  @Test
   // TODO add data provider to UI test infrastruture, similar to JUnit 4
   public void generatedFolders_1_0() throws IOException {
     doTestGeneratedFolders("1.0.1", "2.2.1");
   }
 
-  @Test @IdeGuiTest
+  @Test
   public void generatedFolders_1_1() throws IOException {
     doTestGeneratedFolders("1.1.3", "2.2.1");
   }
 
-  @Test @IdeGuiTest
+  @Test
   public void generatedFolders_1_2() throws IOException {
     doTestGeneratedFolders("1.2.3", "2.4");
   }
 
-  @Test @IdeGuiTest
+  @Test
   public void generatedFolders_1_3() throws IOException {
     doTestGeneratedFolders("1.3.0", "2.4");
   }

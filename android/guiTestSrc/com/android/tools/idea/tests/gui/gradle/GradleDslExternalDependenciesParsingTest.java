@@ -20,7 +20,6 @@ import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyTe
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
-import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTestSetup;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleBuildModelFixture;
 import org.junit.Test;
@@ -36,7 +35,7 @@ import static org.fest.assertions.Assertions.assertThat;
 @BelongsToTestGroups({PROJECT_SUPPORT})
 @IdeGuiTestSetup(skipSourceGenerationOnSync = true)
 public class GradleDslExternalDependenciesParsingTest extends GuiTestCase {
-  @Test @IdeGuiTest
+  @Test
   public void testParseExternalDependenciesWithCompactNotation() throws IOException {
     myProjectFrame = importSimpleApplication();
 
@@ -53,7 +52,7 @@ public class GradleDslExternalDependenciesParsingTest extends GuiTestCase {
     expected.assertMatches(dependencies.get(1));
   }
 
-  @Test @IdeGuiTest
+  @Test
   public void testSetVersionOnExternalDependencyWithCompactNotation() throws IOException {
     myProjectFrame = importSimpleApplication();
     final GradleBuildModelFixture buildModel = myProjectFrame.parseBuildFileForModule("app", true);
