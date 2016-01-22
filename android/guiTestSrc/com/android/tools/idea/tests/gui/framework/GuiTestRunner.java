@@ -35,12 +35,10 @@ public class GuiTestRunner extends BlockJUnit4ClassRunner {
 
   private TestClass myTestClass;
 
-  @Nullable private final ScreenshotTaker myScreenshotTaker;
+  @Nullable private ScreenshotTaker myScreenshotTaker;
 
   public GuiTestRunner(Class<?> testClass) throws InitializationError {
     super(testClass);
-
-    myScreenshotTaker = !GraphicsEnvironment.isHeadless() ? new ScreenshotTaker() : null;
 
     // UI_TEST_MODE is set whenever we run UI tests on top of a Studio build. In that case, we
     // assume the classpath has been properly configured. Otherwise, if we're running from the
@@ -74,7 +72,7 @@ public class GuiTestRunner extends BlockJUnit4ClassRunner {
     catch (Exception e) {
       return new Fail(e);
     }
-    return super.methodBlock(new FrameworkMethod(methodFromClassLoader));  // calls createTest, overridden below
+    return super.methodBlock(new FrameworkMethod(methodFromClassLoader));
   }
 
   private static Statement falseAssumption(final String message) {
@@ -86,19 +84,27 @@ public class GuiTestRunner extends BlockJUnit4ClassRunner {
     };
   }
 
+  /** Called by {@link BlockJUnit4ClassRunner#methodBlock}. */
   @Override
   protected Object createTest() throws Exception {
     return myTestClass.getOnlyConstructor().newInstance();
   }
 
+  /** Called by {@link BlockJUnit4ClassRunner#methodBlock}. */
   @Override
   protected Statement methodInvoker(final FrameworkMethod method, Object test) {
-    try {
-      assertNotNull(myScreenshotTaker);
-      return new MethodInvoker(method, test, myScreenshotTaker);
+    return new MethodInvoker(method, test, getScreenshotTaker());
+  }
+
+  /**
+   * Lazily initializes and returns {@link #myScreenshotTaker}.
+   *
+   * @throws org.fest.swing.image.ImageException if {@link GraphicsEnvironment#isHeadless} returns true.
+   */
+  private ScreenshotTaker getScreenshotTaker() {
+    if (myScreenshotTaker == null) {
+      myScreenshotTaker = new ScreenshotTaker();
     }
-    catch (Throwable e) {
-      return new Fail(e);
-    }
+    return myScreenshotTaker;
   }
 }
