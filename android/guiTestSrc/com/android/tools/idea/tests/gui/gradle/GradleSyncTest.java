@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.gradle;
 
-import com.android.repository.Revision;
+import com.android.ide.common.repository.GradleVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
@@ -1321,7 +1321,7 @@ public class GradleSyncTest extends GuiTestCase {
     myProjectFrame.waitForGradleProjectSyncToFail();
 
     // Check the top-level build.gradle got updated.
-    Revision newVersion = getAndroidGradleModelVersionFromBuildFile(myProjectFrame.getProject());
+    GradleVersion newVersion = getAndroidGradleModelVersionFromBuildFile(myProjectFrame.getProject());
     assertNotNull(newVersion);
     assertThat(newVersion.toString()).isEqualTo(GRADLE_PLUGIN_RECOMMENDED_VERSION);
 

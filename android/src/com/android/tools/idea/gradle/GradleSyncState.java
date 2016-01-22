@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle;
 
-import com.android.repository.Revision;
+import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.android.tools.idea.startup.AndroidStudioInitializer;
@@ -206,7 +206,7 @@ public class GradleSyncState {
       }
     });
 
-    Revision gradleVersion = getGradleVersion(myProject);
+    GradleVersion gradleVersion = getGradleVersion(myProject);
     if (gradleVersion != null) {
       trackSyncEvent(ACTION_GRADLE_VERSION, gradleVersion.toString());
     }
