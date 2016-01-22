@@ -23,5 +23,4 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface IdeGuiTest {
-  int retryCount() default 0;
 }

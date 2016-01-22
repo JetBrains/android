@@ -19,7 +19,6 @@ import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.google.common.collect.Maps;
 import org.fest.reflect.reference.TypeRef;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Method;
 import java.util.Map;
@@ -33,14 +32,12 @@ import static org.junit.Assert.assertNotNull;
  * access IDE's services, state and components.)
  */
 class GuiTestConfigurator {
-  private static final String RETRY_COUNT_KEY = "retryCount";
   private static final String SKIP_SOURCE_GENERATION_ON_SYNC_KEY = "skipSourceGenerationOnSync";
   private static final String TAKE_SCREENSHOT_ON_TEST_FAILURE_KEY = "takeScreenshotOnTestFailure";
 
   @NotNull private final Object myTest;
   @NotNull private final ClassLoader myClassLoader;
 
-  private final int myRetryCount;
   private final boolean mySkipSourceGenerationOnSync;
   private final boolean myTakeScreenshotOnTestFailure;
 
@@ -60,10 +57,6 @@ class GuiTestConfigurator {
   @NotNull
   private static Map<String, Object> extractTestConfiguration(@NotNull Method testMethod) {
     Map<String, Object> config = Maps.newHashMap();
-    IdeGuiTest guiTest = testMethod.getAnnotation(IdeGuiTest.class);
-    if (guiTest != null) {
-      config.put(RETRY_COUNT_KEY, guiTest.retryCount());
-    }
     IdeGuiTestSetup guiTestSetup = testMethod.getDeclaringClass().getAnnotation(IdeGuiTestSetup.class);
     if (guiTestSetup != null) {
       config.put(SKIP_SOURCE_GENERATION_ON_SYNC_KEY, guiTestSetup.skipSourceGenerationOnSync());
@@ -75,7 +68,6 @@ class GuiTestConfigurator {
   private GuiTestConfigurator(@NotNull Map<String, Object> configuration,
                               @NotNull Object test,
                               @NotNull ClassLoader classLoader) {
-    myRetryCount = getIntValue(RETRY_COUNT_KEY, configuration, 0);
     mySkipSourceGenerationOnSync = getBooleanValue(SKIP_SOURCE_GENERATION_ON_SYNC_KEY, configuration, false);
     myTakeScreenshotOnTestFailure = getBooleanValue(TAKE_SCREENSHOT_ON_TEST_FAILURE_KEY, configuration, true);
 
@@ -87,23 +79,6 @@ class GuiTestConfigurator {
     Object value = configuration.get(key);
     if (value instanceof Boolean) {
       return ((Boolean)value);
-    }
-    return defaultValue;
-  }
-
-  @Nullable
-  private static Object getValue(@NotNull String key, @NotNull Map<String, Object> configuration, @NotNull Class<?> type) {
-    Object value = configuration.get(key);
-    if (value != null && value.getClass().getCanonicalName().equals(type.getCanonicalName())) {
-      return value;
-    }
-    return null;
-  }
-
-  private static int getIntValue(@NotNull String key, @NotNull Map<String, Object> configuration, int defaultValue) {
-    Object value = configuration.get(key);
-    if (value instanceof Integer) {
-      return ((Integer)value);
     }
     return defaultValue;
   }
@@ -132,10 +107,6 @@ class GuiTestConfigurator {
 
   boolean shouldTakeScreenshotOnFailure() {
     return myTakeScreenshotOnTestFailure;
-  }
-
-  int getRetryCount() {
-    return myRetryCount;
   }
 
   @NotNull

@@ -48,25 +48,7 @@ public class MethodInvoker extends Statement {
     String testFqn = getTestFqn();
     System.out.println(String.format("Executing test '%1$s'", testFqn));
 
-    int retryCount = myTestConfigurator.getRetryCount();
-    for (int i = 0; i <= retryCount; i++) {
-      if (i > 0) {
-        System.out.println(String.format("Retrying execution of test '%1$s'", testFqn));
-      }
-      try {
-        runTest(i);
-        break; // no need to retry.
-      }
-      catch (Throwable throwable) {
-        if (retryCount == i) {
-          throw throwable; // Last run, throw any exceptions caught.
-        }
-        else {
-          throwable.printStackTrace();
-          failIfIdeHasFatalErrors();
-        }
-      }
-    }
+    runTest();
     failIfIdeHasFatalErrors();
   }
 
@@ -89,7 +71,7 @@ public class MethodInvoker extends Statement {
     }
   }
 
-  private void runTest(int executionIndex) throws Throwable {
+  private void runTest() throws Throwable {
     myTestConfigurator.executeSetupTasks();
 
     ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
@@ -103,7 +85,7 @@ public class MethodInvoker extends Statement {
     }
     catch (Throwable e) {
       e.printStackTrace();
-      takeScreenshot(executionIndex);
+      takeScreenshot();
       throw e;
     }
   }
@@ -113,10 +95,10 @@ public class MethodInvoker extends Statement {
     return myTestMethod.getMethod().getDeclaringClass() + "#" + myTestMethod.getName();
   }
 
-  private void takeScreenshot(int executionIndex) {
+  private void takeScreenshot() {
     if (myTestConfigurator.shouldTakeScreenshotOnFailure()) {
       Method method = myTestMethod.getMethod();
-      String fileNamePrefix = method.getDeclaringClass().getSimpleName() + "." + (executionIndex + 1) + "." + method.getName();
+      String fileNamePrefix = method.getDeclaringClass().getSimpleName() + "." + method.getName();
       String extension = ".png";
 
       try {
