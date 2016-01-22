@@ -183,7 +183,9 @@ public class GutterIconCache {
         return new ImageIcon(image);
       }
     }
-    catch (IOException e) {
+    catch (Throwable e) {
+      // Not just IOExceptions here; for example, we've seen
+      // IllegalArgumentEx @ ...... < PNGImageReader:1479 < ... ImageIO.read
       LOG.warn(String.format("Could not read icon image %1$s", path), e);
     }
 
