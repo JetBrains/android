@@ -16,14 +16,13 @@
 package com.android.tools.idea.gradle.customizer.android;
 
 import com.android.builder.model.*;
-import com.android.repository.Revision;
+import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.customizer.AbstractContentRootModuleCustomizer;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.util.FilePaths;
 import com.android.tools.idea.gradle.variant.view.BuildVariantModuleCustomizer;
 import com.google.common.collect.Lists;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
@@ -34,10 +33,10 @@ import java.io.File;
 import java.util.Collection;
 import java.util.List;
 
-import static com.android.builder.model.AndroidProject.*;
+import static com.android.builder.model.AndroidProject.FD_GENERATED;
 import static com.android.tools.idea.gradle.util.FilePaths.findParentContentEntry;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
-import static com.intellij.openapi.util.io.FileUtil.*;
+import static com.intellij.openapi.util.io.FileUtil.isAncestor;
 import static org.jetbrains.jps.model.java.JavaResourceRootType.RESOURCE;
 import static org.jetbrains.jps.model.java.JavaResourceRootType.TEST_RESOURCE;
 import static org.jetbrains.jps.model.java.JavaSourceRootType.SOURCE;
@@ -150,14 +149,8 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
 
   private static boolean modelVersionIsAtLeast(@NotNull AndroidGradleModel androidModel, @NotNull String revision) {
     String original = androidModel.getAndroidProject().getModelVersion();
-    Revision modelVersion;
-    try {
-      modelVersion = Revision.parseRevision(original);
-    } catch (NumberFormatException e) {
-      Logger.getInstance(AndroidGradleModel.class).warn("Failed to parse '" + original + "'", e);
-      return false;
-    }
-    return modelVersion.compareTo(Revision.parseRevision(revision), Revision.PreviewComparison.IGNORE) >= 0;
+    GradleVersion modelVersion = GradleVersion.tryParse(original);
+    return modelVersion != null && modelVersion.compareIgnoringQualifiers(revision) >= 0;
   }
 
   private void addSourceFolder(@NotNull AndroidGradleModel androidModel,
