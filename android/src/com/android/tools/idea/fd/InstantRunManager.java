@@ -275,26 +275,21 @@ public final class InstantRunManager implements ProjectComponent {
    *               the infrastructure will look for other app modules
    * @return true if the app is using an incremental support enabled Gradle plugin
    */
-  public static boolean isPatchableApp(@NotNull Module module) {
+  public static boolean variantSupportsInstantRun(@NotNull Module module) {
     if (!InstantRunSettings.isInstantRunEnabled(module.getProject())) {
       return false;
     }
 
-    return isPatchableApp(getAppModel(module));
+    return variantSupportsInstantRun(getAppModel(module));
   }
 
-  public static boolean isPatchableApp(@Nullable AndroidGradleModel model) {
+  public static boolean variantSupportsInstantRun(@Nullable AndroidGradleModel model) {
     if (model == null) {
       return false;
     }
 
     String version = model.getAndroidProject().getModelVersion();
-
-    /**
-     * {@link Revision} doesn't support comparing across -alpha and -beta minor versions, so we use
-     * {@link PostProjectSetupTasksExecutor#needsUpdate}.
-     */
-    if (PostProjectSetupTasksExecutor.needsUpdate(version, MINIMUM_GRADLE_PLUGIN_VERSION_STRING)) {
+    if (!modelSupportsInstantRun(model)) {
       LOG.debug("Instant run is not supported by current version: " + version + ", requires: " + MINIMUM_GRADLE_PLUGIN_VERSION_STRING);
       return false;
     }
@@ -303,6 +298,18 @@ public final class InstantRunManager implements ProjectComponent {
       return model.getSelectedVariant().getMainArtifact().getInstantRun().isSupportedByArtifact();
     } catch (Exception e) {
       LOG.info("Instant Run not supported by current variant: " + version);
+      return false;
+    }
+  }
+
+  /** Returns true if Instant Run is supported for this gradle model (whether or not it's enabled) */
+  public static boolean modelSupportsInstantRun(@NotNull AndroidGradleModel model) {
+    String version = model.getAndroidProject().getModelVersion();
+    try {
+      GradleVersion modelVersion = GradleVersion.tryParse(version);
+      return modelVersion == null || modelVersion.compareTo(MINIMUM_GRADLE_PLUGIN_VERSION) >= 0;
+    } catch (NumberFormatException e) {
+      Logger.getInstance(InstantRunManager.class).warn("Failed to parse '" + version + "'", e);
       return false;
     }
   }
@@ -464,25 +471,13 @@ public final class InstantRunManager implements ProjectComponent {
 
   @NotNull
   public static String getIncrementalDexTask(@NotNull AndroidGradleModel model, @NotNull Module module) {
-    assert isInstantRunSupported(model) : module;
+    assert modelSupportsInstantRun(model) : module;
     String taskName = model.getSelectedVariant().getMainArtifact().getInstantRun().getIncrementalAssembleTaskName();
     String gradlePath = GradleUtil.getGradlePath(module);
     if (gradlePath != null) {
       taskName = gradlePath + ":" + taskName;
     }
     return taskName;
-  }
-
-  /** Returns true if Instant Run is supported for this gradle model (whether or not it's enabled) */
-  public static boolean isInstantRunSupported(@NotNull AndroidGradleModel model) {
-    String version = model.getAndroidProject().getModelVersion();
-    try {
-      GradleVersion modelVersion = GradleVersion.tryParse(version);
-      return modelVersion == null || modelVersion.compareTo(MINIMUM_GRADLE_PLUGIN_VERSION) >= 0;
-    } catch (NumberFormatException e) {
-      Logger.getInstance(InstantRunManager.class).warn("Failed to parse '" + version + "'", e);
-      return false;
-    }
   }
 
   @NotNull

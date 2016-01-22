@@ -277,7 +277,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       return null;
     }
 
-    if (!InstantRunManager.isPatchableApp(module)) {
+    if (!InstantRunManager.variantSupportsInstantRun(module)) {
       return null;
     }
 
@@ -356,7 +356,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       throw new ExecutionException(AndroidBundle.message("deployment.target.not.found"));
     }
 
-    if (supportsInstantRun() && InstantRunSettings.isInstantRunEnabled(project) && InstantRunManager.isPatchableApp(module)) {
+    if (supportsInstantRun() && InstantRunSettings.isInstantRunEnabled(project) && InstantRunManager.variantSupportsInstantRun(module)) {
       List<AndroidDevice> devices = deviceFutures.getDevices();
       if (devices.size() > 1) {
         String message = "This launch does not use Instant Run as it does not support launching on multiple devices concurrently.";
@@ -403,7 +403,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     }
 
     AndroidGradleModel model = AndroidGradleModel.get(facet);
-    if (!InstantRunManager.isPatchableApp(model)) {
+    if (!InstantRunManager.variantSupportsInstantRun(model)) {
       InstantRunManager.LOG.info("Cannot instant run since the gradle version doesn't support it");
       return null;
     }
