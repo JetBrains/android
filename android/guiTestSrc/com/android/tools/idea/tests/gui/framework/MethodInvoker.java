@@ -73,7 +73,6 @@ public class MethodInvoker extends Statement {
     Class<?> guiTestCaseType = Class.forName(GuiTestCase.class.getCanonicalName(), true, classLoader);
 
     if (guiTestCaseType.isInstance(myTest)) {
-      method("closeAllProjects").in(myTest).invoke();
       field("myTestName").ofType(String.class).in(myTest).set(myTestMethod.getName());
     }
     try {
