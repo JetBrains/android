@@ -18,10 +18,13 @@ package com.android.tools.idea.run;
 import com.android.annotations.Nullable;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
+import com.android.sdklib.devices.Abi;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.ddms.DeviceNameRendererEx;
 import com.android.tools.idea.ddms.DevicePropertyUtil;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.ide.ui.search.SearchUtil;
@@ -83,6 +86,22 @@ public class ConnectedAndroidDevice implements AndroidDevice {
   @Override
   public int getDensity() {
     return myDevice.getDensity();
+  }
+
+  @NotNull
+  @Override
+  public List<Abi> getAbis() {
+    List<String> abis = myDevice.getAbis();
+    ImmutableList.Builder<Abi> builder = ImmutableList.builder();
+
+    for (String abi : abis) {
+      Abi a = Abi.getEnum(abi);
+      if (a != null) {
+        builder.add(a);
+      }
+    }
+
+    return builder.build();
   }
 
   @NotNull
