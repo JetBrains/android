@@ -169,6 +169,7 @@ public abstract class GuiTestCase {
     try {
       cleanUp();
     } finally {
+      closeAllProjects();
       ProjectManagerEx.getInstanceEx().unblockReloadingProjectOnExternalChanges();
     }
   }
@@ -203,9 +204,7 @@ public abstract class GuiTestCase {
     return IdeFrameFixture.find(myRobot, projectPath, projectName);
   }
 
-  @SuppressWarnings("UnusedDeclaration")
-  // Called by GuiTestRunner via reflection.
-  protected void closeAllProjects() {
+  private static void closeAllProjects() {
     pause(new Condition("Close all projects") {
       @Override
       public boolean test() {
