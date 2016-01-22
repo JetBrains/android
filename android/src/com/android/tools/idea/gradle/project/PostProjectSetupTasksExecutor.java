@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project;
 
-import com.android.SdkConstants;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.NativeAndroidProject;
 import com.android.repository.Revision;
@@ -741,7 +740,7 @@ public class PostProjectSetupTasksExecutor {
         Revision minBuildToolsRev = new Revision(20, 0, 0);
         requested.add(DetailsTypes.getBuildToolsPath(minBuildToolsRev));
       }
-      requested.add(SdkConstants.FD_TOOLS);
+      requested.add(FD_TOOLS);
       ModelWizardDialog dialog = SdkQuickfixUtils.createDialogForPaths(project, requested);
       if (dialog != null && dialog.showAndGet()) {
         GradleProjectImporter.getInstance().requestProjectSync(project, null);

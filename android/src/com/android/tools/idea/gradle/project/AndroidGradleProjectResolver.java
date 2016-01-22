@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.NativeAndroidProject;
 import com.android.builder.model.Variant;
+import com.android.ide.common.repository.GradleVersion;
 import com.android.repository.Revision;
 import com.android.tools.idea.gradle.*;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
@@ -353,7 +354,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   }
 
   @NotNull
-  private static String getUnsupportedModelVersionErrorMsg(@Nullable Revision modelVersion) {
+  private static String getUnsupportedModelVersionErrorMsg(@Nullable GradleVersion modelVersion) {
     StringBuilder builder = new StringBuilder();
     builder.append(UNSUPPORTED_MODEL_VERSION_ERROR_PREFIX);
     String recommendedVersion = String.format("The recommended version is %1$s.", GRADLE_PLUGIN_RECOMMENDED_VERSION);
