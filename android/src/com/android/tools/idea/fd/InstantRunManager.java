@@ -295,7 +295,7 @@ public final class InstantRunManager implements ProjectComponent {
      * {@link PostProjectSetupTasksExecutor#needsUpdate}.
      */
     if (PostProjectSetupTasksExecutor.needsUpdate(version, MINIMUM_GRADLE_PLUGIN_VERSION_STRING)) {
-      LOG.info("Instant run is not supported by current version: " + version + ", requires: " + MINIMUM_GRADLE_PLUGIN_VERSION_STRING);
+      LOG.debug("Instant run is not supported by current version: " + version + ", requires: " + MINIMUM_GRADLE_PLUGIN_VERSION_STRING);
       return false;
     }
 
