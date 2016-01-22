@@ -61,7 +61,7 @@ import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
  * Android layouts. This is a wrapper around the layout library.
  */
 public class RenderService {
-  public static final boolean NELE_ENABLED = Boolean.getBoolean("nele.enabled");
+  public static final boolean NELE_ENABLED = true;
   private static final Object RENDERING_LOCK = new Object();
 
   @NotNull
