@@ -18,6 +18,7 @@ package com.android.tools.idea.run;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
+import com.android.ddmlib.NullOutputReceiver;
 import com.android.sdklib.AndroidVersion;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -125,6 +126,16 @@ public class AndroidProcessHandler extends DefaultDebugProcessHandler implements
 
     for (IDevice device : bridge.getDevices()) {
       if (myDevices.contains(device.getSerialNumber())) {
+        // Workaround https://code.google.com/p/android/issues/detail?id=199342
+        // Sometimes, just calling client.kill() could end up with the app dying and then coming back up
+        // Very likely, this is because of how cold swap restarts the process (maybe it is using some persistent pending intents?)
+        // However, calling am force-stop seems to solve that issue, so we do that first..
+        try {
+          device.executeShellCommand("am force-stop " + myApplicationId, new NullOutputReceiver());
+        }
+        catch (Exception ignored) {
+        }
+
         Client client = device.getClient(myApplicationId);
         if (client != null) {
           client.kill();
@@ -151,10 +162,6 @@ public class AndroidProcessHandler extends DefaultDebugProcessHandler implements
 
   @Override
   public void deviceDisconnected(@NotNull IDevice device) {
-    if (device == null) {
-      return;
-    }
-
     if (!myDevices.contains(device.getSerialNumber())) {
       return;
     }
