@@ -16,7 +16,6 @@
 package com.android.tools.idea.tests.gui.npw;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
-import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewXmlValueWizardFixture;
 import org.fest.swing.fixture.JButtonFixture;
 import org.fest.swing.fixture.JLabelFixture;
@@ -29,7 +28,7 @@ import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
 import static org.fest.swing.timing.Pause.pause;
 
 public class NewComponentTest extends GuiTestCase {
-  @Test @IdeGuiTest
+  @Test
   public void testNewValueWizard() throws IOException {
     myProjectFrame = importSimpleApplication();
 

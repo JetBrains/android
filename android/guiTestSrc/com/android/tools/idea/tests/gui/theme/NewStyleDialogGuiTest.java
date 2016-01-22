@@ -17,7 +17,6 @@ package com.android.tools.idea.tests.gui.theme;
 
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
-import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.NewStyleDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorFixture;
 import org.fest.swing.fixture.JComboBoxFixture;
@@ -36,7 +35,7 @@ public class NewStyleDialogGuiTest extends GuiTestCase {
    *
    * Is a regression test for http://b.android.com/180575
    */
-  @Test @IdeGuiTest
+  @Test
   public void testCreateNewThemeSelection() throws IOException {
     myProjectFrame = importSimpleApplication();
     final ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(myProjectFrame);

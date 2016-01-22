@@ -17,7 +17,6 @@ package com.android.tools.idea.tests.gui.gradle;
 
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
-import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.RenameDialogFixture;
 import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.module.Module;
@@ -46,7 +45,7 @@ import static org.junit.Assert.*;
 @Ignore("Cause of IDE fatal errors")
 public class RenameTest extends GuiTestCase {
 
-  @Test @IdeGuiTest
+  @Test
   public void sourceRoot() throws Exception {
     myProjectFrame = importSimpleApplication();
     final Project project = myProjectFrame.getProject();

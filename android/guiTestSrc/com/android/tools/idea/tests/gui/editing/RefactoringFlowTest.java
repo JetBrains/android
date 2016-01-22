@@ -16,7 +16,6 @@
 package com.android.tools.idea.tests.gui.editing;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
-import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.RenameRefactoringDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.RenameRefactoringDialogFixture.ConflictsDialogFixture;
@@ -31,7 +30,7 @@ public class RefactoringFlowTest extends GuiTestCase {
   private static final String VALUE_REGEX =
     "(appcompat-v7/\\d+\\.\\d+\\.\\d+/res/values-\\p{Lower}\\p{Lower}(-r\\p{Upper}\\p{Upper})?/values.xml\\n)+";
 
-  @Test @IdeGuiTest
+  @Test
   public void testResourceConflict() throws IOException {
     // Try to rename a resource to an existing resource; check that
     // you get a warning in the conflicts dialog first
@@ -52,7 +51,7 @@ public class RefactoringFlowTest extends GuiTestCase {
     refactoringDialog.clickCancel();
   }
 
-  @Test @IdeGuiTest()
+  @Test()
   public void testWarnOverridingExternal() throws Exception {
     // Try to override a resource that is only defined in an external
     // library; check that we get an error message. Then try to override

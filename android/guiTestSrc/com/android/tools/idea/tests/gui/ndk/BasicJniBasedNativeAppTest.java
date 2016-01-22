@@ -17,7 +17,6 @@ package com.android.tools.idea.tests.gui.ndk;
 
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
-import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.ChooseDeviceDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.DebugToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFixture;
@@ -53,7 +52,7 @@ public class BasicJniBasedNativeAppTest extends GuiTestCase {
    *   - Ndk r10 or higher
    */
   @Ignore("failed in http://go/aj/job/studio-ui-test/326 but passed from IDEA")
-  @Test @IdeGuiTest
+  @Test
   public void testMultiBreakAndResume() throws IOException, ClassNotFoundException {
     // Import the project and select the debug config 'app-native'.
     final IdeFrameFixture projectFrame = importProjectAndWaitForProjectSyncToFinish("JniBasedBasicNdkApp", "2.5");

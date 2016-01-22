@@ -16,14 +16,9 @@
 package com.android.tools.idea.tests.gui.framework;
 
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
-import com.android.tools.idea.sdk.IdeSdks;
 import com.google.common.collect.Maps;
-import com.intellij.openapi.projectRoots.JavaSdk;
-import com.intellij.openapi.projectRoots.JavaSdkVersion;
-import com.intellij.openapi.projectRoots.Sdk;
 import org.fest.reflect.reference.TypeRef;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Method;
 import java.util.Map;
@@ -32,25 +27,17 @@ import static org.fest.reflect.core.Reflection.method;
 import static org.junit.Assert.assertNotNull;
 
 /**
- * Collects configuration information from a UI test method's {@link IdeGuiTest} and {@link IdeGuiTestSetup} annotations and applies it
+ * Collects configuration information from a UI test method's {@link IdeGuiTestSetup} annotations and applies it
  * to the test before execution, using the the IDE's {@code ClassLoader} (which is the {@code ClassLoader} used by UI tests, to be able to
  * access IDE's services, state and components.)
  */
 class GuiTestConfigurator {
-  private static final String CLOSE_PROJECT_BEFORE_EXECUTION_KEY = "closeProjectBeforeExecution";
-  private static final String RETRY_COUNT_KEY = "retryCount";
-  private static final String RUN_WITH_MINIMUM_JDK_VERSION_KEY = "runWithMinimumJdkVersion";
   private static final String SKIP_SOURCE_GENERATION_ON_SYNC_KEY = "skipSourceGenerationOnSync";
   private static final String TAKE_SCREENSHOT_ON_TEST_FAILURE_KEY = "takeScreenshotOnTestFailure";
 
-  @NotNull private final String myTestName;
   @NotNull private final Object myTest;
   @NotNull private final ClassLoader myClassLoader;
 
-  @Nullable private final Object myMinimumJdkVersion;
-
-  private final boolean myCloseProjectBeforeExecution;
-  private final int myRetryCount;
   private final boolean mySkipSourceGenerationOnSync;
   private final boolean myTakeScreenshotOnTestFailure;
 
@@ -63,19 +50,13 @@ class GuiTestConfigurator {
                                                                        .in(target)
                                                                        .invoke(testMethod);
     assertNotNull(testConfig);
-    return new GuiTestConfigurator(testConfig, testMethod.getName(), test, classLoader);
+    return new GuiTestConfigurator(testConfig, test, classLoader);
   }
 
   // Invoked using reflection and the IDE's ClassLoader.
   @NotNull
   private static Map<String, Object> extractTestConfiguration(@NotNull Method testMethod) {
     Map<String, Object> config = Maps.newHashMap();
-    IdeGuiTest guiTest = testMethod.getAnnotation(IdeGuiTest.class);
-    if (guiTest != null) {
-      config.put(CLOSE_PROJECT_BEFORE_EXECUTION_KEY, guiTest.closeProjectBeforeExecution());
-      config.put(RUN_WITH_MINIMUM_JDK_VERSION_KEY, guiTest.runWithMinimumJdkVersion());
-      config.put(RETRY_COUNT_KEY, guiTest.retryCount());
-    }
     IdeGuiTestSetup guiTestSetup = testMethod.getDeclaringClass().getAnnotation(IdeGuiTestSetup.class);
     if (guiTestSetup != null) {
       config.put(SKIP_SOURCE_GENERATION_ON_SYNC_KEY, guiTestSetup.skipSourceGenerationOnSync());
@@ -85,16 +66,11 @@ class GuiTestConfigurator {
   }
 
   private GuiTestConfigurator(@NotNull Map<String, Object> configuration,
-                              @NotNull String testName,
                               @NotNull Object test,
                               @NotNull ClassLoader classLoader) {
-    myCloseProjectBeforeExecution = getBooleanValue(CLOSE_PROJECT_BEFORE_EXECUTION_KEY, configuration, true);
-    myMinimumJdkVersion = getValue(RUN_WITH_MINIMUM_JDK_VERSION_KEY, configuration, JavaSdkVersion.class);
-    myRetryCount = getIntValue(RETRY_COUNT_KEY, configuration, 0);
     mySkipSourceGenerationOnSync = getBooleanValue(SKIP_SOURCE_GENERATION_ON_SYNC_KEY, configuration, false);
     myTakeScreenshotOnTestFailure = getBooleanValue(TAKE_SCREENSHOT_ON_TEST_FAILURE_KEY, configuration, true);
 
-    myTestName = testName;
     myTest = test;
     myClassLoader = classLoader;
   }
@@ -107,32 +83,13 @@ class GuiTestConfigurator {
     return defaultValue;
   }
 
-  @Nullable
-  private static Object getValue(@NotNull String key, @NotNull Map<String, Object> configuration, @NotNull Class<?> type) {
-    Object value = configuration.get(key);
-    if (value != null && value.getClass().getCanonicalName().equals(type.getCanonicalName())) {
-      return value;
-    }
-    return null;
-  }
-
-  private static int getIntValue(@NotNull String key, @NotNull Map<String, Object> configuration, int defaultValue) {
-    Object value = configuration.get(key);
-    if (value instanceof Integer) {
-      return ((Integer)value);
-    }
-    return defaultValue;
-  }
-
   void executeSetupTasks() throws Throwable {
     closeAllProjects();
     skipSourceGenerationOnSync();
   }
 
   private void closeAllProjects() {
-    if (myCloseProjectBeforeExecution) {
-      method("closeAllProjects").in(myTest).invoke();
-    }
+    method("closeAllProjects").in(myTest).invoke();
   }
 
   private void skipSourceGenerationOnSync() throws Throwable {
@@ -148,39 +105,8 @@ class GuiTestConfigurator {
     GradleExperimentalSettings.getInstance().SKIP_SOURCE_GEN_ON_PROJECT_SYNC = true;
   }
 
-  boolean shouldSkipTest() throws Throwable {
-    if (myMinimumJdkVersion != null) {
-      Class<?> target = loadMyClassWithTestClassLoader();
-      Class<?> javaSdkVersionClass = myClassLoader.loadClass(JavaSdkVersion.class.getCanonicalName());
-      Boolean hasRequiredJdk = method("hasRequiredJdk").withReturnType(boolean.class)
-                                                       .withParameterTypes(javaSdkVersionClass)
-                                                       .in(target)
-                                                       .invoke(myMinimumJdkVersion);
-      assertNotNull(hasRequiredJdk);
-      if (!hasRequiredJdk) {
-        String jdkVersion = method("getDescription").withReturnType(String.class).in(myMinimumJdkVersion).invoke();
-        System.out.println(String.format("Skipping test '%1$s'. It needs JDK %2$s or newer.", myTestName, jdkVersion));
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-  // Invoked using reflection and the IDE's ClassLoader.
-  private static boolean hasRequiredJdk(@NotNull JavaSdkVersion jdkVersion) {
-    Sdk jdk = IdeSdks.getJdk();
-    assertNotNull("Expecting to have a JDK", jdk);
-    JavaSdkVersion currentVersion = JavaSdk.getInstance().getVersion(jdk);
-    return currentVersion != null && currentVersion.isAtLeast(jdkVersion);
-  }
-
   boolean shouldTakeScreenshotOnFailure() {
     return myTakeScreenshotOnTestFailure;
-  }
-
-  int getRetryCount() {
-    return myRetryCount;
   }
 
   @NotNull

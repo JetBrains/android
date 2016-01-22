@@ -16,7 +16,6 @@
 package com.android.tools.idea.tests.gui;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
-import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import org.junit.Test;
 
@@ -25,7 +24,7 @@ import java.io.IOException;
 import static junit.framework.Assert.assertEquals;
 
 public class SampleTest extends GuiTestCase {
-  @Test @IdeGuiTest
+  @Test
   public void testEditor() throws IOException {
     myProjectFrame = importSimpleApplication();
     EditorFixture editor = myProjectFrame.getEditor();

@@ -19,7 +19,6 @@ import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySp
 import com.android.tools.idea.gradle.dsl.model.dependencies.ModuleDependencyTest.ExpectedModuleDependency;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
-import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.BuildVariantsToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleBuildModelFixture;
@@ -43,7 +42,7 @@ import static org.fest.assertions.Assertions.assertThat;
 public class AddGradleDependencyTest extends GuiTestCase {
 
   @Ignore("failed in http://go/aj/job/studio-ui-test/326 and from IDEA")
-  @Test @IdeGuiTest
+  @Test
   public void testAddProdModuleDependency() throws IOException {
     myProjectFrame = importProjectAndWaitForProjectSyncToFinish("MultiModule");
 
@@ -68,7 +67,7 @@ public class AddGradleDependencyTest extends GuiTestCase {
     verifyUndo(editor, 1);
   }
 
-  @Test @IdeGuiTest
+  @Test
   public void testAddTestModuleDependency() throws IOException {
     myProjectFrame = importProjectAndWaitForProjectSyncToFinish("MultiModule");
 
@@ -94,7 +93,7 @@ public class AddGradleDependencyTest extends GuiTestCase {
   }
 
   @Ignore("failed in http://go/aj/job/studio-ui-test/326 and from IDEA")
-  @Test @IdeGuiTest
+  @Test
   public void testAddLibDependencyDeclaredInJavaProject() throws IOException {
     myProjectFrame = importProjectAndWaitForProjectSyncToFinish("MultiModule");
 
@@ -121,7 +120,7 @@ public class AddGradleDependencyTest extends GuiTestCase {
     verifyUndo(editor, 1);
   }
 
-  @Test @IdeGuiTest
+  @Test
   public void testAddLibDependencyDeclaredInAndroidProject() throws IOException {
     myProjectFrame = importProjectAndWaitForProjectSyncToFinish("MultiModule");
 
@@ -145,7 +144,7 @@ public class AddGradleDependencyTest extends GuiTestCase {
     verifyUndo(editor, 1);
   }
 
-  @Test @IdeGuiTest
+  @Test
   public void testNoModuleDependencyQuickfixFromJavaToAndroid() throws IOException {
     myProjectFrame = importProjectAndWaitForProjectSyncToFinish("MultiModule");
 
@@ -158,7 +157,7 @@ public class AddGradleDependencyTest extends GuiTestCase {
     assertIntentionNotIncluded(editor, "Add dependency on module");
   }
 
-  @Test @IdeGuiTest
+  @Test
   public void testNoModuleDependencyQuickfixFromAndroidLibToApplication() throws IOException {
     myProjectFrame = importProjectAndWaitForProjectSyncToFinish("MultiModule");
 
@@ -180,7 +179,7 @@ public class AddGradleDependencyTest extends GuiTestCase {
   }
 
   @Ignore("failed in http://go/aj/job/studio-ui-test/326 and from IDEA")
-  @Test @IdeGuiTest
+  @Test
   public void testAddJUnitDependency() throws IOException {
     myProjectFrame = importSimpleApplication();
     BuildVariantsToolWindowFixture buildVariants = myProjectFrame.getBuildVariantsWindow();
@@ -204,7 +203,7 @@ public class AddGradleDependencyTest extends GuiTestCase {
   }
 
   @Ignore("failed in http://go/aj/job/studio-ui-test/326 and from IDEA")
-  @Test @IdeGuiTest
+  @Test
   public void testAddJetbrainsAnnotationDependency() throws IOException {
     myProjectFrame = importSimpleApplication();
 

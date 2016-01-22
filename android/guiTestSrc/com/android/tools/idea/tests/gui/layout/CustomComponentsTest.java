@@ -18,7 +18,6 @@ package com.android.tools.idea.tests.gui.layout;
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
-import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.LayoutPreviewFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.RenderErrorPanelFixture;
@@ -38,7 +37,7 @@ import static org.junit.Assert.assertTrue;
 @Ignore("Test in running forever on Jenkins")
 public class CustomComponentsTest extends GuiTestCase {
 
-  @Test @IdeGuiTest
+  @Test
   public void testClassConverter() throws Exception {
     // Tests that the class converter rewrites the onDraw, onLayout and onMeasure methods to avoid errors from propagating
     // and breaking the rendering.

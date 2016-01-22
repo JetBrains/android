@@ -17,7 +17,6 @@ package com.android.tools.idea.tests.gui.layout;
 
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
-import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.*;
 import org.junit.Ignore;
@@ -50,7 +49,7 @@ import static org.junit.Assert.assertNotNull;
 public class LayoutEditorTest extends GuiTestCase {
 
   @Ignore("failed in http://go/aj/job/studio-ui-test/326 but passed from IDEA")
-  @Test @IdeGuiTest
+  @Test
   public void testSetProperty() throws Exception {
     myProjectFrame = importSimpleApplication();
 
@@ -134,7 +133,7 @@ public class LayoutEditorTest extends GuiTestCase {
   }
 
   @Ignore("failed in http://go/aj/job/studio-ui-test/326 and from IDEA")
-  @Test @IdeGuiTest
+  @Test
   public void testDeletion() throws Exception {
     // Tests deletion: Opens a layout, finds the first TextView, deletes it,
     // checks that the component hierarchy shows it as removed. Then performs
@@ -188,7 +187,7 @@ public class LayoutEditorTest extends GuiTestCase {
   }
 
   @Ignore("http://b.android.com/173576")
-  @Test @IdeGuiTest
+  @Test
   public void testIdManipulation() throws Exception {
     // Checks that when we insert new widgets, we assign appropriate id's (they should
     // be unique in the application), and also check that when we copy/paste a component

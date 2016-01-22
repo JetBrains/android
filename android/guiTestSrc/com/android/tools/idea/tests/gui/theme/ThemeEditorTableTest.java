@@ -20,7 +20,6 @@ import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
-import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.*;
 import org.fest.assertions.Index;
@@ -48,7 +47,7 @@ import static org.junit.Assert.*;
  */
 @BelongsToTestGroups({THEME})
 public class ThemeEditorTableTest extends GuiTestCase {
-  @Test @IdeGuiTest
+  @Test
   public void testParentValueCell() throws IOException {
     myProjectFrame = importSimpleApplication();
     ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(myProjectFrame);
@@ -138,7 +137,7 @@ public class ThemeEditorTableTest extends GuiTestCase {
     }, GuiTests.SHORT_TIMEOUT);
   }
 
-  @Test @IdeGuiTest
+  @Test
   public void testResourcePickerNameError() throws IOException {
     myProjectFrame = importSimpleApplication();
     ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(myProjectFrame);
@@ -177,7 +176,7 @@ public class ThemeEditorTableTest extends GuiTestCase {
     colorCell.cancelEditing();
   }
 
-  @Test @IdeGuiTest
+  @Test
   public void testSettingColorAttribute() throws IOException {
     myProjectFrame = importSimpleApplication();
     ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(myProjectFrame);
@@ -215,7 +214,7 @@ public class ThemeEditorTableTest extends GuiTestCase {
   /**
    * Test that the alpha slider and the textfield are hidden when we are not in ARGB.
    */
-  @Test @IdeGuiTest
+  @Test
   public void testColorPickerAlpha() throws IOException {
     myProjectFrame = importSimpleApplication();
     ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(myProjectFrame);
@@ -251,7 +250,7 @@ public class ThemeEditorTableTest extends GuiTestCase {
   /**
    * Test creating a new state list and setting it as a style attribute value with the state list picker.
    */
-  @Test @IdeGuiTest
+  @Test
   public void testStateListPicker() throws IOException {
     myProjectFrame = importSimpleApplication();
     ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(myProjectFrame);
@@ -361,7 +360,7 @@ public class ThemeEditorTableTest extends GuiTestCase {
   /**
    * Test the text completion for attribute values
    */
-  @Test @IdeGuiTest
+  @Test
   public void testResourceCompletion() throws IOException {
     myProjectFrame = importSimpleApplication();
     ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(myProjectFrame);
