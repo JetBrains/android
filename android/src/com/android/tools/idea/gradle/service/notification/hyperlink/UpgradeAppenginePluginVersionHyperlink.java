@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.service.notification.hyperlink;
 
 import com.android.ide.common.repository.GradleCoordinate;
-import com.android.repository.Revision;
+import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.service.repo.ExternalRepository;
 import com.android.tools.idea.gradle.util.GradleUtil;
@@ -59,7 +59,7 @@ public class UpgradeAppenginePluginVersionHyperlink extends NotificationHyperlin
       @Override
       public String compute() {
         ExternalRepository repository = ServiceManager.getService(ExternalRepository.class);
-        Revision latest = repository.getLatest(APPENGINE_PLUGIN_GROUP_ID, APPENGINE_PLUGIN_ARTIFACT_ID);
+        GradleVersion latest = repository.getLatest(APPENGINE_PLUGIN_GROUP_ID, APPENGINE_PLUGIN_ARTIFACT_ID);
         return latest == null ? DEFAULT_APPENGINE_PLUGIN_VERSION : latest.toString();
       }
     });

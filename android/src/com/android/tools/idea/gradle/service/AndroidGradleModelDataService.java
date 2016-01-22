@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.service;
 
 import com.android.builder.model.AndroidProject;
-import com.android.repository.Revision;
+import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor;
@@ -143,7 +143,7 @@ public class AndroidGradleModelDataService extends AbstractProjectDataService<An
         Map<String, AndroidGradleModel> androidModelsByModuleName = indexByModuleName(toImport);
 
         Charset ideEncoding = EncodingProjectManager.getInstance(project).getDefaultCharset();
-        Revision oneDotTwoModelVersion = new Revision(1, 2, 0);
+        GradleVersion oneDotTwoModelVersion = new GradleVersion(1, 2, 0);
 
         String nonMatchingModelEncodingFound = null;
         String modelVersionWithLayoutRenderingIssue = null;
@@ -156,23 +156,23 @@ public class AndroidGradleModelDataService extends AbstractProjectDataService<An
 
           customizeModule(module, project, modelsProvider, androidModel);
           if (androidModel != null) {
-            AndroidProject delegate = androidModel.getAndroidProject();
+            AndroidProject androidProject = androidModel.getAndroidProject();
 
-            checkBuildToolsCompatibility(module, delegate, modulesUsingBuildTools23rc1);
+            checkBuildToolsCompatibility(module, androidProject, modulesUsingBuildTools23rc1);
 
             // Verify that if Gradle is 2.4 (or newer,) the model is at least version 1.2.0.
-            if (modelVersionWithLayoutRenderingIssue == null && hasLayoutRenderingIssue(delegate)) {
-              modelVersionWithLayoutRenderingIssue = delegate.getModelVersion();
+            if (modelVersionWithLayoutRenderingIssue == null && hasLayoutRenderingIssue(androidProject)) {
+              modelVersionWithLayoutRenderingIssue = androidProject.getModelVersion();
             }
 
-            Revision modelVersion = Revision.parseRevision(delegate.getModelVersion());
-            boolean isModelVersionOneDotTwoOrNewer = modelVersion.compareTo(oneDotTwoModelVersion, Revision.PreviewComparison.IGNORE) >= 0;
+            GradleVersion modelVersion = GradleVersion.parse(androidProject.getModelVersion());
+            boolean isModelVersionOneDotTwoOrNewer = modelVersion.compareIgnoringQualifiers(oneDotTwoModelVersion) >= 0;
 
             // Verify that the encoding in the model is the same as the encoding in the IDE's project settings.
             Charset modelEncoding = null;
             if (isModelVersionOneDotTwoOrNewer) {
               try {
-                modelEncoding = Charset.forName(delegate.getJavaCompileOptions().getEncoding());
+                modelEncoding = Charset.forName(androidProject.getJavaCompileOptions().getEncoding());
               }
               catch (UnsupportedCharsetException ignore) {
                 // It's not going to happen.
