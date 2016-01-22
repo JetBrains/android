@@ -501,6 +501,12 @@ public class AndroidValueResourcesTest extends AndroidDomTest {
     doTestNamespaceCompletion(false, false, true, true);
   }
 
+  public void testAttrValidation() throws Throwable {
+    // Regression test for https://code.google.com/p/android/issues/detail?id=199247
+    // Allow colons in names for attributes
+    doTestHighlighting("attrValidation.xml");
+  }
+
   private void doCreateValueResourceFromUsage(VirtualFile virtualFile) {
     myFixture.configureFromExistingVirtualFile(virtualFile);
     final List<HighlightInfo> infos = myFixture.doHighlighting();
