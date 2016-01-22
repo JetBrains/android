@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.run;
 
 import com.android.sdklib.AndroidVersion;
+import com.android.sdklib.devices.Abi;
 import com.android.tools.idea.fd.FileChangeListener;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.android.tools.idea.gradle.util.BuildMode;
@@ -81,6 +82,7 @@ public class GradleInvokerOptionsTest {
     FileChangeListener.Changes changes = new FileChangeListener.Changes(true, false, false);
     when(myDevice.getVersion()).thenReturn(new AndroidVersion(20, null));
     when(myDevice.getDensity()).thenReturn(640);
+    when(myDevice.getAbis()).thenReturn(ImmutableList.of(Abi.ARMEABI, Abi.X86));
 
     GradleInvokerOptions.InstantRunBuildOptions instantRunOptions =
       new GradleInvokerOptions.InstantRunBuildOptions(true, false, true, changes, myDevices);
@@ -90,6 +92,7 @@ public class GradleInvokerOptionsTest {
 
     assertTrue(options.commandLineArguments.contains("-Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY"));
     assertTrue(options.commandLineArguments.contains("-Pandroid.injected.build.api=20"));
+    assertTrue(options.commandLineArguments.contains("-Pandroid.injected.build.abi=armeabi,x86"));
 
     // should have clean + build tasks
     HashSet<String> expected = Sets.newHashSet(CLEAN_TASKS);
