@@ -48,7 +48,7 @@ public class RestartActivityAction extends AnAction {
     Module module = LangDataKeys.MODULE.getData(e.getDataContext());
     Project project = e.getProject();
     e.getPresentation().setEnabled(
-      module != null && InstantRunManager.isPatchableApp(module) && !getActiveSessions(project).isEmpty() && !isDebuggerPaused(project));
+      module != null && InstantRunManager.variantSupportsInstantRun(module) && !getActiveSessions(project).isEmpty() && !isDebuggerPaused(project));
   }
 
   private static List<ProcessHandler> getActiveSessions(@Nullable Project project) {
