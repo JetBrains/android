@@ -77,7 +77,7 @@ import static com.android.tools.idea.avdmanager.AvdWizardConstants.WEAR_TAG;
  */
 public class SystemImageList extends JPanel implements ListSelectionListener {
   private final JButton myRefreshButton = new JButton(AllIcons.Actions.Refresh);
-  private final JBCheckBox myShowRemoteCheckbox = new JBCheckBox("Show downloadable system images", false);
+  private final JBCheckBox myShowRemoteCheckbox = new JBCheckBox("Show downloadable system images", true);
   private final JBCheckBox myShowRecommendedOnlyCheckbox = new JBCheckBox("Recommended images only", true);
   private final JButton myInstallLatestVersionButton = new JButton("Install Latest Version...");
   private final Project myProject;
@@ -245,7 +245,8 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
         items.addAll(getLocalImages());
         // Update list in the UI immediately with the locally available system images
         updateListModel(items);
-        if (items.isEmpty()) {
+        if (myTable.getRowCount() == 0) {
+          // If there are no visible rows, show the remote images.
           myShowRemoteCheckbox.setSelected(true);
         }
       }
@@ -264,6 +265,10 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
           myShowRemoteCheckbox.setEnabled(false);
           myShowRemoteCheckbox.setSelected(false);
           myRemoteStatusPanel.setVisible(false);
+        }
+        if (myTable.getRowCount() == 0) {
+          // If there are still no visible rows, show the non recommended system images.
+          myShowRecommendedOnlyCheckbox.setSelected(false);
         }
       }
     };
