@@ -31,13 +31,11 @@ import static org.fest.reflect.core.Reflection.field;
 import static org.fest.reflect.core.Reflection.method;
 
 public class MethodInvoker extends Statement {
-  @NotNull private final GuiTestConfigurator myTestConfigurator;
   @NotNull private final FrameworkMethod myTestMethod;
   @NotNull private final Object myTest;
   @NotNull private final ScreenshotTaker myScreenshotTaker;
 
   MethodInvoker(@NotNull FrameworkMethod testMethod, @NotNull Object test, @NotNull ScreenshotTaker screenshotTaker) throws Throwable {
-    myTestConfigurator = GuiTestConfigurator.createNew(testMethod.getMethod(), test);
     myTestMethod = testMethod;
     myTest = test;
     myScreenshotTaker = screenshotTaker;
@@ -71,12 +69,11 @@ public class MethodInvoker extends Statement {
   }
 
   private void runTest() throws Throwable {
-    myTestConfigurator.executeSetupTasks();
-
     ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
     Class<?> guiTestCaseType = Class.forName(GuiTestCase.class.getCanonicalName(), true, classLoader);
 
     if (guiTestCaseType.isInstance(myTest)) {
+      method("closeAllProjects").in(myTest).invoke();
       field("myTestName").ofType(String.class).in(myTest).set(myTestMethod.getName());
     }
     try {
@@ -95,26 +92,24 @@ public class MethodInvoker extends Statement {
   }
 
   private void takeScreenshot() {
-    if (myTestConfigurator.shouldTakeScreenshotOnFailure()) {
-      Method method = myTestMethod.getMethod();
-      String fileNamePrefix = method.getDeclaringClass().getSimpleName() + "." + method.getName();
-      String extension = ".png";
+    Method method = myTestMethod.getMethod();
+    String fileNamePrefix = method.getDeclaringClass().getSimpleName() + "." + method.getName();
+    String extension = ".png";
 
-      try {
-        File rootDir = getFailedTestScreenshotDirPath();
+    try {
+      File rootDir = getFailedTestScreenshotDirPath();
 
-        File screenshotFilePath = new File(rootDir, fileNamePrefix + extension);
-        if (screenshotFilePath.isFile()) {
-          SimpleDateFormat format = new SimpleDateFormat("MM-dd-yyyy.HH:mm:ss");
-          String now = format.format(new GregorianCalendar().getTime());
-          screenshotFilePath = new File(rootDir, fileNamePrefix + "." + now + extension);
-        }
-        myScreenshotTaker.saveDesktopAsPng(screenshotFilePath.getPath());
-        System.out.println("Screenshot of failed test taken and stored at " + screenshotFilePath.getPath());
+      File screenshotFilePath = new File(rootDir, fileNamePrefix + extension);
+      if (screenshotFilePath.isFile()) {
+        SimpleDateFormat format = new SimpleDateFormat("MM-dd-yyyy.HH:mm:ss");
+        String now = format.format(new GregorianCalendar().getTime());
+        screenshotFilePath = new File(rootDir, fileNamePrefix + "." + now + extension);
       }
-      catch (Throwable ignored) {
-        System.out.println("Failed to take screenshot. Cause: " + ignored.getMessage());
-      }
+      myScreenshotTaker.saveDesktopAsPng(screenshotFilePath.getPath());
+      System.out.println("Screenshot of failed test taken and stored at " + screenshotFilePath.getPath());
+    }
+    catch (Throwable ignored) {
+      System.out.println("Failed to take screenshot. Cause: " + ignored.getMessage());
     }
   }
 }
