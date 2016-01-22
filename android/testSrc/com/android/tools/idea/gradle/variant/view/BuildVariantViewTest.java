@@ -16,13 +16,9 @@
 package com.android.tools.idea.gradle.variant.view;
 
 import com.android.builder.model.AndroidProject;
-import com.android.repository.Revision;
+import com.android.ide.common.repository.GradleVersion;
 import org.jetbrains.android.AndroidTestCase;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.Collections;
-import java.util.List;
 
 import static org.easymock.classextension.EasyMock.*;
 
@@ -97,8 +93,8 @@ public class BuildVariantViewTest extends AndroidTestCase {
   }
 
   @NotNull
-  private static Revision getModelVersionSupportingUnitTests() {
-    return new Revision(1, 1, 0);
+  private static GradleVersion getModelVersionSupportingUnitTests() {
+    return new GradleVersion(1, 1, 0);
   }
 
   private static class Listener implements BuildVariantView.BuildVariantSelectionChangeListener {
