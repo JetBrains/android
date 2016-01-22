@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project;
 
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.NativeAndroidProject;
+import com.android.ide.common.repository.GradleVersion;
 import com.android.repository.Revision;
 import com.android.repository.api.ProgressIndicator;
 import com.android.sdklib.AndroidTargetHash;
@@ -43,6 +44,7 @@ import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -108,6 +110,8 @@ import static com.intellij.util.ExceptionUtil.rethrowAllAsUnchecked;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.*;
 
 public class PostProjectSetupTasksExecutor {
+  // Currently we only want to suggest updates for users who are on non release versions of 2.0.0 plugins
+  private static final GradleVersion SUGGEST_UPDATE_PLUGIN_VERSION = new GradleVersion(2, 0, 0);
 
   /**
    * Whether a message indicating that "a new SDK Tools version is available" is already shown.
@@ -439,8 +443,8 @@ public class PostProjectSetupTasksExecutor {
   // This is temporary code for "preview" release.
   private static void checkOlderPluginPreviewVersion(@NotNull Project project) {
     String latestVersion = GRADLE_PLUGIN_LATEST_VERSION;
-    String actualVersion = getAndroidGradlePluginVersion(project);
-    if (actualVersion != null && needsUpdate(actualVersion, latestVersion)) {
+    GradleVersion actualVersion = getAndroidGradleModelVersionInUse(project);
+    if (actualVersion != null && androidPluginNeedsUpdate(actualVersion, latestVersion)) {
       String message = String.format("%1$s is an old preview version of the Android plugin; please update to the latest version.",
                                      actualVersion);
       NotificationHyperlink quickFix = new FixAndroidGradlePluginVersionHyperlink(latestVersion, null, false);
@@ -448,46 +452,13 @@ public class PostProjectSetupTasksExecutor {
     }
   }
 
-  public static boolean needsUpdate(@NotNull String actual, @NotNull String latest) {
-    if (actual.equals(latest)) {
+  @VisibleForTesting
+  static boolean androidPluginNeedsUpdate(@NotNull GradleVersion actual, @NotNull String latest) {
+    if (SUGGEST_UPDATE_PLUGIN_VERSION.compareIgnoringQualifiers(actual) != 0) {
+      // Only suggest updates for plugin 2.0.0
       return false;
     }
-    String supportedVersion = "2.0.0";
-    if (actual.startsWith(supportedVersion) && latest.startsWith(supportedVersion)) {
-      char dash = '-';
-      int ai = actual.indexOf(dash);
-      int li = latest.indexOf(dash);
-      if (ai == -1) {
-        return false;
-      }
-      else if (li == -1) {
-        return true;
-      }
-      String aPrev = actual.substring(ai);
-      String lPrev = latest.substring(li);
-      int comp = aPrev.compareTo(lPrev);
-      return comp < 0;
-    }
-
-    return false;
-  }
-
-  @Nullable
-  private static String getAndroidGradlePluginVersion(@NotNull Project project) {
-    String version = null;
-    for (Module module : ModuleManager.getInstance(project).getModules()) {
-      AndroidProject androidProject = getAndroidProject(module);
-      if (androidProject == null) {
-        continue;
-      }
-      version = androidProject.getModelVersion();
-      if (!androidProject.isLibrary()) {
-        // prefer version in app
-        version = androidProject.getModelVersion();
-        break;
-      }
-    }
-    return version;
+    return actual.compareTo(latest) < 0;
   }
 
   private void ensureValidSdks() {

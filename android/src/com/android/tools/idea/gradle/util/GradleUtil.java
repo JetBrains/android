@@ -63,7 +63,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.util.Function;
 import com.intellij.util.Processor;
-import com.intellij.util.containers.SmartHashSet;
 import icons.AndroidIcons;
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -734,21 +733,32 @@ public final class GradleUtil {
    */
   @Nullable
   public static GradleVersion getAndroidGradleModelVersionInUse(@NotNull Project project) {
-    Set<String> pluginVersionsUsedInProject = new SmartHashSet<String>();
+    Set<String> foundInLibraries = Sets.newHashSet();
+    Set<String> foundInApps = Sets.newHashSet();
     for (Module module : ModuleManager.getInstance(project).getModules()) {
       AndroidProject androidProject = getAndroidProject(module);
-      if (androidProject == null) {
-        continue;
+      if (androidProject != null) {
+        String modelVersion = androidProject.getModelVersion();
+        if (androidProject.isLibrary()) {
+          foundInLibraries.add(modelVersion);
+        }
+        else {
+          foundInApps.add(modelVersion);
+        }
       }
-      pluginVersionsUsedInProject.add(androidProject.getModelVersion());
     }
 
-    // This should pretty much always be the case, but let's be safe here.
-    if (pluginVersionsUsedInProject.size() == 1) {
-      return GradleVersion.tryParse(getOnlyElement(pluginVersionsUsedInProject));
+    String found = null;
+
+    // Prefer the version in app.
+    if (foundInApps.size() == 1) {
+      found = getOnlyElement(foundInApps);
+    }
+    else if (foundInApps.isEmpty() && foundInLibraries.size() == 1) {
+      found = getOnlyElement(foundInLibraries);
     }
 
-    return null;
+    return found != null ? GradleVersion.tryParse(found) : null;
   }
 
   /**
