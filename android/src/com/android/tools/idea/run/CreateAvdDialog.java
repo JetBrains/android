@@ -358,13 +358,11 @@ public class CreateAvdDialog extends DialogWrapper {
       return;
     }
     super.doOKAction();
-    IAndroidTarget selectedTarget = (IAndroidTarget)myTargetBox.getSelectedItem();
     String skinName = (String) mySkinField.getSelectedItem();
     ISystemImage sysImg = (ISystemImage)myTagAbiCombo.getSelectedItem();
     String sdCard = getSdCardParameter();
     MessageBuildingSdkLog log = new MessageBuildingSdkLog();
-    myCreatedAvd = myAvdManager.createAvd(avdFolder, avdName, selectedTarget,
-                                          sysImg.getTag(), sysImg.getAbiType(),
+    myCreatedAvd = myAvdManager.createAvd(avdFolder, avdName, sysImg,
                                           null /*skinFolder*/, skinName,
                                           sdCard, null, null, true, false, false, log);
     if (log.getErrorMessage().length() > 0) {
