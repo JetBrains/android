@@ -16,8 +16,7 @@
 package com.android.tools.idea.gradle.variant.view;
 
 import com.android.builder.model.AndroidProject;
-import com.android.repository.Revision;
-import com.android.repository.Revision.PreviewComparison;
+import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.NativeAndroidGradleModel;
@@ -126,7 +125,7 @@ public class BuildVariantView {
 
   @NotNull
   private List<Module> getModulesIfProjectSupportsUnitTests() {
-    Revision minimumSupportedVersion = new Revision(1, 1, 0);
+    GradleVersion minimumSupportedVersion = new GradleVersion(1, 1, 0);
 
     List<Module> modules = Lists.newArrayList();
     for (Module module : ModuleManager.getInstance(myProject).getModules()) {
@@ -145,10 +144,10 @@ public class BuildVariantView {
   }
 
   @VisibleForTesting
-  static boolean supportsUnitTests(@NotNull AndroidProject androidProject, @NotNull Revision minimumSupportedVersion) {
+  static boolean supportsUnitTests(@NotNull AndroidProject androidProject, @NotNull GradleVersion minimumSupportedVersion) {
     try {
-      Revision modelVersion = Revision.parseRevision(androidProject.getModelVersion());
-      return minimumSupportedVersion.compareTo(modelVersion, PreviewComparison.IGNORE) <= 0;
+      GradleVersion modelVersion = GradleVersion.parse(androidProject.getModelVersion());
+      return minimumSupportedVersion.compareIgnoringQualifiers(modelVersion) <= 0;
     }
     catch (NumberFormatException e) {
       // failed to parse, assume unit tests are not supported.
