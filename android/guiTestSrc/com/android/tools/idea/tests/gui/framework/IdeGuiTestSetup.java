@@ -26,6 +26,5 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface IdeGuiTestSetup {
-  boolean skipSourceGenerationOnSync() default false;
   boolean takeScreenshotOnTestFailure() default true;
 }

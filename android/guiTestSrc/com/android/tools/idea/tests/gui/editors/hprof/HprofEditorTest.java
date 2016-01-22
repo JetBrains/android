@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.tests.gui.editors.hprof;
 
+import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
-import com.android.tools.idea.tests.gui.framework.IdeGuiTestSetup;
 import com.android.tools.idea.tests.gui.framework.fixture.CapturesToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.HprofEditorFixture;
 import org.fest.swing.fixture.JTreeFixture;
@@ -31,7 +31,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
 @BelongsToTestGroups({PROJECT_SUPPORT})
-@IdeGuiTestSetup(skipSourceGenerationOnSync = true)
 public class HprofEditorTest extends GuiTestCase {
   private static final String SAMPLE_SNAPSHOT_NAME = "snapshot.hprof";
   private static final String CAPTURES_APPLICATION = "CapturesApplication";
@@ -41,6 +40,7 @@ public class HprofEditorTest extends GuiTestCase {
 
   @Before
   public void init() throws IOException {
+    GradleExperimentalSettings.getInstance().SKIP_SOURCE_GEN_ON_PROJECT_SYNC = true;
     myProjectFrame = importProjectAndWaitForProjectSyncToFinish(CAPTURES_APPLICATION);
 
     myCapturesToolWindowFixture = myProjectFrame.getCapturesToolWindow();
