@@ -16,7 +16,6 @@
 package com.android.tools.idea.tests.gui.avdmanager;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
-import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.*;
 import org.junit.Test;
 
@@ -27,7 +26,6 @@ import static org.junit.Assert.assertFalse;
  */
 public class HardwareProfileTest extends GuiTestCase {
   @Test
-  @IdeGuiTest
   public void testCreateHardwareProfile() throws Exception {
     myProjectFrame = importSimpleApplication();
     AvdManagerDialogFixture avdManagerDialog = myProjectFrame.invokeAvdManager();

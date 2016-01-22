@@ -27,7 +27,7 @@ import static org.fest.reflect.core.Reflection.method;
 import static org.junit.Assert.assertNotNull;
 
 /**
- * Collects configuration information from a UI test method's {@link IdeGuiTest} and {@link IdeGuiTestSetup} annotations and applies it
+ * Collects configuration information from a UI test method's {@link IdeGuiTestSetup} annotations and applies it
  * to the test before execution, using the the IDE's {@code ClassLoader} (which is the {@code ClassLoader} used by UI tests, to be able to
  * access IDE's services, state and components.)
  */

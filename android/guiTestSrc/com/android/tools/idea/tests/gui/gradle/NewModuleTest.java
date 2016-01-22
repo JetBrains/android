@@ -18,7 +18,6 @@ package com.android.tools.idea.tests.gui.gradle;
 import com.android.tools.idea.npw.ModuleTemplate;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
-import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.ui.ASGallery;
@@ -42,7 +41,7 @@ import static org.junit.Assert.*;
 @BelongsToTestGroups({TestGroup.TEST_SUPPORT})
 public class NewModuleTest extends GuiTestCase {
 
-  @Test @IdeGuiTest
+  @Test
   public void testNewModuleOldGradle() throws Exception {
     myProjectFrame = importSimpleApplication();
     // That's the oldest combination we support:

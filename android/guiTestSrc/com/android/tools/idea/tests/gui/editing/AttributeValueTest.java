@@ -16,7 +16,6 @@
 package com.android.tools.idea.tests.gui.editing;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
-import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import junit.framework.Assert;
 import org.junit.Test;
@@ -24,7 +23,7 @@ import org.junit.Test;
 import java.io.IOException;
 
 public class AttributeValueTest extends GuiTestCase {
-  @Test @IdeGuiTest
+  @Test
   public void testAttributeValueInput() throws IOException {
     myProjectFrame = importProjectAndWaitForProjectSyncToFinish("SimpleApplication");
     final EditorFixture editor = myProjectFrame.getEditor();
