@@ -34,6 +34,7 @@ import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataManager;
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -49,6 +50,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
+import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import javax.swing.*;
 import java.io.File;
@@ -400,6 +402,10 @@ public final class Projects {
    * @return {@code true} if the given module is the one that represents the project, {@code false} otherwise.
    */
   public static boolean isGradleProjectModule(@NotNull Module module) {
+    if (!ExternalSystemApiUtil.isExternalSystemAwareModule(GradleConstants.SYSTEM_ID, module)) {
+      return false;
+    }
+
     AndroidFacet androidFacet = AndroidFacet.getInstance(module);
     if (androidFacet != null && androidFacet.requiresAndroidModel() && isBuildWithGradle(module)) {
       // If the module is an Android project, check that the module's path is the same as the project's.
