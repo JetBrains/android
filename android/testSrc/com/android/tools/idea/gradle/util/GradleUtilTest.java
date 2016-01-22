@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2013 The Android Open Source Project
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, GradleVersion 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.util;
 
-import com.android.repository.Revision;
+import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.eclipse.GradleImport;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.google.common.base.Charsets;
@@ -42,10 +42,14 @@ public class GradleUtilTest extends TestCase {
 
   @Override
   protected void tearDown() throws Exception {
-    if (myTempDir != null) {
-      FileUtil.delete(myTempDir);
+    try {
+      if (myTempDir != null) {
+        FileUtil.delete(myTempDir);
+      }
     }
-    super.tearDown();
+    finally {
+      super.tearDown();
+    }
   }
 
   public void testGetGradleInvocationJvmArgWithNullBuildMode() {
@@ -147,35 +151,35 @@ public class GradleUtilTest extends TestCase {
 
   public void testGetGradleVersionFromJarUsingGradleLibraryJar() {
     File jarFile = new File("gradle-core-2.0.jar");
-    Revision gradleVersion = GradleUtil.getGradleVersionFromJar(jarFile);
+    GradleVersion gradleVersion = GradleUtil.getGradleVersionFromJar(jarFile);
     assertNotNull(gradleVersion);
-    assertEquals(Revision.parseRevision("2.0"), gradleVersion);
+    assertEquals(GradleVersion.parse("2.0"), gradleVersion);
   }
 
   public void testRc() {
     // Regression test for https://code.google.com/p/android/issues/detail?id=179838
     File jarFile = new File("gradle-messaging-2.5-rc-1.jar");
-    Revision gradleVersion = GradleUtil.getGradleVersionFromJar(jarFile);
+    GradleVersion gradleVersion = GradleUtil.getGradleVersionFromJar(jarFile);
     assertNotNull(gradleVersion);
-    assertEquals(Revision.parseRevision("2.5"), gradleVersion);
+    assertEquals(GradleVersion.parse("2.5"), gradleVersion);
   }
 
   public void testNightly() {
     File jarFile = new File("gradle-messaging-2.10-20151029230024+0000.jar");
-    Revision gradleVersion = GradleUtil.getGradleVersionFromJar(jarFile);
+    GradleVersion gradleVersion = GradleUtil.getGradleVersionFromJar(jarFile);
     assertNotNull(gradleVersion);
-    assertEquals(Revision.parseRevision("2.10"), gradleVersion);
+    assertEquals(GradleVersion.parse("2.10"), gradleVersion);
   }
 
   public void testGetGradleVersionFromJarUsingGradleLibraryJarWithoutVersion() {
     File jarFile = new File("gradle-core-two.jar");
-    Revision gradleVersion = GradleUtil.getGradleVersionFromJar(jarFile);
+    GradleVersion gradleVersion = GradleUtil.getGradleVersionFromJar(jarFile);
     assertNull(gradleVersion);
   }
 
   public void testGetGradleVersionFromJarUsingNonGradleLibraryJar() {
     File jarFile = new File("ant-1.9.3.jar");
-    Revision gradleVersion = GradleUtil.getGradleVersionFromJar(jarFile);
+    GradleVersion gradleVersion = GradleUtil.getGradleVersionFromJar(jarFile);
     assertNull(gradleVersion);
   }
 
@@ -188,7 +192,7 @@ public class GradleUtilTest extends TestCase {
                       "        classpath 'com.android.tools.build:gradle:0.13.0'\n" +
                       "    }\n" +
                       "}";
-    Revision revision = GradleUtil.getAndroidGradleModelVersionFromBuildFile(contents, null);
+    GradleVersion revision = GradleUtil.getAndroidGradleModelVersionFromBuildFile(contents, null);
     assertNotNull(revision);
     assertEquals("0.13.0", revision.toString());
   }
@@ -202,7 +206,7 @@ public class GradleUtilTest extends TestCase {
                       "        classpath 'com.android.tools.build:gradle:0.13.+'\n" +
                       "    }\n" +
                       "}";
-    Revision revision = GradleUtil.getAndroidGradleModelVersionFromBuildFile(contents, null);
+    GradleVersion revision = GradleUtil.getAndroidGradleModelVersionFromBuildFile(contents, null);
     assertNotNull(revision);
     assertEquals("0.13.0", revision.toString());
   }
@@ -216,7 +220,7 @@ public class GradleUtilTest extends TestCase {
                       "        classpath 'com.android.tools.build:gradle:+'\n" +
                       "    }\n" +
                       "}";
-    Revision revision = GradleUtil.getAndroidGradleModelVersionFromBuildFile(contents, null);
+    GradleVersion revision = GradleUtil.getAndroidGradleModelVersionFromBuildFile(contents, null);
     assertNotNull(revision);
   }
 
