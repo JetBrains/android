@@ -188,6 +188,7 @@ public class IntellijApiDetector extends ApiDetector {
       myCheckAccess = context.isEnabled(UNSUPPORTED) || context.isEnabled(INLINED);
       myCheckOverride = context.isEnabled(OVERRIDE)
                              && context.getMainProject().getBuildSdk() >= 1;
+      int depth = 0;
       if (myCheckOverride) {
         myFrameworkParent = null;
         PsiClass superClass = myClass.getSuperClass();
@@ -204,6 +205,13 @@ public class IntellijApiDetector extends ApiDetector {
             break;
           }
           superClass = superClass.getSuperClass();
+          depth++;
+          if (depth == 500) {
+            // Shouldn't happen in practice; this prevents the IDE from
+            // hanging if the user has accidentally typed in an incorrect
+            // super class which creates a cycle.
+            break;
+          }
         }
         if (myFrameworkParent == null) {
           myCheckOverride = false;
