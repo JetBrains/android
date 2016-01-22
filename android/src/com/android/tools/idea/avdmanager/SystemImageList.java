@@ -189,8 +189,10 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
         SystemImageDescription image = myModel.getRowValue(entry.getIdentifier());
         Abi abi = Abi.getEnum(image.getAbiType());
         boolean isAvdIntel = abi == Abi.X86 || abi == Abi.X86_64;
+        AndroidVersion version = image.getVersion();
+        int apiLevel = version != null ? version.getApiLevel() : -1;
         return (!image.isRemote() || myShowRemoteCheckbox.isSelected()) &&
-               ((isAvdIntel && GOOGLE_APIS_TAG.equals(image.getTag())) || !myShowRecommendedOnlyCheckbox.isSelected());
+               ((isAvdIntel && GOOGLE_APIS_TAG.equals(image.getTag()) && apiLevel != 21) || !myShowRecommendedOnlyCheckbox.isSelected());
       }
     });
     myTable.setRowSorter(sorter);
