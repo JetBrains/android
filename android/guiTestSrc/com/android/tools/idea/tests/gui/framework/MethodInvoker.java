@@ -45,8 +45,7 @@ public class MethodInvoker extends Statement {
 
   @Override
   public void evaluate() throws Throwable {
-    String testFqn = getTestFqn();
-    System.out.println(String.format("Executing test '%1$s'", testFqn));
+    System.out.println(String.format("Executing test '%1$s'", getTestFqn()));
 
     runTest();
     failIfIdeHasFatalErrors();

@@ -21,6 +21,7 @@ import com.android.tools.idea.tests.gui.framework.IdeGuiTestSetup;
 import com.android.tools.idea.tests.gui.framework.fixture.CapturesToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.HprofEditorFixture;
 import org.fest.swing.fixture.JTreeFixture;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -38,7 +39,7 @@ public class HprofEditorTest extends GuiTestCase {
   private CapturesToolWindowFixture myCapturesToolWindowFixture;
   private HprofEditorFixture myDefaultEditor;
 
-  // TODO: Change this method to use the @Before annotation when it is fixed to work with GUI tests.
+  @Before
   public void init() throws IOException {
     myProjectFrame = importProjectAndWaitForProjectSyncToFinish(CAPTURES_APPLICATION);
 
@@ -49,8 +50,6 @@ public class HprofEditorTest extends GuiTestCase {
 
   @Test
   public void testInitialState() throws IOException {
-    init();
-
     myDefaultEditor.assertCurrentHeapName("App heap");
     myDefaultEditor.assertCurrentClassesViewMode("Class List View");
     JTreeFixture classesTree = myDefaultEditor.getClassesTree().requireNotEditable().requireNoSelection();
