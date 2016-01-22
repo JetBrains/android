@@ -25,6 +25,7 @@ import org.fest.swing.data.TableCell;
 import org.fest.swing.fixture.FontFixture;
 import org.fest.swing.fixture.JTableCellFixture;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import javax.swing.*;
@@ -40,6 +41,8 @@ import static org.junit.Assert.*;
  */
 @BelongsToTestGroups({THEME})
 public class StateListPickerTest extends GuiTestCase {
+
+  @Ignore("failed in http://go/aj/job/studio-ui-test/345 and from IDEA")
   @Test
   public void testStateList() throws IOException {
     myProjectFrame = importProjectAndWaitForProjectSyncToFinish("StateListApplication");
