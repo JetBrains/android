@@ -157,7 +157,7 @@ public class InstantRunConfigurable
       AndroidGradleModel model = AndroidGradleModel.get(module);
       if (model != null) {
         isGradle = true;
-        if (InstantRunManager.isInstantRunSupported(model)) {
+        if (InstantRunManager.modelSupportsInstantRun(model)) {
           isCurrentPlugin = true;
           break;
         }
