@@ -166,6 +166,14 @@ public abstract class GuiTestCase {
     }
     printTimestamp();
     printPerfStats();
+    try {
+      cleanUp();
+    } finally {
+      ProjectManagerEx.getInstanceEx().unblockReloadingProjectOnExternalChanges();
+    }
+  }
+
+  private void cleanUp() {
     if (myRobot != null) {
       myRobot.cleanUpWithoutDisposingWindows();
       // We close all modal dialogs left over, because they block the AWT thread and could trigger a deadlock in the next test.
@@ -178,7 +186,6 @@ public abstract class GuiTestCase {
         }
       }
     }
-    ProjectManagerEx.getInstanceEx().unblockReloadingProjectOnExternalChanges();
   }
 
   @NotNull
