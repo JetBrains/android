@@ -16,7 +16,6 @@
 package com.android.tools.idea.tests.gui.editing;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
-import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import org.junit.Test;
 
@@ -31,7 +30,7 @@ import static org.junit.Assert.assertEquals;
 
 public class AttributeResolveTest extends GuiTestCase {
 
-  @Test @IdeGuiTest
+  @Test
   public void testResolveNewlyAddedTag() throws IOException {
     myProjectFrame = importProjectAndWaitForProjectSyncToFinish("LayoutTest");
     EditorFixture editor = myProjectFrame.getEditor();

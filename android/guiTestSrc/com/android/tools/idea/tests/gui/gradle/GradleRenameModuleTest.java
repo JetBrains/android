@@ -18,7 +18,6 @@ package com.android.tools.idea.tests.gui.gradle;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ModuleDependencyTest.ExpectedModuleDependency;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
-import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTestSetup;
 import com.android.tools.idea.tests.gui.framework.fixture.InputDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
@@ -36,7 +35,7 @@ import static org.junit.Assert.assertNull;
 @BelongsToTestGroups({PROJECT_SUPPORT})
 @IdeGuiTestSetup(skipSourceGenerationOnSync = true)
 public class GradleRenameModuleTest extends GuiTestCase {
-  @Test @IdeGuiTest
+  @Test
   public void testRenameModule() throws IOException {
     myProjectFrame = importSimpleApplication();
 
@@ -56,7 +55,7 @@ public class GradleRenameModuleTest extends GuiTestCase {
     assertNull("Module 'app' should not exist", myProjectFrame.findModule("app"));
   }
 
-  @Test @IdeGuiTest
+  @Test
   public void testRenameModuleAlsoChangeReferencesInBuildFile() throws IOException {
     myProjectFrame = importMultiModule();
 
@@ -86,7 +85,7 @@ public class GradleRenameModuleTest extends GuiTestCase {
     buildModel.requireDependency(expected);
   }
 
-  @Test @IdeGuiTest
+  @Test
   public void testCannotRenameRootModule() throws IOException {
     myProjectFrame = importSimpleApplication();
 
@@ -103,7 +102,7 @@ public class GradleRenameModuleTest extends GuiTestCase {
     errorMessage.clickOk();
   }
 
-  @Test @IdeGuiTest
+  @Test
   public void testCannotRenameToExistedFile() throws IOException {
     myProjectFrame = importMultiModule();
 

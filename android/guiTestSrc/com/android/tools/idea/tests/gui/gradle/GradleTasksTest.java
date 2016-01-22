@@ -17,7 +17,6 @@ package com.android.tools.idea.tests.gui.gradle;
 
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
-import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleToolWindowFixture;
 import com.intellij.openapi.editor.Document;
@@ -49,7 +48,7 @@ import static org.junit.Assert.assertTrue;
 
 @BelongsToTestGroups({PROJECT_SUPPORT})
 public class GradleTasksTest extends GuiTestCase {
-  @Test @IdeGuiTest
+  @Test
   public void testNotFinishedImmediatelyAndOutputIsShown() throws IOException {
     // This test checks two things:
     //   1. There was a problem that every time a gradle task was started from IDE corresponding run/debug tool window
@@ -87,7 +86,7 @@ public class GradleTasksTest extends GuiTestCase {
     });
   }
 
-  @Test @IdeGuiTest
+  @Test
   public void testTaskCancellation() throws Exception {
     // Main success scenario:
     //   1. Execute regular 'build' task, ensure that it's successful

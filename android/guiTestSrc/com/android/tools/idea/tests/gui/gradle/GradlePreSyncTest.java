@@ -19,7 +19,6 @@ import com.android.tools.idea.gradle.util.GradleProperties;
 import com.android.tools.idea.gradle.util.ProxySettings;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
-import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTestSetup;
 import com.android.tools.idea.tests.gui.framework.fixture.ProxySettingsDialogFixture;
 import com.intellij.ide.util.PropertiesComponent;
@@ -41,7 +40,7 @@ public class GradlePreSyncTest extends GuiTestCase {
   // See https://code.google.com/p/android/issues/detail?id=65325
   // Similar to {@link com.android.tools.idea.gradle.util.GradlePropertiesTest#testSetProxySettings} test, but also tests the UI
   // element that is involved.
-  @Test @IdeGuiTest
+  @Test
   public void testAddProxyConfigureToPropertyFile() throws IOException {
     myProjectFrame = importSimpleApplication();
 
@@ -77,7 +76,7 @@ public class GradlePreSyncTest extends GuiTestCase {
     assertEquals(ideProxySettings, properties.getHttpsProxySettings());
   }
 
-  @Test @IdeGuiTest
+  @Test
   public void testDoNotShowProxySettingDialog() throws IOException {
     myProjectFrame = importSimpleApplication();
     PropertiesComponent.getInstance(myProjectFrame.getProject()).setValue("show.do.not.copy.http.proxy.settings.to.gradle", "true");
