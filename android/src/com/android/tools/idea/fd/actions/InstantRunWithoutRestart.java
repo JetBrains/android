@@ -34,7 +34,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
@@ -66,7 +65,7 @@ public class InstantRunWithoutRestart extends AnAction {
 
   private void perform(@NotNull Module module) {
     Project project = module.getProject();
-    if (!InstantRunSettings.isInstantRunEnabled(project) || !InstantRunManager.isPatchableApp(module)) {
+    if (!InstantRunSettings.isInstantRunEnabled(project) || !InstantRunManager.variantSupportsInstantRun(module)) {
       return;
     }
     List<IDevice> devices = InstantRunManager.findDevices(project);

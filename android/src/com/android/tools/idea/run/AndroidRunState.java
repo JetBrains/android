@@ -81,7 +81,7 @@ public class AndroidRunState implements RunProfileState {
     }
 
     AndroidGradleModel model = AndroidGradleModel.get(myModule);
-    if (model != null && InstantRunManager.isInstantRunSupported(model)) {
+    if (model != null && InstantRunManager.variantSupportsInstantRun(model)) {
       InstantRunBuildInfo info = InstantRunBuildInfo.get(model);
       if (info != null) {
         int format = info.getFormat();
