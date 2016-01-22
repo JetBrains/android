@@ -170,7 +170,7 @@ public class AndroidProcessHandler extends DefaultDebugProcessHandler implements
     stopMonitoring(device);
   }
 
-  private void stopMonitoring(IDevice device) {
+  private void stopMonitoring(@NotNull IDevice device) {
     myDevices.remove(device.getSerialNumber());
     if (myDevices.isEmpty()) {
       detachProcess();
@@ -188,12 +188,29 @@ public class AndroidProcessHandler extends DefaultDebugProcessHandler implements
     }
 
     Client client = device.getClient(myApplicationId);
-    if (client == null && (System.currentTimeMillis() - myDeviceAdded) > TIMEOUT_MS) {
-      print("Timed out waiting for process to appear on " + device.getName());
-      stopMonitoring(device);
-    } else if (client != null) {
+    if (client != null) {
       print("Connected to process " + client.getClientData().getPid() + " on device " + device.getName());
       myClients.add(client);
+      return;
+    }
+
+    // sometimes, the application crashes before TIMEOUT_MS. So if we already knew of the app, and it is not there anymore, then assume
+    // it got killed
+    if (!myClients.isEmpty()) {
+      for (Client c : myClients) {
+        if (device.equals(c.getDevice())) {
+          stopMonitoring(device);
+          print("Application terminated.");
+          return;
+        }
+      }
+    }
+
+    if ((System.currentTimeMillis() - myDeviceAdded) > TIMEOUT_MS) {
+      print("Timed out waiting for process to appear on " + device.getName());
+      stopMonitoring(device);
+    } else {
+      print("Waiting for process to come online");
     }
   }
 
