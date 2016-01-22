@@ -16,6 +16,7 @@
 package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.IAndroidTarget;
+import com.android.sdklib.ISystemImage;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.run.ExternalToolRunner;
 import com.android.tools.idea.stats.UsageTracker;
@@ -36,9 +37,9 @@ public class EmulatorRunner extends ExternalToolRunner {
                         @Nullable AvdInfo avdInfo) {
     super(project, consoleTitle, commandLine);
 
-    IAndroidTarget target = avdInfo == null ? null : avdInfo.getTarget();
+    ISystemImage image = avdInfo == null ? null : avdInfo.getSystemImage();
 
-    String description = target == null ? null : target.toString();
+    String description = image == null ? null : image.toString();
     UsageTracker.getInstance().trackEvent(
       UsageTracker.CATEGORY_DEPLOYMENT, UsageTracker.ACTION_DEPLOYMENT_EMULATOR, description, null);
 
@@ -46,7 +47,7 @@ public class EmulatorRunner extends ExternalToolRunner {
       UsageTracker.getInstance().trackEvent(
         UsageTracker.CATEGORY_AVDINFO, UsageTracker.ACTION_AVDINFO_ABI, AvdInfo.getPrettyAbiType(avdInfo), null);
 
-      String version = target == null ? "unknown" : target.getVersion().toString();
+      String version = image == null ? "unknown" : image.getAndroidVersion().toString();
       UsageTracker.getInstance().trackEvent(
         UsageTracker.CATEGORY_AVDINFO, UsageTracker.ACTION_AVDINFO_TARGET_VERSION, version, null);
     }

@@ -198,4 +198,10 @@ public class ConnectedAndroidDevice implements AndroidDevice {
     }
     return null;
   }
+
+  @Nullable
+  @Override
+  public String getError() {
+    return null;
+  }
 }

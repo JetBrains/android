@@ -17,6 +17,7 @@ package com.android.tools.idea.avdmanager;
 
 import com.android.repository.io.FileOpUtils;
 import com.android.sdklib.IAndroidTarget;
+import com.android.sdklib.ISystemImage;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.repositoryv2.AndroidSdkHandler;
 import com.android.sdklib.repositoryv2.targets.AndroidTargetManager;
@@ -110,10 +111,12 @@ public class SkinChooser extends ComboboxWithBrowseButton implements ItemListene
       }
     }
     StudioLoggerProgressIndicator progress = new StudioLoggerProgressIndicator(SkinChooser.class);
-    AndroidTargetManager targetManager = AndroidSdkUtils.tryToChooseSdkHandler().getAndroidTargetManager(progress);
-
-    for (IAndroidTarget target : targetManager.getTargets(true, progress)) {
+    AndroidSdkHandler sdkHandler = AndroidSdkUtils.tryToChooseSdkHandler();
+    for (IAndroidTarget target : sdkHandler.getAndroidTargetManager(progress).getTargets(progress)) {
       Collections.addAll(result, target.getSkins());
+    }
+    for (ISystemImage img : sdkHandler.getSystemImageManager(progress).getImages()) {
+      Collections.addAll(result, img.getSkins());
     }
 
     List<File> resultList = Lists.newArrayList();
