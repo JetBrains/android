@@ -30,6 +30,7 @@ import com.android.sdklib.repositoryv2.IdDisplay;
 import com.android.sdklib.repositoryv2.meta.DetailsTypes;
 import com.android.sdklib.repositoryv2.targets.AndroidTargetManager;
 import com.android.sdklib.repositoryv2.targets.SystemImage;
+import com.android.sdklib.repositoryv2.targets.SystemImageManager;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.sdkv2.StudioDownloader;
 import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
@@ -300,7 +301,7 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
     else {
       for (RemotePackage info : infos) {
         if (SystemImageDescription.hasSystemImage(info)) {
-          SystemImageDescription image = new SystemImageDescription(info, null);
+          SystemImageDescription image = new SystemImageDescription(info);
           if (filter(image) && (myFilter == null || myFilter.apply(image))) {
             items.add(image);
           }
@@ -320,19 +321,13 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
   }
 
   private List<SystemImageDescription> getLocalImages() {
-    AndroidTargetManager targetManager = mySdkHandler.getAndroidTargetManager(LOGGER);
+    SystemImageManager systemImageManager = mySdkHandler.getSystemImageManager(LOGGER);
     List<SystemImageDescription> items = Lists.newArrayList();
 
-    for (IAndroidTarget target : targetManager.getTargets(true, LOGGER)) {
-      ISystemImage[] systemImages = target.getSystemImages();
-      if (systemImages != null) {
-        for (ISystemImage image : systemImages) {
-          // If we don't have a filter or this image passes the filter
-          SystemImageDescription desc = new SystemImageDescription(target, image);
-          if (filter(desc) && (myFilter == null || myFilter.apply(desc))) {
-            items.add(desc);
-          }
-        }
+    for (ISystemImage image : systemImageManager.getImages()) {
+      SystemImageDescription desc = new SystemImageDescription(image);
+      if (filter(desc) && (myFilter == null || myFilter.apply(desc))) {
+        items.add(desc);
       }
     }
     return items;

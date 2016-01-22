@@ -18,6 +18,8 @@ package com.android.tools.idea.avdmanager;
 import com.android.annotations.VisibleForTesting;
 import com.android.resources.Density;
 import com.android.sdklib.IAndroidTarget;
+import com.android.sdklib.ISystemImage;
+import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Storage;
 import com.android.sdklib.internal.avd.AvdInfo;
@@ -351,11 +353,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
       @NotNull
       @Override
       public String valueOf(AvdInfo avdInfo) {
-        IAndroidTarget target = avdInfo.getTarget();
-        if (target == null) {
-          return "N/A";
-        }
-        return target.getVersion().getApiString();
+        return avdInfo.getAndroidVersion().getApiString();
       }
 
       /**
@@ -378,11 +376,11 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
       @Nullable
       @Override
       public String valueOf(AvdInfo info) {
-        IAndroidTarget target = info.getTarget();
-        if (target == null) {
-          return "N/A";
+        String result = "Android " + SdkVersionInfo.getVersionString(info.getAndroidVersion().getFeatureLevel());
+        if (info.getTag() != null) {
+          result += " (" + info.getTag().getDisplay() + ")";
         }
-        return target.getName();
+        return result;
       }
     },
     new AvdColumnInfo("CPU/ABI", JBUI.scale(60)) {
