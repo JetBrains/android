@@ -389,7 +389,9 @@ public class BuildOutputParserTest extends TestCase {
 
     writeToFile(
       "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-      "<resources xmlns:ns1=\"urn:oasis:names:tc:xliff:document:1.2\">\n" +
+      "<resources xmlns:ns1=\"urn:oasis:names:tc:xliff:document:1.2\"\n" +
+      "           xmlns:tools=\"http://schemas.android.com/tools\"\n" +
+      "           xmlns:alias_for_tools=\"http://schemas.android.com/tools\">\n" +
       "\n" +
       "    <!-- From: src/test/resources/testData/resources/baseSet/values/values.xml -->\n" +
       "    <string-array name=\"string_array\" translatable=\"false\">\n" +
@@ -476,7 +478,7 @@ public class BuildOutputParserTest extends TestCase {
 
     assertEquals("[message severity]", Message.Kind.ERROR, message.getKind());
     assertEquals("[message text]", messageText, message.getText());
-    assertEquals("[position line]", 9, message.getLineNumber());
+    assertEquals("[position line]", 11, message.getLineNumber());
     assertEquals("[position column]", 35, message.getColumn());
   }
 
