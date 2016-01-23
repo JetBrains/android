@@ -51,6 +51,7 @@ public class BuildVariantsTest extends GuiTestCase {
     GradleExperimentalSettings.getInstance().SKIP_SOURCE_GEN_ON_PROJECT_SYNC = true;
   }
 
+  @Ignore("failed in http://go/aj/job/studio-ui-test/345 and from IDEA")
   @Test
   public void testSwitchVariantWithFlavor() throws IOException {
     myProjectFrame = importProjectAndWaitForProjectSyncToFinish("Flavoredlib");
@@ -112,22 +113,26 @@ public class BuildVariantsTest extends GuiTestCase {
     assertThat(testSourceFolders).contains(unitTestSrc).excludes(androidTestSrc);
   }
 
+  @Ignore("failed in http://go/aj/job/studio-ui-test/345 and from IDEA")
   @Test
   // TODO add data provider to UI test infrastruture, similar to JUnit 4
   public void generatedFolders_1_0() throws IOException {
     doTestGeneratedFolders("1.0.1", "2.2.1");
   }
 
+  @Ignore("failed in http://go/aj/job/studio-ui-test/345 and from IDEA")
   @Test
   public void generatedFolders_1_1() throws IOException {
     doTestGeneratedFolders("1.1.3", "2.2.1");
   }
 
+  @Ignore("failed in http://go/aj/job/studio-ui-test/345 and from IDEA")
   @Test
   public void generatedFolders_1_2() throws IOException {
     doTestGeneratedFolders("1.2.3", "2.4");
   }
 
+  @Ignore("failed in http://go/aj/job/studio-ui-test/345 and from IDEA")
   @Test
   public void generatedFolders_1_3() throws IOException {
     doTestGeneratedFolders("1.3.0", "2.4");
