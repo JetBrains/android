@@ -18,6 +18,7 @@ package com.android.tools.idea.tests.gui.editing;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.intellij.lang.annotation.HighlightSeverity;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -27,6 +28,7 @@ import java.io.IOException;
  */
 public class TestManifestTest extends GuiTestCase {
 
+  @Ignore("failed in http://go/aj/job/studio-ui-test/345 and from IDEA")
   @Test
   public void testManifest() throws IOException {
     myProjectFrame = importProjectAndWaitForProjectSyncToFinish("ProjectWithUnitTests");

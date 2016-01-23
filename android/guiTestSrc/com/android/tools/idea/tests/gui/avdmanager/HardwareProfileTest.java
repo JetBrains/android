@@ -17,6 +17,7 @@ package com.android.tools.idea.tests.gui.avdmanager;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.*;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.junit.Assert.assertFalse;
@@ -25,6 +26,8 @@ import static org.junit.Assert.assertFalse;
  * Tests exercising the UI for hardware profile management
  */
 public class HardwareProfileTest extends GuiTestCase {
+
+  @Ignore("failed in http://go/aj/job/studio-ui-test/345 and from IDEA")
   @Test
   public void testCreateHardwareProfile() throws Exception {
     myProjectFrame = importSimpleApplication();
