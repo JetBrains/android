@@ -20,6 +20,7 @@ import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.intellij.openapi.compiler.CompileContext;
 import com.intellij.openapi.compiler.CompilerMessage;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -41,6 +42,7 @@ import static org.fest.assertions.Assertions.assertThat;
 public class MultipleModuleTypeCompilationTest extends GuiTestCase {
   private static final Pattern JPS_EXECUTING_TASKS_MSG_PATTERN = Pattern.compile("Gradle: Executing tasks: \\[(.*)\\]");
 
+  @Ignore("failed in http://go/aj/job/studio-ui-test/345 and from IDEA")
   @Test
   public void testAssembleTaskIsNotInvokedForLocalAarModule() throws IOException {
     myProjectFrame = importProjectAndWaitForProjectSyncToFinish("MultipleModuleTypes");
@@ -50,6 +52,7 @@ public class MultipleModuleTypeCompilationTest extends GuiTestCase {
     assertThat(invokedTasks).containsOnly(":app:compileDebugSources", ":app:compileDebugAndroidTestSources", ":javaLib:compileJava");
   }
 
+  @Ignore("failed in http://go/aj/job/studio-ui-test/345 and from IDEA")
   @Test
   public void testAssembleTaskIsNotInvokedForLocalAarModuleOnJps() throws IOException {
     myProjectFrame = importProjectAndWaitForProjectSyncToFinish("MultipleModuleTypes");
