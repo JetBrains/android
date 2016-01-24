@@ -42,7 +42,6 @@ import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.impl.ApplicationImpl;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.extensions.ExtensionPoint;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.ExternalProjectInfo;
@@ -56,7 +55,6 @@ import com.intellij.openapi.options.ConfigurableEP;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.TextRange;
@@ -834,39 +832,6 @@ public final class GradleUtil {
     }
 
     return gradleVersion;
-  }
-
-  /**
-   * Updates the version of a Gradle dependency used in a build.gradle file.
-   *
-   * @param project           the project containing the build.gradle file.
-   * @param buildFileDocument document of the build.gradle file, which declares the version of the dependency.
-   * @param dependencyName    the name of the dependency to look for.
-   * @param versionTask       returns the version of the dependency to update the file to.
-   * @return {@code true} if the build.gradle file was updated; {@code false} otherwise.
-   */
-  public static boolean updateGradleDependencyVersion(@NotNull Project project,
-                                                      @NotNull final Document buildFileDocument,
-                                                      @NotNull final String dependencyName,
-                                                      @NotNull final Computable<String> versionTask) {
-    String contents = buildFileDocument.getText();
-    final TextRange range = findStringLiteral(dependencyName, contents, new Function<Pair<String, GroovyLexer>, TextRange>() {
-      @Override
-      public TextRange fun(Pair<String, GroovyLexer> pair) {
-        GroovyLexer lexer = pair.getSecond();
-        return TextRange.create(lexer.getTokenStart() + 1 + dependencyName.length(), lexer.getTokenEnd() - 1);
-      }
-    });
-    if (range != null) {
-      runWriteCommandAction(project, new Runnable() {
-        @Override
-        public void run() {
-          buildFileDocument.replaceString(range.getStartOffset(), range.getEndOffset(), versionTask.compute());
-        }
-      });
-      return true;
-    }
-    return false;
   }
 
   @Nullable
