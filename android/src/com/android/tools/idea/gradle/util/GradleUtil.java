@@ -837,24 +837,6 @@ public final class GradleUtil {
   }
 
   /**
-   * Returns target plugin's definition.
-   *
-   * @param fileContents target Gradle build file contents
-   * @param pluginName   target plugin's name in a form {@code group-id:artifact-id:}
-   * @return target plugin's definition if found; {@code null} otherwise
-   */
-  @Nullable
-  public static GradleCoordinate getPluginDefinition(@NotNull String fileContents, @NotNull String pluginName) {
-    String definition = findStringLiteral(pluginName, fileContents, new Function<Pair<String, GroovyLexer>, String>() {
-      @Override
-      public String fun(Pair<String, GroovyLexer> pair) {
-        return pair.getFirst();
-      }
-    });
-    return isNotEmpty(definition) ? parseCoordinateString(definition) : null;
-  }
-
-  /**
    * Updates the version of a Gradle dependency used in a build.gradle file.
    *
    * @param project           the project containing the build.gradle file.
@@ -1333,7 +1315,7 @@ public final class GradleUtil {
     return ANDROID_PLUGIN_GROUP_ID.equals(spec.group) && ANDROID_PLUGIN_ARTIFACT_ID.equals(spec.name);
   }
 
-  private static void processBuildModelsRecursively(@NotNull final Project project, @NotNull final Processor<GradleBuildModel> processor) {
+  public static void processBuildModelsRecursively(@NotNull final Project project, @NotNull final Processor<GradleBuildModel> processor) {
     VirtualFile baseDir = project.getBaseDir();
     if (baseDir == null) {
       // Unlikely to happen: this is default project.
