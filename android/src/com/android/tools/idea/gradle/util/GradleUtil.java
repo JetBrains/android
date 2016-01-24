@@ -28,7 +28,6 @@ import com.android.tools.idea.gradle.dsl.model.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpec;
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
-import com.android.tools.idea.gradle.eclipse.GradleImport;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.project.AndroidGradleNotification;
 import com.android.tools.idea.templates.TemplateManager;
@@ -55,12 +54,8 @@ import com.intellij.openapi.options.ConfigurableEP;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.Ref;
-import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.tree.IElementType;
-import com.intellij.util.Function;
 import com.intellij.util.Processor;
 import icons.AndroidIcons;
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
@@ -73,8 +68,6 @@ import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
-import org.jetbrains.plugins.groovy.lang.lexer.GroovyLexer;
-import org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes;
 
 import javax.swing.*;
 import java.io.File;
@@ -90,6 +83,7 @@ import static com.android.SdkConstants.*;
 import static com.android.ide.common.repository.GradleCoordinate.parseCoordinateString;
 import static com.android.tools.idea.gradle.dsl.model.GradleBuildModel.parseBuildFile;
 import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.CLASSPATH;
+import static com.android.tools.idea.gradle.eclipse.GradleImport.escapeGroovyStringLiteral;
 import static com.android.tools.idea.gradle.util.BuildMode.ASSEMBLE_TRANSLATE;
 import static com.android.tools.idea.gradle.util.EmbeddedDistributionPaths.findAndroidStudioLocalMavenRepoPath;
 import static com.android.tools.idea.gradle.util.EmbeddedDistributionPaths.findEmbeddedGradleDistributionPath;
@@ -107,9 +101,8 @@ import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAct
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getExecutionSettings;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getSettings;
 import static com.intellij.openapi.util.io.FileUtil.*;
-import static com.intellij.openapi.util.io.FileUtil.join;
-import static com.intellij.openapi.util.io.FileUtil.notNullize;
-import static com.intellij.openapi.util.text.StringUtil.*;
+import static com.intellij.openapi.util.text.StringUtil.isEmptyOrSpaces;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtil.processFileRecursivelyWithoutIgnored;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
@@ -835,36 +828,6 @@ public final class GradleUtil {
   }
 
   @Nullable
-  public static TextRange findDependency(@NotNull final String dependency, @NotNull String contents) {
-    return findStringLiteral(dependency, contents, new Function<Pair<String, GroovyLexer>, TextRange>() {
-      @Override
-      public TextRange fun(Pair<String, GroovyLexer> pair) {
-        GroovyLexer lexer = pair.getSecond();
-        return TextRange.create(lexer.getTokenStart() + 1, lexer.getTokenEnd() - 1);
-      }
-    });
-  }
-
-  @Nullable
-  private static <T> T findStringLiteral(@NotNull String textToSearchPrefix,
-                                         @NotNull String fileContents,
-                                         @NotNull Function<Pair<String, GroovyLexer>, T> consumer) {
-    GroovyLexer lexer = new GroovyLexer();
-    lexer.start(fileContents);
-    while (lexer.getTokenType() != null) {
-      IElementType type = lexer.getTokenType();
-      if (type == GroovyTokenTypes.mSTRING_LITERAL) {
-        String text = unquoteString(lexer.getTokenText());
-        if (text.startsWith(textToSearchPrefix)) {
-          return consumer.fun(Pair.create(text, lexer));
-        }
-      }
-      lexer.advance();
-    }
-    return null;
-  }
-
-  @Nullable
   public static GradleCoordinate findLatestVersionInGradleCache(@NotNull GradleCoordinate original,
                                                                 @Nullable String filter,
                                                                 @Nullable Project project) {
@@ -951,7 +914,7 @@ public final class GradleUtil {
       String contents = "allprojects {\n" +
                         "  buildscript {\n" +
                         "    repositories {\n" +
-                        "      maven { url '" + GradleImport.escapeGroovyStringLiteral(repoPath.getPath()) + "'}\n" +
+                        "      maven { url '" + escapeGroovyStringLiteral(repoPath.getPath()) + "'}\n" +
                         "    }\n" +
                         "  }\n" +
                         "}\n";
