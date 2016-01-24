@@ -26,10 +26,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectBundle;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.roots.ui.configuration.ConfigurationErrorsComponent;
-import com.intellij.openapi.roots.ui.configuration.ModulesConfigurator;
 import com.intellij.openapi.roots.ui.configuration.SidePanel;
-import com.intellij.openapi.roots.ui.configuration.projectRoot.BaseStructureConfigurable;
-import com.intellij.openapi.roots.ui.configuration.projectRoot.StructureConfigurableContext;
 import com.intellij.openapi.ui.MasterDetailsComponent;
 import com.intellij.openapi.util.ActionCallback;
 import com.intellij.openapi.util.Disposer;
@@ -70,8 +67,6 @@ public class ProjectStructureConfigurable extends BaseConfigurable
   @NotNull private final Wrapper myDetails = new Wrapper();
   @NotNull private final List<Configurable> myConfigurables = Lists.newArrayList();
   @NotNull private final UIState myUiState = new UIState();
-  @NotNull private final StructureConfigurableContext myContext;
-  @NotNull private final ModulesConfigurator myModulesConfigurator;
 
   private History myHistory = new History(this);
 
@@ -104,10 +99,6 @@ public class ProjectStructureConfigurable extends BaseConfigurable
     myUiState.proportion = parseFloatValue(proportion);
     String sideProportion = propertiesComponent.getValue(SIDE_PROPORTION_PROPERTY);
     myUiState.sideProportion = parseFloatValue(sideProportion);
-
-    myModulesConfigurator = new ModulesConfigurator(myProject);
-    myContext = new StructureConfigurableContext(myProject, myModulesConfigurator);
-    myModulesConfigurator.setContext(myContext);
   }
 
   private static float parseFloatValue(@Nullable String value) {
@@ -332,12 +323,15 @@ public class ProjectStructureConfigurable extends BaseConfigurable
         }
       }
     }
+
+    for (MainGroupConfigurableContributor contributor : MainGroupConfigurableContributor.EP_NAME.getExtensions()) {
+      for (Configurable configurable : contributor.getConfigurables(myProject)) {
+        addConfigurable(configurable);
+      }
+    }
   }
 
   private void addConfigurable(@NotNull Configurable configurable) {
-    if (configurable instanceof BaseStructureConfigurable) {
-      ((BaseStructureConfigurable)configurable).init(myContext);
-    }
     myConfigurables.add(configurable);
     mySidePanel.addPlace(createPlaceFor(configurable), new Presentation(configurable.getDisplayName()));
   }
@@ -357,7 +351,6 @@ public class ProjectStructureConfigurable extends BaseConfigurable
     AccessToken token = HeavyProcessLatch.INSTANCE.processStarted("Resetting Project Structure");
     try {
       mySdksConfigurable.reset();
-      myContext.reset();
 
       Configurable toSelect = null;
       for (Configurable each : myConfigurables) {
@@ -402,14 +395,10 @@ public class ProjectStructureConfigurable extends BaseConfigurable
 
     myUiState.proportion = mySplitter.getProportion();
     saveSideProportion();
-    myContext.getDaemonAnalyzer().stop();
     for (Configurable each : myConfigurables) {
       each.disposeUIResources();
     }
     myConfigurables.clear();
-
-    myContext.clear();
-    myModulesConfigurator.getFacetsConfigurator().clearMaps();
 
     Disposer.dispose(myErrorsComponent);
 
