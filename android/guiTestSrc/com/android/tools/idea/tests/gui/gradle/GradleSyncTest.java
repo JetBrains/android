@@ -19,6 +19,8 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
+import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpec;
 import com.android.tools.idea.gradle.facet.JavaGradleFacet;
 import com.android.tools.idea.gradle.parser.BuildFileKey;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
@@ -43,7 +45,6 @@ import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.application.Result;
-import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
@@ -59,7 +60,6 @@ import com.intellij.openapi.roots.*;
 import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
-import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.encoding.EncodingProjectManager;
 import com.intellij.pom.java.LanguageLevel;
@@ -106,7 +106,6 @@ import static com.android.tools.idea.gradle.util.PropertiesUtil.savePropertiesTo
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
 import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPORT;
 import static com.android.tools.idea.tests.gui.framework.fixture.FileChooserDialogFixture.findImportProjectDialog;
-import static com.android.tools.idea.tests.gui.framework.fixture.FileFixture.getDocument;
 import static com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.MessageMatcher.firstLineStartingWith;
 import static com.intellij.ide.errorTreeView.ErrorTreeElementKind.*;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
@@ -120,6 +119,7 @@ import static com.intellij.openapi.vfs.VfsUtilCore.urlToPath;
 import static com.intellij.pom.java.LanguageLevel.*;
 import static com.intellij.util.SystemProperties.getLineSeparator;
 import static junit.framework.Assert.assertNotNull;
+import static junit.framework.Assert.assertTrue;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.reflect.core.Reflection.field;
 import static org.fest.swing.core.matcher.JButtonMatcher.withText;
@@ -720,14 +720,36 @@ public class GradleSyncTest extends GuiTestCase {
   @Test
   public void testSyncWithUnresolvedDependencies() throws IOException {
     myProjectFrame = importSimpleApplication();
-    VirtualFile appBuildFile = myProjectFrame.findFileByRelativePath("app/build.gradle", true);
-    Document document = getDocument(appBuildFile);
-    assertNotNull(document);
+    final VirtualFile appBuildFile = myProjectFrame.findFileByRelativePath("app/build.gradle", true);
 
-    updateGradleDependencyVersion(myProjectFrame.getProject(), document, "com.android.support:appcompat-v7:", new Computable<String>() {
+    boolean versionChanged = false;
+
+    final Project project = myProjectFrame.getProject();
+    final GradleBuildModel buildModel = execute(new GuiQuery<GradleBuildModel>() {
       @Override
-      public String compute() {
-        return "100.0.0";
+      @Nullable
+      protected GradleBuildModel executeInEDT() throws Throwable {
+        return GradleBuildModel.parseBuildFile(appBuildFile, project);
+      }
+    });
+
+    assertNotNull(buildModel);
+
+    for (ArtifactDependencyModel artifact : buildModel.dependencies().artifacts()) {
+      ArtifactDependencySpec spec = artifact.getSpec();
+      if ("com.android.support".equals(spec.group) && "appcompat-v7".equals(spec.name)) {
+        artifact.setVersion("100.0.0");
+        versionChanged = true;
+        break;
+      }
+    }
+
+    assertTrue(versionChanged);
+
+    runWriteCommandAction(project, new Runnable() {
+      @Override
+      public void run() {
+        buildModel.applyChanges();
       }
     });
 
