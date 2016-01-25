@@ -20,6 +20,7 @@ import com.android.annotations.NonNull;
 import com.android.builder.model.*;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GradleVersion;
+import com.android.ide.common.repository.GradleVersion.VersionSegment;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.NativeAndroidGradleModel;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
@@ -132,6 +133,9 @@ public final class GradleUtil {
 
   @NonNls public static final String BUILD_DIR_DEFAULT_NAME = "build";
   @NonNls public static final String GRADLEW_PROPERTIES_PATH = join(FD_GRADLE_WRAPPER, FN_GRADLE_WRAPPER_PROPERTIES);
+
+  @NonNls private static final String ANDROID_PLUGIN_GROUP_ID = "com.android.tools.build";
+  @NonNls private static final String ANDROID_PLUGIN_ARTIFACT_ID = "gradle";
 
   private static final Logger LOG = Logger.getInstance(GradleUtil.class);
 
@@ -783,47 +787,53 @@ public final class GradleUtil {
    */
   @Nullable
   public static GradleVersion getAndroidGradleModelVersionFromBuildFile(@NotNull final Project project) {
-    VirtualFile baseDir = project.getBaseDir();
-    if (baseDir == null) {
-      // This is default project.
-      return null;
-    }
     final Ref<GradleVersion> modelVersionRef = new Ref<GradleVersion>();
-    processFileRecursivelyWithoutIgnored(baseDir, new Processor<VirtualFile>() {
+
+    processBuildModelsRecursively(project, new Processor<GradleBuildModel>() {
       @Override
-      public boolean process(VirtualFile virtualFile) {
-        if (FN_BUILD_GRADLE.equals(virtualFile.getName())) {
-          File fileToCheck = virtualToIoFile(virtualFile);
-          try {
-            String contents = loadFile(fileToCheck);
-            GradleVersion version = getAndroidGradleModelVersionFromBuildFile(contents, project);
-            if (version != null) {
-              modelVersionRef.set(version);
-              return false; // we found the model version. Stop.
+      public boolean process(GradleBuildModel buildModel) {
+        DependenciesModel dependencies = buildModel.buildscript().dependencies();
+        for (ArtifactDependencyModel dependency : dependencies.artifacts(CLASSPATH)) {
+          ArtifactDependencySpec spec = dependency.getSpec();
+          if (isAndroidPlugin(spec)) {
+            String versionValue = spec.version;
+            if (versionValue != null) {
+              GradleVersion version = GradleVersion.tryParse(versionValue);
+              if (version != null) {
+                modelVersionRef.set(version);
+                return false; // we found the model version. Stop.
+              }
             }
-          }
-          catch (IOException e) {
-            LOG.warn("Failed to read contents of " + fileToCheck.getPath());
+            break;
           }
         }
         return true;
       }
     });
 
-    return modelVersionRef.get();
-  }
+    GradleVersion gradleVersion = modelVersionRef.get();
 
-  @VisibleForTesting
-  @Nullable
-  static GradleVersion getAndroidGradleModelVersionFromBuildFile(@NotNull String fileContents, @Nullable Project project) {
-    GradleCoordinate found = getPluginDefinition(fileContents, GRADLE_PLUGIN_NAME);
-    if (found != null) {
-      String revision = getAndroidGradleModelVersion(found, project);
-      if (isNotEmpty(revision)) {
-        return GradleVersion.tryParse(revision);
+    if (gradleVersion != null) {
+      VersionSegment majorSegment = gradleVersion.getMajorSegment();
+      VersionSegment minorSegment = gradleVersion.getMinorSegment();
+      // For the Android plug-in we don't care about the micro version. Major and minor only matter.
+      if (majorSegment.acceptsGreaterValue() || (minorSegment != null && minorSegment.acceptsGreaterValue())) {
+        GradleCoordinate foundInCache =
+          findLatestVersionInGradleCache(ANDROID_PLUGIN_GROUP_ID, ANDROID_PLUGIN_GROUP_ID, null, project);
+        if (foundInCache != null) {
+          String revision = foundInCache.getRevision();
+          return GradleVersion.tryParse(revision);
+        }
+      }
+      VersionSegment microSegment = gradleVersion.getMicroSegment();
+      if (microSegment != null && microSegment.acceptsGreaterValue()) {
+        int major = gradleVersion.getMajor();
+        int minor = gradleVersion.getMinor();
+        return new GradleVersion(major, minor, 0);
       }
     }
-    return null;
+
+    return gradleVersion;
   }
 
   /**
@@ -908,49 +918,42 @@ public final class GradleUtil {
   }
 
   @Nullable
-  private static String getAndroidGradleModelVersion(@NotNull GradleCoordinate coordinate, @Nullable Project project) {
-    String revision = coordinate.getRevision();
-    if (isNotEmpty(revision)) {
-      if (!coordinate.acceptsGreaterRevisions()) {
-        return revision;
-      }
-
-      // For the Android plug-in we don't care about the micro version. Major and minor only matter.
-      int major = coordinate.getMajorVersion();
-      int minor = coordinate.getMinorVersion();
-      if (coordinate.getMicroVersion() == -1 && major >= 0 && minor > 0) {
-        return major + "." + minor + "." + 0;
-      }
-    }
-    GradleCoordinate latest = findLatestVersionInGradleCache(coordinate, null, project);
-    return latest != null ? latest.getRevision() : null;
-  }
-
-  @Nullable
   public static GradleCoordinate findLatestVersionInGradleCache(@NotNull GradleCoordinate original,
                                                                 @Nullable String filter,
                                                                 @Nullable Project project) {
 
+    String groupId = original.getGroupId();
+    String artifactId = original.getArtifactId();
+    if (isNotEmpty(groupId) && isNotEmpty(artifactId)) {
+      return findLatestVersionInGradleCache(groupId, artifactId, filter, project);
+    }
+    return null;
+  }
+
+  @Nullable
+  public static GradleCoordinate findLatestVersionInGradleCache(@NotNull String groupId,
+                                                                @NotNull String artifactId,
+                                                                @Nullable String filter,
+                                                                @Nullable Project project) {
+
     for (File gradleServicePath : getGradleServicePaths(project)) {
-      GradleCoordinate version = findLatestVersionInGradleCache(gradleServicePath, original, filter);
+      GradleCoordinate version = findLatestVersionInGradleCache(gradleServicePath, groupId, artifactId, filter);
       if (version != null) {
         return version;
       }
     }
-
     return null;
   }
 
   @Nullable
   private static GradleCoordinate findLatestVersionInGradleCache(@NotNull File gradleServicePath,
-                                                                 @NotNull GradleCoordinate original,
+                                                                 @NotNull String groupId,
+                                                                 @NotNull String artifactId,
                                                                  @Nullable String filter) {
     File gradleCache = new File(gradleServicePath, "caches");
     if (gradleCache.exists()) {
       List<GradleCoordinate> coordinates = Lists.newArrayList();
 
-      String groupId = original.getGroupId();
-      String artifactId = original.getArtifactId();
       for (File moduleDir : notNullize(gradleCache.listFiles())) {
         if (!moduleDir.getName().startsWith("modules-") || !moduleDir.isDirectory()) {
           continue;
@@ -1276,29 +1279,20 @@ public final class GradleUtil {
   public static boolean updateGradlePluginVersion(@NotNull final Project project,
                                                   @NotNull final String pluginVersion,
                                                   @Nullable String gradleVersion) {
-    VirtualFile baseDir = project.getBaseDir();
-    if (baseDir == null) {
-      // Unlikely to happen: this is default project.
-      return false;
-    }
-
     final List<GradleBuildModel> modelsToUpdate = Lists.newArrayList();
 
-    processFileRecursivelyWithoutIgnored(baseDir, new Processor<VirtualFile>() {
+    processBuildModelsRecursively(project, new Processor<GradleBuildModel>() {
       @Override
-      public boolean process(VirtualFile virtualFile) {
-        if (FN_BUILD_GRADLE.equals(virtualFile.getName())) {
-          final GradleBuildModel buildModel = parseBuildFile(virtualFile, project);
-          DependenciesModel dependencies = buildModel.buildscript().dependencies();
-          for (ArtifactDependencyModel dependency : dependencies.artifacts(CLASSPATH)) {
-            ArtifactDependencySpec spec = dependency.getSpec();
-            if ("com.android.tools.build".equals(spec.group) && "gradle".equals(spec.name)) {
-              if (!pluginVersion.equals(spec.version)) {
-                dependency.setVersion(pluginVersion);
-                modelsToUpdate.add(buildModel);
-              }
-              break;
+      public boolean process(GradleBuildModel buildModel) {
+        DependenciesModel dependencies = buildModel.buildscript().dependencies();
+        for (ArtifactDependencyModel dependency : dependencies.artifacts(CLASSPATH)) {
+          ArtifactDependencySpec spec = dependency.getSpec();
+          if (isAndroidPlugin(spec)) {
+            if (!pluginVersion.equals(spec.version)) {
+              dependency.setVersion(pluginVersion);
+              modelsToUpdate.add(buildModel);
             }
+            break;
           }
         }
         return true;
@@ -1333,6 +1327,29 @@ public final class GradleUtil {
       }
     }
     return updateModels;
+  }
+
+  private static boolean isAndroidPlugin(@NotNull ArtifactDependencySpec spec) {
+    return ANDROID_PLUGIN_GROUP_ID.equals(spec.group) && ANDROID_PLUGIN_ARTIFACT_ID.equals(spec.name);
+  }
+
+  private static void processBuildModelsRecursively(@NotNull final Project project, @NotNull final Processor<GradleBuildModel> processor) {
+    VirtualFile baseDir = project.getBaseDir();
+    if (baseDir == null) {
+      // Unlikely to happen: this is default project.
+      return;
+    }
+
+    processFileRecursivelyWithoutIgnored(baseDir, new Processor<VirtualFile>() {
+      @Override
+      public boolean process(VirtualFile virtualFile) {
+        if (FN_BUILD_GRADLE.equals(virtualFile.getName())) {
+          GradleBuildModel buildModel = parseBuildFile(virtualFile, project);
+          processor.process(buildModel);
+        }
+        return true;
+      }
+    });
   }
 
   @Nullable
