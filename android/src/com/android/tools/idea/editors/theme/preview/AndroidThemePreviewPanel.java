@@ -362,7 +362,8 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext, Disp
         PsiClass viewClass = JavaPsiFacade.getInstance(project).findClass("android.view.View", GlobalSearchScope.allScope(project));
 
         if (viewClass == null) {
-          LOG.error("Unable to find 'android.view.View'");
+          // There is probably no SDK
+          LOG.debug("Unable to find 'android.view.View'");
           return;
         }
 
@@ -474,9 +475,6 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext, Disp
       // we combine our scale, the reverse device scale, and the platform scale into 1 scale factor.
       myAndroidPreviewPanel.setScale(JBUI.scale(reverseDeviceScale * myScale));
     }
-    else {
-      LOG.error("Configuration getDeviceState returned null. Unable to set preview scale.");
-    }
   }
 
   private void createProgressPanel() {
@@ -528,10 +526,10 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext, Disp
     document.setParagraphAttributes(0, document.getLength(), attributes, false);
   }
 
-  public void setError(@Nullable String themeName) {
-    myShowError = themeName != null;
-    if (themeName != null) {
-      myErrorLabel.setText("The theme " + themeName + " cannot be rendered in the current configuration");
+  public void setErrorMessage(@Nullable String errorMessage) {
+    myShowError = errorMessage != null;
+    if (errorMessage != null) {
+      myErrorLabel.setText(errorMessage);
     }
     updateMainPanel();
   }
