@@ -130,8 +130,10 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
           // We should update the id on the device even if there were no
           // artifact changes, since otherwise the next build will mismatch
           InstantRunManager.transferLocalIdToDeviceId(device, myFacet.getModule());
+          DeployApkTask.cacheManifestInstallationData(device, myFacet, pkgName);
           consolePrinter.stdout("No local changes, not deploying APK");
           InstantRunManager.LOG.info("List of artifacts is empty, no deployment necessary.");
+          new InstantRunUserFeedback(myFacet.getModule()).info("No changes to deploy");
           return null;
         }
 
