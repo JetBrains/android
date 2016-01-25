@@ -17,6 +17,7 @@ package com.android.tools.idea.run;
 
 import com.android.ddmlib.Client;
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.fd.InstantRunUtils;
 import com.android.tools.idea.run.testing.AndroidTestRunConfiguration;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.RunnerAndConfigurationSettings;
@@ -55,7 +56,8 @@ public class AndroidProgramRunner extends DefaultProgramRunner {
 
       RunProfile runProfile = env.getRunProfile();
       int uniqueId = runProfile instanceof AndroidRunConfigurationBase ? ((AndroidRunConfigurationBase)runProfile).getUniqueID() : -1;
-      AndroidSessionInfo sessionInfo = new AndroidSessionInfo(processHandler, myDescriptor, uniqueId, env.getExecutor().getId());
+      AndroidSessionInfo sessionInfo = new AndroidSessionInfo(processHandler, myDescriptor, uniqueId, env.getExecutor().getId(),
+                                                              InstantRunUtils.isInstantRunEnabled(env));
       processHandler.putUserData(AndroidSessionInfo.KEY, sessionInfo);
     }
 
