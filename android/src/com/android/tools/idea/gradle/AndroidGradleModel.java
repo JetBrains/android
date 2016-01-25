@@ -18,15 +18,18 @@ package com.android.tools.idea.gradle;
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.*;
+import com.android.ide.common.repository.GradleVersion;
 import com.android.sdklib.AndroidVersion;
-import com.android.repository.Revision;
 import com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.ClassJarProvider;
 import com.android.tools.lint.detector.api.LintUtils;
-import com.google.common.collect.*;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
@@ -774,14 +777,8 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
 
   private boolean supportsIssueReporting() {
     String original = myAndroidProject.getModelVersion();
-    Revision modelVersion;
-    try {
-      modelVersion = Revision.parseRevision(original);
-    } catch (NumberFormatException e) {
-      Logger.getInstance(AndroidGradleModel.class).warn("Failed to parse '" + original + "'", e);
-      return false;
-    }
-    return modelVersion.compareTo(Revision.parseRevision("1.1.0")) >= 0;
+    GradleVersion modelVersion = GradleVersion.tryParse(original);
+    return modelVersion != null && modelVersion.compareTo("1.1.0") >= 0;
   }
 
   @Nullable
