@@ -23,7 +23,6 @@ import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
 import com.android.ide.common.packaging.PackagingUtils;
 import com.android.ide.common.repository.GradleVersion;
-import com.android.repository.Revision;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.fd.client.AppState;
 import com.android.tools.fd.client.InstantRunClient;
@@ -31,7 +30,6 @@ import com.android.tools.fd.client.InstantRunClient.FileTransfer;
 import com.android.tools.fd.client.UpdateMode;
 import com.android.tools.fd.runtime.ApplicationPatch;
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.project.PostProjectSetupTasksExecutor;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.rendering.LogWrapper;
@@ -304,14 +302,8 @@ public final class InstantRunManager implements ProjectComponent {
 
   /** Returns true if Instant Run is supported for this gradle model (whether or not it's enabled) */
   public static boolean modelSupportsInstantRun(@NotNull AndroidGradleModel model) {
-    String version = model.getAndroidProject().getModelVersion();
-    try {
-      GradleVersion modelVersion = GradleVersion.tryParse(version);
-      return modelVersion == null || modelVersion.compareTo(MINIMUM_GRADLE_PLUGIN_VERSION) >= 0;
-    } catch (NumberFormatException e) {
-      Logger.getInstance(InstantRunManager.class).warn("Failed to parse '" + version + "'", e);
-      return false;
-    }
+    GradleVersion modelVersion = model.getModelVersion();
+    return modelVersion == null || modelVersion.compareTo(MINIMUM_GRADLE_PLUGIN_VERSION) >= 0;
   }
 
   /** Returns true if the device is capable of running Instant Run */
