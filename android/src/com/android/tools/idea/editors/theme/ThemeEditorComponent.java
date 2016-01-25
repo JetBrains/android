@@ -140,9 +140,9 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
   private EditedStyleItem mySubStyleSourceAttribute;
 
   // Name of current selected Theme
-  private String myThemeName;
+  @Nullable private String myThemeName;
   // Name of current selected subStyle within the theme
-  private String mySubStyleName;
+  @Nullable private String mySubStyleName;
 
   // Subcomponents
   private final ThemeEditorContext myThemeEditorContext;
@@ -287,6 +287,7 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
         myOriginalItems.clear();
         myOriginalItems.addAll(newParentStyleResourceValue.getValues());
 
+        assert myThemeName != null; // theme changed, so there was a previous theme in myThemeName
         ConfiguredThemeEditorStyle myCurrentTheme = themeResolver.getTheme(myThemeName);
         assert myCurrentTheme != null;
         // Add myCurrentTheme attributes to newParent, so that newParent becomes equivalent to having changed the parent of myCurrentTheme
@@ -311,7 +312,9 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
         }
         myModifiedParent = null;
         myOriginalItems.clear();
-        refreshPreviewPanel(myThemeName);
+        if (myThemeName != null) {
+          refreshPreviewPanel(myThemeName);
+        }
       }
     };
     myAttributesTable.customizeTable(myThemeEditorContext, myPreviewPanel, themeParentChangedListener);
@@ -382,7 +385,10 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
     myPanel.getThemeCombo().addPopupMenuListener(new PopupMenuListenerAdapter() {
       @Override
       public void popupMenuWillBecomeInvisible(PopupMenuEvent popupMenuEvent) {
-        refreshPreviewPanel(myThemeName);
+        // myThemeName could be null if no theme is available. This will happen only in some edge cases like no SDK available.
+        if (myThemeName != null) {
+          refreshPreviewPanel(myThemeName);
+        }
       }
     });
 
@@ -607,7 +613,7 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
       myThemeName = newThemeName;
       mySubStyleName = null;
     }
-    else {
+    else if (myThemeName != null) {
       // No new theme was created, we restore the preview to its original state
       refreshPreviewPanel(myThemeName);
     }
@@ -628,7 +634,9 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
         reload(newThemeName);
       }
     }
-    refreshPreviewPanel(myThemeName);
+    if (myThemeName != null) {
+      refreshPreviewPanel(myThemeName);
+    }
   }
 
   /**
@@ -898,12 +906,20 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
     }
 
     myAttributesTable.setRowSorter(null); // Clean any previous row sorters.
+    myPanel.setSubstyleName(mySubStyleName);
+    myPanel.getBackButton().setVisible(mySubStyleName != null);
 
     if (selectedTheme == null) {
-      myPreviewPanel.setError(myThemeName);
+      if (myThemeName != null) {
+        myPreviewPanel.setErrorMessage("The theme " + myThemeName + " cannot be rendered in the current configuration");
+      } else {
+        myPreviewPanel.setErrorMessage("No theme selected");
+      }
       myAttributesTable.setModel(EMPTY_TABLE_MODEL);
       return;
     }
+
+    myPreviewPanel.setErrorMessage(null);
 
     myPanel.setShowThemeNotUsedWarning(false);
     if (selectedTheme.isProjectStyle()) {
@@ -934,10 +950,7 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
       mySwingWorker.execute();
     }
 
-    myPreviewPanel.setError(null);
     myThemeEditorContext.setCurrentTheme(selectedTheme);
-    myPanel.setSubstyleName(mySubStyleName);
-    myPanel.getBackButton().setVisible(mySubStyleName != null);
     final Configuration configuration = myThemeEditorContext.getConfiguration();
     configuration.setTheme(selectedTheme.getStyleResourceUrl());
 
