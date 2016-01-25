@@ -24,7 +24,7 @@ public class InstantRunSettings {
   /**
    * Returns whether instant run is enabled in the given project.
    * Note: Even if instant run is enabled for the project, instant run related information should not be accessed
-   * unless {@link InstantRunManager#isPatchableApp(AndroidGradleModel)} returns true.
+   * unless {@link InstantRunManager#variantSupportsInstantRun(AndroidGradleModel)} returns true.
    */
   public static boolean isInstantRunEnabled(@NotNull Project project) {
     AndroidGradleBuildConfiguration buildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);

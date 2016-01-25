@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.run;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.ddmlib.IDevice;
 import com.android.resources.Density;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.fd.FileChangeListener;
@@ -32,7 +31,6 @@ import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.DeviceFutures;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.intellij.execution.configurations.ModuleRunProfile;
 import com.intellij.execution.configurations.RunConfiguration;
@@ -48,7 +46,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -225,7 +222,7 @@ public class GradleInvokerOptions {
     static InstantRunBuildOptions createAndReset(@NotNull Module module, @NotNull ExecutionEnvironment env) {
       if (!InstantRunUtils.isInstantRunEnabled(env) ||
           !InstantRunSettings.isInstantRunEnabled(module.getProject()) ||
-          !InstantRunManager.isPatchableApp(module)) {
+          !InstantRunManager.variantSupportsInstantRun(module)) {
         return null;
       }
 
