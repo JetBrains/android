@@ -16,6 +16,7 @@
 package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.Client;
+import com.android.tools.idea.fd.InstantRunUtils;
 import com.android.tools.idea.run.*;
 import com.android.tools.idea.run.editor.AndroidDebugger;
 import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus;
@@ -91,6 +92,11 @@ public class ConnectJavaDebuggerTask extends ConnectDebuggerTask {
       return null;
     }
 
+    if (debugDescriptor == null) {
+      processHandler.notifyTextAvailable("Unable to connect debugger to Android application", STDERR);
+      return null;
+    }
+
     // re-run the collected text from the old process handler to the new
     // TODO: is there a race between messages received once the debugger has been connected, and these messages that are printed out?
     final AndroidProcessText oldText = AndroidProcessText.get(processHandler);
@@ -100,7 +106,8 @@ public class ConnectJavaDebuggerTask extends ConnectDebuggerTask {
 
     RunProfile runProfile = currentLaunchInfo.env.getRunProfile();
     int uniqueId = runProfile instanceof AndroidRunConfigurationBase ? ((AndroidRunConfigurationBase)runProfile).getUniqueID() : -1;
-    AndroidSessionInfo value = new AndroidSessionInfo(debugProcessHandler, debugDescriptor, uniqueId, currentLaunchInfo.executor.getId());
+    AndroidSessionInfo value = new AndroidSessionInfo(debugProcessHandler, debugDescriptor, uniqueId, currentLaunchInfo.executor.getId(),
+                                                      InstantRunUtils.isInstantRunEnabled(currentLaunchInfo.env));
     debugProcessHandler.putUserData(AndroidSessionInfo.KEY, value);
     debugProcessHandler.putUserData(AndroidProgramRunner.ANDROID_DEBUG_CLIENT, client);
     debugProcessHandler.putUserData(AndroidProgramRunner.ANDROID_DEVICE_API_LEVEL, client.getDevice().getVersion());
