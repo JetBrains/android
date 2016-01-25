@@ -148,8 +148,7 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
   }
 
   private static boolean modelVersionIsAtLeast(@NotNull AndroidGradleModel androidModel, @NotNull String revision) {
-    String original = androidModel.getAndroidProject().getModelVersion();
-    GradleVersion modelVersion = GradleVersion.tryParse(original);
+    GradleVersion modelVersion = androidModel.getModelVersion();
     return modelVersion != null && modelVersion.compareIgnoringQualifiers(revision) >= 0;
   }
 
