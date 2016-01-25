@@ -282,7 +282,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     }
 
     AndroidSessionInfo info = AndroidSessionInfo.findOldSession(getProject(), null, getUniqueID());
-    if (info == null) {
+    if (info == null || !info.isInstantRun()) {
       return null;
     }
 
