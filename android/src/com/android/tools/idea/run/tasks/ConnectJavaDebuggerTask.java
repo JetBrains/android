@@ -16,6 +16,8 @@
 package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.Client;
+import com.android.ddmlib.IDevice;
+import com.android.ddmlib.NullOutputReceiver;
 import com.android.tools.idea.fd.InstantRunUtils;
 import com.android.tools.idea.run.*;
 import com.android.tools.idea.run.editor.AndroidDebugger;
@@ -25,6 +27,8 @@ import com.intellij.debugger.ui.DebuggerPanelsManager;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.RemoteConnection;
 import com.intellij.execution.configurations.RunProfile;
+import com.intellij.execution.process.ProcessAdapter;
+import com.intellij.execution.process.ProcessEvent;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.ExecutionEnvironmentBuilder;
@@ -48,11 +52,11 @@ public class ConnectJavaDebuggerTask extends ConnectDebuggerTask {
 
   @Override
   public ProcessHandler launchDebugger(@NotNull LaunchInfo currentLaunchInfo,
-                                       @NotNull Client client,
+                                       @NotNull final Client client,
                                        @NotNull ProcessHandlerLaunchStatus launchStatus,
                                        @NotNull ProcessHandlerConsolePrinter printer) {
     String debugPort = Integer.toString(client.getDebuggerListenPort());
-    int pid = client.getClientData().getPid();
+    final int pid = client.getClientData().getPid();
     Logger.getInstance(ConnectJavaDebuggerTask.class)
       .info(String.format(Locale.US, "Attempting to connect debugger to port %1$s [client %2$d]", debugPort, pid));
 
@@ -63,7 +67,7 @@ public class ConnectJavaDebuggerTask extends ConnectDebuggerTask {
 
     // create a new process handler
     RemoteConnection connection = new RemoteConnection(true, "localhost", debugPort, false);
-    RemoteDebugProcessHandler debugProcessHandler = new RemoteDebugProcessHandler(myProject);
+    final RemoteDebugProcessHandler debugProcessHandler = new RemoteDebugProcessHandler(myProject);
 
     // switch the launch status and console printers to point to the new process handler
     // this is required, esp. for AndroidTestListener which holds a reference to the launch status and printers, and those should
@@ -112,22 +116,31 @@ public class ConnectJavaDebuggerTask extends ConnectDebuggerTask {
     debugProcessHandler.putUserData(AndroidProgramRunner.ANDROID_DEBUG_CLIENT, client);
     debugProcessHandler.putUserData(AndroidProgramRunner.ANDROID_DEVICE_API_LEVEL, client.getDevice().getVersion());
 
-    // Reverted: b/25506206
+    final String pkgName = client.getClientData().getClientDescription();
+    final IDevice device = client.getDevice();
+
     // kill the process when the debugger is stopped
-    //handler.addProcessListener(new ProcessAdapter() {
-    //  @Override
-    //  public void processTerminated(ProcessEvent event) {
-    //    handler.removeProcessListener(this);
-    //
-    //    // Note: client.kill() doesn't work when the debugger is attached, we explicitly stop by package id..
-    //    try {
-    //      device.executeShellCommand("am force-stop " + myRunningState.getPackageName(), new NullOutputReceiver());
-    //    }
-    //    catch (Exception e) {
-    //      // don't care..
-    //    }
-    //  }
-    //});
+    debugProcessHandler.addProcessListener(new ProcessAdapter() {
+      @Override
+      public void processTerminated(ProcessEvent event) {
+        debugProcessHandler.removeProcessListener(this);
+
+        Client currentClient = device.getClient(pkgName);
+        if (currentClient != null && currentClient.getClientData().getPid() != pid) {
+          // a new process has been launched for the same package name, we aren't interested in killing this
+          return;
+        }
+
+        Logger.getInstance(ConnectJavaDebuggerTask.class).info("Debugger terminating, so terminating process: " + pkgName);
+        // Note: client.kill() doesn't work when the debugger is attached, we explicitly stop by package id..
+        try {
+          device.executeShellCommand("am force-stop " + pkgName, new NullOutputReceiver());
+        }
+        catch (Exception e) {
+          // don't care..
+        }
+      }
+    });
 
     return debugProcessHandler;
   }
