@@ -294,7 +294,7 @@ public final class InstantRunManager implements ProjectComponent {
 
     try {
       return model.getSelectedVariant().getMainArtifact().getInstantRun().isSupportedByArtifact();
-    } catch (Exception e) {
+    } catch (Throwable e) {
       LOG.info("Instant Run not supported by current variant: " + version);
       return false;
     }
