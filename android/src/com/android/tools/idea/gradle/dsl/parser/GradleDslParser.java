@@ -53,6 +53,7 @@ import java.util.List;
 import static com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement.ANDROID_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.BuildTypesDslElement.BUILD_TYPES_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorsDslElement.PRODUCT_FLAVORS_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.android.SigningConfigsDslElement.SIGNING_CONFIGS_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.external.CMakeDslElement.CMAKE_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.external.ExternalNativeBuildDslElement.EXTERNAL_NATIVE_BUILD_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.external.NdkBuildDslElement.NDK_BUILD_BLOCK_NAME;
@@ -542,6 +543,9 @@ public final class GradleDslParser {
           else if (EXTERNAL_NATIVE_BUILD_BLOCK_NAME.equals(nestedElementName)) {
             newElement = new ExternalNativeBuildDslElement(resultElement);
           }
+          else if (SIGNING_CONFIGS_BLOCK_NAME.equals(nestedElementName)) {
+            newElement = new SigningConfigsDslElement(resultElement);
+          }
           else {
             return null;
           }
@@ -569,6 +573,9 @@ public final class GradleDslParser {
         }
         else if (resultElement instanceof BuildTypeDslElement && "manifestPlaceholders".equals(nestedElementName)) {
           newElement = new GradleDslExpressionMap(resultElement, nestedElementName);
+        }
+        else if (resultElement instanceof SigningConfigsDslElement) {
+          newElement = new SigningConfigDslElement(resultElement, nestedElementName);
         }
         else {
           return null;
