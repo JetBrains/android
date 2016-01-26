@@ -95,7 +95,7 @@ abstract class AndroidDomTest extends AndroidTestCase {
     UsefulTestCase.assertSameElements(lookupElementStrings, variants);
   }
 
-  protected void doTestCompletionVarinatsContains(String fileName, String... variants) throws Throwable {
+  protected void doTestCompletionVariantsContains(String fileName, String... variants) throws Throwable {
     List<String> lookupElementStrings = getCompletionElements(fileName);
     assertNotNull(lookupElementStrings);
     assertContainsElements(lookupElementStrings, variants);
