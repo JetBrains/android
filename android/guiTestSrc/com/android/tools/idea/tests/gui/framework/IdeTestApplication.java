@@ -33,10 +33,6 @@ import com.intellij.util.lang.UrlClassLoader;
 import com.intellij.util.text.StringTokenizer;
 import org.jetbrains.annotations.NotNull;
 
-import java.awt.*;
-import java.awt.event.AWTEventListener;
-import java.awt.event.FocusEvent;
-import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -78,13 +74,6 @@ public class IdeTestApplication implements Disposable {
     System.setProperty("native.mac.file.chooser.enabled", "false");
 
     if (!isLoaded()) {
-      Toolkit.getDefaultToolkit().addAWTEventListener(new AWTEventListener() {
-        @Override
-        public void eventDispatched(AWTEvent event) {
-          System.err.println(event);
-        }
-      }, FocusEvent.FOCUS_EVENT_MASK | WindowEvent.WINDOW_FOCUS_EVENT_MASK | WindowEvent.WINDOW_EVENT_MASK);
-
       ourInstance = new IdeTestApplication();
       recreateDirectory(configDirPath);
 
