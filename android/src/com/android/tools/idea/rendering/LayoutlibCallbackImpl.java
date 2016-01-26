@@ -629,7 +629,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     if (listFqcn.endsWith(EXPANDABLE_LIST_VIEW)) {
       binding.addItem(new DataBindingItem(LayoutMetadata.DEFAULT_EXPANDABLE_LIST_ITEM, true /* isFramework */, 1));
     }
-    else if (listFqcn.equals(SPINNER)) {
+    else if (listFqcn.equals(FQCN_SPINNER)) {
       binding.addItem(new DataBindingItem(LayoutMetadata.DEFAULT_SPINNER_ITEM, true /* isFramework */, 1));
     }
     else {
