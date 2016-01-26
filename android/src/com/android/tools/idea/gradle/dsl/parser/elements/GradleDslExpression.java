@@ -23,7 +23,6 @@ import com.android.tools.idea.gradle.util.Projects;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
@@ -77,20 +76,59 @@ public abstract class GradleDslExpression extends GradleDslElement {
     int index = 0;
     int segmentCount = referenceTextSegments.size();
     for (; index < segmentCount; index++) {
+      // Resolve the project reference elements like parent, rootProject etc.
       GradleDslFile dslFile = resolveProjectReference(searchStartElement, referenceTextSegments.get(index));
       if (dslFile == null) {
         break;
       }
+      // Now lets search in that project build.gradle file.
       searchStartElement = dslFile;
     }
 
+    /* For a project with the below hierarchy ...
+
+    | <GRADLE_USER_HOME>/gradle.properties
+    | RootProject
+    | - - build.gradle
+    | - - gradle.properties
+    | - - FirstLevelChildProject
+    | - - - - build.gradle
+    | - - - - gradle.properties
+    | - - - - SecondLevelChildProject
+    | - - - - - - build.gradle
+    | - - - - - - gralde.properties
+    | - - - - - - ThirdLevelChildProject
+    | - - - - - - - - build.gradle
+    | - - - - - - - - gradle.properties
+
+    the resolution path for a property defined in ThirdLevelChildProject's build.gradle file will be ...
+
+      1. ThirdLevelChildProject/build.gradle
+      2. <GRADLE_USER_HOME>/gradle.properties
+      3. ThirdLevelChildProject/gradle.properties
+      4. RootProject/gradle.properties
+      5. SecondLevelChildProject/build.gradle
+      6. SecondLevelChildProject/gradle.properties
+      7. FirstLevelChildProject/build.gradle
+      8. FirstLevelChildProject/gradle.properties
+      9. RootProject/build.gradle
+    */
+
     GradleDslElement resolvedElement;
     if (index >= segmentCount) {
+      // the reference text is fully resolved by now. ex: if the while text itself is "rootProject" etc.
       resolvedElement = searchStartElement;
     }
     else {
+      // Search in the file the searchStartElement belongs to.
       searchReferenceText = Joiner.on('.').join(referenceTextSegments.subList(index, segmentCount));
-      resolvedElement = resolveReference(searchStartElement, searchReferenceText);
+      resolvedElement = resolveReferenceInSameModule(searchStartElement, searchReferenceText);
+    }
+
+    GradleDslFile dslFile = searchStartElement.getDslFile();
+    if (resolvedElement == null) {
+      // Now look in the parent projects ext blocks.
+      resolvedElement = resolveReferenceInParentModules(dslFile, searchReferenceText);
     }
 
     if (resolvedElement != null) {
@@ -107,7 +145,6 @@ public abstract class GradleDslExpression extends GradleDslElement {
       }
     }
 
-    GradleDslFile dslFile = searchStartElement.getDslFile();
     if (clazz.isAssignableFrom(String.class)) {
       if ("rootDir".equals(searchReferenceText)) { // resolve the rootDir reference to project root directory.
         return clazz.cast(Projects.getBaseDirPath(dslFile.getProject()).getPath());
@@ -162,35 +199,58 @@ public abstract class GradleDslExpression extends GradleDslElement {
   }
 
   @Nullable
-  private static GradleDslElement resolveReference(GradleDslElement startElement, @NotNull String referenceText) {
-    GradleDslFile dslFile = null;
+  private static GradleDslElement resolveReferenceInSameModule(GradleDslElement startElement, @NotNull String referenceText) {
+    // Try to resolve in the build.gradle file the startElement is belongs to.
     GradleDslElement element = startElement;
-    while (dslFile == null && element != null) { // First search in the file this element belongs to.
+    while (element != null) {
       if (element instanceof GradlePropertiesDslElement) {
         GradleDslElement propertyElement = ((GradlePropertiesDslElement)element).getPropertyElement(referenceText);
         if (propertyElement != null) {
           return propertyElement;
         }
         if (element instanceof GradleDslFile) {
-          dslFile = (GradleDslFile)element;
-          ExtDslElement extDslElement = dslFile.getProperty(EXT_BLOCK_NAME, ExtDslElement.class);
+          ExtDslElement extDslElement = ((GradleDslFile)element).getProperty(EXT_BLOCK_NAME, ExtDslElement.class);
           if (extDslElement != null) {
             GradleDslElement extPropertyElement = extDslElement.getPropertyElement(referenceText);
             if (extPropertyElement != null) {
               return extPropertyElement;
             }
           }
+          break;
         }
       }
       element = element.getParent();
     }
 
-    GradleDslFile parentDslFile = null;
-    if (dslFile != null) {
-      parentDslFile = dslFile.getParentModuleDslFile();
+    // TODO: Add support to look at <GRADLE_USER_HOME>/gradle.properties before looking at this module's gradle.properties file.
+
+    // Try to resolve in the gradle.properties file of the startElement's module.
+    GradleDslFile dslFile = startElement.getDslFile();
+    GradleDslElement propertyElement = resolveReferenceInPropertiesFile(dslFile, referenceText);
+    if (propertyElement != null) {
+      return propertyElement;
     }
 
-    while (parentDslFile != null) { // Now look in the parent projects ext blocks.
+    if (dslFile.getParentModuleDslFile() == null) {
+      return null; // This is the root project build.gradle file and there is no further path to look up.
+    }
+
+    // Try to resolve in the root project gradle.properties file.
+    GradleDslFile rootProjectDslFile = dslFile;
+    while(true) {
+      GradleDslFile parentModuleDslFile = rootProjectDslFile.getParentModuleDslFile();
+      if (parentModuleDslFile == null) {
+        break;
+      }
+      rootProjectDslFile = parentModuleDslFile;
+    }
+    return resolveReferenceInPropertiesFile(rootProjectDslFile, referenceText);
+  }
+
+  @Nullable
+  private static GradleDslElement resolveReferenceInParentModules(@NotNull GradleDslFile dslFile, @NotNull String referenceText) {
+    GradleDslFile parentDslFile = dslFile.getParentModuleDslFile();
+    while (parentDslFile != null) {
       ExtDslElement extDslElement = parentDslFile.getProperty(EXT_BLOCK_NAME, ExtDslElement.class);
       if (extDslElement != null) {
         GradleDslElement extPropertyElement = extDslElement.getPropertyElement(referenceText);
@@ -198,10 +258,27 @@ public abstract class GradleDslExpression extends GradleDslElement {
           return extPropertyElement;
         }
       }
+
+      if (parentDslFile.getParentModuleDslFile() == null) {
+        // This is the root project build.gradle file and the roo project's gradle.properties file is already looked in
+        // resolveReferenceInSameModule method.
+        return null;
+      }
+
+      GradleDslElement propertyElement = resolveReferenceInPropertiesFile(parentDslFile, referenceText);
+      if (propertyElement != null) {
+        return propertyElement;
+      }
+
       parentDslFile = parentDslFile.getParentModuleDslFile();
     }
-
     return null;
+  }
+
+  @Nullable
+  private static GradleDslElement resolveReferenceInPropertiesFile(@NotNull GradleDslFile buildDslFile, @NotNull String referenceText) {
+    GradleDslFile propertiesDslFile = buildDslFile.getSiblingDslFile();
+    return propertiesDslFile != null ? propertiesDslFile.getPropertyElement(referenceText) : null;
   }
 
   @Nullable
