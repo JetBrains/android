@@ -106,7 +106,6 @@ public class GraphicsLayoutRenderer {
   @NotNull
   protected static GraphicsLayoutRenderer create(@NotNull AndroidFacet facet,
                                                  @NotNull AndroidPlatform platform,
-                                                 @NotNull IAndroidTarget target,
                                                  @NotNull Project project,
                                                  @NotNull Configuration configuration,
                                                  @NotNull ILayoutPullParser parser,
@@ -156,6 +155,11 @@ public class GraphicsLayoutRenderer {
     // Load the local project R identifiers.
     layoutlibCallback.loadAndParseRClass();
 
+    IAndroidTarget target = configuration.getTarget();
+    if (target == null) {
+      throw new InitializationException("Unable to get IAndroidTarget");
+    }
+
     Device device = configuration.getDevice();
     assert device != null;
     HardwareConfigHelper hardwareConfigHelper = new HardwareConfigHelper(device);
@@ -201,15 +205,9 @@ public class GraphicsLayoutRenderer {
     }
 
     Module module = facet.getModule();
-    IAndroidTarget target = configuration.getTarget();
-
-    if (target == null) {
-      throw new InitializationException("Unable to get IAndroidTarget");
-    }
-
     AndroidPlatform platform = AndroidPlatform.getInstance(module);
     if (platform == null) {
-      throw new InitializationException("Unable to get AndroidPlatform");
+      throw new UnsupportedLayoutlibException("No Android SDK found.");
     }
 
     SessionParams.RenderingMode renderingMode;
@@ -223,7 +221,7 @@ public class GraphicsLayoutRenderer {
       renderingMode = SessionParams.RenderingMode.NORMAL;
     }
 
-    return create(facet, platform, target, module.getProject(), configuration, parser, backgroundColor, renderingMode);
+    return create(facet, platform, module.getProject(), configuration, parser, backgroundColor, renderingMode);
   }
 
   /**
