@@ -360,7 +360,8 @@ public class ThemeEditorUtils {
     // if isTheme is true, defaultParentStyle shouldn't be null
     String defaultParentStyleName = null;
     if (isTheme && defaultParentStyle == null) {
-      defaultParentStyleName = getDefaultThemeNames(themeEditorContext.getThemeResolver()).get(0);
+      ImmutableList<String> defaultThemes = getDefaultThemeNames(themeEditorContext.getThemeResolver());
+      defaultParentStyleName = !defaultThemes.isEmpty() ? defaultThemes.get(0) : null;
     }
     else if (defaultParentStyle != null) {
       defaultParentStyleName = defaultParentStyle.getQualifiedName();
