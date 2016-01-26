@@ -31,6 +31,8 @@ import java.util.Set;
 /**
  * Base class for {@link GradleDslElement}s that represent a closure block or a map element. It provides the functionality to store the
  * data as key value pairs and convenient methods to access the data.
+ *
+ * TODO: Rename this class to something different as this will be conflicting with GradlePropertiesModel
  */
 public abstract class GradlePropertiesDslElement extends GradleDslElement {
   @NotNull private Map<String, GradleDslElement> myProperties = Maps.newLinkedHashMap();
