@@ -261,10 +261,7 @@ public class AvdManagerConnection {
     ArrayList<AvdInfo> avdInfos = Lists.newArrayList(myAvdManager.getAllAvds());
     boolean needsRefresh = false;
     for (AvdInfo info : avdInfos) {
-      if (info.getStatus() == AvdInfo.AvdStatus.ERROR_IMAGE_DIR) {
-        updateAvdImageFolder(info);
-        needsRefresh = true;
-      } else if (info.getStatus() == AvdInfo.AvdStatus.ERROR_DEVICE_CHANGED) {
+      if (info.getStatus() == AvdInfo.AvdStatus.ERROR_DEVICE_CHANGED) {
         updateDeviceChanged(info);
         needsRefresh = true;
       }
@@ -590,11 +587,10 @@ public class AvdManagerConnection {
         return null;
       }
     }
+
     return myAvdManager.createAvd(avdFolder,
                                   avdName,
-                                  systemImageDescription.getTarget(),
-                                  systemImageDescription.getTag(),
-                                  systemImageDescription.getAbiType(),
+                                  systemImageDescription.getSystemImage(),
                                   skinFolder,
                                   skinName,
                                   sdCard,
@@ -623,9 +619,6 @@ public class AvdManagerConnection {
     String abiType = description.getAbiType();
     Revision revision = description.getRevision();
 
-    if (version == null || revision == null) {
-      return false;
-    }
     int apiLevel = version.getApiLevel();
     if (apiLevel < 22) {
       return false;
@@ -650,19 +643,6 @@ public class AvdManagerConnection {
            || avdStatus == AvdInfo.AvdStatus.ERROR_DEVICE_CHANGED
            || avdStatus == AvdInfo.AvdStatus.ERROR_DEVICE_MISSING
            || avdStatus == AvdInfo.AvdStatus.ERROR_IMAGE_MISSING;
-  }
-
-  public boolean updateAvdImageFolder(@NotNull AvdInfo avdInfo) {
-    if (initIfNecessary()) {
-      try {
-        myAvdManager.updateAvd(avdInfo, SDK_LOG);
-        return true;
-      }
-      catch (IOException e) {
-        IJ_LOG.error("Could not update AVD " + avdInfo.getName(), e);
-      }
-    }
-    return false;
   }
 
   public boolean updateDeviceChanged(@NotNull AvdInfo avdInfo) {
