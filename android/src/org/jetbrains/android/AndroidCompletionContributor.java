@@ -34,7 +34,9 @@ import com.intellij.util.Consumer;
 import com.intellij.util.containers.HashSet;
 import com.intellij.util.xml.*;
 import com.intellij.util.xml.converters.DelimitedListConverter;
+import com.intellij.util.xml.reflect.DomExtension;
 import org.jetbrains.android.dom.AndroidDomElementDescriptorProvider;
+import org.jetbrains.android.dom.AndroidDomExtender;
 import org.jetbrains.android.dom.AndroidResourceDomFileDescription;
 import org.jetbrains.android.dom.animation.AndroidAnimationUtils;
 import org.jetbrains.android.dom.animator.AndroidAnimatorUtil;
@@ -59,6 +61,7 @@ import org.jetbrains.android.facet.SimpleClassMapConstructor;
 import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.util.*;
@@ -185,11 +188,62 @@ public class AndroidCompletionContributor extends CompletionContributor {
         return;
       }
       addAndroidPrefixElement(position, parent, resultSet);
-      customizeAddedAttributes(facet, parameters, (XmlAttribute)parent, resultSet);
+      final XmlAttribute attribute = (XmlAttribute)parent;
+      final String namespace = attribute.getNamespace();
+
+      // We want to show completion variants for designtime attributes only if "tools:" prefix
+      // has already been typed
+      if (SdkConstants.TOOLS_URI.equals(namespace)) {
+        addDesignTimeAttributes(attribute.getNamespacePrefix(), position, facet, attribute, resultSet);
+      }
+      customizeAddedAttributes(facet, parameters, attribute, resultSet);
     }
     else if (originalParent instanceof XmlAttributeValue) {
       completeTailsInFlagAttribute(parameters, resultSet, (XmlAttributeValue)originalParent);
       completeDataBindingTypeAttr(parameters, resultSet, (XmlAttributeValue)originalParent);
+    }
+  }
+
+  /**
+   * For every regular layout element attribute, add it with "tools:" prefix
+   * (or whatever user uses for tools namespace)
+   * <p/>
+   * <a href="http://tools.android.com/tips/layout-designtime-attributes">Designtime attributes docs</a>
+   */
+  private static void addDesignTimeAttributes(@NotNull final String namespacePrefix,
+                                              @NotNull final PsiElement psiElement,
+                                              @NotNull final AndroidFacet facet,
+                                              @NotNull final XmlAttribute attribute,
+                                              @NotNull final CompletionResultSet resultSet) {
+    final XmlTag tag = attribute.getParent();
+    final DomElement element = DomManager.getDomManager(tag.getProject()).getDomElement(tag);
+
+    // Quirk of AndroidDomExtender "API": we need to create mutable sets to pass them to registerExtensionsForLayout
+    final Set<String> registeredSubtags = new HashSet<String>();
+    final Set<XmlName> registeredAttributes = new HashSet<XmlName>();
+
+    if (element instanceof LayoutElement) {
+      AndroidDomExtender.registerExtensionsForLayout(facet, tag, (LayoutElement)element, new AndroidDomExtender.MyCallback() {
+        @Nullable
+        @Override
+        public DomExtension processAttribute(@NotNull XmlName xmlName,
+                                             @NotNull AttributeDefinition attrDef,
+                                             @Nullable String parentStyleableName) {
+          if (SdkConstants.ANDROID_URI.equals(xmlName.getNamespaceKey())) {
+            final String localName = xmlName.getLocalName();
+
+            // Lookup string is something that would be inserted when attribute is completed, so we want to use
+            // local name as an argument of .create(), otherwise we'll end up with getting completions like
+            // "tools:tools:src". However, we want to show "tools:" prefix in the completion list, and for that
+            // .withPresentableText is used
+            final LookupElementBuilder element =
+              LookupElementBuilder.create(psiElement, localName).withInsertHandler(XmlAttributeInsertHandler.INSTANCE)
+                .withPresentableText(namespacePrefix + ":" + localName);
+            resultSet.addElement(element);
+          }
+          return null;
+        }
+      }, registeredSubtags, registeredAttributes);
     }
   }
 
