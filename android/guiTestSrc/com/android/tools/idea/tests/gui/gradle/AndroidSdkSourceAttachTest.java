@@ -31,7 +31,6 @@ import org.fest.swing.fixture.JButtonFixture;
 import org.fest.swing.timing.Condition;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;
@@ -80,7 +79,6 @@ public class AndroidSdkSourceAttachTest extends GuiTestCase {
     }
   }
 
-  @Ignore("failed in http://go/aj/job/studio-ui-test/326 and from IDEA")
   @Test
   public void testDownloadSdkSource() throws IOException {
     assumeTrue("SDK with platform '" + ANDROID_PLATFORM + "' not found", mySdk == null);
@@ -126,7 +124,6 @@ public class AndroidSdkSourceAttachTest extends GuiTestCase {
     assertIsActivityJavaFile(sourceFile);
   }
 
-  @Ignore("failed in http://go/aj/job/studio-ui-test/326 and from IDEA")
   @Test
   public void testRefreshSdkSource() throws IOException {
     assumeTrue("SDK with platform '" + ANDROID_PLATFORM + "' not found", mySdk == null);
