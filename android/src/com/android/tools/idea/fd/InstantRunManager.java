@@ -519,6 +519,7 @@ public final class InstantRunManager implements ProjectComponent {
       File file = artifact.file;
       switch (type) {
         case MAIN:
+        case SPLIT_MAIN:
           // Should only be used here when we're doing a *compatible*
           // resource swap and also got an APK for split. Ignore here.
           continue;
