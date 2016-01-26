@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.customizer.android;
 
 import com.android.builder.model.JavaArtifact;
 import com.android.builder.model.Variant;
+import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.customizer.AbstractCompileOutputModuleCustomizer;
 import com.android.tools.idea.gradle.variant.view.BuildVariantModuleCustomizer;
@@ -45,8 +46,8 @@ public class CompilerOutputModuleCustomizer extends AbstractCompileOutputModuleC
     if (androidModel == null) {
       return;
     }
-    String modelVersion = androidModel.getAndroidProject().getModelVersion();
-    if (isEmpty(modelVersion)) {
+    GradleVersion modelVersion = androidModel.getModelVersion();
+    if (modelVersion == null) {
       // We are dealing with old model that does not have 'class' folder.
       return;
     }
