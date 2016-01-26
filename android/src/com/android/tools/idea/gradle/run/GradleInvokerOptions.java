@@ -39,7 +39,6 @@ import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.compiler.CompileScope;
 import com.intellij.openapi.compiler.CompilerManager;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
@@ -51,8 +50,6 @@ import java.util.Collections;
 import java.util.List;
 
 public class GradleInvokerOptions {
-  private static final Logger LOG = Logger.getInstance(GradleInvokerOptions.class);
-
   @NotNull public final List<String> tasks;
   @Nullable public final BuildMode buildMode;
   @NotNull public final List<String> commandLineArguments;
@@ -105,6 +102,9 @@ public class GradleInvokerOptions {
 
       cmdLineArgs.add(getInstantDevProperty(instantRunBuildOptions, incrementalBuild));
       cmdLineArgs.addAll(getDeviceSpecificArguments(instantRunBuildOptions.devices));
+      if (COLD_SWAP_MODE_OVERRIDE != null) {
+        cmdLineArgs.add(COLD_SWAP_MODE_OVERRIDE);
+      }
 
       if (instantRunBuildOptions.cleanBuild) {
         tasks.addAll(gradleTasksProvider.getCleanAndGenerateSourcesTasks());
@@ -119,9 +119,23 @@ public class GradleInvokerOptions {
     return new GradleInvokerOptions(tasks, buildMode, cmdLineArgs);
   }
 
+  private static final String COLD_SWAP_MODE_OVERRIDE;
+  static {
+    // Override cold swap mode?; possible values are multidex, multiapk, native (use multidex for 21-22 and multiapk for 23.)
+    //noinspection SpellCheckingInspection
+    String value = System.getProperty("instant.run.coldswap.mode");
+    if (value != null) {
+      //noinspection SpellCheckingInspection
+      COLD_SWAP_MODE_OVERRIDE = "-Pandroid.injected.coldswap.mode=" + value;
+    } else {
+      COLD_SWAP_MODE_OVERRIDE = null;
+    }
+  }
+
   @NotNull
   private static String getInstantDevProperty(@NotNull InstantRunBuildOptions buildOptions, boolean incrementalBuild) {
     StringBuilder sb = new StringBuilder(50);
+    //noinspection SpellCheckingInspection
     sb.append("-Pandroid.optional.compilation=INSTANT_DEV");
 
     // we need RESTART_ONLY in two scenarios: full builds, and for incremental builds when app is not running
