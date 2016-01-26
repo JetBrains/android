@@ -71,7 +71,7 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
     ProjectSyncMessages messages = ProjectSyncMessages.getInstance(moduleModel.getProject());
     messages.reportUnresolvedDependencies(unresolved, module);
 
-    JavaGradleFacet facet = setAndGetJavaGradleFacet(module);
+    JavaGradleFacet facet = setAndGetJavaGradleFacet(module, modelsProvider);
     File buildFolderPath = javaProject.getBuildFolderPath();
     if (!isGradleProjectModule(module)) {
       JavaModel javaModel = new JavaModel(unresolved, buildFolderPath);
@@ -147,7 +147,7 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
   }
 
   @NotNull
-  private static JavaGradleFacet setAndGetJavaGradleFacet(Module module) {
+  private static JavaGradleFacet setAndGetJavaGradleFacet(Module module, IdeModifiableModelsProvider modelsProvider) {
     JavaGradleFacet facet = JavaGradleFacet.getInstance(module);
     if (facet != null) {
       return facet;
@@ -155,7 +155,7 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
 
     // Module does not have Android-Gradle facet. Create one and add it.
     FacetManager facetManager = FacetManager.getInstance(module);
-    ModifiableFacetModel model = facetManager.createModifiableModel();
+    ModifiableFacetModel model = modelsProvider.getModifiableFacetModel(module);
     try {
       facet = facetManager.createFacet(JavaGradleFacet.getFacetType(), JavaGradleFacet.NAME, null);
       model.addFacet(facet);
