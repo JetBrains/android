@@ -43,7 +43,8 @@ public class MethodInvoker extends Statement {
 
   @Override
   public void evaluate() throws Throwable {
-    System.out.println(String.format("Executing test '%1$s'", getTestFqn()));
+    String testName = myTestMethod.getMethod().getDeclaringClass().getName() + "#" + myTestMethod.getName();
+    System.out.println("Running " + testName);
 
     runTest();
     failIfIdeHasFatalErrors();
@@ -83,11 +84,6 @@ public class MethodInvoker extends Statement {
       takeScreenshot();
       throw e;
     }
-  }
-
-  @NotNull
-  private String getTestFqn() {
-    return myTestMethod.getMethod().getDeclaringClass() + "#" + myTestMethod.getName();
   }
 
   private void takeScreenshot() {
