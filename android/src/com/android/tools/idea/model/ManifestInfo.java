@@ -20,6 +20,7 @@ import com.android.resources.ScreenSize;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
+import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -46,7 +47,7 @@ import static com.android.xml.AndroidManifest.*;
  * @see com.android.xml.AndroidManifest
  */
 public abstract class ManifestInfo {
-  public static class ActivityAttributes {
+  public class ActivityAttributes {
     @Nullable private final String myIcon;
     @Nullable private final String myLabel;
     @NotNull private final String myName;
@@ -56,7 +57,7 @@ public abstract class ManifestInfo {
 
     public ActivityAttributes(@NotNull XmlTag activity, @Nullable String packageName) {
       // Get activity name.
-      String name = activity.getAttributeValue(ATTRIBUTE_NAME, ANDROID_URI);
+      String name = getAttributeValue(activity, ATTRIBUTE_NAME);
       if (name == null || name.length() == 0) {
         throw new RuntimeException("Activity name cannot be empty.");
       }
@@ -67,7 +68,7 @@ public abstract class ManifestInfo {
       myName = name;
 
       // Get activity icon.
-      String value = activity.getAttributeValue(ATTRIBUTE_ICON, ANDROID_URI);
+      String value = getAttributeValue(activity, ATTRIBUTE_ICON);
       if (value != null && value.length() > 0) {
         myIcon = value;
       }
@@ -76,7 +77,7 @@ public abstract class ManifestInfo {
       }
 
       // Get activity label.
-      value = activity.getAttributeValue(ATTRIBUTE_LABEL, ANDROID_URI);
+      value = getAttributeValue(activity, ATTRIBUTE_LABEL);
       if (value != null && value.length() > 0) {
         myLabel = value;
       }
@@ -85,14 +86,14 @@ public abstract class ManifestInfo {
       }
 
       // Get activity parent. Also search the meta-data for parent info.
-      value = activity.getAttributeValue(ATTRIBUTE_PARENT_ACTIVITY_NAME, ANDROID_URI);
+      value = getAttributeValue(activity, ATTRIBUTE_PARENT_ACTIVITY_NAME);
       if (value == null || value.length() == 0) {
         // TODO: Not sure if meta data can be used for API Level > 16
         XmlTag[] metaData = activity.findSubTags(NODE_METADATA);
         for (XmlTag data : metaData) {
-          String metaDataName = data.getAttributeValue(ATTRIBUTE_NAME, ANDROID_URI);
+          String metaDataName = getAttributeValue(data, ATTRIBUTE_NAME);
           if (VALUE_PARENT_ACTIVITY.equals(metaDataName)) {
-            value = data.getAttributeValue(ATTRIBUTE_VALUE, ANDROID_URI);
+            value = getAttributeValue(activity, ATTRIBUTE_VALUE);
             if (value != null) {
               index = value.indexOf('.');
               if (index <= 0 && packageName != null && !packageName.isEmpty()) {
@@ -111,7 +112,7 @@ public abstract class ManifestInfo {
       }
 
       // Get activity theme.
-      value = activity.getAttributeValue(ATTRIBUTE_THEME, ANDROID_URI);
+      value = getAttributeValue(activity, ATTRIBUTE_THEME);
       if (value != null && value.length() > 0) {
         myTheme = value;
       }
@@ -120,7 +121,7 @@ public abstract class ManifestInfo {
       }
 
       // Get UI options.
-      value = activity.getAttributeValue(ATTRIBUTE_UI_OPTIONS, ANDROID_URI);
+      value = getAttributeValue(activity, ATTRIBUTE_UI_OPTIONS);
       if (value != null && value.length() > 0) {
         myUiOptions = value;
       }
@@ -169,6 +170,22 @@ public abstract class ManifestInfo {
   final static Key<ManifestInfo> MERGED_MANIFEST_FINDER = new Key<ManifestInfo>("adt-merged-manifest-info");
 
   /**
+   * Returns the value of the given attribute from the android namespace
+   */
+  @Nullable("if the attribute value is null or empty")
+  protected final String getAttributeValue(@NotNull XmlTag xmlTag, @NotNull String attributeName) {
+    return getAttributeValue(xmlTag, attributeName, ANDROID_URI);
+  }
+
+  /**
+   * Returns the value of the given attribute
+   */
+  @Nullable("if the attribute value is null or empty")
+  protected String getAttributeValue(@NotNull XmlTag xmlTag, @NotNull String attributeName, @Nullable String attributeNamespace) {
+    return Strings.emptyToNull(xmlTag.getAttributeValue(attributeName, attributeNamespace));
+  }
+
+  /**
    * Returns the {@link ManifestInfo} for the given module.
    *
    * @param module the module the finder is associated with
@@ -177,7 +194,7 @@ public abstract class ManifestInfo {
    * whether a merged manifest should be used.
    */
   @NotNull
-  public static ManifestInfo get(@NotNull  Module module) {
+  public static ManifestInfo get(@NotNull Module module) {
     return get(module, false);
   }
 
@@ -217,7 +234,7 @@ public abstract class ManifestInfo {
     Module module = facet.getModule();
     ManifestInfo finder = module.getUserData(key);
     if (finder == null) {
-      finder = useMergedManifest ? new MergedManifestInfo(facet) : new PrimaryManifestInfo(module);
+      finder = useMergedManifest ? new MergedManifestInfo(facet) : new PrimaryManifestInfo(module, true);
       module.putUserData(key, finder);
     }
     return finder;
