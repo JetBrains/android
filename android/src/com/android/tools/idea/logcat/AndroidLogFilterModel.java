@@ -57,7 +57,7 @@ public abstract class AndroidLogFilterModel extends LogFilterModel {
 
   /**
    * A regex which is tested against unprocessed log input. Contrast with
-   * {@link #getConfiguredFilter()} which, if non-null, does additional filtering on input after
+   * {@link #getLogcatFilter()} which, if non-null, does additional filtering on input after
    * it has been parsed and broken up into component parts.
    */
   @Nullable private Pattern myCustomPattern;
@@ -87,18 +87,15 @@ public abstract class AndroidLogFilterModel extends LogFilterModel {
     fireTextFilterChange();
   }
 
-  public final void updateConfiguredFilter(@Nullable ConfiguredFilter filter) {
-    setConfiguredFilter(filter);
+  public final void updateLogcatFilter(@Nullable AndroidLogcatFilter filter) {
+    setLogcatFilter(filter);
     fireTextFilterChange();
   }
 
-  protected void setConfiguredFilter(@Nullable ConfiguredFilter filter) {
-  }
+  protected abstract void setLogcatFilter(@Nullable AndroidLogcatFilter filter);
 
   @Nullable
-  protected ConfiguredFilter getConfiguredFilter() {
-    return null;
-  }
+  protected abstract AndroidLogcatFilter getLogcatFilter();
 
   protected abstract void saveLogLevel(String logLevelName);
 
@@ -177,13 +174,13 @@ public abstract class AndroidLogFilterModel extends LogFilterModel {
   // this should ONLY be called if myPrevHeader was already set (which is how the filter will test
   // against header information).
   private boolean isApplicableByConfiguredFilter(String message) {
-    final ConfiguredFilter configuredFilter = getConfiguredFilter();
-    if (configuredFilter == null) {
+    final AndroidLogcatFilter filter = getLogcatFilter();
+    if (filter == null) {
       return true;
     }
 
-    assert myPrevHeader != null; // We never call this method unless we alread parsed a header
-    return configuredFilter
+    assert myPrevHeader != null; // We never call this method unless we already parsed a header
+    return filter
       .isApplicable(message, myPrevHeader.getTag(), myPrevHeader.getAppName(), myPrevHeader.getPid(), myPrevHeader.getLogLevel());
   }
 

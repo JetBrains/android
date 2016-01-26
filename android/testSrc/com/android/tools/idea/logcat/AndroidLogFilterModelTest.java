@@ -74,11 +74,11 @@ public class AndroidLogFilterModelTest {
 
   @Test
   public void configuredFilterRejectsLinesThatDontMatch() throws Exception {
-    AndroidConfiguredLogFilters.FilterEntry customfilter = new AndroidConfiguredLogFilters.FilterEntry();
-    customfilter.setLogMessagePattern("Dummy Message");
-    customfilter.setLogTagPattern("DummyTag");
+    PersistentAndroidLogFilters.FilterData filterData = new PersistentAndroidLogFilters.FilterData();
+    filterData.setLogMessagePattern("Dummy Message");
+    filterData.setLogTagPattern("DummyTag");
 
-    myFilterModel.setConfiguredFilter(ConfiguredFilter.compile(customfilter, "(Unused Name)"));
+    myFilterModel.setLogcatFilter(AndroidLogcatFilter.compile(filterData, "(Unused Name)"));
 
     LogFilterModel.MyProcessingResult result = myFilterModel.processLine("01-23 12:34:56.789 1234-5678/? I/DummyTag: Dummy Message");
     assertThat(result.isApplicable()).isTrue();
@@ -106,14 +106,14 @@ public class AndroidLogFilterModelTest {
 
   @Test
   public void filterCanMatchAgainstAnyLineInAMultiLineLog() throws Exception {
-    AndroidConfiguredLogFilters.FilterEntry customfilter = new AndroidConfiguredLogFilters.FilterEntry();
+    PersistentAndroidLogFilters.FilterData filterData = new PersistentAndroidLogFilters.FilterData();
 
     String[] lines = "01-23 12:34:56.789 1234-5678/? I/DummyTag: line 1\n+ line 2\n+ line 3".split("\n");
     LogFilterModel.MyProcessingResult result;
 
     // Test multiline log against first line
-    customfilter.setLogMessagePattern("line 1");
-    myFilterModel.setConfiguredFilter(ConfiguredFilter.compile(customfilter, "(Unused Name)"));
+    filterData.setLogMessagePattern("line 1");
+    myFilterModel.setLogcatFilter(AndroidLogcatFilter.compile(filterData, "(Unused Name)"));
 
     result = myFilterModel.processLine(lines[0]);
     assertThat(result.isApplicable()).isTrue();
@@ -131,8 +131,8 @@ public class AndroidLogFilterModelTest {
     assertThat(result.getMessagePrefix()).isEmpty();
 
     // Test multiline log against second line
-    customfilter.setLogMessagePattern("line 2");
-    myFilterModel.setConfiguredFilter(ConfiguredFilter.compile(customfilter, "(Unused Name)"));
+    filterData.setLogMessagePattern("line 2");
+    myFilterModel.setLogcatFilter(AndroidLogcatFilter.compile(filterData, "(Unused Name)"));
 
     result = myFilterModel.processLine(lines[0]);
     assertThat(result.isApplicable()).isFalse();
@@ -148,8 +148,8 @@ public class AndroidLogFilterModelTest {
     assertThat(result.getMessagePrefix().isEmpty());
 
     // Test multiline log against third line
-    customfilter.setLogMessagePattern("line 3");
-    myFilterModel.setConfiguredFilter(ConfiguredFilter.compile(customfilter, "(Unused Name)"));
+    filterData.setLogMessagePattern("line 3");
+    myFilterModel.setLogcatFilter(AndroidLogcatFilter.compile(filterData, "(Unused Name)"));
 
     result = myFilterModel.processLine(lines[0]);
     assertThat(result.isApplicable()).isFalse();
@@ -163,8 +163,8 @@ public class AndroidLogFilterModelTest {
     assertThat(result.getMessagePrefix()).isEqualTo("01-23 12:34:56.789 1234-5678/? I/DummyTag: line 1\n+ line 2\n");
 
     // Test multiline log against non-existent line
-    customfilter.setLogMessagePattern("line x");
-    myFilterModel.setConfiguredFilter(ConfiguredFilter.compile(customfilter, "(Unused Name)"));
+    filterData.setLogMessagePattern("line x");
+    myFilterModel.setLogcatFilter(AndroidLogcatFilter.compile(filterData, "(Unused Name)"));
 
     result = myFilterModel.processLine(lines[0]);
     assertThat(result.isApplicable()).isFalse();
@@ -179,7 +179,7 @@ public class AndroidLogFilterModelTest {
   private static class TestFilterModel extends AndroidLogFilterModel {
 
     @NotNull private LogLevel myMinimumLevel = LogLevel.VERBOSE; // Allow all messages by default
-    @Nullable private ConfiguredFilter myConfiguredFilter;
+    @Nullable private AndroidLogcatFilter myFilter;
 
     public void setMinimumLevel(@NotNull LogLevel logLevel) {
       myMinimumLevel = logLevel;
@@ -196,14 +196,14 @@ public class AndroidLogFilterModelTest {
     }
 
     @Override
-    protected void setConfiguredFilter(@Nullable ConfiguredFilter filter) {
-      myConfiguredFilter = filter;
+    protected void setLogcatFilter(@Nullable AndroidLogcatFilter filter) {
+      myFilter = filter;
     }
 
     @Nullable
     @Override
-    protected ConfiguredFilter getConfiguredFilter() {
-      return myConfiguredFilter;
+    protected AndroidLogcatFilter getLogcatFilter() {
+      return myFilter;
     }
   }
 }
