@@ -17,11 +17,23 @@ package com.android.tools.idea.model;
 
 import com.android.tools.idea.templates.AndroidGradleTestCase;
 import com.google.common.collect.Sets;
+import com.intellij.codeInsight.completion.CompletionType;
+import com.intellij.codeInsight.daemon.impl.HighlightInfo;
+import com.intellij.lang.annotation.HighlightSeverity;
+import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiDocumentManager;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
 import org.jetbrains.android.dom.manifest.Activity;
 import org.jetbrains.android.dom.manifest.Service;
 
 import java.util.List;
 import java.util.Set;
+
+import static org.fest.assertions.Assertions.assertThat;
 
 public class AndroidModuleInfoTest extends AndroidGradleTestCase {
   public void testManifestOnly() throws Exception {
@@ -75,5 +87,44 @@ public class AndroidModuleInfoTest extends AndroidGradleTestCase {
 
     List<Service> services = ManifestInfo.get(myAndroidFacet.getModule(), true).getServices();
     assertEquals(1, services.size());
+
+    assertEquals("@style/AppTheme", ManifestInfo.get(myAndroidFacet.getModule(), false).getManifestTheme());
+  }
+
+  public void testManifestPlaceholderCompletion() throws Exception {
+    loadProject("projects/moduleInfo/merge");
+    assertNotNull(myAndroidFacet);
+    VirtualFile file = getProject().getBaseDir().findFileByRelativePath("src/main/AndroidManifest.xml");
+    assertNotNull(file);
+    PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(file);
+    assertNotNull(psiFile);
+
+    myFixture.configureFromExistingVirtualFile(file);
+    List<HighlightInfo> highlights = myFixture.doHighlighting(HighlightSeverity.ERROR);
+    assertTrue(highlights.isEmpty());
+    myFixture.testHighlighting(false, false, false, file);
+
+    final PsiDocumentManager manager = PsiDocumentManager.getInstance(getProject());
+    final Document document = manager.getDocument(psiFile);
+    assertNotNull(document);
+
+    final String defaultPlaceholder = "${defaultTheme}";
+
+    // Check placeholder completion
+    new WriteCommandAction.Simple(getProject(), psiFile) {
+      @Override
+      protected void run() throws Throwable {
+        int offset = document.getText().indexOf(defaultPlaceholder);
+        document.replaceString(offset, offset + defaultPlaceholder.length(), "${<caret>");
+        manager.commitAllDocuments();
+      }
+    }.execute();
+    FileDocumentManager.getInstance().saveAllDocuments();
+    myFixture.configureFromExistingVirtualFile(file);
+
+    myFixture.complete(CompletionType.BASIC);
+    assertThat(myFixture.getLookupElementStrings()).containsOnly("defaultTheme");
+    // Check that there are no errors
+    myFixture.testHighlighting();
   }
 }

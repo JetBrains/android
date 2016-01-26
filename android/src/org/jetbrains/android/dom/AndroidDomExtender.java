@@ -36,6 +36,7 @@ import org.jetbrains.android.dom.animation.InterpolatorElement;
 import org.jetbrains.android.dom.animation.fileDescriptions.InterpolatorDomFileDescription;
 import org.jetbrains.android.dom.attrs.*;
 import org.jetbrains.android.dom.converters.CompositeConverter;
+import org.jetbrains.android.dom.converters.ManifestPlaceholderConverter;
 import org.jetbrains.android.dom.converters.ResourceReferenceConverter;
 import org.jetbrains.android.dom.layout.*;
 import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
@@ -166,6 +167,10 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
       }
       else {
         converter = AndroidDomUtil.getConverter(attrDef);
+
+        if (converter != null && element.getParentOfType(Manifest.class, true) != null) {
+          converter = new ManifestPlaceholderConverter(converter);
+        }
       }
     }
 
