@@ -17,11 +17,14 @@ package com.android.tools.idea.run;
 
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
+import com.android.sdklib.devices.Abi;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.SimpleColoredComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 /**
  * An {@link AndroidDevice} represents either a connected {@link IDevice}, or the
@@ -38,7 +41,12 @@ public interface AndroidDevice {
   @NotNull
   AndroidVersion getVersion();
 
+  /** Returns the device display density. */
   int getDensity();
+
+  /** Returns the list of (sorted by most preferred first) ABIs supported by this device. */
+  @NotNull
+  List<Abi> getAbis();
 
   /** Returns a unique serial number */
   @NotNull
