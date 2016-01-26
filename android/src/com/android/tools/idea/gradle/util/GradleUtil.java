@@ -1244,20 +1244,25 @@ public final class GradleUtil {
   }
 
   public static void processBuildModelsRecursively(@NotNull final Project project, @NotNull final Processor<GradleBuildModel> processor) {
-    VirtualFile baseDir = project.getBaseDir();
-    if (baseDir == null) {
-      // Unlikely to happen: this is default project.
-      return;
-    }
-
-    processFileRecursivelyWithoutIgnored(baseDir, new Processor<VirtualFile>() {
+    ApplicationManager.getApplication().runReadAction(new Runnable() {
       @Override
-      public boolean process(VirtualFile virtualFile) {
-        if (FN_BUILD_GRADLE.equals(virtualFile.getName())) {
-          GradleBuildModel buildModel = parseBuildFile(virtualFile, project);
-          processor.process(buildModel);
+      public void run() {
+        VirtualFile baseDir = project.getBaseDir();
+        if (baseDir == null) {
+          // Unlikely to happen: this is default project.
+          return;
         }
-        return true;
+
+        processFileRecursivelyWithoutIgnored(baseDir, new Processor<VirtualFile>() {
+          @Override
+          public boolean process(VirtualFile virtualFile) {
+            if (FN_BUILD_GRADLE.equals(virtualFile.getName())) {
+              GradleBuildModel buildModel = parseBuildFile(virtualFile, project);
+              return processor.process(buildModel);
+            }
+            return true;
+          }
+        });
       }
     });
   }
