@@ -48,7 +48,6 @@ import static org.junit.Assert.assertNotNull;
 @BelongsToTestGroups({LAYOUT})
 public class LayoutEditorTest extends GuiTestCase {
 
-  @Ignore("failed in http://go/aj/job/studio-ui-test/326 but passed from IDEA")
   @Test
   public void testSetProperty() throws Exception {
     myProjectFrame = importSimpleApplication();

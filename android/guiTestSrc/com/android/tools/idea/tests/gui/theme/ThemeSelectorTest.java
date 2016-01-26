@@ -159,7 +159,6 @@ public class ThemeSelectorTest extends GuiTestCase {
     themeEditor.waitForThemeSelection("Theme.AppCompat.NoActionBar");
   }
 
-  @Ignore("failed in http://go/aj/job/studio-ui-test/345 but passed from IDEA")
   /**
    * Tests the theme creation functionality of the theme selector
    * and that IntelliJ's Undo can revert this action
