@@ -24,7 +24,7 @@ import java.util.regex.Pattern;
 /**
  * A filter which can reject lines of logcat output based on user configured patterns.
  */
-final class ConfiguredFilter {
+public final class AndroidLogcatFilter {
   @NotNull private final String myName;
   @Nullable private final Pattern myMessagePattern;
   @Nullable private final Pattern myTagPattern;
@@ -32,12 +32,21 @@ final class ConfiguredFilter {
   @Nullable private final String myPid;
   @Nullable private final Log.LogLevel myLogLevel;
 
-  private ConfiguredFilter(@NotNull String name,
-                           @Nullable Pattern messagePattern,
-                           @Nullable Pattern tagPattern,
-                           @Nullable Pattern pkgNamePattern,
-                           @Nullable String pid,
-                           @Nullable Log.LogLevel logLevel) {
+  public AndroidLogcatFilter(@NotNull String name,
+                             @Nullable Pattern messagePattern,
+                             @Nullable Pattern tagPattern,
+                             @Nullable Pattern pkgNamePattern,
+                             @Nullable Integer pid,
+                             @Nullable Log.LogLevel logLevel) {
+    this(name, messagePattern, tagPattern, pkgNamePattern, pid != null ? pid.toString() : null, logLevel);
+  }
+
+  public AndroidLogcatFilter(@NotNull String name,
+                             @Nullable Pattern messagePattern,
+                             @Nullable Pattern tagPattern,
+                             @Nullable Pattern pkgNamePattern,
+                             @Nullable String pid,
+                             @Nullable Log.LogLevel logLevel) {
     myName = name;
     myMessagePattern = messagePattern;
     myTagPattern = tagPattern;
@@ -67,7 +76,7 @@ final class ConfiguredFilter {
     if (myLogLevel != null && (logLevel == null || logLevel.getPriority() < myLogLevel.getPriority())) {
       return false;
     }
-    
+
     return true;
   }
 
@@ -77,23 +86,21 @@ final class ConfiguredFilter {
   }
 
   @NotNull
-  public static ConfiguredFilter compile(@NotNull AndroidConfiguredLogFilters.FilterEntry entry, @NotNull String name) {
+  public static AndroidLogcatFilter compile(@NotNull PersistentAndroidLogFilters.FilterData filterData, @NotNull String name) {
 
-    Pattern logMessagePattern = RegexFilterComponent.pattern(entry.getLogMessagePattern(), entry.getLogMessageIsRegex());
-    Pattern logTagPattern = RegexFilterComponent.pattern(entry.getLogTagPattern(), entry.getLogTagIsRegex());
-    Pattern pkgNamePattern = RegexFilterComponent.pattern(entry.getPackageNamePattern(), entry.getPackageNameIsRegex());
+    Pattern logMessagePattern = RegexFilterComponent.pattern(filterData.getLogMessagePattern(), filterData.getLogMessageIsRegex());
+    Pattern logTagPattern = RegexFilterComponent.pattern(filterData.getLogTagPattern(), filterData.getLogTagIsRegex());
+    Pattern pkgNamePattern = RegexFilterComponent.pattern(filterData.getPackageNamePattern(), filterData.getPackageNameIsRegex());
 
-    final String pid = entry.getPid();
+    final String pid = filterData.getPid();
 
     Log.LogLevel logLevel = null;
-    final String logLevelStr = entry.getLogLevel();
+    final String logLevelStr = filterData.getLogLevel();
     if (logLevelStr != null && logLevelStr.length() > 0) {
       logLevel = Log.LogLevel.getByString(logLevelStr);
     }
 
-    return new ConfiguredFilter(name, logMessagePattern, logTagPattern, pkgNamePattern,
-                                pid, logLevel);
-
+    return new AndroidLogcatFilter(name, logMessagePattern, logTagPattern, pkgNamePattern, pid, logLevel);
   }
 
 }
