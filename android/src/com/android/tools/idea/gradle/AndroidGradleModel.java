@@ -77,6 +77,7 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
   @NotNull private File myRootDirPath;
   @NotNull private AndroidProject myAndroidProject;
 
+  @Nullable private transient GradleVersion myModelVersion;
   @Nullable private transient CountDownLatch myProxyAndroidProjectLatch;
   @Nullable private AndroidProject myProxyAndroidProject;
 
@@ -117,6 +118,8 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
     myRootDirPath = rootDirPath;
     myAndroidProject = androidProject;
 
+    parseAndSetModelVersion();
+
     // Compute the proxy object to avoid re-proxying the model during every serialization operation and also schedule it to run
     // asynchronously to avoid blocking the project sync operation for reproxying to complete.
     ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
@@ -154,6 +157,11 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
     for (Variant variant : myAndroidProject.getVariants()) {
       myVariantsByName.put(variant.getName(), variant);
     }
+  }
+
+  @Nullable
+  public GradleVersion getModelVersion() {
+    return myModelVersion;
   }
 
   @NotNull
@@ -776,9 +784,7 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
   }
 
   private boolean supportsIssueReporting() {
-    String original = myAndroidProject.getModelVersion();
-    GradleVersion modelVersion = GradleVersion.tryParse(original);
-    return modelVersion != null && modelVersion.compareTo("1.1.0") >= 0;
+    return myModelVersion != null && myModelVersion.compareTo("1.1.0") >= 0;
   }
 
   @Nullable
@@ -915,6 +921,9 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
     myModuleName = (String)in.readObject();
     myRootDirPath = (File)in.readObject();
     myAndroidProject = (AndroidProject)in.readObject();
+
+    parseAndSetModelVersion();
+
     myProxyAndroidProject = myAndroidProject;
 
     myBuildTypesByName = Maps.newHashMap();
@@ -928,6 +937,11 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
 
     setSelectedVariantName((String)in.readObject());
     setSelectedTestArtifactName((String)in.readObject());
+  }
+
+  private void parseAndSetModelVersion() {
+    // Old plugin versions do not return model version.
+    myModelVersion = GradleVersion.tryParse(myAndroidProject.getModelVersion());
   }
 
   @Nullable
