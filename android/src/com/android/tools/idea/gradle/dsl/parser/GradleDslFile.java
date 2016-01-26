@@ -47,6 +47,7 @@ public abstract class GradleDslFile extends GradlePropertiesDslElement {
   @NotNull private final Set<GradleDslFile> myChildModuleDslFiles = Sets.newHashSet();
 
   @Nullable private GradleDslFile myParentModuleDslFile;
+  @Nullable private GradleDslFile mySiblingDslFile;
 
   protected GradleDslFile(@NotNull VirtualFile file, @NotNull Project project, @NotNull String moduleName) {
     super(null, null, moduleName);
@@ -131,5 +132,24 @@ public abstract class GradleDslFile extends GradlePropertiesDslElement {
   @NotNull
   public Collection<GradleDslFile> getChildModuleDslFiles() {
     return myChildModuleDslFiles;
+  }
+
+  /**
+   * Sets the sibling dsl file of this file.
+   *
+   * <p>build.gradle and gradle.properties files belongs to the same module are considered as sibling files.
+   */
+  public void setSiblingDslFile(@NotNull GradleDslFile siblingDslFile) {
+    mySiblingDslFile = siblingDslFile;
+  }
+
+  /**
+   * Returns the sibling dsl file of this file.
+   *
+   * <p>build.gradle and gradle.properties files belongs to the same module are considered as sibling files.
+   */
+  @Nullable
+  public GradleDslFile getSiblingDslFile() {
+    return mySiblingDslFile;
   }
 }
