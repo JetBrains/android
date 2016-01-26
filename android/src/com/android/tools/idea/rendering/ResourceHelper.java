@@ -75,8 +75,6 @@ public class ResourceHelper {
    *         to a framework theme
    */
   public static boolean isProjectStyle(@NotNull String styleResourceUrl) {
-    assert styleResourceUrl.startsWith(PREFIX_RESOURCE_REF) : styleResourceUrl;
-
     return !styleResourceUrl.startsWith(ANDROID_STYLE_RESOURCE_PREFIX);
   }
 

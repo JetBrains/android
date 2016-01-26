@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.configurations;
 
+import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.Bridge;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
@@ -319,7 +320,8 @@ public class ConfigurationManager implements Disposable {
       ActivityAttributes attributes = manifest.getActivityAttributes(activityFqcn);
       if (attributes != null) {
         String theme = attributes.getTheme();
-        if (theme != null) {
+        // Check that the theme looks like a reference
+        if (theme != null && theme.startsWith(SdkConstants.PREFIX_RESOURCE_REF)) {
           return theme;
         }
       }
@@ -328,7 +330,8 @@ public class ConfigurationManager implements Disposable {
       attributes = manifest.getActivityAttributes(activity);
       if (attributes != null) {
         String theme = attributes.getTheme();
-        if (theme != null) {
+        // Check that the theme looks like a reference
+        if (theme != null && theme.startsWith(SdkConstants.PREFIX_RESOURCE_REF)) {
           return theme;
         }
       }
