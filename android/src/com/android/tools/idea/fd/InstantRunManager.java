@@ -670,20 +670,31 @@ public final class InstantRunManager implements ProjectComponent {
   }
 
   public static void displayVerifierStatus(@NotNull AndroidFacet facet, @NotNull InstantRunBuildInfo buildInfo) {
+    @Language("HTML") String message = getVerifierMessage(buildInfo);
+    if (message != null) {
+      new InstantRunUserFeedback(facet.getModule()).verifierFailure(message);
+      String status = buildInfo.getVerifierStatus();
+      LOG.info("Instant run verifier failure: " + status);
+      UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_INSTANTRUN, UsageTracker.ACTION_INSTANTRUN_FULLBUILD, status, null);
+    }
+  }
+
+  @Language("HTML")
+  @Nullable
+  public static String getVerifierMessage(@NotNull InstantRunBuildInfo buildInfo) {
     if (!buildInfo.canHotswap()) {
       String status = buildInfo.getVerifierStatus();
       if (status.isEmpty()) {
-        return;
+        return null;
       }
 
       // Convert tokens like "FIELD_REMOVED" to "Field Removed" for better readability
       status = StringUtil.capitalizeWords(status.toLowerCase(Locale.US).replace('_', ' '), true);
-      @Language("HTML") String message = "Instant Run couldn't apply changes on the fly: " + status;
-      new InstantRunUserFeedback(facet.getModule()).verifierFailure(message);
-
-      LOG.info("Instant run verifier failure: " + status);
-      UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_INSTANTRUN, UsageTracker.ACTION_INSTANTRUN_FULLBUILD, status, null);
+      //noinspection LanguageMismatch
+      return "Instant Run couldn't apply changes on the fly: " + status;
     }
+
+    return null;
   }
 
   @Nullable
