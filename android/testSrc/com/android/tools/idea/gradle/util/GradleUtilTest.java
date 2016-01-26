@@ -183,47 +183,6 @@ public class GradleUtilTest extends TestCase {
     assertNull(gradleVersion);
   }
 
-  public void testGetAndroidGradleModelVersion() throws IOException {
-    String contents = "buildscript {\n" +
-                      "    repositories {\n" +
-                      "        jcenter()\n" +
-                      "    }\n" +
-                      "    dependencies {\n" +
-                      "        classpath 'com.android.tools.build:gradle:0.13.0'\n" +
-                      "    }\n" +
-                      "}";
-    GradleVersion revision = GradleUtil.getAndroidGradleModelVersionFromBuildFile(contents, null);
-    assertNotNull(revision);
-    assertEquals("0.13.0", revision.toString());
-  }
-
-  public void testGetAndroidGradleModelVersionWithPlusInMicro() throws IOException {
-    String contents = "buildscript {\n" +
-                      "    repositories {\n" +
-                      "        jcenter()\n" +
-                      "    }\n" +
-                      "    dependencies {\n" +
-                      "        classpath 'com.android.tools.build:gradle:0.13.+'\n" +
-                      "    }\n" +
-                      "}";
-    GradleVersion revision = GradleUtil.getAndroidGradleModelVersionFromBuildFile(contents, null);
-    assertNotNull(revision);
-    assertEquals("0.13.0", revision.toString());
-  }
-
-  public void testGetAndroidGradleModelVersionWithPlusNotation() throws IOException {
-    String contents = "buildscript {\n" +
-                      "    repositories {\n" +
-                      "        jcenter()\n" +
-                      "    }\n" +
-                      "    dependencies {\n" +
-                      "        classpath 'com.android.tools.build:gradle:+'\n" +
-                      "    }\n" +
-                      "}";
-    GradleVersion revision = GradleUtil.getAndroidGradleModelVersionFromBuildFile(contents, null);
-    assertNotNull(revision);
-  }
-
   public void testAddLocalMavenRepoInitScriptCommandLineOption() throws IOException {
     File repoPath = new File("/xyz/repo");
     List<String> cmdOptions = Lists.newArrayList();
