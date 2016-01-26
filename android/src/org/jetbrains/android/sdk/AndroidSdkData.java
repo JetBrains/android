@@ -155,7 +155,7 @@ public class AndroidSdkData {
   @NotNull
   private Collection<IAndroidTarget> getTargetCollection() {
     ProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
-    return mySdkHandler.getAndroidTargetManager(progress).getTargets(false, progress);
+    return mySdkHandler.getAndroidTargetManager(progress).getTargets(progress);
   }
 
   @NotNull

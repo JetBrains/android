@@ -20,9 +20,7 @@ import com.android.repository.api.RemotePackage;
 import com.android.repository.io.FileOp;
 import com.android.resources.Density;
 import com.android.resources.ScreenOrientation;
-import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.ISystemImage;
 import com.android.sdklib.devices.Abi;
 import com.android.sdklib.devices.Device;
@@ -31,6 +29,7 @@ import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.repositoryv2.AndroidSdkHandler;
 import com.android.sdklib.repositoryv2.IdDisplay;
 import com.android.sdklib.repositoryv2.meta.DetailsTypes;
+import com.android.sdklib.repositoryv2.targets.SystemImage;
 import com.android.tools.idea.avdmanager.AvdEditWizard;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.avdmanager.DeviceManagerConnection;
@@ -98,19 +97,14 @@ public class AndroidVirtualDevice extends InstallableComponent {
   }
 
   private SystemImageDescription getSystemImageDescription(AndroidSdkHandler sdkHandler) throws WizardException {
-    String platformHash =
-      AndroidTargetHash.getAddonHashString(ID_VENDOR_GOOGLE.getDisplay(), ID_ADDON_GOOGLE_API_IMG.getDisplay(), myLatestVersion);
     StudioLoggerProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
-    IAndroidTarget target =
-      sdkHandler.getAndroidTargetManager(progress).getTargetFromHashString(platformHash, progress);
-    if (target == null) {
-      throw new WizardException("Missing platform target SDK component required for an AVD setup");
-    }
-    ISystemImage systemImage = target.getSystemImage(ID_ADDON_GOOGLE_API_IMG, SdkConstants.ABI_INTEL_ATOM);
-    if (systemImage == null) {
+
+    Collection<SystemImage> systemImages =
+      sdkHandler.getSystemImageManager(progress).lookup(ID_ADDON_GOOGLE_API_IMG, myLatestVersion, ID_VENDOR_GOOGLE);
+    if (systemImages.isEmpty()) {
       throw new WizardException("Missing system image required for an AVD setup");
     }
-    return new SystemImageDescription(target, systemImage);
+    return new SystemImageDescription(systemImages.iterator().next());
   }
 
   @Nullable
@@ -223,8 +217,8 @@ public class AndroidVirtualDevice extends InstallableComponent {
     AvdManagerConnection connection = AvdManagerConnection.getAvdManagerConnection(sdkHandler);
     List<AvdInfo> avds = connection.getAvds(false);
     for (AvdInfo avd : avds) {
-      if (avd.getAbiType().equals(desired.getAbiType()) && avd.getTarget() != null
-          && avd.getTarget().getVersion().equals(desired.getVersion())) {
+      if (avd.getAbiType().equals(desired.getAbiType()) &&
+          avd.getAndroidVersion().equals(desired.getVersion())) {
         // We have a similar avd already installed. Deselect by default.
         return false;
       }

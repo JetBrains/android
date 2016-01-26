@@ -21,6 +21,7 @@ import com.android.builder.model.SourceProvider;
 import com.android.prefs.AndroidLocation;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
+import com.android.sdklib.ISystemImage;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.repositoryv2.AndroidSdkHandler;
@@ -365,8 +366,9 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     }
 
     for (AvdInfo avd : from) {
-      IAndroidTarget avdTarget = avd.getTarget();
-      if (avdTarget == null || LaunchCompatibility.canRunOnAvd(minSdk, platform.getTarget(), avdTarget).isCompatible() != ThreeState.NO) {
+      ISystemImage systemImage = avd.getSystemImage();
+      if (systemImage == null ||
+          LaunchCompatibility.canRunOnAvd(minSdk, platform.getTarget(), systemImage).isCompatible() != ThreeState.NO) {
         to.add(avd);
       }
     }
