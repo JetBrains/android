@@ -25,7 +25,6 @@ import org.fest.swing.fixture.JComboBoxFixture;
 import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.fixture.JTextComponentFixture;
 import org.fest.swing.fixture.JTreeFixture;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import javax.swing.*;
@@ -39,7 +38,6 @@ public class ThemeConfigurationTest extends GuiTestCase {
   /**
    * Tests that the theme editor deals well with themes defined only in certain configurations
    */
-  @Ignore("failed in http://go/aj/job/studio-ui-test/326 and from IDEA")
   @Test
   public void testThemesWithConfiguration() throws IOException {
     myProjectFrame = importSimpleApplication();
