@@ -23,7 +23,10 @@ public enum InstantRunArtifactType {
   /** Main APK (contains resources) */
   MAIN,
 
-  /** APK split (that can be installed on API 23+) */
+  /** Main APK in a split scenario (contains resources) */
+  SPLIT_MAIN,
+
+  /** APK split (that can be installed on API 23+, maybe 22) */
   SPLIT,
 
   /** Shard dex file that can be deployed on L devices */
