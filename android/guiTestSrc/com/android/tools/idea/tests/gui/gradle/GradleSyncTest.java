@@ -1321,7 +1321,6 @@ public class GradleSyncTest extends GuiTestCase {
     return LanguageLevelModuleExtensionImpl.getInstance(module).getLanguageLevel();
   }
 
-  @Ignore("failed in http://go/aj/job/studio-ui-test/326 and from IDEA")
   @Test
   public void suggestUpgradingAndroidPlugin() throws IOException {
     final String hyperlinkText = "Fix plugin version and sync project";
