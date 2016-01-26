@@ -535,7 +535,8 @@ public class DefaultSdksConfigurable extends BaseConfigurable implements Place.N
   @Override
   @NotNull
   public JComponent getPreferredFocusedComponent() {
-    return mySdkLocationTextField.getTextField();
+    Component toFocus = myComponentsById.get(mySelectedComponentId);
+    return toFocus instanceof JComponent ? (JComponent)toFocus : mySdkLocationTextField.getTextField();
   }
 
   public boolean validate() throws ConfigurationException {
