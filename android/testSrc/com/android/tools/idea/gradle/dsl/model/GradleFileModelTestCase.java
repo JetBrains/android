@@ -30,8 +30,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-import static com.android.SdkConstants.FN_BUILD_GRADLE;
-import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
+import static com.android.SdkConstants.*;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static com.intellij.openapi.util.io.FileUtil.ensureCanCreateFile;
 import static com.intellij.openapi.util.io.FileUtil.writeToFile;
@@ -44,7 +43,9 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
 
   protected File mySettingsFile;
   protected File myBuildFile;
+  protected File myPropertiesFile;
   protected File mySubModuleBuildFile;
+  protected File mySubModulePropertiesFile;
 
   @Override
   protected void setUp() throws Exception {
@@ -62,11 +63,15 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     assertThat(moduleDirPath).isDirectory();
     myBuildFile = new File(moduleDirPath, FN_BUILD_GRADLE);
     assertTrue(ensureCanCreateFile(myBuildFile));
+    myPropertiesFile = new File(moduleDirPath, FN_GRADLE_PROPERTIES);
+    assertTrue(ensureCanCreateFile(myPropertiesFile));
 
     File subModuleFilePath = new File(mySubModule.getModuleFilePath());
     File subModuleDirPath = subModuleFilePath.getParentFile();
     assertThat(subModuleDirPath).isDirectory();
     mySubModuleBuildFile = new File(subModuleDirPath, FN_BUILD_GRADLE);
+    assertTrue(ensureCanCreateFile(mySubModuleBuildFile));
+    mySubModulePropertiesFile = new File(subModuleDirPath, FN_GRADLE_PROPERTIES);
     assertTrue(ensureCanCreateFile(mySubModuleBuildFile));
   }
 
@@ -108,8 +113,16 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     writeToFile(myBuildFile, text);
   }
 
+  protected void writeToPropertiesFile(@NotNull String text) throws IOException {
+    writeToFile(myPropertiesFile, text);
+  }
+
   protected void writeToSubModuleBuildFile(@NotNull String text) throws IOException {
     writeToFile(mySubModuleBuildFile, text);
+  }
+
+  protected void writeToSubModulePropertiesFile(@NotNull String text) throws IOException {
+    writeToFile(mySubModulePropertiesFile, text);
   }
 
   @NotNull
