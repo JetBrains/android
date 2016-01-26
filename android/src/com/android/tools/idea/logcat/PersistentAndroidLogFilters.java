@@ -30,7 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Persistent storage of logcat filters.
+ * Persistent storage of logcat filter settings.
  */
 @State(
   name = "AndroidConfiguredLogFilters",
@@ -38,58 +38,59 @@ import java.util.List;
     @Storage(file = StoragePathMacros.WORKSPACE_FILE)
   }
 )
-public final class AndroidConfiguredLogFilters implements PersistentStateComponent<AndroidConfiguredLogFilters> {
-  private List<FilterEntry> myFilterEntries = new ArrayList<FilterEntry>();
+public final class PersistentAndroidLogFilters implements PersistentStateComponent<PersistentAndroidLogFilters> {
+  private List<FilterData> myFilters = new ArrayList<FilterData>();
 
   @Override
-  public AndroidConfiguredLogFilters getState() {
+  public PersistentAndroidLogFilters getState() {
     return this;
   }
 
   @Override
-  public void loadState(AndroidConfiguredLogFilters state) {
+  public void loadState(PersistentAndroidLogFilters state) {
     XmlSerializerUtil.copyBean(state, this);
   }
 
-  public static AndroidConfiguredLogFilters getInstance(final Project project) {
-    return ServiceManager.getService(project, AndroidConfiguredLogFilters.class);
+  public static PersistentAndroidLogFilters getInstance(final Project project) {
+    return ServiceManager.getService(project, PersistentAndroidLogFilters.class);
   }
 
   /**
    * Returns a copy of the list of filters. If you need to modify a filter, use
-   * {@link #setFilterEntries(List)} to do so.
+   * {@link #setFilters(List)} to do so.
    */
   @Tag("filters")
   @AbstractCollection(surroundWithTag = false)
-  public List<FilterEntry> getFilterEntries() {
-    return Lists.newArrayList(Lists.transform(myFilterEntries, new Function<FilterEntry, FilterEntry>() {
+  public List<FilterData> getFilters() {
+    return Lists.newArrayList(Lists.transform(myFilters, new Function<FilterData, FilterData>() {
       @NotNull
       @Override
-      public FilterEntry apply(FilterEntry srcEntry) {
-        return new FilterEntry(srcEntry);
+      public FilterData apply(FilterData filter) {
+        return new FilterData(filter);
       }
     }));
   }
 
   @NotNull
-  public FilterEntry createFilterForClient(@NotNull ClientData clientData) {
-    FilterEntry entry = new FilterEntry();
-    entry.setPackageNameIsRegex(false);
+  public FilterData createFilterForClient(@NotNull ClientData clientData) {
+    FilterData filter = new FilterData();
+    filter.setPackageNameIsRegex(false);
     String processName = clientData.getClientDescription();
-    entry.setPackageNamePattern(processName);
-    entry.setName("Process: " + processName);
-    return entry;
+    filter.setPackageNamePattern(processName);
+    filter.setName("Process: " + processName);
+    return filter;
   }
 
-  public void setFilterEntries(List<FilterEntry> filterEntries) {
-    myFilterEntries = filterEntries;
+  public void setFilters(List<FilterData> filterEntries) {
+    myFilters = filterEntries;
   }
 
   /**
-   * A version of {@link ConfiguredFilter} for serialization / deserialization.
+   * Basic filter data which can easily be serialized / deserialized and compiled into an
+   * {@link AndroidLogcatFilter}.
    */
   @Tag("filter")
-  static final class FilterEntry {
+  static final class FilterData {
     @Nullable private String myName;
     @Nullable private String myLogMessagePattern;
     private boolean myLogMessageIsRegex = true;
@@ -100,10 +101,10 @@ public final class AndroidConfiguredLogFilters implements PersistentStateCompone
     @Nullable private String myPackageNamePattern;
     private boolean myPackageNameIsRegex = true;
 
-    public FilterEntry() {
+    public FilterData() {
     }
 
-    public FilterEntry(@NotNull FilterEntry otherEntry) {
+    public FilterData(@NotNull FilterData otherEntry) {
       myName = otherEntry.myName;
       myLogMessagePattern = otherEntry.myLogMessagePattern;
       myLogMessageIsRegex = otherEntry.myLogMessageIsRegex;
