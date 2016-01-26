@@ -765,8 +765,8 @@
                     serviceImplementation="com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration"/>
     <projectService serviceInterface="com.android.tools.idea.logcat.AndroidLogcatPreferences"
                     serviceImplementation="com.android.tools.idea.logcat.AndroidLogcatPreferences"/>
-    <projectService serviceInterface="com.android.tools.idea.logcat.AndroidConfiguredLogFilters"
-                    serviceImplementation="com.android.tools.idea.logcat.AndroidConfiguredLogFilters"/>
+    <projectService serviceInterface="com.android.tools.idea.logcat.PersistentAndroidLogFilters"
+                    serviceImplementation="com.android.tools.idea.logcat.PersistentAndroidLogFilters"/>
     <projectService serviceInterface="org.jetbrains.android.maven.AndroidExternalApklibDependenciesManager"
                     serviceImplementation="org.jetbrains.android.maven.AndroidExternalApklibDependenciesManager"/>
     <projectService serviceInterface="com.android.tools.idea.configurations.ConfigurationStateManager"
@@ -933,6 +933,8 @@
     <extensionPoint qualifiedName="com.android.ide.moduleStructureConfigurableContributor"
                     interface="com.android.tools.idea.structure.dialog.ModuleStructureConfigurableContributor"/>
     <extensionPoint qualifiedName="com.android.run.androidDebugger" interface="com.android.tools.idea.run.editor.AndroidDebugger" />
+    <extensionPoint qualifiedName="com.android.logcat.filterProvider"
+                    interface="com.android.tools.idea.logcat.LogcatFilterProvider" />
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.android">
