@@ -38,17 +38,17 @@ public class LaunchCompatibilityTest extends TestCase {
 
     // cannot run if the API level of device is < API level required by minSdk
     LaunchCompatibility compatibility =
-      LaunchCompatibility.canRunOnDevice(new AndroidVersion(8, null), projectTarget, requiredFeatures, createMockDevice(7, null), null);
+      LaunchCompatibility.canRunOnDevice(new AndroidVersion(8, null), projectTarget, requiredFeatures, createMockDevice(7, null));
     assertEquals(new LaunchCompatibility(ThreeState.NO, "minSdk(API 8) > deviceSdk(API 7)"), compatibility);
 
     // can run if the API level of device is >= API level required by minSdk
     compatibility =
-      LaunchCompatibility.canRunOnDevice(new AndroidVersion(8, null), projectTarget, requiredFeatures, createMockDevice(8, null), null);
+      LaunchCompatibility.canRunOnDevice(new AndroidVersion(8, null), projectTarget, requiredFeatures, createMockDevice(8, null));
     assertEquals(new LaunchCompatibility(ThreeState.YES, null), compatibility);
 
     // cannot run if minSdk uses a code name that is not matched by the device
     compatibility =
-      LaunchCompatibility.canRunOnDevice(new AndroidVersion(8, "P"), projectTarget, requiredFeatures, createMockDevice(9, null), null);
+      LaunchCompatibility.canRunOnDevice(new AndroidVersion(8, "P"), projectTarget, requiredFeatures, createMockDevice(9, null));
     assertEquals(new LaunchCompatibility(ThreeState.NO, "minSdk(API 8, P preview) != deviceSdk(API 9)"), compatibility);
   }
 
@@ -59,18 +59,18 @@ public class LaunchCompatibilityTest extends TestCase {
 
     // cannot run if the device doesn't have a required feature
     LaunchCompatibility compatibility =
-      LaunchCompatibility.canRunOnDevice(minSdkVersion, projectTarget, requiredFeatures, createMockDevice(8, null, false), null);
+      LaunchCompatibility.canRunOnDevice(minSdkVersion, projectTarget, requiredFeatures, createMockDevice(8, null, false));
     assertEquals(new LaunchCompatibility(ThreeState.NO, "missing feature: WATCH"), compatibility);
 
     // can run if the device has the required features
     compatibility =
-      LaunchCompatibility.canRunOnDevice(minSdkVersion, projectTarget, requiredFeatures, createMockDevice(8, null, true), null);
+      LaunchCompatibility.canRunOnDevice(minSdkVersion, projectTarget, requiredFeatures, createMockDevice(8, null, true));
     assertEquals(new LaunchCompatibility(ThreeState.YES, null), compatibility);
 
     // cannot run apk's that don't specify uses-feature watch on a wear device
     requiredFeatures = EnumSet.noneOf(IDevice.HardwareFeature.class);
     compatibility =
-      LaunchCompatibility.canRunOnDevice(minSdkVersion, projectTarget, requiredFeatures, createMockDevice(8, null, true), null);
+      LaunchCompatibility.canRunOnDevice(minSdkVersion, projectTarget, requiredFeatures, createMockDevice(8, null, true));
     assertEquals(new LaunchCompatibility(ThreeState.NO, "missing uses-feature watch, non-watch apks cannot be launched on a watch"),
                  compatibility);
   }
@@ -83,7 +83,7 @@ public class LaunchCompatibilityTest extends TestCase {
     final MockPlatformTarget baseTarget = new MockPlatformTarget(14, 0);
     MockAddonTarget projectTarget = new MockAddonTarget("google", baseTarget, 1);
     LaunchCompatibility compatibility =
-      LaunchCompatibility.canRunOnDevice(minSdkVersion, projectTarget, requiredFeatures, createMockDevice(8, null, false), null);
+      LaunchCompatibility.canRunOnDevice(minSdkVersion, projectTarget, requiredFeatures, createMockDevice(8, null, false));
     assertEquals(new LaunchCompatibility(ThreeState.YES, null), compatibility);
 
     IAndroidTarget.OptionalLibrary optionalLibrary = mock(IAndroidTarget.OptionalLibrary.class);
@@ -91,31 +91,14 @@ public class LaunchCompatibilityTest extends TestCase {
 
     // add-on targets with optional libraries should still be allowed to run on real devices (no avdinfo)
     compatibility =
-      LaunchCompatibility.canRunOnDevice(minSdkVersion, projectTarget, requiredFeatures, createMockDevice(8, null, false), null);
+      LaunchCompatibility.canRunOnDevice(minSdkVersion, projectTarget, requiredFeatures, createMockDevice(8, null, false));
     assertEquals(new LaunchCompatibility(ThreeState.UNSURE, "unsure if device supports addon: google"), compatibility);
 
     // Google APIs add on should be treated as a special case and should always be allowed to run on a real device
     MockAddonTarget googleApiTarget = new MockAddonTarget("Google APIs", baseTarget, 1);
     googleApiTarget.setOptionalLibraries(ImmutableList.of(optionalLibrary));
     compatibility =
-      LaunchCompatibility.canRunOnDevice(minSdkVersion, googleApiTarget, requiredFeatures, createMockDevice(8, null, false), null);
-    assertEquals(new LaunchCompatibility(ThreeState.YES, null), compatibility);
-
-    // should work if add-on target == avd target
-    compatibility =
-      LaunchCompatibility.canRunOnDevice(minSdkVersion, projectTarget, requiredFeatures, createMockDevice(8, null, false), projectTarget);
-    assertEquals(new LaunchCompatibility(ThreeState.YES, null), compatibility);
-
-    // should not work if add-on target != avd target
-    MockAddonTarget avdTarget = new MockAddonTarget("gapi", baseTarget, 1);
-    compatibility =
-      LaunchCompatibility.canRunOnDevice(minSdkVersion, projectTarget, requiredFeatures, createMockDevice(8, null, false), avdTarget);
-    assertEquals(new LaunchCompatibility(ThreeState.NO, "AVD target name (gapi) != Project target name (google)"), compatibility);
-
-    // should work as long as both vendor & names are the same
-    avdTarget = new MockAddonTarget("google", baseTarget, 1);
-    compatibility =
-      LaunchCompatibility.canRunOnDevice(minSdkVersion, projectTarget, requiredFeatures, createMockDevice(8, null, false), avdTarget);
+      LaunchCompatibility.canRunOnDevice(minSdkVersion, googleApiTarget, requiredFeatures, createMockDevice(8, null, false));
     assertEquals(new LaunchCompatibility(ThreeState.YES, null), compatibility);
   }
 
