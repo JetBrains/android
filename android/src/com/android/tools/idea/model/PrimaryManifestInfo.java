@@ -16,12 +16,13 @@
 package com.android.tools.idea.model;
 
 import com.android.ide.common.rendering.HardwareConfigHelper;
-import com.android.sdklib.SdkVersionInfo;
 import com.android.resources.ScreenSize;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
+import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.devices.Device;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
+import com.google.common.base.Strings;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -44,7 +45,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.android.SdkConstants.*;
+import static com.android.SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX;
+import static com.android.SdkConstants.VALUE_TRUE;
 import static com.android.xml.AndroidManifest.*;
 
 class PrimaryManifestInfo extends ManifestInfo {
@@ -63,9 +65,28 @@ class PrimaryManifestInfo extends ManifestInfo {
   private boolean myApplicationSupportsRtl;
   private Manifest myManifest;
   private Boolean myApplicationDebuggable;
+  private final ManifestPlaceholderResolver myAttributeResolver;
 
-  PrimaryManifestInfo(Module module) {
+  /**
+   * Constructs a new PrimaryManifestInfo
+   * @param module the module containing the manifest
+   * @param resolvePlaceholders even though this is not a merged manifest, when set to true, the manifest will compute the placeholders and
+   *                            replace them with their values. This only applies if the module is a gradle project.
+   */
+  PrimaryManifestInfo(@NotNull Module module, boolean resolvePlaceholders) {
     myModule = module;
+    myAttributeResolver = resolvePlaceholders ? new ManifestPlaceholderResolver(module) : null;
+  }
+
+  /**
+   * Returns the value of the given attribute. This method applies myAttributeResolver function to the returned value. This allows to
+   * do transformations on the return value like, for example, resolving the manifest placeholders.
+   */
+  @Nullable
+  @Override
+  protected String getAttributeValue(@NotNull XmlTag xmlTag, @NotNull String attributeName, @Nullable String attributeNamespace) {
+    String value = Strings.emptyToNull(xmlTag.getAttributeValue(attributeName, attributeNamespace));
+    return myAttributeResolver != null ? myAttributeResolver.resolve(value) : value;
   }
 
   @Override
@@ -259,18 +280,18 @@ class PrimaryManifestInfo extends ManifestInfo {
         return;
       }
 
-      myPackage = root.getAttributeValue(ATTRIBUTE_PACKAGE);
+      myPackage = getAttributeValue(root, ATTRIBUTE_PACKAGE, null);
 
       XmlTag[] applications = root.findSubTags(NODE_APPLICATION);
       if (applications.length > 0) {
         assert applications.length == 1;
         XmlTag application = applications[0];
-        myApplicationIcon = application.getAttributeValue(ATTRIBUTE_ICON, ANDROID_URI);
-        myApplicationLabel = application.getAttributeValue(ATTRIBUTE_LABEL, ANDROID_URI);
-        myManifestTheme = application.getAttributeValue(ATTRIBUTE_THEME, ANDROID_URI);
-        myApplicationSupportsRtl = VALUE_TRUE.equals(application.getAttributeValue(ATTRIBUTE_SUPPORTS_RTL, ANDROID_URI));
+        myApplicationIcon = getAttributeValue(application, ATTRIBUTE_ICON);
+        myApplicationLabel = getAttributeValue(application, ATTRIBUTE_LABEL);
+        myManifestTheme = getAttributeValue(application, ATTRIBUTE_THEME);
+        myApplicationSupportsRtl = VALUE_TRUE.equals(getAttributeValue(application, ATTRIBUTE_SUPPORTS_RTL));
 
-        String debuggable = application.getAttributeValue(ATTRIBUTE_DEBUGGABLE, ANDROID_URI);
+        String debuggable = getAttributeValue(application, ATTRIBUTE_DEBUGGABLE);
         myApplicationDebuggable = debuggable == null ? null : VALUE_TRUE.equals(debuggable);
 
         XmlTag[] activities = application.findSubTags(NODE_ACTIVITY);
@@ -298,8 +319,8 @@ class PrimaryManifestInfo extends ManifestInfo {
     }
   }
 
-  private static AndroidVersion getApiVersion(XmlTag usesSdk, String attribute, AndroidVersion defaultApiLevel) {
-    String valueString = usesSdk.getAttributeValue(attribute, ANDROID_URI);
+  private AndroidVersion getApiVersion(XmlTag usesSdk, String attribute, AndroidVersion defaultApiLevel) {
+    String valueString = getAttributeValue(usesSdk, attribute);
     if (valueString != null) {
       // TODO: Pass in platforms if we have them
       AndroidVersion version = SdkVersionInfo.getVersion(valueString, null);
