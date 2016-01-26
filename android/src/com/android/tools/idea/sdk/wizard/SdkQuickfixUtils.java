@@ -161,7 +161,6 @@ public final class SdkQuickfixUtils {
 
     if (!checkForProblems(project, parent, resolvedPackages, installRequests, skippedInstallRequests, sdkHandler)) {
       startSdkManagerAndExit(project, mgr.getLocalPath());
-      assert false; // At this point we've exited Android Studio!
     }
 
     if (installRequests.isEmpty()) {
