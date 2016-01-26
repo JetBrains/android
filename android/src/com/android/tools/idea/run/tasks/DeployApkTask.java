@@ -96,7 +96,9 @@ public class DeployApkTask implements LaunchTask {
         return false;
       }
 
-      cacheManifestInstallationData(device, myFacet, pkgName);
+      if (myInstantRunAware) {
+        cacheManifestInstallationData(device, myFacet, pkgName);
+      }
     }
 
     trackInstallation(device);
