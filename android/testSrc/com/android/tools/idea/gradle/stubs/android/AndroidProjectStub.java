@@ -250,6 +250,16 @@ public class AndroidProjectStub implements AndroidProject {
     return null;
   }
 
+  @Override
+  public String getBuildToolsVersion() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public int getPluginGeneration() {
+    throw new UnsupportedOperationException();
+  }
+
   /**
    * Deletes this project's directory structure.
    */
