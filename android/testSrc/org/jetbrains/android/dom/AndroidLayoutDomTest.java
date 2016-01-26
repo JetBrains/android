@@ -124,7 +124,7 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
 
   // ListView has some specific autocompletion attributes, like "listfooter", they should be autocompleted as well
   public void testToolsListViewAttributes() throws Throwable {
-    doTestCompletionVariants("tools_listview_attrs.xml", "tools:targetApi", "tools:listfooter", "tools:listheader", "tools:listitem");
+    doTestCompletionVariantsContains("tools_listview_attrs.xml", "tools:targetApi", "tools:listfooter", "tools:listheader", "tools:listitem");
   }
 
   // tools:targetApi values are autocompleted
@@ -140,6 +140,17 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
   // "apple_pie" is not a valid tools:targetApi value as well
   public void testTargetApiErrorMessage2() throws Throwable {
     doTestHighlighting("tools_targetapi_error2.xml");
+  }
+
+  // Designtime attributes completion is showing completion variants
+  public void testDesigntimeAttributesCompletion() throws Throwable {
+    doTestCompletionVariants("tools_designtime_completion.xml", "src", "nextFocusRight");
+  }
+
+  // Designtime attributes completion is completing attribute names correctly
+  public void testDesigntimeAttributesCompletion2() throws Throwable {
+    toTestFirstCompletion("tools_designtime_completion_background.xml",
+                          "tools_designtime_completion_background_after.xml");
   }
 
   // fontFamily attribute values are autocompleted

@@ -79,7 +79,7 @@ public class AndroidAnimationDomTest extends AndroidDomTest {
   // Completion inside <set> tag used to provide all the possible root tags for anim/
   // resources files and more. This is a regression test that only available tags are completed
   public void testTagCompletionInsideSet() throws Throwable {
-    doTestCompletionVarinatsContains("completion_inside_set.xml", "set", "alpha", "rotate", "translate", "scale");
+    doTestCompletionVariantsContains("completion_inside_set.xml", "set", "alpha", "rotate", "translate", "scale");
   }
 
   public void testChildren() throws Throwable {
