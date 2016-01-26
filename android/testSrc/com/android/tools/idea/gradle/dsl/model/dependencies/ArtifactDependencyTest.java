@@ -24,6 +24,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
 import java.util.List;
 
+import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.CLASSPATH;
 import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.COMPILE;
 import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.RUNTIME;
 import static org.fest.assertions.Assertions.assertThat;
@@ -436,6 +437,25 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
     expected = new ExpectedArtifactDependency(RUNTIME, "appcompat-v7", "com.android.support", "22.1.1");
     expected.assertMatches(dependencies.get(1));
+  }
+
+  public void testContains() throws IOException {
+    String text = "dependencies {\n" +
+                  "    compile group: 'com.google.code.guice', name: 'guice', version: '1.0'\n" +
+                  "    compile group: 'com.google.guava', name: 'guava', version: '18.0'\n" +
+                  "    compile group: 'com.android.support', name: 'appcompat-v7', version: '22.1.1'\n" +
+                  "}";
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    DependenciesModel dependenciesModel = buildModel.dependencies();
+
+    ArtifactDependencySpec guavaSpec = new ArtifactDependencySpec("guava", "com.google.guava", "18.0");
+    ArtifactDependencySpec guiceSpec = new ArtifactDependencySpec("guice", "com.google.code.guice", "2.0");
+
+    assertTrue(dependenciesModel.containsArtifact(COMPILE, guavaSpec));
+    assertFalse(dependenciesModel.containsArtifact(COMPILE, guiceSpec));
+    assertFalse(dependenciesModel.containsArtifact(CLASSPATH, guavaSpec));
   }
 
   public static class ExpectedArtifactDependency extends ArtifactDependencySpec {
