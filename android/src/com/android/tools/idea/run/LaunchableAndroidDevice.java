@@ -19,6 +19,7 @@ import com.android.annotations.concurrency.GuardedBy;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
+import com.android.sdklib.devices.Abi;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.HardwareProperties;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
@@ -31,6 +32,9 @@ import com.intellij.ui.SimpleTextAttributes;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Collections;
+import java.util.List;
 
 public class LaunchableAndroidDevice implements AndroidDevice {
   private final AvdInfo myAvdInfo;
@@ -73,6 +77,13 @@ public class LaunchableAndroidDevice implements AndroidDevice {
     } catch (NumberFormatException e) {
       return -1;
     }
+  }
+
+  @NotNull
+  @Override
+  public List<Abi> getAbis() {
+    Abi abi = Abi.getEnum(myAvdInfo.getAbiType());
+    return abi == null ? Collections.<Abi>emptyList() : Collections.singletonList(abi);
   }
 
   @NotNull
