@@ -18,7 +18,6 @@ package com.android.tools.idea.run;
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Abi;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.HardwareProperties;
@@ -61,8 +60,7 @@ public class LaunchableAndroidDevice implements AndroidDevice {
   @NotNull
   @Override
   public AndroidVersion getVersion() {
-    IAndroidTarget target = myAvdInfo.getTarget();
-    return target == null ? AndroidVersion.DEFAULT : target.getVersion();
+    return myAvdInfo.getAndroidVersion();
   }
 
   @Override
@@ -138,6 +136,12 @@ public class LaunchableAndroidDevice implements AndroidDevice {
 
       return myLaunchedEmulator;
     }
+  }
+
+  @Nullable
+  @Override
+  public String getError() {
+    return myAvdInfo.getErrorMessage();
   }
 
   public AvdInfo getAvdInfo() {

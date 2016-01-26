@@ -178,7 +178,7 @@ public class EmulatorTargetConfigurable implements DeployTargetConfigurable<Emul
       }
 
       final AvdInfo avd = avdManager.getAvd(selectedAvdName, false);
-      if (avd == null || avd.getTarget() == null) {
+      if (avd == null || avd.getSystemImage() == null) {
         return null;
       }
 
@@ -188,7 +188,7 @@ public class EmulatorTargetConfigurable implements DeployTargetConfigurable<Emul
       }
 
       AndroidVersion minSdk = AndroidModuleInfo.get(facet).getRuntimeMinSdkVersion();
-      LaunchCompatibility compatibility = LaunchCompatibility.canRunOnAvd(minSdk, platform.getTarget(), avd.getTarget());
+      LaunchCompatibility compatibility = LaunchCompatibility.canRunOnAvd(minSdk, platform.getTarget(), avd.getSystemImage());
       if (compatibility.isCompatible() == ThreeState.NO) {
         // todo: provide info about current module configuration
         return String.format("'%1$s' may be incompatible with your configuration (%2$s)", selectedAvdName,
