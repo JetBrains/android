@@ -68,7 +68,7 @@ public class SplitApkDeployTask implements LaunchTask {
 
     List<File> apks = Lists.newArrayListWithExpectedSize(artifacts.size());
     for (InstantRunArtifact artifact : artifacts) {
-      if (artifact.type == InstantRunArtifactType.MAIN || artifact.type == InstantRunArtifactType.SPLIT) {
+      if (artifact.type == InstantRunArtifactType.SPLIT_MAIN || artifact.type == InstantRunArtifactType.SPLIT) {
         apks.add(artifact.file);
       }
     }
