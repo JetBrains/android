@@ -151,7 +151,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
           return null;
         }
 
-        if (buildInfo.hasOneOf(SPLIT) || buildInfo.getApiLevel() >= 23 && buildInfo.hasOneOf(MAIN)) {
+        if (buildInfo.hasOneOf(SPLIT) || buildInfo.hasOneOf(SPLIT_MAIN)) {
           InstantRunManager.LOG.info("Using split APK deploy task");
           return new SplitApkDeployTask(pkgName, myFacet, buildInfo);
         }
