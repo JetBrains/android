@@ -26,62 +26,34 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import java.awt.*;
 
 /**
  * Panel for Developer Services on-boarding materials (e.g. introductions, tutorials, etc.)
+ *
+ * TODO: Refactor package to reflect current use, something like
+ * "AssistantSidePanel" may be appropriate.
  */
-public final class DeveloperServicesSidePanel extends JTabbedPane {
+public final class DeveloperServicesSidePanel extends JPanel {
 
-  private ServicesBundleTab myHomeTab;
-  private TutorialTab myTutorialTab;
+  public DeveloperServicesSidePanel(@NotNull String actionId) {
+    Component customPanel = null;
 
-  private Project myProject;
-  private String myActionId;
-  private String myBundleName;
-  private DeveloperServiceCreators myCreators;
-
-  public DeveloperServicesSidePanel(@NotNull Project project, @NotNull String actionId) {
-    myProject = project;
-    myActionId = actionId;
-    myHomeTab = new ServicesBundleTab();
-
-    Module androidModule = null;
-    for (Module m : ModuleManager.getInstance(myProject).getModules()) {
-      if (AndroidFacet.getInstance(m) != null) {
-        androidModule = m;
-        break;
-      }
-    }
+    // TODO: Move layout to a form.
+    setLayout(new BorderLayout());
+    setBorder(BorderFactory.createEmptyBorder());
+    setOpaque(false);
 
     for (DeveloperServiceCreators creators : DeveloperServiceCreators.EP_NAME.getExtensions()) {
-      if (creators.getBundleId().equals(myActionId)) {
-        myCreators = creators;
-        myBundleName = myCreators.getBundleName();
+      if (creators.getBundleId().equals(actionId)) {
+        customPanel = creators.getPanel();
         break;
       }
     }
 
-    if (androidModule != null) {
-      for (DeveloperServiceCreator creator : myCreators.getCreators()) {
-        DeveloperService s = creator.createService(androidModule);
-        DeveloperServiceHelperPanel helperPanel = new DeveloperServiceHelperPanel(s);
-        myHomeTab.addHelperPanel(helperPanel);
-      }
-    } else {
-      // TODO:  Think of something more clever in this scenario.
-      getLog().warn("DeveloperServicesSidePanel will be blank" +
-                    " - no Android module is associated with the current project context.");
+    if (customPanel == null) {
+      throw new RuntimeException("Unable to find configuration for the selected action: " + actionId);
     }
-
-    // TODO:  Extract name of tab from bundle.xml
-    addTab(myBundleName, myHomeTab);
-
-    // Add dummy tutorial content.
-    myTutorialTab = new TutorialTab(myCreators.getBundleContentRoot());
-    addTab("Tutorials", myTutorialTab);
-  }
-
-  private static Logger getLog(){
-    return Logger.getInstance(DeveloperServicesSidePanel.class);
+    add(customPanel);
   }
 }
