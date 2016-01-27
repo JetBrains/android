@@ -258,21 +258,18 @@ public abstract class GuiTestCase {
   @NotNull
   protected IdeFrameFixture importProjectAndWaitForProjectSyncToFinish(@NotNull String projectDirName, @Nullable String gradleVersion)
     throws IOException {
-    File projectPath = setUpProject(projectDirName, gradleVersion);
-    VirtualFile toSelect = findFileByIoFile(projectPath, false);
-    assertNotNull(toSelect);
-
-    doImportProject(toSelect);
-
-    IdeFrameFixture projectFrame = findIdeFrame(projectPath);
-    projectFrame.waitForGradleProjectSyncToFinish();
-
-    return projectFrame;
+    File projectPath = importProject(projectDirName, gradleVersion);
+    return findIdeFrame(projectPath).waitForGradleProjectSyncToFinish();
   }
 
   @NotNull
   protected File importProject(@NotNull String projectDirName) throws IOException {
-    File projectPath = setUpProject(projectDirName, null);
+    return importProject(projectDirName, null);
+  }
+
+  @NotNull
+  private File importProject(@NotNull String projectDirName, String gradleVersion) throws IOException {
+    File projectPath = setUpProject(projectDirName, gradleVersion);
     VirtualFile toSelect = findFileByIoFile(projectPath, false);
     assertNotNull(toSelect);
     doImportProject(toSelect);
