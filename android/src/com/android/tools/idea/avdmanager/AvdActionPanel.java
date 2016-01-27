@@ -75,7 +75,7 @@ public class AvdActionPanel extends JPanel implements AvdUiAction.AvdInfoProvide
     boolean errorState = false;
     if (avdInfo.getStatus() != AvdInfo.AvdStatus.OK) {
       AvdUiAction action = null;
-      if (InstallSystemImageAction.isSystemImageDownloadProblem(avdInfo.getStatus())) {
+      if (AvdManagerConnection.isSystemImageDownloadProblem(avdInfo.getStatus())) {
         action = new InstallSystemImageAction(this);
       }
       else if (AvdManagerConnection.isAvdRepairable(avdInfo.getStatus())) {

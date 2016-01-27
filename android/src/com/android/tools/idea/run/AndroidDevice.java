@@ -17,6 +17,7 @@ package com.android.tools.idea.run;
 
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
+import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Abi;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.project.Project;
@@ -24,6 +25,7 @@ import com.intellij.ui.SimpleColoredComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.EnumSet;
 import java.util.List;
 
 /**
@@ -73,9 +75,9 @@ public interface AndroidDevice {
   @NotNull
   ListenableFuture<IDevice> getLaunchedDevice();
 
-  /**
-   * Returns an error string specific to the underlying implementation, or null if there is none.
-   */
-  @Nullable
-  String getError();
+  /** Check if this device can run an application with given requirements. */
+  @NotNull
+  LaunchCompatibility canRun(@NotNull AndroidVersion minSdkVersion,
+                             @NotNull IAndroidTarget projectTarget,
+                             @NotNull EnumSet<IDevice.HardwareFeature> requiredFeatures);
 }
