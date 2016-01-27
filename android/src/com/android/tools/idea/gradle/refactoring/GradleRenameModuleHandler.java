@@ -34,8 +34,10 @@ import com.intellij.openapi.command.undo.BasicUndoableAction;
 import com.intellij.openapi.command.undo.UndoManager;
 import com.intellij.openapi.command.undo.UnexpectedUndoException;
 import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.module.ModifiableModuleModel;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.module.ModuleWithNameAlreadyExists;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.InputValidator;
 import com.intellij.openapi.ui.Messages;
@@ -176,6 +178,18 @@ public class GradleRenameModuleHandler implements RenameHandler, TitledHandler {
               return;
             }
 
+            // Rename module
+            ModifiableModuleModel modifiableModel = ModuleManager.getInstance(project).getModifiableModel();
+            try {
+              modifiableModel.renameModule(myModule, inputString);
+            }
+            catch (ModuleWithNameAlreadyExists moduleWithNameAlreadyExists) {
+              Messages.showErrorDialog(project, IdeBundle.message("error.module.already.exists", inputString),
+                                       IdeBundle.message("title.rename.module"));
+              reset(modifiedBuildModels);
+              return;
+            }
+
             settingsModel.replaceModulePath(oldModuleGradlePath, getNewPath(oldModuleGradlePath, inputString));
             // Rename the directory
             try {
@@ -187,6 +201,8 @@ public class GradleRenameModuleHandler implements RenameHandler, TitledHandler {
               reset(modifiedBuildModels);
               return;
             }
+
+            modifiableModel.commit();
 
             // Rename all references in build.gradle
             for (GradleBuildModel buildModel : modifiedBuildModels) {
