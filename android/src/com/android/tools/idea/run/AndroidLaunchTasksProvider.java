@@ -25,6 +25,8 @@ import com.android.tools.idea.run.util.LaunchStatus;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.execution.runners.ExecutionEnvironment;
+import com.intellij.execution.runners.ExecutionUtil;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -99,7 +101,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
   }
 
   @Nullable
-  private LaunchTask getDeployTask(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter consolePrinter) {
+  private LaunchTask getDeployTask(@NotNull final IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter consolePrinter) {
     if (!myLaunchOptions.isDeploy()) {
       return null;
     }
@@ -131,9 +133,21 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
           // artifact changes, since otherwise the next build will mismatch
           InstantRunManager.transferLocalIdToDeviceId(device, myFacet.getModule());
           DeployApkTask.cacheManifestInstallationData(device, myFacet, pkgName);
-          consolePrinter.stdout("No local changes, not deploying APK");
-          InstantRunManager.LOG.info("List of artifacts is empty, no deployment necessary.");
-          new InstantRunUserFeedback(myFacet.getModule()).info("No changes to deploy");
+          if (buildInfo.canHotswap() || buildInfo.getVerifierStatus().isEmpty()) { // empty verifier: clean build
+            consolePrinter.stdout("No local changes, not deploying APK");
+            InstantRunManager.LOG.info("List of artifacts is empty, no deployment necessary.");
+            new InstantRunUserFeedback(myFacet.getModule()).info("No changes to deploy");
+          } else {
+            // There was a verifier failure, but no artifacts: this means
+            // we need to kick off a full build (coldswap not available)
+            ApplicationManager.getApplication().invokeLater(new Runnable() {
+              @Override
+              public void run() {
+                InstantRunUtils.setRestartSession(myEnv, device);
+                ExecutionUtil.restart(myEnv);
+              }
+            });
+          }
           return null;
         }
 
