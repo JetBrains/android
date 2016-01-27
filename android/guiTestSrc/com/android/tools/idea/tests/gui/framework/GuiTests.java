@@ -27,6 +27,7 @@ import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.ProjectManagerAdapter;
+import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.IdeFrame;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
@@ -177,6 +178,20 @@ public final class GuiTests {
       }
     });
 
+  }
+
+  public static void refreshFiles() {
+    execute(new GuiTask() {
+      @Override
+      protected void executeInEDT() throws Throwable {
+        ApplicationManager.getApplication().runWriteAction(new Runnable() {
+          @Override
+          public void run() {
+            LocalFileSystem.getInstance().refresh(false /* synchronous */);
+          }
+        });
+      }
+    });
   }
 
   @Nullable
