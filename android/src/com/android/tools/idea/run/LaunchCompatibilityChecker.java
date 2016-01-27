@@ -36,6 +36,6 @@ public class LaunchCompatibilityChecker {
   }
 
   public LaunchCompatibility validate(@NotNull AndroidDevice device) {
-    return LaunchCompatibility.canRunOnDevice(myMinSdkVersion, myProjectTarget, myRequiredHardwareFeatures, device);
+    return device.canRun(myMinSdkVersion, myProjectTarget, myRequiredHardwareFeatures);
   }
 }

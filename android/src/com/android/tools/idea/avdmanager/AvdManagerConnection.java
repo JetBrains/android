@@ -22,6 +22,7 @@ import com.android.prefs.AndroidLocation;
 import com.android.repository.Revision;
 import com.android.repository.api.LocalPackage;
 import com.android.repository.api.ProgressIndicator;
+import com.android.repository.api.RepoPackage;
 import com.android.repository.io.FileOp;
 import com.android.repository.io.FileOpUtils;
 import com.android.resources.ScreenOrientation;
@@ -60,6 +61,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.containers.WeakHashMap;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
@@ -638,11 +640,34 @@ public class AvdManagerConnection {
     return myAvdManager.getAvd(candidate, false) != null;
   }
 
-  static boolean isAvdRepairable(AvdInfo.AvdStatus avdStatus) {
+  static boolean isAvdRepairable(@NotNull AvdInfo.AvdStatus avdStatus) {
     return avdStatus == AvdInfo.AvdStatus.ERROR_IMAGE_DIR
            || avdStatus == AvdInfo.AvdStatus.ERROR_DEVICE_CHANGED
            || avdStatus == AvdInfo.AvdStatus.ERROR_DEVICE_MISSING
            || avdStatus == AvdInfo.AvdStatus.ERROR_IMAGE_MISSING;
+  }
+
+  public static boolean isSystemImageDownloadProblem(@NotNull AvdInfo.AvdStatus status) {
+    switch (status) {
+      case ERROR_IMAGE_DIR:
+      case ERROR_IMAGE_MISSING:
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  public AvdInfo reloadAvd(@NotNull AvdInfo avdInfo) throws AndroidLocation.AndroidLocationException {
+    return myAvdManager.reloadAvd(avdInfo, SDK_LOG);
+  }
+
+  @Nullable
+  public static String getRequiredSystemImagePath(@NotNull AvdInfo avdInfo) {
+    String imageSystemDir = avdInfo.getProperties().get(AvdManager.AVD_INI_IMAGES_1);
+    if (imageSystemDir == null) {
+      return null;
+    }
+    return StringUtil.trimEnd(imageSystemDir.replace(File.separatorChar, RepoPackage.PATH_SEPARATOR), RepoPackage.PATH_SEPARATOR);
   }
 
   public boolean updateDeviceChanged(@NotNull AvdInfo avdInfo) {
