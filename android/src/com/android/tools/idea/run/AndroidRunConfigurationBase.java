@@ -17,10 +17,7 @@
 package com.android.tools.idea.run;
 
 import com.android.ddmlib.IDevice;
-import com.android.tools.idea.fd.InstantRunManager;
-import com.android.tools.idea.fd.InstantRunSettings;
-import com.android.tools.idea.fd.InstantRunUserFeedback;
-import com.android.tools.idea.fd.InstantRunUtils;
+import com.android.tools.idea.fd.*;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.android.tools.idea.run.editor.*;
@@ -48,6 +45,7 @@ import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.*;
 import icons.AndroidIcons;
+import org.intellij.lang.annotations.Language;
 import org.jdom.Element;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
@@ -454,14 +452,36 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     // a no-op) because we need to check whether the manifest file has been edited since an
     // edited manifest changes what the incremental run build has to do.
     GradleInvoker.saveAllFilesSafely();
-    boolean needsFullBuild = InstantRunManager.needsFullBuild(device, module);
+    boolean alreadyNeedFullBuild = InstantRunUtils.needsFullBuild(env);
+    boolean needsFullBuild = alreadyNeedFullBuild || InstantRunManager.needsFullBuild(device, module);
     InstantRunUtils.setNeedsFullBuild(env, needsFullBuild);
     if (needsFullBuild &&
         InstantRunManager.hasLocalCacheOfDeviceData(Iterables.getOnlyElement(devices), module)) { // don't show this if we decided to build because we don't have a local cache
-      InstantRunManager.LOG.info("Cannot patch update since a full build is required (typically because the manifest has changed)");
-      new InstantRunUserFeedback(module).postText(
-        "Performing full build & install: manifest changed\n(or resource referenced from manifest changed)"
-      );
+      InstantRunManager.LOG.info("Cannot patch update since a full build is required (typically because the manifest has changed or deploying to device with API < 21)");
+      if (alreadyNeedFullBuild && device.getVersion().getApiLevel() < 21) {
+        @Language("HTML") String message = "Performing full build &amp; install: can't push patches to device with API level &lt; 21";
+
+        // Also look up the verifier failure and include it here; without this; the verifier failure
+        // is displayed, but is quickly hidden as we realize we can't coldswap, and the below
+        // full build message is shown instead.
+        AndroidFacet facet = AndroidFacet.getInstance(module);
+        if (facet != null) {
+          AndroidGradleModel model = AndroidGradleModel.get(facet);
+          if (model != null) {
+            InstantRunBuildInfo buildInfo = InstantRunBuildInfo.get(model);
+            if (buildInfo != null) {
+              @Language("HTML") String verifierFailure = InstantRunManager.getVerifierMessage(buildInfo);
+              if (verifierFailure != null) {
+                message = verifierFailure + "<br/>" + message;
+              }
+            }
+          }
+        }
+        new InstantRunUserFeedback(module).postText(message);
+      } else {
+        new InstantRunUserFeedback(module).postText(
+          "Performing full build & install: manifest changed\n(or resource referenced from manifest changed)");
+      }
     }
   }
 
