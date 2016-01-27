@@ -21,7 +21,9 @@ import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.FileFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.InspectionsFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.LayoutEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.RenderErrorPanelFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.ConfigureAndroidProjectStepFixture;
@@ -253,9 +255,9 @@ public class NewProjectTest extends GuiTestCase {
      * Creates a project fixture for this description
      */
     void create() {
-      findWelcomeFrame().createNewProject();
+      WelcomeFrameFixture.find(myRobot).createNewProject();
 
-      NewProjectWizardFixture newProjectWizard = findNewProjectWizard();
+      NewProjectWizardFixture newProjectWizard = NewProjectWizardFixture.find(myRobot);
 
       ConfigureAndroidProjectStepFixture configureAndroidProjectStep = newProjectWizard.getConfigureAndroidProjectStep();
       configureAndroidProjectStep.enterApplicationName(myName).enterCompanyDomain(myDomain).enterPackageName(myPkg);
@@ -271,7 +273,7 @@ public class NewProjectTest extends GuiTestCase {
       newProjectWizard.getChooseOptionsForNewFileStep().enterActivityName(myActivity);
       newProjectWizard.clickFinish();
 
-      myProjectFrame = findIdeFrame(myName, projectPath);
+      myProjectFrame = IdeFrameFixture.find(myRobot, projectPath, myName);
       if (myWaitForSync) {
         myProjectFrame.waitForGradleProjectSyncToFinish();
       }

@@ -177,21 +177,6 @@ public abstract class GuiTestCase {
     }
   }
 
-  @NotNull
-  protected WelcomeFrameFixture findWelcomeFrame() {
-    return WelcomeFrameFixture.find(myRobot);
-  }
-
-  @NotNull
-  protected NewProjectWizardFixture findNewProjectWizard() {
-    return NewProjectWizardFixture.find(myRobot);
-  }
-
-  @NotNull
-  protected IdeFrameFixture findIdeFrame(@NotNull String projectName, @NotNull File projectPath) {
-    return IdeFrameFixture.find(myRobot, projectPath, projectName);
-  }
-
   private static void closeAllProjects() {
     pause(new Condition("Close all projects") {
       @Override
