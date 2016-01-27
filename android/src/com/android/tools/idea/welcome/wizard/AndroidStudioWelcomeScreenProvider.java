@@ -82,7 +82,7 @@ public final class AndroidStudioWelcomeScreenProvider implements WelcomeScreenPr
   private static boolean isHandoff(AndroidFirstRunPersistentData persistentData) {
     if (InstallerData.exists()) {
       if (!persistentData.isSdkUpToDate() || !persistentData.isSameTimestamp(InstallerData.get().getTimestamp())) {
-        return true;
+        return InstallerData.get().isCurrentVersion();
       }
     }
     return false;
