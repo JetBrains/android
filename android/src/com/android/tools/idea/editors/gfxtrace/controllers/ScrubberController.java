@@ -15,9 +15,8 @@
  */
 package com.android.tools.idea.editors.gfxtrace.controllers;
 
-import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
-import com.android.tools.idea.editors.gfxtrace.UiCallback;
+import com.android.tools.idea.editors.gfxtrace.models.AtomStream;
 import com.android.tools.idea.editors.gfxtrace.service.RenderSettings;
 import com.android.tools.idea.editors.gfxtrace.service.ServiceClient;
 import com.android.tools.idea.editors.gfxtrace.service.WireframeMode;
@@ -29,6 +28,7 @@ import com.android.tools.idea.editors.gfxtrace.widgets.CellList;
 import com.android.tools.idea.editors.gfxtrace.widgets.ImageCellList;
 import com.android.tools.rpclib.rpccore.Rpc;
 import com.android.tools.rpclib.rpccore.RpcException;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
@@ -40,7 +40,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
-public class ScrubberController extends ImageCellController<ScrubberController.Data> {
+public class ScrubberController extends ImageCellController<ScrubberController.Data> implements AtomStream.Listener {
   private static final Dimension PREVIEW_SIZE = JBUI.size(192, 192);
 
   public static JComponent createUI(GfxTraceEditor editor) {
@@ -60,11 +60,12 @@ public class ScrubberController extends ImageCellController<ScrubberController.D
 
   @NotNull private static final Logger LOG = Logger.getInstance(ScrubberController.class);
   @NotNull private final PathStore<DevicePath> myRenderDevice = new PathStore<DevicePath>();
-  @NotNull private final PathStore<AtomsPath> myAtomsPath = new PathStore<AtomsPath>();
   @NotNull private final RenderSettings myRenderSettings = new RenderSettings();
 
   private ScrubberController(@NotNull final GfxTraceEditor editor) {
     super(editor);
+    myEditor.getAtomStream().addListener(this);
+
     usingListWidget(CellList.Orientation.HORIZONTAL, GfxTraceEditor.LOADING_CAPTURE, PREVIEW_SIZE);
     myRenderSettings.setMaxWidth(PREVIEW_SIZE.width);
     myRenderSettings.setMaxHeight(PREVIEW_SIZE.height);
@@ -90,11 +91,7 @@ public class ScrubberController extends ImageCellController<ScrubberController.D
 
   @Override
   public void selected(@NotNull Data cell) {
-    if (myAtomsPath.getPath() == null) {
-      return;
-    }
-    AtomPath atomPath = myAtomsPath.getPath().index(cell.range.getLast());
-    myEditor.activatePath(atomPath, this);
+    myEditor.getAtomStream().selectAtom(cell.range.getLast(), this);
   }
 
 
@@ -117,41 +114,35 @@ public class ScrubberController extends ImageCellController<ScrubberController.D
     return generatedList;
   }
 
-  private void selectFrame(AtomPath atomPath) {
-    if (atomPath == null) {
-      return;
-    }
-
-    int index = 0;
-    for (Data data : myList.items()) {
-      if (data.range.contains(atomPath.getIndex())) {
-        myList.selectItem(index, false);
-        break;
-      }
-      index++;
+  @Override
+  public void notifyPath(PathEvent event) {
+    if (myRenderDevice.updateIfNotNull(event.findDevicePath())) {
+      // Update the list as though the atoms just loaded to update the thumbnails.
+      onAtomLoadingComplete(myEditor.getAtomStream());
     }
   }
 
   @Override
-  public void notifyPath(PathEvent event) {
-    boolean updateIcons = myRenderDevice.updateIfNotNull(event.findDevicePath());
-    updateIcons = myAtomsPath.updateIfNotNull(CapturePath.atoms(event.findCapturePath())) | updateIcons;
+  public void onAtomLoadingStart(AtomStream atoms) {
+  }
 
-    selectFrame(event.findAtomPath());
+  @Override
+  public void onAtomLoadingComplete(AtomStream atoms) {
+    if (atoms.isLoaded()) {
+      final List<Data> cells = prepareData(atoms.getPath(), atoms.getAtoms());
+      myList.setData(cells);
+    }
+  }
 
-    final AtomsPath atomsPath = myAtomsPath.getPath();
-    if (updateIcons && atomsPath != null) {
-      Rpc.listen(myEditor.getClient().get(atomsPath), LOG, new UiCallback<AtomList, List<Data>>() {
-        @Override
-        protected List<Data> onRpcThread(Rpc.Result<AtomList> result) throws RpcException, ExecutionException {
-          return prepareData(atomsPath, result.get());
-        }
-
-        @Override
-        protected void onUiThread(List<Data> result) {
-          myList.setData(result);
-        }
-      });
+  @Override
+  public void onAtomSelected(AtomPath path) {
+    int index = 0;
+    for (Data data : myList.items()) {
+      if (data.range.contains(path.getIndex())) {
+        myList.selectItem(index, false);
+        break;
+      }
+      index++;
     }
   }
 }
