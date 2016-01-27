@@ -16,20 +16,23 @@
 package com.android.tools.idea.run.editor;
 
 import com.android.ddmlib.AndroidDebugBridge;
-import com.android.ddmlib.IDevice;
+import com.android.prefs.AndroidLocation;
+import com.android.sdklib.internal.avd.AvdInfo;
+import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.ddms.adb.AdbService;
-import com.android.tools.idea.run.AndroidDevice;
-import com.android.tools.idea.run.DeviceCount;
-import com.android.tools.idea.run.DeviceFutures;
-import com.android.tools.idea.run.ValidationError;
-import com.google.common.collect.Lists;
+import com.android.tools.idea.run.*;
+import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
+import com.android.tools.idea.wizard.model.ModelWizardDialog;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.ui.DoubleClickListener;
 import com.intellij.ui.components.JBLoadingPanel;
@@ -49,6 +52,7 @@ import java.io.File;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class DeployTargetPickerDialog extends DialogWrapper {
   private static final int DEVICE_TAB_INDEX = 0;
@@ -204,13 +208,88 @@ public class DeployTargetPickerDialog extends DialogWrapper {
     int selectedIndex = myTabbedPane.getSelectedIndex();
     if (selectedIndex == DEVICE_TAB_INDEX) {
       mySelectedDevices = myDevicePicker.getSelectedDevices();
-      myDeployTarget = new RealizedDeployTarget(null, null, launchDevices(mySelectedDevices));
+      if (canLaunchDevices(mySelectedDevices)) {
+        myDeployTarget = new RealizedDeployTarget(null, null, launchDevices(mySelectedDevices));
+      }
+      else {
+        myDeployTarget = null;
+        return;
+      }
     } else if (selectedIndex == CUSTOM_RUNPROFILE_PROVIDER_TARGET_INDEX) {
       mySelectedDevices = Collections.emptyList();
       myDeployTarget = new RealizedDeployTarget(myDeployTargetProvider, myDeployTargetState, null);
     }
 
     super.doOKAction();
+  }
+
+  /**
+   * Check the AVDs for missing system images and offer to download them.
+   * @return true if the devices are able to launch, false if the user cancelled.
+   */
+  private boolean canLaunchDevices(@NotNull List<AndroidDevice> devices) {
+    Set<String> requiredPackages = Sets.newHashSet();
+    for (AndroidDevice device : devices) {
+      if (device instanceof LaunchableAndroidDevice) {
+        LaunchableAndroidDevice avd = (LaunchableAndroidDevice) device;
+        AvdInfo info = avd.getAvdInfo();
+        if (AvdManagerConnection.isSystemImageDownloadProblem(info.getStatus())) {
+          requiredPackages.add(AvdManagerConnection.getRequiredSystemImagePath(info));
+        }
+      }
+    }
+    if (requiredPackages.isEmpty()) {
+      return true;
+    }
+
+    String title;
+    StringBuilder message = new StringBuilder();
+    if (requiredPackages.size() == 1) {
+      title = "Download System Image";
+      message.append("The system image: ").append(Iterables.getOnlyElement(requiredPackages)).append(" is missing.\n\n");
+      message.append("Download it now?");
+    }
+    else {
+      title = "Download System Images";
+      message.append("The following system images are missing:\n");
+      for (String packageName : requiredPackages) {
+        message.append(packageName).append("\n");
+      }
+      message.append("\nDownload them now?");
+    }
+    int response = Messages.showOkCancelDialog(message.toString(), title, Messages.getQuestionIcon());
+    if (response != Messages.OK) {
+      return false;
+    }
+    ModelWizardDialog sdkQuickfixWizard = SdkQuickfixUtils.createDialogForPaths(myFacet.getModule().getProject(), requiredPackages);
+    if (sdkQuickfixWizard == null) {
+      return false;
+    }
+    sdkQuickfixWizard.show();
+    myDevicePicker.refreshAvds(null);
+    if (!sdkQuickfixWizard.isOK()) {
+      return false;
+    }
+    AvdManagerConnection manager = AvdManagerConnection.getDefaultAvdManagerConnection();
+    for (AndroidDevice device : devices) {
+      if (device instanceof LaunchableAndroidDevice) {
+        LaunchableAndroidDevice avd = (LaunchableAndroidDevice)device;
+        AvdInfo info = avd.getAvdInfo();
+        String problem;
+        try {
+          AvdInfo reloadedAvdInfo = manager.reloadAvd(info);
+          problem = reloadedAvdInfo.getErrorMessage();
+        }
+        catch (AndroidLocation.AndroidLocationException e) {
+          problem = "AVD cannot be loaded";
+        }
+        if (problem != null) {
+          Messages.showErrorDialog(myFacet.getModule().getProject(), problem, "Emulator Launch Failed");
+          return false;
+        }
+      }
+    }
+    return true;
   }
 
   @NotNull
@@ -229,7 +308,7 @@ public class DeployTargetPickerDialog extends DialogWrapper {
     return new DeviceFutures(devices);
   }
 
-  @NotNull
+  @Nullable
   public DeployTarget getSelectedDeployTarget() {
     return myDeployTarget;
   }

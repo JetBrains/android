@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.run;
 
-import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.editor.DevicePicker;
 import com.intellij.ui.*;
 import com.intellij.util.ThreeState;
@@ -64,10 +63,8 @@ public class AndroidDeviceRenderer extends ColoredListCellRenderer<DevicePickerE
     }
     device.renderName(this, compatible, mySpeedSearch.getEnteredPrefix());
 
-    if (!compatible) {
-      if (device.getVersion() != AndroidVersion.DEFAULT) { // only show compatibility reasoning if we were able to get the version
-        append(" (" + launchCompatibility.getReason() + ")", SimpleTextAttributes.GRAYED_ITALIC_ATTRIBUTES);
-      }
+    if (launchCompatibility.getReason() != null) {
+      append(" (" + launchCompatibility.getReason() + ")", SimpleTextAttributes.GRAYED_ITALIC_ATTRIBUTES);
     }
   }
 
