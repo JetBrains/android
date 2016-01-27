@@ -270,19 +270,15 @@ public abstract class GuiTestCase {
   @NotNull
   private File importProject(@NotNull String projectDirName, String gradleVersion) throws IOException {
     File projectPath = setUpProject(projectDirName, gradleVersion);
-    VirtualFile toSelect = findFileByIoFile(projectPath, false);
+    final VirtualFile toSelect = findFileByIoFile(projectPath, false);
     assertNotNull(toSelect);
-    doImportProject(toSelect);
-    return projectPath;
-  }
-
-  private static void doImportProject(@NotNull final VirtualFile projectDir) {
     execute(new GuiTask() {
       @Override
       protected void executeInEDT() throws Throwable {
-        GradleProjectImporter.getInstance().importProject(projectDir);
+        GradleProjectImporter.getInstance().importProject(toSelect);
       }
     });
+    return projectPath;
   }
 
   /**
