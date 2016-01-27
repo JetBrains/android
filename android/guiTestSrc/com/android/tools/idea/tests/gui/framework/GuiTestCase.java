@@ -70,7 +70,6 @@ import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.util.io.FileUtilRt.delete;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static junit.framework.Assert.assertNotNull;
-import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.fest.swing.timing.Pause.pause;
 import static org.fest.util.Strings.quote;
@@ -259,7 +258,7 @@ public abstract class GuiTestCase {
   @NotNull
   protected IdeFrameFixture importProjectAndWaitForProjectSyncToFinish(@NotNull String projectDirName, @Nullable String gradleVersion)
     throws IOException {
-    File projectPath = setUpProject(projectDirName, false, true, gradleVersion);
+    File projectPath = setUpProject(projectDirName, gradleVersion);
     VirtualFile toSelect = findFileByIoFile(projectPath, false);
     assertNotNull(toSelect);
 
@@ -273,7 +272,7 @@ public abstract class GuiTestCase {
 
   @NotNull
   protected File importProject(@NotNull String projectDirName) throws IOException {
-    File projectPath = setUpProject(projectDirName, false, true, null);
+    File projectPath = setUpProject(projectDirName, null);
     VirtualFile toSelect = findFileByIoFile(projectPath, false);
     assertNotNull(toSelect);
     doImportProject(toSelect);
@@ -304,9 +303,6 @@ public abstract class GuiTestCase {
    * </ul>
    *
    * @param projectDirName             the name of the project's root directory. Tests are located in testData/guiTests.
-   * @param forOpen                    indicates whether the project will be opened by the IDE, or imported.
-   * @param updateAndroidPluginVersion indicates if the latest supported version of the Android Gradle plug-in should be set in the
-   *                                   project.
    * @param gradleVersion              the Gradle version to use in the wrapper. If {@code null} is passed, this method will use the latest supported
    *                                   version of Gradle.
    * @return the path of project's root directory (the copy of the project, not the original one.)
@@ -314,8 +310,6 @@ public abstract class GuiTestCase {
    */
   @NotNull
   private File setUpProject(@NotNull String projectDirName,
-                            boolean forOpen,
-                            boolean updateAndroidPluginVersion,
                             @Nullable String gradleVersion) throws IOException {
     File projectPath = copyProjectBeforeOpening(projectDirName);
 
@@ -331,37 +325,9 @@ public abstract class GuiTestCase {
       createGradleWrapper(projectPath, gradleVersion);
     }
 
-    if (updateAndroidPluginVersion) {
-      updateGradleVersions(projectPath);
-    }
-
+    updateGradleVersions(projectPath);
     updateLocalProperties(projectPath);
-
-    if (forOpen) {
-      File toDotIdea = new File(projectPath, DIRECTORY_BASED_PROJECT_DIR);
-      ensureExists(toDotIdea);
-
-      File fromDotIdea = new File(getTestProjectsRootDirPath(), join("commonFiles", DIRECTORY_BASED_PROJECT_DIR));
-      assertThat(fromDotIdea).isDirectory();
-
-      for (File from : notNullize(fromDotIdea.listFiles())) {
-        if (from.isDirectory()) {
-          File destination = new File(toDotIdea, from.getName());
-          if (!destination.isDirectory()) {
-            copyDirContent(from, destination);
-          }
-          continue;
-        }
-        File to = new File(toDotIdea, from.getName());
-        if (!to.isFile()) {
-          copy(from, to);
-        }
-      }
-    }
-    else {
-      cleanUpProjectForImport(projectPath);
-    }
-
+    cleanUpProjectForImport(projectPath);
     return projectPath;
   }
 
