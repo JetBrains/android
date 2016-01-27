@@ -211,10 +211,10 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
         if (!requests.isEmpty()) {
           message.listItem().add(dependency.getDisplayName())
             .add(" (Required by ");
-          Iterator<RemotePackage> requestIter = requests.iterator();
-          message.add(requestIter.next().getDisplayName());
-          while (requestIter.hasNext()) {
-            message.add(", ").add(requestIter.next().getDisplayName());
+          Iterator<RemotePackage> requestIterator = requests.iterator();
+          message.add(requestIterator.next().getDisplayName());
+          while (requestIterator.hasNext()) {
+            message.add(", ").add(requestIterator.next().getDisplayName());
           }
           message.add(")");
         }
@@ -223,7 +223,7 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
     }
     message.closeHtmlBody();
     if (found) {
-      if (Messages.showOkCancelDialog((Project)null, message.getHtml(), "Confirm Change", AllIcons.General.Warning) == Messages.OK) {
+      if (confirmChange(message)) {
         ProgressManager.getInstance().runProcessWithProgressSynchronously(new Runnable() {
           @Override
           public void run() {
@@ -252,6 +252,14 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
       // We didn't have any changes, so just reload (maybe the channel changed).
       myChannelChangedCallback.run();
     }
+  }
+
+  private static boolean confirmChange(HtmlBuilder message) {
+    String[] options = {Messages.OK_BUTTON, Messages.CANCEL_BUTTON};
+    Icon icon = AllIcons.General.Warning;
+
+    // I would use showOkCancelDialog but Mac sheet panels do not gracefully handle long messages and their buttons can display offscreen
+    return Messages.showIdeaMessageDialog(null, message.getHtml(), "Confirm Change", options, 0, icon, null) == Messages.OK;
   }
 
   @Override
