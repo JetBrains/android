@@ -142,7 +142,7 @@ public class InstantRunBuildInfo {
 
       myArtifacts = artifacts;
 
-      if (hasOneOf(InstantRunArtifactType.MAIN) && getApiLevel() >= 23) {
+      if (hasOneOf(InstantRunArtifactType.SPLIT_MAIN)) {
         // If main has changed, we need ALL the slices. Look in the history for these.
         // This is always available from the LAST build history.
         if (BUILDS_ARE_SORTED) {
@@ -201,7 +201,7 @@ public class InstantRunBuildInfo {
    */
   public boolean hasOneOf(@NotNull InstantRunArtifactType... types) {
     for (InstantRunArtifact artifact : getArtifacts()) {
-      if (ArrayUtil.contains(artifact.type, types)) {
+      if (ArrayUtil.contains(artifact.type, (Object[])types)) {
         return true;
       }
     }
@@ -209,7 +209,7 @@ public class InstantRunBuildInfo {
   }
 
   public boolean hasMainApk() {
-    return hasOneOf(InstantRunArtifactType.MAIN);
+    return hasOneOf(InstantRunArtifactType.MAIN) || hasOneOf(InstantRunArtifactType.SPLIT_MAIN);
   }
 
   @Nullable
