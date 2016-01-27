@@ -936,6 +936,8 @@
                     interface="com.android.tools.idea.structure.dialog.ProjectStructureItemsContributor"/>
     <extensionPoint qualifiedName="com.android.ide.moduleStructureConfigurableContributor"
                     interface="com.android.tools.idea.structure.dialog.ModuleStructureConfigurableContributor"/>
+    <extensionPoint qualifiedName="com.android.ide.mainGroupConfigurableContributor"
+                    interface="com.android.tools.idea.structure.dialog.MainGroupConfigurableContributor"/>
     <extensionPoint qualifiedName="com.android.run.androidDebugger" interface="com.android.tools.idea.run.editor.AndroidDebugger" />
     <extensionPoint qualifiedName="com.android.logcat.filterProvider"
                     interface="com.android.tools.idea.logcat.LogcatFilterProvider" />
@@ -995,6 +997,9 @@
     <sdkEventListener implementation="com.android.tools.idea.gradle.sdk.GradleAndroidSdkEventListener"/>
     <developerServiceBuildSystemOperations implementation="com.android.tools.idea.gradle.structure.services.GradleOperations"/>
     <projectStructureItemsContributor implementation="com.android.tools.idea.gradle.structure.prototype.GradleProjectStructureItemsContributor"/>
+    <mainGroupConfigurableContributor
+        implementation="com.android.tools.idea.gradle.structure.configurables.GradleMainGroupConfigurableContributor"/>
+
   </extensions>
 
   <extensions defaultExtensionNs="com.android.run">
