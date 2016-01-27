@@ -561,6 +561,14 @@ Section -FirstRun SectionFirstRun
     FileWriteUTF16LE $R0 "$\r$\n"
     FileWriteUTF16LE $R0 "# The UTC timestamp when this installer ran$\r$\n"
     FileWriteUTF16LE $R0 "install.timestamp=$R7$\r$\n"
+
+    FileWriteUTF16LE $R0 "$\r$\n"
+    FileWriteUTF16LE $R0 "# The installed version of studio$\r$\n"
+    FileOpen $R1 "$EXEDIR\version" R
+    FileRead $R1 $R2
+    FileClose $R1
+    FileWriteUTF16LE $R0 "studio.version=$R2$\r$\n"
+
     FileClose $R0
 
     !endif # DRY_RUN && UNINSTALL_BUILDER
