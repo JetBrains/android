@@ -62,7 +62,9 @@ import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -108,34 +110,19 @@ public final class GuiTests {
 
   private static final File TMP_PROJECT_ROOT = createTempProjectCreationDir();
 
-  // Called by MethodInvoker via reflection
-  @SuppressWarnings("unused")
-  public static void failIfIdeHasFatalErrors() {
+  public static List<AssertionError> fatalErrorsFromIde() {
     final MessagePool messagePool = MessagePool.getInstance();
     List<AbstractMessage> fatalErrors = messagePool.getFatalErrors(true, true);
-    int fatalErrorCount = fatalErrors.size();
-    for (int i = 0; i < fatalErrorCount; i++) {
-      System.err.println("** Fatal Error " + (i + 1) + " of " + fatalErrorCount);
-      AbstractMessage error = fatalErrors.get(i);
-      System.err.println("* Message: ");
-      System.err.println(error.getMessage());
-
+    List<AssertionError> errors = new ArrayList<AssertionError>(fatalErrors.size());
+    for (AbstractMessage error : fatalErrors) {
+      StringBuilder messageBuilder = new StringBuilder(error.getMessage());
       String additionalInfo = error.getAdditionalInfo();
       if (isNotEmpty(additionalInfo)) {
-        System.err.println("* Additional Info: ");
-        System.err.println(additionalInfo);
+        messageBuilder.append(System.lineSeparator() + "Additional Info: " + additionalInfo);
       }
-
-      String throwableText = error.getThrowableText();
-      if (isNotEmpty(throwableText)) {
-        System.err.println("* Throwable: ");
-        System.err.println(throwableText);
-      }
-      System.err.println();
+      errors.add(new AssertionError(messageBuilder.toString(), error.getThrowable()));
     }
-    if (fatalErrorCount > 0) {
-      throw new AssertionError(fatalErrorCount + " fatal errors found. Stopping test execution.");
-    }
+    return Collections.unmodifiableList(errors);
   }
 
   public static boolean doesIdeHaveFatalErrors() {
