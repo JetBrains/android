@@ -84,20 +84,10 @@ import static org.junit.Assume.assumeTrue;
 public abstract class GuiTestCase {
   protected Robot myRobot;
 
-  @SuppressWarnings("UnusedDeclaration") // This field is set via reflection.
-  private String myTestName;
-
   protected IdeFrameFixture myProjectFrame;
 
   private final List<GarbageCollectorMXBean> myGarbageCollectorMXBeans = ManagementFactory.getGarbageCollectorMXBeans();
   private final MemoryMXBean myMemoryMXBean = ManagementFactory.getMemoryMXBean();
-
-  /**
-   * @return the name of the test method being executed.
-   */
-  protected String getTestName() {
-    return myTestName;
-  }
 
   @Before
   public void setUp() throws Exception {
