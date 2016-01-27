@@ -30,7 +30,9 @@ import com.android.tools.idea.tests.gui.framework.fixture.layout.TagMatcher.Attr
 import com.android.tools.lint.detector.api.LintUtils;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestName;
 
 import java.util.Collections;
 import java.util.List;
@@ -61,6 +63,8 @@ import static org.junit.Assume.assumeTrue;
 public class LayoutPreviewTest extends GuiTestCase {
   // Default folder in the GUI test data directory where we're storing rendering thumbnails
   public static final String THUMBNAIL_FOLDER = "thumbnails";
+
+  @Rule public final TestName myTestName = new TestName();
 
   @Ignore("failed in http://go/aj/job/studio-ui-test/326 and from IDEA")
   @Test
@@ -260,7 +264,7 @@ public class LayoutPreviewTest extends GuiTestCase {
   private String suggestName(EditorFixture editor) {
     String currentFileName = editor.getCurrentFileName();
     assertNotNull(currentFileName);
-    String prefix = this.getClass().getSimpleName() + "-" + getTestName();
+    String prefix = this.getClass().getSimpleName() + "-" + myTestName.getMethodName();
     String pngFileName = LintUtils.getBaseName(currentFileName) + DOT_PNG;
     return THUMBNAIL_FOLDER + "/" + prefix + "-" + pngFileName;
   }
