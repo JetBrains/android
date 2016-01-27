@@ -772,7 +772,7 @@ public class GradleSyncTest extends GuiTestCase {
     cleanUpProjectForImport(projectDirPath);
 
     // Import project
-    WelcomeFrameFixture welcomeFrame = findWelcomeFrame();
+    WelcomeFrameFixture welcomeFrame = WelcomeFrameFixture.find(myRobot);
     welcomeFrame.importProject();
     FileChooserDialogFixture importProjectDialog = findImportProjectDialog(myRobot);
 
