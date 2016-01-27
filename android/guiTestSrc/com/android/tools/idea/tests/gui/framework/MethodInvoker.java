@@ -27,7 +27,6 @@ import java.text.SimpleDateFormat;
 import java.util.GregorianCalendar;
 
 import static com.android.tools.idea.tests.gui.framework.IdeTestApplication.getFailedTestScreenshotDirPath;
-import static org.fest.reflect.core.Reflection.field;
 import static org.fest.reflect.core.Reflection.method;
 
 public class MethodInvoker extends Statement {
@@ -70,12 +69,6 @@ public class MethodInvoker extends Statement {
   }
 
   private void runTest() throws Throwable {
-    ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-    Class<?> guiTestCaseType = Class.forName(GuiTestCase.class.getCanonicalName(), true, classLoader);
-
-    if (guiTestCaseType.isInstance(myTest)) {
-      field("myTestName").ofType(String.class).in(myTest).set(myTestMethod.getName());
-    }
     try {
       myTestMethod.invokeExplosively(myTest);
     }
