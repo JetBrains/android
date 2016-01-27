@@ -3,11 +3,15 @@ package org.jetbrains.android.inspections.lint;
 import com.android.annotations.NonNull;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.LintOptions;
+import com.android.ide.common.repository.GradleVersion;
 import com.android.ide.common.repository.ResourceVisibilityLookup;
 import com.android.ide.common.res2.AbstractResourceRepository;
 import com.android.ide.common.res2.ResourceFile;
 import com.android.ide.common.res2.ResourceItem;
+import com.android.repository.Revision;
+import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.repository.AndroidSdkHandler;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.LocalResourceRepository;
@@ -373,6 +377,37 @@ public class IntellijLintClient extends LintClient implements Disposable {
     }
 
     return null;
+  }
+
+  @Override
+  @Nullable
+  public BuildToolInfo getBuildTools(@NonNull com.android.tools.lint.detector.api.Project project) {
+    if (project.isGradleProject()) {
+      Module module = getModule();
+      if (module != null) {
+        AndroidGradleModel model = AndroidGradleModel.get(module);
+        if (model != null) {
+          GradleVersion version = model.getModelVersion();
+          if (version != null && version.isAtLeast(2, 1, 0)) {
+            String buildToolsVersion = model.getAndroidProject().getBuildToolsVersion();
+            AndroidSdkHandler sdk = getSdk();
+            if (sdk != null) {
+              try {
+                Revision revision = Revision.parseRevision(buildToolsVersion);
+                BuildToolInfo buildToolInfo = sdk.getBuildToolInfo(revision, getRepositoryLogger());
+                if (buildToolInfo != null) {
+                  return buildToolInfo;
+                }
+              } catch (NumberFormatException ignore) {
+                // Fall through and use the latest
+              }
+            }
+          }
+        }
+      }
+    }
+
+    return super.getBuildTools(project);
   }
 
   @Override
