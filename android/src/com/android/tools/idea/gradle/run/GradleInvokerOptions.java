@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.run;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.builder.model.AndroidProject;
 import com.android.resources.Density;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.devices.Abi;
@@ -48,6 +49,9 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import static com.android.builder.model.AndroidProject.PROPERTY_BUILD_API;
+import static com.android.builder.model.AndroidProject.PROPERTY_BUILD_DENSITY;
 
 public class GradleInvokerOptions {
   @NotNull public final List<String> tasks;
@@ -136,7 +140,7 @@ public class GradleInvokerOptions {
   private static String getInstantDevProperty(@NotNull InstantRunBuildOptions buildOptions, boolean incrementalBuild) {
     StringBuilder sb = new StringBuilder(50);
     //noinspection SpellCheckingInspection
-    sb.append("-Pandroid.optional.compilation=INSTANT_DEV");
+    sb.append("-P" + AndroidProject.OPTIONAL_COMPILATION_STEPS + "=INSTANT_DEV");
 
     // we need RESTART_ONLY in two scenarios: full builds, and for incremental builds when app is not running
     if (!incrementalBuild || !buildOptions.isAppRunning) {
@@ -181,11 +185,8 @@ public class GradleInvokerOptions {
     return GradleInvoker.getTestCompileType(id);
   }
 
-  // These are defined in AndroidProject in the builder model for 1.5+; remove and reference directly
-  // when Studio is updated to use the new model
+  // TODO: Move this constant up to the builder model (in the AndroidProject class)
   private static final String PROPERTY_BUILD_ABI = "android.injected.build.abi";
-  private static final String PROPERTY_BUILD_API = "android.injected.build.api";
-  private static final String PROPERTY_BUILD_DENSITY = "android.injected.build.density";
 
   @NotNull
   private static List<String> getDeviceSpecificArguments(@NotNull List<AndroidDevice> devices) {
