@@ -38,8 +38,8 @@ public class ThemeEditorComponentTest extends AndroidTestCase {
     assertNotNull(theme3);
 
     assertEquals(ThemeEditorComponent.ALT_PREVIEW_BACKGROUND,
-                 ThemeEditorComponent.getGoodContrastPreviewBackground(theme1, resourceResolver));
-    assertEquals(ThemeEditorComponent.PREVIEW_BACKGROUND, ThemeEditorComponent.getGoodContrastPreviewBackground(theme2, resourceResolver));
-    assertEquals(ThemeEditorComponent.PREVIEW_BACKGROUND, ThemeEditorComponent.getGoodContrastPreviewBackground(theme3, resourceResolver));
+                 ThemeEditorUtils.getGoodContrastPreviewBackground(theme1, resourceResolver));
+    assertEquals(ThemeEditorComponent.PREVIEW_BACKGROUND, ThemeEditorUtils.getGoodContrastPreviewBackground(theme2, resourceResolver));
+    assertEquals(ThemeEditorComponent.PREVIEW_BACKGROUND, ThemeEditorUtils.getGoodContrastPreviewBackground(theme3, resourceResolver));
   }
 }
