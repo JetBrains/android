@@ -129,17 +129,17 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
 
         List<InstantRunArtifact> artifacts = buildInfo.getArtifacts();
         if (artifacts.isEmpty()) {
-          // We should update the id on the device even if there were no
-          // artifact changes, since otherwise the next build will mismatch
+          // We should update the id on the device even if there were no artifact changes, since otherwise the next build will mismatch
           InstantRunManager.transferLocalIdToDeviceId(device, myFacet.getModule());
           DeployApkTask.cacheManifestInstallationData(device, myFacet, pkgName);
-          if (buildInfo.canHotswap() || buildInfo.getVerifierStatus().isEmpty()) { // empty verifier: clean build
-            consolePrinter.stdout("No local changes, not deploying APK");
-            InstantRunManager.LOG.info("List of artifacts is empty, no deployment necessary.");
-            new InstantRunUserFeedback(myFacet.getModule()).info("No changes to deploy");
-          } else {
-            // There was a verifier failure, but no artifacts: this means
-            // we need to kick off a full build (coldswap not available)
+
+          // if we are forced to do a cold swap, but we didn't get any artifacts, then issue a rebuild
+          // Note that this check looks at the verifier status being set because the verifier status could be empty if there were no changes,
+          // but the buildInfo.canHotswap() treats that differently
+          if (!buildInfo.getVerifierStatus().isEmpty()) {
+            InstantRunManager.LOG.info("Build info reports verifier failure, but no artifacts were provided. Restarting launch.");
+
+            launchStatus.terminateLaunch("Re-launching since we cannot push the current build results to device");
             ApplicationManager.getApplication().invokeLater(new Runnable() {
               @Override
               public void run() {
@@ -147,7 +147,13 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
                 ExecutionUtil.restart(myEnv);
               }
             });
+
+            return null;
           }
+
+          consolePrinter.stdout("No local changes, not deploying APK");
+          InstantRunManager.LOG.info("List of artifacts is empty, no deployment necessary.");
+          new InstantRunUserFeedback(myFacet.getModule()).info("No changes to deploy");
           return null;
         }
 
