@@ -327,7 +327,9 @@ public final class SdkQuickfixUtils {
 
     List<RemotePackage> remotes = Lists.newArrayList();
     for (UpdatablePackage p : resolved) {
-      remotes.add(p.getRemote());
+      if (p.hasRemote()) {
+        remotes.add(p.getRemote());
+      }
     }
     final AtomicReference<String> warning = new AtomicReference<String>();
     ProgressIndicator errorCollector = new ProgressIndicatorAdapter() {
