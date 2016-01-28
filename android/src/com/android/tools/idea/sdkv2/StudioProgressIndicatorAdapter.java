@@ -29,6 +29,8 @@ import org.jetbrains.annotations.NotNull;
  * TODOs below will be addressed as need becomes clear during adoption.
  */
 public class StudioProgressIndicatorAdapter implements ProgressIndicator {
+  private static final double UPDATE_THRESHOLD = 0.01;
+
   private final com.android.repository.api.ProgressIndicator myWrapped;
   private final ProgressIndicator myExistingIndicator;
 
@@ -134,6 +136,9 @@ public class StudioProgressIndicatorAdapter implements ProgressIndicator {
 
   @Override
   public void setFraction(double fraction) {
+    if (Math.abs(myWrapped.getFraction() - fraction) < UPDATE_THRESHOLD) {
+      return;
+    }
     if (myExistingIndicator != null) {
       myExistingIndicator.setFraction(fraction);
     }
