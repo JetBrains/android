@@ -63,6 +63,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.ui.JBColor;
 import com.intellij.util.Processor;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
@@ -537,6 +538,28 @@ public class ThemeEditorUtils {
     }
 
     return folders;
+  }
+
+  /**
+   * Returns the color that should be used for the background of the preview panel depending on the background color
+   * of the theme being displayed, so as to always keep some contrast between the two.
+   */
+  public static JBColor getGoodContrastPreviewBackground(@NotNull ConfiguredThemeEditorStyle theme, @NotNull ResourceResolver resourceResolver) {
+    ItemResourceValue themeColorBackgroundItem = resolveItemFromParents(theme, "colorBackground", true);
+    ResourceValue backgroundResourceValue = resourceResolver.resolveResValue(themeColorBackgroundItem);
+    if (backgroundResourceValue != null) {
+      String colorBackgroundValue = backgroundResourceValue.getValue();
+      Color colorBackground = ResourceHelper.parseColor(colorBackgroundValue);
+      if (colorBackground != null) {
+        float backgroundDistance = MaterialColorUtils.colorDistance(colorBackground, ThemeEditorComponent.PREVIEW_BACKGROUND);
+        if (backgroundDistance < ThemeEditorComponent.COLOR_DISTANCE_THRESHOLD &&
+            backgroundDistance < MaterialColorUtils.colorDistance(colorBackground, ThemeEditorComponent.ALT_PREVIEW_BACKGROUND)) {
+          return ThemeEditorComponent.ALT_PREVIEW_BACKGROUND;
+        }
+      }
+    }
+
+    return ThemeEditorComponent.PREVIEW_BACKGROUND;
   }
 
   /**
