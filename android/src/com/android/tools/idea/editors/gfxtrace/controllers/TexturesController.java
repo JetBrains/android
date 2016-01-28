@@ -18,12 +18,12 @@ package com.android.tools.idea.editors.gfxtrace.controllers;
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.UiCallback;
+import com.android.tools.idea.editors.gfxtrace.models.AtomStream;
 import com.android.tools.idea.editors.gfxtrace.renderers.ImageCellRenderer;
 import com.android.tools.idea.editors.gfxtrace.service.ResourceInfo;
 import com.android.tools.idea.editors.gfxtrace.service.Resources;
 import com.android.tools.idea.editors.gfxtrace.service.ServiceClient;
 import com.android.tools.idea.editors.gfxtrace.service.gfxapi.Cubemap;
-import com.android.tools.idea.editors.gfxtrace.service.gfxapi.CubemapLevel;
 import com.android.tools.idea.editors.gfxtrace.service.gfxapi.Texture2D;
 import com.android.tools.idea.editors.gfxtrace.service.image.FetchedImage;
 import com.android.tools.idea.editors.gfxtrace.service.image.Format;
@@ -34,7 +34,6 @@ import com.android.tools.rpclib.futures.SingleInFlight;
 import com.android.tools.rpclib.rpccore.Rpc;
 import com.android.tools.rpclib.rpccore.RpcException;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
-import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.ui.JBUI;
@@ -43,7 +42,6 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -70,7 +68,7 @@ public class TexturesController extends ImagePanelController {
   public void notifyPath(PathEvent event) {
   }
 
-  private abstract static class DropDownController extends ImageCellController<DropDownController.Data> {
+  private abstract static class DropDownController extends ImageCellController<DropDownController.Data> implements AtomStream.Listener {
     private static final Dimension CONTROL_SIZE = JBUI.size(100, 50);
     private static final Dimension REQUEST_SIZE = JBUI.size(100, 100);
 
@@ -95,11 +93,12 @@ public class TexturesController extends ImagePanelController {
 
     @NotNull private static final Logger LOG = Logger.getInstance(TexturesController.class);
     @NotNull private final PathStore<ResourcesPath> myResourcesPath = new PathStore<ResourcesPath>();
-    @NotNull private final PathStore<AtomPath> myAtomPath = new PathStore<AtomPath>();
     @NotNull private Resources myResources;
 
     private DropDownController(@NotNull final GfxTraceEditor editor) {
       super(editor);
+      editor.getAtomStream().addListener(this);
+
       usingComboBoxWidget(CONTROL_SIZE);
       ((ImageCellRenderer<?>)myList.getRenderer()).setLayout(ImageCellRenderer.Layout.LEFT_TO_RIGHT);
     }
@@ -146,7 +145,7 @@ public class TexturesController extends ImagePanelController {
     }
 
     protected void update(boolean resourcesChanged) {
-      if (myAtomPath.getPath() != null && myResources != null) {
+      if (myEditor.getAtomStream().getSelectedAtomPath() != null && myResources != null) {
         List<Data> cells = new ArrayList<Data>();
         addTextures(cells, myResources.getTextures1D(), "1D");
         addTextures(cells, myResources.getTextures2D(), "2D");
@@ -166,7 +165,7 @@ public class TexturesController extends ImagePanelController {
     }
 
     private void addTextures(List<Data> cells, ResourceInfo[] textures, String typeLabel) {
-      AtomPath atomPath = myAtomPath.getPath();
+      AtomPath atomPath = myEditor.getAtomStream().getSelectedAtomPath();
       for (ResourceInfo info : textures) {
         if (info.getFirstAccess() <= atomPath.getIndex()) {
           cells.add(new Data(info, typeLabel, atomPath.resourceAfter(info.getID())));
@@ -190,10 +189,19 @@ public class TexturesController extends ImagePanelController {
           }
         });
       }
+    }
 
-      if (myAtomPath.updateIfNotNull(event.findAtomPath())) {
-        update(false);
-      }
+    @Override
+    public void onAtomLoadingStart(AtomStream atoms) {
+    }
+
+    @Override
+    public void onAtomLoadingComplete(AtomStream atoms) {
+    }
+
+    @Override
+    public void onAtomSelected(AtomPath path) {
+      update(false);
     }
   }
 }

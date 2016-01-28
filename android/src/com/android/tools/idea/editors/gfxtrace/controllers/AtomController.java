@@ -17,8 +17,7 @@ package com.android.tools.idea.editors.gfxtrace.controllers;
 
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
-import com.android.tools.idea.editors.gfxtrace.JBLoadingPanelWrapper;
-import com.android.tools.idea.editors.gfxtrace.UiCallback;
+import com.android.tools.idea.editors.gfxtrace.models.AtomStream;
 import com.android.tools.idea.editors.gfxtrace.renderers.Render;
 import com.android.tools.idea.editors.gfxtrace.renderers.RenderUtils;
 import com.android.tools.idea.editors.gfxtrace.renderers.TreeRenderer;
@@ -27,7 +26,6 @@ import com.android.tools.idea.editors.gfxtrace.service.ServiceClient;
 import com.android.tools.idea.editors.gfxtrace.service.WireframeMode;
 import com.android.tools.idea.editors.gfxtrace.service.atom.Atom;
 import com.android.tools.idea.editors.gfxtrace.service.atom.AtomGroup;
-import com.android.tools.idea.editors.gfxtrace.service.atom.AtomList;
 import com.android.tools.idea.editors.gfxtrace.service.atom.Observation;
 import com.android.tools.idea.editors.gfxtrace.service.image.FetchedImage;
 import com.android.tools.idea.editors.gfxtrace.service.memory.PoolID;
@@ -35,10 +33,6 @@ import com.android.tools.idea.editors.gfxtrace.service.path.*;
 import com.android.tools.idea.editors.gfxtrace.widgets.LoadingIndicator;
 import com.android.tools.idea.editors.gfxtrace.widgets.Repaintables;
 import com.android.tools.idea.logcat.RegexFilterComponent;
-import com.android.tools.rpclib.binary.BinaryObject;
-import com.android.tools.rpclib.futures.SingleInFlight;
-import com.android.tools.rpclib.rpccore.Rpc;
-import com.android.tools.rpclib.rpccore.RpcException;
 import com.google.common.base.Objects;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
@@ -65,22 +59,18 @@ import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.Enumeration;
-import java.util.List;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
-public class AtomController extends TreeController {
+public class AtomController extends TreeController implements AtomStream.Listener {
   public static JComponent createUI(GfxTraceEditor editor) {
     return new AtomController(editor).myPanel;
   }
 
   @NotNull private static final Logger LOG = Logger.getInstance(GfxTraceEditor.class);
-  private final PathStore<AtomsPath> myAtomsPath = new PathStore<AtomsPath>();
   private final PathStore<DevicePath> myRenderDevice = new PathStore<DevicePath>();
-  private final SingleInFlight myAtomRequestController = new SingleInFlight(new JBLoadingPanelWrapper(myLoadingPanel));
 
   public static class Node {
     public final long index;
@@ -188,6 +178,8 @@ public class AtomController extends TreeController {
 
   private AtomController(@NotNull GfxTraceEditor editor) {
     super(editor, GfxTraceEditor.LOADING_CAPTURE);
+    myEditor.getAtomStream().addListener(this);
+
     myPanel.add(mySearchField, BorderLayout.NORTH);
     myPanel.setBorder(BorderFactory.createTitledBorder(myScrollPane.getBorder(), "GPU Commands"));
     myScrollPane.setBorder(new EmptyBorder(0, 0, 0, 0));
@@ -195,21 +187,20 @@ public class AtomController extends TreeController {
     myTree.addTreeSelectionListener(new TreeSelectionListener() {
       @Override
       public void valueChanged(TreeSelectionEvent treeSelectionEvent) {
-        if (myAtomsPath.getPath() == null) return;
+        AtomStream atoms = myEditor.getAtomStream();
         DefaultMutableTreeNode node = (DefaultMutableTreeNode)myTree.getLastSelectedPathComponent();
         if (node == null || node.getUserObject() == null) return;
         Object object = node.getUserObject();
         if (object instanceof Group) {
-          myEditor.activatePath(myAtomsPath.getPath().index(((Group)object).group.getRange().getLast()), AtomController.this);
+          atoms.selectAtom(((Group)object).group.getRange().getLast(), AtomController.this);
         }
         else if (object instanceof Node) {
-          myEditor.activatePath(myAtomsPath.getPath().index(((Node)object).index), AtomController.this);
+          atoms.selectAtom(((Node)object).index, AtomController.this);
         }
         else if (object instanceof Memory) {
           Memory memory = (Memory)object;
           myEditor.activatePath(
-            myAtomsPath.getPath().index(memory.index).memoryAfter(PoolID.ApplicationPool, memory.observation.getRange()),
-            AtomController.this);
+            atoms.getPath().index(memory.index).memoryAfter(PoolID.ApplicationPool, memory.observation.getRange()), AtomController.this);
         }
       }
     });
@@ -338,7 +329,7 @@ public class AtomController extends TreeController {
 
         Path followPath = Path.EMPTY;
         if (node != null) {
-          node.computeFollowPath(myEditor.getClient(), myAtomsPath.getPath(), index, new Runnable() {
+          node.computeFollowPath(myEditor.getClient(), myEditor.getAtomStream().getPath(), index, new Runnable() {
             @Override
             public void run() {
               myTree.repaint();
@@ -368,7 +359,7 @@ public class AtomController extends TreeController {
                   lastShownBalloon.hide();
                 }
                 DevicePath device = myRenderDevice.getPath();
-                AtomsPath atoms = myAtomsPath.getPath();
+                AtomsPath atoms = myEditor.getAtomStream().getPath();
                 if (device != null && atoms != null) {
                   lastShownBalloon = JBPopupFactory.getInstance().createBalloonBuilder(new PreviewPanel(
                       group.getThumbnail(myEditor.getClient(), device, atoms)))
@@ -449,7 +440,7 @@ public class AtomController extends TreeController {
         super.customizeCellRenderer(tree, value, selected, expanded, leaf, row, hasFocus);
         Object userObject = ((DefaultMutableTreeNode)value).getUserObject();
         DevicePath device = myRenderDevice.getPath();
-        AtomsPath atoms = myAtomsPath.getPath();
+        AtomsPath atoms = myEditor.getAtomStream().getPath();
         if (userObject instanceof Group && device != null && atoms != null) {
           Group group = (Group)userObject;
           if (shouldShowPreview(group)) {
@@ -560,10 +551,6 @@ public class AtomController extends TreeController {
   }
 
   private void selectDeepestVisibleNode(AtomPath atomPath) {
-    if (atomPath == null) {
-      return;
-    }
-
     Object object = myTree.getModel().getRoot();
     assert (object instanceof DefaultMutableTreeNode);
     DefaultMutableTreeNode root = (DefaultMutableTreeNode)object;
@@ -572,7 +559,7 @@ public class AtomController extends TreeController {
 
   private void selectDeepestVisibleNode(DefaultMutableTreeNode node, TreePath path, long atomIndex) {
     if (node.isLeaf() || !myTree.isExpanded(path)) {
-      myTree.setSelectionPath(path);
+      myTree.setSelectionPath(path, false);
       myTree.scrollPathToVisible(path);
       return;
     }
@@ -595,35 +582,30 @@ public class AtomController extends TreeController {
 
   @Override
   public void notifyPath(PathEvent event) {
-    boolean updateAtoms = myAtomsPath.updateIfNotNull(CapturePath.atoms(event.findCapturePath()));
     if (myRenderDevice.updateIfNotNull(event.findDevicePath())) {
       // Only the icons would need to be changed.
       myTree.repaint();
     }
+  }
 
-    if (event.source != this) {
-      selectDeepestVisibleNode(event.findAtomPath());
+  @Override
+  public void onAtomLoadingStart(AtomStream atoms) {
+    myTree.getEmptyText().setText("");
+    myLoadingPanel.startLoading();
+  }
+
+  @Override
+  public void onAtomLoadingComplete(AtomStream atoms) {
+    myLoadingPanel.stopLoading();
+    if (atoms.isLoaded()) {
+      final DefaultMutableTreeNode root = new DefaultMutableTreeNode("Stream", true);
+      atoms.getHierarchy().addChildren(root, atoms.getAtoms());
+      setRoot(root);
     }
+  }
 
-    if (updateAtoms && myAtomsPath.getPath() != null) {
-      myTree.getEmptyText().setText("");
-      ListenableFuture<AtomList> atomF = myEditor.getClient().get(myAtomsPath.getPath());
-      ListenableFuture<AtomGroup> hierarchyF = myEditor.getClient().get(myAtomsPath.getPath().getCapture().hierarchy());
-      Rpc.listen(
-          Futures.allAsList(atomF, hierarchyF), LOG, myAtomRequestController, new UiCallback<List<BinaryObject>, DefaultMutableTreeNode>() {
-        @Override
-        protected DefaultMutableTreeNode onRpcThread(Rpc.Result<List<BinaryObject>> result) throws RpcException, ExecutionException {
-          List<BinaryObject> all = result.get();
-          DefaultMutableTreeNode root = new DefaultMutableTreeNode("Stream", true);
-          ((AtomGroup)all.get(1)).addChildren(root, (AtomList)all.get(0));
-          return root;
-        }
-
-        @Override
-        protected void onUiThread(DefaultMutableTreeNode root) {
-          setRoot(root);
-        }
-      });
-    }
+  @Override
+  public void onAtomSelected(AtomPath path) {
+    selectDeepestVisibleNode(path);
   }
 }
