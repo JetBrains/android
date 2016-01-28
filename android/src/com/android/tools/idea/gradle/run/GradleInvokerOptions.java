@@ -139,7 +139,6 @@ public class GradleInvokerOptions {
   @NotNull
   private static String getInstantDevProperty(@NotNull InstantRunBuildOptions buildOptions, boolean incrementalBuild) {
     StringBuilder sb = new StringBuilder(50);
-    //noinspection SpellCheckingInspection
     sb.append("-P" + AndroidProject.OPTIONAL_COMPILATION_STEPS + "=INSTANT_DEV");
 
     // we need RESTART_ONLY in two scenarios: full builds, and for incremental builds when app is not running
