@@ -162,7 +162,7 @@ public class GradleSyncTest extends GuiTestCase {
     GradleExperimentalSettings.getInstance().SELECT_MODULES_ON_PROJECT_IMPORT = true;
     importProject("ModuleDependencies");
 
-    ConfigureProjectSubsetDialogFixture projectSubsetDialog = ConfigureProjectSubsetDialogFixture.find(myRobot);
+    ConfigureProjectSubsetDialogFixture projectSubsetDialog = ConfigureProjectSubsetDialogFixture.find(robot());
     projectSubsetDialog.selectModule("javalib1", false).clickOk();
 
     getIdeFrame().waitForGradleProjectSyncToFinish();
@@ -299,7 +299,7 @@ public class GradleSyncTest extends GuiTestCase {
       protected boolean isMatching(@NotNull Dialog dialog) {
         return "Install Missing Components".equals(dialog.getTitle());
       }
-    }).withTimeout(SHORT_TIMEOUT.duration()).using(myRobot);
+    }).withTimeout(SHORT_TIMEOUT.duration()).using(robot());
 
     final JButtonFixture finish = quickFixDialog.button(withText("Finish"));
 
@@ -593,7 +593,7 @@ public class GradleSyncTest extends GuiTestCase {
     // Expect message suggesting to use Gradle wrapper. Click "Cancel" to use local distribution.
     getIdeFrame().findMessageDialog(GRADLE_SYNC_DIALOG_TITLE).clickCancel();
 
-    ChooseGradleHomeDialogFixture chooseGradleHomeDialog = ChooseGradleHomeDialogFixture.find(myRobot);
+    ChooseGradleHomeDialogFixture chooseGradleHomeDialog = ChooseGradleHomeDialogFixture.find(robot());
     chooseGradleHomeDialog.chooseGradleHome(gradleHomePath).clickOk().requireNotShowing();
 
     getIdeFrame().waitForGradleProjectSyncToFinish();
@@ -771,9 +771,9 @@ public class GradleSyncTest extends GuiTestCase {
     cleanUpProjectForImport(getProjectPath());
 
     // Import project
-    WelcomeFrameFixture welcomeFrame = WelcomeFrameFixture.find(myRobot);
+    WelcomeFrameFixture welcomeFrame = WelcomeFrameFixture.find(robot());
     welcomeFrame.importProject();
-    FileChooserDialogFixture importProjectDialog = findImportProjectDialog(myRobot);
+    FileChooserDialogFixture importProjectDialog = findImportProjectDialog(robot());
 
     VirtualFile toSelect = findFileByIoFile(getProjectPath(), true);
     assertNotNull(toSelect);
@@ -803,7 +803,7 @@ public class GradleSyncTest extends GuiTestCase {
     GradleExperimentalSettings.getInstance().SELECT_MODULES_ON_PROJECT_IMPORT = true;
     importProject("Flavoredlib");
 
-    ConfigureProjectSubsetDialogFixture projectSubsetDialog = ConfigureProjectSubsetDialogFixture.find(myRobot);
+    ConfigureProjectSubsetDialogFixture projectSubsetDialog = ConfigureProjectSubsetDialogFixture.find(robot());
     projectSubsetDialog.selectModule("lib", false).clickOk();
 
     getIdeFrame().waitForGradleProjectSyncToFinish();
@@ -1077,7 +1077,7 @@ public class GradleSyncTest extends GuiTestCase {
       }
     });
     assertNotNull(checkBox);
-    JCheckBoxFixture checkBoxFixture = new JCheckBoxFixture(myRobot, checkBox);
+    JCheckBoxFixture checkBoxFixture = new JCheckBoxFixture(robot(), checkBox);
     checkBoxFixture.setSelected(true);
 
     message.clickYes();

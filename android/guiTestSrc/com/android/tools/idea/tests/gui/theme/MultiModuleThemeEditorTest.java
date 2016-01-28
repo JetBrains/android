@@ -79,7 +79,7 @@ public class MultiModuleThemeEditorTest extends GuiTestCase {
     themeEditor.waitForThemeSelection("AppTheme");
 
     modulesComboBox.selectItem("nothemeslibrary");
-    myRobot.waitForIdle();
+    robot().waitForIdle();
 
     final LogModel logModel = EventLog.getLogModel(getIdeFrame().getProject());
     assertThat(logModel.getNotifications(), everyItem(new BaseMatcher<Notification>() {
