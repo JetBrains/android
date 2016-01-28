@@ -17,6 +17,7 @@ package com.android.tools.idea.welcome.wizard;
 
 import com.android.SdkConstants;
 import com.android.repository.api.RemotePackage;
+import com.android.repository.api.RepoManager;
 import com.android.repository.impl.meta.TypeDetails;
 import com.android.repository.io.FileOp;
 import com.android.repository.io.FileOpUtils;
@@ -25,6 +26,10 @@ import com.android.sdklib.repositoryv2.AndroidSdkHandler;
 import com.android.sdklib.repositoryv2.meta.DetailsTypes;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.SdkMerger;
+import com.android.tools.idea.sdkv2.RepoProgressIndicatorAdapter;
+import com.android.tools.idea.sdkv2.StudioDownloader;
+import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
+import com.android.tools.idea.sdkv2.StudioSettingsController;
 import com.android.tools.idea.ui.ApplicationUtils;
 import com.android.tools.idea.welcome.SdkLocationUtils;
 import com.android.tools.idea.welcome.config.AndroidFirstRunPersistentData;
@@ -40,6 +45,7 @@ import com.google.common.collect.Lists;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.util.ProgressWindow;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.android.sdk.AndroidSdkData;
@@ -61,7 +67,6 @@ import java.util.Set;
  * perform component setup.
  */
 public class InstallComponentsPath extends DynamicWizardPath implements LongRunningOperationPath {
-  @NotNull private final Map<String, RemotePackage> myRemotePackages;
   private final FileOp myFileOp;
   @NotNull private final FirstRunWizardMode myMode;
 
@@ -73,12 +78,10 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
   @NotNull private ComponentInstaller myComponentInstaller;
   private final boolean myInstallUpdates;
 
-  public InstallComponentsPath(@NotNull Map<String, RemotePackage> remotePackages,
-                               @NotNull FirstRunWizardMode mode,
+  public InstallComponentsPath(@NotNull FirstRunWizardMode mode,
                                @NotNull File sdkLocation,
                                @NotNull ProgressStep progressStep,
                                boolean installUpdates) {
-    myRemotePackages = remotePackages;
     myFileOp = FileOpUtils.create();
     myMode = mode;
 
@@ -86,7 +89,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     myLocalHandler = AndroidSdkHandler.getInstance(sdkLocation);
 
     myProgressStep = progressStep;
-    myComponentInstaller = new ComponentInstaller(remotePackages, installUpdates, myLocalHandler);
+    myComponentInstaller = new ComponentInstaller(installUpdates, myLocalHandler);
     myInstallUpdates = installUpdates;
   }
 
@@ -94,16 +97,22 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
                                                 @NotNull ScopedStateStore stateStore,
                                                 boolean createAvd) {
     List<ComponentTreeNode> components = Lists.newArrayList();
-    components.add(new AndroidSdk(stateStore));
-    ComponentTreeNode platforms = Platform.createSubtree(stateStore, myRemotePackages);
+    components.add(new AndroidSdk(stateStore, myInstallUpdates));
+    ProgressWindow progressWindow = new ProgressWindow(false, false, null);
+    com.android.repository.api.ProgressIndicator progress = new RepoProgressIndicatorAdapter(progressWindow);
+    RepoManager sdkManager = myLocalHandler.getSdkManager(new StudioLoggerProgressIndicator(getClass()));
+    sdkManager.loadSynchronously(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, progress,
+                                 new StudioDownloader(progressWindow), StudioSettingsController.getInstance());
+    Map<String, RemotePackage> remotePackages = sdkManager.getPackages().getRemotePackages();
+    ComponentTreeNode platforms = Platform.createSubtree(stateStore, remotePackages, myInstallUpdates);
     if (platforms != null) {
       components.add(platforms);
     }
     if (Haxm.canRun() && reason == FirstRunWizardMode.NEW_INSTALL) {
-      components.add(new Haxm(stateStore, FirstRunWizard.KEY_CUSTOM_INSTALL));
+      components.add(new Haxm(stateStore, FirstRunWizard.KEY_CUSTOM_INSTALL, myInstallUpdates));
     }
     if (createAvd) {
-      components.add(new AndroidVirtualDevice(stateStore, myRemotePackages, myFileOp));
+      components.add(new AndroidVirtualDevice(stateStore, remotePackages, myInstallUpdates, myFileOp));
     }
     return new ComponentCategory("Root", "Root node that is not supposed to appear in the UI", components);
   }
@@ -261,7 +270,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
         File sdkLocation = new File(sdkPath);
         if (!FileUtil.filesEqual(myLocalHandler.getLocation(), sdkLocation)) {
           myLocalHandler = AndroidSdkHandler.getInstance(sdkLocation);
-          myComponentInstaller = new ComponentInstaller(myRemotePackages, myInstallUpdates, myLocalHandler);
+          myComponentInstaller = new ComponentInstaller(myInstallUpdates, myLocalHandler);
 
           myComponentTree.updateState(myLocalHandler);
         }
