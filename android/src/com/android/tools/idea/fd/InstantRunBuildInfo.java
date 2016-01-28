@@ -254,6 +254,10 @@ public class InstantRunBuildInfo {
     return file;
   }
 
+  public boolean isCompatibleFormat() {
+    return getFormat() == 3;
+  }
+
   public int getFormat() {
     String attribute = myRoot.getAttribute(ATTR_FORMAT);
     if (StringUtil.isEmpty(attribute)) {
