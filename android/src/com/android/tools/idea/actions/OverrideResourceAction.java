@@ -23,7 +23,6 @@ import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.configurations.RenderContext;
-import com.android.tools.idea.rendering.PsiResourceItem;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.utils.Pair;
 import com.google.common.collect.Lists;
@@ -191,7 +190,7 @@ public class OverrideResourceAction extends AbstractIntentionAction {
       dir = selectFolderDir(project, resFolder.getVirtualFile(), ResourceFolderType.VALUES);
     }
     if (dir != null) {
-      String value = PsiResourceItem.getTextContent(tag).trim();
+      String value = ResourceHelper.getTextContent(tag).trim();
       createValueResource(file, facet, dir, name, value, type, tag.getText(), open);
     }
   }
