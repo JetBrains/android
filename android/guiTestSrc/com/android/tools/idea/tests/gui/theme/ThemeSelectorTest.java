@@ -55,8 +55,8 @@ public class ThemeSelectorTest extends GuiTestCase {
    */
   @Test
   public void testRenameTheme() throws IOException {
-    myProjectFrame = importSimpleApplication();
-    ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(myProjectFrame);
+    importSimpleApplication();
+    ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(getIdeFrame());
 
     final JComboBoxFixture themesComboBox = themeEditor.getThemesComboBox();
     themesComboBox.selectItem("Rename AppTheme");
@@ -85,17 +85,17 @@ public class ThemeSelectorTest extends GuiTestCase {
       .contains("Show all themes", atIndex(4))
       .contains("Create New Theme", atIndex(6));
 
-    myProjectFrame.invokeMenuPath("Window", "Editor Tabs", "Select Previous Tab");
-    EditorFixture editor = myProjectFrame.getEditor();
+    getIdeFrame().invokeMenuPath("Window", "Editor Tabs", "Select Previous Tab");
+    EditorFixture editor = getIdeFrame().getEditor();
     assertEquals(-1, editor.findOffset(null, "name=\"AppTheme", true));
     editor.moveTo(editor.findOffset(null, "name=\"NewAppTheme", true));
     assertEquals("<style ^name=\"NewAppTheme\" parent=\"android:Theme.Holo.Light.DarkActionBar\">",
                  editor.getCurrentLineContents(true, true, 0));
 
     // Testing Undo
-    myProjectFrame.invokeMenuPath("Window", "Editor Tabs", "Select Next Tab");
+    getIdeFrame().invokeMenuPath("Window", "Editor Tabs", "Select Next Tab");
     themesComboBox.selectItem("NewAppTheme");
-    myProjectFrame.invokeMenuPathRegex("Edit", "Undo.*");
+    getIdeFrame().invokeMenuPathRegex("Edit", "Undo.*");
     DialogFixture message = new DialogFixture(myRobot, myRobot.finder().findByType(Dialog.class));
     message.focus();
     JButton OkButton = GuiTests.waitUntilFound(myRobot, message.target(), new GenericTypeMatcher<JButton>(JButton.class) {
@@ -111,7 +111,7 @@ public class ThemeSelectorTest extends GuiTestCase {
     JButtonFixture OkFixture = new JButtonFixture(myRobot, OkButton);
     OkFixture.click();
     themeEditor.waitForThemeSelection("AppTheme");
-    myProjectFrame.invokeMenuPath("Window", "Editor Tabs", "Select Previous Tab");
+    getIdeFrame().invokeMenuPath("Window", "Editor Tabs", "Select Previous Tab");
     assertEquals(-1, editor.findOffset(null, "name=\"NewAppTheme", true));
     editor.moveTo(editor.findOffset(null, "name=\"AppTheme", true));
     assertEquals("<style ^name=\"AppTheme\" parent=\"android:Theme.Holo.Light.DarkActionBar\">",
@@ -123,8 +123,8 @@ public class ThemeSelectorTest extends GuiTestCase {
    */
   @Test
   public void testShowAllThemes() throws IOException {
-    myProjectFrame = importSimpleApplication();
-    ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(myProjectFrame);
+    importSimpleApplication();
+    ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(getIdeFrame());
 
     JComboBoxFixture themesComboBox = themeEditor.getThemesComboBox();
     String selectedTheme = themesComboBox.selectedItem();
@@ -165,8 +165,8 @@ public class ThemeSelectorTest extends GuiTestCase {
    */
   @Test
   public void testCreateNewTheme() throws IOException {
-    myProjectFrame = importSimpleApplication();
-    ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(myProjectFrame);
+    importSimpleApplication();
+    ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(getIdeFrame());
 
     JComboBoxFixture themesComboBox = themeEditor.getThemesComboBox();
     String selectedTheme = themesComboBox.selectedItem();
@@ -222,18 +222,18 @@ public class ThemeSelectorTest extends GuiTestCase {
     TableCell parentCell = row(0).column(0);
     assertEquals("android:Theme.Holo", themeEditorTable.getComboBoxSelectionAt(parentCell));
 
-    myProjectFrame.invokeMenuPath("Window", "Editor Tabs", "Select Previous Tab");
-    EditorFixture editor = myProjectFrame.getEditor();
+    getIdeFrame().invokeMenuPath("Window", "Editor Tabs", "Select Previous Tab");
+    EditorFixture editor = getIdeFrame().getEditor();
     assertNotEquals(-1, editor.findOffset(null, "name=\"AppTheme", true));
     editor.moveTo(editor.findOffset(null, "name=\"NewTheme", true));
     assertEquals("<style ^name=\"NewTheme\" parent=\"android:Theme.Holo\" />",
                  editor.getCurrentLineContents(true, true, 0));
 
     // Tests Undo
-    myProjectFrame.invokeMenuPath("Window", "Editor Tabs", "Select Next Tab");
-    myProjectFrame.invokeMenuPathRegex("Edit", "Undo.*");
+    getIdeFrame().invokeMenuPath("Window", "Editor Tabs", "Select Next Tab");
+    getIdeFrame().invokeMenuPathRegex("Edit", "Undo.*");
     themeEditor.waitForThemeSelection("AppTheme");
-    myProjectFrame.invokeMenuPath("Window", "Editor Tabs", "Select Previous Tab");
+    getIdeFrame().invokeMenuPath("Window", "Editor Tabs", "Select Previous Tab");
     assertEquals(-1, editor.findOffset(null, "name=\"NewTheme", true));
   }
 
@@ -245,12 +245,12 @@ public class ThemeSelectorTest extends GuiTestCase {
   @Ignore("failed in http://go/aj/job/studio-ui-test/326 and from IDEA")
   @Test
   public void testRemoveAppCompat() throws IOException {
-    IdeFrameFixture projectFrame = importSimpleApplication();
-    ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(projectFrame);
+    importSimpleApplication();
+    ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(getIdeFrame());
     List<String> themeList = themeEditor.getThemesList();
     assertThat(themeList).contains("Theme.AppCompat.Light.NoActionBar");
 
-    EditorFixture editor = projectFrame.getEditor();
+    EditorFixture editor = getIdeFrame().getEditor();
 
     // TODO: Make the test work without having to close the theme editor
     editor.close();
@@ -261,11 +261,11 @@ public class ThemeSelectorTest extends GuiTestCase {
     editor.invokeAction(EditorFixture.EditorAction.DELETE_LINE);
     editor.invokeAction(EditorFixture.EditorAction.SAVE);
 
-    projectFrame.requireEditorNotification("Gradle files have changed since last project sync").performAction("Sync Now");
-    projectFrame.waitForGradleProjectSyncToFinish();
+    getIdeFrame().requireEditorNotification("Gradle files have changed since last project sync").performAction("Sync Now");
+    getIdeFrame().waitForGradleProjectSyncToFinish();
 
     // Check AppCompat themes are gone
-    themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(projectFrame);
+    themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(getIdeFrame());
     themeList = themeEditor.getThemesList();
     assertThat(themeList)
       .excludes("Theme.AppCompat.Light.NoActionBar")

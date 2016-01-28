@@ -25,8 +25,8 @@ import java.io.IOException;
 public class AttributeValueTest extends GuiTestCase {
   @Test
   public void testAttributeValueInput() throws IOException {
-    myProjectFrame = importProjectAndWaitForProjectSyncToFinish("SimpleApplication");
-    final EditorFixture editor = myProjectFrame.getEditor();
+    importProjectAndWaitForProjectSyncToFinish("SimpleApplication");
+    final EditorFixture editor = getIdeFrame().getEditor();
 
     editor.open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR);
     editor.moveTo(editor.findOffset("<TextView|"));

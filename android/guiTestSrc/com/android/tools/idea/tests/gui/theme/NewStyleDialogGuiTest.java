@@ -37,8 +37,8 @@ public class NewStyleDialogGuiTest extends GuiTestCase {
    */
   @Test
   public void testCreateNewThemeSelection() throws IOException {
-    myProjectFrame = importSimpleApplication();
-    final ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(myProjectFrame);
+    importSimpleApplication();
+    final ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(getIdeFrame());
 
     final JComboBoxFixture themesComboBox = themeEditor.getThemesComboBox();
     themesComboBox.selectItem("Theme.AppCompat.Light.NoActionBar");

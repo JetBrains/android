@@ -41,8 +41,8 @@ public class GradleIncreaseLanguageLevelTest extends GuiTestCase {
   @Ignore("failed in http://go/aj/job/studio-ui-test/326 and from IDEA")
   @Test
   public void testIncreaseLanguageLevelForJava() throws IOException {
-    myProjectFrame = importProjectAndWaitForProjectSyncToFinish("MultiModule");
-    EditorFixture editor = myProjectFrame.getEditor();
+    importProjectAndWaitForProjectSyncToFinish("MultiModule");
+    EditorFixture editor = getIdeFrame().getEditor();
     editor.open("library2/src/main/java/com/example/MyClass.java");
     editor.moveTo(editor.findOffset("MyClass {^"));
 
@@ -52,8 +52,8 @@ public class GradleIncreaseLanguageLevelTest extends GuiTestCase {
   @Ignore("failed in http://go/aj/job/studio-ui-test/326 and from IDEA")
   @Test
   public void testIncreaseLanguageLevelForAndroid() throws IOException {
-    myProjectFrame = importProjectAndWaitForProjectSyncToFinish("MultiModule");
-    EditorFixture editor = myProjectFrame.getEditor();
+    importProjectAndWaitForProjectSyncToFinish("MultiModule");
+    EditorFixture editor = getIdeFrame().getEditor();
     editor.open("library/src/androidTest/java/com/android/library/ApplicationTest.java");
     editor.moveTo(editor.findOffset("super(Application.class);^"));
 
@@ -67,9 +67,9 @@ public class GradleIncreaseLanguageLevelTest extends GuiTestCase {
     editor.invokeIntentionAction("Set language level to 7");
     editor.waitForCodeAnalysisHighlightCount(ERROR, 0);
 
-    myProjectFrame.getEditor().invokeAction(UNDO);
-    myProjectFrame.waitForGradleProjectSyncToFinish();
-    myProjectFrame.findMessageDialog("Undo").clickOk();
+    getIdeFrame().getEditor().invokeAction(UNDO);
+    getIdeFrame().waitForGradleProjectSyncToFinish();
+    getIdeFrame().findMessageDialog("Undo").clickOk();
     editor.waitForCodeAnalysisHighlightCount(ERROR, 1);
   }
 }

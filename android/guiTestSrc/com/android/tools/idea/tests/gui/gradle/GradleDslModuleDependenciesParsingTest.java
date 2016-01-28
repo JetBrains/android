@@ -40,9 +40,9 @@ public class GradleDslModuleDependenciesParsingTest extends GuiTestCase {
 
   @Test
   public void testParsingProjectDependencies() throws IOException {
-    myProjectFrame = importProjectAndWaitForProjectSyncToFinish("ModuleDependencies");
+    importProjectAndWaitForProjectSyncToFinish("ModuleDependencies");
 
-    GradleBuildModelFixture buildModel = myProjectFrame.parseBuildFileForModule("app", true);
+    GradleBuildModelFixture buildModel = getIdeFrame().parseBuildFileForModule("app", true);
 
     List<ModuleDependencyModel> dependencies = buildModel.getTarget().dependencies().modules();
     assertThat(dependencies).hasSize(4);
@@ -75,9 +75,9 @@ public class GradleDslModuleDependenciesParsingTest extends GuiTestCase {
 
   @Test
   public void testRenameProjectDependency() throws IOException {
-    myProjectFrame = importProjectAndWaitForProjectSyncToFinish("ModuleDependencies");
+    importProjectAndWaitForProjectSyncToFinish("ModuleDependencies");
 
-    GradleBuildModelFixture buildModel = myProjectFrame.parseBuildFileForModule("app", true);
+    GradleBuildModelFixture buildModel = getIdeFrame().parseBuildFileForModule("app", true);
 
     List<ModuleDependencyModel> dependencies = buildModel.getTarget().dependencies().modules();
     ModuleDependencyModel dependency = dependencies.get(0);
