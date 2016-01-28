@@ -18,6 +18,7 @@ package com.android.tools.idea.editors.gfxtrace.controllers;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.actions.FramebufferTypeAction;
 import com.android.tools.idea.editors.gfxtrace.actions.FramebufferWireframeAction;
+import com.android.tools.idea.editors.gfxtrace.models.AtomStream;
 import com.android.tools.idea.editors.gfxtrace.service.RenderSettings;
 import com.android.tools.idea.editors.gfxtrace.service.WireframeMode;
 import com.android.tools.idea.editors.gfxtrace.service.image.FetchedImage;
@@ -33,7 +34,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
-public class FrameBufferController extends ImagePanelController {
+public class FrameBufferController extends ImagePanelController implements AtomStream.Listener {
   public static JComponent createUI(GfxTraceEditor editor) {
     return new FrameBufferController(editor).myPanel;
   }
@@ -46,12 +47,13 @@ public class FrameBufferController extends ImagePanelController {
   }
 
   @NotNull private final PathStore<DevicePath> myRenderDevice = new PathStore<DevicePath>();
-  @NotNull private final PathStore<AtomPath> myAtomPath = new PathStore<AtomPath>();
   @NotNull private final RenderSettings mySettings = new RenderSettings();
   @NotNull private BufferType myBufferType = BufferType.Color;
 
   private FrameBufferController(@NotNull GfxTraceEditor editor) {
     super(editor, GfxTraceEditor.SELECT_ATOM);
+
+    editor.getAtomStream().addListener(this);
 
     mySettings.setMaxHeight(MAX_SIZE);
     mySettings.setMaxWidth(MAX_SIZE);
@@ -104,24 +106,38 @@ public class FrameBufferController extends ImagePanelController {
 
   @Override
   public void notifyPath(PathEvent event) {
-    boolean updateBuffer = myRenderDevice.updateIfNotNull(event.findDevicePath());
-    updateBuffer = myAtomPath.updateIfNotNull(event.findAtomPath()) | updateBuffer;
-
-    if (updateBuffer && myRenderDevice.getPath() != null && myAtomPath.getPath() != null) {
+    if (myRenderDevice.updateIfNotNull(event.findDevicePath())) {
       updateBuffer();
     }
   }
 
-  private void updateBuffer() {
-    setImage(FetchedImage.load(myEditor.getClient(), getImageInfoPath()));
+  @Override
+  public void onAtomLoadingStart(AtomStream atoms) {
+    setImage(null);
   }
 
-  private ListenableFuture<ImageInfoPath> getImageInfoPath() {
+  @Override
+  public void onAtomLoadingComplete(AtomStream atoms) {
+  }
+
+  @Override
+  public void onAtomSelected(AtomPath path) {
+    updateBuffer();
+  }
+
+  private void updateBuffer() {
+    AtomPath atomPath = myEditor.getAtomStream().getSelectedAtomPath();
+    if (atomPath != null) {
+      setImage(FetchedImage.load(myEditor.getClient(), getImageInfoPath(atomPath)));
+    }
+  }
+
+  private ListenableFuture<ImageInfoPath> getImageInfoPath(AtomPath atomPath) {
     switch (myBufferType) {
       case Color:
-        return myEditor.getClient().getFramebufferColor(myRenderDevice.getPath(), myAtomPath.getPath(), mySettings);
+        return myEditor.getClient().getFramebufferColor(myRenderDevice.getPath(),atomPath, mySettings);
       case Depth:
-        return myEditor.getClient().getFramebufferDepth(myRenderDevice.getPath(), myAtomPath.getPath());
+        return myEditor.getClient().getFramebufferDepth(myRenderDevice.getPath(), atomPath);
       default:
         return null;
     }
