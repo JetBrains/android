@@ -452,36 +452,36 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     // a no-op) because we need to check whether the manifest file has been edited since an
     // edited manifest changes what the incremental run build has to do.
     GradleInvoker.saveAllFilesSafely();
-    boolean alreadyNeedFullBuild = InstantRunUtils.needsFullBuild(env);
-    boolean needsFullBuild = alreadyNeedFullBuild || InstantRunManager.needsFullBuild(device, module);
+    boolean isRestartedSession = InstantRunUtils.getRestartDevice(env) != null;
+    boolean needsFullBuild = isRestartedSession || InstantRunManager.needsFullBuild(device, module);
     InstantRunUtils.setNeedsFullBuild(env, needsFullBuild);
     if (needsFullBuild &&
         InstantRunManager.hasLocalCacheOfDeviceData(Iterables.getOnlyElement(devices), module)) { // don't show this if we decided to build because we don't have a local cache
-      InstantRunManager.LOG.info("Cannot patch update since a full build is required (typically because the manifest has changed or deploying to device with API < 21)");
-      if (alreadyNeedFullBuild && device.getVersion().getApiLevel() < 21) {
-        @Language("HTML") String message = "Performing full build &amp; install: can't push patches to device with API level &lt; 21";
+      @Language("HTML") String message;
+      if (isRestartedSession && device.getVersion().getApiLevel() < 21) {
+        message = "Performing full build &amp; install: can't push patches to device with API level &lt; 21";
 
         // Also look up the verifier failure and include it here; without this; the verifier failure
         // is displayed, but is quickly hidden as we realize we can't coldswap, and the below
         // full build message is shown instead.
         AndroidFacet facet = AndroidFacet.getInstance(module);
-        if (facet != null) {
-          AndroidGradleModel model = AndroidGradleModel.get(facet);
-          if (model != null) {
-            InstantRunBuildInfo buildInfo = InstantRunBuildInfo.get(model);
-            if (buildInfo != null) {
-              @Language("HTML") String verifierFailure = InstantRunManager.getVerifierMessage(buildInfo);
-              if (verifierFailure != null) {
-                message = verifierFailure + "<br/>" + message;
-              }
-            }
+        assert facet != null;
+
+        AndroidGradleModel model = AndroidGradleModel.get(facet);
+        assert model != null;
+
+        InstantRunBuildInfo buildInfo = InstantRunBuildInfo.get(model);
+        if (buildInfo != null) {
+          @Language("HTML") String verifierFailure = InstantRunManager.getVerifierMessage(buildInfo);
+          if (verifierFailure != null) {
+            message = verifierFailure + "<br/>" + message;
           }
         }
-        new InstantRunUserFeedback(module).postText(message);
       } else {
-        new InstantRunUserFeedback(module).postText(
-          "Performing full build & install: manifest changed\n(or resource referenced from manifest changed)");
+        message = "Performing full build & install: manifest changed\n(or resource referenced from manifest changed)";
       }
+
+      new InstantRunUserFeedback(module).postText(message);
     }
   }
 
