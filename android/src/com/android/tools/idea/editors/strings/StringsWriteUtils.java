@@ -64,7 +64,7 @@ public class StringsWriteUtils {
     final List<XmlTag> tags = Lists.newArrayListWithExpectedSize(items.size());
     final Set<PsiFile> files = Sets.newHashSetWithExpectedSize(items.size());
     for (ResourceItem item : items) {
-      XmlTag tag = StringResourceData.resourceToXmlTag(item);
+      XmlTag tag = LocalResourceRepository.getItemTag(project, item);
       if (tag == null) {
         return false;
       }
@@ -102,7 +102,7 @@ public class StringsWriteUtils {
       // Deletes the tag
       return setAttributeForItems(project, SdkConstants.ATTR_NAME, null, Collections.singletonList(item));
     }
-    final XmlTag tag = StringResourceData.resourceToXmlTag(item);
+    final XmlTag tag = LocalResourceRepository.getItemTag(project, item);
     if (tag != null) {
       new WriteCommandAction.Simple(project, "Setting value of " + item.getName(), tag.getContainingFile()) {
         @Override

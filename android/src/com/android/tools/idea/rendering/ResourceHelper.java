@@ -37,14 +37,10 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.JavaPsiFacade;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiDirectory;
-import com.intellij.psi.PsiFile;
+import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.psi.xml.XmlAttribute;
-import com.intellij.psi.xml.XmlFile;
-import com.intellij.psi.xml.XmlTag;
+import com.intellij.psi.tree.IElementType;
+import com.intellij.psi.xml.*;
 import com.intellij.ui.ColorUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.resourceManagers.ResourceManager;
@@ -60,7 +56,7 @@ import java.util.*;
 import java.util.List;
 
 import static com.android.SdkConstants.*;
-import static com.android.ide.common.resources.ResourceResolver.MAX_RESOURCE_INDIRECTION;
+import static com.android.ide.common.resources.ResourceResolver.*;
 
 public class ResourceHelper {
   private static final Logger LOG = Logger.getInstance("#com.android.tools.idea.rendering.ResourceHelper");
@@ -835,6 +831,88 @@ public class ResourceHelper {
     }
 
     return resourceNamesList.build();
+  }
+
+  /**
+   * Returns the text content of a given tag
+   */
+  public static String getTextContent(@NotNull XmlTag tag) {
+    // We can't just use tag.getValue().getTrimmedText() here because we need to remove
+    // intermediate elements such as <xliff> text:
+    // TODO: Make sure I correct handle HTML content for XML items in <string> nodes!
+    // For example, for the following string we want to compute "Share with %s":
+    // <string name="share">Share with <xliff:g id="application_name" example="Bluetooth">%s</xliff:g></string>
+    XmlTag[] subTags = tag.getSubTags();
+    XmlText[] textElements = tag.getValue().getTextElements();
+    if (subTags.length == 0) {
+      if (textElements.length == 1) {
+        return getXmlTextValue(textElements[0]);
+      } else if (textElements.length == 0) {
+        return "";
+      }
+    }
+    StringBuilder sb = new StringBuilder(40);
+    appendText(sb, tag);
+    return sb.toString();
+  }
+
+  private static String getXmlTextValue(XmlText element) {
+    PsiElement current = element.getFirstChild();
+    if (current != null) {
+      if (current.getNextSibling() != null) {
+        StringBuilder sb = new StringBuilder();
+        for (; current != null; current = current.getNextSibling()) {
+          IElementType type = current.getNode().getElementType();
+          if (type == XmlElementType.XML_CDATA) {
+            PsiElement[] children = current.getChildren();
+            if (children.length == 3) { // XML_CDATA_START, XML_DATA_CHARACTERS, XML_CDATA_END
+              assert children[1].getNode().getElementType() == XmlTokenType.XML_DATA_CHARACTERS;
+              sb.append(children[1].getText());
+            }
+            continue;
+          }
+          sb.append(current.getText());
+        }
+        return sb.toString();
+      } else if (current.getNode().getElementType() == XmlElementType.XML_CDATA) {
+        PsiElement[] children = current.getChildren();
+        if (children.length == 3) { // XML_CDATA_START, XML_DATA_CHARACTERS, XML_CDATA_END
+          assert children[1].getNode().getElementType() == XmlTokenType.XML_DATA_CHARACTERS;
+          return children[1].getText();
+        }
+      }
+    }
+
+    return element.getText();
+  }
+
+  private static void appendText(@NotNull StringBuilder sb, @NotNull XmlTag tag) {
+    PsiElement[] children = tag.getChildren();
+    for (PsiElement child : children) {
+      if (child instanceof XmlText) {
+        XmlText text = (XmlText)child;
+        sb.append(getXmlTextValue(text));
+      } else if (child instanceof XmlTag) {
+        XmlTag childTag = (XmlTag)child;
+        // xliff support
+        if (XLIFF_G_TAG.equals(childTag.getLocalName()) && childTag.getNamespace().startsWith(XLIFF_NAMESPACE_PREFIX)) {
+          String example = childTag.getAttributeValue(ATTR_EXAMPLE);
+          if (example != null) {
+            // <xliff:g id="number" example="7">%d</xliff:g> minutes => "(7) minutes"
+            sb.append('(').append(example).append(')');
+            continue;
+          } else {
+            String id = childTag.getAttributeValue(ATTR_ID);
+            if (id != null) {
+              // Step <xliff:g id="step_number">%1$d</xliff:g> => Step ${step_number}
+              sb.append('$').append('{').append(id).append('}');
+              continue;
+            }
+          }
+        }
+        appendText(sb, childTag);
+      }
+    }
   }
 
   /**
