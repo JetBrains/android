@@ -80,6 +80,7 @@ import static org.junit.Assume.assumeTrue;
 public abstract class GuiTestCase {
   protected Robot myRobot;
 
+  private File projectPath;
   protected IdeFrameFixture myProjectFrame;
 
   private final List<GarbageCollectorMXBean> myGarbageCollectorMXBeans = ManagementFactory.getGarbageCollectorMXBeans();
@@ -241,18 +242,16 @@ public abstract class GuiTestCase {
   @NotNull
   protected IdeFrameFixture importProjectAndWaitForProjectSyncToFinish(@NotNull String projectDirName, @Nullable String gradleVersion)
     throws IOException {
-    File projectPath = importProject(projectDirName, gradleVersion);
-    return findIdeFrame(projectPath).waitForGradleProjectSyncToFinish();
+    importProject(projectDirName, gradleVersion);
+    return getIdeFrame().waitForGradleProjectSyncToFinish();
   }
 
-  @NotNull
-  protected File importProject(@NotNull String projectDirName) throws IOException {
-    return importProject(projectDirName, null);
+  protected void importProject(@NotNull String projectDirName) throws IOException {
+    importProject(projectDirName, null);
   }
 
-  @NotNull
-  private File importProject(@NotNull String projectDirName, String gradleVersion) throws IOException {
-    File projectPath = setUpProject(projectDirName, gradleVersion);
+  private void importProject(@NotNull String projectDirName, String gradleVersion) throws IOException {
+    setUpProject(projectDirName, gradleVersion);
     final VirtualFile toSelect = findFileByIoFile(projectPath, false);
     assertNotNull(toSelect);
     execute(new GuiTask() {
@@ -261,7 +260,6 @@ public abstract class GuiTestCase {
         GradleProjectImporter.getInstance().importProject(toSelect);
       }
     });
-    return projectPath;
   }
 
   /**
@@ -284,10 +282,9 @@ public abstract class GuiTestCase {
    * @return the path of project's root directory (the copy of the project, not the original one.)
    * @throws IOException if an unexpected I/O error occurs.
    */
-  @NotNull
-  private File setUpProject(@NotNull String projectDirName,
+  private void setUpProject(@NotNull String projectDirName,
                             @Nullable String gradleVersion) throws IOException {
-    File projectPath = copyProjectBeforeOpening(projectDirName);
+    copyProjectBeforeOpening(projectDirName);
 
     File gradlePropertiesFilePath = new File(projectPath, SdkConstants.FN_GRADLE_PROPERTIES);
     if (gradlePropertiesFilePath.isFile()) {
@@ -304,21 +301,18 @@ public abstract class GuiTestCase {
     updateGradleVersions(projectPath);
     updateLocalProperties(projectPath);
     cleanUpProjectForImport(projectPath);
-    return projectPath;
   }
 
-  @NotNull
-  protected File copyProjectBeforeOpening(@NotNull String projectDirName) throws IOException {
+  protected void copyProjectBeforeOpening(@NotNull String projectDirName) throws IOException {
     File masterProjectPath = getMasterProjectDirPath(projectDirName);
 
-    File projectPath = getTestProjectDirPath(projectDirName);
+    projectPath = getTestProjectDirPath(projectDirName);
     if (projectPath.isDirectory()) {
       delete(projectPath);
       System.out.println(String.format("Deleted project path '%1$s'", projectPath.getPath()));
     }
     copyDir(masterProjectPath, projectPath);
     System.out.println(String.format("Copied project '%1$s' to path '%2$s'", projectDirName, projectPath.getPath()));
-    return projectPath;
   }
 
   protected boolean createGradleWrapper(@NotNull File projectDirPath, @NotNull String gradleVersion) throws IOException {
@@ -385,8 +379,13 @@ public abstract class GuiTestCase {
   }
 
   @NotNull
-  protected IdeFrameFixture findIdeFrame(@NotNull File projectPath) {
-    return IdeFrameFixture.find(myRobot, projectPath, null);
+  public File getProjectPath() {
+    assertNotNull("No project path set. Was a project imported?", projectPath);
+    return projectPath;
   }
 
+  @NotNull
+  public IdeFrameFixture getIdeFrame() {
+    return IdeFrameFixture.find(myRobot, getProjectPath(), null);
+  }
 }
