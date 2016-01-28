@@ -180,7 +180,7 @@ public class GradleProjectImporter {
 
   /**
    * Requests a project sync with Gradle. If the project import is successful,
-   * {@link GradleProjectBuilder#generateSourcesOnly()} will be invoked at the end.
+   * {@link GradleProjectBuilder#generateSourcesOnly(boolean)} will be invoked at the end.
    *
    * @param project  the given project. This method does nothing if the project is not an Android-Gradle project.
    * @param listener called after the project has been imported.
@@ -200,7 +200,7 @@ public class GradleProjectImporter {
   public void requestProjectSync(@NotNull Project project,
                                  boolean generateSourcesOnSuccess,
                                  @Nullable GradleSyncListener listener) {
-    requestProjectSync(project, false, generateSourcesOnSuccess, listener);
+    requestProjectSync(project, false, generateSourcesOnSuccess, false, listener);
   }
 
   /**
@@ -213,16 +213,20 @@ public class GradleProjectImporter {
    * @param generateSourcesOnSuccess indicates whether the IDE should invoke Gradle to generate Java sources after a successful project
    *                                 import. This applies only when the project data is obtained by Gradle invocation and sources are never
    *                                 generated when the cached project data is used.
+   * @param cleanProject             indicates whether the project should be cleaned before generating sources. This value is ignored if
+   *                                 {@code generateSourcesOnSuccess} is {@code false}.
    * @param listener                 called after the project has been imported.
    */
   public void requestProjectSync(@NotNull Project project,
                                  boolean useCachedProjectData,
                                  boolean generateSourcesOnSuccess,
+                                 boolean cleanProject,
                                  @Nullable GradleSyncListener listener) {
     if (GradleSyncState.getInstance(project).isSyncInProgress()) {
       return;
     }
-    Runnable syncRequest = createSyncRequest(project, IN_BACKGROUND_ASYNC, generateSourcesOnSuccess, useCachedProjectData, listener);
+    Runnable syncRequest =
+      createSyncRequest(project, IN_BACKGROUND_ASYNC, generateSourcesOnSuccess, cleanProject, useCachedProjectData, listener);
     invokeLaterIfProjectAlive(project, syncRequest);
   }
 
@@ -232,7 +236,7 @@ public class GradleProjectImporter {
     if (GradleSyncState.getInstance(project).isSyncInProgress()) {
       return;
     }
-    Runnable syncRequest = createSyncRequest(project, MODAL_SYNC, generateSourcesOnSuccess, false, listener);
+    Runnable syncRequest = createSyncRequest(project, MODAL_SYNC, generateSourcesOnSuccess, false, false, listener);
     invokeAndWaitIfNeeded(syncRequest);
   }
 
@@ -240,13 +244,15 @@ public class GradleProjectImporter {
   private Runnable createSyncRequest(@NotNull final Project project,
                                      @NotNull final ProgressExecutionMode executionMode,
                                      final boolean generateSourcesOnSuccess,
+                                     final boolean cleanProject,
                                      final boolean useCachedProjectData,
                                      @Nullable final GradleSyncListener listener) {
     return new Runnable() {
       @Override
       public void run() {
         try {
-          doRequestSync(project, executionMode, new ImportOptions(generateSourcesOnSuccess, false, useCachedProjectData), listener);
+          ImportOptions options = new ImportOptions(generateSourcesOnSuccess, cleanProject, false, useCachedProjectData);
+          doRequestSync(project, executionMode, options, listener);
         }
         catch (ConfigurationException e) {
           showErrorDialog(project, e.getMessage(), e.getTitle());
@@ -333,7 +339,7 @@ public class GradleProjectImporter {
                                         @Nullable GradleSyncListener listener,
                                         @Nullable Project project,
                                         @Nullable LanguageLevel initialLanguageLevel) throws IOException, ConfigurationException {
-    doImport(projectName, projectRootDirPath, new ImportOptions(true, false, false), listener, project, initialLanguageLevel);
+    doImport(projectName, projectRootDirPath, new ImportOptions(true, false, false, false), listener, project, initialLanguageLevel);
   }
 
   /**
@@ -356,7 +362,7 @@ public class GradleProjectImporter {
                             @Nullable GradleSyncListener listener,
                             @Nullable Project project,
                             @Nullable LanguageLevel initialLanguageLevel) throws IOException, ConfigurationException {
-    ImportOptions options = new ImportOptions(generateSourcesOnSuccess, true, false);
+    ImportOptions options = new ImportOptions(generateSourcesOnSuccess, false, true, false);
     doImport(projectName, projectRootDirPath, options, listener, project, initialLanguageLevel);
   }
 
@@ -523,7 +529,7 @@ public class GradleProjectImporter {
         DataNode<ProjectData> cache = getCachedProjectData(project);
         if (cache != null && !isCacheMissingModels(cache, project)) {
           PostProjectSetupTasksExecutor executor = PostProjectSetupTasksExecutor.getInstance(project);
-          executor.setGenerateSourcesAfterSync(false);
+          executor.setGenerateSourcesAfterSync(false, false);
           executor.setUsingCachedProjectData(true);
           executor.setLastSyncTimestamp(syncData.getLastGradleSyncTimestamp());
 
@@ -541,7 +547,7 @@ public class GradleProjectImporter {
       return;
     }
 
-    PostProjectSetupTasksExecutor.getInstance(project).setGenerateSourcesAfterSync(options.generateSourcesOnSuccess);
+    PostProjectSetupTasksExecutor.getInstance(project).setGenerateSourcesAfterSync(options.generateSourcesOnSuccess, options.cleanProject);
     ProjectSetUpTask setUpTask = new ProjectSetUpTask(project, newProject, options.importingExistingProject, false, listener);
     myDelegate.importProject(project, setUpTask, progressExecutionMode);
   }
@@ -646,11 +652,16 @@ public class GradleProjectImporter {
 
   private static class ImportOptions {
     public final boolean generateSourcesOnSuccess;
+    public final boolean cleanProject;
     public final boolean importingExistingProject;
     public final boolean useCachedProjectData;
 
-    ImportOptions(boolean generateSourcesOnSuccess, boolean importingExistingProject, boolean useCachedProjectData) {
+    ImportOptions(boolean generateSourcesOnSuccess,
+                  boolean cleanProject,
+                  boolean importingExistingProject,
+                  boolean useCachedProjectData) {
       this.generateSourcesOnSuccess = generateSourcesOnSuccess;
+      this.cleanProject = cleanProject;
       this.importingExistingProject = importingExistingProject;
       this.useCachedProjectData = useCachedProjectData;
     }
