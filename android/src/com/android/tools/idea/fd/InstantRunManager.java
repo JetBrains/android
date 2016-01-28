@@ -71,6 +71,7 @@ import java.io.IOException;
 import java.util.*;
 
 import static com.android.tools.idea.fd.InstantRunArtifactType.*;
+import static com.android.tools.idea.fd.InstantRunBuildInfo.VALUE_VERIFIER_STATUS_COMPATIBLE;
 
 /**
  * The {@linkplain InstantRunManager} is responsible for handling Instant Run related functionality
@@ -677,6 +678,9 @@ public final class InstantRunManager implements ProjectComponent {
       String status = buildInfo.getVerifierStatus();
       LOG.info("Instant run verifier failure: " + status);
       UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_INSTANTRUN, UsageTracker.ACTION_INSTANTRUN_FULLBUILD, status, null);
+    } else {
+      UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_INSTANTRUN, UsageTracker.ACTION_INSTANTRUN_FULLBUILD,
+                                            VALUE_VERIFIER_STATUS_COMPATIBLE, null);
     }
   }
 
