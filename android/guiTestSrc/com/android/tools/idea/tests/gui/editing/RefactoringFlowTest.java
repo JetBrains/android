@@ -34,11 +34,11 @@ public class RefactoringFlowTest extends GuiTestCase {
   public void testResourceConflict() throws IOException {
     // Try to rename a resource to an existing resource; check that
     // you get a warning in the conflicts dialog first
-    myProjectFrame = importSimpleApplication();
-    EditorFixture editor = myProjectFrame.getEditor();
+    importSimpleApplication();
+    EditorFixture editor = getIdeFrame().getEditor();
     editor.open("app/src/main/res/values/strings.xml");
     editor.moveTo(editor.findOffset("hello^_world"));
-    myProjectFrame.invokeMenuPath("Refactor", "Rename...");
+    getIdeFrame().invokeMenuPath("Refactor", "Rename...");
 
     // Rename as action_settings, which is already defined
     RenameRefactoringDialogFixture refactoringDialog = RenameRefactoringDialogFixture.find(myRobot);
@@ -60,12 +60,12 @@ public class RefactoringFlowTest extends GuiTestCase {
     // a resource that is only defined locally and make sure there is
     // no dialog.
 
-    myProjectFrame = importProjectAndWaitForProjectSyncToFinish("LayoutTest");
-    EditorFixture editor = myProjectFrame.getEditor();
+    importProjectAndWaitForProjectSyncToFinish("LayoutTest");
+    EditorFixture editor = getIdeFrame().getEditor();
     editor.open("app/src/main/res/values/override.xml");
     // <string name="abc_searchview_description_submit">@string/abc_searchview_description_voice</string>
     editor.moveTo(editor.findOffset("abc_searchview_^description_voice")); // only defined in appcompat
-    myProjectFrame.invokeMenuPath("Refactor", "Rename...");
+    getIdeFrame().invokeMenuPath("Refactor", "Rename...");
 
     RenameRefactoringDialogFixture refactoringDialog = RenameRefactoringDialogFixture.find(myRobot);
     refactoringDialog.setNewName("a");
@@ -85,7 +85,7 @@ public class RefactoringFlowTest extends GuiTestCase {
 
     // Now try to rename @string/abc_searchview_description_submit which is defined in *both* appcompat and locally
     editor.moveTo(editor.findOffset("abc_searchview_^description_submit")); // only defined in appcompat
-    myProjectFrame.invokeMenuPath("Refactor", "Rename...");
+    getIdeFrame().invokeMenuPath("Refactor", "Rename...");
 
     refactoringDialog = RenameRefactoringDialogFixture.find(myRobot);
     refactoringDialog.setNewName("a");

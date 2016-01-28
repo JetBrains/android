@@ -93,9 +93,9 @@ public class GradleTasksTest extends GuiTestCase {
     //   2. Start 'build' task once again (assuming that it takes some time for it to finish)
     //   3. Stop the task
     //   4. Ensure that the task is really finished
-    myProjectFrame = importSimpleApplication();
-    myProjectFrame.requestProjectSync();
-    myProjectFrame.waitForGradleProjectSyncToFinish();
+    importSimpleApplication();
+    getIdeFrame().requestProjectSync();
+    getIdeFrame().waitForGradleProjectSyncToFinish();
 
     final Pattern buildSuccessfulPattern = Pattern.compile(".*BUILD SUCCESSFUL.*", DOTALL);
     runTask("build", new Consumer<ExecutionToolWindowFixture.ContentFixture>() {
@@ -117,33 +117,33 @@ public class GradleTasksTest extends GuiTestCase {
   }
 
   private void openProjectAndAddToGradleConfig(@NotNull final String textToAdd) throws IOException {
-    myProjectFrame = importSimpleApplication();
-    Module module = myProjectFrame.getModule("app");
+    importSimpleApplication();
+    Module module = getIdeFrame().getModule("app");
 
     // Add a long-running task and refresh the project.
     VirtualFile buildFile = getGradleBuildFile(module);
     assertNotNull(buildFile);
     final Document document = getDocument(buildFile);
     assertNotNull(document);
-    runWriteCommandAction(myProjectFrame.getProject(), new Runnable() {
+    runWriteCommandAction(getIdeFrame().getProject(), new Runnable() {
       @Override
       public void run() {
         document.insertString(document.getTextLength(), textToAdd);
       }
     });
 
-    myProjectFrame.requestProjectSync();
-    myProjectFrame.waitForGradleProjectSyncToFinish();
+    getIdeFrame().requestProjectSync();
+    getIdeFrame().waitForGradleProjectSyncToFinish();
   }
 
   private void runTask(@NotNull String taskName, @NotNull Consumer<ExecutionToolWindowFixture.ContentFixture> closure) {
-    GradleToolWindowFixture gradleToolWindow = myProjectFrame.getGradleToolWindow();
+    GradleToolWindowFixture gradleToolWindow = getIdeFrame().getGradleToolWindow();
     gradleToolWindow.runTask(taskName);
 
     // Ensure that task output is shown and updated.
     String regex = ".*SimpleApplication \\[" + taskName + "\\].*";
     PatternTextMatcher matcher = new PatternTextMatcher(Pattern.compile(regex, DOTALL));
-    closure.consume(myProjectFrame.getRunToolWindow().findContent(matcher));
+    closure.consume(getIdeFrame().getRunToolWindow().findContent(matcher));
   }
 
   private static class NotMatchingPatternMatcher implements TextMatcher {

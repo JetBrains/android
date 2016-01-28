@@ -45,8 +45,8 @@ public class StateListPickerTest extends GuiTestCase {
   @Ignore("failed in http://go/aj/job/studio-ui-test/345 and from IDEA")
   @Test
   public void testStateList() throws IOException {
-    myProjectFrame = importProjectAndWaitForProjectSyncToFinish("StateListApplication");
-    ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(myProjectFrame);
+    importProjectAndWaitForProjectSyncToFinish("StateListApplication");
+    ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(getIdeFrame());
     ThemeEditorTableFixture themeEditorTable = themeEditor.getPropertiesTable();
 
     TableCell cell = row(7).column(0);

@@ -37,16 +37,16 @@ public class LaunchAndroidApplicationTest extends GuiTestCase {
   @Ignore
   @Test
   public void testRunOnEmulator() throws IOException, ClassNotFoundException {
-    myProjectFrame = importSimpleApplication();
+    importSimpleApplication();
 
-    myProjectFrame.runApp(APP_NAME);
-    myProjectFrame.findChooseDeviceDialog().selectEmulator("Nexus7")
+    getIdeFrame().runApp(APP_NAME);
+    getIdeFrame().findChooseDeviceDialog().selectEmulator("Nexus7")
                                          .clickOk();
 
     // Make sure the right app is being used. This also serves as the sync point for the package to get uploaded to the device/emulator.
-    myProjectFrame.getRunToolWindow().findContent(APP_NAME).waitForOutput(new PatternTextMatcher(LOCAL_PATH_OUTPUT), LONG_TIMEOUT);
+    getIdeFrame().getRunToolWindow().findContent(APP_NAME).waitForOutput(new PatternTextMatcher(LOCAL_PATH_OUTPUT), LONG_TIMEOUT);
 
-    myProjectFrame.getAndroidToolWindow().selectDevicesTab()
+    getIdeFrame().getAndroidToolWindow().selectDevicesTab()
                                        .selectProcess(PROCESS_NAME)
                                        .clickTerminateApplication();
   }
@@ -54,20 +54,20 @@ public class LaunchAndroidApplicationTest extends GuiTestCase {
   @Ignore
   @Test
   public void testDebugOnEmulator() throws IOException, ClassNotFoundException, EvaluateException {
-    myProjectFrame = importSimpleApplication();
-    final EditorFixture editor = myProjectFrame.getEditor();
+    importSimpleApplication();
+    final EditorFixture editor = getIdeFrame().getEditor();
     final int offset = editor.open("app/src/main/java/google/simpleapplication/MyActivity.java", EditorFixture.Tab.EDITOR).findOffset(
       "setContentView", "(R.layout.activity_my);", true);
     assertTrue(offset >= 0);
 
-    myProjectFrame.debugApp(APP_NAME);
-    myProjectFrame.findChooseDeviceDialog().selectEmulator("Nexus7")
+    getIdeFrame().debugApp(APP_NAME);
+    getIdeFrame().findChooseDeviceDialog().selectEmulator("Nexus7")
                                          .clickOk();
 
     // Make sure the right app is being used. This also serves as the sync point for the package to get uploaded to the device/emulator.
-    myProjectFrame.getDebugToolWindow().findContent(APP_NAME).waitForOutput(new PatternTextMatcher(LOCAL_PATH_OUTPUT), LONG_TIMEOUT);
+    getIdeFrame().getDebugToolWindow().findContent(APP_NAME).waitForOutput(new PatternTextMatcher(LOCAL_PATH_OUTPUT), LONG_TIMEOUT);
 
-    myProjectFrame.getAndroidToolWindow().selectDevicesTab()
+    getIdeFrame().getAndroidToolWindow().selectDevicesTab()
                                        .selectProcess(PROCESS_NAME)
                                        .clickTerminateApplication();
   }

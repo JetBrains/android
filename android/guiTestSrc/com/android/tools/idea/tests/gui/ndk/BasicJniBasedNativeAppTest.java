@@ -55,7 +55,8 @@ public class BasicJniBasedNativeAppTest extends GuiTestCase {
   @Test
   public void testMultiBreakAndResume() throws IOException, ClassNotFoundException {
     // Import the project and select the debug config 'app-native'.
-    final IdeFrameFixture projectFrame = importProjectAndWaitForProjectSyncToFinish("JniBasedBasicNdkApp", "2.5");
+    importProjectAndWaitForProjectSyncToFinish("JniBasedBasicNdkApp", "2.5");
+    final IdeFrameFixture projectFrame = getIdeFrame();
 
     // Setup breakpoints
     final int[] breakPoints = {35, 51, 58, 76};

@@ -65,12 +65,12 @@ public class ComponentVersionCheckTest extends GuiTestCase {
                       "  </check>\n" +
                       "</compatibility>";
     VersionCompatibilityService.getInstance().reloadMetadataForTesting(metadata);
-    myProjectFrame = importSimpleApplication();
+    importSimpleApplication();
 
-    myProjectFrame.updateGradleWrapperVersion("2.4").updateAndroidGradlePluginVersion("1.3.0").requestProjectSync()
+    getIdeFrame().updateGradleWrapperVersion("2.4").updateAndroidGradlePluginVersion("1.3.0").requestProjectSync()
       .waitForGradleProjectSyncToFinish();
 
-    ContentFixture syncMessages = myProjectFrame.getMessagesToolWindow().getGradleSyncContent();
+    ContentFixture syncMessages = getIdeFrame().getMessagesToolWindow().getGradleSyncContent();
     MessageFixture message = syncMessages.findMessage(ERROR, firstLineStartingWith("Gradle 2.4 requires Android Gradle plugin 1.5.0"));
 
     String text = message.getText();
@@ -97,12 +97,12 @@ public class ComponentVersionCheckTest extends GuiTestCase {
                       "  </check>\n" +
                       "</compatiblity>\n";
     VersionCompatibilityService.getInstance().reloadMetadataForTesting(metadata);
-    myProjectFrame = importSimpleApplication();
+    importSimpleApplication();
 
-    myProjectFrame.updateGradleWrapperVersion("2.4").updateAndroidGradlePluginVersion("1.3.0").requestProjectSync()
+    getIdeFrame().updateGradleWrapperVersion("2.4").updateAndroidGradlePluginVersion("1.3.0").requestProjectSync()
       .waitForGradleProjectSyncToFinish();
 
-    ContentFixture syncMessages = myProjectFrame.getMessagesToolWindow().getGradleSyncContent();
+    ContentFixture syncMessages = getIdeFrame().getMessagesToolWindow().getGradleSyncContent();
     MessageFixture message =
       syncMessages.findMessage(WARNING, firstLineStartingWith("'buildToolsVersion' 19.1.0 requires Android Gradle plugin 1.5.0"));
 
