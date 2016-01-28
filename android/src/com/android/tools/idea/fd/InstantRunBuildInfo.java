@@ -50,7 +50,7 @@ public class InstantRunBuildInfo {
 
   // Note: The verifier status can be any number of values (See InstantRunVerifierStatus enum in gradle).
   // Currently, the only contract between gradle and the IDE is that the value is set to COMPATIBLE if the build can be hotswapped
-  private static final String VALUE_VERIFIER_STATUS_COMPATIBLE = "COMPATIBLE";
+  static final String VALUE_VERIFIER_STATUS_COMPATIBLE = "COMPATIBLE";
 
   private static final String TAG_ARTIFACT = "artifact";
   private static final String TAG_BUILD = "build";
