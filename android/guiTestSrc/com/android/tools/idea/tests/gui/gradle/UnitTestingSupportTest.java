@@ -55,14 +55,14 @@ public class UnitTestingSupportTest extends GuiTestCase {
    * </ul>
    */
   private void doTest(@NotNull String path, @NotNull String testClass) throws Exception {
-    myProjectFrame = importProjectAndWaitForProjectSyncToFinish("ProjectWithUnitTests");
+    importProjectAndWaitForProjectSyncToFinish("ProjectWithUnitTests");
 
-    BuildVariantsToolWindowFixture buildVariants = myProjectFrame.getBuildVariantsWindow();
+    BuildVariantsToolWindowFixture buildVariants = getIdeFrame().getBuildVariantsWindow();
     buildVariants.activate();
     buildVariants.selectUnitTests();
 
     // Open the test file:
-    myEditor = myProjectFrame.getEditor();
+    myEditor = getIdeFrame().getEditor();
     myEditor.open(path + "/" + testClass + ".java");
 
     // Run the test case that is supposed to pass:
@@ -91,7 +91,7 @@ public class UnitTestingSupportTest extends GuiTestCase {
     myEditor.enterText("6");
 
     runTestUnderCursor();
-    myProjectFrame.waitForBackgroundTasksToFinish();
+    getIdeFrame().waitForBackgroundTasksToFinish();
     unitTestTree = getTestTree(testClass + ".failingTest");
     assertTrue(unitTestTree.isAllTestsPassed());
     assertEquals(1, unitTestTree.getAllTestsCount());
@@ -113,7 +113,7 @@ public class UnitTestingSupportTest extends GuiTestCase {
 
     // Re-run all the tests.
     unitTestTree.getContent().rerun();
-    myProjectFrame.waitForBackgroundTasksToFinish();
+    getIdeFrame().waitForBackgroundTasksToFinish();
     unitTestTree = getTestTree(testClass);
     assertEquals(1, unitTestTree.getFailingTestsCount());
     assertThat(unitTestTree.getAllTestsCount()).isGreaterThan(1);
@@ -126,14 +126,14 @@ public class UnitTestingSupportTest extends GuiTestCase {
 
     // Re-run failed tests.
     unitTestTree.getContent().rerunFailed();
-    myProjectFrame.waitForBackgroundTasksToFinish();
+    getIdeFrame().waitForBackgroundTasksToFinish();
     unitTestTree = getTestTree("Rerun Failed Tests");
     assertTrue(unitTestTree.isAllTestsPassed());
     assertEquals(1, unitTestTree.getAllTestsCount());
 
     // Rebuild the project and run tests again, they should still run and pass.
-    myProjectFrame.invokeMenuPath("Build", "Rebuild Project");
-    myProjectFrame.waitForBackgroundTasksToFinish();
+    getIdeFrame().invokeMenuPath("Build", "Rebuild Project");
+    getIdeFrame().waitForBackgroundTasksToFinish();
 
     myEditor.requestFocus();
     myEditor.moveTo(myEditor.findOffset("class ", testClass, true));
@@ -145,15 +145,15 @@ public class UnitTestingSupportTest extends GuiTestCase {
 
   @NotNull
   private UnitTestTreeFixture getTestTree(@NotNull String tabName) {
-    ContentFixture content = myProjectFrame.getRunToolWindow().findContent(tabName);
+    ContentFixture content = getIdeFrame().getRunToolWindow().findContent(tabName);
     content.waitForExecutionToFinish(GuiTests.SHORT_TIMEOUT);
-    myProjectFrame.waitForBackgroundTasksToFinish();
+    getIdeFrame().waitForBackgroundTasksToFinish();
     return content.getUnitTestTree();
   }
 
   private void runTestUnderCursor() {
     // This only works when there's one applicable run configurations, otherwise a popup would show up.
     myEditor.invokeAction(EditorFixture.EditorAction.RUN_FROM_CONTEXT);
-    myProjectFrame.waitForBackgroundTasksToFinish();
+    getIdeFrame().waitForBackgroundTasksToFinish();
   }
 }

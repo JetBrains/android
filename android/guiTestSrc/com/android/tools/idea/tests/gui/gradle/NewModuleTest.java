@@ -43,35 +43,35 @@ public class NewModuleTest extends GuiTestCase {
 
   @Test
   public void testNewModuleOldGradle() throws Exception {
-    myProjectFrame = importSimpleApplication();
+    importSimpleApplication();
     // That's the oldest combination we support:
-    myProjectFrame.updateAndroidGradlePluginVersion("1.0.0");
-    myProjectFrame.updateGradleWrapperVersion("2.2.1");
+    getIdeFrame().updateAndroidGradlePluginVersion("1.0.0");
+    getIdeFrame().updateGradleWrapperVersion("2.2.1");
 
-    EditorFixture editor = myProjectFrame.getEditor();
+    EditorFixture editor = getIdeFrame().getEditor();
     editor.open("app/build.gradle");
     editor.moveTo(editor.findOffset("use", "Library", false));
     editor.invokeAction(EditorFixture.EditorAction.DELETE_LINE);
 
-    myProjectFrame.requestProjectSync();
-    myProjectFrame.waitForGradleProjectSyncToFinish();
+    getIdeFrame().requestProjectSync();
+    getIdeFrame().waitForGradleProjectSyncToFinish();
 
-    myProjectFrame.invokeMenuPath("File", "New", "New Module...");
+    getIdeFrame().invokeMenuPath("File", "New", "New Module...");
     Dialog dialog = myRobot.finder().find(DialogMatcher.withTitle("Create New Module"));
     DialogFixture dialogFixture = new DialogFixture(myRobot, dialog);
 
     selectItemInGallery(dialog, 1, "Android Library");
     findAndClickButton(dialogFixture, "Next");
-    myProjectFrame.waitForBackgroundTasksToFinish();
+    getIdeFrame().waitForBackgroundTasksToFinish();
     findAndClickButtonWhenEnabled(dialogFixture, "Finish");
 
-    myProjectFrame.waitForGradleProjectSyncToFinish();
+    getIdeFrame().waitForGradleProjectSyncToFinish();
 
     // Sync worked, so that's good. Just make sure we didn't generate "testCompile" in build.gradle
     editor.open("mylibrary/build.gradle");
     assertEquals(-1, editor.findOffset("test", "Compile", true));
 
-    VirtualFile projectDir = myProjectFrame.getProject().getBaseDir();
+    VirtualFile projectDir = getIdeFrame().getProject().getBaseDir();
     assertNotNull(projectDir.findFileByRelativePath("mylibrary/src/main"));
     assertNull(projectDir.findFileByRelativePath("mylibrary/src/test"));
   }

@@ -89,8 +89,8 @@ public class AndroidSdkSourceAttachTest extends GuiTestCase {
     }
     updateSdkSourceRoot(mySdk);
 
-    myProjectFrame = importSimpleApplication();
-    final EditorFixture editor = myProjectFrame.getEditor();
+    importSimpleApplication();
+    final EditorFixture editor = getIdeFrame().getEditor();
 
     final VirtualFile classFile = findActivityClassFile();
     editor.open(classFile, EditorFixture.Tab.EDITOR);
@@ -134,8 +134,8 @@ public class AndroidSdkSourceAttachTest extends GuiTestCase {
     sdkModificator.removeRoots(OrderRootType.SOURCES);
     sdkModificator.commitChanges();
 
-    myProjectFrame = importSimpleApplication();
-    final EditorFixture editor = myProjectFrame.getEditor();
+    importSimpleApplication();
+    final EditorFixture editor = getIdeFrame().getEditor();
 
     final VirtualFile classFile = findActivityClassFile();
     editor.open(classFile, EditorFixture.Tab.EDITOR);
@@ -170,7 +170,7 @@ public class AndroidSdkSourceAttachTest extends GuiTestCase {
 
   @NotNull
   private EditorNotificationPanelFixture findNotificationPanel() {
-    return myProjectFrame.requireEditorNotification(
+    return getIdeFrame().requireEditorNotification(
       "Sources for '" + mySdk.getName() + "' not found.");
   }
 

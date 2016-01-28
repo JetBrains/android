@@ -40,8 +40,8 @@ public class IdeSettingsTest extends GuiTestCase {
 
   @Test
   public void testSettingsRemovalForGradleProjects() throws IOException {
-    myProjectFrame = importSimpleApplication();
-    mySettingsDialog = myProjectFrame.openIdeSettings();
+    importSimpleApplication();
+    mySettingsDialog = getIdeFrame().openIdeSettings();
     List<String> settingsNames = mySettingsDialog.getProjectSettingsNames();
     assertThat(settingsNames).excludes("Gant", "GUI Designer");
   }

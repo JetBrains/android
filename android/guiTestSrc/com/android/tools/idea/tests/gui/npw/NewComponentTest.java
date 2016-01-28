@@ -33,10 +33,10 @@ public class NewComponentTest extends GuiTestCase {
   @Ignore("failed in http://go/aj/job/studio-ui-test/345 and from IDEA")
   @Test
   public void testNewValueWizard() throws IOException {
-    myProjectFrame = importSimpleApplication();
+    importSimpleApplication();
 
-    myProjectFrame.getProjectView().selectAndroidPane();
-    myProjectFrame.invokeMenuPath("File", "New", "XML", "Values XML File");
+    getIdeFrame().getProjectView().selectAndroidPane();
+    getIdeFrame().invokeMenuPath("File", "New", "XML", "Values XML File");
 
     final NewXmlValueWizardFixture wizardFixture = NewXmlValueWizardFixture.find(myRobot);
     final JButtonFixture finishFixture = wizardFixture.findWizardButton("Finish");
