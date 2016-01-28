@@ -41,11 +41,11 @@ public class HprofEditorTest extends GuiTestCase {
   @Before
   public void init() throws IOException {
     GradleExperimentalSettings.getInstance().SKIP_SOURCE_GEN_ON_PROJECT_SYNC = true;
-    myProjectFrame = importProjectAndWaitForProjectSyncToFinish(CAPTURES_APPLICATION);
+    importProjectAndWaitForProjectSyncToFinish(CAPTURES_APPLICATION);
 
-    myCapturesToolWindowFixture = myProjectFrame.getCapturesToolWindow();
+    myCapturesToolWindowFixture = getIdeFrame().getCapturesToolWindow();
     myCapturesToolWindowFixture.openFile(SAMPLE_SNAPSHOT_NAME);
-    myDefaultEditor = HprofEditorFixture.findByFileName(myRobot, myProjectFrame, SAMPLE_SNAPSHOT_NAME);
+    myDefaultEditor = HprofEditorFixture.findByFileName(myRobot, getIdeFrame(), SAMPLE_SNAPSHOT_NAME);
   }
 
   @Test

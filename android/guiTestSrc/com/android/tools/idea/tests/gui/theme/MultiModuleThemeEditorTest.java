@@ -39,8 +39,8 @@ import static org.junit.Assert.assertThat;
 public class MultiModuleThemeEditorTest extends GuiTestCase {
   @Test
   public void testMultipleModules() throws IOException {
-    myProjectFrame = importProjectAndWaitForProjectSyncToFinish("MultiAndroidModule");
-    final ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(myProjectFrame);
+    importProjectAndWaitForProjectSyncToFinish("MultiAndroidModule");
+    final ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(getIdeFrame());
 
     assertThat(themeEditor.getModulesList(), containsInAnyOrder("app", "library", "library2", "library3", "nothemeslibrary"));
     final JComboBoxFixture modulesComboBox = themeEditor.getModulesComboBox();
@@ -69,8 +69,8 @@ public class MultiModuleThemeEditorTest extends GuiTestCase {
 
   @Test
   public void testModuleWithoutThemes() throws IOException {
-    myProjectFrame = importProjectAndWaitForProjectSyncToFinish("MultiAndroidModule");
-    final ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(myProjectFrame);
+    importProjectAndWaitForProjectSyncToFinish("MultiAndroidModule");
+    final ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(getIdeFrame());
 
     final JComboBoxFixture modulesComboBox = themeEditor.getModulesComboBox();
 
@@ -81,7 +81,7 @@ public class MultiModuleThemeEditorTest extends GuiTestCase {
     modulesComboBox.selectItem("nothemeslibrary");
     myRobot.waitForIdle();
 
-    final LogModel logModel = EventLog.getLogModel(myProjectFrame.getProject());
+    final LogModel logModel = EventLog.getLogModel(getIdeFrame().getProject());
     assertThat(logModel.getNotifications(), everyItem(new BaseMatcher<Notification>() {
       @Override
       public void describeTo(Description description) {

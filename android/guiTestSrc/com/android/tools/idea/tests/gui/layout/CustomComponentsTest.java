@@ -42,14 +42,14 @@ public class CustomComponentsTest extends GuiTestCase {
     // Tests that the class converter rewrites the onDraw, onLayout and onMeasure methods to avoid errors from propagating
     // and breaking the rendering.
 
-    myProjectFrame = importProjectAndWaitForProjectSyncToFinish("CustomComponents");
+    importProjectAndWaitForProjectSyncToFinish("CustomComponents");
 
     // Make sure the project is built: we need custom views to run the test
-    GradleInvocationResult result = myProjectFrame.invokeProjectMake();
+    GradleInvocationResult result = getIdeFrame().invokeProjectMake();
     assertTrue(result.isBuildSuccessful());
 
     // Load layout, wait for render to be shown in the preview window
-    EditorFixture editor = myProjectFrame.getEditor();
+    EditorFixture editor = getIdeFrame().getEditor();
     editor.open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN);
     editor.requireName("activity_my.xml");
 

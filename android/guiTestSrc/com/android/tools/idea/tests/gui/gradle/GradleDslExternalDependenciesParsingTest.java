@@ -43,9 +43,9 @@ public class GradleDslExternalDependenciesParsingTest extends GuiTestCase {
 
   @Test
   public void testParseExternalDependenciesWithCompactNotation() throws IOException {
-    myProjectFrame = importSimpleApplication();
+    importSimpleApplication();
 
-    GradleBuildModelFixture buildModel = myProjectFrame.parseBuildFileForModule("app", true);
+    GradleBuildModelFixture buildModel = getIdeFrame().parseBuildFileForModule("app", true);
 
     DependenciesModel dependenciesModel = buildModel.getTarget().dependencies();
     List<ArtifactDependencyModel> dependencies = dependenciesModel.artifacts();
@@ -60,8 +60,8 @@ public class GradleDslExternalDependenciesParsingTest extends GuiTestCase {
 
   @Test
   public void testSetVersionOnExternalDependencyWithCompactNotation() throws IOException {
-    myProjectFrame = importSimpleApplication();
-    final GradleBuildModelFixture buildModel = myProjectFrame.parseBuildFileForModule("app", true);
+    importSimpleApplication();
+    final GradleBuildModelFixture buildModel = getIdeFrame().parseBuildFileForModule("app", true);
 
     DependenciesModel dependenciesModel = buildModel.getTarget().dependencies();
     assertNotNull(dependenciesModel);

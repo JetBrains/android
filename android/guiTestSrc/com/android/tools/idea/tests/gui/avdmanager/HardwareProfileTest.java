@@ -30,8 +30,8 @@ public class HardwareProfileTest extends GuiTestCase {
   @Ignore("failed in http://go/aj/job/studio-ui-test/345 and from IDEA")
   @Test
   public void testCreateHardwareProfile() throws Exception {
-    myProjectFrame = importSimpleApplication();
-    AvdManagerDialogFixture avdManagerDialog = myProjectFrame.invokeAvdManager();
+    importSimpleApplication();
+    AvdManagerDialogFixture avdManagerDialog = getIdeFrame().invokeAvdManager();
     AvdEditWizardFixture avdEditWizard = avdManagerDialog.createNew();
     ChooseDeviceDefinitionStepFixture chooseDeviceDefinitionStep = avdEditWizard.getChooseDeviceDefinitionStep();
 

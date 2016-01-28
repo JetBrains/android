@@ -45,8 +45,8 @@ public class MultipleModuleTypeCompilationTest extends GuiTestCase {
   @Ignore("failed in http://go/aj/job/studio-ui-test/345 and from IDEA")
   @Test
   public void testAssembleTaskIsNotInvokedForLocalAarModule() throws IOException {
-    myProjectFrame = importProjectAndWaitForProjectSyncToFinish("MultipleModuleTypes");
-    GradleInvocationResult result = myProjectFrame.invokeProjectMake();
+    importProjectAndWaitForProjectSyncToFinish("MultipleModuleTypes");
+    GradleInvocationResult result = getIdeFrame().invokeProjectMake();
     assertTrue(result.isBuildSuccessful());
     List<String> invokedTasks = result.getTasks();
     assertThat(invokedTasks).containsOnly(":app:compileDebugSources", ":app:compileDebugAndroidTestSources", ":javaLib:compileJava");
@@ -55,8 +55,8 @@ public class MultipleModuleTypeCompilationTest extends GuiTestCase {
   @Ignore("failed in http://go/aj/job/studio-ui-test/345 and from IDEA")
   @Test
   public void testAssembleTaskIsNotInvokedForLocalAarModuleOnJps() throws IOException {
-    myProjectFrame = importProjectAndWaitForProjectSyncToFinish("MultipleModuleTypes");
-    CompileContext context = myProjectFrame.invokeProjectMakeUsingJps();
+    importProjectAndWaitForProjectSyncToFinish("MultipleModuleTypes");
+    CompileContext context = getIdeFrame().invokeProjectMakeUsingJps();
 
     String[] invokedTasks = null;
     for (CompilerMessage msg : context.getMessages(INFORMATION)) {
