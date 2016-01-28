@@ -60,7 +60,7 @@ public final class Observation implements BinaryObject {
   static {
     ENTITY.setFields(new Field[]{
       new Field("Range", new Struct(MemoryRange.Klass.INSTANCE.entity())),
-      new Field("ID", new Array("binary.ID", new Primitive("byte", Method.Uint8), 20)),
+      new Field("ID", new Array("id.ID", new Primitive("byte", Method.Uint8), 20)),
     });
     Namespace.register(Klass.INSTANCE);
   }
