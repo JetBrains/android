@@ -164,6 +164,20 @@ public class GradleInvoker {
   }
 
   @NotNull
+  public static List<String> findCleanTasksForModules(@NotNull Module[] modules) {
+    List<String> tasks = Lists.newArrayList();
+    for (Module module : modules) {
+      AndroidGradleFacet gradleFacet = AndroidGradleFacet.getInstance(module);
+      if (gradleFacet == null) {
+        continue;
+      }
+      String gradlePath = gradleFacet.getConfiguration().GRADLE_PROJECT_PATH;
+      addTaskIfSpecified(tasks, gradlePath, GradleBuilds.CLEAN_TASK_NAME);
+    }
+    return tasks;
+  }
+
+  @NotNull
   public static List<String> findTasksToExecute(@NotNull Module[] modules,
                                                 @NotNull BuildMode buildMode,
                                                 @NotNull TestCompileType testCompileType) {
