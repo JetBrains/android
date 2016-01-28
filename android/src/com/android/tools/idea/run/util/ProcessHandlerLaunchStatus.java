@@ -23,6 +23,13 @@ import org.jetbrains.annotations.Nullable;
 public class ProcessHandlerLaunchStatus implements LaunchStatus {
   @NotNull private ProcessHandler myHandler;
 
+  /**
+   * Indicates whether the process has been terminated or is in the process of termination.
+   * Ideally, we'd rely solely on the Process Handler's termination status, but it turns out that calls to terminate a non-started
+   * process to terminate never have any effect until after the process is started.
+   */
+  private boolean myTerminated;
+
   public ProcessHandlerLaunchStatus(@NotNull ProcessHandler handler) {
     myHandler = handler;
   }
@@ -38,11 +45,12 @@ public class ProcessHandlerLaunchStatus implements LaunchStatus {
 
   @Override
   public boolean isLaunchTerminated() {
-    return myHandler.isProcessTerminated() || myHandler.isProcessTerminating();
+    return myTerminated || myHandler.isProcessTerminated() || myHandler.isProcessTerminating();
   }
 
   @Override
   public void terminateLaunch(@Nullable String reason) {
+    myTerminated = true;
     myHandler.notifyTextAvailable(reason + "\n", ProcessOutputTypes.STDERR);
     myHandler.destroyProcess();
   }
