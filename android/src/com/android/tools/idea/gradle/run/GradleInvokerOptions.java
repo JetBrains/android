@@ -28,7 +28,6 @@ import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
-import com.android.tools.idea.gradle.util.GradleBuilds;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
@@ -301,7 +300,7 @@ public class GradleInvokerOptions {
     public List<String> getCleanAndGenerateSourcesTasks() {
       List<String> tasks = Lists.newArrayList();
 
-      tasks.add(GradleBuilds.CLEAN_TASK_NAME);
+      tasks.addAll(GradleInvoker.findCleanTasksForModules(myModules));
       tasks.addAll(GradleInvoker.findTasksToExecute(myModules, BuildMode.SOURCE_GEN, GradleInvoker.TestCompileType.NONE));
 
       return tasks;
