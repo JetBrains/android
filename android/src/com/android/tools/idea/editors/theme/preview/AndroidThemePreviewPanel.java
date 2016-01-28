@@ -296,6 +296,7 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext, Disp
       }
     });
 
+    refreshScale();
     updateMainPanel();
   }
 
@@ -464,9 +465,9 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext, Disp
     rebuild(true);
   }
 
-  private void refreshConfiguration() {
+  private void refreshScale() {
     Configuration configuration = myContext.getConfiguration();
-    myAndroidPreviewPanel.updateConfiguration(configuration);
+
     // We want the preview to remain the same size even when the device being used to render is different.
     // Adjust the scale to the current config.
     if (configuration.getDeviceState() != null) {
@@ -475,6 +476,13 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext, Disp
       // we combine our scale, the reverse device scale, and the platform scale into 1 scale factor.
       myAndroidPreviewPanel.setScale(JBUI.scale(reverseDeviceScale * myScale));
     }
+  }
+
+  private void refreshConfiguration() {
+    Configuration configuration = myContext.getConfiguration();
+
+    myAndroidPreviewPanel.updateConfiguration(configuration);
+    refreshScale();
   }
 
   private void createProgressPanel() {
