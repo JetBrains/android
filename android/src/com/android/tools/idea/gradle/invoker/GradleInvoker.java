@@ -17,8 +17,6 @@ package com.android.tools.idea.gradle.invoker;
 
 import com.android.SdkConstants;
 import com.android.builder.model.BaseArtifact;
-import com.android.tools.idea.fd.InstantRunManager;
-import com.android.tools.idea.fd.InstantRunSettings;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.facet.JavaGradleFacet;
@@ -161,6 +159,20 @@ public class GradleInvoker {
 
   private void setProjectBuildMode(@NotNull BuildMode buildMode) {
     BuildSettings.getInstance(myProject).setBuildMode(buildMode);
+  }
+
+  @NotNull
+  public static List<String> findCleanTasksForModules(@NotNull Module[] modules) {
+    List<String> tasks = Lists.newArrayList();
+    for (Module module : modules) {
+      AndroidGradleFacet gradleFacet = AndroidGradleFacet.getInstance(module);
+      if (gradleFacet == null) {
+        continue;
+      }
+      String gradlePath = gradleFacet.getConfiguration().GRADLE_PROJECT_PATH;
+      addTaskIfSpecified(tasks, gradlePath, GradleBuilds.CLEAN_TASK_NAME);
+    }
+    return tasks;
   }
 
   @NotNull
