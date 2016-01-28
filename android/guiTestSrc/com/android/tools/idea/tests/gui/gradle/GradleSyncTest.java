@@ -160,12 +160,12 @@ public class GradleSyncTest extends GuiTestCase {
   @Test
   public void testMissingInterModuleDependencies() throws IOException {
     GradleExperimentalSettings.getInstance().SELECT_MODULES_ON_PROJECT_IMPORT = true;
-    File projectPath = importProject("ModuleDependencies");
+    importProject("ModuleDependencies");
 
     ConfigureProjectSubsetDialogFixture projectSubsetDialog = ConfigureProjectSubsetDialogFixture.find(myRobot);
     projectSubsetDialog.selectModule("javalib1", false).clickOk();
 
-    myProjectFrame = findIdeFrame(projectPath);
+    myProjectFrame = getIdeFrame();
     myProjectFrame.waitForGradleProjectSyncToFinish();
 
     ContentFixture messages = myProjectFrame.getMessagesToolWindow().getGradleSyncContent();
@@ -765,18 +765,18 @@ public class GradleSyncTest extends GuiTestCase {
     settings.SKIP_SOURCE_GEN_ON_PROJECT_SYNC = false;
     settings.MAX_MODULE_COUNT_FOR_SOURCE_GEN = 5;
 
-    File projectDirPath = copyProjectBeforeOpening("AarDependency");
+    copyProjectBeforeOpening("AarDependency");
 
-    IdeFrameFixture.deleteWrapper(projectDirPath);
+    IdeFrameFixture.deleteWrapper(getProjectPath());
 
-    cleanUpProjectForImport(projectDirPath);
+    cleanUpProjectForImport(getProjectPath());
 
     // Import project
     WelcomeFrameFixture welcomeFrame = WelcomeFrameFixture.find(myRobot);
     welcomeFrame.importProject();
     FileChooserDialogFixture importProjectDialog = findImportProjectDialog(myRobot);
 
-    VirtualFile toSelect = findFileByIoFile(projectDirPath, true);
+    VirtualFile toSelect = findFileByIoFile(getProjectPath(), true);
     assertNotNull(toSelect);
 
     importProjectDialog.select(toSelect).clickOk();
@@ -784,7 +784,7 @@ public class GradleSyncTest extends GuiTestCase {
     // Expect message suggesting to use Gradle wrapper. Click "OK" to use wrapper.
     welcomeFrame.findMessageDialog(GRADLE_SYNC_DIALOG_TITLE).clickOk();
 
-    myProjectFrame = findIdeFrame(projectDirPath);
+    myProjectFrame = getIdeFrame();
     myProjectFrame.waitForGradleProjectSyncToFinish().requireGradleWrapperSet();
   }
 
@@ -803,12 +803,12 @@ public class GradleSyncTest extends GuiTestCase {
   @Test
   public void testModuleSelectionOnImport() throws IOException {
     GradleExperimentalSettings.getInstance().SELECT_MODULES_ON_PROJECT_IMPORT = true;
-    File projectPath = importProject("Flavoredlib");
+    importProject("Flavoredlib");
 
     ConfigureProjectSubsetDialogFixture projectSubsetDialog = ConfigureProjectSubsetDialogFixture.find(myRobot);
     projectSubsetDialog.selectModule("lib", false).clickOk();
 
-    myProjectFrame = findIdeFrame(projectPath);
+    myProjectFrame = getIdeFrame();
     myProjectFrame.waitForGradleProjectSyncToFinish();
 
     // Verify that "lib" (which was unchecked in the "Select Modules to Include" dialog) is not a module.
