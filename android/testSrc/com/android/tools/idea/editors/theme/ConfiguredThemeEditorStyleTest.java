@@ -27,6 +27,7 @@ import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
@@ -206,6 +207,8 @@ public class ConfiguredThemeEditorStyleTest extends AndroidTestCase {
     style.setValue(ResolutionUtils.getQualifiedItemName(item), item.getValue());
     // LocalResourceRepositories haven't updated yet
     myFacet.refreshResources();
+    // This is because ResourceFolderRepository may re-initialize from files instead of Psi.
+    FileDocumentManager.getInstance().saveAllDocuments();
 
     HashSet<String> modifiedFolders = new HashSet<String>(Arrays.asList(answerFolders));
     int valuesFound = 0;
@@ -309,6 +312,8 @@ public class ConfiguredThemeEditorStyleTest extends AndroidTestCase {
     theme.setParent(newParent);
     // LocalResourceRepositories haven't updated yet
     myFacet.refreshResources();
+    // This is because ResourceFolderRepository may re-initialize from files instead of Psi.
+    FileDocumentManager.getInstance().saveAllDocuments();
 
     HashSet<String> modifiedFolders = new HashSet<String>(Arrays.asList(answerFolders));
     int valuesFound = 0;

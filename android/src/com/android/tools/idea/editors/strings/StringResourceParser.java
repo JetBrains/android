@@ -22,9 +22,9 @@ import com.android.ide.common.resources.configuration.LocaleQualifier;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.rendering.LocalResourceRepository;
 import com.android.tools.idea.rendering.Locale;
-import com.android.tools.idea.rendering.PsiResourceItem;
 import com.google.common.collect.*;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -58,6 +58,7 @@ public class StringResourceParser {
     Map<String, ResourceItem> defaultValues = Maps.newHashMapWithExpectedSize(keys.size());
     Table<String, Locale, ResourceItem> translations = HashBasedTable.create();
 
+    Project project = facet.getModule().getProject();
     for (String key : keys) {
       List<ResourceItem> items = repository.getResourceItem(ResourceType.STRING, key);
       if (items == null) {
@@ -65,11 +66,9 @@ public class StringResourceParser {
       }
 
       for (ResourceItem item : items) {
-        if (item instanceof PsiResourceItem) {
-          XmlTag tag = ((PsiResourceItem)item).getTag();
-          if (tag != null && SdkConstants.VALUE_FALSE.equals(tag.getAttributeValue(SdkConstants.ATTR_TRANSLATABLE))) {
-            untranslatableKeys.add(key);
-          }
+        XmlTag tag = LocalResourceRepository.getItemTag(project, item);
+        if (tag != null && SdkConstants.VALUE_FALSE.equals(tag.getAttributeValue(SdkConstants.ATTR_TRANSLATABLE))) {
+          untranslatableKeys.add(key);
         }
 
         FolderConfiguration config = item.getConfiguration();

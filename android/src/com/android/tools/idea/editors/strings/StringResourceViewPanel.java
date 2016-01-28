@@ -36,6 +36,7 @@ import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.util.text.StringUtil;
@@ -112,7 +113,7 @@ public class StringResourceViewPanel implements HyperlinkListener {
 
     initEditPanel();
 
-    myTableModel = new StringResourceTableModel();
+    myTableModel = new StringResourceTableModel(myFacet.getModule().getProject());
     initTable();
     new TableSpeedSearch(myTable);
 
@@ -207,7 +208,9 @@ public class StringResourceViewPanel implements HyperlinkListener {
 
             Locale l = (Locale)list.getSelectedValue();
 
-            StringsWriteUtils.createItem(myFacet, primaryResourceDir, l, key, StringResourceData.resourceToString(defaultValue), true);
+            Project project = myFacet.getModule().getProject();
+            StringsWriteUtils
+              .createItem(myFacet, primaryResourceDir, l, key, StringResourceData.resourceToString(project, defaultValue), true);
             reloadData();
           }
         }).createPopup().showUnderneathOf(toolbar.getComponent());
