@@ -40,16 +40,16 @@ import static org.junit.Assert.*;
 public class TranslationsEditorTest extends GuiTestCase {
   @Test
   public void testBasics() throws IOException {
-    myProjectFrame = importSimpleApplication();
+    importSimpleApplication();
 
     // open editor on a strings file
     String stringsXmlPath = "app/src/main/res/values/strings.xml";
-    EditorFixture editor = myProjectFrame.getEditor();
+    EditorFixture editor = getIdeFrame().getEditor();
     editor.open(stringsXmlPath, EDITOR);
 
     // make sure the notification is visible, and click on Open Editor to open the translations editor
     EditorNotificationPanelFixture notificationPanel =
-      myProjectFrame.requireEditorNotification("Edit translations for all locales in the translations editor.");
+      getIdeFrame().requireEditorNotification("Edit translations for all locales in the translations editor.");
     notificationPanel.performAction("Open editor");
 
     // Wait for the translations editor table to show up, and the table to be initialized

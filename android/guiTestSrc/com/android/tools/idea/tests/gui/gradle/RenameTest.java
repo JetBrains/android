@@ -47,8 +47,8 @@ public class RenameTest extends GuiTestCase {
 
   @Test
   public void sourceRoot() throws Exception {
-    myProjectFrame = importSimpleApplication();
-    final Project project = myProjectFrame.getProject();
+    importSimpleApplication();
+    final Project project = getIdeFrame().getProject();
     Module[] modules = ModuleManager.getInstance(project).getModules();
     for (Module module : modules) {
       final VirtualFile[] sourceRoots = ModuleRootManager.getInstance(module).getSourceRoots();

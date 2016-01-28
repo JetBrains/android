@@ -33,23 +33,23 @@ public class GradleEditNotifyTest extends GuiTestCase {
     // the build.gradle model is out of date
     // Regression test for https://code.google.com/p/android/issues/detail?id=75983
 
-    myProjectFrame = importSimpleApplication();
-    EditorFixture editor = myProjectFrame.getEditor();
+    importSimpleApplication();
+    EditorFixture editor = getIdeFrame().getEditor();
     editor.open("app/build.gradle").waitUntilErrorAnalysisFinishes();
 
     // When done and a successful gradle sync there should not be any messages
-    myProjectFrame.requireNoEditorNotification();
+    getIdeFrame().requireNoEditorNotification();
 
     // Insert:
     editor.moveTo(editor.findOffset("versionCode ", null, true))
           .enterText("1");
 
     // Sync:
-    myProjectFrame.requireEditorNotification("Gradle files have changed since last project sync").performAction("Sync Now");
-    myProjectFrame.waitForGradleProjectSyncToFinish()
+    getIdeFrame().requireEditorNotification("Gradle files have changed since last project sync").performAction("Sync Now");
+    getIdeFrame().waitForGradleProjectSyncToFinish()
                   .requireNoEditorNotification();
 
     editor.invokeAction(BACK_SPACE);
-    myProjectFrame.requireEditorNotification("Gradle files have changed since last project sync");
+    getIdeFrame().requireEditorNotification("Gradle files have changed since last project sync");
   }
 }

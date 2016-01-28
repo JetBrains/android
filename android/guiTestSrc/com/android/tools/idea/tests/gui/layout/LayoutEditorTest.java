@@ -50,10 +50,10 @@ public class LayoutEditorTest extends GuiTestCase {
 
   @Test
   public void testSetProperty() throws Exception {
-    myProjectFrame = importSimpleApplication();
+    importSimpleApplication();
 
     // Open file as XML and switch to design tab, wait for successful render
-    EditorFixture editor = myProjectFrame.getEditor();
+    EditorFixture editor = getIdeFrame().getEditor();
     editor.open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR);
     editor.selectEditorTab(EditorFixture.Tab.DESIGN);
 
@@ -140,9 +140,9 @@ public class LayoutEditorTest extends GuiTestCase {
     // cannot be deleted, by selecting it, attempting to delete it, and verifying
     // that it's still there.
 
-    myProjectFrame = importSimpleApplication();
+    importSimpleApplication();
 
-    EditorFixture editor = myProjectFrame.getEditor();
+    EditorFixture editor = getIdeFrame().getEditor();
     editor.open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN);
     LayoutEditorFixture layout = editor.getLayoutEditor(false);
     assertNotNull(layout);
@@ -156,13 +156,13 @@ public class LayoutEditorTest extends GuiTestCase {
                  "    RelativeLayout\n" +
                  "        *TextView - @string/hello_world\n", layout.describeComponentTree(true));
 
-    myProjectFrame.invokeMenuPath("Edit", "Delete");
+    getIdeFrame().invokeMenuPath("Edit", "Delete");
 
     layout.waitForNextRenderToFinish();
     layout.requireComponentTree("Device Screen\n" +
                                 "    *RelativeLayout\n", true);
 
-    myProjectFrame.invokeMenuPathRegex("Edit", "Undo.*");
+    getIdeFrame().invokeMenuPathRegex("Edit", "Undo.*");
 
     layout.waitForNextRenderToFinish();
     layout.requireComponentTree("Device Screen\n" +
@@ -178,7 +178,7 @@ public class LayoutEditorTest extends GuiTestCase {
                                 "    *RelativeLayout\n" +
                                 "        TextView - @string/hello_world\n", true);
 
-    myProjectFrame.invokeMenuPath("Edit", "Delete");
+    getIdeFrame().invokeMenuPath("Edit", "Delete");
 
     layout.requireComponentTree("Device Screen\n" +
                                 "    RelativeLayout\n" + // still there!
@@ -193,10 +193,10 @@ public class LayoutEditorTest extends GuiTestCase {
     // hierarchy, we reassign id's to keep them unique and also update all references within
     // the pasted component to the newly assigned id's.
 
-    myProjectFrame = importProjectAndWaitForProjectSyncToFinish("LayoutTest");
+    importProjectAndWaitForProjectSyncToFinish("LayoutTest");
 
     // Open file as XML and switch to design tab, wait for successful render
-    EditorFixture editor = myProjectFrame.getEditor();
+    EditorFixture editor = getIdeFrame().getEditor();
     editor.open("app/src/main/res/layout/ids.xml", EditorFixture.Tab.DESIGN);
     LayoutEditorFixture layout = editor.getLayoutEditor(false);
     assertNotNull(layout);
@@ -206,7 +206,7 @@ public class LayoutEditorTest extends GuiTestCase {
     LayoutEditorComponentFixture relativeLayout = layout.findView("RelativeLayout", 0);
     relativeLayout.click();
 
-    myProjectFrame.invokeMenuPath("Edit", "Cut");
+    getIdeFrame().invokeMenuPath("Edit", "Cut");
     layout.waitForNextRenderToFinish();
     layout.requireComponents("Device Screen\n" + "    *LinearLayout (vertical)\n", true);
 
@@ -214,7 +214,7 @@ public class LayoutEditorTest extends GuiTestCase {
 
 
     // First copy
-    myProjectFrame.invokeMenuPath("Edit", "Paste");
+    getIdeFrame().invokeMenuPath("Edit", "Paste");
     // The paste action enters a mode where you have to click where you want to paste/insert: provide that click
     Point p = new Point(viewBounds.x + 5, viewBounds.y + 5);
     layout.moveMouse(p);
@@ -228,7 +228,7 @@ public class LayoutEditorTest extends GuiTestCase {
                              "            buttonid2 - \"Button 2\"\n", true);
 
     // Second copy: should use unique id's (and update relative references)
-    myProjectFrame.invokeMenuPath("Edit", "Paste");
+    getIdeFrame().invokeMenuPath("Edit", "Paste");
     p = new Point(viewBounds.x + 20, viewBounds.y + viewBounds.height + 150);
     layout.moveMouse(p);
     layout.click();

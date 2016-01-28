@@ -39,11 +39,11 @@ public class GradleBuildTest extends GuiTestCase {
 
     File jdkPath = new File(jdkPathValue);
 
-    myProjectFrame = importSimpleApplication();
-    myProjectFrame.invokeProjectMakeAndSimulateFailure("Supplied javaHome is not a valid folder.");
+    importSimpleApplication();
+    getIdeFrame().invokeProjectMakeAndSimulateFailure("Supplied javaHome is not a valid folder.");
 
     // Find message dialog explaining the source of the error.
-    myProjectFrame.findMessageDialog("Gradle Running").clickOk();
+    getIdeFrame().findMessageDialog("Gradle Running").clickOk();
 
     // Find the dialog to select the path of the JDK.
     SelectSdkDialogFixture selectSdkDialog = SelectSdkDialogFixture.find(myRobot);

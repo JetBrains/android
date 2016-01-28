@@ -41,8 +41,8 @@ public class ThemeEditorTest extends GuiTestCase {
    * Checks that no errors are present in the event log
    */
   private void checkNoErrors() {
-    myProjectFrame.robot().waitForIdle();
-    for(Notification notification : EventLog.getLogModel(myProjectFrame.getProject()).getNotifications()) {
+    getIdeFrame().robot().waitForIdle();
+    for(Notification notification : EventLog.getLogModel(getIdeFrame().getProject()).getNotifications()) {
       assertThat(notification.getType()).isNotEqualTo(NotificationType.ERROR);
     }
   }
@@ -50,8 +50,8 @@ public class ThemeEditorTest extends GuiTestCase {
   @Test
   public void testOpenProject() throws IOException {
     // Test that we can open the simple application and the theme editor opens correctly
-    myProjectFrame = importSimpleApplication();
-    ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(myProjectFrame);
+    importSimpleApplication();
+    ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(getIdeFrame());
 
     // Search is empty
     themeEditor.getSearchTextField().requireText("");
@@ -82,14 +82,14 @@ public class ThemeEditorTest extends GuiTestCase {
     // Check the attributes table is populated
     assertThat(themeEditor.getPropertiesTable().rowCount()).isGreaterThan(0);
 
-    myProjectFrame.getEditor().close();
+    getIdeFrame().getEditor().close();
     checkNoErrors();
   }
 
   @Test
   public void testConfigurationToolbar() throws IOException {
-    myProjectFrame = importSimpleApplication();
-    ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(myProjectFrame);
+    importSimpleApplication();
+    ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(getIdeFrame());
 
     JButton apiButton = themeEditor.findToolbarButton("Android version to use when rendering layouts in the IDE");
     myRobot.click(apiButton);

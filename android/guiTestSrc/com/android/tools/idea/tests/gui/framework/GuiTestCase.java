@@ -81,7 +81,6 @@ public abstract class GuiTestCase {
   protected Robot myRobot;
 
   private File projectPath;
-  protected IdeFrameFixture myProjectFrame;
 
   private final List<GarbageCollectorMXBean> myGarbageCollectorMXBeans = ManagementFactory.getGarbageCollectorMXBeans();
   private final MemoryMXBean myMemoryMXBean = ManagementFactory.getMemoryMXBean();
@@ -148,8 +147,8 @@ public abstract class GuiTestCase {
 
   @After
   public void tearDown() {
-    if (myProjectFrame != null) {
-      myProjectFrame.waitForBackgroundTasksToFinish();
+    if (projectPath != null) {
+      getIdeFrame().waitForBackgroundTasksToFinish();
     }
     printTimestamp();
     printPerfStats();
@@ -224,26 +223,22 @@ public abstract class GuiTestCase {
     }
   }
 
-  @NotNull
-  protected IdeFrameFixture importSimpleApplication() throws IOException {
-    return importProjectAndWaitForProjectSyncToFinish("SimpleApplication");
+  protected void importSimpleApplication() throws IOException {
+    importProjectAndWaitForProjectSyncToFinish("SimpleApplication");
   }
 
-  @NotNull
-  protected IdeFrameFixture importMultiModule() throws IOException {
-    return importProjectAndWaitForProjectSyncToFinish("MultiModule");
+  protected void importMultiModule() throws IOException {
+    importProjectAndWaitForProjectSyncToFinish("MultiModule");
   }
 
-  @NotNull
-  protected IdeFrameFixture importProjectAndWaitForProjectSyncToFinish(@NotNull String projectDirName) throws IOException {
-    return importProjectAndWaitForProjectSyncToFinish(projectDirName, null);
+  protected void importProjectAndWaitForProjectSyncToFinish(@NotNull String projectDirName) throws IOException {
+    importProjectAndWaitForProjectSyncToFinish(projectDirName, null);
   }
 
-  @NotNull
-  protected IdeFrameFixture importProjectAndWaitForProjectSyncToFinish(@NotNull String projectDirName, @Nullable String gradleVersion)
+  protected void importProjectAndWaitForProjectSyncToFinish(@NotNull String projectDirName, @Nullable String gradleVersion)
     throws IOException {
     importProject(projectDirName, gradleVersion);
-    return getIdeFrame().waitForGradleProjectSyncToFinish();
+    getIdeFrame().waitForGradleProjectSyncToFinish();
   }
 
   protected void importProject(@NotNull String projectDirName) throws IOException {
