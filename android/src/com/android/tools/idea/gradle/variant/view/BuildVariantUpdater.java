@@ -214,7 +214,7 @@ class BuildVariantUpdater {
       // be there.
       if (!ApplicationManager.getApplication().isUnitTestMode()) {
         Project project = affectedFacets.get(0).getModule().getProject();
-        GradleProjectBuilder.getInstance(project).generateSourcesOnly();
+        GradleProjectBuilder.getInstance(project).generateSourcesOnly(false);
       }
     }
   }

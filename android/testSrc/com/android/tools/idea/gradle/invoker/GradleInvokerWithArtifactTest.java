@@ -59,7 +59,7 @@ public class GradleInvokerWithArtifactTest extends AbstractGradleInvokerTest {
         assertEquals(BuildMode.SOURCE_GEN, getBuildMode());
       }
     });
-    myInvoker.generateSources();
+    myInvoker.generateSources(false);
   }
 
   public void testCompileJava() throws Exception {

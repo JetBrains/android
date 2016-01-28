@@ -136,7 +136,20 @@ public class GradleInvokerTest extends IdeaTestCase {
         assertEquals(BuildMode.SOURCE_GEN, getBuildMode());
       }
     });
-    myInvoker.generateSources();
+    myInvoker.generateSources(false);
+  }
+
+  public void testGenerateSourcesWithClean() throws Exception {
+    myInvoker.addBeforeGradleInvocationTask(new GradleInvoker.BeforeGradleInvocationTask() {
+      @Override
+      public void execute(@NotNull List<String> tasks) {
+        assertThat(tasks).containsOnly(CLEAN,
+                                       qualifiedTaskName(SOURCE_GEN),
+                                       qualifiedTaskName(TEST_SOURCE_GEN));
+        assertEquals(BuildMode.SOURCE_GEN, getBuildMode());
+      }
+    });
+    myInvoker.generateSources(true);
   }
 
   public void testGenerateSourcesWithoutTestSourceGen() throws Exception {
@@ -149,7 +162,7 @@ public class GradleInvokerTest extends IdeaTestCase {
         assertEquals(BuildMode.SOURCE_GEN, getBuildMode());
       }
     });
-    myInvoker.generateSources();
+    myInvoker.generateSources(false);
   }
 
   public void testCompileJava() throws Exception {
