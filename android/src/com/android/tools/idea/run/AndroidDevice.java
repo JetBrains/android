@@ -72,4 +72,10 @@ public interface AndroidDevice {
    */
   @NotNull
   ListenableFuture<IDevice> getLaunchedDevice();
+
+  /**
+   * Returns an error string specific to the underlying implementation, or null if there is none.
+   */
+  @Nullable
+  String getError();
 }

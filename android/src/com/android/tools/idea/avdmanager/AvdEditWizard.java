@@ -131,13 +131,10 @@ public class AvdEditWizard extends DynamicWizard {
       }
     }
     state.put(DEVICE_DEFINITION_KEY, selectedDevice);
-    IAndroidTarget target = avdInfo.getTarget();
-    if (target != null) {
-      ISystemImage selectedImage = target.getSystemImage(avdInfo.getTag(), avdInfo.getAbiType());
-      if (selectedImage != null) {
-        SystemImageDescription systemImageDescription = new SystemImageDescription(target, selectedImage);
-        state.put(SYSTEM_IMAGE_KEY, systemImageDescription);
-      }
+    ISystemImage selectedImage = avdInfo.getSystemImage();
+    if (selectedImage != null) {
+      SystemImageDescription systemImageDescription = new SystemImageDescription(selectedImage);
+      state.put(SYSTEM_IMAGE_KEY, systemImageDescription);
     }
 
     Map<String, String> properties = avdInfo.getProperties();
@@ -358,15 +355,15 @@ public class AvdEditWizard extends DynamicWizard {
 
     // If we're editing an AVD and we downgrade a system image, wipe the user data with confirmation
     if (myAvdInfo != null && !myForceCreate) {
-      IAndroidTarget target = myAvdInfo.getTarget();
-      if (target != null) {
+      ISystemImage image = myAvdInfo.getSystemImage();
+      if (image != null) {
 
-        int oldApiLevel = target.getVersion().getFeatureLevel();
+        int oldApiLevel = image.getAndroidVersion().getFeatureLevel();
         int newApiLevel = systemImageDescription.getVersion().getFeatureLevel();
-        final String oldApiName = target.getVersion().getApiString();
+        final String oldApiName = image.getAndroidVersion().getApiString();
         final String newApiName = systemImageDescription.getVersion().getApiString();
         if (oldApiLevel > newApiLevel ||
-            (oldApiLevel == newApiLevel && target.getVersion().isPreview() && !systemImageDescription.getVersion().isPreview())) {
+            (oldApiLevel == newApiLevel && image.getAndroidVersion().isPreview() && !systemImageDescription.getVersion().isPreview())) {
           final AtomicReference<Boolean> shouldContinue = new AtomicReference<Boolean>();
           ApplicationManager.getApplication().invokeAndWait(new Runnable() {
             @Override

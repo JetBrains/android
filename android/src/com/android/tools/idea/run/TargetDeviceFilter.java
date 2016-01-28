@@ -62,8 +62,7 @@ public abstract class TargetDeviceFilter implements Predicate<IDevice> {
         LaunchCompatibility compatibility = LaunchCompatibility.canRunOnDevice(AndroidModuleInfo.get(myFacet).getRuntimeMinSdkVersion(),
                                                                                androidPlatform.getTarget(),
                                                                                EnumSet.noneOf(IDevice.HardwareFeature.class),
-                                                                               new ConnectedAndroidDevice(device, null),
-                                                                               null);
+                                                                               new ConnectedAndroidDevice(device, null));
         return compatibility.isCompatible() != ThreeState.NO;
       }
     }

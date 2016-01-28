@@ -24,6 +24,7 @@ import com.android.sdklib.*;
 import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.sdklib.repositoryv2.IdDisplay;
 import com.android.sdklib.repositoryv2.meta.DetailsTypes;
+import com.android.sdklib.repositoryv2.targets.PlatformTarget;
 import com.android.sdklib.repositoryv2.targets.SystemImage;
 import com.google.common.base.Objects;
 import org.jetbrains.annotations.NotNull;
@@ -35,21 +36,18 @@ import java.io.File;
  * Information on a system image. Used internally by the avd manager.
  */
 public final class SystemImageDescription {
-  private IAndroidTarget myTarget;
   private ISystemImage mySystemImage;
   private RemotePackage myRemotePackage;
 
-  public SystemImageDescription(IAndroidTarget target, ISystemImage systemImage) {
-    myTarget = target;
+  public SystemImageDescription(@NotNull ISystemImage systemImage) {
     mySystemImage = systemImage;
   }
 
-  public SystemImageDescription(RemotePackage remotePackage, IAndroidTarget target) {
+  public SystemImageDescription(@NotNull RemotePackage remotePackage) {
     this.myRemotePackage = remotePackage;
 
     assert hasSystemImage(remotePackage);
     mySystemImage = new RemoteSystemImage(remotePackage);
-    myTarget = target;
   }
 
   static boolean hasSystemImage(RepoPackage p) {
@@ -76,7 +74,7 @@ public final class SystemImageDescription {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(myTarget, mySystemImage, myRemotePackage);
+    return Objects.hashCode(mySystemImage, myRemotePackage);
   }
 
   @Override
@@ -85,7 +83,7 @@ public final class SystemImageDescription {
       return false;
     }
     SystemImageDescription other = (SystemImageDescription)obj;
-    return Objects.equal(myTarget, other.myTarget) && Objects.equal(mySystemImage, other.mySystemImage) &&
+    return Objects.equal(mySystemImage, other.mySystemImage) &&
            Objects.equal(myRemotePackage, other.myRemotePackage);
   }
 
@@ -113,28 +111,18 @@ public final class SystemImageDescription {
   }
 
   public String getName() {
-    if (getVersion() != null) {
-      return String.format("Android %s", SdkVersionInfo.getVersionString(getVersion().getFeatureLevel()));
-    }
-    return "Unknown platform";
+    return String.format("Android %s", SdkVersionInfo.getVersionString(getVersion().getFeatureLevel()));
   }
 
   public String getVendor() {
-    if (myTarget != null) {
-      return myTarget.getVendor();
-    }
-    if (mySystemImage != null && mySystemImage.getAddonVendor() != null) {
+    if (mySystemImage.getAddonVendor() != null) {
       return mySystemImage.getAddonVendor().getDisplay();
     }
-    return "";
+    return PlatformTarget.PLATFORM_VENDOR;
   }
 
   public String getVersionName() {
     return SdkVersionInfo.getVersionString(mySystemImage.getAndroidVersion().getApiLevel());
-  }
-
-  public IAndroidTarget getTarget() {
-    return myTarget;
   }
 
   @Nullable
@@ -144,6 +132,10 @@ public final class SystemImageDescription {
 
   public File[] getSkins() {
     return mySystemImage.getSkins();
+  }
+
+  public ISystemImage getSystemImage() {
+    return mySystemImage;
   }
 
   private static class RemoteSystemImage implements ISystemImage {
