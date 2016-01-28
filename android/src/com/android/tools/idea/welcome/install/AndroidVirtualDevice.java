@@ -82,7 +82,12 @@ public class AndroidVirtualDevice extends InstallableComponent {
     super(store, "Android Virtual Device", Storage.Unit.GiB.getNumberOfBytes(),
           "A preconfigured and optimized Android Virtual Device for app testing on the emulator. (Recommended)", fop);
     RemotePackage latestInfo = InstallComponentsPath.findLatestPlatform(remotePackages);
-    myLatestVersion = DetailsTypes.getAndroidVersion((DetailsTypes.PlatformDetailsType)latestInfo.getTypeDetails());
+    if (latestInfo != null) {
+      myLatestVersion = DetailsTypes.getAndroidVersion((DetailsTypes.PlatformDetailsType)latestInfo.getTypeDetails());
+    }
+    else {
+      myLatestVersion = null;
+    }
   }
 
   @NotNull
