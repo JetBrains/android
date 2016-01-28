@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework;
 
+import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.google.common.collect.Lists;
 import com.intellij.diagnostic.AbstractMessage;
@@ -30,10 +31,14 @@ import com.intellij.openapi.project.ProjectManagerAdapter;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.IdeFrame;
+import com.intellij.openapi.wm.WindowManager;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
+import com.intellij.openapi.wm.impl.WindowManagerImpl;
+import com.intellij.openapi.wm.impl.welcomeScreen.WelcomeFrame;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.popup.PopupFactoryImpl;
 import com.intellij.ui.popup.list.ListPopupModel;
+import com.intellij.util.net.HttpConfigurable;
 import org.fest.swing.core.BasicRobot;
 import org.fest.swing.core.ComponentFinder;
 import org.fest.swing.core.GenericTypeMatcher;
@@ -48,6 +53,7 @@ import org.fest.swing.timing.Timeout;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
+import org.jetbrains.android.AndroidPlugin;
 import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -65,6 +71,7 @@ import static com.android.tools.idea.AndroidTestCaseHelper.getSystemPropertyOrEn
 import static com.google.common.base.Joiner.on;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.io.Files.createTempDir;
+import static com.intellij.ide.impl.ProjectUtil.closeAndDispose;
 import static com.intellij.openapi.projectRoots.JdkUtil.checkForJdk;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
@@ -77,6 +84,7 @@ import static org.fest.swing.finder.WindowFinder.findFrame;
 import static org.fest.swing.timing.Pause.pause;
 import static org.fest.swing.timing.Timeout.timeout;
 import static org.fest.util.Strings.quote;
+import static org.jetbrains.android.AndroidPlugin.getGuiTestSuiteState;
 import static org.jetbrains.android.AndroidPlugin.setGuiTestingMode;
 import static org.junit.Assert.*;
 
@@ -145,6 +153,22 @@ public final class GuiTests {
     setUpDefaultProjectCreationLocationPath();
 
     setUpSdks();
+  }
+
+  static void setIdeSettings() {
+    GradleExperimentalSettings.getInstance().SELECT_MODULES_ON_PROJECT_IMPORT = false;
+
+    // Clear HTTP proxy settings, in case a test changed them.
+    HttpConfigurable ideSettings = HttpConfigurable.getInstance();
+    ideSettings.USE_HTTP_PROXY = false;
+    ideSettings.PROXY_HOST = "";
+    ideSettings.PROXY_PORT = 80;
+
+    AndroidPlugin.GuiTestSuiteState state = getGuiTestSuiteState();
+    state.setSkipSdkMerge(false);
+    state.setUseCachedGradleModelOnly(false);
+
+    // TODO: setUpDefaultGeneralSettings();
   }
 
   public static void setUpSdks() {
@@ -287,6 +311,54 @@ public final class GuiTests {
       if (robot != null) {
         robot.cleanUpWithoutDisposingWindows();
       }
+    }
+  }
+
+  static void closeAllProjects() {
+    pause(new Condition("Close all projects") {
+      @Override
+      public boolean test() {
+        final Project[] openProjects = ProjectManager.getInstance().getOpenProjects();
+        execute(new GuiTask() {
+          @Override
+          protected void executeInEDT() throws Throwable {
+            for (Project project : openProjects) {
+              assertTrue("Failed to close project " + quote(project.getName()), closeAndDispose(project));
+            }
+          }
+        });
+        return ProjectManager.getInstance().getOpenProjects().length == 0;
+      }
+    }, SHORT_TIMEOUT);
+
+    //noinspection ConstantConditions
+    boolean welcomeFrameShown = execute(new GuiQuery<Boolean>() {
+      @Override
+      protected Boolean executeInEDT() throws Throwable {
+        Project[] openProjects = ProjectManager.getInstance().getOpenProjects();
+        if (openProjects.length == 0) {
+          WelcomeFrame.showNow();
+
+          WindowManagerImpl windowManager = (WindowManagerImpl)WindowManager.getInstance();
+          windowManager.disposeRootFrame();
+          return true;
+        }
+        return false;
+      }
+    });
+
+    if (welcomeFrameShown) {
+      pause(new Condition("'Welcome' frame to show up") {
+        @Override
+        public boolean test() {
+          for (Frame frame : Frame.getFrames()) {
+            if (frame == WelcomeFrame.getInstance() && frame.isShowing()) {
+              return true;
+            }
+          }
+          return false;
+        }
+      }, SHORT_TIMEOUT);
     }
   }
 
