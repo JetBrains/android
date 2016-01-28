@@ -16,6 +16,7 @@
 package com.android.tools.idea.npw;
 
 import com.android.repository.api.LocalPackage;
+import com.android.repository.api.ProgressIndicator;
 import com.android.repository.api.RepoManager;
 import com.android.repository.api.RepoPackage;
 import com.android.repository.impl.meta.RepositoryPackages;
@@ -84,6 +85,8 @@ public final class FormFactorApiComboBox extends JComboBox {
   private Key<AndroidTargetComboBoxItem> myTargetComboBoxKey;
   private Key<Boolean> myInclusionKey;
   private RepositoryPackages myRepoPackages;
+
+  private static final ProgressIndicator REPO_LOG = new StudioLoggerProgressIndicator(FormFactorApiComboBox.class);
 
   /**
    * Initializes this component, notably by populating the available values from local, remote, and statically-defined sources.
@@ -211,11 +214,9 @@ public final class FormFactorApiComboBox extends JComboBox {
           // Overwrite request from above, since (earlier in this method) removing an addon will also remove the platform.
           myInstallRequest = p;
 
-          StudioLoggerProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
-          AndroidTargetManager targetManager = AndroidSdkUtils.tryToChooseSdkHandler().getAndroidTargetManager(
-            progress);
+          AndroidTargetManager targetManager = AndroidSdkUtils.tryToChooseSdkHandler().getAndroidTargetManager(REPO_LOG);
 
-          if (targetManager.getTargetFromHashString(AndroidTargetHash.getPlatformHashString(androidVersion), progress) == null) {
+          if (targetManager.getTargetFromHashString(AndroidTargetHash.getPlatformHashString(androidVersion), REPO_LOG) == null) {
             stateStore.listPush(INSTALL_REQUESTS_KEY, platformPath);
           }
 
@@ -310,25 +311,15 @@ public final class FormFactorApiComboBox extends JComboBox {
    */
   @NotNull
   private static IAndroidTarget[] getCompilationTargets() {
-    AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
-    if (sdkData == null) {
-      return new IAndroidTarget[0];
-    }
-    return getCompilationTargets(sdkData);
-  }
-
-  @NotNull
-  public static IAndroidTarget[] getCompilationTargets(@NotNull AndroidSdkData sdkData) {
-    IAndroidTarget[] targets = sdkData.getTargets();
-    List<IAndroidTarget> list = new ArrayList<IAndroidTarget>();
-
-    for (IAndroidTarget target : targets) {
+    AndroidTargetManager targetManager = AndroidSdkUtils.tryToChooseSdkHandler().getAndroidTargetManager(REPO_LOG);
+    List<IAndroidTarget> result = Lists.newArrayList();
+    for (IAndroidTarget target : targetManager.getTargets(REPO_LOG)) {
       if (!target.isPlatform() && target.getAdditionalLibraries().isEmpty()) {
         continue;
       }
-      list.add(target);
+      result.add(target);
     }
-    return list.toArray(new IAndroidTarget[list.size()]);
+    return result.toArray(new IAndroidTarget[result.size()]);
   }
 
   public static class AndroidTargetComboBoxItem extends ApiComboBoxItem<String> {
@@ -429,8 +420,7 @@ public final class FormFactorApiComboBox extends JComboBox {
   private void loadRemoteTargets(final int minSdkLevel, final Runnable completedCallback,
                                  final Runnable foundItemsCallback, final Runnable noItemsCallback) {
     AndroidSdkHandler sdkHandler = AndroidSdkUtils.tryToChooseSdkHandler();
-    final StudioLoggerProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
-    final AndroidTargetManager targetManager = sdkHandler.getAndroidTargetManager(progress);
+    final AndroidTargetManager targetManager = sdkHandler.getAndroidTargetManager(REPO_LOG);
 
     final Runnable runCallbacks = new Runnable() {
       @Override
@@ -483,7 +473,7 @@ public final class FormFactorApiComboBox extends JComboBox {
           Iterables.filter(addons, FormFactorUtils.getMinSdkPackageFilter(myFormFactor, minSdkLevel));
 
         for (LocalPackage info : result) {
-          if (targetManager.getTargetFromPackage(info, progress) == null) {
+          if (targetManager.getTargetFromPackage(info, REPO_LOG) == null) {
             addItem(new AndroidTargetComboBoxItem(info));
           }
         }
@@ -503,7 +493,7 @@ public final class FormFactorApiComboBox extends JComboBox {
     };
 
     StudioProgressRunner runner = new StudioProgressRunner(false, true, false, "Refreshing Targets", true, null);
-    sdkHandler.getSdkManager(progress).load(
+    sdkHandler.getSdkManager(REPO_LOG).load(
       RepoManager.DEFAULT_EXPIRATION_PERIOD_MS,
       ImmutableList.of(onLocalComplete), ImmutableList.of(onComplete), ImmutableList.of(onError),
       runner, new StudioDownloader(), StudioSettingsController.getInstance(), false);
