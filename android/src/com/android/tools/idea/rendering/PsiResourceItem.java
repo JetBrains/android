@@ -29,21 +29,15 @@ import com.google.common.base.Splitter;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.psi.PsiDirectory;
-import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.tree.IElementType;
-import com.intellij.psi.xml.XmlElementType;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.psi.xml.XmlText;
-import com.intellij.psi.xml.XmlTokenType;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 
 import static com.android.SdkConstants.*;
-import static com.android.ide.common.resources.ResourceResolver.*;
 
-public class PsiResourceItem extends ResourceItem {
+class PsiResourceItem extends ResourceItem {
   private final XmlTag myTag;
   private PsiFile myFile;
 
@@ -243,7 +237,7 @@ public class PsiResourceItem extends ResourceItem {
         }
 
         ItemResourceValue resValue = new ItemResourceValue(name, isFrameworkAttr, styleValue.isFramework());
-        resValue.setValue(ValueXmlHelper.unescapeResourceString(getTextContent(child), true, true));
+        resValue.setValue(ValueXmlHelper.unescapeResourceString(ResourceHelper.getTextContent(child), true, true));
         styleValue.addItem(resValue);
       }
     }
@@ -281,7 +275,7 @@ public class PsiResourceItem extends ResourceItem {
   private ResourceValue parseArrayValue(ArrayResourceValue arrayValue) {
     assert myTag != null;
     for (XmlTag child : myTag.getSubTags()) {
-      String text = ValueXmlHelper.unescapeResourceString(getTextContent(child), true, true);
+      String text = ValueXmlHelper.unescapeResourceString(ResourceHelper.getTextContent(child), true, true);
       arrayValue.addElement(text);
     }
 
@@ -293,7 +287,7 @@ public class PsiResourceItem extends ResourceItem {
     for (XmlTag child : myTag.getSubTags()) {
       String quantity = child.getAttributeValue(ATTR_QUANTITY);
       if (quantity != null) {
-        String text = ValueXmlHelper.unescapeResourceString(getTextContent(child), true, true);
+        String text = ValueXmlHelper.unescapeResourceString(ResourceHelper.getTextContent(child), true, true);
         value.addPlural(quantity, text);
       }
     }
@@ -304,101 +298,19 @@ public class PsiResourceItem extends ResourceItem {
   @NonNull
   private ResourceValue parseValue(@NonNull ResourceValue value) {
     assert myTag != null;
-    String text = getTextContent(myTag);
+    String text = ResourceHelper.getTextContent(myTag);
     text = ValueXmlHelper.unescapeResourceString(text, true, true);
     value.setValue(text);
     return value;
-  }
-
-  /**
-   * Returns the text content of a given tag
-   */
-  public static String getTextContent(@NonNull XmlTag tag) {
-    // We can't just use tag.getValue().getTrimmedText() here because we need to remove
-    // intermediate elements such as <xliff> text:
-    // TODO: Make sure I correct handle HTML content for XML items in <string> nodes!
-    // For example, for the following string we want to compute "Share with %s":
-    // <string name="share">Share with <xliff:g id="application_name" example="Bluetooth">%s</xliff:g></string>
-    XmlTag[] subTags = tag.getSubTags();
-    XmlText[] textElements = tag.getValue().getTextElements();
-    if (subTags.length == 0) {
-      if (textElements.length == 1) {
-        return getXmlTextValue(textElements[0]);
-      } else if (textElements.length == 0) {
-        return "";
-      }
-    }
-    StringBuilder sb = new StringBuilder(40);
-    appendText(sb, tag);
-    return sb.toString();
   }
 
   @NonNull
   private PsiTextResourceValue parseTextValue(@NonNull PsiTextResourceValue value) {
     assert myTag != null;
-    String text = getTextContent(myTag);
+    String text = ResourceHelper.getTextContent(myTag);
     text = ValueXmlHelper.unescapeResourceString(text, true, true);
     value.setValue(text);
     return value;
-  }
-
-  private static String getXmlTextValue(XmlText element) {
-    PsiElement current = element.getFirstChild();
-    if (current != null) {
-      if (current.getNextSibling() != null) {
-        StringBuilder sb = new StringBuilder();
-        for (; current != null; current = current.getNextSibling()) {
-          IElementType type = current.getNode().getElementType();
-          if (type == XmlElementType.XML_CDATA) {
-            PsiElement[] children = current.getChildren();
-            if (children.length == 3) { // XML_CDATA_START, XML_DATA_CHARACTERS, XML_CDATA_END
-              assert children[1].getNode().getElementType() == XmlTokenType.XML_DATA_CHARACTERS;
-              sb.append(children[1].getText());
-            }
-            continue;
-          }
-          sb.append(current.getText());
-        }
-        return sb.toString();
-      } else if (current.getNode().getElementType() == XmlElementType.XML_CDATA) {
-        PsiElement[] children = current.getChildren();
-        if (children.length == 3) { // XML_CDATA_START, XML_DATA_CHARACTERS, XML_CDATA_END
-          assert children[1].getNode().getElementType() == XmlTokenType.XML_DATA_CHARACTERS;
-          return children[1].getText();
-        }
-      }
-    }
-
-    return element.getText();
-  }
-
-  private static void appendText(@NonNull StringBuilder sb, @NonNull XmlTag tag) {
-    PsiElement[] children = tag.getChildren();
-    for (PsiElement child : children) {
-      if (child instanceof XmlText) {
-        XmlText text = (XmlText)child;
-        sb.append(getXmlTextValue(text));
-      } else if (child instanceof XmlTag) {
-        XmlTag childTag = (XmlTag)child;
-        // xliff support
-        if (XLIFF_G_TAG.equals(childTag.getLocalName()) && childTag.getNamespace().startsWith(XLIFF_NAMESPACE_PREFIX)) {
-          String example = childTag.getAttributeValue(ATTR_EXAMPLE);
-          if (example != null) {
-            // <xliff:g id="number" example="7">%d</xliff:g> minutes => "(7) minutes"
-            sb.append('(').append(example).append(')');
-            continue;
-          } else {
-            String id = childTag.getAttributeValue(ATTR_ID);
-            if (id != null) {
-              // Step <xliff:g id="step_number">%1$d</xliff:g> => Step ${step_number}
-              sb.append('$').append('{').append(id).append('}');
-              continue;
-            }
-          }
-        }
-        appendText(sb, childTag);
-      }
-    }
   }
 
   @NonNull
@@ -436,7 +348,7 @@ public class PsiResourceItem extends ResourceItem {
 
   @Override
   public String toString() {
-    return super.toString() + ": " + (myTag != null ? getTextContent(myTag) : "null" + (myFile != null ? ":" + myFile.getName() : ""));
+    return super.toString() + ": " + (myTag != null ? ResourceHelper.getTextContent(myTag) : "null" + (myFile != null ? ":" + myFile.getName() : ""));
   }
 
   private class PsiTextResourceValue extends TextResourceValue {

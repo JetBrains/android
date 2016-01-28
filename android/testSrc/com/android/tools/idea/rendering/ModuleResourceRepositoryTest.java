@@ -16,12 +16,14 @@
 package com.android.tools.idea.rendering;
 
 import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.res2.ResourceFile;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
@@ -172,7 +174,7 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
 
     assertTrue(resources.hasResourceItem(ResourceType.LAYOUT, "layout1"));
     assertFalse(resources.hasResourceItem(ResourceType.LAYOUT, "layout2"));
-    PsiResourceItem layout1 = getSingleItem(resources, ResourceType.LAYOUT, "layout1");
+    ResourceItem layout1 = getSingleItem(resources, ResourceType.LAYOUT, "layout1");
     assertItemIsInDir(res2, layout1);
 
     long generation = resources.getModificationCount();
@@ -196,7 +198,7 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
     layout1 = getSingleItem(resources, ResourceType.LAYOUT, "layout1");
     assertItemIsInDir(res1, layout1);
 
-    PsiResourceItem layout2 = getSingleItem(resources, ResourceType.LAYOUT, "layout2");
+    ResourceItem layout2 = getSingleItem(resources, ResourceType.LAYOUT, "layout2");
     assertItemIsInDir(res2, layout2);
 
     // Now rename layout1 to layout2 to hide it again
@@ -258,7 +260,7 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
 
     assertTrue(resources.hasResourceItem(ResourceType.STRING, "app_name"));
     assertTrue(resources.hasResourceItem(ResourceType.STRING, "title_layout_changes"));
-    PsiResourceItem appName = getFirstItem(resources, ResourceType.STRING, "app_name");
+    ResourceItem appName = getFirstItem(resources, ResourceType.STRING, "app_name");
     assertItemIsInDir(res3, appName);
     assertStringIs(resources, "app_name", "Very Different App Name", false); // res3 (not unique because we have a values-no item too)
 
@@ -348,10 +350,10 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
 
   // Unit test support methods
 
-  static void assertItemIsInDir(VirtualFile dir, PsiResourceItem item) {
-    PsiFile psiFile = item.getPsiFile();
-    assertNotNull(psiFile);
-    VirtualFile parent = psiFile.getVirtualFile();
+  static void assertItemIsInDir(VirtualFile dir, ResourceItem item) {
+    ResourceFile resourceFile = item.getSource();
+    assertNotNull(resourceFile);
+    VirtualFile parent = VfsUtil.findFileByIoFile(resourceFile.getFile(), false);
     assertNotNull(parent);
     assertEquals(dir, parent.getParent().getParent());
   }
@@ -361,24 +363,22 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
   }
 
   @NotNull
-  private static PsiResourceItem getSingleItem(LocalResourceRepository repository, ResourceType type, String key) {
+  private static ResourceItem getSingleItem(LocalResourceRepository repository, ResourceType type, String key) {
     List<ResourceItem> list = repository.getResourceItem(type, key);
     assertNotNull(list);
     assertSize(1, list);
     ResourceItem item = list.get(0);
     assertNotNull(item);
-    assertTrue(item instanceof PsiResourceItem);
-    return (PsiResourceItem)item;
+    return item;
   }
 
   @NotNull
-  static PsiResourceItem getFirstItem(LocalResourceRepository repository, ResourceType type, String key) {
+  static ResourceItem getFirstItem(LocalResourceRepository repository, ResourceType type, String key) {
     List<ResourceItem> list = repository.getResourceItem(type, key);
     assertNotNull(list);
     ResourceItem item = list.get(0);
     assertNotNull(item);
-    assertTrue(item instanceof PsiResourceItem);
-    return (PsiResourceItem)item;
+    return item;
   }
 
   static void assertStringIs(LocalResourceRepository repository, String key, String expected, boolean mustBeUnique) {
