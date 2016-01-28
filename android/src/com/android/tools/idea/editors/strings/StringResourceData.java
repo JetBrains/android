@@ -19,12 +19,13 @@ import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.tools.idea.configurations.LocaleMenuAction;
+import com.android.tools.idea.rendering.LocalResourceRepository;
 import com.android.tools.idea.rendering.Locale;
-import com.android.tools.idea.rendering.PsiResourceItem;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.*;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlTag;
@@ -82,27 +83,16 @@ public class StringResourceData {
   }
 
   @NotNull
-  public static String resourceToString(@NotNull ResourceItem item) {
-    if (item instanceof PsiResourceItem) {
-      XmlTag tag = ((PsiResourceItem)item).getTag();
-      return tag == null ? "" : XmlTagUtils.unescape(tag).trim();
+  public static String resourceToString(@NotNull Project project, @NotNull ResourceItem item) {
+    XmlTag tag = LocalResourceRepository.getItemTag(project, item);
+    if (tag != null) {
+      return XmlTagUtils.unescape(tag).trim();
     }
-    else {
-      // TODO This is a hack to prevent ClassCastExceptions from ResourceItems that aren't PsiResourceItems (like resources defined in
-      // Gradle files). This disables apostrophe unescaping for those resources and reverts to the old behavior. Undo this hack when the
-      // final escaping solution is in place.
-      ResourceValue value = item.getResourceValue(false);
-      return value == null ? "" : value.getRawXmlValue().trim();
-    }
-  }
-
-  @Nullable
-  public static XmlTag resourceToXmlTag(@NotNull ResourceItem item) {
-    if (item instanceof PsiResourceItem) {
-      XmlTag tag = ((PsiResourceItem)item).getTag();
-      return tag != null && tag.isValid() ? tag : null;
-    }
-    return null;
+    // TODO This is a hack to handle ResourceItems that aren't PsiResourceItems (like resources defined in Gradle files).
+    // This disables apostrophe unescaping for those resources and reverts to the old behavior. Undo this hack when the
+    // final escaping solution is in place.
+    ResourceValue value = item.getResourceValue(false);
+    return value == null ? "" : value.getRawXmlValue().trim();
   }
 
   public void changeKeyName(int index, String name) {
@@ -156,9 +146,10 @@ public class StringResourceData {
   public boolean setTranslation(@NotNull String key, @Nullable Locale locale, @NotNull String value) {
     ResourceItem currentItem = locale == null ? myDefaultValues.get(key) : myTranslations.get(key, locale);
     if (currentItem != null) { // modify existing item
-      String oldText = resourceToString(currentItem);
+      Project project = myFacet.getModule().getProject();
+      String oldText = resourceToString(project, currentItem);
       if (!StringUtil.equals(oldText, value)) {
-        boolean changed = StringsWriteUtils.setItemText(myFacet.getModule().getProject(), currentItem, value);
+        boolean changed = StringsWriteUtils.setItemText(project, currentItem, value);
         if (changed && value.isEmpty()) {
           if (locale == null) {
             myDefaultValues.remove(key);
@@ -258,16 +249,17 @@ public class StringResourceData {
   @VisibleForTesting
   boolean isTranslationMissing(@NotNull String key, @NotNull Locale locale) {
     ResourceItem item = myTranslations.get(key, locale);
-    if (isTranslationMissing(item) && locale.hasRegion()) {
+    Project project = myFacet.getModule().getProject();
+    if (isTranslationMissing(project, item) && locale.hasRegion()) {
       locale = Locale.create(locale.qualifier.getLanguage());
       item = myTranslations.get(key, locale);
     }
 
-    return isTranslationMissing(item);
+    return isTranslationMissing(project, item);
   }
 
-  private static boolean isTranslationMissing(@Nullable ResourceItem item) {
-    return item == null || resourceToString(item).isEmpty();
+  private static boolean isTranslationMissing(@NotNull Project project, @Nullable ResourceItem item) {
+    return item == null || resourceToString(project, item).isEmpty();
   }
 
   @VisibleForTesting

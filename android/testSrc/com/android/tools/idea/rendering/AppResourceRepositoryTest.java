@@ -16,6 +16,7 @@
 package com.android.tools.idea.rendering;
 
 import com.android.ide.common.rendering.api.AttrResourceValue;
+import com.android.ide.common.res2.ResourceItem;
 import com.android.resources.ResourceType;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
@@ -104,7 +105,7 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
     PsiFile layoutPsiFile = PsiManager.getInstance(getProject()).findFile(layoutFile);
     assertNotNull(layoutPsiFile);
     assertTrue(moduleRepository.hasResourceItem(ResourceType.ID, "btn_title_refresh"));
-    final PsiResourceItem item = getFirstItem(moduleRepository, ResourceType.ID, "btn_title_refresh");
+    final ResourceItem item = getFirstItem(moduleRepository, ResourceType.ID, "btn_title_refresh");
 
     final long generation = moduleRepository.getModificationCount();
     final long projectGeneration = projectResources.getModificationCount();
@@ -133,7 +134,7 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
         assertTrue(moduleRepository.hasResourceItem(ResourceType.ID, "btn_title_refresh"));
         assertTrue(appResources.hasResourceItem(ResourceType.ID, "btn_title_refresh"));
         assertTrue(projectResources.hasResourceItem(ResourceType.ID, "btn_title_refresh"));
-        PsiResourceItem newItem = getFirstItem(appResources, ResourceType.ID, "btn_title_refresh");
+        ResourceItem newItem = getFirstItem(appResources, ResourceType.ID, "btn_title_refresh");
         assertNotNull(newItem.getSource());
         // However, should be a different item
         assertNotSame(item, newItem);

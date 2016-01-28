@@ -357,7 +357,7 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
   }
 
   @Nullable
-  public String getViewTag(ResourceItem item) {
+  public String getViewTag(@NonNull ResourceItem item) {
     if (item instanceof PsiResourceItem) {
       PsiResourceItem psiItem = (PsiResourceItem)item;
       XmlTag tag = psiItem.getTag();
