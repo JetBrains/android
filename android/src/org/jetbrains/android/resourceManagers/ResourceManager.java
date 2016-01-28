@@ -101,7 +101,7 @@ public abstract class ResourceManager {
           final String resName = AndroidCommonUtils.getResourceName(resType, resFile.getName());
 
           if (!resFile.isDirectory() && (!publicOnly || isResourcePublic(resType, resName))) {
-            if (!processor.process(resFile, resName, resType)) {
+            if (!processor.process(resFile, resName)) {
               return false;
             }
           }
@@ -145,7 +145,7 @@ public abstract class ResourceManager {
 
     processFileResources(resType1, new FileResourceProcessor() {
       @Override
-      public boolean process(@NotNull final VirtualFile resFile, @NotNull String resName, @NotNull String resFolderType) {
+      public boolean process(@NotNull final VirtualFile resFile, @NotNull String resName) {
         final String extension = resFile.getExtension();
 
         if ((extensions.length == 0 || extensionSet.contains(extension)) &&
@@ -268,7 +268,7 @@ public abstract class ResourceManager {
 
     processFileResources(resourceType, new FileResourceProcessor() {
       @Override
-      public boolean process(@NotNull VirtualFile resFile, @NotNull String resName, @NotNull String resFolderType) {
+      public boolean process(@NotNull VirtualFile resFile, @NotNull String resName) {
         result.add(resName);
         return true;
       }
