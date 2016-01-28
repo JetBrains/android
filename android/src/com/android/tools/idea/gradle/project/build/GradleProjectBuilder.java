@@ -81,14 +81,15 @@ public class GradleProjectBuilder {
   /**
    * Generates source code instead of a full compilation. This method does nothing if the Gradle model does not specify the name of the
    * Gradle task to invoke.
+   * @param cleanProject indicates whether the project should be cleaned before generating sources.
    */
-  public void generateSourcesOnly() {
+  public void generateSourcesOnly(boolean cleanProject) {
     if (!isSourceGenerationEnabled()) {
       return;
     }
     if (requiresAndroidModel(myProject)) {
       if (isDirectGradleInvocationEnabled(myProject)) {
-        GradleInvoker.getInstance(myProject).generateSources();
+        GradleInvoker.getInstance(myProject).generateSources(cleanProject);
       }
       else {
         buildProjectWithJps(SOURCE_GEN);
