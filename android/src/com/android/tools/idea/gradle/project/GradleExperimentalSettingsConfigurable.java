@@ -163,7 +163,7 @@ public class GradleExperimentalSettingsConfigurable implements SearchableConfigu
           public void run(@NotNull ProgressIndicator indicator) {
             if (!project.isDisposed()) {
               // Sync project with cached model. If there is no cache, the IDE will perform a full sync.
-              GradleProjectImporter.getInstance().requestProjectSync(project, true, false, null);
+              GradleProjectImporter.getInstance().requestProjectSync(project, true, false, false, null);
             }
           }
         }.queue();
