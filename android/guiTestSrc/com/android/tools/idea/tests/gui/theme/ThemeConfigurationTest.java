@@ -40,8 +40,8 @@ public class ThemeConfigurationTest extends GuiTestCase {
    */
   @Test
   public void testThemesWithConfiguration() throws IOException {
-    myProjectFrame = importSimpleApplication();
-    ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(myProjectFrame);
+    importSimpleApplication();
+    ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(getIdeFrame());
 
     JComboBoxFixture themesComboBox = themeEditor.getThemesComboBox();
 

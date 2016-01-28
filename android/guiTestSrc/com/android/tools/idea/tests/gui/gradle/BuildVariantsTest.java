@@ -54,14 +54,14 @@ public class BuildVariantsTest extends GuiTestCase {
   @Ignore("failed in http://go/aj/job/studio-ui-test/345 and from IDEA")
   @Test
   public void testSwitchVariantWithFlavor() throws IOException {
-    myProjectFrame = importProjectAndWaitForProjectSyncToFinish("Flavoredlib");
+    importProjectAndWaitForProjectSyncToFinish("Flavoredlib");
 
-    BuildVariantsToolWindowFixture buildVariants = myProjectFrame.getBuildVariantsWindow();
+    BuildVariantsToolWindowFixture buildVariants = getIdeFrame().getBuildVariantsWindow();
     buildVariants.selectVariantForModule(MODULE_NAME, "flavor1Release");
 
     String generatedSourceDirPath = MODULE_NAME + "/build/generated/source/";
 
-    Collection<String> sourceFolders = myProjectFrame.getSourceFolderRelativePaths(MODULE_NAME, SOURCE);
+    Collection<String> sourceFolders = getIdeFrame().getSourceFolderRelativePaths(MODULE_NAME, SOURCE);
     assertThat(sourceFolders).contains(generatedSourceDirPath + "r/flavor1/release",
                                        generatedSourceDirPath + "aidl/flavor1/release",
                                        generatedSourceDirPath + "buildConfig/flavor1/release",
@@ -71,7 +71,7 @@ public class BuildVariantsTest extends GuiTestCase {
                                        MODULE_NAME + "/src/flavor1Release/jni",
                                        MODULE_NAME + "/src/flavor1Release/rs");
 
-    Module appModule = myProjectFrame.getModule(MODULE_NAME);
+    Module appModule = getIdeFrame().getModule(MODULE_NAME);
     AndroidFacet androidFacet = AndroidFacet.getInstance(appModule);
     assertNotNull(androidFacet);
 
@@ -82,7 +82,7 @@ public class BuildVariantsTest extends GuiTestCase {
 
     buildVariants.selectVariantForModule(MODULE_NAME, "flavor1Debug");
 
-    sourceFolders = myProjectFrame.getSourceFolderRelativePaths(MODULE_NAME, SOURCE);
+    sourceFolders = getIdeFrame().getSourceFolderRelativePaths(MODULE_NAME, SOURCE);
     assertThat(sourceFolders).contains(generatedSourceDirPath + "r/flavor1/debug", generatedSourceDirPath + "aidl/flavor1/debug",
                                        generatedSourceDirPath + "buildConfig/flavor1/debug", generatedSourceDirPath + "rs/flavor1/debug",
                                        MODULE_NAME + "/src/flavor1Debug/aidl", MODULE_NAME + "/src/flavor1Debug/java",
@@ -96,20 +96,20 @@ public class BuildVariantsTest extends GuiTestCase {
   @Ignore("failed in http://go/aj/job/studio-ui-test/326 but passed from IDEA")
   @Test
   public void switchingTestArtifacts() throws IOException {
-    myProjectFrame = importProjectAndWaitForProjectSyncToFinish("SimpleApplication");
+    importProjectAndWaitForProjectSyncToFinish("SimpleApplication");
 
-    BuildVariantsToolWindowFixture buildVariants = myProjectFrame.getBuildVariantsWindow();
+    BuildVariantsToolWindowFixture buildVariants = getIdeFrame().getBuildVariantsWindow();
     assertEquals("Android Instrumentation Tests", buildVariants.getSelectedTestArtifact());
 
     String androidTestSrc = MODULE_NAME + "/src/androidTest/java";
     String unitTestSrc = MODULE_NAME + "/src/test/java";
 
-    Collection<String> testSourceFolders = myProjectFrame.getSourceFolderRelativePaths(MODULE_NAME, TEST_SOURCE);
+    Collection<String> testSourceFolders = getIdeFrame().getSourceFolderRelativePaths(MODULE_NAME, TEST_SOURCE);
     assertThat(testSourceFolders).contains(androidTestSrc).excludes(unitTestSrc);
 
     buildVariants.selectTestArtifact("Unit Tests");
 
-    testSourceFolders = myProjectFrame.getSourceFolderRelativePaths(MODULE_NAME, TEST_SOURCE);
+    testSourceFolders = getIdeFrame().getSourceFolderRelativePaths(MODULE_NAME, TEST_SOURCE);
     assertThat(testSourceFolders).contains(unitTestSrc).excludes(androidTestSrc);
   }
 
@@ -139,12 +139,12 @@ public class BuildVariantsTest extends GuiTestCase {
   }
 
   private void doTestGeneratedFolders(@NotNull String pluginVersion, @NotNull String gradleVersion) throws IOException {
-    myProjectFrame = importMultiModule();
-    myProjectFrame.updateAndroidGradlePluginVersion(pluginVersion);
-    myProjectFrame.updateGradleWrapperVersion(gradleVersion);
+    importMultiModule();
+    getIdeFrame().updateAndroidGradlePluginVersion(pluginVersion);
+    getIdeFrame().updateGradleWrapperVersion(gradleVersion);
 
     // Add generated folders to all kinds of variants.
-    File appBuildFile = new File(myProjectFrame.getProjectPath(), join("app", SdkConstants.FN_BUILD_GRADLE));
+    File appBuildFile = new File(getIdeFrame().getProjectPath(), join("app", SdkConstants.FN_BUILD_GRADLE));
     assertThat(appBuildFile).isFile();
     String gradleSnippet = "project.afterEvaluate {\n" +
                   "  android.applicationVariants.all { variant ->\n" +
@@ -169,9 +169,9 @@ public class BuildVariantsTest extends GuiTestCase {
     gradleSnippet += "}\n}";
 
     appendToFile(appBuildFile, gradleSnippet);
-    myProjectFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
+    getIdeFrame().requestProjectSync().waitForGradleProjectSyncToFinish();
 
-    BuildVariantsToolWindowFixture buildVariants = myProjectFrame.getBuildVariantsWindow();
+    BuildVariantsToolWindowFixture buildVariants = getIdeFrame().getBuildVariantsWindow();
     assertEquals("Android Instrumentation Tests", buildVariants.getSelectedTestArtifact());
 
     String generatedSourceDirPath = MODULE_NAME + "/build/generated/customCode/";
@@ -185,18 +185,18 @@ public class BuildVariantsTest extends GuiTestCase {
       unitTestSrc = null;
     }
 
-    Collection<String> sourceFolders = myProjectFrame.getSourceFolderRelativePaths(MODULE_NAME, SOURCE);
+    Collection<String> sourceFolders = getIdeFrame().getSourceFolderRelativePaths(MODULE_NAME, SOURCE);
     assertThat(sourceFolders).contains(mainSrc).excludes(androidTestSrc, unitTestSrc);
-    Collection<String> testSourceFolders = myProjectFrame.getSourceFolderRelativePaths(MODULE_NAME, TEST_SOURCE);
+    Collection<String> testSourceFolders = getIdeFrame().getSourceFolderRelativePaths(MODULE_NAME, TEST_SOURCE);
     assertThat(testSourceFolders).contains(androidTestSrc).excludes(unitTestSrc, mainSrc);
 
     if (compareVersions(pluginVersion, "1.1") >= 0) {
       buildVariants.selectTestArtifact("Unit Tests");
 
-      sourceFolders = myProjectFrame.getSourceFolderRelativePaths(MODULE_NAME, SOURCE);
+      sourceFolders = getIdeFrame().getSourceFolderRelativePaths(MODULE_NAME, SOURCE);
       assertThat(sourceFolders).contains(mainSrc).excludes(androidTestSrc, unitTestSrc);
 
-      testSourceFolders = myProjectFrame.getSourceFolderRelativePaths(MODULE_NAME, TEST_SOURCE);
+      testSourceFolders = getIdeFrame().getSourceFolderRelativePaths(MODULE_NAME, TEST_SOURCE);
       if (compareVersions(pluginVersion, "1.3") >= 0) {
         // In 1.3 we started to include unit testing generated folders in the model.
         assertThat(testSourceFolders).contains(unitTestSrc).excludes(androidTestSrc, mainSrc);

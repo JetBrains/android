@@ -72,10 +72,10 @@ public class GradleTestArtifactSyncTest extends GuiTestCase {
   @Ignore("failed in http://go/aj/job/studio-ui-test/326 but passed from IDEA")
   @Test
   public void testLoadAllTestArtifacts() throws IOException {
-    myProjectFrame = importProjectAndWaitForProjectSyncToFinish("LoadMultiTestArtifacts");
-    EditorFixture editor = myProjectFrame.getEditor();
+    importProjectAndWaitForProjectSyncToFinish("LoadMultiTestArtifacts");
+    EditorFixture editor = getIdeFrame().getEditor();
 
-    Module appModule = myProjectFrame.getModule("app");
+    Module appModule = getIdeFrame().getModule("app");
     List<String> sourceRootNames = Lists.newArrayList();
     VirtualFile[] sourceRoots = ModuleRootManager.getInstance(appModule).getSourceRoots();
     for (VirtualFile sourceRoot : sourceRoots) {
@@ -112,8 +112,8 @@ public class GradleTestArtifactSyncTest extends GuiTestCase {
 
   @Test
   public void testTestFileBackground() throws Exception {
-    myProjectFrame = importSimpleApplication();
-    EditorFixture editor = myProjectFrame.getEditor();
+    importSimpleApplication();
+    EditorFixture editor = getIdeFrame().getEditor();
 
     editor.open("app/src/test/java/google/simpleapplication/UnitTest.java");
     TabLabel tabLabel = findTab(editor);

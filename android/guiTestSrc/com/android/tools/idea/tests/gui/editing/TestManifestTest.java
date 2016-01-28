@@ -31,8 +31,8 @@ public class TestManifestTest extends GuiTestCase {
   @Ignore("failed in http://go/aj/job/studio-ui-test/345 and from IDEA")
   @Test
   public void testManifest() throws IOException {
-    myProjectFrame = importProjectAndWaitForProjectSyncToFinish("ProjectWithUnitTests");
-    EditorFixture editor = myProjectFrame.getEditor();
+    importProjectAndWaitForProjectSyncToFinish("ProjectWithUnitTests");
+    EditorFixture editor = getIdeFrame().getEditor();
 
     editor.open("app/src/main/AndroidManifest.xml");
     editor.waitForCodeAnalysisHighlightCount(HighlightSeverity.ERROR, 0);

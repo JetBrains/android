@@ -30,15 +30,15 @@ public class FindInPathTest extends GuiTestCase {
   @Ignore("failed in http://go/aj/job/studio-ui-test/326 but passed from IDEA")
   @Test
   public void testResultsOnlyInGeneratedCode() throws Exception {
-    myProjectFrame = importSimpleApplication();
+    importSimpleApplication();
 
-    FindDialogFixture findDialog = myProjectFrame.invokeFindInPathDialog();
+    FindDialogFixture findDialog = getIdeFrame().invokeFindInPathDialog();
     findDialog.setTextToFind("ActionBarDivider")
               .clickFind();
 
-    myProjectFrame.waitForBackgroundTasksToFinish();
+    getIdeFrame().waitForBackgroundTasksToFinish();
 
-    FindToolWindowFixture findToolWindow = myProjectFrame.getFindToolWindow();
+    FindToolWindowFixture findToolWindow = getIdeFrame().getFindToolWindow();
     FindToolWindowFixture.ContentFixture selectedContext = findToolWindow.getSelectedContext();
 
     selectedContext.findUsagesInGeneratedCodeGroup();
@@ -47,15 +47,15 @@ public class FindInPathTest extends GuiTestCase {
   @Ignore("failed in http://go/aj/job/studio-ui-test/326 but passed from IDEA")
   @Test
   public void testResultsInBothProductionAndGeneratedCode() throws Exception {
-    myProjectFrame = importSimpleApplication();
+    importSimpleApplication();
 
-    FindDialogFixture findDialog = myProjectFrame.invokeFindInPathDialog();
+    FindDialogFixture findDialog = getIdeFrame().invokeFindInPathDialog();
     findDialog.setTextToFind("DarkActionBar")
               .clickFind();
 
-    myProjectFrame.waitForBackgroundTasksToFinish();
+    getIdeFrame().waitForBackgroundTasksToFinish();
 
-    FindToolWindowFixture findToolWindow = myProjectFrame.getFindToolWindow();
+    FindToolWindowFixture findToolWindow = getIdeFrame().getFindToolWindow();
     FindToolWindowFixture.ContentFixture selectedContext = findToolWindow.getSelectedContext();
 
     selectedContext.findUsagesInGeneratedCodeGroup();
