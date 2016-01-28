@@ -127,12 +127,14 @@ public class PostProjectSetupTasksExecutor {
   private static boolean ourCheckedExpiration;
 
   private static final boolean DEFAULT_GENERATE_SOURCES_AFTER_SYNC = true;
+  private static final boolean DEFAULT_CLEAN_PROJECT_AFTER_SYNC = false;
   private static final boolean DEFAULT_USING_CACHED_PROJECT_DATA = false;
   private static final long DEFAULT_LAST_SYNC_TIMESTAMP = -1;
 
   @NotNull private final Project myProject;
 
   private volatile boolean myGenerateSourcesAfterSync = DEFAULT_GENERATE_SOURCES_AFTER_SYNC;
+  private boolean myCleanProjectAfterSync = DEFAULT_CLEAN_PROJECT_AFTER_SYNC;
   private volatile boolean myUsingCachedProjectData = DEFAULT_USING_CACHED_PROJECT_DATA;
   private volatile long myLastSyncTimestamp = DEFAULT_LAST_SYNC_TIMESTAMP;
 
@@ -213,11 +215,12 @@ public class PostProjectSetupTasksExecutor {
     updateGradleSyncState();
 
     if (myGenerateSourcesAfterSync) {
-      GradleProjectBuilder.getInstance(myProject).generateSourcesOnly();
+      GradleProjectBuilder.getInstance(myProject).generateSourcesOnly(myCleanProjectAfterSync);
     }
 
     // set default value back.
     myGenerateSourcesAfterSync = DEFAULT_GENERATE_SOURCES_AFTER_SYNC;
+    myCleanProjectAfterSync = DEFAULT_CLEAN_PROJECT_AFTER_SYNC;
 
     TemplateManager.getInstance().refreshDynamicTemplateMenu(myProject);
 
@@ -713,8 +716,16 @@ public class PostProjectSetupTasksExecutor {
     });
   }
 
-  public void setGenerateSourcesAfterSync(boolean generateSourcesAfterSync) {
+  /**
+   * Indicates whether the IDE should generate sources after project sync.
+   *
+   * @param generateSourcesAfterSync {@code true} if sources should be generated after sync, {@code false otherwise}.
+   * @param cleanProjectAfterSync    if {@code true}, the project should be cleaned before generating sources. This value is ignored if
+   *                                 {@code generateSourcesAfterSync} is {@code false}.
+   */
+  public void setGenerateSourcesAfterSync(boolean generateSourcesAfterSync, boolean cleanProjectAfterSync) {
     myGenerateSourcesAfterSync = generateSourcesAfterSync;
+    myCleanProjectAfterSync = cleanProjectAfterSync;
   }
 
   public void setLastSyncTimestamp(long lastSyncTimestamp) {
