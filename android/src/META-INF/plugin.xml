@@ -42,6 +42,11 @@
       <headless-implementation-class></headless-implementation-class>
     </component>
     <component>
+      <implementation-class>com.android.tools.idea.editors.theme.AndroidThemePreviewToolWindowManager</implementation-class>
+      <skipForDefaultProject/>
+      <headless-implementation-class/>
+    </component>
+    <component>
       <implementation-class>com.android.tools.idea.gradle.project.AndroidGradleProjectComponent</implementation-class>
       <skipForDefaultProject/>
     </component>
