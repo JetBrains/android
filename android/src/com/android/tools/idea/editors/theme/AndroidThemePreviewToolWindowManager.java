@@ -160,7 +160,7 @@ public class AndroidThemePreviewToolWindowManager implements ProjectComponent {
   private void initToolWindow() {
     myToolWindow =
       ToolWindowManager.getInstance(myProject).registerToolWindow(TOOL_WINDOW_ID, false, ToolWindowAnchor.RIGHT, myProject, false);
-    myToolWindow.setIcon(AndroidIcons.Themes);
+    myToolWindow.setIcon(AndroidIcons.ThemesPreview);
     myToolWindow.setAvailable(false, null);
     myToolWindow.setAutoHide(false);
 
