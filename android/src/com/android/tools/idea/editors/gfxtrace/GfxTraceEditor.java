@@ -20,6 +20,7 @@ import com.android.tools.idea.editors.gfxtrace.gapi.GapisConnection;
 import com.android.tools.idea.editors.gfxtrace.gapi.GapisFeatures;
 import com.android.tools.idea.editors.gfxtrace.gapi.GapisProcess;
 import com.android.tools.idea.editors.gfxtrace.gapi.GapiPaths;
+import com.android.tools.idea.editors.gfxtrace.models.AtomStream;
 import com.android.tools.idea.editors.gfxtrace.service.*;
 import com.android.tools.idea.editors.gfxtrace.service.atom.AtomMetadata;
 import com.android.tools.idea.editors.gfxtrace.service.path.*;
@@ -91,6 +92,7 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
   @NotNull private final ListeningExecutorService myExecutor = MoreExecutors.listeningDecorator(Executors.newCachedThreadPool());
   private GapisConnection myGapisConnection;
   private ServiceClient myClient;
+  private final AtomStream myAtomStream = new AtomStream(this);
 
   @NotNull private List<PathListener> myPathListeners = new ArrayList<PathListener>();
   @NotNull private PathStore<Path> myLastActivatadPath = new PathStore<Path>();
@@ -104,6 +106,8 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
     myLoadingDecorator = new TraceLoadingDecorator(myView, this, 0);
     myLoadingDecorator.setLoadingText("Initializing GFX Trace System");
     myLoadingDecorator.startLoading(false);
+
+    addPathListener(myAtomStream);
 
     final JComponent mainUi = MainController.createUI(GfxTraceEditor.this);
 
@@ -375,6 +379,11 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
   @NotNull
   public ServiceClient getClient() {
     return myClient;
+  }
+
+  @NotNull
+  public AtomStream getAtomStream() {
+    return myAtomStream;
   }
 
   @NotNull
