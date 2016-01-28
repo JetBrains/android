@@ -69,11 +69,11 @@ public class FixAndroidGradlePluginVersionHyperlink extends NotificationHyperlin
     }
 
     if (updateGradlePluginVersion(project, myModelVersion, myGradleVersion)) {
-      GradleProjectImporter.getInstance().requestProjectSync(project, null);
+      GradleProjectImporter.getInstance().requestProjectSync(project, false, true /* generate sources */, true /* clean */, null);
       return;
     }
 
-    String msg = "Unable to find any references to the Android Gradle plugin in build.gradle files.\n\n" +
+    String msg = "Failed to update the version of the Gradle plugin.\n\n" +
                  "Please click the link to perform a textual search and then update the build files manually.";
     SearchInBuildFilesHyperlink hyperlink = new SearchInBuildFilesHyperlink(GRADLE_PLUGIN_NAME);
     AndroidGradleNotification.getInstance(project).showBalloon(ERROR_MSG_TITLE, msg, ERROR, hyperlink);
