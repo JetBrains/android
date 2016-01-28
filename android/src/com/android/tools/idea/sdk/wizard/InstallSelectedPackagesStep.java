@@ -24,6 +24,7 @@ import com.android.repository.impl.meta.TypeDetails;
 import com.android.sdklib.repositoryv2.AndroidSdkHandler;
 import com.android.sdklib.repositoryv2.meta.DetailsTypes;
 import com.android.tools.idea.sdkv2.StudioDownloader;
+import com.android.tools.idea.sdkv2.StudioProgressRunner;
 import com.android.tools.idea.sdkv2.StudioSdkUtil;
 import com.android.tools.idea.sdkv2.StudioSettingsController;
 import com.android.tools.idea.ui.properties.core.BoolProperty;
@@ -257,6 +258,8 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
           myCustomLogger = null;
         }
       }
+      myRepoManager.loadSynchronously(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, myProgress, null, StudioSettingsController.getInstance());
+
       UIUtil.invokeLaterIfNeeded(new Runnable() {
         @Override
         public void run() {
