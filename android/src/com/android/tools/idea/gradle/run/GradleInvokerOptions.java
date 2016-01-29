@@ -101,8 +101,7 @@ public class GradleInvokerOptions {
     // Inject instant run attributes
     // Note that these are specifically not injected for the unit or instrumentation tests
     if (testCompileType == GradleInvoker.TestCompileType.NONE && instantRunBuildOptions != null) {
-      boolean incrementalBuild = !instantRunBuildOptions.cleanBuild &&      // e.g. build ids changed
-                                 !instantRunBuildOptions.needsFullBuild;    // e.g. manifest changed
+      boolean incrementalBuild = canBuildIncrementally(instantRunBuildOptions);
 
       cmdLineArgs.add(getInstantDevProperty(instantRunBuildOptions, incrementalBuild));
       cmdLineArgs.addAll(getDeviceSpecificArguments(instantRunBuildOptions.devices));
@@ -123,13 +122,34 @@ public class GradleInvokerOptions {
     return new GradleInvokerOptions(tasks, buildMode, cmdLineArgs);
   }
 
+  private static boolean canBuildIncrementally(@NotNull InstantRunBuildOptions options) {
+    if (options.cleanBuild              // e.g. build ids changed
+        || options.needsFullBuild) {    // e.g. manifest changed
+      return false;
+    }
+
+    if (!options.isAppRunning) { // freeze-swap or dexswap scenario
+      // We can't do dex swap if cold swap itself is not enabled
+      if (!options.coldSwapEnabled) {
+        return false;
+      }
+
+      AndroidDevice device = options.devices.get(0); // Instant Run only supports launching to a single device
+      AndroidVersion version = device.getVersion();
+      if (!version.isGreaterOrEqualThan(21)) { // don't support cold swap on API < 21
+        return false;
+      }
+    }
+
+    return true;
+  }
+
   @NotNull
   private static String getInstantDevProperty(@NotNull InstantRunBuildOptions buildOptions, boolean incrementalBuild) {
     StringBuilder sb = new StringBuilder(50);
     sb.append("-P" + AndroidProject.OPTIONAL_COMPILATION_STEPS + "=INSTANT_DEV");
 
-    // we need RESTART_ONLY in two scenarios: full builds, and for incremental builds when app is not running
-    if (!incrementalBuild || !buildOptions.isAppRunning) {
+    if (needsRestartOnly(incrementalBuild, buildOptions)) {
       sb.append(",RESTART_ONLY");
     }
 
@@ -144,6 +164,17 @@ public class GradleInvokerOptions {
     }
 
     return sb.toString();
+  }
+
+  // Returns whether the RESTART_ONLY flag needs to be added
+  private static boolean needsRestartOnly(boolean incrementalBuild, InstantRunBuildOptions buildOptions) {
+    // we need RESTART_ONLY for all full builds
+    if (!incrementalBuild) {
+      return true;
+    }
+
+    // on incremental builds, we need it only if the app is not running, and cold swap is enabled
+    return !buildOptions.isAppRunning && buildOptions.coldSwapEnabled;
   }
 
   @NotNull
