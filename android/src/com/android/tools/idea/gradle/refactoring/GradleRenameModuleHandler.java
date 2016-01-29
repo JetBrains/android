@@ -186,6 +186,7 @@ public class GradleRenameModuleHandler implements RenameHandler, TitledHandler {
             catch (ModuleWithNameAlreadyExists moduleWithNameAlreadyExists) {
               Messages.showErrorDialog(project, IdeBundle.message("error.module.already.exists", inputString),
                                        IdeBundle.message("title.rename.module"));
+              result.setResult(false);
               reset(modifiedBuildModels);
               return;
             }

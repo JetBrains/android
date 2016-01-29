@@ -124,7 +124,7 @@ public class GradleRenameModuleTest extends GuiTestCase {
     renameModuleDialog.enterTextAndClickOk("library2");
 
     MessagesFixture errorMessage = MessagesFixture.findByTitle(myRobot, getIdeFrame().target(), "Rename Module");
-    errorMessage.requireMessageContains("Rename folder failed");
+    errorMessage.requireMessageContains("Module named 'library2' already exist");
 
     errorMessage.clickOk();
     // In this case, the rename diaglog will let you choose another name, click cancel to close the diaglog
