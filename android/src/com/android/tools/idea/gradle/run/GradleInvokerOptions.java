@@ -23,6 +23,7 @@ import com.android.sdklib.devices.Abi;
 import com.android.tools.idea.fd.FileChangeListener;
 import com.android.tools.idea.fd.InstantRunManager;
 import com.android.tools.idea.fd.InstantRunSettings;
+import com.android.tools.idea.fd.InstantRunSettings.ColdSwapMode;
 import com.android.tools.idea.fd.InstantRunUtils;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
@@ -105,8 +106,8 @@ public class GradleInvokerOptions {
 
       cmdLineArgs.add(getInstantDevProperty(instantRunBuildOptions, incrementalBuild));
       cmdLineArgs.addAll(getDeviceSpecificArguments(instantRunBuildOptions.devices));
-      if (COLD_SWAP_MODE_OVERRIDE != null) {
-        cmdLineArgs.add(COLD_SWAP_MODE_OVERRIDE);
+      if (instantRunBuildOptions.coldSwapEnabled) {
+        cmdLineArgs.add("-Pandroid.injected.coldswap.mode=" + instantRunBuildOptions.coldSwapMode.value);
       }
 
       if (instantRunBuildOptions.cleanBuild) {
@@ -120,19 +121,6 @@ public class GradleInvokerOptions {
     BuildMode buildMode = BuildMode.ASSEMBLE;
     tasks.addAll(gradleTasksProvider.getTasksFor(buildMode, testCompileType));
     return new GradleInvokerOptions(tasks, buildMode, cmdLineArgs);
-  }
-
-  private static final String COLD_SWAP_MODE_OVERRIDE;
-  static {
-    // Override cold swap mode?; possible values are multidex, multiapk, native (use multidex for 21-22 and multiapk for 23.)
-    //noinspection SpellCheckingInspection
-    String value = System.getProperty("instant.run.coldswap.mode");
-    if (value != null) {
-      //noinspection SpellCheckingInspection
-      COLD_SWAP_MODE_OVERRIDE = "-Pandroid.injected.coldswap.mode=" + value;
-    } else {
-      COLD_SWAP_MODE_OVERRIDE = null;
-    }
   }
 
   @NotNull
@@ -237,34 +225,43 @@ public class GradleInvokerOptions {
     public final boolean cleanBuild;
     public final boolean needsFullBuild;
     public final boolean isAppRunning;
+    public final boolean coldSwapEnabled;
+    public final ColdSwapMode coldSwapMode;
     @NotNull private final FileChangeListener.Changes fileChanges;
     @NotNull public final List<AndroidDevice> devices;
 
     InstantRunBuildOptions(boolean cleanBuild,
                            boolean needsFullBuild,
                            boolean isAppRunning,
+                           boolean coldSwapEnabled,
+                           @NotNull ColdSwapMode coldSwapMode,
                            @NotNull FileChangeListener.Changes changes,
                            @NotNull List<AndroidDevice> devices) {
       this.cleanBuild = cleanBuild;
       this.needsFullBuild = needsFullBuild;
       this.isAppRunning = isAppRunning;
+      this.coldSwapEnabled = coldSwapEnabled;
+      this.coldSwapMode = coldSwapMode;
       this.fileChanges = changes;
       this.devices = devices;
     }
 
     @Nullable
     static InstantRunBuildOptions createAndReset(@NotNull Module module, @NotNull ExecutionEnvironment env) {
+      Project project = module.getProject();
       if (!InstantRunUtils.isInstantRunEnabled(env) ||
-          !InstantRunSettings.isInstantRunEnabled(module.getProject()) ||
+          !InstantRunSettings.isInstantRunEnabled(project) ||
           !InstantRunManager.variantSupportsInstantRun(module)) {
         return null;
       }
 
-      FileChangeListener.Changes changes = InstantRunManager.get(module.getProject()).getChangesAndReset();
+      FileChangeListener.Changes changes = InstantRunManager.get(project).getChangesAndReset();
 
       return new InstantRunBuildOptions(InstantRunUtils.needsCleanBuild(env),
                                         InstantRunUtils.needsFullBuild(env),
                                         InstantRunUtils.isAppRunning(env),
+                                        InstantRunSettings.isColdSwapEnabled(project),
+                                        InstantRunSettings.getColdSwapMode(project),
                                         changes,
                                         getTargetDevices(env));
     }
