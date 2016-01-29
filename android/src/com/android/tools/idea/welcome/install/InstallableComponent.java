@@ -15,9 +15,10 @@
  */
 package com.android.tools.idea.welcome.install;
 
-import com.android.repository.api.LocalPackage;
 import com.android.repository.api.ProgressIndicator;
-import com.android.repository.api.RemotePackage;
+import com.android.repository.api.RepoManager;
+import com.android.repository.api.UpdatablePackage;
+import com.android.repository.impl.meta.Archive;
 import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.repository.io.FileOp;
 import com.android.sdklib.repositoryv2.AndroidSdkHandler;
@@ -26,13 +27,10 @@ import com.android.tools.idea.welcome.SdkLocationUtils;
 import com.android.tools.idea.welcome.wizard.WelcomeUIUtils;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStep;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
+import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Base class for leaf components (the ones that are immediately installed).
@@ -41,28 +39,32 @@ public abstract class InstallableComponent extends ComponentTreeNode {
   protected final ScopedStateStore.Key<Boolean> myKey;
   protected final ScopedStateStore myStateStore;
   @NotNull private final String myName;
-  private final long mySize;
   private Boolean myUserSelection; // null means default component enablement is used
   private boolean myIsOptional = true;
   private boolean myIsInstalled = false;
+  private static final ProgressIndicator PROGRESS_LOGGER = new StudioLoggerProgressIndicator(InstallableComponent.class);
+
   protected final FileOp myFileOp;
+  protected final boolean myInstallUpdates;
+  protected AndroidSdkHandler mySdkHandler;
+  protected RepositoryPackages myRepositoryPackages;
 
   public InstallableComponent(@NotNull ScopedStateStore stateStore,
                               @NotNull String name,
-                              long size,
                               @NotNull String description,
+                              boolean installUpdates,
                               @NotNull FileOp fop) {
     super(description);
+    myInstallUpdates = installUpdates;
     myStateStore = stateStore;
     myName = name;
-    mySize = size;
     myKey = stateStore.createKey("component.enabled." + System.identityHashCode(this), Boolean.class);
     myFileOp = fop;
   }
 
   @Override
   public String getLabel() {
-    String sizeLabel = isInstalled() ? "installed" : WelcomeUIUtils.getSizeLabel(mySize);
+    String sizeLabel = isInstalled() ? "installed" : WelcomeUIUtils.getSizeLabel(getDownloadSize());
     return String.format("%s – (%s)", myName, sizeLabel);
   }
 
@@ -71,14 +73,31 @@ public abstract class InstallableComponent extends ComponentTreeNode {
   }
 
   /**
-   * @param remotePackages an up-to-date list of the packages in the Android SDK repositories, if one can be obtained.
+   * Gets the packages that this component would actually install (the required packages that aren't already installed
+   * or have an update available, if we're installing updates).
    */
   @NotNull
-  public abstract Collection<String> getRequiredSdkPackages(@Nullable Map<String, RemotePackage> remotePackages);
+  public Collection<String> getPackagesToInstall() {
+    List<String> result = Lists.newArrayList();
+    Map<String, UpdatablePackage> consolidatedPackages = myRepositoryPackages.getConsolidatedPkgs();
+    for (String path : getRequiredSdkPackages()) {
+      UpdatablePackage p = consolidatedPackages.get(path);
+      if (p != null && p.hasRemote() && (!p.hasLocal() || (myInstallUpdates && p.isUpdate()))) {
+        result.add(path);
+      }
+    }
+    return result;
+  }
+
+  /**
+   * Gets the unfiltered collection of all packages required by this component.
+   */
+  @NotNull
+  protected abstract Collection<String> getRequiredSdkPackages();
 
   public abstract void configure(@NotNull InstallContext installContext, @NotNull AndroidSdkHandler sdkHandler);
 
-  protected boolean isSelectedByDefault(@Nullable @SuppressWarnings("UnusedParameters") AndroidSdkHandler sdkHandler) {
+  protected boolean isSelectedByDefault() {
     return true;
   }
 
@@ -88,7 +107,7 @@ public abstract class InstallableComponent extends ComponentTreeNode {
     return myIsOptional;
   }
 
-  protected boolean isOptionalForSdkLocation(@Nullable @SuppressWarnings("UnusedParameters") AndroidSdkHandler sdkHandler) {
+  protected boolean isOptionalForSdkLocation() {
     return true;
   }
 
@@ -109,8 +128,13 @@ public abstract class InstallableComponent extends ComponentTreeNode {
   @Override
   public void updateState(@NotNull AndroidSdkHandler sdkHandler) {
     // If we don't have anything to install, show as unchecked and not editable.
-    boolean nothingToInstall = !SdkLocationUtils.isWritable(myFileOp, sdkHandler.getLocation()) || getRequiredSdkPackages(null).isEmpty();
-    myIsOptional = !nothingToInstall && isOptionalForSdkLocation(sdkHandler);
+    mySdkHandler = sdkHandler;
+    if (myRepositoryPackages == null) {
+      RepoManager sdkManager = mySdkHandler.getSdkManager(PROGRESS_LOGGER);
+      myRepositoryPackages = sdkManager.getPackages();
+    }
+    boolean nothingToInstall = !SdkLocationUtils.isWritable(myFileOp, sdkHandler.getLocation()) || getPackagesToInstall().isEmpty();
+    myIsOptional = !nothingToInstall && isOptionalForSdkLocation();
 
     boolean isSelected;
 
@@ -121,19 +145,15 @@ public abstract class InstallableComponent extends ComponentTreeNode {
       isSelected = myUserSelection;
     }
     else {
-      isSelected = isSelectedByDefault(sdkHandler);
+      isSelected = isSelectedByDefault();
     }
     myStateStore.put(myKey, isSelected);
-    myIsInstalled = checkInstalledPackages(sdkHandler);
+    myIsInstalled = checkInstalledPackages();
   }
 
-  private boolean checkInstalledPackages(@Nullable AndroidSdkHandler sdkHandler) {
-    if (sdkHandler != null) {
-      ProgressIndicator progress = new StudioLoggerProgressIndicator(InstallableComponent.class);
-      RepositoryPackages packages = sdkHandler.getSdkManager(progress).getPackages();
-      Map<String, ? extends LocalPackage> localPackages = packages.getLocalPackages();
-      Collection<String> requiredSdkPackages = getRequiredSdkPackages(null);
-      return localPackages.keySet().containsAll(requiredSdkPackages);
+  private boolean checkInstalledPackages() {
+    if (mySdkHandler != null) {
+      return getPackagesToInstall().isEmpty();
     }
     else {
       return false;
@@ -158,8 +178,16 @@ public abstract class InstallableComponent extends ComponentTreeNode {
     return myStateStore.getNotNull(myKey, true);
   }
 
-  public long getInstalledSize() {
-    return myIsInstalled ? 0 : mySize;
+  public long getDownloadSize() {
+    long size = 0;
+    for (String path : getPackagesToInstall()) {
+      // TODO: support patches if this is an update
+      Archive archive = myRepositoryPackages.getRemotePackages().get(path).getArchive();
+      if (archive != null) {
+        size += archive.getComplete().getSize();
+      }
+    }
+    return size;
   }
 
   @Override

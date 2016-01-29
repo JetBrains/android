@@ -53,24 +53,25 @@ public class Platform extends InstallableComponent {
 
   public Platform(@NotNull ScopedStateStore store,
                   @NotNull String name,
-                  long size,
                   @NotNull String description,
                   AndroidVersion version,
-                  boolean isDefaultPlatform) {
-    super(store, name, size, description, FileOpUtils.create());
+                  boolean isDefaultPlatform,
+                  boolean installUpdates) {
+    super(store, name, description, installUpdates, FileOpUtils.create());
     myVersion = version;
     myIsDefaultPlatform = isDefaultPlatform;
   }
 
   @Nullable
   private static Platform getLatestPlatform(@NotNull ScopedStateStore store,
-                                            @Nullable Map<String, RemotePackage> remotePackages) {
+                                            @Nullable Map<String, RemotePackage> remotePackages,
+                                            boolean installUpdates) {
     RemotePackage latest = InstallComponentsPath.findLatestPlatform(remotePackages);
     if (latest != null) {
       AndroidVersion version = DetailsTypes.getAndroidVersion(((DetailsTypes.PlatformDetailsType)latest.getTypeDetails()));
       String versionName = SdkVersionInfo.getAndroidName(version.getFeatureLevel());
       final String description = "Android platform libraries for targeting " + versionName + " platform";
-      return new Platform(store, versionName, latest.getArchive().getComplete().getSize(), description, version, !version.isPreview());
+      return new Platform(store, versionName, description, version, !version.isPreview(), installUpdates);
     }
     return null;
   }
@@ -90,9 +91,10 @@ public class Platform extends InstallableComponent {
   }
 
   @Nullable
-  public static ComponentTreeNode createSubtree(@NotNull ScopedStateStore store, @Nullable Map<String, RemotePackage> remotePackages) {
+  public static ComponentTreeNode createSubtree(@NotNull ScopedStateStore store, @Nullable Map<String, RemotePackage> remotePackages,
+                                                boolean installUpdates) {
     // Previously we also installed a preview platform, but no longer (see http://b.android.com/175343 for more).
-    ComponentTreeNode latestPlatform = getLatestPlatform(store, remotePackages);
+    ComponentTreeNode latestPlatform = getLatestPlatform(store, remotePackages, installUpdates);
     if (latestPlatform != null) {
       return new ComponentCategory("Android SDK Platform", "SDK components for creating applications for different Android platforms",
                                    latestPlatform);
@@ -102,28 +104,26 @@ public class Platform extends InstallableComponent {
 
   @NotNull
   @Override
-  public Collection<String> getRequiredSdkPackages(@Nullable Map<String, RemotePackage> remotePackages) {
+  protected Collection<String> getRequiredSdkPackages() {
     List<String> requests = Lists.newArrayList(DetailsTypes.getPlatformPath(myVersion), DetailsTypes.getSourcesPath(myVersion));
-    String buildTool = findLatestCompatibleBuildTool(remotePackages, myVersion);
+    String buildTool = findLatestCompatibleBuildTool();
     if (buildTool != null) {
       requests.add(buildTool);
     }
     return requests;
   }
 
-  private static String findLatestCompatibleBuildTool(@Nullable Map<String, RemotePackage> remotePackages, AndroidVersion version) {
+  private String findLatestCompatibleBuildTool() {
     Revision revision = null;
     String path = null;
-    if (remotePackages != null) {
-      for (RemotePackage remote : remotePackages.values()) {
-        if (!remote.getPath().startsWith(SdkConstants.FD_BUILD_TOOLS)) {
-          continue;
-        }
-        Revision testRevision = remote.getVersion();
-        if (testRevision.getMajor() == version.getApiLevel() && (revision == null || testRevision.compareTo(revision) > 0)) {
-          revision = testRevision;
-          path = remote.getPath();
-        }
+    for (RemotePackage remote : myRepositoryPackages.getRemotePackages().values()) {
+      if (!remote.getPath().startsWith(SdkConstants.FD_BUILD_TOOLS)) {
+        continue;
+      }
+      Revision testRevision = remote.getVersion();
+      if (testRevision.getMajor() == myVersion.getApiLevel() && (revision == null || testRevision.compareTo(revision) > 0)) {
+        revision = testRevision;
+        path = remote.getPath();
       }
     }
     return path;
@@ -134,8 +134,8 @@ public class Platform extends InstallableComponent {
   }
 
   @Override
-  public boolean isOptionalForSdkLocation(@Nullable AndroidSdkHandler handler) {
-    List<AndroidVersion> locals = getInstalledPlatformVersions(handler);
+  public boolean isOptionalForSdkLocation() {
+    List<AndroidVersion> locals = getInstalledPlatformVersions(mySdkHandler);
     if (locals.isEmpty()) {
       return !myIsDefaultPlatform;
     }
@@ -150,7 +150,7 @@ public class Platform extends InstallableComponent {
   }
 
   @Override
-  public boolean isSelectedByDefault(@Nullable AndroidSdkHandler sdkHandler) {
+  public boolean isSelectedByDefault() {
     return false;
   }
 }

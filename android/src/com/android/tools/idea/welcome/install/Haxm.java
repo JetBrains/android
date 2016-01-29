@@ -17,7 +17,6 @@ package com.android.tools.idea.welcome.install;
 
 import com.android.SdkConstants;
 import com.android.repository.Revision;
-import com.android.repository.api.RemotePackage;
 import com.android.repository.io.FileOpUtils;
 import com.android.sdklib.devices.Storage;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
@@ -47,13 +46,11 @@ import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -126,10 +123,10 @@ public final class Haxm extends InstallableComponent {
     return manager.checkAcceration();
   }
 
-  public Haxm(@NotNull ScopedStateStore store, ScopedStateStore.Key<Boolean> isCustomInstall) {
-    super(store, "Performance (Intel ® HAXM)", 2306867, "Enables a hardware-assisted virtualization engine (hypervisor) to speed up " +
+  public Haxm(@NotNull ScopedStateStore store, ScopedStateStore.Key<Boolean> isCustomInstall, boolean installUpdates) {
+    super(store, "Performance (Intel ® HAXM)", "Enables a hardware-assisted virtualization engine (hypervisor) to speed up " +
                                                         "Android app emulation on your development computer. (Recommended)",
-          FileOpUtils.create());
+          installUpdates, FileOpUtils.create());
     myIsCustomInstall = isCustomInstall;
   }
 
@@ -300,7 +297,7 @@ public final class Haxm extends InstallableComponent {
 
   @NotNull
   @Override
-  public Collection<String> getRequiredSdkPackages(@Nullable Map<String, RemotePackage> remotePackages) {
+  protected Collection<String> getRequiredSdkPackages() {
     return ImmutableList.of(REPO_PACKAGE_PATH);
   }
 }

@@ -243,14 +243,14 @@ public class SdkComponentsStep extends FirstRunWizardStep {
       String path = myState.get(mySdkDownloadPathKey);
       myAvailableSpace.setText(getDiskSpace(path));
       long selected = getComponentsSize();
-      myNeededSpace.setText(String.format("Total disk space required: %s", WelcomeUIUtils.getSizeLabel(selected)));
+      myNeededSpace.setText(String.format("Total download size: %s", WelcomeUIUtils.getSizeLabel(selected)));
     }
   }
 
   private long getComponentsSize() {
     long size = 0;
     for (InstallableComponent component : myRootNode.getChildrenToInstall()) {
-      size += component.getInstalledSize();
+      size += component.getDownloadSize();
     }
     return size;
   }
