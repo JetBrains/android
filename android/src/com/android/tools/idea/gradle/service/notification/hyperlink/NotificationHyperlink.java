@@ -26,6 +26,7 @@ public abstract class NotificationHyperlink {
 
   @NotNull private final String myUrl;
   @NotNull private final String myValue;
+  @NotNull private boolean myCloseOnClick;
 
   protected NotificationHyperlink(@NotNull String url, @NotNull String text) {
     myUrl = url;
@@ -40,6 +41,15 @@ public abstract class NotificationHyperlink {
       return true;
     }
     return false;
+  }
+
+  public boolean isCloseOnClick() {
+    return myCloseOnClick;
+  }
+
+  public NotificationHyperlink setCloseOnClick(boolean closeOnClick) {
+    myCloseOnClick = closeOnClick;
+    return this;
   }
 
   @Override
