@@ -22,6 +22,8 @@ import com.intellij.openapi.components.ServiceManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Map;
+
 /**
  * Android Studio Usage Tracker.
  */
@@ -45,6 +47,7 @@ public abstract class UsageTracker {
   public static final String DEVICE_INFO_BUILD_API_LEVEL = IDevice.PROP_BUILD_API_LEVEL; // "22"
   public static final String DEVICE_INFO_MANUFACTURER = IDevice.PROP_DEVICE_MANUFACTURER;
   public static final String DEVICE_INFO_MODEL = IDevice.PROP_DEVICE_MODEL;
+  public static final String DEVICE_INFO_MANUFACTURER_MODEL = "deviceModel";
   public static final String DEVICE_INFO_SERIAL_HASH = "ro.serialno.hashed";
   public static final String DEVICE_INFO_CPU_ABI = IDevice.PROP_DEVICE_CPU_ABI;
 
@@ -164,4 +167,6 @@ public abstract class UsageTracker {
                                                    boolean instantRunEnabled);
 
   public abstract void trackLegacyIdeaAndroidProject(@NotNull String applicationId);
+
+  public abstract void trackInstantRunStats(@NotNull Map<String,String> kv);
 }
