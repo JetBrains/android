@@ -356,4 +356,17 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
       dumbService.queueTask(manageProjectsTask);
     }
   }
+
+  public static class PopulateCachesActivity implements StartupActivity {
+    @Override
+    public void runActivity(@NotNull Project project) {
+      if (ApplicationManager.getApplication().isUnitTestMode()) return;
+
+      DumbService dumbService = DumbService.getInstance(project);
+
+      // Pre-populate the in-memory resource folder registry for the project.
+      ResourceFolderRegistry.PopulateCachesTask task = new ResourceFolderRegistry.PopulateCachesTask(project);
+      dumbService.queueTask(task);
+    }
+  }
 }
