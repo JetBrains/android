@@ -460,8 +460,12 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     if (needsFullBuild &&
         InstantRunManager.hasLocalCacheOfDeviceData(Iterables.getOnlyElement(devices), module)) { // don't show this if we decided to build because we don't have a local cache
       @Language("HTML") String message;
-      if (isRestartedSession && device.getVersion().getApiLevel() < 21) {
-        message = "Performing full build &amp; install: can't push patches to device with API level &lt; 21";
+      if (isRestartedSession && (device.getVersion().getApiLevel() < 21 || !InstantRunSettings.isColdSwapEnabled(module.getProject()))) {
+        if (!InstantRunSettings.isColdSwapEnabled(module.getProject())) {
+          message = "Performing full build &amp; install: cold swap has been disabled";
+        } else {
+          message = "Performing full build &amp; install: can't push patches to device with API level &lt; 21";
+        }
 
         // Also look up the verifier failure and include it here; without this; the verifier failure
         // is displayed, but is quickly hidden as we realize we can't coldswap, and the below

@@ -127,6 +127,15 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
           return null;
         }
 
+        if (!InstantRunSettings.isColdSwapEnabled(myProject) && !buildInfo.getVerifierStatus().isEmpty()) {
+          InstantRunManager.LOG.info("Coldswap disabled by user setting, restarting build.");
+          // We should update the id on the device even if there were no artifact changes, since otherwise the next build will mismatch
+          InstantRunManager.transferLocalIdToDeviceId(device, myFacet.getModule());
+          DeployApkTask.cacheManifestInstallationData(device, myFacet, pkgName);
+          restartBuild(device);
+          return null;
+        }
+
         List<InstantRunArtifact> artifacts = buildInfo.getArtifacts();
         if (artifacts.isEmpty()) {
           // We should update the id on the device even if there were no artifact changes, since otherwise the next build will mismatch
@@ -138,19 +147,8 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
           // but the buildInfo.canHotswap() treats that differently
           if (!buildInfo.getVerifierStatus().isEmpty()) {
             InstantRunManager.LOG.info("Build info reports verifier failure, but no artifacts were provided. Restarting launch.");
-
             launchStatus.terminateLaunch("Re-launching since we cannot push the current build results to device");
-            InstantRunStatsService.get(myFacet.getModule().getProject())
-              .incrementRestartLaunchCount();
-
-            ApplicationManager.getApplication().invokeLater(new Runnable() {
-              @Override
-              public void run() {
-                InstantRunUtils.setRestartSession(myEnv, device);
-                ExecutionUtil.restart(myEnv);
-              }
-            });
-
+            restartBuild(device);
             return null;
           }
 
@@ -178,6 +176,20 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
       InstantRunSettings.isInstantRunEnabled(myProject) &&
       InstantRunManager.variantSupportsInstantRun(myFacet.getModule());
     return new DeployApkTask(myFacet, myLaunchOptions, myApkProvider, instantRunAware);
+  }
+
+  private void restartBuild(@NotNull final IDevice device) {
+    InstantRunStatsService.get(myFacet.getModule().getProject()).incrementRestartLaunchCount();
+
+    // There was a verifier failure, but no artifacts: this means
+    // we need to kick off a full build (coldswap not available)
+    ApplicationManager.getApplication().invokeLater(new Runnable() {
+      @Override
+      public void run() {
+        InstantRunUtils.setRestartSession(myEnv, device);
+        ExecutionUtil.restart(myEnv);
+      }
+    });
   }
 
   @Nullable
