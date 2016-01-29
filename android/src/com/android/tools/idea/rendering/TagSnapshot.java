@@ -68,7 +68,7 @@ public class TagSnapshot {
     XmlTag[] subTags = tag.getSubTags();
     if (subTags.length > 0) {
       TagSnapshot last = null;
-      children = Lists.newArrayListWithExpectedSize(subTags.length);
+      children = Lists.newArrayListWithCapacity(subTags.length);
       for (XmlTag subTag : subTags) {
         TagSnapshot child = createTagSnapshot(subTag);
         children.add(child);
@@ -93,7 +93,10 @@ public class TagSnapshot {
   public String getAttribute(@NotNull String name, @Nullable String namespace) {
     // We just use a list rather than a map since in layouts the number of attributes is
     // typically very small so map overhead isn't worthwhile
-    for (AttributeSnapshot attribute : attributes) {
+
+    //noinspection ForLoopReplaceableByForEach
+    for (int i = 0, n = attributes.size(); i < n; i++) {
+      AttributeSnapshot attribute = attributes.get(i);
       if (name.equals(attribute.name) && (namespace == null || namespace.equals(attribute.namespace))) {
         return attribute.value;
       }
@@ -109,9 +112,10 @@ public class TagSnapshot {
    * snapshot value will be out of date unless it is updated via this API.
    */
   public void setAttribute(@NotNull String name, @Nullable String namespace, @Nullable String prefix, @Nullable String value) {
-    for (AttributeSnapshot attribute : attributes) {
+    for (int i = 0, n = attributes.size(); i < n; i++) {
+      AttributeSnapshot attribute = attributes.get(i);
       if (name.equals(attribute.name) && (namespace == null || namespace.equals(attribute.namespace))) {
-        attributes.remove(attribute);
+        attributes.remove(i);
         break;
       }
     }
