@@ -386,6 +386,8 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     ApkProvider apkProvider = getApkProvider(facet);
     LaunchTasksProviderFactory providerFactory =
       new AndroidLaunchTasksProviderFactory(this, env, facet, apkProvider, launchOptions, processHandler);
+
+    InstantRunStatsService.get(project).notifyBuildStarted();
     return new AndroidRunState(env, getName(), module, apkProvider, getConsoleProvider(), deviceFutures.get(), providerFactory,
                                processHandler);
   }
