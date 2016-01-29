@@ -1,0 +1,103 @@
+/*
+ * Copyright (C) 2016 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.android.tools.idea.tests.gui.framework;
+
+import com.intellij.openapi.ui.Messages;
+import com.intellij.util.ui.UIUtil;
+import org.fest.swing.core.GenericTypeMatcher;
+import org.jetbrains.annotations.NotNull;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.junit.rules.RuleChain;
+import org.junit.rules.Verifier;
+import org.junit.runner.RunWith;
+
+import javax.swing.*;
+import java.awt.*;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.io.IOException;
+
+import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilFound;
+import static org.hamcrest.CoreMatchers.allOf;
+import static org.hamcrest.CoreMatchers.containsString;
+
+@RunWith(GuiTestRunner.class)
+public class GuiTestRuleTest {
+
+  private final Verifier guiTestVerifier = new Verifier() {
+    @Override
+    protected void verify() throws Throwable {
+      Window activeWindow = KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow();
+      if (activeWindow instanceof Dialog && ((Dialog)activeWindow).isModal()) {
+        throw new AssertionError("Modal dialog still active: " + activeWindow);
+      }
+    }
+  };
+
+  private final ExpectedException exception = ExpectedException.none();
+
+  private final GuiTestRule guiTest = new GuiTestRule();
+
+  @Rule public final RuleChain ruleChain = RuleChain.outerRule(guiTestVerifier).around(exception).around(guiTest);
+
+  @Test
+  public void testModalDialogsLeftOpen() throws IOException {
+    exception.expectMessage(allOf(
+      containsString("Modal dialog showing"),
+      containsString("javax.swing.JDialog with title 'This should not be shown'"),
+      containsString("javax.swing.JDialog with title 'Click a button'")));
+
+    UIUtil.invokeLaterIfNeeded(new Runnable() {
+      @Override
+      public void run() {
+        final JOptionPane optionPane =
+          new JOptionPane("Do you want another modal dialog?", JOptionPane.QUESTION_MESSAGE, JOptionPane.YES_NO_OPTION);
+
+        final JDialog dialog = new JDialog((Frame)null, "Click a button", true);
+        dialog.setContentPane(optionPane);
+        optionPane.addPropertyChangeListener(
+          new PropertyChangeListener() {
+            @Override
+            public void propertyChange(PropertyChangeEvent e) {
+              String prop = e.getPropertyName();
+              if (dialog.isVisible() && (e.getSource() == optionPane) && (prop.equals(JOptionPane.VALUE_PROPERTY))) {
+                Messages.showWarningDialog("Here's another modal dialog", "Surprise!");
+              }
+            }
+          });
+        dialog.pack();
+        dialog.setVisible(true);
+      }
+    });
+
+    JDialog dialog = waitUntilFound(guiTest.robot(), new GenericTypeMatcher<JDialog>(JDialog.class) {
+      @Override
+      protected boolean isMatching(@NotNull JDialog dialog) {
+        return "Click a button".equals(dialog.getTitle());
+      }
+    });
+    JButton yesButton = waitUntilFound(guiTest.robot(), dialog, new GenericTypeMatcher<JButton>(JButton.class) {
+      @Override
+      protected boolean isMatching(@NotNull JButton button) {
+        String buttonText = button.getText();
+        return buttonText != null && buttonText.trim().equals("Yes") && button.isShowing();
+      }
+    });
+    guiTest.robot().click(yesButton);
+  }
+}
