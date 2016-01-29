@@ -15,12 +15,10 @@
  */
 package com.android.tools.idea.sdkv2;
 
-import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repositoryv2.AndroidSdkHandler;
 import com.android.tools.idea.sdk.wizard.legacy.LicenseAgreementStep;
 import com.android.tools.idea.welcome.install.*;
 import com.android.tools.idea.welcome.wizard.ProgressStep;
-import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.dynamic.*;
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
@@ -109,13 +107,13 @@ public class HaxmWizard extends DynamicWizard {
     private void setupHaxm() throws IOException {
       final InstallContext installContext = new InstallContext(FileUtil.createTempDirectory("AndroidStudio", "Haxm", true), this);
       final AndroidSdkHandler sdkHandler = AndroidSdkUtils.tryToChooseSdkHandler();
-
+      myHaxm.updateState(sdkHandler);
       final Collection<? extends InstallableComponent> selectedComponents = Lists.newArrayList(myHaxm);
       installContext.print("Looking for SDK updates...\n", ConsoleViewContentType.NORMAL_OUTPUT);
 
       // Assume install and configure take approximately the same time; assign 0.5 progressRatio to each
       InstallComponentsOperation install =
-        new InstallComponentsOperation(installContext, selectedComponents, new ComponentInstaller(null, true, sdkHandler), 0.5);
+        new InstallComponentsOperation(installContext, selectedComponents, new ComponentInstaller(true, sdkHandler), 0.5);
 
       try {
         install.then(InstallOperation.wrap(installContext, new Function<File, File>() {
@@ -147,7 +145,7 @@ public class HaxmWizard extends DynamicWizard {
     protected void init() {
       ScopedStateStore.Key<Boolean> canShow = ScopedStateStore.createKey("ShowHaxmSteps", ScopedStateStore.Scope.PATH, Boolean.class);
       myState.put(canShow, true);
-      Haxm haxm = new Haxm(getState(), canShow);
+      Haxm haxm = new Haxm(getState(), canShow, true);
 
       for (DynamicWizardStep step : haxm.createSteps()) {
         addStep(step);

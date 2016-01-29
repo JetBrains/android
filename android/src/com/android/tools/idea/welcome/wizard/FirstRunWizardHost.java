@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.welcome.wizard;
 
-import com.android.repository.api.RemotePackage;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.dynamic.DynamicWizard;
@@ -56,7 +55,6 @@ import java.util.concurrent.atomic.AtomicReference;
 public class FirstRunWizardHost extends JPanel implements WelcomeScreen, DynamicWizardHost {
   private static final Insets BUTTON_MARGINS = new Insets(2, 16, 2, 16);
   @NotNull private final FirstRunWizardMode myMode;
-  @NotNull private final Map<String, RemotePackage> myRemotePackages;
 
   private Action myCancelAction = new CancelAction();
   private Action myPreviousAction = new PreviousAction();
@@ -73,11 +71,9 @@ public class FirstRunWizardHost extends JPanel implements WelcomeScreen, Dynamic
   private AtomicReference<ProgressIndicator> myCurrentProgressIndicator = Atomics.newReference();
   private boolean myIsActive;
 
-  public FirstRunWizardHost(@NotNull FirstRunWizardMode mode,
-                            @NotNull Map<String, RemotePackage> remotePackages) {
+  public FirstRunWizardHost(@NotNull FirstRunWizardMode mode) {
     super(new BorderLayout());
     myMode = mode;
-    myRemotePackages = remotePackages;
     add(createSouthPanel(), BorderLayout.SOUTH);
   }
 
@@ -99,7 +95,7 @@ public class FirstRunWizardHost extends JPanel implements WelcomeScreen, Dynamic
   }
 
   private void setupWizard() {
-    DynamicWizard wizard = new FirstRunWizard(this, myMode, myRemotePackages);
+    DynamicWizard wizard = new FirstRunWizard(this, myMode);
     wizard.init();
     add(wizard.getContentPane(), BorderLayout.CENTER);
   }

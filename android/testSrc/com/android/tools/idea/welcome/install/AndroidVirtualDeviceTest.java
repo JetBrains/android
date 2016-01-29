@@ -120,7 +120,7 @@ public class AndroidVirtualDeviceTest extends AndroidTestBase {
     remotePlatform.setTypeDetails((TypeDetails)platformDetailsType);
     Map<String, RemotePackage> remotes = Maps.newHashMap();
     remotes.put("platforms;android-23", remotePlatform);
-    AndroidVirtualDevice avd = new AndroidVirtualDevice(new ScopedStateStore(ScopedStateStore.Scope.STEP, null, null), remotes, fop);
+    AndroidVirtualDevice avd = new AndroidVirtualDevice(new ScopedStateStore(ScopedStateStore.Scope.STEP, null, null), remotes, true, fop);
     final AvdInfo avdInfo = avd.createAvd(connection, sdkHandler);
     assertNotNull(avdInfo);
     disposeOnTearDown(new Disposable() {
