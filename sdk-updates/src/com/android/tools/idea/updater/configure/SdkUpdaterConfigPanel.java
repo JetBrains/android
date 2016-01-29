@@ -240,8 +240,7 @@ public class SdkUpdaterConfigPanel {
             }
 
             InstallComponentsPath path =
-              new InstallComponentsPath(myConfigurable.getRepoManager().getPackages().getRemotePackages(), FirstRunWizardMode.MISSING_SDK,
-                                        location, progressStep, false);
+              new InstallComponentsPath(FirstRunWizardMode.MISSING_SDK, location, progressStep, false);
 
             progressStep.setInstallComponentsPath(path);
 
