@@ -181,7 +181,7 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
 
   private void showMigrateToGradleWarning() {
     String errMsg = "This project does not use the Gradle build system. We recommend that you migrate to using the Gradle build system.";
-    NotificationHyperlink moreInfoHyperlink = new OpenMigrationToGradleUrlHyperlink();
+    NotificationHyperlink moreInfoHyperlink = new OpenMigrationToGradleUrlHyperlink().setCloseOnClick(true);
     NotificationHyperlink doNotShowAgainHyperlink = new NotificationHyperlink("do.not.show", "Don't show this message again.") {
       @Override
       protected void execute(@NotNull Project project) {
