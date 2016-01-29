@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.sdkv2;
 
-import com.android.repository.api.RemotePackage;
+import com.android.SdkConstants;
+import com.android.repository.api.RepoPackage;
 import com.android.repository.impl.installer.PackageInstaller;
 import com.android.sdklib.repositoryv2.AndroidSdkHandler;
 import com.android.tools.idea.welcome.install.Haxm;
@@ -27,12 +28,15 @@ import org.jetbrains.annotations.NotNull;
 public final class StudioSdkUtil {
 
   /**
-   * Find the best {@link PackageInstaller} for the given {@link RemotePackage}.
+   * Find the best {@link PackageInstaller} for the given {@link RepoPackage}.
    */
   @NotNull
-  public static PackageInstaller findBestInstaller(@NotNull RemotePackage p) {
+  public static PackageInstaller findBestInstaller(@NotNull RepoPackage p) {
     if (p.getPath().equals(Haxm.REPO_PACKAGE_PATH)) {
       return new HaxmInstaller();
+    }
+    if (p.getPath().equals(SdkConstants.FD_PLATFORM_TOOLS)) {
+      return new PlatformToolsInstaller();
     }
     return AndroidSdkHandler.findBestInstaller(p);
   }
