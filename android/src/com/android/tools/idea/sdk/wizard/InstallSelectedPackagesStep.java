@@ -24,7 +24,7 @@ import com.android.repository.impl.meta.TypeDetails;
 import com.android.sdklib.repositoryv2.AndroidSdkHandler;
 import com.android.sdklib.repositoryv2.meta.DetailsTypes;
 import com.android.tools.idea.sdkv2.StudioDownloader;
-import com.android.tools.idea.sdkv2.StudioProgressRunner;
+import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdkv2.StudioSdkUtil;
 import com.android.tools.idea.sdkv2.StudioSettingsController;
 import com.android.tools.idea.ui.properties.core.BoolProperty;
@@ -39,11 +39,9 @@ import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.google.common.collect.Lists;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.progress.PerformInBackgroundOption;
-import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.progress.ProgressManager;
-import com.intellij.openapi.progress.Task;
+import com.intellij.openapi.progress.*;
 import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator;
+import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.components.JBLabel;
@@ -196,7 +194,16 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
     }
 
     InstallTask task = new InstallTask(myInstallRequests, myCustomLogger);
-    BackgroundableProcessIndicator indicator = new BackgroundableProcessIndicator(task);
+    ProgressIndicator indicator;
+    boolean hasOpenProjects = ProjectManager.getInstance().getOpenProjects().length > 0;
+    if (hasOpenProjects) {
+      indicator = new BackgroundableProcessIndicator(task);
+    }
+    else {
+      // If we don't have any open projects runProcessWithProgressAsynchronously will show a modal popup no matter what.
+      // Instead use an empty progress indicator to suppress that.
+      indicator = new EmptyProgressIndicator();
+    }
     myCustomLogger.setIndicator(indicator);
     myCustomLogger.logInfo("To install:");
     for (RemotePackage p : myInstallRequests) {
@@ -258,7 +265,9 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
           myCustomLogger = null;
         }
       }
-      myRepoManager.loadSynchronously(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, myProgress, null, StudioSettingsController.getInstance());
+      // Use a simple progress indicator here so we don't pick up the log messages from the reload.
+      StudioLoggerProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
+      myRepoManager.loadSynchronously(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, progress, null, StudioSettingsController.getInstance());
 
       UIUtil.invokeLaterIfNeeded(new Runnable() {
         @Override
@@ -287,7 +296,7 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
 
   private final class CustomLogger implements com.android.repository.api.ProgressIndicator {
 
-    private BackgroundableProcessIndicator myIndicator;
+    private ProgressIndicator myIndicator;
     private boolean myCancelled;
     private Logger myLogger = Logger.getInstance(getClass());
 
@@ -419,7 +428,7 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
       });
     }
 
-    public void setIndicator(BackgroundableProcessIndicator indicator) {
+    public void setIndicator(ProgressIndicator indicator) {
       myIndicator = indicator;
     }
   }
