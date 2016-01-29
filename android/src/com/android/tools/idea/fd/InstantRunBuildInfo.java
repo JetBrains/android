@@ -91,7 +91,7 @@ public class InstantRunBuildInfo {
   }
 
   @NotNull
-  public int getApiLevel() {
+  public int getFeatureLevel() { // The build info calls it as the API level, but we always pass the feature level to Gradle..
     String attribute = myRoot.getAttribute(ATTR_API_LEVEL);
     if (attribute != null && !attribute.isEmpty()) {
       try {
