@@ -20,9 +20,12 @@ import com.android.tools.idea.lang.databinding.DataBindingXmlReferenceContributo
 import com.android.tools.idea.rendering.DataBindingInfo;
 import com.android.tools.idea.rendering.PsiDataBindingResourceItem;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.*;
+import com.intellij.psi.impl.PsiJavaParserFacadeImpl;
 import com.intellij.psi.impl.source.resolve.ResolveCache;
+import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.xml.ConvertContext;
@@ -38,6 +41,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+
+import static com.android.tools.idea.lang.databinding.DataBindingCompletionUtil.JAVA_LANG;
 
 /**
  * The converter for "type" attribute in databinding layouts.
@@ -104,8 +109,28 @@ public class DataBindingConverter extends ResolvingConverter<PsiClass> implement
     if (module == null) {
       return null;
     }
-    return JavaPsiFacade.getInstance(context.getProject())
-      .findClass(qualifiedName, module.getModuleWithDependenciesAndLibrariesScope(false));
+    Project project = context.getProject();
+    JavaPsiFacade psiFacade = JavaPsiFacade.getInstance(project);
+    GlobalSearchScope scope = module.getModuleWithDependenciesAndLibrariesScope(false);
+    if (qualifiedName.length() > 0 && qualifiedName.indexOf('.') < 0) {
+      if (Character.isLowerCase(qualifiedName.charAt(0))) {
+        PsiPrimitiveType primitiveType = PsiJavaParserFacadeImpl.getPrimitiveType(qualifiedName);
+        if (primitiveType != null) {
+          PsiClassType boxedType = primitiveType.getBoxedType(PsiManager.getInstance(project), scope);
+          if (boxedType != null) {
+            return boxedType.resolve();
+          }
+          return null;
+        }
+      }
+      else {
+        PsiClass aClass = psiFacade.findClass(JAVA_LANG + qualifiedName, scope);
+        if (aClass != null) {
+          return aClass;
+        }
+      }
+    }
+    return psiFacade.findClass(qualifiedName, scope);
   }
 
   @Nullable
@@ -138,6 +163,9 @@ public class DataBindingConverter extends ResolvingConverter<PsiClass> implement
         return AndroidLayoutUtil.getAlias(longestImport) + qualifiedName.substring(longestPrefix);
       }
     }
+    if (qualifiedName.startsWith(JAVA_LANG)) {
+      return qualifiedName.substring(JAVA_LANG.length());
+    }
     return qualifiedName;
   }
 
@@ -152,11 +180,11 @@ public class DataBindingConverter extends ResolvingConverter<PsiClass> implement
 
     List<PsiReference> result = new ArrayList<PsiReference>();
     final String[] nameParts = strValue.split("[$.]");
-    if (nameParts.length == 0) {
+    Module module = context.getModule();
+    if (nameParts.length == 0 || module == null) {
       return PsiReference.EMPTY_ARRAY;
     }
 
-    Module module = context.getModule();
     int offset = start;
 
     // Check if the first namePart is an alias.
@@ -170,13 +198,46 @@ public class DataBindingConverter extends ResolvingConverter<PsiClass> implement
       if (anImport != null) {
         // Found an import matching the first namePart. Add a reference from this to the type.
         idx++;
-        TextRange range = new TextRange(offset, offset+=alias.length());
+        TextRange range = new TextRange(offset, offset += alias.length());
         offset++;  // Skip the next dot or dollar separator (if any)
         String type = anImport.getTypeDeclaration();
         result.add(new AliasedReference(element, range, type, module));
-        if (nameParts.length > 1) {
-          fullType = type + fullType.substring(alias.length());
-          diff = type.length() - alias.length();
+        fullType = type + fullType.substring(alias.length());
+        diff = type.length() - alias.length();
+      }
+      else {
+        //  Check java.lang and primitives
+        if (nameParts.length == 1) {
+          if (alias.length() > 0) {
+            if (Character.isLowerCase(alias.charAt(0))) {
+              final PsiPrimitiveType primitive = PsiJavaParserFacadeImpl.getPrimitiveType(alias);
+              if (primitive != null) {
+                result.add(new PsiReferenceBase<PsiElement>(element, true) {
+                  @Nullable
+                  @Override
+                  public PsiElement resolve() {
+                    return myElement;
+                  }
+
+                  @NotNull
+                  @Override
+                  public Object[] getVariants() {
+                    return ArrayUtil.EMPTY_OBJECT_ARRAY;
+                  }
+                });
+              }
+            }
+            else {
+              // java.lang
+              PsiClass aClass = JavaPsiFacade.getInstance(context.getProject())
+                .findClass(JAVA_LANG + alias, GlobalSearchScope.moduleWithLibrariesScope(module));
+              if (aClass != null) {
+                final TextRange range = new TextRange(offset, offset += alias.length());
+                result.add(new ClassReference(element, range, aClass));
+              }
+            }
+            idx++;
+          }
         }
       }
     }
@@ -220,7 +281,6 @@ public class DataBindingConverter extends ResolvingConverter<PsiClass> implement
       myReferenceTo = referenceTo;
       myModule = module;
     }
-
 
     @Nullable
     @Override
@@ -266,6 +326,39 @@ public class DataBindingConverter extends ResolvingConverter<PsiClass> implement
     @Override
     public String getCanonicalText() {
       return myReferenceTo;
+    }
+  }
+
+  private static class ClassReference extends PsiReferenceBase<PsiElement> {
+
+    @NotNull private final PsiElement myResolveTo;
+
+    public ClassReference(@NotNull PsiElement element, @NotNull TextRange range, @NotNull PsiElement resolveTo) {
+      super(element, range);
+      myResolveTo = resolveTo;
+    }
+
+    @Nullable
+    @Override
+    public PsiElement resolve() {
+      return ResolveCache.getInstance(myElement.getProject()).resolveWithCaching(this, new ResolveCache.Resolver() {
+
+        @Override
+        public PsiElement resolve(@NotNull PsiReference psiReference, boolean incompleteCode) {
+          return resolveInner();
+        }
+      }, false, false);
+    }
+
+
+    private PsiElement resolveInner() {
+      return myResolveTo;
+    }
+
+    @NotNull
+    @Override
+    public Object[] getVariants() {
+      return ArrayUtil.EMPTY_OBJECT_ARRAY;
     }
   }
 }
