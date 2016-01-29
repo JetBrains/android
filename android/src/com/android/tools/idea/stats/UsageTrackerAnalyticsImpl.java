@@ -22,12 +22,15 @@ import com.intellij.openapi.extensions.ExtensionPointName;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Map;
+
 public class UsageTrackerAnalyticsImpl extends UsageTracker {
   private static final ExtensionPointName<UsageUploader> EP_NAME = ExtensionPointName.create("com.android.tools.idea.stats.tracker");
 
   private static final String GLOGS_CATEGORY_LIBCOUNT = "gradlelibs";
   private static final String GLOGS_CATEGORY_VERSIONS = "gradleVersions";
   private static final String GLOGS_CATEGORY_LEGACY_IDEA_ANDROID_PROJECT = "legacyIdeaAndroidProject";
+  private static final String GLOGS_CATEGORY_INSTANT_RUN_V1 = "irstats1";
 
   private final UsageUploader myUploader;
 
@@ -95,6 +98,15 @@ public class UsageTrackerAnalyticsImpl extends UsageTracker {
                           ImmutableMap.of(
                             "appId", anonymize(applicationId)));
     // @formatter:on
+  }
+
+  @Override
+  public void trackInstantRunStats(@NotNull Map<String, String> kv) {
+    if (!trackingEnabled()) {
+      return;
+    }
+
+    myUploader.trackEvent(GLOGS_CATEGORY_INSTANT_RUN_V1, kv);
   }
 
   @NotNull

@@ -17,10 +17,7 @@ package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.InstallException;
-import com.android.tools.idea.fd.InstantRunArtifact;
-import com.android.tools.idea.fd.InstantRunArtifactType;
-import com.android.tools.idea.fd.InstantRunBuildInfo;
-import com.android.tools.idea.fd.InstantRunManager;
+import com.android.tools.idea.fd.*;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.google.common.base.Joiner;
@@ -82,6 +79,9 @@ public class SplitApkDeployTask implements LaunchTask {
 
       InstantRunManager.transferLocalIdToDeviceId(device, myFacet.getModule());
       DeployApkTask.cacheManifestInstallationData(device, myFacet, myPkgName);
+
+      InstantRunStatsService.get(myFacet.getModule().getProject())
+        .notifyDeployType(InstantRunStatsService.DeployType.SPLITAPK);
       return true;
     }
     catch (InstallException e) {
