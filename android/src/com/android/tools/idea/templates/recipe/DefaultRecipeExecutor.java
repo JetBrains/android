@@ -306,8 +306,9 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
     if (destinationContents == null) {
       destinationContents = "";
     }
-    String compileSdkVersion = (String)getParamMap().get(TemplateMetadata.ATTR_BUILD_API_STRING);
-    String result = myIO.mergeGradleFiles(formatDependencies(), destinationContents, myContext.getProject(), compileSdkVersion);
+    Object buildApi = getParamMap().get(TemplateMetadata.ATTR_BUILD_API);
+    String supportLibVersionFilter = buildApi != null ? buildApi.toString() : "";
+    String result = myIO.mergeGradleFiles(formatDependencies(), destinationContents, myContext.getProject(), supportLibVersionFilter);
     myIO.writeFile(this, result, gradleBuildFile);
     myNeedsGradleSync = true;
   }
@@ -474,8 +475,8 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
     public String mergeGradleFiles(@NotNull String dependencies,
                                    @NotNull String destinationContents,
                                    Project project,
-                                   String compileSdkVersion) {
-      return GradleFileMerger.mergeGradleFiles(dependencies, destinationContents, project, compileSdkVersion);
+                                   @Nullable String supportLibVersionFilter) {
+      return GradleFileMerger.mergeGradleFiles(dependencies, destinationContents, project, supportLibVersionFilter);
     }
 
     public void requestGradleSync(@NotNull Project project) {
