@@ -20,19 +20,18 @@ import com.android.resources.ResourceFolderType;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.components.AbstractProjectComponent;
 import com.intellij.openapi.fileTypes.FileType;
-import com.intellij.openapi.fileTypes.FileTypeManager;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.ui.EditorNotifications;
+import org.intellij.images.fileTypes.ImageFileTypeManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.GroovyFileType;
 
 import java.util.Map;
 
-import static com.android.SdkConstants.EXT_PNG;
 import static com.android.SdkConstants.FD_RES_RAW;
 
 public class PsiProjectListener extends AbstractProjectComponent implements PsiTreeChangeListener {
@@ -77,7 +76,7 @@ public class PsiProjectListener extends AbstractProjectComponent implements PsiT
       return false;
     }
     return fileType == StdFileTypes.XML ||
-           (fileType.isBinary() && fileType == FileTypeManager.getInstance().getFileTypeByExtension(EXT_PNG));
+           fileType.isBinary() && fileType == ImageFileTypeManager.getInstance().getImageFileType();
   }
 
   static boolean isRelevantFile(@NotNull VirtualFile file) {
