@@ -337,7 +337,9 @@ public class LayoutPsiPullParser extends LayoutPullParser {
       } else if (namespace.equals(ANDROID_URI)) {
         if (myAndroidPrefix != null) {
           if (myToolsPrefix != null) {
-            for (AttributeSnapshot attribute : tag.attributes) {
+            //noinspection ForLoopReplaceableByForEach
+            for (int i = 0, n = tag.attributes.size(); i < n; i++) {
+              AttributeSnapshot attribute = tag.attributes.get(i);
               if (localName.equals(attribute.name)) {
                 if (myToolsPrefix.equals(attribute.prefix)) {
                   value = attribute.value;
@@ -363,7 +365,9 @@ public class LayoutPsiPullParser extends LayoutPullParser {
         // will be for the current application's resource package, e.g.
         // http://schemas.android.com/apk/res/foo.bar, but the XML document will
         // be using http://schemas.android.com/apk/res-auto in library projects:
-        for (AttributeSnapshot attribute : tag.attributes) {
+        //noinspection ForLoopReplaceableByForEach
+        for (int i = 0, n = tag.attributes.size(); i < n; i++) {
+          AttributeSnapshot attribute = tag.attributes.get(i);
           if (localName.equals(attribute.name) && (namespace.equals(attribute.namespace) ||
                                                    AUTO_URI.equals(attribute.namespace))) {
             value = attribute.value;
@@ -552,7 +556,7 @@ public class LayoutPsiPullParser extends LayoutPullParser {
     String rootTag = tag.getName();
     if (rootTag.equals(VIEW_FRAGMENT)) {
       XmlAttribute[] psiAttributes = tag.getAttributes();
-      List<AttributeSnapshot> attributes = Lists.newArrayListWithExpectedSize(psiAttributes.length);
+      List<AttributeSnapshot> attributes = Lists.newArrayListWithCapacity(psiAttributes.length);
       for (XmlAttribute psiAttribute : psiAttributes) {
         AttributeSnapshot attribute = AttributeSnapshot.createAttributeSnapshot(psiAttribute);
         if (attribute != null) {
@@ -560,7 +564,7 @@ public class LayoutPsiPullParser extends LayoutPullParser {
         }
       }
 
-      List<AttributeSnapshot> includeAttributes = Lists.newArrayListWithExpectedSize(psiAttributes.length);
+      List<AttributeSnapshot> includeAttributes = Lists.newArrayListWithCapacity(psiAttributes.length);
       for (XmlAttribute psiAttribute : psiAttributes) {
         String name = psiAttribute.getName();
         if (name.startsWith(XMLNS_PREFIX)) {
