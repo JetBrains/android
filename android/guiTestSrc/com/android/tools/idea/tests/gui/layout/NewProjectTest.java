@@ -261,7 +261,7 @@ public class NewProjectTest extends GuiTestCase {
 
       ConfigureAndroidProjectStepFixture configureAndroidProjectStep = newProjectWizard.getConfigureAndroidProjectStep();
       configureAndroidProjectStep.enterApplicationName(myName).enterCompanyDomain(myDomain).enterPackageName(myPkg);
-      File projectPath = configureAndroidProjectStep.getLocationInFileSystem();
+      setProjectPath(configureAndroidProjectStep.getLocationInFileSystem());
       newProjectWizard.clickNext();
 
       newProjectWizard.getConfigureFormFactorStep().selectMinimumSdkApi(MOBILE, myMinSdk);
@@ -273,7 +273,6 @@ public class NewProjectTest extends GuiTestCase {
       newProjectWizard.getChooseOptionsForNewFileStep().enterActivityName(myActivity);
       newProjectWizard.clickFinish();
 
-      IdeFrameFixture.find(myRobot, projectPath, myName);
       if (myWaitForSync) {
         getIdeFrame().waitForGradleProjectSyncToFinish();
       }
