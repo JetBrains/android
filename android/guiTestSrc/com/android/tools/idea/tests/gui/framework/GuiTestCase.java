@@ -16,7 +16,6 @@
 package com.android.tools.idea.tests.gui.framework;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.LocalProperties;
@@ -25,25 +24,16 @@ import com.android.tools.idea.templates.AndroidGradleTestCase;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.wm.WindowManager;
-import com.intellij.openapi.wm.impl.WindowManagerImpl;
-import com.intellij.openapi.wm.impl.welcomeScreen.WelcomeFrame;
-import com.intellij.util.net.HttpConfigurable;
 import org.fest.swing.core.BasicRobot;
 import org.fest.swing.core.Robot;
-import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
-import org.fest.swing.timing.Condition;
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.input.SAXBuilder;
 import org.jdom.xpath.XPath;
-import org.jetbrains.android.AndroidPlugin.GuiTestSuiteState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.After;
@@ -62,17 +52,12 @@ import java.util.List;
 
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
-import static com.intellij.ide.impl.ProjectUtil.closeAndDispose;
 import static com.intellij.openapi.project.ProjectCoreUtil.DIRECTORY_BASED_PROJECT_DIR;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.util.io.FileUtilRt.delete;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static junit.framework.Assert.assertNotNull;
 import static org.fest.swing.edt.GuiActionRunner.execute;
-import static org.fest.swing.timing.Pause.pause;
-import static org.fest.util.Strings.quote;
-import static org.jetbrains.android.AndroidPlugin.getGuiTestSuiteState;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.junit.Assume.assumeTrue;
 
@@ -110,22 +95,6 @@ public abstract class GuiTestCase {
 
     printPerfStats();
     printTimestamp();
-  }
-
-  private static void setIdeSettings() {
-    GradleExperimentalSettings.getInstance().SELECT_MODULES_ON_PROJECT_IMPORT = false;
-
-    // Clear HTTP proxy settings, in case a test changed them.
-    HttpConfigurable ideSettings = HttpConfigurable.getInstance();
-    ideSettings.USE_HTTP_PROXY = false;
-    ideSettings.PROXY_HOST = "";
-    ideSettings.PROXY_PORT = 80;
-
-    GuiTestSuiteState state = getGuiTestSuiteState();
-    state.setSkipSdkMerge(false);
-    state.setUseCachedGradleModelOnly(false);
-
-    // TODO: setUpDefaultGeneralSettings();
   }
 
   private void printTimestamp() {
@@ -172,54 +141,6 @@ public abstract class GuiTestCase {
           }
         }
       }
-    }
-  }
-
-  private static void closeAllProjects() {
-    pause(new Condition("Close all projects") {
-      @Override
-      public boolean test() {
-        final Project[] openProjects = ProjectManager.getInstance().getOpenProjects();
-        execute(new GuiTask() {
-          @Override
-          protected void executeInEDT() throws Throwable {
-            for (Project project : openProjects) {
-              assertTrue("Failed to close project " + quote(project.getName()), closeAndDispose(project));
-            }
-          }
-        });
-        return ProjectManager.getInstance().getOpenProjects().length == 0;
-      }
-    }, SHORT_TIMEOUT);
-
-    //noinspection ConstantConditions
-    boolean welcomeFrameShown = execute(new GuiQuery<Boolean>() {
-      @Override
-      protected Boolean executeInEDT() throws Throwable {
-        Project[] openProjects = ProjectManager.getInstance().getOpenProjects();
-        if (openProjects.length == 0) {
-          WelcomeFrame.showNow();
-
-          WindowManagerImpl windowManager = (WindowManagerImpl)WindowManager.getInstance();
-          windowManager.disposeRootFrame();
-          return true;
-        }
-        return false;
-      }
-    });
-
-    if (welcomeFrameShown) {
-      pause(new Condition("'Welcome' frame to show up") {
-        @Override
-        public boolean test() {
-          for (Frame frame : Frame.getFrames()) {
-            if (frame == WelcomeFrame.getInstance() && frame.isShowing()) {
-              return true;
-            }
-          }
-          return false;
-        }
-      }, SHORT_TIMEOUT);
     }
   }
 
