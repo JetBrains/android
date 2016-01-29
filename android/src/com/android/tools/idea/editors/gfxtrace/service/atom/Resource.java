@@ -58,7 +58,7 @@ public final class Resource implements BinaryObject {
 
   static {
     ENTITY.setFields(new Field[]{
-      new Field("ID", new Array("binary.ID", new Primitive("byte", Method.Uint8), 20)),
+      new Field("ID", new Array("id.ID", new Primitive("byte", Method.Uint8), 20)),
       new Field("Data", new Slice("", new Primitive("byte", Method.Uint8))),
     });
     Namespace.register(Klass.INSTANCE);
