@@ -15,19 +15,11 @@
  */
 package com.android.tools.idea.editors.gfxtrace.controllers;
 
-import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
-import com.android.tools.idea.editors.gfxtrace.UiCallback;
-import com.android.tools.idea.editors.gfxtrace.UiErrorCallback;
+import com.android.tools.idea.editors.gfxtrace.models.GpuState;
 import com.android.tools.idea.editors.gfxtrace.service.ErrDataUnavailable;
-import com.android.tools.idea.editors.gfxtrace.service.path.*;
-import com.android.tools.idea.editors.gfxtrace.JBLoadingPanelWrapper;
-import com.android.tools.idea.editors.gfxtrace.service.path.AtomPath;
 import com.android.tools.idea.editors.gfxtrace.service.path.PathStore;
 import com.android.tools.idea.editors.gfxtrace.service.path.StatePath;
-import com.android.tools.rpclib.futures.SingleInFlight;
-import com.android.tools.rpclib.rpccore.Rpc;
-import com.android.tools.rpclib.rpccore.RpcException;
 import com.android.tools.rpclib.schema.Dynamic;
 import com.android.tools.rpclib.schema.Field;
 import com.android.tools.rpclib.schema.Map;
@@ -35,7 +27,6 @@ import com.android.tools.rpclib.schema.Type;
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.containers.IntArrayList;
 import org.jetbrains.annotations.NotNull;
@@ -48,26 +39,23 @@ import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 
-public class StateController extends TreeController {
+public class StateController extends TreeController implements GpuState.Listener {
   public static JComponent createUI(GfxTraceEditor editor) {
     return new StateController(editor).myPanel;
   }
 
   @NotNull private static final Logger LOG = Logger.getInstance(StateController.class);
   @NotNull private static final TypedValue ROOT_TYPE = new TypedValue(null, "state");
-  @NotNull private static final Object[] NO_SELECTION = new Object[0];
 
   private final PathStore<StatePath> myStatePath = new PathStore<StatePath>();
   private final StateTreeModel myModel = new StateTreeModel(new Node(ROOT_TYPE, null));
-  private final SingleInFlight myStateRequestController = new SingleInFlight(new JBLoadingPanelWrapper(myLoadingPanel));
-  private Object[] lastSelection = NO_SELECTION;
 
   private StateController(@NotNull GfxTraceEditor editor) {
     super(editor, GfxTraceEditor.SELECT_ATOM);
+    myEditor.getGpuState().addListener(this);
+
     myPanel.setBorder(BorderFactory.createTitledBorder(myScrollPane.getBorder(), "GPU State"));
     myScrollPane.setBorder(new EmptyBorder(0, 0, 0, 0));
     setModel(myModel);
@@ -75,76 +63,37 @@ public class StateController extends TreeController {
 
   @Override
   public void notifyPath(PathEvent event) {
-    boolean updateState = myStatePath.updateIfNotNull(AtomPath.stateAfter(event.findAtomPath()));
-
-    if (updateState && myStatePath.getPath() != null) {
-      ListenableFuture future = myEditor.getClient().get(myStatePath.getPath());
-      Rpc.listen(future, LOG, myStateRequestController, new UiErrorCallback<Object, Node, String>() {
-        @Override
-        protected ResultOrError<Node, String> onRpcThread(Rpc.Result<Object> result) throws RpcException, ExecutionException {
-          try {
-            return success(convert(new TypedValue(null, "state"), new TypedValue(null, result.get())));
-          }
-          catch (ErrDataUnavailable e) {
-            return error(e.getMessage());
-          }
-        }
-
-        @Override
-        protected void onUiThreadSuccess(Node root) {
-          if (getModel() != myModel) {
-            setModel(myModel);
-          }
-
-          myModel.setRoot(root);
-          if (lastSelection.length > 0) {
-            select(lastSelection);
-            lastSelection = NO_SELECTION;
-          }
-        }
-
-        @Override
-        protected void onUiThreadError(String error) {
-          myTree.getEmptyText().setText(error);
-          clear();
-        }
-      });
-    }
-
-    if (event.findStatePath() != null) {
-      Object[] selection = getStatePath(event.path);
-      if (getModel() == null || ((Node)myModel.getRoot()).isLeaf()) {
-        lastSelection = selection;
-      }
-      else {
-        select(selection);
-        lastSelection = NO_SELECTION;
-      }
-    }
   }
 
-  private static Object[] getStatePath(Path path) {
-    LinkedList<Object> result = Lists.newLinkedList();
-    while (path != null) {
-      if (path instanceof FieldPath) {
-        result.add(0, ((FieldPath)path).getName());
-      }
-      else if (path instanceof MapIndexPath) {
-        result.add(0, ((MapIndexPath)path).getKey());
-      }
-      else {
-        break;
-      }
-      path = path.getParent();
-    }
-    return result.toArray(new Object[result.size()]);
+  @Override
+  public void onStateLoadingStart(GpuState state) {
+    myLoadingPanel.startLoading();
   }
 
-  private void select(Object[] nodePath) {
+  @Override
+  public void onStateLoadingFailure(GpuState state, ErrDataUnavailable error) {
+    myLoadingPanel.stopLoading();
+    myTree.getEmptyText().setText(error.getMessage());
+    clear();
+  }
+
+  @Override
+  public void onStateLoadingSuccess(GpuState state) {
+    myLoadingPanel.stopLoading();
+
+    if (getModel() != myModel) {
+      setModel(myModel);
+    }
+
+    myModel.setRoot(convert(new TypedValue(null, "state"), new TypedValue(null, state.getState())));
+  }
+
+  @Override
+  public void onStateSelection(GpuState state, Object[] selection) {
     Node node = (Node)myModel.getRoot();
     TreePath treePath = new TreePath(node);
-    for (int i = 0; i < nodePath.length && !node.isLeaf(); i++) {
-      node = node.findChild(nodePath[i]);
+    for (int i = 0; i < selection.length && !node.isLeaf(); i++) {
+      node = node.findChild(selection[i]);
       if (node == null) break;
       treePath = treePath.pathByAddingChild(node);
     }
