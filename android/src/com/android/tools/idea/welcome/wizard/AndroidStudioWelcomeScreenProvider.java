@@ -158,12 +158,12 @@ public final class AndroidStudioWelcomeScreenProvider implements WelcomeScreenPr
   @Nullable
   @Override
   public WelcomeScreen createWelcomeScreen(JRootPane rootPane) {
-    Map<String, RemotePackage> remotePackages = fetchPackages();
+    checkInternetConnection();
     FirstRunWizardMode wizardMode = getWizardMode();
     assert wizardMode != null; // This means isAvailable was false! Why are we even called?
     //noinspection AssignmentToStaticFieldFromInstanceMethod
     ourWasShown = true;
-    return new FirstRunWizardHost(wizardMode, remotePackages);
+    return new FirstRunWizardHost(wizardMode);
   }
 
   @NotNull
