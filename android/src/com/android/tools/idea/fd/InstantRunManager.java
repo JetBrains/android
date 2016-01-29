@@ -227,7 +227,7 @@ public final class InstantRunManager implements ProjectComponent {
   public static boolean apiLevelsMatch(@NotNull IDevice device, @NotNull Module module) {
     AndroidGradleModel model = getAppModel(module);
     InstantRunBuildInfo buildInfo = model == null ? null : InstantRunBuildInfo.get(model);
-    return buildInfo != null && buildInfo.getApiLevel() == device.getVersion().getApiLevel();
+    return buildInfo != null && buildInfo.getFeatureLevel() == device.getVersion().getFeatureLevel();
   }
 
   /**
