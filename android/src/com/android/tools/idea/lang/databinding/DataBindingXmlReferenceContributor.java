@@ -47,13 +47,13 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
+import static com.android.tools.idea.lang.databinding.DataBindingCompletionUtil.JAVA_LANG;
+
 
 /**
  * For references in DataBinding expressions. For references in {@code <data>} tag, see {@link DataBindingConverter}
  */
 public class DataBindingXmlReferenceContributor extends PsiReferenceContributor {
-
-  private static final String JAVA_LANG = "java.lang.";
 
   @Nullable
   public static DataBindingInfo getDataBindingInfo(PsiElement element) {
