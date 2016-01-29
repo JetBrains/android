@@ -17,10 +17,7 @@ package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.fd.client.UpdateMode;
-import com.android.tools.idea.fd.InstantRunBuildInfo;
-import com.android.tools.idea.fd.InstantRunManager;
-import com.android.tools.idea.fd.InstantRunPushFailedException;
-import com.android.tools.idea.fd.InstantRunUtils;
+import com.android.tools.idea.fd.*;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.util.LaunchStatus;
@@ -82,6 +79,7 @@ public class HotSwapTask implements LaunchTask {
       return true; // not an error condition since we've already terminated and restarted the launch
     }
 
+    InstantRunStatsService.get(myEnv.getProject()).notifyDeployType(InstantRunStatsService.DeployType.HOTSWAP);
     return true;
   }
 
