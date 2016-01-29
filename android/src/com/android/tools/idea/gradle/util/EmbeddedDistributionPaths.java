@@ -29,6 +29,18 @@ public class EmbeddedDistributionPaths {
   private static final Logger LOG = Logger.getInstance(EmbeddedDistributionPaths.class);
 
   @Nullable
+  public static File findAdditionalGradlePluginsLocation() {
+    File defaultRootDirPath = getDefaultRootDirPath();
+    if (defaultRootDirPath != null) {
+      return new File(defaultRootDirPath, "plugins");
+    } else {
+      // In development builds these files are built as artifacts.
+      String relativePath = toSystemDependentName("/out/artifacts/gradle_plugins");
+      return new File(PathManager.getHomePath() + relativePath);
+    }
+  }
+
+  @Nullable
   public static File findAndroidStudioLocalMavenRepoPath() {
     File defaultRootDirPath = getDefaultRootDirPath();
     File repoPath;
