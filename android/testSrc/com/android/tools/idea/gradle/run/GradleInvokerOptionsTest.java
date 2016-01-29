@@ -156,6 +156,36 @@ public class GradleInvokerOptionsTest {
   }
 
   @Test
+  public void disableDexswapIfColdswapDisabled() {
+    FileChangeListener.Changes changes = new FileChangeListener.Changes(false, false, true);
+    when(myDevice.getVersion()).thenReturn(new AndroidVersion(21, null));
+
+    GradleInvokerOptions.InstantRunBuildOptions instantRunOptions =
+      new GradleInvokerOptions.InstantRunBuildOptions(false, false, false, false, ColdSwapMode.DEFAULT, changes, myDevices);
+
+    GradleInvokerOptions options =
+      GradleInvokerOptions.create(GradleInvoker.TestCompileType.NONE, instantRunOptions, myTasksProvider, null);
+
+    assertTrue(options.commandLineArguments.contains("-Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY"));
+    assertEquals(ASSEMBLE_TASKS, options.tasks);
+  }
+
+  @Test
+  public void disableDexswapOnApiLessThan21() {
+    FileChangeListener.Changes changes = new FileChangeListener.Changes(false, false, true);
+    when(myDevice.getVersion()).thenReturn(new AndroidVersion(19, null));
+
+    GradleInvokerOptions.InstantRunBuildOptions instantRunOptions =
+      new GradleInvokerOptions.InstantRunBuildOptions(false, false, false, true, ColdSwapMode.DEFAULT, changes, myDevices);
+
+    GradleInvokerOptions options =
+      GradleInvokerOptions.create(GradleInvoker.TestCompileType.NONE, instantRunOptions, myTasksProvider, null);
+
+    assertTrue(options.commandLineArguments.contains("-Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY"));
+    assertEquals(ASSEMBLE_TASKS, options.tasks);
+  }
+
+  @Test
   public void previewPlatformOptions() throws Exception {
     FileChangeListener.Changes changes = new FileChangeListener.Changes(false, true, false);
     when(myDevice.getVersion()).thenReturn(new AndroidVersion(23, "N"));
