@@ -21,7 +21,6 @@ import com.android.repository.Revision;
 import com.android.repository.api.RemotePackage;
 import com.android.repository.api.RepoPackage;
 import com.android.repository.io.FileOpUtils;
-import com.android.sdklib.devices.Storage;
 import com.android.sdklib.repositoryv2.AndroidSdkHandler;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.google.common.collect.Lists;
@@ -30,20 +29,18 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.Collection;
-import java.util.Map;
 
 /**
  * Android SDK installable component.
  */
 public final class AndroidSdk extends InstallableComponent {
-  public static final long SIZE = 265 * Storage.Unit.MiB.getNumberOfBytes();
 
-  public AndroidSdk(@NotNull ScopedStateStore store) {
-    super(store, "Android SDK", SIZE, "The collection of Android platform APIs, " +
+  public AndroidSdk(@NotNull ScopedStateStore store, boolean installUpdates) {
+    super(store, "Android SDK", "The collection of Android platform APIs, " +
                                "tools and utilities that enables you to debug, " +
                                "profile, and compile your apps.\n\n" +
                                "The setup wizard will update your current Android SDK " +
-                               "installation (if necessary) or install a new version.", FileOpUtils.create());
+                               "installation (if necessary) or install a new version.", installUpdates, FileOpUtils.create());
   }
 
   /**
@@ -51,9 +48,9 @@ public final class AndroidSdk extends InstallableComponent {
    * @return The Revision of the latest build tools package, or null if no remote build tools packages are available.
    */
   @Nullable
-  private static Revision getLatestCompatibleBuildToolsRevision(@NotNull Map<String, RemotePackage> packages) {
+  private Revision getLatestCompatibleBuildToolsRevision() {
     Revision revision = null;
-    for (RemotePackage p : packages.values()) {
+    for (RemotePackage p : myRepositoryPackages.getRemotePackages().values()) {
       if (!p.getPath().startsWith(SdkConstants.FD_BUILD_TOOLS)) {
         continue;
       }
@@ -72,15 +69,13 @@ public final class AndroidSdk extends InstallableComponent {
 
   @NotNull
   @Override
-  public Collection<String> getRequiredSdkPackages(@Nullable Map<String, RemotePackage> remotePackages) {
+  protected Collection<String> getRequiredSdkPackages() {
     Collection<String> result = Lists.newArrayList();
     result.add(SdkConstants.FD_TOOLS);
     result.add(SdkConstants.FD_PLATFORM_TOOLS);
-    if (remotePackages != null) {
-      Revision revision = getLatestCompatibleBuildToolsRevision(remotePackages);
-      if (revision != null) {
-        result.add(SdkConstants.FD_BUILD_TOOLS + RepoPackage.PATH_SEPARATOR + revision.toString());
-      }
+    Revision revision = getLatestCompatibleBuildToolsRevision();
+    if (revision != null) {
+      result.add(SdkConstants.FD_BUILD_TOOLS + RepoPackage.PATH_SEPARATOR + revision.toString());
     }
 
     for (SdkMavenRepository repository : SdkMavenRepository.values()) {
@@ -96,7 +91,7 @@ public final class AndroidSdk extends InstallableComponent {
   }
 
   @Override
-  protected boolean isOptionalForSdkLocation(@Nullable AndroidSdkHandler handler) {
+  protected boolean isOptionalForSdkLocation() {
     return false;
   }
 }

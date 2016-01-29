@@ -21,7 +21,6 @@ import com.android.repository.io.FileOp;
 import com.android.resources.Density;
 import com.android.resources.ScreenOrientation;
 import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.ISystemImage;
 import com.android.sdklib.devices.Abi;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Storage;
@@ -78,9 +77,12 @@ public class AndroidVirtualDevice extends InstallableComponent {
   @Nullable
   private final AndroidVersion myLatestVersion;
 
-  public AndroidVirtualDevice(@NotNull ScopedStateStore store, @NotNull Map<String, RemotePackage> remotePackages, FileOp fop) {
-    super(store, "Android Virtual Device", Storage.Unit.GiB.getNumberOfBytes(),
-          "A preconfigured and optimized Android Virtual Device for app testing on the emulator. (Recommended)", fop);
+  public AndroidVirtualDevice(@NotNull ScopedStateStore store,
+                              @NotNull Map<String, RemotePackage> remotePackages,
+                              boolean installUpdates,
+                              @NotNull FileOp fop) {
+    super(store, "Android Virtual Device",
+          "A preconfigured and optimized Android Virtual Device for app testing on the emulator. (Recommended)", installUpdates, fop);
     RemotePackage latestInfo = InstallComponentsPath.findLatestPlatform(remotePackages);
     if (latestInfo != null) {
       myLatestVersion = DetailsTypes.getAndroidVersion((DetailsTypes.PlatformDetailsType)latestInfo.getTypeDetails());
@@ -170,7 +172,7 @@ public class AndroidVirtualDevice extends InstallableComponent {
 
   @NotNull
   @Override
-  public Collection<String> getRequiredSdkPackages(Map<String, RemotePackage> remotePackages) {
+  protected Collection<String> getRequiredSdkPackages() {
     List<String> result = Lists.newArrayList();
     if (myLatestVersion != null) {
       result.add(DetailsTypes.getAddonPath(ID_VENDOR_GOOGLE, myLatestVersion, ID_ADDON_GOOGLE_API_IMG));
@@ -206,20 +208,20 @@ public class AndroidVirtualDevice extends InstallableComponent {
   }
 
   @Override
-  protected boolean isSelectedByDefault(@Nullable AndroidSdkHandler sdkHandler) {
-    if (sdkHandler == null) {
+  protected boolean isSelectedByDefault() {
+    if (mySdkHandler == null) {
       return false;
     }
     SystemImageDescription desired;
     try {
-      desired = getSystemImageDescription(sdkHandler);
+      desired = getSystemImageDescription(mySdkHandler);
     }
     catch (WizardException e) {
       // ignore, error will be shown during configure if they opt to try to create.
       return false;
     }
 
-    AvdManagerConnection connection = AvdManagerConnection.getAvdManagerConnection(sdkHandler);
+    AvdManagerConnection connection = AvdManagerConnection.getAvdManagerConnection(mySdkHandler);
     List<AvdInfo> avds = connection.getAvds(false);
     for (AvdInfo avd : avds) {
       if (avd.getAbiType().equals(desired.getAbiType()) &&
