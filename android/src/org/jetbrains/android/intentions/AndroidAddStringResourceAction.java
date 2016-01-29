@@ -319,6 +319,9 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
                                                   final String resName,
                                                   final ResourceType resType) {
     final boolean extendsContext = getContainingInheritorOf(element, CLASS_CONTEXT) != null;
+    final boolean extendsFragment =
+      getContainingInheritorOf(element, CLASS_FRAGMENT) != null || getContainingInheritorOf(element, CLASS_V4_FRAGMENT) != null;
+
     final String rJavaFieldName = AndroidResourceUtil.getRJavaFieldName(resName);
     final String field = aPackage + ".R." + resType + '.' + rJavaFieldName;
     final String methodName = getGetterNameForResourceType(resType, element);
@@ -327,7 +330,7 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
     final boolean inStaticContext = RefactoringUtil.isInStaticContext(element, null);
     final Project project = module.getProject();
 
-    if (extendsContext && !inStaticContext) {
+    if ((extendsContext || extendsFragment) && !inStaticContext) {
       if (ResourceType.STRING == resType) {
         if (useGetStringMethodForStringRes(element)) {
           template = new TemplateImpl("", methodName + '(' + field + ')', "");
