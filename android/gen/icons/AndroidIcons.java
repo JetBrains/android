@@ -16,7 +16,7 @@ public class AndroidIcons {
   public static final Icon Android = load("/icons/android.png"); // 16x16
   public static final Icon Android24 = load("/icons/android24.png"); // 24x24
   public static final Icon AndroidLarge = load("/icons/androidLarge.png"); // 64x64
-  public static final Icon AndroidPreview = load("/icons/androidPreview.png"); // 16x16
+  public static final Icon AndroidPreview = load("/icons/androidPreview.png"); // 13x13
   public static final Icon AndroidToolWindow = load("/icons/androidToolWindow.png"); // 13x13
 
   public static final Icon AvdManager = load("/icons/avd_manager.png"); // 16x16
@@ -50,6 +50,7 @@ public class AndroidIcons {
   public static final Icon FlipPortrait = load("/icons/flip_portrait.png"); // 16x16
   public static final Icon Display = load("/icons/display.png"); // 16x16
   public static final Icon Themes = load("/icons/themes.png"); // 16x16
+  public static final Icon ThemesPreview = load("/icons/themesPreview.png"); // 13x13
   public static final Icon Sunburst = load("/icons/sunburst.png"); // 16x16
 
   public static final Icon EmptyFlag = load("/icons/flags/flag_empty.png"); // 16x16
