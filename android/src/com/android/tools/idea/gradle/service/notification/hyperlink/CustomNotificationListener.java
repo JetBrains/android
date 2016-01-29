@@ -38,6 +38,11 @@ public class CustomNotificationListener extends NotificationListener.Adapter {
   protected void hyperlinkActivated(@NotNull Notification notification, @NotNull HyperlinkEvent e) {
     for (NotificationHyperlink hyperlink : myHyperlinks) {
       if (hyperlink.executeIfClicked(myProject, e)) {
+        // If there is only one link, or if clicking this link is supposed to close the
+        // notification, do so
+        if (hyperlink.isCloseOnClick() || myHyperlinks.length == 1) {
+          notification.expire();
+        }
         return;
       }
     }
