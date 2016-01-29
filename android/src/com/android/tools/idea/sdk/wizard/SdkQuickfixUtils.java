@@ -31,12 +31,18 @@ import com.android.utils.HtmlBuilder;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.icons.AllIcons;
+import com.intellij.ide.AppLifecycleListener;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ApplicationNamesInfo;
+import com.intellij.openapi.application.ex.ApplicationEx;
 import com.intellij.openapi.application.ex.ApplicationManagerEx;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.util.messages.MessageBus;
+import com.intellij.util.messages.MessageBusConnection;
+import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
 import org.jetbrains.android.actions.RunAndroidSdkManagerAction;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
@@ -161,6 +167,7 @@ public final class SdkQuickfixUtils {
 
     if (!checkForProblems(project, parent, resolvedPackages, installRequests, skippedInstallRequests, sdkHandler)) {
       startSdkManagerAndExit(project, mgr.getLocalPath());
+
     }
 
     if (installRequests.isEmpty()) {
@@ -204,7 +211,8 @@ public final class SdkQuickfixUtils {
   private enum InstallSdkOption {
     EXIT_AND_LAUNCH_STANDALONE(String.format("Exit %s and launch SDK Manager", ApplicationNamesInfo.getInstance().getProductName())),
     ATTEMPT_ALL("Attempt to install all packages"),
-    INSTALL_SAFE("Install safe packages");
+    INSTALL_SAFE("Install safe packages"),
+    CANCEL("Cancel");
 
     private String myDescription;
 
@@ -249,39 +257,53 @@ public final class SdkQuickfixUtils {
         warningBuilder.append(problemPkg.getDisplayName());
       }
 
-      String[] options;
-      int defaultOptionIndex;
+      String[] optionNames;
+      InstallSdkOption[] options;
 
       if (problems.size() == requestedPackages.size()) {
         options =
-          new String[]{InstallSdkOption.EXIT_AND_LAUNCH_STANDALONE.getDescription(), InstallSdkOption.ATTEMPT_ALL.getDescription(),};
-        defaultOptionIndex = InstallSdkOption.EXIT_AND_LAUNCH_STANDALONE.ordinal();
+          new InstallSdkOption[]{InstallSdkOption.CANCEL, InstallSdkOption.ATTEMPT_ALL, InstallSdkOption.EXIT_AND_LAUNCH_STANDALONE};
       }
       else {
-        options = new String[]{InstallSdkOption.EXIT_AND_LAUNCH_STANDALONE.getDescription(), InstallSdkOption.ATTEMPT_ALL.getDescription(),
-          InstallSdkOption.INSTALL_SAFE.getDescription(),};
-        defaultOptionIndex = InstallSdkOption.INSTALL_SAFE.ordinal();
+        options = new InstallSdkOption[]{InstallSdkOption.EXIT_AND_LAUNCH_STANDALONE,
+          InstallSdkOption.ATTEMPT_ALL, InstallSdkOption.INSTALL_SAFE};
       }
-
+      optionNames = new String[options.length];
+      for (int i = 0; i < options.length; i++) {
+        optionNames[i] = options[i].getDescription();
+      }
       int result;
       if (parent != null) {
-        result = Messages.showDialog(parent, warningBuilder.toString(), "Warning", options, defaultOptionIndex, AllIcons.General.Warning);
+        result =
+          Messages.showDialog(parent, warningBuilder.toString(), "Warning", optionNames, optionNames.length - 1, AllIcons.General.Warning);
       }
       else {
-        result = Messages.showDialog(project, warningBuilder.toString(), "Warning", options, defaultOptionIndex, AllIcons.General.Warning);
+        result =
+          Messages.showDialog(project, warningBuilder.toString(), "Warning", optionNames, optionNames.length - 1, AllIcons.General.Warning);
       }
-      selectedOption = InstallSdkOption.values()[result];
+      
+      if (result == -1) {
+        selectedOption = InstallSdkOption.CANCEL;
+      }
+      else {
+        selectedOption = options[result];
+      }
     }
 
     if (selectedOption == InstallSdkOption.EXIT_AND_LAUNCH_STANDALONE) {
+      installRequests.clear();
+      skippedInstalls.clear();
       return false;
     }
-
-    if (selectedOption == InstallSdkOption.INSTALL_SAFE) {
+    else if (selectedOption == InstallSdkOption.INSTALL_SAFE) {
       skippedInstalls.addAll(problems);
     }
     else if (selectedOption == InstallSdkOption.ATTEMPT_ALL) {
       installRequests.addAll(problems);
+    }
+    else if (selectedOption == InstallSdkOption.CANCEL) {
+      installRequests.clear();
+      skippedInstalls.clear();
     }
 
     return true;
@@ -376,13 +398,16 @@ public final class SdkQuickfixUtils {
   /**
    * Closes the current application and launches the standalone SDK manager
    */
-  public static void startSdkManagerAndExit(@Nullable Project project, @NotNull File sdkPath) {
-    RunAndroidSdkManagerAction.runSpecificSdkManagerSynchronously(project, sdkPath);
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
+  public static void startSdkManagerAndExit(@Nullable final Project project, @NotNull final File sdkPath) {
+    final ApplicationEx app = ApplicationManagerEx.getApplicationEx();
+    MessageBusConnection connection = app.getMessageBus().connect(app);
+    connection.subscribe(AppLifecycleListener.TOPIC, new AppLifecycleListener.Adapter() {
       @Override
-      public void run() {
-        ApplicationManagerEx.getApplicationEx().exit(true, true);
+      public void appClosing() {
+        RunAndroidSdkManagerAction.runSpecificSdkManagerSynchronously(project, sdkPath);
       }
     });
+
+    app.exit(true, true);
   }
 }
