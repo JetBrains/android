@@ -24,7 +24,12 @@ import org.jdom.Element;
  * Holds all the project persisted state variables for the profilers.
  */
 public class ProfilerState {
-  public boolean GAPID_DISABLE_PCS = false; // GAPID disable pre-compiled shader support.
+
+  /** Whether to apply the profiling plugin. */
+  public boolean ENABLE_ADVANCED_PROFILING = true;
+
+  /** GAPID disable pre-compiled shader support. */
+  public boolean GAPID_DISABLE_PCS = false;
 
   /**
    * Reads the state from the {@link Element}, overwriting all member values.

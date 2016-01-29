@@ -85,6 +85,7 @@ import static com.android.tools.idea.gradle.dsl.model.GradleBuildModel.parseBuil
 import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.CLASSPATH;
 import static com.android.tools.idea.gradle.eclipse.GradleImport.escapeGroovyStringLiteral;
 import static com.android.tools.idea.gradle.util.BuildMode.ASSEMBLE_TRANSLATE;
+import static com.android.tools.idea.gradle.util.EmbeddedDistributionPaths.findAdditionalGradlePluginsLocation;
 import static com.android.tools.idea.gradle.util.EmbeddedDistributionPaths.findAndroidStudioLocalMavenRepoPath;
 import static com.android.tools.idea.gradle.util.EmbeddedDistributionPaths.findEmbeddedGradleDistributionPath;
 import static com.android.tools.idea.gradle.util.GradleBuilds.ENABLE_TRANSLATION_JVM_ARG;
@@ -904,20 +905,37 @@ public final class GradleUtil {
     }
   }
 
+  public static void addProfilerClassPathInitScriptCommandLineOption(@NotNull List<String> args) {
+    File file = findAdditionalGradlePluginsLocation();
+    String path = escapeGroovyStringLiteral(new File(file, "profiler-plugin.jar").getPath());
+    String contents = "allprojects {\n" +
+                      "  buildscript {\n" +
+                      "    dependencies {\n" +
+                      "      classpath files('" + path + "')\n" +
+                      "    }\n" +
+                      "  }\n" +
+                      "}\n";
+
+    addInitScriptCommandLineOption("asPerfClassPath", contents, args);
+  }
+
+  private static void addLocalMavenRepoInitScriptCommandLineOption(@NotNull List<String> args, @NotNull File repoPath) {
+    String contents = "allprojects {\n" +
+                      "  buildscript {\n" +
+                      "    repositories {\n" +
+                      "      maven { url '" + escapeGroovyStringLiteral(repoPath.getPath()) + "'}\n" +
+                      "    }\n" +
+                      "  }\n" +
+                      "}\n";
+    addInitScriptCommandLineOption("asLocalRepo", contents, args);
+  }
+
   @VisibleForTesting
   @Nullable
-  static File addLocalMavenRepoInitScriptCommandLineOption(@NotNull List<String> args, @NotNull File repoPath) {
+  static File addInitScriptCommandLineOption(@NotNull String name, @NotNull String contents, @NotNull List<String> args) {
     try {
-      File file = createTempFile("asLocalRepo", DOT_GRADLE);
+      File file = createTempFile(name, DOT_GRADLE);
       file.deleteOnExit();
-
-      String contents = "allprojects {\n" +
-                        "  buildscript {\n" +
-                        "    repositories {\n" +
-                        "      maven { url '" + escapeGroovyStringLiteral(repoPath.getPath()) + "'}\n" +
-                        "    }\n" +
-                        "  }\n" +
-                        "}\n";
       writeToFile(file, contents);
       addAll(args, GradleConstants.INIT_SCRIPT_CMD_OPTION, file.getAbsolutePath());
 
