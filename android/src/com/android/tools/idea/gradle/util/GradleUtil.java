@@ -1187,9 +1187,11 @@ public final class GradleUtil {
    * @return {@code true} if the update of the plugin version succeeded.
    */
   public static boolean updateGradlePluginVersion(@NotNull final Project project,
-                                                  @NotNull final String pluginVersion,
+                                                  @NotNull String pluginVersion,
                                                   @Nullable String gradleVersion) {
     final List<GradleBuildModel> modelsToUpdate = Lists.newArrayList();
+    final GradleVersion parsedPluginVersion = GradleVersion.parse(pluginVersion);
+    final Ref<Boolean> alreadyInCorrectVersion = new Ref<Boolean>(false);
 
     processBuildModelsRecursively(project, new Processor<GradleBuildModel>() {
       @Override
@@ -1198,8 +1200,11 @@ public final class GradleUtil {
         for (ArtifactDependencyModel dependency : dependencies.artifacts(CLASSPATH)) {
           ArtifactDependencySpec spec = dependency.getSpec();
           if (isAndroidPlugin(spec)) {
-            if (!pluginVersion.equals(spec.version)) {
-              dependency.setVersion(pluginVersion);
+            if (spec.version != null && parsedPluginVersion.compareTo(spec.version) == 0) {
+              alreadyInCorrectVersion.set(true);
+            }
+            else {
+              dependency.setVersion(parsedPluginVersion.toString());
               modelsToUpdate.add(buildModel);
             }
             break;
@@ -1219,6 +1224,10 @@ public final class GradleUtil {
           }
         }
       });
+    }
+    else if (alreadyInCorrectVersion.get()) {
+      // No version was updated because the correct version is already applied.
+      return true;
     }
 
     if (updateModels && isNotEmpty(gradleVersion)) {
