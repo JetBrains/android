@@ -17,6 +17,7 @@ package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.fd.InstantRunManager;
+import com.android.tools.idea.fd.InstantRunStatsService;
 import com.android.tools.idea.run.*;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.stats.UsageTracker;
@@ -102,6 +103,8 @@ public class DeployApkTask implements LaunchTask {
     }
 
     trackInstallation(device);
+    InstantRunStatsService.get(myFacet.getModule().getProject())
+      .notifyDeployType(InstantRunStatsService.DeployType.LEGACY);
 
     return true;
   }
@@ -124,8 +127,8 @@ public class DeployApkTask implements LaunchTask {
       return;
     }
 
-    // only track every 10th installation (just to reduce the load on the server)
-    ourInstallationCount = (ourInstallationCount + 1) % 10;
+    // only track every 20th installation (just to reduce the load on the server)
+    ourInstallationCount = (ourInstallationCount + 1) % 20;
     if (ourInstallationCount != 0) {
       return;
     }
@@ -142,11 +145,18 @@ public class DeployApkTask implements LaunchTask {
                                           device.getProperty(IDevice.PROP_BUILD_VERSION), null);
     UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_DEVICE_INFO, UsageTracker.DEVICE_INFO_BUILD_API_LEVEL,
                                           device.getProperty(IDevice.PROP_BUILD_API_LEVEL), null);
-    UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_DEVICE_INFO, UsageTracker.DEVICE_INFO_MANUFACTURER,
-                                          device.getProperty(IDevice.PROP_DEVICE_MANUFACTURER), null);
-    UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_DEVICE_INFO, UsageTracker.DEVICE_INFO_MODEL,
-                                          device.getProperty(IDevice.PROP_DEVICE_MODEL), null);
     UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_DEVICE_INFO, UsageTracker.DEVICE_INFO_CPU_ABI,
                                           device.getProperty(IDevice.PROP_DEVICE_CPU_ABI), null);
+
+    String manufacturer = device.getProperty(IDevice.PROP_DEVICE_MANUFACTURER);
+    String model = device.getProperty(IDevice.PROP_DEVICE_MODEL);
+    String manufacturerModel = manufacturer + "-" + model;
+
+    UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_DEVICE_INFO, UsageTracker.DEVICE_INFO_MANUFACTURER,
+                                          manufacturer, null);
+    UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_DEVICE_INFO, UsageTracker.DEVICE_INFO_MODEL,
+                                          model, null);
+    UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_DEVICE_INFO, UsageTracker.DEVICE_INFO_MANUFACTURER_MODEL,
+                                          manufacturerModel, null);
   }
 }

@@ -140,6 +140,9 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
             InstantRunManager.LOG.info("Build info reports verifier failure, but no artifacts were provided. Restarting launch.");
 
             launchStatus.terminateLaunch("Re-launching since we cannot push the current build results to device");
+            InstantRunStatsService.get(myFacet.getModule().getProject())
+              .incrementRestartLaunchCount();
+
             ApplicationManager.getApplication().invokeLater(new Runnable() {
               @Override
               public void run() {
