@@ -754,6 +754,7 @@
     <projectService serviceImplementation="com.android.tools.idea.structure.dialog.ProjectStructureConfigurable"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.invoker.messages.GradleBuildTreeViewConfiguration"/>
     <projectService serviceImplementation="com.android.tools.idea.run.DevicePickerStateService" />
+    <projectService serviceImplementation="com.android.tools.idea.fd.InstantRunStatsService" />
 
     <projectService serviceInterface="com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration"
                     serviceImplementation="com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration"/>

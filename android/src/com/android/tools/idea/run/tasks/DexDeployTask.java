@@ -20,6 +20,7 @@ import com.android.tools.fd.client.UpdateMode;
 import com.android.tools.idea.fd.InstantRunBuildInfo;
 import com.android.tools.idea.fd.InstantRunManager;
 import com.android.tools.idea.fd.InstantRunPushFailedException;
+import com.android.tools.idea.fd.InstantRunStatsService;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.util.LaunchStatus;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -54,6 +55,9 @@ public class DexDeployTask implements LaunchTask {
         manager.pushArtifacts(device, myFacet, UpdateMode.HOT_SWAP, myBuildInfo);
         // Note that the above method will update the build id on the device
         // and the InstalledPatchCache, so we don't have to do it again.
+
+        InstantRunStatsService.get(myFacet.getModule().getProject())
+          .notifyDeployType(InstantRunStatsService.DeployType.DEX);
 
         return true;
       }
