@@ -293,9 +293,10 @@ public final class FormFactorApiComboBox extends JComboBox {
     IAndroidTarget highestInstalledTarget = null;
     ourInstalledVersions.clear();
     for (IAndroidTarget target : targets) {
-      if (highestInstalledTarget == null ||
+      if (target.isPlatform() &&
+          (highestInstalledTarget == null ||
           target.getVersion().getFeatureLevel() > highestInstalledTarget.getVersion().getFeatureLevel() &&
-          !target.getVersion().isPreview()) {
+          !target.getVersion().isPreview())) {
         highestInstalledTarget = target;
       }
       if (target.getVersion().isPreview() || !target.getAdditionalLibraries().isEmpty()) {
