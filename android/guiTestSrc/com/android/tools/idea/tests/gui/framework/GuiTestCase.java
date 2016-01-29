@@ -195,7 +195,6 @@ public abstract class GuiTestCase {
    * @param projectDirName             the name of the project's root directory. Tests are located in testData/guiTests.
    * @param gradleVersion              the Gradle version to use in the wrapper. If {@code null} is passed, this method will use the latest supported
    *                                   version of Gradle.
-   * @return the path of project's root directory (the copy of the project, not the original one.)
    * @throws IOException if an unexpected I/O error occurs.
    */
   private void setUpProject(@NotNull String projectDirName,
