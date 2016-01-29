@@ -78,11 +78,14 @@ import com.intellij.util.Function;
 import com.intellij.util.SystemProperties;
 import com.intellij.util.ui.MessageCategory;
 import org.gradle.tooling.*;
+import org.gradle.tooling.events.ProgressEvent;
+import org.gradle.tooling.events.ProgressListener;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.service.JpsServiceManager;
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionHelper;
+import org.jetbrains.plugins.gradle.service.execution.GradleProgressEventConverter;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 
 import javax.swing.*;
@@ -345,6 +348,16 @@ class GradleTasksExecutor extends Task.Backgroundable {
             };
           }
           output.attachTo(launcher, outputListener);
+
+          launcher.addProgressListener(new ProgressListener() {
+            @Override
+            public void statusChanged(ProgressEvent event) {
+              if (myContext.isActive(id)) {
+                myContext.getTaskNotificationListener().onStatusChange(GradleProgressEventConverter.convert(id, event));
+              }
+            }
+          });
+
           launcher.run();
         }
         catch (BuildException e) {
