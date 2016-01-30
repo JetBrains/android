@@ -21,6 +21,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.ISystemImage;
 import com.google.common.base.Objects;
+import com.intellij.ide.util.treeView.TreeState;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.ThreeState;
 import org.jetbrains.annotations.NonNls;
@@ -36,10 +37,24 @@ public class LaunchCompatibility {
   private final ThreeState myCompatible;
   private final String myReason;
 
-  @VisibleForTesting
+  public static final LaunchCompatibility YES = new LaunchCompatibility(ThreeState.YES, null);
+
   public LaunchCompatibility(ThreeState compatible, @Nullable String reason) {
     myCompatible = compatible;
     myReason = reason;
+  }
+
+  public LaunchCompatibility combine(@NotNull LaunchCompatibility other) {
+    if (myCompatible == ThreeState.NO) {
+      return this;
+    }
+    if (other.myCompatible == ThreeState.NO) {
+      return other;
+    }
+    if (myCompatible == ThreeState.UNSURE) {
+      return this;
+    }
+    return other;
   }
 
   public ThreeState isCompatible() {
@@ -68,8 +83,6 @@ public class LaunchCompatibility {
     return Objects.hashCode(myCompatible, myReason);
   }
 
-  private static final LaunchCompatibility YES = new LaunchCompatibility(ThreeState.YES, null);
-
   /**
    * Returns whether an application with the given requirements can be run on the given device.
    *
@@ -85,15 +98,11 @@ public class LaunchCompatibility {
                                                    @NotNull IAndroidTarget projectTarget,
                                                    @NotNull EnumSet<IDevice.HardwareFeature> requiredFeatures,
                                                    @NotNull AndroidDevice device) {
-    String deviceError = device.getError();
-    if (deviceError != null) {
-      return new LaunchCompatibility(ThreeState.NO, deviceError);
-    }
     // check if the device has the required minApi
     // note that in cases where targetSdk is a preview platform, gradle sets minsdk to be the same as targetsdk,
     // so as to only allow running on those systems
     AndroidVersion deviceVersion = device.getVersion();
-    if (!deviceVersion.canRun(minSdkVersion)) {
+    if (!deviceVersion.equals(AndroidVersion.DEFAULT) && !deviceVersion.canRun(minSdkVersion)) {
       String reason = String.format("minSdk(%1$s) %3$s deviceSdk(%2$s)",
                                     minSdkVersion,
                                     deviceVersion,
