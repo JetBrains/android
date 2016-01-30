@@ -15,17 +15,23 @@
  */
 package com.android.tools.idea.tests.gui.editing;
 
-import com.android.tools.idea.tests.gui.framework.GuiTestCase;
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.RenameRefactoringDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.RenameRefactoringDialogFixture.ConflictsDialogFixture;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.io.IOException;
 import java.util.regex.Pattern;
 
 /** Tests the editing flow of refactoring */
-public class RefactoringFlowTest extends GuiTestCase {
+@RunWith(GuiTestRunner.class)
+public class RefactoringFlowTest {
+
+  @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
   private static final String VALUE_REGEX =
     "(appcompat-v7/\\d+\\.\\d+\\.\\d+/res/values-\\p{Lower}\\p{Lower}(-r\\p{Upper}\\p{Upper})?/values.xml\\n)+";
@@ -34,18 +40,18 @@ public class RefactoringFlowTest extends GuiTestCase {
   public void testResourceConflict() throws IOException {
     // Try to rename a resource to an existing resource; check that
     // you get a warning in the conflicts dialog first
-    importSimpleApplication();
-    EditorFixture editor = getIdeFrame().getEditor();
+    guiTest.importSimpleApplication();
+    EditorFixture editor = guiTest.ideFrame().getEditor();
     editor.open("app/src/main/res/values/strings.xml");
     editor.moveTo(editor.findOffset("hello^_world"));
-    getIdeFrame().invokeMenuPath("Refactor", "Rename...");
+    guiTest.ideFrame().invokeMenuPath("Refactor", "Rename...");
 
     // Rename as action_settings, which is already defined
-    RenameRefactoringDialogFixture refactoringDialog = RenameRefactoringDialogFixture.find(robot());
+    RenameRefactoringDialogFixture refactoringDialog = RenameRefactoringDialogFixture.find(guiTest.robot());
     refactoringDialog.setNewName("action_settings");
     refactoringDialog.clickRefactor();
 
-    ConflictsDialogFixture conflictsDialog = ConflictsDialogFixture.find(robot());
+    ConflictsDialogFixture conflictsDialog = ConflictsDialogFixture.find(guiTest.robot());
     conflictsDialog.requireMessageTextContains("Resource @string/action_settings already exists");
     conflictsDialog.clickCancel();
     refactoringDialog.clickCancel();
@@ -60,18 +66,18 @@ public class RefactoringFlowTest extends GuiTestCase {
     // a resource that is only defined locally and make sure there is
     // no dialog.
 
-    importProjectAndWaitForProjectSyncToFinish("LayoutTest");
-    EditorFixture editor = getIdeFrame().getEditor();
+    guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest");
+    EditorFixture editor = guiTest.ideFrame().getEditor();
     editor.open("app/src/main/res/values/override.xml");
     // <string name="abc_searchview_description_submit">@string/abc_searchview_description_voice</string>
     editor.moveTo(editor.findOffset("abc_searchview_^description_voice")); // only defined in appcompat
-    getIdeFrame().invokeMenuPath("Refactor", "Rename...");
+    guiTest.ideFrame().invokeMenuPath("Refactor", "Rename...");
 
-    RenameRefactoringDialogFixture refactoringDialog = RenameRefactoringDialogFixture.find(robot());
+    RenameRefactoringDialogFixture refactoringDialog = RenameRefactoringDialogFixture.find(guiTest.robot());
     refactoringDialog.setNewName("a");
     refactoringDialog.clickRefactor();
 
-    ConflictsDialogFixture conflictsDialog = ConflictsDialogFixture.find(robot());
+    ConflictsDialogFixture conflictsDialog = ConflictsDialogFixture.find(guiTest.robot());
     conflictsDialog.requireMessageTextMatches(
       Pattern.quote("Resource is also only defined in external libraries and\n" +
                     "cannot be renamed.\n" +
@@ -85,13 +91,13 @@ public class RefactoringFlowTest extends GuiTestCase {
 
     // Now try to rename @string/abc_searchview_description_submit which is defined in *both* appcompat and locally
     editor.moveTo(editor.findOffset("abc_searchview_^description_submit")); // only defined in appcompat
-    getIdeFrame().invokeMenuPath("Refactor", "Rename...");
+    guiTest.ideFrame().invokeMenuPath("Refactor", "Rename...");
 
-    refactoringDialog = RenameRefactoringDialogFixture.find(robot());
+    refactoringDialog = RenameRefactoringDialogFixture.find(guiTest.robot());
     refactoringDialog.setNewName("a");
     refactoringDialog.clickRefactor();
 
-    conflictsDialog = ConflictsDialogFixture.find(robot());
+    conflictsDialog = ConflictsDialogFixture.find(guiTest.robot());
     conflictsDialog.requireMessageTextMatches(
       Pattern.quote("The resource @string/abc_searchview_description_submit is\n" +
                     "defined outside of the project (in one of the libraries) and\n" +

@@ -16,11 +16,14 @@
 package com.android.tools.idea.tests.gui.theme;
 
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
-import com.android.tools.idea.tests.gui.framework.GuiTestCase;
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.NewStyleDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorFixture;
 import org.fest.swing.fixture.JComboBoxFixture;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.io.IOException;
 
@@ -28,7 +31,11 @@ import static com.android.tools.idea.tests.gui.framework.TestGroup.THEME;
 import static junit.framework.Assert.assertEquals;
 
 @BelongsToTestGroups({THEME})
-public class NewStyleDialogGuiTest extends GuiTestCase {
+@RunWith(GuiTestRunner.class)
+public class NewStyleDialogGuiTest {
+
+  @Rule public final GuiTestRule guiTest = new GuiTestRule();
+
   /**
    * When "Create New Theme" is selected, opened dialog contains theme that was edited
    * as a parent.
@@ -37,19 +44,19 @@ public class NewStyleDialogGuiTest extends GuiTestCase {
    */
   @Test
   public void testCreateNewThemeSelection() throws IOException {
-    importSimpleApplication();
-    final ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(getIdeFrame());
+    guiTest.importSimpleApplication();
+    final ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(guiTest.ideFrame());
 
     final JComboBoxFixture themesComboBox = themeEditor.getThemesComboBox();
     themesComboBox.selectItem("Theme.AppCompat.Light.NoActionBar");
     themesComboBox.selectItem("Create New Theme");
-    final NewStyleDialogFixture newStyleDialog1 = NewStyleDialogFixture.find(robot());
+    final NewStyleDialogFixture newStyleDialog1 = NewStyleDialogFixture.find(guiTest.robot());
     assertEquals("Theme.AppCompat.Light.NoActionBar", newStyleDialog1.getParentComboBox().selectedItem());
     newStyleDialog1.clickCancel();
 
     themesComboBox.selectItem("Theme.AppCompat.NoActionBar");
     themesComboBox.selectItem("Create New Theme");
-    final NewStyleDialogFixture newStyleDialog2 = NewStyleDialogFixture.find(robot());
+    final NewStyleDialogFixture newStyleDialog2 = NewStyleDialogFixture.find(guiTest.robot());
     assertEquals("Theme.AppCompat.NoActionBar", newStyleDialog2.getParentComboBox().selectedItem());
     newStyleDialog2.clickCancel();
   }

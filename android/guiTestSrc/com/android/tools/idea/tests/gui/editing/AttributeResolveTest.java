@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.tests.gui.editing;
 
-import com.android.tools.idea.tests.gui.framework.GuiTestCase;
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.io.IOException;
@@ -28,25 +31,28 @@ import static com.intellij.openapi.util.io.FileUtil.join;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 
-public class AttributeResolveTest extends GuiTestCase {
+@RunWith(GuiTestRunner.class)
+public class AttributeResolveTest {
+
+  @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
   @Test
   public void testResolveNewlyAddedTag() throws IOException {
-    importProjectAndWaitForProjectSyncToFinish("LayoutTest");
-    EditorFixture editor = getIdeFrame().getEditor();
+    guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest");
+    EditorFixture editor = guiTest.ideFrame().getEditor();
 
     // TODO add dependency using new parser API
-    File appBuildFile = new File(getIdeFrame().getProjectPath(), join("app", FN_BUILD_GRADLE));
+    File appBuildFile = new File(guiTest.ideFrame().getProjectPath(), join("app", FN_BUILD_GRADLE));
     assertThat(appBuildFile).isFile();
     appendToFile(appBuildFile, "\ndependencies { compile 'com.android.support:cardview-v7:22.1.1' }\n");
-    getIdeFrame().requestProjectSync();
+    guiTest.ideFrame().requestProjectSync();
 
     editor.open("app/src/main/res/layout/layout2.xml", EditorFixture.Tab.EDITOR);
     editor.moveTo(editor.findOffset("^<TextView"));
     editor.enterText("<android.support.v7.widget.CardView android:onClick=\"onCreate\" /\n");
     editor.moveTo(editor.findOffset("on^Create"));
 
-    getIdeFrame().waitForBackgroundTasksToFinish();
+    guiTest.ideFrame().waitForBackgroundTasksToFinish();
 
     editor.invokeAction(EditorFixture.EditorAction.GOTO_DECLARATION);
 

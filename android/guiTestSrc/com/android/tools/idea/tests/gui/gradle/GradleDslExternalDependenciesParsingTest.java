@@ -20,10 +20,13 @@ import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyTe
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
-import com.android.tools.idea.tests.gui.framework.GuiTestCase;
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleBuildModelFixture;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.io.IOException;
 import java.util.List;
@@ -34,7 +37,10 @@ import static junit.framework.Assert.assertNotNull;
 import static org.fest.assertions.Assertions.assertThat;
 
 @BelongsToTestGroups({PROJECT_SUPPORT})
-public class GradleDslExternalDependenciesParsingTest extends GuiTestCase {
+@RunWith(GuiTestRunner.class)
+public class GradleDslExternalDependenciesParsingTest {
+
+  @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
   @Before
   public void skipSourceGenerationOnSync() {
@@ -43,9 +49,9 @@ public class GradleDslExternalDependenciesParsingTest extends GuiTestCase {
 
   @Test
   public void testParseExternalDependenciesWithCompactNotation() throws IOException {
-    importSimpleApplication();
+    guiTest.importSimpleApplication();
 
-    GradleBuildModelFixture buildModel = getIdeFrame().parseBuildFileForModule("app", true);
+    GradleBuildModelFixture buildModel = guiTest.ideFrame().parseBuildFileForModule("app", true);
 
     DependenciesModel dependenciesModel = buildModel.getTarget().dependencies();
     List<ArtifactDependencyModel> dependencies = dependenciesModel.artifacts();
@@ -60,8 +66,8 @@ public class GradleDslExternalDependenciesParsingTest extends GuiTestCase {
 
   @Test
   public void testSetVersionOnExternalDependencyWithCompactNotation() throws IOException {
-    importSimpleApplication();
-    final GradleBuildModelFixture buildModel = getIdeFrame().parseBuildFileForModule("app", true);
+    guiTest.importSimpleApplication();
+    final GradleBuildModelFixture buildModel = guiTest.ideFrame().parseBuildFileForModule("app", true);
 
     DependenciesModel dependenciesModel = buildModel.getTarget().dependencies();
     assertNotNull(dependenciesModel);
