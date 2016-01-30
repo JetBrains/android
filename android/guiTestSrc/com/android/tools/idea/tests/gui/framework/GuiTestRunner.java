@@ -59,7 +59,7 @@ public class GuiTestRunner extends BlockJUnit4ClassRunner {
   @Override
   protected Statement methodBlock(FrameworkMethod method) {
     if (GraphicsEnvironment.isHeadless()) {
-      // checked first because loadClassesWithIdeClassLoader below (indirectly) throws an AWTException in a headless environment
+      // checked first because IdeTestApplication.getInstance below (indirectly) throws an AWTException in a headless environment
       return falseAssumption("headless environment");
     }
     Method methodFromClassLoader;
