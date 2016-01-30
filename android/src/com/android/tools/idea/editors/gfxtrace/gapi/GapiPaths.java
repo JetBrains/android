@@ -16,14 +16,11 @@
 package com.android.tools.idea.editors.gfxtrace.gapi;
 
 import com.android.repository.api.LocalPackage;
-import com.android.sdklib.repository.local.LocalExtraPkgInfo;
 import com.android.sdklib.repositoryv2.AndroidSdkHandler;
-import com.android.sdklib.repositoryv2.meta.DetailsTypes;
 import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.util.SystemProperties;
-import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 

@@ -17,7 +17,6 @@ package com.android.tools.idea.editors.gfxtrace.service;
 
 import com.android.tools.idea.editors.gfxtrace.service.path.Path;
 import com.android.tools.rpclib.schema.Message;
-import com.google.common.base.Function;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.util.concurrent.AsyncFunction;
