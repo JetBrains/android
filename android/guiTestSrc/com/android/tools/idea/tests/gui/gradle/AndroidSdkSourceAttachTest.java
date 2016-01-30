@@ -18,7 +18,8 @@ package com.android.tools.idea.tests.gui.gradle;
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
-import com.android.tools.idea.tests.gui.framework.GuiTestCase;
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorNotificationPanelFixture;
 import com.intellij.ide.util.PropertiesComponent;
@@ -31,7 +32,9 @@ import org.fest.swing.fixture.JButtonFixture;
 import org.fest.swing.timing.Condition;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.io.IOException;
@@ -51,7 +54,11 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assume.assumeTrue;
 
 @BelongsToTestGroups({PROJECT_SUPPORT})
-public class AndroidSdkSourceAttachTest extends GuiTestCase {
+@RunWith(GuiTestRunner.class)
+public class AndroidSdkSourceAttachTest {
+
+  @Rule public final GuiTestRule guiTest = new GuiTestRule();
+
   private static final String ANDROID_PLATFORM = "android-23";
 
   // Sdk used for the simpleApplication project.
@@ -89,8 +96,8 @@ public class AndroidSdkSourceAttachTest extends GuiTestCase {
     }
     updateSdkSourceRoot(mySdk);
 
-    importSimpleApplication();
-    final EditorFixture editor = getIdeFrame().getEditor();
+    guiTest.importSimpleApplication();
+    final EditorFixture editor = guiTest.ideFrame().getEditor();
 
     final VirtualFile classFile = findActivityClassFile();
     editor.open(classFile, EditorFixture.Tab.EDITOR);
@@ -101,7 +108,7 @@ public class AndroidSdkSourceAttachTest extends GuiTestCase {
     findNotificationPanel().performAction("Download");
 
     DialogFixture downloadDialog = findDialog(withTitle("SDK Quickfix Installation")).withTimeout(SHORT_TIMEOUT.duration()).using(
-      robot());
+      guiTest.robot());
     final JButtonFixture finish = downloadDialog.button(withText("Finish"));
 
     // Wait until installation is finished. By then the "Finish" button will be enabled.
@@ -135,8 +142,8 @@ public class AndroidSdkSourceAttachTest extends GuiTestCase {
     sdkModificator.removeRoots(OrderRootType.SOURCES);
     sdkModificator.commitChanges();
 
-    importSimpleApplication();
-    final EditorFixture editor = getIdeFrame().getEditor();
+    guiTest.importSimpleApplication();
+    final EditorFixture editor = guiTest.ideFrame().getEditor();
 
     final VirtualFile classFile = findActivityClassFile();
     editor.open(classFile, EditorFixture.Tab.EDITOR);
@@ -164,14 +171,15 @@ public class AndroidSdkSourceAttachTest extends GuiTestCase {
 
   private void acceptLegalNoticeIfNeeded() {
     if(!PropertiesComponent.getInstance().isTrueValue("decompiler.legal.notice.accepted")) {
-      DialogFixture acceptTermDialog = findDialog(withTitle("JetBrains Decompiler")).withTimeout(SHORT_TIMEOUT.duration()).using(robot());
+      DialogFixture acceptTermDialog = findDialog(withTitle("JetBrains Decompiler")).withTimeout(SHORT_TIMEOUT.duration()).using(
+        guiTest.robot());
       acceptTermDialog.button(withText("Accept")).click();
     }
   }
 
   @NotNull
   private EditorNotificationPanelFixture findNotificationPanel() {
-    return getIdeFrame().requireEditorNotification(
+    return guiTest.ideFrame().requireEditorNotification(
       "Sources for '" + mySdk.getName() + "' not found.");
   }
 

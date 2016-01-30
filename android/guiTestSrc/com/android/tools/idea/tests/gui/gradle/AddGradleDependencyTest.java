@@ -18,7 +18,8 @@ package com.android.tools.idea.tests.gui.gradle;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpec;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ModuleDependencyTest.ExpectedModuleDependency;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
-import com.android.tools.idea.tests.gui.framework.GuiTestCase;
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.fixture.BuildVariantsToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleBuildModelFixture;
@@ -26,7 +27,9 @@ import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.JListFixture;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.io.IOException;
 
@@ -39,14 +42,17 @@ import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
 import static org.fest.assertions.Assertions.assertThat;
 
 @BelongsToTestGroups({PROJECT_SUPPORT})
-public class AddGradleDependencyTest extends GuiTestCase {
+@RunWith(GuiTestRunner.class)
+public class AddGradleDependencyTest {
+
+  @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
   @Ignore("failed in http://go/aj/job/studio-ui-test/326 and from IDEA")
   @Test
   public void testAddProdModuleDependency() throws IOException {
-    importProjectAndWaitForProjectSyncToFinish("MultiModule");
+    guiTest.importProjectAndWaitForProjectSyncToFinish("MultiModule");
 
-    EditorFixture editor = getIdeFrame().getEditor().open("app/src/main/java/com/android/multimodule/MainActivity.java");
+    EditorFixture editor = guiTest.ideFrame().getEditor().open("app/src/main/java/com/android/multimodule/MainActivity.java");
 
     String classToImport = "com.example.MyLibrary";
     addImport(editor, classToImport);
@@ -54,14 +60,14 @@ public class AddGradleDependencyTest extends GuiTestCase {
     moveCaretToClassName(editor, classToImport);
 
     editor.invokeIntentionAction("Add dependency on module 'library3'");
-    getIdeFrame().waitForGradleProjectSyncToFinish();
+    guiTest.ideFrame().waitForGradleProjectSyncToFinish();
     editor.waitForCodeAnalysisHighlightCount(ERROR, 0);
 
     ExpectedModuleDependency dependencyOnLibrary3 = new ExpectedModuleDependency();
     dependencyOnLibrary3.configurationName = COMPILE;
     dependencyOnLibrary3.path = ":library3";
 
-    GradleBuildModelFixture buildModel = getIdeFrame().parseBuildFileForModule("app", false);
+    GradleBuildModelFixture buildModel = guiTest.ideFrame().parseBuildFileForModule("app", false);
     buildModel.requireDependency(dependencyOnLibrary3);
 
     verifyUndo(editor, 1);
@@ -69,9 +75,9 @@ public class AddGradleDependencyTest extends GuiTestCase {
 
   @Test
   public void testAddTestModuleDependency() throws IOException {
-    importProjectAndWaitForProjectSyncToFinish("MultiModule");
+    guiTest.importProjectAndWaitForProjectSyncToFinish("MultiModule");
 
-    EditorFixture editor = getIdeFrame().getEditor().open("app/src/androidTest/java/com/android/multimodule/ApplicationTest.java");
+    EditorFixture editor = guiTest.ideFrame().getEditor().open("app/src/androidTest/java/com/android/multimodule/ApplicationTest.java");
 
     String classToImport = "com.example.MyLibrary";
     addImport(editor, classToImport);
@@ -79,14 +85,14 @@ public class AddGradleDependencyTest extends GuiTestCase {
     moveCaretToClassName(editor, classToImport);
 
     editor.invokeIntentionAction("Add dependency on module 'library3'");
-    getIdeFrame().waitForGradleProjectSyncToFinish();
+    guiTest.ideFrame().waitForGradleProjectSyncToFinish();
     editor.waitForCodeAnalysisHighlightCount(ERROR, 0);
 
     ExpectedModuleDependency dependencyOnLibrary3 = new ExpectedModuleDependency();
     dependencyOnLibrary3.configurationName = ANDROID_TEST_COMPILE;
     dependencyOnLibrary3.path = ":library3";
 
-    GradleBuildModelFixture buildModel = getIdeFrame().parseBuildFileForModule("app", false);
+    GradleBuildModelFixture buildModel = guiTest.ideFrame().parseBuildFileForModule("app", false);
     buildModel.requireDependency(dependencyOnLibrary3);
 
     verifyUndo(editor, 1);
@@ -95,15 +101,15 @@ public class AddGradleDependencyTest extends GuiTestCase {
   @Ignore("failed in http://go/aj/job/studio-ui-test/326 and from IDEA")
   @Test
   public void testAddLibDependencyDeclaredInJavaProject() throws IOException {
-    importProjectAndWaitForProjectSyncToFinish("MultiModule");
+    guiTest.importProjectAndWaitForProjectSyncToFinish("MultiModule");
 
-    GradleBuildModelFixture library3BuildModel = getIdeFrame().parseBuildFileForModule("library3", false);
+    GradleBuildModelFixture library3BuildModel = guiTest.ideFrame().parseBuildFileForModule("library3", false);
     ArtifactDependencySpec gson = new ArtifactDependencySpec("gson", "com.google.code.gson", "2.4");
     library3BuildModel.getTarget().dependencies().addArtifact(COMPILE, gson);
     library3BuildModel.applyChanges();
-    getIdeFrame().requestProjectSync().waitForGradleProjectSyncToFinish();
+    guiTest.ideFrame().requestProjectSync().waitForGradleProjectSyncToFinish();
 
-    EditorFixture editor = getIdeFrame().getEditor().open("app/src/main/java/com/android/multimodule/MainActivity.java");
+    EditorFixture editor = guiTest.ideFrame().getEditor().open("app/src/main/java/com/android/multimodule/MainActivity.java");
 
     String classToImport = "com.google.gson.Gson";
     addImport(editor, classToImport);
@@ -111,10 +117,10 @@ public class AddGradleDependencyTest extends GuiTestCase {
     moveCaretToClassName(editor, classToImport);
 
     editor.invokeIntentionAction("Add library 'gson-2.4' to classpath");
-    getIdeFrame().waitForGradleProjectSyncToFinish();
+    guiTest.ideFrame().waitForGradleProjectSyncToFinish();
     editor.waitForCodeAnalysisHighlightCount(ERROR, 0);
 
-    GradleBuildModelFixture appBuildModel = getIdeFrame().parseBuildFileForModule("app", false);
+    GradleBuildModelFixture appBuildModel = guiTest.ideFrame().parseBuildFileForModule("app", false);
     appBuildModel.requireDependency(COMPILE, gson);
 
     verifyUndo(editor, 1);
@@ -122,15 +128,15 @@ public class AddGradleDependencyTest extends GuiTestCase {
 
   @Test
   public void testAddLibDependencyDeclaredInAndroidProject() throws IOException {
-    importProjectAndWaitForProjectSyncToFinish("MultiModule");
+    guiTest.importProjectAndWaitForProjectSyncToFinish("MultiModule");
 
-    GradleBuildModelFixture appBuildModel = getIdeFrame().parseBuildFileForModule("app", false);
+    GradleBuildModelFixture appBuildModel = guiTest.ideFrame().parseBuildFileForModule("app", false);
     ArtifactDependencySpec gson = new ArtifactDependencySpec("gson", "com.google.code.gson", "2.4");
     appBuildModel.getTarget().dependencies().addArtifact(COMPILE, gson);
     appBuildModel.applyChanges();
-    getIdeFrame().requestProjectSync().waitForGradleProjectSyncToFinish();
+    guiTest.ideFrame().requestProjectSync().waitForGradleProjectSyncToFinish();
 
-    EditorFixture editor = getIdeFrame().getEditor().open("library3/src/main/java/com/example/MyLibrary.java");
+    EditorFixture editor = guiTest.ideFrame().getEditor().open("library3/src/main/java/com/example/MyLibrary.java");
 
     String classToImport = "com.google.gson.Gson";
     addImport(editor, classToImport);
@@ -138,7 +144,7 @@ public class AddGradleDependencyTest extends GuiTestCase {
     moveCaretToClassName(editor, classToImport);
 
     editor.invokeIntentionAction("Add library 'gson-2.4' to classpath");
-    getIdeFrame().waitForGradleProjectSyncToFinish();
+    guiTest.ideFrame().waitForGradleProjectSyncToFinish();
     editor.waitForCodeAnalysisHighlightCount(ERROR, 0);
 
     verifyUndo(editor, 1);
@@ -146,9 +152,9 @@ public class AddGradleDependencyTest extends GuiTestCase {
 
   @Test
   public void testNoModuleDependencyQuickfixFromJavaToAndroid() throws IOException {
-    importProjectAndWaitForProjectSyncToFinish("MultiModule");
+    guiTest.importProjectAndWaitForProjectSyncToFinish("MultiModule");
 
-    EditorFixture editor = getIdeFrame().getEditor().open("library3/src/main/java/com/example/MyLibrary.java");
+    EditorFixture editor = guiTest.ideFrame().getEditor().open("library3/src/main/java/com/example/MyLibrary.java");
     String classToImport = "com.android.multimodule.MainActivity";
     addImport(editor, classToImport);
     editor.waitForCodeAnalysisHighlightCount(ERROR, 1);
@@ -159,9 +165,9 @@ public class AddGradleDependencyTest extends GuiTestCase {
 
   @Test
   public void testNoModuleDependencyQuickfixFromAndroidLibToApplication() throws IOException {
-    importProjectAndWaitForProjectSyncToFinish("MultiModule");
+    guiTest.importProjectAndWaitForProjectSyncToFinish("MultiModule");
 
-    EditorFixture editor = getIdeFrame().getEditor().open("library/src/main/java/com/android/library/MainActivity.java");
+    EditorFixture editor = guiTest.ideFrame().getEditor().open("library/src/main/java/com/android/library/MainActivity.java");
     String classToImport = "com.android.multimodule.MainActivity";
     addImport(editor, classToImport);
     editor.waitForCodeAnalysisHighlightCount(ERROR, 1);
@@ -172,7 +178,7 @@ public class AddGradleDependencyTest extends GuiTestCase {
 
   private void assertIntentionNotIncluded(@NotNull EditorFixture editor, @NotNull String intention) {
     editor.invokeAction(SHOW_INTENTION_ACTIONS);
-    Robot robot = robot();
+    Robot robot = guiTest.robot();
     JListFixture popup = new JListFixture(robot, waitForPopup(robot));
     String[] intentions = popup.contents();
     assertThat(intentions).excludes(intention);
@@ -181,21 +187,21 @@ public class AddGradleDependencyTest extends GuiTestCase {
   @Ignore("failed in http://go/aj/job/studio-ui-test/326 and from IDEA")
   @Test
   public void testAddJUnitDependency() throws IOException {
-    importSimpleApplication();
-    BuildVariantsToolWindowFixture buildVariants = getIdeFrame().getBuildVariantsWindow();
+    guiTest.importSimpleApplication();
+    BuildVariantsToolWindowFixture buildVariants = guiTest.ideFrame().getBuildVariantsWindow();
     buildVariants.activate();
     buildVariants.selectUnitTests();
 
-    EditorFixture editor = getIdeFrame().getEditor().open("app/src/test/java/google/simpleapplication/UnitTest.java");
+    EditorFixture editor = guiTest.ideFrame().getEditor().open("app/src/test/java/google/simpleapplication/UnitTest.java");
 
     editor.waitForCodeAnalysisHighlightCount(ERROR, 6);
     editor.moveTo(editor.findOffset("@^Test"));
     editor.invokeIntentionAction("Add 'JUnit4' to classpath");
 
-    getIdeFrame().waitForGradleProjectSyncToFinish();
+    guiTest.ideFrame().waitForGradleProjectSyncToFinish();
     editor.waitForCodeAnalysisHighlightCount(ERROR, 0);
 
-    GradleBuildModelFixture appBuildModel = getIdeFrame().parseBuildFileForModule("app", false);
+    GradleBuildModelFixture appBuildModel = guiTest.ideFrame().parseBuildFileForModule("app", false);
     ArtifactDependencySpec expected = new ArtifactDependencySpec("junit", "junit", "4.12");
     appBuildModel.requireDependency(TEST_COMPILE, expected);
 
@@ -205,9 +211,9 @@ public class AddGradleDependencyTest extends GuiTestCase {
   @Ignore("failed in http://go/aj/job/studio-ui-test/326 and from IDEA")
   @Test
   public void testAddJetbrainsAnnotationDependency() throws IOException {
-    importSimpleApplication();
+    guiTest.importSimpleApplication();
 
-    EditorFixture editor = getIdeFrame().getEditor().open("app/src/main/java/google/simpleapplication/MyActivity.java");
+    EditorFixture editor = guiTest.ideFrame().getEditor().open("app/src/main/java/google/simpleapplication/MyActivity.java");
     editor.moveTo(editor.findOffset("onCreate(^Bundle savedInstanceState) {"));
     editor.enterText("\n@NotNull ");
 
@@ -216,10 +222,10 @@ public class AddGradleDependencyTest extends GuiTestCase {
     editor.moveTo(editor.findOffset("@Not^Null "));
     editor.invokeIntentionAction("Add 'annotations-java5' to classpath");
 
-    getIdeFrame().waitForGradleProjectSyncToFinish();
+    guiTest.ideFrame().waitForGradleProjectSyncToFinish();
     editor.waitForCodeAnalysisHighlightCount(ERROR, 0);
 
-    GradleBuildModelFixture appBuildModel = getIdeFrame().parseBuildFileForModule("app", false);
+    GradleBuildModelFixture appBuildModel = guiTest.ideFrame().parseBuildFileForModule("app", false);
     ArtifactDependencySpec expected = new ArtifactDependencySpec("annotations-java5", "org.jetbrains", "15.0");
     appBuildModel.requireDependency(COMPILE, expected);
 
@@ -250,11 +256,11 @@ public class AddGradleDependencyTest extends GuiTestCase {
   private void verifyUndo(@NotNull EditorFixture editor, int expectedErrorCount) {
     editor.invokeAction(UNDO);
     findAndCloseUndoDialog();
-    getIdeFrame().waitForGradleProjectSyncToFinish();
+    guiTest.ideFrame().waitForGradleProjectSyncToFinish();
     editor.waitForCodeAnalysisHighlightCount(ERROR, expectedErrorCount);
   }
 
   private void findAndCloseUndoDialog() {
-    getIdeFrame().findMessageDialog("Undo").clickOk();
+    guiTest.ideFrame().findMessageDialog("Undo").clickOk();
   }
 }

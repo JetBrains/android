@@ -16,29 +16,35 @@
 package com.android.tools.idea.tests.gui.editing;
 
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
-import com.android.tools.idea.tests.gui.framework.GuiTestCase;
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.fixture.FindDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.FindToolWindowFixture;
 import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPORT;
 
 @BelongsToTestGroups({PROJECT_SUPPORT})
-public class FindInPathTest extends GuiTestCase {
+@RunWith(GuiTestRunner.class)
+public class FindInPathTest {
+
+  @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
   @Ignore("failed in http://go/aj/job/studio-ui-test/326 but passed from IDEA")
   @Test
   public void testResultsOnlyInGeneratedCode() throws Exception {
-    importSimpleApplication();
+    guiTest.importSimpleApplication();
 
-    FindDialogFixture findDialog = getIdeFrame().invokeFindInPathDialog();
+    FindDialogFixture findDialog = guiTest.ideFrame().invokeFindInPathDialog();
     findDialog.setTextToFind("ActionBarDivider")
               .clickFind();
 
-    getIdeFrame().waitForBackgroundTasksToFinish();
+    guiTest.ideFrame().waitForBackgroundTasksToFinish();
 
-    FindToolWindowFixture findToolWindow = getIdeFrame().getFindToolWindow();
+    FindToolWindowFixture findToolWindow = guiTest.ideFrame().getFindToolWindow();
     FindToolWindowFixture.ContentFixture selectedContext = findToolWindow.getSelectedContext();
 
     selectedContext.findUsagesInGeneratedCodeGroup();
@@ -47,15 +53,15 @@ public class FindInPathTest extends GuiTestCase {
   @Ignore("failed in http://go/aj/job/studio-ui-test/326 but passed from IDEA")
   @Test
   public void testResultsInBothProductionAndGeneratedCode() throws Exception {
-    importSimpleApplication();
+    guiTest.importSimpleApplication();
 
-    FindDialogFixture findDialog = getIdeFrame().invokeFindInPathDialog();
+    FindDialogFixture findDialog = guiTest.ideFrame().invokeFindInPathDialog();
     findDialog.setTextToFind("DarkActionBar")
               .clickFind();
 
-    getIdeFrame().waitForBackgroundTasksToFinish();
+    guiTest.ideFrame().waitForBackgroundTasksToFinish();
 
-    FindToolWindowFixture findToolWindow = getIdeFrame().getFindToolWindow();
+    FindToolWindowFixture findToolWindow = guiTest.ideFrame().getFindToolWindow();
     FindToolWindowFixture.ContentFixture selectedContext = findToolWindow.getSelectedContext();
 
     selectedContext.findUsagesInGeneratedCodeGroup();

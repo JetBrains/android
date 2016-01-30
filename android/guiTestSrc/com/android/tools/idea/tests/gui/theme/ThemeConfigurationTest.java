@@ -16,7 +16,8 @@
 package com.android.tools.idea.tests.gui.theme;
 
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
-import com.android.tools.idea.tests.gui.framework.GuiTestCase;
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.fixture.ThemeSelectionDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.AndroidThemePreviewPanelFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.NewStyleDialogFixture;
@@ -25,7 +26,9 @@ import org.fest.swing.fixture.JComboBoxFixture;
 import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.fixture.JTextComponentFixture;
 import org.fest.swing.fixture.JTreeFixture;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import javax.swing.*;
 import java.io.IOException;
@@ -34,29 +37,33 @@ import static com.android.tools.idea.tests.gui.framework.GuiTests.clickPopupMenu
 import static com.android.tools.idea.tests.gui.framework.TestGroup.THEME;
 
 @BelongsToTestGroups({THEME})
-public class ThemeConfigurationTest extends GuiTestCase {
+@RunWith(GuiTestRunner.class)
+public class ThemeConfigurationTest {
+
+  @Rule public final GuiTestRule guiTest = new GuiTestRule();
+
   /**
    * Tests that the theme editor deals well with themes defined only in certain configurations
    */
   @Test
   public void testThemesWithConfiguration() throws IOException {
-    importSimpleApplication();
-    ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(getIdeFrame());
+    guiTest.importSimpleApplication();
+    ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(guiTest.ideFrame());
 
     JComboBoxFixture themesComboBox = themeEditor.getThemesComboBox();
 
     themesComboBox.selectItem("Create New Theme");
-    NewStyleDialogFixture newStyleDialog = NewStyleDialogFixture.find(robot());
+    NewStyleDialogFixture newStyleDialog = NewStyleDialogFixture.find(guiTest.robot());
     JTextComponentFixture newNameTextField = newStyleDialog.getNewNameTextField();
     JComboBoxFixture parentComboBox = newStyleDialog.getParentComboBox();
 
     parentComboBox.selectItem("Show all themes");
-    ThemeSelectionDialogFixture themeSelectionDialog = ThemeSelectionDialogFixture.find(robot());
+    ThemeSelectionDialogFixture themeSelectionDialog = ThemeSelectionDialogFixture.find(guiTest.robot());
     final JTreeFixture categoriesTree = themeSelectionDialog.getCategoriesTree();
     JListFixture themeList = themeSelectionDialog.getThemeList();
 
     categoriesTree.clickPath("Material Dark");
-    robot().waitForIdle();
+    guiTest.robot().waitForIdle();
     themeList.clickItem("android:Theme.Material");
     themeSelectionDialog.clickOk();
 
@@ -69,8 +76,8 @@ public class ThemeConfigurationTest extends GuiTestCase {
     themePreviewPanel.requirePreviewPanel();
 
     JButton apiButton = themeEditor.findToolbarButton("Android version to use when rendering layouts in the IDE");
-    robot().click(apiButton);
-    clickPopupMenuItem("API 19", apiButton, robot());
+    guiTest.robot().click(apiButton);
+    clickPopupMenuItem("API 19", apiButton, guiTest.robot());
 
     themePreviewPanel.requireErrorPanel();
 

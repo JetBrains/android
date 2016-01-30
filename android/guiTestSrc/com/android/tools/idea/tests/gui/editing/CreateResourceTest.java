@@ -15,16 +15,22 @@
  */
 package com.android.tools.idea.tests.gui.editing;
 
-import com.android.tools.idea.tests.gui.framework.GuiTestCase;
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.fixture.CreateResourceFileDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.intellij.lang.annotation.HighlightSeverity;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.io.IOException;
 
 /** Tests creating new resources */
-public class CreateResourceTest extends GuiTestCase {
+@RunWith(GuiTestRunner.class)
+public class CreateResourceTest {
+
+  @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
   @Test
   public void testLibraryPrefix() throws IOException {
@@ -32,8 +38,8 @@ public class CreateResourceTest extends GuiTestCase {
     // and makes sure the prefix is correct, including checking that we don't end up with
     // double prefixes as described in issue http://b.android.com/77421.
 
-    importProjectAndWaitForProjectSyncToFinish("LayoutTest");
-    EditorFixture editor = getIdeFrame().getEditor();
+    guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest");
+    EditorFixture editor = guiTest.ideFrame().getEditor();
     editor.open("lib/src/main/java/com/android/tools/test/mylibrary/LibraryActivity.java");
     editor.select(editor.findOffset("R.layout.^activity_library"),
                   editor.findOffset("R.layout.activity_library^);"));
@@ -45,7 +51,7 @@ public class CreateResourceTest extends GuiTestCase {
 
     editor.invokeIntentionAction("Create layout resource file");
 
-    CreateResourceFileDialogFixture dialog = CreateResourceFileDialogFixture.find(robot());
+    CreateResourceFileDialogFixture dialog = CreateResourceFileDialogFixture.find(guiTest.robot());
     // Should automatically prepend library prefix lib1:
     dialog.requireName("lib1_x.xml");
     dialog.clickCancel();
@@ -59,7 +65,7 @@ public class CreateResourceTest extends GuiTestCase {
 
     editor.invokeIntentionAction("Create layout resource file");
 
-    dialog = CreateResourceFileDialogFixture.find(robot());
+    dialog = CreateResourceFileDialogFixture.find(guiTest.robot());
     // Should automatically prepend library prefix lib1:
     dialog.requireName("lib1_y.xml");
     dialog.clickCancel();

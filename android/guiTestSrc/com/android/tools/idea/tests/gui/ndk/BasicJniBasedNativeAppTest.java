@@ -16,7 +16,8 @@
 package com.android.tools.idea.tests.gui.ndk;
 
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
-import com.android.tools.idea.tests.gui.framework.GuiTestCase;
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.fixture.ChooseDeviceDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.DebugToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFixture;
@@ -26,7 +27,9 @@ import org.fest.swing.timing.Condition;
 import org.fest.swing.timing.Timeout;
 import org.fest.swing.util.PatternTextMatcher;
 import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.io.IOException;
 import java.util.Map;
@@ -37,7 +40,11 @@ import static org.fest.swing.timing.Pause.pause;
 import static org.junit.Assert.assertNotNull;
 
 @BelongsToTestGroups({PROJECT_SUPPORT})
-public class BasicJniBasedNativeAppTest extends GuiTestCase {
+@RunWith(GuiTestRunner.class)
+public class BasicJniBasedNativeAppTest {
+
+  @Rule public final GuiTestRule guiTest = new GuiTestRule();
+
   private static final String DEBUG_CONFIG_NAME = "app-native";
 
   /**
@@ -54,8 +61,8 @@ public class BasicJniBasedNativeAppTest extends GuiTestCase {
   @Test
   public void testMultiBreakAndResume() throws IOException, ClassNotFoundException {
     // Import the project and select the debug config 'app-native'.
-    importProjectAndWaitForProjectSyncToFinish("JniBasedBasicNdkApp", "2.5");
-    final IdeFrameFixture projectFrame = getIdeFrame();
+    guiTest.importProjectAndWaitForProjectSyncToFinish("JniBasedBasicNdkApp", "2.5");
+    final IdeFrameFixture projectFrame = guiTest.ideFrame();
 
     // Setup breakpoints
     final int[] breakPoints = {35, 51, 58, 76};
@@ -102,7 +109,7 @@ public class BasicJniBasedNativeAppTest extends GuiTestCase {
 
     // Launch a debug session and chooses the default emulator.
     projectFrame.debugApp(DEBUG_CONFIG_NAME);
-    ChooseDeviceDialogFixture.find(robot()).clickOk();
+    ChooseDeviceDialogFixture.find(guiTest.robot()).clickOk();
 
     // Wait for "Debugger attached to process.*" to be printed on the app-native debug console.
     DebugToolWindowFixture debugToolWindowFixture = new DebugToolWindowFixture(projectFrame);

@@ -16,13 +16,16 @@
 package com.android.tools.idea.tests.gui.gradle;
 
 import com.android.tools.idea.gradle.project.ChooseGradleHomeDialog;
-import com.android.tools.idea.tests.gui.framework.GuiTestCase;
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.ChooseGradleHomeDialogFixture;
 import com.intellij.openapi.application.ApplicationManager;
 import org.fest.swing.edt.GuiQuery;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.io.File;
 
@@ -37,7 +40,11 @@ import static org.junit.Assume.assumeTrue;
  * UI Test for {@link com.android.tools.idea.gradle.project.ChooseGradleHomeDialog}.
  */
 @BelongsToTestGroups({PROJECT_SUPPORT})
-public class ChooseGradleHomeDialogTest extends GuiTestCase {
+@RunWith(GuiTestRunner.class)
+public class ChooseGradleHomeDialogTest {
+
+  @Rule public final GuiTestRule guiTest = new GuiTestRule();
+
   @Test
   public void testValidationWithInvalidMinimumGradleVersion() {
     File unsupportedGradleHome = getUnsupportedGradleHome();
@@ -79,6 +86,6 @@ public class ChooseGradleHomeDialogTest extends GuiTestCase {
       }
     });
 
-    return ChooseGradleHomeDialogFixture.find(robot());
+    return ChooseGradleHomeDialogFixture.find(guiTest.robot());
   }
 }

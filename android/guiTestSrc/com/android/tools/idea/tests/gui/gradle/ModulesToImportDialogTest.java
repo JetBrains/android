@@ -17,7 +17,8 @@ package com.android.tools.idea.tests.gui.gradle;
 
 import com.android.tools.idea.gradle.GradleModel;
 import com.android.tools.idea.gradle.project.subset.ModulesToImportDialog;
-import com.android.tools.idea.tests.gui.framework.GuiTestCase;
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.fixture.FileChooserDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeaDialogFixture;
@@ -36,7 +37,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import javax.swing.*;
 import java.io.File;
@@ -62,7 +65,11 @@ import static org.junit.Assert.assertNotNull;
  * Tests for {@link ModulesToImportDialog}.
  */
 @BelongsToTestGroups({PROJECT_SUPPORT})
-public class ModulesToImportDialogTest extends GuiTestCase {
+@RunWith(GuiTestRunner.class)
+public class ModulesToImportDialogTest {
+
+  @Rule public final GuiTestRule guiTest = new GuiTestRule();
+
   private List<DataNode<ModuleData>> myModules;
   private DataNode<ModuleData> myProjectModule;
   private DataNode<ModuleData> myAppModule;
@@ -85,7 +92,7 @@ public class ModulesToImportDialogTest extends GuiTestCase {
   @After
   public void closeDialog() {
     if (myDialogAndWrapper != null) {
-      robot().close(myDialogAndWrapper.dialog);
+      guiTest.robot().close(myDialogAndWrapper.dialog);
     }
   }
 
@@ -124,8 +131,8 @@ public class ModulesToImportDialogTest extends GuiTestCase {
     assertNotNull(targetFile);
 
     JDialog dialog = myDialogAndWrapper.dialog;
-    findByText("Save Selection As", robot(), dialog).click();
-    FileChooserDialogFixture fileChooser = FileChooserDialogFixture.findDialog(robot(), new GenericTypeMatcher<JDialog>(JDialog.class) {
+    findByText("Save Selection As", guiTest.robot(), dialog).click();
+    FileChooserDialogFixture fileChooser = FileChooserDialogFixture.findDialog(guiTest.robot(), new GenericTypeMatcher<JDialog>(JDialog.class) {
       @Override
       protected boolean isMatching(@NotNull JDialog dialog) {
         return dialog.isShowing() && "Save Module Selection".equals(dialog.getTitle());
@@ -134,13 +141,13 @@ public class ModulesToImportDialogTest extends GuiTestCase {
     fileChooser.select(targetFile).clickOk();
 
     // "Confirm save" dialog will pop up because the file already exists, we click on Yes to continue.
-    MessagesFixture messages = MessagesFixture.findByTitle(robot(), windowForComponent(dialog), "Confirm Save as");
+    MessagesFixture messages = MessagesFixture.findByTitle(guiTest.robot(), windowForComponent(dialog), "Confirm Save as");
     messages.click("Yes");
 
     // Load selection from disk
-    findByText("Select All", robot(), dialog).click();
-    findByText("Load Selection from File", robot(), dialog).click();
-    fileChooser = FileChooserDialogFixture.findDialog(robot(), new GenericTypeMatcher<JDialog>(JDialog.class) {
+    findByText("Select All", guiTest.robot(), dialog).click();
+    findByText("Load Selection from File", guiTest.robot(), dialog).click();
+    fileChooser = FileChooserDialogFixture.findDialog(guiTest.robot(), new GenericTypeMatcher<JDialog>(JDialog.class) {
       @Override
       protected boolean isMatching(@NotNull JDialog dialog) {
         return dialog.isShowing() && "Load Module Selection".equals(dialog.getTitle());
@@ -158,14 +165,14 @@ public class ModulesToImportDialogTest extends GuiTestCase {
 
     JTableFixture table = getModuleList();
     table.focus();
-    robot().enterText("lib");
+    guiTest.robot().enterText("lib");
 
     table.requireSelectedRows(1);
   }
 
   @NotNull
   private JTableFixture getModuleList() {
-    return new JTableFixture(robot(), robot().finder().findByType(myDialogAndWrapper.dialog, JTable.class, true));
+    return new JTableFixture(guiTest.robot(), guiTest.robot().finder().findByType(myDialogAndWrapper.dialog, JTable.class, true));
   }
 
   public DialogAndWrapper<ModulesToImportDialog> launchDialog() {
@@ -186,7 +193,7 @@ public class ModulesToImportDialogTest extends GuiTestCase {
       }
     });
 
-    return IdeaDialogFixture.find(robot(), ModulesToImportDialog.class, new GenericTypeMatcher<JDialog>(JDialog.class) {
+    return IdeaDialogFixture.find(guiTest.robot(), ModulesToImportDialog.class, new GenericTypeMatcher<JDialog>(JDialog.class) {
       @Override
       protected boolean isMatching(@NotNull JDialog dialog) {
         return "Select Modules to Include in Project Subset".equals(dialog.getTitle()) && dialog.isShowing();
