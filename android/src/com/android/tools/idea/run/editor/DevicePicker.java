@@ -226,7 +226,7 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
     postUpdate();
   }
 
-  private void refreshAvds(@Nullable final AvdInfo avdToSelect) {
+  public void refreshAvds(@Nullable final AvdInfo avdToSelect) {
     myDevicesList.setPaintBusy(true);
     ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
       @Override

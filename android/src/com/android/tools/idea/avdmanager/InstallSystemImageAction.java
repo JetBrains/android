@@ -16,20 +16,15 @@
 package com.android.tools.idea.avdmanager;
 
 import com.android.annotations.Nullable;
-import com.android.repository.api.RepoPackage;
 import com.android.sdklib.internal.avd.AvdInfo;
-import com.android.sdklib.internal.avd.AvdManager;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.collect.ImmutableList;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.text.StringUtil;
-import org.jetbrains.annotations.NotNull;
 
 import java.awt.event.ActionEvent;
-import java.io.File;
 import java.util.List;
 
 /**
@@ -39,16 +34,6 @@ public class InstallSystemImageAction extends AvdUiAction {
 
   public InstallSystemImageAction(AvdInfoProvider avdInfoProvider) {
     super(avdInfoProvider, "Download", "The corresponding system image is missing", AllIcons.General.BalloonWarning);
-  }
-
-  public static boolean isSystemImageDownloadProblem(@NotNull AvdInfo.AvdStatus status) {
-    switch (status) {
-      case ERROR_IMAGE_DIR:
-      case ERROR_IMAGE_MISSING:
-        return true;
-      default:
-        return false;
-    }
   }
 
   @Override
@@ -79,10 +64,6 @@ public class InstallSystemImageAction extends AvdUiAction {
     if (avdInfo == null) {
       return null;
     }
-    String imageSystemDir = avdInfo.getProperties().get(AvdManager.AVD_INI_IMAGES_1);
-    if (imageSystemDir == null) {
-      return null;
-    }
-    return StringUtil.trimEnd(imageSystemDir.replace(File.separatorChar, RepoPackage.PATH_SEPARATOR), RepoPackage.PATH_SEPARATOR);
+    return AvdManagerConnection.getRequiredSystemImagePath(avdInfo);
   }
 }
