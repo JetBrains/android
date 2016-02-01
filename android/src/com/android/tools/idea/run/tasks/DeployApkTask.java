@@ -104,7 +104,7 @@ public class DeployApkTask implements LaunchTask {
 
     trackInstallation(device);
     InstantRunStatsService.get(myFacet.getModule().getProject())
-      .notifyDeployType(InstantRunStatsService.DeployType.LEGACY);
+      .notifyDeployType(myInstantRunAware ? InstantRunStatsService.DeployType.FULLAPK : InstantRunStatsService.DeployType.LEGACY);
 
     return true;
   }
