@@ -20,6 +20,7 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsdParsedDependencies;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.jetbrains.annotations.NotNull;
@@ -76,8 +77,8 @@ class PsdAndroidDependencyEditors {
           GradleVersion parsedVersion = GradleVersion.tryParse(parsedVersionValue);
 
           GradleVersion versionFromGradle = GradleVersion.parse(coordinates.getVersion());
-          if (parsedVersion != null && versionFromGradle.compareTo(parsedVersion) == 0) {
-            // Perfect match.
+          if (parsedVersion != null && compare(parsedVersion, versionFromGradle) == 0) {
+            // Match.
             ArtifactDependencySpec spec = matchingParsedDependency.getSpec();
             PsdAndroidDependencyEditor dependencyEditor = createOrGetEditor(spec, androidLibrary, matchingParsedDependency);
             dependencyEditor.addContainer(variantEditor);
@@ -94,6 +95,31 @@ class PsdAndroidDependencyEditors {
         dependencyEditor.addContainer(variantEditor);
       }
     }
+  }
+
+  @VisibleForTesting
+  static int compare(@NotNull GradleVersion parsedVersion, @NotNull GradleVersion versionFromGradle) {
+    int result = versionFromGradle.compareTo(parsedVersion);
+    if (result == 0) {
+      return result;
+    }
+    else if (result < 0) {
+      // The "parsed" version might have a '+' sign.
+      if (parsedVersion.getMajorSegment().acceptsGreaterValue()) {
+        return 0;
+      }
+      else if (parsedVersion.getMinorSegment() != null && parsedVersion.getMinorSegment().acceptsGreaterValue()) {
+        return parsedVersion.getMajor() - versionFromGradle.getMajor();
+      }
+      else if (parsedVersion.getMicroSegment() != null && parsedVersion.getMicroSegment().acceptsGreaterValue()) {
+        result = parsedVersion.getMajor() - versionFromGradle.getMajor();
+        if (result != 0) {
+          return result;
+        }
+        return parsedVersion.getMinor() - versionFromGradle.getMinor();
+      }
+    }
+    return result;
   }
 
   @NotNull
