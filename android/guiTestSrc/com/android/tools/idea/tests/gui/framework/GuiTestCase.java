@@ -117,9 +117,7 @@ public abstract class GuiTestCase {
 
   @After
   public void tearDown() {
-    if (projectPath != null) {
-      waitForBackgroundTasks(myRobot);
-    }
+    waitForBackgroundTasks(myRobot);
     printTimestamp();
     printPerfStats();
     try {
