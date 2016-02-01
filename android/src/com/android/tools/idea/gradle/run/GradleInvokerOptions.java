@@ -33,6 +33,7 @@ import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.DeviceFutures;
+import com.android.tools.idea.run.editor.ProfilerState;
 import com.google.common.collect.Lists;
 import com.intellij.execution.configurations.ModuleRunProfile;
 import com.intellij.execution.configurations.RunConfiguration;
@@ -52,6 +53,7 @@ import java.util.List;
 
 import static com.android.builder.model.AndroidProject.PROPERTY_BUILD_API;
 import static com.android.builder.model.AndroidProject.PROPERTY_BUILD_DENSITY;
+import static com.android.tools.idea.startup.GradleSpecificInitializer.ENABLE_EXPERIMENTAL_PROFILING;
 
 public class GradleInvokerOptions {
   @NotNull public final List<String> tasks;
@@ -78,14 +80,24 @@ public class GradleInvokerOptions {
 
     InstantRunBuildOptions instantRunBuildOptions = InstantRunBuildOptions.createAndReset(modules[0], env);
 
-    return create(testCompileType, instantRunBuildOptions, new GradleModuleTasksProvider(modules), userGoal);
+    List<String> cmdLineArgs = null;
+    if (System.getProperty(ENABLE_EXPERIMENTAL_PROFILING) != null) {
+      if (configuration instanceof AndroidRunConfigurationBase) {
+        ProfilerState state = ((AndroidRunConfigurationBase)configuration).getProfilerState();
+        if (state.ENABLE_ADVANCED_PROFILING) {
+          Collections.singletonList(AndroidGradleSettings.createProjectProperty("android.profiler.enabled", "true"));
+        }
+      }
+    }
+    return create(testCompileType, instantRunBuildOptions, new GradleModuleTasksProvider(modules), userGoal, cmdLineArgs);
   }
 
   @VisibleForTesting()
   static GradleInvokerOptions create(@NotNull GradleInvoker.TestCompileType testCompileType,
                                      @Nullable InstantRunBuildOptions instantRunBuildOptions,
                                      @NotNull GradleTasksProvider gradleTasksProvider,
-                                     @Nullable String userGoal) {
+                                     @Nullable String userGoal,
+                                     @Nullable List<String> additionalArguments) {
     if (!StringUtil.isEmpty(userGoal)) {
       return new GradleInvokerOptions(Collections.singletonList(userGoal), null, Collections.<String>emptyList());
     }
@@ -97,6 +109,10 @@ public class GradleInvokerOptions {
 
     List<String> cmdLineArgs = Lists.newArrayList();
     List<String> tasks = Lists.newArrayList();
+
+    if (additionalArguments != null) {
+      cmdLineArgs.addAll(additionalArguments);
+    }
 
     // Inject instant run attributes
     // Note that these are specifically not injected for the unit or instrumentation tests

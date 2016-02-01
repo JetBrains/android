@@ -183,27 +183,19 @@ public class GradleUtilTest extends TestCase {
     assertNull(gradleVersion);
   }
 
-  public void testAddLocalMavenRepoInitScriptCommandLineOption() throws IOException {
-    File repoPath = new File("/xyz/repo");
+  public void testAddInitScriptCommandLineOption() throws IOException {
     List<String> cmdOptions = Lists.newArrayList();
 
-    File initScriptPath = GradleUtil.addLocalMavenRepoInitScriptCommandLineOption(cmdOptions, repoPath);
+    String contents = "The contents of the init script file";
+    File initScriptPath = GradleUtil.addInitScriptCommandLineOption("name", contents, cmdOptions);
     assertNotNull(initScriptPath);
 
     assertEquals(2, cmdOptions.size());
     assertEquals("--init-script", cmdOptions.get(0));
     assertEquals(initScriptPath.getPath(), cmdOptions.get(1));
 
-    String expectedScript = "allprojects {\n" +
-                            "  buildscript {\n" +
-                            "    repositories {\n" +
-                            "      maven { url '" + GradleImport.escapeGroovyStringLiteral(repoPath.getPath()) + "'}\n" +
-                            "    }\n" +
-                            "  }\n" +
-                            "}\n";
-
     String initScript = FileUtil.loadFile(initScriptPath);
-    assertEquals(expectedScript, initScript);
+    assertEquals(contents, initScript);
   }
 
   public void testGetGradleWrapperVersionWithUrl() {
