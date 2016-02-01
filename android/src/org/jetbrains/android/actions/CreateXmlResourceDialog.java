@@ -171,7 +171,7 @@ public class CreateXmlResourceDialog extends DialogWrapper {
         return new ValidationInfo(AndroidBundle.message("not.resource.file.error", FileUtil.toSystemDependentName(resFile.getPath())));
       }
 
-      for (ResourceElement element : AndroidResourceUtil.getValueResourcesFromElement(resourceType.getName(), resources)) {
+      for (ResourceElement element : AndroidResourceUtil.getValueResourcesFromElement(resourceType, resources)) {
         if (resourceName.equals(element.getName().getValue())) {
           return new ValidationInfo("resource '" + resourceName + "' already exists in " + FileUtil.toSystemDependentName(
             resFile.getPath()));

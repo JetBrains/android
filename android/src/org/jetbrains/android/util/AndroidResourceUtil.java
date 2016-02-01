@@ -64,7 +64,6 @@ import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.dom.resources.Item;
 import org.jetbrains.android.dom.resources.ResourceElement;
 import org.jetbrains.android.dom.resources.Resources;
-import org.jetbrains.android.dom.resources.ScalarResourceElement;
 import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
@@ -574,44 +573,48 @@ public class AndroidResourceUtil {
   }
 
   @NotNull
-  public static List<ResourceElement> getValueResourcesFromElement(@NotNull String resourceType, @NotNull Resources resources) {
+  public static List<ResourceElement> getValueResourcesFromElement(@NotNull ResourceType resourceType, @NotNull Resources resources) {
     final List<ResourceElement> result = new ArrayList<ResourceElement>();
 
-    if (resourceType.equals(ResourceType.STRING.getName())) {
-      result.addAll(resources.getStrings());
+    //noinspection EnumSwitchStatementWhichMissesCases
+    switch (resourceType) {
+      case STRING:
+        result.addAll(resources.getStrings());
+        break;
+      case PLURALS:
+        result.addAll(resources.getPluralss());
+        break;
+      case DRAWABLE:
+        result.addAll(resources.getDrawables());
+        break;
+      case COLOR:
+        result.addAll(resources.getColors());
+        break;
+      case DIMEN:
+        result.addAll(resources.getDimens());
+        break;
+      case STYLE:
+        result.addAll(resources.getStyles());
+        break;
+      case ARRAY:
+        result.addAll(resources.getStringArrays());
+        result.addAll(resources.getIntegerArrays());
+        result.addAll(resources.getArrays());
+        break;
+      case INTEGER:
+        result.addAll(resources.getIntegers());
+        break;
+      case FRACTION:
+        result.addAll(resources.getFractions());
+        break;
+      case BOOL:
+        result.addAll(resources.getBools());
+        break;
     }
-    else if (resourceType.equals(ResourceType.PLURALS.getName())) {
-      result.addAll(resources.getPluralss());
-    }
-    else if (resourceType.equals(ResourceType.DRAWABLE.getName())) {
-      result.addAll(resources.getDrawables());
-    }
-    else if (resourceType.equals(ResourceType.COLOR.getName())) {
-      result.addAll(resources.getColors());
-    }
-    else if (resourceType.equals(ResourceType.DIMEN.getName())) {
-      result.addAll(resources.getDimens());
-    }
-    else if (resourceType.equals(ResourceType.STYLE.getName())) {
-      result.addAll(resources.getStyles());
-    }
-    else if (resourceType.equals(ResourceType.ARRAY.getName())) {
-      result.addAll(resources.getStringArrays());
-      result.addAll(resources.getIntegerArrays());
-      result.addAll(resources.getArrays());
-    }
-    else if (resourceType.equals(ResourceType.INTEGER.getName())) {
-      result.addAll(resources.getIntegers());
-    }
-    else if (resourceType.equals(ResourceType.FRACTION.getName())) {
-      result.addAll(resources.getFractions());
-    }
-    else if (resourceType.equals(ResourceType.BOOL.getName())) {
-      result.addAll(resources.getBools());
-    }
+
     for (Item item : resources.getItems()) {
       String type = item.getType().getValue();
-      if (resourceType.equals(type)) {
+      if (resourceType.getName().equals(type)) {
         result.add(item);
       }
     }
@@ -863,18 +866,19 @@ public class AndroidResourceUtil {
   }
 
   /**
-   * Sets a new value for a color.
+   * Sets a new value for a resource.
    * @param facet {@link AndroidFacet} instance
-   * @param colorName the name of the color to be modified
-   * @param newValue the new color value
-   * @param fileName the color values file name
-   * @param dirNames list of values directories where the color should be changed
+   * @param name the name of the resource to be modified
+   * @param newValue the new resource value
+   * @param fileName the resource values file name
+   * @param dirNames list of values directories where the resource should be changed
    * @param useGlobalCommand if true, the undo will be registered globally. This allows the command to be undone from anywhere in the IDE
    *                         and not only the XML editor
-   * @return true if the color value was changed
+   * @return true if the resource value was changed
    */
-  public static boolean changeColorResource(@NotNull AndroidFacet facet,
-                                            @NotNull final String colorName,
+  public static boolean changeValueResource(@NotNull AndroidFacet facet,
+                                            @NotNull final String name,
+                                            @NotNull final ResourceType resourceType,
                                             @NotNull final String newValue,
                                             @NotNull String fileName,
                                             @NotNull List<String> dirNames,
@@ -915,7 +919,7 @@ public class AndroidResourceUtil {
       }
     }
     PsiFile[] files = psiFiles.toArray(new PsiFile[psiFiles.size()]);
-    WriteCommandAction<Boolean> action = new WriteCommandAction<Boolean>(project, "Change Color Resource", files) {
+    WriteCommandAction<Boolean> action = new WriteCommandAction<Boolean>(project, "Change " + resourceType.getName() + " Resource", files) {
       @Override
       protected void run(@NotNull Result<Boolean> result) throws Throwable {
         if (useGlobalCommand) {
@@ -924,10 +928,10 @@ public class AndroidResourceUtil {
 
         result.setResult(false);
         for (Resources resources : resourcesElements) {
-          for (ScalarResourceElement colorElement : resources.getColors()) {
-            String colorValue = colorElement.getName().getStringValue();
-            if (colorName.equals(colorValue)) {
-              colorElement.setStringValue(newValue);
+          for (ResourceElement element : getValueResourcesFromElement(resourceType, resources)) {
+            String value = element.getName().getStringValue();
+            if (name.equals(value)) {
+              element.setStringValue(newValue);
               result.setResult(true);
             }
           }

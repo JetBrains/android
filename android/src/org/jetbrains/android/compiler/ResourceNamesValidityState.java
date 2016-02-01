@@ -57,7 +57,7 @@ public class ResourceNamesValidityState implements ValidityState {
       final VirtualFile file = pair.getSecond();
 
       for (final ResourceType resType : AndroidResourceUtil.VALUE_RESOURCE_TYPES) {
-        addValueResources(file, resType, AndroidResourceUtil.getValueResourcesFromElement(resType.getName(), resources), myResources, "");
+        addValueResources(file, resType, AndroidResourceUtil.getValueResourcesFromElement(resType, resources), myResources, "");
       }
       addValueResources(file, ResourceType.ATTR, resources.getAttrs(), myResources, "");
       final List<DeclareStyleable> styleables = resources.getDeclareStyleables();
