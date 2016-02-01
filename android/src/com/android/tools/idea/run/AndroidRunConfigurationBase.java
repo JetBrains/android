@@ -17,6 +17,7 @@
 package com.android.tools.idea.run;
 
 import com.android.ddmlib.IDevice;
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.fd.*;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
@@ -286,7 +287,9 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
     if (info.getExecutorId().equals(executor.getId())) {
       // Make sure instant run is supported on the relevant device, if found.
-      if (InstantRunManager.isInstantRunCapableDeviceVersion(InstantRunManager.getMinDeviceApiLevel(info.getProcessHandler()))) {
+      AndroidVersion androidVersion = InstantRunManager.getMinDeviceApiLevel(info.getProcessHandler());
+      if (InstantRunManager.isInstantRunCapableDeviceVersion(androidVersion)
+          && InstantRunManager.variantSupportsInstantRunOnDevice(module, androidVersion)) {
         return executor instanceof DefaultRunExecutor ? AndroidIcons.RunIcons.Replay : AndroidIcons.RunIcons.DebugReattach;
       }
     }
@@ -361,7 +364,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
         new InstantRunUserFeedback(module).info(message);
         LOG.info(message);
       }
-      else {
+      else if (InstantRunManager.variantSupportsInstantRunOnDevice(module, devices.get(0).getVersion())) {
         InstantRunUtils.setInstantRunEnabled(env, true);
         setInstantRunBuildOptions(env, module, deviceFutures);
       }
