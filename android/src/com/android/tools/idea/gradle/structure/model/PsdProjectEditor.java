@@ -16,21 +16,24 @@
 package com.android.tools.idea.gradle.structure.model;
 
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
+import com.android.tools.idea.gradle.structure.model.android.PsdAndroidModuleEditor;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
 
-public class PsdProjectEditor {
+public class PsdProjectEditor implements PsdModelEditor {
   @NotNull private final Project myProject;
 
   @NotNull private final List<PsdModuleEditor> myModuleEditors = Lists.newArrayList();
+
+  private boolean myModified;
 
   public PsdProjectEditor(@NotNull Project project) {
     myProject = project;
@@ -39,20 +42,27 @@ public class PsdProjectEditor {
       String gradlePath = getGradlePath(module);
       if (gradlePath != null) {
         // Only Gradle-based modules are displayed in the PSD.
-        PsdModuleEditor editor = null;
+        PsdModuleEditor moduleEditor = null;
 
-        GradleBuildModel parsedModel = GradleBuildModel.get(module);
-        if (parsedModel != null) {
-          AndroidGradleModel gradleModel = AndroidGradleModel.get(module);
-          if (gradleModel != null) {
-            editor = new PsdAndroidModuleEditor(module, gradlePath, parsedModel, gradleModel, this);
-          }
+        AndroidGradleModel gradleModel = AndroidGradleModel.get(module);
+        if (gradleModel != null) {
+          moduleEditor = new PsdAndroidModuleEditor(this, module, gradlePath, gradleModel);
         }
-        if (editor != null) {
-          myModuleEditors.add(editor);
+        if (moduleEditor != null) {
+          myModuleEditors.add(moduleEditor);
         }
       }
     }
+  }
+
+  @Nullable
+  public PsdModuleEditor findEditorForModule(@NotNull String moduleName) {
+    for (PsdModuleEditor editor : myModuleEditors) {
+      if (moduleName.equals(editor.getModuleName())) {
+        return editor;
+      }
+    }
+    return null;
   }
 
   @NotNull
@@ -63,5 +73,26 @@ public class PsdProjectEditor {
   @NotNull
   public List<PsdModuleEditor> getModuleEditors() {
     return myModuleEditors;
+  }
+
+  @Override
+  @Nullable
+  public PsdModelEditor getParent() {
+    return null;
+  }
+
+  @Override
+  public boolean isEditable() {
+    return true;
+  }
+
+  @Override
+  public boolean isModified() {
+    return myModified;
+  }
+
+  @Override
+  public void setModified(boolean value) {
+    myModified = value;
   }
 }

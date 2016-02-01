@@ -506,8 +506,8 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     }
   }
 
-  private static void importProject(final @NotNull Project project, final @NotNull String projectName, final File projectRoot,
-                                    final @Nullable GradleSyncListener listener)
+  protected static void importProject(final @NotNull Project project, final @NotNull String projectName, final File projectRoot,
+                                      final @Nullable GradleSyncListener listener)
     throws IOException, ConfigurationException, InterruptedException {
 
     final Ref<Throwable> throwableRef = new Ref<Throwable>();
