@@ -65,12 +65,16 @@ public class InstantRunWithoutRestart extends AnAction {
 
   private void perform(@NotNull Module module) {
     Project project = module.getProject();
-    if (!InstantRunSettings.isInstantRunEnabled(project) || !InstantRunManager.variantSupportsInstantRun(module)) {
+    if (!InstantRunSettings.isInstantRunEnabled(project)) {
       return;
     }
     List<IDevice> devices = InstantRunManager.findDevices(project);
     InstantRunManager manager = InstantRunManager.get(project);
     for (IDevice device : devices) {
+      if (!InstantRunManager.variantSupportsInstantRunOnApi(module, device.getVersion())) {
+        continue;
+      }
+
       if (InstantRunManager.isAppInForeground(device, module)) {
         if (InstantRunManager.buildTimestampsMatch(device, module)) {
           performUpdate(manager, device, getUpdateMode(), module, project);
