@@ -52,11 +52,11 @@ public class ChooseResourceDialogTest extends GuiTestCase {
     assertEquals("@color/text_color", themeEditorTable.valueAt(cell));
 
     JTableCellFixture stateListCell = themeEditorTable.cell(cell);
-    ResourceComponentFixture resourceComponent = new ResourceComponentFixture(myRobot, (ResourceComponent)stateListCell.editor());
+    ResourceComponentFixture resourceComponent = new ResourceComponentFixture(robot(), (ResourceComponent)stateListCell.editor());
     stateListCell.startEditing();
     resourceComponent.getSwatchButton().click();
 
-    final ChooseResourceDialogFixture dialog = ChooseResourceDialogFixture.find(myRobot);
+    final ChooseResourceDialogFixture dialog = ChooseResourceDialogFixture.find(robot());
 
     StateListPickerFixture stateListPicker = dialog.getStateListPicker();
     java.util.List<StateListComponentFixture> states = stateListPicker.getStateComponents();
@@ -106,11 +106,11 @@ public class ChooseResourceDialogTest extends GuiTestCase {
     assertEquals("@color/ref_color", themeEditorTable.valueAt(cell));
 
     JTableCellFixture stateListCell = themeEditorTable.cell(cell);
-    ResourceComponentFixture resourceComponent = new ResourceComponentFixture(myRobot, (ResourceComponent)stateListCell.editor());
+    ResourceComponentFixture resourceComponent = new ResourceComponentFixture(robot(), (ResourceComponent)stateListCell.editor());
     stateListCell.startEditing();
     resourceComponent.getSwatchButton().click();
 
-    ChooseResourceDialogFixture dialog = ChooseResourceDialogFixture.find(myRobot);
+    ChooseResourceDialogFixture dialog = ChooseResourceDialogFixture.find(robot());
 
     SwatchComponentFixture state1 = dialog.getEditReferencePanel().getSwatchComponent();
     assertEquals("@color/myColor", state1.getText());
