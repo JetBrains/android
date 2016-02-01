@@ -53,7 +53,7 @@ public class TranslationsEditorTest extends GuiTestCase {
     notificationPanel.performAction("Open editor");
 
     // Wait for the translations editor table to show up, and the table to be initialized
-    waitUntilFound(myRobot, new GenericTypeMatcher<JTable>(JTable.class) {
+    waitUntilFound(robot(), new GenericTypeMatcher<JTable>(JTable.class) {
       @Override
       protected boolean isMatching(@NotNull JTable table) {
         return table.getModel() != null && table.getModel().getColumnCount() > 0;

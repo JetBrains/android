@@ -64,7 +64,7 @@ import static org.junit.Assume.assumeTrue;
 
 @RunWith(GuiTestRunner.class)
 public abstract class GuiTestCase {
-  protected Robot myRobot;
+  private Robot myRobot;
 
   private File projectPath;
 
@@ -292,6 +292,10 @@ public abstract class GuiTestCase {
       }
       delete(dotIdeaFolderPath);
     }
+  }
+
+  public Robot robot() {
+    return myRobot;
   }
 
   public void setProjectPath(@NotNull File projectPath) {

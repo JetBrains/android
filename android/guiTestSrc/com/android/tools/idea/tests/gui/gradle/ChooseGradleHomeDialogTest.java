@@ -79,6 +79,6 @@ public class ChooseGradleHomeDialogTest extends GuiTestCase {
       }
     });
 
-    return ChooseGradleHomeDialogFixture.find(myRobot);
+    return ChooseGradleHomeDialogFixture.find(robot());
   }
 }
