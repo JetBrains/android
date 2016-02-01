@@ -100,6 +100,7 @@ import static com.android.tools.idea.gradle.util.GradleBuilds.PARALLEL_BUILD_OPT
 import static com.android.tools.idea.gradle.util.GradleUtil.*;
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
 import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
+import static com.android.tools.idea.startup.GradleSpecificInitializer.ENABLE_EXPERIMENTAL_PROFILING;
 import static com.google.common.base.Splitter.on;
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.google.common.io.Closeables.close;
@@ -141,6 +142,9 @@ class GradleTasksExecutor extends Task.Backgroundable {
 
   private static final String GRADLE_RUNNING_MSG_TITLE = "Gradle Running";
   private static final String PASSWORD_KEY_SUFFIX = ".password=";
+
+  public static final String ANDROID_ADDITIONAL_PLUGINS = "android.additional.plugins";
+  public static final String COM_ANDROID_TOOLS_PROFILER = "com.android.tools.profiler";
 
   @NotNull private final Key<Key<?>> myContentId = Key.create("compile_content");
 
@@ -302,6 +306,11 @@ class GradleTasksExecutor extends Task.Backgroundable {
           commandLineArgs.addAll(myContext.getCommandLineArgs());
           addLocalMavenRepoInitScriptCommandLineOption(commandLineArgs);
           attemptToUseEmbeddedGradle(project);
+
+          if (System.getProperty(ENABLE_EXPERIMENTAL_PROFILING) != null) {
+            addProfilerClassPathInitScriptCommandLineOption(commandLineArgs);
+            commandLineArgs.add(AndroidGradleSettings.createProjectProperty(ANDROID_ADDITIONAL_PLUGINS, COM_ANDROID_TOOLS_PROFILER));
+          }
 
           // Don't include passwords in the log
           String logMessage = "Build command line options: " + commandLineArgs;
