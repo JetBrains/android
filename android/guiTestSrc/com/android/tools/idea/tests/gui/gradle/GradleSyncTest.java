@@ -165,7 +165,6 @@ public class GradleSyncTest extends GuiTestCase {
     ConfigureProjectSubsetDialogFixture projectSubsetDialog = ConfigureProjectSubsetDialogFixture.find(myRobot);
     projectSubsetDialog.selectModule("javalib1", false).clickOk();
 
-    getIdeFrame();
     getIdeFrame().waitForGradleProjectSyncToFinish();
 
     ContentFixture messages = getIdeFrame().getMessagesToolWindow().getGradleSyncContent();
@@ -784,7 +783,6 @@ public class GradleSyncTest extends GuiTestCase {
     // Expect message suggesting to use Gradle wrapper. Click "OK" to use wrapper.
     welcomeFrame.findMessageDialog(GRADLE_SYNC_DIALOG_TITLE).clickOk();
 
-    getIdeFrame();
     getIdeFrame().waitForGradleProjectSyncToFinish().requireGradleWrapperSet();
   }
 
@@ -808,7 +806,6 @@ public class GradleSyncTest extends GuiTestCase {
     ConfigureProjectSubsetDialogFixture projectSubsetDialog = ConfigureProjectSubsetDialogFixture.find(myRobot);
     projectSubsetDialog.selectModule("lib", false).clickOk();
 
-    getIdeFrame();
     getIdeFrame().waitForGradleProjectSyncToFinish();
 
     // Verify that "lib" (which was unchecked in the "Select Modules to Include" dialog) is not a module.
