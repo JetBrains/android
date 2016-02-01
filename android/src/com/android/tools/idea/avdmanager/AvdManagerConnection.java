@@ -160,6 +160,9 @@ public class AvdManagerConnection {
         IJ_LOG.error("Could not instantiate AVD Manager from SDK", e);
         return false;
       }
+      if (myAvdManager == null) {
+        return false;
+      }
     }
     return true;
   }
