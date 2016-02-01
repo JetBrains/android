@@ -20,7 +20,9 @@ import com.android.tools.idea.gradle.structure.model.PsdModelEditor;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
 import java.util.List;
 import java.util.Set;
 
@@ -45,4 +47,13 @@ public abstract class PsdAndroidDependencyEditor extends PsdChildEditor {
   public List<String> getVariants() {
     return ImmutableList.copyOf(myVariants);
   }
+
+  @NotNull
+  public abstract Icon getIcon();
+
+  @Nullable
+  public abstract String getConfigurationName();
+
+  @NotNull
+  public abstract String getValueAsText();
 }
