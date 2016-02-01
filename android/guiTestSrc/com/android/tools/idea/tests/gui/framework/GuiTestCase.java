@@ -52,6 +52,7 @@ import java.util.List;
 
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
+import static com.google.common.base.Preconditions.checkState;
 import static com.intellij.openapi.project.ProjectCoreUtil.DIRECTORY_BASED_PROJECT_DIR;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.util.io.FileUtilRt.delete;
@@ -295,7 +296,7 @@ public abstract class GuiTestCase {
 
   @NotNull
   public File getProjectPath() {
-    assertNotNull("No project path set. Was a project imported?", projectPath);
+    checkState(projectPath != null, "No project path set. Was a project imported?");
     return projectPath;
   }
 
