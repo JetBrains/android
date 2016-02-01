@@ -132,7 +132,7 @@ public class GradleTestArtifactSyncTest extends GuiTestCase {
   private TabLabel findTab(@NotNull EditorFixture editor) {
     final VirtualFile file = editor.getCurrentFile();
     assert file != null;
-    return myRobot.finder().find(new GenericTypeMatcher<TabLabel>(TabLabel.class) {
+    return robot().finder().find(new GenericTypeMatcher<TabLabel>(TabLabel.class) {
       @Override
       protected boolean isMatching(@Nonnull TabLabel tabLabel) {
         return tabLabel.getInfo().getText().equals(file.getName());

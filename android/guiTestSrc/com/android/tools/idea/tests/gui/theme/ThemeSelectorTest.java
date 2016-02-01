@@ -19,7 +19,6 @@ import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.RenameRefactoringDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ThemeSelectionDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.NewStyleDialogFixture;
@@ -61,7 +60,7 @@ public class ThemeSelectorTest extends GuiTestCase {
     final JComboBoxFixture themesComboBox = themeEditor.getThemesComboBox();
     themesComboBox.selectItem("Rename AppTheme");
 
-    RenameRefactoringDialogFixture renameRefactoringDialog = RenameRefactoringDialogFixture.find(myRobot);
+    RenameRefactoringDialogFixture renameRefactoringDialog = RenameRefactoringDialogFixture.find(robot());
     renameRefactoringDialog.setNewName("NewAppTheme").clickRefactor();
 
     themeEditor.waitForThemeSelection("NewAppTheme");
@@ -96,9 +95,9 @@ public class ThemeSelectorTest extends GuiTestCase {
     getIdeFrame().invokeMenuPath("Window", "Editor Tabs", "Select Next Tab");
     themesComboBox.selectItem("NewAppTheme");
     getIdeFrame().invokeMenuPathRegex("Edit", "Undo.*");
-    DialogFixture message = new DialogFixture(myRobot, myRobot.finder().findByType(Dialog.class));
+    DialogFixture message = new DialogFixture(robot(), robot().finder().findByType(Dialog.class));
     message.focus();
-    JButton OkButton = GuiTests.waitUntilFound(myRobot, message.target(), new GenericTypeMatcher<JButton>(JButton.class) {
+    JButton OkButton = GuiTests.waitUntilFound(robot(), message.target(), new GenericTypeMatcher<JButton>(JButton.class) {
       @Override
       protected boolean isMatching(@NotNull JButton button) {
         String buttonText = button.getText();
@@ -108,7 +107,7 @@ public class ThemeSelectorTest extends GuiTestCase {
         return false;
       }
     });
-    JButtonFixture OkFixture = new JButtonFixture(myRobot, OkButton);
+    JButtonFixture OkFixture = new JButtonFixture(robot(), OkButton);
     OkFixture.click();
     themeEditor.waitForThemeSelection("AppTheme");
     getIdeFrame().invokeMenuPath("Window", "Editor Tabs", "Select Previous Tab");
@@ -130,12 +129,12 @@ public class ThemeSelectorTest extends GuiTestCase {
     String selectedTheme = themesComboBox.selectedItem();
 
     themesComboBox.selectItem("Show all themes");
-    ThemeSelectionDialogFixture themeSelectionDialog = ThemeSelectionDialogFixture.find(myRobot);
+    ThemeSelectionDialogFixture themeSelectionDialog = ThemeSelectionDialogFixture.find(robot());
     themeSelectionDialog.clickCancel();
     themesComboBox.requireSelection(selectedTheme);
 
     themesComboBox.selectItem("Show all themes");
-    themeSelectionDialog = ThemeSelectionDialogFixture.find(myRobot);
+    themeSelectionDialog = ThemeSelectionDialogFixture.find(robot());
     JTreeFixture categoriesTree = themeSelectionDialog.getCategoriesTree();
     JListFixture themeList = themeSelectionDialog.getThemeList();
 
@@ -173,12 +172,12 @@ public class ThemeSelectorTest extends GuiTestCase {
     assertNotNull(selectedTheme);
 
     themesComboBox.selectItem("Create New Theme");
-    NewStyleDialogFixture newStyleDialog = NewStyleDialogFixture.find(myRobot);
+    NewStyleDialogFixture newStyleDialog = NewStyleDialogFixture.find(robot());
     newStyleDialog.clickCancel();
     themeEditor.waitForThemeSelection(selectedTheme);
 
     themesComboBox.selectItem("Create New Theme");
-    newStyleDialog = NewStyleDialogFixture.find(myRobot);
+    newStyleDialog = NewStyleDialogFixture.find(robot());
     JTextComponentFixture newNameTextField = newStyleDialog.getNewNameTextField();
     JComboBoxFixture parentComboBox = newStyleDialog.getParentComboBox();
 
@@ -203,7 +202,7 @@ public class ThemeSelectorTest extends GuiTestCase {
     newNameTextField.requireText("Theme.AppTheme.NoActionBar");
 
     parentComboBox.selectItem("Show all themes");
-    ThemeSelectionDialogFixture themeSelectionDialog = ThemeSelectionDialogFixture.find(myRobot);
+    ThemeSelectionDialogFixture themeSelectionDialog = ThemeSelectionDialogFixture.find(robot());
     JTreeFixture categoriesTree = themeSelectionDialog.getCategoriesTree();
     JListFixture themeList = themeSelectionDialog.getThemeList();
 

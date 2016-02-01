@@ -28,7 +28,6 @@ import org.fest.swing.util.PatternTextMatcher;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -103,7 +102,7 @@ public class BasicJniBasedNativeAppTest extends GuiTestCase {
 
     // Launch a debug session and chooses the default emulator.
     projectFrame.debugApp(DEBUG_CONFIG_NAME);
-    ChooseDeviceDialogFixture.find(myRobot).clickOk();
+    ChooseDeviceDialogFixture.find(robot()).clickOk();
 
     // Wait for "Debugger attached to process.*" to be printed on the app-native debug console.
     DebugToolWindowFixture debugToolWindowFixture = new DebugToolWindowFixture(projectFrame);
