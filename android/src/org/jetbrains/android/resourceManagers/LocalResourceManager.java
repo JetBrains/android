@@ -102,7 +102,7 @@ public class LocalResourceManager extends ResourceManager {
   }
 
   @NotNull
-  public List<ResourceElement> getValueResources(@NotNull final String resourceType) {
+  public List<ResourceElement> getValueResources(@NotNull final ResourceType resourceType) {
     return getValueResources(resourceType, null);
   }
 

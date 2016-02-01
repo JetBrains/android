@@ -17,6 +17,7 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.tools.idea.editors.theme.StateListPicker;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.android.tools.idea.tests.gui.framework.fixture.theme.EditReferenceFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.StateListPickerFixture;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.util.text.StringUtil;
@@ -81,6 +82,11 @@ public class ChooseResourceDialogFixture extends IdeaDialogFixture<ChooseResourc
   @NotNull
   public StateListPickerFixture getStateListPicker() {
     return new StateListPickerFixture(robot(), robot().finder().findByType(this.target(), StateListPicker.class));
+  }
+
+  @NotNull
+  public EditReferenceFixture getEditReferencePanel() {
+    return new EditReferenceFixture(robot(), (Box)robot().finder().findByName(this.target(), "ReferenceEditor"));
   }
 
   @NotNull

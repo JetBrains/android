@@ -23,6 +23,7 @@ import com.intellij.openapi.editor.event.DocumentListener;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.util.text.StringUtil;
+import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -82,12 +83,16 @@ public class ResourceComponent extends JPanel {
     return super.getPreferredSize();
   }
 
-  public void setSwatchIcon(@NotNull SwatchComponent.SwatchIcon icon) {
-    mySwatchComponent.setSwatchIcon(icon);
+  @Override
+  public Dimension getMaximumSize() {
+    if (isMaximumSizeSet()) {
+      return super.getMaximumSize();
+    }
+    return new Dimension(super.getMaximumSize().width, getPreferredSize().height);
   }
 
-  public void showStack(boolean show) {
-    mySwatchComponent.showStack(show);
+  public void setSwatchIcon(@NotNull SwatchComponent.SwatchIcon icon) {
+    mySwatchComponent.setSwatchIcon(icon);
   }
 
   public void setNameText(@NotNull String name) {
@@ -153,24 +158,12 @@ public class ResourceComponent extends JPanel {
     mySwatchComponent.addTextFocusListener(listener);
   }
 
-  public boolean hasWarningIcon() {
-    return mySwatchComponent.hasWarningIcon();
-  }
-
   public void setCompletionStrings(@NotNull List<String> completions) {
     mySwatchComponent.setCompletionStrings(completions);
   }
 
   public void setVariantComboVisible(boolean isVisible) {
     myVariantCombo.setVisible(isVisible);
-  }
-
-  /**
-   * Returns a {@link ValidationInfo} for the {@link SwatchComponent}.
-   */
-  @NotNull
-  public ValidationInfo createSwatchValidationInfo(@NotNull String errorText) {
-    return new ValidationInfo(errorText, mySwatchComponent);
   }
 
   @Override
@@ -191,5 +184,10 @@ public class ResourceComponent extends JPanel {
   public Dimension getSwatchIconSize() {
     // Since the icons are square we just use the height of the component.
     return new Dimension(mySwatchComponent.getHeight(), mySwatchComponent.getHeight());
+  }
+
+  @Nullable("if there is no error")
+  public ValidationInfo doValidate(int minApi, @NotNull AndroidTargetData androidTargetData) {
+    return mySwatchComponent.doValidate(minApi, androidTargetData);
   }
 }
