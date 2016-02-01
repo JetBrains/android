@@ -17,18 +17,23 @@ package com.android.tools.idea.run.editor;
 
 import javax.swing.*;
 
+import static com.android.tools.idea.startup.GradleSpecificInitializer.ENABLE_EXPERIMENTAL_PROFILING;
+
 /**
  * The configuration panel for the Android profiler settings.
  */
 public class AndroidProfilersPanel {
   private JPanel myPanel;
   private JCheckBox myGapidDisablePCS;
+  private JCheckBox myAdvancedProfilingCheckBox;
 
   public JComponent getComponent() {
     return myPanel;
   }
 
   AndroidProfilersPanel(ProfilerState state) {
+    boolean experimental = System.getProperty(ENABLE_EXPERIMENTAL_PROFILING) != null;
+    myAdvancedProfilingCheckBox.setVisible(experimental);
     resetFrom(state);
   }
 
@@ -37,6 +42,7 @@ public class AndroidProfilersPanel {
    */
   void resetFrom(ProfilerState state) {
     myGapidDisablePCS.setSelected(state.GAPID_DISABLE_PCS);
+    myAdvancedProfilingCheckBox.setSelected(state.ENABLE_ADVANCED_PROFILING);
   }
 
   /**
@@ -44,5 +50,6 @@ public class AndroidProfilersPanel {
    */
   void applyTo(ProfilerState state) {
     state.GAPID_DISABLE_PCS = myGapidDisablePCS.isSelected();
+    state.ENABLE_ADVANCED_PROFILING = myAdvancedProfilingCheckBox.isSelected() && System.getProperty(ENABLE_EXPERIMENTAL_PROFILING) != null;
   }
 }
