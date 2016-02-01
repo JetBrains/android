@@ -152,6 +152,7 @@ public class SwatchComponent extends JPanel {
       add(myTextLabel, BorderLayout.CENTER);
       myTextField = null;
     }
+    setSwatchIcon(WARNING_ICON);
   }
 
   public void setSwatchIcon(@NotNull SwatchIcon icon) {
@@ -208,6 +209,11 @@ public class SwatchComponent extends JPanel {
 
     public ColorIcon(@NotNull Color color) {
       myColor = color;
+    }
+
+    @NotNull
+    public Color getColor() {
+      return myColor;
     }
 
     @Override
