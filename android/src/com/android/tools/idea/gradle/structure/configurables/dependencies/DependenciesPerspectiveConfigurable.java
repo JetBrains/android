@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.structure.configurables.dependencies;
 
 import com.android.tools.idea.gradle.structure.configurables.BasePerspectiveConfigurable;
-import com.android.tools.idea.gradle.structure.model.PsdAndroidModuleEditor;
+import com.android.tools.idea.gradle.structure.model.android.PsdAndroidModuleEditor;
 import com.android.tools.idea.gradle.structure.model.PsdModuleEditor;
 import com.android.tools.idea.gradle.structure.model.PsdProjectEditor;
 import com.intellij.openapi.ui.NamedConfigurable;
@@ -35,7 +35,8 @@ public class DependenciesPerspectiveConfigurable extends BasePerspectiveConfigur
   @Nullable
   protected NamedConfigurable<? extends PsdModuleEditor> getConfigurable(@NotNull PsdModuleEditor moduleEditor) {
     if (moduleEditor instanceof PsdAndroidModuleEditor) {
-      return new AndroidDependenciesConfigurable((PsdAndroidModuleEditor)moduleEditor);
+      PsdAndroidModuleEditor androidModuleEditor = (PsdAndroidModuleEditor)moduleEditor;
+      return new AndroidDependenciesConfigurable(androidModuleEditor);
     }
     return null;
   }
