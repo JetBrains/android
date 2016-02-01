@@ -46,7 +46,7 @@ public class GradleBuildTest extends GuiTestCase {
     getIdeFrame().findMessageDialog("Gradle Running").clickOk();
 
     // Find the dialog to select the path of the JDK.
-    SelectSdkDialogFixture selectSdkDialog = SelectSdkDialogFixture.find(myRobot);
+    SelectSdkDialogFixture selectSdkDialog = SelectSdkDialogFixture.find(robot());
     selectSdkDialog.setJdkPath(jdkPath)
                    .clickOk();
 

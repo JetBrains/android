@@ -41,11 +41,11 @@ public class RefactoringFlowTest extends GuiTestCase {
     getIdeFrame().invokeMenuPath("Refactor", "Rename...");
 
     // Rename as action_settings, which is already defined
-    RenameRefactoringDialogFixture refactoringDialog = RenameRefactoringDialogFixture.find(myRobot);
+    RenameRefactoringDialogFixture refactoringDialog = RenameRefactoringDialogFixture.find(robot());
     refactoringDialog.setNewName("action_settings");
     refactoringDialog.clickRefactor();
 
-    ConflictsDialogFixture conflictsDialog = ConflictsDialogFixture.find(myRobot);
+    ConflictsDialogFixture conflictsDialog = ConflictsDialogFixture.find(robot());
     conflictsDialog.requireMessageTextContains("Resource @string/action_settings already exists");
     conflictsDialog.clickCancel();
     refactoringDialog.clickCancel();
@@ -67,11 +67,11 @@ public class RefactoringFlowTest extends GuiTestCase {
     editor.moveTo(editor.findOffset("abc_searchview_^description_voice")); // only defined in appcompat
     getIdeFrame().invokeMenuPath("Refactor", "Rename...");
 
-    RenameRefactoringDialogFixture refactoringDialog = RenameRefactoringDialogFixture.find(myRobot);
+    RenameRefactoringDialogFixture refactoringDialog = RenameRefactoringDialogFixture.find(robot());
     refactoringDialog.setNewName("a");
     refactoringDialog.clickRefactor();
 
-    ConflictsDialogFixture conflictsDialog = ConflictsDialogFixture.find(myRobot);
+    ConflictsDialogFixture conflictsDialog = ConflictsDialogFixture.find(robot());
     conflictsDialog.requireMessageTextMatches(
       Pattern.quote("Resource is also only defined in external libraries and\n" +
                     "cannot be renamed.\n" +
@@ -87,11 +87,11 @@ public class RefactoringFlowTest extends GuiTestCase {
     editor.moveTo(editor.findOffset("abc_searchview_^description_submit")); // only defined in appcompat
     getIdeFrame().invokeMenuPath("Refactor", "Rename...");
 
-    refactoringDialog = RenameRefactoringDialogFixture.find(myRobot);
+    refactoringDialog = RenameRefactoringDialogFixture.find(robot());
     refactoringDialog.setNewName("a");
     refactoringDialog.clickRefactor();
 
-    conflictsDialog = ConflictsDialogFixture.find(myRobot);
+    conflictsDialog = ConflictsDialogFixture.find(robot());
     conflictsDialog.requireMessageTextMatches(
       Pattern.quote("The resource @string/abc_searchview_description_submit is\n" +
                     "defined outside of the project (in one of the libraries) and\n" +

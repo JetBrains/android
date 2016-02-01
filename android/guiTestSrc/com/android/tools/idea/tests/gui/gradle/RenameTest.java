@@ -62,7 +62,7 @@ public class RenameTest extends GuiTestCase {
         assertNotNull(directory);
         for (final RenameHandler handler : Extensions.getExtensions(RenameHandler.EP_NAME)) {
           if (handler instanceof DirectoryAsPackageRenameHandler) {
-            final RenameDialogFixture renameDialog = RenameDialogFixture.startFor(directory, handler, myRobot);
+            final RenameDialogFixture renameDialog = RenameDialogFixture.startFor(directory, handler, robot());
             assertFalse(renameDialog.warningExists(null));
             renameDialog.setNewName(renameDialog.getNewName() + 1);
             // 'Rename dialog' show a warning asynchronously to the text change, that's why we wait here for the

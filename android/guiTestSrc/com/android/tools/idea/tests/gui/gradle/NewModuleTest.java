@@ -57,8 +57,8 @@ public class NewModuleTest extends GuiTestCase {
     getIdeFrame().waitForGradleProjectSyncToFinish();
 
     getIdeFrame().invokeMenuPath("File", "New", "New Module...");
-    Dialog dialog = myRobot.finder().find(DialogMatcher.withTitle("Create New Module"));
-    DialogFixture dialogFixture = new DialogFixture(myRobot, dialog);
+    Dialog dialog = robot().finder().find(DialogMatcher.withTitle("Create New Module"));
+    DialogFixture dialogFixture = new DialogFixture(robot(), dialog);
 
     selectItemInGallery(dialog, 1, "Android Library");
     findAndClickButton(dialogFixture, "Next");
@@ -79,7 +79,7 @@ public class NewModuleTest extends GuiTestCase {
   private void selectItemInGallery(@NotNull Dialog dialog,
                                    final int selectedIndex,
                                    @NotNull final String expectedName) {
-    final ASGallery gallery = myRobot.finder().findByType(dialog, ASGallery.class);
+    final ASGallery gallery = robot().finder().findByType(dialog, ASGallery.class);
     execute(new GuiTask() {
       @Override
       protected void executeInEDT() throws Throwable {

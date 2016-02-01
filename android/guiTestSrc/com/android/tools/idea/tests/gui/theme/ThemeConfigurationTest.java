@@ -46,17 +46,17 @@ public class ThemeConfigurationTest extends GuiTestCase {
     JComboBoxFixture themesComboBox = themeEditor.getThemesComboBox();
 
     themesComboBox.selectItem("Create New Theme");
-    NewStyleDialogFixture newStyleDialog = NewStyleDialogFixture.find(myRobot);
+    NewStyleDialogFixture newStyleDialog = NewStyleDialogFixture.find(robot());
     JTextComponentFixture newNameTextField = newStyleDialog.getNewNameTextField();
     JComboBoxFixture parentComboBox = newStyleDialog.getParentComboBox();
 
     parentComboBox.selectItem("Show all themes");
-    ThemeSelectionDialogFixture themeSelectionDialog = ThemeSelectionDialogFixture.find(myRobot);
+    ThemeSelectionDialogFixture themeSelectionDialog = ThemeSelectionDialogFixture.find(robot());
     final JTreeFixture categoriesTree = themeSelectionDialog.getCategoriesTree();
     JListFixture themeList = themeSelectionDialog.getThemeList();
 
     categoriesTree.clickPath("Material Dark");
-    myRobot.waitForIdle();
+    robot().waitForIdle();
     themeList.clickItem("android:Theme.Material");
     themeSelectionDialog.clickOk();
 
@@ -69,8 +69,8 @@ public class ThemeConfigurationTest extends GuiTestCase {
     themePreviewPanel.requirePreviewPanel();
 
     JButton apiButton = themeEditor.findToolbarButton("Android version to use when rendering layouts in the IDE");
-    myRobot.click(apiButton);
-    clickPopupMenuItem("API 19", apiButton, myRobot);
+    robot().click(apiButton);
+    clickPopupMenuItem("API 19", apiButton, robot());
 
     themePreviewPanel.requireErrorPanel();
 

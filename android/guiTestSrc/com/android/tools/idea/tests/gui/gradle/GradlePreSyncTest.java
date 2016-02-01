@@ -67,7 +67,7 @@ public class GradlePreSyncTest extends GuiTestCase {
 
     getIdeFrame().requestProjectSync();
 
-    ProxySettingsDialogFixture proxySettingsDialog = ProxySettingsDialogFixture.find(myRobot);
+    ProxySettingsDialogFixture proxySettingsDialog = ProxySettingsDialogFixture.find(robot());
     assertNotNull(proxySettingsDialog);
 
     proxySettingsDialog.enableHttpsProxy();
@@ -96,7 +96,7 @@ public class GradlePreSyncTest extends GuiTestCase {
 
     getIdeFrame().requestProjectSync();
 
-    ProxySettingsDialogFixture proxySettingsDialog = ProxySettingsDialogFixture.find(myRobot);
+    ProxySettingsDialogFixture proxySettingsDialog = ProxySettingsDialogFixture.find(robot());
     assertNotNull(proxySettingsDialog);
 
     proxySettingsDialog.setDoNotShowThisDialog(true);

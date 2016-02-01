@@ -83,7 +83,7 @@ public class ThemeEditorTableTest extends GuiTestCase {
     Component parentEditor = parentCellFixture.editor();
     parentCellFixture.startEditing();
     assertTrue(parentEditor instanceof JComponent);
-    JComboBoxFixture parentComboBox = new JComboBoxFixture(myRobot, myRobot.finder().findByType((JComponent)parentEditor, JComboBox.class));
+    JComboBoxFixture parentComboBox = new JComboBoxFixture(robot(), robot().finder().findByType((JComponent)parentEditor, JComboBox.class));
     parentComboBox.selectItem(4);
     parentCellFixture.stopEditing();
     assertEquals("android:Theme.Holo.Light.DarkActionBar", themeEditorTable.getComboBoxSelectionAt(parentCell));
@@ -105,7 +105,7 @@ public class ThemeEditorTableTest extends GuiTestCase {
     pause(new Condition("Wait for potential tooltips to disappear") {
       @Override
       public boolean test() {
-        return myRobot.findActivePopupMenu() == null;
+        return robot().findActivePopupMenu() == null;
       }
     });
     testParentPopup(themeEditorTable.cell(parentCell), newParent, themeEditor);
@@ -148,11 +148,11 @@ public class ThemeEditorTableTest extends GuiTestCase {
     JTableCellFixture colorCell = themeEditorTable.cell(row(1).column(0));
 
     // click on a color
-    ResourceComponentFixture resourceComponent = new ResourceComponentFixture(myRobot, (ResourceComponent)colorCell.editor());
+    ResourceComponentFixture resourceComponent = new ResourceComponentFixture(robot(), (ResourceComponent)colorCell.editor());
     colorCell.startEditing();
     resourceComponent.getSwatchButton().click();
 
-    final ChooseResourceDialogFixture dialog = ChooseResourceDialogFixture.find(myRobot);
+    final ChooseResourceDialogFixture dialog = ChooseResourceDialogFixture.find(robot());
     JTextComponentFixture name = dialog.getNameTextField();
 
     // add mistake into name field
@@ -190,11 +190,11 @@ public class ThemeEditorTableTest extends GuiTestCase {
     assertEquals("@android:color/holo_light_primary", themeEditorTable.valueAt(cell));
 
     JTableCellFixture colorCell = themeEditorTable.cell(cell);
-    ResourceComponentFixture resourceComponent = new ResourceComponentFixture(myRobot, (ResourceComponent)colorCell.editor());
+    ResourceComponentFixture resourceComponent = new ResourceComponentFixture(robot(), (ResourceComponent)colorCell.editor());
     colorCell.startEditing();
     resourceComponent.getSwatchButton().click();
 
-    ChooseResourceDialogFixture dialog = ChooseResourceDialogFixture.find(myRobot);
+    ChooseResourceDialogFixture dialog = ChooseResourceDialogFixture.find(robot());
     Color color = new Color(200, 0, 0, 200);
     dialog.getColorPicker().setColorWithIntegers(color);
     dialog.clickOK();
@@ -223,11 +223,11 @@ public class ThemeEditorTableTest extends GuiTestCase {
     TableCell cell = row(1).column(0);
 
     JTableCellFixture colorCell = themeEditorTable.cell(cell);
-    ResourceComponentFixture resourceComponent = new ResourceComponentFixture(myRobot, (ResourceComponent)colorCell.editor());
+    ResourceComponentFixture resourceComponent = new ResourceComponentFixture(robot(), (ResourceComponent)colorCell.editor());
     colorCell.startEditing();
     resourceComponent.getSwatchButton().click();
 
-    ChooseResourceDialogFixture dialog = ChooseResourceDialogFixture.find(myRobot);
+    ChooseResourceDialogFixture dialog = ChooseResourceDialogFixture.find(robot());
     ColorPickerFixture colorPicker = dialog.getColorPicker();
     Color color = new Color(200, 0, 0, 200);
     colorPicker.setFormat("ARGB");
@@ -263,7 +263,7 @@ public class ThemeEditorTableTest extends GuiTestCase {
     Component parentEditor = parentCellFixture.editor();
     parentCellFixture.startEditing();
     assertTrue(parentEditor instanceof JComponent);
-    JComboBoxFixture parentComboBox = new JComboBoxFixture(myRobot, myRobot.finder().findByType((JComponent)parentEditor, JComboBox.class));
+    JComboBoxFixture parentComboBox = new JComboBoxFixture(robot(), robot().finder().findByType((JComponent)parentEditor, JComboBox.class));
     parentComboBox.selectItem("Theme.AppCompat.NoActionBar");
     parentCellFixture.stopEditing();
 
@@ -275,11 +275,11 @@ public class ThemeEditorTableTest extends GuiTestCase {
     assertEquals("@android:color/primary_text_material_dark", themeEditorTable.valueAt(cell));
 
     JTableCellFixture stateListCell = themeEditorTable.cell(cell);
-    ResourceComponentFixture resourceComponent = new ResourceComponentFixture(myRobot, (ResourceComponent)stateListCell.editor());
+    ResourceComponentFixture resourceComponent = new ResourceComponentFixture(robot(), (ResourceComponent)stateListCell.editor());
     stateListCell.startEditing();
     resourceComponent.getSwatchButton().click();
 
-    final ChooseResourceDialogFixture dialog = ChooseResourceDialogFixture.find(myRobot);
+    final ChooseResourceDialogFixture dialog = ChooseResourceDialogFixture.find(robot());
     StateListPickerFixture stateListPicker = dialog.getStateListPicker();
     List<StateListComponentFixture> states = stateListPicker.getStateComponents();
     assertThat(states).hasSize(2);
@@ -297,7 +297,7 @@ public class ThemeEditorTableTest extends GuiTestCase {
 
     dialog.focus();
     state0.getValueComponent().getSwatchButton().click();
-    ChooseResourceDialogFixture secondDialog = ChooseResourceDialogFixture.find(myRobot, new GenericTypeMatcher<JDialog>(JDialog.class) {
+    ChooseResourceDialogFixture secondDialog = ChooseResourceDialogFixture.find(robot(), new GenericTypeMatcher<JDialog>(JDialog.class) {
       @Override
       protected boolean isMatching(@NotNull JDialog component) {
         return (component.isShowing() && !component.equals(dialog.target()));
@@ -314,7 +314,7 @@ public class ThemeEditorTableTest extends GuiTestCase {
 
     dialog.focus();
     state0.getAlphaComponent().getSwatchButton().click();
-    secondDialog = ChooseResourceDialogFixture.find(myRobot, new GenericTypeMatcher<JDialog>(JDialog.class) {
+    secondDialog = ChooseResourceDialogFixture.find(robot(), new GenericTypeMatcher<JDialog>(JDialog.class) {
       @Override
       protected boolean isMatching(@NotNull JDialog component) {
         return (component.isShowing() && !component.equals(dialog.target()));
@@ -332,7 +332,7 @@ public class ThemeEditorTableTest extends GuiTestCase {
 
     dialog.focus();
     state1.getValueComponent().getSwatchButton().click();
-    secondDialog = ChooseResourceDialogFixture.find(myRobot, new GenericTypeMatcher<JDialog>(JDialog.class) {
+    secondDialog = ChooseResourceDialogFixture.find(robot(), new GenericTypeMatcher<JDialog>(JDialog.class) {
       @Override
       protected boolean isMatching(@NotNull JDialog component) {
         return (component.isShowing() && !component.equals(dialog.target()));
@@ -374,7 +374,7 @@ public class ThemeEditorTableTest extends GuiTestCase {
     assertEquals("@android:color/background_holo_light", themeEditorTable.valueAt(cell));
 
     JTableCellFixture tableCell = themeEditorTable.cell(cell);
-    ResourceComponentFixture resourceComponent = new ResourceComponentFixture(myRobot, (ResourceComponent)tableCell.editor());
+    ResourceComponentFixture resourceComponent = new ResourceComponentFixture(robot(), (ResourceComponent)tableCell.editor());
     tableCell.startEditing();
     EditorTextFieldFixture textComponent = resourceComponent.getTextField();
     textComponent.requireText("@android:color/background_holo_light");
@@ -392,7 +392,7 @@ public class ThemeEditorTableTest extends GuiTestCase {
     String prefix = "@android:color/back";
     textComponent.replaceText(prefix);
 
-    JListFixture completionPopup = ThemeEditorGuiTestUtils.getCompletionPopup(myRobot);
+    JListFixture completionPopup = ThemeEditorGuiTestUtils.getCompletionPopup(robot());
     String[] suggestions = completionPopup.contents();
     assertTrue(suggestions.length > 0);
     for (String suggestion : suggestions) {
@@ -401,7 +401,7 @@ public class ThemeEditorTableTest extends GuiTestCase {
 
     prefix = "@color/back";
     textComponent.replaceText(prefix);
-    completionPopup = ThemeEditorGuiTestUtils.getCompletionPopup(myRobot);
+    completionPopup = ThemeEditorGuiTestUtils.getCompletionPopup(robot());
     suggestions = completionPopup.contents();
     assertTrue(suggestions.length > 0);
     for (String suggestion : suggestions) {
