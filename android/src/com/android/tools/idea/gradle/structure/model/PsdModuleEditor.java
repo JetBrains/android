@@ -23,30 +23,29 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
-public abstract class PsdModuleEditor {
+public abstract class PsdModuleEditor extends PsdChildEditor {
   @NotNull private final String myGradlePath;
-  @NotNull private final GradleBuildModel myParsedModel;
-  @NotNull private final PsdProjectEditor myProjectEditor;
 
   // Module can be null in the case of new modules created in the PSD.
   @Nullable private final Module myModule;
 
+  private boolean myInitParsedModel;
+  private GradleBuildModel myParsedModel;
   private String myModuleName;
 
-  protected PsdModuleEditor(@NotNull Module module,
-                            @NotNull String gradlePath,
-                            @NotNull GradleBuildModel parsedModel,
-                            @NotNull PsdProjectEditor projectEditor) {
+  protected PsdModuleEditor(@NotNull PsdProjectEditor parent,
+                            @NotNull Module module,
+                            @NotNull String gradlePath) {
+    super(parent);
     myModule = module;
     myGradlePath = gradlePath;
-    myParsedModel = parsedModel;
-    myProjectEditor = projectEditor;
     myModuleName = module.getName();
   }
 
+  @Override
   @NotNull
-  public PsdProjectEditor getProjectEditor() {
-    return myProjectEditor;
+  public PsdProjectEditor getParent() {
+    return (PsdProjectEditor)super.getParent();
   }
 
   @NotNull
@@ -59,8 +58,19 @@ public abstract class PsdModuleEditor {
     return myGradlePath;
   }
 
-  @NotNull
+  @Override
+  public boolean isEditable() {
+    return myParsedModel != null;
+  }
+
+  @Nullable
   public GradleBuildModel getParsedModel() {
+    if (!myInitParsedModel) {
+      myInitParsedModel = true;
+      if (myModule != null) {
+        myParsedModel = GradleBuildModel.get(myModule);
+      }
+    }
     return myParsedModel;
   }
 
