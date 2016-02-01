@@ -21,11 +21,10 @@ import junit.framework.TestCase;
 
 import javax.swing.event.HyperlinkEvent;
 
-import static org.easymock.EasyMock.expect;
-import static org.easymock.classextension.EasyMock.*;
+import static org.mockito.Mockito.*;
 
 /**
- * Tests for {@link com.android.tools.idea.gradle.service.notification.hyperlink.CustomNotificationListener}.
+ * Tests for {@link CustomNotificationListener}.
  */
 public class CustomNotificationListenerTest extends TestCase {
   private NotificationHyperlink myHyperlink1;
@@ -39,36 +38,42 @@ public class CustomNotificationListenerTest extends TestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    myHyperlink1 = createMock(NotificationHyperlink.class);
-    myHyperlink2 = createMock(NotificationHyperlink.class);
-    myHyperlink3 = createMock(NotificationHyperlink.class);
-    myNotification = createMock(Notification.class);
-    myHyperlinkEvent = createMock(HyperlinkEvent.class);
-    myProject = createMock(Project.class);
+    myHyperlink1 = mock(NotificationHyperlink.class);
+    myHyperlink2 = mock(NotificationHyperlink.class);
+    myHyperlink3 = mock(NotificationHyperlink.class);
+    myNotification = mock(Notification.class);
+    myHyperlinkEvent = mock(HyperlinkEvent.class);
+    myProject = mock(Project.class);
   }
 
   public void testHyperlinkActivatedWithOneHyperlink() {
     myListener = new CustomNotificationListener(myProject, myHyperlink1);
 
-    // if there is only one hyperlink, just execute it.
-    expect(myHyperlink1.executeIfClicked(myProject, myHyperlinkEvent)).andReturn(true);
-    replay(myHyperlink1, myHyperlink2, myHyperlink3);
-
     myListener.hyperlinkActivated(myNotification, myHyperlinkEvent);
 
-    verify(myHyperlink1, myHyperlink2, myHyperlink3);
+    // if there is only one hyperlink, just execute it.
+    verify(myHyperlink1).executeIfClicked(myProject, myHyperlinkEvent);
+    verify(myHyperlink2, never()).executeIfClicked(myProject, myHyperlinkEvent);
+    verify(myHyperlink3, never()).executeIfClicked(myProject, myHyperlinkEvent);
   }
 
   public void testHyperlinkActivatedWithMoreThanOneHyperlink() {
     myListener = new CustomNotificationListener(myProject, myHyperlink1, myHyperlink2, myHyperlink3);
 
-    // should not try to execute myHyperlink3, because execution of myHyperlink2 was successful.
-    expect(myHyperlink1.executeIfClicked(myProject, myHyperlinkEvent)).andReturn(false);
-    expect(myHyperlink2.executeIfClicked(myProject, myHyperlinkEvent)).andReturn(true);
-    replay(myHyperlink1, myHyperlink2, myHyperlink3);
-
     myListener.hyperlinkActivated(myNotification, myHyperlinkEvent);
 
-    verify(myHyperlink1, myHyperlink2, myHyperlink3);
+    verify(myHyperlink1).executeIfClicked(myProject, myHyperlinkEvent);
+    verify(myHyperlink2).executeIfClicked(myProject, myHyperlinkEvent);
+    verify(myHyperlink3).executeIfClicked(myProject, myHyperlinkEvent);
+  }
+
+  public void testHyperlinkCloseOnClick() {
+    myListener = new CustomNotificationListener(myProject, myHyperlink1);
+
+    when(myHyperlink1.executeIfClicked(myProject, myHyperlinkEvent)).thenReturn(true);
+    when(myHyperlink1.isCloseOnClick()).thenReturn(true);
+    myListener.hyperlinkActivated(myNotification, myHyperlinkEvent);
+
+    verify(myNotification).expire();
   }
 }
