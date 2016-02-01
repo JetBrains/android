@@ -19,13 +19,13 @@ package com.android.tools.idea.editors.gfxtrace.service.msg;
 
 import com.android.tools.idea.editors.gfxtrace.service.stringtable.Node;
 import com.android.tools.idea.editors.gfxtrace.service.stringtable.StringTable;
-import com.intellij.util.containers.hash.LinkedHashMap;
 import org.jetbrains.annotations.NotNull;
 
 import com.android.tools.rpclib.binary.*;
 import com.android.tools.rpclib.schema.*;
 
 import java.io.IOException;
+import java.util.LinkedHashMap;
 
 public final class Msg implements BinaryObject {
   //<<<Start:Java.ClassBody:1>>>

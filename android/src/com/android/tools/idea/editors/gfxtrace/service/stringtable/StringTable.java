@@ -17,13 +17,13 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service.stringtable;
 
-import com.intellij.util.containers.hash.LinkedHashMap;
 import org.jetbrains.annotations.NotNull;
 
 import com.android.tools.rpclib.binary.*;
 import com.android.tools.rpclib.schema.*;
 
 import java.io.IOException;
+import java.util.LinkedHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
 public final class StringTable implements BinaryObject {
