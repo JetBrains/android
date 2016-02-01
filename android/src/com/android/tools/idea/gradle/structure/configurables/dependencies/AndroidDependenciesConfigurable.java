@@ -33,7 +33,8 @@ class AndroidDependenciesConfigurable extends BaseNamedConfigurable<PsdAndroidMo
 
   @Override
   public JComponent createOptionsPanel() {
-    return new JPanel();
+    // TODO create panel only once.
+    return new EditableDependenciesPanel(getEditableObject());
   }
 
   @Override
