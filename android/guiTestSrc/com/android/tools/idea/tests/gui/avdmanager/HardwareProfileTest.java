@@ -46,7 +46,7 @@ public class HardwareProfileTest extends GuiTestCase {
                      .setScreenResolutionX(1280)
                      .setScreenResolutionY(920)
                      .setScreenSize(5.2);
-    myRobot.waitForIdle();
+    robot().waitForIdle();
     deviceEditWizard.clickOk();
     chooseDeviceDefinitionStep.selectDeviceByName(deviceName);
     chooseDeviceDefinitionStep.removeDeviceByName(deviceName);

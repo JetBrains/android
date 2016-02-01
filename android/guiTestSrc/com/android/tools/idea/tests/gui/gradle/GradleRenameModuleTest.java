@@ -49,11 +49,11 @@ public class GradleRenameModuleTest extends GuiTestCase {
     paneFixture.selectByPath("SimpleApplication", "app");
     invokeRefactor();
 
-    SelectRefactoringDialogFixture selectRefactoringDialog = SelectRefactoringDialogFixture.findByTitle(myRobot);
+    SelectRefactoringDialogFixture selectRefactoringDialog = SelectRefactoringDialogFixture.findByTitle(robot());
     selectRefactoringDialog.selectRenameModule();
     selectRefactoringDialog.clickOk();
 
-    InputDialogFixture renameModuleDialog = InputDialogFixture.findByTitle(myRobot, "Rename Module");
+    InputDialogFixture renameModuleDialog = InputDialogFixture.findByTitle(robot(), "Rename Module");
     renameModuleDialog.enterTextAndClickOk("app2");
 
     getIdeFrame().waitForBackgroundTasksToFinish();
@@ -69,11 +69,11 @@ public class GradleRenameModuleTest extends GuiTestCase {
     paneFixture.selectByPath("MultiModule", "library");
     invokeRefactor();
 
-    SelectRefactoringDialogFixture selectRefactoringDialog = SelectRefactoringDialogFixture.findByTitle(myRobot);
+    SelectRefactoringDialogFixture selectRefactoringDialog = SelectRefactoringDialogFixture.findByTitle(robot());
     selectRefactoringDialog.selectRenameModule();
     selectRefactoringDialog.clickOk();
 
-    InputDialogFixture renameModuleDialog = InputDialogFixture.findByTitle(myRobot, "Rename Module");
+    InputDialogFixture renameModuleDialog = InputDialogFixture.findByTitle(robot(), "Rename Module");
     renameModuleDialog.enterTextAndClickOk("newLibrary");
 
     getIdeFrame().waitForBackgroundTasksToFinish();
@@ -99,10 +99,10 @@ public class GradleRenameModuleTest extends GuiTestCase {
     paneFixture.selectByPath("SimpleApplication");
     invokeRefactor();
 
-    InputDialogFixture renameModuleDialog = InputDialogFixture.findByTitle(myRobot, "Rename Module");
+    InputDialogFixture renameModuleDialog = InputDialogFixture.findByTitle(robot(), "Rename Module");
     renameModuleDialog.enterTextAndClickOk("SimpleApplication2");
 
-    MessagesFixture errorMessage = MessagesFixture.findByTitle(myRobot, getIdeFrame().target(), "Rename Module");
+    MessagesFixture errorMessage = MessagesFixture.findByTitle(robot(), getIdeFrame().target(), "Rename Module");
     errorMessage.requireMessageContains("Can't rename root module");
 
     errorMessage.clickOk();
@@ -116,14 +116,14 @@ public class GradleRenameModuleTest extends GuiTestCase {
     paneFixture.selectByPath("MultiModule", "app");
     invokeRefactor();
 
-    SelectRefactoringDialogFixture selectRefactoringDialog = SelectRefactoringDialogFixture.findByTitle(myRobot);
+    SelectRefactoringDialogFixture selectRefactoringDialog = SelectRefactoringDialogFixture.findByTitle(robot());
     selectRefactoringDialog.selectRenameModule();
     selectRefactoringDialog.clickOk();
 
-    InputDialogFixture renameModuleDialog = InputDialogFixture.findByTitle(myRobot, "Rename Module");
+    InputDialogFixture renameModuleDialog = InputDialogFixture.findByTitle(robot(), "Rename Module");
     renameModuleDialog.enterTextAndClickOk("library2");
 
-    MessagesFixture errorMessage = MessagesFixture.findByTitle(myRobot, getIdeFrame().target(), "Rename Module");
+    MessagesFixture errorMessage = MessagesFixture.findByTitle(robot(), getIdeFrame().target(), "Rename Module");
     errorMessage.requireMessageContains("Module named 'library2' already exist");
 
     errorMessage.clickOk();

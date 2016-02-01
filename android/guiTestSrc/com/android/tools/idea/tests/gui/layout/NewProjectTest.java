@@ -255,9 +255,9 @@ public class NewProjectTest extends GuiTestCase {
      * Creates a project fixture for this description
      */
     void create() {
-      WelcomeFrameFixture.find(myRobot).createNewProject();
+      WelcomeFrameFixture.find(robot()).createNewProject();
 
-      NewProjectWizardFixture newProjectWizard = NewProjectWizardFixture.find(myRobot);
+      NewProjectWizardFixture newProjectWizard = NewProjectWizardFixture.find(robot());
 
       ConfigureAndroidProjectStepFixture configureAndroidProjectStep = newProjectWizard.getConfigureAndroidProjectStep();
       configureAndroidProjectStep.enterApplicationName(myName).enterCompanyDomain(myDomain).enterPackageName(myPkg);

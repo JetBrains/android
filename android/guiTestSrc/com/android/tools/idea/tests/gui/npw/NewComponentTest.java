@@ -38,7 +38,7 @@ public class NewComponentTest extends GuiTestCase {
     getIdeFrame().getProjectView().selectAndroidPane();
     getIdeFrame().invokeMenuPath("File", "New", "XML", "Values XML File");
 
-    final NewXmlValueWizardFixture wizardFixture = NewXmlValueWizardFixture.find(myRobot);
+    final NewXmlValueWizardFixture wizardFixture = NewXmlValueWizardFixture.find(robot());
     final JButtonFixture finishFixture = wizardFixture.findWizardButton("Finish");
     finishFixture.requireEnabled();
     wizardFixture.getFileNameField().enterText("strings");

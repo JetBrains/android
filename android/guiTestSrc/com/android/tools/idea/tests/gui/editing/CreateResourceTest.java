@@ -45,7 +45,7 @@ public class CreateResourceTest extends GuiTestCase {
 
     editor.invokeIntentionAction("Create layout resource file");
 
-    CreateResourceFileDialogFixture dialog = CreateResourceFileDialogFixture.find(myRobot);
+    CreateResourceFileDialogFixture dialog = CreateResourceFileDialogFixture.find(robot());
     // Should automatically prepend library prefix lib1:
     dialog.requireName("lib1_x.xml");
     dialog.clickCancel();
@@ -59,7 +59,7 @@ public class CreateResourceTest extends GuiTestCase {
 
     editor.invokeIntentionAction("Create layout resource file");
 
-    dialog = CreateResourceFileDialogFixture.find(myRobot);
+    dialog = CreateResourceFileDialogFixture.find(robot());
     // Should automatically prepend library prefix lib1:
     dialog.requireName("lib1_y.xml");
     dialog.clickCancel();
