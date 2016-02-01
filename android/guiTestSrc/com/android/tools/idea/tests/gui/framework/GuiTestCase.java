@@ -222,7 +222,7 @@ public abstract class GuiTestCase {
   protected void copyProjectBeforeOpening(@NotNull String projectDirName) throws IOException {
     File masterProjectPath = getMasterProjectDirPath(projectDirName);
 
-    projectPath = getTestProjectDirPath(projectDirName);
+    setProjectPath(getTestProjectDirPath(projectDirName));
     if (projectPath.isDirectory()) {
       delete(projectPath);
       System.out.println(String.format("Deleted project path '%1$s'", projectPath.getPath()));
@@ -292,6 +292,11 @@ public abstract class GuiTestCase {
       }
       delete(dotIdeaFolderPath);
     }
+  }
+
+  public void setProjectPath(@NotNull File projectPath) {
+    checkState(this.projectPath == null, "projectPath already set");
+    this.projectPath = projectPath;
   }
 
   @NotNull
