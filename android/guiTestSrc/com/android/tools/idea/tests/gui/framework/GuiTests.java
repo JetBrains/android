@@ -621,6 +621,19 @@ public final class GuiTests {
     }, SHORT_TIMEOUT);
   }
 
+  public static void waitForBackgroundTasks(Robot robot) {
+    pause(new Condition("background tasks") {
+      @Override
+      public boolean test() {
+        ProgressManager progressManager = ProgressManager.getInstance();
+        return !progressManager.hasModalProgressIndicator() &&
+               !progressManager.hasProgressIndicator() &&
+               !progressManager.hasUnsafeProgressIndicator();
+      }
+    }, LONG_TIMEOUT);
+    robot.waitForIdle();
+  }
+
   private static class MyProjectManagerListener extends ProjectManagerAdapter {
     boolean myActive;
     boolean myNotified;
