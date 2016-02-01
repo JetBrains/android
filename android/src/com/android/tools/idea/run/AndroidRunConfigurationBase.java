@@ -268,6 +268,10 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     TARGET_SELECTION_MODE = target.getId();
   }
 
+  /**
+   * Returns the instant run variant of the run or debug icon if a subsequent launch will be an instant launch. This method is called from
+   * within an action timer (so called multiple times a second), so the sequence of checks are ordered to fail fast if possible.
+   */
   @Nullable
   @Override
   public Icon getExecutorIcon(@NotNull RunConfiguration configuration, @NotNull Executor executor) {
@@ -276,22 +280,20 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       return null;
     }
 
-    if (!InstantRunManager.variantSupportsInstantRun(module)) {
+    if (!InstantRunSettings.isInstantRunEnabled(module.getProject()) || !supportsInstantRun()) {
       return null;
     }
 
     AndroidSessionInfo info = AndroidSessionInfo.findOldSession(getProject(), null, getUniqueID());
-    if (info == null || !info.isInstantRun()) {
+    if (info == null || !info.isInstantRun() || !info.getExecutorId().equals(executor.getId())) {
       return null;
     }
 
-    if (info.getExecutorId().equals(executor.getId())) {
-      // Make sure instant run is supported on the relevant device, if found.
-      AndroidVersion androidVersion = InstantRunManager.getMinDeviceApiLevel(info.getProcessHandler());
-      if (InstantRunManager.isInstantRunCapableDeviceVersion(androidVersion)
-          && InstantRunManager.variantSupportsInstantRunOnDevice(module, androidVersion)) {
-        return executor instanceof DefaultRunExecutor ? AndroidIcons.RunIcons.Replay : AndroidIcons.RunIcons.DebugReattach;
-      }
+    // Make sure instant run is supported on the relevant device, if found.
+    AndroidVersion androidVersion = InstantRunManager.getMinDeviceApiLevel(info.getProcessHandler());
+    if (InstantRunManager.isInstantRunCapableDeviceVersion(androidVersion)
+        && InstantRunManager.variantSupportsInstantRunOnApi(module, androidVersion)) {
+      return executor instanceof DefaultRunExecutor ? AndroidIcons.RunIcons.Replay : AndroidIcons.RunIcons.DebugReattach;
     }
 
     return null;
@@ -357,14 +359,14 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       throw new ExecutionException(AndroidBundle.message("deployment.target.not.found"));
     }
 
-    if (supportsInstantRun() && InstantRunSettings.isInstantRunEnabled(project) && InstantRunManager.variantSupportsInstantRun(module)) {
+    if (supportsInstantRun() && InstantRunSettings.isInstantRunEnabled(project)) {
       List<AndroidDevice> devices = deviceFutures.getDevices();
       if (devices.size() > 1) {
         String message = "This launch does not use Instant Run as it does not support launching on multiple devices concurrently.";
         new InstantRunUserFeedback(module).info(message);
         LOG.info(message);
       }
-      else if (InstantRunManager.variantSupportsInstantRunOnDevice(module, devices.get(0).getVersion())) {
+      else if (InstantRunManager.variantSupportsInstantRunOnApi(module, devices.get(0).getVersion())) {
         InstantRunUtils.setInstantRunEnabled(env, true);
         setInstantRunBuildOptions(env, module, deviceFutures);
       }
@@ -425,6 +427,12 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
     if (devices.size() > 1) {
       InstantRunManager.LOG.info("Last run was on > 1 device, not reusing devices and prompting again");
+      return null;
+    }
+
+    AndroidVersion version = devices.get(0).getVersion();
+    if (!InstantRunManager.variantSupportsInstantRunOnApi(facet.getModule(), version)) {
+      InstantRunManager.LOG.info("Cannot instant run since the current variant doesn't support IR on API: " + version);
       return null;
     }
 

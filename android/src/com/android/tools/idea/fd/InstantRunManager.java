@@ -264,9 +264,9 @@ public final class InstantRunManager implements ProjectComponent {
   }
 
   /**
-   * Checks whether the currently selected variant can be used with Instant Run on a device with the given API level.
+   * Returns whether the currently selected variant can be used with Instant Run on a device with the given API level.
    */
-  public static boolean variantSupportsInstantRunOnDevice(@NotNull Module module, @NotNull AndroidVersion androidVersion) {
+  public static boolean variantSupportsInstantRunOnApi(@NotNull Module module, @NotNull AndroidVersion deviceVersion) {
     if (!variantSupportsInstantRun(module)) {
       return false;
     }
@@ -282,21 +282,23 @@ public final class InstantRunManager implements ProjectComponent {
     BuildType buildType = buildTypeContainer.getBuildType();
     ProductFlavor mergedFlavor = variant.getMergedFlavor();
 
-    // TODO: Move this logic to Variant, so we don't have to duplicate it in AS.
-    boolean legacyMultiDex = false;
-    if (buildType.getMultiDexEnabled() != null) {
-      legacyMultiDex = buildType.getMultiDexEnabled();
-    }
-    if (mergedFlavor.getMultiDexEnabled() != null) {
-      legacyMultiDex = mergedFlavor.getMultiDexEnabled();
-    }
-
-    if (legacyMultiDex) {
+    if (isLegacyMultiDex(buildType, mergedFlavor)) {
       // We don't support legacy multi-dex on Dalvik.
-      return androidVersion.isGreaterOrEqualThan(21);
+      return deviceVersion.isGreaterOrEqualThan(AndroidVersion.ART_RUNTIME.getApiLevel());
     }
 
     return true;
+  }
+
+  // TODO: Move this logic to Variant, so we don't have to duplicate it in AS.
+  private static boolean isLegacyMultiDex(BuildType buildType, ProductFlavor mergedFlavor) {
+    if (buildType.getMultiDexEnabled() != null) {
+      return buildType.getMultiDexEnabled();
+    }
+    if (mergedFlavor.getMultiDexEnabled() != null) {
+      return mergedFlavor.getMultiDexEnabled();
+    }
+    return false;
   }
 
   /**
