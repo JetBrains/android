@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.util;
 
+import com.android.resources.ResourceType;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.google.common.collect.*;
 import com.intellij.openapi.module.Module;
@@ -40,8 +41,8 @@ public class AndroidResourceUtilTest extends AndroidTestCase {
   public void testCaseSensitivityInChangeColorResource() {
     myFixture.copyFileToProject("util/colors_before.xml", "res/values/colors.xml");
     List<String> dirNames = ImmutableList.of("values");
-    assertTrue(AndroidResourceUtil.changeColorResource(myFacet, "myColor", "#000000", "colors.xml", dirNames, false));
-    assertFalse(AndroidResourceUtil.changeColorResource(myFacet, "mycolor", "#FFFFFF", "colors.xml", dirNames, false));
+    assertTrue(AndroidResourceUtil.changeValueResource(myFacet, "myColor", ResourceType.COLOR, "#000000", "colors.xml", dirNames, false));
+    assertFalse(AndroidResourceUtil.changeValueResource(myFacet, "mycolor", ResourceType.COLOR, "#FFFFFF", "colors.xml", dirNames, false));
     myFixture.checkResultByFile("res/values/colors.xml", "util/colors_after.xml", true);
   }
 

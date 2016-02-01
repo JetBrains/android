@@ -83,13 +83,15 @@ public class DrawableRendererEditor extends GraphicalResourceRendererEditor {
 
     myRenderTask.setMaxRenderSize(iconWidth, iconHeight);
     List<BufferedImage> images = myRenderTask.renderDrawableAllStates(item.getSelectedValue());
+    SwatchComponent.SwatchIcon icon;
     if (images.isEmpty()) {
-      component.setSwatchIcon(SwatchComponent.WARNING_ICON);
+      icon = SwatchComponent.WARNING_ICON;
     }
     else {
-      component.setSwatchIcon(new SwatchComponent.SquareImageIcon(Iterables.getLast(images)));
+      icon = new SwatchComponent.SquareImageIcon(Iterables.getLast(images));
+      icon.setIsStack(images.size() > 1);
     }
-    component.showStack(images.size() > 1);
+    component.setSwatchIcon(icon);
 
     String nameText = String
       .format(ThemeEditorConstants.ATTRIBUTE_LABEL_TEMPLATE, ColorUtil.toHex(ThemeEditorConstants.RESOURCE_ITEM_COLOR),

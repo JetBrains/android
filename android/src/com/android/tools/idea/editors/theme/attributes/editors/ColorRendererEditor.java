@@ -47,13 +47,15 @@ public class ColorRendererEditor extends GraphicalResourceRendererEditor {
     assert resourceResolver != null;
 
     final List<Color> colors = ResourceHelper.resolveMultipleColors(resourceResolver, item.getSelectedValue(), context.getProject());
+    SwatchComponent.SwatchIcon icon;
     if (colors.isEmpty()) {
-      component.setSwatchIcon(SwatchComponent.WARNING_ICON);
+      icon = SwatchComponent.WARNING_ICON;
     }
     else {
-      component.setSwatchIcon(new SwatchComponent.ColorIcon(Iterables.getLast(colors)));
+      icon = new SwatchComponent.ColorIcon(Iterables.getLast(colors));
+      icon.setIsStack(colors.size() > 1);
     }
-    component.showStack(colors.size() > 1);
+    component.setSwatchIcon(icon);
     component.setNameText(item.getQualifiedName());
     component.setValueText(item.getValue());
 

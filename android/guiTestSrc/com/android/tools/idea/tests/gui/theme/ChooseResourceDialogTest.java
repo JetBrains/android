@@ -20,15 +20,11 @@ import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.fixture.ChooseResourceDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.*;
-import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.data.TableCell;
 import org.fest.swing.fixture.FontFixture;
 import org.fest.swing.fixture.JTableCellFixture;
-import org.jetbrains.annotations.NotNull;
-import org.junit.Ignore;
 import org.junit.Test;
 
-import javax.swing.*;
 import java.io.IOException;
 
 import static com.android.tools.idea.tests.gui.framework.TestGroup.THEME;
@@ -37,14 +33,13 @@ import static org.fest.swing.data.TableCell.row;
 import static org.junit.Assert.*;
 
 /**
- * UI tests regarding the state list picker
+ * UI tests regarding the ChooseResourceDialog
  */
 @BelongsToTestGroups({THEME})
-public class StateListPickerTest extends GuiTestCase {
+public class ChooseResourceDialogTest extends GuiTestCase {
 
-  @Ignore("failed in http://go/aj/job/studio-ui-test/345 and from IDEA")
   @Test
-  public void testStateList() throws IOException {
+  public void testColorStateList() throws IOException {
     importProjectAndWaitForProjectSyncToFinish("StateListApplication");
     ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(getIdeFrame());
     ThemeEditorTableFixture themeEditorTable = themeEditor.getPropertiesTable();
@@ -62,12 +57,6 @@ public class StateListPickerTest extends GuiTestCase {
     resourceComponent.getSwatchButton().click();
 
     final ChooseResourceDialogFixture dialog = ChooseResourceDialogFixture.find(myRobot);
-    dialog.clickNewResource().menuItem(new GenericTypeMatcher<JMenuItem>(JMenuItem.class) {
-      @Override
-      protected boolean isMatching(@NotNull JMenuItem component) {
-        return "New color File...".equals(component.getText());
-      }
-    }).click();
 
     StateListPickerFixture stateListPicker = dialog.getStateListPicker();
     java.util.List<StateListComponentFixture> states = stateListPicker.getStateComponents();
@@ -98,6 +87,34 @@ public class StateListPickerTest extends GuiTestCase {
     assertEquals("?attr/myColorAttribute", state3.getValue());
     assertFalse(state3.getValueComponent().hasWarningIcon());
     assertFalse(state3.isAlphaVisible());
+
+    dialog.clickCancel();
+    stateListCell.stopEditing();
+  }
+
+  @Test
+  public void testEditColorReference() throws IOException {
+    importProjectAndWaitForProjectSyncToFinish("StateListApplication");
+    ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(getIdeFrame());
+    ThemeEditorTableFixture themeEditorTable = themeEditor.getPropertiesTable();
+
+    TableCell cell = row(1).column(0);
+
+    FontFixture cellFont = themeEditorTable.fontAt(cell);
+    cellFont.requireBold();
+    assertEquals("android:colorPrimary", themeEditorTable.attributeNameAt(cell));
+    assertEquals("@color/ref_color", themeEditorTable.valueAt(cell));
+
+    JTableCellFixture stateListCell = themeEditorTable.cell(cell);
+    ResourceComponentFixture resourceComponent = new ResourceComponentFixture(myRobot, (ResourceComponent)stateListCell.editor());
+    stateListCell.startEditing();
+    resourceComponent.getSwatchButton().click();
+
+    ChooseResourceDialogFixture dialog = ChooseResourceDialogFixture.find(myRobot);
+
+    SwatchComponentFixture state1 = dialog.getEditReferencePanel().getSwatchComponent();
+    assertEquals("@color/myColor", state1.getText());
+    assertFalse(state1.hasWarningIcon());
 
     dialog.clickCancel();
     stateListCell.stopEditing();

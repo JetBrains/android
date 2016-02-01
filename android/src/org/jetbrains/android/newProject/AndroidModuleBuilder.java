@@ -621,7 +621,7 @@ public class AndroidModuleBuilder extends JavaModuleBuilder {
     ResourceElement appNameResElement = null;
     final String appNameResource = "app_name";
 
-    for (ResourceElement resElement : manager.getValueResources(ResourceType.STRING.getName())) {
+    for (ResourceElement resElement : manager.getValueResources(ResourceType.STRING)) {
       if (appNameResource.equals(resElement.getName().getValue())) {
         appNameResElement = resElement;
       }
