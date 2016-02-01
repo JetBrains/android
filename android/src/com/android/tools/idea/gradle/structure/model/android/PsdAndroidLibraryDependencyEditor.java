@@ -18,13 +18,13 @@ package com.android.tools.idea.gradle.structure.model.android;
 import com.android.builder.model.AndroidLibrary;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpec;
-import com.android.tools.idea.gradle.structure.model.PsdChildEditor;
 import com.google.common.base.Objects;
-import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Set;
+import javax.swing.*;
+
+import static com.intellij.util.PlatformIcons.LIBRARY_ICON;
 
 public class PsdAndroidLibraryDependencyEditor extends PsdAndroidDependencyEditor {
   @NotNull private final ArtifactDependencySpec mySpec;
@@ -45,6 +45,24 @@ public class PsdAndroidLibraryDependencyEditor extends PsdAndroidDependencyEdito
   @NotNull
   public ArtifactDependencySpec getSpec() {
     return mySpec;
+  }
+
+  @Override
+  @NotNull
+  public Icon getIcon() {
+    return LIBRARY_ICON;
+  }
+
+  @Override
+  @Nullable
+  public String getConfigurationName() {
+    return myParsedModel != null ? myParsedModel.configurationName() : null;
+  }
+
+  @Override
+  @NotNull
+  public String getValueAsText() {
+    return mySpec.toString();
   }
 
   @Override
@@ -71,6 +89,6 @@ public class PsdAndroidLibraryDependencyEditor extends PsdAndroidDependencyEdito
 
   @Override
   public String toString() {
-    return mySpec.toString();
+    return getValueAsText();
   }
 }
