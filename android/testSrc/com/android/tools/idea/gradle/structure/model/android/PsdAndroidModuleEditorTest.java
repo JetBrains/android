@@ -137,4 +137,31 @@ public class PsdAndroidModuleEditorTest extends AndroidGradleTestCase {
       assertNotNull(appModuleEditor.findVariantEditor(variant));
     }
   }
+
+  public void testEditableDependenciesWithPlusInVersion() throws Throwable {
+    loadProject("projects/projectWithAppandLib");
+
+    Project project = myFixture.getProject();
+    PsdProjectEditor projectEditor = new PsdProjectEditor(project);
+
+    PsdAndroidModuleEditor appModuleEditor = (PsdAndroidModuleEditor)projectEditor.findEditorForModule("app");
+    assertNotNull(appModuleEditor);
+
+    List<PsdAndroidDependencyEditor> declaredDependencies = appModuleEditor.getDeclaredDependencies();
+    assertThat(declaredDependencies).hasSize(1);
+
+    // Verify that appcompat is considered a "editable" dependency, and it was matched properly
+    PsdAndroidLibraryDependencyEditor appCompatV7Editor = (PsdAndroidLibraryDependencyEditor)declaredDependencies.get(0);
+    assertTrue(appCompatV7Editor.isEditable());
+    assertEquals("com.android.support:appcompat-v7:+", appCompatV7Editor.getSpec().toString());
+
+    // Verify that the variants where appcompat is are properly registered.
+    List<String> variants = appCompatV7Editor.getVariants();
+    assertThat(variants).containsOnly("paidDebug", "paidRelease", "basicDebug", "basicRelease");
+
+    // Verify that the variants where appcompat is have editors
+    for (String variant : variants) {
+      assertNotNull(appModuleEditor.findVariantEditor(variant));
+    }
+  }
 }
