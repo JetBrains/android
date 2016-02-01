@@ -39,6 +39,7 @@ import org.jetbrains.annotations.Nullable;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.runner.RunWith;
+import org.junit.runners.model.MultipleFailureException;
 
 import java.awt.*;
 import java.io.File;
@@ -47,6 +48,7 @@ import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -59,7 +61,6 @@ import static com.intellij.openapi.util.io.FileUtilRt.delete;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static junit.framework.Assert.assertNotNull;
 import static org.fest.swing.edt.GuiActionRunner.execute;
-import static org.junit.Assert.fail;
 import static org.junit.Assume.assumeTrue;
 
 @RunWith(GuiTestRunner.class)
@@ -116,31 +117,44 @@ public abstract class GuiTestCase {
   }
 
   @After
-  public void tearDown() {
+  public void tearDown() throws Exception {
     waitForBackgroundTasks(myRobot);
     printTimestamp();
     printPerfStats();
+    List<Throwable> errors = new ArrayList<Throwable>();
     try {
-      cleanUp();
+      errors.addAll(cleanUpAndCheckForModalDialogs());
     } finally {
       closeAllProjects();
       ProjectManagerEx.getInstanceEx().unblockReloadingProjectOnExternalChanges();
     }
+    MultipleFailureException.assertEmpty(errors);
   }
 
-  private void cleanUp() {
+  private List<AssertionError> cleanUpAndCheckForModalDialogs() {
+    List<AssertionError> errors = new ArrayList<AssertionError>();
     if (myRobot != null) {
       myRobot.cleanUpWithoutDisposingWindows();
       // We close all modal dialogs left over, because they block the AWT thread and could trigger a deadlock in the next test.
-      for (Window window : Window.getWindows()) {
-        if (window.isShowing() && window instanceof Dialog) {
-          if (((Dialog) window).getModalityType() == Dialog.ModalityType.APPLICATION_MODAL) {
-            myRobot.close(window);
-            fail("Modal dialog still active: " + window);
-          }
-        }
+      Dialog modalDialog;
+      while ((modalDialog = getActiveModalDialog()) != null) {
+        myRobot.close(modalDialog);
+        errors.add(new AssertionError(
+          String.format("Modal dialog showing: %s with title '%s'", modalDialog.getClass().getName(), modalDialog.getTitle())));
       }
     }
+    return errors;
+  }
+
+  private static Dialog getActiveModalDialog() {
+    Window activeWindow = KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow();
+    if (activeWindow instanceof Dialog) {
+      Dialog dialog = (Dialog)activeWindow;
+      if (dialog.getModalityType() == Dialog.ModalityType.APPLICATION_MODAL) {
+        return dialog;
+      }
+    }
+    return null;
   }
 
   protected void importSimpleApplication() throws IOException {
