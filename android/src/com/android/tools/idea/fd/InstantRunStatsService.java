@@ -16,7 +16,6 @@
 package com.android.tools.idea.fd;
 
 import com.android.tools.idea.stats.UsageTracker;
-import com.google.common.base.Stopwatch;
 import com.google.common.collect.Maps;
 import com.intellij.concurrency.JobScheduler;
 import com.intellij.openapi.components.ServiceManager;
@@ -31,19 +30,17 @@ public class InstantRunStatsService {
   public static final int UPLOAD_INTERVAL_MINUTES = 10;
 
   public enum DeployType {
-    LEGACY,
+    LEGACY,   // full apk installation when IR is disabled
+    FULLAPK,  // full apk installation when IR is enabled
     HOTSWAP,
-    SPLITAPK,
-    DEX,
+    SPLITAPK, // split apk installation as part of cold swap (however, split APKs are currently disabled..)
+    DEX,      // cold swap scheme that uses dex files
   }
 
   private final Object LOCK = new Object();
 
   private int myDeployCount;
   private int[] myDeployTypeCounts = new int[DeployType.values().length];
-
-  private long myBuildTimes;
-  private final Stopwatch myStopwatch = Stopwatch.createUnstarted();
 
   private int myRestartLaunchCount;
 
@@ -60,19 +57,9 @@ public class InstantRunStatsService {
     }, UPLOAD_INTERVAL_MINUTES, UPLOAD_INTERVAL_MINUTES, TimeUnit.MINUTES);
   }
 
-  public void notifyBuildStarted() {
+  public void notifyDeployStarted() {
     synchronized (LOCK) {
-      myStopwatch.reset();
-      myStopwatch.start();
-    }
-  }
-
-  public void notifyBuildComplete() {
-    synchronized (LOCK) {
-      myBuildTimes += myStopwatch.elapsed(TimeUnit.MILLISECONDS);
       myDeployCount++;
-
-      myStopwatch.stop();
     }
   }
 
@@ -92,7 +79,6 @@ public class InstantRunStatsService {
   private void uploadStats() {
     int deployCount;
     int[] deployTypeCount = new int[myDeployTypeCounts.length];
-    long avgBuildTime;
     int restartCount;
 
     synchronized (LOCK) {
@@ -101,12 +87,10 @@ public class InstantRunStatsService {
       }
 
       deployCount = myDeployCount;
-      avgBuildTime = myBuildTimes / deployCount;
       restartCount = myRestartLaunchCount;
       System.arraycopy(myDeployTypeCounts, 0, deployTypeCount, 0, myDeployTypeCounts.length);
 
       myDeployCount = 0;
-      myBuildTimes = 0;
       myRestartLaunchCount = 0;
       for (int i = 0; i < myDeployTypeCounts.length; i++) {
         myDeployTypeCounts[i] = 0;
@@ -115,7 +99,6 @@ public class InstantRunStatsService {
 
     Map<String,String> kv = Maps.newHashMap();
     kv.put("deploycount", Integer.toString(deployCount));
-    kv.put("avgbuild", Long.toString(avgBuildTime));
     kv.put("restartBuild", Integer.toString(restartCount));
     for (DeployType type : DeployType.values()) {
       kv.put(type.toString(), Integer.toString(deployTypeCount[type.ordinal()]));

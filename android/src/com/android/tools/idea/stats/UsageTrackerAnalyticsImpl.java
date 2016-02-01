@@ -30,7 +30,7 @@ public class UsageTrackerAnalyticsImpl extends UsageTracker {
   private static final String GLOGS_CATEGORY_LIBCOUNT = "gradlelibs";
   private static final String GLOGS_CATEGORY_VERSIONS = "gradleVersions";
   private static final String GLOGS_CATEGORY_LEGACY_IDEA_ANDROID_PROJECT = "legacyIdeaAndroidProject";
-  private static final String GLOGS_CATEGORY_INSTANT_RUN_V1 = "irstats1";
+  private static final String GLOGS_CATEGORY_INSTANT_RUN = "irstats2";
 
   private final UsageUploader myUploader;
 
@@ -106,7 +106,7 @@ public class UsageTrackerAnalyticsImpl extends UsageTracker {
       return;
     }
 
-    myUploader.trackEvent(GLOGS_CATEGORY_INSTANT_RUN_V1, kv);
+    myUploader.trackEvent(GLOGS_CATEGORY_INSTANT_RUN, kv);
   }
 
   @NotNull
