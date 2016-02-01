@@ -17,9 +17,7 @@ package com.android.tools.idea.fd;
 
 import com.android.SdkConstants;
 import com.android.annotations.NonNull;
-import com.android.builder.model.AndroidArtifact;
-import com.android.builder.model.AndroidArtifactOutput;
-import com.android.builder.model.SourceProvider;
+import com.android.builder.model.*;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
 import com.android.ide.common.packaging.PackagingUtils;
@@ -263,6 +261,42 @@ public final class InstantRunManager implements ProjectComponent {
     }
 
     return AndroidGradleModel.get(facet);
+  }
+
+  /**
+   * Checks whether the currently selected variant can be used with Instant Run on a device with the given API level.
+   */
+  public static boolean variantSupportsInstantRunOnDevice(@NotNull Module module, @NotNull AndroidVersion androidVersion) {
+    if (!variantSupportsInstantRun(module)) {
+      return false;
+    }
+
+    AndroidGradleModel androidGradleModel = AndroidGradleModel.get(module);
+    if (androidGradleModel == null) {
+      return false;
+    }
+
+    Variant variant = androidGradleModel.getSelectedVariant();
+    BuildTypeContainer buildTypeContainer = androidGradleModel.findBuildType(androidGradleModel.getSelectedVariant().getBuildType());
+    assert buildTypeContainer != null;
+    BuildType buildType = buildTypeContainer.getBuildType();
+    ProductFlavor mergedFlavor = variant.getMergedFlavor();
+
+    // TODO: Move this logic to Variant, so we don't have to duplicate it in AS.
+    boolean legacyMultiDex = false;
+    if (buildType.getMultiDexEnabled() != null) {
+      legacyMultiDex = buildType.getMultiDexEnabled();
+    }
+    if (mergedFlavor.getMultiDexEnabled() != null) {
+      legacyMultiDex = mergedFlavor.getMultiDexEnabled();
+    }
+
+    if (legacyMultiDex) {
+      // We don't support legacy multi-dex on Dalvik.
+      return androidVersion.isGreaterOrEqualThan(21);
+    }
+
+    return true;
   }
 
   /**
