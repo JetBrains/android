@@ -26,6 +26,7 @@ import com.android.tools.idea.gradle.project.build.GradleBuildContext;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.project.AndroidProjectBuildNotifications;
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.Tab;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdManagerDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleBuildModelFixture;
@@ -49,7 +50,6 @@ import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.options.ShowSettingsUtil;
-import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
@@ -610,18 +610,11 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     waitForBackgroundTasksToFinish();
   }
 
+  /** @deprecated Use {@link GuiTests#waitForBackgroundTasks} instead. */
+  @Deprecated
   @NotNull
   public IdeFrameFixture waitForBackgroundTasksToFinish() {
-    pause(new Condition("Background tasks to finish") {
-      @Override
-      public boolean test() {
-        ProgressManager progressManager = ProgressManager.getInstance();
-        return !progressManager.hasModalProgressIndicator() &&
-               !progressManager.hasProgressIndicator() &&
-               !progressManager.hasUnsafeProgressIndicator();
-      }
-    }, LONG_TIMEOUT);
-    robot().waitForIdle();
+    waitForBackgroundTasks(robot());
     return this;
   }
 
