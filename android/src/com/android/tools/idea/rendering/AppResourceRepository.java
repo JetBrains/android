@@ -282,7 +282,7 @@ public class AppResourceRepository extends MultiResourceRepository {
   }
 
   @NotNull
-  Set<String> getAllIds() {
+  private Set<String> getAllIds() {
     long currentModCount = getModificationCount();
     if (myIdsModificationCount < currentModCount) {
       myIdsModificationCount = currentModCount;
@@ -303,9 +303,17 @@ public class AppResourceRepository extends MultiResourceRepository {
         }
       }
       // Also add all ids from resource types, just in case it contains things that are not in the libraries.
-      myIds.addAll(getItemsOfType(ResourceType.ID));
+      myIds.addAll(super.getItemsOfType(ResourceType.ID));
     }
     return myIds;
+  }
+
+  @NonNull
+  @Override
+  public Collection<String> getItemsOfType(@NonNull ResourceType type) {
+    synchronized (ITEM_MAP_LOCK) {
+      return type == ResourceType.ID ? getAllIds() : super.getItemsOfType(type);
+    }
   }
 
   void updateRoots() {
