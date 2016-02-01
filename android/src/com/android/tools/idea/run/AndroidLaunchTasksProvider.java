@@ -174,7 +174,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
     boolean instantRunAware =
       InstantRunUtils.isInstantRunEnabled(myEnv) &&
       InstantRunSettings.isInstantRunEnabled(myProject) &&
-      InstantRunManager.variantSupportsInstantRun(myFacet.getModule());
+      InstantRunManager.variantSupportsInstantRunOnApi(myFacet.getModule(), device.getVersion());
     return new DeployApkTask(myFacet, myLaunchOptions, myApkProvider, instantRunAware);
   }
 

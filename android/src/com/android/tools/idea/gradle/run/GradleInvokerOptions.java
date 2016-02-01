@@ -78,7 +78,13 @@ public class GradleInvokerOptions {
 
     GradleInvoker.TestCompileType testCompileType = getTestCompileType(configuration);
 
-    InstantRunBuildOptions instantRunBuildOptions = InstantRunBuildOptions.createAndReset(modules[0], env);
+    InstantRunBuildOptions instantRunBuildOptions = null;
+
+    if (configuration instanceof AndroidRunConfigurationBase) {
+      if (((AndroidRunConfigurationBase)configuration).supportsInstantRun()) {
+        instantRunBuildOptions = InstantRunBuildOptions.createAndReset(modules[0], env);
+      }
+    }
 
     List<String> cmdLineArgs = null;
     if (System.getProperty(ENABLE_EXPERIMENTAL_PROFILING) != null) {
@@ -297,8 +303,13 @@ public class GradleInvokerOptions {
     static InstantRunBuildOptions createAndReset(@NotNull Module module, @NotNull ExecutionEnvironment env) {
       Project project = module.getProject();
       if (!InstantRunUtils.isInstantRunEnabled(env) ||
-          !InstantRunSettings.isInstantRunEnabled(project) ||
-          !InstantRunManager.variantSupportsInstantRun(module)) {
+          !InstantRunSettings.isInstantRunEnabled(project)) {
+        return null;
+      }
+
+      List<AndroidDevice> targetDevices = getTargetDevices(env);
+      if (targetDevices.size() != 1 ||  // IR only supports launching on 1 device
+          !InstantRunManager.variantSupportsInstantRunOnApi(module, targetDevices.get(0).getVersion())) {
         return null;
       }
 
@@ -310,7 +321,7 @@ public class GradleInvokerOptions {
                                         InstantRunSettings.isColdSwapEnabled(project),
                                         InstantRunSettings.getColdSwapMode(project),
                                         changes,
-                                        getTargetDevices(env));
+                                        targetDevices);
     }
   }
 
