@@ -34,8 +34,8 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.editor.event.DocumentAdapter;
 import com.intellij.openapi.editor.event.DocumentEvent;
-import com.intellij.openapi.editor.event.DocumentListener;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.JBPopupMenu;
@@ -56,11 +56,7 @@ import java.awt.image.BufferedImage;
 import java.util.List;
 
 public class StateListPicker extends JPanel {
-  private static final String API_ERROR_TEXT = "This resource requires at least an API level of %d";
   private static final ResourceType[] DIMENSIONS_ONLY = {ResourceType.DIMEN};
-
-  public static final String PRIVATE_ERROR_PATTERN = "%s is a private framework resource";
-  public static final String NON_EXISTENT_ERROR_PATTERN = "The resource %s does not exist";
 
   private final Module myModule;
   private final Configuration myConfiguration;
@@ -120,6 +116,15 @@ public class StateListPicker extends JPanel {
     stateComponent.setNameText(state.getDescription());
     stateComponent.setComponentPopupMenu(createAlphaPopupMenu(state, stateComponent));
 
+    AndroidFacet facet = AndroidFacet.getInstance(myModule);
+    assert facet != null;
+    assert myStateList != null;
+    List<String> completionStrings = ResourceHelper.getCompletionFromTypes(facet, myStateList.getFolderType() == ResourceFolderType.COLOR
+                                                                                  ? GraphicalResourceRendererEditor.COLORS_ONLY
+                                                                                  : GraphicalResourceRendererEditor.DRAWABLES_ONLY);
+    stateComponent.getResourceComponent().setCompletionStrings(completionStrings);
+    stateComponent.getAlphaComponent().setCompletionStrings(ResourceHelper.getCompletionFromTypes(facet, DIMENSIONS_ONLY));
+
     return stateComponent;
   }
 
@@ -167,11 +172,11 @@ public class StateListPicker extends JPanel {
   }
 
   /**
-   * Returns a {@Link ValidationInfo} in the case one of the state list state has a value that does not resolve to a valid resource,
-   * or a value that is a private framework value.
+   * Returns a {@link ValidationInfo} in the case one of the state list state has a value that does not resolve to a valid resource,
+   * or a value that is a private framework value. or if one of the state list component requires an API level higher than minApi.
    */
   @Nullable("if there is no error")
-  public ValidationInfo getFrameworkResourceError() {
+  public ValidationInfo doValidate(int minApi) {
     IAndroidTarget target = myConfiguration.getTarget();
     assert target != null;
     final AndroidTargetData androidTargetData = AndroidTargetData.getTargetData(target, myModule);
@@ -179,60 +184,13 @@ public class StateListPicker extends JPanel {
     ResourceRepository frameworkResources = myConfiguration.getFrameworkResources();
     assert frameworkResources != null;
 
-    ValidationInfo error = null;
     for (StateComponent component : myStateComponents) {
-      String resourceValue = component.getResourceValue();
-      String errorText = null;
-      if (component.getResourceComponent().hasWarningIcon()) {
-        errorText = NON_EXISTENT_ERROR_PATTERN;
-      }
-      else if (isResourcePrivate(resourceValue, androidTargetData)) {
-        errorText = PRIVATE_ERROR_PATTERN;
-      }
-      if (errorText != null) {
-        error = component.getResourceComponent().createSwatchValidationInfo(String.format(errorText, resourceValue));
-        break;
-      }
-
-      resourceValue = component.getAlphaValue();
-      if (resourceValue == null) {
-        continue;
-      }
-      if (component.getAlphaComponent().hasWarningIcon()) {
-        errorText = NON_EXISTENT_ERROR_PATTERN;
-      }
-      else if (isResourcePrivate(resourceValue, androidTargetData)) {
-        errorText = PRIVATE_ERROR_PATTERN;
-      }
-      if (errorText != null) {
-        error = new ValidationInfo(String.format(errorText, resourceValue), component.getAlphaComponent());
-        break;
-      }
-    }
-    return error;
-  }
-
-  /**
-   * Returns a {@Link ValidationInfo} specifying which of the state list component requires an API level higher than minApi.
-   */
-  @Nullable("if there is no such component")
-  public ValidationInfo getApiError(int minApi) {
-    for (StateComponent component : myStateComponents) {
-      int resourceApi = ResolutionUtils.getOriginalApiLevel(component.getResourceValue(), myModule.getProject());
-      if (resourceApi > minApi) {
-        return component.getResourceComponent().createSwatchValidationInfo(String.format(API_ERROR_TEXT, resourceApi));
-      }
-      int alphaApi = ResolutionUtils.getOriginalApiLevel(component.getAlphaValue(), myModule.getProject());
-      if (alphaApi > minApi) {
-        return new ValidationInfo(String.format(API_ERROR_TEXT, alphaApi), component.getAlphaComponent());
+      ValidationInfo error = component.doValidate(minApi, androidTargetData);
+      if (error != null) {
+        return error;
       }
     }
     return null;
-  }
-
-  private static boolean isResourcePrivate(@NotNull String resourceValue, @NotNull AndroidTargetData targetData) {
-    ResourceUrl url = ResourceUrl.parse(resourceValue);
-    return url != null && url.framework && !targetData.isResourcePublic(url.type.getName(), url.name);
   }
 
   public void setContrastParameters(@NotNull ImmutableMap<String, Color> contrastColorsWithDescription, boolean isBackgroundStateList) {
@@ -245,24 +203,13 @@ public class StateListPicker extends JPanel {
     return myStateList;
   }
 
-  class ValueActionListener implements ActionListener, DocumentListener {
+  class ValueActionListener extends DocumentAdapter implements ActionListener {
     private final ResourceHelper.StateListState myState;
     private final StateComponent myComponent;
 
     public ValueActionListener(ResourceHelper.StateListState state, StateComponent stateComponent) {
       myState = state;
       myComponent = stateComponent;
-    }
-
-    @Override
-    public void beforeDocumentChange(DocumentEvent e) {
-      AndroidFacet facet = AndroidFacet.getInstance(myModule);
-      assert facet != null;
-      assert myStateList != null;
-      List<String> completionStrings = ResourceHelper.getCompletionFromTypes(facet, myStateList.getFolderType() == ResourceFolderType.COLOR
-                                                                                    ? GraphicalResourceRendererEditor.COLORS_ONLY
-                                                                                    : GraphicalResourceRendererEditor.DRAWABLES_ONLY);
-      myComponent.getResourceComponent().setCompletionStrings(completionStrings);
     }
 
     /**
@@ -318,7 +265,6 @@ public class StateListPicker extends JPanel {
 
       if (dialog.isOK()) {
         String resourceName = dialog.getResourceName();
-        myState.setValue(resourceName);
         myComponent.setValueText(resourceName);
 
         // If a resource was overridden, it may affect several states of the state list.
@@ -328,20 +274,13 @@ public class StateListPicker extends JPanel {
     }
   }
 
-  private class AlphaActionListener implements ActionListener, DocumentListener {
+  private class AlphaActionListener extends DocumentAdapter implements ActionListener {
     private final ResourceHelper.StateListState myState;
     private final StateComponent myComponent;
 
     public AlphaActionListener(ResourceHelper.StateListState state, StateComponent stateComponent) {
       myState = state;
       myComponent = stateComponent;
-    }
-
-    @Override
-    public void beforeDocumentChange(DocumentEvent e) {
-      AndroidFacet facet = AndroidFacet.getInstance(myModule);
-      assert facet != null;
-      myComponent.getAlphaComponent().setCompletionStrings(ResourceHelper.getCompletionFromTypes(facet, DIMENSIONS_ONLY));
     }
 
     /**
@@ -393,56 +332,60 @@ public class StateListPicker extends JPanel {
 
     ResourceResolver resourceResolver = myConfiguration.getResourceResolver();
     assert resourceResolver != null;
+    component.setValueIcon(getSwatchIcon(component.getResourceValue(), resourceResolver, myRenderTask));
 
-    String resourceName = component.getResourceValue();
+    String alphaValue = component.getAlphaValue();
+    if (!StringUtil.isEmpty(alphaValue)) {
+      try {
+        float alpha = Float.parseFloat(ResourceHelper.resolveStringValue(resourceResolver, alphaValue));
+        Font iconFont = JBUI.Fonts.smallFont().asBold();
+        component.getAlphaComponent().setSwatchIcon(new SwatchComponent.TextIcon(String.format("%.2f", alpha), iconFont));
+      }
+      catch (NumberFormatException e) {
+        component.showAlphaError(true);
+        component.getAlphaComponent().setSwatchIcon(SwatchComponent.WARNING_ICON);
+      }
+    }
+    else {
+      Font iconFont = JBUI.Fonts.smallFont().asBold();
+      component.getAlphaComponent().setSwatchIcon(new SwatchComponent.TextIcon("1.00", iconFont));
+    }
+  }
 
+  @NotNull
+  public static SwatchComponent.SwatchIcon getSwatchIcon(@Nullable String resourceName, @NotNull ResourceResolver resourceResolver, @NotNull RenderTask renderTask) {
     ResourceValue resValue = resourceResolver.findResValue(resourceName, false);
     resValue = resourceResolver.resolveResValue(resValue);
 
-    if (resValue != null && resValue.getResourceType() != ResourceType.COLOR) {
-      List<BufferedImage> images = myRenderTask.renderDrawableAllStates(resValue);
-      if (images.isEmpty()) {
-        component.setValueIcon(SwatchComponent.WARNING_ICON);
-      }
-      else {
-        component.setValueIcon(new SwatchComponent.SquareImageIcon(Iterables.getLast(images)));
-      }
-      component.showStack(images.size() > 1);
-    }
-    else {
-      final List<Color> colors = ResourceHelper.resolveMultipleColors(resourceResolver, resValue, myModule.getProject());
+    if (resValue == null || resValue.getResourceType() == ResourceType.COLOR) {
+      final List<Color> colors = ResourceHelper.resolveMultipleColors(resourceResolver, resValue, renderTask.getModule().getProject());
+      SwatchComponent.SwatchIcon icon;
       if (colors.isEmpty()) {
         Color colorValue = ResourceHelper.parseColor(resourceName);
         if (colorValue != null) {
-          component.setValueIcon(new SwatchComponent.ColorIcon(colorValue));
+          icon = new SwatchComponent.ColorIcon(colorValue);
         }
         else {
-          component.setValueIcon(SwatchComponent.WARNING_ICON);
+          icon = SwatchComponent.WARNING_ICON;
         }
       }
       else {
-        component.setValueIcon(new SwatchComponent.ColorIcon(Iterables.getLast(colors)));
+        icon = new SwatchComponent.ColorIcon(Iterables.getLast(colors));
+        icon.setIsStack(colors.size() > 1);
       }
-      component.showStack(colors.size() > 1);
-
-      String alphaValue = component.getAlphaValue();
-
-      if (!StringUtil.isEmpty(alphaValue)) {
-        try {
-          float alpha = Float.parseFloat(ResourceHelper.resolveStringValue(resourceResolver, alphaValue));
-          Font iconFont = JBUI.Fonts.smallFont().asBold();
-          component.getAlphaComponent().setSwatchIcon(new SwatchComponent.TextIcon(String.format("%.2f", alpha), iconFont));
-        }
-        catch (NumberFormatException e) {
-          component.showAlphaError(true);
-          component.getAlphaComponent().setSwatchIcon(SwatchComponent.WARNING_ICON);
-        }
-      }
-      else {
-        Font iconFont = JBUI.Fonts.smallFont().asBold();
-        component.getAlphaComponent().setSwatchIcon(new SwatchComponent.TextIcon("1.00", iconFont));
-      }
+      return icon;
     }
+
+    List<BufferedImage> images = renderTask.renderDrawableAllStates(resValue);
+    SwatchComponent.SwatchIcon icon;
+    if (images.isEmpty()) {
+      icon = SwatchComponent.WARNING_ICON;
+    }
+    else {
+      icon = new SwatchComponent.SquareImageIcon(Iterables.getLast(images));
+      icon.setIsStack(images.size() > 1);
+    }
+    return icon;
   }
 
   private void repaintAllComponents() {
@@ -463,8 +406,6 @@ public class StateListPicker extends JPanel {
 
       myResourceComponent = new ResourceComponent(project, true);
       add(myResourceComponent);
-      myResourceComponent
-        .setMaximumSize(new Dimension(myResourceComponent.getMaximumSize().width, myResourceComponent.getPreferredSize().height));
       myResourceComponent.setVariantComboVisible(false);
 
       myAlphaComponent = new SwatchComponent(project, true);
@@ -472,7 +413,6 @@ public class StateListPicker extends JPanel {
 
       Font font = StateListPicker.this.getFont();
       setFont(ThemeEditorUtils.scaleFontForAttribute(font));
-      myAlphaComponent.setMaximumSize(new Dimension(myAlphaComponent.getMaximumSize().width, myAlphaComponent.getPreferredSize().height));
 
       Box alphaErrorComponent = new Box(BoxLayout.LINE_AXIS);
       myAlphaErrorLabel =
@@ -518,10 +458,6 @@ public class StateListPicker extends JPanel {
       myResourceComponent.setSwatchIcon(icon);
     }
 
-    public void showStack(boolean show) {
-      myResourceComponent.showStack(show);
-    }
-
     @NotNull
     public String getResourceValue() {
       return myResourceComponent.getValueText();
@@ -564,6 +500,15 @@ public class StateListPicker extends JPanel {
       if (myAlphaComponent != null) {
         myAlphaComponent.setFont(font);
       }
+    }
+
+    @Nullable("if there is no error")
+    public ValidationInfo doValidate(int minApi, @NotNull AndroidTargetData androidTargetData) {
+      ValidationInfo error = getResourceComponent().doValidate(minApi, androidTargetData);
+      if (error == null && getAlphaValue() != null) {
+        error = getAlphaComponent().doValidate(minApi, androidTargetData);
+      }
+      return error;
     }
   }
 }
