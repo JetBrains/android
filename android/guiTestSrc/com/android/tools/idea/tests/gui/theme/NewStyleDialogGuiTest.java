@@ -43,13 +43,13 @@ public class NewStyleDialogGuiTest extends GuiTestCase {
     final JComboBoxFixture themesComboBox = themeEditor.getThemesComboBox();
     themesComboBox.selectItem("Theme.AppCompat.Light.NoActionBar");
     themesComboBox.selectItem("Create New Theme");
-    final NewStyleDialogFixture newStyleDialog1 = NewStyleDialogFixture.find(myRobot);
+    final NewStyleDialogFixture newStyleDialog1 = NewStyleDialogFixture.find(robot());
     assertEquals("Theme.AppCompat.Light.NoActionBar", newStyleDialog1.getParentComboBox().selectedItem());
     newStyleDialog1.clickCancel();
 
     themesComboBox.selectItem("Theme.AppCompat.NoActionBar");
     themesComboBox.selectItem("Create New Theme");
-    final NewStyleDialogFixture newStyleDialog2 = NewStyleDialogFixture.find(myRobot);
+    final NewStyleDialogFixture newStyleDialog2 = NewStyleDialogFixture.find(robot());
     assertEquals("Theme.AppCompat.NoActionBar", newStyleDialog2.getParentComboBox().selectedItem());
     newStyleDialog2.clickCancel();
   }

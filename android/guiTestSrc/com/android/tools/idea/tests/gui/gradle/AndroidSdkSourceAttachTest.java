@@ -100,7 +100,8 @@ public class AndroidSdkSourceAttachTest extends GuiTestCase {
     // Download the source.
     findNotificationPanel().performAction("Download");
 
-    DialogFixture downloadDialog = findDialog(withTitle("SDK Quickfix Installation")).withTimeout(SHORT_TIMEOUT.duration()).using(myRobot);
+    DialogFixture downloadDialog = findDialog(withTitle("SDK Quickfix Installation")).withTimeout(SHORT_TIMEOUT.duration()).using(
+      robot());
     final JButtonFixture finish = downloadDialog.button(withText("Finish"));
 
     // Wait until installation is finished. By then the "Finish" button will be enabled.
@@ -163,7 +164,7 @@ public class AndroidSdkSourceAttachTest extends GuiTestCase {
 
   private void acceptLegalNoticeIfNeeded() {
     if(!PropertiesComponent.getInstance().isTrueValue("decompiler.legal.notice.accepted")) {
-      DialogFixture acceptTermDialog = findDialog(withTitle("JetBrains Decompiler")).withTimeout(SHORT_TIMEOUT.duration()).using(myRobot);
+      DialogFixture acceptTermDialog = findDialog(withTitle("JetBrains Decompiler")).withTimeout(SHORT_TIMEOUT.duration()).using(robot());
       acceptTermDialog.button(withText("Accept")).click();
     }
   }

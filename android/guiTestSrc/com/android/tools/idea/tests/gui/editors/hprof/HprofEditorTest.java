@@ -45,7 +45,7 @@ public class HprofEditorTest extends GuiTestCase {
 
     myCapturesToolWindowFixture = getIdeFrame().getCapturesToolWindow();
     myCapturesToolWindowFixture.openFile(SAMPLE_SNAPSHOT_NAME);
-    myDefaultEditor = HprofEditorFixture.findByFileName(myRobot, getIdeFrame(), SAMPLE_SNAPSHOT_NAME);
+    myDefaultEditor = HprofEditorFixture.findByFileName(robot(), getIdeFrame(), SAMPLE_SNAPSHOT_NAME);
   }
 
   @Test

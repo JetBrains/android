@@ -172,7 +172,7 @@ public class AddGradleDependencyTest extends GuiTestCase {
 
   private void assertIntentionNotIncluded(@NotNull EditorFixture editor, @NotNull String intention) {
     editor.invokeAction(SHOW_INTENTION_ACTIONS);
-    Robot robot = getIdeFrame().robot();
+    Robot robot = robot();
     JListFixture popup = new JListFixture(robot, waitForPopup(robot));
     String[] intentions = popup.contents();
     assertThat(intentions).excludes(intention);
