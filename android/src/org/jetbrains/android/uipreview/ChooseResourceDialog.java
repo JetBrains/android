@@ -1445,7 +1445,7 @@ public class ChooseResourceDialog extends DialogWrapper {
 
       ResourceManager manager = facet.getResourceManager(namespace);
       assert manager != null;
-      Collection<String> resourceNames = manager.getValueResourceNames(resourceType);
+      Collection<String> resourceNames = manager.getValueResourceNames(type);
       for (String resourceName : resourceNames) {
         myItems.add(new ResourceItem(this, namespace, resourceName, null));
       }

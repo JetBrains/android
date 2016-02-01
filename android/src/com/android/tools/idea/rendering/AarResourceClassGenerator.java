@@ -153,7 +153,7 @@ public class AarResourceClassGenerator {
   }
 
   private void generateValuesForType(@NotNull ClassWriter cw, @NotNull ResourceType resType, @NotNull TObjectIntHashMap<String> cache) {
-    Collection<String> keys = resType == ResourceType.ID ? myAppResources.getAllIds() : myAppResources.getItemsOfType(resType);
+    Collection<String> keys = myAppResources.getItemsOfType(resType);
     for (String key : keys) {
       int initialValue = myAppResources.getResourceId(resType, key);
       key = AndroidResourceUtil.getFieldNameByResourceName(key);

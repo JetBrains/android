@@ -161,10 +161,6 @@ public abstract class ResourceManager {
     return result;
   }
 
-  public List<PsiFile> findResourceFiles(@NotNull String resType, @NotNull String resName, @NotNull String... extensions) {
-    return findResourceFiles(resType, resName, true, extensions);
-  }
-
   @NotNull
   public List<PsiFile> findResourceFiles(@NotNull String resType) {
     return findResourceFiles(resType, null, true);
@@ -263,7 +259,7 @@ public abstract class ResourceManager {
   }
 
   @NotNull
-  public Set<String> getFileResourcesNames(@NotNull final String resourceType) {
+  private Set<String> getFileResourcesNames(@NotNull final String resourceType) {
     final Set<String> result = new HashSet<String>();
 
     processFileResources(resourceType, new FileResourceProcessor() {
@@ -277,9 +273,9 @@ public abstract class ResourceManager {
   }
 
   @NotNull
-  public Collection<String> getValueResourceNames(@NotNull final String resourceType) {
+  public Collection<String> getValueResourceNames(@NotNull final ResourceType resourceType) {
     final Set<String> result = new HashSet<String>();
-    final boolean attr = ResourceType.ATTR.getName().equals(resourceType);
+    final boolean attr = ResourceType.ATTR == resourceType;
 
     for (ResourceEntry entry : getValueResourceEntries(resourceType)) {
       final String name = entry.getName();
@@ -292,14 +288,9 @@ public abstract class ResourceManager {
   }
 
   @NotNull
-  public Collection<ResourceEntry> getValueResourceEntries(@NotNull final String resourceType) {
-    final ResourceType type = ResourceType.getEnum(resourceType);
-
-    if (type == null) {
-      return Collections.emptyList();
-    }
+  public Collection<ResourceEntry> getValueResourceEntries(@NotNull final ResourceType resourceType) {
     final FileBasedIndex index = FileBasedIndex.getInstance();
-    final ResourceEntry typeMarkerEntry = AndroidValueResourcesIndex.createTypeMarkerKey(resourceType);
+    final ResourceEntry typeMarkerEntry = AndroidValueResourcesIndex.createTypeMarkerKey(resourceType.getName());
     final GlobalSearchScope scope = GlobalSearchScope.allScope(myProject);
 
     final Map<VirtualFile, Set<ResourceEntry>> file2resourceSet = new HashMap<VirtualFile, Set<ResourceEntry>>();
@@ -336,17 +327,24 @@ public abstract class ResourceManager {
     return result;
   }
 
+  /**
+   * Get the collection of resource names that match the given type.
+   * @param type a string describing a ResourceType or ResourceFolderType.
+   * @return resource names
+   */
   @NotNull
   public Collection<String> getResourceNames(@NotNull String type) {
     return getResourceNames(type, false);
   }
 
-  @NotNull
   public Collection<String> getResourceNames(@NotNull String type, boolean publicOnly) {
+    ResourceType resourceType = ResourceType.getEnum(type);
     final Set<String> result = new HashSet<String>();
-    result.addAll(getValueResourceNames(type));
+    if (resourceType != null) {
+      result.addAll(getValueResourceNames(resourceType));
+    }
     result.addAll(getFileResourcesNames(type));
-    if (type.equals(ResourceType.ID.getName())) {
+    if (resourceType == ResourceType.ID) {
       result.addAll(getIds(true));
     }
     return result;
