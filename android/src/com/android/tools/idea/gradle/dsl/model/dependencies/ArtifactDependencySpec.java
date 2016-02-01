@@ -136,7 +136,7 @@ public class ArtifactDependencySpec {
   @NotNull
   public String compactNotation() {
     List<String> segments = Lists.newArrayList(group, name, version, classifier);
-    String s = Joiner.on(':').skipNulls().join(segments);
+    String s = Joiner.on(GRADLE_PATH_SEPARATOR).skipNulls().join(segments);
     if (extension != null) {
       s += "@" + extension;
     }
