@@ -216,17 +216,6 @@ public class CompatibilityRenderTarget implements IAndroidTarget {
   }
 
   @Override
-  public ISystemImage[] getSystemImages() {
-    return myDelegate.getSystemImages();
-  }
-
-  @Nullable
-  @Override
-  public ISystemImage getSystemImage(@NonNull IdDisplay tag, @NonNull String abiType) {
-    return myDelegate.getSystemImage(tag, abiType);
-  }
-
-  @Override
   public boolean canRunOn(IAndroidTarget target) {
     return myDelegate.canRunOn(target);
   }
