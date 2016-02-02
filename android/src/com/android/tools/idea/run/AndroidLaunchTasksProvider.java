@@ -111,8 +111,8 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
     if (InstantRunUtils.isInstantRunEnabled(myEnv) && InstantRunSettings.isInstantRunEnabled(myProject)) {
       AndroidGradleModel model = AndroidGradleModel.get(myFacet);
 
-      if (model != null && InstantRunManager.variantSupportsInstantRun(model, device.getVersion())) {
-        InstantRunBuildInfo buildInfo = InstantRunManager.getBuildInfo(model);
+      if (model != null && InstantRunGradleUtils.variantSupportsInstantRun(model, device.getVersion())) {
+        InstantRunBuildInfo buildInfo = InstantRunGradleUtils.getBuildInfo(model);
         if (buildInfo == null) {
           String reason = "Gradle build-info.xml not found for module " + myFacet.getModule().getName() +
                           ". Please make sure that you are using gradle plugin '2.0.0-alpha4' or higher.";
@@ -176,7 +176,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
     boolean instantRunAware =
       InstantRunUtils.isInstantRunEnabled(myEnv) &&
       InstantRunSettings.isInstantRunEnabled(myProject) &&
-      InstantRunManager.variantSupportsInstantRun(myFacet.getModule(), device.getVersion());
+      InstantRunGradleUtils.variantSupportsInstantRun(myFacet.getModule(), device.getVersion());
     return new DeployApkTask(myFacet, myLaunchOptions, myApkProvider, instantRunAware);
   }
 
