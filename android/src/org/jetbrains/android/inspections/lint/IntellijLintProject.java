@@ -316,7 +316,7 @@ class IntellijLintProject extends Project {
       if (androidModel instanceof AndroidGradleModel) {
         project = new LintGradleProject(client, dir, dir, facet, (AndroidGradleModel)androidModel);
       } else {
-        project = new LintAndroidProject(client, dir, dir, facet);
+        project = new LintAndroidModelProject(client, dir, dir, facet, androidModel);
       }
     }
     else {
@@ -650,7 +650,54 @@ class IntellijLintProject extends Project {
     }
   }
 
-  private static class LintGradleProject extends LintAndroidProject {
+  private static class LintAndroidModelProject extends LintAndroidProject {
+    private final AndroidModel myAndroidModel;
+
+    private LintAndroidModelProject(
+      @NonNull LintClient client,
+      @NonNull File dir,
+      @NonNull File referenceDir,
+      @NonNull AndroidFacet facet,
+      @NonNull AndroidModel androidModel) {
+      super(client, dir, referenceDir, facet);
+      myAndroidModel = androidModel;
+    }
+
+    @Nullable
+    @Override
+    public String getPackage() {
+      String manifestPackage = super.getPackage();
+      // For now, lint only needs the manifest package; not the potentially variant specific
+      // package. As part of the Gradle work on the Lint API we should make two separate
+      // package lookup methods -- one for the manifest package, one for the build package
+      if (manifestPackage != null) {
+        return manifestPackage;
+      }
+
+      return myAndroidModel.getApplicationId();
+    }
+
+    @NonNull
+    @Override
+    public AndroidVersion getMinSdkVersion() {
+      if (mMinSdkVersion == null) {
+        mMinSdkVersion = AndroidModuleInfo.get(myFacet).getMinSdkVersion();
+      }
+      return mMinSdkVersion;
+    }
+
+    @NonNull
+    @Override
+    public AndroidVersion getTargetSdkVersion() {
+      if (mTargetSdkVersion == null) {
+        mTargetSdkVersion = AndroidModuleInfo.get(myFacet).getTargetSdkVersion();
+      }
+
+      return mTargetSdkVersion;
+    }
+  }
+
+  private static class LintGradleProject extends LintAndroidModelProject {
     private final AndroidGradleModel myAndroidGradleModel;
 
     /**
@@ -662,7 +709,7 @@ class IntellijLintProject extends Project {
       @NonNull File referenceDir,
       @NonNull AndroidFacet facet,
       @NonNull AndroidGradleModel androidGradleModel) {
-      super(client, dir, referenceDir, facet);
+      super(client, dir, referenceDir, facet, androidGradleModel);
       mGradleProject = true;
       mMergeManifests = true;
       myAndroidGradleModel = androidGradleModel;
@@ -833,46 +880,6 @@ class IntellijLintProject extends Project {
       }
 
       return Collections.emptyList();
-    }
-
-    @Nullable
-    @Override
-    public String getPackage() {
-      String manifestPackage = super.getPackage();
-      // For now, lint only needs the manifest package; not the potentially variant specific
-      // package. As part of the Gradle work on the Lint API we should make two separate
-      // package lookup methods -- one for the manifest package, one for the build package
-      if (manifestPackage != null) {
-        return manifestPackage;
-      }
-
-      // TODO: b/22928250
-      AndroidGradleModel androidModel = AndroidGradleModel.get(myFacet);
-      if (androidModel != null) {
-        return androidModel.getApplicationId();
-      }
-
-      return null;
-    }
-
-    @NonNull
-    @Override
-    public AndroidVersion getMinSdkVersion() {
-      if (mMinSdkVersion == null) {
-        mMinSdkVersion = AndroidModuleInfo.get(myFacet).getMinSdkVersion();
-      }
-
-      return mMinSdkVersion;
-    }
-
-    @NonNull
-    @Override
-    public AndroidVersion getTargetSdkVersion() {
-      if (mTargetSdkVersion == null) {
-        mTargetSdkVersion = AndroidModuleInfo.get(myFacet).getTargetSdkVersion();
-      }
-
-      return mTargetSdkVersion;
     }
 
     @Override
