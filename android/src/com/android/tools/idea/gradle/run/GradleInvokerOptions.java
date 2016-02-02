@@ -20,11 +20,8 @@ import com.android.builder.model.AndroidProject;
 import com.android.resources.Density;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.devices.Abi;
-import com.android.tools.idea.fd.FileChangeListener;
-import com.android.tools.idea.fd.InstantRunManager;
-import com.android.tools.idea.fd.InstantRunSettings;
+import com.android.tools.idea.fd.*;
 import com.android.tools.idea.fd.InstantRunSettings.ColdSwapMode;
-import com.android.tools.idea.fd.InstantRunUtils;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
@@ -293,7 +290,7 @@ public class GradleInvokerOptions {
 
       List<AndroidDevice> targetDevices = getTargetDevices(env);
       if (targetDevices.size() != 1 ||  // IR only supports launching on 1 device
-          !InstantRunManager.variantSupportsInstantRun(module, targetDevices.get(0).getVersion())) {
+          !InstantRunGradleUtils.variantSupportsInstantRun(module, targetDevices.get(0).getVersion())) {
         return null;
       }
 
@@ -361,7 +358,7 @@ public class GradleInvokerOptions {
         throw new IllegalStateException("Attempted to obtain incremental dex task for module that does not have a Gradle facet");
       }
 
-      return Collections.singletonList(InstantRunManager.getIncrementalDexTask(model, module));
+      return Collections.singletonList(InstantRunGradleUtils.getIncrementalDexTask(model, module));
     }
 
     @NotNull
