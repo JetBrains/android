@@ -62,7 +62,7 @@ public class GradleRenameModuleTest {
     InputDialogFixture renameModuleDialog = InputDialogFixture.findByTitle(guiTest.robot(), "Rename Module");
     renameModuleDialog.enterTextAndClickOk("app2");
 
-    guiTest.ideFrame().waitForBackgroundTasksToFinish();
+    guiTest.waitForBackgroundTasks();
     assertNotNull(guiTest.ideFrame().findModule("app2"));
     assertNull("Module 'app' should not exist", guiTest.ideFrame().findModule("app"));
   }
@@ -82,7 +82,7 @@ public class GradleRenameModuleTest {
     InputDialogFixture renameModuleDialog = InputDialogFixture.findByTitle(guiTest.robot(), "Rename Module");
     renameModuleDialog.enterTextAndClickOk("newLibrary");
 
-    guiTest.ideFrame().waitForBackgroundTasksToFinish();
+    guiTest.waitForBackgroundTasks();
     assertNotNull(guiTest.ideFrame().findModule("newLibrary"));
 
     // app module has two references to library module

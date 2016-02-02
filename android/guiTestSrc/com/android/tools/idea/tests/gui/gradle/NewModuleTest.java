@@ -68,7 +68,7 @@ public class NewModuleTest {
 
     selectItemInGallery(dialog, 1, "Android Library");
     findAndClickButton(dialogFixture, "Next");
-    guiTest.ideFrame().waitForBackgroundTasksToFinish();
+    guiTest.waitForBackgroundTasks();
     findAndClickButtonWhenEnabled(dialogFixture, "Finish");
 
     guiTest.ideFrame().waitForGradleProjectSyncToFinish();
