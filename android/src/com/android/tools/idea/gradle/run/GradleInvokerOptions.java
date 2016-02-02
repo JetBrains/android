@@ -309,7 +309,7 @@ public class GradleInvokerOptions {
 
       List<AndroidDevice> targetDevices = getTargetDevices(env);
       if (targetDevices.size() != 1 ||  // IR only supports launching on 1 device
-          !InstantRunManager.variantSupportsInstantRunOnApi(module, targetDevices.get(0).getVersion())) {
+          !InstantRunManager.variantSupportsInstantRun(module, targetDevices.get(0).getVersion())) {
         return null;
       }
 
