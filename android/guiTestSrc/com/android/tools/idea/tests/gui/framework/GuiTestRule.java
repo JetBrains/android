@@ -78,6 +78,7 @@ public class GuiTestRule implements TestRule {
     return new Statement() {
       @Override
       public void evaluate() throws Throwable {
+        assumeTrue("An IDE internal error occurred previously.", !doesIdeHaveFatalErrors());
         try {
           setUp();
           base.evaluate();
@@ -95,8 +96,6 @@ public class GuiTestRule implements TestRule {
     // we just customized so that modules can't be loaded correctly.
     // This is a hack to prevent StoreAwareProjectManager from doing any reloading during test.
     ProjectManagerEx.getInstanceEx().blockReloadingProjectOnExternalChanges();
-
-    assumeTrue("An IDE internal error occurred previously.", !doesIdeHaveFatalErrors());  // TODO: can we restart the IDE instead?
 
     Application application = ApplicationManager.getApplication();
     assertNotNull(application); // verify that we are using the IDE's ClassLoader.
