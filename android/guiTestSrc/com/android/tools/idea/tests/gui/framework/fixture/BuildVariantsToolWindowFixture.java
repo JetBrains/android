@@ -18,6 +18,7 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.variant.view.BuildVariantToolWindowFactory;
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.intellij.ui.content.Content;
 import org.fest.swing.cell.JTableCellReader;
 import org.fest.swing.data.TableCell;
@@ -89,7 +90,7 @@ public class BuildVariantsToolWindowFixture extends ToolWindowFixture {
     if (GradleProjectBuilder.getInstance(myProject).isSourceGenerationEnabled()) {
       myProjectFrame.waitForBuildToFinish(BuildMode.SOURCE_GEN);
     }
-    myProjectFrame.waitForBackgroundTasksToFinish();
+    GuiTests.waitForBackgroundTasks(myRobot);
     return this;
   }
 
