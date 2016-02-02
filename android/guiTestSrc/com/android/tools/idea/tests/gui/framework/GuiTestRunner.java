@@ -16,8 +16,6 @@
 package com.android.tools.idea.tests.gui.framework;
 
 import com.google.common.base.Strings;
-import org.fest.swing.image.ScreenshotTaker;
-import org.jetbrains.annotations.Nullable;
 import org.junit.AssumptionViolatedException;
 import org.junit.internal.runners.statements.Fail;
 import org.junit.runners.BlockJUnit4ClassRunner;
@@ -29,13 +27,9 @@ import org.junit.runners.model.TestClass;
 import java.awt.*;
 import java.lang.reflect.Method;
 
-import static org.junit.Assert.assertNotNull;
-
 public class GuiTestRunner extends BlockJUnit4ClassRunner {
 
   private TestClass myTestClass;
-
-  @Nullable private ScreenshotTaker myScreenshotTaker;
 
   public GuiTestRunner(Class<?> testClass) throws InitializationError {
     super(testClass);
@@ -88,23 +82,5 @@ public class GuiTestRunner extends BlockJUnit4ClassRunner {
   @Override
   protected Object createTest() throws Exception {
     return myTestClass.getOnlyConstructor().newInstance();
-  }
-
-  /** Called by {@link BlockJUnit4ClassRunner#methodBlock}. */
-  @Override
-  protected Statement methodInvoker(final FrameworkMethod method, Object test) {
-    return new MethodInvoker(method, test, getScreenshotTaker());
-  }
-
-  /**
-   * Lazily initializes and returns {@link #myScreenshotTaker}.
-   *
-   * @throws org.fest.swing.image.ImageException if {@link GraphicsEnvironment#isHeadless} returns true.
-   */
-  private ScreenshotTaker getScreenshotTaker() {
-    if (myScreenshotTaker == null) {
-      myScreenshotTaker = new ScreenshotTaker();
-    }
-    return myScreenshotTaker;
   }
 }
