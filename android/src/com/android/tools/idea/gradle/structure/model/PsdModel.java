@@ -15,33 +15,15 @@
  */
 package com.android.tools.idea.gradle.structure.model;
 
-import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public abstract class PsdChildEditor implements PsdModelEditor {
-  @NotNull private final PsdModelEditor myParent;
+public interface PsdModel {
+  @Nullable
+  PsdModel getParent();
 
-  private boolean myModified;
+  boolean isEditable();
 
-  protected PsdChildEditor(@NotNull PsdModelEditor parent) {
-    myParent = parent;
-  }
+  boolean isModified();
 
-  @Override
-  @NotNull
-  public PsdModelEditor getParent() {
-    return myParent;
-  }
-
-  @Override
-  public boolean isModified() {
-    return myModified;
-  }
-
-  @Override
-  public void setModified(boolean value) {
-    myModified = value;
-    if (myModified) {
-      myParent.setModified(true);
-    }
-  }
+  void setModified(boolean value);
 }
