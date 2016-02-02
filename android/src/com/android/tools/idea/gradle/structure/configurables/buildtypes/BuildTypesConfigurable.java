@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.structure.configurables.buildtypes;
 
 import com.android.tools.idea.gradle.structure.configurables.BaseNamedConfigurable;
-import com.android.tools.idea.gradle.structure.model.android.PsdAndroidModuleEditor;
+import com.android.tools.idea.gradle.structure.model.android.PsdAndroidModuleModel;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.util.ActionCallback;
 import com.intellij.ui.navigation.History;
@@ -26,8 +26,8 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
-public class BuildTypesConfigurable extends BaseNamedConfigurable<PsdAndroidModuleEditor> {
-  BuildTypesConfigurable(@NotNull PsdAndroidModuleEditor moduleEditor) {
+public class BuildTypesConfigurable extends BaseNamedConfigurable<PsdAndroidModuleModel> {
+  BuildTypesConfigurable(@NotNull PsdAndroidModuleModel moduleEditor) {
     super(moduleEditor);
   }
 
