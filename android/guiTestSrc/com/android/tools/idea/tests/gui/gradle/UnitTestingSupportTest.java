@@ -97,7 +97,7 @@ public class UnitTestingSupportTest {
     myEditor.enterText("6");
 
     runTestUnderCursor();
-    guiTest.ideFrame().waitForBackgroundTasksToFinish();
+    guiTest.waitForBackgroundTasks();
     unitTestTree = getTestTree(testClass + ".failingTest");
     assertTrue(unitTestTree.isAllTestsPassed());
     assertEquals(1, unitTestTree.getAllTestsCount());
@@ -119,7 +119,7 @@ public class UnitTestingSupportTest {
 
     // Re-run all the tests.
     unitTestTree.getContent().rerun();
-    guiTest.ideFrame().waitForBackgroundTasksToFinish();
+    guiTest.waitForBackgroundTasks();
     unitTestTree = getTestTree(testClass);
     assertEquals(1, unitTestTree.getFailingTestsCount());
     assertThat(unitTestTree.getAllTestsCount()).isGreaterThan(1);
@@ -132,14 +132,14 @@ public class UnitTestingSupportTest {
 
     // Re-run failed tests.
     unitTestTree.getContent().rerunFailed();
-    guiTest.ideFrame().waitForBackgroundTasksToFinish();
+    guiTest.waitForBackgroundTasks();
     unitTestTree = getTestTree("Rerun Failed Tests");
     assertTrue(unitTestTree.isAllTestsPassed());
     assertEquals(1, unitTestTree.getAllTestsCount());
 
     // Rebuild the project and run tests again, they should still run and pass.
     guiTest.ideFrame().invokeMenuPath("Build", "Rebuild Project");
-    guiTest.ideFrame().waitForBackgroundTasksToFinish();
+    guiTest.waitForBackgroundTasks();
 
     myEditor.requestFocus();
     myEditor.moveTo(myEditor.findOffset("class ", testClass, true));
@@ -153,13 +153,13 @@ public class UnitTestingSupportTest {
   private UnitTestTreeFixture getTestTree(@NotNull String tabName) {
     ContentFixture content = guiTest.ideFrame().getRunToolWindow().findContent(tabName);
     content.waitForExecutionToFinish(GuiTests.SHORT_TIMEOUT);
-    guiTest.ideFrame().waitForBackgroundTasksToFinish();
+    guiTest.waitForBackgroundTasks();
     return content.getUnitTestTree();
   }
 
   private void runTestUnderCursor() {
     // This only works when there's one applicable run configurations, otherwise a popup would show up.
     myEditor.invokeAction(EditorFixture.EditorAction.RUN_FROM_CONTEXT);
-    guiTest.ideFrame().waitForBackgroundTasksToFinish();
+    guiTest.waitForBackgroundTasks();
   }
 }

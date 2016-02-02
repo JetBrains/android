@@ -52,7 +52,7 @@ public class AttributeResolveTest {
     editor.enterText("<android.support.v7.widget.CardView android:onClick=\"onCreate\" /\n");
     editor.moveTo(editor.findOffset("on^Create"));
 
-    guiTest.ideFrame().waitForBackgroundTasksToFinish();
+    guiTest.waitForBackgroundTasks();
 
     editor.invokeAction(EditorFixture.EditorAction.GOTO_DECLARATION);
 
