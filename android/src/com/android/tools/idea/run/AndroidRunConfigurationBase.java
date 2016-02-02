@@ -293,7 +293,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     // Make sure instant run is supported on the relevant device, if found.
     AndroidVersion androidVersion = InstantRunManager.getMinDeviceApiLevel(info.getProcessHandler());
     if (InstantRunManager.isInstantRunCapableDeviceVersion(androidVersion)
-        && InstantRunGradleUtils.variantSupportsInstantRun(module, androidVersion)) {
+        && InstantRunGradleUtils.getIrSupportStatus(module, androidVersion).success) {
       return executor instanceof DefaultRunExecutor ? AndroidIcons.RunIcons.Replay : AndroidIcons.RunIcons.DebugReattach;
     }
 
@@ -363,11 +363,11 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     if (supportsInstantRun() && InstantRunSettings.isInstantRunEnabled(project)) {
       List<AndroidDevice> devices = deviceFutures.getDevices();
       if (devices.size() > 1) {
-        String message = "This launch does not use Instant Run as it does not support launching on multiple devices concurrently.";
-        new InstantRunUserFeedback(module).info(message);
+        String message = "Cannot Instant Run: launching on multiple devices concurrently not supported.";
+        new InstantRunUserFeedback(module).notifyDisabledForLaunch(message);
         LOG.info(message);
       }
-      else if (InstantRunGradleUtils.variantSupportsInstantRun(module, devices.get(0).getVersion())) {
+      else if (InstantRunGradleUtils.getIrSupportStatus(module, devices.get(0).getVersion()).success) {
         InstantRunUtils.setInstantRunEnabled(env, true);
         setInstantRunBuildOptions(env, module, deviceFutures);
       }
@@ -408,7 +408,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     }
 
     if (!info.getExecutorId().equals(executor.getId())) {
-      String msg = String.format("Cannot instant run since old executor (%1$s) doesn't match current executor (%2$s)", info.getExecutorId(),
+      String msg = String.format("Cannot Instant Run since old executor (%1$s) doesn't match current executor (%2$s)", info.getExecutorId(),
                                  executor.getId());
       InstantRunManager.LOG.info(msg);
       return null;
@@ -416,7 +416,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
     List<IDevice> devices = info.getDevices();
     if (devices == null || devices.isEmpty()) {
-      InstantRunManager.LOG.info("Cannot instant run since we could not locate the devices from the existing launch session");
+      InstantRunManager.LOG.info("Cannot Instant Run since we could not locate the devices from the existing launch session");
       return null;
     }
 
@@ -427,8 +427,10 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
     AndroidGradleModel model = AndroidGradleModel.get(facet);
     AndroidVersion version = devices.get(0).getVersion();
-    if (!InstantRunGradleUtils.variantSupportsInstantRun(model, version)) {
-      InstantRunManager.LOG.info("Cannot instant run since the current variant doesn't support IR on API: " + version);
+    BooleanStatus status = InstantRunGradleUtils.getIrSupportStatus(model, version);
+    if (!status.success) {
+      InstantRunManager.LOG.info("Cannot Instant Run: " + status.getCause());
+      new InstantRunUserFeedback(facet.getModule()).notifyDisabledForLaunch("Cannot Instant Run: " + status.getCause());
       return null;
     }
 

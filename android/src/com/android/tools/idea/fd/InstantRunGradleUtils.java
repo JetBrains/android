@@ -38,59 +38,66 @@ public class InstantRunGradleUtils {
   /**
    * Returns whether the currently selected variant can be used with Instant Run on a device with the given API level.
    */
-  public static boolean variantSupportsInstantRun(@NotNull Module module, @NotNull AndroidVersion deviceVersion) {
+  public static BooleanStatus getIrSupportStatus(@NotNull Module module, @NotNull AndroidVersion deviceVersion) {
     if (!InstantRunSettings.isInstantRunEnabled(module.getProject())) {
-      return false;
+      return BooleanStatus.failure("not enabled in settings");
     }
 
-    AndroidGradleModel androidGradleModel = getAppModel(module);
-    if (androidGradleModel == null) {
-      return false;
-    }
-
-    return variantSupportsInstantRun(androidGradleModel, deviceVersion);
+    return getIrSupportStatus(getAppModel(module), deviceVersion);
   }
 
-  public static boolean variantSupportsInstantRun(@NotNull AndroidGradleModel androidGradleModel,
-                                                  @Nullable AndroidVersion deviceVersion) {
-    if (!variantSupportsInstantRun(androidGradleModel)) {
-      return false;
+  @NotNull
+  public static BooleanStatus getIrSupportStatus(@Nullable AndroidGradleModel model, @Nullable AndroidVersion deviceVersion) {
+    if (model == null) {
+      return BooleanStatus.failure("no gradle model");
+    }
+
+    BooleanStatus status = getIrSupportStatus(model);
+    if (!status.success) {
+      return status;
     }
 
     if (deviceVersion == null) {
-      return true;
+      return BooleanStatus.SUCCESS;
     }
 
-    Variant variant = androidGradleModel.getSelectedVariant();
-    BuildTypeContainer buildTypeContainer = androidGradleModel.findBuildType(androidGradleModel.getSelectedVariant().getBuildType());
+    Variant variant = model.getSelectedVariant();
+    BuildTypeContainer buildTypeContainer = model.findBuildType(model.getSelectedVariant().getBuildType());
     assert buildTypeContainer != null;
     BuildType buildType = buildTypeContainer.getBuildType();
     ProductFlavor mergedFlavor = variant.getMergedFlavor();
 
     if (isLegacyMultiDex(buildType, mergedFlavor)) {
       // We don't support legacy multi-dex on Dalvik.
-      return deviceVersion.isGreaterOrEqualThan(AndroidVersion.ART_RUNTIME.getApiLevel());
+      if (deviceVersion.isGreaterOrEqualThan(AndroidVersion.ART_RUNTIME.getApiLevel())) {
+        return BooleanStatus.SUCCESS;
+      }
+      else {
+        return BooleanStatus.failure("legacy multi-dex on Dalvik runtime");
+      }
     }
 
-    return true;
+    return BooleanStatus.SUCCESS;
   }
 
-  private static boolean variantSupportsInstantRun(@Nullable AndroidGradleModel model) {
-    if (model == null) {
-      return false;
-    }
-
+  @NotNull
+  private static BooleanStatus getIrSupportStatus(@NotNull AndroidGradleModel model) {
     String version = model.getAndroidProject().getModelVersion();
     if (!modelSupportsInstantRun(model)) {
-      InstantRunManager.LOG.debug("Instant run is not supported by current version: " + version + ", requires: " + InstantRunManager.MINIMUM_GRADLE_PLUGIN_VERSION_STRING);
-      return false;
+      String msg = "old gradle plugin: " + version + ", requires: " + InstantRunManager.MINIMUM_GRADLE_PLUGIN_VERSION_STRING;
+      return BooleanStatus.failure(msg);
     }
 
     try {
-      return model.getSelectedVariant().getMainArtifact().getInstantRun().isSupportedByArtifact();
+      if (model.getSelectedVariant().getMainArtifact().getInstantRun().isSupportedByArtifact()) {
+        return BooleanStatus.SUCCESS;
+      }
+      else {
+        String msg = "variant '" + model.getSelectedVariant().getName() + "' uses an unsupported feature (e.g. ProGuard)";
+        return BooleanStatus.failure(msg);
+      }
     } catch (Throwable e) {
-      InstantRunManager.LOG.info("Instant Run not supported by current variant: " + version);
-      return false;
+      return BooleanStatus.failure("old gradle plugin: " + version);
     }
   }
 
