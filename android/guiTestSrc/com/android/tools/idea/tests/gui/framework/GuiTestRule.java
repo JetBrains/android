@@ -114,7 +114,7 @@ public class GuiTestRule implements TestRule {
     printTimestamp();
   }
 
-  private void printTimestamp() {
+  private static void printTimestamp() {
     final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
     System.out.println(dateFormat.format(new Date()));
   }
