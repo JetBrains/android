@@ -253,7 +253,7 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
     myNotificationPanel.removeAll();
     if (myDeviceCount == 0) {
       EditorNotificationPanel panel = new EditorNotificationPanel();
-      panel.setText("No USB devices or emulators detected");
+      panel.setText("No USB devices or running emulators detected");
       panel.createActionLabel("Troubleshoot", new Runnable() {
         @Override
         public void run() {
