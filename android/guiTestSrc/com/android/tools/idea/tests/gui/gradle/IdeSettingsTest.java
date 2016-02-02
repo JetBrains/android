@@ -17,11 +17,14 @@ package com.android.tools.idea.tests.gui.gradle;
 
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
-import com.android.tools.idea.tests.gui.framework.GuiTestCase;
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeSettingsDialogFixture;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.io.IOException;
 import java.util.List;
@@ -30,7 +33,11 @@ import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPO
 import static org.fest.assertions.Assertions.assertThat;
 
 @BelongsToTestGroups({PROJECT_SUPPORT})
-public class IdeSettingsTest extends GuiTestCase {
+@RunWith(GuiTestRunner.class)
+public class IdeSettingsTest {
+
+  @Rule public final GuiTestRule guiTest = new GuiTestRule();
+
   private IdeSettingsDialogFixture mySettingsDialog;
 
   @Before
@@ -40,8 +47,8 @@ public class IdeSettingsTest extends GuiTestCase {
 
   @Test
   public void testSettingsRemovalForGradleProjects() throws IOException {
-    importSimpleApplication();
-    mySettingsDialog = getIdeFrame().openIdeSettings();
+    guiTest.importSimpleApplication();
+    mySettingsDialog = guiTest.ideFrame().openIdeSettings();
     List<String> settingsNames = mySettingsDialog.getProjectSettingsNames();
     assertThat(settingsNames).excludes("Gant", "GUI Designer");
   }

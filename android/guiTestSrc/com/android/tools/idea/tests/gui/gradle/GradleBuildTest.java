@@ -17,9 +17,12 @@ package com.android.tools.idea.tests.gui.gradle;
 
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
-import com.android.tools.idea.tests.gui.framework.GuiTestCase;
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.fixture.SelectSdkDialogFixture;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.io.IOException;
@@ -31,7 +34,11 @@ import static junit.framework.Assert.assertNotNull;
 import static org.junit.Assume.assumeTrue;
 
 @BelongsToTestGroups({PROJECT_SUPPORT})
-public class GradleBuildTest extends GuiTestCase {
+@RunWith(GuiTestRunner.class)
+public class GradleBuildTest {
+
+  @Rule public final GuiTestRule guiTest = new GuiTestRule();
+
   @Test
   public void testBuildWithInvalidJavaHome() throws IOException {
     String jdkPathValue = System.getProperty("jdk.path");
@@ -39,14 +46,14 @@ public class GradleBuildTest extends GuiTestCase {
 
     File jdkPath = new File(jdkPathValue);
 
-    importSimpleApplication();
-    getIdeFrame().invokeProjectMakeAndSimulateFailure("Supplied javaHome is not a valid folder.");
+    guiTest.importSimpleApplication();
+    guiTest.ideFrame().invokeProjectMakeAndSimulateFailure("Supplied javaHome is not a valid folder.");
 
     // Find message dialog explaining the source of the error.
-    getIdeFrame().findMessageDialog("Gradle Running").clickOk();
+    guiTest.ideFrame().findMessageDialog("Gradle Running").clickOk();
 
     // Find the dialog to select the path of the JDK.
-    SelectSdkDialogFixture selectSdkDialog = SelectSdkDialogFixture.find(robot());
+    SelectSdkDialogFixture selectSdkDialog = SelectSdkDialogFixture.find(guiTest.robot());
     selectSdkDialog.setJdkPath(jdkPath)
                    .clickOk();
 

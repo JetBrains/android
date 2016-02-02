@@ -16,11 +16,14 @@
 package com.android.tools.idea.tests.gui.layout;
 
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
-import com.android.tools.idea.tests.gui.framework.GuiTestCase;
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.*;
 import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.awt.*;
 import java.util.Collections;
@@ -46,14 +49,17 @@ import static org.junit.Assert.assertNotNull;
  * </ul>
  */
 @BelongsToTestGroups({LAYOUT})
-public class LayoutEditorTest extends GuiTestCase {
+@RunWith(GuiTestRunner.class)
+public class LayoutEditorTest {
+
+  @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
   @Test
   public void testSetProperty() throws Exception {
-    importSimpleApplication();
+    guiTest.importSimpleApplication();
 
     // Open file as XML and switch to design tab, wait for successful render
-    EditorFixture editor = getIdeFrame().getEditor();
+    EditorFixture editor = guiTest.ideFrame().getEditor();
     editor.open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR);
     editor.selectEditorTab(EditorFixture.Tab.DESIGN);
 
@@ -140,9 +146,9 @@ public class LayoutEditorTest extends GuiTestCase {
     // cannot be deleted, by selecting it, attempting to delete it, and verifying
     // that it's still there.
 
-    importSimpleApplication();
+    guiTest.importSimpleApplication();
 
-    EditorFixture editor = getIdeFrame().getEditor();
+    EditorFixture editor = guiTest.ideFrame().getEditor();
     editor.open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN);
     LayoutEditorFixture layout = editor.getLayoutEditor(false);
     assertNotNull(layout);
@@ -156,13 +162,13 @@ public class LayoutEditorTest extends GuiTestCase {
                  "    RelativeLayout\n" +
                  "        *TextView - @string/hello_world\n", layout.describeComponentTree(true));
 
-    getIdeFrame().invokeMenuPath("Edit", "Delete");
+    guiTest.ideFrame().invokeMenuPath("Edit", "Delete");
 
     layout.waitForNextRenderToFinish();
     layout.requireComponentTree("Device Screen\n" +
                                 "    *RelativeLayout\n", true);
 
-    getIdeFrame().invokeMenuPathRegex("Edit", "Undo.*");
+    guiTest.ideFrame().invokeMenuPathRegex("Edit", "Undo.*");
 
     layout.waitForNextRenderToFinish();
     layout.requireComponentTree("Device Screen\n" +
@@ -178,7 +184,7 @@ public class LayoutEditorTest extends GuiTestCase {
                                 "    *RelativeLayout\n" +
                                 "        TextView - @string/hello_world\n", true);
 
-    getIdeFrame().invokeMenuPath("Edit", "Delete");
+    guiTest.ideFrame().invokeMenuPath("Edit", "Delete");
 
     layout.requireComponentTree("Device Screen\n" +
                                 "    RelativeLayout\n" + // still there!
@@ -193,10 +199,10 @@ public class LayoutEditorTest extends GuiTestCase {
     // hierarchy, we reassign id's to keep them unique and also update all references within
     // the pasted component to the newly assigned id's.
 
-    importProjectAndWaitForProjectSyncToFinish("LayoutTest");
+    guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest");
 
     // Open file as XML and switch to design tab, wait for successful render
-    EditorFixture editor = getIdeFrame().getEditor();
+    EditorFixture editor = guiTest.ideFrame().getEditor();
     editor.open("app/src/main/res/layout/ids.xml", EditorFixture.Tab.DESIGN);
     LayoutEditorFixture layout = editor.getLayoutEditor(false);
     assertNotNull(layout);
@@ -206,7 +212,7 @@ public class LayoutEditorTest extends GuiTestCase {
     LayoutEditorComponentFixture relativeLayout = layout.findView("RelativeLayout", 0);
     relativeLayout.click();
 
-    getIdeFrame().invokeMenuPath("Edit", "Cut");
+    guiTest.ideFrame().invokeMenuPath("Edit", "Cut");
     layout.waitForNextRenderToFinish();
     layout.requireComponents("Device Screen\n" + "    *LinearLayout (vertical)\n", true);
 
@@ -214,7 +220,7 @@ public class LayoutEditorTest extends GuiTestCase {
 
 
     // First copy
-    getIdeFrame().invokeMenuPath("Edit", "Paste");
+    guiTest.ideFrame().invokeMenuPath("Edit", "Paste");
     // The paste action enters a mode where you have to click where you want to paste/insert: provide that click
     Point p = new Point(viewBounds.x + 5, viewBounds.y + 5);
     layout.moveMouse(p);
@@ -228,7 +234,7 @@ public class LayoutEditorTest extends GuiTestCase {
                              "            buttonid2 - \"Button 2\"\n", true);
 
     // Second copy: should use unique id's (and update relative references)
-    getIdeFrame().invokeMenuPath("Edit", "Paste");
+    guiTest.ideFrame().invokeMenuPath("Edit", "Paste");
     p = new Point(viewBounds.x + 20, viewBounds.y + viewBounds.height + 150);
     layout.moveMouse(p);
     layout.click();

@@ -16,7 +16,8 @@
 package com.android.tools.idea.tests.gui.gradle;
 
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
-import com.android.tools.idea.tests.gui.framework.GuiTestCase;
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.fixture.RenameDialogFixture;
 import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.module.Module;
@@ -33,7 +34,9 @@ import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.timing.Condition;
 import org.jetbrains.android.util.AndroidBundle;
 import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
 import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPORT;
@@ -43,12 +46,15 @@ import static org.junit.Assert.*;
 
 @BelongsToTestGroups({PROJECT_SUPPORT})
 @Ignore("Cause of IDE fatal errors")
-public class RenameTest extends GuiTestCase {
+@RunWith(GuiTestRunner.class)
+public class RenameTest {
+
+  @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
   @Test
   public void sourceRoot() throws Exception {
-    importSimpleApplication();
-    final Project project = getIdeFrame().getProject();
+    guiTest.importSimpleApplication();
+    final Project project = guiTest.ideFrame().getProject();
     Module[] modules = ModuleManager.getInstance(project).getModules();
     for (Module module : modules) {
       final VirtualFile[] sourceRoots = ModuleRootManager.getInstance(module).getSourceRoots();
@@ -62,7 +68,7 @@ public class RenameTest extends GuiTestCase {
         assertNotNull(directory);
         for (final RenameHandler handler : Extensions.getExtensions(RenameHandler.EP_NAME)) {
           if (handler instanceof DirectoryAsPackageRenameHandler) {
-            final RenameDialogFixture renameDialog = RenameDialogFixture.startFor(directory, handler, robot());
+            final RenameDialogFixture renameDialog = RenameDialogFixture.startFor(directory, handler, guiTest.robot());
             assertFalse(renameDialog.warningExists(null));
             renameDialog.setNewName(renameDialog.getNewName() + 1);
             // 'Rename dialog' show a warning asynchronously to the text change, that's why we wait here for the

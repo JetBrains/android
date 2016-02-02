@@ -15,30 +15,36 @@
  */
 package com.android.tools.idea.tests.gui.npw;
 
-import com.android.tools.idea.tests.gui.framework.GuiTestCase;
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewXmlValueWizardFixture;
 import org.fest.swing.fixture.JButtonFixture;
 import org.fest.swing.fixture.JLabelFixture;
 import org.fest.swing.timing.Condition;
 import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.io.IOException;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
 import static org.fest.swing.timing.Pause.pause;
 
-public class NewComponentTest extends GuiTestCase {
+@RunWith(GuiTestRunner.class)
+public class NewComponentTest {
+
+  @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
   @Ignore("failed in http://go/aj/job/studio-ui-test/345 and from IDEA")
   @Test
   public void testNewValueWizard() throws IOException {
-    importSimpleApplication();
+    guiTest.importSimpleApplication();
 
-    getIdeFrame().getProjectView().selectAndroidPane();
-    getIdeFrame().invokeMenuPath("File", "New", "XML", "Values XML File");
+    guiTest.ideFrame().getProjectView().selectAndroidPane();
+    guiTest.ideFrame().invokeMenuPath("File", "New", "XML", "Values XML File");
 
-    final NewXmlValueWizardFixture wizardFixture = NewXmlValueWizardFixture.find(robot());
+    final NewXmlValueWizardFixture wizardFixture = NewXmlValueWizardFixture.find(guiTest.robot());
     final JButtonFixture finishFixture = wizardFixture.findWizardButton("Finish");
     finishFixture.requireEnabled();
     wizardFixture.getFileNameField().enterText("strings");

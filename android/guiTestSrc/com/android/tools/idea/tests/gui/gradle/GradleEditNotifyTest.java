@@ -16,9 +16,12 @@
 package com.android.tools.idea.tests.gui.gradle;
 
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
-import com.android.tools.idea.tests.gui.framework.GuiTestCase;
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.io.IOException;
 
@@ -26,30 +29,34 @@ import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPO
 import static com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.EditorAction.BACK_SPACE;
 
 @BelongsToTestGroups({PROJECT_SUPPORT})
-public class GradleEditNotifyTest extends GuiTestCase {
+@RunWith(GuiTestRunner.class)
+public class GradleEditNotifyTest {
+
+  @Rule public final GuiTestRule guiTest = new GuiTestRule();
+
   @Test
   public void testEditNotify() throws IOException {
     // Edit a build.gradle file and ensure that you are immediately notified that
     // the build.gradle model is out of date
     // Regression test for https://code.google.com/p/android/issues/detail?id=75983
 
-    importSimpleApplication();
-    EditorFixture editor = getIdeFrame().getEditor();
+    guiTest.importSimpleApplication();
+    EditorFixture editor = guiTest.ideFrame().getEditor();
     editor.open("app/build.gradle").waitUntilErrorAnalysisFinishes();
 
     // When done and a successful gradle sync there should not be any messages
-    getIdeFrame().requireNoEditorNotification();
+    guiTest.ideFrame().requireNoEditorNotification();
 
     // Insert:
     editor.moveTo(editor.findOffset("versionCode ", null, true))
           .enterText("1");
 
     // Sync:
-    getIdeFrame().requireEditorNotification("Gradle files have changed since last project sync").performAction("Sync Now");
-    getIdeFrame().waitForGradleProjectSyncToFinish()
+    guiTest.ideFrame().requireEditorNotification("Gradle files have changed since last project sync").performAction("Sync Now");
+    guiTest.ideFrame().waitForGradleProjectSyncToFinish()
                   .requireNoEditorNotification();
 
     editor.invokeAction(BACK_SPACE);
-    getIdeFrame().requireEditorNotification("Gradle files have changed since last project sync");
+    guiTest.ideFrame().requireEditorNotification("Gradle files have changed since last project sync");
   }
 }
