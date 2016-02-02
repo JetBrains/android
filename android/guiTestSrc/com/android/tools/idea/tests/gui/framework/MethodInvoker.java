@@ -40,9 +40,6 @@ public class MethodInvoker extends Statement {
 
   @Override
   public void evaluate() throws Throwable {
-    String testName = myTestMethod.getMethod().getDeclaringClass().getName() + "#" + myTestMethod.getName();
-    System.out.println("Running " + testName);
-
     runTest();
   }
 
