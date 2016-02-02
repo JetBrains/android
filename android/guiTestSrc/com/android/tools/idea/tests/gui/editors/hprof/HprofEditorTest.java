@@ -17,12 +17,15 @@ package com.android.tools.idea.tests.gui.editors.hprof;
 
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
-import com.android.tools.idea.tests.gui.framework.GuiTestCase;
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.fixture.CapturesToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.HprofEditorFixture;
 import org.fest.swing.fixture.JTreeFixture;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.io.IOException;
 
@@ -31,7 +34,11 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
 @BelongsToTestGroups({PROJECT_SUPPORT})
-public class HprofEditorTest extends GuiTestCase {
+@RunWith(GuiTestRunner.class)
+public class HprofEditorTest {
+
+  @Rule public final GuiTestRule guiTest = new GuiTestRule();
+
   private static final String SAMPLE_SNAPSHOT_NAME = "snapshot.hprof";
   private static final String CAPTURES_APPLICATION = "CapturesApplication";
 
@@ -41,11 +48,11 @@ public class HprofEditorTest extends GuiTestCase {
   @Before
   public void init() throws IOException {
     GradleExperimentalSettings.getInstance().SKIP_SOURCE_GEN_ON_PROJECT_SYNC = true;
-    importProjectAndWaitForProjectSyncToFinish(CAPTURES_APPLICATION);
+    guiTest.importProjectAndWaitForProjectSyncToFinish(CAPTURES_APPLICATION);
 
-    myCapturesToolWindowFixture = getIdeFrame().getCapturesToolWindow();
+    myCapturesToolWindowFixture = guiTest.ideFrame().getCapturesToolWindow();
     myCapturesToolWindowFixture.openFile(SAMPLE_SNAPSHOT_NAME);
-    myDefaultEditor = HprofEditorFixture.findByFileName(robot(), getIdeFrame(), SAMPLE_SNAPSHOT_NAME);
+    myDefaultEditor = HprofEditorFixture.findByFileName(guiTest.robot(), guiTest.ideFrame(), SAMPLE_SNAPSHOT_NAME);
   }
 
   @Test

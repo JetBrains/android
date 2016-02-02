@@ -15,19 +15,26 @@
  */
 package com.android.tools.idea.tests.gui;
 
-import com.android.tools.idea.tests.gui.framework.GuiTestCase;
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.io.IOException;
 
 import static junit.framework.Assert.assertEquals;
 
-public class SampleTest extends GuiTestCase {
+@RunWith(GuiTestRunner.class)
+public class SampleTest {
+
+  @Rule public final GuiTestRule guiTest = new GuiTestRule();
+
   @Test
   public void testEditor() throws IOException {
-    importSimpleApplication();
-    EditorFixture editor = getIdeFrame().getEditor();
+    guiTest.importSimpleApplication();
+    EditorFixture editor = guiTest.ideFrame().getEditor();
     editor.open("app/src/main/res/values/strings.xml", EditorFixture.Tab.EDITOR);
 
     assertEquals("strings.xml", editor.getCurrentFileName());

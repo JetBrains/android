@@ -17,11 +17,14 @@ package com.android.tools.idea.tests.gui.gradle;
 
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
-import com.android.tools.idea.tests.gui.framework.GuiTestCase;
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.intellij.openapi.compiler.CompileContext;
 import com.intellij.openapi.compiler.CompilerMessage;
 import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.io.IOException;
 import java.util.List;
@@ -39,14 +42,18 @@ import static org.fest.assertions.Assertions.assertThat;
  * Tests fix for issue <a href="https://code.google.com/p/android/issues/detail?id=73640">73640</a>.
  */
 @BelongsToTestGroups({PROJECT_SUPPORT})
-public class MultipleModuleTypeCompilationTest extends GuiTestCase {
+@RunWith(GuiTestRunner.class)
+public class MultipleModuleTypeCompilationTest {
+
+  @Rule public final GuiTestRule guiTest = new GuiTestRule();
+
   private static final Pattern JPS_EXECUTING_TASKS_MSG_PATTERN = Pattern.compile("Gradle: Executing tasks: \\[(.*)\\]");
 
   @Ignore("failed in http://go/aj/job/studio-ui-test/345 and from IDEA")
   @Test
   public void testAssembleTaskIsNotInvokedForLocalAarModule() throws IOException {
-    importProjectAndWaitForProjectSyncToFinish("MultipleModuleTypes");
-    GradleInvocationResult result = getIdeFrame().invokeProjectMake();
+    guiTest.importProjectAndWaitForProjectSyncToFinish("MultipleModuleTypes");
+    GradleInvocationResult result = guiTest.ideFrame().invokeProjectMake();
     assertTrue(result.isBuildSuccessful());
     List<String> invokedTasks = result.getTasks();
     assertThat(invokedTasks).containsOnly(":app:compileDebugSources", ":app:compileDebugAndroidTestSources", ":javaLib:compileJava");
@@ -55,8 +62,8 @@ public class MultipleModuleTypeCompilationTest extends GuiTestCase {
   @Ignore("failed in http://go/aj/job/studio-ui-test/345 and from IDEA")
   @Test
   public void testAssembleTaskIsNotInvokedForLocalAarModuleOnJps() throws IOException {
-    importProjectAndWaitForProjectSyncToFinish("MultipleModuleTypes");
-    CompileContext context = getIdeFrame().invokeProjectMakeUsingJps();
+    guiTest.importProjectAndWaitForProjectSyncToFinish("MultipleModuleTypes");
+    CompileContext context = guiTest.ideFrame().invokeProjectMakeUsingJps();
 
     String[] invokedTasks = null;
     for (CompilerMessage msg : context.getMessages(INFORMATION)) {

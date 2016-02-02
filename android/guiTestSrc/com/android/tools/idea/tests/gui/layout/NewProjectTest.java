@@ -18,10 +18,10 @@ package com.android.tools.idea.tests.gui.layout;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.ApiVersion;
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.tests.gui.framework.GuiTestCase;
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.FileFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.InspectionsFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.LayoutEditorFixture;
@@ -35,9 +35,10 @@ import com.intellij.openapi.roots.LanguageLevelModuleExtensionImpl;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.pom.java.LanguageLevel;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
-import java.io.File;
 import java.io.IOException;
 
 import static com.android.tools.idea.npw.FormFactor.MOBILE;
@@ -47,16 +48,20 @@ import static org.fest.assertions.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-public class NewProjectTest extends GuiTestCase {
+@RunWith(GuiTestRunner.class)
+public class NewProjectTest {
+
+  @Rule public final GuiTestRule guiTest = new GuiTestRule();
+
   @Test
   public void testCreateNewMobileProject() {
     newProject("Test Application").create();
-    FileFixture layoutFile = getIdeFrame().findExistingFileByRelativePath("app/src/main/res/layout/content_main.xml");
+    FileFixture layoutFile = guiTest.ideFrame().findExistingFileByRelativePath("app/src/main/res/layout/content_main.xml");
     layoutFile.requireOpenAndSelected();
 
     // Verify state of project
-    getIdeFrame().requireModuleCount(2);
-    AndroidGradleModel appAndroidModel = getIdeFrame().getAndroidProjectForModule("app");
+    guiTest.ideFrame().requireModuleCount(2);
+    AndroidGradleModel appAndroidModel = guiTest.ideFrame().getAndroidProjectForModule("app");
     assertThat(appAndroidModel.getVariantNames()).as("variants").containsOnly("debug", "release");
     assertThat(appAndroidModel.getSelectedVariant().getName()).as("selected variant").isEqualTo("debug");
 
@@ -67,16 +72,16 @@ public class NewProjectTest extends GuiTestCase {
 
     // Make sure that the activity registration uses the relative syntax
     // (regression test for https://code.google.com/p/android/issues/detail?id=76716)
-    EditorFixture editor = getIdeFrame().getEditor();
+    EditorFixture editor = guiTest.ideFrame().getEditor();
     editor.open("app/src/main/AndroidManifest.xml");
     int offset = editor.findOffset("\".^MainActivity\"");
     assertTrue(offset != -1);
 
     // The language level should be JDK_1_7 since the compile SDK version is assumed to be 21 or higher
     assertThat(appAndroidModel.getJavaLanguageLevel()).as("Gradle Java language level").isSameAs(LanguageLevel.JDK_1_7);
-    LanguageLevelProjectExtension projectExt = LanguageLevelProjectExtension.getInstance(getIdeFrame().getProject());
+    LanguageLevelProjectExtension projectExt = LanguageLevelProjectExtension.getInstance(guiTest.ideFrame().getProject());
     assertThat(projectExt.getLanguageLevel()).as("Project Java language level").isSameAs(LanguageLevel.JDK_1_7);
-    for (Module module : ModuleManager.getInstance(getIdeFrame().getProject()).getModules()) {
+    for (Module module : ModuleManager.getInstance(guiTest.ideFrame().getProject()).getModules()) {
       LanguageLevelModuleExtension moduleExt = LanguageLevelModuleExtensionImpl.getInstance(module);
       assertThat(moduleExt.getLanguageLevel()).as("Gradle Java language level in module " + module.getName())
         .isSameAs(LanguageLevel.JDK_1_7);
@@ -93,15 +98,15 @@ public class NewProjectTest extends GuiTestCase {
 
     // Insert resValue statements which should not add warnings (since they are generated files; see
     // https://code.google.com/p/android/issues/detail?id=76715
-    EditorFixture editor = getIdeFrame().getEditor();
+    EditorFixture editor = guiTest.ideFrame().getEditor();
     String buildGradlePath = "app/build.gradle";
     editor.open(buildGradlePath, EditorFixture.Tab.EDITOR);
     editor.moveTo(editor.findOffset("defaultConfig {", null, true));
     editor.enterText("\nresValue \"string\", \"foo\", \"Typpo Here\"");
-    getIdeFrame().requireEditorNotification("Gradle files have changed since last project sync").performAction("Sync Now");
-    getIdeFrame().waitForGradleProjectSyncToFinish();
+    guiTest.ideFrame().requireEditorNotification("Gradle files have changed since last project sync").performAction("Sync Now");
+    guiTest.ideFrame().waitForGradleProjectSyncToFinish();
 
-    InspectionsFixture inspections = getIdeFrame().inspectCode();
+    InspectionsFixture inspections = guiTest.ideFrame().inspectCode();
 
     assertEquals("Test Application\n" +
                  "    Android Lint\n" +
@@ -127,31 +132,31 @@ public class NewProjectTest extends GuiTestCase {
     // Regression test for https://code.google.com/p/android/issues/detail?id=76966
     newProject("Test Application").withBriefNames().withMinSdk("9").create();
 
-    EditorFixture editor = getIdeFrame().getEditor();
+    EditorFixture editor = guiTest.ideFrame().getEditor();
     editor.requireName("content_a.xml");
     LayoutEditorFixture layoutEditor = editor.getLayoutEditor(false);
     assertNotNull("Layout editor was not showing", layoutEditor);
     layoutEditor.waitForNextRenderToFinish();
-    getIdeFrame().invokeProjectMake();
+    guiTest.ideFrame().invokeProjectMake();
     layoutEditor.waitForNextRenderToFinish();
     layoutEditor.requireRenderSuccessful();
-    getIdeFrame().waitForBackgroundTasksToFinish();
+    guiTest.ideFrame().waitForBackgroundTasksToFinish();
   }
 
   @Test
   public void testLanguageLevelForApi21() {
     newProject("Test Application").withBriefNames().withMinSdk("21").create();
 
-    AndroidGradleModel appAndroidModel = getIdeFrame().getAndroidProjectForModule("app");
+    AndroidGradleModel appAndroidModel = guiTest.ideFrame().getAndroidProjectForModule("app");
     AndroidProject model = appAndroidModel.getAndroidProject();
     ApiVersion minSdkVersion = model.getDefaultConfig().getProductFlavor().getMinSdkVersion();
     assertNotNull("minSdkVersion", minSdkVersion);
 
     assertThat(minSdkVersion.getApiString()).as("minSdkVersion API").isEqualTo("21");
     assertThat(appAndroidModel.getJavaLanguageLevel()).as("Gradle Java language level").isSameAs(LanguageLevel.JDK_1_7);
-    LanguageLevelProjectExtension projectExt = LanguageLevelProjectExtension.getInstance(getIdeFrame().getProject());
+    LanguageLevelProjectExtension projectExt = LanguageLevelProjectExtension.getInstance(guiTest.ideFrame().getProject());
     assertThat(projectExt.getLanguageLevel()).as("Project Java language level").isSameAs(LanguageLevel.JDK_1_7);
-    for (Module module : ModuleManager.getInstance(getIdeFrame().getProject()).getModules()) {
+    for (Module module : ModuleManager.getInstance(guiTest.ideFrame().getProject()).getModules()) {
       LanguageLevelModuleExtension moduleExt = LanguageLevelModuleExtensionImpl.getInstance(module);
       assertThat(moduleExt.getLanguageLevel()).as("Gradle Java language level in module " + module.getName())
         .isSameAs(LanguageLevel.JDK_1_7);
@@ -164,7 +169,7 @@ public class NewProjectTest extends GuiTestCase {
     // Check that if there are render-error messages on first render,
     // they don't include "Missing Styles" (should now talk about project building instead)
     newProject("Test Application").withBriefNames().withMinSdk("15").withoutSync().create();
-    EditorFixture editor = getIdeFrame().getEditor();
+    EditorFixture editor = guiTest.ideFrame().getEditor();
     editor.open("app/src/main/res/layout/activity_a.xml", EditorFixture.Tab.DESIGN);
     LayoutEditorFixture layoutEditor = editor.getLayoutEditor(true);
     assertNotNull(layoutEditor);
@@ -255,13 +260,13 @@ public class NewProjectTest extends GuiTestCase {
      * Creates a project fixture for this description
      */
     void create() {
-      WelcomeFrameFixture.find(robot()).createNewProject();
+      WelcomeFrameFixture.find(guiTest.robot()).createNewProject();
 
-      NewProjectWizardFixture newProjectWizard = NewProjectWizardFixture.find(robot());
+      NewProjectWizardFixture newProjectWizard = NewProjectWizardFixture.find(guiTest.robot());
 
       ConfigureAndroidProjectStepFixture configureAndroidProjectStep = newProjectWizard.getConfigureAndroidProjectStep();
       configureAndroidProjectStep.enterApplicationName(myName).enterCompanyDomain(myDomain).enterPackageName(myPkg);
-      setProjectPath(configureAndroidProjectStep.getLocationInFileSystem());
+      guiTest.setProjectPath(configureAndroidProjectStep.getLocationInFileSystem());
       newProjectWizard.clickNext();
 
       newProjectWizard.getConfigureFormFactorStep().selectMinimumSdkApi(MOBILE, myMinSdk);
@@ -274,7 +279,7 @@ public class NewProjectTest extends GuiTestCase {
       newProjectWizard.clickFinish();
 
       if (myWaitForSync) {
-        getIdeFrame().waitForGradleProjectSyncToFinish();
+        guiTest.ideFrame().waitForGradleProjectSyncToFinish();
       }
     }
   }

@@ -15,23 +15,29 @@
  */
 package com.android.tools.idea.tests.gui.avdmanager;
 
-import com.android.tools.idea.tests.gui.framework.GuiTestCase;
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.*;
 import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.junit.Assert.assertFalse;
 
 /**
  * Tests exercising the UI for hardware profile management
  */
-public class HardwareProfileTest extends GuiTestCase {
+@RunWith(GuiTestRunner.class)
+public class HardwareProfileTest {
+
+  @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
   @Ignore("failed in http://go/aj/job/studio-ui-test/345 and from IDEA")
   @Test
   public void testCreateHardwareProfile() throws Exception {
-    importSimpleApplication();
-    AvdManagerDialogFixture avdManagerDialog = getIdeFrame().invokeAvdManager();
+    guiTest.importSimpleApplication();
+    AvdManagerDialogFixture avdManagerDialog = guiTest.ideFrame().invokeAvdManager();
     AvdEditWizardFixture avdEditWizard = avdManagerDialog.createNew();
     ChooseDeviceDefinitionStepFixture chooseDeviceDefinitionStep = avdEditWizard.getChooseDeviceDefinitionStep();
 
@@ -46,7 +52,7 @@ public class HardwareProfileTest extends GuiTestCase {
                      .setScreenResolutionX(1280)
                      .setScreenResolutionY(920)
                      .setScreenSize(5.2);
-    robot().waitForIdle();
+    guiTest.robot().waitForIdle();
     deviceEditWizard.clickOk();
     chooseDeviceDefinitionStep.selectDeviceByName(deviceName);
     chooseDeviceDefinitionStep.removeDeviceByName(deviceName);

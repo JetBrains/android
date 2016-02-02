@@ -15,18 +15,24 @@
  */
 package com.android.tools.idea.tests.gui.avdmanager;
 
-import com.android.tools.idea.tests.gui.framework.GuiTestCase;
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.*;
 import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
-public class AvdListDialogTest extends GuiTestCase {
+@RunWith(GuiTestRunner.class)
+public class AvdListDialogTest {
+
+  @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
   @Ignore("failed in http://go/aj/job/studio-ui-test/345 and from IDEA")
   @Test
   public void testCreateAvd() throws Exception {
-    importSimpleApplication();
-    AvdManagerDialogFixture avdManagerDialog = getIdeFrame().invokeAvdManager();
+    guiTest.importSimpleApplication();
+    AvdManagerDialogFixture avdManagerDialog = guiTest.ideFrame().invokeAvdManager();
     AvdEditWizardFixture avdEditWizard = avdManagerDialog.createNew();
 
     ChooseDeviceDefinitionStepFixture chooseDeviceDefinitionStep = avdEditWizard.getChooseDeviceDefinitionStep();
@@ -44,7 +50,7 @@ public class AvdListDialogTest extends GuiTestCase {
     configureAvdOptionsStep.setFrontCamera("Emulated");
     configureAvdOptionsStep.setScaleFactor("1dp on device = 1px on screen").selectUseHostGpu(true);
     avdEditWizard.clickFinish();
-    getIdeFrame().waitForBackgroundTasksToFinish();
+    guiTest.ideFrame().waitForBackgroundTasksToFinish();
 
     // Ensure the AVD was created
     avdManagerDialog.selectAvdByName("Testsuite AVD");
@@ -57,11 +63,11 @@ public class AvdListDialogTest extends GuiTestCase {
   @Ignore("failed in http://go/aj/job/studio-ui-test/345 and from IDEA")
   @Test
   public void testEditAvd() throws Exception {
-    importSimpleApplication();
+    guiTest.importSimpleApplication();
 
     makeNexus5();
 
-    AvdManagerDialogFixture avdManagerDialog = getIdeFrame().invokeAvdManager();
+    AvdManagerDialogFixture avdManagerDialog = guiTest.ideFrame().invokeAvdManager();
     AvdEditWizardFixture avdEditWizardFixture = avdManagerDialog.editAvdWithName("Nexus 5 API 19");
     ConfigureAvdOptionsStepFixture configureAvdOptionsStep = avdEditWizardFixture.getConfigureAvdOptionsStep();
 
@@ -75,7 +81,7 @@ public class AvdListDialogTest extends GuiTestCase {
   }
 
   private void makeNexus5() throws Exception {
-    AvdManagerDialogFixture avdManagerDialog = getIdeFrame().invokeAvdManager();
+    AvdManagerDialogFixture avdManagerDialog = guiTest.ideFrame().invokeAvdManager();
     AvdEditWizardFixture avdEditWizard = avdManagerDialog.createNew();
 
     ChooseDeviceDefinitionStepFixture chooseDeviceDefinitionStep = avdEditWizard.getChooseDeviceDefinitionStep();
@@ -90,7 +96,7 @@ public class AvdListDialogTest extends GuiTestCase {
   }
 
   private void removeNexus5() {
-    AvdManagerDialogFixture avdManagerDialog = getIdeFrame().invokeAvdManager();
+    AvdManagerDialogFixture avdManagerDialog = guiTest.ideFrame().invokeAvdManager();
     avdManagerDialog.deleteAvdByName("Nexus 5 API 19");
   }
 }

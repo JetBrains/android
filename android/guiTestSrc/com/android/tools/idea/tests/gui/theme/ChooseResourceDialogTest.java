@@ -17,13 +17,16 @@ package com.android.tools.idea.tests.gui.theme;
 
 import com.android.tools.idea.editors.theme.ui.ResourceComponent;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
-import com.android.tools.idea.tests.gui.framework.GuiTestCase;
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.fixture.ChooseResourceDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.*;
 import org.fest.swing.data.TableCell;
 import org.fest.swing.fixture.FontFixture;
 import org.fest.swing.fixture.JTableCellFixture;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.io.IOException;
 
@@ -36,12 +39,15 @@ import static org.junit.Assert.*;
  * UI tests regarding the ChooseResourceDialog
  */
 @BelongsToTestGroups({THEME})
-public class ChooseResourceDialogTest extends GuiTestCase {
+@RunWith(GuiTestRunner.class)
+public class ChooseResourceDialogTest {
+
+  @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
   @Test
   public void testColorStateList() throws IOException {
-    importProjectAndWaitForProjectSyncToFinish("StateListApplication");
-    ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(getIdeFrame());
+    guiTest.importProjectAndWaitForProjectSyncToFinish("StateListApplication");
+    ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(guiTest.ideFrame());
     ThemeEditorTableFixture themeEditorTable = themeEditor.getPropertiesTable();
 
     TableCell cell = row(7).column(0);
@@ -52,11 +58,11 @@ public class ChooseResourceDialogTest extends GuiTestCase {
     assertEquals("@color/text_color", themeEditorTable.valueAt(cell));
 
     JTableCellFixture stateListCell = themeEditorTable.cell(cell);
-    ResourceComponentFixture resourceComponent = new ResourceComponentFixture(robot(), (ResourceComponent)stateListCell.editor());
+    ResourceComponentFixture resourceComponent = new ResourceComponentFixture(guiTest.robot(), (ResourceComponent)stateListCell.editor());
     stateListCell.startEditing();
     resourceComponent.getSwatchButton().click();
 
-    final ChooseResourceDialogFixture dialog = ChooseResourceDialogFixture.find(robot());
+    final ChooseResourceDialogFixture dialog = ChooseResourceDialogFixture.find(guiTest.robot());
 
     StateListPickerFixture stateListPicker = dialog.getStateListPicker();
     java.util.List<StateListComponentFixture> states = stateListPicker.getStateComponents();
@@ -94,8 +100,8 @@ public class ChooseResourceDialogTest extends GuiTestCase {
 
   @Test
   public void testEditColorReference() throws IOException {
-    importProjectAndWaitForProjectSyncToFinish("StateListApplication");
-    ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(getIdeFrame());
+    guiTest.importProjectAndWaitForProjectSyncToFinish("StateListApplication");
+    ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(guiTest.ideFrame());
     ThemeEditorTableFixture themeEditorTable = themeEditor.getPropertiesTable();
 
     TableCell cell = row(1).column(0);
@@ -106,11 +112,11 @@ public class ChooseResourceDialogTest extends GuiTestCase {
     assertEquals("@color/ref_color", themeEditorTable.valueAt(cell));
 
     JTableCellFixture stateListCell = themeEditorTable.cell(cell);
-    ResourceComponentFixture resourceComponent = new ResourceComponentFixture(robot(), (ResourceComponent)stateListCell.editor());
+    ResourceComponentFixture resourceComponent = new ResourceComponentFixture(guiTest.robot(), (ResourceComponent)stateListCell.editor());
     stateListCell.startEditing();
     resourceComponent.getSwatchButton().click();
 
-    ChooseResourceDialogFixture dialog = ChooseResourceDialogFixture.find(robot());
+    ChooseResourceDialogFixture dialog = ChooseResourceDialogFixture.find(guiTest.robot());
 
     SwatchComponentFixture state1 = dialog.getEditReferencePanel().getSwatchComponent();
     assertEquals("@color/myColor", state1.getText());
