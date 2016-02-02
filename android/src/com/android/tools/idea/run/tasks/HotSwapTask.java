@@ -57,7 +57,7 @@ public class HotSwapTask implements LaunchTask {
 
     AndroidGradleModel model = AndroidGradleModel.get(myFacet);
     assert model != null;
-    InstantRunBuildInfo buildInfo = InstantRunManager.getBuildInfo(model);
+    InstantRunBuildInfo buildInfo = InstantRunGradleUtils.getBuildInfo(model);
     assert buildInfo != null;
 
     InstantRunManager.displayVerifierStatus(myFacet, buildInfo);

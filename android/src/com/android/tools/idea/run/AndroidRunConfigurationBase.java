@@ -293,7 +293,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     // Make sure instant run is supported on the relevant device, if found.
     AndroidVersion androidVersion = InstantRunManager.getMinDeviceApiLevel(info.getProcessHandler());
     if (InstantRunManager.isInstantRunCapableDeviceVersion(androidVersion)
-        && InstantRunManager.variantSupportsInstantRun(module, androidVersion)) {
+        && InstantRunGradleUtils.variantSupportsInstantRun(module, androidVersion)) {
       return executor instanceof DefaultRunExecutor ? AndroidIcons.RunIcons.Replay : AndroidIcons.RunIcons.DebugReattach;
     }
 
@@ -367,7 +367,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
         new InstantRunUserFeedback(module).info(message);
         LOG.info(message);
       }
-      else if (InstantRunManager.variantSupportsInstantRun(module, devices.get(0).getVersion())) {
+      else if (InstantRunGradleUtils.variantSupportsInstantRun(module, devices.get(0).getVersion())) {
         InstantRunUtils.setInstantRunEnabled(env, true);
         setInstantRunBuildOptions(env, module, deviceFutures);
       }
@@ -427,7 +427,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
     AndroidGradleModel model = AndroidGradleModel.get(facet);
     AndroidVersion version = devices.get(0).getVersion();
-    if (!InstantRunManager.variantSupportsInstantRun(model, version)) {
+    if (!InstantRunGradleUtils.variantSupportsInstantRun(model, version)) {
       InstantRunManager.LOG.info("Cannot instant run since the current variant doesn't support IR on API: " + version);
       return null;
     }
@@ -482,7 +482,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
         AndroidGradleModel model = AndroidGradleModel.get(facet);
         assert model != null;
 
-        InstantRunBuildInfo buildInfo = InstantRunManager.getBuildInfo(model);
+        InstantRunBuildInfo buildInfo = InstantRunGradleUtils.getBuildInfo(model);
         if (buildInfo != null) {
           @Language("HTML") String verifierFailure = InstantRunManager.getVerifierMessage(buildInfo);
           if (verifierFailure != null) {

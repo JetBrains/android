@@ -32,17 +32,14 @@ import com.android.tools.fd.client.InstantRunClient.FileTransfer;
 import com.android.tools.fd.client.UpdateMode;
 import com.android.tools.fd.runtime.ApplicationPatch;
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.rendering.LogWrapper;
 import com.android.tools.idea.run.*;
 import com.android.tools.idea.stats.UsageTracker;
 import com.android.utils.ILogger;
-import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.hash.HashCode;
-import com.google.common.io.Files;
 import com.intellij.debugger.DebuggerManagerEx;
 import com.intellij.debugger.engine.JavaExecutionStack;
 import com.intellij.debugger.engine.SuspendContextImpl;
@@ -59,7 +56,6 @@ import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.wm.ToolWindowId;
@@ -177,8 +173,8 @@ public final class InstantRunManager implements ProjectComponent {
    */
   @Nullable
   private static String getLocalBuildTimestamp(@NotNull Module module) {
-    AndroidGradleModel model = getAppModel(module);
-    InstantRunBuildInfo buildInfo = model == null ? null : getBuildInfo(model);
+    AndroidGradleModel model = InstantRunGradleUtils.getAppModel(module);
+    InstantRunBuildInfo buildInfo = model == null ? null : InstantRunGradleUtils.getBuildInfo(model);
     return buildInfo == null ? null : buildInfo.getTimeStamp();
   }
 
@@ -228,8 +224,8 @@ public final class InstantRunManager implements ProjectComponent {
   }
 
   public static boolean apiLevelsMatch(@NotNull IDevice device, @NotNull Module module) {
-    AndroidGradleModel model = getAppModel(module);
-    InstantRunBuildInfo buildInfo = model == null ? null : getBuildInfo(model);
+    AndroidGradleModel model = InstantRunGradleUtils.getAppModel(module);
+    InstantRunBuildInfo buildInfo = model == null ? null : InstantRunGradleUtils.getBuildInfo(model);
     return buildInfo != null && buildInfo.getFeatureLevel() == device.getVersion().getFeatureLevel();
   }
 
@@ -256,92 +252,6 @@ public final class InstantRunManager implements ProjectComponent {
    */
   public static void restartActivity(@NotNull IDevice device, @NotNull Module module) {
     getInstantRunClient(module).restartActivity(device);
-  }
-
-  @Nullable
-  public static AndroidGradleModel getAppModel(@NotNull Module module) {
-    AndroidFacet facet = findAppModule(module, module.getProject());
-    if (facet == null) {
-      return null;
-    }
-
-    return AndroidGradleModel.get(facet);
-  }
-
-  /**
-   * Returns whether the currently selected variant can be used with Instant Run on a device with the given API level.
-   */
-  public static boolean variantSupportsInstantRun(@NotNull Module module, @NotNull AndroidVersion deviceVersion) {
-    if (!InstantRunSettings.isInstantRunEnabled(module.getProject())) {
-      return false;
-    }
-
-    AndroidGradleModel androidGradleModel = getAppModel(module);
-    if (androidGradleModel == null) {
-      return false;
-    }
-
-    return variantSupportsInstantRun(androidGradleModel, deviceVersion);
-  }
-
-  public static boolean variantSupportsInstantRun(@NotNull AndroidGradleModel androidGradleModel,
-                                                  @Nullable AndroidVersion deviceVersion) {
-    if (!variantSupportsInstantRun(androidGradleModel)) {
-      return false;
-    }
-
-    if (deviceVersion == null) {
-      return true;
-    }
-
-    Variant variant = androidGradleModel.getSelectedVariant();
-    BuildTypeContainer buildTypeContainer = androidGradleModel.findBuildType(androidGradleModel.getSelectedVariant().getBuildType());
-    assert buildTypeContainer != null;
-    BuildType buildType = buildTypeContainer.getBuildType();
-    ProductFlavor mergedFlavor = variant.getMergedFlavor();
-
-    if (isLegacyMultiDex(buildType, mergedFlavor)) {
-      // We don't support legacy multi-dex on Dalvik.
-      return deviceVersion.isGreaterOrEqualThan(AndroidVersion.ART_RUNTIME.getApiLevel());
-    }
-
-    return true;
-  }
-
-  private static boolean variantSupportsInstantRun(@Nullable AndroidGradleModel model) {
-    if (model == null) {
-      return false;
-    }
-
-    String version = model.getAndroidProject().getModelVersion();
-    if (!modelSupportsInstantRun(model)) {
-      LOG.debug("Instant run is not supported by current version: " + version + ", requires: " + MINIMUM_GRADLE_PLUGIN_VERSION_STRING);
-      return false;
-    }
-
-    try {
-      return model.getSelectedVariant().getMainArtifact().getInstantRun().isSupportedByArtifact();
-    } catch (Throwable e) {
-      LOG.info("Instant Run not supported by current variant: " + version);
-      return false;
-    }
-  }
-
-  // TODO: Move this logic to Variant, so we don't have to duplicate it in AS.
-  private static boolean isLegacyMultiDex(@NotNull BuildType buildType, @NotNull ProductFlavor mergedFlavor) {
-    if (buildType.getMultiDexEnabled() != null) {
-      return buildType.getMultiDexEnabled();
-    }
-    if (mergedFlavor.getMultiDexEnabled() != null) {
-      return mergedFlavor.getMultiDexEnabled();
-    }
-    return false;
-  }
-
-  /** Returns true if Instant Run is supported for this gradle model (whether or not it's enabled) */
-  public static boolean modelSupportsInstantRun(@NotNull AndroidGradleModel model) {
-    GradleVersion modelVersion = model.getModelVersion();
-    return modelVersion == null || modelVersion.compareTo(MINIMUM_GRADLE_PLUGIN_VERSION) >= 0;
   }
 
   /** Returns true if the device is capable of running Instant Run */
@@ -379,7 +289,7 @@ public final class InstantRunManager implements ProjectComponent {
    * Returns true if the manifest or a resource referenced from the manifest has changed since the last manifest push to the device
    */
   private static boolean manifestChanged(@NotNull IDevice device, @NotNull Module module) {
-    AndroidFacet facet = findAppModule(module, module.getProject());
+    AndroidFacet facet = InstantRunGradleUtils.findAppModule(module, module.getProject());
     if (facet == null) {
       return false;
     }
@@ -414,7 +324,7 @@ public final class InstantRunManager implements ProjectComponent {
   }
 
   public static boolean hasLocalCacheOfDeviceData(@NotNull IDevice device, @NotNull Module module) {
-    AndroidFacet facet = findAppModule(module, module.getProject());
+    AndroidFacet facet = InstantRunGradleUtils.findAppModule(module, module.getProject());
     if (facet == null) {
       return false;
     }
@@ -446,37 +356,6 @@ public final class InstantRunManager implements ProjectComponent {
     }
 
     return maxLastModified;
-  }
-
-  @Nullable
-  public static InstantRunBuildInfo getBuildInfo(@NonNull AndroidGradleModel model) {
-    File buildInfo = getLocalBuildInfoFile(model);
-    if (!buildInfo.exists()) {
-      return null;
-    }
-
-    String xml;
-    try {
-      xml = Files.toString(buildInfo, Charsets.UTF_8);
-    }
-    catch (IOException e) {
-      return null;
-    }
-
-    return InstantRunBuildInfo.get(xml);
-  }
-
-  @NotNull
-  private static File getLocalBuildInfoFile(@NotNull AndroidGradleModel model) {
-    InstantRun instantRun = model.getSelectedVariant().getMainArtifact().getInstantRun();
-
-    File file = instantRun.getInfoFile();
-    if (!file.exists()) {
-      // Temporary hack workaround; model is passing the wrong value! See InstantRunAnchorTask.java
-      file = new File(instantRun.getRestartDexFile().getParentFile(), "build-info.xml");
-    }
-
-    return file;
   }
 
   @NotNull
@@ -531,19 +410,8 @@ public final class InstantRunManager implements ProjectComponent {
   }
 
   @NotNull
-  public static String getIncrementalDexTask(@NotNull AndroidGradleModel model, @NotNull Module module) {
-    assert modelSupportsInstantRun(model) : module;
-    String taskName = model.getSelectedVariant().getMainArtifact().getInstantRun().getIncrementalAssembleTaskName();
-    String gradlePath = GradleUtil.getGradlePath(module);
-    if (gradlePath != null) {
-      taskName = gradlePath + ":" + taskName;
-    }
-    return taskName;
-  }
-
-  @NotNull
   private static InstantRunClient getInstantRunClient(@NotNull Module module) {
-    AndroidFacet facet = findAppModule(module, module.getProject());
+    AndroidFacet facet = InstantRunGradleUtils.findAppModule(module, module.getProject());
     assert facet != null : module;
     AndroidGradleModel model = AndroidGradleModel.get(facet);
     assert model != null;
@@ -782,29 +650,6 @@ public final class InstantRunManager implements ProjectComponent {
     catch (ApkProvisionException e) {
       return null;
     }
-  }
-
-  @Nullable
-  public static AndroidFacet findAppModule(@Nullable Module module, @NotNull Project project) {
-    if (module != null) {
-      assert module.getProject() == project;
-      AndroidFacet facet = AndroidFacet.getInstance(module);
-      if (facet != null && !facet.isLibraryProject()) {
-        return facet;
-      }
-    }
-
-    // TODO: Here we should really look for app modules that *depend*
-    // on the given module (if non null), not just use the first app
-    // module we find.
-
-    for (Module m : ModuleManager.getInstance(project).getModules()) {
-      AndroidFacet facet = AndroidFacet.getInstance(m);
-      if (facet != null && !facet.isLibraryProject()) {
-        return facet;
-      }
-    }
-    return null;
   }
 
   public static void showToast(@NotNull IDevice device, @NotNull Module module, @NotNull final String message) {

@@ -16,6 +16,7 @@
 package com.android.tools.idea.run;
 
 import com.android.tools.fd.client.InstantRunBuildInfo;
+import com.android.tools.idea.fd.InstantRunGradleUtils;
 import com.android.tools.idea.fd.InstantRunManager;
 import com.android.tools.idea.fd.InstantRunStatsService;
 import com.android.tools.idea.fd.InstantRunUtils;
@@ -75,7 +76,7 @@ public class AndroidLaunchTasksProviderFactory implements LaunchTasksProviderFac
     }
 
     AndroidGradleModel model = AndroidGradleModel.get(myFacet);
-    InstantRunBuildInfo info = model == null ? null : InstantRunManager.getBuildInfo(model);
+    InstantRunBuildInfo info = model == null ? null : InstantRunGradleUtils.getBuildInfo(model);
     boolean canHotswap = info != null && info.canHotswap();
 
     if (!canHotswap) {
