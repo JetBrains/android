@@ -23,7 +23,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
-public abstract class PsdModuleEditor extends PsdChildEditor {
+public abstract class PsdModuleModel extends PsdChildModel {
   @NotNull private final String myGradlePath;
 
   // Module can be null in the case of new modules created in the PSD.
@@ -33,9 +33,9 @@ public abstract class PsdModuleEditor extends PsdChildEditor {
   private GradleBuildModel myParsedModel;
   private String myModuleName;
 
-  protected PsdModuleEditor(@NotNull PsdProjectEditor parent,
-                            @NotNull Module module,
-                            @NotNull String gradlePath) {
+  protected PsdModuleModel(@NotNull PsdProjectModel parent,
+                           @NotNull Module module,
+                           @NotNull String gradlePath) {
     super(parent);
     myModule = module;
     myGradlePath = gradlePath;
@@ -44,8 +44,8 @@ public abstract class PsdModuleEditor extends PsdChildEditor {
 
   @Override
   @NotNull
-  public PsdProjectEditor getParent() {
-    return (PsdProjectEditor)super.getParent();
+  public PsdProjectModel getParent() {
+    return (PsdProjectModel)super.getParent();
   }
 
   @NotNull

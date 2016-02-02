@@ -33,14 +33,14 @@ import java.util.Map;
 
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
 
-public class PsdParsedDependencies {
+public class PsdParsedDependencyModels {
   // Key: module's Gradle path
   @NotNull private final Map<String, ModuleDependencyModel> myParsedModuleDependencies = Maps.newHashMap();
 
   // Key: artifact group ID + ":" + artifact name (e.g. "com.google.guava:guava")
   @NotNull private final Map<String, ArtifactDependencyModel> myParsedArtifactDependencies = Maps.newHashMap();
 
-  public PsdParsedDependencies(@Nullable GradleBuildModel parsedModel) {
+  public PsdParsedDependencyModels(@Nullable GradleBuildModel parsedModel) {
     if (parsedModel != null) {
       for (DependencyModel parsedDependency : parsedModel.dependencies().all()) {
         if (parsedDependency instanceof ArtifactDependencyModel) {

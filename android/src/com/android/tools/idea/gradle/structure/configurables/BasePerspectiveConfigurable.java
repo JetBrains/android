@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.structure.configurables;
 
-import com.android.tools.idea.gradle.structure.model.PsdModuleEditor;
-import com.android.tools.idea.gradle.structure.model.PsdProjectEditor;
+import com.android.tools.idea.gradle.structure.model.PsdModuleModel;
+import com.android.tools.idea.gradle.structure.model.PsdProjectModel;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -37,14 +37,14 @@ import java.util.ArrayList;
 public abstract class BasePerspectiveConfigurable extends MasterDetailsComponent
   implements SearchableConfigurable, Disposable, Place.Navigator {
 
-  @NotNull private final PsdProjectEditor myProjectEditor;
+  @NotNull private final PsdProjectModel myProjectModel;
 
   protected boolean myUiDisposed = true;
 
   private boolean myWasTreeInitialized;
 
-  protected BasePerspectiveConfigurable(@NotNull PsdProjectEditor projectEditor) {
-    myProjectEditor = projectEditor;
+  protected BasePerspectiveConfigurable(@NotNull PsdProjectModel projectModel) {
+    myProjectModel = projectModel;
   }
 
   @Override
@@ -98,8 +98,8 @@ public abstract class BasePerspectiveConfigurable extends MasterDetailsComponent
   }
 
   private void createModuleNodes() {
-    for (PsdModuleEditor moduleEditor : myProjectEditor.getModuleEditors()) {
-      NamedConfigurable<? extends PsdModuleEditor> configurable = getConfigurable(moduleEditor);
+    for (PsdModuleModel moduleModel : myProjectModel.getModuleModels()) {
+      NamedConfigurable<? extends PsdModuleModel> configurable = getConfigurable(moduleModel);
       if (configurable != null) {
         MyNode moduleNode = new MyNode(configurable);
         myRoot.add(moduleNode);
@@ -108,11 +108,11 @@ public abstract class BasePerspectiveConfigurable extends MasterDetailsComponent
   }
 
   @Nullable
-  protected abstract NamedConfigurable<? extends PsdModuleEditor> getConfigurable(@NotNull PsdModuleEditor moduleEditor);
+  protected abstract NamedConfigurable<? extends PsdModuleModel> getConfigurable(@NotNull PsdModuleModel moduleModel);
 
   @NotNull
-  protected PsdProjectEditor getProjectEditor() {
-    return myProjectEditor;
+  protected PsdProjectModel getProjectModel() {
+    return myProjectModel;
   }
 
   @Override
