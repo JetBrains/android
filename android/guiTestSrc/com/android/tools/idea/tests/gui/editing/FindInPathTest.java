@@ -42,7 +42,7 @@ public class FindInPathTest {
     findDialog.setTextToFind("ActionBarDivider")
               .clickFind();
 
-    guiTest.ideFrame().waitForBackgroundTasksToFinish();
+    guiTest.waitForBackgroundTasks();
 
     FindToolWindowFixture findToolWindow = guiTest.ideFrame().getFindToolWindow();
     FindToolWindowFixture.ContentFixture selectedContext = findToolWindow.getSelectedContext();
@@ -59,7 +59,7 @@ public class FindInPathTest {
     findDialog.setTextToFind("DarkActionBar")
               .clickFind();
 
-    guiTest.ideFrame().waitForBackgroundTasksToFinish();
+    guiTest.waitForBackgroundTasks();
 
     FindToolWindowFixture findToolWindow = guiTest.ideFrame().getFindToolWindow();
     FindToolWindowFixture.ContentFixture selectedContext = findToolWindow.getSelectedContext();
