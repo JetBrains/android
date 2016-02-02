@@ -68,6 +68,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
   private static final String XLIFF = "resourceRepository/xliff.xml";
   private static final String STRINGS = "resourceRepository/strings.xml";
   private static final String DRAWABLE = "resourceRepository/logo.png";
+  private static final String DRAWABLE_ID_SCAN = "resourceRepository/drawable_for_id_scan.xml";
   private static final String COLOR_STATELIST = "resourceRepository/statelist.xml";
 
   private ResourceFolderRepositoryFileCache myOldFileCacheService;
@@ -246,9 +247,9 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     Collection<String> drawables = resources.getItemsOfType(ResourceType.DRAWABLE);
     assertEquals(drawables.toString(), 0, drawables.size());
     long generation = resources.getModificationCount();
-    VirtualFile file4 = myFixture.copyFileToProject(LAYOUT1, "res/drawable-mdpi/foo.png");
-    final PsiFile psiFile4 = PsiManager.getInstance(getProject()).findFile(file4);
-    assertNotNull(psiFile4);
+    VirtualFile file1 = myFixture.copyFileToProject(LAYOUT1, "res/drawable-mdpi/foo.png");
+    final PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
+    assertNotNull(psiFile1);
     assertTrue(resources.getModificationCount() > generation);
 
     // Delete a file and make sure the item is removed from the repository (and modification count bumped)
@@ -259,11 +260,36 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
-        psiFile4.delete();
+        psiFile1.delete();
       }
     });
     drawables = resources.getItemsOfType(ResourceType.DRAWABLE);
     assertEquals(0, drawables.size());
+    assertTrue(resources.getModificationCount() > generation);
+
+    // Try adding and then deleting a drawable file with IDs too.
+    generation = resources.getModificationCount();
+    VirtualFile file2 = myFixture.copyFileToProject(DRAWABLE_ID_SCAN, "res/drawable-v21/drawable_with_ids.xml");
+    final PsiFile psiFile2 = PsiManager.getInstance(getProject()).findFile(file2);
+    assertNotNull(psiFile2);
+    drawables = resources.getItemsOfType(ResourceType.DRAWABLE);
+    assertEquals(1, drawables.size());
+    Collection<String> ids = resources.getItemsOfType(ResourceType.ID);
+    assertContainsElements(ids, "focused_state", "default_state", "pressed_state");
+    assertTrue(resources.getModificationCount() > generation);
+
+    generation = resources.getModificationCount();
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
+      @Override
+      public void run() {
+        psiFile2.delete();
+      }
+    });
+
+    drawables = resources.getItemsOfType(ResourceType.DRAWABLE);
+    assertEquals(0, drawables.size());
+    ids = resources.getItemsOfType(ResourceType.ID);
+    assertEquals(0, ids.size());
     assertTrue(resources.getModificationCount() > generation);
   }
 
@@ -1007,6 +1033,50 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     });
     assertTrue(resources.hasResourceItem(ResourceType.ID, "note2Area"));
     assertFalse(resources.hasResourceItem(ResourceType.ID, "noteArea"));
+    assertTrue(resources.getModificationCount() > generation);
+
+    // Shouldn't have done any full file rescans during the above edits
+    ensureIncremental();
+  }
+
+
+  public void testEditIdFromDrawable() throws Exception {
+    resetScanCounter();
+
+    // Mix PNGs and XML in the same directory.
+    myFixture.copyFileToProject(DRAWABLE, "res/drawable-v21/logo.png");
+    VirtualFile file1 = myFixture.copyFileToProject(DRAWABLE_ID_SCAN, "res/drawable-v21/drawable_with_ids.xml");
+    PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
+    assertNotNull(psiFile1);
+
+    ResourceFolderRepository resources = createRepository();
+    assertNotNull(resources);
+    Collection<String> ids = resources.getItemsOfType(ResourceType.ID);
+    assertNotNull(ids);
+    assertContainsElements(ids, "focused_state", "default_state", "pressed_state");
+    Collection<String> drawables = resources.getItemsOfType(ResourceType.DRAWABLE);
+    assertContainsElements(drawables, "logo", "drawable_with_ids");
+
+    // Now test an ID edit, to make sure that gets picked up too incrementally, just like layouts.
+    final PsiDocumentManager documentManager = PsiDocumentManager.getInstance(getProject());
+    final Document document = documentManager.getDocument(psiFile1);
+    assertNotNull(document);
+
+    // Edit value should cause update
+    long generation = resources.getModificationCount();
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
+      @Override
+      public void run() {
+        final int offset = document.getText().indexOf("focused_state");
+        document.replaceString(offset, offset + 1, "l");
+        documentManager.commitDocument(document);
+      }
+    });
+    assertFalse(resources.isScanPending(psiFile1));
+    assertTrue(resources.hasResourceItem(ResourceType.ID, "locused_state"));
+    assertFalse(resources.hasResourceItem(ResourceType.ID, "focused_state"));
+    drawables = resources.getItemsOfType(ResourceType.DRAWABLE);
+    assertContainsElements(drawables, "logo", "drawable_with_ids");
     assertTrue(resources.getModificationCount() > generation);
 
     // Shouldn't have done any full file rescans during the above edits

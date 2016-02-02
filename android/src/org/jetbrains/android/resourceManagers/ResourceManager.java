@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.resourceManagers;
 
+import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.AndroidPsiUtils;
@@ -439,7 +440,7 @@ public abstract class ResourceManager {
   @NotNull
   public List<VirtualFile> getResourceSubdirsToSearchIds() {
     final List<VirtualFile> resSubdirs = new ArrayList<VirtualFile>();
-    for (ResourceType type : AndroidCommonUtils.ID_PROVIDING_RESOURCE_TYPES) {
+    for (ResourceFolderType type : FolderTypeRelationship.getIdGeneratingFolderTypes()) {
       resSubdirs.addAll(getResourceSubdirs(type.getName()));
     }
     return resSubdirs;

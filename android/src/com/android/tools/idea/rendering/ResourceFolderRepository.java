@@ -317,26 +317,25 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
     assert resourceTypes.size() >= 1 : folderType;
     ResourceType type = resourceTypes.get(0);
 
-    boolean idGenerating = resourceTypes.size() > 1;
-    assert !idGenerating || resourceTypes.size() == 2 && resourceTypes.get(1) == ResourceType.ID;
+    boolean idGeneratingFolder = FolderTypeRelationship.isIdGeneratingFolderType(folderType);
 
     ListMultimap<String, ResourceItem> map = getMap(type, true);
 
     for (PsiFile file : directory.getFiles()) {
       FileType fileType = file.getFileType();
+      boolean idGeneratingFile = idGeneratingFolder && fileType == StdFileTypes.XML;
       if (isRelevantFileType(fileType) || folderType == ResourceFolderType.RAW) {
         // TODO: move this into scanFileResourceFile so that the parse count is more obvious.
-        if (idGenerating) {
+        if (idGeneratingFile) {
           myScanStats.incXmlCount();
         }
         if (myResourceFiles.containsKey(file)) {
           continue;
         }
-        if (idGenerating) {
+        if (idGeneratingFile) {
           myScanStats.incReparsedXmlCount();
         }
-        scanFileResourceFile(qualifiers, folderType, folderConfiguration, type, idGenerating, map, file);
-
+        scanFileResourceFile(qualifiers, folderType, folderConfiguration, type, idGeneratingFile, map, file);
       } // TODO: Else warn about files that aren't expected to be found here?
     }
   }
@@ -837,9 +836,10 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
     } else {
       PsiResourceFile resourceFile = myResourceFiles.get(file);
       if (resourceFile != null) {
-        // Already seen this file; no need to do anything unless it's a layout or
-        // menu file; in that case we may need to update the id's
-        if (folderType == LAYOUT || folderType == MENU) {
+        // Already seen this file; no need to do anything unless it's an XML file with generated ids;
+        // in that case we may need to update the id's
+        if (FolderTypeRelationship.isIdGeneratingFolderType(folderType) &&
+            file.getFileType() == StdFileTypes.XML) {
           // For unit test tracking purposes only
           //noinspection AssignmentToStaticFieldFromInstanceMethod
           ourFullRescans++;
@@ -911,8 +911,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
         assert resourceTypes.size() >= 1 : folderType;
         ResourceType type = resourceTypes.get(0);
 
-        boolean idGenerating = resourceTypes.size() > 1;
-        assert !idGenerating || resourceTypes.size() == 2 && resourceTypes.get(1) == ResourceType.ID;
+        boolean idGeneratingFolder = FolderTypeRelationship.isIdGeneratingFolderType(folderType);
 
         ListMultimap<String, ResourceItem> map = getMap(type, true);
 
@@ -922,7 +921,8 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
           if (fileParent != null) {
             FolderConfiguration folderConfiguration = FolderConfiguration.getConfigForFolder(fileParent.getName());
             if (folderConfiguration != null) {
-              scanFileResourceFile(getQualifiers(dirName), folderType, folderConfiguration, type, idGenerating, map, file);
+              boolean idGeneratingFile = idGeneratingFolder && file.getFileType() == StdFileTypes.XML;
+              scanFileResourceFile(getQualifiers(dirName), folderType, folderConfiguration, type, idGeneratingFile, map, file);
             }
           }
           myGeneration++;
@@ -1074,7 +1074,8 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
               return;
             }
             rescan(psiFile, folderType);
-          } else if (folderType == LAYOUT || folderType == MENU) {
+          } else if (FolderTypeRelationship.isIdGeneratingFolderType(folderType) &&
+                     psiFile.getFileType() == StdFileTypes.XML) {
             if (parent instanceof XmlComment || child instanceof XmlComment) {
               return;
             }
@@ -1254,7 +1255,8 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
               // Some other change: do full file rescan
               rescan(psiFile, folderType);
             }
-          } else if (folderType == LAYOUT || folderType == MENU) {
+          } else if (FolderTypeRelationship.isIdGeneratingFolderType(folderType) &&
+                     psiFile.getFileType() == StdFileTypes.XML) {
             // TODO: Handle removals of id's (values an attributes) incrementally
             rescan(psiFile, folderType);
           }
@@ -1282,10 +1284,11 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
       invalidateItemCaches();
 
       ResourceFolderType folderType = resourceFile.getFolderType();
-      if (folderType == VALUES || folderType == LAYOUT || folderType == MENU) {
+      // Check if there may be multiple items to remove.
+      if (folderType == VALUES || FolderTypeRelationship.isIdGeneratingFolderType(folderType)) {
         removeItemsFromFile(resourceFile);
       } else if (folderType != null) {
-        // Remove the file item
+        // Simpler: remove the file item
         List<ResourceType> resourceTypes = FolderTypeRelationship.getRelatedResourceTypes(folderType);
         for (ResourceType type : resourceTypes) {
           if (type != ResourceType.ID) {
@@ -1309,9 +1312,12 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
       invalidateItemCaches();
 
       ResourceFolderType folderType = getFolderType(psiFile);
-      if (folderType == VALUES || folderType == LAYOUT || folderType == MENU) {
+      // Check if there may be multiple items to remove.
+      if (folderType == VALUES ||
+          (FolderTypeRelationship.isIdGeneratingFolderType(folderType) && psiFile.getFileType() == StdFileTypes.XML)) {
         removeItemsFromFile(resourceFile);
       } else if (folderType != null) {
+        // Simpler: remove the file item
         if (folderType == DRAWABLE) {
           FileType fileType = psiFile.getFileType();
           if (fileType.isBinary() && fileType == FileTypeManager.getInstance().getFileTypeByExtension(EXT_PNG)) {
@@ -1319,7 +1325,6 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
           }
         }
 
-        // Remove the file item
         List<ResourceType> resourceTypes = FolderTypeRelationship.getRelatedResourceTypes(folderType);
         for (ResourceType type : resourceTypes) {
           if (type != ResourceType.ID) {
@@ -1354,7 +1359,8 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
           // or if it's within a file that is not a value file or an id-generating file (layouts and menus),
           // such as editing the content of a drawable XML file.
           ResourceFolderType folderType = getFolderType(psiFile);
-          if (folderType == LAYOUT || folderType == MENU) {
+          if (folderType != null && FolderTypeRelationship.isIdGeneratingFolderType(folderType) &&
+              psiFile.getFileType() == StdFileTypes.XML) {
             // The only way the edit affected the set of resources was if the user added or removed an
             // id attribute. Since these can be added redundantly we can't automatically remove the old
             // value if you renamed one, so we'll need a full file scan.
