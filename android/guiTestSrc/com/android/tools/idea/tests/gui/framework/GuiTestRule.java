@@ -66,7 +66,7 @@ import static org.junit.Assume.assumeTrue;
 public class GuiTestRule implements TestRule {
   private Robot myRobot;
 
-  private File projectPath;
+  private File myProjectPath;
 
   private final List<GarbageCollectorMXBean> myGarbageCollectorMXBeans = ManagementFactory.getGarbageCollectorMXBeans();
   private final MemoryMXBean myMemoryMXBean = ManagementFactory.getMemoryMXBean();
@@ -195,7 +195,7 @@ public class GuiTestRule implements TestRule {
 
   private void importProject(@NotNull String projectDirName, String gradleVersion) throws IOException {
     setUpProject(projectDirName, gradleVersion);
-    final VirtualFile toSelect = findFileByIoFile(projectPath, false);
+    final VirtualFile toSelect = findFileByIoFile(myProjectPath, false);
     assertNotNull(toSelect);
     execute(new GuiTask() {
       @Override
@@ -228,33 +228,33 @@ public class GuiTestRule implements TestRule {
                             @Nullable String gradleVersion) throws IOException {
     copyProjectBeforeOpening(projectDirName);
 
-    File gradlePropertiesFilePath = new File(projectPath, SdkConstants.FN_GRADLE_PROPERTIES);
+    File gradlePropertiesFilePath = new File(myProjectPath, SdkConstants.FN_GRADLE_PROPERTIES);
     if (gradlePropertiesFilePath.isFile()) {
       delete(gradlePropertiesFilePath);
     }
 
     if (gradleVersion == null) {
-      createGradleWrapper(projectPath, GRADLE_LATEST_VERSION);
+      createGradleWrapper(myProjectPath, GRADLE_LATEST_VERSION);
     }
     else {
-      createGradleWrapper(projectPath, gradleVersion);
+      createGradleWrapper(myProjectPath, gradleVersion);
     }
 
-    updateGradleVersions(projectPath);
-    updateLocalProperties(projectPath);
-    cleanUpProjectForImport(projectPath);
+    updateGradleVersions(myProjectPath);
+    updateLocalProperties(myProjectPath);
+    cleanUpProjectForImport(myProjectPath);
   }
 
   public void copyProjectBeforeOpening(@NotNull String projectDirName) throws IOException {
     File masterProjectPath = getMasterProjectDirPath(projectDirName);
 
     setProjectPath(getTestProjectDirPath(projectDirName));
-    if (projectPath.isDirectory()) {
-      delete(projectPath);
-      System.out.println(String.format("Deleted project path '%1$s'", projectPath.getPath()));
+    if (myProjectPath.isDirectory()) {
+      delete(myProjectPath);
+      System.out.println(String.format("Deleted project path '%1$s'", myProjectPath.getPath()));
     }
-    copyDir(masterProjectPath, projectPath);
-    System.out.println(String.format("Copied project '%1$s' to path '%2$s'", projectDirName, projectPath.getPath()));
+    copyDir(masterProjectPath, myProjectPath);
+    System.out.println(String.format("Copied project '%1$s' to path '%2$s'", projectDirName, myProjectPath.getPath()));
   }
 
   protected boolean createGradleWrapper(@NotNull File projectDirPath, @NotNull String gradleVersion) throws IOException {
@@ -325,14 +325,14 @@ public class GuiTestRule implements TestRule {
   }
 
   public void setProjectPath(@NotNull File projectPath) {
-    checkState(this.projectPath == null, "projectPath already set");
-    this.projectPath = projectPath;
+    checkState(myProjectPath == null, "myProjectpath already set");
+    myProjectPath = projectPath;
   }
 
   @NotNull
   public File getProjectPath() {
-    checkState(projectPath != null, "No project path set. Was a project imported?");
-    return projectPath;
+    checkState(myProjectPath != null, "No project path set. Was a project imported?");
+    return myProjectPath;
   }
 
   @NotNull
