@@ -140,7 +140,7 @@ public class NewProjectTest {
     guiTest.ideFrame().invokeProjectMake();
     layoutEditor.waitForNextRenderToFinish();
     layoutEditor.requireRenderSuccessful();
-    guiTest.ideFrame().waitForBackgroundTasksToFinish();
+    guiTest.waitForBackgroundTasks();
   }
 
   @Test

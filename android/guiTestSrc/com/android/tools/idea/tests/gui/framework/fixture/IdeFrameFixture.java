@@ -26,7 +26,6 @@ import com.android.tools.idea.gradle.project.build.GradleBuildContext;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.project.AndroidProjectBuildNotifications;
-import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.Tab;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdManagerDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleBuildModelFixture;
@@ -468,7 +467,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
       }
     }, LONG_TIMEOUT);
 
-    waitForBackgroundTasksToFinish();
+    waitForBackgroundTasks(robot());
     robot().waitForIdle();
 
     return this;
@@ -528,7 +527,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
       }
     }, SHORT_TIMEOUT);
 
-    waitForBackgroundTasksToFinish();
+    waitForBackgroundTasks(robot());
     findGradleSyncAction().waitUntilEnabledAndShowing();
     // TODO figure out why in IDEA 15 even though an action is enabled, visible and showing, clicking it (via UI testing infrastructure)
     // does not work consistently
@@ -551,7 +550,8 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     catch (RuntimeException expected) {
       // expected failure.
     }
-    return waitForBackgroundTasksToFinish();
+    waitForBackgroundTasks(robot());
+    return this;
   }
 
   @NotNull
@@ -607,15 +607,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
       waitForBuildToFinish(SOURCE_GEN);
     }
 
-    waitForBackgroundTasksToFinish();
-  }
-
-  /** @deprecated Use {@link GuiTests#waitForBackgroundTasks} instead. */
-  @Deprecated
-  @NotNull
-  public IdeFrameFixture waitForBackgroundTasksToFinish() {
     waitForBackgroundTasks(robot());
-    return this;
   }
 
   @NotNull
