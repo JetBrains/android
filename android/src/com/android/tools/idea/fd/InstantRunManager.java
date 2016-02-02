@@ -259,7 +259,7 @@ public final class InstantRunManager implements ProjectComponent {
   }
 
   @Nullable
-  private static AndroidGradleModel getAppModel(@NotNull Module module) {
+  public static AndroidGradleModel getAppModel(@NotNull Module module) {
     AndroidFacet facet = findAppModule(module, module.getProject());
     if (facet == null) {
       return null;
@@ -271,14 +271,27 @@ public final class InstantRunManager implements ProjectComponent {
   /**
    * Returns whether the currently selected variant can be used with Instant Run on a device with the given API level.
    */
-  public static boolean variantSupportsInstantRunOnApi(@NotNull Module module, @NotNull AndroidVersion deviceVersion) {
-    if (!variantSupportsInstantRun(module)) {
+  public static boolean variantSupportsInstantRun(@NotNull Module module, @NotNull AndroidVersion deviceVersion) {
+    if (!InstantRunSettings.isInstantRunEnabled(module.getProject())) {
       return false;
     }
 
-    AndroidGradleModel androidGradleModel = AndroidGradleModel.get(module);
+    AndroidGradleModel androidGradleModel = getAppModel(module);
     if (androidGradleModel == null) {
       return false;
+    }
+
+    return variantSupportsInstantRun(androidGradleModel, deviceVersion);
+  }
+
+  public static boolean variantSupportsInstantRun(@NotNull AndroidGradleModel androidGradleModel,
+                                                  @Nullable AndroidVersion deviceVersion) {
+    if (!variantSupportsInstantRun(androidGradleModel)) {
+      return false;
+    }
+
+    if (deviceVersion == null) {
+      return true;
     }
 
     Variant variant = androidGradleModel.getSelectedVariant();
@@ -295,36 +308,7 @@ public final class InstantRunManager implements ProjectComponent {
     return true;
   }
 
-  // TODO: Move this logic to Variant, so we don't have to duplicate it in AS.
-  private static boolean isLegacyMultiDex(BuildType buildType, ProductFlavor mergedFlavor) {
-    if (buildType.getMultiDexEnabled() != null) {
-      return buildType.getMultiDexEnabled();
-    }
-    if (mergedFlavor.getMultiDexEnabled() != null) {
-      return mergedFlavor.getMultiDexEnabled();
-    }
-    return false;
-  }
-
-  /**
-   * Checks whether the app associated with the given module is capable of being run time patched
-   * (whether or not it's running). This checks whether we have a Gradle project, and if that
-   * Gradle project is using a recent enough Gradle plugin with incremental support, etc. It
-   * also checks whether the user has disabled instant run.
-   *
-   * @param module a module context, normally the main app module (but if it's a library module
-   *               the infrastructure will look for other app modules
-   * @return true if the app is using an incremental support enabled Gradle plugin
-   */
-  public static boolean variantSupportsInstantRun(@NotNull Module module) {
-    if (!InstantRunSettings.isInstantRunEnabled(module.getProject())) {
-      return false;
-    }
-
-    return variantSupportsInstantRun(getAppModel(module));
-  }
-
-  public static boolean variantSupportsInstantRun(@Nullable AndroidGradleModel model) {
+  private static boolean variantSupportsInstantRun(@Nullable AndroidGradleModel model) {
     if (model == null) {
       return false;
     }
@@ -341,6 +325,17 @@ public final class InstantRunManager implements ProjectComponent {
       LOG.info("Instant Run not supported by current variant: " + version);
       return false;
     }
+  }
+
+  // TODO: Move this logic to Variant, so we don't have to duplicate it in AS.
+  private static boolean isLegacyMultiDex(@NotNull BuildType buildType, @NotNull ProductFlavor mergedFlavor) {
+    if (buildType.getMultiDexEnabled() != null) {
+      return buildType.getMultiDexEnabled();
+    }
+    if (mergedFlavor.getMultiDexEnabled() != null) {
+      return mergedFlavor.getMultiDexEnabled();
+    }
+    return false;
   }
 
   /** Returns true if Instant Run is supported for this gradle model (whether or not it's enabled) */
