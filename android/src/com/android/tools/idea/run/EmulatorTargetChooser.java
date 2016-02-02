@@ -21,7 +21,8 @@ import com.android.prefs.AndroidLocation;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
-import com.android.tools.idea.avdmanager.AvdManagerConnection;
+import com.android.tools.idea.avdmanager.AvdEditWizard;
+import com.android.tools.idea.avdmanager.AvdListDialog;
 import com.google.common.collect.ImmutableList;
 import com.intellij.CommonBundle;
 import com.intellij.openapi.diagnostic.Logger;
@@ -126,15 +127,16 @@ public class EmulatorTargetChooser {
     return UIUtil.invokeAndWaitIfNeeded(new Computable<String>() {
       @Override
       public String compute() {
-        CreateAvdDialog dialog = new CreateAvdDialog(project, myFacet, finalManager, true, true);
-        dialog.show();
-        if (dialog.getExitCode() == DialogWrapper.OK_EXIT_CODE) {
-          AvdInfo createdAvd = dialog.getCreatedAvd();
-          if (createdAvd != null) {
-            return createdAvd.getName();
-          }
+        int result = Messages.showDialog(project, "To run using the emulator, you must have an AVD defined.", "Define AVD",
+                                         new String[]{"Cancel", "Create AVD"}, 1, null);
+        AvdInfo createdAvd = null;
+        if (result == 1) {
+          AvdEditWizard dialog = new AvdEditWizard(null, project, null, null, true);
+          dialog.init();
+          dialog.show();
+          createdAvd = dialog.getCreatedAvd();
         }
-        return null;
+        return createdAvd == null ? null : createdAvd.getName();
       }
     });
   }
