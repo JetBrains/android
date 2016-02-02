@@ -15,16 +15,15 @@
  */
 package com.android.tools.idea.run;
 
-import com.android.annotations.Nullable;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
+import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Abi;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.ddms.DeviceNameRendererEx;
 import com.android.tools.idea.ddms.DevicePropertyUtil;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.ide.ui.search.SearchUtil;
@@ -36,7 +35,9 @@ import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.SimpleTextAttributes;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.util.EnumSet;
 import java.util.List;
 
 public class ConnectedAndroidDevice implements AndroidDevice {
@@ -133,7 +134,7 @@ public class ConnectedAndroidDevice implements AndroidDevice {
   }
 
   @Override
-  public void renderName(@NotNull SimpleColoredComponent renderer, boolean isCompatible, @org.jetbrains.annotations.Nullable @Nullable String searchPrefix) {
+  public void renderName(@NotNull SimpleColoredComponent renderer, boolean isCompatible, @Nullable String searchPrefix) {
     if (myDeviceNameRenderer != null) {
       myDeviceNameRenderer.render(myDevice, renderer);
       return;
@@ -199,9 +200,11 @@ public class ConnectedAndroidDevice implements AndroidDevice {
     return null;
   }
 
-  @Nullable
   @Override
-  public String getError() {
-    return null;
+  @NotNull
+  public LaunchCompatibility canRun(@NotNull AndroidVersion minSdkVersion,
+                                    @NotNull IAndroidTarget projectTarget,
+                                    @NotNull EnumSet<IDevice.HardwareFeature> requiredFeatures) {
+    return LaunchCompatibility.canRunOnDevice(minSdkVersion, projectTarget, requiredFeatures, this);
   }
 }
