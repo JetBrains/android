@@ -26,16 +26,16 @@ import javax.swing.*;
 
 import static com.intellij.util.PlatformIcons.LIBRARY_ICON;
 
-public class PsdAndroidLibraryDependencyEditor extends PsdAndroidDependencyEditor {
+public class PsdAndroidLibraryDependencyModel extends PsdAndroidDependencyModel {
   @NotNull private final ArtifactDependencySpec mySpec;
 
   @Nullable private final AndroidLibrary myGradleModel;
   @Nullable private final ArtifactDependencyModel myParsedModel;
 
-  PsdAndroidLibraryDependencyEditor(@NotNull PsdAndroidModuleEditor parent,
-                                    @NotNull ArtifactDependencySpec spec,
-                                    @Nullable AndroidLibrary gradleModel,
-                                    @Nullable ArtifactDependencyModel parsedModel) {
+  PsdAndroidLibraryDependencyModel(@NotNull PsdAndroidModuleModel parent,
+                                   @NotNull ArtifactDependencySpec spec,
+                                   @Nullable AndroidLibrary gradleModel,
+                                   @Nullable ArtifactDependencyModel parsedModel) {
     super(parent);
     mySpec = spec;
     myGradleModel = gradleModel;
@@ -73,7 +73,7 @@ public class PsdAndroidLibraryDependencyEditor extends PsdAndroidDependencyEdito
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    PsdAndroidLibraryDependencyEditor that = (PsdAndroidLibraryDependencyEditor)o;
+    PsdAndroidLibraryDependencyModel that = (PsdAndroidLibraryDependencyModel)o;
     return Objects.equal(mySpec, that.mySpec);
   }
 

@@ -19,7 +19,7 @@ import com.android.builder.model.*;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpec;
-import com.android.tools.idea.gradle.structure.model.PsdParsedDependencies;
+import com.android.tools.idea.gradle.structure.model.PsdParsedDependencyModels;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -29,23 +29,23 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.Map;
 
-class PsdAndroidDependencyEditors {
-  @NotNull private final PsdAndroidModuleEditor myParent;
+class PsdAndroidDependencyModels {
+  @NotNull private final PsdAndroidModuleModel myParent;
 
   // Key:
   // - For artifact dependencies: artifact spec, "com.google.guava:guava:19.0"
   // - For module dependencies: module's Gradle path
-  @NotNull private final Map<String, PsdAndroidDependencyEditor> myDependencyEditors = Maps.newHashMap();
+  @NotNull private final Map<String, PsdAndroidDependencyModel> myDependencyModels = Maps.newHashMap();
 
-  PsdAndroidDependencyEditors(@NotNull PsdAndroidModuleEditor parent) {
+  PsdAndroidDependencyModels(@NotNull PsdAndroidModuleModel parent) {
     myParent = parent;
-    for (PsdVariantEditor variantEditor : parent.getVariantEditors()) {
-      addDependencies(variantEditor);
+    for (PsdVariantModel variantModel : parent.getVariantModels()) {
+      addDependencies(variantModel);
     }
   }
 
-  private void addDependencies(@NotNull PsdVariantEditor variantEditor) {
-    Variant variant = variantEditor.getGradleModel();
+  private void addDependencies(@NotNull PsdVariantModel variantModel) {
+    Variant variant = variantModel.getGradleModel();
     if (variant != null) {
       AndroidArtifact mainArtifact = variant.getMainArtifact();
       Dependencies dependencies = mainArtifact.getDependencies();
@@ -57,14 +57,14 @@ class PsdAndroidDependencyEditors {
         }
         else {
           // This is an AAR
-          addAndroidLibrary(androidLibrary, variantEditor);
+          addAndroidLibrary(androidLibrary, variantModel);
         }
       }
     }
   }
 
-  private void addAndroidLibrary(@NotNull AndroidLibrary androidLibrary, @NotNull PsdVariantEditor variantEditor) {
-    PsdParsedDependencies parsedDependencies = myParent.getParsedDependencies();
+  private void addAndroidLibrary(@NotNull AndroidLibrary androidLibrary, @NotNull PsdVariantModel variantModel) {
+    PsdParsedDependencyModels parsedDependencies = myParent.getParsedDependencyModels();
 
     MavenCoordinates coordinates = androidLibrary.getResolvedCoordinates();
     if (coordinates != null) {
@@ -80,8 +80,8 @@ class PsdAndroidDependencyEditors {
           if (parsedVersion != null && compare(parsedVersion, versionFromGradle) == 0) {
             // Match.
             ArtifactDependencySpec spec = matchingParsedDependency.getSpec();
-            PsdAndroidDependencyEditor dependencyEditor = createOrGetEditor(spec, androidLibrary, matchingParsedDependency);
-            dependencyEditor.addContainer(variantEditor);
+            PsdAndroidDependencyModel dependencyModel = createOrGetModel(spec, androidLibrary, matchingParsedDependency);
+            dependencyModel.addContainer(variantModel);
           }
           else {
             // TODO: handle a mismatch
@@ -91,8 +91,8 @@ class PsdAndroidDependencyEditors {
       else {
         // This dependency was not declared, it could be a transitive one.
         ArtifactDependencySpec spec = createSpec(coordinates);
-        PsdAndroidDependencyEditor dependencyEditor = createOrGetEditor(spec, androidLibrary, null);
-        dependencyEditor.addContainer(variantEditor);
+        PsdAndroidDependencyModel dependencyModel = createOrGetModel(spec, androidLibrary, null);
+        dependencyModel.addContainer(variantModel);
       }
     }
   }
@@ -123,16 +123,16 @@ class PsdAndroidDependencyEditors {
   }
 
   @NotNull
-  private PsdAndroidDependencyEditor createOrGetEditor(@NotNull ArtifactDependencySpec spec,
-                                                       @NotNull AndroidLibrary androidLibrary,
-                                                       @Nullable ArtifactDependencyModel parsedDependency) {
+  private PsdAndroidDependencyModel createOrGetModel(@NotNull ArtifactDependencySpec spec,
+                                                     @NotNull AndroidLibrary androidLibrary,
+                                                     @Nullable ArtifactDependencyModel parsedDependency) {
     String key = spec.toString();
-    PsdAndroidDependencyEditor dependencyEditor = myDependencyEditors.get(key);
-    if (dependencyEditor == null) {
-      dependencyEditor = new PsdAndroidLibraryDependencyEditor(myParent, spec, androidLibrary, parsedDependency);
-      myDependencyEditors.put(key, dependencyEditor);
+    PsdAndroidDependencyModel dependencyModel = myDependencyModels.get(key);
+    if (dependencyModel == null) {
+      dependencyModel = new PsdAndroidLibraryDependencyModel(myParent, spec, androidLibrary, parsedDependency);
+      myDependencyModels.put(key, dependencyModel);
     }
-    return dependencyEditor;
+    return dependencyModel;
   }
 
   @NotNull
@@ -142,13 +142,13 @@ class PsdAndroidDependencyEditors {
   }
 
   @NotNull
-  List<PsdAndroidDependencyEditor> getDeclaredDependencies() {
-    List<PsdAndroidDependencyEditor> editors = Lists.newArrayList();
-    for (PsdAndroidDependencyEditor editor : myDependencyEditors.values()) {
-      if (editor.isEditable()) {
-        editors.add(editor);
+  List<PsdAndroidDependencyModel> getDeclaredDependencies() {
+    List<PsdAndroidDependencyModel> models = Lists.newArrayList();
+    for (PsdAndroidDependencyModel model : myDependencyModels.values()) {
+      if (model.isEditable()) {
+        models.add(model);
       }
     }
-    return editors;
+    return models;
   }
 }
