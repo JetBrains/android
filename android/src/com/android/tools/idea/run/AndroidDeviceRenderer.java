@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.run;
 
-import com.android.tools.idea.run.editor.DevicePicker;
-import com.intellij.ui.*;
+import com.intellij.ui.ColoredListCellRenderer;
+import com.intellij.ui.SimpleTextAttributes;
+import com.intellij.ui.SpeedSearchBase;
+import com.intellij.ui.TitledSeparator;
 import com.intellij.util.ThreeState;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
@@ -90,19 +92,6 @@ public class AndroidDeviceRenderer extends ColoredListCellRenderer<DevicePickerE
   }
 
   private static Component renderEmptyMarker(@NotNull String title) {
-    JLabel label = new JLabel(title);
-    return label;
-  }
-
-  private static Component renderNoDevicesPrompt(@NotNull String message) {
-    EditorNotificationPanel panel = new EditorNotificationPanel();
-    panel.setText(message);
-    panel.createActionLabel("Troubleshoot", new Runnable() {
-      @Override
-      public void run() {
-        DevicePicker.launchDiagnostics(null);
-      }
-    });
-    return panel;
+    return new JLabel(title);
   }
 }
