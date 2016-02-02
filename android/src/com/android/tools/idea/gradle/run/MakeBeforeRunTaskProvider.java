@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.run;
 
-import com.android.tools.idea.fd.InstantRunStatsService;
 import com.android.tools.idea.gradle.GradleModel;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
@@ -235,9 +234,6 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
         return false;
       }
 
-      InstantRunStatsService statsService = InstantRunStatsService.get(myProject);
-      statsService.notifyBuildStarted();
-
       // To ensure that the "Run Configuration" waits for the Gradle tasks to be executed, we use SwingUtilities.invokeAndWait. I tried
       // using Application.invokeAndWait but it never worked. IDEA also uses SwingUtilities in this scenario (see CompileStepBeforeRun.)
       SwingUtilities.invokeAndWait(new Runnable() {
@@ -249,7 +245,6 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
       });
 
       done.waitFor();
-      statsService.notifyBuildComplete();
     }
     catch (Throwable t) {
       LOG.info("Unable to launch '" + TASK_NAME + "' task", t);

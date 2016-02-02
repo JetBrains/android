@@ -17,6 +17,7 @@ package com.android.tools.idea.run;
 
 import com.android.tools.idea.fd.InstantRunBuildInfo;
 import com.android.tools.idea.fd.InstantRunManager;
+import com.android.tools.idea.fd.InstantRunStatsService;
 import com.android.tools.idea.fd.InstantRunUtils;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.run.tasks.LaunchTasksProvider;
@@ -52,6 +53,8 @@ public class AndroidLaunchTasksProviderFactory implements LaunchTasksProviderFac
   @NotNull
   @Override
   public LaunchTasksProvider get() {
+    InstantRunStatsService.get(myEnv.getProject()).notifyDeployStarted();
+
     if (InstantRunUtils.isInstantRunEnabled(myEnv) && canHotSwap()) {
       return new HotSwapTasksProvider(myRunConfig, myEnv, myFacet, myApkProvider, myLaunchOptions);
     }
