@@ -406,7 +406,6 @@ public class StateListPicker extends JPanel {
 
       myResourceComponent = new ResourceComponent(project, true);
       add(myResourceComponent);
-      myResourceComponent.setVariantComboVisible(false);
 
       myAlphaComponent = new SwatchComponent(project, true);
       add(myAlphaComponent);
