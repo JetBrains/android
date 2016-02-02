@@ -25,34 +25,34 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-class PsdVariantEditors {
-  @NotNull private final Map<String, PsdVariantEditor> myVariantEditorsByName = Maps.newHashMap();
+class PsdVariantModels {
+  @NotNull private final Map<String, PsdVariantModel> myVariantModelsByName = Maps.newHashMap();
 
-  PsdVariantEditors(@NotNull PsdAndroidModuleEditor parent) {
+  PsdVariantModels(@NotNull PsdAndroidModuleModel parent) {
     for (Variant variant : parent.getGradleModel().getAndroidProject().getVariants()) {
-      List<String> productFlavorEditors = Lists.newArrayList();
+      List<String> productFlavorModels = Lists.newArrayList();
       for (String productFlavor : variant.getProductFlavors()) {
-        PsdProductFlavorEditor productFlavorEditor = parent.findProductFlavorEditor(productFlavor);
-        if (productFlavorEditor != null) {
-          productFlavorEditors.add(productFlavorEditor.getName());
+        PsdProductFlavorModel productFlavorModel = parent.findProductFlavorModel(productFlavor);
+        if (productFlavorModel != null) {
+          productFlavorModels.add(productFlavorModel.getName());
         }
         else {
           // TODO handle case when product flavor is not found.
         }
       }
 
-      PsdVariantEditor variantEditor = new PsdVariantEditor(parent, variant.getName(), productFlavorEditors, variant);
-      myVariantEditorsByName.put(variant.getName(), variantEditor);
+      PsdVariantModel variantModel = new PsdVariantModel(parent, variant.getName(), productFlavorModels, variant);
+      myVariantModelsByName.put(variant.getName(), variantModel);
     }
   }
 
   @Nullable
-  PsdVariantEditor find(@NotNull String variantName) {
-    return myVariantEditorsByName.get(variantName);
+  PsdVariantModel find(@NotNull String variantName) {
+    return myVariantModelsByName.get(variantName);
   }
 
   @NotNull
-  Collection<PsdVariantEditor> getValues() {
-    return myVariantEditorsByName.values();
+  Collection<PsdVariantModel> getValues() {
+    return myVariantModelsByName.values();
   }
 }

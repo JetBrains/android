@@ -15,10 +15,9 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.dependencies;
 
-import com.android.tools.idea.gradle.structure.model.android.PsdAndroidDependencyEditor;
-import com.android.tools.idea.gradle.structure.model.android.PsdAndroidModuleEditor;
+import com.android.tools.idea.gradle.structure.model.android.PsdAndroidDependencyModel;
+import com.android.tools.idea.gradle.structure.model.android.PsdAndroidModuleModel;
 import com.intellij.ui.IdeBorderFactory;
-import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.table.TableView;
 import org.jetbrains.annotations.NotNull;
 
@@ -26,23 +25,24 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.List;
 
+import static com.intellij.ui.ScrollPaneFactory.createScrollPane;
 import static javax.swing.ListSelectionModel.MULTIPLE_INTERVAL_SELECTION;
 
 /**
  * Panel that displays the table of "editable" dependencies.
  */
 class EditableDependenciesPanel extends JPanel {
-  @NotNull private final PsdAndroidModuleEditor myModuleEditor;
-  private final TableView<PsdAndroidDependencyEditor> myDependencyTable;
+  @NotNull private final PsdAndroidModuleModel myModuleModel;
+  private final TableView<PsdAndroidDependencyModel> myDependencyTable;
 
-  EditableDependenciesPanel(@NotNull PsdAndroidModuleEditor moduleEditor) {
+  EditableDependenciesPanel(@NotNull PsdAndroidModuleModel moduleModel) {
     super(new BorderLayout());
-    myModuleEditor = moduleEditor;
+    myModuleModel = moduleModel;
 
-    List<PsdAndroidDependencyEditor> dependencies = myModuleEditor.getDeclaredDependencies();
+    List<PsdAndroidDependencyModel> dependencies = myModuleModel.getDeclaredDependencies();
     EditableDependenciesTableModel tableModel = new EditableDependenciesTableModel(dependencies);
 
-    myDependencyTable = new TableView<PsdAndroidDependencyEditor>(tableModel);
+    myDependencyTable = new TableView<PsdAndroidDependencyModel>(tableModel);
     if (!dependencies.isEmpty()) {
       myDependencyTable.changeSelection(0, 0, false, false);
     }
@@ -57,7 +57,7 @@ class EditableDependenciesPanel extends JPanel {
 
     myDependencyTable.getSelectionModel().setSelectionMode(MULTIPLE_INTERVAL_SELECTION);
 
-    JBScrollPane scrollPane = new JBScrollPane(myDependencyTable);
+    JScrollPane scrollPane = createScrollPane(myDependencyTable);
     scrollPane.setBorder(IdeBorderFactory.createEmptyBorder());
     add(scrollPane, BorderLayout.CENTER);
 

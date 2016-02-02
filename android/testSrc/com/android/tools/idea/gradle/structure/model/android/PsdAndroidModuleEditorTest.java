@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.structure.model.android;
 
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
-import com.android.tools.idea.gradle.structure.model.PsdProjectEditor;
+import com.android.tools.idea.gradle.structure.model.PsdProjectModel;
 import com.android.tools.idea.templates.AndroidGradleTestCase;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -31,26 +31,26 @@ import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAct
 import static org.fest.assertions.Assertions.assertThat;
 
 /**
- * Tests for {@link PsdAndroidModuleEditor}.
+ * Tests for {@link PsdAndroidModuleModel}.
  */
 public class PsdAndroidModuleEditorTest extends AndroidGradleTestCase {
   public void testProductFlavors() throws Throwable {
     loadProject("projects/projectWithAppandLib");
 
     Project project = myFixture.getProject();
-    PsdProjectEditor projectEditor = new PsdProjectEditor(project);
+    PsdProjectModel projectEditor = new PsdProjectModel(project);
 
-    PsdAndroidModuleEditor appModuleEditor = (PsdAndroidModuleEditor)projectEditor.findEditorForModule("app");
+    PsdAndroidModuleModel appModuleEditor = (PsdAndroidModuleModel)projectEditor.findModelForModule("app");
     assertNotNull(appModuleEditor);
 
-    Collection<PsdProductFlavorEditor> flavorEditors = appModuleEditor.getProductFlavorEditors();
+    Collection<PsdProductFlavorModel> flavorEditors = appModuleEditor.getProductFlavorModels();
     assertThat(flavorEditors).hasSize(2);
 
-    PsdProductFlavorEditor basic = appModuleEditor.findProductFlavorEditor("basic");
+    PsdProductFlavorModel basic = appModuleEditor.findProductFlavorModel("basic");
     assertNotNull(basic);
     assertTrue(basic.isEditable());
 
-    PsdProductFlavorEditor release = appModuleEditor.findProductFlavorEditor("paid");
+    PsdProductFlavorModel release = appModuleEditor.findProductFlavorModel("paid");
     assertNotNull(release);
     assertTrue(release.isEditable());
   }
@@ -59,30 +59,30 @@ public class PsdAndroidModuleEditorTest extends AndroidGradleTestCase {
     loadProject("projects/projectWithAppandLib");
 
     Project project = myFixture.getProject();
-    PsdProjectEditor projectEditor = new PsdProjectEditor(project);
+    PsdProjectModel projectEditor = new PsdProjectModel(project);
 
-    PsdAndroidModuleEditor appModuleEditor = (PsdAndroidModuleEditor)projectEditor.findEditorForModule("app");
+    PsdAndroidModuleModel appModuleEditor = (PsdAndroidModuleModel)projectEditor.findModelForModule("app");
     assertNotNull(appModuleEditor);
 
-    Collection<PsdVariantEditor> variantEditors = appModuleEditor.getVariantEditors();
+    Collection<PsdVariantModel> variantEditors = appModuleEditor.getVariantModels();
     assertThat(variantEditors).hasSize(4);
 
-    PsdVariantEditor paidDebug = appModuleEditor.findVariantEditor("paidDebug");
+    PsdVariantModel paidDebug = appModuleEditor.findVariantModel("paidDebug");
     assertNotNull(paidDebug);
     List<String> flavors = paidDebug.getProductFlavors();
     assertThat(flavors).containsOnly("paid");
 
-    PsdVariantEditor paidRelease = appModuleEditor.findVariantEditor("paidRelease");
+    PsdVariantModel paidRelease = appModuleEditor.findVariantModel("paidRelease");
     assertNotNull(paidRelease);
     flavors = paidRelease.getProductFlavors();
     assertThat(flavors).containsOnly("paid");
 
-    PsdVariantEditor basicDebug = appModuleEditor.findVariantEditor("basicDebug");
+    PsdVariantModel basicDebug = appModuleEditor.findVariantModel("basicDebug");
     assertNotNull(basicDebug);
     flavors = basicDebug.getProductFlavors();
     assertThat(flavors).containsOnly("basic");
 
-    PsdVariantEditor basicRelease = appModuleEditor.findVariantEditor("basicRelease");
+    PsdVariantModel basicRelease = appModuleEditor.findVariantModel("basicRelease");
     assertNotNull(basicRelease);
     flavors = basicRelease.getProductFlavors();
     assertThat(flavors).containsOnly("basic");
@@ -115,16 +115,16 @@ public class PsdAndroidModuleEditorTest extends AndroidGradleTestCase {
     //noinspection ConstantConditions
     importProject(project, project.getName(), new File(project.getBasePath()), null);
 
-    PsdProjectEditor projectEditor = new PsdProjectEditor(project);
+    PsdProjectModel projectEditor = new PsdProjectModel(project);
 
-    PsdAndroidModuleEditor appModuleEditor = (PsdAndroidModuleEditor)projectEditor.findEditorForModule("app");
+    PsdAndroidModuleModel appModuleEditor = (PsdAndroidModuleModel)projectEditor.findModelForModule("app");
     assertNotNull(appModuleEditor);
 
-    List<PsdAndroidDependencyEditor> declaredDependencies = appModuleEditor.getDeclaredDependencies();
+    List<PsdAndroidDependencyModel> declaredDependencies = appModuleEditor.getDeclaredDependencies();
     assertThat(declaredDependencies).hasSize(1);
 
     // Verify that appcompat is considered a "editable" dependency, and it was matched properly
-    PsdAndroidLibraryDependencyEditor appCompatV7Editor = (PsdAndroidLibraryDependencyEditor)declaredDependencies.get(0);
+    PsdAndroidLibraryDependencyModel appCompatV7Editor = (PsdAndroidLibraryDependencyModel)declaredDependencies.get(0);
     assertTrue(appCompatV7Editor.isEditable());
     assertEquals("com.android.support:appcompat-v7:23.1.1", appCompatV7Editor.getSpec().toString());
 
@@ -134,7 +134,7 @@ public class PsdAndroidModuleEditorTest extends AndroidGradleTestCase {
 
     // Verify that the variants where appcompat is have editors
     for (String variant : variants) {
-      assertNotNull(appModuleEditor.findVariantEditor(variant));
+      assertNotNull(appModuleEditor.findVariantModel(variant));
     }
   }
 
@@ -142,16 +142,16 @@ public class PsdAndroidModuleEditorTest extends AndroidGradleTestCase {
     loadProject("projects/projectWithAppandLib");
 
     Project project = myFixture.getProject();
-    PsdProjectEditor projectEditor = new PsdProjectEditor(project);
+    PsdProjectModel projectEditor = new PsdProjectModel(project);
 
-    PsdAndroidModuleEditor appModuleEditor = (PsdAndroidModuleEditor)projectEditor.findEditorForModule("app");
+    PsdAndroidModuleModel appModuleEditor = (PsdAndroidModuleModel)projectEditor.findModelForModule("app");
     assertNotNull(appModuleEditor);
 
-    List<PsdAndroidDependencyEditor> declaredDependencies = appModuleEditor.getDeclaredDependencies();
+    List<PsdAndroidDependencyModel> declaredDependencies = appModuleEditor.getDeclaredDependencies();
     assertThat(declaredDependencies).hasSize(1);
 
     // Verify that appcompat is considered a "editable" dependency, and it was matched properly
-    PsdAndroidLibraryDependencyEditor appCompatV7Editor = (PsdAndroidLibraryDependencyEditor)declaredDependencies.get(0);
+    PsdAndroidLibraryDependencyModel appCompatV7Editor = (PsdAndroidLibraryDependencyModel)declaredDependencies.get(0);
     assertTrue(appCompatV7Editor.isEditable());
     assertEquals("com.android.support:appcompat-v7:+", appCompatV7Editor.getSpec().toString());
 
@@ -161,7 +161,7 @@ public class PsdAndroidModuleEditorTest extends AndroidGradleTestCase {
 
     // Verify that the variants where appcompat is have editors
     for (String variant : variants) {
-      assertNotNull(appModuleEditor.findVariantEditor(variant));
+      assertNotNull(appModuleEditor.findVariantModel(variant));
     }
   }
 }

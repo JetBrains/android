@@ -16,8 +16,8 @@
 package com.android.tools.idea.gradle.structure.configurables.dependencies;
 
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpec;
-import com.android.tools.idea.gradle.structure.model.android.PsdAndroidDependencyEditor;
-import com.android.tools.idea.gradle.structure.model.android.PsdAndroidLibraryDependencyEditor;
+import com.android.tools.idea.gradle.structure.model.android.PsdAndroidDependencyModel;
+import com.android.tools.idea.gradle.structure.model.android.PsdAndroidLibraryDependencyModel;
 import com.intellij.util.ui.ColumnInfo;
 import com.intellij.util.ui.ListTableModel;
 import org.jetbrains.annotations.NotNull;
@@ -34,31 +34,31 @@ import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
 /**
  * Model for the table displaying the "editable" dependencies of a module.
  */
-class EditableDependenciesTableModel extends ListTableModel<PsdAndroidDependencyEditor> {
+class EditableDependenciesTableModel extends ListTableModel<PsdAndroidDependencyModel> {
   // Allows users to show/hide artifact's group ID (hide in the case of lack of horizontal space.)
   private boolean myShowGroupIds;
 
-  EditableDependenciesTableModel(List<PsdAndroidDependencyEditor> dependencies) {
+  EditableDependenciesTableModel(List<PsdAndroidDependencyModel> dependencies) {
     createAndSetColumnInfos();
     setItems(dependencies);
   }
 
   private void createAndSetColumnInfos() {
-    ColumnInfo<PsdAndroidDependencyEditor, String> specColumnInfo = new ColumnInfo<PsdAndroidDependencyEditor, String>("Dependency") {
+    ColumnInfo<PsdAndroidDependencyModel, String> specColumnInfo = new ColumnInfo<PsdAndroidDependencyModel, String>("Dependency") {
       @Override
       @NotNull
-      public String valueOf(PsdAndroidDependencyEditor editor) {
-        if (editor instanceof PsdAndroidLibraryDependencyEditor && !myShowGroupIds) {
-          ArtifactDependencySpec spec = ((PsdAndroidLibraryDependencyEditor)editor).getSpec();
+      public String valueOf(PsdAndroidDependencyModel model) {
+        if (model instanceof PsdAndroidLibraryDependencyModel && !myShowGroupIds) {
+          ArtifactDependencySpec spec = ((PsdAndroidLibraryDependencyModel)model).getSpec();
           return spec.name + GRADLE_PATH_SEPARATOR + spec.version;
         }
-        return editor.getValueAsText();
+        return model.getValueAsText();
       }
 
       @Override
       @NotNull
-      public TableCellRenderer getRenderer(PsdAndroidDependencyEditor editor) {
-        return new DependencyCellRenderer(editor);
+      public TableCellRenderer getRenderer(PsdAndroidDependencyModel model) {
+        return new DependencyCellRenderer(model);
       }
 
       @Override
@@ -69,11 +69,11 @@ class EditableDependenciesTableModel extends ListTableModel<PsdAndroidDependency
       }
     };
 
-    ColumnInfo<PsdAndroidDependencyEditor, String> scopeColumnInfo = new ColumnInfo<PsdAndroidDependencyEditor, String>("Scope") {
+    ColumnInfo<PsdAndroidDependencyModel, String> scopeColumnInfo = new ColumnInfo<PsdAndroidDependencyModel, String>("Scope") {
       @Override
       @Nullable
-      public String valueOf(PsdAndroidDependencyEditor editor) {
-        return editor.getConfigurationName();
+      public String valueOf(PsdAndroidDependencyModel model) {
+        return model.getConfigurationName();
       }
 
       @Override
@@ -88,20 +88,20 @@ class EditableDependenciesTableModel extends ListTableModel<PsdAndroidDependency
   }
 
   class DependencyCellRenderer extends DefaultTableCellRenderer {
-    @NotNull private final PsdAndroidDependencyEditor myEditor;
+    @NotNull private final PsdAndroidDependencyModel myModel;
 
-    DependencyCellRenderer(@NotNull PsdAndroidDependencyEditor editor) {
-      myEditor = editor;
+    DependencyCellRenderer(@NotNull PsdAndroidDependencyModel model) {
+      myModel = model;
     }
 
     @Override
     public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
       JLabel label = (JLabel)super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-      label.setIcon(myEditor.getIcon());
+      label.setIcon(myModel.getIcon());
       String toolTip = "";
-      if (!myShowGroupIds && myEditor instanceof PsdAndroidLibraryDependencyEditor) {
+      if (!myShowGroupIds && myModel instanceof PsdAndroidLibraryDependencyModel) {
         // Show the complete compact notation (including group ID) if the table hides group ID.
-        toolTip = myEditor.getValueAsText();
+        toolTip = myModel.getValueAsText();
       }
       label.setToolTipText(toolTip);
       return label;
