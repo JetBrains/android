@@ -133,7 +133,7 @@ public class GuiTestRule implements TestRule {
   }
 
   private void tearDown() throws Exception {
-    waitForBackgroundTasks(myRobot);
+    waitForBackgroundTasks();
     printTimestamp();
     printPerfStats();
     List<Throwable> errors = new ArrayList<Throwable>();
@@ -319,6 +319,10 @@ public class GuiTestRule implements TestRule {
       }
       delete(dotIdeaFolderPath);
     }
+  }
+
+  public void waitForBackgroundTasks() {
+    GuiTests.waitForBackgroundTasks(myRobot);
   }
 
   public Robot robot() {
