@@ -1474,7 +1474,7 @@ public class ChooseResourceDialog extends DialogWrapper {
       if (includeFileResources) {
         manager.processFileResources(resourceType, new FileResourceProcessor() {
           @Override
-          public boolean process(@NotNull VirtualFile resFile, @NotNull String resName, @NotNull String resFolderType) {
+          public boolean process(@NotNull VirtualFile resFile, @NotNull String resName) {
             if (fileNames.add(resName)) {
               myItems.add(new ResourceItem(ResourceGroup.this, resName, resFile));
             }
