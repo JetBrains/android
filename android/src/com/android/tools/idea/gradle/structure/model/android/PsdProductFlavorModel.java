@@ -17,19 +17,19 @@ package com.android.tools.idea.gradle.structure.model.android;
 
 import com.android.builder.model.ProductFlavor;
 import com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModel;
-import com.android.tools.idea.gradle.structure.model.PsdChildEditor;
+import com.android.tools.idea.gradle.structure.model.PsdChildModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class PsdProductFlavorEditor extends PsdChildEditor {
+public class PsdProductFlavorModel extends PsdChildModel {
   @Nullable private final ProductFlavor myGradleModel;
   @Nullable private final ProductFlavorModel myParsedModel;
 
   private String myName = "";
 
-  PsdProductFlavorEditor(@NotNull PsdAndroidModuleEditor parent,
-                         @Nullable ProductFlavor gradleModel,
-                         @Nullable ProductFlavorModel parsedModel) {
+  PsdProductFlavorModel(@NotNull PsdAndroidModuleModel parent,
+                        @Nullable ProductFlavor gradleModel,
+                        @Nullable ProductFlavorModel parsedModel) {
     super(parent);
     myGradleModel = gradleModel;
     myParsedModel = parsedModel;
@@ -43,8 +43,8 @@ public class PsdProductFlavorEditor extends PsdChildEditor {
 
   @Override
   @NotNull
-  public PsdAndroidModuleEditor getParent() {
-    return (PsdAndroidModuleEditor)super.getParent();
+  public PsdAndroidModuleModel getParent() {
+    return (PsdAndroidModuleModel)super.getParent();
   }
 
   @Override

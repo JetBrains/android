@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.structure.model;
 
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.structure.model.android.PsdAndroidModuleEditor;
+import com.android.tools.idea.gradle.structure.model.android.PsdAndroidModuleModel;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -28,38 +28,38 @@ import java.util.List;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
 
-public class PsdProjectEditor implements PsdModelEditor {
+public class PsdProjectModel implements PsdModel {
   @NotNull private final Project myProject;
 
-  @NotNull private final List<PsdModuleEditor> myModuleEditors = Lists.newArrayList();
+  @NotNull private final List<PsdModuleModel> myModuleModels = Lists.newArrayList();
 
   private boolean myModified;
 
-  public PsdProjectEditor(@NotNull Project project) {
+  public PsdProjectModel(@NotNull Project project) {
     myProject = project;
 
     for (Module module : ModuleManager.getInstance(myProject).getModules()) {
       String gradlePath = getGradlePath(module);
       if (gradlePath != null) {
         // Only Gradle-based modules are displayed in the PSD.
-        PsdModuleEditor moduleEditor = null;
+        PsdModuleModel moduleModel = null;
 
         AndroidGradleModel gradleModel = AndroidGradleModel.get(module);
         if (gradleModel != null) {
-          moduleEditor = new PsdAndroidModuleEditor(this, module, gradlePath, gradleModel);
+          moduleModel = new PsdAndroidModuleModel(this, module, gradlePath, gradleModel);
         }
-        if (moduleEditor != null) {
-          myModuleEditors.add(moduleEditor);
+        if (moduleModel != null) {
+          myModuleModels.add(moduleModel);
         }
       }
     }
   }
 
   @Nullable
-  public PsdModuleEditor findEditorForModule(@NotNull String moduleName) {
-    for (PsdModuleEditor editor : myModuleEditors) {
-      if (moduleName.equals(editor.getModuleName())) {
-        return editor;
+  public PsdModuleModel findModelForModule(@NotNull String moduleName) {
+    for (PsdModuleModel model : myModuleModels) {
+      if (moduleName.equals(model.getModuleName())) {
+        return model;
       }
     }
     return null;
@@ -71,13 +71,13 @@ public class PsdProjectEditor implements PsdModelEditor {
   }
 
   @NotNull
-  public List<PsdModuleEditor> getModuleEditors() {
-    return myModuleEditors;
+  public List<PsdModuleModel> getModuleModels() {
+    return myModuleModels;
   }
 
   @Override
   @Nullable
-  public PsdModelEditor getParent() {
+  public PsdModel getParent() {
     return null;
   }
 
