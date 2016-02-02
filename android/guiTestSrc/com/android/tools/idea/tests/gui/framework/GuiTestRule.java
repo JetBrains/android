@@ -36,10 +36,10 @@ import org.jdom.input.SAXBuilder;
 import org.jdom.xpath.XPath;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.runner.RunWith;
+import org.junit.rules.TestRule;
+import org.junit.runner.Description;
 import org.junit.runners.model.MultipleFailureException;
+import org.junit.runners.model.Statement;
 
 import java.awt.*;
 import java.io.File;
@@ -63,8 +63,7 @@ import static junit.framework.Assert.assertNotNull;
 import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.junit.Assume.assumeTrue;
 
-@RunWith(GuiTestRunner.class)
-public abstract class GuiTestCase {
+public class GuiTestRule implements TestRule {
   private Robot myRobot;
 
   private File projectPath;
@@ -72,8 +71,24 @@ public abstract class GuiTestCase {
   private final List<GarbageCollectorMXBean> myGarbageCollectorMXBeans = ManagementFactory.getGarbageCollectorMXBeans();
   private final MemoryMXBean myMemoryMXBean = ManagementFactory.getMemoryMXBean();
 
-  @Before
-  public void setUp() throws Exception {
+  @NotNull
+  @Override
+  public Statement apply(final Statement base, final Description description) {
+    return new Statement() {
+      @Override
+      public void evaluate() throws Throwable {
+        try {
+          setUp();
+          base.evaluate();
+        }
+        finally {
+          tearDown();
+        }
+      }
+    };
+  }
+
+  private void setUp() throws Exception {
 
     // There is a race condition between reloading the configuration file after file deletion detected and the serialization of IDEA model
     // we just customized so that modules can't be loaded correctly.
@@ -116,8 +131,7 @@ public abstract class GuiTestCase {
     System.out.printf("non-heap: %s%n", myMemoryMXBean.getNonHeapMemoryUsage());
   }
 
-  @After
-  public void tearDown() throws Exception {
+  private void tearDown() throws Exception {
     waitForBackgroundTasks(myRobot);
     printTimestamp();
     printPerfStats();
@@ -157,25 +171,25 @@ public abstract class GuiTestCase {
     return null;
   }
 
-  protected void importSimpleApplication() throws IOException {
+  public void importSimpleApplication() throws IOException {
     importProjectAndWaitForProjectSyncToFinish("SimpleApplication");
   }
 
-  protected void importMultiModule() throws IOException {
+  public void importMultiModule() throws IOException {
     importProjectAndWaitForProjectSyncToFinish("MultiModule");
   }
 
-  protected void importProjectAndWaitForProjectSyncToFinish(@NotNull String projectDirName) throws IOException {
+  public void importProjectAndWaitForProjectSyncToFinish(@NotNull String projectDirName) throws IOException {
     importProjectAndWaitForProjectSyncToFinish(projectDirName, null);
   }
 
-  protected void importProjectAndWaitForProjectSyncToFinish(@NotNull String projectDirName, @Nullable String gradleVersion)
+  public void importProjectAndWaitForProjectSyncToFinish(@NotNull String projectDirName, @Nullable String gradleVersion)
     throws IOException {
     importProject(projectDirName, gradleVersion);
-    getIdeFrame().waitForGradleProjectSyncToFinish();
+    ideFrame().waitForGradleProjectSyncToFinish();
   }
 
-  protected void importProject(@NotNull String projectDirName) throws IOException {
+  public void importProject(@NotNull String projectDirName) throws IOException {
     importProject(projectDirName, null);
   }
 
@@ -231,7 +245,7 @@ public abstract class GuiTestCase {
     cleanUpProjectForImport(projectPath);
   }
 
-  protected void copyProjectBeforeOpening(@NotNull String projectDirName) throws IOException {
+  public void copyProjectBeforeOpening(@NotNull String projectDirName) throws IOException {
     File masterProjectPath = getMasterProjectDirPath(projectDirName);
 
     setProjectPath(getTestProjectDirPath(projectDirName));
@@ -270,7 +284,7 @@ public abstract class GuiTestCase {
     return new File(getProjectCreationDirPath(), projectDirName);
   }
 
-  protected void cleanUpProjectForImport(@NotNull File projectPath) {
+  public void cleanUpProjectForImport(@NotNull File projectPath) {
     File dotIdeaFolderPath = new File(projectPath, DIRECTORY_BASED_PROJECT_DIR);
     if (dotIdeaFolderPath.isDirectory()) {
       File modulesXmlFilePath = new File(dotIdeaFolderPath, "modules.xml");
@@ -322,7 +336,7 @@ public abstract class GuiTestCase {
   }
 
   @NotNull
-  public IdeFrameFixture getIdeFrame() {
+  public IdeFrameFixture ideFrame() {
     return IdeFrameFixture.find(myRobot, getProjectPath(), null);
   }
 }

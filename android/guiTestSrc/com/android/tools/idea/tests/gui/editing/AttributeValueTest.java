@@ -15,18 +15,25 @@
  */
 package com.android.tools.idea.tests.gui.editing;
 
-import com.android.tools.idea.tests.gui.framework.GuiTestCase;
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import junit.framework.Assert;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.io.IOException;
 
-public class AttributeValueTest extends GuiTestCase {
+@RunWith(GuiTestRunner.class)
+public class AttributeValueTest {
+
+  @Rule public final GuiTestRule guiTest = new GuiTestRule();
+
   @Test
   public void testAttributeValueInput() throws IOException {
-    importProjectAndWaitForProjectSyncToFinish("SimpleApplication");
-    final EditorFixture editor = getIdeFrame().getEditor();
+    guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleApplication");
+    final EditorFixture editor = guiTest.ideFrame().getEditor();
 
     editor.open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR);
     editor.moveTo(editor.findOffset("<TextView|"));

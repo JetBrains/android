@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.tests.gui.editors.translations;
 
-import com.android.tools.idea.tests.gui.framework.GuiTestCase;
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorNotificationPanelFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.TranslationsEditorFixture;
@@ -25,7 +26,9 @@ import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.fixture.FontFixture;
 import org.fest.swing.fixture.JTableCellFixture;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import javax.swing.*;
 import java.io.IOException;
@@ -37,23 +40,27 @@ import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.junit.Assert.*;
 
-public class TranslationsEditorTest extends GuiTestCase {
+@RunWith(GuiTestRunner.class)
+public class TranslationsEditorTest {
+
+  @Rule public final GuiTestRule guiTest = new GuiTestRule();
+
   @Test
   public void testBasics() throws IOException {
-    importSimpleApplication();
+    guiTest.importSimpleApplication();
 
     // open editor on a strings file
     String stringsXmlPath = "app/src/main/res/values/strings.xml";
-    EditorFixture editor = getIdeFrame().getEditor();
+    EditorFixture editor = guiTest.ideFrame().getEditor();
     editor.open(stringsXmlPath, EDITOR);
 
     // make sure the notification is visible, and click on Open Editor to open the translations editor
     EditorNotificationPanelFixture notificationPanel =
-      getIdeFrame().requireEditorNotification("Edit translations for all locales in the translations editor.");
+      guiTest.ideFrame().requireEditorNotification("Edit translations for all locales in the translations editor.");
     notificationPanel.performAction("Open editor");
 
     // Wait for the translations editor table to show up, and the table to be initialized
-    waitUntilFound(robot(), new GenericTypeMatcher<JTable>(JTable.class) {
+    waitUntilFound(guiTest.robot(), new GenericTypeMatcher<JTable>(JTable.class) {
       @Override
       protected boolean isMatching(@NotNull JTable table) {
         return table.getModel() != null && table.getModel().getColumnCount() > 0;

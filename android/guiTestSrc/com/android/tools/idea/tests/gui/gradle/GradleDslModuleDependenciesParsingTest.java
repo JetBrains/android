@@ -19,10 +19,13 @@ import com.android.tools.idea.gradle.dsl.model.dependencies.ModuleDependencyMode
 import com.android.tools.idea.gradle.dsl.model.dependencies.ModuleDependencyTest.ExpectedModuleDependency;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
-import com.android.tools.idea.tests.gui.framework.GuiTestCase;
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleBuildModelFixture;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.io.IOException;
 import java.util.List;
@@ -31,7 +34,10 @@ import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPO
 import static org.fest.assertions.Assertions.assertThat;
 
 @BelongsToTestGroups({PROJECT_SUPPORT})
-public class GradleDslModuleDependenciesParsingTest extends GuiTestCase {
+@RunWith(GuiTestRunner.class)
+public class GradleDslModuleDependenciesParsingTest {
+
+  @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
   @Before
   public void skipSourceGenerationOnSync() {
@@ -40,9 +46,9 @@ public class GradleDslModuleDependenciesParsingTest extends GuiTestCase {
 
   @Test
   public void testParsingProjectDependencies() throws IOException {
-    importProjectAndWaitForProjectSyncToFinish("ModuleDependencies");
+    guiTest.importProjectAndWaitForProjectSyncToFinish("ModuleDependencies");
 
-    GradleBuildModelFixture buildModel = getIdeFrame().parseBuildFileForModule("app", true);
+    GradleBuildModelFixture buildModel = guiTest.ideFrame().parseBuildFileForModule("app", true);
 
     List<ModuleDependencyModel> dependencies = buildModel.getTarget().dependencies().modules();
     assertThat(dependencies).hasSize(4);
@@ -75,9 +81,9 @@ public class GradleDslModuleDependenciesParsingTest extends GuiTestCase {
 
   @Test
   public void testRenameProjectDependency() throws IOException {
-    importProjectAndWaitForProjectSyncToFinish("ModuleDependencies");
+    guiTest.importProjectAndWaitForProjectSyncToFinish("ModuleDependencies");
 
-    GradleBuildModelFixture buildModel = getIdeFrame().parseBuildFileForModule("app", true);
+    GradleBuildModelFixture buildModel = guiTest.ideFrame().parseBuildFileForModule("app", true);
 
     List<ModuleDependencyModel> dependencies = buildModel.getTarget().dependencies().modules();
     ModuleDependencyModel dependency = dependencies.get(0);
