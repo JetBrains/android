@@ -551,14 +551,26 @@ public class ResourceHelper {
   /**
    * Returns a {@link StateList} description of the state list value, or null if value is not a state list.
    */
-  @Nullable
+  @Nullable("if there is no statelist with this name")
   public static StateList resolveStateList(@NotNull RenderResources renderResources,
+                                            @NotNull ResourceValue value,
+                                            @NotNull Project project) {
+    return resolveStateList(renderResources, value, project, 0);
+  }
+
+  @Nullable("if there is no statelist with this name")
+  private static StateList resolveStateList(@NotNull RenderResources renderResources,
                                            @NotNull ResourceValue value,
-                                           @NotNull Project project) {
+                                           @NotNull Project project, int depth) {
+    if (depth >= MAX_RESOURCE_INDIRECTION) {
+      LOG.warn("too deep " + value);
+      return null;
+    }
+
     if (value.getValue().startsWith(PREFIX_RESOURCE_REF)) {
       final ResourceValue resValue = renderResources.findResValue(value.getValue(), value.isFramework());
       if (resValue != null) {
-        return resolveStateList(renderResources, resValue, project);
+        return resolveStateList(renderResources, resValue, project, depth + 1);
       }
     }
     else {
