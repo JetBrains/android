@@ -58,6 +58,8 @@ public class ResourceComponent extends JPanel {
     topRowPanel.add(myNameLabel);
     topRowPanel.add(myWarningLabel);
 
+    myVariantCombo.setVisible(false);
+
     topRowPanel.add(Box.createHorizontalGlue());
     topRowPanel.add(myVariantCombo);
     add(topRowPanel, BorderLayout.CENTER);
@@ -109,8 +111,9 @@ public class ResourceComponent extends JPanel {
     }
   }
 
-  public void setVariantsModel(@Nullable ComboBoxModel comboBoxModel) {
-    myVariantCombo.setModel(comboBoxModel != null ? comboBoxModel : new DefaultComboBoxModel());
+  public void setVariantsModel(@NotNull ComboBoxModel comboBoxModel) {
+    myVariantCombo.setModel(comboBoxModel);
+    myVariantCombo.setVisible(comboBoxModel.getSize() > 0);
   }
 
   public void addVariantItemListener(@NotNull ItemListener itemListener) {
@@ -160,10 +163,6 @@ public class ResourceComponent extends JPanel {
 
   public void setCompletionStrings(@NotNull List<String> completions) {
     mySwatchComponent.setCompletionStrings(completions);
-  }
-
-  public void setVariantComboVisible(boolean isVisible) {
-    myVariantCombo.setVisible(isVisible);
   }
 
   @Override

@@ -32,18 +32,19 @@ import java.io.File;
 import java.util.*;
 import javax.swing.*;
 
-public class ResourceDialogSouthPanel {
+public class EditResourcePanel {
   private JTextField myResourceNameField;
   private JBLabel myResourceNameMessage;
   private JPanel myFullPanel;
   private JPanel myExpertPlaceholder;
   private JPanel myExpertPanel;
   private JComboBox myVariantComboBox;
+  private JPanel myEditor;
   private HideableDecorator myExpertDecorator;
 
   private @NotNull List<ResourceItem> myVariants = Collections.emptyList();
 
-  public ResourceDialogSouthPanel() {
+  public EditResourcePanel() {
     Color backgroundColor = EditorColorsManager.getInstance().getGlobalScheme().getColor(EditorColors.NOTIFICATION_BACKGROUND);
     myResourceNameMessage.setBackground(backgroundColor == null ? JBColor.YELLOW : backgroundColor);
     myExpertDecorator = new HideableDecorator(myExpertPlaceholder, "Device Configuration", true) {
@@ -72,7 +73,12 @@ public class ResourceDialogSouthPanel {
     myExpertDecorator.setContentComponent(myExpertPanel);
   }
 
-  public void setExpertPanel(Component comp) {
+  public void setEditor(@NotNull Component editor) {
+    myEditor.removeAll();
+    myEditor.add(editor);
+  }
+
+  public void setExpertPanel(@NotNull Component comp) {
     myExpertPanel.removeAll();
     myExpertPanel.add(comp);
   }
@@ -93,7 +99,7 @@ public class ResourceDialogSouthPanel {
     return myResourceNameField;
   }
 
-  public void setOn(boolean on) {
+  public void setExpertPanelOn(boolean on) {
     myExpertDecorator.setOn(on);
   }
 
@@ -141,7 +147,11 @@ public class ResourceDialogSouthPanel {
     }
     else {
       ComboBoxModel model = myVariantComboBox.getModel();
+      ActionListener[] listeners = myVariantComboBox.getActionListeners();
+      // if we are setting the selected item, we dont want to fire the listoners, as they should only listen to user selection
+      for (ActionListener l : listeners) myVariantComboBox.removeActionListener(l);
       model.setSelectedItem(model.getElementAt(myVariants.indexOf(selectedVariant)));
+      for (ActionListener l : listeners) myVariantComboBox.addActionListener(l);
     }
   }
 }
