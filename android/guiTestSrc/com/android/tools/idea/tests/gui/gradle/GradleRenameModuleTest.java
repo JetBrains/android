@@ -18,14 +18,17 @@ package com.android.tools.idea.tests.gui.gradle;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ModuleDependencyTest.ExpectedModuleDependency;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
-import com.android.tools.idea.tests.gui.framework.GuiTestCase;
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.fixture.InputDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ProjectViewFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.SelectRefactoringDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleBuildModelFixture;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.io.IOException;
 
@@ -34,7 +37,10 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 @BelongsToTestGroups({PROJECT_SUPPORT})
-public class GradleRenameModuleTest extends GuiTestCase {
+@RunWith(GuiTestRunner.class)
+public class GradleRenameModuleTest {
+
+  @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
   @Before
   public void skipSourceGenerationOnSync() {
@@ -43,44 +49,44 @@ public class GradleRenameModuleTest extends GuiTestCase {
 
   @Test
   public void testRenameModule() throws IOException {
-    importSimpleApplication();
+    guiTest.importSimpleApplication();
 
-    ProjectViewFixture.PaneFixture paneFixture = getIdeFrame().getProjectView().selectProjectPane();
+    ProjectViewFixture.PaneFixture paneFixture = guiTest.ideFrame().getProjectView().selectProjectPane();
     paneFixture.selectByPath("SimpleApplication", "app");
     invokeRefactor();
 
-    SelectRefactoringDialogFixture selectRefactoringDialog = SelectRefactoringDialogFixture.findByTitle(robot());
+    SelectRefactoringDialogFixture selectRefactoringDialog = SelectRefactoringDialogFixture.findByTitle(guiTest.robot());
     selectRefactoringDialog.selectRenameModule();
     selectRefactoringDialog.clickOk();
 
-    InputDialogFixture renameModuleDialog = InputDialogFixture.findByTitle(robot(), "Rename Module");
+    InputDialogFixture renameModuleDialog = InputDialogFixture.findByTitle(guiTest.robot(), "Rename Module");
     renameModuleDialog.enterTextAndClickOk("app2");
 
-    getIdeFrame().waitForBackgroundTasksToFinish();
-    assertNotNull(getIdeFrame().findModule("app2"));
-    assertNull("Module 'app' should not exist", getIdeFrame().findModule("app"));
+    guiTest.ideFrame().waitForBackgroundTasksToFinish();
+    assertNotNull(guiTest.ideFrame().findModule("app2"));
+    assertNull("Module 'app' should not exist", guiTest.ideFrame().findModule("app"));
   }
 
   @Test
   public void testRenameModuleAlsoChangeReferencesInBuildFile() throws IOException {
-    importMultiModule();
+    guiTest.importMultiModule();
 
-    ProjectViewFixture.PaneFixture paneFixture = getIdeFrame().getProjectView().selectProjectPane();
+    ProjectViewFixture.PaneFixture paneFixture = guiTest.ideFrame().getProjectView().selectProjectPane();
     paneFixture.selectByPath("MultiModule", "library");
     invokeRefactor();
 
-    SelectRefactoringDialogFixture selectRefactoringDialog = SelectRefactoringDialogFixture.findByTitle(robot());
+    SelectRefactoringDialogFixture selectRefactoringDialog = SelectRefactoringDialogFixture.findByTitle(guiTest.robot());
     selectRefactoringDialog.selectRenameModule();
     selectRefactoringDialog.clickOk();
 
-    InputDialogFixture renameModuleDialog = InputDialogFixture.findByTitle(robot(), "Rename Module");
+    InputDialogFixture renameModuleDialog = InputDialogFixture.findByTitle(guiTest.robot(), "Rename Module");
     renameModuleDialog.enterTextAndClickOk("newLibrary");
 
-    getIdeFrame().waitForBackgroundTasksToFinish();
-    assertNotNull(getIdeFrame().findModule("newLibrary"));
+    guiTest.ideFrame().waitForBackgroundTasksToFinish();
+    assertNotNull(guiTest.ideFrame().findModule("newLibrary"));
 
     // app module has two references to library module
-    GradleBuildModelFixture buildModel = getIdeFrame().parseBuildFileForModule("app", true);
+    GradleBuildModelFixture buildModel = guiTest.ideFrame().parseBuildFileForModule("app", true);
 
     ExpectedModuleDependency expected = new ExpectedModuleDependency();
     expected.configurationName = "debugCompile";
@@ -93,16 +99,16 @@ public class GradleRenameModuleTest extends GuiTestCase {
 
   @Test
   public void testCannotRenameRootModule() throws IOException {
-    importSimpleApplication();
+    guiTest.importSimpleApplication();
 
-    ProjectViewFixture.PaneFixture paneFixture = getIdeFrame().getProjectView().selectProjectPane();
+    ProjectViewFixture.PaneFixture paneFixture = guiTest.ideFrame().getProjectView().selectProjectPane();
     paneFixture.selectByPath("SimpleApplication");
     invokeRefactor();
 
-    InputDialogFixture renameModuleDialog = InputDialogFixture.findByTitle(robot(), "Rename Module");
+    InputDialogFixture renameModuleDialog = InputDialogFixture.findByTitle(guiTest.robot(), "Rename Module");
     renameModuleDialog.enterTextAndClickOk("SimpleApplication2");
 
-    MessagesFixture errorMessage = MessagesFixture.findByTitle(robot(), getIdeFrame().target(), "Rename Module");
+    MessagesFixture errorMessage = MessagesFixture.findByTitle(guiTest.robot(), guiTest.ideFrame().target(), "Rename Module");
     errorMessage.requireMessageContains("Can't rename root module");
 
     errorMessage.clickOk();
@@ -110,20 +116,20 @@ public class GradleRenameModuleTest extends GuiTestCase {
 
   @Test
   public void testCannotRenameToExistedFile() throws IOException {
-    importMultiModule();
+    guiTest.importMultiModule();
 
-    ProjectViewFixture.PaneFixture paneFixture = getIdeFrame().getProjectView().selectProjectPane();
+    ProjectViewFixture.PaneFixture paneFixture = guiTest.ideFrame().getProjectView().selectProjectPane();
     paneFixture.selectByPath("MultiModule", "app");
     invokeRefactor();
 
-    SelectRefactoringDialogFixture selectRefactoringDialog = SelectRefactoringDialogFixture.findByTitle(robot());
+    SelectRefactoringDialogFixture selectRefactoringDialog = SelectRefactoringDialogFixture.findByTitle(guiTest.robot());
     selectRefactoringDialog.selectRenameModule();
     selectRefactoringDialog.clickOk();
 
-    InputDialogFixture renameModuleDialog = InputDialogFixture.findByTitle(robot(), "Rename Module");
+    InputDialogFixture renameModuleDialog = InputDialogFixture.findByTitle(guiTest.robot(), "Rename Module");
     renameModuleDialog.enterTextAndClickOk("library2");
 
-    MessagesFixture errorMessage = MessagesFixture.findByTitle(robot(), getIdeFrame().target(), "Rename Module");
+    MessagesFixture errorMessage = MessagesFixture.findByTitle(guiTest.robot(), guiTest.ideFrame().target(), "Rename Module");
     errorMessage.requireMessageContains("Module named 'library2' already exist");
 
     errorMessage.clickOk();
@@ -132,6 +138,6 @@ public class GradleRenameModuleTest extends GuiTestCase {
   }
 
   private void invokeRefactor() {
-    getIdeFrame().invokeMenuPath("Refactor", "Rename...");
+    guiTest.ideFrame().invokeMenuPath("Refactor", "Rename...");
   }
 }

@@ -17,7 +17,8 @@ package com.android.tools.idea.tests.gui.gradle;
 
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
-import com.android.tools.idea.tests.gui.framework.GuiTestCase;
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
@@ -30,10 +31,8 @@ import com.intellij.ui.tabs.impl.TabLabel;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.*;
+import org.junit.runner.RunWith;
 
 import javax.annotation.Nonnull;
 import java.awt.*;
@@ -48,7 +47,11 @@ import static org.fest.assertions.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 
 @BelongsToTestGroups({PROJECT_SUPPORT})
-public class GradleTestArtifactSyncTest extends GuiTestCase {
+@RunWith(GuiTestRunner.class)
+public class GradleTestArtifactSyncTest {
+
+  @Rule public final GuiTestRule guiTest = new GuiTestRule();
+
   private static final char VIRTUAL_FILE_PATH_SEPARATOR = '/';
 
   private boolean myOriginalLoadAllTestArtifactsValue;
@@ -72,10 +75,10 @@ public class GradleTestArtifactSyncTest extends GuiTestCase {
   @Ignore("failed in http://go/aj/job/studio-ui-test/326 but passed from IDEA")
   @Test
   public void testLoadAllTestArtifacts() throws IOException {
-    importProjectAndWaitForProjectSyncToFinish("LoadMultiTestArtifacts");
-    EditorFixture editor = getIdeFrame().getEditor();
+    guiTest.importProjectAndWaitForProjectSyncToFinish("LoadMultiTestArtifacts");
+    EditorFixture editor = guiTest.ideFrame().getEditor();
 
-    Module appModule = getIdeFrame().getModule("app");
+    Module appModule = guiTest.ideFrame().getModule("app");
     List<String> sourceRootNames = Lists.newArrayList();
     VirtualFile[] sourceRoots = ModuleRootManager.getInstance(appModule).getSourceRoots();
     for (VirtualFile sourceRoot : sourceRoots) {
@@ -112,8 +115,8 @@ public class GradleTestArtifactSyncTest extends GuiTestCase {
 
   @Test
   public void testTestFileBackground() throws Exception {
-    importSimpleApplication();
-    EditorFixture editor = getIdeFrame().getEditor();
+    guiTest.importSimpleApplication();
+    EditorFixture editor = guiTest.ideFrame().getEditor();
 
     editor.open("app/src/test/java/google/simpleapplication/UnitTest.java");
     TabLabel tabLabel = findTab(editor);
@@ -132,7 +135,7 @@ public class GradleTestArtifactSyncTest extends GuiTestCase {
   private TabLabel findTab(@NotNull EditorFixture editor) {
     final VirtualFile file = editor.getCurrentFile();
     assert file != null;
-    return robot().finder().find(new GenericTypeMatcher<TabLabel>(TabLabel.class) {
+    return guiTest.robot().finder().find(new GenericTypeMatcher<TabLabel>(TabLabel.class) {
       @Override
       protected boolean isMatching(@Nonnull TabLabel tabLabel) {
         return tabLabel.getInfo().getText().equals(file.getName());

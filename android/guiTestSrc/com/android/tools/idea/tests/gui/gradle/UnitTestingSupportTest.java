@@ -22,14 +22,20 @@ import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFix
 import com.android.tools.idea.tests.gui.framework.fixture.UnitTestTreeFixture;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.fest.assertions.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 @BelongsToTestGroups({TestGroup.TEST_SUPPORT, TestGroup.PROJECT_SUPPORT})
-public class UnitTestingSupportTest extends GuiTestCase {
+@RunWith(GuiTestRunner.class)
+public class UnitTestingSupportTest {
+
+  @Rule public final GuiTestRule guiTest = new GuiTestRule();
+
   private EditorFixture myEditor;
 
   @Ignore("failed in http://go/aj/job/studio-ui-test/326 and from IDEA")
@@ -55,14 +61,14 @@ public class UnitTestingSupportTest extends GuiTestCase {
    * </ul>
    */
   private void doTest(@NotNull String path, @NotNull String testClass) throws Exception {
-    importProjectAndWaitForProjectSyncToFinish("ProjectWithUnitTests");
+    guiTest.importProjectAndWaitForProjectSyncToFinish("ProjectWithUnitTests");
 
-    BuildVariantsToolWindowFixture buildVariants = getIdeFrame().getBuildVariantsWindow();
+    BuildVariantsToolWindowFixture buildVariants = guiTest.ideFrame().getBuildVariantsWindow();
     buildVariants.activate();
     buildVariants.selectUnitTests();
 
     // Open the test file:
-    myEditor = getIdeFrame().getEditor();
+    myEditor = guiTest.ideFrame().getEditor();
     myEditor.open(path + "/" + testClass + ".java");
 
     // Run the test case that is supposed to pass:
@@ -91,7 +97,7 @@ public class UnitTestingSupportTest extends GuiTestCase {
     myEditor.enterText("6");
 
     runTestUnderCursor();
-    getIdeFrame().waitForBackgroundTasksToFinish();
+    guiTest.ideFrame().waitForBackgroundTasksToFinish();
     unitTestTree = getTestTree(testClass + ".failingTest");
     assertTrue(unitTestTree.isAllTestsPassed());
     assertEquals(1, unitTestTree.getAllTestsCount());
@@ -113,7 +119,7 @@ public class UnitTestingSupportTest extends GuiTestCase {
 
     // Re-run all the tests.
     unitTestTree.getContent().rerun();
-    getIdeFrame().waitForBackgroundTasksToFinish();
+    guiTest.ideFrame().waitForBackgroundTasksToFinish();
     unitTestTree = getTestTree(testClass);
     assertEquals(1, unitTestTree.getFailingTestsCount());
     assertThat(unitTestTree.getAllTestsCount()).isGreaterThan(1);
@@ -126,14 +132,14 @@ public class UnitTestingSupportTest extends GuiTestCase {
 
     // Re-run failed tests.
     unitTestTree.getContent().rerunFailed();
-    getIdeFrame().waitForBackgroundTasksToFinish();
+    guiTest.ideFrame().waitForBackgroundTasksToFinish();
     unitTestTree = getTestTree("Rerun Failed Tests");
     assertTrue(unitTestTree.isAllTestsPassed());
     assertEquals(1, unitTestTree.getAllTestsCount());
 
     // Rebuild the project and run tests again, they should still run and pass.
-    getIdeFrame().invokeMenuPath("Build", "Rebuild Project");
-    getIdeFrame().waitForBackgroundTasksToFinish();
+    guiTest.ideFrame().invokeMenuPath("Build", "Rebuild Project");
+    guiTest.ideFrame().waitForBackgroundTasksToFinish();
 
     myEditor.requestFocus();
     myEditor.moveTo(myEditor.findOffset("class ", testClass, true));
@@ -145,15 +151,15 @@ public class UnitTestingSupportTest extends GuiTestCase {
 
   @NotNull
   private UnitTestTreeFixture getTestTree(@NotNull String tabName) {
-    ContentFixture content = getIdeFrame().getRunToolWindow().findContent(tabName);
+    ContentFixture content = guiTest.ideFrame().getRunToolWindow().findContent(tabName);
     content.waitForExecutionToFinish(GuiTests.SHORT_TIMEOUT);
-    getIdeFrame().waitForBackgroundTasksToFinish();
+    guiTest.ideFrame().waitForBackgroundTasksToFinish();
     return content.getUnitTestTree();
   }
 
   private void runTestUnderCursor() {
     // This only works when there's one applicable run configurations, otherwise a popup would show up.
     myEditor.invokeAction(EditorFixture.EditorAction.RUN_FROM_CONTEXT);
-    getIdeFrame().waitForBackgroundTasksToFinish();
+    guiTest.ideFrame().waitForBackgroundTasksToFinish();
   }
 }

@@ -15,24 +15,30 @@
  */
 package com.android.tools.idea.tests.gui.editing;
 
-import com.android.tools.idea.tests.gui.framework.GuiTestCase;
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.intellij.lang.annotation.HighlightSeverity;
 import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.io.IOException;
 
 /**
  * Checks that a manifest in the test source set can access an activity defined in the same source set.
  */
-public class TestManifestTest extends GuiTestCase {
+@RunWith(GuiTestRunner.class)
+public class TestManifestTest {
+
+  @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
   @Ignore("failed in http://go/aj/job/studio-ui-test/345 and from IDEA")
   @Test
   public void testManifest() throws IOException {
-    importProjectAndWaitForProjectSyncToFinish("ProjectWithUnitTests");
-    EditorFixture editor = getIdeFrame().getEditor();
+    guiTest.importProjectAndWaitForProjectSyncToFinish("ProjectWithUnitTests");
+    EditorFixture editor = guiTest.ideFrame().getEditor();
 
     editor.open("app/src/main/AndroidManifest.xml");
     editor.waitForCodeAnalysisHighlightCount(HighlightSeverity.ERROR, 0);

@@ -17,12 +17,15 @@ package com.android.tools.idea.tests.gui.layout;
 
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
-import com.android.tools.idea.tests.gui.framework.GuiTestCase;
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.LayoutPreviewFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.RenderErrorPanelFixture;
 import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static com.android.tools.idea.tests.gui.framework.TestGroup.LAYOUT;
 import static junit.framework.Assert.assertNotNull;
@@ -35,21 +38,24 @@ import static org.junit.Assert.assertTrue;
  */
 @BelongsToTestGroups({LAYOUT})
 @Ignore("Test in running forever on Jenkins")
-public class CustomComponentsTest extends GuiTestCase {
+@RunWith(GuiTestRunner.class)
+public class CustomComponentsTest {
+
+  @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
   @Test
   public void testClassConverter() throws Exception {
     // Tests that the class converter rewrites the onDraw, onLayout and onMeasure methods to avoid errors from propagating
     // and breaking the rendering.
 
-    importProjectAndWaitForProjectSyncToFinish("CustomComponents");
+    guiTest.importProjectAndWaitForProjectSyncToFinish("CustomComponents");
 
     // Make sure the project is built: we need custom views to run the test
-    GradleInvocationResult result = getIdeFrame().invokeProjectMake();
+    GradleInvocationResult result = guiTest.ideFrame().invokeProjectMake();
     assertTrue(result.isBuildSuccessful());
 
     // Load layout, wait for render to be shown in the preview window
-    EditorFixture editor = getIdeFrame().getEditor();
+    EditorFixture editor = guiTest.ideFrame().getEditor();
     editor.open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN);
     editor.requireName("activity_my.xml");
 
