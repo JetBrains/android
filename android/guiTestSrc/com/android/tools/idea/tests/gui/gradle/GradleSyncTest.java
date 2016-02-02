@@ -183,7 +183,7 @@ public class GradleSyncTest {
     HyperlinkFixture quickFix = quickFixMsg.findHyperlink("Find and include missing modules");
     quickFix.click();
 
-    guiTest.ideFrame().waitForBackgroundTasksToFinish();
+    guiTest.waitForBackgroundTasks();
     guiTest.ideFrame().getModule("javalib1"); // Fails if the module is not found.
   }
 
@@ -327,7 +327,7 @@ public class GradleSyncTest {
     // Installation finished. Click finish to resync project.
     finish.click();
 
-    guiTest.ideFrame().waitForGradleProjectSyncToFinish().waitForBackgroundTasksToFinish();
+    guiTest.ideFrame().waitForGradleProjectSyncToFinish();
 
     assertThat(myAndroidRepoPath).as("Android Support Repository must have been reinstalled").isDirectory();
   }
@@ -483,7 +483,8 @@ public class GradleSyncTest {
     createEmptyGradleSettingsFile(guiTest.ideFrame().getProjectPath());
 
     // Sync should be successful for multi-module projects with an empty settings.gradle file.
-    guiTest.ideFrame().requestProjectSync().waitForBackgroundTasksToFinish();
+    guiTest.ideFrame().requestProjectSync();
+    guiTest.waitForBackgroundTasks();
   }
 
   @Test
@@ -1002,9 +1003,7 @@ public class GradleSyncTest {
     LibraryPropertiesDialogFixture propertiesDialog = guiTest.ideFrame().showPropertiesForLibrary("guava");
     propertiesDialog.addAttachment(javadocJarPath).clickOk();
 
-    guiTest.ideFrame().waitForBackgroundTasksToFinish();
-
-    guiTest.ideFrame().waitForBackgroundTasksToFinish();
+    guiTest.waitForBackgroundTasks();
 
     String javadocJarUrl = pathToUrl(javadocJarPath.getPath());
 
