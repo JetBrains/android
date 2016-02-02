@@ -72,7 +72,7 @@ public class InstantRunWithoutRestart extends AnAction {
     List<IDevice> devices = InstantRunManager.findDevices(project);
     InstantRunManager manager = InstantRunManager.get(project);
     for (IDevice device : devices) {
-      if (!InstantRunManager.variantSupportsInstantRun(module, device.getVersion())) {
+      if (!InstantRunGradleUtils.variantSupportsInstantRun(module, device.getVersion())) {
         continue;
       }
 
@@ -94,7 +94,7 @@ public class InstantRunWithoutRestart extends AnAction {
                                     @NotNull UpdateMode updateMode,
                                     @Nullable Module module,
                                     @NotNull Project project) {
-    AndroidFacet facet = InstantRunManager.findAppModule(module, project);
+    AndroidFacet facet = InstantRunGradleUtils.findAppModule(module, project);
     if (facet != null) {
       AndroidGradleModel model = AndroidGradleModel.get(facet);
       if (model != null) {
@@ -121,7 +121,7 @@ public class InstantRunWithoutRestart extends AnAction {
 
         // Build is done: send message to app etc
 
-        InstantRunBuildInfo buildInfo = InstantRunManager.getBuildInfo(model);
+        InstantRunBuildInfo buildInfo = InstantRunGradleUtils.getBuildInfo(model);
         if (buildInfo != null) {
           try {
             manager.pushArtifacts(device, facet, updateMode, buildInfo);
@@ -133,7 +133,7 @@ public class InstantRunWithoutRestart extends AnAction {
     };
     reference.set(task);
     invoker.addAfterGradleInvocationTask(task);
-    String taskName = InstantRunManager.getIncrementalDexTask(model, facet.getModule());
+    String taskName = InstantRunGradleUtils.getIncrementalDexTask(model, facet.getModule());
     invoker.executeTasks(Collections.singletonList(taskName));
   }
 
