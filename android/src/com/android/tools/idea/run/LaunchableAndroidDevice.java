@@ -18,6 +18,7 @@ package com.android.tools.idea.run;
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
+import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Abi;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.HardwareProperties;
@@ -28,11 +29,13 @@ import com.intellij.ide.ui.search.SearchUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.SimpleTextAttributes;
+import com.intellij.util.ThreeState;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
 
 public class LaunchableAndroidDevice implements AndroidDevice {
@@ -138,10 +141,25 @@ public class LaunchableAndroidDevice implements AndroidDevice {
     }
   }
 
-  @Nullable
   @Override
-  public String getError() {
-    return myAvdInfo.getErrorMessage();
+  @NotNull
+  public LaunchCompatibility canRun(@NotNull AndroidVersion minSdkVersion,
+                                    @NotNull IAndroidTarget projectTarget,
+                                    @NotNull EnumSet<IDevice.HardwareFeature> requiredFeatures) {
+
+    LaunchCompatibility compatibility = LaunchCompatibility.YES;
+
+    if (myAvdInfo.getStatus() != AvdInfo.AvdStatus.OK) {
+      if (AvdManagerConnection.isSystemImageDownloadProblem(myAvdInfo.getStatus())) {
+        // The original error message includes the name of the AVD which is already shown in the UI.
+        // Make the error message simpler here:
+        compatibility = new LaunchCompatibility(ThreeState.UNSURE, "Missing system image");
+      }
+      else {
+        compatibility = new LaunchCompatibility(ThreeState.NO, myAvdInfo.getErrorMessage());
+      }
+    }
+    return compatibility.combine(LaunchCompatibility.canRunOnDevice(minSdkVersion, projectTarget, requiredFeatures, this));
   }
 
   public AvdInfo getAvdInfo() {

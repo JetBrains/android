@@ -98,6 +98,9 @@ public class ShowChooserTargetProvider extends DeployTargetProvider<ShowChooserT
       new DeployTargetPickerDialog(runConfigId, facet, deviceCount, applicableTargets, deployTargetStates);
     if (dialog.showAndGet()) {
       DeployTarget result = dialog.getSelectedDeployTarget();
+      if (result == null) {
+        return null;
+      }
 
       if (showChooserState.USE_LAST_SELECTED_DEVICE) {
         DevicePickerStateService.getInstance(project)
