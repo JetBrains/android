@@ -405,6 +405,17 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
               includeMap.put(layoutName, resource);
             }
           }
+
+          // Deals with tools:layout attribute from fragments
+          NodeList fragmentNodeList = document.getElementsByTagName(VIEW_FRAGMENT);
+          for (int i = 0, n = fragmentNodeList.getLength(); i < n; i++) {
+            Element fragment = (Element)fragmentNodeList.item(i);
+            String included = fragment.getAttributeNS(TOOLS_URI, ATTR_LAYOUT);
+            if (included.startsWith(LAYOUT_RESOURCE_PREFIX)) {
+              String resource = included.substring(LAYOUT_RESOURCE_PREFIX.length());
+              includeMap.put(layoutName, resource);
+            }
+          }
         }
       }
       catch (IOException e) {
