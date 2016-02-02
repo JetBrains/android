@@ -293,7 +293,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     // Make sure instant run is supported on the relevant device, if found.
     AndroidVersion androidVersion = InstantRunManager.getMinDeviceApiLevel(info.getProcessHandler());
     if (InstantRunManager.isInstantRunCapableDeviceVersion(androidVersion)
-        && InstantRunManager.variantSupportsInstantRunOnApi(module, androidVersion)) {
+        && InstantRunManager.variantSupportsInstantRun(module, androidVersion)) {
       return executor instanceof DefaultRunExecutor ? AndroidIcons.RunIcons.Replay : AndroidIcons.RunIcons.DebugReattach;
     }
 
@@ -367,7 +367,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
         new InstantRunUserFeedback(module).info(message);
         LOG.info(message);
       }
-      else if (InstantRunManager.variantSupportsInstantRunOnApi(module, devices.get(0).getVersion())) {
+      else if (InstantRunManager.variantSupportsInstantRun(module, devices.get(0).getVersion())) {
         InstantRunUtils.setInstantRunEnabled(env, true);
         setInstantRunBuildOptions(env, module, deviceFutures);
       }
@@ -407,12 +407,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       return null;
     }
 
-    AndroidGradleModel model = AndroidGradleModel.get(facet);
-    if (!InstantRunManager.variantSupportsInstantRun(model)) {
-      InstantRunManager.LOG.info("Cannot instant run since the gradle version doesn't support it");
-      return null;
-    }
-
     if (!info.getExecutorId().equals(executor.getId())) {
       String msg = String.format("Cannot instant run since old executor (%1$s) doesn't match current executor (%2$s)", info.getExecutorId(),
                                  executor.getId());
@@ -431,8 +425,9 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       return null;
     }
 
+    AndroidGradleModel model = AndroidGradleModel.get(facet);
     AndroidVersion version = devices.get(0).getVersion();
-    if (!InstantRunManager.variantSupportsInstantRunOnApi(facet.getModule(), version)) {
+    if (!InstantRunManager.variantSupportsInstantRun(model, version)) {
       InstantRunManager.LOG.info("Cannot instant run since the current variant doesn't support IR on API: " + version);
       return null;
     }
