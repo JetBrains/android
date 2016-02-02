@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.structure.model.android;
 
-import com.android.tools.idea.gradle.structure.model.PsdChildEditor;
-import com.android.tools.idea.gradle.structure.model.PsdModelEditor;
+import com.android.tools.idea.gradle.structure.model.PsdChildModel;
+import com.android.tools.idea.gradle.structure.model.PsdModel;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
@@ -26,20 +26,20 @@ import javax.swing.*;
 import java.util.List;
 import java.util.Set;
 
-public abstract class PsdAndroidDependencyEditor extends PsdChildEditor {
+public abstract class PsdAndroidDependencyModel extends PsdChildModel {
   @NotNull private final Set<String> myVariants = Sets.newHashSet();
 
-  PsdAndroidDependencyEditor(PsdModelEditor parent) {
+  PsdAndroidDependencyModel(PsdModel parent) {
     super(parent);
   }
 
   @Override
   @NotNull
-  public PsdAndroidModuleEditor getParent() {
-    return (PsdAndroidModuleEditor)super.getParent();
+  public PsdAndroidModuleModel getParent() {
+    return (PsdAndroidModuleModel)super.getParent();
   }
 
-  void addContainer(@NotNull PsdVariantEditor container) {
+  void addContainer(@NotNull PsdVariantModel container) {
     myVariants.add(container.getName());
   }
 

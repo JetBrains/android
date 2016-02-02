@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.structure.model.android;
 
 import com.android.builder.model.Variant;
-import com.android.tools.idea.gradle.structure.model.PsdChildEditor;
+import com.android.tools.idea.gradle.structure.model.PsdChildModel;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
@@ -24,16 +24,16 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class PsdVariantEditor extends PsdChildEditor {
+public class PsdVariantModel extends PsdChildModel {
   @NotNull private final String myName;
   @NotNull private final List<String> myProductFlavors;
 
   @Nullable private final Variant myGradleModel;
 
-  PsdVariantEditor(@NotNull PsdAndroidModuleEditor parent,
-                   @NotNull String name,
-                   @NotNull List<String> productFlavors,
-                   @Nullable Variant gradleModel) {
+  PsdVariantModel(@NotNull PsdAndroidModuleModel parent,
+                  @NotNull String name,
+                  @NotNull List<String> productFlavors,
+                  @Nullable Variant gradleModel) {
     super(parent);
     myName = name;
     myProductFlavors = productFlavors;
@@ -47,8 +47,8 @@ public class PsdVariantEditor extends PsdChildEditor {
 
   @Override
   @NotNull
-  public PsdAndroidModuleEditor getParent() {
-    return (PsdAndroidModuleEditor)super.getParent();
+  public PsdAndroidModuleModel getParent() {
+    return (PsdAndroidModuleModel)super.getParent();
   }
 
   @Nullable
@@ -74,7 +74,7 @@ public class PsdVariantEditor extends PsdChildEditor {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    PsdVariantEditor that = (PsdVariantEditor)o;
+    PsdVariantModel that = (PsdVariantModel)o;
     return Objects.equal(myName, that.myName);
   }
 

@@ -16,8 +16,8 @@
 package com.android.tools.idea.gradle.structure.configurables.dependencies;
 
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpec;
-import com.android.tools.idea.gradle.structure.model.android.PsdAndroidDependencyEditor;
-import com.android.tools.idea.gradle.structure.model.android.PsdAndroidLibraryDependencyEditor;
+import com.android.tools.idea.gradle.structure.model.android.PsdAndroidDependencyModel;
+import com.android.tools.idea.gradle.structure.model.android.PsdAndroidLibraryDependencyModel;
 import com.google.common.collect.Lists;
 import com.intellij.util.ui.ColumnInfo;
 import org.junit.Before;
@@ -33,14 +33,14 @@ import static org.mockito.Mockito.when;
  * Tests for {@link EditableDependenciesTableModel}.
  */
 public class EditableDependenciesTableModelTest {
-  private PsdAndroidLibraryDependencyEditor myLibraryDependencyEditor;
+  private PsdAndroidLibraryDependencyModel myLibraryDependencyEditor;
   private EditableDependenciesTableModel myTableModel;
 
   @Before
   public void setUp() {
-    myLibraryDependencyEditor = mock(PsdAndroidLibraryDependencyEditor.class);
+    myLibraryDependencyEditor = mock(PsdAndroidLibraryDependencyModel.class);
 
-    List<PsdAndroidDependencyEditor> dependencyEditors = Lists.newArrayList();
+    List<PsdAndroidDependencyModel> dependencyEditors = Lists.newArrayList();
     dependencyEditors.add(myLibraryDependencyEditor);
     myTableModel = new EditableDependenciesTableModel(dependencyEditors);
   }
@@ -56,7 +56,7 @@ public class EditableDependenciesTableModelTest {
     myTableModel.setShowGroupIds(true);
 
     //noinspection unchecked
-    ColumnInfo<PsdAndroidDependencyEditor, String> specColumnInfo = columnInfos[0];
+    ColumnInfo<PsdAndroidDependencyModel, String> specColumnInfo = columnInfos[0];
     String columnText = specColumnInfo.valueOf(myLibraryDependencyEditor);
     assertEquals("com.android.support:appcompat-v7:23.1.0", columnText);
 
@@ -72,7 +72,7 @@ public class EditableDependenciesTableModelTest {
 
     ColumnInfo[] columnInfos = myTableModel.getColumnInfos();
     //noinspection unchecked
-    ColumnInfo<PsdAndroidDependencyEditor, String> scopeColumnInfo = columnInfos[1];
+    ColumnInfo<PsdAndroidDependencyModel, String> scopeColumnInfo = columnInfos[1];
     String columnText = scopeColumnInfo.valueOf(myLibraryDependencyEditor);
     assertEquals("compile", columnText);
   }

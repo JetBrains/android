@@ -16,9 +16,9 @@
 package com.android.tools.idea.gradle.structure.configurables.buildtypes;
 
 import com.android.tools.idea.gradle.structure.configurables.BasePerspectiveConfigurable;
-import com.android.tools.idea.gradle.structure.model.android.PsdAndroidModuleEditor;
-import com.android.tools.idea.gradle.structure.model.PsdModuleEditor;
-import com.android.tools.idea.gradle.structure.model.PsdProjectEditor;
+import com.android.tools.idea.gradle.structure.model.android.PsdAndroidModuleModel;
+import com.android.tools.idea.gradle.structure.model.PsdModuleModel;
+import com.android.tools.idea.gradle.structure.model.PsdProjectModel;
 import com.intellij.openapi.ui.NamedConfigurable;
 import com.intellij.openapi.util.ActionCallback;
 import com.intellij.ui.navigation.Place;
@@ -27,15 +27,15 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class BuildTypesPerspectiveConfigurable extends BasePerspectiveConfigurable {
-  public BuildTypesPerspectiveConfigurable(@NotNull PsdProjectEditor projectEditor) {
+  public BuildTypesPerspectiveConfigurable(@NotNull PsdProjectModel projectEditor) {
     super(projectEditor);
   }
 
   @Override
   @Nullable
-  protected NamedConfigurable<? extends PsdModuleEditor> getConfigurable(@NotNull PsdModuleEditor moduleEditor) {
-    if (moduleEditor instanceof PsdAndroidModuleEditor) {
-      return new BuildTypesConfigurable((PsdAndroidModuleEditor)moduleEditor);
+  protected NamedConfigurable<? extends PsdModuleModel> getConfigurable(@NotNull PsdModuleModel moduleModel) {
+    if (moduleModel instanceof PsdAndroidModuleModel) {
+      return new BuildTypesConfigurable((PsdAndroidModuleModel)moduleModel);
     }
     return null;
   }
