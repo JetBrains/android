@@ -27,10 +27,10 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 import java.util.Map;
 
-class PsdProductFlavorEditors {
-  @NotNull private final Map<String, PsdProductFlavorEditor> myProductFlavorEditorsByName = Maps.newHashMap();
+class PsdProductFlavorModels {
+  @NotNull private final Map<String, PsdProductFlavorModel> myProductFlavorModelsByName = Maps.newHashMap();
 
-  PsdProductFlavorEditors(@NonNull PsdAndroidModuleEditor parent) {
+  PsdProductFlavorModels(@NonNull PsdAndroidModuleModel parent) {
     Map<String, ProductFlavor> productFlavorsFromGradle = Maps.newHashMap();
     for (ProductFlavorContainer container : parent.getGradleModel().getAndroidProject().getProductFlavors()) {
       ProductFlavor productFlavor = container.getProductFlavor();
@@ -45,27 +45,27 @@ class PsdProductFlavorEditors {
           String name = parsedProductFlavor.name();
           ProductFlavor fromGradle = productFlavorsFromGradle.remove(name);
 
-          PsdProductFlavorEditor editor = new PsdProductFlavorEditor(parent, fromGradle, parsedProductFlavor);
-          myProductFlavorEditorsByName.put(name, editor);
+          PsdProductFlavorModel model = new PsdProductFlavorModel(parent, fromGradle, parsedProductFlavor);
+          myProductFlavorModelsByName.put(name, model);
         }
       }
     }
 
     if (!productFlavorsFromGradle.isEmpty()) {
       for (ProductFlavor productFlavor : productFlavorsFromGradle.values()) {
-        PsdProductFlavorEditor editor = new PsdProductFlavorEditor(parent, productFlavor, null);
-        myProductFlavorEditorsByName.put(productFlavor.getName(), editor);
+        PsdProductFlavorModel model = new PsdProductFlavorModel(parent, productFlavor, null);
+        myProductFlavorModelsByName.put(productFlavor.getName(), model);
       }
     }
   }
 
   @NotNull
-  Collection<PsdProductFlavorEditor> getValues() {
-    return myProductFlavorEditorsByName.values();
+  Collection<PsdProductFlavorModel> getValues() {
+    return myProductFlavorModelsByName.values();
   }
 
   @Nullable
-  PsdProductFlavorEditor findProductFlavorEditor(@NotNull String productFlavorName) {
-    return myProductFlavorEditorsByName.get(productFlavorName);
+  PsdProductFlavorModel findProductFlavorModel(@NotNull String productFlavorName) {
+    return myProductFlavorModelsByName.get(productFlavorName);
   }
 }

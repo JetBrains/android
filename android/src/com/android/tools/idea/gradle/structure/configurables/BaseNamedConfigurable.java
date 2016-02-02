@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables;
 
-import com.android.tools.idea.gradle.structure.model.PsdModuleEditor;
+import com.android.tools.idea.gradle.structure.model.PsdModuleModel;
 import com.intellij.openapi.options.SearchableConfigurable;
 import com.intellij.openapi.ui.NamedConfigurable;
 import com.intellij.ui.navigation.Place;
@@ -25,22 +25,22 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
-public abstract class BaseNamedConfigurable<T extends PsdModuleEditor> extends NamedConfigurable<T>
+public abstract class BaseNamedConfigurable<T extends PsdModuleModel> extends NamedConfigurable<T>
   implements SearchableConfigurable, Place.Navigator {
 
-  @NotNull private final T myModuleEditor;
+  @NotNull private final T myModuleModel;
 
   private String myDisplayName;
 
-  protected BaseNamedConfigurable(@NotNull T moduleEditor) {
-    myModuleEditor = moduleEditor;
-    myDisplayName = moduleEditor.getModuleName();
+  protected BaseNamedConfigurable(@NotNull T moduleModel) {
+    myModuleModel = moduleModel;
+    myDisplayName = moduleModel.getModuleName();
   }
 
   @Override
   @Nullable
   public Icon getIcon(boolean expanded) {
-    return myModuleEditor.getModuleIcon();
+    return myModuleModel.getModuleIcon();
   }
 
   @Override
@@ -56,7 +56,7 @@ public abstract class BaseNamedConfigurable<T extends PsdModuleEditor> extends N
 
   @Override
   public T getEditableObject() {
-    return myModuleEditor;
+    return myModuleModel;
   }
 
   @Override
