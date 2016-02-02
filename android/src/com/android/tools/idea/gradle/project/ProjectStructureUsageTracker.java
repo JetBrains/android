@@ -81,7 +81,7 @@ class ProjectStructureUsageTracker {
       AndroidProject androidProject = model.getAndroidProject();
       GradleVersion gradleVersion = getGradleVersion(myProject);
       boolean instantRunEnabled =
-        InstantRunSettings.isInstantRunEnabled(myProject) && InstantRunGradleUtils.variantSupportsInstantRun(model, null);
+        InstantRunSettings.isInstantRunEnabled(myProject) && InstantRunGradleUtils.getIrSupportStatus(model, null).success;
       UsageTracker.getInstance().trackGradleArtifactVersions(appId,
                                                              androidProject.getModelVersion(),
                                                              gradleVersion != null ? gradleVersion.toString() : "<Not Found>",

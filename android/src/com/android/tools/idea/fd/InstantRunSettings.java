@@ -25,7 +25,7 @@ public class InstantRunSettings {
   /**
    * Returns whether instant run is enabled in the given project.
    * Note: Even if instant run is enabled for the project, instant run related information should not be accessed
-   * unless {@link InstantRunGradleUtils#variantSupportsInstantRun} returns true.
+   * unless {@link InstantRunGradleUtils#getIrSupportStatus} returns true.
    */
   public static boolean isInstantRunEnabled(@NotNull Project project) {
     AndroidGradleBuildConfiguration buildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
@@ -42,6 +42,16 @@ public class InstantRunSettings {
   public static boolean isRestartActivity(@NotNull Project project) {
     AndroidGradleBuildConfiguration buildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
     return buildConfiguration.RESTART_ACTIVITY;
+  }
+
+  public static boolean isShowNotificationsEnabled(@NotNull Project project) {
+    AndroidGradleBuildConfiguration buildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
+    return buildConfiguration.SHOW_IR_STATUS_NOTIFICATIONS;
+  }
+
+  public static void setShowStatusNotifications(@NotNull Project project, boolean en) {
+    AndroidGradleBuildConfiguration buildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
+    buildConfiguration.SHOW_IR_STATUS_NOTIFICATIONS = en;
   }
 
   /** If instant run is enabled, is cold swap mode enabled? */
