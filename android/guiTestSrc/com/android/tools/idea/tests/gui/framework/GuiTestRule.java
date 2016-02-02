@@ -69,6 +69,8 @@ public class GuiTestRule implements TestRule {
 
   private File myProjectPath;
 
+  private final ScreenshotOnFailure myScreenshotOnFailure = new ScreenshotOnFailure();
+
   private final List<GarbageCollectorMXBean> myGarbageCollectorMXBeans = ManagementFactory.getGarbageCollectorMXBeans();
   private final MemoryMXBean myMemoryMXBean = ManagementFactory.getMemoryMXBean();
 
@@ -82,7 +84,7 @@ public class GuiTestRule implements TestRule {
         assumeTrue("An IDE internal error occurred previously.", !doesIdeHaveFatalErrors());
         try {
           setUp();
-          base.evaluate();
+          myScreenshotOnFailure.apply(base, description).evaluate();
         }
         finally {
           tearDown();
