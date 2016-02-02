@@ -65,7 +65,7 @@ public class AvdEditWizard extends DynamicWizard {
   private final JComponent myParent;
   private AvdInfo myCreatedAvd;
 
-  public AvdEditWizard(@NotNull JComponent parent,
+  public AvdEditWizard(@Nullable JComponent parent,
                        @Nullable Project project,
                        @Nullable Module module,
                        @Nullable AvdInfo avdInfo,
