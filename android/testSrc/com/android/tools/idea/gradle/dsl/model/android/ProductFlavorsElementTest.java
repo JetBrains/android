@@ -50,8 +50,7 @@ public class ProductFlavorsElementTest extends GradleFileModelTestCase {
     writeToBuildFile(text);
 
     Collection<ProductFlavorModel> productFlavors = getGradleBuildModel().android().productFlavors();
-    assertNotNull(productFlavors);
-    assertEquals("productFlavors", 2, productFlavors.size());
+    assertSize(2, productFlavors);
 
     boolean flavor1Found = false;
     boolean flavor2Found = false;
@@ -92,8 +91,7 @@ public class ProductFlavorsElementTest extends GradleFileModelTestCase {
     writeToBuildFile(text);
 
     Collection<ProductFlavorModel> productFlavors = getGradleBuildModel().android().productFlavors();
-    assertNotNull(productFlavors);
-    assertEquals("productFlavors", 2, productFlavors.size());
+    assertSize(2, productFlavors);
 
     boolean flavor1Found = false;
     boolean flavor2Found = false;
@@ -148,8 +146,7 @@ public class ProductFlavorsElementTest extends GradleFileModelTestCase {
     writeToBuildFile(text);
 
     Collection<ProductFlavorModel> productFlavors = getGradleBuildModel().android().productFlavors();
-    assertNotNull(productFlavors);
-    assertEquals("productFlavors", 2, productFlavors.size());
+    assertSize(2, productFlavors);
 
     boolean flavor1Found = false;
     boolean flavor2Found = false;
@@ -200,8 +197,7 @@ public class ProductFlavorsElementTest extends GradleFileModelTestCase {
     writeToBuildFile(text);
 
     Collection<ProductFlavorModel> productFlavors = getGradleBuildModel().android().productFlavors();
-    assertNotNull(productFlavors);
-    assertEquals("productFlavors", 2, productFlavors.size());
+    assertSize(2, productFlavors);
 
     boolean flavor1Found = false;
     boolean flavor2Found = false;

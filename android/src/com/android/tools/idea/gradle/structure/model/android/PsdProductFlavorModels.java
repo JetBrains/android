@@ -40,14 +40,12 @@ class PsdProductFlavorModels {
     GradleBuildModel parsedModel = parent.getParsedModel();
     if (parsedModel != null) {
       Collection<ProductFlavorModel> parsedProductFlavors = parsedModel.android().productFlavors();
-      if (parsedProductFlavors != null) {
-        for (ProductFlavorModel parsedProductFlavor : parsedProductFlavors) {
-          String name = parsedProductFlavor.name();
-          ProductFlavor fromGradle = productFlavorsFromGradle.remove(name);
+      for (ProductFlavorModel parsedProductFlavor : parsedProductFlavors) {
+        String name = parsedProductFlavor.name();
+        ProductFlavor fromGradle = productFlavorsFromGradle.remove(name);
 
-          PsdProductFlavorModel model = new PsdProductFlavorModel(parent, fromGradle, parsedProductFlavor);
-          myProductFlavorModelsByName.put(name, model);
-        }
+        PsdProductFlavorModel model = new PsdProductFlavorModel(parent, fromGradle, parsedProductFlavor);
+        myProductFlavorModelsByName.put(name, model);
       }
     }
 
