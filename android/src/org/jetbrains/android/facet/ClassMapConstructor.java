@@ -19,13 +19,6 @@ package org.jetbrains.android.facet;
 import com.intellij.psi.PsiClass;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * Created by IntelliJ IDEA.
- * User: Eugene.Kudelevsky
- * Date: Jun 11, 2009
- * Time: 8:16:29 PM
- * To change this template use File | Settings | File Templates.
- */
 public interface ClassMapConstructor {
   @NotNull
   String[] getTagNamesByClass(@NotNull PsiClass c, int apiLevel);
