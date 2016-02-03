@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.configurables.dependencies;
+package com.android.tools.idea.gradle.structure.configurables.android.dependencies;
 
 import com.android.tools.idea.gradle.structure.configurables.BaseNamedConfigurable;
 import com.android.tools.idea.gradle.structure.model.android.PsdAndroidModuleModel;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.util.ActionCallback;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.navigation.History;
 import com.intellij.ui.navigation.Place;
 import org.jetbrains.annotations.NotNull;
@@ -26,15 +27,19 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
-class AndroidDependenciesConfigurable extends BaseNamedConfigurable<PsdAndroidModuleModel> {
-  AndroidDependenciesConfigurable(@NotNull PsdAndroidModuleModel moduleModel) {
+public class AndroidDependenciesConfigurable extends BaseNamedConfigurable<PsdAndroidModuleModel> {
+  private DependenciesEditorPanel myEditorPanel;
+
+  public AndroidDependenciesConfigurable(@NotNull PsdAndroidModuleModel moduleModel) {
     super(moduleModel);
   }
 
   @Override
   public JComponent createOptionsPanel() {
-    // TODO create panel only once.
-    return new EditableDependenciesPanel(getEditableObject());
+    if (myEditorPanel == null) {
+      myEditorPanel = new DependenciesEditorPanel(getEditableObject());
+    }
+    return myEditorPanel;
   }
 
   @Override
@@ -76,6 +81,8 @@ class AndroidDependenciesConfigurable extends BaseNamedConfigurable<PsdAndroidMo
 
   @Override
   public void disposeUIResources() {
-
+    if (myEditorPanel != null) {
+      Disposer.dispose(myEditorPanel);
+    }
   }
 }
