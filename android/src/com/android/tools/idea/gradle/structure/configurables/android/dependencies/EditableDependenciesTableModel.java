@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.configurables.dependencies;
+package com.android.tools.idea.gradle.structure.configurables.android.dependencies;
 
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.android.PsdAndroidDependencyModel;
@@ -27,9 +27,10 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellRenderer;
 import java.awt.*;
+import java.util.Collections;
 import java.util.List;
 
-import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
+import static com.android.tools.idea.gradle.structure.configurables.android.dependencies.ArtifactDependencySpecs.asText;
 
 /**
  * Model for the table displaying the "editable" dependencies of a module.
@@ -38,8 +39,9 @@ class EditableDependenciesTableModel extends ListTableModel<PsdAndroidDependency
   // Allows users to show/hide artifact's group ID (hide in the case of lack of horizontal space.)
   private boolean myShowGroupIds;
 
-  EditableDependenciesTableModel(List<PsdAndroidDependencyModel> dependencies) {
+  EditableDependenciesTableModel(@NotNull List<PsdAndroidDependencyModel> dependencies) {
     createAndSetColumnInfos();
+    Collections.sort(dependencies, new PsdAndroidDependencyModelComparator(myShowGroupIds));
     setItems(dependencies);
   }
 
@@ -48,9 +50,9 @@ class EditableDependenciesTableModel extends ListTableModel<PsdAndroidDependency
       @Override
       @NotNull
       public String valueOf(PsdAndroidDependencyModel model) {
-        if (model instanceof PsdAndroidLibraryDependencyModel && !myShowGroupIds) {
+        if (model instanceof PsdAndroidLibraryDependencyModel) {
           ArtifactDependencySpec spec = ((PsdAndroidLibraryDependencyModel)model).getSpec();
-          return spec.name + GRADLE_PATH_SEPARATOR + spec.version;
+          return asText(spec, myShowGroupIds);
         }
         return model.getValueAsText();
       }
