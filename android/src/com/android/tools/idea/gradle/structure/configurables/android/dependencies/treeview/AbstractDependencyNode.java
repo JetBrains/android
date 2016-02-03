@@ -15,25 +15,12 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview;
 
-import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.configurables.android.treeview.AbstractPsdNode;
-import com.android.tools.idea.gradle.structure.model.android.PsdAndroidLibraryDependencyModel;
-import com.intellij.ui.treeStructure.SimpleNode;
+import com.android.tools.idea.gradle.structure.model.android.PsdAndroidDependencyModel;
 import org.jetbrains.annotations.NotNull;
 
-import static com.android.tools.idea.gradle.structure.configurables.android.dependencies.ArtifactDependencySpecs.asText;
-
-class AndroidLibraryNode extends AbstractDependencyNode<PsdAndroidLibraryDependencyModel> {
-  AndroidLibraryNode(@NotNull PsdAndroidLibraryDependencyModel model, boolean showGroupId) {
+public abstract class AbstractDependencyNode<T extends PsdAndroidDependencyModel> extends AbstractPsdNode<T> {
+  protected AbstractDependencyNode(@NotNull T model) {
     super(model);
-    ArtifactDependencySpec spec = model.getSpec();
-    myName = asText(spec, showGroupId);
-    setIcon(model.getIcon());
-  }
-
-  @Override
-  public SimpleNode[] getChildren() {
-    // TODO implement transitive artifact dependency
-    return new SimpleNode[0];
   }
 }
