@@ -16,6 +16,7 @@
 package com.android.tools.idea.stats;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.annotations.concurrency.GuardedBy;
 import com.android.repository.Revision;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -61,13 +62,21 @@ public class DistributionService {
   private static final String FILE_PATTERN =
     FileUtil.getNameWithoutExtension(STATS_FILENAME) + "(_[0-9]+)?\\." + FileUtilRt.getExtension(STATS_FILENAME);
 
-  private List<Distribution> myDistributions = null;
   private final Object myLock = new Object();
+  @SuppressWarnings("FieldAccessedSynchronizedAndUnsynchronized")
+  @GuardedBy("myLock")
+  private List<Distribution> myDistributions;
+  @GuardedBy("myLock")
   private final List<Runnable> mySuccesses = Lists.newLinkedList();
+  @GuardedBy("myLock")
   private final List<Runnable> myFailures = Lists.newArrayList();
+  @GuardedBy("myLock")
   private volatile boolean myRunning = false;
+  @GuardedBy("myLock")
   private long myAttemptTime;
+  @GuardedBy("myLock")
   private long myRefreshTime;
+
   @NotNull private final FileDownloader myDownloader;
   @NotNull private final File myCachePath;
   @NotNull private final URL myFallback;
@@ -86,10 +95,8 @@ public class DistributionService {
 
   @Nullable
   public List<Distribution> getDistributions() {
-    if (myDistributions == null) {
-      return null;
-    }
-    return ImmutableList.copyOf(myDistributions);
+    // No lock is required here since this read must be atomic according to the Java language spec
+    return myDistributions;
   }
 
   /**
@@ -98,11 +105,12 @@ public class DistributionService {
    */
   public double getSupportedDistributionForApiLevel(int apiLevel) {
     refreshSynchronously();
-    if (myDistributions == null) {
+    List<Distribution> distributions = getDistributions();
+    if (distributions == null) {
       return -1;
     }
     double unsupportedSum = 0;
-    for (Distribution d : myDistributions) {
+    for (Distribution d : distributions) {
       if (d.getApiLevel() >= apiLevel) {
         break;
       }
@@ -118,7 +126,11 @@ public class DistributionService {
   @Nullable
   public Distribution getDistributionForApiLevel(int apiLevel) {
     refreshSynchronously();
-    for (Distribution d : myDistributions) {
+    List<Distribution> distributions = getDistributions();
+    if (distributions == null) {
+      return null;
+    }
+    for (Distribution d : distributions) {
       if (d.getApiLevel() == apiLevel) {
         return d;
       }
@@ -282,7 +294,8 @@ public class DistributionService {
   private void loadFromFile(@NotNull URL url) {
     try {
       String jsonString = ResourceUtil.loadText(url);
-      myDistributions = loadDistributionsFromJson(jsonString);
+      List<Distribution> distributions = loadDistributionsFromJson(jsonString);
+      myDistributions = distributions != null ? ImmutableList.copyOf(distributions) : null;
     }
     catch (IOException e) {
       LOG.error("Error while trying to load distributions file", e);
