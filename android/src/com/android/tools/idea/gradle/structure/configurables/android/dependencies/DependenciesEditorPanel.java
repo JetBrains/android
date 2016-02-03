@@ -52,6 +52,13 @@ class DependenciesEditorPanel extends JPanel implements Disposable {
         myVariantTreeViewPanel.select(model);
       }
     });
+
+    myVariantTreeViewPanel.add(new VariantTreeViewPanel.SelectionListener() {
+      @Override
+      public void dependencyModelSelected(@NotNull PsdAndroidDependencyModel model) {
+        myDependenciesPanel.select(model);
+      }
+    });
   }
 
   @Override
