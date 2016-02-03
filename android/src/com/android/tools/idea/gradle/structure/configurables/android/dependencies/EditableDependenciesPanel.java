@@ -42,6 +42,8 @@ import static javax.swing.ListSelectionModel.MULTIPLE_INTERVAL_SELECTION;
 class EditableDependenciesPanel extends JPanel implements Disposable {
   @NotNull private final PsdAndroidModuleModel myModuleModel;
   @NotNull private final TableView<PsdAndroidDependencyModel> myDependencyTable;
+  @NotNull private final ListSelectionListener myTableSelectionListener;
+
   @NotNull private final List<SelectionListener> mySelectionListeners = Lists.newCopyOnWriteArrayList();
 
   EditableDependenciesPanel(@NotNull PsdAndroidModuleModel moduleModel) {
@@ -52,6 +54,25 @@ class EditableDependenciesPanel extends JPanel implements Disposable {
     EditableDependenciesTableModel tableModel = new EditableDependenciesTableModel(dependencies);
     myDependencyTable = new TableView<PsdAndroidDependencyModel>(tableModel);
 
+    myTableSelectionListener = new ListSelectionListener() {
+      @Override
+      public void valueChanged(ListSelectionEvent e) {
+        PsdAndroidDependencyModel selected = getSingleSelection();
+        if (selected != null) {
+          for (SelectionListener listener : mySelectionListeners) {
+            listener.dependencyModelSelected(selected);
+          }
+        }
+      }
+    };
+
+    ListSelectionModel tableSelectionModel = myDependencyTable.getSelectionModel();
+    tableSelectionModel.addListSelectionListener(myTableSelectionListener);
+    tableSelectionModel.setSelectionMode(MULTIPLE_INTERVAL_SELECTION);
+    if (!myDependencyTable.getItems().isEmpty()) {
+      myDependencyTable.changeSelection(0, 0, false, false);
+    }
+
     setUpUI();
   }
 
@@ -59,26 +80,6 @@ class EditableDependenciesPanel extends JPanel implements Disposable {
     myDependencyTable.setDragEnabled(false);
     myDependencyTable.setIntercellSpacing(new Dimension(0, 0));
     myDependencyTable.setShowGrid(false);
-
-    ListSelectionModel tableSelectionModel = myDependencyTable.getSelectionModel();
-    tableSelectionModel.addListSelectionListener(new ListSelectionListener() {
-      @Override
-      public void valueChanged(ListSelectionEvent e) {
-        if (e.getValueIsAdjusting()) {
-          // This is a selection triggered by an user action.
-          PsdAndroidDependencyModel selected = getSingleSelection();
-          if (selected != null) {
-            for (SelectionListener listener : mySelectionListeners) {
-              listener.dependencyModelSelected(selected);
-            }
-          }
-        }
-      }
-    });
-    tableSelectionModel.setSelectionMode(MULTIPLE_INTERVAL_SELECTION);
-    if (!myDependencyTable.getItems().isEmpty()) {
-      myDependencyTable.changeSelection(0, 0, false, false);
-    }
 
     JScrollPane scrollPane = createScrollPane(myDependencyTable);
     scrollPane.setBorder(IdeBorderFactory.createEmptyBorder());
@@ -116,7 +117,15 @@ class EditableDependenciesPanel extends JPanel implements Disposable {
   }
 
   void select(@NotNull PsdAndroidDependencyModel model) {
+    ListSelectionModel tableSelectionModel = myDependencyTable.getSelectionModel();
+    // Remove ListSelectionListener. We only want the selection event when the user selects a table cell directly. If we got here is
+    // because the user selected a dependency in the "Variants" tree view, and we are simply syncing the table.
+    tableSelectionModel.removeListSelectionListener(myTableSelectionListener);
+
     myDependencyTable.setSelection(Collections.singleton(model));
+
+    // Add ListSelectionListener again, to react when user selects a table cell directly.
+    tableSelectionModel.addListSelectionListener(myTableSelectionListener);
   }
 
   public interface SelectionListener {
