@@ -118,9 +118,11 @@ public final class GuiTests {
       StringBuilder messageBuilder = new StringBuilder(error.getMessage());
       String additionalInfo = error.getAdditionalInfo();
       if (isNotEmpty(additionalInfo)) {
-        messageBuilder.append(System.lineSeparator() + "Additional Info: " + additionalInfo);
+        messageBuilder.append(System.getProperty("line.separator") + "Additional Info: " + additionalInfo);
       }
-      errors.add(new AssertionError(messageBuilder.toString(), error.getThrowable()));
+      AssertionError assertionError = new AssertionError(messageBuilder.toString());
+      assertionError.initCause(error.getThrowable());
+      errors.add(assertionError);
     }
     return Collections.unmodifiableList(errors);
   }
