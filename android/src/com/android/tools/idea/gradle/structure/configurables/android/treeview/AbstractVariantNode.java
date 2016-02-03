@@ -22,18 +22,11 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Tree Node that represents a variant
  */
-public abstract class AbstractVariantNode extends AbstractPsdNode {
-  @NotNull private final PsdVariantModel myModel;
-
+public abstract class AbstractVariantNode extends AbstractPsdNode<PsdVariantModel> {
   public AbstractVariantNode(@NotNull PsdVariantModel model) {
-    myModel = model;
+    super(model);
     myName = model.getName();
     setAutoExpandNode(true);
     setIcon(AndroidIcons.Variant);
-  }
-
-  @NotNull
-  public PsdVariantModel getModel() {
-    return myModel;
   }
 }
