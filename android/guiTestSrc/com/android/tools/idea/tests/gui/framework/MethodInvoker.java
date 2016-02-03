@@ -21,13 +21,11 @@ import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
 
 import java.io.File;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.text.SimpleDateFormat;
 import java.util.GregorianCalendar;
 
 import static com.android.tools.idea.tests.gui.framework.IdeTestApplication.getFailedTestScreenshotDirPath;
-import static org.fest.reflect.core.Reflection.method;
 
 public class MethodInvoker extends Statement {
   @NotNull private final FrameworkMethod myTestMethod;
@@ -46,26 +44,6 @@ public class MethodInvoker extends Statement {
     System.out.println("Running " + testName);
 
     runTest();
-    failIfIdeHasFatalErrors();
-  }
-
-  /** Calls {@link GuiTests#failIfIdeHasFatalErrors} reflectively and on {@link AssertionError}, re-throws. */
-  private static void failIfIdeHasFatalErrors() throws ClassNotFoundException, IllegalAccessException {
-    ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-    Class<?> guiTestsType = Class.forName(GuiTests.class.getCanonicalName(), true, classLoader);
-    Method method = method("failIfIdeHasFatalErrors").in(guiTestsType).target();
-    try {
-      method.invoke(null);
-    }
-    catch (InvocationTargetException e) {
-      Throwable cause = e.getCause();
-      if (cause instanceof AssertionError) {
-        throw (AssertionError)cause;  // This is the intended behavior of GuiTests.failIfIdeHasFatalErrors.
-      }
-      else {
-        throw new RuntimeException(cause);
-      }
-    }
   }
 
   private void runTest() throws Throwable {
