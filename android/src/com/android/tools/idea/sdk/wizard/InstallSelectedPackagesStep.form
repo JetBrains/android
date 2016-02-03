@@ -36,6 +36,7 @@
           <component id="68480" class="javax.swing.JTextArea" binding="mySdkManagerOutput">
             <constraints/>
             <properties>
+              <editable value="false"/>
               <lineWrap value="true"/>
               <wrapStyleWord value="true"/>
             </properties>
