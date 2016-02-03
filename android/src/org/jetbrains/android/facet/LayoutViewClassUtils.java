@@ -28,37 +28,32 @@ import com.intellij.util.ArrayUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class SimpleClassMapConstructor implements ClassMapConstructor {
+/**
+ * Utility methods for connecting PsiClass instances to layout view tag names
+ */
+public class LayoutViewClassUtils {
+  // Utility class, no constructor
+  private LayoutViewClassUtils() { }
 
-  private SimpleClassMapConstructor() {
-  }
-
-  private static class SimpleClassMapConstructorHolder {
-    private static final SimpleClassMapConstructor INSTANCE = new SimpleClassMapConstructor();
-  }
-
-  public static SimpleClassMapConstructor getInstance() {
-    return SimpleClassMapConstructorHolder.INSTANCE;
-  }
-
-  @Override
   @NotNull
-  public String[] getTagNamesByClass(@NotNull final PsiClass c, final int apiLevel) {
+  public static String[] getTagNamesByClass(@NotNull final PsiClass c, final int apiLevel) {
     return ApplicationManager.getApplication().runReadAction(new Computable<String[]>() {
       @Override
       public String[] compute() {
         String name = c.getName();
-        if (name != null) {
-          String qualifiedName = c.getQualifiedName();
-          if (qualifiedName != null) {
-            if (ResourceHelper.isClassPackageNeeded(qualifiedName, c, apiLevel)) {
-              return new String[]{qualifiedName};
-            }
-            return new String[]{name, qualifiedName};
-          }
+        if (name == null) {
+          return ArrayUtil.EMPTY_STRING_ARRAY;
+        }
+
+        String qualifiedName = c.getQualifiedName();
+        if (qualifiedName == null) {
           return new String[]{name};
         }
-        return ArrayUtil.EMPTY_STRING_ARRAY;
+
+        if (ResourceHelper.isClassPackageNeeded(qualifiedName, c, apiLevel)) {
+          return new String[]{qualifiedName};
+        }
+        return new String[]{name, qualifiedName};
       }
     });
   }
@@ -80,7 +75,6 @@ public class SimpleClassMapConstructor implements ClassMapConstructor {
           return aClass;
         }
       }
-      return null;
     }
     else {
       final PsiClass[] classes = JavaPsiFacade.getInstance(project).findClasses(
@@ -91,8 +85,8 @@ public class SimpleClassMapConstructor implements ClassMapConstructor {
           return aClass;
         }
       }
-      return null;
     }
+    return null;
   }
 
   @Nullable

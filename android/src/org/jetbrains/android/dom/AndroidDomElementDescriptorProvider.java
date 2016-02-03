@@ -38,7 +38,7 @@ import icons.AndroidIcons;
 import org.jetbrains.android.dom.layout.LayoutViewElement;
 import org.jetbrains.android.dom.xml.XmlResourceElement;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.SimpleClassMapConstructor;
+import org.jetbrains.android.facet.LayoutViewClassUtils;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -55,7 +55,7 @@ public class AndroidDomElementDescriptorProvider implements XmlElementDescriptor
     if (facet == null) return null;
     final String name = domElement.getXmlTag().getName();
     final PsiClass aClass = baseClassName != null
-                            ? SimpleClassMapConstructor.findClassByTagName(facet, name, baseClassName)
+                            ? LayoutViewClassUtils.findClassByTagName(facet, name, baseClassName)
                             : null;
     final Icon icon = getIconForTag(name, domElement);
 
