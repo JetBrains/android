@@ -32,9 +32,6 @@ import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidRenameHandler implements RenameHandler, TitledHandler {
   @Override
   public boolean isAvailableOnDataContext(DataContext dataContext) {
