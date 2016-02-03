@@ -339,7 +339,7 @@ public final class ModuleClassLoader extends RenderClassLoader {
 
   /** Returns the path to a class file loaded for the given class, if any */
   @Nullable
-  public VirtualFile getClassFile(@NotNull String className) {
+  private VirtualFile getClassFile(@NotNull String className) {
     if (myClassFiles == null) {
       return null;
     }
@@ -438,6 +438,10 @@ public final class ModuleClassLoader extends RenderClassLoader {
     if (ourCache.containsKey(module)) {
       ourCache.remove(module);
     }
+  }
+
+  public boolean isClassLoaded(String className) {
+    return findLoadedClass(className) != null;
   }
 
   /** Temporary hack: Store this in a weak hash map cached by modules. In the next version we should move this
