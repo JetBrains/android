@@ -16,6 +16,7 @@
 package com.android.tools.idea.fd.actions;
 
 import com.android.ddmlib.IDevice;
+import com.android.tools.fd.client.InstantRunBuildInfo;
 import com.android.tools.fd.client.UpdateMode;
 import com.android.tools.idea.fd.*;
 import com.android.tools.idea.gradle.AndroidGradleModel;
@@ -120,7 +121,7 @@ public class InstantRunWithoutRestart extends AnAction {
 
         // Build is done: send message to app etc
 
-        InstantRunBuildInfo buildInfo = InstantRunBuildInfo.get(model);
+        InstantRunBuildInfo buildInfo = InstantRunManager.getBuildInfo(model);
         if (buildInfo != null) {
           try {
             manager.pushArtifacts(device, facet, updateMode, buildInfo);
