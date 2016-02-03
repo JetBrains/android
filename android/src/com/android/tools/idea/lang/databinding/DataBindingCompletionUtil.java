@@ -46,6 +46,8 @@ import org.jetbrains.annotations.Nullable;
  */
 public class DataBindingCompletionUtil {
 
+  public static final String JAVA_LANG = "java.lang.";
+
   public static void addCompletions(@NotNull CompletionParameters params, @NotNull CompletionResultSet resultSet) {
     final PsiElement originalPosition = params.getOriginalPosition();
     final PsiElement originalParent = originalPosition == null ? null : originalPosition.getParent();
