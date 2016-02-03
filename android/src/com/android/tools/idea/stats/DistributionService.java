@@ -97,6 +97,9 @@ public class DistributionService {
    * If the distributions haven't been loaded yet, this call will load them synchronously.
    */
   public double getSupportedDistributionForApiLevel(int apiLevel) {
+    if (apiLevel <= 0) {
+      return 0;
+    }
     refreshSynchronously();
     if (myDistributions == null) {
       return -1;
