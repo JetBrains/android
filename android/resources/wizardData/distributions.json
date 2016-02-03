@@ -315,7 +315,7 @@
 {
   "name": "Lollipop",
   "version": "5.1",
-  "apiLevel": 21,
+  "apiLevel": 22,
   "distributionPercentage": 0.079,
   "url": "http://developer.android.com/about/versions/android-5.1.html",
   "descriptionBlocks" : [
