@@ -144,8 +144,12 @@ public class ConnectedAndroidDevice implements AndroidDevice {
 
     IDevice.DeviceState state = myDevice.getState();
     if (state != IDevice.DeviceState.ONLINE) {
-      String name = String.format("%1$s [%2$s] ", myDevice.getSerialNumber(), myDevice.getState());
+      String name = String.format("%1$s [%2$s", myDevice.getSerialNumber(), myDevice.getState());
       renderer.append(name, SimpleTextAttributes.GRAYED_BOLD_ATTRIBUTES);
+      if (state == IDevice.DeviceState.UNAUTHORIZED) {
+        renderer.append(" - Press 'OK' in the 'Allow USB Debugging' dialog on your device", SimpleTextAttributes.GRAYED_BOLD_ATTRIBUTES);
+      }
+      renderer.append("] ", SimpleTextAttributes.GRAYED_BOLD_ATTRIBUTES);
       return;
     }
 
