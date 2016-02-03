@@ -23,19 +23,12 @@ import org.jetbrains.annotations.NotNull;
 
 import static com.android.tools.idea.gradle.structure.configurables.android.dependencies.ArtifactDependencySpecs.asText;
 
-class AndroidLibraryNode extends AbstractPsdNode {
-  @NotNull private final PsdAndroidLibraryDependencyModel myModel;
-
+class AndroidLibraryNode extends AbstractPsdNode<PsdAndroidLibraryDependencyModel> {
   AndroidLibraryNode(@NotNull PsdAndroidLibraryDependencyModel model, boolean showGroupId) {
-    myModel = model;
-    ArtifactDependencySpec spec = myModel.getSpec();
+    super(model);
+    ArtifactDependencySpec spec = model.getSpec();
     myName = asText(spec, showGroupId);
-    setIcon(myModel.getIcon());
-  }
-
-  @NotNull
-  PsdAndroidLibraryDependencyModel getModel() {
-    return myModel;
+    setIcon(model.getIcon());
   }
 
   @Override
