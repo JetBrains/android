@@ -18,6 +18,7 @@ package com.android.tools.idea.tests.gui.framework;
 import com.google.common.base.Strings;
 import org.fest.swing.image.ScreenshotTaker;
 import org.jetbrains.annotations.Nullable;
+import org.junit.AssumptionViolatedException;
 import org.junit.internal.runners.statements.Fail;
 import org.junit.runners.BlockJUnit4ClassRunner;
 import org.junit.runners.model.FrameworkMethod;
@@ -28,6 +29,8 @@ import org.junit.runners.model.TestClass;
 import java.awt.*;
 import java.lang.reflect.Method;
 
+import static org.junit.Assert.assertNotNull;
+
 public class GuiTestRunner extends BlockJUnit4ClassRunner {
 
   private TestClass myTestClass;
@@ -36,11 +39,6 @@ public class GuiTestRunner extends BlockJUnit4ClassRunner {
 
   public GuiTestRunner(Class<?> testClass) throws InitializationError {
     super(testClass);
-
-    if (GraphicsEnvironment.isHeadless()) {
-      // in methodBlock below, IdeTestApplication.getInstance (indirectly) throws an AWTException in a headless environment
-      throw new InitializationError("headless environment");
-    }
 
     // UI_TEST_MODE is set whenever we run UI tests on top of a Studio build. In that case, we
     // assume the classpath has been properly configured. Otherwise, if we're running from the
@@ -60,6 +58,10 @@ public class GuiTestRunner extends BlockJUnit4ClassRunner {
 
   @Override
   protected Statement methodBlock(FrameworkMethod method) {
+    if (GraphicsEnvironment.isHeadless()) {
+      // checked first because IdeTestApplication.getInstance below (indirectly) throws an AWTException in a headless environment
+      return falseAssumption("headless environment");
+    }
     Method methodFromClassLoader;
     try {
       ClassLoader ideClassLoader = IdeTestApplication.getInstance().getIdeClassLoader();
@@ -71,6 +73,15 @@ public class GuiTestRunner extends BlockJUnit4ClassRunner {
       return new Fail(e);
     }
     return super.methodBlock(new FrameworkMethod(methodFromClassLoader));
+  }
+
+  private static Statement falseAssumption(final String message) {
+    return new Statement() {
+      @Override
+      public void evaluate() throws Throwable {
+        throw new AssumptionViolatedException(message);
+      }
+    };
   }
 
   /** Called by {@link BlockJUnit4ClassRunner#methodBlock}. */
