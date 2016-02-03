@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies;
 
+import com.android.tools.idea.gradle.structure.model.android.PsdAndroidDependencyModel;
 import com.android.tools.idea.gradle.structure.model.android.PsdAndroidModuleModel;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
@@ -45,10 +46,17 @@ class DependenciesEditorPanel extends JPanel implements Disposable {
     add(myVerticalSplitter, BorderLayout.CENTER);
 
     myDependenciesPanel.updateTableColumnSizes();
+    myDependenciesPanel.add(new EditableDependenciesPanel.SelectionListener() {
+      @Override
+      public void dependencyModelSelected(@NotNull PsdAndroidDependencyModel model) {
+        myVariantTreeViewPanel.select(model);
+      }
+    });
   }
 
   @Override
   public void dispose() {
+    Disposer.dispose(myDependenciesPanel);
     Disposer.dispose(myVariantTreeViewPanel);
   }
 }
