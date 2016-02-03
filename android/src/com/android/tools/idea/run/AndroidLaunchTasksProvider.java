@@ -16,6 +16,8 @@
 package com.android.tools.idea.run;
 
 import com.android.ddmlib.IDevice;
+import com.android.tools.fd.client.InstantRunArtifact;
+import com.android.tools.fd.client.InstantRunBuildInfo;
 import com.android.tools.idea.fd.*;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.run.editor.AndroidDebugger;
@@ -37,7 +39,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import static com.android.tools.idea.fd.InstantRunArtifactType.*;
+import static com.android.tools.fd.client.InstantRunArtifactType.*;
 
 public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
   private final AndroidRunConfigurationBase myRunConfig;
@@ -110,7 +112,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
       AndroidGradleModel model = AndroidGradleModel.get(myFacet);
 
       if (model != null && InstantRunManager.variantSupportsInstantRun(model)) {
-        InstantRunBuildInfo buildInfo = InstantRunBuildInfo.get(model);
+        InstantRunBuildInfo buildInfo = InstantRunManager.getBuildInfo(model);
         if (buildInfo == null) {
           String reason = "Gradle build-info.xml not found for module " + myFacet.getModule().getName() +
                           ". Please make sure that you are using gradle plugin '2.0.0-alpha4' or higher.";

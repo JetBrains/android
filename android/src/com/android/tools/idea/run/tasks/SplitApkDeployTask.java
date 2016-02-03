@@ -17,7 +17,11 @@ package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.InstallException;
-import com.android.tools.idea.fd.*;
+import com.android.tools.fd.client.InstantRunArtifact;
+import com.android.tools.fd.client.InstantRunArtifactType;
+import com.android.tools.fd.client.InstantRunBuildInfo;
+import com.android.tools.idea.fd.InstantRunManager;
+import com.android.tools.idea.fd.InstantRunStatsService;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.google.common.base.Joiner;
