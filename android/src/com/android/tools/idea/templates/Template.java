@@ -228,23 +228,26 @@ public class Template {
 
   /**
    * Executes the template, rendering it to output files under the directory context.getModuleRoot()
+   *
    * @return true if the template was rendered without finding any errors and there are no warnings
-   *         or the user selected to proceed with warnings.
+   * or the user selected to proceed with warnings.
    */
   public boolean render(@NotNull final RenderingContext context) {
-    boolean success = runWriteCommandAction(context.getProject(), context.getCommandName(), new Computable<Boolean>() {
+    final Project project = context.getProject();
+
+    boolean success = runWriteCommandAction(project, context.getCommandName(), new Computable<Boolean>() {
       @Override
       public Boolean compute() {
-        if (context.getProject().isInitialized()) {
+        if (project.isInitialized()) {
           return doRender(context);
         }
         else {
-          return PostprocessReformattingAspect.getInstance(context.getProject()).disablePostprocessFormattingInside(new Computable<Boolean>() {
-              @Override
-              public Boolean compute() {
-                return doRender(context);
-              }
-            });
+          return PostprocessReformattingAspect.getInstance(project).disablePostprocessFormattingInside(new Computable<Boolean>() {
+            @Override
+            public Boolean compute() {
+              return doRender(context);
+            }
+          });
         }
       }
     });
@@ -253,13 +256,20 @@ public class Template {
     if (title != null) {
       UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_TEMPLATE, UsageTracker.ACTION_TEMPLATE_RENDER, title, null);
     }
+
+    if (context.shouldReformat()) {
+      TemplateUtils.reformatAndRearrange(project, context.getTargetFiles());
+    }
+
     return success;
   }
 
   /**
    * Version of runWriteCommandAction missing in {@link WriteCommandAction}.
    */
-  private static <T> T runWriteCommandAction(@NotNull Project project, @NotNull String commandName, @NotNull final Computable<T> computable) {
+  private static <T> T runWriteCommandAction(@NotNull Project project,
+                                             @NotNull String commandName,
+                                             @NotNull final Computable<T> computable) {
     RunResult<T> result = new WriteCommandAction<T>(project, commandName) {
       @Override
       protected void run(@NotNull Result<T> result) throws Throwable {
@@ -449,7 +459,7 @@ public class Template {
     }
     catch (SAXException ex) {
       if (ex.getCause() instanceof TemplateProcessingException) {
-        throw (TemplateProcessingException) ex.getCause();
+        throw (TemplateProcessingException)ex.getCause();
       }
       throw new TemplateProcessingException(ex);
     }

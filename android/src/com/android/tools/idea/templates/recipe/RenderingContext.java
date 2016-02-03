@@ -231,6 +231,13 @@ public class RenderingContext {
   }
 
   /**
+   * @return true if the target files should be reformatted after the template is rendered
+   */
+  public boolean shouldReformat() {
+    return !myDryRun && myProject.isInitialized();
+  }
+
+  /**
    * If there is an error, can it cause a project that is partially rendered?
    */
   public boolean canCausePartialRendering() {

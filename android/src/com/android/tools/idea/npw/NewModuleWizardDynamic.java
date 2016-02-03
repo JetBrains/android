@@ -20,6 +20,7 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.templates.TemplateManager;
+import com.android.tools.idea.templates.TemplateUtils;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.dynamic.DynamicWizard;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStepWithHeaderAndDescription.WizardStepHeaderSettings;
@@ -69,7 +70,7 @@ public class NewModuleWizardDynamic extends DynamicWizard {
   /**
    * Populate our state store with some common configuration items, such as the SDK location and the Gradle configuration.
    */
-  protected void initState() {
+  private void initState() {
     ScopedStateStore state = getState();
     Project project = getProject();
 
@@ -101,7 +102,7 @@ public class NewModuleWizardDynamic extends DynamicWizard {
     return WizardStepHeaderSettings.createProductHeader("New Module");
   }
 
-  protected void addPaths() {
+  private void addPaths() {
     Collection<NewModuleDynamicPath> contributions = getContributedPaths();
     Iterable<ModuleTemplateProvider> templateProviders =
       Iterables.concat(ImmutableSet.of(new AndroidModuleTemplatesProvider()), contributions);
@@ -135,17 +136,21 @@ public class NewModuleWizardDynamic extends DynamicWizard {
 
   @Override
   public void performFinishingActions() {
-    Project project = getProject();
+    final Project project = getProject();
 
-    if (project != null) {
-      Collection<File> targetFiles = myState.get(WizardConstants.TARGET_FILES_KEY);
-      assert targetFiles != null;
-
-      Collection<File> filesToOpen = myState.get(WizardConstants.FILES_TO_OPEN_KEY);
-      assert filesToOpen != null;
-
-      GradleProjectImporter.getInstance().requestProjectSync(project, new ReformattingGradleSyncListener(targetFiles, filesToOpen));
+    if (project == null) {
+      return;
     }
+
+    GradleProjectImporter.getInstance().requestProjectSync(project, new PostStartupGradleSyncListener(new Runnable() {
+      @Override
+      public void run() {
+        Collection<File> filesToOpen = myState.get(WizardConstants.FILES_TO_OPEN_KEY);
+        assert filesToOpen != null;
+
+        TemplateUtils.openEditors(project, filesToOpen, true);
+      }
+    }));
   }
 
   @NotNull
