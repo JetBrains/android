@@ -41,13 +41,6 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 import java.util.List;
 
-/**
- * Created by IntelliJ IDEA.
- * User: Eugene.Kudelevsky
- * Date: Aug 9, 2009
- * Time: 8:50:20 PM
- * To change this template use File | Settings | File Templates.
- */
 public class AndroidRenameTest extends AndroidTestCase {
   private static final String BASE_PATH = "/rename/";
   private static final String R_JAVA_PATH = "gen/p1/p2/R.java";

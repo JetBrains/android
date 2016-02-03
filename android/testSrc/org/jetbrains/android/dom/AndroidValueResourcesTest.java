@@ -44,13 +44,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * Created by IntelliJ IDEA.
- * User: Eugene.Kudelevsky
- * Date: Jun 25, 2009
- * Time: 6:45:58 PM
- * To change this template use File | Settings | File Templates.
- */
 public class AndroidValueResourcesTest extends AndroidDomTest {
   public AndroidValueResourcesTest() {
     super(false, "dom/resources");
