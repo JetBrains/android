@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables;
 
-import com.android.tools.idea.gradle.structure.configurables.buildtypes.BuildTypesPerspectiveConfigurable;
-import com.android.tools.idea.gradle.structure.configurables.dependencies.DependenciesPerspectiveConfigurable;
+import com.android.tools.idea.gradle.structure.configurables.android.buildtypes.BuildTypesPerspectiveConfigurable;
 import com.android.tools.idea.gradle.structure.model.PsdProjectModel;
 import com.android.tools.idea.structure.dialog.MainGroupConfigurableContributor;
 import com.google.common.collect.Lists;

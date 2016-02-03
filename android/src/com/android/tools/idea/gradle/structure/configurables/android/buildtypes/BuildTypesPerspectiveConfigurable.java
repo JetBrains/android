@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.configurables.dependencies;
+package com.android.tools.idea.gradle.structure.configurables.android.buildtypes;
 
 import com.android.tools.idea.gradle.structure.configurables.BasePerspectiveConfigurable;
 import com.android.tools.idea.gradle.structure.model.android.PsdAndroidModuleModel;
@@ -26,44 +26,45 @@ import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class DependenciesPerspectiveConfigurable extends BasePerspectiveConfigurable {
-  public DependenciesPerspectiveConfigurable(@NotNull PsdProjectModel projectModel) {
-    super(projectModel);
+public class BuildTypesPerspectiveConfigurable extends BasePerspectiveConfigurable {
+  public BuildTypesPerspectiveConfigurable(@NotNull PsdProjectModel projectEditor) {
+    super(projectEditor);
   }
 
   @Override
   @Nullable
   protected NamedConfigurable<? extends PsdModuleModel> getConfigurable(@NotNull PsdModuleModel moduleModel) {
     if (moduleModel instanceof PsdAndroidModuleModel) {
-      PsdAndroidModuleModel androidModuleModel = (PsdAndroidModuleModel)moduleModel;
-      return new AndroidDependenciesConfigurable(androidModuleModel);
+      return new BuildTypesConfigurable((PsdAndroidModuleModel)moduleModel);
     }
     return null;
   }
 
   @Override
   public void dispose() {
+
   }
 
   @Override
   public ActionCallback navigateTo(@Nullable Place place, boolean requestFocus) {
-    // TODO: Implement
+    // TODO implement.
     return ActionCallback.DONE;
   }
 
   @Override
   public void queryPlace(@NotNull Place place) {
+
   }
 
   @Override
   @NotNull
   public String getId() {
-    return "android.psd.dependencies";
+    return "android.psd.buildtypes";
   }
 
   @Override
   @Nls
   public String getDisplayName() {
-    return "Dependencies";
+    return "Build Types";
   }
 }

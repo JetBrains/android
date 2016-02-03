@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.configurables.dependencies;
+package com.android.tools.idea.gradle.structure.configurables.android.dependencies;
 
 import com.android.tools.idea.gradle.structure.model.android.PsdAndroidDependencyModel;
 import com.android.tools.idea.gradle.structure.model.android.PsdAndroidModuleModel;
@@ -46,7 +46,6 @@ class EditableDependenciesPanel extends JPanel {
     if (!dependencies.isEmpty()) {
       myDependencyTable.changeSelection(0, 0, false, false);
     }
-
     setUpUI();
   }
 
@@ -61,6 +60,10 @@ class EditableDependenciesPanel extends JPanel {
     scrollPane.setBorder(IdeBorderFactory.createEmptyBorder());
     add(scrollPane, BorderLayout.CENTER);
 
+    updateTableColumnSizes();
+  }
+
+  void updateTableColumnSizes() {
     myDependencyTable.updateColumnSizes();
   }
 }
