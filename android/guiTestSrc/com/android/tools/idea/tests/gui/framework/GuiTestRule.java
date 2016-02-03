@@ -78,6 +78,7 @@ public class GuiTestRule implements TestRule {
     return new Statement() {
       @Override
       public void evaluate() throws Throwable {
+        System.out.println("Starting " + description.getDisplayName());
         assumeTrue("An IDE internal error occurred previously.", !doesIdeHaveFatalErrors());
         try {
           setUp();
