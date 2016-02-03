@@ -38,8 +38,15 @@ public class AndroidUsagesTargetProvider implements UsageTargetProvider {
     return UsageTarget.EMPTY_ARRAY;
   }
 
+  /**
+   * <ul>
+   *   <li>Check if file is XML resource file in values/ resource folder, returns null if false</li>
+   *   <li>Check whether root tag is &lt;resources&gt;, returns null if false</li>
+   *   <li>Return XmlTag parent for element at the cursor if exists</li>
+   * </ul>
+   */
   @Nullable
-  static XmlTag findValueResourceTagInContext(@NotNull Editor editor, @NotNull PsiFile file) {
+  public static XmlTag findValueResourceTagInContext(@NotNull Editor editor, @NotNull PsiFile file) {
     if (!(file instanceof XmlFile)) {
       return null;
     }
@@ -54,27 +61,12 @@ public class AndroidUsagesTargetProvider implements UsageTargetProvider {
     }
 
     final PsiElement element = file.findElementAt(editor.getCaretModel().getOffset());
-    if (element == null) {
-      return null;
-    }
-
     final XmlTag tag = PsiTreeUtil.getParentOfType(element, XmlTag.class);
-    if (tag == null) {
-      return null;
-    }
 
-    XmlTag current = tag.getParentTag();
-    if (current == null) {
+    final XmlTag rootTag = ((XmlFile)file).getRootTag();
+    if (rootTag == null || !TAG_RESOURCES.equals(rootTag.getName())) {
       return null;
     }
-    // Handle nested elements, e.g. <attr> in <declare-styleable> and <item> in <style>
-    while (true) {
-      XmlTag parentTag = current.getParentTag();
-      if (parentTag == null) {
-        return TAG_RESOURCES.equals(current.getName()) ? tag : null;
-      } else {
-        current = parentTag;
-      }
-    }
+    return tag;
   }
 }
