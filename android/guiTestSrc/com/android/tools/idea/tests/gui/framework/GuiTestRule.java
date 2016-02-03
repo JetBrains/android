@@ -135,7 +135,7 @@ public class GuiTestRule implements TestRule {
     waitForBackgroundTasks();
     printTimestamp();
     printPerfStats();
-    List<Throwable> errors = new ArrayList<Throwable>();
+    List<Throwable> errors = new ArrayList<Throwable>(fatalErrorsFromIde());
     try {
       errors.addAll(cleanUpAndCheckForModalDialogs());
     } finally {
