@@ -1106,9 +1106,10 @@ public class LombokPsiConverter {
       return left;
     } else //noinspection IfStatementWithIdenticalBranches
       if (expression instanceof PsiLambdaExpression) {
-      // Is this used in Java?
-      // TODO: Implement. Not yet used by lint.
-      return null;
+        // Lombok doesn't support lambdas, so lint will skip this file.
+        // Some users are hitting this already because they're using Retrolambda.
+        // We need a proper AST; Lombok is stuck at Java language level 6.
+        return null;
     }
     return null;
   }
