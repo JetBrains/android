@@ -21,6 +21,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.testutils.SdkTestCase;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
+import com.android.tools.lint.detector.api.TextFormat;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.util.io.FileUtil;
@@ -110,6 +111,28 @@ public class RenderErrorPanelTest extends AndroidTestCase {
 
   public void testPanel() {
     String html = getRenderOutput(myFixture.copyFileToProject(BASE_PATH + "layout1.xml", "res/layout/layout1.xml"), null);
+    assertHtmlEquals(
+      "<html><body><A HREF=\"action:close\"></A><font style=\"font-weight:bold; color:#005555;\">Rendering Problems</font><BR/>" +
+      "<B>NOTE: One or more layouts are missing the layout_width or layout_height attributes. These are required in most layouts.</B><BR/>" +
+      "&lt;LinearLayout> does not set the required layout_width attribute: <BR/>" +
+      "&nbsp;&nbsp;&nbsp;&nbsp;<A HREF=\"command:0\">Set to wrap_content</A>, <A HREF=\"command:1\">Set to match_parent</A><BR/>" +
+      "&lt;LinearLayout> does not set the required layout_height attribute: <BR/>" +
+      "&nbsp;&nbsp;&nbsp;&nbsp;<A HREF=\"command:2\">Set to wrap_content</A>, <A HREF=\"command:3\">Set to match_parent</A><BR/>" +
+      "<BR/>" +
+      "Or: <A HREF=\"command:4\">Automatically add all missing attributes</A><BR/>" +
+      "<BR/>" +
+      "<BR/>" +
+      "The following classes could not be found:<DL>" +
+      "<DD>-&NBSP;LinerLayout (<A HREF=\"action:classpath\">Fix Build Path</A>)" +
+      "</DL>Tip: Try to <A HREF=\"action:build\">build</A> the project.<BR/>" +
+      "<BR/>" +
+      "</body></html>", html);
+  }
+
+  public void testDataBindingAttributes() {
+    // Regression test for http://b.android.com/199963
+    // We shouldn't get quickfix notifications for data binding tags
+    String html = getRenderOutput(myFixture.copyFileToProject(BASE_PATH + "db.xml", "res/layout/db.xml"), null);
     assertHtmlEquals(
       "<html><body><A HREF=\"action:close\"></A><font style=\"font-weight:bold; color:#005555;\">Rendering Problems</font><BR/>" +
       "<B>NOTE: One or more layouts are missing the layout_width or layout_height attributes. These are required in most layouts.</B><BR/>" +
