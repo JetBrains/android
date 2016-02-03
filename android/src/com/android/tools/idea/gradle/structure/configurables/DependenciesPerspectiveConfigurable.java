@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.structure.configurables.android.dependencie
 import com.android.tools.idea.gradle.structure.model.android.PsdAndroidModuleModel;
 import com.android.tools.idea.gradle.structure.model.PsdModuleModel;
 import com.android.tools.idea.gradle.structure.model.PsdProjectModel;
+import com.google.common.collect.Maps;
 import com.intellij.openapi.ui.NamedConfigurable;
 import com.intellij.openapi.util.ActionCallback;
 import com.intellij.ui.navigation.Place;
@@ -26,7 +27,11 @@ import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Map;
+
 public class DependenciesPerspectiveConfigurable extends BasePerspectiveConfigurable {
+  private Map<String, NamedConfigurable<? extends PsdModuleModel>> myConfigurablesByGradlePath = Maps.newHashMap();
+
   public DependenciesPerspectiveConfigurable(@NotNull PsdProjectModel projectModel) {
     super(projectModel);
   }
@@ -34,15 +39,21 @@ public class DependenciesPerspectiveConfigurable extends BasePerspectiveConfigur
   @Override
   @Nullable
   protected NamedConfigurable<? extends PsdModuleModel> getConfigurable(@NotNull PsdModuleModel moduleModel) {
-    if (moduleModel instanceof PsdAndroidModuleModel) {
-      PsdAndroidModuleModel androidModuleModel = (PsdAndroidModuleModel)moduleModel;
-      return new AndroidDependenciesConfigurable(androidModuleModel);
+    String gradlePath = moduleModel.getGradlePath();
+    NamedConfigurable<? extends PsdModuleModel> configurable = myConfigurablesByGradlePath.get(gradlePath);
+    if (configurable == null) {
+      if (moduleModel instanceof PsdAndroidModuleModel) {
+        PsdAndroidModuleModel androidModuleModel = (PsdAndroidModuleModel)moduleModel;
+        configurable = new AndroidDependenciesConfigurable(androidModuleModel);
+        myConfigurablesByGradlePath.put(gradlePath, configurable);
+      }
     }
-    return null;
+    return configurable;
   }
 
   @Override
   public void dispose() {
+    myConfigurablesByGradlePath.clear();
   }
 
   @Override
