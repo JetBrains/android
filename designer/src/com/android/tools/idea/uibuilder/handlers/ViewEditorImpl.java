@@ -118,6 +118,7 @@ public class ViewEditorImpl extends ViewEditor {
 
       // Measure unweighted bounds
       Map<XmlTag, ViewInfo> map = task.measureChildren(parentTag, filter);
+      task.dispose();
       if (map != null) {
         for (Map.Entry<XmlTag, ViewInfo> entry : map.entrySet()) {
           ViewInfo viewInfo = entry.getValue();

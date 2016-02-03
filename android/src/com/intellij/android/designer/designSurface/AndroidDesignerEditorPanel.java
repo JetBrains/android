@@ -299,20 +299,16 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
     createRenderer(new ThrowableConsumer<RenderResult, Throwable>() {
       @Override
       public void consume(RenderResult result) throws Throwable {
-        RenderSession session = result.getSession();
-        if (session == null) {
-          return;
-        }
         updateDeviceFrameVisibility(result);
 
-        if (!session.getResult().isSuccess()) {
+        if (!result.getRenderResult().isSuccess()) {
           // This image may not have been fully rendered before some error caused
           // the render to abort, but a partial render is better. However, if the render
           // was due to some configuration change, we don't want to replace the image
           // since all the mouse regions and model setup will no longer match the pixels.
-          if (myRootView != null && myRootView.getImage() != null && session.getImage() != null &&
-              session.getImage().getWidth() == myRootView.getImage().getWidth() &&
-              session.getImage().getHeight() == myRootView.getImage().getHeight()) {
+          if (myRootView != null && myRootView.getImage() != null &&
+              result.getOriginalBounds().getWidth() == myRootView.getImage().getWidth() &&
+              result.getOriginalBounds().getHeight() == myRootView.getImage().getHeight()) {
             myRootView.setRenderedImage(result.getImage());
             myRootView.repaint();
           }
@@ -648,10 +644,6 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
     createRenderer(new ThrowableConsumer<RenderResult, Throwable>() {
       @Override
       public void consume(RenderResult result) throws Throwable {
-        RenderSession session = result.getSession();
-        if (session == null || session.getImage() == null) {
-          return;
-        }
         updateDeviceFrameVisibility(result);
         myRootComponent = RadModelBuilder.update(AndroidDesignerEditorPanel.this, result, (RadViewComponent)myRootComponent, myRootView);
         myRootView.setRenderedImage(result.getImage());
