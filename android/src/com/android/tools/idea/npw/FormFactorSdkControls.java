@@ -156,7 +156,7 @@ final class FormFactorSdkControls {
         if (selectedItem != null && selectedItem.target != null) {
           name = selectedItem.target.getVersion().getApiString();
         }
-        return getApiHelpText(selectedItem == null ? 0 : selectedItem.apiLevel, name);
+        return getApiHelpText(selectedItem == null || !myStatsPanel.isVisible() ? 0 : selectedItem.apiLevel, name);
       }
     });
 
