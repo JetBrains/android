@@ -31,13 +31,6 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
-/**
- * Created by IntelliJ IDEA.
- * User: Eugene.Kudelevsky
- * Date: Aug 27, 2009
- * Time: 2:25:19 PM
- * To change this template use File | Settings | File Templates.
- */
 public class AndroidTestRunConfigurationType implements ConfigurationType {
   private static final Icon ANDROID_TEST_ICON;
 

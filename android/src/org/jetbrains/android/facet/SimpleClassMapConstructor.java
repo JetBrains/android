@@ -28,13 +28,6 @@ import com.intellij.util.ArrayUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * Created by IntelliJ IDEA.
- * User: Eugene.Kudelevsky
- * Date: Jun 11, 2009
- * Time: 8:29:28 PM
- * To change this template use File | Settings | File Templates.
- */
 public class SimpleClassMapConstructor implements ClassMapConstructor {
 
   private SimpleClassMapConstructor() {
