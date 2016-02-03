@@ -15,10 +15,22 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.treeview;
 
+import com.android.tools.idea.gradle.structure.model.PsdModel;
 import com.intellij.ui.treeStructure.SimpleNode;
+import org.jetbrains.annotations.NotNull;
 
-public abstract class AbstractPsdNode extends SimpleNode {
+public abstract class AbstractPsdNode<T extends PsdModel> extends SimpleNode {
   private boolean myAutoExpandNode;
+  @NotNull private final T myModel;
+
+  public AbstractPsdNode(@NotNull T model) {
+    myModel = model;
+  }
+
+  @NotNull
+  public T getModel() {
+    return myModel;
+  }
 
   @Override
   public boolean isAutoExpandNode() {
@@ -27,5 +39,9 @@ public abstract class AbstractPsdNode extends SimpleNode {
 
   public void setAutoExpandNode(boolean autoExpandNode) {
     myAutoExpandNode = autoExpandNode;
+  }
+
+  public boolean matches(@NotNull PsdModel model) {
+    return myModel.equals(model);
   }
 }
