@@ -29,6 +29,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import static com.intellij.ui.ScrollPaneFactory.createScrollPane;
@@ -112,6 +113,10 @@ class EditableDependenciesPanel extends JPanel implements Disposable {
       return selected;
     }
     return null;
+  }
+
+  void select(@NotNull PsdAndroidDependencyModel model) {
+    myDependencyTable.setSelection(Collections.singleton(model));
   }
 
   public interface SelectionListener {
