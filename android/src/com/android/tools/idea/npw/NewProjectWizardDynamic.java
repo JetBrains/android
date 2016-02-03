@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.templates.KeystoreUtils;
 import com.android.tools.idea.templates.TemplateManager;
+import com.android.tools.idea.templates.TemplateUtils;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.dynamic.DynamicWizard;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
@@ -81,7 +82,7 @@ public class NewProjectWizardDynamic extends DynamicWizard {
   /**
    * Add the steps for this wizard
    */
-  protected void addPaths() {
+  private void addPaths() {
     addPath(new ConfigureAndroidProjectPath(getDisposable()));
     for (NewFormFactorModulePath path : NewFormFactorModulePath.getAvailableFormFactorModulePaths(getDisposable())) {
       addPath(path);
@@ -91,7 +92,7 @@ public class NewProjectWizardDynamic extends DynamicWizard {
   /**
    * Populate our state store with some common configuration items, such as the SDK location and the Gradle configuration.
    */
-  protected void initState() {
+  private void initState() {
     initState(getState(), SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION);
   }
 
@@ -185,13 +186,20 @@ public class NewProjectWizardDynamic extends DynamicWizard {
     }
 
     try {
-      Collection<File> targetFiles = myState.get(WizardConstants.TARGET_FILES_KEY);
-      assert targetFiles != null;
+      GradleSyncListener listener = new PostStartupGradleSyncListener(new Runnable() {
+        @Override
+        public void run() {
+          Iterable<File> targetFiles = myState.get(WizardConstants.TARGET_FILES_KEY);
+          assert targetFiles != null;
 
-      Collection<File> filesToOpen = myState.get(WizardConstants.FILES_TO_OPEN_KEY);
-      assert filesToOpen != null;
+          TemplateUtils.reformatAndRearrange(myProject, targetFiles);
 
-      GradleSyncListener listener = new ReformattingGradleSyncListener(targetFiles, filesToOpen);
+          Collection<File> filesToOpen = myState.get(WizardConstants.FILES_TO_OPEN_KEY);
+          assert filesToOpen != null;
+
+          TemplateUtils.openEditors(myProject, filesToOpen, true);
+        }
+      });
 
       projectImporter.importNewlyCreatedProject(projectName, rootLocation, listener, myProject, initialLanguageLevel);
     }
