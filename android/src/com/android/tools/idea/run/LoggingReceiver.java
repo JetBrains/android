@@ -19,13 +19,6 @@ package com.android.tools.idea.run;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.android.util.AndroidOutputReceiver;
 
-/**
- * Created by IntelliJ IDEA.
- * User: Eugene.Kudelevsky
- * Date: Sep 14, 2009
- * Time: 6:21:23 PM
- * To change this template use File | Settings | File Templates.
- */
 public class LoggingReceiver extends AndroidOutputReceiver {
   private final Logger myLogger;
 
