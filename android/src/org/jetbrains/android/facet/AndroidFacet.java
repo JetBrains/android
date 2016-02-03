@@ -659,7 +659,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
   // TODO: correctly support classes from external non-platform jars
   @NotNull
-  public Map<String, PsiClass> getClassMap(@NotNull final String className, @NotNull final ClassMapConstructor constructor) {
+  public Map<String, PsiClass> getClassMap(@NotNull final String className) {
     synchronized (myClassMapLock) {
       CachedValue<Map<String, PsiClass>> value = myClassMaps.get(className);
 
@@ -669,7 +669,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
           @Nullable
           @Override
           public Result<Map<String, PsiClass>> compute() {
-            Map<String, PsiClass> map = computeClassMap(className, constructor);
+            Map<String, PsiClass> map = computeClassMap(className);
             return Result.create(map, PsiModificationTracker.JAVA_STRUCTURE_MODIFICATION_COUNT);
           }
         }, false);
@@ -680,15 +680,15 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   }
 
   @NotNull
-  private Map<String, PsiClass> computeClassMap(@NotNull String className, @NotNull ClassMapConstructor constructor) {
-    Map<String, SmartPsiElementPointer<PsiClass>> classMap = getInitialClassMap(className, constructor, false);
+  private Map<String, PsiClass> computeClassMap(@NotNull String className) {
+    Map<String, SmartPsiElementPointer<PsiClass>> classMap = getInitialClassMap(className, false);
     Map<String, PsiClass> result = Maps.newHashMap();
     boolean shouldRebuildInitialMap = false;
 
     for (String key : classMap.keySet()) {
       SmartPsiElementPointer<PsiClass> pointer = classMap.get(key);
 
-      if (!isUpToDate(pointer, key, constructor)) {
+      if (!isUpToDate(pointer, key)) {
         shouldRebuildInitialMap = true;
         break;
       }
@@ -701,7 +701,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
     if (shouldRebuildInitialMap) {
       result.clear();
-      classMap = getInitialClassMap(className, constructor, true);
+      classMap = getInitialClassMap(className, true);
 
       for (String key : classMap.keySet()) {
         SmartPsiElementPointer<PsiClass> pointer = classMap.get(key);
@@ -713,28 +713,26 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
       }
     }
     Project project = getModule().getProject();
-    fillMap(className, constructor, ProjectScope.getProjectScope(project), result, false);
+    fillMap(className, ProjectScope.getProjectScope(project), result, false);
     return result;
   }
 
-  private static boolean isUpToDate(SmartPsiElementPointer<PsiClass> pointer, String tagName, ClassMapConstructor constructor) {
+  private static boolean isUpToDate(SmartPsiElementPointer<PsiClass> pointer, String tagName) {
     PsiClass aClass = pointer.getElement();
     if (aClass == null) {
       return false;
     }
-    String[] tagNames = constructor.getTagNamesByClass(aClass, -1);
+    String[] tagNames = LayoutViewClassUtils.getTagNamesByClass(aClass, -1);
     return find(tagNames, tagName) >= 0;
   }
 
   @NotNull
-  private Map<String, SmartPsiElementPointer<PsiClass>> getInitialClassMap(@NotNull String className,
-                                                                           @NotNull ClassMapConstructor constructor,
-                                                                           boolean forceRebuild) {
+  private Map<String, SmartPsiElementPointer<PsiClass>> getInitialClassMap(@NotNull String className, boolean forceRebuild) {
     Map<String, SmartPsiElementPointer<PsiClass>> viewClassMap = myInitialClassMaps.get(className);
     if (viewClassMap != null && !forceRebuild) return viewClassMap;
     Map<String, PsiClass> map = Maps.newHashMap();
 
-    if (fillMap(className, constructor, getModule().getModuleWithDependenciesAndLibrariesScope(true), map, true)) {
+    if (fillMap(className, getModule().getModuleWithDependenciesAndLibrariesScope(true), map, true)) {
       viewClassMap = Maps.newHashMapWithExpectedSize(map.size());
       SmartPointerManager manager = SmartPointerManager.getInstance(getModule().getProject());
 
@@ -748,11 +746,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
            : Collections.<String, SmartPsiElementPointer<PsiClass>>emptyMap();
   }
 
-  private boolean fillMap(@NotNull final String className,
-                          @NotNull final ClassMapConstructor constructor,
-                          @NotNull GlobalSearchScope scope,
-                          final Map<String, PsiClass> map,
-                          final boolean libClassesOnly) {
+  private boolean fillMap(@NotNull final String className, @NotNull GlobalSearchScope scope, final Map<String, PsiClass> map, final boolean libClassesOnly) {
     final JavaPsiFacade facade = JavaPsiFacade.getInstance(getModule().getProject());
     PsiClass baseClass = ApplicationManager.getApplication().runReadAction(new Computable<PsiClass>() {
       @Override
@@ -770,7 +764,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
       }
     });
     if (baseClass != null) {
-      String[] baseClassTagNames = constructor.getTagNamesByClass(baseClass, getModuleMinApi());
+      String[] baseClassTagNames = LayoutViewClassUtils.getTagNamesByClass(baseClass, getModuleMinApi());
       for (String tagName : baseClassTagNames) {
         map.put(tagName, baseClass);
       }
@@ -781,7 +775,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
             if (libClassesOnly && c.getManager().isInProject(c)) {
               return true;
             }
-            String[] tagNames = constructor.getTagNamesByClass(c, getModuleMinApi());
+            String[] tagNames = LayoutViewClassUtils.getTagNamesByClass(c, getModuleMinApi());
             for (String tagName : tagNames) {
               map.put(tagName, c);
             }
