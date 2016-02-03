@@ -16,7 +16,6 @@
 
 package org.jetbrains.android.uipreview;
 
-import com.android.SdkConstants;
 import com.android.ide.common.rendering.LayoutLibrary;
 import com.android.ide.common.rendering.RenderSecurityManager;
 import com.android.ide.common.rendering.api.LayoutLog;
@@ -100,7 +99,7 @@ public class ViewLoader {
   }
 
   @Nullable
-  public Object loadView(String className, Class[] constructorSignature, Object[] constructorArgs)
+  public Object loadView(String className, Class<?>[] constructorSignature, Object[] constructorArgs)
     throws ClassNotFoundException {
 
     Object aClass = loadClass(className, constructorSignature, constructorArgs, true);
@@ -140,7 +139,7 @@ public class ViewLoader {
    * Like loadView, but doesn't log  exceptions if failed and doesn't try to create a mock view.
    */
   @Nullable
-  public Object loadClass(String className, Class[] constructorSignature, Object[] constructorArgs) throws ClassNotFoundException {
+  public Object loadClass(String className, Class<?>[] constructorSignature, Object[] constructorArgs) throws ClassNotFoundException {
     // RecyclerView.Adapter is an abstract class, but its instance is needed for RecyclerView to work correctly. So, when LayoutLib asks for
     // its instance, we define a new class which extends the Adapter class.
     if (RecyclerViewHelper.CN_RV_ADAPTER.equals(className)) {
@@ -152,7 +151,7 @@ public class ViewLoader {
   }
 
   @Nullable
-  private Object loadClass(String className, Class[] constructorSignature, Object[] constructorArgs, boolean isView) {
+  private Object loadClass(String className, Class<?>[] constructorSignature, Object[] constructorArgs, boolean isView) {
     Class<?> aClass = myLoadedClasses.get(className);
 
     try {
@@ -257,7 +256,7 @@ public class ViewLoader {
   }
 
   @Nullable
-  private Object createViewFromSuperclass(final String className, final Class[] constructorSignature, final Object[] constructorArgs) {
+  private Object createViewFromSuperclass(final String className, final Class<?>[] constructorSignature, final Object[] constructorArgs) {
     // Creating views from the superclass calls into PSI which may need
     // I/O access (for example when it consults the Java class index
     // and that index needs to be lazily updated.)
@@ -321,7 +320,7 @@ public class ViewLoader {
     }
   }
 
-  private Object createMockView(String className, Class[] constructorSignature, Object[] constructorArgs)
+  private Object createMockView(String className, Class<?>[] constructorSignature, Object[] constructorArgs)
     throws
     ClassNotFoundException,
     InvocationTargetException,
@@ -330,7 +329,7 @@ public class ViewLoader {
     IllegalAccessException,
     NoSuchFieldException {
 
-    final Class<?> mockViewClass = getModuleClassLoader().loadClass(SdkConstants.CLASS_MOCK_VIEW);
+    final Class<?> mockViewClass = getModuleClassLoader().loadClass(CLASS_MOCK_VIEW);
     final Object viewObject = createNewInstance(mockViewClass, constructorSignature, constructorArgs, true);
 
     final Method setTextMethod = viewObject.getClass().getMethod("setText", CharSequence.class);
@@ -389,7 +388,7 @@ public class ViewLoader {
   }
 
   @SuppressWarnings("ConstantConditions")
-  private Object createNewInstance(Class<?> clazz, Class[] constructorSignature, Object[] constructorParameters, boolean isView)
+  private Object createNewInstance(Class<?> clazz, Class<?>[] constructorSignature, Object[] constructorParameters, boolean isView)
     throws NoSuchMethodException, ClassNotFoundException, InvocationTargetException, IllegalAccessException, InstantiationException {
     Constructor<?> constructor = null;
 
@@ -517,11 +516,21 @@ public class ViewLoader {
     }
   }
 
-  public void loadAndParseRClass(@NotNull String className) throws ClassNotFoundException, InconvertibleClassError {
+  private void loadAndParseRClass(@NotNull String className) throws ClassNotFoundException, InconvertibleClassError {
     Class<?> aClass = myLoadedClasses.get(className);
     if (aClass == null) {
-      aClass = getModuleClassLoader().loadClass(className);
+      final ModuleClassLoader moduleClassLoader = getModuleClassLoader();
+      final boolean isClassLoaded = moduleClassLoader.isClassLoaded(className);
+      aClass = moduleClassLoader.loadClass(className);
 
+      if (!isClassLoaded && aClass != null) {
+        // This is the first time we've found the resources. The dynamic R classes generated for aar libraries are now stale and must be
+        // regenerated. Clear the ModuleClassLoader and reload the R class.
+        myLoadedClasses.clear();
+        ModuleClassLoader.clearCache(myModule);
+        myModuleClassLoader = null;
+        aClass = getModuleClassLoader().loadClass(className);
+      }
       if (aClass != null) {
         myLoadedClasses.put(className, aClass);
         myLogger.setHasLoadedClasses(true);
