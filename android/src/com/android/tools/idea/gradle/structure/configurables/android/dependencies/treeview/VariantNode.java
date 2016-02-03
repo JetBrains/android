@@ -30,6 +30,7 @@ import java.util.List;
 
 class VariantNode extends AbstractVariantNode {
   private boolean myShowGroupId;
+  private List<SimpleNode> myChildren;
 
   VariantNode(@NotNull PsdVariantModel model) {
     super(model);
@@ -37,23 +38,27 @@ class VariantNode extends AbstractVariantNode {
 
   @Override
   public SimpleNode[] getChildren() {
-    List<SimpleNode> children = Lists.newArrayList();
+    if (myChildren == null) {
+      List<SimpleNode> children = Lists.newArrayList();
 
-    PsdVariantModel variantModel = getModel();
+      PsdVariantModel variantModel = getModel();
 
-    PsdAndroidModuleModel moduleModel = variantModel.getParent();
-    List<PsdAndroidDependencyModel> dependencies = moduleModel.getDependencies();
-    Collections.sort(dependencies, new PsdAndroidDependencyModelComparator(myShowGroupId));
+      PsdAndroidModuleModel moduleModel = variantModel.getParent();
+      List<PsdAndroidDependencyModel> dependencies = moduleModel.getDependencies();
+      Collections.sort(dependencies, new PsdAndroidDependencyModelComparator(myShowGroupId));
 
-    for (PsdAndroidDependencyModel dependency : dependencies) {
-      if (dependency instanceof PsdAndroidLibraryDependencyModel) {
-        PsdAndroidLibraryDependencyModel libraryDependency = (PsdAndroidLibraryDependencyModel)dependency;
-        if (libraryDependency.isInVariant(variantModel)) {
-          children.add(new AndroidLibraryNode(libraryDependency, myShowGroupId));
+      for (PsdAndroidDependencyModel dependency : dependencies) {
+        if (dependency instanceof PsdAndroidLibraryDependencyModel) {
+          PsdAndroidLibraryDependencyModel libraryDependency = (PsdAndroidLibraryDependencyModel)dependency;
+          if (libraryDependency.isInVariant(variantModel)) {
+            children.add(new AndroidLibraryNode(libraryDependency, myShowGroupId));
+          }
         }
       }
+
+      myChildren = children;
     }
 
-    return children.toArray(new SimpleNode[children.size()]);
+    return myChildren.toArray(new SimpleNode[myChildren.size()]);
   }
 }
