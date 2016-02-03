@@ -151,4 +151,9 @@ class PsdAndroidDependencyModels {
     }
     return models;
   }
+
+  @NotNull
+  public List<PsdAndroidDependencyModel> getDependencies() {
+    return Lists.newArrayList(myDependencyModels.values());
+  }
 }
