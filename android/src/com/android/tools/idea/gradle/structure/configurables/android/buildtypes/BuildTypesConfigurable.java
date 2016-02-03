@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.configurables.buildtypes;
+package com.android.tools.idea.gradle.structure.configurables.android.buildtypes;
 
 import com.android.tools.idea.gradle.structure.configurables.BaseNamedConfigurable;
 import com.android.tools.idea.gradle.structure.model.android.PsdAndroidModuleModel;

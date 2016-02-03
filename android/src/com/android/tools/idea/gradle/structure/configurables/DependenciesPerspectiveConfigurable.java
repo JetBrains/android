@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.configurables.buildtypes;
+package com.android.tools.idea.gradle.structure.configurables;
 
-import com.android.tools.idea.gradle.structure.configurables.BasePerspectiveConfigurable;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.AndroidDependenciesConfigurable;
 import com.android.tools.idea.gradle.structure.model.android.PsdAndroidModuleModel;
 import com.android.tools.idea.gradle.structure.model.PsdModuleModel;
 import com.android.tools.idea.gradle.structure.model.PsdProjectModel;
@@ -26,45 +26,44 @@ import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class BuildTypesPerspectiveConfigurable extends BasePerspectiveConfigurable {
-  public BuildTypesPerspectiveConfigurable(@NotNull PsdProjectModel projectEditor) {
-    super(projectEditor);
+public class DependenciesPerspectiveConfigurable extends BasePerspectiveConfigurable {
+  public DependenciesPerspectiveConfigurable(@NotNull PsdProjectModel projectModel) {
+    super(projectModel);
   }
 
   @Override
   @Nullable
   protected NamedConfigurable<? extends PsdModuleModel> getConfigurable(@NotNull PsdModuleModel moduleModel) {
     if (moduleModel instanceof PsdAndroidModuleModel) {
-      return new BuildTypesConfigurable((PsdAndroidModuleModel)moduleModel);
+      PsdAndroidModuleModel androidModuleModel = (PsdAndroidModuleModel)moduleModel;
+      return new AndroidDependenciesConfigurable(androidModuleModel);
     }
     return null;
   }
 
   @Override
   public void dispose() {
-
   }
 
   @Override
   public ActionCallback navigateTo(@Nullable Place place, boolean requestFocus) {
-    // TODO implement.
+    // TODO: Implement
     return ActionCallback.DONE;
   }
 
   @Override
   public void queryPlace(@NotNull Place place) {
-
   }
 
   @Override
   @NotNull
   public String getId() {
-    return "android.psd.buildtypes";
+    return "android.psd.dependencies";
   }
 
   @Override
   @Nls
   public String getDisplayName() {
-    return "Build Types";
+    return "Dependencies";
   }
 }

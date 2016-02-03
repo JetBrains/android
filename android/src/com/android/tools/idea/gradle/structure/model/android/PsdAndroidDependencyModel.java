@@ -48,6 +48,10 @@ public abstract class PsdAndroidDependencyModel extends PsdChildModel {
     return ImmutableList.copyOf(myVariants);
   }
 
+  public boolean isInVariant(@NotNull PsdVariantModel variantName) {
+    return myVariants.contains(variantName.getName());
+  }
+
   @NotNull
   public abstract Icon getIcon();
 

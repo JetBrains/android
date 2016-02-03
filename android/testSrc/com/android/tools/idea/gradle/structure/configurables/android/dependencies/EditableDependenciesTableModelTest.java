@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.configurables.dependencies;
+package com.android.tools.idea.gradle.structure.configurables.android.dependencies;
 
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.android.PsdAndroidDependencyModel;
