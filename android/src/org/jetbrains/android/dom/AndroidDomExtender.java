@@ -49,7 +49,7 @@ import org.jetbrains.android.dom.xml.Intent;
 import org.jetbrains.android.dom.xml.PreferenceElement;
 import org.jetbrains.android.dom.xml.XmlResourceElement;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.SimpleClassMapConstructor;
+import org.jetbrains.android.facet.LayoutViewClassUtils;
 import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.android.resourceManagers.SystemResourceManager;
 import org.jetbrains.android.util.AndroidUtils;
@@ -333,7 +333,7 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
     String suffix = "Preference";
     if (prefClassName.endsWith(suffix)) {
       String widgetClassName = prefClassName.substring(0, prefClassName.length() - suffix.length());
-      PsiClass widgetClass = SimpleClassMapConstructor.findClassByTagName(facet, widgetClassName, AndroidUtils.VIEW_CLASS_NAME);
+      PsiClass widgetClass = LayoutViewClassUtils.findClassByTagName(facet, widgetClassName, AndroidUtils.VIEW_CLASS_NAME);
       registerAttributesForClassAndSuperclasses(facet, element, widgetClass, callback, skipAttrNames);
     }
 
@@ -344,14 +344,14 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
 
   @NotNull
   public static Map<String, PsiClass> getPreferencesClassMap(@NotNull AndroidFacet facet) {
-    return facet.getClassMap(CLASS_PREFERENCE, SimpleClassMapConstructor.getInstance());
+    return facet.getClassMap(CLASS_PREFERENCE);
   }
 
   public static Map<String, PsiClass> getViewClassMap(@NotNull AndroidFacet facet) {
     if (DumbService.isDumb(facet.getModule().getProject())) {
       return Collections.emptyMap();
     }
-    return facet.getClassMap(AndroidUtils.VIEW_CLASS_NAME, SimpleClassMapConstructor.getInstance());
+    return facet.getClassMap(AndroidUtils.VIEW_CLASS_NAME);
   }
 
   private static String[] getClassNames(@NotNull Collection<PsiClass> classes) {

@@ -32,7 +32,7 @@ import com.intellij.xml.XmlElementDescriptor;
 import com.intellij.xml.XmlElementsGroup;
 import com.intellij.xml.XmlNSDescriptor;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.SimpleClassMapConstructor;
+import org.jetbrains.android.facet.LayoutViewClassUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -86,7 +86,7 @@ public class AndroidXmlTagDescriptor implements XmlElementDescriptor, PsiPresent
       final XmlElementDescriptor descriptor = descriptors[i];
       final String tagName = descriptor.getName();
       final PsiClass aClass = tagName != null && baseClass != null
-                              ? SimpleClassMapConstructor.findClassByTagName(facet, tagName, baseClass)
+                              ? LayoutViewClassUtils.findClassByTagName(facet, tagName, baseClass)
                               : null;
       final Icon icon = AndroidDomElementDescriptorProvider.getIconForTag(tagName, domElement);
       androidDescriptors[i] = new AndroidXmlTagDescriptor(aClass, descriptor, myBaseClassName, icon);
