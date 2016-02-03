@@ -194,6 +194,14 @@ public class AddMissingAttributesFix extends WriteCommandAction<Void> {
       return false;
     }
 
+    // Data binding: these tags shouldn't specify width/height
+    if (tagName.equals(TAG_LAYOUT)
+        || tagName.equals(TAG_VARIABLE)
+        || tagName.equals(TAG_DATA)
+        || tagName.equals(TAG_IMPORT)) {
+      return false;
+    }
+
     return true;
   }
 }
