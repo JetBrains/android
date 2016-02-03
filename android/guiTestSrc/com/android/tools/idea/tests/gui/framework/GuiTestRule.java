@@ -330,7 +330,6 @@ public class GuiTestRule implements TestRule {
   }
 
   public void setProjectPath(@NotNull File projectPath) {
-    checkState(myProjectPath == null, "myProjectpath already set");
     myProjectPath = projectPath;
   }
 
