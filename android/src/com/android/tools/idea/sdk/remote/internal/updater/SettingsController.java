@@ -16,33 +16,15 @@
 
 package com.android.tools.idea.sdk.remote.internal.updater;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.VisibleForTesting;
-import com.android.annotations.VisibleForTesting.Visibility;
-import com.android.prefs.AndroidLocation;
-import com.android.sdklib.io.FileOp;
-import com.android.sdklib.io.IFileOp;
-import com.android.tools.idea.sdk.remote.internal.DownloadCache;
-import com.android.utils.ILogger;
 import com.intellij.openapi.components.*;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
-import java.net.URL;
-import java.util.Map.Entry;
-import java.util.Properties;
 
 /**
  * Controller class to get settings values using intellij persistent data mechanism.
  * Compare to {@link com.android.sdklib.internal.repository.updater.SettingsController}
  * which uses a file maintained separately.
  */
-@State(
-  name = "SettingsController",
-  storages = {
-    @Storage(file = StoragePathMacros.APP_CONFIG + "/remotesdk.xml", roamingType = RoamingType.DISABLED),
-  }
-)
+@State(name = "SettingsController", storages = @Storage(value = "remotesdk.xml", roamingType = RoamingType.DISABLED))
 public class SettingsController implements PersistentStateComponent<SettingsController.PersistentState> {
 
   private PersistentState myState = new PersistentState();

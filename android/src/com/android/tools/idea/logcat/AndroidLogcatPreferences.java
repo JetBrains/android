@@ -23,10 +23,7 @@ import com.intellij.util.xmlb.XmlSerializerUtil;
 /**
  * Persistent storage for the state of the logcat view UI.
  */
-@State(
-  name = "AndroidLogFilters",
-  storages = {@Storage(
-    file = StoragePathMacros.WORKSPACE_FILE)})
+@State(name = "AndroidLogFilters", storages = @Storage(StoragePathMacros.WORKSPACE_FILE))
 public final class AndroidLogcatPreferences implements PersistentStateComponent<AndroidLogcatPreferences> {
   public String TOOL_WINDOW_CUSTOM_FILTER = "";
   public String TOOL_WINDOW_LOG_LEVEL = "VERBOSE";

@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.folding;
 
-import com.intellij.openapi.components.*;
+import com.intellij.openapi.components.PersistentStateComponent;
+import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.components.State;
+import com.intellij.openapi.components.Storage;
 import com.intellij.util.xmlb.XmlSerializerUtil;
 
-@State(
-  name = "AndroidFoldingSettings",
-  storages = @Storage(file = StoragePathMacros.APP_CONFIG + "/editor.codeinsight.xml")
-)
+@State(name = "AndroidFoldingSettings", storages = @Storage("editor.codeinsight.xml"))
 public class AndroidFoldingSettings implements PersistentStateComponent<AndroidFoldingSettings> {
   public static AndroidFoldingSettings getInstance() {
     return ServiceManager.getService(AndroidFoldingSettings.class);

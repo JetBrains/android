@@ -15,7 +15,7 @@ import java.util.List;
 @State(
   name = "AndroidDataSourceStorage",
   storages = {
-    @Storage(file = StoragePathMacros.WORKSPACE_FILE)
+    @Storage(StoragePathMacros.WORKSPACE_FILE)
   })
 public class AndroidDataSourceStorage implements PersistentStateComponent<AndroidDataSourceStorage.State> {
   private final List<AndroidDataSource> myDataSources = ContainerUtil.createLockFreeCopyOnWriteList();
