@@ -40,7 +40,6 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.markup.GutterIconRenderer;
 import com.intellij.openapi.fileEditor.FileEditorManager;
@@ -243,8 +242,12 @@ public class AndroidColorAnnotator implements Annotator {
       return null;
     }
 
+    VirtualFile parent = virtualFile.getParent();
+    if (parent == null) {
+      return null;
+    }
     VirtualFile layout;
-    String parentName = virtualFile.getParent().getName();
+    String parentName = parent.getName();
     if (!parentName.startsWith(FD_RES_LAYOUT)) {
       layout = pickLayoutFile(module, facet);
       if (layout == null) {
