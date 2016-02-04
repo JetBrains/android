@@ -37,12 +37,12 @@ import static org.junit.Assert.assertTrue;
  * This tests layoutlib interaction with custom components and the error handling.
  */
 @BelongsToTestGroups({LAYOUT})
-@Ignore("Test in running forever on Jenkins")
 @RunWith(GuiTestRunner.class)
 public class CustomComponentsTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
+  @Ignore("Test in running forever on Jenkins")
   @Test
   public void testClassConverter() throws Exception {
     // Tests that the class converter rewrites the onDraw, onLayout and onMeasure methods to avoid errors from propagating
