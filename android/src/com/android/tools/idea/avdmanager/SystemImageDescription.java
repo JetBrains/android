@@ -219,6 +219,19 @@ public final class SystemImageDescription {
       }
       return 1;
     }
-  }
 
+    @Override
+    public int hashCode() {
+      return myRemotePackage.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (!(o instanceof RemoteSystemImage)) {
+        return false;
+      }
+      RemoteSystemImage other = (RemoteSystemImage) o;
+      return myRemotePackage.equals(other.myRemotePackage);
+    }
+  }
 }
