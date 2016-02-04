@@ -54,6 +54,7 @@ public class SystemImagePreview {
   private JPanel myMainPanel;
   private JSeparator mySeparator;
   private HaxmAlert myHaxmAlert;
+  private JBLabel myRecommendedExplanation;
   private SystemImageDescription myImageDescription;
   private Disposable myDisposable;
   ApiLevelHyperlinkListener myApiLevelListener = new ApiLevelHyperlinkListener();
@@ -118,6 +119,10 @@ public class SystemImagePreview {
       myVendor.setText("<html>" + vendorName + "</html>");
       myAbi.setText(myImageDescription.getAbiType());
     }
+  }
+
+  public void showExplanationForRecommended(boolean show) {
+    myRecommendedExplanation.setVisible(show);
   }
 
   /**
