@@ -16,24 +16,44 @@
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview;
 
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpec;
-import com.android.tools.idea.gradle.structure.configurables.android.treeview.AbstractPsdNode;
+import com.android.tools.idea.gradle.structure.model.android.PsdAndroidDependencyModel;
 import com.android.tools.idea.gradle.structure.model.android.PsdAndroidLibraryDependencyModel;
+import com.google.common.collect.Lists;
 import com.intellij.ui.treeStructure.SimpleNode;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
 
 import static com.android.tools.idea.gradle.structure.configurables.android.dependencies.ArtifactDependencySpecs.asText;
 
 class AndroidLibraryNode extends AbstractDependencyNode<PsdAndroidLibraryDependencyModel> {
+  private final boolean myShowGroupId;
+
+  private List<SimpleNode> myChildren;
+
   AndroidLibraryNode(@NotNull PsdAndroidLibraryDependencyModel model, boolean showGroupId) {
     super(model);
+    myShowGroupId = showGroupId;
     ArtifactDependencySpec spec = model.getSpec();
     myName = asText(spec, showGroupId);
     setIcon(model.getIcon());
+    setAutoExpandNode(true);
   }
 
   @Override
   public SimpleNode[] getChildren() {
-    // TODO implement transitive artifact dependency
-    return new SimpleNode[0];
+    if (myChildren == null) {
+      List<SimpleNode> children = Lists.newArrayList();
+      for (PsdAndroidDependencyModel transitive : getModel().getTransitiveDependencies()) {
+        if (transitive instanceof PsdAndroidLibraryDependencyModel) {
+          PsdAndroidLibraryDependencyModel transitiveLibrary = (PsdAndroidLibraryDependencyModel)transitive;
+          AndroidLibraryNode child = new AndroidLibraryNode(transitiveLibrary, myShowGroupId);
+          children.add(child);
+        }
+      }
+
+      myChildren = children;
+    }
+    return myChildren.toArray(new SimpleNode[myChildren.size()]);
   }
 }
