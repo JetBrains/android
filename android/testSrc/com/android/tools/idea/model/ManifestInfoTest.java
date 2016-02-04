@@ -279,16 +279,6 @@ public class ManifestInfoTest extends AndroidTestCase {
     }
 
     @Override
-    public ISystemImage getSystemImage(@NotNull IdDisplay tag, @NotNull String abiType) {
-      return null;
-    }
-
-    @Override
-    public ISystemImage[] getSystemImages() {
-      return new ISystemImage[0];
-    }
-
-    @Override
     public String getLocation() {
       return null;
     }
