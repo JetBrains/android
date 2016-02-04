@@ -1,6 +1,9 @@
 package org.jetbrains.android.database;
 
-import com.intellij.openapi.components.*;
+import com.intellij.openapi.components.PersistentStateComponent;
+import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.components.State;
+import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.containers.HashMap;
 import com.intellij.util.containers.HashSet;
@@ -16,13 +19,7 @@ import java.util.*;
 /**
  * @author Eugene.Kudelevsky
  */
-@State(
-  name = "AndroidRemoteDataBaseManager",
-  storages = {
-    @Storage(
-      file = StoragePathMacros.APP_CONFIG + "/androidRemoteDatabases.xml"
-    )}
-)
+@State(name = "AndroidRemoteDataBaseManager", storages = @Storage("androidRemoteDatabases.xml"))
 public class AndroidRemoteDataBaseManager implements PersistentStateComponent<AndroidRemoteDataBaseManager.State> {
   private State myState = new State();
 

@@ -24,15 +24,10 @@ import com.intellij.util.ArrayUtil;
 import com.intellij.util.xmlb.XmlSerializerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
 import java.util.List;
 
-@State(
-  name = "AndroidGradleBuildConfiguration",
-  storages = {
-    @Storage(
-      file = StoragePathMacros.WORKSPACE_FILE
-    )}
-)
+@State(name = "AndroidGradleBuildConfiguration", storages = @Storage(StoragePathMacros.WORKSPACE_FILE))
 public class AndroidGradleBuildConfiguration implements PersistentStateComponent<AndroidGradleBuildConfiguration> {
   public boolean USE_CONFIGURATION_ON_DEMAND = true;
   public boolean USE_EXPERIMENTAL_FASTER_BUILD = AndroidStudioInitializer.isAndroidStudio();

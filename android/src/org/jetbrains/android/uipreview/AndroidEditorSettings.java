@@ -15,15 +15,13 @@
  */
 package org.jetbrains.android.uipreview;
 
-import com.intellij.openapi.components.*;
+import com.intellij.openapi.components.PersistentStateComponent;
+import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.components.State;
+import com.intellij.openapi.components.Storage;
 import org.jetbrains.annotations.NotNull;
 
-@State(
-  name = "AndroidEditors",
-  storages = {
-    @Storage(file = StoragePathMacros.APP_CONFIG + "/androidEditors.xml")
-  }
-)
+@State(name = "AndroidEditors", storages = @Storage("androidEditors.xml"))
 public class AndroidEditorSettings implements PersistentStateComponent<AndroidEditorSettings.MyState> {
   private GlobalState myGlobalState = new GlobalState();
 

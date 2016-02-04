@@ -34,7 +34,7 @@ import java.util.List;
 @State(
   name = "AndroidConfiguredLogFilters",
   storages = {
-    @Storage(file = StoragePathMacros.WORKSPACE_FILE)
+    @Storage(StoragePathMacros.WORKSPACE_FILE)
   }
 )
 public final class AndroidConfiguredLogFilters implements PersistentStateComponent<AndroidConfiguredLogFilters> {

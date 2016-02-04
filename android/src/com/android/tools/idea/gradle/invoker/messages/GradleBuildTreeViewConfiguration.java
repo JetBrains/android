@@ -21,13 +21,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.util.xmlb.XmlSerializerUtil;
 import org.jetbrains.annotations.NotNull;
 
-@State(
-  name = "GradleBuildTreeViewConfiguration",
-  storages = {
-    @Storage(
-      file = StoragePathMacros.WORKSPACE_FILE
-    )}
-)
+@State(name = "GradleBuildTreeViewConfiguration", storages = @Storage(StoragePathMacros.WORKSPACE_FILE))
 public class GradleBuildTreeViewConfiguration implements PersistentStateComponent<GradleBuildTreeViewConfiguration> {
   public boolean SHOW_ERROR_MESSAGES = true;
   public boolean SHOW_WARNING_MESSAGES = true;
