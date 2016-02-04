@@ -30,7 +30,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.layout.RenderErrorPane
 import com.android.tools.idea.tests.gui.framework.fixture.layout.TagMatcher.AttributeMatcher;
 import com.android.tools.lint.detector.api.LintUtils;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestName;
@@ -72,7 +71,6 @@ public class LayoutPreviewTest {
 
   @Rule public final TestName myTestName = new TestName();
 
-  @Ignore("failed in http://go/aj/job/studio-ui-test/326 and from IDEA")
   @Test
   public void testConfigurationTweaks() throws Exception {
     // Open an editor, wait for the layout preview window to open, toggle
@@ -141,7 +139,6 @@ public class LayoutPreviewTest {
   }
 
   @Test
-  @Ignore  // TODO: Remove when issue 76009 is fixed.
   public void testPreviewConfigurationTweaks() throws Exception {
     guiTest.importSimpleApplication();
 
@@ -172,7 +169,6 @@ public class LayoutPreviewTest {
     toolbar.removePreviews();
   }
 
-  @Ignore("failed in http://go/aj/job/studio-ui-test/326 and from IDEA")
   @Test
   public void testEdits() throws Exception {
     guiTest.importSimpleApplication();
@@ -275,7 +271,6 @@ public class LayoutPreviewTest {
     return THUMBNAIL_FOLDER + "/" + prefix + "-" + pngFileName;
   }
 
-  @Ignore("failed in http://go/aj/job/studio-ui-test/326 and from IDEA")
   @Test
   public void testRendering() throws Exception {
     // Opens a number of layouts in the layout test project and checks that the rendering looks roughly
@@ -340,7 +335,6 @@ public class LayoutPreviewTest {
     // ScrollViews (no device clipping)
   }
 
-  @Ignore("failed in http://go/aj/job/studio-ui-test/326 and from IDEA")
   @Test
   public void testEditCustomView() throws Exception {
     // Opens the LayoutTest project, opens a layout with a custom view, checks
