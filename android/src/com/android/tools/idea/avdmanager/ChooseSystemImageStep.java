@@ -245,12 +245,15 @@ public class ChooseSystemImageStep extends DynamicWizardStepWithDescription
     switch (myTabPane.getSelectedIndex()) {
       case 0:
         myRecommendedImageList.makeListCurrent();
+        mySystemImagePreview.showExplanationForRecommended(true);
         break;
       case 1:
         myX86ImageList.makeListCurrent();
+        mySystemImagePreview.showExplanationForRecommended(false);
         break;
       default:
         myOtherImageList.makeListCurrent();
+        mySystemImagePreview.showExplanationForRecommended(false);
         break;
     }
   }
