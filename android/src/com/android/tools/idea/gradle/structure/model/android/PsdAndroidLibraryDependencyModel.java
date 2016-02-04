@@ -19,10 +19,14 @@ import com.android.builder.model.AndroidLibrary;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpec;
 import com.google.common.base.Objects;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.util.List;
+import java.util.Set;
 
 import static com.intellij.util.PlatformIcons.LIBRARY_ICON;
 
@@ -30,7 +34,9 @@ public class PsdAndroidLibraryDependencyModel extends PsdAndroidDependencyModel 
   @NotNull private final ArtifactDependencySpec mySpec;
 
   @Nullable private final AndroidLibrary myGradleModel;
-  @Nullable private final ArtifactDependencyModel myParsedModel;
+  @Nullable private ArtifactDependencyModel myParsedModel;
+
+  @NotNull private final Set<String> myTransitiveDependencies = Sets.newHashSet();
 
   PsdAndroidLibraryDependencyModel(@NotNull PsdAndroidModuleModel parent,
                                    @NotNull ArtifactDependencySpec spec,
@@ -40,6 +46,22 @@ public class PsdAndroidLibraryDependencyModel extends PsdAndroidDependencyModel 
     mySpec = spec;
     myGradleModel = gradleModel;
     myParsedModel = parsedModel;
+  }
+
+  void addTransitiveDependency(@NotNull String dependency) {
+    myTransitiveDependencies.add(dependency);
+  }
+
+  @NotNull
+  public List<PsdAndroidDependencyModel> getTransitiveDependencies() {
+    List<PsdAndroidDependencyModel> transitive = Lists.newArrayList();
+    for (String dependency : myTransitiveDependencies) {
+      PsdAndroidDependencyModel found = getParent().findDependency(dependency);
+      if (found != null) {
+        transitive.add(found);
+      }
+    }
+    return transitive;
   }
 
   @NotNull
