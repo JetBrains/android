@@ -83,7 +83,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -163,7 +162,6 @@ public class GradleSyncTest {
     }
   }
 
-  @Ignore("failed in http://go/aj/job/studio-ui-test/326 and from IDEA")
   @Test
   public void testMissingInterModuleDependencies() throws IOException {
     GradleExperimentalSettings.getInstance().SELECT_MODULES_ON_PROJECT_IMPORT = true;
@@ -279,7 +277,6 @@ public class GradleSyncTest {
     assertThat(urls).contains(url);
   }
 
-  @Ignore("failed in http://go/aj/job/studio-ui-test/326 and from IDEA")
   @Test
   public void testSyncMissingAppCompat() throws IOException {
     if (myAndroidRepoPath.isDirectory()) {
@@ -420,7 +417,6 @@ public class GradleSyncTest {
 
   // See https://code.google.com/p/android/issues/detail?id=75060
   @Test
-  @Ignore // Works only when executed individually
   public void testHandlingOfOutOfMemoryErrors() throws IOException {
     guiTest.importSimpleApplication();
 
@@ -1020,7 +1016,6 @@ public class GradleSyncTest {
 
   // See https://code.google.com/p/android/issues/detail?id=169743
   // JVM settings for Gradle should be cleared before any invocation to Gradle.
-  @Ignore
   @Test
   public void testClearJvmArgsOnSyncAndBuild() throws IOException {
     guiTest.importSimpleApplication();
@@ -1056,7 +1051,6 @@ public class GradleSyncTest {
   // Verifies that the IDE, during sync, asks the user to copy IDE proxy settings to gradle.properties, if applicable.
   // See https://code.google.com/p/android/issues/detail?id=65325
   @Test
-  @Ignore("This test only passes when executed individually")
   public void testWithIdeProxySettings() throws IOException {
     System.getProperties().setProperty("show.do.not.copy.http.proxy.settings.to.gradle", "true");
 
@@ -1368,7 +1362,6 @@ public class GradleSyncTest {
   }
 
   @Test
-  @Ignore
   public void testSyncWithInvalidJdk() throws IOException {
     guiTest.importSimpleApplication();
 
