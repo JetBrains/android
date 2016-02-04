@@ -200,7 +200,7 @@ public class GradleEditorComboBoxEditor implements ComboBoxEditor {
     private void repaintCombobox() {
       final Container parent = getParent();
       if (parent == null) return;
-      if (parent instanceof JComponent && Boolean.TRUE == ((JComponent)parent).getClientProperty("JComboBox.isTableCellEditor")) return;
+      if (UIUtil.isClientPropertyTrue(parent, "JComboBox.isTableCellEditor")) return;
       final Container grandParent = parent.getParent();
       if (grandParent != null) {
         grandParent.repaint();
