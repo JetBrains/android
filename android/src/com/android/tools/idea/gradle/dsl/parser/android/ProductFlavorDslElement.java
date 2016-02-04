@@ -21,49 +21,17 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 import java.util.Map;
 
-public final class ProductFlavorDslElement extends GradlePropertiesDslElement {
+public final class ProductFlavorDslElement extends AbstractFlavorTypeDslElement {
 
   public ProductFlavorDslElement(@NotNull GradleDslElement parent, @NotNull String name) {
-    super(parent, null, name);
-  }
-
-  @Override
-  protected boolean isBlockElement() {
-    return true;
+    super(parent, name);
   }
 
   @Override
   public void addParsedElement(@NotNull String property, @NotNull GradleDslElement element) {
-    if (property.equals("consumerProguardFiles") && element instanceof GradleDslExpression) {
-      addAsParsedDslExpressionList(property, (GradleDslExpression)element);
-      return;
-    }
-
-    if (property.equals("proguardFiles") || property.equals("proguardFile")) {
-      addToParsedExpressionList("proguardFiles", element);
-      return;
-    }
-
     if (property.equals("resConfigs") || property.equals("resConfig")) {
       addToParsedExpressionList("resConfigs", element);
       return;
-    }
-
-    if (property.equals("resValue")) {
-      if (!(element instanceof GradleDslExpressionList)) {
-        return;
-      }
-      GradleDslExpressionList listElement = (GradleDslExpressionList)element;
-      if (listElement.getExpressions().size() != 3 || listElement.getValues(String.class).size() != 3) {
-        return;
-      }
-
-      GradleDslElementList elementList = getProperty("resValues", GradleDslElementList.class);
-      if (elementList == null) {
-        elementList = new GradleDslElementList(this, "resValues");
-        setParsedElement("resValues", elementList);
-      }
-      elementList.addParsedElement(element);
     }
 
     if (property.equals("testInstrumentationRunnerArguments")) {
