@@ -45,12 +45,12 @@ import static org.fest.swing.timing.Pause.pause;
 import static org.junit.Assert.*;
 
 @BelongsToTestGroups({PROJECT_SUPPORT})
-@Ignore("Cause of IDE fatal errors")
 @RunWith(GuiTestRunner.class)
 public class RenameTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
+  @Ignore("Cause of IDE fatal errors")
   @Test
   public void sourceRoot() throws Exception {
     guiTest.importSimpleApplication();
