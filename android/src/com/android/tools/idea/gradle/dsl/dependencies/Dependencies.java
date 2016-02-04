@@ -24,7 +24,6 @@ import com.google.common.collect.Multimap;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.codeStyle.CodeStyleManager;
-import com.intellij.util.SystemProperties;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
@@ -100,8 +99,7 @@ public class Dependencies extends GradleDslElement {
     if (myClosureBlock == null) {
       // There are no dependency blocks. Add one.
       // We need to add line separators, otherwise reformatting won't work.
-      String lineSeparator = SystemProperties.getLineSeparator();
-      String text = "dependencies {" + lineSeparator + configurationName + " '" + compactNotation + "'" + lineSeparator +  "}";
+      String text = "dependencies {\n" + configurationName + " '" + compactNotation + "'" + "\n}";
       GrExpression expression = factory.createExpressionFromText(text);
 
       PsiElement added = myPsiFile.add(expression);
