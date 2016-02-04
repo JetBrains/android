@@ -920,11 +920,15 @@ public final class GradleUtil {
   }
 
   private static void addLocalMavenRepoInitScriptCommandLineOption(@NotNull List<String> args, @NotNull File repoPath) {
+    String path = escapeGroovyStringLiteral(repoPath.getPath());
     String contents = "allprojects {\n" +
                       "  buildscript {\n" +
                       "    repositories {\n" +
-                      "      maven { url '" + escapeGroovyStringLiteral(repoPath.getPath()) + "'}\n" +
+                      "      maven { url '" + path + "'}\n" +
                       "    }\n" +
+                      "  }\n" +
+                      "  repositories {\n" +
+                      "    maven { url '" + path + "'}\n" +
                       "  }\n" +
                       "}\n";
     addInitScriptCommandLineOption("asLocalRepo", contents, args);
