@@ -38,6 +38,7 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.util.Collections;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -108,6 +109,21 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable {
 
     @Override
     protected void done() {
+      try {
+        get();
+      } catch (ExecutionException ex) {
+        Throwable t = ex.getCause();
+        if (t instanceof RuntimeException) {
+          throw (RuntimeException) t;
+        } else if (t instanceof Error) {
+          throw (Error) t;
+        } else {
+          throw new RuntimeException(t);
+        }
+      } catch (InterruptedException ex) {
+        Thread.currentThread().interrupt();
+      }
+
       repaint();
     }
   }
