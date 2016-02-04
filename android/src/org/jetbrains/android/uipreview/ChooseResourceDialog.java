@@ -209,8 +209,7 @@ public class ChooseResourceDialog extends DialogWrapper {
     if (ArrayUtil.contains(ResourceType.COLOR, types) || ArrayUtil.contains(ResourceType.DRAWABLE, types)) {
 
       Configuration configuration = ThemeEditorUtils.getConfigurationForModule(myModule);
-      final ResourceResolver resolver = configuration.getResourceResolver();
-      assert resolver != null;
+      ResourceResolver resolver = getResourceResolver();
 
       ResourceValue resValue = null;
       if (value != null) {
@@ -361,15 +360,40 @@ public class ChooseResourceDialog extends DialogWrapper {
     mySearchBox.addDocumentListener(new DocumentAdapter() {
       @Override
       protected void textChanged(DocumentEvent e) {
-        Condition condition = new Condition() {
-          private String text = mySearchBox.getText();
+        final String text = mySearchBox.getText();
+        Condition colorCondition = null;
+        if (text.startsWith("#")) {
+          final Color color = ResourceHelper.parseColor(text);
+          if (color != null) {
+            colorCondition = new Condition<ResourceItem>() {
+              @Override
+              public boolean value(@NotNull ResourceItem item) {
+                assert item.getGroup().getType() == ResourceType.COLOR; // we don't want to search non-colors
+                return ResourceHelper.resolveMultipleColors(getResourceResolver(), item.getResourceValue(), myModule.getProject()).contains(color);
+              }
+            };
+          }
+        }
+        Condition condition = new Condition<ResourceItem>() {
           @Override
-          public boolean value(Object o) {
-            return StringUtil.containsIgnoreCase(o.toString(), text);
+          public boolean value(@NotNull ResourceItem item) {
+            if (item.getGroup().getType() == ResourceType.STRING) {
+              String string = ResourceHelper.resolveStringValue(getResourceResolver(), item.getResourceUrl());
+              if (StringUtil.containsIgnoreCase(string, text)) {
+                return true;
+              }
+            }
+            return StringUtil.containsIgnoreCase(item.getName(), text);
           }
         };
+
         for (ResourcePanel panel : myPanels) {
-          panel.myList.setFilter(condition);
+          if (panel.getType() == ResourceType.COLOR && colorCondition != null) {
+            panel.myList.setFilter(colorCondition);
+          }
+          else {
+            panel.myList.setFilter(condition);
+          }
         }
       }
     });
@@ -715,10 +739,7 @@ public class ChooseResourceDialog extends DialogWrapper {
       // TODO maybe have a different icon for state list drawable
     }
     else if (group.getType() == ResourceType.COLOR) {
-      Configuration config = ThemeEditorUtils.getConfigurationForModule(myModule);
-      ResourceResolver resolver = config.getResourceResolver();
-      assert resolver != null;
-      Color color = ResourceHelper.resolveColor(resolver, item.getResourceValue(), myModule.getProject());
+      Color color = ResourceHelper.resolveColor(getResourceResolver(), item.getResourceValue(), myModule.getProject());
       if (color != null) { // maybe null for invalid color
         icon = new ColorIcon(size, color);
       }
@@ -735,10 +756,15 @@ public class ChooseResourceDialog extends DialogWrapper {
 
   @NotNull
   private SwatchComponent.SwatchIcon getSwatchIcon(@Nullable String name) {
+    return StateListPicker.getSwatchIcon(name, getResourceResolver(), getRenderTask());
+  }
+
+  @NotNull
+  private ResourceResolver getResourceResolver() {
     Configuration config = ThemeEditorUtils.getConfigurationForModule(myModule);
     ResourceResolver resolver = config.getResourceResolver();
     assert resolver != null;
-    return StateListPicker.getSwatchIcon(name, resolver, getRenderTask());
+    return resolver;
   }
 
   @NotNull
@@ -1044,12 +1070,8 @@ public class ChooseResourceDialog extends DialogWrapper {
       ResourceValue resourceValue = selected.getResourceValue(false);
       assert resourceValue != null;
 
-      Configuration configuration = ThemeEditorUtils.getConfigurationForModule(myModule);
-      final ResourceResolver resolver = configuration.getResourceResolver();
-      assert resolver != null;
-
       @NotNull ResourceEditorTab resourceEditorTab;
-      ResourceHelper.StateList stateList = ResourceHelper.resolveStateList(resolver, resourceValue, myModule.getProject());
+      ResourceHelper.StateList stateList = ResourceHelper.resolveStateList(getResourceResolver(), resourceValue, myModule.getProject());
       if (stateList != null) { // if this is not a statelist, it may be just a normal color
         assert myStateListPickerPanel != null;
         assert myStateListPicker != null;
