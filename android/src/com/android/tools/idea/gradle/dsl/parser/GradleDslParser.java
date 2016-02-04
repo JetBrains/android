@@ -17,10 +17,7 @@ package com.android.tools.idea.gradle.dsl.parser;
 
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.android.AndroidModel;
-import com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement;
-import com.android.tools.idea.gradle.dsl.parser.android.CompileOptionsDslElement;
-import com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorDslElement;
-import com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorsDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.*;
 import com.android.tools.idea.gradle.dsl.parser.build.BuildScriptDslElement;
 import com.android.tools.idea.gradle.dsl.parser.build.SubProjectsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement;
@@ -50,6 +47,7 @@ import org.jetbrains.plugins.groovy.lang.psi.api.types.GrCodeReferenceElement;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement.ANDROID_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.android.BuildTypesDslElement.BUILD_TYPES_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorsDslElement.PRODUCT_FLAVORS_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.build.BuildScriptDslElement.BUILDSCRIPT_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.build.SubProjectsDslElement.SUBPROJECTS_BLOCK_NAME;
@@ -524,6 +522,9 @@ public final class GradleDslParser {
           else if (PRODUCT_FLAVORS_BLOCK_NAME.equals(nestedElementName)) {
             newElement = new ProductFlavorsDslElement(resultElement);
           }
+          else if (BUILD_TYPES_BLOCK_NAME.equals(nestedElementName)) {
+            newElement = new BuildTypesDslElement(resultElement);
+          }
           else if (COMPILE_OPTIONS_BLOCK_NAME.equals(nestedElementName)) {
             newElement = new CompileOptionsDslElement(resultElement);
           }
@@ -536,6 +537,12 @@ public final class GradleDslParser {
         }
         else if (resultElement instanceof ProductFlavorDslElement &&
                  ("manifestPlaceholders".equals(nestedElementName) || "testInstrumentationRunnerArguments".equals(nestedElementName))) {
+          newElement = new GradleDslExpressionMap(resultElement, nestedElementName);
+        }
+        else if (resultElement instanceof BuildTypesDslElement) {
+          newElement = new BuildTypeDslElement(resultElement, nestedElementName);
+        }
+        else if (resultElement instanceof BuildTypeDslElement && "manifestPlaceholders".equals(nestedElementName)) {
           newElement = new GradleDslExpressionMap(resultElement, nestedElementName);
         }
         else {
