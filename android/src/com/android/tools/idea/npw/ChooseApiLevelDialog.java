@@ -16,7 +16,6 @@
 package com.android.tools.idea.npw;
 
 import com.android.tools.idea.stats.Distribution;
-import com.android.tools.idea.stats.DistributionService;
 import com.android.tools.idea.ui.DistributionChartComponent;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.application.ApplicationManager;
@@ -103,10 +102,7 @@ public class ChooseApiLevelDialog extends DialogWrapper implements DistributionC
       }
     });
     if (mySelectedApiLevel >= 0) {
-      Distribution d = DistributionService.getInstance().getDistributionForApiLevel(mySelectedApiLevel);
-      if (d != null) {
-        myDistributionChart.selectDistribution(d);
-      }
+      myDistributionChart.selectDistributionApiLevel(mySelectedApiLevel);
     }
     return myPanel;
   }
