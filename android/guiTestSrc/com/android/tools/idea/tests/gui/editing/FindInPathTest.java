@@ -20,7 +20,6 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.fixture.FindDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.FindToolWindowFixture;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -33,7 +32,6 @@ public class FindInPathTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
-  @Ignore("failed in http://go/aj/job/studio-ui-test/326 but passed from IDEA")
   @Test
   public void testResultsOnlyInGeneratedCode() throws Exception {
     guiTest.importSimpleApplication();
@@ -50,7 +48,6 @@ public class FindInPathTest {
     selectedContext.findUsagesInGeneratedCodeGroup();
   }
 
-  @Ignore("failed in http://go/aj/job/studio-ui-test/326 but passed from IDEA")
   @Test
   public void testResultsInBothProductionAndGeneratedCode() throws Exception {
     guiTest.importSimpleApplication();

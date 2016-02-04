@@ -21,7 +21,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.npw.NewXmlValueWizardF
 import org.fest.swing.fixture.JButtonFixture;
 import org.fest.swing.fixture.JLabelFixture;
 import org.fest.swing.timing.Condition;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -36,7 +35,6 @@ public class NewComponentTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
-  @Ignore("failed in http://go/aj/job/studio-ui-test/345 and from IDEA")
   @Test
   public void testNewValueWizard() throws IOException {
     guiTest.importSimpleApplication();
