@@ -16,10 +16,8 @@
 package com.android.tools.idea.gradle.dsl.model.android;
 
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
-import com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement;
-import com.android.tools.idea.gradle.dsl.parser.android.CompileOptionsDslElement;
-import com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorDslElement;
-import com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorsDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.*;
+import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -27,6 +25,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 import java.util.List;
 
+import static com.android.tools.idea.gradle.dsl.parser.android.BuildTypesDslElement.BUILD_TYPES_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorsDslElement.PRODUCT_FLAVORS_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.elements.BaseCompileOptionsDslElement.COMPILE_OPTIONS_BLOCK_NAME;
 
@@ -67,6 +66,37 @@ public final class AndroidModel extends GradleDslBlockModel {
   @NotNull
   public AndroidModel removeBuildToolsVersion() {
     myDslElement.removeProperty(BUILD_TOOLS_VERSION);
+    return this;
+  }
+
+  @NotNull
+  public Collection<BuildTypeModel> buildTypes() {
+    BuildTypesDslElement buildTypes = myDslElement.getProperty(BUILD_TYPES_BLOCK_NAME, BuildTypesDslElement.class);
+    return buildTypes == null ? ImmutableList.<BuildTypeModel>of() : buildTypes.get();
+  }
+
+  @NotNull
+  public AndroidModel addBuildType(@NotNull String buildType) {
+    BuildTypesDslElement buildTypes = myDslElement.getProperty(BUILD_TYPES_BLOCK_NAME, BuildTypesDslElement.class);
+    if (buildTypes == null) {
+      buildTypes = new BuildTypesDslElement(myDslElement);
+      myDslElement.setNewElement(BUILD_TYPES_BLOCK_NAME, buildTypes);
+    }
+
+    BuildTypeDslElement buildTypeElement = buildTypes.getProperty(buildType, BuildTypeDslElement.class);
+    if (buildTypeElement == null) {
+      buildTypeElement = new BuildTypeDslElement(buildTypes, buildType);
+      buildTypes.setNewElement(buildType, buildTypeElement);
+    }
+    return this;
+  }
+
+  @NotNull
+  public AndroidModel removeBuildType(@NotNull String buildType) {
+    BuildTypesDslElement buildTypes = myDslElement.getProperty(BUILD_TYPES_BLOCK_NAME, BuildTypesDslElement.class);
+    if (buildTypes != null) {
+      buildTypes.removeProperty(buildType);
+    }
     return this;
   }
 
@@ -177,10 +207,10 @@ public final class AndroidModel extends GradleDslBlockModel {
     return this;
   }
 
-  @Nullable
+  @NotNull
   public Collection<ProductFlavorModel> productFlavors() {
     ProductFlavorsDslElement productFlavors = myDslElement.getProperty(PRODUCT_FLAVORS_BLOCK_NAME, ProductFlavorsDslElement.class);
-    return productFlavors == null ? null : productFlavors.get();
+    return productFlavors == null ? ImmutableList.<ProductFlavorModel>of() : productFlavors.get();
   }
 
   @NotNull
