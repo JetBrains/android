@@ -109,15 +109,16 @@ class VariantTreeViewPanel extends JPanel implements Disposable {
                                       @NotNull List<TreePath> selectionPaths) {
     int dependencyCount = parentNode.getChildCount();
     for (int i = 0; i < dependencyCount; i++) {
-      DefaultMutableTreeNode dependencyNode = (DefaultMutableTreeNode)parentNode.getChildAt(i);
-      Object userObject = dependencyNode.getUserObject();
+      DefaultMutableTreeNode childNode = (DefaultMutableTreeNode)parentNode.getChildAt(i);
+      Object userObject = childNode.getUserObject();
       if (userObject instanceof AbstractPsdNode) {
         AbstractPsdNode node = (AbstractPsdNode)userObject;
         if (node.matches(dependencyModel)) {
-          TreePath path = new TreePath(dependencyNode.getPath());
+          TreePath path = new TreePath(childNode.getPath());
           selectionPaths.add(path);
         }
       }
+      collectMatching(dependencyModel, childNode, selectionPaths);
     }
   }
 

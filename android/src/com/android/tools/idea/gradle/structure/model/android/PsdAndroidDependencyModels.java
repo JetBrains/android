@@ -29,6 +29,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.Map;
 
+import static com.android.tools.idea.gradle.structure.model.android.Artifacts.createSpec;
+
 class PsdAndroidDependencyModels {
   @NotNull private final PsdAndroidModuleModel myParent;
 
@@ -63,7 +65,8 @@ class PsdAndroidDependencyModels {
     }
   }
 
-  private void addAndroidLibrary(@NotNull AndroidLibrary androidLibrary, @NotNull PsdVariantModel variantModel) {
+  @Nullable
+  private PsdAndroidDependencyModel addAndroidLibrary(@NotNull AndroidLibrary androidLibrary, @NotNull PsdVariantModel variantModel) {
     PsdParsedDependencyModels parsedDependencies = myParent.getParsedDependencyModels();
 
     MavenCoordinates coordinates = androidLibrary.getResolvedCoordinates();
@@ -80,8 +83,7 @@ class PsdAndroidDependencyModels {
           if (parsedVersion != null && compare(parsedVersion, versionFromGradle) == 0) {
             // Match.
             ArtifactDependencySpec spec = matchingParsedDependency.getSpec();
-            PsdAndroidDependencyModel dependencyModel = createOrGetModel(spec, androidLibrary, matchingParsedDependency);
-            dependencyModel.addContainer(variantModel);
+            return addAndroidLibrary(androidLibrary, spec, variantModel, matchingParsedDependency);
           }
           else {
             // TODO: handle a mismatch
@@ -91,10 +93,29 @@ class PsdAndroidDependencyModels {
       else {
         // This dependency was not declared, it could be a transitive one.
         ArtifactDependencySpec spec = createSpec(coordinates);
-        PsdAndroidDependencyModel dependencyModel = createOrGetModel(spec, androidLibrary, null);
-        dependencyModel.addContainer(variantModel);
+        return addAndroidLibrary(androidLibrary, spec, variantModel, null);
       }
     }
+    return null;
+  }
+
+  @NotNull
+  private PsdAndroidDependencyModel addAndroidLibrary(@NotNull AndroidLibrary androidLibrary,
+                                                      @NotNull ArtifactDependencySpec spec,
+                                                      @NotNull PsdVariantModel variantModel,
+                                                      @Nullable ArtifactDependencyModel parsedDependencyModel) {
+    PsdAndroidDependencyModel dependencyModel = getOrCreateDependency(spec, androidLibrary, parsedDependencyModel);
+
+    for (AndroidLibrary library : androidLibrary.getLibraryDependencies()) {
+      PsdAndroidDependencyModel transitive = addAndroidLibrary(library, variantModel);
+      if (transitive != null && dependencyModel instanceof PsdAndroidLibraryDependencyModel) {
+        PsdAndroidLibraryDependencyModel libraryDependencyModel = (PsdAndroidLibraryDependencyModel)dependencyModel;
+        libraryDependencyModel.addTransitiveDependency(transitive.getValueAsText());
+      }
+    }
+
+    dependencyModel.addContainer(variantModel);
+    return dependencyModel;
   }
 
   @VisibleForTesting
@@ -123,22 +144,16 @@ class PsdAndroidDependencyModels {
   }
 
   @NotNull
-  private PsdAndroidDependencyModel createOrGetModel(@NotNull ArtifactDependencySpec spec,
-                                                     @NotNull AndroidLibrary androidLibrary,
-                                                     @Nullable ArtifactDependencyModel parsedDependency) {
+  private PsdAndroidDependencyModel getOrCreateDependency(@NotNull ArtifactDependencySpec spec,
+                                                          @NotNull AndroidLibrary gradleModel,
+                                                          @Nullable ArtifactDependencyModel parsedModel) {
     String key = spec.toString();
-    PsdAndroidDependencyModel dependencyModel = myDependencyModels.get(key);
+    PsdAndroidDependencyModel dependencyModel = findDependency(key);
     if (dependencyModel == null) {
-      dependencyModel = new PsdAndroidLibraryDependencyModel(myParent, spec, androidLibrary, parsedDependency);
+      dependencyModel = new PsdAndroidLibraryDependencyModel(myParent, spec, gradleModel, parsedModel);
       myDependencyModels.put(key, dependencyModel);
     }
     return dependencyModel;
-  }
-
-  @NotNull
-  private static ArtifactDependencySpec createSpec(@NotNull MavenCoordinates coordinate) {
-    return new ArtifactDependencySpec(coordinate.getArtifactId(), coordinate.getGroupId(), coordinate.getVersion(),
-                                      coordinate.getClassifier(), coordinate.getPackaging());
   }
 
   @NotNull
@@ -155,5 +170,10 @@ class PsdAndroidDependencyModels {
   @NotNull
   public List<PsdAndroidDependencyModel> getDependencies() {
     return Lists.newArrayList(myDependencyModels.values());
+  }
+
+  @Nullable
+  public PsdAndroidDependencyModel findDependency(@NotNull String dependency) {
+    return myDependencyModels.get(dependency);
   }
 }
