@@ -39,6 +39,7 @@ import com.intellij.ui.components.JBList;
 import com.intellij.ui.popup.PopupFactoryImpl;
 import com.intellij.ui.popup.list.ListPopupModel;
 import com.intellij.util.net.HttpConfigurable;
+import com.intellij.util.ui.UIUtil;
 import org.fest.swing.core.BasicRobot;
 import org.fest.swing.core.ComponentFinder;
 import org.fest.swing.core.GenericTypeMatcher;
@@ -320,35 +321,30 @@ public final class GuiTests {
       }
     }, SHORT_TIMEOUT);
 
-    //noinspection ConstantConditions
-    boolean welcomeFrameShown = execute(new GuiQuery<Boolean>() {
+    execute(new GuiTask() {
       @Override
-      protected Boolean executeInEDT() throws Throwable {
-        Project[] openProjects = ProjectManager.getInstance().getOpenProjects();
-        if (openProjects.length == 0) {
-          WelcomeFrame.showNow();
-
-          WindowManagerImpl windowManager = (WindowManagerImpl)WindowManager.getInstance();
-          windowManager.disposeRootFrame();
-          return true;
-        }
-        return false;
+      protected void executeInEDT() throws Throwable {
+        WelcomeFrame.showNow();
+        WindowManagerImpl windowManager = (WindowManagerImpl)WindowManager.getInstance();
+        windowManager.disposeRootFrame();
       }
     });
 
-    if (welcomeFrameShown) {
-      pause(new Condition("'Welcome' frame to show up") {
-        @Override
-        public boolean test() {
-          for (Frame frame : Frame.getFrames()) {
-            if (frame == WelcomeFrame.getInstance() && frame.isShowing()) {
-              return true;
-            }
+    pause(new Condition("'Welcome' frame to show up") {
+      @Override
+      public boolean test() {
+        for (Frame frame : Frame.getFrames()) {
+          if (frame == WelcomeFrame.getInstance() && frame.isShowing()) {
+            return true;
           }
-          return false;
         }
-      }, SHORT_TIMEOUT);
-    }
+        return false;
+      }
+    }, SHORT_TIMEOUT);
+
+    // At this point there are no open projects and we're displaying the welcome screen, with no ongoing animations. The AWT queue might
+    // have some events left from project closing actions, so we flush it completely before proceeding.
+    UIUtil.pump();
   }
 
   @NotNull
