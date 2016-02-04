@@ -21,7 +21,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFixture.ContentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.UnitTestTreeFixture;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -38,13 +37,11 @@ public class UnitTestingSupportTest {
 
   private EditorFixture myEditor;
 
-  @Ignore("failed in http://go/aj/job/studio-ui-test/326 and from IDEA")
   @Test
   public void appModule_gradleAwareMake() throws Exception {
     doTest("app/src/test/java/com/android/tests", "UnitTest");
   }
 
-  @Ignore("failed in http://go/aj/job/studio-ui-test/326 and from IDEA")
   @Test
   public void libModule_gradleAwareMake() throws Exception {
     doTest("lib/src/test/java/com/android/tests/lib", "LibUnitTest");
