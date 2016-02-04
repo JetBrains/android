@@ -29,7 +29,7 @@ import java.util.Set;
 public abstract class PsdAndroidDependencyModel extends PsdChildModel {
   @NotNull private final Set<String> myVariants = Sets.newHashSet();
 
-  PsdAndroidDependencyModel(PsdModel parent) {
+  PsdAndroidDependencyModel(@NotNull PsdAndroidModuleModel parent) {
     super(parent);
   }
 
