@@ -20,7 +20,6 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.intellij.debugger.engine.evaluation.EvaluateException;
 import org.fest.swing.util.PatternTextMatcher;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -41,7 +40,6 @@ public class LaunchAndroidApplicationTest {
   private static final Pattern LOCAL_PATH_OUTPUT = Pattern.compile(
     ".*local path: (?:[^\\/]*[\\/])*SimpleApplication/app/build/outputs/apk/app-debug\\.apk.*", Pattern.DOTALL);
 
-  @Ignore
   @Test
   public void testRunOnEmulator() throws IOException, ClassNotFoundException {
     guiTest.importSimpleApplication();
@@ -58,7 +56,6 @@ public class LaunchAndroidApplicationTest {
                                        .clickTerminateApplication();
   }
 
-  @Ignore
   @Test
   public void testDebugOnEmulator() throws IOException, ClassNotFoundException, EvaluateException {
     guiTest.importSimpleApplication();
