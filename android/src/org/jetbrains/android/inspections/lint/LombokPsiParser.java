@@ -851,6 +851,18 @@ public class LombokPsiParser extends JavaParser {
       return null;
     }
 
+    @Override
+    public boolean isInterface() {
+      ensureInitialized();
+      return super.isInterface();
+    }
+
+    @Override
+    public boolean isEnum() {
+      ensureInitialized();
+      return super.isEnum();
+    }
+
     @Nullable
     @Override
     public ResolvedClass getContainingClass() {
@@ -1007,6 +1019,22 @@ public class LombokPsiParser extends JavaParser {
         }
       }
       return Collections.emptyList();
+    }
+
+    @Override
+    public boolean isInterface() {
+      if (myClass != null) {
+        return myClass.isInterface();
+      }
+      return false;
+    }
+
+    @Override
+    public boolean isEnum() {
+      if (myClass != null) {
+        return myClass.isEnum();
+      }
+      return false;
     }
 
     @Override
