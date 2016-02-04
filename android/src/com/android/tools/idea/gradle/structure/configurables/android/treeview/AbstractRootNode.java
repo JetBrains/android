@@ -24,6 +24,8 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 public abstract class AbstractRootNode extends AbstractPsdNode<PsdAndroidModuleModel> {
+  private List<SimpleNode> myChildren;
+
   public AbstractRootNode(@NotNull PsdAndroidModuleModel model) {
     super(model);
     setAutoExpandNode(true);
@@ -31,12 +33,15 @@ public abstract class AbstractRootNode extends AbstractPsdNode<PsdAndroidModuleM
 
   @Override
   public SimpleNode[] getChildren() {
-    List<SimpleNode> variantNodes = Lists.newArrayList();
-    for (PsdVariantModel variantModel : getModel().getVariantModels()) {
-      AbstractVariantNode variantNode = createVariantNode(variantModel);
-      variantNodes.add(variantNode);
+    if (myChildren == null) {
+      List<SimpleNode> children = Lists.newArrayList();
+      for (PsdVariantModel variantModel : getModel().getVariantModels()) {
+        AbstractVariantNode variantNode = createVariantNode(variantModel);
+        children.add(variantNode);
+      }
+      myChildren = children;
     }
-    return variantNodes.toArray(new SimpleNode[variantNodes.size()]);
+    return myChildren.toArray(new SimpleNode[myChildren.size()]);
   }
 
   @NotNull
