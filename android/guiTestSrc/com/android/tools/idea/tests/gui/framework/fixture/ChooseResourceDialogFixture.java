@@ -49,7 +49,7 @@ public class ChooseResourceDialogFixture extends IdeaDialogFixture<ChooseResourc
 
   private ChooseResourceDialogFixture(@NotNull Robot robot, @NotNull DialogAndWrapper<ChooseResourceDialog> dialogAndWrapper) {
     super(robot, dialogAndWrapper);
-    myTabbedPane = new JTabbedPaneFixture(robot, robot.finder().findByType(this.target(), JTabbedPane.class));
+    myTabbedPane = new JTabbedPaneFixture(robot, (JTabbedPane)robot.finder().findByName(this.target(), "ResourceTypeTabs"));
   }
 
   @NotNull
