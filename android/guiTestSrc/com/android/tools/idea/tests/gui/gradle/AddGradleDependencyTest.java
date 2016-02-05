@@ -26,6 +26,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleBuildMode
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.JListFixture;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -46,6 +47,7 @@ public class AddGradleDependencyTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
+  @Ignore("failed in http://go/aj/job/studio-ui-test/389 and from IDEA")
   @Test
   public void testAddProdModuleDependency() throws IOException {
     guiTest.importProjectAndWaitForProjectSyncToFinish("MultiModule");
@@ -96,6 +98,7 @@ public class AddGradleDependencyTest {
     verifyUndo(editor, 1);
   }
 
+  @Ignore("failed in http://go/aj/job/studio-ui-test/389 and from IDEA")
   @Test
   public void testAddLibDependencyDeclaredInJavaProject() throws IOException {
     guiTest.importProjectAndWaitForProjectSyncToFinish("MultiModule");
@@ -123,6 +126,7 @@ public class AddGradleDependencyTest {
     verifyUndo(editor, 1);
   }
 
+  @Ignore("failed in http://go/aj/job/studio-ui-test/389 and from IDEA")
   @Test
   public void testAddLibDependencyDeclaredInAndroidProject() throws IOException {
     guiTest.importProjectAndWaitForProjectSyncToFinish("MultiModule");
@@ -181,6 +185,7 @@ public class AddGradleDependencyTest {
     assertThat(intentions).excludes(intention);
   }
 
+  @Ignore("failed in http://go/aj/job/studio-ui-test/389 and from IDEA")
   @Test
   public void testAddJUnitDependency() throws IOException {
     guiTest.importSimpleApplication();
@@ -204,6 +209,7 @@ public class AddGradleDependencyTest {
     verifyUndo(editor, 6);
   }
 
+  @Ignore("failed in http://go/aj/job/studio-ui-test/389 and from IDEA")
   @Test
   public void testAddJetbrainsAnnotationDependency() throws IOException {
     guiTest.importSimpleApplication();

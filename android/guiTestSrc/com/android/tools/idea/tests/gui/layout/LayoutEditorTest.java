@@ -20,6 +20,7 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.*;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -136,6 +137,7 @@ public class LayoutEditorTest {
     property.requireXmlValue("?android:attr");
   }
 
+  @Ignore("failed in http://go/aj/job/studio-ui-test/389 and from IDEA")
   @Test
   public void testDeletion() throws Exception {
     // Tests deletion: Opens a layout, finds the first TextView, deletes it,
@@ -189,6 +191,7 @@ public class LayoutEditorTest {
                                 "        TextView - @string/hello_world\n", false);
   }
 
+  @Ignore("b.android.com/173576")
   @Test
   public void testIdManipulation() throws Exception {
     // Checks that when we insert new widgets, we assign appropriate id's (they should

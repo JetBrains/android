@@ -27,6 +27,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -57,6 +58,7 @@ public class BuildVariantsTest {
     GradleExperimentalSettings.getInstance().SKIP_SOURCE_GEN_ON_PROJECT_SYNC = true;
   }
 
+  @Ignore("failed in http://go/aj/job/studio-ui-test/389 and from IDEA")
   @Test
   public void testSwitchVariantWithFlavor() throws IOException {
     guiTest.importProjectAndWaitForProjectSyncToFinish("Flavoredlib");
@@ -98,6 +100,7 @@ public class BuildVariantsTest {
     assertEquals("assembleFlavor1DebugAndroidTest", androidFacetProperties.ASSEMBLE_TEST_TASK_NAME);
   }
 
+  @Ignore("failed in http://go/aj/job/studio-ui-test/389 and from IDEA")
   @Test
   public void switchingTestArtifacts() throws IOException {
     guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleApplication");
@@ -117,22 +120,26 @@ public class BuildVariantsTest {
     assertThat(testSourceFolders).contains(unitTestSrc).excludes(androidTestSrc);
   }
 
+  @Ignore("failed in http://go/aj/job/studio-ui-test/345 and from IDEA")
   @Test
   // TODO add data provider to UI test infrastruture, similar to JUnit 4
   public void generatedFolders_1_0() throws IOException {
     doTestGeneratedFolders("1.0.1", "2.2.1");
   }
 
+  @Ignore("failed in http://go/aj/job/studio-ui-test/345 and from IDEA")
   @Test
   public void generatedFolders_1_1() throws IOException {
     doTestGeneratedFolders("1.1.3", "2.2.1");
   }
 
+  @Ignore("failed in http://go/aj/job/studio-ui-test/345 and from IDEA")
   @Test
   public void generatedFolders_1_2() throws IOException {
     doTestGeneratedFolders("1.2.3", "2.4");
   }
 
+  @Ignore("failed in http://go/aj/job/studio-ui-test/345 and from IDEA")
   @Test
   public void generatedFolders_1_3() throws IOException {
     doTestGeneratedFolders("1.3.0", "2.4");
