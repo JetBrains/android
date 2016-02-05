@@ -78,26 +78,26 @@ class RootNode extends AbstractRootNode {
       }
     }
     else {
+      boolean showGroupId = PsdUISettings.getInstance().VARIANTs_DEPENDENCIES_SHOW_GROUP_ID;
+      Comparator<PsdAndroidDependencyModel> dependencyComparator = new PsdAndroidDependencyModelComparator(showGroupId);
+
       Map<String, List<PsdAndroidDependencyModel>> dependenciesByVariant = Maps.newHashMap();
       for (PsdAndroidDependencyModel dependency : dependencies) {
         for (String variantName : dependency.getVariants()) {
           List<PsdAndroidDependencyModel> variantDependencies = dependenciesByVariant.get(variantName);
           if (variantDependencies == null) {
-            variantDependencies = Lists.newArrayList();
+            variantDependencies = new SortedList<PsdAndroidDependencyModel>(dependencyComparator);
             dependenciesByVariant.put(variantName, variantDependencies);
           }
           variantDependencies.add(dependency);
         }
       }
 
-      Comparator<PsdAndroidDependencyModel> dependencyComparator = new PsdAndroidDependencyModelComparator(true);
-
       List<String> variantNames = Lists.newArrayList(dependenciesByVariant.keySet());
       Collections.sort(variantNames);
       for (String variantName : variantNames) {
         VariantNode variantNode = new VariantNode(variantsByName.get(variantName));
         List<PsdAndroidDependencyModel> variantDependencies = dependenciesByVariant.get(variantName);
-        Collections.sort(variantDependencies, dependencyComparator);
         variantNode.setChildren(variantDependencies);
         variantNodes.add(variantNode);
       }
@@ -109,7 +109,8 @@ class RootNode extends AbstractRootNode {
   @VisibleForTesting
   @NotNull
   static Map<List<String>, List<PsdAndroidDependencyModel>> groupVariants(List<PsdAndroidDependencyModel> dependencies) {
-    Comparator<PsdAndroidDependencyModel> comparator = new PsdAndroidDependencyModelComparator(true);
+    boolean showGroupId = PsdUISettings.getInstance().VARIANTs_DEPENDENCIES_SHOW_GROUP_ID;
+    Comparator<PsdAndroidDependencyModel> comparator = new PsdAndroidDependencyModelComparator(showGroupId);
 
     Map<String, List<PsdAndroidDependencyModel>> dependenciesByVariant = Maps.newHashMap();
     for (PsdAndroidDependencyModel dependency : dependencies) {
