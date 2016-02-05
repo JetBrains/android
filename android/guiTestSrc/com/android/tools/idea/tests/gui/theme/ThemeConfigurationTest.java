@@ -54,7 +54,7 @@ public class ThemeConfigurationTest {
 
     themesComboBox.selectItem("Create New Theme");
     NewStyleDialogFixture newStyleDialog = NewStyleDialogFixture.find(guiTest.robot());
-    JTextComponentFixture newNameTextField = newStyleDialog.getNewNameTextField();
+
     JComboBoxFixture parentComboBox = newStyleDialog.getParentComboBox();
 
     parentComboBox.selectItem("Show all themes");
@@ -66,9 +66,12 @@ public class ThemeConfigurationTest {
     guiTest.robot().waitForIdle();
     themeList.clickItem("android:Theme.Material");
     themeSelectionDialog.clickOk();
-
     parentComboBox.requireSelection("android:Theme.Material");
-    newNameTextField.deleteText().enterText("MyMaterialTheme");
+
+    JTextComponentFixture newNameTextField = newStyleDialog.getNewNameTextField();
+    newNameTextField.click();
+    newNameTextField.deleteText();
+    newNameTextField.enterText("MyMaterialTheme");
 
     newStyleDialog.clickOk();
     themeEditor.waitForThemeSelection("MyMaterialTheme");

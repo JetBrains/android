@@ -51,12 +51,7 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
-import javax.swing.JPanel;
-import javax.swing.JTextField;
+import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
@@ -157,7 +152,7 @@ public class CreateXmlResourcePanel {
                                                   myResourceDir != null ? PsiManager.getInstance(module.getProject()).findDirectory(myResourceDir) : null);
 
     if (defaultFile == null) {
-      final String defaultFileName = AndroidResourceUtil.getDefaultResourceFileName(resourceType);
+      final String defaultFileName = AndroidResourceUtil.getDefaultResourceFileName(myResourceType);
 
       if (defaultFileName != null) {
         myFileNameCombo.getEditor().setItem(defaultFileName);
@@ -214,6 +209,47 @@ public class CreateXmlResourcePanel {
     if (defaultFile != null) {
       resetFromFile(defaultFile, module.getProject());
     }
+  }
+
+  /**
+   * resets the panel to the same state as after it was created.
+   */
+  public void resetToDefault() {
+    if (myModule == null) {
+      myModuleCombo.setSelectedModule(getRootModule());
+    }
+    String defaultFileName = AndroidResourceUtil.getDefaultResourceFileName(myResourceType);
+    if (defaultFileName != null) {
+      myFileNameCombo.getEditor().setItem(defaultFileName);
+    }
+    for (JCheckBox checkBox : myCheckBoxes.values()) {
+      checkBox.setSelected(false);
+    }
+    myCheckBoxes.get(myFolderType.getName()).setSelected(true);
+    myDirectoriesList.repaint();
+  }
+
+  /**
+   * Finds the root modules of all the modules in the myModuleCombo.
+   */
+  @NotNull
+  private Module getRootModule() {
+    assert myModule == null; // this method should ONLY be called if myModule == null, otherwise myModule IS the root.
+    ComboBoxModel model = myModuleCombo.getModel();
+    Module root = null;
+    int moduleDependencyCount = -1;
+    // we go through all the modules, and find the one with the most dependencies.
+    for (int c = 0; c < model.getSize(); c++) {
+      Module otherModule = (Module)model.getElementAt(c);
+      // getAllAndroidDependencies returns all transitive dependencies
+      int otherModuleDependencyCount = AndroidUtils.getAllAndroidDependencies(otherModule, true).size();
+      if (otherModuleDependencyCount > moduleDependencyCount) {
+        moduleDependencyCount = otherModuleDependencyCount;
+        root = otherModule;
+      }
+    }
+    assert root != null;
+    return root;
   }
 
   public void addModuleComboActionListener(@NotNull ActionListener actionListener) {
