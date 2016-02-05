@@ -20,6 +20,7 @@ import com.android.tools.idea.stats.DistributionService;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.GraphicsUtil;
 import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -74,10 +75,10 @@ public class DistributionChartComponent extends JPanel {
     new Color(0xeabd2d)
   };
 
-
   private int[] myCurrentBottoms;
   private Distribution mySelectedDistribution;
   private DistributionSelectionChangedListener myListener;
+  private int mySelectedApiLevel = -1;
 
   public void init() {
     addMouseListener(new MouseAdapter() {
@@ -106,8 +107,27 @@ public class DistributionChartComponent extends JPanel {
     return DistributionService.getInstance().getDistributions();
   }
 
-  public void selectDistribution(Distribution d) {
+  /**
+   * Selects the distribution with the given API level. If the distributions
+   * are not yet loaded, this call will not cause them to be loaded, but once
+   * they are loaded the distribution with the given api level will be selected.
+   */
+  public void selectDistributionApiLevel(int api) {
+    mySelectedApiLevel = api;
+    List<Distribution> distributions = getDistributions();
+    if (distributions != null) {
+      for (Distribution d : distributions) {
+        if (d.getApiLevel() == api) {
+          selectDistribution(d);
+          break;
+        }
+      }
+    }
+  }
+
+  public void selectDistribution(@NotNull Distribution d) {
     mySelectedDistribution = d;
+    mySelectedApiLevel = d.getApiLevel();
     if (myListener != null) {
       myListener.onDistributionSelected(mySelectedDistribution);
     }
@@ -142,13 +162,25 @@ public class DistributionChartComponent extends JPanel {
 
     List<Distribution> distributions = getDistributions();
     if (distributions == null) {
+      final DistributionService service = DistributionService.getInstance();
       Runnable update = new Runnable() {
         @Override
         public void run() {
+          if (mySelectedApiLevel > -1 && mySelectedDistribution == null) {
+            final Distribution distribution = service.getDistributionForApiLevel(mySelectedApiLevel);
+            if (distribution != null) {
+              UIUtil.invokeLaterIfNeeded(new Runnable() {
+                @Override
+                public void run() {
+                  selectDistribution(distribution);
+                }
+              });
+            }
+          }
           repaint();
         }
       };
-      DistributionService.getInstance().refresh(update, update);
+      service.refresh(update, update);
       g.setFont(VERSION_NAME_FONT);
       g.drawString("Loading distribution data ...", NAME_OFFSET, TOP_PADDING);
       return;
