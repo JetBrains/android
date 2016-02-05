@@ -41,11 +41,6 @@ public class BuildTypesPerspectiveConfigurable extends BasePerspectiveConfigurab
   }
 
   @Override
-  public void dispose() {
-
-  }
-
-  @Override
   public ActionCallback navigateTo(@Nullable Place place, boolean requestFocus) {
     // TODO implement.
     return ActionCallback.DONE;
