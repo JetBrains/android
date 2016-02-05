@@ -53,6 +53,7 @@ public class DependenciesPerspectiveConfigurable extends BasePerspectiveConfigur
 
   @Override
   public void dispose() {
+    super.dispose();
     myConfigurablesByGradlePath.clear();
   }
 
