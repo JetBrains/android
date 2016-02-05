@@ -16,20 +16,28 @@
 package com.android.tools.idea.gradle.structure.configurables.android.treeview;
 
 import com.android.tools.idea.gradle.structure.model.PsdModel;
+import com.google.common.collect.Lists;
 import com.intellij.ui.treeStructure.SimpleNode;
 import org.jetbrains.annotations.NotNull;
 
-public abstract class AbstractPsdNode<T extends PsdModel> extends SimpleNode {
-  private boolean myAutoExpandNode;
-  @NotNull private final T myModel;
+import java.util.List;
 
-  public AbstractPsdNode(@NotNull T model) {
-    myModel = model;
+public abstract class AbstractPsdNode<T extends PsdModel> extends SimpleNode {
+  @NotNull private final List<T> myModels;
+
+  private boolean myAutoExpandNode;
+
+  public AbstractPsdNode(@NotNull T...models) {
+    myModels = Lists.newArrayList(models);
+  }
+
+  public AbstractPsdNode(@NotNull List<T> models) {
+    myModels = models;
   }
 
   @NotNull
-  public T getModel() {
-    return myModel;
+  public List<T> getModels() {
+    return myModels;
   }
 
   @Override
@@ -42,6 +50,10 @@ public abstract class AbstractPsdNode<T extends PsdModel> extends SimpleNode {
   }
 
   public boolean matches(@NotNull PsdModel model) {
-    return myModel.equals(model);
+    int modelCount = myModels.size();
+    if (modelCount == 1) {
+      return myModels.get(0).equals(model);
+    }
+    return false;
   }
 }
