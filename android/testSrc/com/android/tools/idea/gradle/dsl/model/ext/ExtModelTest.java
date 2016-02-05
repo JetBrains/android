@@ -39,14 +39,8 @@ public class ExtModelTest extends GradleFileModelTestCase {
     writeToBuildFile(text);
 
     ExtModel extModel = getGradleBuildModel().ext();
-
-    Integer compileSdkVersion = extModel.getProperty("COMPILE_SDK_VERSION", Integer.class);
-    assertNotNull(compileSdkVersion);
-    assertEquals(21, compileSdkVersion.intValue());
-
-    String srcDirName = extModel.getProperty("srcDirName", String.class);
-    assertNotNull(srcDirName);
-    assertEquals("src/java", srcDirName);
+    assertEquals(21, extModel.getProperty("COMPILE_SDK_VERSION", Integer.class));
+    assertEquals("src/java", extModel.getProperty("srcDirName", String.class));
   }
 
   public void testParsingSimplePropertyInExtBlock() throws IOException {
@@ -58,14 +52,8 @@ public class ExtModelTest extends GradleFileModelTestCase {
     writeToBuildFile(text);
 
     ExtModel extModel = getGradleBuildModel().ext();
-
-    Integer compileSdkVersion = extModel.getProperty("COMPILE_SDK_VERSION", Integer.class);
-    assertNotNull(compileSdkVersion);
-    assertEquals(21, compileSdkVersion.intValue());
-
-    String srcDirName = extModel.getProperty("srcDirName", String.class);
-    assertNotNull(srcDirName);
-    assertEquals("src/java", srcDirName);
+    assertEquals(21, extModel.getProperty("COMPILE_SDK_VERSION", Integer.class));
+    assertEquals("src/java", extModel.getProperty("srcDirName", String.class));
   }
 
   public void testParsingListOfProperties() throws IOException {
@@ -76,10 +64,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
     writeToBuildFile(text);
 
     ExtModel extModel = getGradleBuildModel().ext();
-
-    String guavaLibrary = extModel.getProperty("libraries.guava", String.class);
-    assertNotNull(guavaLibrary);
-    assertEquals("com.google.guava:guava:19.0-rc1", guavaLibrary);
+    assertEquals("com.google.guava:guava:19.0-rc1", extModel.getProperty("libraries.guava", String.class));
   }
 
   public void testResolveExtProperty() throws IOException {
@@ -91,10 +76,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
     writeToBuildFile(text);
 
     ExtModel extModel = getGradleBuildModel().ext();
-
-    Integer compileSdkVersion = extModel.getProperty("COMPILE_SDK_VERSION", Integer.class);
-    assertNotNull(compileSdkVersion);
-    assertEquals(21, compileSdkVersion.intValue());
+    assertEquals(21, extModel.getProperty("COMPILE_SDK_VERSION", Integer.class));
 
     AndroidModel androidModel = getGradleBuildModel().android();
     assertNotNull(androidModel);
@@ -112,10 +94,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
     writeToBuildFile(text);
 
     ExtModel extModel = getGradleBuildModel().ext();
-
-    Integer compileSdkVersion = extModel.getProperty("constants.COMPILE_SDK_VERSION", Integer.class);
-    assertNotNull(compileSdkVersion);
-    assertEquals(21, compileSdkVersion.intValue());
+    assertEquals(21, extModel.getProperty("constants.COMPILE_SDK_VERSION", Integer.class));
 
     AndroidModel androidModel = getGradleBuildModel().android();
     assertNotNull(androidModel);
@@ -136,14 +115,8 @@ public class ExtModelTest extends GradleFileModelTestCase {
 
     GradleBuildModel buildModel = getGradleBuildModel();
     ExtModel extModel = buildModel.ext();
-
-    Integer sdkVersion = extModel.getProperty("SDK_VERSION", Integer.class);
-    assertNotNull(sdkVersion);
-    assertEquals(21, sdkVersion.intValue());
-
-    Integer compileSdkVersion = extModel.getProperty("COMPILE_SDK_VERSION", Integer.class);
-    assertNotNull(compileSdkVersion);
-    assertEquals(21, compileSdkVersion.intValue());
+    assertEquals(21, extModel.getProperty("SDK_VERSION", Integer.class));
+    assertEquals(21, extModel.getProperty("COMPILE_SDK_VERSION", Integer.class));
 
     AndroidModel androidModel = buildModel.android();
     assertEquals("compileSdkVersion", "21", androidModel.compileSdkVersion());
@@ -167,16 +140,11 @@ public class ExtModelTest extends GradleFileModelTestCase {
 
     GradleBuildModel buildModel = getGradleBuildModel();
     ExtModel extModel = buildModel.ext();
-
-    Integer sdkVersion = extModel.getProperty("SDK_VERSION", Integer.class);
-    assertNotNull(sdkVersion);
-    assertEquals(21, sdkVersion.intValue());
+    assertEquals(21, extModel.getProperty("SDK_VERSION", Integer.class));
 
     GradleBuildModel subModuleBuildModel = getSubModuleGradleBuildModel();
     ExtModel subModuleExtModel = subModuleBuildModel.ext();
-
-    sdkVersion = subModuleExtModel.getProperty("SDK_VERSION", Integer.class);
-    assertNull(sdkVersion); // SDK_VERSION is not defined in the sub module.
+    assertNull(subModuleExtModel.getProperty("SDK_VERSION", Integer.class)); // SDK_VERSION is not defined in the sub module.
 
     AndroidModel androidModel = subModuleBuildModel.android();
     assertEquals("compileSdkVersion", "21", androidModel.compileSdkVersion()); // SDK_VERSION resolved from the main module.
@@ -196,14 +164,8 @@ public class ExtModelTest extends GradleFileModelTestCase {
 
     GradleBuildModel buildModel = getGradleBuildModel();
     ExtModel extModel = buildModel.ext();
-
-    String androidText = extModel.getProperty("ANDROID", String.class);
-    assertNotNull(androidText);
-    assertEquals("android", androidText);
-
-    Integer sdkVersion = extModel.getProperty("SDK_VERSION", Integer.class);
-    assertNotNull(sdkVersion);
-    assertEquals(23, sdkVersion.intValue());
+    assertEquals("android", extModel.getProperty("ANDROID", String.class));
+    assertEquals(23, extModel.getProperty("SDK_VERSION", Integer.class));
 
     AndroidModel androidModel = buildModel.android();
     assertEquals("compileSdkVersion", "android-23", androidModel.compileSdkVersion());
@@ -259,9 +221,9 @@ public class ExtModelTest extends GradleFileModelTestCase {
     GradleBuildModel buildModel = getGradleBuildModel();
     ExtModel extModel = buildModel.ext();
 
-    GradleDslExpressionList expressionList = extModel.getProperty("TEST_STRINGS", GradleDslExpressionList.class);
-    assertNotNull(expressionList);
-    assertEquals(ImmutableList.of("test1", "test2"), expressionList.getValues(String.class));
+    GradleValue<GradleDslExpressionList> expressionListValue = extModel.getProperty("TEST_STRINGS", GradleDslExpressionList.class);
+    assertNotNull(expressionListValue);
+    assertEquals(ImmutableList.of("test1", "test2"), expressionListValue.getValue().getValues(String.class));
 
     ProductFlavorModel defaultConfig = buildModel.android().defaultConfig();
     assertEquals("proguardFiles", ImmutableList.of("test1", "test2"), defaultConfig.proguardFiles());
@@ -414,7 +376,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
     GradleBuildModel buildModel = getGradleBuildModel();
     ExtModel extModel = buildModel.ext();
 
-    GradleValue<Integer> third = extModel.getPropertyWithResolutionHistory("THIRD", Integer.class);
+    GradleValue<Integer> third = extModel.getProperty("THIRD", Integer.class);
     assertNotNull(third);
     assertEquals(123, third.getValue().intValue());
     assertEquals(myBuildFile.getPath(), third.getFile().getPath());
@@ -453,7 +415,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
     GradleBuildModel buildModel = getSubModuleGradleBuildModel();
     ExtModel extModel = buildModel.ext();
 
-    GradleValue<Integer> second = extModel.getPropertyWithResolutionHistory("SECOND", Integer.class);
+    GradleValue<Integer> second = extModel.getProperty("SECOND", Integer.class);
     assertNotNull(second);
     assertEquals("123", second.getValue().toString());
     assertEquals(mySubModuleBuildFile.getPath(), second.getFile().getPath());
@@ -485,7 +447,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
     GradleBuildModel buildModel = getSubModuleGradleBuildModel();
     ExtModel extModel = buildModel.ext();
 
-    GradleValue<String> third = extModel.getPropertyWithResolutionHistory("third", String.class);
+    GradleValue<String> third = extModel.getProperty("third", String.class);
     assertNotNull(third);
     assertEquals("value_from_gradle_properties", third.getValue());
     assertEquals(mySubModuleBuildFile.getPath(), third.getFile().getPath());

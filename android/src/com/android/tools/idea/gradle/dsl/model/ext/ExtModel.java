@@ -35,29 +35,7 @@ public final class ExtModel extends GradleDslBlockModel {
     super(dslElement);
   }
 
-  public <T> T getProperty(@NotNull String property, @NotNull Class<T> clazz) {
-    return myDslElement.getProperty(property, clazz);
-  }
-
-  /**
-   * Returns the property value along with variable resolution history.
-   *
-   * Note: WIP. Please do not use.
-   */
-  public <T> GradleValue<T> getPropertyWithResolutionHistory(@NotNull String property, @NotNull Class<T> clazz) {
-    GradleDslElement propertyElement = myDslElement.getPropertyElement(property);
-    if (propertyElement != null) {
-      T resultValue = null;
-      if (clazz.isInstance(propertyElement)) {
-        resultValue = clazz.cast(propertyElement);
-      }
-      else if (propertyElement instanceof GradleDslExpression) {
-        resultValue = ((GradleDslExpression)propertyElement).getValue(clazz);
-      }
-      if (resultValue != null) {
-        return new GradleValue<T>(resultValue, propertyElement);
-      }
-    }
-    return null;
+  public <T> GradleValue<T> getProperty(@NotNull String property, @NotNull Class<T> clazz) {
+    return myDslElement.getPropertyValue(property, clazz);
   }
 }
