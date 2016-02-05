@@ -36,6 +36,10 @@ public class VariantsTreeStructure extends AbstractTreeStructure {
     return myRootNode;
   }
 
+  boolean settingsChanged() {
+    return myRootNode.settingsChanged();
+  }
+
   @Override
   public Object[] getChildElements(Object element) {
     if (element instanceof SimpleNode) {
