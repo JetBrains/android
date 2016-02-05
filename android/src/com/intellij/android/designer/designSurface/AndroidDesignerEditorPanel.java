@@ -211,8 +211,20 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
         }
       }
     };
-    myActionPanel.registerAction(gotoDeclaration, IdeActions.ACTION_GOTO_DECLARATION);
+    registerAction(gotoDeclaration, IdeActions.ACTION_GOTO_DECLARATION);
     myActionPanel.getPopupGroup().add(gotoDeclaration);
+  }
+
+  /**
+   * Registers an action on the main panel as well as on the Component Tree panel,
+   * so that keyboard shortcuts work in both windows since they are using the same action popup menu.
+   */
+  private void registerAction(@NotNull AnAction action, @NotNull String actionId) {
+    myActionPanel.registerAction(action, actionId);
+    action.registerCustomShortcutSet(
+      ActionManager.getInstance().getAction(actionId).getShortcutSet(),
+      getContentSplitter().getLastComponent()
+    );
   }
 
   private void addConfigurationActions() {
