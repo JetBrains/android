@@ -298,6 +298,8 @@
     <applicationService serviceInterface="com.android.tools.idea.gradle.project.GradleExperimentalSettings"
                         serviceImplementation="com.android.tools.idea.gradle.project.GradleExperimentalSettings"/>
     <applicationService serviceImplementation="com.android.tools.idea.sdkv2.StudioSettingsController"/>
+    <applicationService serviceInterface="com.android.tools.idea.gradle.structure.configurables.PsdUISettings"
+                        serviceImplementation="com.android.tools.idea.gradle.structure.configurables.PsdUISettings"/>
 
     <errorHandler        implementation="com.android.tools.idea.diagnostics.error.ErrorReporter"/>
     <statisticsService   implementationClass="com.android.tools.idea.stats.AndroidStatisticsService" key="android-studio" />
