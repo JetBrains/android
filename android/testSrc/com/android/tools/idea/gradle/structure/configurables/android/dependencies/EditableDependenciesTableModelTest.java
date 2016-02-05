@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.structure.configurables.android.dependenci
 
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.android.PsdAndroidDependencyModel;
-import com.android.tools.idea.gradle.structure.model.android.PsdAndroidLibraryDependencyModel;
+import com.android.tools.idea.gradle.structure.model.android.PsdLibraryDependencyModel;
 import com.google.common.collect.Lists;
 import com.intellij.util.ui.ColumnInfo;
 import org.junit.Before;
@@ -33,12 +33,12 @@ import static org.mockito.Mockito.when;
  * Tests for {@link EditableDependenciesTableModel}.
  */
 public class EditableDependenciesTableModelTest {
-  private PsdAndroidLibraryDependencyModel myLibraryDependencyEditor;
+  private PsdLibraryDependencyModel myLibraryDependencyEditor;
   private EditableDependenciesTableModel myTableModel;
 
   @Before
   public void setUp() {
-    myLibraryDependencyEditor = mock(PsdAndroidLibraryDependencyModel.class);
+    myLibraryDependencyEditor = mock(PsdLibraryDependencyModel.class);
 
     List<PsdAndroidDependencyModel> dependencyEditors = Lists.newArrayList();
     dependencyEditors.add(myLibraryDependencyEditor);
