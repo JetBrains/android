@@ -24,7 +24,9 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.PlatformTestCase;
+import junit.framework.ComparisonFailure;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
@@ -159,5 +161,15 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
   protected void applyChangesAndReparse(@NotNull final GradleBuildModel buildModel) {
     applyChanges(buildModel);
     buildModel.reparse();
+  }
+
+  public static <T> void assertEquals(@NotNull String message, @NotNull T expected, @Nullable GradleValue<T> actual) {
+    assertNotNull(message, actual);
+    assertEquals(message, expected, actual.getValue());
+  }
+
+  public static <T> void assertEquals(@NotNull T expected, @Nullable GradleValue<T> actual) {
+    assertNotNull(actual);
+    assertEquals(expected, actual.getValue());
   }
 }
