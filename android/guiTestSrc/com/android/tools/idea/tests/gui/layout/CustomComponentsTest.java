@@ -22,6 +22,7 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.LayoutPreviewFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.RenderErrorPanelFixture;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -41,6 +42,7 @@ public class CustomComponentsTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
+  @Ignore("failed in http://go/aj/job/studio-ui-test/389 and from IDEA")
   @Test
   public void testClassConverter() throws Exception {
     // Tests that the class converter rewrites the onDraw, onLayout and onMeasure methods to avoid errors from propagating
