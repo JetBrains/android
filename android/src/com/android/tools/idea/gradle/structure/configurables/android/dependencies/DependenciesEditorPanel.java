@@ -37,7 +37,7 @@ class DependenciesEditorPanel extends JPanel implements Disposable {
     myModuleModel = moduleModel;
 
     myDependenciesPanel = new EditableDependenciesPanel(moduleModel);
-    myVariantTreeViewPanel = new VariantTreeViewPanel(moduleModel);
+    myVariantTreeViewPanel = new VariantTreeViewPanel(moduleModel, myDependenciesPanel);
 
     myVerticalSplitter = new OnePixelSplitter(false, "psi.dependencies.main.vertical.splitter.proportion", .75f);
     myVerticalSplitter.setFirstComponent(myDependenciesPanel);
@@ -49,14 +49,14 @@ class DependenciesEditorPanel extends JPanel implements Disposable {
     myDependenciesPanel.add(new EditableDependenciesPanel.SelectionListener() {
       @Override
       public void dependencyModelSelected(@NotNull PsdAndroidDependencyModel model) {
-        myVariantTreeViewPanel.select(model);
+        myVariantTreeViewPanel.setSelection(model);
       }
     });
 
     myVariantTreeViewPanel.add(new VariantTreeViewPanel.SelectionListener() {
       @Override
       public void dependencyModelSelected(@NotNull PsdAndroidDependencyModel model) {
-        myDependenciesPanel.select(model);
+        myDependenciesPanel.setSelection(model);
       }
     });
   }
