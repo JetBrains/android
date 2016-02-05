@@ -150,7 +150,7 @@ class VariantTreeViewPanel extends JPanel implements Disposable {
     if (selection.size() == 1) {
       AbstractDependencyNode node = getFirstItem(selection);
       if (node != null) {
-        return (PsdAndroidDependencyModel)node.getModel();
+        return (PsdAndroidDependencyModel)node.getModels();
       }
     }
     return null;
