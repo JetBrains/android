@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.structure.configurables.android.dependenci
 
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.android.PsdAndroidDependencyModel;
-import com.android.tools.idea.gradle.structure.model.android.PsdAndroidLibraryDependencyModel;
+import com.android.tools.idea.gradle.structure.model.android.PsdLibraryDependencyModel;
 import com.intellij.util.ui.ColumnInfo;
 import com.intellij.util.ui.ListTableModel;
 import org.jetbrains.annotations.NotNull;
@@ -50,8 +50,8 @@ class EditableDependenciesTableModel extends ListTableModel<PsdAndroidDependency
       @Override
       @NotNull
       public String valueOf(PsdAndroidDependencyModel model) {
-        if (model instanceof PsdAndroidLibraryDependencyModel) {
-          ArtifactDependencySpec spec = ((PsdAndroidLibraryDependencyModel)model).getSpec();
+        if (model instanceof PsdLibraryDependencyModel) {
+          ArtifactDependencySpec spec = ((PsdLibraryDependencyModel)model).getSpec();
           return asText(spec, myShowGroupIds);
         }
         return model.getValueAsText();
@@ -101,7 +101,7 @@ class EditableDependenciesTableModel extends ListTableModel<PsdAndroidDependency
       JLabel label = (JLabel)super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
       label.setIcon(myModel.getIcon());
       String toolTip = "";
-      if (!myShowGroupIds && myModel instanceof PsdAndroidLibraryDependencyModel) {
+      if (!myShowGroupIds && myModel instanceof PsdLibraryDependencyModel) {
         // Show the complete compact notation (including group ID) if the table hides group ID.
         toolTip = myModel.getValueAsText();
       }
