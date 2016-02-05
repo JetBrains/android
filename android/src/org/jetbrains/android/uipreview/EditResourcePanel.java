@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,88 +19,85 @@ import com.android.ide.common.res2.ResourceItem;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.editor.colors.EditorColors;
 import com.intellij.openapi.editor.colors.EditorColorsManager;
-import com.intellij.ui.HideableDecorator;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.components.JBScrollPane;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.awt.Color;
-import java.awt.Component;
+import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.*;
-import javax.swing.*;
+import java.util.List;
 
-public class EditResourcePanel {
-  private JTextField myResourceNameField;
-  private JBLabel myResourceNameMessage;
+public class EditResourcePanel extends JBScrollPane {
   private JPanel myFullPanel;
-  private JPanel myExpertPlaceholder;
-  private JPanel myExpertPanel;
+  private JTextField myResourceNameField;
   private JComboBox myVariantComboBox;
-  private JPanel myEditor;
-  private HideableDecorator myExpertDecorator;
+  private JBLabel myResourceNameMessage;
+  private JTabbedPane myEditorTabs;
 
   private @NotNull List<ResourceItem> myVariants = Collections.emptyList();
+  private final @NotNull Map<Component, ResourceEditorTab> myAllTabs = new HashMap<Component, ResourceEditorTab>();
 
-  public EditResourcePanel() {
-    Color backgroundColor = EditorColorsManager.getInstance().getGlobalScheme().getColor(EditorColors.NOTIFICATION_BACKGROUND);
-    myResourceNameMessage.setBackground(backgroundColor == null ? JBColor.YELLOW : backgroundColor);
-    myExpertDecorator = new HideableDecorator(myExpertPlaceholder, "Device Configuration", true) {
-      private void pack() {
-        // Hack to not shrink the window too small when we close or open the advanced panel.
-        SwingUtilities.invokeLater(new Runnable() {
-          @Override
-          public void run() {
-            SwingUtilities.getWindowAncestor(myExpertPlaceholder).pack();
-          }
-        });
-      }
+  public EditResourcePanel(@Nullable String resourceName) {
+    Color notificationsBackgroundColor = EditorColorsManager.getInstance().getGlobalScheme().getColor(EditorColors.NOTIFICATION_BACKGROUND);
+    myResourceNameMessage.setBackground(notificationsBackgroundColor == null ? JBColor.YELLOW : notificationsBackgroundColor);
 
-      @Override
-      protected void on() {
-        super.on();
-        pack();
-      }
+    myEditorTabs.setUI(new ChooseResourceDialog.SimpleTabUI());
 
-      @Override
-      protected void off() {
-        super.off();
-        pack();
-      }
-    };
-    myExpertDecorator.setContentComponent(myExpertPanel);
+    if (resourceName != null) {
+      myResourceNameField.setText(resourceName);
+    }
+
+    setBorder(null);
+    setViewportView(myFullPanel);
   }
 
-  public void setEditor(@NotNull Component editor) {
-    myEditor.removeAll();
-    myEditor.add(editor);
+  @Override
+  @NotNull
+  public Dimension getMinimumSize() {
+    Insets insets = getInsets();
+    return new Dimension(getViewport().getView().getMinimumSize().width + insets.left + insets.right, super.getMinimumSize().height);
   }
 
-  public void setExpertPanel(@NotNull Component comp) {
-    myExpertPanel.removeAll();
-    myExpertPanel.add(comp);
+  public void setResourceName(@NotNull String resourceName) {
+    myResourceNameField.setText(resourceName);
   }
 
-  public void showExpertPanel(boolean show) {
-    myExpertPlaceholder.setVisible(show);
+  @NotNull
+  public String getResourceName() {
+    return myResourceNameField.getText();
   }
 
-  public JPanel getFullPanel() {
-    return myFullPanel;
+  @NotNull
+  public String getResourceNameMessage() {
+    return myResourceNameMessage.getText();
   }
 
-  public JBLabel getResourceNameMessage() {
-    return myResourceNameMessage;
+  public void setResourceNameMessage(@NotNull String message) {
+    myResourceNameMessage.setText(message);
   }
 
+  @NotNull
   public JTextField getResourceNameField() {
     return myResourceNameField;
   }
 
-  public void setExpertPanelOn(boolean on) {
-    myExpertDecorator.setOn(on);
+  public void addTab(@NotNull ResourceEditorTab panel) {
+    myAllTabs.put(panel.getFullPanel(), panel);
+    myEditorTabs.addTab(panel.getTabTitle(), panel.getFullPanel());
+  }
+
+  @NotNull
+  public ResourceEditorTab getSelectedTab() {
+    return myAllTabs.get(myEditorTabs.getSelectedComponent());
+  }
+
+  public void setSelectedTab(@NotNull ResourceEditorTab panel) {
+    myEditorTabs.setSelectedComponent(panel.getFullPanel());
   }
 
   public void addVariantActionListener(@NotNull ActionListener al) {
@@ -148,10 +145,15 @@ public class EditResourcePanel {
     else {
       ComboBoxModel model = myVariantComboBox.getModel();
       ActionListener[] listeners = myVariantComboBox.getActionListeners();
-      // if we are setting the selected item, we dont want to fire the listoners, as they should only listen to user selection
+      // if we are setting the selected item, we don't want to fire the listeners, as they should only listen to user selection
       for (ActionListener l : listeners) myVariantComboBox.removeActionListener(l);
       model.setSelectedItem(model.getElementAt(myVariants.indexOf(selectedVariant)));
       for (ActionListener l : listeners) myVariantComboBox.addActionListener(l);
     }
+  }
+
+  @NotNull
+  public Collection<ResourceEditorTab> getAllTabs() {
+    return myAllTabs.values();
   }
 }
