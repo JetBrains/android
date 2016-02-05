@@ -19,14 +19,43 @@ import com.android.tools.idea.gradle.structure.model.android.PsdVariantModel;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
+
 /**
- * Tree Node that represents a variant
+ * Tree Node that represents a variant.
  */
 public abstract class AbstractVariantNode extends AbstractPsdNode<PsdVariantModel> {
-  public AbstractVariantNode(@NotNull PsdVariantModel model) {
-    super(model);
-    myName = model.getName();
+  public AbstractVariantNode(@NotNull PsdVariantModel...models) {
+    super(models);
+    setUpNode();
+  }
+
+  public AbstractVariantNode(@NotNull List<PsdVariantModel> models) {
+    super(models);
+    setUpNode();
+  }
+
+  private void setUpNode() {
+    myName = buildName();
     setAutoExpandNode(true);
     setIcon(AndroidIcons.Variant);
+  }
+
+  @NotNull
+  private String buildName() {
+    List<PsdVariantModel> models = getModels();
+    int modelCount = models.size();
+    if (modelCount == 1) {
+      return models.get(0).getName();
+    }
+    StringBuilder buffer = new StringBuilder();
+    for (int i = 0; i < modelCount; i++) {
+      PsdVariantModel model = models.get(i);
+      buffer.append(model.getName());
+      if (i < modelCount - 1) {
+        buffer.append(", ");
+      }
+    }
+    return buffer.toString();
   }
 }

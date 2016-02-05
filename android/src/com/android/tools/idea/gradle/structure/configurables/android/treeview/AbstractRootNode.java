@@ -21,6 +21,7 @@ import com.google.common.collect.Lists;
 import com.intellij.ui.treeStructure.SimpleNode;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collection;
 import java.util.List;
 
 public abstract class AbstractRootNode extends AbstractPsdNode<PsdAndroidModuleModel> {
@@ -35,9 +36,9 @@ public abstract class AbstractRootNode extends AbstractPsdNode<PsdAndroidModuleM
   public SimpleNode[] getChildren() {
     if (myChildren == null) {
       List<SimpleNode> children = Lists.newArrayList();
-      for (PsdVariantModel variantModel : getModel().getVariantModels()) {
-        AbstractVariantNode variantNode = createVariantNode(variantModel);
-        children.add(variantNode);
+      for (PsdAndroidModuleModel moduleModel : getModels()) {
+        List<? extends AbstractVariantNode> variantNodes = createVariantNodes(moduleModel.getVariantModels());
+        children.addAll(variantNodes);
       }
       myChildren = children;
     }
@@ -45,5 +46,5 @@ public abstract class AbstractRootNode extends AbstractPsdNode<PsdAndroidModuleM
   }
 
   @NotNull
-  protected abstract AbstractVariantNode createVariantNode(@NotNull PsdVariantModel variantModel);
+  protected abstract List<? extends AbstractVariantNode> createVariantNodes(@NotNull Collection<PsdVariantModel> variantModels);
 }
