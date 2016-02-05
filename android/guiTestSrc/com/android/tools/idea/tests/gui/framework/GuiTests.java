@@ -112,26 +112,19 @@ public final class GuiTests {
   private static final File TMP_PROJECT_ROOT = createTempProjectCreationDir();
 
   public static List<AssertionError> fatalErrorsFromIde() {
-    final MessagePool messagePool = MessagePool.getInstance();
-    List<AbstractMessage> fatalErrors = messagePool.getFatalErrors(true, true);
-    List<AssertionError> errors = new ArrayList<AssertionError>(fatalErrors.size());
-    for (AbstractMessage error : fatalErrors) {
-      StringBuilder messageBuilder = new StringBuilder(error.getMessage());
-      String additionalInfo = error.getAdditionalInfo();
+    List<AbstractMessage> errorMessages = MessagePool.getInstance().getFatalErrors(true, true);
+    List<AssertionError> errors = new ArrayList<AssertionError>(errorMessages.size());
+    for (AbstractMessage errorMessage : errorMessages) {
+      StringBuilder messageBuilder = new StringBuilder(errorMessage.getMessage());
+      String additionalInfo = errorMessage.getAdditionalInfo();
       if (isNotEmpty(additionalInfo)) {
         messageBuilder.append(System.getProperty("line.separator") + "Additional Info: " + additionalInfo);
       }
       AssertionError assertionError = new AssertionError(messageBuilder.toString());
-      assertionError.initCause(error.getThrowable());
+      assertionError.initCause(errorMessage.getThrowable());
       errors.add(assertionError);
     }
     return Collections.unmodifiableList(errors);
-  }
-
-  public static boolean doesIdeHaveFatalErrors() {
-    final MessagePool messagePool = MessagePool.getInstance();
-    List<AbstractMessage> fatalErrors = messagePool.getFatalErrors(true, true);
-    return !fatalErrors.isEmpty();
   }
 
   // Called by IdeTestApplication via reflection.
