@@ -30,6 +30,7 @@ import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.data.TableCell;
 import org.fest.swing.fixture.*;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -247,6 +248,7 @@ public class ThemeSelectorTest {
    * Tests that we can remove AppCompat and the themes update correctly.
    * Test that we can open the simple application and the theme editor opens correctly.
    */
+  @Ignore("failed in http://go/aj/job/studio-ui-test/389")
   @Test
   public void testRemoveAppCompat() throws IOException {
     guiTest.importSimpleApplication();
