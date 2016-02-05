@@ -36,7 +36,6 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
-import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.annotations.NotNull;
@@ -350,7 +349,7 @@ public class DeclaredPermissionsLookup implements ProjectComponent {
 
     @Override
     public boolean hasPermission(@NonNull String permission) {
-      return hasPermission(permission, new HashSet<ModulePermissions>());
+      return hasPermission(permission, Sets.<ModulePermissions> newHashSet());
     }
 
     private boolean hasPermission(@NonNull String permission, Set<ModulePermissions> seen) {
@@ -412,13 +411,18 @@ public class DeclaredPermissionsLookup implements ProjectComponent {
 
     @Override
     public boolean isRevocable(@NonNull String permission) {
+      return isRevocable(permission, Sets.<ModulePermissions> newHashSet());
+    }
+
+    private boolean isRevocable(@NonNull String permission,
+                                @NonNull Set<ModulePermissions> seen) {
       // Permission already found to be available?
       Boolean cached = myRevocableCache.get(permission);
       if (cached != null) {
         return cached;
       }
 
-      boolean isRevocable = computeRevocable(permission);
+      boolean isRevocable = computeRevocable(permission, seen);
       myRevocableCache.put(permission, isRevocable);
       return isRevocable;
     }
@@ -435,8 +439,12 @@ public class DeclaredPermissionsLookup implements ProjectComponent {
       return AndroidModuleInfo.get(myFacet).getTargetSdkVersion();
     }
 
-    private boolean computeRevocable(@NonNull String permission) {
+    private boolean computeRevocable(@NonNull String permission,
+                                     @NonNull Set<ModulePermissions> seen) {
       if (myFacet == null) {
+        return false;
+      }
+      if (!seen.add(this)) {
         return false;
       }
 
@@ -448,7 +456,7 @@ public class DeclaredPermissionsLookup implements ProjectComponent {
 
       if (myDependencies != null) {
         for (ModulePermissions module : myDependencies) {
-          if (module.isRevocable(permission)) {
+          if (module.isRevocable(permission, seen)) {
             return true;
           }
         }
