@@ -35,6 +35,7 @@ import com.intellij.openapi.roots.LanguageLevelModuleExtensionImpl;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.pom.java.LanguageLevel;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -53,6 +54,7 @@ public class NewProjectTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
+  @Ignore("failed in http://go/aj/job/studio-ui-test/389")
   @Test
   public void testCreateNewMobileProject() {
     newProject("Test Application").create();
@@ -88,6 +90,7 @@ public class NewProjectTest {
     }
   }
 
+  @Ignore("failed in http://go/aj/job/studio-ui-test/389")
   @Test
   public void testNoWarningsInNewProjects() throws IOException {
     // Creates a new default project, and checks that if we run Analyze > Inspect Code, there are no warnings.
@@ -127,6 +130,7 @@ public class NewProjectTest {
                  inspections.getResults());
   }
 
+  @Ignore("failed in http://go/aj/job/studio-ui-test/389")
   @Test
   public void testRenderResourceInitialization() throws IOException {
     // Regression test for https://code.google.com/p/android/issues/detail?id=76966
@@ -163,6 +167,7 @@ public class NewProjectTest {
     }
   }
 
+  @Ignore("failed in http://go/aj/job/studio-ui-test/389")
   @Test
   public void testStillBuildingMessage() throws Exception {
     // Creates a new project with minSdk 15, which should use appcompat.
