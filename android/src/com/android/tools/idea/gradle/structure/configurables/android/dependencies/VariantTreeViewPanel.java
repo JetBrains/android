@@ -15,14 +15,19 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies;
 
+import com.android.tools.idea.gradle.structure.configurables.ToolWindowPanel;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractDependencyNode;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.VariantsTreeBuilder;
 import com.android.tools.idea.gradle.structure.configurables.android.treeview.AbstractPsdNode;
 import com.android.tools.idea.gradle.structure.model.android.PsdAndroidDependencyModel;
 import com.android.tools.idea.gradle.structure.model.android.PsdAndroidModuleModel;
-import com.android.tools.idea.structure.dialog.HeaderPanel;
+import com.android.tools.idea.gradle.util.ui.Header;
 import com.google.common.collect.Lists;
-import com.intellij.openapi.Disposable;
+import com.intellij.icons.AllIcons;
+import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.impl.ActionManagerImpl;
+import com.intellij.openapi.actionSystem.impl.MenuItemPresentationFactory;
+import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.treeStructure.Tree;
@@ -37,14 +42,17 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 import java.awt.*;
+import java.awt.event.InputEvent;
+import java.awt.event.MouseEvent;
 import java.util.List;
 import java.util.Set;
 
+import static com.intellij.openapi.wm.impl.content.ToolWindowContentUi.POPUP_PLACE;
 import static com.intellij.ui.ScrollPaneFactory.createScrollPane;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static javax.swing.tree.TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION;
 
-class VariantTreeViewPanel extends JPanel implements Disposable {
+class VariantTreeViewPanel extends ToolWindowPanel {
   @NotNull private final Tree myTree;
   @NotNull private final VariantsTreeBuilder myTreeBuilder;
   @NotNull private final TreeSelectionListener myTreeSelectionListener;
@@ -52,7 +60,9 @@ class VariantTreeViewPanel extends JPanel implements Disposable {
   @NotNull private final List<SelectionListener> mySelectionListeners = Lists.newCopyOnWriteArrayList();
 
   VariantTreeViewPanel(@NotNull PsdAndroidModuleModel moduleModel) {
-    super(new BorderLayout());
+    super("Variants");
+    setHeaderActions();
+
     DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode();
     DefaultTreeModel treeModel = new DefaultTreeModel(rootNode);
     myTree = new Tree(treeModel);
@@ -63,8 +73,6 @@ class VariantTreeViewPanel extends JPanel implements Disposable {
     selectionModel.setSelectionMode(DISCONTIGUOUS_TREE_SELECTION);
 
     myTreeBuilder = new VariantsTreeBuilder(moduleModel, myTree, treeModel);
-
-    add(new HeaderPanel("Variants"), BorderLayout.NORTH);
 
     JScrollPane scrollPane = createScrollPane(myTree);
     scrollPane.setBorder(IdeBorderFactory.createEmptyBorder());
@@ -83,6 +91,46 @@ class VariantTreeViewPanel extends JPanel implements Disposable {
       }
     };
     myTree.addTreeSelectionListener(myTreeSelectionListener);
+
+    getHeader().addEventListener(new Header.HeaderEventListener() {
+      @Override
+      public void activated() {
+        myTree.requestFocusInWindow();
+      }
+    }, this);
+  }
+
+  private void setHeaderActions() {
+    final DefaultActionGroup settings = new DefaultActionGroup();
+    settings.add(new ToggleAction("Group Variants") {
+      @Override
+      public boolean isSelected(AnActionEvent e) {
+        return false;
+      }
+
+      @Override
+      public void setSelected(AnActionEvent e, boolean state) {
+
+      }
+    });
+
+    getHeader().setAdditionalActions(new AnAction[] {
+      new DumbAwareAction("", "", AllIcons.General.Gear) {
+        @Override
+        public void actionPerformed(AnActionEvent e) {
+          InputEvent inputEvent = e.getInputEvent();
+          ActionManagerImpl actionManager = (ActionManagerImpl)ActionManager.getInstance();
+          ActionPopupMenu popupMenu = actionManager.createActionPopupMenu(POPUP_PLACE, settings, new MenuItemPresentationFactory(true));
+          int x = 0;
+          int y = 0;
+          if (inputEvent instanceof MouseEvent) {
+            x = ((MouseEvent)inputEvent).getX();
+            y = ((MouseEvent)inputEvent).getY();
+          }
+          popupMenu.getComponent().show(inputEvent.getComponent(), x, y);
+        }
+      }
+    });
   }
 
   void select(@NotNull final PsdAndroidDependencyModel dependencyModel) {
@@ -150,7 +198,10 @@ class VariantTreeViewPanel extends JPanel implements Disposable {
     if (selection.size() == 1) {
       AbstractDependencyNode node = getFirstItem(selection);
       if (node != null) {
-        return (PsdAndroidDependencyModel)node.getModels();
+        List<?> models = node.getModels();
+        if (!models.isEmpty()) {
+          return (PsdAndroidDependencyModel)models.get(0);
+        }
       }
     }
     return null;
@@ -158,6 +209,7 @@ class VariantTreeViewPanel extends JPanel implements Disposable {
 
   @Override
   public void dispose() {
+    super.dispose();
     Disposer.dispose(myTreeBuilder);
     mySelectionListeners.clear();
   }
