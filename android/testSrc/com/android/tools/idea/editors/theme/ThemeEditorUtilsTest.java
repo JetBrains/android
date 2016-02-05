@@ -83,6 +83,8 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
     Collection<EditedStyleItem> values = ThemeEditorTestUtils.getStyleLocalValues(theme);
     assertEquals(7, values.size());
 
+    configuration.setTheme("AppTheme");
+
     for (EditedStyleItem item : values) {
       String doc = ThemeEditorUtils.generateToolTipText(item.getSelectedValue(), myModule, configuration);
       compareWithGoldenFile(doc, myFixture.getTestDataPath() + "/themeEditor/tooltipDocAns/" + item.getName() + ".ans");

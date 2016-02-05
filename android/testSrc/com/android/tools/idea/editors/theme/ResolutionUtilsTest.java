@@ -52,6 +52,8 @@ public class ResolutionUtilsTest extends AndroidTestCase {
     assertEquals("android:Theme", ResolutionUtils.getQualifiedNameFromResourceUrl("@android:style/Theme"));
     assertEquals("namespace:Theme", ResolutionUtils.getQualifiedNameFromResourceUrl("@namespace:style/Theme"));
     assertEquals("AppTheme", ResolutionUtils.getQualifiedNameFromResourceUrl("@style/AppTheme"));
+    // TODO get it to also work for theme attr urls
+    // for theme attributes, the "attr/" is optional: http://developer.android.com/guide/topics/resources/accessing-resources.html
   }
 
   /**
