@@ -483,6 +483,8 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
               clearClassMaps();
             }
             myPrevSdk = newSdk;
+
+            getLocalResourceManager().invalidateAttributeDefinitions();
           }
         });
       }
