@@ -88,7 +88,7 @@ public class DeployApkTask implements LaunchTask {
       if (!apk.getFile().exists()) {
         String message = "The APK file " + apk.getFile().getPath() + " does not exist on disk.";
         printer.stderr(message);
-        LOG.error(message);
+        LOG.warn(message);
         return false;
       }
 
