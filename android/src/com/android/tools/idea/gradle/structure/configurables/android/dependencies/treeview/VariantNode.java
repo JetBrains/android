@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview;
 
+import com.android.tools.idea.gradle.structure.configurables.PsdUISettings;
 import com.android.tools.idea.gradle.structure.configurables.android.treeview.AbstractVariantNode;
 import com.android.tools.idea.gradle.structure.model.android.PsdAndroidDependencyModel;
 import com.android.tools.idea.gradle.structure.model.android.PsdAndroidLibraryDependencyModel;
@@ -23,12 +24,16 @@ import com.google.common.collect.Lists;
 import com.intellij.ui.treeStructure.SimpleNode;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
 class VariantNode extends AbstractVariantNode {
-  private boolean myShowGroupId;
   private List<SimpleNode> myChildren = Collections.emptyList();
+
+  public VariantNode(@NotNull PsdVariantModel model) {
+    super(model);
+  }
 
   public VariantNode(@NotNull List<PsdVariantModel> models) {
     super(models);
@@ -39,12 +44,13 @@ class VariantNode extends AbstractVariantNode {
     return myChildren.toArray(new SimpleNode[myChildren.size()]);
   }
 
-  void setChildren(@NotNull List<PsdAndroidDependencyModel> dependencies) {
+  void setChildren(@NotNull Collection<PsdAndroidDependencyModel> dependencies) {
     myChildren = Lists.newArrayList();
 
     for (PsdAndroidDependencyModel dependency : dependencies) {
       if (dependency instanceof PsdAndroidLibraryDependencyModel) {
-        myChildren.add(new AndroidLibraryNode((PsdAndroidLibraryDependencyModel)dependency, myShowGroupId));
+        boolean showGroupId = PsdUISettings.getInstance().DECLARED_DEPENDENCIES_SHOW_GROUP_ID;
+        myChildren.add(new AndroidLibraryNode((PsdAndroidLibraryDependencyModel)dependency, showGroupId));
       }
     }
   }
