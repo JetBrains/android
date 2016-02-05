@@ -231,16 +231,20 @@ public class DistributionService {
       }
     }
     finally {
+      List<Runnable> continuations;
       synchronized (myLock) {
         if (myDistributions == null) {
           loadFromFile(myFallback);
-          runContinuations(myFailures);
+          continuations = new ArrayList<Runnable>(myFailures);
         }
         else {
-          runContinuations(mySuccesses);
+          continuations = new ArrayList<Runnable>(mySuccesses);
         }
+        mySuccesses.clear();
+        myFailures.clear();
         myRunning = false;
       }
+      runContinuations(continuations);
     }
   }
 
@@ -279,12 +283,10 @@ public class DistributionService {
     return downloaded;
   }
 
-  private void runContinuations(List<Runnable> continuations) {
+  private static void runContinuations(List<Runnable> continuations) {
     for (Runnable r : continuations) {
       r.run();
     }
-    mySuccesses.clear();
-    myFailures.clear();
   }
 
   @VisibleForTesting(visibility = VisibleForTesting.Visibility.PRIVATE)
