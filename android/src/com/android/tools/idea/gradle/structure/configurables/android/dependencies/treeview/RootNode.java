@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview;
 
+import com.android.tools.idea.gradle.structure.configurables.PsdUISettings;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.PsdAndroidDependencyModelComparator;
 import com.android.tools.idea.gradle.structure.configurables.android.treeview.AbstractRootNode;
 import com.android.tools.idea.gradle.structure.configurables.android.treeview.AbstractVariantNode;
@@ -29,35 +30,72 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 
 class RootNode extends AbstractRootNode {
+  private boolean myGroupVariants = PsdUISettings.getInstance().VARIANTS_DEPENDENCIES_GROUP_VARIANTS;
+
   RootNode(@NotNull PsdAndroidModuleModel moduleModel) {
     super(moduleModel);
+  }
+
+  boolean settingsChanged() {
+    if (PsdUISettings.getInstance().VARIANTS_DEPENDENCIES_GROUP_VARIANTS != myGroupVariants) {
+      // If the "Group Variants" setting changed, remove all children nodes, so the subsequent call to "queueUpdate" will recreate them.
+      myGroupVariants = PsdUISettings.getInstance().VARIANTS_DEPENDENCIES_GROUP_VARIANTS;
+      removeChildren();
+      return true;
+    }
+    return false;
   }
 
   @Override
   @NotNull
   protected List<? extends AbstractVariantNode> createVariantNodes(@NotNull Collection<PsdVariantModel> variantModels) {
+    List<VariantNode> variantNodes = Lists.newArrayList();
+
     Map<String, PsdVariantModel> variantsByName = Maps.newHashMap();
     for (PsdVariantModel variantModel : variantModels) {
       variantsByName.put(variantModel.getName(), variantModel);
     }
 
-    List<VariantNode> variantNodes = Lists.newArrayList();
-
     List<PsdAndroidDependencyModel> dependencies = getModels().get(0).getDependencies();
-    Map<List<String>, List<PsdAndroidDependencyModel>> groups = groupVariants(dependencies);
 
-    for (List<String> variantNames : groups.keySet()) {
-      List<PsdVariantModel> groupVariants = Lists.newArrayList();
-      for (String variantName : variantNames) {
-        PsdVariantModel found = variantsByName.get(variantName);
-        assert found != null;
-        groupVariants.add(found);
+    if (myGroupVariants) {
+      Map<List<String>, List<PsdAndroidDependencyModel>> groups = groupVariants(dependencies);
+
+      for (List<String> variantNames : groups.keySet()) {
+        List<PsdVariantModel> groupVariants = Lists.newArrayList();
+        for (String variantName : variantNames) {
+          PsdVariantModel found = variantsByName.get(variantName);
+          assert found != null;
+          groupVariants.add(found);
+        }
+        VariantNode variantNode = new VariantNode(groupVariants);
+        List<PsdAndroidDependencyModel> variantDependencies = groups.get(variantNames);
+        variantNode.setChildren(variantDependencies);
+
+        variantNodes.add(variantNode);
       }
-      VariantNode variantNode = new VariantNode(groupVariants);
-      List<PsdAndroidDependencyModel> variantDependencies = groups.get(variantNames);
-      variantNode.setChildren(variantDependencies);
+    }
+    else {
+      Map<String, List<PsdAndroidDependencyModel>> dependenciesByVariant = Maps.newHashMap();
+      for (PsdAndroidDependencyModel dependency : dependencies) {
+        for (String variantName : dependency.getVariants()) {
+          List<PsdAndroidDependencyModel> variantDependencies = dependenciesByVariant.get(variantName);
+          if (variantDependencies == null) {
+            variantDependencies = Lists.newArrayList();
+            dependenciesByVariant.put(variantName, variantDependencies);
+          }
+          variantDependencies.add(dependency);
+        }
+      }
 
-      variantNodes.add(variantNode);
+      Comparator<PsdAndroidDependencyModel> comparator = new PsdAndroidDependencyModelComparator(true);
+      for (String variantName : dependenciesByVariant.keySet()) {
+        VariantNode variantNode = new VariantNode(variantsByName.get(variantName));
+        List<PsdAndroidDependencyModel> variantDependencies = dependenciesByVariant.get(variantName);
+        Collections.sort(variantDependencies, comparator);
+        variantNode.setChildren(variantDependencies);
+        variantNodes.add(variantNode);
+      }
     }
 
     return variantNodes;

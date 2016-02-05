@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies;
 
+import com.android.tools.idea.gradle.structure.configurables.PsdUISettings;
 import com.android.tools.idea.gradle.structure.configurables.ToolWindowPanel;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractDependencyNode;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.DependencySelection;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.VariantsTreeBuilder;
 import com.android.tools.idea.gradle.structure.configurables.android.treeview.AbstractPsdNode;
 import com.android.tools.idea.gradle.structure.model.android.PsdAndroidDependencyModel;
@@ -52,14 +54,14 @@ import static com.intellij.ui.ScrollPaneFactory.createScrollPane;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static javax.swing.tree.TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION;
 
-class VariantTreeViewPanel extends ToolWindowPanel {
+class VariantTreeViewPanel extends ToolWindowPanel implements DependencySelection {
   @NotNull private final Tree myTree;
   @NotNull private final VariantsTreeBuilder myTreeBuilder;
   @NotNull private final TreeSelectionListener myTreeSelectionListener;
 
   @NotNull private final List<SelectionListener> mySelectionListeners = Lists.newCopyOnWriteArrayList();
 
-  VariantTreeViewPanel(@NotNull PsdAndroidModuleModel moduleModel) {
+  VariantTreeViewPanel(@NotNull PsdAndroidModuleModel moduleModel, @NotNull DependencySelection dependencySelection) {
     super("Variants");
     setHeaderActions();
 
@@ -72,7 +74,7 @@ class VariantTreeViewPanel extends ToolWindowPanel {
     TreeSelectionModel selectionModel = myTree.getSelectionModel();
     selectionModel.setSelectionMode(DISCONTIGUOUS_TREE_SELECTION);
 
-    myTreeBuilder = new VariantsTreeBuilder(moduleModel, myTree, treeModel);
+    myTreeBuilder = new VariantsTreeBuilder(moduleModel, myTree, treeModel, dependencySelection, this);
 
     JScrollPane scrollPane = createScrollPane(myTree);
     scrollPane.setBorder(IdeBorderFactory.createEmptyBorder());
@@ -81,9 +83,9 @@ class VariantTreeViewPanel extends ToolWindowPanel {
     myTreeSelectionListener = new TreeSelectionListener() {
       @Override
       public void valueChanged(TreeSelectionEvent e) {
-        PsdAndroidDependencyModel selected = getSingleSelection();
+        PsdAndroidDependencyModel selected = getSelection();
         if (selected != null) {
-          select(selected);
+          setSelection(selected);
           for (SelectionListener listener : mySelectionListeners) {
             listener.dependencyModelSelected(selected);
           }
@@ -101,16 +103,20 @@ class VariantTreeViewPanel extends ToolWindowPanel {
   }
 
   private void setHeaderActions() {
-    final DefaultActionGroup settings = new DefaultActionGroup();
-    settings.add(new ToggleAction("Group Variants") {
+    final DefaultActionGroup settingsGroup = new DefaultActionGroup();
+    settingsGroup.add(new ToggleAction("Group Variants") {
       @Override
       public boolean isSelected(AnActionEvent e) {
-        return false;
+        return PsdUISettings.getInstance().VARIANTS_DEPENDENCIES_GROUP_VARIANTS;
       }
 
       @Override
       public void setSelected(AnActionEvent e, boolean state) {
-
+        PsdUISettings settings = PsdUISettings.getInstance();
+        if (settings.VARIANTS_DEPENDENCIES_GROUP_VARIANTS != state) {
+          settings.VARIANTS_DEPENDENCIES_GROUP_VARIANTS = state;
+          settings.fireUISettingsChanged();
+        }
       }
     });
 
@@ -120,7 +126,8 @@ class VariantTreeViewPanel extends ToolWindowPanel {
         public void actionPerformed(AnActionEvent e) {
           InputEvent inputEvent = e.getInputEvent();
           ActionManagerImpl actionManager = (ActionManagerImpl)ActionManager.getInstance();
-          ActionPopupMenu popupMenu = actionManager.createActionPopupMenu(POPUP_PLACE, settings, new MenuItemPresentationFactory(true));
+          ActionPopupMenu popupMenu =
+            actionManager.createActionPopupMenu(POPUP_PLACE, settingsGroup, new MenuItemPresentationFactory(true));
           int x = 0;
           int y = 0;
           if (inputEvent instanceof MouseEvent) {
@@ -133,7 +140,8 @@ class VariantTreeViewPanel extends ToolWindowPanel {
     });
   }
 
-  void select(@NotNull final PsdAndroidDependencyModel dependencyModel) {
+  @Override
+  public void setSelection(@NotNull final PsdAndroidDependencyModel selection) {
     myTreeBuilder.getInitialized().doWhenDone(new Runnable() {
       @Override
       public void run() {
@@ -144,7 +152,7 @@ class VariantTreeViewPanel extends ToolWindowPanel {
           int variantCount = rootNode.getChildCount();
           for (int i = 0; i < variantCount; i++) {
             DefaultMutableTreeNode variantNode = (DefaultMutableTreeNode)rootNode.getChildAt(i);
-            collectMatching(dependencyModel, variantNode, selectionPaths);
+            collectMatching(selection, variantNode, selectionPaths);
           }
           updateSelection(selectionPaths);
         }
@@ -185,15 +193,16 @@ class VariantTreeViewPanel extends ToolWindowPanel {
   }
 
   void add(@NotNull SelectionListener listener) {
-    PsdAndroidDependencyModel selected = getSingleSelection();
+    PsdAndroidDependencyModel selected = getSelection();
     if (selected != null) {
       listener.dependencyModelSelected(selected);
     }
     mySelectionListeners.add(listener);
   }
 
+  @Override
   @Nullable
-  private PsdAndroidDependencyModel getSingleSelection() {
+  public PsdAndroidDependencyModel getSelection() {
     Set<AbstractDependencyNode> selection = myTreeBuilder.getSelectedElements(AbstractDependencyNode.class);
     if (selection.size() == 1) {
       AbstractDependencyNode node = getFirstItem(selection);
