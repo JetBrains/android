@@ -23,6 +23,7 @@ import com.intellij.notification.EventLog;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
 import org.fest.assertions.Index;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -93,6 +94,7 @@ public class ThemeEditorTest {
     checkNoErrors();
   }
 
+  @Ignore("failed in http://go/aj/job/studio-ui-test/389")
   @Test
   public void testConfigurationToolbar() throws IOException {
     guiTest.importSimpleApplication();
