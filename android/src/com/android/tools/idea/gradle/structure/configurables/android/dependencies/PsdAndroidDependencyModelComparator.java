@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies;
 
 import com.android.tools.idea.gradle.structure.model.android.PsdAndroidDependencyModel;
-import com.android.tools.idea.gradle.structure.model.android.PsdAndroidLibraryDependencyModel;
+import com.android.tools.idea.gradle.structure.model.android.PsdLibraryDependencyModel;
 
 import java.util.Comparator;
 
@@ -31,10 +31,10 @@ public class PsdAndroidDependencyModelComparator implements Comparator<PsdAndroi
 
   @Override
   public int compare(PsdAndroidDependencyModel m1, PsdAndroidDependencyModel m2) {
-    if (m1 instanceof PsdAndroidLibraryDependencyModel) {
-      if (m2 instanceof PsdAndroidLibraryDependencyModel) {
-        String s1 = asText(((PsdAndroidLibraryDependencyModel)m1).getSpec(), myShowGroupId);
-        String s2 = asText(((PsdAndroidLibraryDependencyModel)m2).getSpec(), myShowGroupId);
+    if (m1 instanceof PsdLibraryDependencyModel) {
+      if (m2 instanceof PsdLibraryDependencyModel) {
+        String s1 = asText(((PsdLibraryDependencyModel)m1).getSpec(), myShowGroupId);
+        String s2 = asText(((PsdLibraryDependencyModel)m2).getSpec(), myShowGroupId);
         return s1.compareTo(s2);
       }
     }

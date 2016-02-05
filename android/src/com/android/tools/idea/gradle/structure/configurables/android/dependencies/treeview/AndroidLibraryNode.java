@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.structure.configurables.android.dependenci
 
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.android.PsdAndroidDependencyModel;
-import com.android.tools.idea.gradle.structure.model.android.PsdAndroidLibraryDependencyModel;
+import com.android.tools.idea.gradle.structure.model.android.PsdLibraryDependencyModel;
 import com.google.common.collect.Lists;
 import com.intellij.ui.treeStructure.SimpleNode;
 import org.jetbrains.annotations.NotNull;
@@ -26,12 +26,12 @@ import java.util.List;
 
 import static com.android.tools.idea.gradle.structure.configurables.android.dependencies.ArtifactDependencySpecs.asText;
 
-class AndroidLibraryNode extends AbstractDependencyNode<PsdAndroidLibraryDependencyModel> {
+class AndroidLibraryNode extends AbstractDependencyNode<PsdLibraryDependencyModel> {
   private final boolean myShowGroupId;
 
   private List<SimpleNode> myChildren;
 
-  AndroidLibraryNode(@NotNull PsdAndroidLibraryDependencyModel model, boolean showGroupId) {
+  AndroidLibraryNode(@NotNull PsdLibraryDependencyModel model, boolean showGroupId) {
     super(model);
     myShowGroupId = showGroupId;
     ArtifactDependencySpec spec = model.getSpec();
@@ -45,8 +45,8 @@ class AndroidLibraryNode extends AbstractDependencyNode<PsdAndroidLibraryDepende
     if (myChildren == null) {
       List<SimpleNode> children = Lists.newArrayList();
       for (PsdAndroidDependencyModel transitive : getModels().get(0).getTransitiveDependencies()) {
-        if (transitive instanceof PsdAndroidLibraryDependencyModel) {
-          PsdAndroidLibraryDependencyModel transitiveLibrary = (PsdAndroidLibraryDependencyModel)transitive;
+        if (transitive instanceof PsdLibraryDependencyModel) {
+          PsdLibraryDependencyModel transitiveLibrary = (PsdLibraryDependencyModel)transitive;
           AndroidLibraryNode child = new AndroidLibraryNode(transitiveLibrary, myShowGroupId);
           children.add(child);
         }

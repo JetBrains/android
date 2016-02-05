@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.model.android;
 
-import com.android.builder.model.AndroidLibrary;
+import com.android.builder.model.Library;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpec;
 import com.google.common.base.Objects;
@@ -30,18 +30,18 @@ import java.util.Set;
 
 import static com.intellij.util.PlatformIcons.LIBRARY_ICON;
 
-public class PsdAndroidLibraryDependencyModel extends PsdAndroidDependencyModel {
+public class PsdLibraryDependencyModel extends PsdAndroidDependencyModel {
   @NotNull private final ArtifactDependencySpec mySpec;
 
-  @Nullable private final AndroidLibrary myGradleModel;
+  @Nullable private final Library myGradleModel;
   @Nullable private ArtifactDependencyModel myParsedModel;
 
   @NotNull private final Set<String> myTransitiveDependencies = Sets.newHashSet();
 
-  PsdAndroidLibraryDependencyModel(@NotNull PsdAndroidModuleModel parent,
-                                   @NotNull ArtifactDependencySpec spec,
-                                   @Nullable AndroidLibrary gradleModel,
-                                   @Nullable ArtifactDependencyModel parsedModel) {
+  PsdLibraryDependencyModel(@NotNull PsdAndroidModuleModel parent,
+                            @NotNull ArtifactDependencySpec spec,
+                            @Nullable Library gradleModel,
+                            @Nullable ArtifactDependencyModel parsedModel) {
     super(parent);
     mySpec = spec;
     myGradleModel = gradleModel;
@@ -95,7 +95,7 @@ public class PsdAndroidLibraryDependencyModel extends PsdAndroidDependencyModel 
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    PsdAndroidLibraryDependencyModel that = (PsdAndroidLibraryDependencyModel)o;
+    PsdLibraryDependencyModel that = (PsdLibraryDependencyModel)o;
     return Objects.equal(mySpec, that.mySpec);
   }
 
