@@ -59,6 +59,7 @@ class RootNode extends AbstractRootNode {
     List<PsdAndroidDependencyModel> dependencies = getModels().get(0).getDependencies();
 
     if (myGroupVariants) {
+      VariantComparator variantComparator = new VariantComparator();
       Map<List<String>, List<PsdAndroidDependencyModel>> groups = groupVariants(dependencies);
 
       for (List<String> variantNames : groups.keySet()) {
@@ -68,6 +69,7 @@ class RootNode extends AbstractRootNode {
           assert found != null;
           groupVariants.add(found);
         }
+        Collections.sort(groupVariants, variantComparator);
         VariantNode variantNode = new VariantNode(groupVariants);
         List<PsdAndroidDependencyModel> variantDependencies = groups.get(variantNames);
         variantNode.setChildren(variantDependencies);
@@ -88,11 +90,14 @@ class RootNode extends AbstractRootNode {
         }
       }
 
-      Comparator<PsdAndroidDependencyModel> comparator = new PsdAndroidDependencyModelComparator(true);
-      for (String variantName : dependenciesByVariant.keySet()) {
+      Comparator<PsdAndroidDependencyModel> dependencyComparator = new PsdAndroidDependencyModelComparator(true);
+
+      List<String> variantNames = Lists.newArrayList(dependenciesByVariant.keySet());
+      Collections.sort(variantNames);
+      for (String variantName : variantNames) {
         VariantNode variantNode = new VariantNode(variantsByName.get(variantName));
         List<PsdAndroidDependencyModel> variantDependencies = dependenciesByVariant.get(variantName);
-        Collections.sort(variantDependencies, comparator);
+        Collections.sort(variantDependencies, dependencyComparator);
         variantNode.setChildren(variantDependencies);
         variantNodes.add(variantNode);
       }
@@ -149,5 +154,12 @@ class RootNode extends AbstractRootNode {
       dependenciesByVariants.put(group, dependenciesByVariant.get(variant));
     }
     return dependenciesByVariants;
+  }
+
+  private static class VariantComparator implements Comparator<PsdVariantModel> {
+    @Override
+    public int compare(PsdVariantModel v1, PsdVariantModel v2) {
+      return v1.getName().compareTo(v2.getName());
+    }
   }
 }
