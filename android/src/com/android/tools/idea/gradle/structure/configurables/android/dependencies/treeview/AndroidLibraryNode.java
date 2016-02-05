@@ -44,7 +44,7 @@ class AndroidLibraryNode extends AbstractDependencyNode<PsdAndroidLibraryDepende
   public SimpleNode[] getChildren() {
     if (myChildren == null) {
       List<SimpleNode> children = Lists.newArrayList();
-      for (PsdAndroidDependencyModel transitive : getModel().getTransitiveDependencies()) {
+      for (PsdAndroidDependencyModel transitive : getModels().get(0).getTransitiveDependencies()) {
         if (transitive instanceof PsdAndroidLibraryDependencyModel) {
           PsdAndroidLibraryDependencyModel transitiveLibrary = (PsdAndroidLibraryDependencyModel)transitive;
           AndroidLibraryNode child = new AndroidLibraryNode(transitiveLibrary, myShowGroupId);
