@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies;
 
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.DependencySelection;
 import com.android.tools.idea.gradle.structure.model.android.PsdAndroidDependencyModel;
 import com.android.tools.idea.gradle.structure.model.android.PsdAndroidModuleModel;
 import com.google.common.collect.Lists;
@@ -51,7 +52,7 @@ import static javax.swing.ListSelectionModel.MULTIPLE_INTERVAL_SELECTION;
 /**
  * Panel that displays the table of "editable" dependencies.
  */
-class EditableDependenciesPanel extends JPanel implements Disposable {
+class EditableDependenciesPanel extends JPanel implements DependencySelection, Disposable {
   @NotNull private final PsdAndroidModuleModel myModuleModel;
   @NotNull private final EditableDependenciesTableModel myDependenciesTableModel;
   @NotNull private final TableView<PsdAndroidDependencyModel> myDependenciesTable;
@@ -72,7 +73,7 @@ class EditableDependenciesPanel extends JPanel implements Disposable {
     myTableSelectionListener = new ListSelectionListener() {
       @Override
       public void valueChanged(ListSelectionEvent e) {
-        PsdAndroidDependencyModel selected = getSingleSelection();
+        PsdAndroidDependencyModel selected = getSelection();
         if (selected != null) {
           for (SelectionListener listener : mySelectionListeners) {
             listener.dependencyModelSelected(selected);
@@ -169,15 +170,16 @@ class EditableDependenciesPanel extends JPanel implements Disposable {
   }
 
   void add(@NotNull SelectionListener listener) {
-    PsdAndroidDependencyModel selected = getSingleSelection();
+    PsdAndroidDependencyModel selected = getSelection();
     if (selected != null) {
       listener.dependencyModelSelected(selected);
     }
     mySelectionListeners.add(listener);
   }
 
+  @Override
   @Nullable
-  private PsdAndroidDependencyModel getSingleSelection() {
+  public PsdAndroidDependencyModel getSelection() {
     Collection<PsdAndroidDependencyModel> selection = myDependenciesTable.getSelection();
     if (selection.size() == 1) {
       PsdAndroidDependencyModel selected = getFirstItem(selection);
@@ -187,13 +189,14 @@ class EditableDependenciesPanel extends JPanel implements Disposable {
     return null;
   }
 
-  void select(@NotNull PsdAndroidDependencyModel model) {
+  @Override
+  public void setSelection(@NotNull PsdAndroidDependencyModel selection) {
     ListSelectionModel tableSelectionModel = myDependenciesTable.getSelectionModel();
     // Remove ListSelectionListener. We only want the selection event when the user selects a table cell directly. If we got here is
     // because the user selected a dependency in the "Variants" tree view, and we are simply syncing the table.
     tableSelectionModel.removeListSelectionListener(myTableSelectionListener);
 
-    myDependenciesTable.setSelection(Collections.singleton(model));
+    myDependenciesTable.setSelection(Collections.singleton(selection));
 
     // Add ListSelectionListener again, to react when user selects a table cell directly.
     tableSelectionModel.addListSelectionListener(myTableSelectionListener);
