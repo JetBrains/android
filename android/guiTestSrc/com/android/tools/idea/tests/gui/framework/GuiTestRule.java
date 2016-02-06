@@ -254,7 +254,6 @@ public class GuiTestRule implements TestRule {
     setProjectPath(getTestProjectDirPath(projectDirName));
     if (myProjectPath.isDirectory()) {
       delete(myProjectPath);
-      System.out.println(String.format("Deleted project path '%1$s'", myProjectPath.getPath()));
     }
     copyDir(masterProjectPath, myProjectPath);
     System.out.println(String.format("Copied project '%1$s' to path '%2$s'", projectDirName, myProjectPath.getPath()));
