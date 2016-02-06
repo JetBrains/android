@@ -59,7 +59,6 @@ import javax.swing.FocusManager;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.InputMethodEvent;
-import java.awt.event.KeyEvent;
 import java.awt.font.TextHitInfo;
 import java.text.AttributedCharacterIterator;
 import java.text.AttributedString;
@@ -844,15 +843,9 @@ public class EditorFixture {
       Component component = getFocusedEditor();
       if (component != null) {
         ComponentDriver driver = new ComponentDriver(robot);
-        System.out.println("Invoking editor action " + actionId + " via shortcut "
-                           + KeyEvent.getKeyModifiersText(firstKeyStroke.getModifiers())
-                            + KeyEvent.getKeyText(firstKeyStroke.getKeyCode()));
         driver.pressAndReleaseKey(component, firstKeyStroke.getKeyCode(), new int[]{firstKeyStroke.getModifiers()});
         KeyStroke secondKeyStroke = cs.getSecondKeyStroke();
         if (secondKeyStroke != null) {
-          System.out.println(" and "
-                             + KeyEvent.getKeyModifiersText(secondKeyStroke.getModifiers())
-                             + KeyEvent.getKeyText(secondKeyStroke.getKeyCode()));
           driver.pressAndReleaseKey(component, secondKeyStroke.getKeyCode(), new int[]{secondKeyStroke.getModifiers()});
         }
       } else {
