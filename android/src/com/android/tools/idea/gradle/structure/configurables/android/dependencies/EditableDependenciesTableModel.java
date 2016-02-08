@@ -37,8 +37,7 @@ import static com.android.tools.idea.gradle.structure.configurables.android.depe
 class EditableDependenciesTableModel extends ListTableModel<PsdAndroidDependencyModel> {
   EditableDependenciesTableModel(@NotNull List<PsdAndroidDependencyModel> dependencies) {
     createAndSetColumnInfos();
-    boolean showGroupId = PsdUISettings.getInstance().DECLARED_DEPENDENCIES_SHOW_GROUP_ID;
-    Collections.sort(dependencies, new PsdAndroidDependencyModelComparator(showGroupId));
+    Collections.sort(dependencies, PsdAndroidDependencyModelComparator.INSTANCE);
     setItems(dependencies);
   }
 

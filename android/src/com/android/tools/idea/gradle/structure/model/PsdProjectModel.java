@@ -66,6 +66,16 @@ public class PsdProjectModel implements PsdModel {
     return null;
   }
 
+  @Nullable
+  public PsdModuleModel findModelByGradlePath(@NotNull String gradlePath) {
+    for (PsdModuleModel model : myModuleModels) {
+      if (gradlePath.equals(model.getGradlePath())) {
+        return model;
+      }
+    }
+    return null;
+  }
+
   @NotNull
   public Project getProject() {
     return myProject;
