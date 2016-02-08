@@ -68,7 +68,7 @@ public class ChooseGradleHomeDialogFixture extends ComponentFixture<ChooseGradle
         finder.findByType(dialog, TextFieldWithBrowseButton.class);
         return true;
       }
-    }).withTimeout(LONG_TIMEOUT.duration()).using(robot);
+    }).withTimeout(SHORT_TIMEOUT.duration()).using(robot);
     return new ChooseGradleHomeDialogFixture(robot, found.target());
   }
 

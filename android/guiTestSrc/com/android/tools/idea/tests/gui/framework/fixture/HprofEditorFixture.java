@@ -169,7 +169,7 @@ public class HprofEditorFixture extends EditorFixture {
           return false;
         }
       }
-    }, GuiTests.LONG_TIMEOUT);
+    }, GuiTests.SHORT_TIMEOUT);
   }
 
   protected static class ActionToolbarFixture extends JComponentFixture<ActionToolbarFixture, ActionToolbarImpl> {

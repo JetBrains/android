@@ -322,7 +322,7 @@ public class GradleSyncTest {
           }
         });
       }
-    }, LONG_TIMEOUT);
+    }, SHORT_TIMEOUT);
 
     // Installation finished. Click finish to resync project.
     finish.click();
@@ -377,7 +377,7 @@ public class GradleSyncTest {
         // 'javax'.
         return changedNodes.size() == 2;
       }
-    }, LONG_TIMEOUT);
+    }, SHORT_TIMEOUT);
 
     List<ProjectViewFixture.NodeFixture> libraryNodes = externalLibrariesNode.getChildren();
 
