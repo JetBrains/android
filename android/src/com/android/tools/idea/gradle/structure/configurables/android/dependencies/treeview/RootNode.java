@@ -78,7 +78,7 @@ class RootNode extends AbstractRootNode {
       }
     }
     else {
-      boolean showGroupId = PsdUISettings.getInstance().VARIANTs_DEPENDENCIES_SHOW_GROUP_ID;
+      boolean showGroupId = PsdUISettings.getInstance().VARIANTS_DEPENDENCIES_SHOW_GROUP_ID;
       Comparator<PsdAndroidDependencyModel> dependencyComparator = new PsdAndroidDependencyModelComparator(showGroupId);
 
       Map<String, List<PsdAndroidDependencyModel>> dependenciesByVariant = Maps.newHashMap();
@@ -109,7 +109,7 @@ class RootNode extends AbstractRootNode {
   @VisibleForTesting
   @NotNull
   static Map<List<String>, List<PsdAndroidDependencyModel>> groupVariants(List<PsdAndroidDependencyModel> dependencies) {
-    boolean showGroupId = PsdUISettings.getInstance().VARIANTs_DEPENDENCIES_SHOW_GROUP_ID;
+    boolean showGroupId = PsdUISettings.getInstance().VARIANTS_DEPENDENCIES_SHOW_GROUP_ID;
     Comparator<PsdAndroidDependencyModel> comparator = new PsdAndroidDependencyModelComparator(showGroupId);
 
     Map<String, List<PsdAndroidDependencyModel>> dependenciesByVariant = Maps.newHashMap();
