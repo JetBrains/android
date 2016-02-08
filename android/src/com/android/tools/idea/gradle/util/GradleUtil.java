@@ -26,7 +26,6 @@ import com.android.tools.idea.gradle.NativeAndroidGradleModel;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
-import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpec;
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.project.AndroidGradleNotification;
@@ -786,9 +785,8 @@ public final class GradleUtil {
       public boolean process(GradleBuildModel buildModel) {
         DependenciesModel dependencies = buildModel.buildscript().dependencies();
         for (ArtifactDependencyModel dependency : dependencies.artifacts(CLASSPATH)) {
-          ArtifactDependencySpec spec = dependency.getSpec();
-          if (isAndroidPlugin(spec)) {
-            String versionValue = spec.version;
+          if (isAndroidPlugin(dependency)) {
+            String versionValue = dependency.version().value();
             if (versionValue != null) {
               GradleVersion version = GradleVersion.tryParse(versionValue);
               if (version != null) {
@@ -1220,9 +1218,9 @@ public final class GradleUtil {
       public boolean process(GradleBuildModel buildModel) {
         DependenciesModel dependencies = buildModel.buildscript().dependencies();
         for (ArtifactDependencyModel dependency : dependencies.artifacts(CLASSPATH)) {
-          ArtifactDependencySpec spec = dependency.getSpec();
-          if (isAndroidPlugin(spec)) {
-            if (spec.version != null && parsedPluginVersion.compareTo(spec.version) == 0) {
+          if (isAndroidPlugin(dependency)) {
+            String versionValue = dependency.version().value();
+            if (versionValue != null && parsedPluginVersion.compareTo(versionValue) == 0) {
               alreadyInCorrectVersion.set(true);
             }
             else {
@@ -1270,8 +1268,8 @@ public final class GradleUtil {
     return updateModels;
   }
 
-  private static boolean isAndroidPlugin(@NotNull ArtifactDependencySpec spec) {
-    return ANDROID_PLUGIN_GROUP_ID.equals(spec.group) && ANDROID_PLUGIN_ARTIFACT_ID.equals(spec.name);
+  private static boolean isAndroidPlugin(@NotNull ArtifactDependencyModel dependency) {
+    return ANDROID_PLUGIN_GROUP_ID.equals(dependency.group().value()) && ANDROID_PLUGIN_ARTIFACT_ID.equals(dependency.name().value());
   }
 
   public static void processBuildModelsRecursively(@NotNull final Project project, @NotNull final Processor<GradleBuildModel> processor) {

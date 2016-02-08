@@ -17,7 +17,8 @@ package com.android.tools.idea.gradle.dsl.model.ext;
 
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
-import com.android.tools.idea.gradle.dsl.model.GradleValue;
+import com.android.tools.idea.gradle.dsl.model.values.GradleNotNullValue;
+import com.android.tools.idea.gradle.dsl.model.values.GradleNullableValue;
 import com.android.tools.idea.gradle.dsl.model.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModel;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList;
@@ -144,7 +145,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
 
     GradleBuildModel subModuleBuildModel = getSubModuleGradleBuildModel();
     ExtModel subModuleExtModel = subModuleBuildModel.ext();
-    assertNull(subModuleExtModel.getProperty("SDK_VERSION", Integer.class)); // SDK_VERSION is not defined in the sub module.
+    assertNull(subModuleExtModel.getProperty("SDK_VERSION", Integer.class).value()); // SDK_VERSION is not defined in the sub module.
 
     AndroidModel androidModel = subModuleBuildModel.android();
     assertEquals("compileSdkVersion", "21", androidModel.compileSdkVersion()); // SDK_VERSION resolved from the main module.
@@ -221,9 +222,9 @@ public class ExtModelTest extends GradleFileModelTestCase {
     GradleBuildModel buildModel = getGradleBuildModel();
     ExtModel extModel = buildModel.ext();
 
-    GradleValue<GradleDslExpressionList> expressionListValue = extModel.getProperty("TEST_STRINGS", GradleDslExpressionList.class);
-    assertNotNull(expressionListValue);
-    assertEquals(ImmutableList.of("test1", "test2"), expressionListValue.getValue().getValues(String.class));
+    GradleDslExpressionList testStringsList = extModel.getProperty("TEST_STRINGS", GradleDslExpressionList.class).value();
+    assertNotNull(testStringsList);
+    assertEquals(ImmutableList.of("test1", "test2"), testStringsList.getValues(String.class));
 
     ProductFlavorModel defaultConfig = buildModel.android().defaultConfig();
     assertEquals("proguardFiles", ImmutableList.of("test1", "test2"), defaultConfig.proguardFiles());
@@ -376,27 +377,26 @@ public class ExtModelTest extends GradleFileModelTestCase {
     GradleBuildModel buildModel = getGradleBuildModel();
     ExtModel extModel = buildModel.ext();
 
-    GradleValue<Integer> third = extModel.getProperty("THIRD", Integer.class);
-    assertNotNull(third);
-    assertEquals(123, third.getValue().intValue());
+    GradleNullableValue<Integer> third = extModel.getProperty("THIRD", Integer.class);
+    assertEquals(Integer.valueOf(123), third.value());
     assertEquals(myBuildFile.getPath(), third.getFile().getPath());
     assertEquals("ext.THIRD", third.getPropertyName());
     assertEquals("ext.THIRD = SECOND", third.getDslText());
-    Map<String, GradleValue<Object>> thirdResolvedVariables = third.getResolvedVariables();
+    Map<String, GradleNotNullValue<Object>> thirdResolvedVariables = third.getResolvedVariables();
     assertEquals(1, thirdResolvedVariables.size());
 
-    GradleValue<Object> second = thirdResolvedVariables.get("SECOND");
+    GradleNotNullValue<Object> second = thirdResolvedVariables.get("SECOND");
     assertNotNull(second);
-    assertEquals("123", second.getValue().toString());
+    assertEquals(Integer.valueOf(123), second.value());
     assertEquals(myBuildFile.getPath(), second.getFile().getPath());
     assertEquals("ext.SECOND", second.getPropertyName());
     assertEquals("ext.SECOND = FIRST", second.getDslText());
-    Map<String, GradleValue<Object>> secondResolvedVariables = second.getResolvedVariables();
+    Map<String, GradleNotNullValue<Object>> secondResolvedVariables = second.getResolvedVariables();
     assertEquals(1, secondResolvedVariables.size());
 
-    GradleValue<Object> first = secondResolvedVariables.get("FIRST");
+    GradleNotNullValue<Object> first = secondResolvedVariables.get("FIRST");
     assertNotNull(first);
-    assertEquals("123", first.getValue().toString());
+    assertEquals(Integer.valueOf(123), first.value());
     assertEquals(myBuildFile.getPath(), first.getFile().getPath());
     assertEquals("ext.FIRST", first.getPropertyName());
     assertEquals("ext.FIRST = 123", first.getDslText());
@@ -415,18 +415,17 @@ public class ExtModelTest extends GradleFileModelTestCase {
     GradleBuildModel buildModel = getSubModuleGradleBuildModel();
     ExtModel extModel = buildModel.ext();
 
-    GradleValue<Integer> second = extModel.getProperty("SECOND", Integer.class);
-    assertNotNull(second);
-    assertEquals("123", second.getValue().toString());
+    GradleNullableValue<Integer> second = extModel.getProperty("SECOND", Integer.class);
+    assertEquals(Integer.valueOf(123), second.value());
     assertEquals(mySubModuleBuildFile.getPath(), second.getFile().getPath());
     assertEquals("ext.SECOND", second.getPropertyName());
     assertEquals("ext.SECOND = FIRST", second.getDslText());
-    Map<String, GradleValue<Object>> secondResolvedVariables = second.getResolvedVariables();
+    Map<String, GradleNotNullValue<Object>> secondResolvedVariables = second.getResolvedVariables();
     assertEquals(1, secondResolvedVariables.size());
 
-    GradleValue<Object> first = secondResolvedVariables.get("FIRST");
+    GradleNotNullValue<Object> first = secondResolvedVariables.get("FIRST");
     assertNotNull(first);
-    assertEquals("123", first.getValue().toString());
+    assertEquals(Integer.valueOf(123), first.value());
     assertEquals(myBuildFile.getPath(), first.getFile().getPath());
     assertEquals("ext.FIRST", first.getPropertyName());
     assertEquals("ext.FIRST = 123", first.getDslText());
@@ -447,27 +446,26 @@ public class ExtModelTest extends GradleFileModelTestCase {
     GradleBuildModel buildModel = getSubModuleGradleBuildModel();
     ExtModel extModel = buildModel.ext();
 
-    GradleValue<String> third = extModel.getProperty("third", String.class);
-    assertNotNull(third);
-    assertEquals("value_from_gradle_properties", third.getValue());
+    GradleNullableValue<String> third = extModel.getProperty("third", String.class);
+    assertEquals("value_from_gradle_properties", third.value());
     assertEquals(mySubModuleBuildFile.getPath(), third.getFile().getPath());
     assertEquals("ext.third", third.getPropertyName());
     assertEquals("ext.third = second", third.getDslText());
-    Map<String, GradleValue<Object>> thirdResolvedVariables = third.getResolvedVariables();
+    Map<String, GradleNotNullValue<Object>> thirdResolvedVariables = third.getResolvedVariables();
     assertEquals(1, thirdResolvedVariables.size());
 
-    GradleValue<Object> second = thirdResolvedVariables.get("second");
+    GradleNotNullValue<Object> second = thirdResolvedVariables.get("second");
     assertNotNull(second);
-    assertEquals("value_from_gradle_properties", second.getValue().toString());
+    assertEquals("value_from_gradle_properties", second.value());
     assertEquals(myBuildFile.getPath(), second.getFile().getPath());
     assertEquals("ext.second", second.getPropertyName());
     assertEquals("ext.second = first", second.getDslText());
-    Map<String, GradleValue<Object>> secondResolvedVariables = second.getResolvedVariables();
+    Map<String, GradleNotNullValue<Object>> secondResolvedVariables = second.getResolvedVariables();
     assertEquals(1, secondResolvedVariables.size());
 
-    GradleValue<Object> first = secondResolvedVariables.get("first");
+    GradleNotNullValue<Object> first = secondResolvedVariables.get("first");
     assertNotNull(first);
-    assertEquals("value_from_gradle_properties", first.getValue().toString());
+    assertEquals("value_from_gradle_properties", first.value());
     assertEquals(myPropertiesFile.getPath(), first.getFile().getPath());
     assertEquals("first", first.getPropertyName());
     assertNull(first.getDslText()); // There are no psi elements in the properties file.
