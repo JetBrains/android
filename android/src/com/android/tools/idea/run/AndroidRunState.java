@@ -16,7 +16,7 @@
 package com.android.tools.idea.run;
 
 import com.android.ddmlib.IDevice;
-import com.android.tools.idea.fd.InstantRunBuildInfo;
+import com.android.tools.fd.client.InstantRunBuildInfo;
 import com.android.tools.idea.fd.InstantRunManager;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.run.tasks.LaunchTasksProvider;
@@ -82,7 +82,7 @@ public class AndroidRunState implements RunProfileState {
 
     AndroidGradleModel model = AndroidGradleModel.get(myModule);
     if (model != null && InstantRunManager.variantSupportsInstantRun(model)) {
-      InstantRunBuildInfo info = InstantRunBuildInfo.get(model);
+      InstantRunBuildInfo info = InstantRunManager.getBuildInfo(model);
       if (info != null && !info.isCompatibleFormat()) {
         throw new ExecutionException("This version of Android Studio is incompatible with the Gradle Plugin used. " +
                                      "Try disabling Instant Run (or updating either the IDE or the Gradle plugin to " +
