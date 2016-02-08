@@ -32,9 +32,10 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
-import static com.android.tools.idea.tests.gui.framework.GuiTests.THIRTY_SEC_TIMEOUT;
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.fest.swing.timing.Pause.pause;
+import static org.fest.swing.timing.Timeout.timeout;
 
 public abstract class ToolWindowFixture {
   @NotNull protected final String myToolWindowId;
@@ -182,7 +183,7 @@ public abstract class ToolWindowFixture {
   }
 
   protected void waitUntilIsVisible() {
-    waitUntilIsVisible(THIRTY_SEC_TIMEOUT);
+    waitUntilIsVisible(timeout(30, SECONDS));
   }
 
   protected void waitUntilIsVisible(@NotNull Timeout timeout) {
