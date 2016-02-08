@@ -16,13 +16,11 @@
 package com.android.tools.idea.gradle.structure.model.android;
 
 import com.android.tools.idea.gradle.structure.model.PsdChildModel;
-import com.android.tools.idea.gradle.structure.model.PsdModel;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
 import java.util.List;
 import java.util.Set;
 
@@ -51,9 +49,6 @@ public abstract class PsdAndroidDependencyModel extends PsdChildModel {
   public boolean isInVariant(@NotNull PsdVariantModel variantName) {
     return myVariants.contains(variantName.getName());
   }
-
-  @NotNull
-  public abstract Icon getIcon();
 
   @Nullable
   public abstract String getConfigurationName();
