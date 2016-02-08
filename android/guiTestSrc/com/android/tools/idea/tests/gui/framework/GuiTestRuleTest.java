@@ -23,6 +23,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.RuleChain;
+import org.junit.rules.Timeout;
 import org.junit.rules.Verifier;
 import org.junit.runner.RunWith;
 
@@ -31,6 +32,7 @@ import java.awt.*;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilFound;
 import static org.hamcrest.CoreMatchers.allOf;
@@ -51,7 +53,7 @@ public class GuiTestRuleTest {
 
   private final ExpectedException exception = ExpectedException.none();
 
-  private final GuiTestRule guiTest = new GuiTestRule();
+  private final GuiTestRule guiTest = new GuiTestRule(new Timeout(5, TimeUnit.SECONDS));
 
   @Rule public final RuleChain ruleChain = RuleChain.outerRule(guiTestVerifier).around(exception).around(guiTest);
 
@@ -99,5 +101,11 @@ public class GuiTestRuleTest {
       }
     });
     guiTest.robot().click(yesButton);
+  }
+
+  @Test
+  public void testTimeout() throws InterruptedException {
+    exception.expectMessage("test timed out");
+    Thread.sleep(6000);
   }
 }
