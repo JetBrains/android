@@ -32,7 +32,7 @@ public class PsdUISettings implements PersistentStateComponent<PsdUISettings> {
   public boolean VARIANTs_DEPENDENCIES_SHOW_GROUP_ID;
   public boolean VARIANTS_DEPENDENCIES_GROUP_VARIANTS = true;
 
-  private final EventDispatcher<ChangeListener> myEventDispatcher = EventDispatcher.create(ChangeListener.class);
+  @NotNull private final EventDispatcher<ChangeListener> myEventDispatcher = EventDispatcher.create(ChangeListener.class);
 
   public static PsdUISettings getInstance() {
     return ServiceManager.getService(PsdUISettings.class);

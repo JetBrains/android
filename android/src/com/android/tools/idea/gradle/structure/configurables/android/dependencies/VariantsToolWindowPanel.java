@@ -31,8 +31,10 @@ import com.intellij.openapi.actionSystem.impl.ActionManagerImpl;
 import com.intellij.openapi.actionSystem.impl.MenuItemPresentationFactory;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.treeStructure.Tree;
+import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -54,15 +56,15 @@ import static com.intellij.ui.ScrollPaneFactory.createScrollPane;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static javax.swing.tree.TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION;
 
-class VariantTreeViewPanel extends ToolWindowPanel implements DependencySelection {
+class VariantsToolWindowPanel extends ToolWindowPanel implements DependencySelection {
   @NotNull private final Tree myTree;
   @NotNull private final VariantsTreeBuilder myTreeBuilder;
   @NotNull private final TreeSelectionListener myTreeSelectionListener;
 
   @NotNull private final List<SelectionListener> mySelectionListeners = Lists.newCopyOnWriteArrayList();
 
-  VariantTreeViewPanel(@NotNull PsdAndroidModuleModel moduleModel, @NotNull DependencySelection dependencySelection) {
-    super("Variants");
+  VariantsToolWindowPanel(@NotNull PsdAndroidModuleModel moduleModel, @NotNull DependencySelection dependencySelection) {
+    super("Variants", new MinimizedInfo(AndroidIcons.Variant, ToolWindowAnchor.RIGHT));
     setHeaderActions();
 
     DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode();
@@ -120,24 +122,30 @@ class VariantTreeViewPanel extends ToolWindowPanel implements DependencySelectio
       }
     });
 
-    getHeader().setAdditionalActions(new AnAction[] {
-      new DumbAwareAction("", "", AllIcons.General.Gear) {
-        @Override
-        public void actionPerformed(AnActionEvent e) {
-          InputEvent inputEvent = e.getInputEvent();
-          ActionManagerImpl actionManager = (ActionManagerImpl)ActionManager.getInstance();
-          ActionPopupMenu popupMenu =
-            actionManager.createActionPopupMenu(POPUP_PLACE, settingsGroup, new MenuItemPresentationFactory(true));
-          int x = 0;
-          int y = 0;
-          if (inputEvent instanceof MouseEvent) {
-            x = ((MouseEvent)inputEvent).getX();
-            y = ((MouseEvent)inputEvent).getY();
-          }
-          popupMenu.getComponent().show(inputEvent.getComponent(), x, y);
+    List<AnAction> additionalActions = Lists.newArrayList();
+    additionalActions.add(new DumbAwareAction("", "", AllIcons.General.Gear) {
+      @Override
+      public void actionPerformed(AnActionEvent e) {
+        InputEvent inputEvent = e.getInputEvent();
+        ActionManagerImpl actionManager = (ActionManagerImpl)ActionManager.getInstance();
+        ActionPopupMenu popupMenu =
+          actionManager.createActionPopupMenu(POPUP_PLACE, settingsGroup, new MenuItemPresentationFactory(true));
+        int x = 0;
+        int y = 0;
+        if (inputEvent instanceof MouseEvent) {
+          x = ((MouseEvent)inputEvent).getX();
+          y = ((MouseEvent)inputEvent).getY();
         }
+        popupMenu.getComponent().show(inputEvent.getComponent(), x, y);
       }
     });
+
+    AnAction minimizeAction = getMinimizeAction();
+    if (minimizeAction != null) {
+      additionalActions.add(minimizeAction);
+    }
+
+    getHeader().setAdditionalActions(additionalActions);
   }
 
   @Override

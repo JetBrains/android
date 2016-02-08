@@ -34,7 +34,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
-import java.util.EventListener;
+import java.util.*;
+import java.util.List;
 
 import static com.intellij.ide.ui.UISettings.setupAntialiasing;
 import static com.intellij.openapi.actionSystem.ActionPlaces.UNKNOWN;
@@ -141,6 +142,10 @@ public class Header extends JPanel {
   public Dimension getMinimumSize() {
     Dimension size = super.getMinimumSize();
     return new Dimension(size.width, getTabsHeight());
+  }
+
+  public void setAdditionalActions(@NotNull List<AnAction> actions) {
+    setAdditionalActions(actions.toArray(new AnAction[actions.size()]));
   }
 
   public void setAdditionalActions(@NotNull AnAction[] actions) {
