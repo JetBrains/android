@@ -27,10 +27,10 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
-public class AndroidDependenciesConfigurable extends BaseNamedConfigurable<PsdAndroidModuleModel> {
+public class AndroidModuleDependenciesConfigurable extends BaseNamedConfigurable<PsdAndroidModuleModel> {
   private DependenciesEditorPanel myEditorPanel;
 
-  public AndroidDependenciesConfigurable(@NotNull PsdAndroidModuleModel moduleModel) {
+  public AndroidModuleDependenciesConfigurable(@NotNull PsdAndroidModuleModel moduleModel) {
     super(moduleModel);
   }
 
