@@ -18,17 +18,16 @@ package com.android.tools.idea.avdmanager;
 import com.android.repository.io.FileOp;
 import com.android.repository.io.FileOpUtils;
 import com.android.resources.ScreenOrientation;
-import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.ISystemImage;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.DeviceManager;
 import com.android.sdklib.devices.Storage;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
+import com.android.sdklib.internal.avd.GpuMode;
 import com.android.sdklib.internal.avd.HardwareProperties;
 import com.android.tools.idea.ddms.screenshot.DeviceArtDescriptor;
 import com.android.tools.idea.wizard.dynamic.*;
-import com.android.utils.FileUtils;
 import com.google.common.base.Objects;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Maps;
@@ -110,7 +109,6 @@ public class AvdEditWizard extends DynamicWizard {
     state.put(BACK_CAMERA_KEY, DEFAULT_CAMERA);
     state.put(INTERNAL_STORAGE_KEY, DEFAULT_INTERNAL_STORAGE);
     state.put(IS_IN_EDIT_MODE_KEY, false);
-    state.put(USE_HOST_GPU_KEY, true);
     state.put(DISPLAY_SD_SIZE_KEY, new Storage(100, Storage.Unit.MiB));
     state.put(DISPLAY_USE_EXTERNAL_SD_KEY, false);
   }
@@ -177,7 +175,10 @@ public class AvdEditWizard extends DynamicWizard {
       state.put(SCALE_SELECTION_KEY, AvdScaleFactor.findByValue(scale));
     }
     state.put(USE_HOST_GPU_KEY, fromIniString(properties.get(USE_HOST_GPU_KEY.name)));
-    state.put(USE_SNAPSHOT_KEY, fromIniString(properties.get(USE_SNAPSHOT_KEY.name)));
+    String mode = properties.get(HOST_GPU_MODE_KEY.name);
+    if (mode != null) {
+      state.put(HOST_GPU_MODE_KEY, GpuMode.fromGpuSetting(mode));
+    }
     state.put(FRONT_CAMERA_KEY, properties.get(FRONT_CAMERA_KEY.name));
     state.put(BACK_CAMERA_KEY, properties.get(BACK_CAMERA_KEY.name));
     state.put(NETWORK_LATENCY_KEY, properties.get(NETWORK_LATENCY_KEY.name));
@@ -321,6 +322,9 @@ public class AvdEditWizard extends DynamicWizard {
         }
         else if (value instanceof Double) {
           return toIniString((Double)value);
+        }
+        else if (value instanceof GpuMode) {
+          return ((GpuMode)value).getGpuSetting();
         }
         else {
           return value.toString();

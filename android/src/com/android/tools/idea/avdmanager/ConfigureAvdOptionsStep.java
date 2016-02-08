@@ -23,6 +23,8 @@ import com.android.resources.ScreenOrientation;
 import com.android.resources.ScreenSize;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.devices.*;
+import com.android.sdklib.internal.avd.GpuMode;
+import com.android.sdklib.repositoryv2.IdDisplay;
 import com.android.tools.idea.ui.ASGallery;
 import com.android.tools.idea.wizard.dynamic.*;
 import com.android.tools.swing.util.FormScalingUtil;
@@ -40,6 +42,7 @@ import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.IconLoader;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.EnumComboBoxModel;
@@ -87,8 +90,6 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
   private JComboBox myScalingComboBox;
   private ASGallery<ScreenOrientation> myOrientationToggle;
   private JPanel myRoot;
-  private JCheckBox myUseHostGPUCheckBox;
-  private JCheckBox myStoreASnapshotForCheckBox;
   private JComboBox myFrontCameraCombo;
   private JComboBox myBackCameraCombo;
   private JComboBox mySpeedCombo;
@@ -135,6 +136,8 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
   private JComboBox myCoreCount;
   private JSeparator myMultiCoreDivider;
   private JLabel myMultiCoreExperimentalLabel;
+  private JComboBox myHostGraphics;
+  private JBLabel myHostGraphicProblem;
 
   private PropertyChangeListener myFocusListener;
   private int myMaxCores;
@@ -328,6 +331,43 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
     }
   }
 
+  private void setInitialGpuMode() {
+    GpuMode mode = myState.get(HOST_GPU_MODE_KEY);
+    int index = mode == GpuMode.DEFAULT ? 0 : 1;
+    populateHostGraphicsDropDown();
+    if (mode == null) {
+      index = 0;
+      if (!myState.getNotNull(USE_HOST_GPU_KEY, true)) {
+        index = 1;
+      }
+    }
+    myHostGraphics.setSelectedIndex(index);
+  }
+
+  private void populateHostGraphicsDropDown() {
+    boolean supportGuest = getSelectedApiLevel() >= 23 && isIntel() && isGoogleApiSelected();
+    GpuMode otherMode = GpuMode.OFF;
+    if (supportGuest) {
+      otherMode = GpuMode.SWIFT;
+    }
+    else if (!SystemInfo.isMac) {
+      otherMode = GpuMode.MESA;
+    }
+    myHostGraphics.addItem(GpuMode.DEFAULT);
+    myHostGraphics.addItem(otherMode);
+
+    boolean atLeastVersion16 = getSelectedApiLevel() >= 16;
+    myHostGraphics.setEnabled(atLeastVersion16);
+    myHostGraphicProblem.setVisible(!atLeastVersion16);
+  }
+
+  private void updateGpuControlsAfterSystemImageChange() {
+    int selectedIndex = myHostGraphics.getSelectedIndex();
+    myHostGraphics.removeAllItems();
+    populateHostGraphicsDropDown();
+    myHostGraphics.setSelectedIndex(selectedIndex);
+  }
+
   @Override
   public boolean commitStep() {
     if (!myState.getNotNull(DISPLAY_USE_EXTERNAL_SD_KEY, false)) {
@@ -353,6 +393,13 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
     else if (!myState.containsKey(CPU_CORES_KEY)) {
       myState.put(CPU_CORES_KEY, 1);  // Force the use the new emulator (qemu2)
     }
+    if (getSelectedApiLevel() < 16 || myState.get(HOST_GPU_MODE_KEY) == GpuMode.OFF) {
+      myState.put(USE_HOST_GPU_KEY, false);
+      myState.put(HOST_GPU_MODE_KEY, GpuMode.OFF);
+    }
+    else {
+      myState.put(USE_HOST_GPU_KEY, true);
+    }
 
     return super.commitStep();
   }
@@ -365,16 +412,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
       toggleOptionals(device);
     }
     updateSdCardSettings();
-
-    // Disable GPU acceleration for images with API <= 15
-    if (getSelectedApiLevel() <= 15) {
-      myUseHostGPUCheckBox.setEnabled(false);
-      myUseHostGPUCheckBox.setText("Use Host GPU (Requires API > 15)");
-      myUseHostGPUCheckBox.setSelected(false);
-    } else {
-      myUseHostGPUCheckBox.setEnabled(true);
-      myUseHostGPUCheckBox.setText("Use Host GPU");
-    }
+    setInitialGpuMode();
   }
 
   @Override
@@ -430,13 +468,6 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
       }
     }
 
-    Boolean gpu = myState.get(USE_HOST_GPU_KEY);
-    Boolean snapshot = myState.get(USE_SNAPSHOT_KEY);
-    if (gpu != null && snapshot != null && gpu && snapshot) {
-      setErrorState("GPU Emulation and Snapshot cannot by used simultaneously.", myUseHostGPUCheckBox, myStoreASnapshotForCheckBox);
-      valid = false;
-    }
-
     String displayName = myState.get(DISPLAY_NAME_KEY);
     if (displayName != null) {
       displayName = displayName.trim();
@@ -480,6 +511,17 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
     AndroidVersion version = systemImage.getVersion();
     assert version != null;
     return version.getApiString();
+  }
+
+  private boolean isGoogleApiSelected() {
+    SystemImageDescription systemImage = myState.get(SYSTEM_IMAGE_KEY);
+    assert systemImage != null;
+    IdDisplay tag = systemImage.getTag();
+    return WEAR_TAG.equals(tag) || TV_TAG.equals(tag) || GOOGLE_APIS_TAG.equals(tag);
+  }
+
+  private boolean isIntel() {
+    return supportsMultipleCpuCores();
   }
 
   private boolean supportsMultipleCpuCores() {
@@ -602,11 +644,8 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
     register(DISPLAY_SD_SIZE_KEY, myNewSdCardStorage, myNewSdCardStorage.getBinding());
     setControlDescription(myNewSdCardStorage, myAvdConfigurationOptionHelpPanel.getDescription(SD_CARD_STORAGE_KEY));
 
-    register(USE_SNAPSHOT_KEY, myStoreASnapshotForCheckBox);
-    setControlDescription(myStoreASnapshotForCheckBox, myAvdConfigurationOptionHelpPanel.getDescription(USE_SNAPSHOT_KEY));
-
-    register(USE_HOST_GPU_KEY, myUseHostGPUCheckBox);
-    setControlDescription(myUseHostGPUCheckBox, myAvdConfigurationOptionHelpPanel.getDescription(USE_HOST_GPU_KEY));
+    register(HOST_GPU_MODE_KEY, myHostGraphics);
+    setControlDescription(myHostGraphics, myAvdConfigurationOptionHelpPanel.getDescription(HOST_GPU_MODE_KEY));
 
     if (Boolean.FALSE.equals(myState.get(IS_IN_EDIT_MODE_KEY))) {
       registerValueDeriver(RAM_STORAGE_KEY, new MemoryValueDeriver() {
@@ -663,20 +702,6 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
         File file = AvdEditWizard.resolveSkinPath(device.getDefaultHardware().getSkinFile(),
                                                   myState.get(SYSTEM_IMAGE_KEY), FileOpUtils.create());
         return file == null ? NO_SKIN : file;
-      }
-    });
-
-    registerValueDeriver(USE_HOST_GPU_KEY, new ValueDeriver<Boolean>() {
-      @Nullable
-      @Override
-      public Set<Key<?>> getTriggerKeys() {
-        return makeSetOf(DEVICE_DEFINITION_KEY);
-      }
-
-      @Nullable
-      @Override
-      public Boolean deriveValue(@NotNull ScopedStateStore state, @Nullable Key changedKey, @Nullable Boolean currentValue) {
-        return myState.get(USE_HOST_GPU_KEY);
       }
     });
 
@@ -793,6 +818,9 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
   public void deriveValues(Set<Key> modified) {
     if (modified.contains(RANCHU_KEY) || modified.contains(SYSTEM_IMAGE_KEY)) {
       toggleSystemOptionals(modified.contains(RANCHU_KEY));
+    }
+    if (modified.contains(SYSTEM_IMAGE_KEY)) {
+      updateGpuControlsAfterSystemImageChange();
     }
   }
 
