@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies;
 
+import com.android.tools.idea.gradle.structure.configurables.ToolWindowPanel;
 import com.android.tools.idea.gradle.structure.model.android.PsdAndroidDependencyModel;
 import com.android.tools.idea.gradle.structure.model.android.PsdAndroidModuleModel;
 import com.intellij.openapi.Disposable;
@@ -27,21 +28,19 @@ import javax.swing.*;
 import java.awt.*;
 
 class DependenciesEditorPanel extends JPanel implements Disposable {
-  @NotNull private final PsdAndroidModuleModel myModuleModel;
   @NotNull private final JBSplitter myVerticalSplitter;
   @NotNull private final EditableDependenciesPanel myDependenciesPanel;
-  @NotNull private final VariantTreeViewPanel myVariantTreeViewPanel;
+  @NotNull private final VariantsToolWindowPanel myVariantsToolWindowPanel;
 
   DependenciesEditorPanel(@NotNull PsdAndroidModuleModel moduleModel) {
     super(new BorderLayout());
-    myModuleModel = moduleModel;
 
     myDependenciesPanel = new EditableDependenciesPanel(moduleModel);
-    myVariantTreeViewPanel = new VariantTreeViewPanel(moduleModel, myDependenciesPanel);
+    myVariantsToolWindowPanel = new VariantsToolWindowPanel(moduleModel, myDependenciesPanel);
 
     myVerticalSplitter = new OnePixelSplitter(false, "psi.dependencies.main.vertical.splitter.proportion", .75f);
     myVerticalSplitter.setFirstComponent(myDependenciesPanel);
-    myVerticalSplitter.setSecondComponent(myVariantTreeViewPanel);
+    myVerticalSplitter.setSecondComponent(myVariantsToolWindowPanel);
 
     add(myVerticalSplitter, BorderLayout.CENTER);
 
@@ -49,21 +48,49 @@ class DependenciesEditorPanel extends JPanel implements Disposable {
     myDependenciesPanel.add(new EditableDependenciesPanel.SelectionListener() {
       @Override
       public void dependencyModelSelected(@NotNull PsdAndroidDependencyModel model) {
-        myVariantTreeViewPanel.setSelection(model);
+        myVariantsToolWindowPanel.setSelection(model);
       }
     });
 
-    myVariantTreeViewPanel.add(new VariantTreeViewPanel.SelectionListener() {
+    myVariantsToolWindowPanel.add(new VariantsToolWindowPanel.SelectionListener() {
       @Override
       public void dependencyModelSelected(@NotNull PsdAndroidDependencyModel model) {
         myDependenciesPanel.setSelection(model);
       }
     });
+
+    final JPanel altPanel = new JPanel(new BorderLayout());
+
+    JPanel minimizedContainerPanel = myVariantsToolWindowPanel.getMinimizedContainerPanel();
+    assert minimizedContainerPanel != null;
+    altPanel.add(minimizedContainerPanel, BorderLayout.EAST);
+
+    myVariantsToolWindowPanel.addStateChangeListener(new ToolWindowPanel.StateChangeListener() {
+      @Override
+      public void maximized() {
+        remove(altPanel);
+        altPanel.remove(myDependenciesPanel);
+        myVerticalSplitter.setFirstComponent(myDependenciesPanel);
+        add(myVerticalSplitter, BorderLayout.CENTER);
+        revalidate();
+        repaint();
+      }
+
+      @Override
+      public void minimized() {
+        remove(myVerticalSplitter);
+        myVerticalSplitter.setFirstComponent(null);
+        altPanel.add(myDependenciesPanel, BorderLayout.CENTER);
+        add(altPanel, BorderLayout.CENTER);
+        revalidate();
+        repaint();
+      }
+    }, this);
   }
 
   @Override
   public void dispose() {
     Disposer.dispose(myDependenciesPanel);
-    Disposer.dispose(myVariantTreeViewPanel);
+    Disposer.dispose(myVariantsToolWindowPanel);
   }
 }
