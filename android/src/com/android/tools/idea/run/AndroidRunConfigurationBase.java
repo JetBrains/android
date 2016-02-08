@@ -18,6 +18,7 @@ package com.android.tools.idea.run;
 
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.fd.client.InstantRunBuildInfo;
 import com.android.tools.idea.fd.*;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
@@ -486,7 +487,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
         AndroidGradleModel model = AndroidGradleModel.get(facet);
         assert model != null;
 
-        InstantRunBuildInfo buildInfo = InstantRunBuildInfo.get(model);
+        InstantRunBuildInfo buildInfo = InstantRunManager.getBuildInfo(model);
         if (buildInfo != null) {
           @Language("HTML") String verifierFailure = InstantRunManager.getVerifierMessage(buildInfo);
           if (verifierFailure != null) {
