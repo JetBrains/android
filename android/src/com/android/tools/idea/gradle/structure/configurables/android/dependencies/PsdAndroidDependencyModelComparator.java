@@ -33,8 +33,8 @@ public class PsdAndroidDependencyModelComparator implements Comparator<PsdAndroi
   public int compare(PsdAndroidDependencyModel m1, PsdAndroidDependencyModel m2) {
     if (m1 instanceof PsdLibraryDependencyModel) {
       if (m2 instanceof PsdLibraryDependencyModel) {
-        String s1 = asText(((PsdLibraryDependencyModel)m1).getSpec(), myShowGroupId);
-        String s2 = asText(((PsdLibraryDependencyModel)m2).getSpec(), myShowGroupId);
+        String s1 = asText(((PsdLibraryDependencyModel)m1).getResolvedSpec(), myShowGroupId);
+        String s2 = asText(((PsdLibraryDependencyModel)m2).getResolvedSpec(), myShowGroupId);
         return s1.compareTo(s2);
       }
     }
