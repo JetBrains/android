@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview;
 
-import com.android.tools.idea.gradle.structure.configurables.PsdUISettings;
 import com.android.tools.idea.gradle.structure.configurables.android.treeview.AbstractVariantNode;
 import com.android.tools.idea.gradle.structure.model.android.PsdAndroidDependencyModel;
 import com.android.tools.idea.gradle.structure.model.android.PsdLibraryDependencyModel;
@@ -49,8 +48,7 @@ class VariantNode extends AbstractVariantNode {
 
     for (PsdAndroidDependencyModel dependency : dependencies) {
       if (dependency instanceof PsdLibraryDependencyModel) {
-        boolean showGroupId = PsdUISettings.getInstance().DECLARED_DEPENDENCIES_SHOW_GROUP_ID;
-        myChildren.add(new AndroidLibraryNode((PsdLibraryDependencyModel)dependency, showGroupId));
+        myChildren.add(new AndroidLibraryNode((PsdLibraryDependencyModel)dependency));
       }
     }
   }
