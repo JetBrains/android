@@ -30,7 +30,6 @@ import javax.annotation.Nullable;
 import java.awt.*;
 import java.util.Collection;
 
-import static com.android.tools.idea.tests.gui.framework.GuiTests.LONG_TIMEOUT;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static org.fest.swing.edt.GuiActionRunner.execute;
@@ -91,7 +90,7 @@ public class ActionButtonFixture extends JComponentFixture<ActionButtonFixture, 
           }
         });
       }
-    }, LONG_TIMEOUT);
+    }, SHORT_TIMEOUT);
     return this;
   }
 
