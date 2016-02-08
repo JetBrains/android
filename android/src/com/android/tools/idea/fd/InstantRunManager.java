@@ -24,6 +24,9 @@ import com.android.ide.common.packaging.PackagingUtils;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.fd.client.AppState;
+import com.android.tools.fd.client.InstantRunArtifact;
+import com.android.tools.fd.client.InstantRunArtifactType;
+import com.android.tools.fd.client.InstantRunBuildInfo;
 import com.android.tools.fd.client.InstantRunClient;
 import com.android.tools.fd.client.InstantRunClient.FileTransfer;
 import com.android.tools.fd.client.UpdateMode;
@@ -35,9 +38,11 @@ import com.android.tools.idea.rendering.LogWrapper;
 import com.android.tools.idea.run.*;
 import com.android.tools.idea.stats.UsageTracker;
 import com.android.utils.ILogger;
+import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.hash.HashCode;
+import com.google.common.io.Files;
 import com.intellij.debugger.DebuggerManagerEx;
 import com.intellij.debugger.engine.JavaExecutionStack;
 import com.intellij.debugger.engine.SuspendContextImpl;
@@ -69,8 +74,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
-import static com.android.tools.idea.fd.InstantRunArtifactType.*;
-import static com.android.tools.idea.fd.InstantRunBuildInfo.VALUE_VERIFIER_STATUS_COMPATIBLE;
+import static com.android.tools.fd.client.InstantRunArtifactType.*;
+import static com.android.tools.fd.client.InstantRunBuildInfo.VALUE_VERIFIER_STATUS_COMPATIBLE;
 
 /**
  * The {@linkplain InstantRunManager} is responsible for handling Instant Run related functionality
@@ -173,7 +178,7 @@ public final class InstantRunManager implements ProjectComponent {
   @Nullable
   private static String getLocalBuildTimestamp(@NotNull Module module) {
     AndroidGradleModel model = getAppModel(module);
-    InstantRunBuildInfo buildInfo = model == null ? null : InstantRunBuildInfo.get(model);
+    InstantRunBuildInfo buildInfo = model == null ? null : getBuildInfo(model);
     return buildInfo == null ? null : buildInfo.getTimeStamp();
   }
 
@@ -224,7 +229,7 @@ public final class InstantRunManager implements ProjectComponent {
 
   public static boolean apiLevelsMatch(@NotNull IDevice device, @NotNull Module module) {
     AndroidGradleModel model = getAppModel(module);
-    InstantRunBuildInfo buildInfo = model == null ? null : InstantRunBuildInfo.get(model);
+    InstantRunBuildInfo buildInfo = model == null ? null : getBuildInfo(model);
     return buildInfo != null && buildInfo.getFeatureLevel() == device.getVersion().getFeatureLevel();
   }
 
@@ -446,6 +451,37 @@ public final class InstantRunManager implements ProjectComponent {
     }
 
     return maxLastModified;
+  }
+
+  @Nullable
+  public static InstantRunBuildInfo getBuildInfo(@NonNull AndroidGradleModel model) {
+    File buildInfo = getLocalBuildInfoFile(model);
+    if (!buildInfo.exists()) {
+      return null;
+    }
+
+    String xml;
+    try {
+      xml = Files.toString(buildInfo, Charsets.UTF_8);
+    }
+    catch (IOException e) {
+      return null;
+    }
+
+    return InstantRunBuildInfo.get(xml);
+  }
+
+  @NotNull
+  private static File getLocalBuildInfoFile(@NotNull AndroidGradleModel model) {
+    InstantRun instantRun = model.getSelectedVariant().getMainArtifact().getInstantRun();
+
+    File file = instantRun.getInfoFile();
+    if (!file.exists()) {
+      // Temporary hack workaround; model is passing the wrong value! See InstantRunAnchorTask.java
+      file = new File(instantRun.getRestartDexFile().getParentFile(), "build-info.xml");
+    }
+
+    return file;
   }
 
   @NotNull
