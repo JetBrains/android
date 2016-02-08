@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.treeview;
 
+import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsdNode;
 import com.android.tools.idea.gradle.structure.model.android.PsdVariantModel;
-import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;

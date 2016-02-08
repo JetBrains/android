@@ -16,27 +16,20 @@
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies;
 
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpec;
-import com.android.tools.idea.gradle.structure.configurables.PsdUISettings;
-import com.android.tools.idea.gradle.structure.model.PsdProblem;
+import com.android.tools.idea.gradle.structure.configurables.ui.BaseTableCellRenderer;
+import com.android.tools.idea.gradle.structure.configurables.ui.PsdUISettings;
 import com.android.tools.idea.gradle.structure.model.android.PsdAndroidDependencyModel;
 import com.android.tools.idea.gradle.structure.model.android.PsdLibraryDependencyModel;
-import com.google.common.annotations.VisibleForTesting;
-import com.intellij.ui.ColoredTableCellRenderer;
-import com.intellij.ui.JBColor;
-import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.util.ui.ColumnInfo;
 import com.intellij.util.ui.ListTableModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
 import javax.swing.table.TableCellRenderer;
 import java.util.Collections;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.structure.configurables.android.dependencies.ArtifactDependencySpecs.asText;
-import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
-import static com.intellij.ui.SimpleTextAttributes.STYLE_WAVED;
 
 /**
  * Model for the table displaying the "editable" dependencies of a module.
@@ -89,49 +82,28 @@ class EditableDependenciesTableModel extends ListTableModel<PsdAndroidDependency
     setColumnInfos(new ColumnInfo[]{specColumnInfo, scopeColumnInfo});
   }
 
-  static class DependencyCellRenderer extends ColoredTableCellRenderer {
-    @NotNull private final PsdAndroidDependencyModel myModel;
-
+  static class DependencyCellRenderer extends BaseTableCellRenderer<PsdAndroidDependencyModel> {
     DependencyCellRenderer(@NotNull PsdAndroidDependencyModel model) {
-      myModel = model;
+      super(model);
     }
 
     @Override
-    protected void customizeCellRenderer(JTable table, @Nullable Object value, boolean selected, boolean hasFocus, int row, int column) {
-      customizeCellRenderer();
-    }
+    @NotNull
+    protected String getText() {
+      PsdAndroidDependencyModel model = getModel();
+      String text = model.getValueAsText();
 
-    @VisibleForTesting
-    void customizeCellRenderer() {
-      setIcon(myModel.getIcon());
-      setIconOpaque(true);
-      setFocusBorderAroundIcon(true);
-
-      String text = myModel.getValueAsText();
-
-      if (myModel instanceof PsdLibraryDependencyModel) {
-        PsdLibraryDependencyModel library = (PsdLibraryDependencyModel)myModel;
-        boolean showGroupId = PsdUISettings.getInstance().DECLARED_DEPENDENCIES_SHOW_GROUP_ID;
+      if (model instanceof PsdLibraryDependencyModel) {
+        PsdLibraryDependencyModel library = (PsdLibraryDependencyModel)model;
         ArtifactDependencySpec spec = library.getResolvedSpec();
         ArtifactDependencySpec requestedSpec = library.getMismatchingRequestedSpec();
         if (requestedSpec != null) {
           spec = requestedSpec;
         }
+        boolean showGroupId = PsdUISettings.getInstance().DECLARED_DEPENDENCIES_SHOW_GROUP_ID;
         text = asText(spec, showGroupId);
       }
-
-      PsdProblem problem = myModel.getProblem();
-      if (problem != null) {
-        SimpleTextAttributes textAttributes = REGULAR_ATTRIBUTES;
-        JBColor waveColor = problem.getSeverity() == PsdProblem.Severity.ERROR ? JBColor.RED : JBColor.GRAY;
-        textAttributes = textAttributes.derive(STYLE_WAVED, null, null, waveColor);
-        append(text, textAttributes);
-
-        setToolTipText(problem.getText());
-        return;
-      }
-
-      append(text);
+      return text;
     }
   }
 }
