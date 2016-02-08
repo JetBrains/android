@@ -24,6 +24,7 @@ import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
@@ -94,5 +95,17 @@ public class PsdProjectModel implements PsdModel {
   @Override
   public void setModified(boolean value) {
     myModified = value;
+  }
+
+  @Override
+  @Nullable
+  public Icon getIcon() {
+    return null;
+  }
+
+  @Override
+  @Nullable
+  public PsdProblem getProblem() {
+    return null;
   }
 }

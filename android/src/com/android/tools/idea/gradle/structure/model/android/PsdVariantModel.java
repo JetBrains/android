@@ -19,9 +19,11 @@ import com.android.builder.model.Variant;
 import com.android.tools.idea.gradle.structure.model.PsdChildModel;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
+import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
 import java.util.List;
 
 public class PsdVariantModel extends PsdChildModel {
@@ -64,6 +66,12 @@ public class PsdVariantModel extends PsdChildModel {
   @Override
   public boolean isEditable() {
     return false;
+  }
+
+  @Override
+  @Nullable
+  public Icon getIcon() {
+    return AndroidIcons.Variant;
   }
 
   @Override
