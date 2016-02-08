@@ -37,6 +37,7 @@ import org.jdom.xpath.XPath;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.rules.TestRule;
+import org.junit.rules.Timeout;
 import org.junit.runner.Description;
 import org.junit.runners.model.MultipleFailureException;
 import org.junit.runners.model.Statement;
@@ -51,6 +52,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
@@ -65,14 +67,25 @@ import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.junit.Assume.assumeTrue;
 
 public class GuiTestRule implements TestRule {
+  private static final Timeout DEFAULT_TIMEOUT = new Timeout(5, TimeUnit.MINUTES);
+
   private Robot myRobot;
 
   private File myProjectPath;
 
+  private final Timeout myTimeout;
   private final ScreenshotOnFailure myScreenshotOnFailure = new ScreenshotOnFailure();
 
   private final List<GarbageCollectorMXBean> myGarbageCollectorMXBeans = ManagementFactory.getGarbageCollectorMXBeans();
   private final MemoryMXBean myMemoryMXBean = ManagementFactory.getMemoryMXBean();
+
+  public GuiTestRule() {
+    myTimeout = DEFAULT_TIMEOUT;
+  }
+
+  public GuiTestRule(Timeout timeout) {
+    myTimeout = timeout;
+  }
 
   @NotNull
   @Override
@@ -84,7 +97,7 @@ public class GuiTestRule implements TestRule {
         assumeTrue("An IDE internal error occurred previously.", fatalErrorsFromIde().isEmpty());
         try {
           setUp();
-          myScreenshotOnFailure.apply(base, description).evaluate();
+          myScreenshotOnFailure.apply(myTimeout.apply(base, description), description).evaluate();
         }
         finally {
           tearDown();
