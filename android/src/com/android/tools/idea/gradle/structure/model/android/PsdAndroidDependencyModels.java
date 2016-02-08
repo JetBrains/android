@@ -50,22 +50,34 @@ class PsdAndroidDependencyModels {
     Variant variant = variantModel.getGradleModel();
     if (variant != null) {
       AndroidArtifact mainArtifact = variant.getMainArtifact();
-      Dependencies dependencies = mainArtifact.getDependencies();
+      collectDependencies(mainArtifact, variantModel);
 
-      for (AndroidLibrary androidLibrary : dependencies.getLibraries()) {
-        if (androidLibrary.getProject() != null) {
-          // This is a module
-          // TODO add module dependency
-        }
-        else {
-          // This is an AAR
-          addLibrary(androidLibrary, variantModel);
-        }
+      for (AndroidArtifact artifact : variant.getExtraAndroidArtifacts()) {
+        collectDependencies(artifact, variantModel);
       }
 
-      for (JavaLibrary javaLibrary : dependencies.getJavaLibraries()) {
-        addLibrary(javaLibrary, variantModel);
+      for (JavaArtifact javaArtifact : variant.getExtraJavaArtifacts()) {
+        collectDependencies(javaArtifact, variantModel);
       }
+    }
+  }
+
+  private void collectDependencies(@NotNull BaseArtifact artifact, @NotNull PsdVariantModel variantModel) {
+    Dependencies dependencies = artifact.getDependencies();
+
+    for (AndroidLibrary androidLibrary : dependencies.getLibraries()) {
+      if (androidLibrary.getProject() != null) {
+        // This is a module
+        // TODO add module dependency
+      }
+      else {
+        // This is an AAR
+        addLibrary(androidLibrary, variantModel);
+      }
+    }
+
+    for (JavaLibrary javaLibrary : dependencies.getJavaLibraries()) {
+      addLibrary(javaLibrary, variantModel);
     }
   }
 
