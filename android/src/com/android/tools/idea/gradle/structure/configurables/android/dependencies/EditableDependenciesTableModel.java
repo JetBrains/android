@@ -16,32 +16,36 @@
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies;
 
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpec;
+import com.android.tools.idea.gradle.structure.configurables.PsdUISettings;
+import com.android.tools.idea.gradle.structure.model.PsdProblem;
 import com.android.tools.idea.gradle.structure.model.android.PsdAndroidDependencyModel;
 import com.android.tools.idea.gradle.structure.model.android.PsdLibraryDependencyModel;
+import com.google.common.annotations.VisibleForTesting;
+import com.intellij.ui.ColoredTableCellRenderer;
+import com.intellij.ui.JBColor;
+import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.util.ui.ColumnInfo;
 import com.intellij.util.ui.ListTableModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellRenderer;
-import java.awt.*;
 import java.util.Collections;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.structure.configurables.android.dependencies.ArtifactDependencySpecs.asText;
+import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
+import static com.intellij.ui.SimpleTextAttributes.STYLE_WAVED;
 
 /**
  * Model for the table displaying the "editable" dependencies of a module.
  */
 class EditableDependenciesTableModel extends ListTableModel<PsdAndroidDependencyModel> {
-  // Allows users to show/hide artifact's group ID (hide in the case of lack of horizontal space.)
-  private boolean myShowGroupIds;
-
   EditableDependenciesTableModel(@NotNull List<PsdAndroidDependencyModel> dependencies) {
     createAndSetColumnInfos();
-    Collections.sort(dependencies, new PsdAndroidDependencyModelComparator(myShowGroupIds));
+    boolean showGroupId = PsdUISettings.getInstance().DECLARED_DEPENDENCIES_SHOW_GROUP_ID;
+    Collections.sort(dependencies, new PsdAndroidDependencyModelComparator(showGroupId));
     setItems(dependencies);
   }
 
@@ -50,10 +54,6 @@ class EditableDependenciesTableModel extends ListTableModel<PsdAndroidDependency
       @Override
       @NotNull
       public String valueOf(PsdAndroidDependencyModel model) {
-        if (model instanceof PsdLibraryDependencyModel) {
-          ArtifactDependencySpec spec = ((PsdLibraryDependencyModel)model).getSpec();
-          return asText(spec, myShowGroupIds);
-        }
         return model.getValueAsText();
       }
 
@@ -89,7 +89,7 @@ class EditableDependenciesTableModel extends ListTableModel<PsdAndroidDependency
     setColumnInfos(new ColumnInfo[]{specColumnInfo, scopeColumnInfo});
   }
 
-  class DependencyCellRenderer extends DefaultTableCellRenderer {
+  static class DependencyCellRenderer extends ColoredTableCellRenderer {
     @NotNull private final PsdAndroidDependencyModel myModel;
 
     DependencyCellRenderer(@NotNull PsdAndroidDependencyModel model) {
@@ -97,24 +97,41 @@ class EditableDependenciesTableModel extends ListTableModel<PsdAndroidDependency
     }
 
     @Override
-    public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-      JLabel label = (JLabel)super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-      label.setIcon(myModel.getIcon());
-      String toolTip = "";
-      if (!myShowGroupIds && myModel instanceof PsdLibraryDependencyModel) {
-        // Show the complete compact notation (including group ID) if the table hides group ID.
-        toolTip = myModel.getValueAsText();
-      }
-      label.setToolTipText(toolTip);
-      return label;
+    protected void customizeCellRenderer(JTable table, @Nullable Object value, boolean selected, boolean hasFocus, int row, int column) {
+      customizeCellRenderer();
     }
-  }
 
-  boolean isShowGroupIds() {
-    return myShowGroupIds;
-  }
+    @VisibleForTesting
+    void customizeCellRenderer() {
+      setIcon(myModel.getIcon());
+      setIconOpaque(true);
+      setFocusBorderAroundIcon(true);
 
-  void setShowGroupIds(boolean showGroupIds) {
-    myShowGroupIds = showGroupIds;
+      String text = myModel.getValueAsText();
+
+      if (myModel instanceof PsdLibraryDependencyModel) {
+        PsdLibraryDependencyModel library = (PsdLibraryDependencyModel)myModel;
+        boolean showGroupId = PsdUISettings.getInstance().DECLARED_DEPENDENCIES_SHOW_GROUP_ID;
+        ArtifactDependencySpec spec = library.getResolvedSpec();
+        ArtifactDependencySpec requestedSpec = library.getMismatchingRequestedSpec();
+        if (requestedSpec != null) {
+          spec = requestedSpec;
+        }
+        text = asText(spec, showGroupId);
+      }
+
+      PsdProblem problem = myModel.getProblem();
+      if (problem != null) {
+        SimpleTextAttributes textAttributes = REGULAR_ATTRIBUTES;
+        JBColor waveColor = problem.getSeverity() == PsdProblem.Severity.ERROR ? JBColor.RED : JBColor.GRAY;
+        textAttributes = textAttributes.derive(STYLE_WAVED, null, null, waveColor);
+        append(text, textAttributes);
+
+        setToolTipText(problem.getText());
+        return;
+      }
+
+      append(text);
+    }
   }
 }

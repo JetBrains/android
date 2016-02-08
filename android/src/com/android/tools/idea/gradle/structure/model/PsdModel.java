@@ -17,6 +17,8 @@ package com.android.tools.idea.gradle.structure.model;
 
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
+
 public interface PsdModel {
   @Nullable
   PsdModel getParent();
@@ -26,4 +28,10 @@ public interface PsdModel {
   boolean isModified();
 
   void setModified(boolean value);
+
+  @Nullable
+  Icon getIcon();
+
+  @Nullable
+  PsdProblem getProblem();
 }
