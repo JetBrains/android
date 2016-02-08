@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies;
 
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpec;
-import com.android.tools.idea.gradle.structure.configurables.PsdUISettings;
+import com.android.tools.idea.gradle.structure.configurables.ui.PsdUISettings;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.EditableDependenciesTableModel.DependencyCellRenderer;
 import com.android.tools.idea.gradle.structure.model.android.PsdAndroidDependencyModel;
 import com.android.tools.idea.gradle.structure.model.android.PsdLibraryDependencyModel;
@@ -73,15 +73,13 @@ public class EditableDependenciesTableModelTest extends IdeaTestCase {
     DependencyCellRenderer renderer = (DependencyCellRenderer)specColumnInfo.getRenderer(myLibraryDependencyModel);
     assertNotNull(renderer);
 
-    renderer.clear();
-    renderer.customizeCellRenderer();
-    assertEquals("com.android.support:appcompat-v7:23.1.0", renderer.toString());
+    String text = renderer.getText();
+    assertEquals("com.android.support:appcompat-v7:23.1.0", text);
 
     PsdUISettings.getInstance().DECLARED_DEPENDENCIES_SHOW_GROUP_ID = false;
 
-    renderer.clear();
-    renderer.customizeCellRenderer();
-    assertEquals("appcompat-v7:23.1.0", renderer.toString());
+    text = renderer.getText();
+    assertEquals("appcompat-v7:23.1.0", text);
   }
 
   public void testShowConfigurationName() {
