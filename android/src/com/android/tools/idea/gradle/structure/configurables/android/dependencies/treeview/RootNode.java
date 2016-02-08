@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview;
 
-import com.android.tools.idea.gradle.structure.configurables.PsdUISettings;
+import com.android.tools.idea.gradle.structure.configurables.ui.PsdUISettings;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.PsdAndroidDependencyModelComparator;
 import com.android.tools.idea.gradle.structure.configurables.android.treeview.AbstractRootNode;
 import com.android.tools.idea.gradle.structure.configurables.android.treeview.AbstractVariantNode;
