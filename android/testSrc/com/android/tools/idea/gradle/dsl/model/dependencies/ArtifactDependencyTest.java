@@ -17,12 +17,15 @@ package com.android.tools.idea.gradle.dsl.model.dependencies;
 
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
+import com.android.tools.idea.gradle.dsl.model.values.GradleNotNullValue;
+import com.android.tools.idea.gradle.dsl.model.values.GradleNullableValue;
 import com.google.common.base.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.CLASSPATH;
 import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.COMPILE;
@@ -458,6 +461,243 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     assertFalse(dependenciesModel.containsArtifact(CLASSPATH, guavaSpec));
   }
 
+  public void testParseCompactNotationWithVariables() throws IOException {
+    String text = "ext {\n" +
+                  "    appcompat = 'com.android.support:appcompat-v7:22.1.1'\n" +
+                  "    guavaVersion = '18.0'\n" +
+                  "}\n" +
+                  "dependencies {\n" +
+                  "    compile appcompat\n" +
+                  "    runtime \"com.google.guava:guava:$guavaVersion\"\n" +
+                  "}";
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    DependenciesModel dependenciesModel = buildModel.dependencies();
+
+    List<ArtifactDependencyModel> dependencies = dependenciesModel.artifacts();
+    assertThat(dependencies).hasSize(2);
+
+    ExpectedArtifactDependency expected = new ExpectedArtifactDependency(COMPILE, "appcompat-v7", "com.android.support", "22.1.1");
+    ArtifactDependencyModel appcompatDependencyModel = dependencies.get(0);
+    expected.assertMatches(appcompatDependencyModel);
+    GradleNotNullValue<String> appcompatDependency = appcompatDependencyModel.compactNotation();
+    assertEquals(expected.compactNotation(), appcompatDependency.value());
+    assertEquals(myBuildFile.getPath(), appcompatDependency.getFile().getPath());
+    assertEquals("dependencies.compile", appcompatDependency.getPropertyName());
+    assertEquals("appcompat", appcompatDependency.getDslText());
+    Map<String, GradleNotNullValue<Object>> appcompatResolvedVariables = appcompatDependency.getResolvedVariables();
+    assertEquals(1, appcompatResolvedVariables.size());
+
+    GradleNotNullValue<Object> appcompatVariable = appcompatResolvedVariables.get("appcompat");
+    assertNotNull(appcompatVariable);
+    assertEquals("com.android.support:appcompat-v7:22.1.1", appcompatVariable.value());
+    assertEquals(myBuildFile.getPath(), appcompatVariable.getFile().getPath());
+    assertEquals("ext.appcompat", appcompatVariable.getPropertyName());
+    assertEquals("appcompat = 'com.android.support:appcompat-v7:22.1.1'", appcompatVariable.getDslText());
+    assertEquals(0, appcompatVariable.getResolvedVariables().size());
+
+
+    expected = new ExpectedArtifactDependency(RUNTIME, "guava", "com.google.guava", "18.0");
+    ArtifactDependencyModel guavaDependencyModel = dependencies.get(1);
+    expected.assertMatches(guavaDependencyModel);
+    GradleNotNullValue<String> guavaDependency = guavaDependencyModel.compactNotation();
+    assertEquals(expected.compactNotation(), guavaDependency.value());
+    assertEquals(myBuildFile.getPath(), guavaDependency.getFile().getPath());
+    assertEquals("dependencies.runtime", guavaDependency.getPropertyName());
+    assertEquals("\"com.google.guava:guava:$guavaVersion\"", guavaDependency.getDslText());
+    Map<String, GradleNotNullValue<Object>> guavaResolvedVariables = guavaDependency.getResolvedVariables();
+    assertEquals(1, guavaResolvedVariables.size());
+
+    GradleNotNullValue<Object> guavaVersionVariable = guavaResolvedVariables.get("guavaVersion");
+    assertNotNull(guavaVersionVariable);
+    assertEquals("18.0", guavaVersionVariable.value());
+    assertEquals(myBuildFile.getPath(), guavaVersionVariable.getFile().getPath());
+    assertEquals("ext.guavaVersion", guavaVersionVariable.getPropertyName());
+    assertEquals("guavaVersion = '18.0'", guavaVersionVariable.getDslText());
+    assertEquals(0, guavaVersionVariable.getResolvedVariables().size());
+  }
+
+  public void testParseMapNotationWithVariables() throws IOException {
+    String text = "ext {\n" +
+                  "    guavaVersion = '18.0'\n" +
+                  "}\n" +
+                  "dependencies {\n" +
+                  "    compile group: 'com.google.guava', name: 'guava', version: \"$guavaVersion\"\n" +
+                  "}";
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    DependenciesModel dependenciesModel = buildModel.dependencies();
+
+    List<ArtifactDependencyModel> dependencies = dependenciesModel.artifacts();
+    assertThat(dependencies).hasSize(1);
+
+    ExpectedArtifactDependency expected = new ExpectedArtifactDependency(COMPILE, "guava", "com.google.guava", "18.0");
+    ArtifactDependencyModel guavaDependencyModel = dependencies.get(0);
+    expected.assertMatches(guavaDependencyModel);
+    GradleNotNullValue<String> guavaDependency = guavaDependencyModel.compactNotation();
+    assertEquals(expected.compactNotation(), guavaDependency.value());
+    assertEquals(myBuildFile.getPath(), guavaDependency.getFile().getPath());
+    assertEquals("dependencies.compile", guavaDependency.getPropertyName());
+    assertEquals("group: 'com.google.guava', name: 'guava', version: \"$guavaVersion\"", guavaDependency.getDslText());
+    Map<String, GradleNotNullValue<Object>> guavaResolvedVariables = guavaDependency.getResolvedVariables();
+    assertEquals(1, guavaResolvedVariables.size());
+
+    GradleNotNullValue<Object> guavaVersionVariable = guavaResolvedVariables.get("guavaVersion");
+    assertNotNull(guavaVersionVariable);
+    assertEquals("18.0", guavaVersionVariable.value());
+    assertEquals(myBuildFile.getPath(), guavaVersionVariable.getFile().getPath());
+    assertEquals("ext.guavaVersion", guavaVersionVariable.getPropertyName());
+    assertEquals("guavaVersion = '18.0'", guavaVersionVariable.getDslText());
+    assertEquals(0, guavaVersionVariable.getResolvedVariables().size());
+
+    // Now test that resolved variables are not reported for group and name properties.
+    GradleNullableValue<String> group = guavaDependencyModel.group();
+    assertEquals("com.google.guava", group.value());
+    assertEquals(0, group.getResolvedVariables().size());
+
+    GradleNotNullValue<String> name = guavaDependencyModel.name();
+    assertEquals("guava", name.value());
+    assertEquals(0, name.getResolvedVariables().size());
+
+    // and thee guavaVersion variable is reported for version property.
+    GradleNullableValue<String> version = guavaDependencyModel.version();
+    assertEquals("18.0", version.value());
+    assertEquals(myBuildFile.getPath(), version.getFile().getPath());
+    assertEquals("dependencies.compile.version", version.getPropertyName());
+    assertEquals("group: 'com.google.guava', name: 'guava', version: \"$guavaVersion\"", version.getDslText());
+    guavaResolvedVariables = version.getResolvedVariables();
+    assertEquals(1, guavaResolvedVariables.size());
+
+    guavaVersionVariable = guavaResolvedVariables.get("guavaVersion");
+    assertNotNull(guavaVersionVariable);
+    assertEquals("18.0", guavaVersionVariable.value());
+    assertEquals(myBuildFile.getPath(), guavaVersionVariable.getFile().getPath());
+    assertEquals("ext.guavaVersion", guavaVersionVariable.getPropertyName());
+    assertEquals("guavaVersion = '18.0'", guavaVersionVariable.getDslText());
+    assertEquals(0, guavaVersionVariable.getResolvedVariables().size());
+  }
+
+  public void testParseCompactNotationClosureWithVariables() throws IOException {
+    String text = "ext {\n" +
+                  "    appcompat = 'com.android.support:appcompat-v7:22.1.1'\n" +
+                  "    guavaVersion = '18.0'\n" +
+                  "}\n" +
+                  "dependencies {\n" +
+                  "    compile(appcompat, \"com.google.guava:guava:$guavaVersion\") {\n" +
+                  "    }\n" +
+                  "}";
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    DependenciesModel dependenciesModel = buildModel.dependencies();
+
+    List<ArtifactDependencyModel> dependencies = dependenciesModel.artifacts();
+    assertThat(dependencies).hasSize(2);
+
+    ExpectedArtifactDependency expected = new ExpectedArtifactDependency(COMPILE, "appcompat-v7", "com.android.support", "22.1.1");
+    ArtifactDependencyModel appcompatDependencyModel = dependencies.get(0);
+    expected.assertMatches(appcompatDependencyModel);
+    GradleNotNullValue<String> appcompatDependency = appcompatDependencyModel.compactNotation();
+    assertEquals(expected.compactNotation(), appcompatDependency.value());
+    assertEquals(myBuildFile.getPath(), appcompatDependency.getFile().getPath());
+    assertEquals("dependencies.compile.compile", appcompatDependency.getPropertyName());
+    assertEquals("appcompat", appcompatDependency.getDslText());
+    Map<String, GradleNotNullValue<Object>> appcompatResolvedVariables = appcompatDependency.getResolvedVariables();
+    assertEquals(1, appcompatResolvedVariables.size());
+
+    GradleNotNullValue<Object> appcompatVariable = appcompatResolvedVariables.get("appcompat");
+    assertNotNull(appcompatVariable);
+    assertEquals("com.android.support:appcompat-v7:22.1.1", appcompatVariable.value());
+    assertEquals(myBuildFile.getPath(), appcompatVariable.getFile().getPath());
+    assertEquals("ext.appcompat", appcompatVariable.getPropertyName());
+    assertEquals("appcompat = 'com.android.support:appcompat-v7:22.1.1'", appcompatVariable.getDslText());
+    assertEquals(0, appcompatVariable.getResolvedVariables().size());
+
+
+    expected = new ExpectedArtifactDependency(COMPILE, "guava", "com.google.guava", "18.0");
+    ArtifactDependencyModel guavaDependencyModel = dependencies.get(1);
+    expected.assertMatches(guavaDependencyModel);
+    GradleNotNullValue<String> guavaDependency = guavaDependencyModel.compactNotation();
+    assertEquals(expected.compactNotation(), guavaDependency.value());
+    assertEquals(myBuildFile.getPath(), guavaDependency.getFile().getPath());
+    assertEquals("dependencies.compile.compile", guavaDependency.getPropertyName());
+    assertEquals("\"com.google.guava:guava:$guavaVersion\"", guavaDependency.getDslText());
+    Map<String, GradleNotNullValue<Object>> guavaResolvedVariables = guavaDependency.getResolvedVariables();
+    assertEquals(1, guavaResolvedVariables.size());
+
+    GradleNotNullValue<Object> guavaVersionVariable = guavaResolvedVariables.get("guavaVersion");
+    assertNotNull(guavaVersionVariable);
+    assertEquals("18.0", guavaVersionVariable.value());
+    assertEquals(myBuildFile.getPath(), guavaVersionVariable.getFile().getPath());
+    assertEquals("ext.guavaVersion", guavaVersionVariable.getPropertyName());
+    assertEquals("guavaVersion = '18.0'", guavaVersionVariable.getDslText());
+    assertEquals(0, guavaVersionVariable.getResolvedVariables().size());
+  }
+
+  public void testParseMapNotationClosureWithVariables() throws IOException {
+    String text = "ext {\n" +
+                  "    guavaVersion = '18.0'\n" +
+                  "}\n" +
+                  "dependencies {\n" +
+                  "    compile(group: 'com.google.guava', name: 'guava', version: \"$guavaVersion\") {\n" +
+                  "    }\n" +
+                  "}";
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    DependenciesModel dependenciesModel = buildModel.dependencies();
+
+    List<ArtifactDependencyModel> dependencies = dependenciesModel.artifacts();
+    assertThat(dependencies).hasSize(1);
+
+    ExpectedArtifactDependency expected = new ExpectedArtifactDependency(COMPILE, "guava", "com.google.guava", "18.0");
+    ArtifactDependencyModel guavaDependencyModel = dependencies.get(0);
+    expected.assertMatches(guavaDependencyModel);
+    GradleNotNullValue<String> guavaDependency = guavaDependencyModel.compactNotation();
+    assertEquals(expected.compactNotation(), guavaDependency.value());
+    assertEquals(myBuildFile.getPath(), guavaDependency.getFile().getPath());
+    assertEquals("dependencies.compile.compile", guavaDependency.getPropertyName());
+    assertEquals("(group: 'com.google.guava', name: 'guava', version: \"$guavaVersion\")", guavaDependency.getDslText());
+    Map<String, GradleNotNullValue<Object>> guavaResolvedVariables = guavaDependency.getResolvedVariables();
+    assertEquals(1, guavaResolvedVariables.size());
+
+    GradleNotNullValue<Object> guavaVersionVariable = guavaResolvedVariables.get("guavaVersion");
+    assertNotNull(guavaVersionVariable);
+    assertEquals("18.0", guavaVersionVariable.value());
+    assertEquals(myBuildFile.getPath(), guavaVersionVariable.getFile().getPath());
+    assertEquals("ext.guavaVersion", guavaVersionVariable.getPropertyName());
+    assertEquals("guavaVersion = '18.0'", guavaVersionVariable.getDslText());
+    assertEquals(0, guavaVersionVariable.getResolvedVariables().size());
+
+    // Now test that resolved variables are not reported for group and name properties.
+    GradleNullableValue<String> group = guavaDependencyModel.group();
+    assertEquals("com.google.guava", group.value());
+    assertEquals(0, group.getResolvedVariables().size());
+
+    GradleNotNullValue<String> name = guavaDependencyModel.name();
+    assertEquals("guava", name.value());
+    assertEquals(0, name.getResolvedVariables().size());
+
+    // and thee guavaVersion variable is reported for version property.
+    GradleNullableValue<String> version = guavaDependencyModel.version();
+    assertEquals("18.0", version.value());
+    assertEquals(myBuildFile.getPath(), version.getFile().getPath());
+    assertEquals("dependencies.compile.compile.version", version.getPropertyName());
+    assertEquals("(group: 'com.google.guava', name: 'guava', version: \"$guavaVersion\")", version.getDslText());
+    guavaResolvedVariables = version.getResolvedVariables();
+    assertEquals(1, guavaResolvedVariables.size());
+
+    guavaVersionVariable = guavaResolvedVariables.get("guavaVersion");
+    assertNotNull(guavaVersionVariable);
+    assertEquals("18.0", guavaVersionVariable.value());
+    assertEquals(myBuildFile.getPath(), guavaVersionVariable.getFile().getPath());
+    assertEquals("ext.guavaVersion", guavaVersionVariable.getPropertyName());
+    assertEquals("guavaVersion = '18.0'", guavaVersionVariable.getDslText());
+    assertEquals(0, guavaVersionVariable.getResolvedVariables().size());
+  }
+
   public static class ExpectedArtifactDependency extends ArtifactDependencySpec {
     @NotNull public String configurationName;
 
@@ -471,20 +711,20 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
     public void assertMatches(@NotNull ArtifactDependencyModel actual) {
       assertEquals("configurationName", configurationName, actual.configurationName());
-      assertEquals("group", group, actual.group());
-      assertEquals("name", name, actual.name());
-      assertEquals("version", version, actual.version());
-      assertEquals("classifier", classifier, actual.classifier());
-      assertEquals("extension", extension, actual.extension());
+      assertEquals("group", group, actual.group().value());
+      assertEquals("name", name, actual.name().value());
+      assertEquals("version", version, actual.version().value());
+      assertEquals("classifier", classifier, actual.classifier().value());
+      assertEquals("extension", extension, actual.extension().value());
     }
 
     public boolean matches(@NotNull ArtifactDependencyModel dependency) {
       return configurationName.equals(dependency.configurationName()) &&
-             name.equals(dependency.name()) &&
-             Objects.equal(group, dependency.group()) &&
-             Objects.equal(version, dependency.version()) &&
-             Objects.equal(classifier, dependency.classifier()) &&
-             Objects.equal(extension, dependency.extension());
+             name.equals(dependency.name().value()) &&
+             Objects.equal(group, dependency.group().value()) &&
+             Objects.equal(version, dependency.version().value()) &&
+             Objects.equal(classifier, dependency.classifier().value()) &&
+             Objects.equal(extension, dependency.extension().value());
     }
   }
 }

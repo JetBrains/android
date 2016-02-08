@@ -91,6 +91,15 @@ public class ArtifactDependencySpec {
     return null;
   }
 
+  @NotNull
+  public static ArtifactDependencySpec create(@NotNull ArtifactDependencyModel dependency) {
+    return new ArtifactDependencySpec(dependency.name().value(),
+                                      dependency.group().value(),
+                                      dependency.version().value(),
+                                      dependency.classifier().value(),
+                                      dependency.extension().value());
+  }
+
   public ArtifactDependencySpec(@NotNull String name, @Nullable String group, @Nullable String version) {
     this(name, group, version, null, null);
   }

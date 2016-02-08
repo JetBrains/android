@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
-import com.android.tools.idea.gradle.dsl.model.GradleValue;
+import com.android.tools.idea.gradle.dsl.model.values.GradleNullableValue;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -148,12 +148,13 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
   }
 
   /**
-   * Returns the value of the give {@code property} of the type {@code clazz} along with the variable resolution history, or {@code null}
-   * when either the given {@code property} does not exists in this element or the given {@code property} value is not of the type
-   * {@code clazz}.
+   * Returns the value of the give {@code property} of the type {@code clazz} along with the variable resolution history.
+   *
+   * <p>The returned {@link GradleNullableValue} may contain a {@code null} value when either the given {@code property} does not exists in
+   * this element or the given {@code property} value is not of the type {@code clazz}.
    */
-  @Nullable
-  public <T> GradleValue<T> getPropertyValue(@NotNull String property, @NotNull Class<T> clazz) {
+  @NotNull
+  public <T> GradleNullableValue<T> getPropertyValue(@NotNull String property, @NotNull Class<T> clazz) {
     GradleDslElement propertyElement = getPropertyElement(property);
     if (propertyElement != null) {
       T resultValue = null;
@@ -164,10 +165,10 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
         resultValue = ((GradleDslExpression)propertyElement).getValue(clazz);
       }
       if (resultValue != null) {
-        return new GradleValue<T>(resultValue, propertyElement);
+        return new GradleNullableValue<T>(propertyElement, resultValue);
       }
     }
-    return null;
+    return new GradleNullableValue<T>(this, null);
   }
 
   /**
@@ -176,8 +177,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
    */
   @Nullable
   public <T> T getProperty(@NotNull String property, @NotNull Class<T> clazz) {
-    GradleValue<T> propertyValue = getPropertyValue(property, clazz);
-    return propertyValue == null ? null : propertyValue.getValue();
+    return getPropertyValue(property, clazz).value();
   }
 
   /**
