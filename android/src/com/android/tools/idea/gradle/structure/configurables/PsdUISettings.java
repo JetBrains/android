@@ -29,8 +29,9 @@ import java.util.EventListener;
 )
 public class PsdUISettings implements PersistentStateComponent<PsdUISettings> {
   public boolean DECLARED_DEPENDENCIES_SHOW_GROUP_ID;
-  public boolean VARIANTs_DEPENDENCIES_SHOW_GROUP_ID;
+  public boolean VARIANTS_DEPENDENCIES_SHOW_GROUP_ID;
   public boolean VARIANTS_DEPENDENCIES_GROUP_VARIANTS = true;
+  public boolean VARIANTS_DEPENDENCIES_MINIMIZE;
 
   @NotNull private final EventDispatcher<ChangeListener> myEventDispatcher = EventDispatcher.create(ChangeListener.class);
 
