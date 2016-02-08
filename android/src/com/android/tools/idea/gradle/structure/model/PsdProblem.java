@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.gradle.structure.model;
 
+import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
+
+import java.awt.*;
 
 public class PsdProblem {
   @NotNull private final String myText;
@@ -37,6 +40,17 @@ public class PsdProblem {
   }
 
   public enum Severity {
-    ERROR, WARNING
+    ERROR(JBColor.RED), WARNING(JBColor.GRAY);
+
+    @NotNull private final Color myColor;
+
+    Severity(@NotNull Color color) {
+      myColor = color;
+    }
+
+    @NotNull
+    public Color getColor() {
+      return myColor;
+    }
   }
 }

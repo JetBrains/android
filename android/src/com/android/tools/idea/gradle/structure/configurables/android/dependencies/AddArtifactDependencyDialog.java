@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.structure.configurables.android.dependenci
 
 import com.android.builder.model.AndroidProject;
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.structure.configurables.ArtifactRepositorySearchForm;
+import com.android.tools.idea.gradle.structure.configurables.ui.ArtifactRepositorySearchForm;
 import com.android.tools.idea.gradle.structure.model.android.PsdAndroidModuleModel;
 import com.android.tools.idea.gradle.structure.model.repositories.search.AndroidSdkRepository;
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepository;
