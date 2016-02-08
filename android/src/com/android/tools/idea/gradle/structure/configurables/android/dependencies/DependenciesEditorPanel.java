@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies;
 
+import com.android.tools.idea.gradle.structure.configurables.PsdUISettings;
 import com.android.tools.idea.gradle.structure.configurables.ToolWindowPanel;
 import com.android.tools.idea.gradle.structure.model.android.PsdAndroidDependencyModel;
 import com.android.tools.idea.gradle.structure.model.android.PsdAndroidModuleModel;
@@ -31,6 +32,7 @@ class DependenciesEditorPanel extends JPanel implements Disposable {
   @NotNull private final JBSplitter myVerticalSplitter;
   @NotNull private final EditableDependenciesPanel myDependenciesPanel;
   @NotNull private final VariantsToolWindowPanel myVariantsToolWindowPanel;
+  @NotNull private final JPanel myAltPanel;
 
   DependenciesEditorPanel(@NotNull PsdAndroidModuleModel moduleModel) {
     super(new BorderLayout());
@@ -59,33 +61,63 @@ class DependenciesEditorPanel extends JPanel implements Disposable {
       }
     });
 
-    final JPanel altPanel = new JPanel(new BorderLayout());
+    myAltPanel = new JPanel(new BorderLayout());
 
     JPanel minimizedContainerPanel = myVariantsToolWindowPanel.getMinimizedContainerPanel();
     assert minimizedContainerPanel != null;
-    altPanel.add(minimizedContainerPanel, BorderLayout.EAST);
+    myAltPanel.add(minimizedContainerPanel, BorderLayout.EAST);
 
     myVariantsToolWindowPanel.addStateChangeListener(new ToolWindowPanel.StateChangeListener() {
       @Override
       public void maximized() {
-        remove(altPanel);
-        altPanel.remove(myDependenciesPanel);
-        myVerticalSplitter.setFirstComponent(myDependenciesPanel);
-        add(myVerticalSplitter, BorderLayout.CENTER);
-        revalidate();
-        repaint();
+        maximize();
       }
 
       @Override
       public void minimized() {
-        remove(myVerticalSplitter);
-        myVerticalSplitter.setFirstComponent(null);
-        altPanel.add(myDependenciesPanel, BorderLayout.CENTER);
-        add(altPanel, BorderLayout.CENTER);
-        revalidate();
-        repaint();
+        minimize();
       }
     }, this);
+  }
+
+  private void maximize() {
+    remove(myAltPanel);
+    myAltPanel.remove(myDependenciesPanel);
+    myVerticalSplitter.setFirstComponent(myDependenciesPanel);
+    add(myVerticalSplitter, BorderLayout.CENTER);
+    revalidate();
+    repaint();
+    saveMinimizedState(false);
+  }
+
+  private void minimize() {
+    remove(myVerticalSplitter);
+    myVerticalSplitter.setFirstComponent(null);
+    myAltPanel.add(myDependenciesPanel, BorderLayout.CENTER);
+    add(myAltPanel, BorderLayout.CENTER);
+    revalidate();
+    repaint();
+    saveMinimizedState(true);
+  }
+
+  private static void saveMinimizedState(boolean minimize) {
+    PsdUISettings.getInstance().VARIANTS_DEPENDENCIES_MINIMIZE = minimize;
+  }
+
+  @Override
+  public void addNotify() {
+    super.addNotify();
+    loadMinimizedState();
+  }
+
+  private void loadMinimizedState() {
+    boolean minimize = PsdUISettings.getInstance().VARIANTS_DEPENDENCIES_MINIMIZE;
+    if (minimize) {
+      minimize();
+    }
+    else {
+      maximize();
+    }
   }
 
   @Override
