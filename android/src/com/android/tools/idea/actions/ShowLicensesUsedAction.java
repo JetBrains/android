@@ -33,6 +33,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Surfaces a UI action for displaying a dialog of licenses for 3rd-party libraries
@@ -74,9 +76,21 @@ public class ShowLicensesUsedAction extends DumbAwareAction {
       assert licenseDir.exists() : licenseDir;
       collectLicenses(sb, licenseDir);
 
-      File androidLicenses = new File(PathManager.getPreInstalledPluginsPath(), PathUtil.toSystemDependentName("android/lib/licenses"));
-      if (androidLicenses.exists() && androidLicenses.isDirectory()) {
-        collectLicenses(sb, androidLicenses);
+      List<String> extraPlugins = Arrays.asList(
+        "android",
+        "google-appindexing",
+        "google-cloud-testing",
+        "google-cloud-tools",
+        "google-cloud-tools-core",
+        "google-login",
+        "google-services"
+      );
+
+      for (String plugin : extraPlugins) {
+        File licenses = new File(PathManager.getPreInstalledPluginsPath(), PathUtil.toSystemDependentName(plugin + "/lib/licenses"));
+        if (licenses.isDirectory()) {
+          collectLicenses(sb, licenses);
+        }
       }
 
       String text = "<html>" + sb.toString() + "</html>";
