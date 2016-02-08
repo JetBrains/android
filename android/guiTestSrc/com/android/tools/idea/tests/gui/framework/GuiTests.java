@@ -92,7 +92,7 @@ import static org.jetbrains.android.AndroidPlugin.setGuiTestingMode;
 import static org.junit.Assert.*;
 
 public final class GuiTests {
-  public static final Timeout THIRTY_SEC_TIMEOUT = timeout(30, SECONDS);
+
   public static final Timeout SHORT_TIMEOUT = timeout(2, MINUTES);
   public static final Timeout LONG_TIMEOUT = timeout(5, MINUTES);
 
