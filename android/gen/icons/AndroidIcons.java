@@ -76,6 +76,7 @@ public class AndroidIcons {
 
   public static class ProjectStructure {
     public static final Icon UnknownLibrary = load("/icons/psd/unknownLibrary.png");
+    public static final Icon LibraryWarning = load("/icons/psd/libraryWarning.png");
   }
 
   // Form factors

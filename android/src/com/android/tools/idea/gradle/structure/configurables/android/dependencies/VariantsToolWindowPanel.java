@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies;
 
-import com.android.tools.idea.gradle.structure.configurables.PsdUISettings;
-import com.android.tools.idea.gradle.structure.configurables.ToolWindowPanel;
+import com.android.tools.idea.gradle.structure.configurables.ui.PsdUISettings;
+import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowPanel;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractDependencyNode;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.DependencySelection;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.VariantsTreeBuilder;
-import com.android.tools.idea.gradle.structure.configurables.android.treeview.AbstractPsdNode;
+import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsdNode;
 import com.android.tools.idea.gradle.structure.model.android.PsdAndroidDependencyModel;
 import com.android.tools.idea.gradle.structure.model.android.PsdAndroidModuleModel;
 import com.android.tools.idea.gradle.util.ui.Header;
