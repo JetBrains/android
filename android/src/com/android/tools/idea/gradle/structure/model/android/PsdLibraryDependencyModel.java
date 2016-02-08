@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.structure.model.android;
 import com.android.builder.model.Library;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpec;
+import com.android.tools.idea.gradle.structure.model.PsdProblem;
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -28,24 +29,54 @@ import javax.swing.*;
 import java.util.List;
 import java.util.Set;
 
+import static com.android.tools.idea.gradle.structure.model.PsdProblem.Severity.WARNING;
 import static com.intellij.util.PlatformIcons.LIBRARY_ICON;
 
 public class PsdLibraryDependencyModel extends PsdAndroidDependencyModel {
-  @NotNull private final ArtifactDependencySpec mySpec;
+  @NotNull private final ArtifactDependencySpec myResolvedSpec;
 
   @Nullable private final Library myGradleModel;
+  @Nullable private final ArtifactDependencySpec myMismatchingRequestedSpec;
   @Nullable private ArtifactDependencyModel myParsedModel;
+  @Nullable private final PsdProblem myProblem;
 
   @NotNull private final Set<String> myTransitiveDependencies = Sets.newHashSet();
 
   PsdLibraryDependencyModel(@NotNull PsdAndroidModuleModel parent,
-                            @NotNull ArtifactDependencySpec spec,
+                            @NotNull ArtifactDependencySpec resolvedSpec,
                             @Nullable Library gradleModel,
                             @Nullable ArtifactDependencyModel parsedModel) {
     super(parent);
-    mySpec = spec;
+    myResolvedSpec = resolvedSpec;
     myGradleModel = gradleModel;
     myParsedModel = parsedModel;
+    myMismatchingRequestedSpec = findMismatchingSpec();
+
+    PsdProblem problem = null;
+    if (myMismatchingRequestedSpec != null) {
+      String requestedVersion = myMismatchingRequestedSpec.version;
+      String msg = String.format("Version requested: '%1$s'. Version resolved: '%2$s'", requestedVersion, myResolvedSpec.version);
+      problem = new PsdProblem(msg, WARNING);
+    }
+    myProblem = problem;
+  }
+
+  @Nullable
+  private ArtifactDependencySpec findMismatchingSpec() {
+    if (myParsedModel != null) {
+      ArtifactDependencySpec requestedSpec = myParsedModel.getSpec();
+      if (!requestedSpec.equals(myResolvedSpec)) {
+        // Version mismatch. This can happen when the project specifies an artifact version but Gradle uses a different version
+        // from a transitive dependency.
+        // Example:
+        // 1. Module 'app' depends on module 'lib'
+        // 2. Module 'app' depends on Guava 18.0
+        // 3. Module 'lib' depends on Guava 19.0
+        // Gradle will force module 'app' to use Guava 19.0
+        return requestedSpec;
+      }
+    }
+    return null;
   }
 
   void addTransitiveDependency(@NotNull String dependency) {
@@ -65,14 +96,25 @@ public class PsdLibraryDependencyModel extends PsdAndroidDependencyModel {
   }
 
   @NotNull
-  public ArtifactDependencySpec getSpec() {
-    return mySpec;
+  public ArtifactDependencySpec getResolvedSpec() {
+    return myResolvedSpec;
+  }
+
+  @Nullable
+  public ArtifactDependencySpec getMismatchingRequestedSpec() {
+    return myMismatchingRequestedSpec;
   }
 
   @Override
   @NotNull
   public Icon getIcon() {
     return LIBRARY_ICON;
+  }
+
+  @Override
+  @Nullable
+  public PsdProblem getProblem() {
+    return myProblem;
   }
 
   @Override
@@ -84,7 +126,7 @@ public class PsdLibraryDependencyModel extends PsdAndroidDependencyModel {
   @Override
   @NotNull
   public String getValueAsText() {
-    return mySpec.toString();
+    return myMismatchingRequestedSpec != null ? myMismatchingRequestedSpec.toString() : myResolvedSpec.toString();
   }
 
   @Override
@@ -96,12 +138,12 @@ public class PsdLibraryDependencyModel extends PsdAndroidDependencyModel {
       return false;
     }
     PsdLibraryDependencyModel that = (PsdLibraryDependencyModel)o;
-    return Objects.equal(mySpec, that.mySpec);
+    return Objects.equal(myMismatchingRequestedSpec, that.myMismatchingRequestedSpec) && Objects.equal(myResolvedSpec, that.myResolvedSpec);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mySpec);
+    return Objects.hashCode(myResolvedSpec);
   }
 
   @Override
