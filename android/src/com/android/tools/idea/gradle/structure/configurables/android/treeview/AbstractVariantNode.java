@@ -38,7 +38,7 @@ public abstract class AbstractVariantNode extends AbstractPsdNode<PsdVariantMode
   private void setUpNode() {
     myName = buildName();
     setAutoExpandNode(true);
-    setIcon(AndroidIcons.Variant);
+    setIcon(getModels().get(0).getIcon());
   }
 
   @NotNull
