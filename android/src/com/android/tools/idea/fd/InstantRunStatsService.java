@@ -23,6 +23,7 @@ import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 public class InstantRunStatsService {
@@ -39,7 +40,12 @@ public class InstantRunStatsService {
 
   private final Object LOCK = new Object();
 
-  private int myDeployCount;
+  /**
+   * Current session id: A session starts from installing an APK, continues through multiple hot/cold swaps until the next full apk install
+   */
+  private UUID mySessionId;
+
+  private int myDeployStartedCount;
   private int[] myDeployTypeCounts = new int[DeployType.values().length];
 
   private int myRestartLaunchCount;
@@ -59,14 +65,31 @@ public class InstantRunStatsService {
 
   public void notifyDeployStarted() {
     synchronized (LOCK) {
-      myDeployCount++;
+      myDeployStartedCount++;
     }
   }
 
 
   public void notifyDeployType(@NotNull DeployType type) {
     synchronized (LOCK) {
+      if (type == DeployType.FULLAPK) {
+        // We want to assign a session id for all launches in order to compute the number of hot/coldswaps between each APK push
+        // Installing an APK starts a new session.
+        resetSession();
+      }
+
       myDeployTypeCounts[type.ordinal()]++;
+    }
+  }
+
+  private void resetSession() {
+    synchronized (LOCK) {
+      if (mySessionId != null) {
+        // Since we only keep track of the current session, upload all existing stats that belong to the previous session
+        uploadStats();
+      }
+
+      mySessionId = UUID.randomUUID();
     }
   }
 
@@ -80,26 +103,29 @@ public class InstantRunStatsService {
     int deployCount;
     int[] deployTypeCount = new int[myDeployTypeCounts.length];
     int restartCount;
+    String sessionId;
 
     synchronized (LOCK) {
-      if (myDeployCount == 0) {
+      if (myDeployStartedCount == 0) {
         return;
       }
 
-      deployCount = myDeployCount;
+      deployCount = myDeployStartedCount;
       restartCount = myRestartLaunchCount;
       System.arraycopy(myDeployTypeCounts, 0, deployTypeCount, 0, myDeployTypeCounts.length);
 
-      myDeployCount = 0;
+      myDeployStartedCount = 0;
       myRestartLaunchCount = 0;
       for (int i = 0; i < myDeployTypeCounts.length; i++) {
         myDeployTypeCounts[i] = 0;
       }
+      sessionId = mySessionId.toString();
     }
 
     Map<String,String> kv = Maps.newHashMap();
     kv.put("deploycount", Integer.toString(deployCount));
     kv.put("restartBuild", Integer.toString(restartCount));
+    kv.put("sessionId", sessionId);
     for (DeployType type : DeployType.values()) {
       kv.put(type.toString(), Integer.toString(deployTypeCount[type.ordinal()]));
     }
