@@ -64,9 +64,9 @@ public class OutdatedAppEngineGradlePluginErrorHandler extends AbstractSyncError
       public boolean process(GradleBuildModel buildModel) {
         DependenciesModel dependencies = buildModel.buildscript().dependencies();
         for (ArtifactDependencyModel dependency : dependencies.artifacts(CLASSPATH)) {
-          ArtifactDependencySpec spec = dependency.getSpec();
-          if (APPENGINE_PLUGIN_GROUP_ID.equals(spec.group) && APPENGINE_PLUGIN_ARTIFACT_ID.equals(spec.name)) {
-            String version = spec.version;
+          if (APPENGINE_PLUGIN_GROUP_ID.equals(dependency.group().value())
+              && APPENGINE_PLUGIN_ARTIFACT_ID.equals(dependency.name().value())) {
+            String version = dependency.version().value();
             if (version != null) {
               GradleVersion currentVersion = GradleVersion.tryParse(version);
               if (currentVersion != null) {

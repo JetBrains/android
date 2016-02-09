@@ -46,7 +46,7 @@ public class GradleBuildModelFixture {
   public void requireDependency(@NotNull String configurationName, @NotNull ArtifactDependencySpec expected) {
     DependenciesModel dependenciesModel = myTarget.dependencies();
     for (ArtifactDependencyModel dependency : dependenciesModel.artifacts()) {
-      ArtifactDependencySpec actual = dependency.getSpec();
+      ArtifactDependencySpec actual = ArtifactDependencySpec.create(dependency);
       if (configurationName.equals(dependency.configurationName()) && expected.equals(actual)) {
         return;
       }

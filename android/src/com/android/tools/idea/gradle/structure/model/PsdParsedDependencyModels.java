@@ -57,8 +57,7 @@ public class PsdParsedDependencyModels {
 
   @NotNull
   private static String getIdentifier(@NotNull ArtifactDependencyModel dependency) {
-    ArtifactDependencySpec spec = dependency.getSpec();
-    List<String> segments = Lists.newArrayList(spec.group, spec.name);
+    List<String> segments = Lists.newArrayList(dependency.group().value(), dependency.name().value());
     return joinAsGradlePath(segments);
   }
 

@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.dsl.model;
 
+import com.android.tools.idea.gradle.dsl.model.values.GradleNotNullValue;
+import com.android.tools.idea.gradle.dsl.model.values.GradleNullableValue;
 import com.intellij.ide.highlighter.ModuleFileType;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.application.WriteAction;
@@ -24,9 +26,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.PlatformTestCase;
-import junit.framework.ComparisonFailure;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
@@ -163,13 +163,19 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     buildModel.reparse();
   }
 
-  public static <T> void assertEquals(@NotNull String message, @NotNull T expected, @Nullable GradleValue<T> actual) {
-    assertNotNull(message, actual);
-    assertEquals(message, expected, actual.getValue());
+  public static <T> void assertEquals(@NotNull String message, @NotNull T expected, @NotNull GradleNullableValue<T> actual) {
+    assertEquals(message, expected, actual.value());
   }
 
-  public static <T> void assertEquals(@NotNull T expected, @Nullable GradleValue<T> actual) {
-    assertNotNull(actual);
-    assertEquals(expected, actual.getValue());
+  public static <T> void assertEquals(@NotNull T expected, @NotNull GradleNullableValue<T> actual) {
+    assertEquals(expected, actual.value());
+  }
+
+  public static <T> void assertEquals(@NotNull String message, @NotNull T expected, @NotNull GradleNotNullValue<T> actual) {
+    assertEquals(message, expected, actual.value());
+  }
+
+  public static <T> void assertEquals(@NotNull T expected, @NotNull GradleNotNullValue<T> actual) {
+    assertEquals(expected, actual.value());
   }
 }
