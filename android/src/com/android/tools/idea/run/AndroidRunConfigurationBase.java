@@ -440,6 +440,18 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   private static void setInstantRunBuildOptions(@NotNull ExecutionEnvironment env,
                                                 @NotNull Module module,
                                                 @NotNull DeviceFutures deviceFutures) {
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    if (facet == null) {
+      InstantRunManager.LOG.info("Module doesn't have Android Facet, not setting Instant Run options");
+      return;
+    }
+
+    AndroidGradleModel model = AndroidGradleModel.get(facet);
+    if (model == null) {
+      InstantRunManager.LOG.info("Module doesn't have Android Gradle Facet, not setting Instant Run options");
+      return;
+    }
+
     List<IDevice> devices = deviceFutures.getIfReady();
     IDevice device = devices == null ? null : devices.get(0);
 
@@ -463,7 +475,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     // edited manifest changes what the incremental run build has to do.
     GradleInvoker.saveAllFilesSafely();
     boolean isRestartedSession = InstantRunUtils.getRestartDevice(env) != null;
-    boolean needsFullBuild = isRestartedSession || InstantRunManager.needsFullBuild(device, module);
+    boolean needsFullBuild = isRestartedSession || InstantRunManager.needsFullBuild(device, facet);
     InstantRunUtils.setNeedsFullBuild(env, needsFullBuild);
     if (needsFullBuild &&
         InstantRunManager.hasLocalCacheOfDeviceData(Iterables.getOnlyElement(devices), module)) { // don't show this if we decided to build because we don't have a local cache
@@ -478,12 +490,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
         // Also look up the verifier failure and include it here; without this; the verifier failure
         // is displayed, but is quickly hidden as we realize we can't coldswap, and the below
         // full build message is shown instead.
-        AndroidFacet facet = AndroidFacet.getInstance(module);
-        assert facet != null;
-
-        AndroidGradleModel model = AndroidGradleModel.get(facet);
-        assert model != null;
-
         InstantRunBuildInfo buildInfo = InstantRunGradleUtils.getBuildInfo(model);
         if (buildInfo != null) {
           @Language("HTML") String verifierFailure = InstantRunManager.getVerifierMessage(buildInfo);
