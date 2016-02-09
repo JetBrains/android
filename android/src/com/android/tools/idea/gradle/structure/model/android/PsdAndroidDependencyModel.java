@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.model.android;
 
+import com.android.tools.idea.gradle.dsl.model.dependencies.DependencyModel;
 import com.android.tools.idea.gradle.structure.model.PsdChildModel;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
@@ -27,8 +28,12 @@ import java.util.Set;
 public abstract class PsdAndroidDependencyModel extends PsdChildModel {
   @NotNull private final Set<String> myVariants = Sets.newHashSet();
 
-  PsdAndroidDependencyModel(@NotNull PsdAndroidModuleModel parent) {
+  @Nullable private DependencyModel myParsedModel;
+
+  PsdAndroidDependencyModel(@NotNull PsdAndroidModuleModel parent,
+                            @Nullable DependencyModel parsedModel) {
     super(parent);
+    myParsedModel = parsedModel;
   }
 
   @Override
@@ -51,7 +56,19 @@ public abstract class PsdAndroidDependencyModel extends PsdChildModel {
   }
 
   @Nullable
-  public abstract String getConfigurationName();
+  public String getConfigurationName() {
+    return myParsedModel != null ? myParsedModel.configurationName() : null;
+  }
+
+  @Override
+  public boolean isEditable() {
+    return myParsedModel != null;
+  }
+
+  @Nullable
+  protected DependencyModel getParsedModel() {
+    return myParsedModel;
+  }
 
   @NotNull
   public abstract String getValueAsText();
