@@ -42,7 +42,7 @@ public class ArtifactDependencyMergedModel extends DependencyMergedModel {
 
   @Nullable
   static ArtifactDependencyMergedModel create(@NotNull ModuleMergedModel parent, @NotNull ArtifactDependencyModel parsedModel) {
-    GradleCoordinate coordinate = parseCoordinateString(parsedModel.getSpec().compactNotation());
+    GradleCoordinate coordinate = parseCoordinateString(parsedModel.compactNotation().value());
     if (coordinate != null) {
       return new ArtifactDependencyMergedModel(parent, Collections.<GradleArtifactDependency>emptyList(), coordinate, parsedModel);
     }
@@ -62,7 +62,7 @@ public class ArtifactDependencyMergedModel extends DependencyMergedModel {
                                               @Nullable ArtifactDependencyModel parsedModel) {
     GradleCoordinate coordinate;
     if (parsedModel != null) {
-      coordinate = parseCoordinateString(parsedModel.getSpec().compactNotation());
+      coordinate = parseCoordinateString(parsedModel.compactNotation().value());
     }
     else {
       if (artifactDependencies.isEmpty()) {

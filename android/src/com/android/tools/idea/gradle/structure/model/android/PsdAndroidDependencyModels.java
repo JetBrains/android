@@ -110,7 +110,7 @@ class PsdAndroidDependencyModels {
     if (coordinates != null) {
       ArtifactDependencyModel matchingParsedDependency = parsedDependencies.findMatchingArtifactDependency(coordinates);
       if (matchingParsedDependency != null) {
-        String parsedVersionValue = matchingParsedDependency.version();
+        String parsedVersionValue = matchingParsedDependency.version().value();
         if (parsedVersionValue != null) {
           // The dependency has a version in the build.gradle file.
           // "tryParse" just in case the build.file has an invalid version.
@@ -119,7 +119,7 @@ class PsdAndroidDependencyModels {
           GradleVersion versionFromGradle = GradleVersion.parse(coordinates.getVersion());
           if (parsedVersion != null && compare(parsedVersion, versionFromGradle) == 0) {
             // Match.
-            ArtifactDependencySpec spec = matchingParsedDependency.getSpec();
+            ArtifactDependencySpec spec = ArtifactDependencySpec.create(matchingParsedDependency);
             return addLibrary(library, spec, variantModel, matchingParsedDependency);
           }
           else {

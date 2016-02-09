@@ -51,7 +51,6 @@ public abstract class GradleDslElement {
   @NotNull private final GradleDslFile myDslFile;
 
   @Nullable private GroovyPsiElement myPsiElement;
-  @NotNull private List<GradleResolvedVariable> myResolvedVariables = ImmutableList.of();
 
   private volatile boolean myModified;
 
@@ -116,11 +115,11 @@ public abstract class GradleDslElement {
 
   @NotNull
   public List<GradleResolvedVariable> getResolvedVariables() {
-    return myResolvedVariables;
-  }
-
-  public void setResolvedVariables(@NotNull List<GradleResolvedVariable> resolvedVariables) {
-    myResolvedVariables = ImmutableList.copyOf(resolvedVariables);
+    ImmutableList.Builder<GradleResolvedVariable> resultBuilder = ImmutableList.builder();
+    for (GradleDslElement child : getChildren()) {
+      resultBuilder.addAll(child.getResolvedVariables());
+    }
+    return resultBuilder.build();
   }
 
   /**
