@@ -28,7 +28,7 @@ import org.junit.runner.RunWith;
 import java.io.IOException;
 import java.util.regex.Pattern;
 
-import static com.android.tools.idea.tests.gui.framework.GuiTests.LONG_TIMEOUT;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
 import static junit.framework.Assert.assertTrue;
 
 @RunWith(GuiTestRunner.class)
@@ -51,7 +51,7 @@ public class LaunchAndroidApplicationTest {
                                          .clickOk();
 
     // Make sure the right app is being used. This also serves as the sync point for the package to get uploaded to the device/emulator.
-    guiTest.ideFrame().getRunToolWindow().findContent(APP_NAME).waitForOutput(new PatternTextMatcher(LOCAL_PATH_OUTPUT), LONG_TIMEOUT);
+    guiTest.ideFrame().getRunToolWindow().findContent(APP_NAME).waitForOutput(new PatternTextMatcher(LOCAL_PATH_OUTPUT), SHORT_TIMEOUT);
 
     guiTest.ideFrame().getAndroidToolWindow().selectDevicesTab()
                                        .selectProcess(PROCESS_NAME)
@@ -72,7 +72,7 @@ public class LaunchAndroidApplicationTest {
                                          .clickOk();
 
     // Make sure the right app is being used. This also serves as the sync point for the package to get uploaded to the device/emulator.
-    guiTest.ideFrame().getDebugToolWindow().findContent(APP_NAME).waitForOutput(new PatternTextMatcher(LOCAL_PATH_OUTPUT), LONG_TIMEOUT);
+    guiTest.ideFrame().getDebugToolWindow().findContent(APP_NAME).waitForOutput(new PatternTextMatcher(LOCAL_PATH_OUTPUT), SHORT_TIMEOUT);
 
     guiTest.ideFrame().getAndroidToolWindow().selectDevicesTab()
                                        .selectProcess(PROCESS_NAME)

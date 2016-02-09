@@ -80,7 +80,6 @@ import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static java.util.concurrent.TimeUnit.MINUTES;
-import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.fest.swing.finder.WindowFinder.findFrame;
@@ -94,7 +93,6 @@ import static org.junit.Assert.*;
 public final class GuiTests {
 
   public static final Timeout SHORT_TIMEOUT = timeout(2, MINUTES);
-  public static final Timeout LONG_TIMEOUT = timeout(5, MINUTES);
 
   public static final String GUI_TESTS_RUNNING_IN_SUITE_PROPERTY = "gui.tests.running.in.suite";
 
@@ -257,7 +255,7 @@ public final class GuiTests {
           }
           return false;
         }
-      }).withTimeout(LONG_TIMEOUT.duration()).using(robot);
+      }).withTimeout(SHORT_TIMEOUT.duration()).using(robot);
 
       // We know the IDE event queue was pushed in front of the AWT queue. Some JDKs will leave a dummy event in the AWT queue, which
       // we attempt to clear here. All other events, including those posted by the Robot, will go through the IDE event queue.
@@ -286,7 +284,7 @@ public final class GuiTests {
             }
             return false;
           }
-        }, LONG_TIMEOUT);
+        }, SHORT_TIMEOUT);
       }
     }
     finally {
@@ -608,7 +606,7 @@ public final class GuiTests {
                !progressManager.hasProgressIndicator() &&
                !progressManager.hasUnsafeProgressIndicator();
       }
-    }, LONG_TIMEOUT);
+    }, SHORT_TIMEOUT);
     robot.waitForIdle();
   }
 
