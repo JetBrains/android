@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.facet.JavaGradleFacet;
 import com.android.tools.idea.gradle.facet.NativeAndroidGradleFacet;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
+import com.android.tools.idea.gradle.invoker.GradleTasksExecutor;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
@@ -43,12 +44,19 @@ import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.options.ConfigurationException;
+import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.TaskInfo;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.CompilerProjectExtension;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
+import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.wm.IdeFrame;
+import com.intellij.openapi.wm.WindowManager;
+import com.intellij.openapi.wm.ex.StatusBarEx;
+import com.intellij.openapi.wm.ex.WindowManagerEx;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.util.SystemProperties;
 import org.jetbrains.android.AndroidPlugin.GuiTestSuiteState;
@@ -75,6 +83,7 @@ import static com.android.tools.idea.gradle.util.Projects.*;
 import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.intellij.notification.NotificationType.ERROR;
+import static com.intellij.notification.NotificationType.INFORMATION;
 import static com.intellij.openapi.externalSystem.model.ProjectKeys.MODULE;
 import static com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode.IN_BACKGROUND_ASYNC;
 import static com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode.MODAL_SYNC;
@@ -156,7 +165,7 @@ public class GradleProjectImporter {
    * Creates IntelliJ project file in the root of the project directory.
    *
    * @param selectedFile build.gradle in the module folder.
-   * @param project existing parent project or {@code null} if a new one should be created.
+   * @param project      existing parent project or {@code null} if a new one should be created.
    */
   private void createProjectFileForGradleProject(@NotNull VirtualFile selectedFile, @Nullable Project project) {
     VirtualFile projectDir = selectedFile.isDirectory() ? selectedFile : selectedFile.getParent();
@@ -250,6 +259,12 @@ public class GradleProjectImporter {
     return new Runnable() {
       @Override
       public void run() {
+        if (isBuildInProgress(project)) {
+          String msg = "Gradle sync will be executed once current build is finished";
+          AndroidGradleNotification.getInstance(project).showBalloon("Gradle Sync", msg, INFORMATION);
+          setSyncRequestedDuringBuild(project, true);
+          return;
+        }
         try {
           ImportOptions options = new ImportOptions(generateSourcesOnSuccess, cleanProject, false, useCachedProjectData);
           doRequestSync(project, executionMode, options, listener);
@@ -259,6 +274,24 @@ public class GradleProjectImporter {
         }
       }
     };
+  }
+
+  private static boolean isBuildInProgress(@NotNull Project project) {
+    IdeFrame frame = ((WindowManagerEx)WindowManager.getInstance()).findFrameFor(project);
+    StatusBarEx statusBar = frame == null ? null : (StatusBarEx)frame.getStatusBar();
+    if (statusBar == null) {
+      return false;
+    }
+    for (Pair<TaskInfo, ProgressIndicator> backgroundProcess : statusBar.getBackgroundProcesses()) {
+      TaskInfo task = backgroundProcess.getFirst();
+      if (task instanceof GradleTasksExecutor) {
+        ProgressIndicator second = backgroundProcess.getSecond();
+        if (second.isRunning()) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   private void doRequestSync(@NotNull final Project project,
