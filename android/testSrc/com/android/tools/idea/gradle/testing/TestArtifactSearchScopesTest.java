@@ -15,9 +15,13 @@
  */
 package com.android.tools.idea.gradle.testing;
 
+import com.android.tools.idea.gradle.GradleSyncState;
+import com.android.tools.idea.gradle.project.GradleProjectImporter;
+import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.templates.AndroidGradleArtifactsTestCase;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
@@ -29,9 +33,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.util.concurrent.CountDownLatch;
 
 import static com.android.utils.FileUtils.join;
 import static com.android.utils.FileUtils.toSystemDependentPath;
+import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
+import static com.intellij.openapi.util.io.FileUtil.appendToFile;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
 public class TestArtifactSearchScopesTest extends AndroidGradleArtifactsTestCase {
@@ -85,6 +92,51 @@ public class TestArtifactSearchScopesTest extends AndroidGradleArtifactsTestCase
     assertNotAcceptLibrary(scopes.getAndroidTestExcludeScope(), gson);
     assertNotAcceptLibrary(scopes.getAndroidTestExcludeScope(), guava);
     assertNotAcceptLibrary(scopes.getAndroidTestExcludeScope(), hamcrest);
+  }
+
+  public void testNotExcludeLibrariesInMainArtifact() throws Exception {
+    TestArtifactSearchScopes scopes = loadMultiProjectAndTestScopes();
+
+    LibraryTable libraryTable = LibraryTablesRegistrar.getInstance().getLibraryTable(myFixture.getProject());
+
+    Library gson = libraryTable.getLibraryByName("gson-2.4");
+    // In the beginning only unit test exclude gson
+    assertAcceptLibrary(scopes.getUnitTestExcludeScope(), gson);
+    assertNotAcceptLibrary(scopes.getAndroidTestExcludeScope(), gson);
+
+    // Now add gson to unit test dependencies as well
+    File buildFile = new File(new File(scopes.getModule().getModuleFilePath()).getParentFile(), "build.gradle");
+    appendToFile(buildFile, "\n\ndependencies { compile 'com.google.code.gson:gson:2.4' }\n");
+
+    final CountDownLatch latch = new CountDownLatch(1);
+    GradleSyncListener postSetupListener = new GradleSyncListener.Adapter() {
+      @Override
+      public void syncSucceeded(@NotNull Project project) {
+        latch.countDown();
+      }
+
+      @Override
+      public void syncFailed(@NotNull Project project, @NotNull String errorMessage) {
+        latch.countDown();
+      }
+    };
+    GradleSyncState.subscribe(getProject(), postSetupListener);
+
+    runWriteCommandAction(getProject(), new Runnable() {
+      @Override
+      public void run() {
+        GradleProjectImporter.getInstance().requestProjectSync(getProject(), false, null);
+      }
+    });
+
+    latch.await();
+
+    // Now both test should not exclude gson
+    scopes = TestArtifactSearchScopes.get(scopes.getModule());
+    assertNotNull(scopes);
+    gson = libraryTable.getLibraryByName("gson-2.4");
+    assertNotAcceptLibrary(scopes.getUnitTestExcludeScope(), gson);
+    assertNotAcceptLibrary(scopes.getAndroidTestExcludeScope(), gson);
   }
 
   public void testProjectWithSharedTestFolder() throws Exception {
