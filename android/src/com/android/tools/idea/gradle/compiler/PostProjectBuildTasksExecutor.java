@@ -199,19 +199,35 @@ public class PostProjectBuildTasksExecutor {
 
       syncJavaLangLevel();
 
-      // We automatically sync the model if:
-      // 1. The project build is doing a MAKE, has zero errors and the previous Gradle sync failed. It is likely that if the
-      //    project build is successful, Gradle sync will be successful too.
-      // 2. If any build.gradle files or setting.gradle file was modified *after* last Gradle sync (we check file timestamps vs the
-      //    timestamp of the last Gradle sync.) We don't perform this check if project build is SOURCE_GEN because, in this case,
-      //    the project build was triggered by a Gradle sync (thus unlikely to have a stale model.) This sync is performed regardless the
-      //    build was successful or not. If isGradleSyncNeeded returns UNSURE, the previous sync may have failed, if this happened
-      //    an automatic sync should have been triggered already. No need to trigger a new one.
-      if (DEFAULT_BUILD_MODE.equals(buildMode) && lastGradleSyncFailed(myProject) && errorCount == 0 ||
-          !SOURCE_GEN.equals(buildMode) && GradleSyncState.getInstance(myProject).isSyncNeeded().equals(YES)) {
+      if (isSyncNeeded(buildMode, errorCount)) {
         GradleProjectImporter.getInstance().requestProjectSync(myProject, false /* do not generate sources */, null);
       }
+
+      if (isSyncRequestedDuringBuild(myProject)) {
+        setSyncRequestedDuringBuild(myProject, null);
+        // Sync was invoked while the project was built. Now that the build is finished, request a full sync.
+        GradleProjectImporter.getInstance().requestProjectSync(myProject, null);
+      }
     }
+  }
+
+  private boolean isSyncNeeded(@Nullable BuildMode buildMode, int errorCount) {
+    // The project build is doing a MAKE, has zero errors and the previous Gradle sync failed. It is likely that if the
+    // project build is successful, Gradle sync will be successful too.
+    if (DEFAULT_BUILD_MODE.equals(buildMode) && lastGradleSyncFailed(myProject) && errorCount == 0) {
+      return true;
+    }
+
+    // If any build.gradle files or setting.gradle file was modified *after* last Gradle sync (we check file timestamps vs the
+    // timestamp of the last Gradle sync.) We don't perform this check if project build is SOURCE_GEN because, in this case,
+    // the project build was triggered by a Gradle sync (thus unlikely to have a stale model.) This sync is performed regardless the
+    // build was successful or not. If isGradleSyncNeeded returns UNSURE, the previous sync may have failed, if this happened
+    // an automatic sync should have been triggered already. No need to trigger a new one.
+    if (!SOURCE_GEN.equals(buildMode) && GradleSyncState.getInstance(myProject).isSyncNeeded().equals(YES)) {
+      return true;
+    }
+
+    return false;
   }
 
   /**
