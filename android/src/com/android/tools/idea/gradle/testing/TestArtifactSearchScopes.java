@@ -39,6 +39,7 @@ import static com.android.builder.model.AndroidProject.ARTIFACT_ANDROID_TEST;
 import static com.android.builder.model.AndroidProject.ARTIFACT_UNIT_TEST;
 import static com.android.tools.idea.gradle.util.FilePaths.getJarFromJarUrl;
 import static com.android.utils.FileUtils.toSystemDependentPath;
+import static com.intellij.openapi.roots.DependencyScope.COMPILE;
 import static com.intellij.openapi.roots.DependencyScope.TEST;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.vfs.StandardFileSystems.JAR_PROTOCOL_PREFIX;
@@ -209,6 +210,7 @@ public final class TestArtifactSearchScopes {
     if (androidTestArtifact != null) {
       androidTestDependencies = Dependency.extractFrom(androidTestArtifact, scope);
     }
+    DependencySet mainDependencies = Dependency.extractFrom(myAndroidModel.getMainArtifact(), COMPILE);
 
     DependencySet dependenciesToInclude = isAndroidTestArtifact ? androidTestDependencies : unitTestDependencies;
     DependencySet dependenciesToExclude = isAndroidTestArtifact ? unitTestDependencies : androidTestDependencies;
@@ -232,21 +234,6 @@ public final class TestArtifactSearchScopes {
       }
     }
 
-    if (dependenciesToInclude != null) {
-      for (LibraryDependency dependency : dependenciesToInclude.onLibraries()) {
-        for (String path : dependency.getPaths(LibraryDependency.PathType.BINARY)) {
-          excludedRoots.remove(new File(path));
-        }
-      }
-
-      for (ModuleDependency dependency : dependenciesToInclude.onModules()) {
-        Module dependencyModule = dependency.getModule(project);
-        if (dependencyModule != null) {
-          excludedModules.remove(dependencyModule);
-        }
-      }
-    }
-
     // This depends on all the modules are using explicit dependencies in android studio
     for (Module excludedModule : excludedModules) {
       ModuleRootManager rootManager = ModuleRootManager.getInstance(excludedModule);
@@ -264,6 +251,35 @@ public final class TestArtifactSearchScopes {
       AndroidGradleModel androidGradleModel = AndroidGradleModel.get(excludedModule);
       if (androidGradleModel != null) {
         excludedRoots.add(androidGradleModel.getMainArtifact().getJavaResourcesFolder());
+      }
+    }
+
+    // All removal should happen after adding
+    if (dependenciesToInclude != null) {
+      for (LibraryDependency dependency : dependenciesToInclude.onLibraries()) {
+        for (String path : dependency.getPaths(LibraryDependency.PathType.BINARY)) {
+          excludedRoots.remove(new File(path));
+        }
+      }
+
+      for (ModuleDependency dependency : dependenciesToInclude.onModules()) {
+        Module dependencyModule = dependency.getModule(project);
+        if (dependencyModule != null) {
+          excludedModules.remove(dependencyModule);
+        }
+      }
+    }
+
+    for (LibraryDependency dependency : mainDependencies.onLibraries()) {
+      for (String path : dependency.getPaths(LibraryDependency.PathType.BINARY)) {
+        excludedRoots.remove(new File(path));
+      }
+    }
+
+    for (ModuleDependency dependency : mainDependencies.onModules()) {
+      Module dependencyModule = dependency.getModule(project);
+      if (dependencyModule != null) {
+        excludedModules.remove(dependencyModule);
       }
     }
 
