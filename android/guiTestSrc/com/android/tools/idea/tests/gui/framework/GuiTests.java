@@ -109,18 +109,18 @@ public final class GuiTests {
 
   private static final File TMP_PROJECT_ROOT = createTempProjectCreationDir();
 
-  public static List<AssertionError> fatalErrorsFromIde() {
+  public static List<Error> fatalErrorsFromIde() {
     List<AbstractMessage> errorMessages = MessagePool.getInstance().getFatalErrors(true, true);
-    List<AssertionError> errors = new ArrayList<AssertionError>(errorMessages.size());
+    List<Error> errors = new ArrayList<Error>(errorMessages.size());
     for (AbstractMessage errorMessage : errorMessages) {
       StringBuilder messageBuilder = new StringBuilder(errorMessage.getMessage());
       String additionalInfo = errorMessage.getAdditionalInfo();
       if (isNotEmpty(additionalInfo)) {
         messageBuilder.append(System.getProperty("line.separator") + "Additional Info: " + additionalInfo);
       }
-      AssertionError assertionError = new AssertionError(messageBuilder.toString());
-      assertionError.initCause(errorMessage.getThrowable());
-      errors.add(assertionError);
+      Error error = new Error(messageBuilder.toString());
+      error.initCause(errorMessage.getThrowable());
+      errors.add(error);
     }
     return Collections.unmodifiableList(errors);
   }
