@@ -72,7 +72,7 @@ public class InstantRunWithoutRestart extends AnAction {
     List<IDevice> devices = InstantRunManager.findDevices(project);
     InstantRunManager manager = InstantRunManager.get(project);
     for (IDevice device : devices) {
-      if (!InstantRunManager.variantSupportsInstantRunOnApi(module, device.getVersion())) {
+      if (!InstantRunManager.variantSupportsInstantRun(module, device.getVersion())) {
         continue;
       }
 

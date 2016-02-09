@@ -111,7 +111,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
     if (InstantRunUtils.isInstantRunEnabled(myEnv) && InstantRunSettings.isInstantRunEnabled(myProject)) {
       AndroidGradleModel model = AndroidGradleModel.get(myFacet);
 
-      if (model != null && InstantRunManager.variantSupportsInstantRun(model)) {
+      if (model != null && InstantRunManager.variantSupportsInstantRun(model, device.getVersion())) {
         InstantRunBuildInfo buildInfo = InstantRunManager.getBuildInfo(model);
         if (buildInfo == null) {
           String reason = "Gradle build-info.xml not found for module " + myFacet.getModule().getName() +
@@ -176,7 +176,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
     boolean instantRunAware =
       InstantRunUtils.isInstantRunEnabled(myEnv) &&
       InstantRunSettings.isInstantRunEnabled(myProject) &&
-      InstantRunManager.variantSupportsInstantRunOnApi(myFacet.getModule(), device.getVersion());
+      InstantRunManager.variantSupportsInstantRun(myFacet.getModule(), device.getVersion());
     return new DeployApkTask(myFacet, myLaunchOptions, myApkProvider, instantRunAware);
   }
 
