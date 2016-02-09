@@ -19,10 +19,13 @@ import com.android.builder.model.*;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpec;
+import com.android.tools.idea.gradle.dsl.model.dependencies.ModuleDependencyModel;
+import com.android.tools.idea.gradle.structure.model.PsdModuleModel;
 import com.android.tools.idea.gradle.structure.model.PsdParsedDependencyModels;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -66,9 +69,9 @@ class PsdAndroidDependencyModels {
     Dependencies dependencies = artifact.getDependencies();
 
     for (AndroidLibrary androidLibrary : dependencies.getLibraries()) {
-      if (androidLibrary.getProject() != null) {
-        // This is a module
-        // TODO add module dependency
+      String gradlePath = androidLibrary.getProject();
+      if (gradlePath != null) {
+        addModule(gradlePath, variantModel);
       }
       else {
         // This is an AAR
@@ -81,13 +84,31 @@ class PsdAndroidDependencyModels {
     }
   }
 
+  private void addModule(@NotNull String gradlePath, @NotNull PsdVariantModel variantModel) {
+    PsdParsedDependencyModels parsedDependencies = myParent.getParsedDependencyModels();
+
+    ModuleDependencyModel matchingParsedDependency = parsedDependencies.findMatchingModuleDependency(gradlePath);
+
+    Module module = null;
+    PsdModuleModel moduleModel = myParent.getParent().findModelByGradlePath(gradlePath);
+    if (moduleModel != null) {
+      module = moduleModel.getModule();
+    }
+    PsdAndroidDependencyModel dependencyModel = findDependency(gradlePath);
+    if (dependencyModel == null) {
+      dependencyModel = new PsdModuleDependencyModel(myParent, gradlePath, module, matchingParsedDependency);
+      myDependencyModels.put(gradlePath, dependencyModel);
+    }
+    dependencyModel.addContainer(variantModel);
+  }
+
   @Nullable
   private PsdAndroidDependencyModel addLibrary(@NotNull Library library, @NotNull PsdVariantModel variantModel) {
     PsdParsedDependencyModels parsedDependencies = myParent.getParsedDependencyModels();
 
     MavenCoordinates coordinates = library.getResolvedCoordinates();
     if (coordinates != null) {
-      ArtifactDependencyModel matchingParsedDependency = parsedDependencies.findMatchingParsedDependency(coordinates);
+      ArtifactDependencyModel matchingParsedDependency = parsedDependencies.findMatchingArtifactDependency(coordinates);
       if (matchingParsedDependency != null) {
         String parsedVersionValue = matchingParsedDependency.version();
         if (parsedVersionValue != null) {

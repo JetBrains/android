@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.structure.configurables.android.dependenci
 import com.android.tools.idea.gradle.structure.configurables.android.treeview.AbstractVariantNode;
 import com.android.tools.idea.gradle.structure.model.android.PsdAndroidDependencyModel;
 import com.android.tools.idea.gradle.structure.model.android.PsdLibraryDependencyModel;
+import com.android.tools.idea.gradle.structure.model.android.PsdModuleDependencyModel;
 import com.android.tools.idea.gradle.structure.model.android.PsdVariantModel;
 import com.google.common.collect.Lists;
 import com.intellij.ui.treeStructure.SimpleNode;
@@ -48,7 +49,10 @@ class VariantNode extends AbstractVariantNode {
 
     for (PsdAndroidDependencyModel dependency : dependencies) {
       if (dependency instanceof PsdLibraryDependencyModel) {
-        myChildren.add(new AndroidLibraryNode((PsdLibraryDependencyModel)dependency));
+        myChildren.add(new LibraryNode((PsdLibraryDependencyModel)dependency));
+      }
+      else if (dependency instanceof PsdModuleDependencyModel) {
+        myChildren.add(new ModuleNode((PsdModuleDependencyModel)dependency));
       }
     }
   }
