@@ -16,6 +16,7 @@
 package com.android.tools.idea.fd.actions;
 
 import com.android.ddmlib.IDevice;
+import com.android.tools.idea.fd.InstantRunGradleUtils;
 import com.android.tools.idea.fd.InstantRunManager;
 import com.android.tools.idea.fd.InstantRunSettings;
 import com.android.tools.idea.gradle.AndroidGradleModel;
@@ -58,7 +59,7 @@ public class RestartActivityAction extends AnAction {
       return;
     }
 
-    AndroidGradleModel model = InstantRunManager.getAppModel(module);
+    AndroidGradleModel model = InstantRunGradleUtils.getAppModel(module);
     if (model == null) {
       e.getPresentation().setEnabled(false);
       return;
@@ -66,7 +67,7 @@ public class RestartActivityAction extends AnAction {
 
     Project project = module.getProject();
     boolean enabled = InstantRunSettings.isInstantRunEnabled(module.getProject()) &&
-                      InstantRunManager.variantSupportsInstantRun(model, null) &&
+                      InstantRunGradleUtils.variantSupportsInstantRun(model, null) &&
                       !getActiveSessions(project).isEmpty() &&
                       !isDebuggerPaused(project);
     e.getPresentation().setEnabled(enabled);
