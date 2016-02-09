@@ -265,7 +265,7 @@ public final class InstantRunManager implements ProjectComponent {
    * at manifest file edits, not diffing the contents or disregarding "irrelevant"
    * edits such as whitespace or comments.
    */
-  public static boolean needsFullBuild(@NotNull IDevice device, @NotNull Module module) {
+  public static boolean needsFullBuild(@NotNull IDevice device, @NotNull AndroidFacet facet) {
     AndroidVersion deviceVersion = device.getVersion();
     if (!isInstantRunCapableDeviceVersion(deviceVersion)) {
       String message = "Device with API level " + deviceVersion + " not capable of instant run.";
@@ -274,9 +274,20 @@ public final class InstantRunManager implements ProjectComponent {
       return true;
     }
 
-    if (manifestChanged(device, module)) {
-      // Yes, some resources have changed.
-      String message = "Manifest or some resource referenced from the manifest has changed.";
+    String pkgName = getPackageName(facet);
+    if (pkgName == null) {
+      return true;
+    }
+
+    if (manifestChanged(device, facet, pkgName)) {
+      String message = "Merged Manifest has changed.";
+      LOG.info(message);
+      UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_INSTANTRUN, UsageTracker.ACTION_INSTANTRUN_FULLBUILD, message, null);
+      return true;
+    }
+
+    if (manifestResourceChanged(device, facet, pkgName)) {
+      String message = "Resource referenced from the manifest has changed.";
       LOG.info(message);
       UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_INSTANTRUN, UsageTracker.ACTION_INSTANTRUN_FULLBUILD, message, null);
       return true;
@@ -286,41 +297,35 @@ public final class InstantRunManager implements ProjectComponent {
   }
 
   /**
-   * Returns true if the manifest or a resource referenced from the manifest has changed since the last manifest push to the device
+   * Returns true if the manifest has changed since the last manifest push to the device.
    */
-  private static boolean manifestChanged(@NotNull IDevice device, @NotNull Module module) {
-    AndroidFacet facet = InstantRunGradleUtils.findAppModule(module, module.getProject());
-    if (facet == null) {
-      return false;
-    }
-
-    String pkgName = getPackageName(facet);
-    if (pkgName == null) {
-      return true;
-    }
-
+  private static boolean manifestChanged(@NotNull IDevice device, @NotNull AndroidFacet facet, @NotNull String pkgName) {
     InstalledPatchCache cache = ServiceManager.getService(InstalledPatchCache.class);
 
     long currentTimeStamp = getManifestLastModified(facet);
     long installedTimeStamp = cache.getInstalledManifestTimestamp(device, pkgName);
 
-    if (currentTimeStamp <= installedTimeStamp) {
-      // See if the resources have changed.
-      // Since this method can be called before we've built, we're looking at the previous
-      // manifest now. However, the above timestamp check will already cause us to treat
-      // manifest edits as requiring restarts -- so the goal here is to look for the referenced
-      // resources from the manifest (when the manifest itself hasn't been edited) and see
-      // if any of *them* have changed.
-      HashCode currentHash = InstalledPatchCache.computeManifestResources(facet);
-      HashCode installedHash = cache.getInstalledManifestResourcesHash(device, pkgName);
-      if (installedHash != null && !installedHash.equals(currentHash)) {
-        return true;
-      }
+    return currentTimeStamp > installedTimeStamp;
+  }
 
-      return false;
+  /**
+   * Returns true if a resource referenced from the manifest has changed since the last manifest push to the device.
+   */
+  private static boolean manifestResourceChanged(@NotNull IDevice device, @NotNull AndroidFacet facet, @NotNull String pkgName) {
+    InstalledPatchCache cache = ServiceManager.getService(InstalledPatchCache.class);
+
+    // See if the resources have changed.
+    // Since this method can be called before we've built, we're looking at the previous
+    // manifest now. However, manifest edits are treated separately (see manifestChanged()),
+    // so the goal here is to look for the referenced resources from the manifest
+    // (when the manifest itself hasn't been edited) and see if any of *them* have changed.
+    HashCode currentHash = InstalledPatchCache.computeManifestResources(facet);
+    HashCode installedHash = cache.getInstalledManifestResourcesHash(device, pkgName);
+    if (installedHash != null && !installedHash.equals(currentHash)) {
+      return true;
     }
 
-    return true;
+    return false;
   }
 
   public static boolean hasLocalCacheOfDeviceData(@NotNull IDevice device, @NotNull Module module) {
