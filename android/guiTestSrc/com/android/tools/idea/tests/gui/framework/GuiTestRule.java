@@ -176,6 +176,7 @@ public class GuiTestRule implements TestRule {
     return errors;
   }
 
+  // Note: this works with a cooperating window manager that returns focus properly. It does not work on bare Xvfb.
   private static Dialog getActiveModalDialog() {
     Window activeWindow = KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow();
     if (activeWindow instanceof Dialog) {
