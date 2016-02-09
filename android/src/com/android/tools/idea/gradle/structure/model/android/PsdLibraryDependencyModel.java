@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.structure.model.android;
 import com.android.builder.model.Library;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpec;
+import com.android.tools.idea.gradle.dsl.model.dependencies.DependencyModel;
 import com.android.tools.idea.gradle.structure.model.PsdProblem;
 import com.android.tools.idea.gradle.structure.model.PsdProblem.Severity;
 import com.google.common.base.Objects;
@@ -39,7 +40,6 @@ public class PsdLibraryDependencyModel extends PsdAndroidDependencyModel {
 
   @Nullable private final Library myGradleModel;
   @Nullable private final ArtifactDependencySpec myMismatchingRequestedSpec;
-  @Nullable private ArtifactDependencyModel myParsedModel;
   @Nullable private final PsdProblem myProblem;
 
   @NotNull private final Set<String> myTransitiveDependencies = Sets.newHashSet();
@@ -48,10 +48,9 @@ public class PsdLibraryDependencyModel extends PsdAndroidDependencyModel {
                             @NotNull ArtifactDependencySpec resolvedSpec,
                             @Nullable Library gradleModel,
                             @Nullable ArtifactDependencyModel parsedModel) {
-    super(parent);
+    super(parent, parsedModel);
     myResolvedSpec = resolvedSpec;
     myGradleModel = gradleModel;
-    myParsedModel = parsedModel;
     myMismatchingRequestedSpec = findMismatchingSpec();
 
     PsdProblem problem = null;
@@ -65,8 +64,9 @@ public class PsdLibraryDependencyModel extends PsdAndroidDependencyModel {
 
   @Nullable
   private ArtifactDependencySpec findMismatchingSpec() {
-    if (myParsedModel != null) {
-      ArtifactDependencySpec requestedSpec = myParsedModel.getSpec();
+    DependencyModel parsedModel = getParsedModel();
+    if (parsedModel instanceof ArtifactDependencyModel) {
+      ArtifactDependencySpec requestedSpec = ((ArtifactDependencyModel)parsedModel).getSpec();
       if (!requestedSpec.equals(myResolvedSpec)) {
         // Version mismatch. This can happen when the project specifies an artifact version but Gradle uses a different version
         // from a transitive dependency.
@@ -127,12 +127,6 @@ public class PsdLibraryDependencyModel extends PsdAndroidDependencyModel {
   }
 
   @Override
-  @Nullable
-  public String getConfigurationName() {
-    return myParsedModel != null ? myParsedModel.configurationName() : null;
-  }
-
-  @Override
   @NotNull
   public String getValueAsText() {
     return myMismatchingRequestedSpec != null ? myMismatchingRequestedSpec.toString() : myResolvedSpec.toString();
@@ -153,11 +147,6 @@ public class PsdLibraryDependencyModel extends PsdAndroidDependencyModel {
   @Override
   public int hashCode() {
     return Objects.hashCode(myResolvedSpec);
-  }
-
-  @Override
-  public boolean isEditable() {
-    return myParsedModel != null;
   }
 
   @Override
