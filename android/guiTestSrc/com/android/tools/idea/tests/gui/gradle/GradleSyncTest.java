@@ -743,8 +743,7 @@ public class GradleSyncTest {
     assertNotNull(buildModel);
 
     for (ArtifactDependencyModel artifact : buildModel.dependencies().artifacts()) {
-      ArtifactDependencySpec spec = artifact.getSpec();
-      if ("com.android.support".equals(spec.group) && "appcompat-v7".equals(spec.name)) {
+      if ("com.android.support".equals(artifact.group().value()) && "appcompat-v7".equals(artifact.name().value())) {
         artifact.setVersion("100.0.0");
         versionChanged = true;
         break;

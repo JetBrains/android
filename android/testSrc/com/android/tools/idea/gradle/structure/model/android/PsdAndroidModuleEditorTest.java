@@ -99,7 +99,7 @@ public class PsdAndroidModuleEditorTest extends AndroidGradleTestCase {
     final GradleBuildModel buildModel = GradleBuildModel.get(appModule);
     assertNotNull(buildModel);
     for (ArtifactDependencyModel dependency : buildModel.dependencies().artifacts("compile")) {
-      if ("com.android.support".equals(dependency.group()) && "appcompat-v7".equals(dependency.name())) {
+      if ("com.android.support".equals(dependency.group().value()) && "appcompat-v7".equals(dependency.name().value())) {
         dependency.setVersion("23.1.1");
         break;
       }

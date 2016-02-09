@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.dsl.model;
+package com.android.tools.idea.gradle.dsl.model.values;
 
 import com.android.tools.idea.gradle.dsl.parser.GradleResolvedVariable;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
@@ -27,23 +27,12 @@ import java.util.Map;
 
 /**
  * Represents a value returned by Gradle Dsl Model.
- *
- * Note: WIP. Please do no use.
- *
- * @param <T> the type of the returned value.
  */
-public class GradleValue<T> {
-  @NotNull private final T myValue;
-  @NotNull private final GradleDslElement myDslElement;
+public abstract class GradleValue {
+  @NotNull protected final GradleDslElement myDslElement;
 
-  public GradleValue(@NotNull T value, @NotNull GradleDslElement dslElement) {
-    myValue = value;
+  protected GradleValue(@NotNull GradleDslElement dslElement) {
     myDslElement = dslElement;
-  }
-
-  @NotNull
-  public T getValue() {
-    return myValue;
   }
 
   @NotNull
@@ -63,13 +52,13 @@ public class GradleValue<T> {
   }
 
   @NotNull
-  public Map<String, GradleValue<Object>> getResolvedVariables() {
-    ImmutableMap.Builder<String, GradleValue<Object>> builder = ImmutableMap.builder();
+  public Map<String, GradleNotNullValue<Object>> getResolvedVariables() {
+    ImmutableMap.Builder<String, GradleNotNullValue<Object>> builder = ImmutableMap.builder();
     for (GradleResolvedVariable variable : myDslElement.getResolvedVariables()) {
       String variableName = variable.getVariableName();
       Object resolvedValue = variable.getValue();
       GradleDslElement element = variable.getElement();
-      builder.put(variableName, new GradleValue<Object>(resolvedValue, element));
+      builder.put(variableName, new GradleNotNullValue<Object>(element, resolvedValue));
     }
     return builder.build();
   }
