@@ -90,5 +90,4 @@ public class AndroidLaunchTasksProviderFactory implements LaunchTasksProviderFac
 
     return canHotswap;
   }
-
 }
