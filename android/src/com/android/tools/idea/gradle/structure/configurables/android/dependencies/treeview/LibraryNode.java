@@ -28,10 +28,10 @@ import java.util.List;
 
 import static com.android.tools.idea.gradle.structure.configurables.android.dependencies.ArtifactDependencySpecs.asText;
 
-class AndroidLibraryNode extends AbstractDependencyNode<PsdLibraryDependencyModel> {
+class LibraryNode extends AbstractDependencyNode<PsdLibraryDependencyModel> {
   private List<SimpleNode> myChildren;
 
-  AndroidLibraryNode(@NotNull PsdLibraryDependencyModel model) {
+  LibraryNode(@NotNull PsdLibraryDependencyModel model) {
     super(model);
     boolean showGroupId = PsdUISettings.getInstance().DECLARED_DEPENDENCIES_SHOW_GROUP_ID;
     ArtifactDependencySpec spec = model.getResolvedSpec();
@@ -47,7 +47,7 @@ class AndroidLibraryNode extends AbstractDependencyNode<PsdLibraryDependencyMode
       for (PsdAndroidDependencyModel transitive : getModels().get(0).getTransitiveDependencies()) {
         if (transitive instanceof PsdLibraryDependencyModel) {
           PsdLibraryDependencyModel transitiveLibrary = (PsdLibraryDependencyModel)transitive;
-          AndroidLibraryNode child = new AndroidLibraryNode(transitiveLibrary);
+          LibraryNode child = new LibraryNode(transitiveLibrary);
           children.add(child);
         }
       }

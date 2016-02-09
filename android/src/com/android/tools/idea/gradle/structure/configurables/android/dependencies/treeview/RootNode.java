@@ -78,15 +78,12 @@ class RootNode extends AbstractRootNode {
       }
     }
     else {
-      boolean showGroupId = PsdUISettings.getInstance().VARIANTS_DEPENDENCIES_SHOW_GROUP_ID;
-      Comparator<PsdAndroidDependencyModel> dependencyComparator = new PsdAndroidDependencyModelComparator(showGroupId);
-
       Map<String, List<PsdAndroidDependencyModel>> dependenciesByVariant = Maps.newHashMap();
       for (PsdAndroidDependencyModel dependency : dependencies) {
         for (String variantName : dependency.getVariants()) {
           List<PsdAndroidDependencyModel> variantDependencies = dependenciesByVariant.get(variantName);
           if (variantDependencies == null) {
-            variantDependencies = new SortedList<PsdAndroidDependencyModel>(dependencyComparator);
+            variantDependencies = new SortedList<PsdAndroidDependencyModel>(PsdAndroidDependencyModelComparator.INSTANCE);
             dependenciesByVariant.put(variantName, variantDependencies);
           }
           variantDependencies.add(dependency);
@@ -109,16 +106,13 @@ class RootNode extends AbstractRootNode {
   @VisibleForTesting
   @NotNull
   static Map<List<String>, List<PsdAndroidDependencyModel>> groupVariants(List<PsdAndroidDependencyModel> dependencies) {
-    boolean showGroupId = PsdUISettings.getInstance().VARIANTS_DEPENDENCIES_SHOW_GROUP_ID;
-    Comparator<PsdAndroidDependencyModel> comparator = new PsdAndroidDependencyModelComparator(showGroupId);
-
     Map<String, List<PsdAndroidDependencyModel>> dependenciesByVariant = Maps.newHashMap();
     for (PsdAndroidDependencyModel dependency : dependencies) {
       List<String> variants = dependency.getVariants();
       for (String variant : variants) {
         List<PsdAndroidDependencyModel> sorted = dependenciesByVariant.get(variant);
         if (sorted == null) {
-          sorted = new SortedList<PsdAndroidDependencyModel>(comparator);
+          sorted = new SortedList<PsdAndroidDependencyModel>(PsdAndroidDependencyModelComparator.INSTANCE);
           dependenciesByVariant.put(variant, sorted);
         }
         sorted.add(dependency);
