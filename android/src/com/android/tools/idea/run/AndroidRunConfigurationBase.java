@@ -39,6 +39,7 @@ import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.icons.AllIcons;
+import com.intellij.notification.NotificationType;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -498,10 +499,10 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
           }
         }
       } else {
-        message = "Performing full build & install: manifest changed\n(or resource referenced from manifest changed)";
+        message = "Performing full build &amp; install: manifest changed<br>(or resource referenced from manifest changed)";
       }
 
-      new InstantRunUserFeedback(module).postText(message);
+      new InstantRunUserFeedback(module).postText(NotificationType.INFORMATION, message);
     }
   }
 
