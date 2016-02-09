@@ -40,6 +40,7 @@ import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.picocontainer.MutablePicoContainer;
 
 import java.io.File;
 import java.io.IOException;
@@ -69,16 +70,40 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
   private static final String DRAWABLE = "resourceRepository/logo.png";
   private static final String COLOR_STATELIST = "resourceRepository/statelist.xml";
 
+  private ResourceFolderRepositoryFileCache myOldFileCacheService;
+
   @Override
   public void tearDown() throws Exception {
-    ResourceFolderRegistry.reset();
-    super.tearDown();
+    try {
+      ResourceFolderRegistry.reset();
+      overrideCacheService(myOldFileCacheService);
+    }
+    finally {
+      super.tearDown();
+    }
   }
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     ResourceFolderRegistry.reset();
+    // Use a file cache that has per-test root directories instead of sharing the system directory.
+    ResourceFolderRepositoryFileCache cache = new ResourceFolderRepositoryFileCacheImpl(
+      new File(myFixture.getTempDirPath()));
+    myOldFileCacheService = overrideCacheService(cache);
+  }
+
+  private static ResourceFolderRepositoryFileCache overrideCacheService(ResourceFolderRepositoryFileCache newCache) {
+    MutablePicoContainer applicationContainer = (MutablePicoContainer)
+      ApplicationManager.getApplication().getPicoContainer();
+
+    // Use a file cache that has per-test root directories instead of sharing the system directory.
+    // Swap out cache services. We have to be careful. All tests share the same Application and PicoContainer.
+    ResourceFolderRepositoryFileCache oldCache =
+      (ResourceFolderRepositoryFileCache)applicationContainer.getComponentInstance(ResourceFolderRepositoryFileCache.class.getName());
+    applicationContainer.unregisterComponent(ResourceFolderRepositoryFileCache.class.getName());
+    applicationContainer.registerComponentInstance(ResourceFolderRepositoryFileCache.class.getName(), newCache);
+    return oldCache;
   }
 
   private static void resetScanCounter() {
@@ -93,11 +118,15 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertEquals(1, ourFullRescans);
   }
 
-  private ResourceFolderRepository createRepository() {
+  private VirtualFile getResourceDirectory() {
     List<VirtualFile> resourceDirectories = myFacet.getAllResourceDirectories();
     assertNotNull(resourceDirectories);
     assertSize(1, resourceDirectories);
-    VirtualFile dir = resourceDirectories.get(0);
+    return resourceDirectories.get(0);
+  }
+
+  private ResourceFolderRepository createRepository() {
+    VirtualFile dir = getResourceDirectory();
     return ResourceFolderRegistry.get(myFacet, dir);
   }
 
@@ -2889,6 +2918,38 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertEquals(generation, resources.getModificationCount());
 
     ensureIncremental();
+  }
+
+  /**
+   * Basic test to show that a load from an empty file cache doesn't pull things out of thin air
+   * and that the file cache is considered stale (as a signal that updating would be good).
+   */
+  public void testFileCacheFreshness() {
+    resetScanCounter();
+
+    myFixture.copyFileToProject(LAYOUT1, "res/layout/layout.xml");
+    myFixture.copyFileToProject(LAYOUT1, "res/layout-xlarge-land/layout.xml");
+    myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
+    ResourceFolderRepository resources = createRepository();
+    assertNotNull(resources);
+    assertFalse(resources.hasFreshFileCache());
+    assertEquals(3, resources.getScanStats().numXml);
+    assertEquals(3, resources.getScanStats().numXmlReparsed);
+
+    ResourceFolderRepositoryFileCache cache = ResourceFolderRepositoryFileCacheService.get();
+    resources.saveStateToFile(cache.getResourceDir(getProject(), getResourceDirectory()));
+
+    // Right now, we haven't made repo initialization happen without Psi, so no items are actually saved and loaded.
+    // TODO: after converting repos to initialize without Psi, show that repo has fresh cache after reloading.
+    // Other things:
+    // - Test content loaded from cache is equivalent.
+    // - Test that modified, added, and removed files are identified, etc.
+    ResourceFolderRegistry.reset();
+    ResourceFolderRepository resourcesReloaded = createRepository();
+    assertNotSame(resources, resourcesReloaded);
+    assertFalse(resourcesReloaded.hasFreshFileCache());
+    assertEquals(3, resourcesReloaded.getScanStats().numXml);
+    assertEquals(3, resourcesReloaded.getScanStats().numXmlReparsed);
   }
 
   private void validateViewWithId(AndroidFacet facet, DataBindingInfo.ViewWithId viewWithId, String qualified, String variableName) {
