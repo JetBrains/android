@@ -185,10 +185,6 @@ public class PlatformComponentsPanel {
     refreshModified();
   }
 
-  public void clearState() {
-    myStates.clear();
-  }
-
   public void setEnabled(boolean enabled) {
     myPlatformDetailTable.setEnabled(enabled);
     myPlatformSummaryTable.setEnabled(enabled);
