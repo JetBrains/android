@@ -59,6 +59,7 @@ import java.util.Collection;
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.*;
 import static com.android.tools.idea.gradle.project.ProjectImportUtil.findImportTarget;
 import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
+import static com.intellij.ide.impl.ProjectUtil.openProject;
 import static com.intellij.ide.impl.ProjectUtil.updateLastProjectLocation;
 import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE;
 import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE_CONTEXT_ARRAY;
@@ -80,6 +81,7 @@ public final class Projects {
   private static final Key<Boolean> HAS_WRONG_JDK = Key.create("project.has.wrong.jdk");
   private static final Key<DependencySetupErrors> DEPENDENCY_SETUP_ERRORS = Key.create("project.dependency.setup.errors");
   private static final Key<Collection<Module>> MODULES_TO_DISPOSE_POST_SYNC = Key.create("project.modules.to.dispose.post.sync");
+  private static final Key<Boolean> SYNC_REQUESTED_DURING_BUILD = Key.create("project.sync.requested.during.build");
 
   private Projects() {
   }
@@ -481,5 +483,14 @@ public final class Projects {
   public static boolean canImportAsGradleProject(@NotNull VirtualFile importSource) {
     VirtualFile target = findImportTarget(importSource);
     return target != null && GradleConstants.EXTENSION.equals(target.getExtension());
+  }
+
+  public static void setSyncRequestedDuringBuild(@NotNull Project project, @Nullable Boolean value) {
+    project.putUserData(SYNC_REQUESTED_DURING_BUILD, value);
+  }
+
+  public static boolean isSyncRequestedDuringBuild(@NotNull Project project) {
+    Boolean syncRequested = project.getUserData(SYNC_REQUESTED_DURING_BUILD);
+    return syncRequested != null ? syncRequested : false;
   }
 }
