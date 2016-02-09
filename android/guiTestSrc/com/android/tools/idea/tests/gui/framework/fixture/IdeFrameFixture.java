@@ -135,7 +135,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
         Collection<IdeFrameImpl> frames = robot.finder().findAll(matcher);
         return !frames.isEmpty();
       }
-    }, LONG_TIMEOUT);
+    }, SHORT_TIMEOUT);
 
     IdeFrameImpl ideFrame = robot.finder().find(matcher);
     return new IdeFrameFixture(robot, ideFrame, projectPath);
@@ -369,7 +369,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
           CompileContext context = contextRef.get();
           return context != null;
         }
-      }, LONG_TIMEOUT);
+      }, SHORT_TIMEOUT);
 
       CompileContext context = contextRef.get();
       assertNotNull(context);
@@ -465,7 +465,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
         }
         return myGradleProjectEventListener.isBuildFinished(buildMode);
       }
-    }, LONG_TIMEOUT);
+    }, SHORT_TIMEOUT);
 
     waitForBackgroundTasks(robot());
     robot().waitForIdle();
@@ -593,7 +593,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
         }
         return syncFinished;
       }
-    }, LONG_TIMEOUT);
+    }, SHORT_TIMEOUT);
 
     findGradleSyncAction().waitUntilEnabledAndShowing();
 

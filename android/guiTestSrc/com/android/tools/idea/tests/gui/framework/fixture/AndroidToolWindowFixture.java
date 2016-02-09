@@ -32,7 +32,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
-import static com.android.tools.idea.tests.gui.framework.GuiTests.LONG_TIMEOUT;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.swing.edt.GuiActionRunner.execute;
@@ -134,7 +133,7 @@ public class AndroidToolWindowFixture extends ToolWindowFixture {
             }
           });
         }
-      }, LONG_TIMEOUT);
+      }, SHORT_TIMEOUT);
       return this;
     }
 
