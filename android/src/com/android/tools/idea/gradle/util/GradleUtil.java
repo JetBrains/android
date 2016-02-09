@@ -910,12 +910,15 @@ public final class GradleUtil {
     try {
       File file = createTempFile("asLocalRepo", DOT_GRADLE);
       file.deleteOnExit();
-
+      String path = escapeGroovyStringLiteral(repoPath.getPath());
       String contents = "allprojects {\n" +
                         "  buildscript {\n" +
                         "    repositories {\n" +
-                        "      maven { url '" + escapeGroovyStringLiteral(repoPath.getPath()) + "'}\n" +
+                        "      maven { url '" + path + "'}\n" +
                         "    }\n" +
+                        "  }\n" +
+                        "  repositories {\n" +
+                        "    maven { url '" + path + "'}\n" +
                         "  }\n" +
                         "}\n";
       writeToFile(file, contents);
