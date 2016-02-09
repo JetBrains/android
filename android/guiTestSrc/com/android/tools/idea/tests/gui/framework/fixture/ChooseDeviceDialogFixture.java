@@ -42,7 +42,7 @@ public class ChooseDeviceDialogFixture extends ComponentFixture<ChooseDeviceDial
   @NotNull
   public static ChooseDeviceDialogFixture find(@NotNull Robot robot) {
     Dialog dialog = WindowFinder.findDialog(DialogMatcher.withTitle(AndroidBundle.message("choose.device.dialog.title")))
-                                .withTimeout(LONG_TIMEOUT.duration()).using(robot)
+                                .withTimeout(SHORT_TIMEOUT.duration()).using(robot)
                                 .target();
     assertThat(dialog).isInstanceOf(JDialog.class);
     return new ChooseDeviceDialogFixture(robot, (JDialog)dialog);
