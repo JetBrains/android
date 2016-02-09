@@ -73,16 +73,16 @@ public abstract class ResourceManager {
   /** Returns true if the given directory is a resource directory in this module */
   public abstract boolean isResourceDir(@NotNull VirtualFile dir);
 
-  public boolean processFileResources(@Nullable String resourceType, @NotNull FileResourceProcessor processor) {
+  public boolean processFileResources(@NotNull String resourceType, @NotNull FileResourceProcessor processor) {
     return processFileResources(resourceType, processor, true);
   }
 
-  public boolean processFileResources(@Nullable String resourceType, @NotNull FileResourceProcessor processor,
+  public boolean processFileResources(@NotNull String resourceType, @NotNull FileResourceProcessor processor,
                                       boolean withDependencies) {
     return processFileResources(resourceType, processor, withDependencies, true);
   }
 
-  public boolean processFileResources(@Nullable String resourceType, @NotNull FileResourceProcessor processor,
+  public boolean processFileResources(@NotNull String resourceType, @NotNull FileResourceProcessor processor,
                                       boolean withDependencies, boolean publicOnly) {
     final VirtualFile[] resDirs;
     if (withDependencies) {
@@ -96,7 +96,7 @@ public abstract class ResourceManager {
       final String resType = AndroidCommonUtils.getResourceTypeByDirName(resSubdir.getName());
 
       if (resType != null) {
-        assert resourceType == null || resourceType.equals(resType);
+        assert resourceType.equals(resType);
         for (VirtualFile resFile : resSubdir.getChildren()) {
           final String resName = AndroidCommonUtils.getResourceName(resType, resFile.getName());
 
@@ -121,7 +121,7 @@ public abstract class ResourceManager {
   }
 
   @NotNull
-  public List<VirtualFile> getResourceSubdirs(@Nullable String resourceType) {
+  public List<VirtualFile> getResourceSubdirs(@NotNull String resourceType) {
     return AndroidResourceUtil.getResourceSubdirs(resourceType, getAllResourceDirs());
   }
 

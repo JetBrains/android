@@ -526,8 +526,8 @@ public class AndroidResourceUtil {
   }
 
   @NotNull
-  public static List<VirtualFile> getResourceSubdirs(@Nullable String resourceType, @NotNull VirtualFile[] resourceDirs) {
-    if (resourceType != null && ResourceFolderType.getTypeByName(resourceType) == null) {
+  public static List<VirtualFile> getResourceSubdirs(@NotNull String resourceType, @NotNull VirtualFile[] resourceDirs) {
+    if (ResourceFolderType.getTypeByName(resourceType) == null) {
       return Collections.emptyList();
     }
     final List<VirtualFile> dirs = new ArrayList<VirtualFile>();
@@ -536,14 +536,9 @@ public class AndroidResourceUtil {
       if (resourcesDir == null || !resourcesDir.isValid()) {
         continue;
       }
-      if (resourceType == null) {
-        ContainerUtil.addAll(dirs, resourcesDir.getChildren());
-      }
-      else {
-        for (VirtualFile child : resourcesDir.getChildren()) {
-          String type = AndroidCommonUtils.getResourceTypeByDirName(child.getName());
-          if (resourceType.equals(type)) dirs.add(child);
-        }
+      for (VirtualFile child : resourcesDir.getChildren()) {
+        String type = AndroidCommonUtils.getResourceTypeByDirName(child.getName());
+        if (resourceType.equals(type)) dirs.add(child);
       }
     }
     return dirs;
