@@ -22,6 +22,7 @@ import com.android.sdklib.devices.Hardware;
 import com.android.sdklib.devices.Screen;
 import com.android.sdklib.devices.Storage;
 import com.android.sdklib.internal.avd.AvdManager;
+import com.android.sdklib.internal.avd.GpuMode;
 import com.android.sdklib.internal.avd.HardwareProperties;
 import com.android.sdklib.repositoryv2.IdDisplay;
 import com.android.sdklib.repositoryv2.targets.SystemImage;
@@ -78,7 +79,7 @@ public class AvdWizardConstants {
   public static final String CHOOSE_SYSTEM_IMAGE_STEP = "Choose System Image Step";
 
   public static final Key<Boolean> USE_HOST_GPU_KEY = createKey(AvdManager.AVD_INI_GPU_EMULATION, WIZARD, Boolean.class);
-  public static final Key<Boolean> USE_SNAPSHOT_KEY = createKey(AvdManager.AVD_INI_SNAPSHOT_PRESENT, WIZARD, Boolean.class);
+  public static final Key<GpuMode> HOST_GPU_MODE_KEY = createKey(AvdManager.AVD_INI_GPU_MODE, WIZARD, GpuMode.class);
 
   public static final Key<Boolean> IS_IN_EDIT_MODE_KEY = createKey(WIZARD_ONLY + "isInEditMode", WIZARD, Boolean.class);
 
@@ -138,6 +139,7 @@ public class AvdWizardConstants {
   // Tags
   public static final IdDisplay WEAR_TAG = IdDisplay.create("android-wear", "Android Wear");
   public static final IdDisplay TV_TAG = IdDisplay.create("android-tv", "Android TV");
+  public static final IdDisplay GOOGLE_APIS_TAG = IdDisplay.create("google_apis", "Google APIs");
 
   public static final List<IdDisplay> ALL_TAGS = ImmutableList.of(SystemImage.DEFAULT_TAG, WEAR_TAG, TV_TAG);
 
