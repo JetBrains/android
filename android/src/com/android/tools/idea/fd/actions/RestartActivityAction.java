@@ -67,7 +67,7 @@ public class RestartActivityAction extends AnAction {
 
     Project project = module.getProject();
     boolean enabled = InstantRunSettings.isInstantRunEnabled(module.getProject()) &&
-                      InstantRunGradleUtils.variantSupportsInstantRun(model, null) &&
+                      InstantRunGradleUtils.getIrSupportStatus(model, null).success &&
                       !getActiveSessions(project).isEmpty() &&
                       !isDebuggerPaused(project);
     e.getPresentation().setEnabled(enabled);
