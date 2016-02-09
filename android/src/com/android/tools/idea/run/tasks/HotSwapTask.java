@@ -16,6 +16,7 @@
 package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.IDevice;
+import com.android.tools.fd.client.InstantRunBuildInfo;
 import com.android.tools.fd.client.UpdateMode;
 import com.android.tools.idea.fd.*;
 import com.android.tools.idea.gradle.AndroidGradleModel;
@@ -56,7 +57,7 @@ public class HotSwapTask implements LaunchTask {
 
     AndroidGradleModel model = AndroidGradleModel.get(myFacet);
     assert model != null;
-    InstantRunBuildInfo buildInfo = InstantRunBuildInfo.get(model);
+    InstantRunBuildInfo buildInfo = InstantRunManager.getBuildInfo(model);
     assert buildInfo != null;
 
     InstantRunManager.displayVerifierStatus(myFacet, buildInfo);
