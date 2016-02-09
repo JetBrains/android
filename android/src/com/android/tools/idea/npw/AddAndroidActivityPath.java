@@ -75,14 +75,14 @@ import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.createKey;
 public final class AddAndroidActivityPath extends DynamicWizardPath {
   public static final Key<Boolean> KEY_IS_LAUNCHER = createKey("is.launcher.activity", PATH, Boolean.class);
   public static final Key<TemplateEntry> KEY_SELECTED_TEMPLATE = createKey("selected.template", PATH, TemplateEntry.class);
-  public static final Key<AndroidVersion> KEY_MIN_SDK = createKey(TemplateMetadata.ATTR_MIN_API, PATH, AndroidVersion.class);
-  public static final Key<AndroidVersion> KEY_TARGET_API = createKey(TemplateMetadata.ATTR_TARGET_API, PATH, AndroidVersion.class);
-  public static final Key<Integer> KEY_BUILD_SDK = createKey(TemplateMetadata.ATTR_BUILD_API, PATH, Integer.class);
-  public static final Key<String> KEY_PACKAGE_NAME = createKey(TemplateMetadata.ATTR_PACKAGE_NAME, PATH, String.class);
+  public static final Key<AndroidVersion> KEY_MIN_SDK = createKey(ATTR_MIN_API, PATH, AndroidVersion.class);
+  public static final Key<AndroidVersion> KEY_TARGET_API = createKey(ATTR_TARGET_API, PATH, AndroidVersion.class);
+  public static final Key<Integer> KEY_BUILD_SDK = createKey(ATTR_BUILD_API, PATH, Integer.class);
+  public static final Key<String> KEY_PACKAGE_NAME = createKey(ATTR_PACKAGE_NAME, PATH, String.class);
   public static final Key<SourceProvider> KEY_SOURCE_PROVIDER = createKey("source.provider", PATH, SourceProvider.class);
   public static final Key<String> KEY_SOURCE_PROVIDER_NAME = createKey(ATTR_SOURCE_PROVIDER_NAME, PATH, String.class);
-  public static final Set<String> PACKAGE_NAME_PARAMETERS = ImmutableSet.of(TemplateMetadata.ATTR_PACKAGE_NAME);
-  public static final Set<String> CLASS_NAME_PARAMETERS = ImmutableSet.of(TemplateMetadata.ATTR_PARENT_ACTIVITY_CLASS);
+  public static final Set<String> PACKAGE_NAME_PARAMETERS = ImmutableSet.of(ATTR_PACKAGE_NAME);
+  public static final Set<String> CLASS_NAME_PARAMETERS = ImmutableSet.of(ATTR_PARENT_ACTIVITY_CLASS);
   public static final Key<Boolean> KEY_OPEN_EDITORS = createKey("open.editors", WIZARD, Boolean.class);
   public static final Set<Key<?>> IMPLICIT_PARAMETERS = ImmutableSet.<Key<?>>of(KEY_PACKAGE_NAME, KEY_SOURCE_PROVIDER_NAME);
 
@@ -93,7 +93,7 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
   private final boolean myIsNewModule;
   private IconStep myAssetStudioStep;
   private final VirtualFile myTargetFolder;
-  @Nullable private File myTemplate;
+  @Nullable private final File myTemplate;
   private final Map<String, Object> myPredefinedParameterValues;
   private final Disposable myParentDisposable;
 
@@ -111,7 +111,7 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
     myTargetFolder = targetFolder != null && !targetFolder.isDirectory() ? targetFolder.getParent() : targetFolder;
   }
 
-  private static FormFactor getFormFactor(@Nullable VirtualFile targetFolder) {
+  private static FormFactor getFormFactor(@Nullable @SuppressWarnings("UnusedParameters") VirtualFile targetFolder) {
     // TODO There should be some way for this wizard to figure out form factor from a target or from a template
     return FormFactor.MOBILE;
   }
@@ -120,7 +120,7 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
    * Finds and returns the main src directory for the given project or null if one cannot be found.
    */
   @Nullable
-  public static File findSrcDirectory(@NotNull SourceProvider sourceProvider) {
+  private static File findSrcDirectory(@NotNull SourceProvider sourceProvider) {
     return Iterables.getFirst(sourceProvider.getJavaDirectories(), null);
   }
 
@@ -135,7 +135,7 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
    * Finds and returns the main res directory for the given project or null if one cannot be found.
    */
   @Nullable
-  public static File findResDirectory(@NotNull SourceProvider sourceProvider) {
+  private static File findResDirectory(@NotNull SourceProvider sourceProvider) {
     Collection<File> resDirectories = sourceProvider.getResDirectories();
     File resDir = null;
     if (!resDirectories.isEmpty()) {
@@ -148,7 +148,7 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
    * Finds and returns the main res directory for the given project or null if one cannot be found.
    */
   @Nullable
-  public static File findAidlDir(@NotNull SourceProvider sourceProvider) {
+  private static File findAidlDir(@NotNull SourceProvider sourceProvider) {
     Collection<File> aidlDirectories = sourceProvider.getAidlDirectories();
     File resDir = null;
     if (!aidlDirectories.isEmpty()) {
@@ -161,7 +161,7 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
    * Finds and returns the main manifest directory for the given project or null if one cannot be found.
    */
   @Nullable
-  public static File findManifestDirectory(@NotNull SourceProvider sourceProvider) {
+  private static File findManifestDirectory(@NotNull SourceProvider sourceProvider) {
     File manifestFile = sourceProvider.getManifestFile();
     File manifestDir = manifestFile.getParentFile();
     if (manifestDir != null) {
@@ -229,7 +229,7 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
     String relativePackageName = removeCommonPackagePrefix(sourceRootPackagePrefix, packageName);
 
     // Calculate package name
-    paths.put(TemplateMetadata.ATTR_PACKAGE_NAME, packageName);
+    paths.put(ATTR_PACKAGE_NAME, packageName);
     String relativePackageDir = relativePackageName.replace('.', File.separatorChar);
     File srcOut = new File(javaDir, relativePackageDir);
     File testOut = new File(testDir, relativePackageDir);
@@ -265,15 +265,14 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
    * getRelativePackageName("com.google.android", "not.google.android") -> "not.google.android"
    */
   @NotNull
-  static String removeCommonPackagePrefix(
-      @NotNull String packagePrefix,
-      @NotNull String packageName) {
+  static String removeCommonPackagePrefix(@NotNull String packagePrefix, @NotNull String packageName) {
     String relativePackageName = packageName;
     if (packageName.equals(packagePrefix)) {
       relativePackageName = "";
-    } else if (packageName.length() > packagePrefix.length()
-        && packageName.startsWith(packagePrefix)
-        && packageName.charAt(packagePrefix.length()) == '.') {
+    }
+    else if (packageName.length() > packagePrefix.length()
+             && packageName.startsWith(packagePrefix)
+             && packageName.charAt(packagePrefix.length()) == '.') {
       relativePackageName = relativePackageName.substring(packagePrefix.length() + 1);
     }
     return relativePackageName;
@@ -300,7 +299,7 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
     return "android.template." + parameter;
   }
 
-  public static void saveRecentValues(@NotNull Project project, @NotNull Map<String, Object> state) {
+  private static void saveRecentValues(@NotNull Project project, @NotNull Map<String, Object> state) {
     for (String id : Iterables.concat(PACKAGE_NAME_PARAMETERS, CLASS_NAME_PARAMETERS)) {
       String value = (String)state.get(id);
       if (!StringUtil.isEmpty(value)) {
@@ -353,7 +352,7 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
   }
 
   @NotNull
-  public static SourceProvider[] getSourceProviders(@Nullable Module module, @Nullable VirtualFile targetDirectory) {
+  private static SourceProvider[] getSourceProviders(@Nullable Module module, @Nullable VirtualFile targetDirectory) {
     if (module != null) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
       if (facet != null) {
@@ -430,8 +429,6 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
     ApplicationManager.getApplication().invokeLater(new Runnable() {
       @Override
       public void run() {
-        TemplateUtils.reformatAndRearrange(project, filesToReformat);
-
         if (Boolean.TRUE.equals(myState.get(KEY_OPEN_EDITORS))) {
           TemplateUtils.openEditors(project, filesToOpen, true);
         }
@@ -470,7 +467,7 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
   @NotNull
   private Map<String, Object> getTemplateParameterMap(@NotNull TemplateMetadata template) {
     Map<String, Object> parameterValueMap = Maps.newHashMap();
-    parameterValueMap.put(TemplateMetadata.ATTR_IS_NEW_PROJECT, myIsNewModule);
+    parameterValueMap.put(ATTR_IS_NEW_PROJECT, myIsNewModule);
     parameterValueMap.putAll(getDirectories());
     for (Key<?> parameter : IMPLICIT_PARAMETERS) {
       parameterValueMap.put(parameter.name, myState.get(parameter));
@@ -486,9 +483,9 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
     }
     File moduleRoot = getModuleRoot(getModule());
     if (moduleRoot != null) {
-      parameterValueMap.put(TemplateMetadata.ATTR_PROJECT_OUT, FileUtil.toSystemIndependentName(moduleRoot.getAbsolutePath()));
+      parameterValueMap.put(ATTR_PROJECT_OUT, FileUtil.toSystemIndependentName(moduleRoot.getAbsolutePath()));
     }
-    if (Objects.equal(getApplicationPackageName(), parameterValueMap.get(TemplateMetadata.ATTR_PACKAGE_NAME))) {
+    if (Objects.equal(getApplicationPackageName(), parameterValueMap.get(ATTR_PACKAGE_NAME))) {
       parameterValueMap.remove(ATTR_APPLICATION_PACKAGE);
     }
     return parameterValueMap;
