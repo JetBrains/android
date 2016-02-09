@@ -32,13 +32,6 @@ public final class OpenDeveloperServicesSidePanelAction extends AnAction {
   private static final String TOOL_WINDOW_TITLE = "Developer Services";
 
   @Override
-  public void update(AnActionEvent event) {
-    // Put the side panel behind a JVM flag value.
-    // TODO(zhi):  Enable this when ready for general consumption.
-    event.getPresentation().setEnabled(DeveloperServicesUtils.isEnabled());
-  }
-
-  @Override
   public void actionPerformed(AnActionEvent event) {
     final Project thisProject = event.getProject();
     final String actionId = ActionManager.getInstance().getId(this);
