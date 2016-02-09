@@ -16,6 +16,7 @@
 package com.android.tools.idea.updater.configure;
 
 import com.android.repository.api.UpdatablePackage;
+import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.Sets;
 import com.intellij.ui.dualView.TreeTableView;
 import com.intellij.ui.treeStructure.treetable.ListTreeTableModelOnColumns;
@@ -51,7 +52,10 @@ public class ToolComponentsPanel {
     public int compare(UpdatablePackage o1, UpdatablePackage o2) {
       // Since we won't have added these packages if they don't have something we care about.
       //noinspection ConstantConditions
-      return o1.getRepresentative().getDisplayName().compareTo(o2.getRepresentative().getDisplayName());
+      return ComparisonChain.start()
+        .compare(o1.getRepresentative().getDisplayName(), o2.getRepresentative().getDisplayName())
+        .compare(o1.getRepresentative().getPath(), o2.getRepresentative().getPath())
+        .result();
     }
   });
   private final Set<UpdatablePackage> myBuildToolsPackages = Sets.newTreeSet();
@@ -62,7 +66,6 @@ public class ToolComponentsPanel {
   Set<NodeStateHolder> myStates = Sets.newHashSet();
 
   private boolean myModified = false;
-  private boolean myIncludePreview;
   private final ChangeListener myModificationListener = new ChangeListener() {
     @Override
     public void stateChanged(ChangeEvent e) {
@@ -191,9 +194,5 @@ public class ToolComponentsPanel {
       new ColumnInfo[]{new DownloadStatusColumnInfo(), new TreeColumnInfo("Name"), new VersionColumnInfo(), new StatusColumnInfo()};
     myToolsDetailTable = new TreeTableView(new ListTreeTableModelOnColumns(myToolsDetailsRootNode, toolsDetailColumns));
     SdkUpdaterConfigPanel.setTreeTableProperties(myToolsDetailTable, renderer, myModificationListener);
-  }
-
-  public void clearState() {
-    myStates.clear();
   }
 }
