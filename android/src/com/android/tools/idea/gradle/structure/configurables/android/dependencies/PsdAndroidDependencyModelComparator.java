@@ -15,29 +15,40 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies;
 
+import com.android.tools.idea.gradle.structure.configurables.ui.PsdUISettings;
 import com.android.tools.idea.gradle.structure.model.android.PsdAndroidDependencyModel;
 import com.android.tools.idea.gradle.structure.model.android.PsdLibraryDependencyModel;
+import com.android.tools.idea.gradle.structure.model.android.PsdModuleDependencyModel;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Comparator;
 
 import static com.android.tools.idea.gradle.structure.configurables.android.dependencies.ArtifactDependencySpecs.asText;
 
 public class PsdAndroidDependencyModelComparator implements Comparator<PsdAndroidDependencyModel> {
-  private final boolean myShowGroupId;
+  @NotNull public static final PsdAndroidDependencyModelComparator INSTANCE = new PsdAndroidDependencyModelComparator();
 
-  public PsdAndroidDependencyModelComparator(boolean showGroupId) {
-    myShowGroupId = showGroupId;
+  private PsdAndroidDependencyModelComparator() {
   }
 
   @Override
   public int compare(PsdAndroidDependencyModel m1, PsdAndroidDependencyModel m2) {
     if (m1 instanceof PsdLibraryDependencyModel) {
       if (m2 instanceof PsdLibraryDependencyModel) {
-        String s1 = asText(((PsdLibraryDependencyModel)m1).getResolvedSpec(), myShowGroupId);
-        String s2 = asText(((PsdLibraryDependencyModel)m2).getResolvedSpec(), myShowGroupId);
+        boolean showGroupId = PsdUISettings.getInstance().DECLARED_DEPENDENCIES_SHOW_GROUP_ID;
+        String s1 = asText(((PsdLibraryDependencyModel)m1).getResolvedSpec(), showGroupId);
+        String s2 = asText(((PsdLibraryDependencyModel)m2).getResolvedSpec(), showGroupId);
         return s1.compareTo(s2);
       }
     }
-    return 1;
+    else if (m1 instanceof PsdModuleDependencyModel) {
+      if (m2 instanceof PsdModuleDependencyModel) {
+        return m1.getValueAsText().compareTo(m2.getValueAsText());
+      }
+      else if (m2 instanceof PsdLibraryDependencyModel) {
+        return 1;
+      }
+    }
+    return -1;
   }
 }
