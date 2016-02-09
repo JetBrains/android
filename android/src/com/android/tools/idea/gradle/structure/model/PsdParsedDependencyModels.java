@@ -63,7 +63,7 @@ public class PsdParsedDependencyModels {
   }
 
   @Nullable
-  public ArtifactDependencyModel findMatchingParsedDependency(@NotNull MavenCoordinates coordinates) {
+  public ArtifactDependencyModel findMatchingArtifactDependency(@NotNull MavenCoordinates coordinates) {
     String identifier = getIdentifier(coordinates);
     return myParsedArtifactDependencies.get(identifier);
   }
@@ -77,5 +77,10 @@ public class PsdParsedDependencyModels {
   @NotNull
   private static String joinAsGradlePath(@NotNull List<String> segments) {
     return Joiner.on(GRADLE_PATH_SEPARATOR).skipNulls().join(segments);
+  }
+
+  @Nullable
+  public ModuleDependencyModel findMatchingModuleDependency(@NotNull String gradlePath) {
+    return myParsedModuleDependencies.get(gradlePath);
   }
 }
