@@ -35,11 +35,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.event.HyperlinkEvent;
 
 public class InstantRunUserFeedback implements UserFeedback {
-  private static final boolean ALLOW_MUTE_VERIFIER_FAILURE = false;
-
-  private static boolean ourHideRestartTip;
-  @SuppressWarnings("FieldCanBeLocal")
-  private static boolean ourMuteVerifierMessages;
+  public static final String DONT_SHOW_AGAIN = "Don't show again";
 
   @NotNull private final Module myModule;
 
@@ -69,7 +65,11 @@ public class InstantRunUserFeedback implements UserFeedback {
 
   @Override
   public void notifyEnd(UpdateMode updateMode) {
-    if (updateMode == UpdateMode.HOT_SWAP && !InstantRunSettings.isRestartActivity(myModule.getProject()) && !ourHideRestartTip) {
+    if (!InstantRunSettings.isShowNotificationsEnabled(myModule.getProject())) {
+      return;
+    }
+
+    if (updateMode == UpdateMode.HOT_SWAP && !InstantRunSettings.isRestartActivity(myModule.getProject())) {
       StringBuilder sb = new StringBuilder(300);
       sb.append("<html>");
       sb.append("Instant Run applied code changes.\n");
@@ -83,7 +83,7 @@ public class InstantRunUserFeedback implements UserFeedback {
       sb.append(".\n");
 
       sb.append("You can also <a href=\"configure\">configure</a> restarts to happen automatically. ");
-      sb.append("(<a href=\"dismiss\">Dismiss</a>, <a href=\"dismiss_all\">Dismiss All</a>)");
+      sb.append("(<a href=\"mute\">" + DONT_SHOW_AGAIN + "</a>)");
       sb.append("</html>");
       String message = sb.toString();
       final Ref<Notification> notificationRef = Ref.create();
@@ -99,12 +99,9 @@ public class InstantRunUserFeedback implements UserFeedback {
               InstantRunConfigurable configurable = new InstantRunConfigurable(myModule.getProject());
               ShowSettingsUtil.getInstance().editConfigurable(myModule.getProject(), configurable);
             }
-            else if ("dismiss".equals(action)) {
-              notificationRef.get().expire();
-            }
-            else if ("dismiss_all".equals(action)) {
+            else if ("mute".equals(action)) {
               //noinspection AssignmentToStaticFieldFromInstanceMethod
-              ourHideRestartTip = true;
+              InstantRunSettings.setShowStatusNotifications(myModule.getProject(), false);
               notificationRef.get().expire();
             }
             else {
@@ -121,26 +118,40 @@ public class InstantRunUserFeedback implements UserFeedback {
   }
 
   public void verifierFailure(@Language("HTML") String htmlMessage) {
-    if (ALLOW_MUTE_VERIFIER_FAILURE) {
-      if (ourMuteVerifierMessages) {
-        return;
-      }
-
-      NotificationListener listener = new NotificationListener() {
-        @Override
-        public void hyperlinkUpdate(@NotNull Notification notification, @NotNull HyperlinkEvent event) {
-          if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
-            assert "mute".equals(event.getDescription()) : event.getDescription();
-            //noinspection AssignmentToStaticFieldFromInstanceMethod
-            ourMuteVerifierMessages = true;
-          }
-        }
-      };
-      postHtml(NotificationType.INFORMATION, null, htmlMessage + "<br/>" +
-                                                   "(<a href=\"mute\">Mute</a>)", listener);
-    } else {
-      postHtml(NotificationType.INFORMATION, "", htmlMessage, null);
+    if (!InstantRunSettings.isShowNotificationsEnabled(myModule.getProject())) {
+      return;
     }
+
+    NotificationListener listener = new NotificationListener() {
+      @Override
+      public void hyperlinkUpdate(@NotNull Notification notification, @NotNull HyperlinkEvent event) {
+        if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+          assert "mute".equals(event.getDescription()) : event.getDescription();
+          InstantRunSettings.setShowStatusNotifications(myModule.getProject(), false);
+        }
+      }
+    };
+    postHtml(NotificationType.INFORMATION, null, htmlMessage + "<br/>" +
+                                                 "(<a href=\"mute\">" + DONT_SHOW_AGAIN + "</a>)", listener);
+  }
+
+  public void notifyDisabledForLaunch(@NotNull String reason) {
+    if (!InstantRunSettings.isShowNotificationsEnabled(myModule.getProject())) {
+      return;
+    }
+
+    NotificationListener listener = new NotificationListener() {
+      @Override
+      public void hyperlinkUpdate(@NotNull Notification notification, @NotNull HyperlinkEvent event) {
+        if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+          assert "mute".equals(event.getDescription()) : event.getDescription();
+          InstantRunSettings.setShowStatusNotifications(myModule.getProject(), false);
+        }
+      }
+    };
+
+    postHtml(NotificationType.INFORMATION, null, reason + "<br/>" +
+                                                 "(<a href=\"mute\">" + DONT_SHOW_AGAIN + "</a>)", listener);
   }
 
   public void postText(@NotNull final String message) {

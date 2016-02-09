@@ -37,6 +37,7 @@ public class AndroidGradleBuildConfiguration implements PersistentStateComponent
   public boolean INSTANT_RUN = true;
   public boolean RESTART_ACTIVITY = false;
   public boolean SHOW_TOAST = true;
+  public boolean SHOW_IR_STATUS_NOTIFICATIONS = true;
   public boolean COLD_SWAP = true;
   public String COLD_SWAP_MODE;
   public boolean USE_CONFIGURATION_ON_DEMAND = true;
