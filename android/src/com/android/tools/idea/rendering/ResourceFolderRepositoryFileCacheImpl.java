@@ -48,6 +48,15 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
 
   private static final String CACHE_DIRECTORY = "resource_folder_cache";
   private static final String INVALIDATE_CACHE_STAMP = "invalidate_caches_stamp.dat";
+  private final File myRootDir;
+
+  public ResourceFolderRepositoryFileCacheImpl() {
+    myRootDir = new File(PathManager.getSystemPath(), CACHE_DIRECTORY);
+  }
+
+  public ResourceFolderRepositoryFileCacheImpl(File rootDirParent) {
+    myRootDir = new File(rootDirParent, CACHE_DIRECTORY);
+  }
 
   private static Logger getLogger() {
     return Logger.getInstance(ResourceFolderRepositoryFileCacheImpl.class);
@@ -75,7 +84,7 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
   @Override
   @Nullable
   public File getRootDir() {
-    File cacheRootDir = new File(PathManager.getSystemPath(), CACHE_DIRECTORY);
+    File cacheRootDir = myRootDir;
     try {
       FileUtil.ensureExists(cacheRootDir);
       if (!cacheRootDir.isDirectory()) {

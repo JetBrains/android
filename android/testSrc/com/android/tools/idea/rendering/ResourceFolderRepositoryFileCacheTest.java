@@ -29,7 +29,6 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.picocontainer.MutablePicoContainer;
 
 import java.io.File;
@@ -46,7 +45,8 @@ public class ResourceFolderRepositoryFileCacheTest extends AndroidTestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    ResourceFolderRepositoryFileCache cache = new MockFileCache();
+    ResourceFolderRepositoryFileCache cache = new ResourceFolderRepositoryFileCacheImpl(
+      new File(myFixture.getTempDirPath()));
     myOldFileCacheService = overrideCacheService(cache);
   }
 
@@ -252,24 +252,6 @@ public class ResourceFolderRepositoryFileCacheTest extends AndroidTestCase {
     pruneTask.performInDumbMode(new MockProgressIndicator());
     assertFalse(dummyDirectory.exists());
     assertTrue(resourceCacheDir.exists());
-  }
-
-  /**
-   * Mostly use impl behavior, but ensure that each test has a different directory.
-   */
-  private class MockFileCache extends ResourceFolderRepositoryFileCacheImpl {
-    @Nullable
-    @Override
-    public File getRootDir() {
-      File rootDir = new File(myFixture.getTempDirPath(), "resource_file_cache_dir");
-      try {
-        FileUtil.ensureExists(rootDir);
-      }
-      catch (IOException e) {
-        assertTrue(e.getMessage(), false);
-      }
-      return rootDir;
-    }
   }
 
   /**
