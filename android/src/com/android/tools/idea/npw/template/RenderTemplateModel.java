@@ -50,28 +50,19 @@ public final class RenderTemplateModel extends WizardModel {
 
   @NotNull private final TemplateHandle myTemplateHandle;
   @NotNull private final String myCommandName;
-  private final boolean myOpenFilesInEditor;
 
   private final OptionalProperty<SourceProvider> mySourceSet = new OptionalValueProperty<SourceProvider>();
 
   private final Map<String, Object> myTemplateValues = Maps.newHashMap();
   @NotNull private final AndroidFacet myAndroidFacet;
 
-  @Nullable AndroidProjectPaths myPaths;
-  @Nullable AndroidIconGenerator myIconGenerator;
+  @Nullable private AndroidProjectPaths myPaths;
+  @Nullable private AndroidIconGenerator myIconGenerator;
 
   public RenderTemplateModel(@NotNull AndroidFacet androidFacet, @NotNull TemplateHandle templateHandle, @NotNull String commandName) {
-    this(androidFacet, templateHandle, commandName, true);
-  }
-
-  public RenderTemplateModel(@NotNull AndroidFacet androidFacet,
-                             @NotNull TemplateHandle templateHandle,
-                             @NotNull String commandName,
-                             boolean openFilesInEditor) {
     myAndroidFacet = androidFacet;
     myTemplateHandle = templateHandle;
     myCommandName = commandName;
-    myOpenFilesInEditor = openFilesInEditor;
 
     mySourceSet.addListener(new InvalidationListener() {
       @Override
@@ -166,10 +157,7 @@ public final class RenderTemplateModel extends WizardModel {
       ApplicationManager.getApplication().invokeLater(new Runnable() {
         @Override
         public void run() {
-          TemplateUtils.reformatAndRearrange(project, filesToReformat);
-          if (myOpenFilesInEditor) {
-            TemplateUtils.openEditors(project, filesToOpen, true);
-          }
+          TemplateUtils.openEditors(project, filesToOpen, true);
         }
       });
     }
