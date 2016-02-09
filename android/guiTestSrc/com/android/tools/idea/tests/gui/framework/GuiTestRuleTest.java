@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.framework;
 
-import com.intellij.openapi.ui.Messages;
 import com.intellij.util.ui.UIUtil;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.jetbrains.annotations.NotNull;
@@ -61,7 +60,7 @@ public class GuiTestRuleTest {
   public void testModalDialogsLeftOpen() throws IOException {
     exception.expectMessage(allOf(
       containsString("Modal dialog showing"),
-      containsString("javax.swing.JDialog with title 'This should not be shown'"),
+      containsString("javax.swing.JDialog with title 'Surprise!'"),
       containsString("javax.swing.JDialog with title 'Click a button'")));
 
     UIUtil.invokeLaterIfNeeded(new Runnable() {
@@ -78,7 +77,7 @@ public class GuiTestRuleTest {
             public void propertyChange(PropertyChangeEvent e) {
               String prop = e.getPropertyName();
               if (dialog.isVisible() && (e.getSource() == optionPane) && (prop.equals(JOptionPane.VALUE_PROPERTY))) {
-                Messages.showWarningDialog("Here's another modal dialog", "Surprise!");
+                JOptionPane.showMessageDialog(optionPane, "Here's another modal dialog", "Surprise!", JOptionPane.INFORMATION_MESSAGE);
               }
             }
           });
