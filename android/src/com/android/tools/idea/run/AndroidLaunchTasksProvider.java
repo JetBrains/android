@@ -110,63 +110,68 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
 
     if (InstantRunUtils.isInstantRunEnabled(myEnv) && InstantRunSettings.isInstantRunEnabled(myProject)) {
       AndroidGradleModel model = AndroidGradleModel.get(myFacet);
+      if (model != null) {
+        BooleanStatus status = InstantRunGradleUtils.getIrSupportStatus(model, device.getVersion());
+        if (status.success) {
+          InstantRunBuildInfo buildInfo = InstantRunGradleUtils.getBuildInfo(model);
+          if (buildInfo == null) {
+            String reason = "Gradle build-info.xml not found for module " + myFacet.getModule().getName() +
+                            ". Please make sure that you are using gradle plugin '2.0.0-alpha4' or higher.";
+            launchStatus.terminateLaunch(reason);
+            return null;
+          }
 
-      if (model != null && InstantRunGradleUtils.variantSupportsInstantRun(model, device.getVersion())) {
-        InstantRunBuildInfo buildInfo = InstantRunGradleUtils.getBuildInfo(model);
-        if (buildInfo == null) {
-          String reason = "Gradle build-info.xml not found for module " + myFacet.getModule().getName() +
-                          ". Please make sure that you are using gradle plugin '2.0.0-alpha4' or higher.";
-          launchStatus.terminateLaunch(reason);
-          return null;
-        }
+          String pkgName;
+          try {
+            pkgName = ApkProviderUtil.computePackageName(myFacet);
+          }
+          catch (ApkProvisionException e) {
+            launchStatus.terminateLaunch("Unable to determine application id for module " + myFacet.getModule().getName());
+            return null;
+          }
 
-        String pkgName;
-        try {
-          pkgName = ApkProviderUtil.computePackageName(myFacet);
-        }
-        catch (ApkProvisionException e) {
-          launchStatus.terminateLaunch("Unable to determine application id for module " + myFacet.getModule().getName());
-          return null;
-        }
-
-        if (!InstantRunSettings.isColdSwapEnabled(myProject) && !buildInfo.getVerifierStatus().isEmpty()) {
-          InstantRunManager.LOG.info("Coldswap disabled by user setting, restarting build.");
-          // We should update the id on the device even if there were no artifact changes, since otherwise the next build will mismatch
-          InstantRunManager.transferLocalIdToDeviceId(device, myFacet.getModule());
-          DeployApkTask.cacheManifestInstallationData(device, myFacet, pkgName);
-          restartBuild(device);
-          return null;
-        }
-
-        List<InstantRunArtifact> artifacts = buildInfo.getArtifacts();
-        if (artifacts.isEmpty()) {
-          // We should update the id on the device even if there were no artifact changes, since otherwise the next build will mismatch
-          InstantRunManager.transferLocalIdToDeviceId(device, myFacet.getModule());
-          DeployApkTask.cacheManifestInstallationData(device, myFacet, pkgName);
-
-          // if we are forced to do a cold swap, but we didn't get any artifacts, then issue a rebuild
-          // Note that this check looks at the verifier status being set because the verifier status could be empty if there were no changes,
-          // but the buildInfo.canHotswap() treats that differently
-          if (!buildInfo.getVerifierStatus().isEmpty()) {
-            InstantRunManager.LOG.info("Build info reports verifier failure, but no artifacts were provided. Restarting launch.");
-            launchStatus.terminateLaunch("Re-launching since we cannot push the current build results to device");
+          if (!InstantRunSettings.isColdSwapEnabled(myProject) && !buildInfo.getVerifierStatus().isEmpty()) {
+            InstantRunManager.LOG.info("Coldswap disabled by user setting, restarting build.");
+            // We should update the id on the device even if there were no artifact changes, since otherwise the next build will mismatch
+            InstantRunManager.transferLocalIdToDeviceId(device, myFacet.getModule());
+            DeployApkTask.cacheManifestInstallationData(device, myFacet, pkgName);
             restartBuild(device);
             return null;
           }
 
-          consolePrinter.stdout("No local changes, not deploying APK");
-          InstantRunManager.LOG.info("List of artifacts is empty, no deployment necessary.");
-          new InstantRunUserFeedback(myFacet.getModule()).info("No changes to deploy");
-          return null;
-        }
+          List<InstantRunArtifact> artifacts = buildInfo.getArtifacts();
+          if (artifacts.isEmpty()) {
+            // We should update the id on the device even if there were no artifact changes, since otherwise the next build will mismatch
+            InstantRunManager.transferLocalIdToDeviceId(device, myFacet.getModule());
+            DeployApkTask.cacheManifestInstallationData(device, myFacet, pkgName);
 
-        if (buildInfo.hasOneOf(SPLIT) || buildInfo.hasOneOf(SPLIT_MAIN)) {
-          InstantRunManager.LOG.info("Using split APK deploy task");
-          return new SplitApkDeployTask(pkgName, myFacet, buildInfo);
+            // if we are forced to do a cold swap, but we didn't get any artifacts, then issue a rebuild
+            // Note that this check looks at the verifier status being set because the verifier status could be empty if there were no changes,
+            // but the buildInfo.canHotswap() treats that differently
+            if (!buildInfo.getVerifierStatus().isEmpty()) {
+              InstantRunManager.LOG.info("Build info reports verifier failure, but no artifacts were provided. Restarting launch.");
+              launchStatus.terminateLaunch("Re-launching since we cannot push the current build results to device");
+              restartBuild(device);
+              return null;
+            }
+
+            consolePrinter.stdout("No local changes, not deploying APK");
+            InstantRunManager.LOG.info("List of artifacts is empty, no deployment necessary.");
+            new InstantRunUserFeedback(myFacet.getModule()).info("No changes to deploy");
+            return null;
+          }
+
+          if (buildInfo.hasOneOf(SPLIT) || buildInfo.hasOneOf(SPLIT_MAIN)) {
+            InstantRunManager.LOG.info("Using split APK deploy task");
+            return new SplitApkDeployTask(pkgName, myFacet, buildInfo);
+          }
+          if (buildInfo.hasOneOf(RESTART_DEX, DEX, RESOURCES)) {
+            InstantRunManager.LOG.info("Using Dex Deploy task");
+            return new DexDeployTask(myFacet, buildInfo);
+          }
         }
-        if (buildInfo.hasOneOf(RESTART_DEX, DEX, RESOURCES)) {
-          InstantRunManager.LOG.info("Using Dex Deploy task");
-          return new DexDeployTask(myFacet, buildInfo);
+        else {
+          InstantRunManager.LOG.info("Instant Run not supported: " + status.getCause());
         }
       }
     }
@@ -176,7 +181,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
     boolean instantRunAware =
       InstantRunUtils.isInstantRunEnabled(myEnv) &&
       InstantRunSettings.isInstantRunEnabled(myProject) &&
-      InstantRunGradleUtils.variantSupportsInstantRun(myFacet.getModule(), device.getVersion());
+      InstantRunGradleUtils.getIrSupportStatus(myFacet.getModule(), device.getVersion()).success;
     return new DeployApkTask(myFacet, myLaunchOptions, myApkProvider, instantRunAware);
   }
 
