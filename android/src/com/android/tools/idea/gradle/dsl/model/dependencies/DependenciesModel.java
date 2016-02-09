@@ -80,7 +80,7 @@ public class DependenciesModel extends GradleDslBlockModel {
 
   public boolean containsArtifact(@NotNull String configurationName, @NotNull ArtifactDependencySpec dependency) {
     for (ArtifactDependencyModel artifactDependencyModel : artifacts(configurationName)) {
-      if (artifactDependencyModel.getSpec().equals(dependency)) {
+      if (ArtifactDependencySpec.create(artifactDependencyModel).equals(dependency)) {
         return true;
       }
     }

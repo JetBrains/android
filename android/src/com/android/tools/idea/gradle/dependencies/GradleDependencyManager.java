@@ -82,7 +82,7 @@ public class GradleDependencyManager extends DependencyManager {
 
       boolean dependencyFound = false;
       for (ArtifactDependencyModel dependency : buildModel.dependencies().artifacts(COMPILE)) {
-        String compactNotation = dependency.getSpec().compactNotation();
+        String compactNotation = dependency.compactNotation().value();
         if (compactNotation.equals(libraryCoordinate)) {
           dependencyFound = true;
           break;

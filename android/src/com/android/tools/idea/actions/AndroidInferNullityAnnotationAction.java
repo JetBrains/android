@@ -192,7 +192,7 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
       DependenciesModel dependenciesModel = buildModel.dependencies();
       if (dependenciesModel != null) {
         for (ArtifactDependencyModel dependency : dependenciesModel.artifacts(COMPILE)) {
-          String notation = dependency.getSpec().compactNotation();
+          String notation = dependency.compactNotation().value();
           if (notation.equals(annotationsLibraryCoordinate) || notation.equals(appCompatLibraryCoordinate)) {
             dependencyFound = true;
             break;

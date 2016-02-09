@@ -66,7 +66,7 @@ public class PsdLibraryDependencyModel extends PsdAndroidDependencyModel {
   private ArtifactDependencySpec findMismatchingSpec() {
     DependencyModel parsedModel = getParsedModel();
     if (parsedModel instanceof ArtifactDependencyModel) {
-      ArtifactDependencySpec requestedSpec = ((ArtifactDependencyModel)parsedModel).getSpec();
+      ArtifactDependencySpec requestedSpec = ArtifactDependencySpec.create((ArtifactDependencyModel)parsedModel);
       if (!requestedSpec.equals(myResolvedSpec)) {
         // Version mismatch. This can happen when the project specifies an artifact version but Gradle uses a different version
         // from a transitive dependency.

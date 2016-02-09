@@ -40,6 +40,8 @@ import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
  * Represents a {@link GrExpression} element.
  */
 public abstract class GradleDslExpression extends GradleDslElement {
+  @NotNull private List<GradleResolvedVariable> myResolvedVariables = ImmutableList.of();
+
   @Nullable protected GrExpression myExpression;
 
   protected GradleDslExpression(@Nullable GradleDslElement parent,
@@ -62,6 +64,16 @@ public abstract class GradleDslExpression extends GradleDslElement {
   public abstract <T> T getValue(@NotNull Class<T> clazz);
 
   public abstract void setValue(@NotNull Object value);
+
+  @Override
+  @NotNull
+  public List<GradleResolvedVariable> getResolvedVariables() {
+    return myResolvedVariables;
+  }
+
+  public void setResolvedVariables(@NotNull List<GradleResolvedVariable> resolvedVariables) {
+    myResolvedVariables = ImmutableList.copyOf(resolvedVariables);
+  }
 
   /**
    * Returns the resolved value of the given {@code referenceText} of type {@code clazz} when the {@code referenceText} is referring to
