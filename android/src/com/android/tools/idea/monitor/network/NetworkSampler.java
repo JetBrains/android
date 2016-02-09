@@ -32,16 +32,12 @@ public class NetworkSampler extends DeviceSampler {
   private static final Logger LOG = Logger.getLogger(NetworkSampler.class.getName());
   private static final String LINE_SPLIT_REGEX = "[ \t\r\n\f]";
 
-  // Rx (received) and tx (transmitted) bytes in system file are accumulated, but what needed for monitoring is the real-time traffic flow.
-  // Stores the last read bytes variable to calculate the real time data.
-  private long myLastRxBytes;
-  private long myLastTxBytes;
   private int myUid;
-  // The first sampling values are not current traffic, because they can include previous network traffic values.
-  private boolean myIsFirstSample;
+  private long myStartingRxBytes;
+  private long myStartingTxBytes;
 
   public NetworkSampler(int frequencyMs) {
-    super(new TimelineData(TIMELINE_DATA_STREAM_SIZE, TIMELINE_DATA_SIZE), frequencyMs);
+    super(new TimelineData(TIMELINE_DATA_STREAM_SIZE, TIMELINE_DATA_SIZE, new TimelineData.AreaTransform()), frequencyMs);
   }
 
   @NotNull
@@ -52,11 +48,11 @@ public class NetworkSampler extends DeviceSampler {
 
   @Override
   public void start() {
-    super.start();
     myUid = -1;
-    myLastRxBytes = 0L;
-    myLastTxBytes = 0L;
-    myIsFirstSample = true;
+    myStartingRxBytes = -1L;
+    myStartingTxBytes = -1L;
+    // Start the sampling after data is reset.
+    super.start();
   }
 
   /**
@@ -134,28 +130,16 @@ public class NetworkSampler extends DeviceSampler {
     catch (IOException ioException) {
       myDataType = TYPE_UNREACHABLE;
     }
-    if (receiver.isFileMissing()) {
+    if (receiver.isFileMissing() || myDataType != TYPE_DATA) {
       return;
     }
-
-    long rxBytesIncreased = 0L;
-    long rxBytesInTotal = receiver.getRxBytes();
-    if (rxBytesInTotal > myLastRxBytes) {
-      rxBytesIncreased = rxBytesInTotal - myLastRxBytes;
-      myLastRxBytes = rxBytesInTotal;
-    }
-    long txBytesIncreased = 0L;
-    long txBytesInTotal = receiver.getTxBytes();
-    if (txBytesInTotal > myLastTxBytes) {
-      txBytesIncreased = txBytesInTotal - myLastTxBytes;
-      myLastTxBytes = txBytesInTotal;
-    }
-    if (myIsFirstSample) {
-      myIsFirstSample = false;
-      myTimelineData.add(System.currentTimeMillis(), myDataType, 0.0f, 0.0f);
+    if (myStartingRxBytes < 0) {
+      myStartingRxBytes = receiver.getRxBytes();
+      myStartingTxBytes = receiver.getTxBytes();
     }
     else {
-      myTimelineData.addFromArea(System.currentTimeMillis(), myDataType, rxBytesIncreased / 1024.f, txBytesIncreased / 1024.f);
+      myTimelineData.add(System.currentTimeMillis(), myDataType, (receiver.getRxBytes() - myStartingRxBytes) / 1024.f,
+                         (receiver.getTxBytes() - myStartingTxBytes) / 1024.f);
     }
   }
 
