@@ -983,17 +983,13 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   /**
-   * Toggles breakpoints at the line numbers in {@code lines} of the source file with basename {@code fileBaseName}. This will work only
-   * if the fileBasename is unique in the project that's open on Android Studio.
+   * Toggles breakpoints at the line numbers in {@code lines} of the source file {@code fileName}.
    */
-  public void toggleBreakPoints(String fileBasename, int[] lines) {
-    // We open the file twice to bring the editor into focus. Idea 1.15 has this bug where opening a file doesn't automatically bring its
-    // editor window into focus.
-    MiscUtils.openFile(this, fileBasename);
-    MiscUtils.openFile(this, fileBasename);
+  public void openAndToggleBreakPoints(String fileName, int[] lines) {
+    EditorFixture editor = getEditor().open(fileName);
     for (int line : lines) {
-      MiscUtils.navigateToLine(this, line);
-      MiscUtils.invokeMenuPathOnRobotIdle(this, "Run", "Toggle Line Breakpoint");
+      editor.moveToLine(line);
+      invokeMenuPath("Run", "Toggle Line Breakpoint"); // TODO: Use editor.invokeAction instead and provide the mnemonic.
     }
   }
 
