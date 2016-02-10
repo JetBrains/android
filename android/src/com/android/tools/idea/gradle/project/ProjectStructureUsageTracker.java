@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project;
 
 import com.android.builder.model.*;
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.fd.InstantRunManager;
+import com.android.tools.idea.fd.InstantRunGradleUtils;
 import com.android.tools.idea.fd.InstantRunSettings;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.stats.UsageTracker;
@@ -75,12 +75,14 @@ class ProjectStructureUsageTracker {
 
     // Ideally we would like to get data from an "app" module, but if the project does not have one (which would be unusual, we can use
     // an Android library one.)
-    AndroidGradleModel target = appModel != null ? appModel : libModel;
-    if (target != null) {
-      AndroidProject androidProject = target.getAndroidProject();
+    AndroidGradleModel model = appModel != null ? appModel : libModel;
+    if (model != null) {
+      String appId = model.getApplicationId();
+      AndroidProject androidProject = model.getAndroidProject();
       GradleVersion gradleVersion = getGradleVersion(myProject);
-      boolean instantRunEnabled = InstantRunSettings.isInstantRunEnabled(myProject) && InstantRunManager.variantSupportsInstantRun(target);
-      UsageTracker.getInstance().trackGradleArtifactVersions(target.getApplicationId(),
+      boolean instantRunEnabled =
+        InstantRunSettings.isInstantRunEnabled(myProject) && InstantRunGradleUtils.getIrSupportStatus(model, null).success;
+      UsageTracker.getInstance().trackGradleArtifactVersions(appId,
                                                              androidProject.getModelVersion(),
                                                              gradleVersion != null ? gradleVersion.toString() : "<Not Found>",
                                                              instantRunEnabled);

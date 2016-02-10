@@ -17,7 +17,8 @@ package com.android.tools.idea.run;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.fd.client.InstantRunBuildInfo;
-import com.android.tools.idea.fd.InstantRunManager;
+import com.android.tools.idea.fd.BooleanStatus;
+import com.android.tools.idea.fd.InstantRunGradleUtils;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.run.tasks.LaunchTasksProvider;
 import com.android.tools.idea.run.tasks.LaunchTasksProviderFactory;
@@ -80,9 +81,12 @@ public class AndroidRunState implements RunProfileState {
       throw new ExecutionException("Unable to obtain application id");
     }
 
+    // TODO: this class is independent of gradle, except for this hack
     AndroidGradleModel model = AndroidGradleModel.get(myModule);
-    if (model != null && InstantRunManager.variantSupportsInstantRun(model)) {
-      InstantRunBuildInfo info = InstantRunManager.getBuildInfo(model);
+    BooleanStatus irSupportStatus = InstantRunGradleUtils.getIrSupportStatus(model, null);
+    if (irSupportStatus.success) {
+      assert model != null;
+      InstantRunBuildInfo info = InstantRunGradleUtils.getBuildInfo(model);
       if (info != null && !info.isCompatibleFormat()) {
         throw new ExecutionException("This version of Android Studio is incompatible with the Gradle Plugin used. " +
                                      "Try disabling Instant Run (or updating either the IDE or the Gradle plugin to " +

@@ -64,6 +64,7 @@ public class InstantRunConfigurable
   private JBLabel myGradleLabel;
   private HyperlinkLabel myOldVersionLabel;
   private JBCheckBox myShowToastCheckBox;
+  private JBCheckBox myShowIrStatusNotifications;
   private JBCheckBox myColdSwapCheckBox;
   private JComboBox myColdSwapMode;
   private JPanel myColdSwapPanel;
@@ -120,6 +121,7 @@ public class InstantRunConfigurable
     return myBuildConfiguration.INSTANT_RUN != isInstantRunEnabled() ||
            myBuildConfiguration.RESTART_ACTIVITY != isRestartActivity() ||
            myBuildConfiguration.SHOW_TOAST != isShowToast() ||
+           myBuildConfiguration.SHOW_IR_STATUS_NOTIFICATIONS != isShowStatusNotifications() ||
            SHOW_EXPERT_OPTIONS && (myBuildConfiguration.COLD_SWAP != isColdSwapEnabled() ||
              !Objects.equal(myBuildConfiguration.COLD_SWAP_MODE, getColdSwapMode().value));
   }
@@ -133,6 +135,7 @@ public class InstantRunConfigurable
       myBuildConfiguration.COLD_SWAP_MODE = getColdSwapMode().value;
     }
     myBuildConfiguration.SHOW_TOAST = isShowToast();
+    myBuildConfiguration.SHOW_IR_STATUS_NOTIFICATIONS = isShowStatusNotifications();
 
     InstantRunManager.updateFileListener(myProject);
   }
@@ -142,6 +145,7 @@ public class InstantRunConfigurable
     myInstantRunCheckBox.setSelected(myBuildConfiguration.INSTANT_RUN);
     myRestartActivityCheckBox.setSelected(myBuildConfiguration.RESTART_ACTIVITY);
     myShowToastCheckBox.setSelected(myBuildConfiguration.SHOW_TOAST);
+    myShowIrStatusNotifications.setSelected(myBuildConfiguration.SHOW_IR_STATUS_NOTIFICATIONS);
     if (SHOW_EXPERT_OPTIONS) {
       myColdSwapCheckBox.setSelected(myBuildConfiguration.COLD_SWAP);
       myColdSwapMode.setSelectedItem(ColdSwapMode.fromValue(myBuildConfiguration.COLD_SWAP_MODE, ColdSwapMode.DEFAULT));
@@ -175,6 +179,10 @@ public class InstantRunConfigurable
     return myShowToastCheckBox.isSelected();
   }
 
+  private boolean isShowStatusNotifications() {
+    return myShowIrStatusNotifications.isSelected();
+  }
+
   private void createUIComponents() {
     myOldVersionLabel = new HyperlinkLabel();
     setSyncLinkMessage("");
@@ -194,7 +202,7 @@ public class InstantRunConfigurable
       AndroidGradleModel model = AndroidGradleModel.get(module);
       if (model != null) {
         isGradle = true;
-        if (InstantRunManager.modelSupportsInstantRun(model)) {
+        if (InstantRunGradleUtils.modelSupportsInstantRun(model)) {
           isCurrentPlugin = true;
           break;
         }
@@ -209,6 +217,7 @@ public class InstantRunConfigurable
     myInstantRunCheckBox.setEnabled(isGradle); // allow turning off instant run even if the plugin is not the latest
     myRestartActivityCheckBox.setEnabled(enabled);
     myShowToastCheckBox.setEnabled(enabled);
+    myShowIrStatusNotifications.setEnabled(enabled);
   }
 
   @Override
