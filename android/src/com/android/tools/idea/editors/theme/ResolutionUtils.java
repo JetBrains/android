@@ -15,11 +15,12 @@
  */
 package com.android.tools.idea.editors.theme;
 
-
 import com.android.ide.common.rendering.api.ItemResourceValue;
+import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.ResourceUrl;
+import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
@@ -29,8 +30,10 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
+import org.jetbrains.android.dom.AndroidDomUtil;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
+import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.inspections.lint.IntellijLintClient;
 import org.jetbrains.android.sdk.AndroidTargetData;
@@ -38,6 +41,7 @@ import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -61,15 +65,19 @@ public class ResolutionUtils {
    */
   @NotNull
   public static String getStyleResourceUrl(@NotNull String qualifiedName) {
+    return getResourceUrlFromQualifiedName(qualifiedName, TAG_STYLE);
+  }
+
+  public static String getResourceUrlFromQualifiedName(@NotNull String qualifiedName, @NotNull String type) {
+    String startChar = TAG_ATTR.equals(type) ? PREFIX_THEME_REF : PREFIX_RESOURCE_REF;
     int colonIndex = qualifiedName.indexOf(':');
     if (colonIndex != -1) {
       // The theme name contains a namespace, change the format to be "@namespace:style/ThemeName"
-      String namespace = qualifiedName.substring(0, colonIndex + 1); // Name space plus + colon
+      String namespace = qualifiedName.substring(0, colonIndex + 1); // Namespace plus + colon
       String themeNameWithoutNamespace = StringUtil.trimStart(qualifiedName, namespace);
-      return PREFIX_RESOURCE_REF + namespace + TAG_STYLE + "/" + themeNameWithoutNamespace;
+      return startChar + namespace + type + "/" + themeNameWithoutNamespace;
     }
-
-    return STYLE_RESOURCE_PREFIX + qualifiedName;
+    return startChar + type + "/" + qualifiedName;
   }
 
   /**
@@ -80,7 +88,7 @@ public class ResolutionUtils {
   public static String getQualifiedNameFromResourceUrl(@NotNull String styleResourceUrl) {
     Matcher matcher = RESOURCE_URL_MATCHER.matcher(styleResourceUrl);
     boolean matches = matcher.find();
-    assert matches;
+    assert matches : "no match " + styleResourceUrl;
 
     String namespace = Strings.nullToEmpty(matcher.group(1)); // the namespace containing the colon (if existing)
     String resourceName = matcher.group(3); // the resource name
@@ -96,6 +104,15 @@ public class ResolutionUtils {
   public static String getNameFromQualifiedName(@NotNull String qualifiedName) {
     int colonIndex = qualifiedName.indexOf(':');
     return colonIndex != -1 ? qualifiedName.substring(colonIndex + 1) : qualifiedName;
+  }
+
+  /**
+   * @return the namespace of the full name, so bob:thing will return bob
+   */
+  @Nullable("if there is no namespace")
+  public static String getNamespaceFromQualifiedName(String qualifiedName) {
+    int colonIndex = qualifiedName.indexOf(':');
+    return colonIndex != -1 ? qualifiedName.substring(0, colonIndex) : null;
   }
 
   /**
@@ -157,17 +174,28 @@ public class ResolutionUtils {
   public static ConfiguredThemeEditorStyle getStyle(@NotNull Configuration configuration, @NotNull final String qualifiedStyleName, @Nullable Module module) {
     ResourceResolver resolver = configuration.getResourceResolver();
     assert resolver != null;
-
     return getStyle(configuration, configuration.getResourceResolver(), qualifiedStyleName, module);
   }
 
   @Nullable
   public static AttributeDefinition getAttributeDefinition(@NotNull Configuration configuration, @NotNull ItemResourceValue itemResValue) {
-    AttributeDefinitions definitions;
-    Module module = configuration.getModule();
+    return getAttributeDefinition(configuration.getModule(), configuration, getQualifiedItemName(itemResValue));
+  }
 
-    if (itemResValue.isFrameworkAttr()) {
-      IAndroidTarget target = configuration.getTarget();
+  @Nullable
+  public static AttributeDefinition getAttributeDefinition(@NotNull Module module, @Nullable Configuration configuration, @NotNull String name) {
+    AttributeDefinitions definitions;
+
+    if (name.startsWith(ANDROID_NS_NAME_PREFIX)) {
+      IAndroidTarget target;
+      if (configuration == null) {
+        AndroidFacet facet = AndroidFacet.getInstance(module);
+        assert facet != null;
+        target = facet.getConfigurationManager().getDefaultTarget();
+      }
+      else {
+        target = configuration.getTarget();
+      }
       assert target != null;
 
       AndroidTargetData androidTargetData = AndroidTargetData.getTargetData(target, module);
@@ -184,7 +212,7 @@ public class ResolutionUtils {
     if (definitions == null) {
       return null;
     }
-    return definitions.getAttrDefByName(itemResValue.getName());
+    return definitions.getAttrDefByName(getNameFromQualifiedName(name));
   }
 
   /**
@@ -234,5 +262,51 @@ public class ResolutionUtils {
       parentName = PREFIX_ANDROID + parentName;
     }
     return parentName;
+  }
+
+  @NotNull
+  public static Collection<ItemResourceValue> getThemeAttributes(@NotNull ResourceResolver resolver, final @NotNull String themeUrl) {
+    Map<String, ItemResourceValue> allItems = new HashMap<String, ItemResourceValue>();
+    String themeName = getQualifiedNameFromResourceUrl(themeUrl);
+    do {
+      StyleResourceValue theme = resolver.getStyle(getNameFromQualifiedName(themeName), themeName.startsWith(PREFIX_ANDROID));
+      assert theme != null;
+
+      Collection<ItemResourceValue> themeItems = theme.getValues();
+      for (ItemResourceValue item : themeItems) {
+        String itemName = getQualifiedItemName(item);
+        if (!allItems.containsKey(itemName)) {
+          allItems.put(itemName, item);
+        }
+      }
+
+      themeName = getParentQualifiedName(theme);
+    } while (themeName != null);
+
+    return allItems.values();
+  }
+
+  @Nullable("if we can't work out the type, e.g a 'reference' with a '@null' value or enum")
+  public static ResourceType getAttrType(@NotNull ItemResourceValue item, @NotNull Configuration configuration) {
+    ResourceResolver resolver = configuration.getResourceResolver();
+    assert resolver != null;
+    ResourceValue resolvedValue = resolver.resolveResValue(item);
+    ResourceType attrType = resolvedValue.getResourceType();
+    if (attrType != null) {
+      return attrType;
+    }
+    else {
+      AttributeDefinition def = getAttributeDefinition(configuration, item);
+      if (def != null) {
+        for (AttributeFormat attrFormat : def.getFormats()) {
+          attrType = AndroidDomUtil.getResourceType(attrFormat);
+          if (attrType != null) {
+            return attrType;
+          }
+        }
+      }
+    }
+    // sometimes we won't find the type of the attr, this means it's either a reference that points to @null, or a enum
+    return null;
   }
 }

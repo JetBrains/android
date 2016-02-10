@@ -97,7 +97,7 @@ public class SwatchComponent extends JPanel {
 
     if (isEditor) {
       //noinspection unchecked (EMPTY_COMPLETION doesn't need the generic type as it is empty)
-      myTextField = new TextFieldWithAutoCompletion<String>(project, TextFieldWithAutoCompletion.EMPTY_COMPLETION, true, null) {
+      myTextField = new TextFieldWithAutoCompletion<String>(project, new TextFieldWithAutoCompletion.StringsCompletionProvider(null, null), true, null) {
         @Override
         protected boolean processKeyBinding(KeyStroke ks, KeyEvent e, int condition, boolean pressed) {
           if (e.getKeyCode() == KeyEvent.VK_ENTER) {

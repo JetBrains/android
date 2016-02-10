@@ -1,5 +1,5 @@
 <html><body><B>myStyle</B><br/> My Style Documentation <br/><hr/><BR/>
-?android:attr/buttonStyle => @style/Widget.Button<BR/>
+?attr/myStyle => ?android:attr/buttonStyle => @style/Widget.Button<BR/>
 <BR/>
 <hr><B>Widget.Button</B>:<BR/>
 &nbsp;&nbsp;&nbsp;&nbsp;android:<B>textAppearance</B> = ?attr/textAppearanceSmallInverse => @style/TextAppearance.Small.Inverse<BR/>
