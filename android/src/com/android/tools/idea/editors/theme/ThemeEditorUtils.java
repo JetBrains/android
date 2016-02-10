@@ -122,7 +122,10 @@ public class ThemeEditorUtils {
       return cachedTooltip;
     }
 
-    String tooltipContents = AndroidJavaDocRenderer.renderItemResourceWithDoc(module, configuration, resValue);
+    ResourceUrl url = ResourceUrl.parse(ResolutionUtils.getResourceUrlFromQualifiedName(ResolutionUtils.getQualifiedItemName(resValue), SdkConstants.TAG_ATTR));
+    assert url != null;
+    String tooltipContents = AndroidJavaDocRenderer.render(module, configuration, url);
+    assert tooltipContents != null;
     ourTooltipCache.put(tooltipKey, tooltipContents);
 
     return tooltipContents;
