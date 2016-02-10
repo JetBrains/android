@@ -72,7 +72,7 @@ public abstract class ResourceTypeClassBase extends AndroidLightClass {
       myFieldsCache = CachedValuesManager.getManager(getProject()).createCachedValue(new CachedValueProvider<PsiField[]>() {
         @Override
         public Result<PsiField[]> compute() {
-          return Result.create(doGetFields(), PsiModificationTracker.MODIFICATION_COUNT);
+          return Result.create(doGetFields(), PsiModificationTracker.OUT_OF_CODE_BLOCK_MODIFICATION_COUNT);
         }
       });
     }
