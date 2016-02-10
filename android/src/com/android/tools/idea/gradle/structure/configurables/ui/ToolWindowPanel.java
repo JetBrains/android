@@ -15,12 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui;
 
-import com.android.tools.idea.gradle.util.ui.Header;
-import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.openapi.wm.impl.AnchoredButton;
@@ -28,7 +23,6 @@ import com.intellij.openapi.wm.impl.StripeButtonUI;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.SideBorder;
 import com.intellij.util.EventDispatcher;
-import com.intellij.util.ui.ChildFocusWatcher;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -36,131 +30,81 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.FocusEvent;
 import java.util.EventListener;
 
 import static com.intellij.openapi.wm.ToolWindowAnchor.*;
 import static com.intellij.util.ui.UIUtil.FontSize;
 import static com.intellij.util.ui.UIUtil.getLabelFont;
-import static javax.swing.SwingUtilities.isDescendingFrom;
 
 public abstract class ToolWindowPanel extends JPanel implements Disposable {
-  @NotNull private final Header myHeader;
-  @NotNull private final ChildFocusWatcher myFocusWatcher;
+  @NotNull private final ToolWindowHeader myHeader;
 
-  private final EventDispatcher<StateChangeListener> myEventDispatcher = EventDispatcher.create(StateChangeListener.class);
+  private final EventDispatcher<RestoreListener> myEventDispatcher = EventDispatcher.create(RestoreListener.class);
 
-  private JPanel myMinimizedContainerPanel;
-  private MinimizeButton myMinimizeButton;
-  private AnAction myMinimizeAction;
+  private JPanel myMinimizedPanel;
+  private AnchoredToolWindowButton myAnchoredButton;
 
-  protected ToolWindowPanel(@NotNull String title, @Nullable MinimizedInfo minimizedInfo) {
+  protected ToolWindowPanel(@NotNull String title, @NotNull Icon icon, @Nullable ToolWindowAnchor anchor) {
     super(new BorderLayout());
-    myHeader = new Header(title) {
-      @Override
-      public boolean isActive() {
-        return isFocused();
-      }
-    };
-    add(myHeader, BorderLayout.NORTH);
+    myHeader = ToolWindowHeader.createAndAdd(title, icon, this, anchor);
 
-    myFocusWatcher = new ChildFocusWatcher(this) {
-      @Override
-      protected void onFocusGained(FocusEvent event) {
-        myHeader.repaint();
-      }
-
-      @Override
-      protected void onFocusLost(FocusEvent event) {
-        myHeader.repaint();
-      }
-    };
-
-    if (minimizedInfo != null) {
-      myMinimizeButton = new MinimizeButton(title, minimizedInfo.icon, minimizedInfo.anchor);
-      myMinimizeButton.addActionListener(new ActionListener() {
+    if (anchor != null) {
+      myAnchoredButton = new AnchoredToolWindowButton(myHeader, anchor);
+      myAnchoredButton.addActionListener(new ActionListener() {
         @Override
         public void actionPerformed(ActionEvent e) {
-          myEventDispatcher.getMulticaster().maximized();
+          myAnchoredButton.setSelected(false);
+          myEventDispatcher.getMulticaster().restored();
         }
       });
 
-      myMinimizedContainerPanel = new MinimizedContainerPanel(myMinimizeButton);
-      myMinimizeAction = new DumbAwareAction("Minimize", "", AllIcons.General.HideRight) {
-        @Override
-        public void actionPerformed(AnActionEvent e) {
-          myEventDispatcher.getMulticaster().minimized();
-        }
-      };
+      myMinimizedPanel = new MinimizedContainerPanel(myAnchoredButton);
     }
   }
 
-  private boolean isFocused() {
-    KeyboardFocusManager focusManager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
-    Component focusOwner = focusManager.getFocusOwner();
-    return focusOwner != null && isDescendingFrom(focusOwner, this);
-  }
-
-  public void addStateChangeListener(@NotNull StateChangeListener listener, @NotNull Disposable parentDisposable) {
+  public void addRestoreListener(@NotNull RestoreListener listener, @NotNull Disposable parentDisposable) {
     myEventDispatcher.addListener(listener, parentDisposable);
   }
 
   @Nullable
-  public JPanel getMinimizedContainerPanel() {
-    return myMinimizedContainerPanel;
-  }
-
-  @Nullable
-  protected AnAction getMinimizeAction() {
-    return myMinimizeAction;
+  public JPanel getMinimizedPanel() {
+    return myMinimizedPanel;
   }
 
   @NotNull
-  protected Header getHeader() {
+  public ToolWindowHeader getHeader() {
     return myHeader;
   }
 
   @Nullable
   public ToolWindowAnchor getAnchor() {
-    return myMinimizeButton != null ? myMinimizeButton.getAnchor() : null;
+    return myAnchoredButton != null ? myAnchoredButton.getAnchor() : null;
   }
 
   @Override
   public void dispose() {
-    Disposer.dispose(myFocusWatcher);
+    Disposer.dispose(myHeader);
   }
 
-  public static class MinimizedInfo {
-    @NotNull final Icon icon;
-    @NotNull final ToolWindowAnchor anchor;
-
-    public MinimizedInfo(@NotNull Icon icon, @NotNull ToolWindowAnchor anchor) {
-      this.icon = icon;
-      this.anchor = anchor;
-    }
-  }
-
-  public interface StateChangeListener extends EventListener {
-    void maximized();
-
-    void minimized();
+  public interface RestoreListener extends EventListener {
+    void restored();
   }
 
   /**
    * Panel that displays a minimized {@link ToolWindowPanel}.
    */
   private static class MinimizedContainerPanel extends JPanel {
-    @NotNull private final MinimizeButton myMinimizeButton;
+    @NotNull private final AnchoredToolWindowButton myAnchoredButton;
 
-    MinimizedContainerPanel(@NotNull MinimizeButton minimizeButton) {
-      myMinimizeButton = minimizeButton;
+    MinimizedContainerPanel(@NotNull AnchoredToolWindowButton anchoredButton) {
+      myAnchoredButton = anchoredButton;
       configureBorder();
-      add(myMinimizeButton);
+      add(myAnchoredButton);
     }
 
     private void configureBorder() {
       int borderStyle;
-      ToolWindowAnchor anchor = myMinimizeButton.getAnchor();
+      ToolWindowAnchor anchor = myAnchoredButton.getAnchor();
       if (anchor == LEFT) {
         borderStyle = SideBorder.RIGHT;
       }
@@ -178,21 +122,21 @@ public abstract class ToolWindowPanel extends JPanel implements Disposable {
 
     @Override
     public void doLayout() {
-      Dimension size = myMinimizeButton.getPreferredSize();
-      if (myMinimizeButton.getAnchor() == BOTTOM) {
-        myMinimizeButton.setBounds(0, 1, size.width, 25);
+      Dimension size = myAnchoredButton.getPreferredSize();
+      if (myAnchoredButton.getAnchor() == BOTTOM) {
+        myAnchoredButton.setBounds(0, 1, size.width, 25);
       }
       else {
-        myMinimizeButton.setBounds(0, 0, getWidth(), size.height);
+        myAnchoredButton.setBounds(0, 0, getWidth(), size.height);
       }
     }
   }
 
-  private static class MinimizeButton extends AnchoredButton {
+  private static class AnchoredToolWindowButton extends AnchoredButton {
     @NotNull private final ToolWindowAnchor myAnchor;
 
-    MinimizeButton(@NotNull String title, @NotNull Icon icon, @NotNull ToolWindowAnchor anchor) {
-      super(title, icon);
+    AnchoredToolWindowButton(@NotNull ToolWindowHeader header, @NotNull ToolWindowAnchor anchor) {
+      super(header.getTitle(), header.getIcon());
       myAnchor = anchor;
       setBorder(BorderFactory.createEmptyBorder());
       setFocusable(false);
