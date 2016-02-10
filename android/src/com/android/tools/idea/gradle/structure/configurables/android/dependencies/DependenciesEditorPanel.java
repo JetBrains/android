@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies;
 
 import com.android.tools.idea.gradle.structure.configurables.ui.PsdUISettings;
+import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowHeader;
 import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowPanel;
 import com.android.tools.idea.gradle.structure.model.android.PsdAndroidDependencyModel;
 import com.android.tools.idea.gradle.structure.model.android.PsdAndroidModuleModel;
@@ -63,24 +64,28 @@ class DependenciesEditorPanel extends JPanel implements Disposable {
 
     myAltPanel = new JPanel(new BorderLayout());
 
-    JPanel minimizedContainerPanel = myVariantsToolWindowPanel.getMinimizedContainerPanel();
+    ToolWindowHeader header = myVariantsToolWindowPanel.getHeader();
+
+    JPanel minimizedContainerPanel = myVariantsToolWindowPanel.getMinimizedPanel();
     assert minimizedContainerPanel != null;
     myAltPanel.add(minimizedContainerPanel, BorderLayout.EAST);
 
-    myVariantsToolWindowPanel.addStateChangeListener(new ToolWindowPanel.StateChangeListener() {
-      @Override
-      public void maximized() {
-        maximize();
-      }
-
+    header.addMinimizeListener(new ToolWindowHeader.MinimizeListener() {
       @Override
       public void minimized() {
         minimize();
       }
     }, this);
+
+    myVariantsToolWindowPanel.addRestoreListener(new ToolWindowPanel.RestoreListener() {
+      @Override
+      public void restored() {
+        restore();
+      }
+    }, this);
   }
 
-  private void maximize() {
+  private void restore() {
     remove(myAltPanel);
     myAltPanel.remove(myDependenciesPanel);
     myVerticalSplitter.setFirstComponent(myDependenciesPanel);
@@ -116,7 +121,7 @@ class DependenciesEditorPanel extends JPanel implements Disposable {
       minimize();
     }
     else {
-      maximize();
+      restore();
     }
   }
 
