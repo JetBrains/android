@@ -16,11 +16,6 @@
 package com.android.tools.idea.tests.gui.framework.ndk;
 
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import org.fest.swing.core.Robot;
-import org.fest.swing.timing.Pause;
-
-import java.awt.event.KeyEvent;
-import java.util.concurrent.TimeUnit;
 
 public class MiscUtils {
   /**
@@ -29,33 +24,5 @@ public class MiscUtils {
   public static void invokeMenuPathOnRobotIdle(IdeFrameFixture projectFrame, String... path) {
     projectFrame.robot().waitForIdle();
     projectFrame.invokeMenuPath(path);
-  }
-
-  /**
-   * Opens the file with basename {@code fileBasename}
-   */
-  public static void openFile(IdeFrameFixture projectFrame,String fileBasename) {
-    invokeMenuPathOnRobotIdle(projectFrame, "Navigate", "File...");
-    projectFrame.robot().waitForIdle();
-    typeText("multifunction-jni.c", projectFrame.robot(), 30);
-    projectFrame.robot().pressAndReleaseKey(KeyEvent.VK_ENTER);
-  }
-
-  /**
-   * Navigates to line number {@code lineNum} of the currently active editor window.
-   */
-  public static void navigateToLine(IdeFrameFixture projectFrame, int lineNum) {
-    invokeMenuPathOnRobotIdle(projectFrame, "Navigate", "Line...");
-    projectFrame.robot().enterText(Integer.toString(lineNum));
-    projectFrame.robot().waitForIdle();
-    projectFrame.robot().pressAndReleaseKey(KeyEvent.VK_ENTER);
-  }
-
-  private static void typeText(String text, Robot robot, long delayAfterEachCharacterMillis) {
-    robot.waitForIdle();
-    for (int i = 0; i < text.length(); ++i) {
-      robot.type(text.charAt(i));
-      Pause.pause(delayAfterEachCharacterMillis, TimeUnit.MILLISECONDS);
-    }
   }
 }
