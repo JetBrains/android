@@ -24,6 +24,7 @@ import com.intellij.ui.components.JBCheckBox;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.table.TableCellRenderer;
@@ -70,8 +71,10 @@ public abstract class NlAttributeRenderer implements NlPropertyRenderer, TableCe
       comp.setBackground(bg);
     }
 
-    boolean hover = ((PTable)table).isHover(row, col);
+    Icon icon = getHoverIcon((NlProperty)value);
+    boolean hover = icon != null && ((PTable)table).isHover(row, col);
     myBrowseButton.setVisible(hover);
+    myBrowseButton.setIcon(icon);
 
     customizeRenderContent(table, (NlProperty)value, isSelected, hasFocus, row, col);
 
@@ -84,6 +87,9 @@ public abstract class NlAttributeRenderer implements NlPropertyRenderer, TableCe
                                               boolean hasFocus,
                                               int row,
                                               int col);
+
+  @Nullable
+  public abstract Icon getHoverIcon(NlProperty p);
 
   @Override
   public abstract boolean canRender(@NotNull NlProperty p, @NotNull Set<AttributeFormat> formats);

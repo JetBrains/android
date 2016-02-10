@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.property.renderer;
 import com.android.SdkConstants;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.uibuilder.property.NlProperty;
+import com.intellij.icons.AllIcons;
 import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.util.ui.ThreeStateCheckBox;
@@ -68,6 +69,11 @@ public class NlBooleanRenderer extends NlAttributeRenderer {
     } else {
       myCheckbox.setEnabled(false);
     }
+  }
+
+  @Override
+  public Icon getHoverIcon(@NotNull NlProperty property) {
+    return AllIcons.General.Ellipsis;
   }
 
   @NotNull
