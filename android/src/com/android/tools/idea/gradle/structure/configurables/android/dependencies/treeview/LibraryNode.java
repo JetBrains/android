@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview;
 
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpec;
-import com.android.tools.idea.gradle.structure.configurables.ui.PsdUISettings;
 import com.android.tools.idea.gradle.structure.model.PsdModel;
 import com.android.tools.idea.gradle.structure.model.android.PsdAndroidDependencyModel;
 import com.android.tools.idea.gradle.structure.model.android.PsdLibraryDependencyModel;
@@ -33,9 +32,8 @@ class LibraryNode extends AbstractDependencyNode<PsdLibraryDependencyModel> {
 
   LibraryNode(@NotNull PsdLibraryDependencyModel model) {
     super(model);
-    boolean showGroupId = PsdUISettings.getInstance().DECLARED_DEPENDENCIES_SHOW_GROUP_ID;
     ArtifactDependencySpec spec = model.getResolvedSpec();
-    myName = asText(spec, showGroupId);
+    myName = asText(spec);
     setIcon(model.getIcon());
     setAutoExpandNode(true);
   }

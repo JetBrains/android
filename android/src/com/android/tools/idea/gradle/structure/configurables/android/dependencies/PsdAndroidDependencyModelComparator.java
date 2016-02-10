@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies;
 
-import com.android.tools.idea.gradle.structure.configurables.ui.PsdUISettings;
 import com.android.tools.idea.gradle.structure.model.android.PsdAndroidDependencyModel;
 import com.android.tools.idea.gradle.structure.model.android.PsdLibraryDependencyModel;
 import com.android.tools.idea.gradle.structure.model.android.PsdModuleDependencyModel;
@@ -35,9 +34,8 @@ public class PsdAndroidDependencyModelComparator implements Comparator<PsdAndroi
   public int compare(PsdAndroidDependencyModel m1, PsdAndroidDependencyModel m2) {
     if (m1 instanceof PsdLibraryDependencyModel) {
       if (m2 instanceof PsdLibraryDependencyModel) {
-        boolean showGroupId = PsdUISettings.getInstance().DECLARED_DEPENDENCIES_SHOW_GROUP_ID;
-        String s1 = asText(((PsdLibraryDependencyModel)m1).getResolvedSpec(), showGroupId);
-        String s2 = asText(((PsdLibraryDependencyModel)m2).getResolvedSpec(), showGroupId);
+        String s1 = asText(((PsdLibraryDependencyModel)m1).getResolvedSpec());
+        String s2 = asText(((PsdLibraryDependencyModel)m2).getResolvedSpec());
         return s1.compareTo(s2);
       }
     }
