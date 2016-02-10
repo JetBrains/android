@@ -33,7 +33,6 @@ import com.android.tools.fd.client.UpdateMode;
 import com.android.tools.fd.runtime.ApplicationPatch;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.model.AndroidModel;
-import com.android.tools.idea.rendering.LogWrapper;
 import com.android.tools.idea.run.*;
 import com.android.tools.idea.stats.UsageTracker;
 import com.android.utils.ILogger;
