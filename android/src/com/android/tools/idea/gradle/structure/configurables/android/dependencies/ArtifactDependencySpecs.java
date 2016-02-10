@@ -16,16 +16,27 @@
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies;
 
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpec;
+import com.android.tools.idea.gradle.structure.configurables.ui.PsdUISettings;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 public final class ArtifactDependencySpecs {
   private ArtifactDependencySpecs() {
   }
 
   @NotNull
-  public static String asText(@NotNull ArtifactDependencySpec spec, boolean showGroupId) {
-    return showGroupId ? spec.toString() : spec.name + GRADLE_PATH_SEPARATOR + spec.version;
+  public static String asText(@NotNull ArtifactDependencySpec spec) {
+    boolean showGroupId = PsdUISettings.getInstance().DECLARED_DEPENDENCIES_SHOW_GROUP_ID;
+    if (showGroupId) {
+      return spec.toString();
+    }
+    StringBuilder text = new StringBuilder();
+    text.append(spec.name);
+    if (isNotEmpty(spec.version)) {
+      text.append(GRADLE_PATH_SEPARATOR).append(spec.version);
+    }
+    return text.toString();
   }
 }

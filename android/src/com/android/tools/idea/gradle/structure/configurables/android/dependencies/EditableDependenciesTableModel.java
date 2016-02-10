@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.structure.configurables.android.dependenci
 
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.configurables.ui.BaseTableCellRenderer;
-import com.android.tools.idea.gradle.structure.configurables.ui.PsdUISettings;
 import com.android.tools.idea.gradle.structure.model.android.PsdAndroidDependencyModel;
 import com.android.tools.idea.gradle.structure.model.android.PsdLibraryDependencyModel;
 import com.intellij.util.ui.ColumnInfo;
@@ -99,8 +98,7 @@ class EditableDependenciesTableModel extends ListTableModel<PsdAndroidDependency
         if (requestedSpec != null) {
           spec = requestedSpec;
         }
-        boolean showGroupId = PsdUISettings.getInstance().DECLARED_DEPENDENCIES_SHOW_GROUP_ID;
-        text = asText(spec, showGroupId);
+        text = asText(spec);
       }
       return text;
     }
