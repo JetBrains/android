@@ -73,6 +73,13 @@ import static com.android.ide.common.resources.ResourceResolver.MAX_RESOURCE_IND
 import static com.android.utils.SdkUtils.hasImageExtension;
 
 public class AndroidJavaDocRenderer {
+
+  /** Renders the Javadoc for a resource of given type and name. */
+  @Nullable
+  public static String render(@NotNull Module module, @NotNull ResourceType type, @NotNull String name, boolean framework) {
+    return render(module, null, type, name, framework);
+  }
+
   /** Renders the Javadoc for a resource of given type and name. If configuration is not null, it will be used to resolve the resource.  */
   @Nullable
   public static String render(@NotNull Module module, @Nullable Configuration configuration, @NotNull ResourceType type, @NotNull String name, boolean framework) {
@@ -81,8 +88,8 @@ public class AndroidJavaDocRenderer {
 
   /** Renders the Javadoc for a resource of given type and name. */
   @Nullable
-  public static String render(@NotNull Module module, @NotNull ResourceType type, @NotNull String name, boolean framework) {
-    return render(module, null, type, name, framework);
+  public static String render(@NotNull Module module, @NotNull ResourceUrl url) {
+    return render(module, null, url);
   }
 
   /** Renders the Javadoc for a resource of given type and name. If configuration is not null, it will be used to resolve the resource. */
@@ -94,25 +101,29 @@ public class AndroidJavaDocRenderer {
       return null;
     }
 
-    return renderer.render(url);
-  }
-
-  /** Renders the Javadoc for a resource of given type and name. */
-  @Nullable
-  public static String render(@NotNull Module module, @NotNull ResourceUrl url) {
-    return render(module, null, url);
+    String valueDoc = renderer.render(url);
+    if (url.theme) {
+      String attrDoc = renderAttributeDoc(module, configuration, (url.framework ?  SdkConstants.ANDROID_NS_NAME_PREFIX : "") + url.name);
+      if (valueDoc == null) {
+        return attrDoc;
+      }
+      String bodyTag = "<body>";
+      int bodyIndex = valueDoc.indexOf(bodyTag);
+      // Appending doc after <body>
+      return valueDoc.substring(0, bodyIndex + bodyTag.length()) + attrDoc + valueDoc.substring(bodyIndex + bodyTag.length());
+    }
+    return valueDoc;
   }
 
   @NotNull
-  private static String renderAttributeDoc(Configuration configuration, ItemResourceValue resValue) {
-    AttributeDefinition def = ResolutionUtils.getAttributeDefinition(configuration, resValue);
+  private static String renderAttributeDoc(@NotNull Module module, @Nullable Configuration configuration, @NotNull String name) {
+    AttributeDefinition def = ResolutionUtils.getAttributeDefinition(module, configuration, name);
     String doc = (def == null) ? null : def.getDocValue(null);
     HtmlBuilder builder = new HtmlBuilder();
     builder.beginBold();
-    String name = ResolutionUtils.getQualifiedItemName(resValue);
     builder.add(name);
     builder.endBold();
-    int api = ResolutionUtils.getOriginalApiLevel(name, configuration.getModule().getProject());
+    int api = ResolutionUtils.getOriginalApiLevel(name, module.getProject());
     if (api >= 0) {
       builder.add(" (Added in API level ");
       builder.add(String.valueOf(api));
@@ -124,73 +135,6 @@ public class AndroidJavaDocRenderer {
       builder.addHtml("<br/>");
     }
     builder.addHtml("<hr/>");
-    return builder.getHtml();
-  }
-
-  @NotNull
-  private static String renderValue(@NotNull Module module, @Nullable Configuration configuration, ItemResourceValue resValue) {
-    String value = resValue.getValue();
-
-    final Color color = ResourceHelper.parseColor(value);
-    if (color != null) {
-      return renderColor(module, color);
-    }
-
-    ResourceUrl resUrl = ResourceUrl.parse(value);
-
-    // Render value as a string
-    if (resUrl == null) {
-      return renderText(value);
-    }
-
-    if (!resUrl.framework && resValue.isFramework()) {
-      // sometimes the framework people forgot to put android: in the value, so we need to fix for this.
-      // To do that, we just reparse the resource adding the android: namespace.
-      resUrl = ResourceUrl.parse(resUrl.toString().replace(resUrl.type.getName(), PREFIX_ANDROID + resUrl.type.getName()));
-    }
-
-    assert resUrl != null;
-    String render = render(module, configuration, resUrl);
-
-    // Render value as a string
-    if (render == null) {
-      return renderText(value);
-    }
-
-    return render;
-  }
-
-  /** Renders the Javadoc for a resValue. If configuration is not null, it will be used to resolve the resource.
-   *  In addition, displays attribute documentation for resValue
-   **/
-  @NotNull
-  public static String renderItemResourceWithDoc(@NotNull Module module, @Nullable Configuration configuration, @NotNull ItemResourceValue resValue) {
-    String doc = renderAttributeDoc(configuration, resValue);
-    String render = renderValue(module, configuration, resValue);
-
-    String bodyTag = "<body>";
-    int bodyIndex = render.indexOf(bodyTag);
-
-    // Appending doc after <body>
-    return render.substring(0, bodyIndex + bodyTag.length()) + doc + render.substring(bodyIndex + bodyTag.length());
-  }
-
-  /** Renders the Javadoc for a color resource and name. */
-  private static String renderColor(Module module, @NotNull Color color) {
-    ColorValueRenderer renderer = (ColorValueRenderer) ResourceValueRenderer.create(ResourceType.COLOR, module, null);
-    assert renderer != null;
-    HtmlBuilder builder = new HtmlBuilder();
-    builder.openHtmlBody();
-    renderer.renderColorToHtml(builder, color);
-    builder.closeHtmlBody();
-    return builder.getHtml();
-  }
-
-  private static String renderText(String text) {
-    HtmlBuilder builder = new HtmlBuilder();
-    builder.openHtmlBody();
-    builder.add(text);
-    builder.closeHtmlBody();
     return builder.getHtml();
   }
 

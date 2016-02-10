@@ -418,6 +418,17 @@ public class ResourceHelper {
    */
   @Nullable
   public static Color resolveColor(@NotNull RenderResources resources, @Nullable ResourceValue colorValue, @NotNull Project project) {
+    return resolveColor(resources, colorValue, project, 0);
+  }
+
+  @Nullable
+  private static Color resolveColor(@NotNull RenderResources resources, @Nullable ResourceValue colorValue, @NotNull Project project, int depth) {
+
+    if (depth >= MAX_RESOURCE_INDIRECTION) {
+      LOG.warn("too deep " + colorValue);
+      return null;
+    }
+
     if (colorValue != null) {
       colorValue = resources.resolveResValue(colorValue);
     }
@@ -439,7 +450,7 @@ public class ResourceHelper {
 
       Color stateColor = parseColor(state.getValue());
       if (stateColor == null) {
-        stateColor = resolveColor(resources, resources.findResValue(state.getValue(), false), project);
+        stateColor = resolveColor(resources, resources.findResValue(state.getValue(), false), project, depth + 1);
       }
       if (stateColor == null) {
         return null;
@@ -815,8 +826,6 @@ public class ResourceHelper {
    */
   @NotNull
   public static List<String> getCompletionFromTypes(@NotNull AndroidFacet facet, @NotNull ResourceType[] completionTypes) {
-    ResourceManager systemManager = facet.getResourceManager(AndroidUtils.SYSTEM_RESOURCE_PACKAGE);
-    ResourceManager localManager = facet.getResourceManager(null);
     ImmutableList.Builder<String> resourceNamesList = ImmutableList.builder();
     EnumSet<ResourceType> types = Sets.newEnumSet(Arrays.asList(completionTypes), ResourceType.class);
 
@@ -831,12 +840,12 @@ public class ResourceHelper {
       // color was present in completionTypes, and not if we added it because of the presence of ResourceType.DRAWABLES.
       // For any other ResourceType, we always include file resources.
       boolean includeFileResources = (type != ResourceType.COLOR) || completionTypesContainsColor;
-      ChooseResourceDialog.ResourceGroup group = new ChooseResourceDialog.ResourceGroup(SdkConstants.ANDROID_NS_NAME, type, systemManager, includeFileResources);
+      ChooseResourceDialog.ResourceGroup group = new ChooseResourceDialog.ResourceGroup(SdkConstants.ANDROID_NS_NAME, type, facet, SdkConstants.ANDROID_NS_NAME, includeFileResources);
       for (ChooseResourceDialog.ResourceItem item : group.getItems()) {
         resourceNamesList.add(item.getResourceUrl());
       }
 
-      group = new ChooseResourceDialog.ResourceGroup(null, type, localManager, includeFileResources);
+      group = new ChooseResourceDialog.ResourceGroup(ChooseResourceDialog.APP_NAMESPACE_LABEL, type, facet, null, includeFileResources);
       for (ChooseResourceDialog.ResourceItem item : group.getItems()) {
         resourceNamesList.add(item.getResourceUrl());
       }
