@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,12 @@
 package org.jetbrains.android.dom;
 
 import com.intellij.ide.structureView.StructureViewBuilder;
-import com.intellij.lang.PsiStructureViewFactory;
-import com.intellij.psi.PsiFile;
+import com.intellij.ide.structureView.xml.XmlStructureViewBuilderProvider;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.util.xml.DomFileElement;
 import com.intellij.util.xml.DomManager;
 import org.jetbrains.android.dom.resources.Resources;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -29,15 +29,11 @@ import org.jetbrains.annotations.Nullable;
  *
  * @see ResourceStructureViewBuilder
  */
-public class ResourceStructureViewFactory implements PsiStructureViewFactory {
+public class ResourceStructureViewBuilderProvider implements XmlStructureViewBuilderProvider {
   @Nullable
   @Override
-  public StructureViewBuilder getStructureViewBuilder(PsiFile psiFile) {
-    if (!(psiFile instanceof XmlFile)) {
-      return null;
-    }
-    final XmlFile xmlFile = (XmlFile)psiFile;
-    final DomFileElement<Resources> fileElement = DomManager.getDomManager(psiFile.getProject()).getFileElement(xmlFile, Resources.class);
+  public StructureViewBuilder createStructureViewBuilder(@NotNull XmlFile file) {
+    final DomFileElement<Resources> fileElement = DomManager.getDomManager(file.getProject()).getFileElement(file, Resources.class);
     if (fileElement == null) {
       return null;
     }
