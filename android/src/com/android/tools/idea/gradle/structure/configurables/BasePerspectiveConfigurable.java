@@ -15,9 +15,10 @@
  */
 package com.android.tools.idea.gradle.structure.configurables;
 
+import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowHeader;
 import com.android.tools.idea.gradle.structure.model.PsdModuleModel;
 import com.android.tools.idea.gradle.structure.model.PsdProjectModel;
-import com.android.tools.idea.gradle.util.ui.Header;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.options.SearchableConfigurable;
 import com.intellij.openapi.ui.MasterDetailsComponent;
@@ -27,17 +28,12 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.TreeSpeedSearch;
 import com.intellij.ui.navigation.Place;
 import com.intellij.util.containers.Convertor;
-import com.intellij.util.ui.ChildFocusWatcher;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
-import java.awt.*;
-import java.awt.event.FocusEvent;
-
-import static javax.swing.SwingUtilities.isDescendingFrom;
 
 public abstract class BasePerspectiveConfigurable extends MasterDetailsComponent
   implements SearchableConfigurable, Disposable, Place.Navigator {
@@ -47,8 +43,7 @@ public abstract class BasePerspectiveConfigurable extends MasterDetailsComponent
   protected boolean myUiDisposed = true;
 
   private boolean myWasTreeInitialized;
-
-  private ChildFocusWatcher myFocusWatcher;
+  private ToolWindowHeader myHeader;
 
   protected BasePerspectiveConfigurable(@NotNull PsdProjectModel projectModel) {
     myProjectModel = projectModel;
@@ -64,35 +59,8 @@ public abstract class BasePerspectiveConfigurable extends MasterDetailsComponent
     Splitter splitter = getSplitter();
     JComponent first = splitter.getFirstComponent();
     if (first instanceof JPanel) {
-      final JPanel panel = (JPanel)first;
-      final Header header = new Header("Modules") {
-        @Override
-        public boolean isActive() {
-          KeyboardFocusManager focusManager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
-          Component focusOwner = focusManager.getFocusOwner();
-          return focusOwner != null && isDescendingFrom(focusOwner, panel);
-        }
-      };
-      header.addEventListener(new Header.HeaderEventListener() {
-        @Override
-        public void activated() {
-          myTree.requestFocusInWindow();
-        }
-      }, this);
-
-      myFocusWatcher = new ChildFocusWatcher(panel) {
-        @Override
-        protected void onFocusGained(FocusEvent event) {
-          header.repaint();
-        }
-
-        @Override
-        protected void onFocusLost(FocusEvent event) {
-          header.repaint();
-        }
-      };
-
-      panel.add(header, BorderLayout.NORTH);
+      JPanel panel = (JPanel)first;
+      myHeader = ToolWindowHeader.createAndAdd("Modules", AllIcons.Nodes.Module, panel, null);
     }
   }
 
@@ -170,8 +138,8 @@ public abstract class BasePerspectiveConfigurable extends MasterDetailsComponent
 
   @Override
   public void dispose() {
-    if (myFocusWatcher != null) {
-      Disposer.dispose(myFocusWatcher);
+    if (myHeader != null) {
+      Disposer.dispose(myHeader);
     }
   }
 
