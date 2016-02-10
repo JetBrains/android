@@ -16,8 +16,10 @@
 package com.android.tools.idea.fd.actions;
 
 import com.android.ddmlib.IDevice;
+import com.android.tools.idea.fd.InstantRunGradleUtils;
 import com.android.tools.idea.fd.InstantRunManager;
 import com.android.tools.idea.fd.InstantRunSettings;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.google.common.collect.Lists;
 import com.intellij.execution.ExecutionManager;
 import com.intellij.execution.process.ProcessHandler;
@@ -46,10 +48,26 @@ public class RestartActivityAction extends AnAction {
   @Override
   public void update(AnActionEvent e) {
     Module module = LangDataKeys.MODULE.getData(e.getDataContext());
-    Project project = e.getProject();
-    boolean enabled = module != null &&
-                      InstantRunSettings.isInstantRunEnabled(module.getProject()) &&
-                      InstantRunManager.variantSupportsInstantRun(module) &&
+
+    if (module == null) {
+      e.getPresentation().setEnabled(false);
+      return;
+    }
+
+    if (!InstantRunSettings.isInstantRunEnabled(module.getProject())) {
+      e.getPresentation().setEnabled(false);
+      return;
+    }
+
+    AndroidGradleModel model = InstantRunGradleUtils.getAppModel(module);
+    if (model == null) {
+      e.getPresentation().setEnabled(false);
+      return;
+    }
+
+    Project project = module.getProject();
+    boolean enabled = InstantRunSettings.isInstantRunEnabled(module.getProject()) &&
+                      InstantRunGradleUtils.getIrSupportStatus(model, null).success &&
                       !getActiveSessions(project).isEmpty() &&
                       !isDebuggerPaused(project);
     e.getPresentation().setEnabled(enabled);

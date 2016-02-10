@@ -293,7 +293,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     // Make sure instant run is supported on the relevant device, if found.
     AndroidVersion androidVersion = InstantRunManager.getMinDeviceApiLevel(info.getProcessHandler());
     if (InstantRunManager.isInstantRunCapableDeviceVersion(androidVersion)
-        && InstantRunManager.variantSupportsInstantRunOnApi(module, androidVersion)) {
+        && InstantRunGradleUtils.getIrSupportStatus(module, androidVersion).success) {
       return executor instanceof DefaultRunExecutor ? AndroidIcons.RunIcons.Replay : AndroidIcons.RunIcons.DebugReattach;
     }
 
@@ -363,11 +363,11 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     if (supportsInstantRun() && InstantRunSettings.isInstantRunEnabled(project)) {
       List<AndroidDevice> devices = deviceFutures.getDevices();
       if (devices.size() > 1) {
-        String message = "This launch does not use Instant Run as it does not support launching on multiple devices concurrently.";
-        new InstantRunUserFeedback(module).info(message);
+        String message = "Cannot Instant Run: launching on multiple devices concurrently not supported.";
+        new InstantRunUserFeedback(module).notifyDisabledForLaunch(message);
         LOG.info(message);
       }
-      else if (InstantRunManager.variantSupportsInstantRunOnApi(module, devices.get(0).getVersion())) {
+      else if (InstantRunGradleUtils.getIrSupportStatus(module, devices.get(0).getVersion()).success) {
         InstantRunUtils.setInstantRunEnabled(env, true);
         setInstantRunBuildOptions(env, module, deviceFutures);
       }
@@ -407,14 +407,8 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       return null;
     }
 
-    AndroidGradleModel model = AndroidGradleModel.get(facet);
-    if (!InstantRunManager.variantSupportsInstantRun(model)) {
-      InstantRunManager.LOG.info("Cannot instant run since the gradle version doesn't support it");
-      return null;
-    }
-
     if (!info.getExecutorId().equals(executor.getId())) {
-      String msg = String.format("Cannot instant run since old executor (%1$s) doesn't match current executor (%2$s)", info.getExecutorId(),
+      String msg = String.format("Cannot Instant Run since old executor (%1$s) doesn't match current executor (%2$s)", info.getExecutorId(),
                                  executor.getId());
       InstantRunManager.LOG.info(msg);
       return null;
@@ -422,7 +416,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
     List<IDevice> devices = info.getDevices();
     if (devices == null || devices.isEmpty()) {
-      InstantRunManager.LOG.info("Cannot instant run since we could not locate the devices from the existing launch session");
+      InstantRunManager.LOG.info("Cannot Instant Run since we could not locate the devices from the existing launch session");
       return null;
     }
 
@@ -431,9 +425,12 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       return null;
     }
 
+    AndroidGradleModel model = AndroidGradleModel.get(facet);
     AndroidVersion version = devices.get(0).getVersion();
-    if (!InstantRunManager.variantSupportsInstantRunOnApi(facet.getModule(), version)) {
-      InstantRunManager.LOG.info("Cannot instant run since the current variant doesn't support IR on API: " + version);
+    BooleanStatus status = InstantRunGradleUtils.getIrSupportStatus(model, version);
+    if (!status.success) {
+      InstantRunManager.LOG.info("Cannot Instant Run: " + status.getCause());
+      new InstantRunUserFeedback(facet.getModule()).notifyDisabledForLaunch("Cannot Instant Run: " + status.getCause());
       return null;
     }
 
@@ -443,6 +440,18 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   private static void setInstantRunBuildOptions(@NotNull ExecutionEnvironment env,
                                                 @NotNull Module module,
                                                 @NotNull DeviceFutures deviceFutures) {
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    if (facet == null) {
+      InstantRunManager.LOG.info("Module doesn't have Android Facet, not setting Instant Run options");
+      return;
+    }
+
+    AndroidGradleModel model = AndroidGradleModel.get(facet);
+    if (model == null) {
+      InstantRunManager.LOG.info("Module doesn't have Android Gradle Facet, not setting Instant Run options");
+      return;
+    }
+
     List<IDevice> devices = deviceFutures.getIfReady();
     IDevice device = devices == null ? null : devices.get(0);
 
@@ -466,7 +475,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     // edited manifest changes what the incremental run build has to do.
     GradleInvoker.saveAllFilesSafely();
     boolean isRestartedSession = InstantRunUtils.getRestartDevice(env) != null;
-    boolean needsFullBuild = isRestartedSession || InstantRunManager.needsFullBuild(device, module);
+    boolean needsFullBuild = isRestartedSession || InstantRunManager.needsFullBuild(device, facet);
     InstantRunUtils.setNeedsFullBuild(env, needsFullBuild);
     if (needsFullBuild &&
         InstantRunManager.hasLocalCacheOfDeviceData(Iterables.getOnlyElement(devices), module)) { // don't show this if we decided to build because we don't have a local cache
@@ -481,13 +490,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
         // Also look up the verifier failure and include it here; without this; the verifier failure
         // is displayed, but is quickly hidden as we realize we can't coldswap, and the below
         // full build message is shown instead.
-        AndroidFacet facet = AndroidFacet.getInstance(module);
-        assert facet != null;
-
-        AndroidGradleModel model = AndroidGradleModel.get(facet);
-        assert model != null;
-
-        InstantRunBuildInfo buildInfo = InstantRunManager.getBuildInfo(model);
+        InstantRunBuildInfo buildInfo = InstantRunGradleUtils.getBuildInfo(model);
         if (buildInfo != null) {
           @Language("HTML") String verifierFailure = InstantRunManager.getVerifierMessage(buildInfo);
           if (verifierFailure != null) {
