@@ -64,11 +64,10 @@ public class BasicJniBasedNativeAppTest {
     guiTest.importProjectAndWaitForProjectSyncToFinish("JniBasedBasicNdkApp", "2.5");
     final IdeFrameFixture projectFrame = guiTest.ideFrame();
 
-    // Setup breakpoints
-    final int[] breakPoints = {35, 51, 58, 76};
-    projectFrame.toggleBreakPoints("multifunction-jni.c", breakPoints);
+    final int[] breakPoints = {35, 51, 58, 73};
+    projectFrame.openAndToggleBreakPoints("app/src/main/jni/multifunction-jni.c", breakPoints);
 
-    // Setup the expected patterns to match the variable values displayed in Debug windows's 'Variables' tab.
+    // Set up the expected patterns to match the variable values displayed in Debug windows's 'Variables' tab.
     final Map<Integer, String[]> breakpointToExpectedPatterns = new HashMap<Integer, String[]>();
     breakpointToExpectedPatterns.put(
       35, new String[] {
@@ -102,7 +101,7 @@ public class BasicJniBasedNativeAppTest {
         IdeFrameFixture.variableToSearchPattern("x2", "int", "2"),
         IdeFrameFixture.variableToSearchPattern("quotient", "int", "512")});
     breakpointToExpectedPatterns.put(
-      76, new String[] {
+      73, new String[] {
         IdeFrameFixture.variableToSearchPattern("sum_of_10_ints", "int", "55"),
         IdeFrameFixture.variableToSearchPattern("product_of_10_ints", "int", "3628800"),
         IdeFrameFixture.variableToSearchPattern("quotient", "int", "512")});
@@ -120,8 +119,8 @@ public class BasicJniBasedNativeAppTest {
 
     // Loop through all the breakpoints and match the strings printed in the Variables pane with the expected patterns setup in
     // breakpointToExpectedPatterns.
-    for (int i = 0; i < breakPoints.length; ++i) {
-      final String[] expectedPatterns = breakpointToExpectedPatterns.get(breakPoints[i]);
+    for (int breakPoint : breakPoints) {
+      final String[] expectedPatterns = breakpointToExpectedPatterns.get(breakPoint);
       // Wait for the debugger tree to appear.
       pause(new Condition("Looking for debugger tree.") {
         @Override
