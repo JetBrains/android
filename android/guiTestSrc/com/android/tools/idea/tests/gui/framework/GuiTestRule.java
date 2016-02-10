@@ -151,9 +151,9 @@ public class GuiTestRule implements TestRule {
     waitForBackgroundTasks();
     printTimestamp();
     printPerfStats();
-    List<Throwable> errors = new ArrayList<Throwable>(fatalErrorsFromIde());
-    errors.addAll(cleanUpAndCheckForModalDialogs());
+    List<Throwable> errors = new ArrayList<Throwable>(cleanUpAndCheckForModalDialogs());
     closeAllProjects();
+    errors.addAll(fatalErrorsFromIde());
     ProjectManagerEx.getInstanceEx().unblockReloadingProjectOnExternalChanges();
     MultipleFailureException.assertEmpty(errors);
   }
