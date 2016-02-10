@@ -94,21 +94,21 @@ public class AndroidDomUtil {
   }
 
   @Nullable
-  public static String getResourceType(@NotNull AttributeFormat format) {
+  public static ResourceType getResourceType(@NotNull AttributeFormat format) {
     switch (format) {
       case Color:
-        return ResourceType.COLOR.getName();
+        return ResourceType.COLOR;
       case Dimension:
-        return ResourceType.DIMEN.getName();
+        return ResourceType.DIMEN;
       case String:
-        return ResourceType.STRING.getName();
+        return ResourceType.STRING;
       case Float:
       case Integer:
-        return ResourceType.INTEGER.getName();
+        return ResourceType.INTEGER;
       case Fraction:
-        return ResourceType.FRACTION.getName();
+        return ResourceType.FRACTION;
       case Boolean:
-        return ResourceType.BOOL.getName();
+        return ResourceType.BOOL;
       default:
         return null;
     }
@@ -143,9 +143,9 @@ public class AndroidDomUtil {
       else {
         containsNotReference = true;
       }
-      String type = getResourceType(format);
+      ResourceType type = getResourceType(format);
       if (type != null) {
-        resourceTypes.add(type);
+        resourceTypes.add(type.getName());
       }
     }
     String specialResourceType = getSpecialResourceType(attr.getName());
