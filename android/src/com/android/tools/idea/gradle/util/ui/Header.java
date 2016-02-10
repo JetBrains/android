@@ -48,14 +48,17 @@ import static com.intellij.util.ui.UIUtil.*;
  * Adapted from {@link com.intellij.openapi.wm.impl.ToolWindowHeader}.
  */
 public class Header extends JPanel {
+  @NotNull private final String myTitle;
+
   private JPanel myButtonPanel;
   private BufferedImage myImage;
   private BufferedImage myActiveImage;
 
-  private final EventDispatcher<HeaderEventListener> myEventDispatcher = EventDispatcher.create(HeaderEventListener.class);
+  private final EventDispatcher<ActivationListener> myEventDispatcher = EventDispatcher.create(ActivationListener.class);
 
   public Header(@NotNull String title) {
     super(new BorderLayout());
+    myTitle = title;
 
     JLabel titleLabel = new JLabel(title);
     titleLabel.setFont(BaseLabel.getLabelFont());
@@ -79,6 +82,11 @@ public class Header extends JPanel {
 
     add(myButtonPanel, BorderLayout.EAST);
     setBorder(BorderFactory.createEmptyBorder(TABS_BORDER, 1, TABS_BORDER, 1));
+  }
+
+  @NotNull
+  public String getTitle() {
+    return myTitle;
   }
 
   @Override
@@ -163,11 +171,11 @@ public class Header extends JPanel {
     }
   }
 
-  public void addEventListener(@NotNull HeaderEventListener listener) {
+  public void addEventListener(@NotNull ActivationListener listener) {
     myEventDispatcher.addListener(listener);
   }
 
-  public void addEventListener(@NotNull HeaderEventListener listener, @NotNull Disposable parent) {
+  public void addEventListener(@NotNull ActivationListener listener, @NotNull Disposable parent) {
     myEventDispatcher.addListener(listener, parent);
   }
 
@@ -208,7 +216,7 @@ public class Header extends JPanel {
     }
   }
 
-  public interface HeaderEventListener extends EventListener {
+  public interface ActivationListener extends EventListener {
     void activated();
   }
 }

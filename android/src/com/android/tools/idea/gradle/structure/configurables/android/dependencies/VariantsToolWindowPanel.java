@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies;
 
-import com.android.tools.idea.gradle.structure.configurables.ui.PsdUISettings;
-import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowPanel;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractDependencyNode;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.DependencySelection;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.VariantsTreeBuilder;
+import com.android.tools.idea.gradle.structure.configurables.ui.PsdUISettings;
+import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowPanel;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsdNode;
 import com.android.tools.idea.gradle.structure.model.android.PsdAndroidDependencyModel;
 import com.android.tools.idea.gradle.structure.model.android.PsdAndroidModuleModel;
@@ -64,7 +64,7 @@ class VariantsToolWindowPanel extends ToolWindowPanel implements DependencySelec
   @NotNull private final List<SelectionListener> mySelectionListeners = Lists.newCopyOnWriteArrayList();
 
   VariantsToolWindowPanel(@NotNull PsdAndroidModuleModel moduleModel, @NotNull DependencySelection dependencySelection) {
-    super("Variants", new MinimizedInfo(AndroidIcons.Variant, ToolWindowAnchor.RIGHT));
+    super("Variants", AndroidIcons.Variant, ToolWindowAnchor.RIGHT);
     setHeaderActions();
 
     DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode();
@@ -96,7 +96,7 @@ class VariantsToolWindowPanel extends ToolWindowPanel implements DependencySelec
     };
     myTree.addTreeSelectionListener(myTreeSelectionListener);
 
-    getHeader().addEventListener(new Header.HeaderEventListener() {
+    getHeader().addEventListener(new Header.ActivationListener() {
       @Override
       public void activated() {
         myTree.requestFocusInWindow();
@@ -139,12 +139,6 @@ class VariantsToolWindowPanel extends ToolWindowPanel implements DependencySelec
         popupMenu.getComponent().show(inputEvent.getComponent(), x, y);
       }
     });
-
-    AnAction minimizeAction = getMinimizeAction();
-    if (minimizeAction != null) {
-      additionalActions.add(minimizeAction);
-    }
-
     getHeader().setAdditionalActions(additionalActions);
   }
 
