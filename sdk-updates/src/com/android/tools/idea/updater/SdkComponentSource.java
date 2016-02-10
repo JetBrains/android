@@ -24,6 +24,7 @@ import com.android.repository.api.RepoPackage;
 import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.SdkVersionInfo;
+import com.android.sdklib.repositoryv2.AndroidSdkHandler;
 import com.android.sdklib.repositoryv2.meta.DetailsTypes;
 import com.android.tools.idea.sdkv2.RepoProgressIndicatorAdapter;
 import com.android.tools.idea.sdkv2.StudioDownloader;
@@ -60,14 +61,16 @@ public class SdkComponentSource implements ExternalComponentSource {
 
   private RepositoryPackages myPackages;
 
+  private static final StudioLoggerProgressIndicator LOGGER = new StudioLoggerProgressIndicator(SdkComponentSource.class);
+
   private void initIfNecessary(@Nullable ProgressIndicator indicator) {
-    RepoManager mgr = AndroidSdkUtils.tryToChooseSdkHandler().getSdkManager(new StudioLoggerProgressIndicator(getClass()));
+    RepoManager mgr = AndroidSdkUtils.tryToChooseSdkHandler().getSdkManager(LOGGER);
     com.android.repository.api.ProgressIndicator progress;
     if (indicator != null) {
       progress = new RepoProgressIndicatorAdapter(indicator);
     }
     else {
-      progress = new StudioLoggerProgressIndicator(getClass());
+      progress = LOGGER;
     }
     if (mgr
       .loadSynchronously(TimeUnit.MINUTES.toMillis(1), progress, new StudioDownloader(indicator), StudioSettingsController.getInstance())) {
@@ -155,16 +158,16 @@ public class SdkComponentSource implements ExternalComponentSource {
   @NotNull
   @Override
   public Collection<? extends Pair<String, String>> getStatuses() {
-    RepoManager mgr = AndroidSdkUtils.tryToChooseSdkHandler().getSdkManager(new StudioLoggerProgressIndicator(getClass()));
-    RepositoryPackages packages = mgr.getPackages();
+    AndroidSdkHandler handler = AndroidSdkUtils.tryToChooseSdkHandler();
     Revision toolsRevision = null;
+    LocalPackage toolsPackage = handler.getLocalPackage(SdkConstants.FD_TOOLS, LOGGER);
+    if (toolsPackage != null) {
+      toolsRevision = toolsPackage.getVersion();
+    }
+
     Revision platformRevision = null;
     AndroidVersion platformVersion = null;
-    for (LocalPackage info : packages.getLocalPackages().values()) {
-      if (info.getPath().startsWith(SdkConstants.FD_BUILD_TOOLS + RepoPackage.PATH_SEPARATOR) &&
-          (toolsRevision == null || toolsRevision.compareTo(info.getVersion()) < 0)) {
-        toolsRevision = info.getVersion();
-      }
+    for (LocalPackage info : handler.getSdkManager(LOGGER).getPackages().getLocalPackagesForPrefix(SdkConstants.FD_PLATFORMS)) {
       if (info.getTypeDetails() instanceof DetailsTypes.PlatformDetailsType) {
         DetailsTypes.PlatformDetailsType details = (DetailsTypes.PlatformDetailsType)info.getTypeDetails();
         AndroidVersion testVersion = new AndroidVersion(details.getApiLevel(), details.getCodename());
