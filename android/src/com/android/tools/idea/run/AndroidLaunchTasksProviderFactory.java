@@ -56,8 +56,15 @@ public class AndroidLaunchTasksProviderFactory implements LaunchTasksProviderFac
   public LaunchTasksProvider get() {
     InstantRunStatsService.get(myEnv.getProject()).notifyDeployStarted();
 
-    if (InstantRunUtils.isInstantRunEnabled(myEnv) && canHotSwap()) {
-      return new HotSwapTasksProvider(myRunConfig, myEnv, myFacet, myApkProvider, myLaunchOptions);
+    if (InstantRunUtils.isInstantRunEnabled(myEnv)) {
+      InstantRunBuildInfo buildInfo = getInstantRunBuildInfo();
+      if (buildInfo != null) {
+        InstantRunManager.LOG.info("Build timestamp: " + buildInfo.getTimeStamp() + ", verifier status: " + buildInfo.getVerifierStatus());
+      }
+
+      if (canHotSwap()) {
+        return new HotSwapTasksProvider(myRunConfig, myEnv, myFacet, myApkProvider, myLaunchOptions);
+      }
     }
 
     return new AndroidLaunchTasksProvider(myRunConfig, myEnv, myFacet, myApkProvider, myLaunchOptions);
@@ -75,8 +82,7 @@ public class AndroidLaunchTasksProviderFactory implements LaunchTasksProviderFac
       return false;
     }
 
-    AndroidGradleModel model = AndroidGradleModel.get(myFacet);
-    InstantRunBuildInfo info = model == null ? null : InstantRunGradleUtils.getBuildInfo(model);
+    InstantRunBuildInfo info = getInstantRunBuildInfo();
     boolean canHotswap = info != null && info.canHotswap();
 
     if (!canHotswap) {
@@ -89,5 +95,11 @@ public class AndroidLaunchTasksProviderFactory implements LaunchTasksProviderFac
     }
 
     return canHotswap;
+  }
+
+  @Nullable
+  private InstantRunBuildInfo getInstantRunBuildInfo() {
+    AndroidGradleModel model = AndroidGradleModel.get(myFacet);
+    return model == null ? null : InstantRunGradleUtils.getBuildInfo(model);
   }
 }
