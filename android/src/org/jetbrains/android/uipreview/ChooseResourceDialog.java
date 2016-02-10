@@ -16,6 +16,7 @@
 package org.jetbrains.android.uipreview;
 
 import com.android.SdkConstants;
+import com.android.ide.common.rendering.api.ItemResourceValue;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.ResourceUrl;
@@ -34,6 +35,7 @@ import com.android.tools.swing.ui.SwatchComponent;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.ObjectArrays;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.treeView.AbstractTreeStructure;
 import com.intellij.ide.util.treeView.NodeDescriptor;
@@ -53,8 +55,8 @@ import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.*;
-import com.intellij.ui.DocumentAdapter;
 import com.intellij.util.ArrayUtil;
+import com.intellij.util.containers.MultiMap;
 import com.intellij.util.ui.ColorIcon;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
@@ -78,7 +80,6 @@ import sun.swing.SwingUtilities2;
 import javax.swing.*;
 import javax.swing.border.CompoundBorder;
 import javax.swing.event.*;
-import javax.swing.event.DocumentEvent;
 import javax.swing.plaf.UIResource;
 import javax.swing.plaf.basic.BasicTabbedPaneUI;
 import javax.swing.text.View;
@@ -201,24 +202,45 @@ public class ChooseResourceDialog extends DialogWrapper {
     super(module.getProject());
     myModule = module;
     myTag = tag;
-    if (resourceNameSuggestion != null && resourceNameSuggestion.startsWith("#")) {
+    if (resourceNameSuggestion != null &&
+        (resourceNameSuggestion.startsWith(SdkConstants.PREFIX_RESOURCE_REF) ||
+         resourceNameSuggestion.startsWith(SdkConstants.PREFIX_THEME_REF) ||
+         resourceNameSuggestion.startsWith("#"))) {
       throw new IllegalArgumentException("invalid name suggestion " + resourceNameSuggestion);
     }
     setTitle("Resources");
 
-    if (ArrayUtil.contains(ResourceType.COLOR, types) || ArrayUtil.contains(ResourceType.DRAWABLE, types)) {
+    boolean allowDrawables = ArrayUtil.contains(ResourceType.DRAWABLE, types);
+    boolean allowColors = ArrayUtil.contains(ResourceType.COLOR, types);
 
-      Configuration configuration = ThemeEditorUtils.getConfigurationForModule(myModule);
-      ResourceResolver resolver = getResourceResolver();
+    if (allowDrawables && !allowColors) {
+      types = ObjectArrays.concat(types, ResourceType.COLOR);
+      allowColors = true;
+    }
 
-      ResourceValue resValue = null;
-      if (value != null) {
-        resValue = resolver.findResValue(value, isFrameworkValue);
+    Configuration configuration = ThemeEditorUtils.getConfigurationForModule(myModule);
+    ResourceResolver resolver = getResourceResolver();
+
+    MultiMap<ResourceType, String> attrs = new MultiMap<ResourceType, String>();
+    String themeName = configuration.getTheme();
+    assert themeName != null;
+    for (ItemResourceValue item : ResolutionUtils.getThemeAttributes(resolver, themeName)) {
+      ResourceType type = ResolutionUtils.getAttrType(item, configuration);
+      if (type != null) {
+        attrs.putValue(type, ResolutionUtils.getQualifiedItemName(item));
       }
+    }
+
+    ResourceValue resValue = null;
+    if (value != null) {
+      resValue = resolver.findResValue(value, isFrameworkValue);
+    }
+
+    if (allowDrawables || allowColors) {
 
       final ResourceType stateListType;
       final ResourceFolderType stateListFolderType;
-      if (ArrayUtil.contains(ResourceType.DRAWABLE, types)) {
+      if (allowDrawables) {
         stateListType = ResourceType.DRAWABLE;
         stateListFolderType = ResourceFolderType.DRAWABLE;
       }
@@ -319,16 +341,11 @@ public class ChooseResourceDialog extends DialogWrapper {
     AndroidFacet facet = AndroidFacet.getInstance(myModule);
     assert facet != null;
 
-    if (ArrayUtil.contains(ResourceType.DRAWABLE, types) && !ArrayUtil.contains(ResourceType.COLOR, types)) {
-      myPanels = new ResourcePanel[types.length + 1];
-      myPanels[types.length] = new ResourcePanel(facet, ResourceType.COLOR, false, resourceNameSuggestion);
-    }
-    else {
-      myPanels = new ResourcePanel[types.length];
-    }
-
+    myPanels = new ResourcePanel[types.length];
     for (int i = 0; i < types.length; i++) {
-      myPanels[i] = new ResourcePanel(facet, types[i], true, resourceNameSuggestion);
+      // only show color state lists if we are not showing drawables
+      myPanels[i] = new ResourcePanel(facet, types[i], types[i] != ResourceType.COLOR || !allowDrawables,
+                                      resourceNameSuggestion, attrs.get(types[i]));
     }
 
     final ToggleAction listView = new ToggleAction(null, "list", AndroidIcons.Views.ListView) {
@@ -412,14 +429,14 @@ public class ChooseResourceDialog extends DialogWrapper {
     }
 
     // "@color/black" or "@android:color/black"
-    if (value != null && value.startsWith(SdkConstants.PREFIX_RESOURCE_REF)) {
-      org.jetbrains.android.dom.resources.ResourceValue resourceValue = org.jetbrains.android.dom.resources.ResourceValue.reference(value);
-      assert resourceValue != null;
-      String name = resourceValue.getResourceName();
-      assert name != null; // as we used ResourceValue.reference to create this object, name is never null
-      String namespace = resourceValue.getNamespace();
-      ResourceType type = resourceValue.getType();
-
+    if (resValue != null) {
+      ResourceType type;
+      if (resValue instanceof ItemResourceValue) { // type is always null for ItemResourceValue
+        type = ResolutionUtils.getAttrType((ItemResourceValue)resValue, configuration);
+      }
+      else {
+        type = resValue.getResourceType();
+      }
       ResourcePanel panel = null;
       for (ResourcePanel aPanel : myPanels) {
         if (aPanel.getType().equals(type)) {
@@ -430,7 +447,7 @@ public class ChooseResourceDialog extends DialogWrapper {
       // panel is null if the reference is incorrect, e.g. "@sdfgsdfgs" (user error).
       if (panel != null) {
         myTabbedPane.setSelectedComponent(panel.myComponent);
-        panel.select(namespace, name);
+        panel.select(resValue);
       }
     }
 
@@ -519,7 +536,7 @@ public class ChooseResourceDialog extends DialogWrapper {
     myResourcePickerListener = resourcePickerListener;
   }
 
-  protected void notifyResourcePickerListeners(@Nullable String resource) {
+  private void notifyResourcePickerListeners(@Nullable String resource) {
     if (myResourcePickerListener != null) {
       myResourcePickerListener.resourceChanged(resource);
     }
@@ -704,7 +721,7 @@ public class ChooseResourceDialog extends DialogWrapper {
     super.doOKAction();
   }
 
-  void setGridMode(boolean gridMode) {
+  private void setGridMode(boolean gridMode) {
     isGridMode = gridMode;
     for (ResourcePanel panel : myPanels) {
       if (panel.supportsGridMode()) {
@@ -815,15 +832,16 @@ public class ChooseResourceDialog extends DialogWrapper {
     private final JTextArea myComboTextArea;
     private final JComboBox myComboBox;
 
-    public ResourcePanel(@NotNull AndroidFacet facet, @NotNull ResourceType type, boolean includeFileResources, @Nullable String resourceNameSuggestion) {
+    public ResourcePanel(@NotNull AndroidFacet facet, @NotNull ResourceType type, boolean includeFileResources,
+                         @Nullable String resourceNameSuggestion, @NotNull Collection<String> attrs) {
       myType = type;
 
-      myGroups = new ResourceGroup[NAMESPACES.length];
+      myGroups = new ResourceGroup[NAMESPACES.length + 1];
       for (int c = 0; c < NAMESPACES.length; c++) {
-        ResourceManager manager = facet.getResourceManager(NAMESPACES[c]);
-        assert manager != null;
-        myGroups[c] = new ResourceGroup(NAMESPACES[c], type, manager, includeFileResources);
+        myGroups[c] = new ResourceGroup(NAMESPACES[c] == null ? APP_NAMESPACE_LABEL : NAMESPACES[c], type, facet, NAMESPACES[c], includeFileResources);
       }
+
+      myGroups[NAMESPACES.length] = new ResourceGroup("Theme attributes", myType, attrs);
 
       AbstractTreeStructure treeContentProvider = new TreeContentProvider(myGroups);
 
@@ -979,12 +997,7 @@ public class ChooseResourceDialog extends DialogWrapper {
         assert myStateListPickerPanel != null;
         myEditorPanel.addTab(myStateListPickerPanel);
       }
-
-
       myPreviewPanel.add(myEditorPanel, EDITOR);
-
-
-
 
       showPreview(null, true);
 
@@ -1025,6 +1038,15 @@ public class ChooseResourceDialog extends DialogWrapper {
 
       // TODO maybe have a element of "new Color" and "new StateList"
 
+      if (element != null && element.isAttr()) {
+        ResourceUrl url = ResourceUrl.parse(element.getResourceUrl());
+        assert url != null;
+        String doc = AndroidJavaDocRenderer.render(myModule, ThemeEditorUtils.getConfigurationForModule(myModule), url);
+        myHtmlTextArea.setText(doc);
+        layout.show(myPreviewPanel, TEXT);
+        return;
+      }
+
       if (allowEditor) {
         if ((myType == ResourceType.COLOR || myType == ResourceType.DRAWABLE) && element != null) {
           ProjectResourceRepository repository = ProjectResourceRepository.getProjectResources(myModule, true);
@@ -1061,7 +1083,7 @@ public class ChooseResourceDialog extends DialogWrapper {
         return;
       }
 
-      String doc = AndroidJavaDocRenderer.render(myModule, element.getGroup().getType(), element.getName(), element.getGroup().isFramework());
+      String doc = AndroidJavaDocRenderer.render(myModule, element.getGroup().getType(), element.getName(), element.isFramework());
       myHtmlTextArea.setText(doc);
       layout.show(myPreviewPanel, TEXT);
     }
@@ -1259,11 +1281,21 @@ public class ChooseResourceDialog extends DialogWrapper {
       }
     }
 
-    private void select(@Nullable String namespace, @NotNull String name) {
+    /**
+     * @param value can also be an instance of {@link ItemResourceValue} for ?attr/ values
+     */
+    private void select(@NotNull ResourceValue value) {
+      boolean isAttr = value instanceof ItemResourceValue;
       for (ResourceGroup group : myGroups) {
-        if (Objects.equal(namespace, group.getNamespace())) {
-          for (ResourceItem item : group.getItems()) {
-            if (name.equals(item.getName())) {
+        for (ResourceItem item : group.getItems()) {
+          if (isAttr) {
+            if (item.isAttr() && ((ItemResourceValue)value).isFrameworkAttr() == item.isFramework() && value.getName().equals(item.getName())) {
+              myList.setSelectedElement(item);
+              return;
+            }
+          }
+          else {
+            if (value.isFramework() == item.isFramework() && value.getName().equals(item.getName())) {
               myList.setSelectedElement(item);
               return;
             }
@@ -1295,7 +1327,7 @@ public class ChooseResourceDialog extends DialogWrapper {
       long time = System.currentTimeMillis();
       AndroidFacet facet = AndroidFacet.getInstance(myModule);
       assert facet != null;
-      ResourceManager manager = facet.getResourceManager(item.getGroup().getNamespace());
+      ResourceManager manager = facet.getResourceManager(item.getNamespace());
       assert manager != null;
       List<ResourceElement> resources = manager.findValueResources(item.getGroup().getType().getName(), item.getName());
       if (ApplicationManagerEx.getApplicationEx().isInternal()) {
@@ -1384,7 +1416,7 @@ public class ChooseResourceDialog extends DialogWrapper {
    * @param value of the resource being edited to be saved
    * @return the value that is returned by the resource chooser.
    */
-  protected String saveValuesResource(@NotNull String name, @NotNull String value, @NotNull CreateXmlResourcePanel locationSettings) {
+  private String saveValuesResource(@NotNull String name, @NotNull String value, @NotNull CreateXmlResourcePanel locationSettings) {
     ResourceType type = locationSettings.getType();
     Module module = locationSettings.getModule();
     assert module != null;
@@ -1401,19 +1433,21 @@ public class ChooseResourceDialog extends DialogWrapper {
   }
 
   public static class ResourceGroup {
-    private List<ResourceItem> myItems = new ArrayList<ResourceItem>();
-    private final String myNamespace;
-    private final ResourceType myType;
+    private final @NotNull List<ResourceItem> myItems = new ArrayList<ResourceItem>();
+    private final @NotNull String myLabel;
+    private final @NotNull ResourceType myType;
 
-    public ResourceGroup(@Nullable String namespace, @NotNull ResourceType type, @NotNull ResourceManager manager, boolean includeFileResources) {
+    public ResourceGroup(@NotNull String label, @NotNull ResourceType type, @NotNull AndroidFacet facet, final @Nullable String namespace, boolean includeFileResources) {
       myType = type;
-      myNamespace = namespace;
+      myLabel = label;
 
       final String resourceType = type.getName();
 
+      ResourceManager manager = facet.getResourceManager(namespace);
+      assert manager != null;
       Collection<String> resourceNames = manager.getValueResourceNames(resourceType);
       for (String resourceName : resourceNames) {
-        myItems.add(new ResourceItem(this, resourceName, null));
+        myItems.add(new ResourceItem(this, namespace, resourceName, null));
       }
       final Set<String> fileNames = new HashSet<String>();
 
@@ -1422,7 +1456,7 @@ public class ChooseResourceDialog extends DialogWrapper {
           @Override
           public boolean process(@NotNull VirtualFile resFile, @NotNull String resName) {
             if (fileNames.add(resName)) {
-              myItems.add(new ResourceItem(ResourceGroup.this, resName, resFile));
+              myItems.add(new ResourceItem(ResourceGroup.this, namespace, resName, resFile));
             }
             return true;
           }
@@ -1432,15 +1466,36 @@ public class ChooseResourceDialog extends DialogWrapper {
       if (type == ResourceType.ID) {
         for (String id : manager.getIds(true)) {
           if (!resourceNames.contains(id)) {
-            myItems.add(new ResourceItem(this, id, null));
+            myItems.add(new ResourceItem(this, namespace, id, null));
           }
         }
       }
+      sortItems();
+    }
 
+    public ResourceGroup(@NotNull String label, @NotNull ResourceType type, @NotNull Collection<String> attrs) {
+      myType = type;
+      myLabel = label;
+      for (String name : attrs) {
+        myItems.add(new ResourceItem(this, ResolutionUtils.getNamespaceFromQualifiedName(name), ResolutionUtils.getNameFromQualifiedName(name), true));
+      }
+      sortItems();
+    }
+
+    private void sortItems() {
       Collections.sort(myItems, new Comparator<ResourceItem>() {
         @Override
         public int compare(ResourceItem resource1, ResourceItem resource2) {
-          return resource1.getName().compareTo(resource2.getName());
+          if (Objects.equal(resource1.getNamespace(), resource2.getNamespace())) {
+            return resource1.getName().compareTo(resource2.getName());
+          }
+          if (resource1.getNamespace() == null) {
+            return -1;
+          }
+          if (resource2.getNamespace() == null) {
+            return 1;
+          }
+          return resource1.getNamespace().compareTo(resource2.getNamespace());
         }
       });
     }
@@ -1450,63 +1505,80 @@ public class ChooseResourceDialog extends DialogWrapper {
       return myType;
     }
 
-    @Nullable("null for app namespace")
-    public String getNamespace() {
-      return myNamespace;
-    }
-
+    @NotNull
     public List<ResourceItem> getItems() {
       return myItems;
     }
 
     @Override
     public String toString() {
-      return myNamespace == null ? APP_NAMESPACE_LABEL : myNamespace;
-    }
-
-    public boolean isFramework() {
-      return SdkConstants.ANDROID_NS_NAME.equals(getNamespace());
+      return myLabel;
     }
   }
 
   public static class ResourceItem {
-    private final ResourceGroup myGroup;
-    private final String myName;
-    private final VirtualFile myFile;
-    private Icon myIcon;
+    private final boolean myIsAttr;
+    private final @NotNull ResourceGroup myGroup;
+    private final @Nullable String myNamespace;
+    private final @NotNull String myName;
+    private final @Nullable VirtualFile myFile;
+    private @Nullable Icon myIcon;
 
-    public ResourceItem(@NotNull ResourceGroup group, @NotNull String name, @Nullable VirtualFile file) {
+    public ResourceItem(@NotNull ResourceGroup group, @Nullable String namespace, @NotNull String name, @Nullable VirtualFile file) {
       myGroup = group;
+      myNamespace = namespace;
       myName = name;
       myFile = file;
+      myIsAttr = false;
     }
 
+    public ResourceItem(@NotNull ResourceGroup group, @Nullable String namespace, @NotNull String name, boolean isAttr) {
+      myGroup = group;
+      myNamespace = namespace;
+      myName = name;
+      myFile = null;
+      myIsAttr = isAttr;
+    }
+
+    @NotNull
     public ResourceGroup getGroup() {
       return myGroup;
     }
 
+    @NotNull
     public String getName() {
       return myName;
     }
 
+    @NotNull
+    public String getQualifiedName() {
+      return getNamespace() == null ? getName() : getNamespace() + ":" + getName();
+    }
+
+    @Nullable
     public VirtualFile getFile() {
       return myFile;
     }
 
     @NotNull
     public String getResourceUrl() {
-      return String
-        .format("@%s%s/%s", getGroup().getNamespace() == null ? "" : getGroup().getNamespace() + ":", myGroup.getType().getName(), myName);
+      if (myIsAttr) {
+        return String.format("?%sattr/%s", getNamespace() == null ? "" : getNamespace() + ":", getName());
+      }
+      return String.format("@%s%s/%s", getNamespace() == null ? "" : getNamespace() + ":", myGroup.getType().getName(), myName);
     }
 
     @NotNull
     public ResourceValue getResourceValue() {
       // No need to try and find the resource as we know exactly what it's going to be like
-      return new ResourceValue(myGroup.getType(), getName(), myFile == null ? getResourceUrl() : myFile.getPath(), myGroup.isFramework());
+      return new ResourceValue(myGroup.getType(), getName(), myFile == null ? getResourceUrl() : myFile.getPath(), isFramework());
     }
 
     @Override
     public String toString() {
+      if (myIsAttr) {
+        return getQualifiedName(); // as all attrs are inside 1 section, we show the full name
+      }
       // we need to return JUST the name so quicksearch in JList works
       return getName();
     }
@@ -1518,6 +1590,19 @@ public class ChooseResourceDialog extends DialogWrapper {
 
     public void setIcon(@Nullable Icon icon) {
       myIcon = icon;
+    }
+
+    @Nullable("null for app namespace")
+    public String getNamespace() {
+      return myNamespace;
+    }
+
+    public boolean isFramework() {
+      return SdkConstants.ANDROID_NS_NAME.equals(getNamespace());
+    }
+
+    public boolean isAttr() {
+      return myIsAttr;
     }
   }
 
@@ -1571,7 +1656,7 @@ public class ChooseResourceDialog extends DialogWrapper {
     }
   }
 
-  public static class SizedIcon implements Icon {
+  private static class SizedIcon implements Icon {
     private final int mySize;
     private final Image myImage;
 

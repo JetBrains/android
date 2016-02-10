@@ -297,7 +297,7 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
     myFixture.copyFileToProject(getTestDataPath() + "/javadoc/styles/AndroidManifest.xml", "AndroidManifest.xml");
     myFixture.copyFileToProject(getTestDataPath() + "/javadoc/styles/styles.xml", "res/values/styles.xml");
     checkJavadoc("/javadoc/styles/layout.xml", "res/layout/layout.xml",
-                 "<html><body><BR/>" +
+                 "<html><body><B>android:textAppearanceMedium</B><br/> Text color, typeface, size, and style for \"medium\" text. Defaults to primary text color. <br/><hr/><BR/>" +
                  "?android:attr/textAppearanceMedium => @android:style/TextAppearance.Medium<BR/>" +
                  "<BR/>" +
                  "<hr><B>TextAppearance.Medium</B>:<BR/>" +
