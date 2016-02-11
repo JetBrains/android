@@ -116,17 +116,19 @@ public class UsageTrackerAnalyticsImpl extends UsageTracker {
   public void trackGradleArtifactVersions(@NotNull String applicationId,
                                           @NotNull String androidPluginVersion,
                                           @NotNull String gradleVersion,
-                                          boolean instantRunEnabled) {
+                                          @NotNull Map<String, String> instantRunSettings) {
     if (!trackingEnabled()) {
       return;
     }
+
     // @formatter:off
-    myUploader.trackEvent(GLOGS_CATEGORY_VERSIONS,
-                          ImmutableMap.of(
-                            "appId", anonymize(applicationId),
-                            "pluginVer", androidPluginVersion,
-                            "gradleVer", gradleVersion,
-                            "canInstantRun", Boolean.toString(instantRunEnabled)));
+    ImmutableMap<String, String> params = ImmutableMap.<String,String>builder()
+      .put("appId", anonymize(applicationId))
+      .put("pluginVer", androidPluginVersion)
+      .put("gradleVer", gradleVersion)
+      .putAll(instantRunSettings)
+      .build();
+    myUploader.trackEvent(GLOGS_CATEGORY_VERSIONS, params);
     // @formatter:on
   }
 
