@@ -39,6 +39,7 @@ import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.icons.AllIcons;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -699,7 +700,8 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   }
 
   private static class MyDoNotPromptOption implements DialogWrapper.DoNotAskOption {
-    private boolean myShow;
+    public static final String PROMPT_KEY = "android.show.prompt.kill.session";
+    private boolean myShow = PropertiesComponent.getInstance().getBoolean(PROMPT_KEY, false);
 
     @Override
     public boolean isToBeShown() {
@@ -709,6 +711,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     @Override
     public void setToBeShown(boolean toBeShown, int exitCode) {
       myShow = !toBeShown;
+      PropertiesComponent.getInstance().setValue(PROMPT_KEY, myShow);
     }
 
     @Override
