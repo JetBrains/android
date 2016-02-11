@@ -23,15 +23,13 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.UIBundle;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.util.ArrayUtil;
-import com.intellij.util.ui.AbstractTableCellEditor;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
-import org.jetbrains.android.uipreview.ChooseResourceDialog;
+import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
 
 public class NlEnumEditor extends PTableCellEditor implements ActionListener {
   private static final String UNSET = "<unset>";

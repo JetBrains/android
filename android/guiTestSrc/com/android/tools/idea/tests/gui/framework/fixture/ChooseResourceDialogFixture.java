@@ -15,18 +15,18 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
-import com.android.tools.idea.editors.theme.StateListPicker;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.EditReferenceFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.StateListPickerFixture;
+import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
+import com.android.tools.idea.ui.resourcechooser.ColorPicker;
+import com.android.tools.idea.ui.resourcechooser.StateListPicker;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.util.text.StringUtil;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.core.matcher.JButtonMatcher;
 import org.fest.swing.fixture.*;
-import org.jetbrains.android.uipreview.ChooseResourceDialog;
-import org.jetbrains.android.uipreview.ColorPicker;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;

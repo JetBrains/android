@@ -21,10 +21,9 @@ import com.android.tools.idea.uibuilder.property.renderer.NlBooleanRenderer;
 import com.intellij.openapi.ui.FixedSizeButton;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.UIBundle;
-import com.intellij.util.ui.AbstractTableCellEditor;
 import com.intellij.util.ui.ThreeStateCheckBox;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.android.uipreview.ChooseResourceDialog;
+import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
 
 import javax.swing.*;
 import java.awt.*;
