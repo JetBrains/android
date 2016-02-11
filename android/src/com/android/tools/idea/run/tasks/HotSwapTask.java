@@ -17,6 +17,7 @@ package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.fd.client.InstantRunBuildInfo;
+import com.android.tools.fd.client.InstantRunPushFailedException;
 import com.android.tools.fd.client.UpdateMode;
 import com.android.tools.idea.fd.*;
 import com.android.tools.idea.gradle.AndroidGradleModel;
