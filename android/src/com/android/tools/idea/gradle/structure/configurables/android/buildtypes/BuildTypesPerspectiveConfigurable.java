@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.structure.configurables.android.buildtypes;
 
 import com.android.tools.idea.gradle.structure.configurables.BasePerspectiveConfigurable;
+import com.android.tools.idea.gradle.structure.configurables.PsdContext;
 import com.android.tools.idea.gradle.structure.model.android.PsdAndroidModuleModel;
 import com.android.tools.idea.gradle.structure.model.PsdModuleModel;
 import com.android.tools.idea.gradle.structure.model.PsdProjectModel;
@@ -27,8 +28,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class BuildTypesPerspectiveConfigurable extends BasePerspectiveConfigurable {
-  public BuildTypesPerspectiveConfigurable(@NotNull PsdProjectModel projectEditor) {
-    super(projectEditor);
+  public BuildTypesPerspectiveConfigurable(@NotNull PsdProjectModel projectEditor, @NotNull PsdContext context) {
+    super(projectEditor, context);
   }
 
   @Override

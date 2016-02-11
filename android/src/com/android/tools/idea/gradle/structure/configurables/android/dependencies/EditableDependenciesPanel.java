@@ -142,6 +142,7 @@ class EditableDependenciesPanel extends JPanel implements DependencySelection, D
         popup.show(new RelativePoint(actionsPanel, new Point(0, actionsPanel.getHeight() - 1)));
       }
     };
+
     actions.add(addDependencyAction);
 
     ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar("TOP", actions, true);
