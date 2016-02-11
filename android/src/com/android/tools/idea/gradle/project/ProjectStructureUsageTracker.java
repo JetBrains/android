@@ -21,6 +21,7 @@ import com.android.tools.idea.fd.InstantRunGradleUtils;
 import com.android.tools.idea.fd.InstantRunSettings;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.stats.UsageTracker;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
@@ -80,12 +81,16 @@ class ProjectStructureUsageTracker {
       String appId = model.getApplicationId();
       AndroidProject androidProject = model.getAndroidProject();
       GradleVersion gradleVersion = getGradleVersion(myProject);
-      boolean instantRunEnabled =
-        InstantRunSettings.isInstantRunEnabled(myProject) && InstantRunGradleUtils.getIrSupportStatus(model, null).success;
+
+      ImmutableMap<String, String> irSettings = ImmutableMap.<String, String>builder()
+        .put("userEnabledIr", Boolean.toString(InstantRunSettings.isInstantRunEnabled(myProject)))
+        .put("modelSupportsIr", Boolean.toString(InstantRunGradleUtils.modelSupportsInstantRun(model)))
+        .put("variantSupportsIr", Boolean.toString(InstantRunGradleUtils.variantSupportsInstantRun(model)))
+        .build();
       UsageTracker.getInstance().trackGradleArtifactVersions(appId,
                                                              androidProject.getModelVersion(),
                                                              gradleVersion != null ? gradleVersion.toString() : "<Not Found>",
-                                                             instantRunEnabled);
+                                                             irSettings);
     }
   }
 
