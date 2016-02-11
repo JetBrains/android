@@ -39,7 +39,7 @@ public class InstantRunGradleUtils {
    * Returns whether the currently selected variant can be used with Instant Run on a device with the given API level.
    */
   public static BooleanStatus getIrSupportStatus(@NotNull Module module, @NotNull AndroidVersion deviceVersion) {
-    if (!InstantRunSettings.isInstantRunEnabled(module.getProject())) {
+    if (!InstantRunSettings.isInstantRunEnabled()) {
       return BooleanStatus.failure("not enabled in settings");
     }
 

@@ -277,12 +277,12 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   @Nullable
   @Override
   public Icon getExecutorIcon(@NotNull RunConfiguration configuration, @NotNull Executor executor) {
-    Module module = getConfigurationModule().getModule();
-    if (module == null) {
+    if (!InstantRunSettings.isInstantRunEnabled() || !supportsInstantRun()) {
       return null;
     }
 
-    if (!InstantRunSettings.isInstantRunEnabled(module.getProject()) || !supportsInstantRun()) {
+    Module module = getConfigurationModule().getModule();
+    if (module == null) {
       return null;
     }
 
@@ -361,7 +361,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       throw new ExecutionException(AndroidBundle.message("deployment.target.not.found"));
     }
 
-    if (supportsInstantRun() && InstantRunSettings.isInstantRunEnabled(project)) {
+    if (supportsInstantRun() && InstantRunSettings.isInstantRunEnabled()) {
       List<AndroidDevice> devices = deviceFutures.getDevices();
       if (devices.size() > 1) {
         String message = "Cannot Instant Run: launching on multiple devices concurrently not supported.";
@@ -402,8 +402,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   private static DeviceFutures getFastDeployDevices(@NotNull Executor executor,
                                                     @NotNull AndroidFacet facet,
                                                     @NotNull AndroidSessionInfo info) {
-    Module module = facet.getModule();
-    if (!InstantRunSettings.isInstantRunEnabled(module.getProject())) {
+    if (!InstantRunSettings.isInstantRunEnabled()) {
       InstantRunManager.LOG.info("Instant run not enabled in settings");
       return null;
     }
@@ -481,8 +480,8 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     if (needsFullBuild &&
         InstantRunManager.hasLocalCacheOfDeviceData(Iterables.getOnlyElement(devices), module)) { // don't show this if we decided to build because we don't have a local cache
       @Language("HTML") String message;
-      if (isRestartedSession && (device.getVersion().getApiLevel() < 21 || !InstantRunSettings.isColdSwapEnabled(module.getProject()))) {
-        if (!InstantRunSettings.isColdSwapEnabled(module.getProject())) {
+      if (isRestartedSession && (device.getVersion().getApiLevel() < 21 || !InstantRunSettings.isColdSwapEnabled())) {
+        if (!InstantRunSettings.isColdSwapEnabled()) {
           message = "Performing full build &amp; install: cold swap has been disabled";
         } else {
           message = "Performing full build &amp; install: can't push patches to device with API level &lt; 21";
