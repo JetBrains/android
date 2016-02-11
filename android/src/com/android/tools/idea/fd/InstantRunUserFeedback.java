@@ -28,7 +28,6 @@ import com.intellij.openapi.actionSystem.Shortcut;
 import com.intellij.openapi.keymap.KeymapUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.ShowSettingsUtil;
-import com.intellij.openapi.util.Ref;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -64,7 +63,7 @@ public class InstantRunUserFeedback implements UserFeedback {
 
   @Override
   public void notifyEnd(UpdateMode updateMode) {
-    if (updateMode == UpdateMode.HOT_SWAP && !InstantRunSettings.isRestartActivity(myModule.getProject())) {
+    if (updateMode == UpdateMode.HOT_SWAP && !InstantRunSettings.isRestartActivity()) {
       StringBuilder sb = new StringBuilder(300);
       sb.append("Instant Run applied code changes.\n");
       sb.append("You can restart the current activity by clicking <a href=\"restart\">here</a>");
@@ -87,7 +86,7 @@ public class InstantRunUserFeedback implements UserFeedback {
               RestartActivityAction.restartActivity(myModule);
             }
             else if ("configure".equals(action)) {
-              InstantRunConfigurable configurable = new InstantRunConfigurable(myModule.getProject());
+              InstantRunConfigurable configurable = new InstantRunConfigurable();
               ShowSettingsUtil.getInstance().editConfigurable(myModule.getProject(), configurable);
             }
             else {
@@ -115,7 +114,7 @@ public class InstantRunUserFeedback implements UserFeedback {
   private void postHtml(@NotNull NotificationType type,
                        @Language("HTML") @NotNull final String htmlMessage,
                        @Nullable final NotificationListener listener) {
-    if (!InstantRunSettings.isShowNotificationsEnabled(myModule.getProject())) {
+    if (!InstantRunSettings.isShowNotificationsEnabled()) {
       return;
     }
 
@@ -127,7 +126,7 @@ public class InstantRunUserFeedback implements UserFeedback {
       public void hyperlinkUpdate(@NotNull Notification notification, @NotNull HyperlinkEvent event) {
         if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
           if ("mute".equals(event.getDescription())) {
-            InstantRunSettings.setShowStatusNotifications(myModule.getProject(), false);
+            InstantRunSettings.setShowStatusNotifications(false);
           }
           else if (listener != null) {
             listener.hyperlinkUpdate(notification, event);
