@@ -19,7 +19,7 @@ import com.android.ddmlib.IDevice;
 import com.android.tools.fd.client.UpdateMode;
 import com.android.tools.fd.client.InstantRunBuildInfo;
 import com.android.tools.idea.fd.InstantRunManager;
-import com.android.tools.idea.fd.InstantRunPushFailedException;
+import com.android.tools.fd.client.InstantRunPushFailedException;
 import com.android.tools.idea.fd.InstantRunStatsService;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.util.LaunchStatus;
@@ -63,6 +63,7 @@ public class DexDeployTask implements LaunchTask {
       }
       catch (InstantRunPushFailedException e) {
         launchStatus.terminateLaunch("Error installing cold swap patches: " + e);
+        InstantRunManager.LOG.warn("Failed to push dex files: ", e);
         return false;
       }
   }
