@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.structure.configurables;
 
-import com.android.tools.idea.gradle.structure.configurables.android.buildtypes.BuildTypesPerspectiveConfigurable;
 import com.android.tools.idea.gradle.structure.model.PsdProjectModel;
 import com.android.tools.idea.structure.dialog.MainGroupConfigurableContributor;
 import com.google.common.collect.Lists;
@@ -30,10 +29,10 @@ public class GradleMainGroupConfigurableContributor extends MainGroupConfigurabl
   @NotNull
   public List<Configurable> getConfigurables(@NotNull Project project) {
     PsdProjectModel projectModel = new PsdProjectModel(project);
+    PsdContext context = new PsdContext();
 
     List<Configurable> configurables = Lists.newArrayList();
-    configurables.add(new DependenciesPerspectiveConfigurable(projectModel));
-    configurables.add(new BuildTypesPerspectiveConfigurable(projectModel));
+    configurables.add(new DependenciesPerspectiveConfigurable(projectModel, context));
 
     return configurables;
   }
