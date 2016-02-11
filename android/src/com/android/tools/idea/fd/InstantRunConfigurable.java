@@ -21,7 +21,6 @@ import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.repositoryv2.AndroidSdkHandler;
 import com.android.tools.idea.fd.InstantRunSettings.ColdSwapMode;
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.util.GradleUtil;
@@ -34,6 +33,7 @@ import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.SearchableConfigurable;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectManager;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
@@ -56,8 +56,7 @@ import static com.android.tools.idea.fd.InstantRunSettings.SHOW_EXPERT_OPTIONS;
 
 public class InstantRunConfigurable
     implements SearchableConfigurable, Configurable.NoScroll, HyperlinkListener, GradleSyncListener, Disposable {
-  private final AndroidGradleBuildConfiguration myBuildConfiguration;
-  private final Project myProject;
+  private final InstantRunConfiguration myBuildConfiguration;
   private JPanel myContentPanel;
   private JBCheckBox myInstantRunCheckBox;
   private JBCheckBox myRestartActivityCheckBox;
@@ -69,9 +68,8 @@ public class InstantRunConfigurable
   private JComboBox myColdSwapMode;
   private JPanel myColdSwapPanel;
 
-  public InstantRunConfigurable(@NotNull Project project) {
-    myProject = project;
-    myBuildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
+  public InstantRunConfigurable() {
+    myBuildConfiguration = InstantRunConfiguration.getInstance();
     updateLinkState();
 
     if (SHOW_EXPERT_OPTIONS) {
@@ -137,7 +135,12 @@ public class InstantRunConfigurable
     myBuildConfiguration.SHOW_TOAST = isShowToast();
     myBuildConfiguration.SHOW_IR_STATUS_NOTIFICATIONS = isShowStatusNotifications();
 
-    InstantRunManager.updateFileListener(myProject);
+    for (Project project : ProjectManager.getInstance().getOpenProjects()) {
+      if (project.isDefault()) {
+        continue;
+      }
+      InstantRunManager.updateFileListener(project);
+    }
   }
 
   @Override
@@ -198,13 +201,18 @@ public class InstantRunConfigurable
     boolean isGradle = false;
     boolean isCurrentPlugin = false;
 
-    for (Module module : ModuleManager.getInstance(myProject).getModules()) {
-      AndroidGradleModel model = AndroidGradleModel.get(module);
-      if (model != null) {
-        isGradle = true;
-        if (InstantRunGradleUtils.modelSupportsInstantRun(model)) {
-          isCurrentPlugin = true;
-          break;
+    for (Project project : ProjectManager.getInstance().getOpenProjects()) {
+      if (project.isDefault()) {
+        continue;
+      }
+      for (Module module : ModuleManager.getInstance(project).getModules()) {
+        AndroidGradleModel model = AndroidGradleModel.get(module);
+        if (model != null) {
+          isGradle = true;
+          if (InstantRunGradleUtils.modelSupportsInstantRun(model)) {
+            isCurrentPlugin = true;
+            break;
+          }
         }
       }
     }
@@ -222,8 +230,13 @@ public class InstantRunConfigurable
 
   @Override
   public void hyperlinkUpdate(HyperlinkEvent hyperlinkEvent) {
-    if (!updateProjectToInstantRunTools(myProject, this)) {
-      setSyncLinkMessage("Error updating to new Gradle version");
+    for (Project project : ProjectManager.getInstance().getOpenProjects()) {
+      if (project.isDefault()) {
+        continue;
+      }
+      if (!updateProjectToInstantRunTools(project, this)) {
+        setSyncLinkMessage("Error updating to new Gradle version");
+      }
     }
   }
 

@@ -17,19 +17,15 @@ package com.android.tools.idea.fd;
 
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurableProvider;
-import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.Nullable;
 
 public class InstantRunConfigurableProvider extends ConfigurableProvider {
-  private final Project myProject;
-
-  public InstantRunConfigurableProvider(Project project) {
-    myProject = project;
+  public InstantRunConfigurableProvider() {
   }
 
   @Nullable
   @Override
   public Configurable createConfigurable() {
-    return myProject == null ? null : new InstantRunConfigurable(myProject);
+    return new InstantRunConfigurable();
   }
 }
