@@ -108,7 +108,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
       return null;
     }
 
-    if (InstantRunUtils.isInstantRunEnabled(myEnv) && InstantRunSettings.isInstantRunEnabled(myProject)) {
+    if (InstantRunUtils.isInstantRunEnabled(myEnv) && InstantRunSettings.isInstantRunEnabled()) {
       AndroidGradleModel model = AndroidGradleModel.get(myFacet);
       if (model != null) {
         BooleanStatus status = InstantRunGradleUtils.getIrSupportStatus(model, device.getVersion());
@@ -130,7 +130,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
             return null;
           }
 
-          if (!InstantRunSettings.isColdSwapEnabled(myProject) && !buildInfo.getVerifierStatus().isEmpty()) {
+          if (!InstantRunSettings.isColdSwapEnabled() && !buildInfo.getVerifierStatus().isEmpty()) {
             InstantRunManager.LOG.info("Coldswap disabled by user setting, restarting build.");
             // We should update the id on the device even if there were no artifact changes, since otherwise the next build will mismatch
             InstantRunManager.transferLocalIdToDeviceId(device, myFacet.getModule());
@@ -180,7 +180,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
     InstantRunManager.LOG.info("Using legacy/main APK deploy task");
     boolean instantRunAware =
       InstantRunUtils.isInstantRunEnabled(myEnv) &&
-      InstantRunSettings.isInstantRunEnabled(myProject) &&
+      InstantRunSettings.isInstantRunEnabled() &&
       InstantRunGradleUtils.getIrSupportStatus(myFacet.getModule(), device.getVersion()).success;
     return new DeployApkTask(myFacet, myLaunchOptions, myApkProvider, instantRunAware);
   }
