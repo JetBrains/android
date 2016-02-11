@@ -18,6 +18,7 @@ package com.android.tools.idea.fd;
 import com.android.tools.fd.client.UpdateMode;
 import com.android.tools.fd.client.UserFeedback;
 import com.android.tools.idea.fd.actions.RestartActivityAction;
+import com.google.common.html.HtmlEscapers;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationListener;
@@ -35,8 +36,6 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.event.HyperlinkEvent;
 
 public class InstantRunUserFeedback implements UserFeedback {
-  public static final String DONT_SHOW_AGAIN = "Don't show again";
-
   @NotNull private final Module myModule;
 
   public InstantRunUserFeedback(@NotNull Module module) {
@@ -45,33 +44,28 @@ public class InstantRunUserFeedback implements UserFeedback {
 
   @Override
   public void error(String message) {
-    postText(NotificationType.ERROR, null, message, null);
+    postText(NotificationType.ERROR, message);
   }
 
   @Override
   public void warning(String message) {
-    postText(NotificationType.WARNING, null, message, null);
+    postText(NotificationType.WARNING, message);
   }
 
   @Override
   public void info(String message) {
-    postText(NotificationType.INFORMATION, null, message, null);
+    postText(NotificationType.INFORMATION, message);
   }
 
   @Override
   public void noChanges() {
-    postText("Instant Run:", "No Changes.");
+    postText(NotificationType.INFORMATION, "No Changes.");
   }
 
   @Override
   public void notifyEnd(UpdateMode updateMode) {
-    if (!InstantRunSettings.isShowNotificationsEnabled(myModule.getProject())) {
-      return;
-    }
-
     if (updateMode == UpdateMode.HOT_SWAP && !InstantRunSettings.isRestartActivity(myModule.getProject())) {
       StringBuilder sb = new StringBuilder(300);
-      sb.append("<html>");
       sb.append("Instant Run applied code changes.\n");
       sb.append("You can restart the current activity by clicking <a href=\"restart\">here</a>");
       Shortcut[] shortcuts = ActionManager.getInstance().getAction("Android.RestartActivity").getShortcutSet().getShortcuts();
@@ -83,10 +77,7 @@ public class InstantRunUserFeedback implements UserFeedback {
       sb.append(".\n");
 
       sb.append("You can also <a href=\"configure\">configure</a> restarts to happen automatically. ");
-      sb.append("(<a href=\"mute\">" + DONT_SHOW_AGAIN + "</a>)");
-      sb.append("</html>");
-      String message = sb.toString();
-      final Ref<Notification> notificationRef = Ref.create();
+      @Language("HTML") String message = sb.toString();
       NotificationListener listener = new NotificationListener() {
         @Override
         public void hyperlinkUpdate(@NotNull Notification notification, @NotNull HyperlinkEvent event) {
@@ -99,91 +90,53 @@ public class InstantRunUserFeedback implements UserFeedback {
               InstantRunConfigurable configurable = new InstantRunConfigurable(myModule.getProject());
               ShowSettingsUtil.getInstance().editConfigurable(myModule.getProject(), configurable);
             }
-            else if ("mute".equals(action)) {
-              //noinspection AssignmentToStaticFieldFromInstanceMethod
-              InstantRunSettings.setShowStatusNotifications(myModule.getProject(), false);
-              notificationRef.get().expire();
-            }
             else {
               assert false : action;
             }
           }
         }
       };
-      Notification notification =
-        InstantRunManager.NOTIFICATION_GROUP.createNotification("Instant Run", message, NotificationType.INFORMATION, listener);
-      notificationRef.set(notification);
-      notification.notify(myModule.getProject());
+      postHtml(NotificationType.INFORMATION, message, listener);
     }
   }
 
   public void verifierFailure(@Language("HTML") String htmlMessage) {
-    if (!InstantRunSettings.isShowNotificationsEnabled(myModule.getProject())) {
-      return;
-    }
-
-    NotificationListener listener = new NotificationListener() {
-      @Override
-      public void hyperlinkUpdate(@NotNull Notification notification, @NotNull HyperlinkEvent event) {
-        if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
-          assert "mute".equals(event.getDescription()) : event.getDescription();
-          InstantRunSettings.setShowStatusNotifications(myModule.getProject(), false);
-        }
-      }
-    };
-    postHtml(NotificationType.INFORMATION, null, htmlMessage + "<br/>" +
-                                                 "(<a href=\"mute\">" + DONT_SHOW_AGAIN + "</a>)", listener);
+    postHtml(NotificationType.INFORMATION, htmlMessage, null);
   }
 
-  public void notifyDisabledForLaunch(@NotNull String reason) {
-    if (!InstantRunSettings.isShowNotificationsEnabled(myModule.getProject())) {
-      return;
-    }
-
-    NotificationListener listener = new NotificationListener() {
-      @Override
-      public void hyperlinkUpdate(@NotNull Notification notification, @NotNull HyperlinkEvent event) {
-        if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
-          assert "mute".equals(event.getDescription()) : event.getDescription();
-          InstantRunSettings.setShowStatusNotifications(myModule.getProject(), false);
-        }
-      }
-    };
-
-    postHtml(NotificationType.INFORMATION, null, reason + "<br/>" +
-                                                 "(<a href=\"mute\">" + DONT_SHOW_AGAIN + "</a>)", listener);
+  public void notifyDisabledForLaunch(@Language("HTML") @NotNull String reason) {
+    postHtml(NotificationType.INFORMATION, reason, null);
   }
 
-  public void postText(@NotNull final String message) {
-    postText(NotificationType.INFORMATION, null, message, null);
+  public void postText(@NotNull NotificationType type, @NotNull final String message) {
+    postHtml(type, HtmlEscapers.htmlEscaper().escape(message), null);
   }
 
-  public void postText(@Nullable String title, @NotNull final String message) {
-    postText(NotificationType.INFORMATION, title, message, null);
-  }
-
-  public void postText(@NotNull NotificationType type,
-                       @Nullable String title,
-                       @NotNull final String message,
-                       @Nullable NotificationListener listener) {
-    NotificationGroup group = InstantRunManager.NOTIFICATION_GROUP;
-    if (title == null) {
-      title = "";
-    }
-    Notification notification = group.createNotification(title, message, type, listener);
-    notification.notify(myModule.getProject());
-  }
-
-  public void postHtml(@NotNull NotificationType type,
-                       @Nullable String title,
+  private void postHtml(@NotNull NotificationType type,
                        @Language("HTML") @NotNull final String htmlMessage,
-                       @Nullable NotificationListener listener) {
-    NotificationGroup group = InstantRunManager.NOTIFICATION_GROUP;
-    if (title == null) {
-      title = "";
+                       @Nullable final NotificationListener listener) {
+    if (!InstantRunSettings.isShowNotificationsEnabled(myModule.getProject())) {
+      return;
     }
-    String message = "<html>" + htmlMessage + "</html>";
-    Notification notification = group.createNotification(title, message, type, listener);
+
+    NotificationGroup group = InstantRunManager.NOTIFICATION_GROUP;
+
+    String message = "<html>" + htmlMessage + "<br/>(<a href=\"mute\">Don't show again</a>)</html>";
+    NotificationListener l = new NotificationListener() {
+      @Override
+      public void hyperlinkUpdate(@NotNull Notification notification, @NotNull HyperlinkEvent event) {
+        if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+          if ("mute".equals(event.getDescription())) {
+            InstantRunSettings.setShowStatusNotifications(myModule.getProject(), false);
+          }
+          else if (listener != null) {
+            listener.hyperlinkUpdate(notification, event);
+          }
+        }
+      }
+    };
+
+    Notification notification = group.createNotification("", message, type, l);
     notification.notify(myModule.getProject());
   }
 }
