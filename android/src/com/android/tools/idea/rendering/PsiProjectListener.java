@@ -75,6 +75,7 @@ public class PsiProjectListener extends AbstractProjectComponent implements PsiT
     if (fileType == StdFileTypes.JAVA) { // fail fast for vital file type
       return false;
     }
+    // TODO: ensure that only android compatible images are recognized.
     return fileType == StdFileTypes.XML ||
            fileType.isBinary() && fileType == ImageFileTypeManager.getInstance().getImageFileType();
   }
