@@ -54,7 +54,7 @@ public class RestartActivityAction extends AnAction {
       return;
     }
 
-    if (!InstantRunSettings.isInstantRunEnabled(module.getProject())) {
+    if (!InstantRunSettings.isInstantRunEnabled()) {
       e.getPresentation().setEnabled(false);
       return;
     }
@@ -66,7 +66,7 @@ public class RestartActivityAction extends AnAction {
     }
 
     Project project = module.getProject();
-    boolean enabled = InstantRunSettings.isInstantRunEnabled(module.getProject()) &&
+    boolean enabled = InstantRunSettings.isInstantRunEnabled() &&
                       InstantRunGradleUtils.getIrSupportStatus(model, null).success &&
                       !getActiveSessions(project).isEmpty() &&
                       !isDebuggerPaused(project);
@@ -110,7 +110,7 @@ public class RestartActivityAction extends AnAction {
     Project project = module.getProject();
     for (IDevice device : InstantRunManager.findDevices(project)) {
       if (InstantRunManager.isAppInForeground(device, module)) {
-        if (InstantRunSettings.isShowToastEnabled(project)) {
+        if (InstantRunSettings.isShowToastEnabled()) {
           InstantRunManager.showToast(device, module, "Activity Restarted");
         }
         InstantRunManager.restartActivity(device, module);

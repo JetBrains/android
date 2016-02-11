@@ -24,6 +24,7 @@ import com.intellij.util.ArrayUtil;
 import com.intellij.util.xmlb.XmlSerializerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
 import java.util.List;
 
 @State(
@@ -34,12 +35,6 @@ import java.util.List;
     )}
 )
 public class AndroidGradleBuildConfiguration implements PersistentStateComponent<AndroidGradleBuildConfiguration> {
-  public boolean INSTANT_RUN = true;
-  public boolean RESTART_ACTIVITY = false;
-  public boolean SHOW_TOAST = true;
-  public boolean SHOW_IR_STATUS_NOTIFICATIONS = true;
-  public boolean COLD_SWAP = true;
-  public String COLD_SWAP_MODE;
   public boolean USE_CONFIGURATION_ON_DEMAND = true;
   public boolean USE_EXPERIMENTAL_FASTER_BUILD = AndroidStudioInitializer.isAndroidStudio();
   public String COMMAND_LINE_OPTIONS = "";

@@ -83,7 +83,7 @@ class ProjectStructureUsageTracker {
       GradleVersion gradleVersion = getGradleVersion(myProject);
 
       ImmutableMap<String, String> irSettings = ImmutableMap.<String, String>builder()
-        .put("userEnabledIr", Boolean.toString(InstantRunSettings.isInstantRunEnabled(myProject)))
+        .put("userEnabledIr", Boolean.toString(InstantRunSettings.isInstantRunEnabled()))
         .put("modelSupportsIr", Boolean.toString(InstantRunGradleUtils.modelSupportsInstantRun(model)))
         .put("variantSupportsIr", Boolean.toString(InstantRunGradleUtils.variantSupportsInstantRun(model)))
         .build();
