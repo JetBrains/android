@@ -22,6 +22,7 @@ import com.android.tools.idea.fd.*;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
+import com.intellij.notification.NotificationType;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.LangDataKeys;
@@ -81,7 +82,7 @@ public class InstantRunWithoutRestart extends AnAction {
           performUpdate(manager, device, getUpdateMode(), module, project);
         } else {
           new InstantRunUserFeedback(module).postText(
-            "Local Gradle build id doesn't match what's installed on the device; full build required"
+            NotificationType.INFORMATION, "Local Gradle build id doesn't match what's installed on the device; full build required"
           );
         }
         break;
