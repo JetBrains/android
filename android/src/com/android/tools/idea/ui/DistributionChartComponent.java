@@ -283,7 +283,7 @@ public class DistributionChartComponent extends JPanel {
           percentageString = new DecimalFormat("0.0%").format(1.0 - percentageSum);
         }
         int percentStringWidth = versionNumberMetrics.stringWidth(percentageString);
-        g.drawString(percentageString, totalWidth - percentStringWidth - 2, bottom - 2);
+        g.drawString(percentageString, totalWidth - percentStringWidth - 2, versionNameMetrics.getHeight() + bottom);
         g.setColor(JBColor.darkGray);
         g.drawLine(leftGutter + normalBoxSize, startY + calculatedHeight, totalWidth, startY + calculatedHeight);
       }
