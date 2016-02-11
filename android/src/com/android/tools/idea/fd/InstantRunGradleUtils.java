@@ -88,16 +88,12 @@ public class InstantRunGradleUtils {
       return BooleanStatus.failure(msg);
     }
 
-    try {
-      if (model.getSelectedVariant().getMainArtifact().getInstantRun().isSupportedByArtifact()) {
-        return BooleanStatus.SUCCESS;
-      }
-      else {
-        String msg = "variant '" + model.getSelectedVariant().getName() + "' uses an unsupported feature (e.g. ProGuard)";
-        return BooleanStatus.failure(msg);
-      }
-    } catch (Throwable e) {
-      return BooleanStatus.failure("old gradle plugin: " + version);
+    if (variantSupportsInstantRun(model)) {
+      return BooleanStatus.SUCCESS;
+    }
+    else {
+      String msg = "variant '" + model.getSelectedVariant().getName() + "' uses an unsupported feature (e.g. ProGuard)";
+      return BooleanStatus.failure(msg);
     }
   }
 
@@ -110,6 +106,14 @@ public class InstantRunGradleUtils {
       return mergedFlavor.getMultiDexEnabled();
     }
     return false;
+  }
+
+  public static boolean variantSupportsInstantRun(@NotNull AndroidGradleModel model) {
+    try {
+      return model.getSelectedVariant().getMainArtifact().getInstantRun().isSupportedByArtifact();
+    } catch (Throwable e) {
+      return false;
+    }
   }
 
   /** Returns true if Instant Run is supported for this gradle model (whether or not it's enabled) */
