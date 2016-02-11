@@ -28,6 +28,8 @@ import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.ProjectManagerAdapter;
+import com.intellij.openapi.project.ex.ProjectManagerEx;
+import com.intellij.openapi.project.impl.ProjectManagerImpl;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.IdeFrame;
@@ -74,7 +76,6 @@ import static com.android.tools.idea.AndroidTestCaseHelper.getSystemPropertyOrEn
 import static com.google.common.base.Joiner.on;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.io.Files.createTempDir;
-import static com.intellij.ide.impl.ProjectUtil.closeAndDispose;
 import static com.intellij.openapi.projectRoots.JdkUtil.checkForJdk;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
@@ -304,7 +305,11 @@ public final class GuiTests {
           @Override
           protected void executeInEDT() throws Throwable {
             for (Project project : openProjects) {
-              assertTrue("Failed to close project " + quote(project.getName()), closeAndDispose(project));
+              // Note: by default, closeProject will try to save the project and check if all the attached listeners agree on closing.
+              // We avoid both operations because they can pop up modal dialogs and deadlock the suite.
+              // See also {@link ProjectManagerEx#closeTestProject}, called from unit tests.
+              boolean closed = ((ProjectManagerImpl) ProjectManagerEx.getInstanceEx()).closeProject(project, false, true, false);
+              assertTrue("Failed to close project " + quote(project.getName()), closed);
             }
           }
         });
