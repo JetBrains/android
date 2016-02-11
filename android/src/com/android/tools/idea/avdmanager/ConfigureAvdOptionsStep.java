@@ -277,8 +277,6 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
     registerComponents();
     deregister(getDescriptionLabel());
     getDescriptionLabel().setVisible(false);
-    Device device = myState.get(DEVICE_DEFINITION_KEY);
-    assert device != null;
     SystemImageDescription systemImage = myState.get(SYSTEM_IMAGE_KEY);
     myAvdConfigurationOptionHelpPanel.setSystemImageDescription(systemImage);
 
@@ -286,13 +284,6 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
     editMode = editMode == null ? Boolean.FALSE : editMode;
     myOriginalName = editMode ? myState.get(DISPLAY_NAME_KEY) : "";
 
-    if (device.getDefaultHardware().getKeyboard().equals(Keyboard.QWERTY)) {
-      myEnableComputerKeyboard.setEnabled(false);
-    }
-
-    if (myState.get(DEFAULT_ORIENTATION_KEY) == null) {
-      myState.put(DEFAULT_ORIENTATION_KEY, device.getDefaultState().getOrientation());
-    }
     myAvdId.addMouseListener(new MouseAdapter() {
       @Override
       public void mouseClicked(MouseEvent mouseEvent) {
@@ -300,24 +291,6 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
       }
     });
 
-    File customSkin = myState.get(CUSTOM_SKIN_FILE_KEY);
-    File backupSkin = myState.get(BACKUP_SKIN_FILE_KEY);
-    // If there is a backup skin but no normal skin, the "use device frame" checkbox should be unchecked.
-    myState.put(DEVICE_FRAME_KEY, backupSkin == null || customSkin != null);
-
-    File hardwareSkin = AvdEditWizard.resolveSkinPath(device.getDefaultHardware().getSkinFile(), systemImage, FileOpUtils.create());
-    myState.put(DISPLAY_SKIN_FILE_KEY, hardwareSkin);
-
-    // If customSkin is null but backupSkin is defined, we want to show it (with the checkbox unchecked).
-    if (customSkin == null) {
-      customSkin = backupSkin;
-    }
-
-    // If the skin is set and different from what would be provided by the hardware, set the value of the
-    // control directly, so it is marked as user edited and not changed when the device is changed.
-    if (customSkin != null && !FileUtil.filesEqual(customSkin, hardwareSkin)) {
-      mySkinComboBox.getComboBox().setSelectedItem(customSkin);
-    }
     myCoreCount.setPreferredSize(myRamStorage.getPreferredSizeOfUnitsDropdown());
 
     toggleAdvancedSettings(false);
@@ -407,10 +380,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
   @Override
   public void onEnterStep() {
     super.onEnterStep();
-    Device device = myState.get(DEVICE_DEFINITION_KEY);
-    if (device != null) {
-      toggleOptionals(device);
-    }
+    toggleOptionals(myState.get(DEVICE_DEFINITION_KEY), false);
     updateSdCardSettings();
     setInitialGpuMode();
   }
@@ -483,7 +453,11 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
 
     Device device = myState.get(DEVICE_DEFINITION_KEY);
     SystemImageDescription systemImage = myState.get(SYSTEM_IMAGE_KEY);
-    if (!ChooseSystemImageStep.systemImageMatchesDevice(systemImage, device)) {
+    if (device == null) {
+      setErrorState("A hardware profile must be selected.", myDeviceDetails);
+      valid = false;
+    }
+    else if (!ChooseSystemImageStep.systemImageMatchesDevice(systemImage, device)) {
       setErrorState("The selected system image is incompatible with the selected device.", mySystemImageDetails);
       valid = false;
     }
@@ -698,9 +672,11 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
         // If there was a skin specified coming in, this field will be marked as user-edited, and so that needn't be
         // taken into account here. The only case we care about is if the device is changed.
         Device device = myState.get(DEVICE_DEFINITION_KEY);
-        assert device != null;
-        File file = AvdEditWizard.resolveSkinPath(device.getDefaultHardware().getSkinFile(),
-                                                  myState.get(SYSTEM_IMAGE_KEY), FileOpUtils.create());
+        File file = null;
+        if (device != null) {
+          file =
+            AvdEditWizard.resolveSkinPath(device.getDefaultHardware().getSkinFile(), myState.get(SYSTEM_IMAGE_KEY), FileOpUtils.create());
+        }
         return file == null ? NO_SKIN : file;
       }
     });
@@ -821,6 +797,9 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
     }
     if (modified.contains(SYSTEM_IMAGE_KEY)) {
       updateGpuControlsAfterSystemImageChange();
+    }
+    if (modified.contains(DEVICE_DEFINITION_KEY)) {
+      toggleOptionals(myState.get(DEVICE_DEFINITION_KEY), true);
     }
   }
 
@@ -1038,10 +1017,38 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
    * Enable/Disable controls based on the capabilities of the selected device. For example, some devices may
    * not have a front facing camera.
    */
-  private void toggleOptionals(@NotNull Device device) {
-    myFrontCameraCombo.setEnabled(device.getDefaultHardware().getCamera(CameraLocation.FRONT) != null);
-    myBackCameraCombo.setEnabled(device.getDefaultHardware().getCamera(CameraLocation.BACK) != null);
-    myOrientationToggle.setEnabled(device.getDefaultState().getOrientation() != ScreenOrientation.SQUARE);
+  private void toggleOptionals(@Nullable Device device, boolean deviceChange) {
+    myChangeSystemImageButton.setEnabled(device != null);
+    myFrontCameraCombo.setEnabled(device != null && device.getDefaultHardware().getCamera(CameraLocation.FRONT) != null);
+    myBackCameraCombo.setEnabled(device != null && device.getDefaultHardware().getCamera(CameraLocation.BACK) != null);
+    myOrientationToggle.setEnabled(device != null && device.getDefaultState().getOrientation() != ScreenOrientation.SQUARE);
+    myEnableComputerKeyboard.setEnabled(device != null && !device.getDefaultHardware().getKeyboard().equals(Keyboard.QWERTY));
+    if (deviceChange || myState.get(DEFAULT_ORIENTATION_KEY) == null) {
+      ScreenOrientation orientation = device != null ? device.getDefaultState().getOrientation() : ScreenOrientation.PORTRAIT;
+      myState.put(DEFAULT_ORIENTATION_KEY, orientation);
+    }
+    File customSkin = myState.get(CUSTOM_SKIN_FILE_KEY);
+    File backupSkin = myState.get(BACKUP_SKIN_FILE_KEY);
+    // If there is a backup skin but no normal skin, the "use device frame" checkbox should be unchecked.
+    myState.put(DEVICE_FRAME_KEY, backupSkin == null || customSkin != null);
+
+    File hardwareSkin = null;
+    if (device != null) {
+      SystemImageDescription systemImage = myState.get(SYSTEM_IMAGE_KEY);
+      hardwareSkin = AvdEditWizard.resolveSkinPath(device.getDefaultHardware().getSkinFile(), systemImage, FileOpUtils.create());
+    }
+    myState.put(DISPLAY_SKIN_FILE_KEY, hardwareSkin);
+
+    // If customSkin is null but backupSkin is defined, we want to show it (with the checkbox unchecked).
+    if (customSkin == null) {
+      customSkin = backupSkin;
+    }
+
+    // If the skin is set and different from what would be provided by the hardware, set the value of the
+    // control directly, so it is marked as user edited and not changed when the device is changed.
+    if (customSkin != null && !FileUtil.filesEqual(customSkin, hardwareSkin)) {
+      mySkinComboBox.getComboBox().setSelectedItem(customSkin);
+    }
   }
 
   private void toggleSystemOptionals(boolean useRanchuChanged) {
