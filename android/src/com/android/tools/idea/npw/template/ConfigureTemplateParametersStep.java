@@ -232,7 +232,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
           @Override
           public void onInvalidated(@NotNull ObservableValue<?> sender) {
             // If not evaluating, change comes from the user
-            if (myEvaluationState == EvaluationState.NOT_EVALUATING) {
+            if (myEvaluationState != EvaluationState.EVALUATING) {
               myUserValues.put(parameter, property.get());
               // Evaluate later to prevent modifying Swing values that are locked during read
               enqueueEvaluateParameters();
