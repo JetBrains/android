@@ -15,28 +15,58 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies;
 
+import com.android.tools.idea.gradle.structure.configurables.PsdContext;
+import com.android.tools.idea.gradle.structure.configurables.ui.ModulesComboBoxAction;
 import com.android.tools.idea.gradle.structure.configurables.ui.PsdUISettings;
 import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowHeader;
 import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowPanel;
 import com.android.tools.idea.gradle.structure.model.android.PsdAndroidDependencyModel;
 import com.android.tools.idea.gradle.structure.model.android.PsdAndroidModuleModel;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.OnePixelSplitter;
+import com.intellij.ui.SideBorder;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
 
 class DependenciesEditorPanel extends JPanel implements Disposable {
+  @NotNull private final PsdAndroidModuleModel myModuleModel;
+  @NotNull private final PsdContext myContext;
+
   @NotNull private final JBSplitter myVerticalSplitter;
   @NotNull private final EditableDependenciesPanel myDependenciesPanel;
   @NotNull private final VariantsToolWindowPanel myVariantsToolWindowPanel;
   @NotNull private final JPanel myAltPanel;
 
-  DependenciesEditorPanel(@NotNull PsdAndroidModuleModel moduleModel) {
+  private boolean myShowModulesDropDown;
+  private JComponent myModulesToolbar;
+
+  DependenciesEditorPanel(@NotNull PsdAndroidModuleModel moduleModel, @NotNull PsdContext context) {
     super(new BorderLayout());
+    myModuleModel = moduleModel;
+    myContext = context;
+
+    PsdUISettings settings = PsdUISettings.getInstance();
+    myShowModulesDropDown = settings.MODULES_LIST_MINIMIZE;
+    if (myShowModulesDropDown) {
+      createAndAddModulesAction();
+    }
+    settings.addListener(new PsdUISettings.ChangeListener() {
+      @Override
+      public void settingsChanged(@NotNull PsdUISettings settings) {
+        if (settings.MODULES_LIST_MINIMIZE != myShowModulesDropDown) {
+          myShowModulesDropDown = settings.MODULES_LIST_MINIMIZE;
+          createAndAddModulesAction();
+        }
+      }
+    }, this);
 
     myDependenciesPanel = new EditableDependenciesPanel(moduleModel);
     myVariantsToolWindowPanel = new VariantsToolWindowPanel(moduleModel, myDependenciesPanel);
@@ -75,14 +105,42 @@ class DependenciesEditorPanel extends JPanel implements Disposable {
       public void minimized() {
         minimize();
       }
-    }, this);
+    });
 
     myVariantsToolWindowPanel.addRestoreListener(new ToolWindowPanel.RestoreListener() {
       @Override
       public void restored() {
         restore();
       }
-    }, this);
+    });
+  }
+
+  private void createAndAddModulesAction() {
+    DefaultActionGroup actions = new DefaultActionGroup();
+    actions.add(new ModulesComboBoxAction(myModuleModel.getParent(), myContext));
+
+    AnAction restoreModuleListAction = new DumbAwareAction("Restore 'Modules' List", "", AllIcons.Actions.MoveTo2) {
+      @Override
+      public void actionPerformed(AnActionEvent e) {
+        PsdUISettings settings = PsdUISettings.getInstance();
+        settings.MODULES_LIST_MINIMIZE = myShowModulesDropDown = false;
+        settings.fireUISettingsChanged();
+        removeModulesAction();
+      }
+    };
+    actions.add(restoreModuleListAction);
+
+    ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar("TOP", actions, true);
+    myModulesToolbar = toolbar.getComponent();
+    myModulesToolbar.setBorder(IdeBorderFactory.createBorder(SideBorder.BOTTOM));
+
+    add(myModulesToolbar, BorderLayout.NORTH);
+  }
+
+  private void removeModulesAction() {
+    if (myModulesToolbar != null) {
+      remove(myModulesToolbar);
+    }
   }
 
   private void restore() {

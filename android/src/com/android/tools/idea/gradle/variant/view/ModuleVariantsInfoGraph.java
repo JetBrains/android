@@ -18,17 +18,16 @@ package com.android.tools.idea.gradle.variant.view;
 import com.android.builder.model.AndroidLibrary;
 import com.android.builder.model.Variant;
 import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.util.ui.LabeledComboBoxAction;
 import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.*;
-import com.intellij.openapi.actionSystem.ex.ComboBoxAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.ScalableIcon;
-import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.JBUI;
@@ -261,14 +260,9 @@ class ModuleVariantsInfoGraph extends DialogWrapper {
     }
   }
 
-  private class VariantsComboBoxAction extends ComboBoxAction {
-    @Override
-    public JComponent createCustomComponent(Presentation presentation) {
-      JPanel panel = new JPanel(new BorderLayout());
-      panel.add(new JLabel("Variant: "), BorderLayout.WEST);
-      panel.add(createComboBoxButton(presentation), BorderLayout.CENTER);
-      panel.setBorder(IdeBorderFactory.createEmptyBorder(2, 6, 2, 0));
-      return panel;
+  private class VariantsComboBoxAction extends LabeledComboBoxAction {
+    VariantsComboBoxAction() {
+      super("Variant: ");
     }
 
     @Override
