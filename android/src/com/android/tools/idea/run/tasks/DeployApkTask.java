@@ -16,6 +16,7 @@
 package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.IDevice;
+import com.android.tools.fd.client.InstantRunClient;
 import com.android.tools.idea.fd.InstantRunManager;
 import com.android.tools.idea.fd.InstantRunStatsService;
 import com.android.tools.idea.run.*;
@@ -99,6 +100,11 @@ public class DeployApkTask implements LaunchTask {
 
       if (myInstantRunAware) {
         cacheManifestInstallationData(device, myFacet, pkgName);
+      }
+      else {
+        // If not using IR, we need to transfer an empty build id over to the device. This assures that a subsequent IR
+        // will not somehow see a stale build id on the device.
+        InstantRunClient.transferBuildIdToDevice(device, "", pkgName, null);
       }
     }
 
