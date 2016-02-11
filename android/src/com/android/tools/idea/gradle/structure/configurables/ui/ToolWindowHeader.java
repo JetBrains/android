@@ -83,19 +83,20 @@ public class ToolWindowHeader extends Header implements Disposable {
     myAnchor = anchor;
     if (myAnchor != null) {
       Icon minimizeIcon = myAnchor == LEFT ? HideLeft : HideRight; // We don't support TOP or BOTTOM
-      myMinimizeAction = new DumbAwareAction("Minimize", "", minimizeIcon) {
+      myMinimizeAction = new DumbAwareAction("Hide", "", minimizeIcon) {
         @Override
         public void actionPerformed(AnActionEvent e) {
           myEventDispatcher.getMulticaster().minimized();
         }
       };
+      setAdditionalActions(Lists.newArrayList(myMinimizeAction));
     }
   }
 
   @Override
   public void setAdditionalActions(@NotNull List<AnAction> actions) {
     List<AnAction> allActions = actions;
-    if (myMinimizeAction != null) {
+    if (myMinimizeAction != null && !actions.contains(myMinimizeAction)) {
       allActions = Lists.newArrayList(actions);
       allActions.add(myMinimizeAction);
     }
@@ -123,8 +124,8 @@ public class ToolWindowHeader extends Header implements Disposable {
     return myAnchor;
   }
 
-  public void addMinimizeListener(@NotNull MinimizeListener listener, @NotNull Disposable parentDisposable) {
-    myEventDispatcher.addListener(listener, parentDisposable);
+  public void addMinimizeListener(@NotNull MinimizeListener listener) {
+    myEventDispatcher.addListener(listener, this);
   }
 
   private static abstract class MyFocusWatcher extends ChildFocusWatcher {

@@ -119,7 +119,7 @@ public class Header extends JPanel {
     int width = 150;
     BufferedImage image = UIUtil.createImage(width, height, BufferedImage.TYPE_INT_ARGB);
     Graphics2D g = image.createGraphics();
-    drawHeader(g, 0, width, height, active, true, true, true);
+    drawHeader(g, 0, width, height, active, true, false, true);
     g.dispose();
     return image;
   }
@@ -158,6 +158,9 @@ public class Header extends JPanel {
 
   public void setAdditionalActions(@NotNull AnAction[] actions) {
     myButtonPanel.removeAll();
+    myButtonPanel.revalidate();
+    myButtonPanel.repaint();
+
     int actionCount = actions.length;
     for (int i = 0; i < actionCount; i++) {
       AnAction action = actions[i];
@@ -171,11 +174,7 @@ public class Header extends JPanel {
     }
   }
 
-  public void addEventListener(@NotNull ActivationListener listener) {
-    myEventDispatcher.addListener(listener);
-  }
-
-  public void addEventListener(@NotNull ActivationListener listener, @NotNull Disposable parent) {
+  public void addActivationListener(@NotNull ActivationListener listener, @NotNull Disposable parent) {
     myEventDispatcher.addListener(listener, parent);
   }
 
