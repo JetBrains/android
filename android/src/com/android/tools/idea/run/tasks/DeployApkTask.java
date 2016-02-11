@@ -104,7 +104,11 @@ public class DeployApkTask implements LaunchTask {
       else {
         // If not using IR, we need to transfer an empty build id over to the device. This assures that a subsequent IR
         // will not somehow see a stale build id on the device.
-        InstantRunClient.transferBuildIdToDevice(device, "", pkgName, null);
+        try {
+          InstantRunClient.transferBuildIdToDevice(device, "", pkgName, null);
+        }
+        catch (Throwable ignored) {
+        }
       }
     }
 
