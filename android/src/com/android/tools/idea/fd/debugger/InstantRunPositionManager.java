@@ -31,7 +31,7 @@ public class InstantRunPositionManager extends PositionManagerImpl {
   @Override
   protected ReferenceType mapClass(ReferenceType type) {
     ReferenceType ret = type;
-    if (InstantRunSettings.isInstantRunEnabled(getDebugProcess().getProject())) {
+    if (InstantRunSettings.isInstantRunEnabled()) {
       Field change = type.fieldByName("$change");
       if (change != null) {
         Value value = type.getValue(change);
