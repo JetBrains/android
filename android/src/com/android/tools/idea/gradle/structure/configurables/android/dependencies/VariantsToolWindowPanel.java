@@ -96,7 +96,7 @@ class VariantsToolWindowPanel extends ToolWindowPanel implements DependencySelec
     };
     myTree.addTreeSelectionListener(myTreeSelectionListener);
 
-    getHeader().addEventListener(new Header.ActivationListener() {
+    getHeader().addActivationListener(new Header.ActivationListener() {
       @Override
       public void activated() {
         myTree.requestFocusInWindow();
