@@ -60,7 +60,14 @@ public abstract class BasePerspectiveConfigurable extends MasterDetailsComponent
       @Override
       public void moduleSelectionChanged(@NotNull String module, @NotNull Object source) {
         if (source != BasePerspectiveConfigurable.this) {
-          selectNodeInTree(module);
+          PsdModuleModel moduleModel = myProjectModel.findModelForModule(module);
+          if (moduleModel != null) {
+            MyNode node = findNodeByObject(myRoot, moduleModel);
+            if (node != null) {
+              selectNodeInTree(module);
+              setSelectedNode(node);
+            }
+          }
         }
       }
     }, this);
