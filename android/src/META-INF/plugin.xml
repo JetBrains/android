@@ -274,7 +274,7 @@
     <stepsBeforeRunProvider implementation="com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider" />
     <projectConfigurable groupId="build" id="gradle.compiler"
                          provider="com.android.tools.idea.gradle.compiler.GradleCompilerSettingsConfigurableProvider"/>
-    <projectConfigurable groupId="build" id="instant.run"
+    <applicationConfigurable groupId="build" id="instant.run"
                          provider="com.android.tools.idea.fd.InstantRunConfigurableProvider"/>
     <compiler.optionsManager implementation="com.android.tools.idea.gradle.compiler.HideCompilerOptions" />
 
@@ -283,6 +283,7 @@
     <applicationService serviceInterface="com.android.tools.idea.gradle.project.GradleExperimentalSettings"
                         serviceImplementation="com.android.tools.idea.gradle.project.GradleExperimentalSettings"/>
     <applicationService serviceImplementation="com.android.tools.idea.sdkv2.StudioSettingsController"/>
+    <applicationService serviceImplementation="com.android.tools.idea.fd.InstantRunConfiguration"/>
 
     <errorHandler        implementation="com.android.tools.idea.diagnostics.error.ErrorReporter"/>
     <statisticsService   implementationClass="com.android.tools.idea.stats.AndroidStatisticsService" key="android-studio" />

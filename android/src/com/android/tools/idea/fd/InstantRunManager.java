@@ -17,7 +17,9 @@ package com.android.tools.idea.fd;
 
 import com.android.SdkConstants;
 import com.android.annotations.NonNull;
-import com.android.builder.model.*;
+import com.android.builder.model.AndroidArtifact;
+import com.android.builder.model.AndroidArtifactOutput;
+import com.android.builder.model.SourceProvider;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
 import com.android.ide.common.packaging.PackagingUtils;
@@ -87,7 +89,7 @@ public final class InstantRunManager implements ProjectComponent {
   public InstantRunManager(@NotNull Project project) {
     myProject = project;
     myFileChangeListener = new FileChangeListener(project);
-    myFileChangeListener.setEnabled(InstantRunSettings.isInstantRunEnabled(project));
+    myFileChangeListener.setEnabled(InstantRunSettings.isInstantRunEnabled());
   }
 
   /** Returns the per-project instance of the fast deploy manager */
@@ -386,7 +388,7 @@ public final class InstantRunManager implements ProjectComponent {
   /** Synchronizes the file listening state with whether instant run is enabled */
   static void updateFileListener(@NotNull Project project) {
     InstantRunManager manager = get(project);
-    manager.myFileChangeListener.setEnabled(InstantRunSettings.isInstantRunEnabled(project));
+    manager.myFileChangeListener.setEnabled(InstantRunSettings.isInstantRunEnabled());
   }
 
   /** Looks up the merged manifest file for a given facet */
@@ -498,9 +500,8 @@ public final class InstantRunManager implements ProjectComponent {
 
     if (appRunning) {
       List<ApplicationPatch> changes = getApplicationPatches(files);
-      Project project = facet.getModule().getProject();
-      boolean restartActivity = InstantRunSettings.isRestartActivity(project);
-      boolean showToast = InstantRunSettings.isShowToastEnabled(project);
+      boolean restartActivity = InstantRunSettings.isRestartActivity();
+      boolean showToast = InstantRunSettings.isShowToastEnabled();
       client.pushPatches(device, buildId, changes, updateMode, restartActivity, showToast);
 
       // Note that while we update the patch cache with the resource file timestamp here,

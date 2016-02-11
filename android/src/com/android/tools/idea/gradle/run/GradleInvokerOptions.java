@@ -282,9 +282,8 @@ public class GradleInvokerOptions {
 
     @Nullable
     static InstantRunBuildOptions createAndReset(@NotNull Module module, @NotNull ExecutionEnvironment env) {
-      Project project = module.getProject();
       if (!InstantRunUtils.isInstantRunEnabled(env) ||
-          !InstantRunSettings.isInstantRunEnabled(project)) {
+          !InstantRunSettings.isInstantRunEnabled()) {
         return null;
       }
 
@@ -294,13 +293,14 @@ public class GradleInvokerOptions {
         return null;
       }
 
+      Project project = module.getProject();
       FileChangeListener.Changes changes = InstantRunManager.get(project).getChangesAndReset();
 
       return new InstantRunBuildOptions(InstantRunUtils.needsCleanBuild(env),
                                         InstantRunUtils.needsFullBuild(env),
                                         InstantRunUtils.isAppRunning(env),
-                                        InstantRunSettings.isColdSwapEnabled(project),
-                                        InstantRunSettings.getColdSwapMode(project),
+                                        InstantRunSettings.isColdSwapEnabled(),
+                                        InstantRunSettings.getColdSwapMode(),
                                         changes,
                                         targetDevices);
     }
