@@ -63,7 +63,12 @@ class DependenciesEditorPanel extends JPanel implements Disposable {
       public void settingsChanged(@NotNull PsdUISettings settings) {
         if (settings.MODULES_LIST_MINIMIZE != myShowModulesDropDown) {
           myShowModulesDropDown = settings.MODULES_LIST_MINIMIZE;
-          createAndAddModulesAction();
+          if (myShowModulesDropDown) {
+            createAndAddModulesAction();
+          }
+          else {
+            removeModulesAction();
+          }
         }
       }
     }, this);
@@ -140,6 +145,9 @@ class DependenciesEditorPanel extends JPanel implements Disposable {
   private void removeModulesAction() {
     if (myModulesToolbar != null) {
       remove(myModulesToolbar);
+      myModulesToolbar = null;
+      revalidate();
+      repaint();
     }
   }
 
