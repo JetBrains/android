@@ -62,8 +62,8 @@ public abstract class ToolWindowPanel extends JPanel implements Disposable {
     }
   }
 
-  public void addRestoreListener(@NotNull RestoreListener listener, @NotNull Disposable parentDisposable) {
-    myEventDispatcher.addListener(listener, parentDisposable);
+  public void addRestoreListener(@NotNull RestoreListener listener) {
+    myEventDispatcher.addListener(listener, this);
   }
 
   @Nullable

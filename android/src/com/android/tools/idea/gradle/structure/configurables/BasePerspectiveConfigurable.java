@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.gradle.structure.configurables;
 
+import com.android.tools.idea.gradle.structure.configurables.ui.PsdUISettings;
 import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowHeader;
 import com.android.tools.idea.gradle.structure.model.PsdModuleModel;
 import com.android.tools.idea.gradle.structure.model.PsdProjectModel;
+import com.android.tools.idea.gradle.util.ui.Header;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.options.SearchableConfigurable;
@@ -25,6 +27,7 @@ import com.intellij.openapi.ui.MasterDetailsComponent;
 import com.intellij.openapi.ui.NamedConfigurable;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.ui.TreeSpeedSearch;
 import com.intellij.ui.navigation.Place;
 import com.intellij.util.containers.Convertor;
@@ -34,19 +37,61 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
+import java.awt.*;
 
 public abstract class BasePerspectiveConfigurable extends MasterDetailsComponent
   implements SearchableConfigurable, Disposable, Place.Navigator {
 
   @NotNull private final PsdProjectModel myProjectModel;
+  @NotNull private final PsdContext myContext;
 
   protected boolean myUiDisposed = true;
 
-  private boolean myWasTreeInitialized;
   private ToolWindowHeader myHeader;
+  private JComponent myCenterComponent;
 
-  protected BasePerspectiveConfigurable(@NotNull PsdProjectModel projectModel) {
+  private boolean myTreeInitialized;
+  private boolean myTreeMinimized;
+
+  protected BasePerspectiveConfigurable(@NotNull PsdProjectModel projectModel, @NotNull PsdContext context) {
     myProjectModel = projectModel;
+
+    myContext = context;
+    myContext.addListener(new PsdContext.ChangeListener() {
+      @Override
+      public void moduleSelectionChanged(@NotNull String module, @NotNull Object source) {
+        if (source != BasePerspectiveConfigurable.this) {
+          selectNodeInTree(module);
+        }
+      }
+    }, this);
+
+    PsdUISettings settings = PsdUISettings.getInstance();
+    myTreeMinimized = settings.MODULES_LIST_MINIMIZE;
+    if (myTreeMinimized) {
+      myToReInitWholePanel = true;
+      reInitWholePanelIfNeeded();
+    }
+    settings.addListener(new PsdUISettings.ChangeListener() {
+      @Override
+      public void settingsChanged(@NotNull PsdUISettings settings) {
+        if (settings.MODULES_LIST_MINIMIZE != myTreeMinimized) {
+          myTreeMinimized = settings.MODULES_LIST_MINIMIZE;
+          myToReInitWholePanel = true;
+          reInitWholePanelIfNeeded();
+        }
+      }
+    }, this);
+  }
+
+  @Override
+  protected void updateSelection(@Nullable NamedConfigurable configurable) {
+    super.updateSelection(configurable);
+    if (configurable instanceof BaseNamedConfigurable) {
+      BaseNamedConfigurable baseConfigurable = (BaseNamedConfigurable)configurable;
+      PsdModuleModel moduleModel = baseConfigurable.getEditableObject();
+      myContext.setSelectedModule(moduleModel.getModuleName(), this);
+    }
   }
 
   @Override
@@ -54,21 +99,76 @@ public abstract class BasePerspectiveConfigurable extends MasterDetailsComponent
     if (!myToReInitWholePanel) {
       return;
     }
-    super.reInitWholePanelIfNeeded();
 
-    Splitter splitter = getSplitter();
-    JComponent first = splitter.getFirstComponent();
-    if (first instanceof JPanel) {
-      JPanel panel = (JPanel)first;
-      myHeader = ToolWindowHeader.createAndAdd("Modules", AllIcons.Nodes.Module, panel, null);
+    if (myTreeMinimized) {
+      Splitter splitter = getSplitter();
+      myCenterComponent = splitter.getSecondComponent();
+
+      if (myCenterComponent == null) {
+        super.reInitWholePanelIfNeeded();
+        splitter = getSplitter();
+        myCenterComponent = splitter.getSecondComponent();
+      }
+      myToReInitWholePanel = false;
+
+      splitter.setSecondComponent(null);
+      myWholePanel.remove(splitter);
+      myWholePanel.add(myCenterComponent, BorderLayout.CENTER);
+      revalidateAndRepaintWholePanel();
     }
+    else {
+      if (myWholePanel == null) {
+        super.reInitWholePanelIfNeeded();
+      }
+      myToReInitWholePanel = false;
+
+      Splitter splitter = getSplitter();
+      if (myCenterComponent != null && myCenterComponent != splitter) {
+        myWholePanel.remove(myCenterComponent);
+        splitter.setSecondComponent(myCenterComponent);
+        myWholePanel.add(splitter);
+        revalidateAndRepaintWholePanel();
+      }
+
+      myCenterComponent = splitter;
+
+      JComponent first = splitter.getFirstComponent();
+      if (first instanceof JPanel && myHeader == null) {
+        JPanel panel = (JPanel)first;
+        myHeader = ToolWindowHeader.createAndAdd("Modules", AllIcons.Nodes.Module, panel, ToolWindowAnchor.LEFT);
+        myHeader.addActivationListener(new Header.ActivationListener() {
+          @Override
+          public void activated() {
+            myTree.requestFocusInWindow();
+          }
+        }, this);
+        myHeader.addMinimizeListener(new ToolWindowHeader.MinimizeListener() {
+          @Override
+          public void minimized() {
+            modulesTreeMinimized();
+            reInitWholePanelIfNeeded();
+          }
+        });
+      }
+    }
+  }
+
+  private void revalidateAndRepaintWholePanel() {
+    myWholePanel.revalidate();
+    myWholePanel.repaint();
+  }
+
+  private void modulesTreeMinimized() {
+    PsdUISettings settings = PsdUISettings.getInstance();
+    settings.MODULES_LIST_MINIMIZE = myTreeMinimized = myToReInitWholePanel = true;
+    settings.fireUISettingsChanged();
   }
 
   @Override
   public void reset() {
     myUiDisposed = false;
 
-    if (!myWasTreeInitialized) {
+    if (!myTreeInitialized) {
       initTree();
       myTree.setShowsRootHandles(false);
       loadTree();
@@ -84,10 +184,10 @@ public abstract class BasePerspectiveConfigurable extends MasterDetailsComponent
 
   @Override
   protected void initTree() {
-    if (myWasTreeInitialized) {
+    if (myTreeInitialized) {
       return;
     }
-    myWasTreeInitialized = true;
+    myTreeInitialized = true;
     super.initTree();
     myTree.setRootVisible(false);
 
@@ -123,6 +223,11 @@ public abstract class BasePerspectiveConfigurable extends MasterDetailsComponent
   @NotNull
   protected PsdProjectModel getProjectModel() {
     return myProjectModel;
+  }
+
+  @NotNull
+  protected PsdContext getContext() {
+    return myContext;
   }
 
   @Override
