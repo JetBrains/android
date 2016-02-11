@@ -56,6 +56,7 @@ public class DistributionService {
   private static final long RETRY_INTERVAL = TimeUnit.HOURS.toMillis(1);
   private static final String STATS_URL = "https://dl.google.com/android/studio/metadata/distributions.json";
   private static final String STATS_FILENAME = "distributions.json";
+  private static final String DOWNLOAD_FILENAME = "distributions_temp.json";
   private static final URL FALLBACK_URL = ResourceUtil.getResource(DistributionService.class, "wizardData", STATS_FILENAME);
   private static final File CACHE_PATH = new File(PathManager.getSystemPath(), "stats");
   private static final String FILE_PATTERN =
@@ -76,7 +77,7 @@ public class DistributionService {
 
   public static DistributionService getInstance() {
     if (ourInstance == null) {
-      DownloadableFileDescription description = DownloadableFileService.getInstance().createFileDescription(STATS_URL, STATS_FILENAME);
+      DownloadableFileDescription description = DownloadableFileService.getInstance().createFileDescription(STATS_URL, DOWNLOAD_FILENAME);
       FileDownloader downloader =
         DownloadableFileService.getInstance().createDownloader(ImmutableList.of(description), "Distribution Stats");
       ourInstance = new DistributionService(downloader, CACHE_PATH, FALLBACK_URL);
@@ -249,7 +250,11 @@ public class DistributionService {
     return latestFile;
   }
 
-  // This is primarily to work around https://youtrack.jetbrains.com/issue/IDEA-145475
+  /**
+   * This is primarily to work around https://youtrack.jetbrains.com/issue/IDEA-145475
+   *
+   * The file is first downloaded as {@code #DOWNLOAD_FILENAME} and then renamed to {@code #STATS_FILENAME}.
+   */
   private File fixupFile(File downloaded) {
     File target = new File(myCachePath, STATS_FILENAME).getAbsoluteFile();
     if (!FileUtil.filesEqual(downloaded.getAbsoluteFile(), target)) {
