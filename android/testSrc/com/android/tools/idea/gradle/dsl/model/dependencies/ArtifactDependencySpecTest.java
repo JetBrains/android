@@ -33,13 +33,13 @@ public class ArtifactDependencySpecTest {
 
   @Test
   public void testGetCompactNotationWithoutClassifierAndExtension() {
-    assertEquals("group:name:version", myDependency.compactNotation());
+    assertEquals("group:name:version@jar", myDependency.compactNotation());
   }
 
   @Test
   public void testGetCompactNotationWithoutExtension() {
     myDependency.classifier = "classifier";
-    assertEquals("group:name:version:classifier", myDependency.compactNotation());
+    assertEquals("group:name:version:classifier@jar", myDependency.compactNotation());
   }
 
   @Test
