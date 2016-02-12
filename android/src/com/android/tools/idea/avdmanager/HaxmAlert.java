@@ -33,6 +33,7 @@ import javax.swing.text.View;
 import java.awt.*;
 
 import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode.NONE;
+import static com.android.tools.idea.avdmanager.AvdWizardConstants.TAGS_WITH_GOOGLE_API;
 
 /**
  * Component for displaying an alert on the installation state of HAXM/KVM.
@@ -43,9 +44,6 @@ public class HaxmAlert extends JPanel {
   private HyperlinkListener myErrorLinkListener;
   private SystemImageDescription myImageDescription;
   private AccelerationErrorCode myAccelerationErrorCode;
-
-  private static final IdDisplay GOOGLE_APIS_TAG = IdDisplay.create("google_apis", "");
-  private static final IdDisplay GOOGLE_APIS_X86_TAG = IdDisplay.create("google_apis_x86", "");
 
   public HaxmAlert() {
     myErrorInstructionsLink = new HyperlinkLabel();
@@ -132,8 +130,7 @@ public class HaxmAlert extends JPanel {
       warningTextBuilder.append("Consider using an x86 system image on a x86 host for better emulation performance.<br>");
     }
 
-    if (!GOOGLE_APIS_TAG.equals(myImageDescription.getTag()) &&
-        !GOOGLE_APIS_X86_TAG.equals(myImageDescription.getTag()) ) {
+    if (!TAGS_WITH_GOOGLE_API.contains(myImageDescription.getTag())) {
       if (warningTextBuilder.length() > 0) {
         warningTextBuilder.append("<br>");
       }
