@@ -22,4 +22,13 @@ public interface Constants {
   String MODEL_VIEW_UNIFORM = "uModelView";
   String MODEL_VIEW_PROJECTION_UNIFORM = "uModelViewProj";
   String NORMAL_MATRIX_UNIFORM = "uNormalMatrix";
+
+  // Camera constants.
+  int STANDARD_WIDTH = 36;
+  int STANDARD_HEIGHT = 24;
+  int NEAR_FOCAL_LENGTH = 105;
+  int FAR_FOCAL_LENGTH = 55;
+  double MIN_DISTANCE = 3;
+  double MAX_DISTANCE = 4.5;
+  double Z_NEAR = 0.1;
 }
