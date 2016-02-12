@@ -29,10 +29,13 @@ import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 import static com.android.tools.idea.gradle.structure.model.android.Artifacts.createSpec;
+import static com.android.tools.idea.gradle.structure.model.pom.MavenPoms.findDependenciesInPomFile;
 
 class PsdAndroidDependencyModels {
   @NotNull private final PsdAndroidModuleModel myParent;
@@ -237,6 +240,19 @@ class PsdAndroidDependencyModels {
     if (dependencyModel == null) {
       dependencyModel = new PsdLibraryDependencyModel(myParent, resolvedSpec, gradleModel, parsedModel);
       myDependencyModels.put(key, dependencyModel);
+
+      File libraryPath = null;
+      if (gradleModel instanceof AndroidLibrary) {
+        libraryPath = ((AndroidLibrary)gradleModel).getBundle();
+      }
+      else if (gradleModel instanceof JavaLibrary) {
+        libraryPath = ((JavaLibrary)gradleModel).getJarFile();
+      }
+      List<ArtifactDependencySpec> pomDependencies = Collections.emptyList();
+      if (libraryPath != null) {
+        pomDependencies = findDependenciesInPomFile(libraryPath);
+      }
+      ((PsdLibraryDependencyModel)dependencyModel).setPomDependencies(pomDependencies);
     }
     return dependencyModel;
   }
@@ -260,5 +276,10 @@ class PsdAndroidDependencyModels {
   @Nullable
   public PsdAndroidDependencyModel findDependency(@NotNull String dependency) {
     return myDependencyModels.get(dependency);
+  }
+  @Nullable
+  public PsdAndroidDependencyModel findDependency(@NotNull ArtifactDependencySpec dependency) {
+    String key = dependency.toString();
+    return myDependencyModels.get(key);
   }
 }
