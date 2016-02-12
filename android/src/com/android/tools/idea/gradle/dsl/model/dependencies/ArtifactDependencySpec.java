@@ -113,7 +113,11 @@ public class ArtifactDependencySpec {
     this.group = emptyToNull(group);
     this.version = emptyToNull(version);
     this.classifier = emptyToNull(classifier);
-    this.extension = emptyToNull(extension);
+    String extensionValue = emptyToNull(extension);
+    if (extensionValue == null) {
+      extensionValue = "jar";
+    }
+    this.extension = extensionValue;
   }
 
   @Override

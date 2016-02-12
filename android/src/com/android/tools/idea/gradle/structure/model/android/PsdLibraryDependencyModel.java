@@ -28,6 +28,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -42,6 +43,7 @@ public class PsdLibraryDependencyModel extends PsdAndroidDependencyModel {
   @Nullable private final ArtifactDependencySpec myMismatchingRequestedSpec;
   @Nullable private final PsdProblem myProblem;
 
+  @NotNull private final List<ArtifactDependencySpec> myPomDependencies = Lists.newArrayList();
   @NotNull private final Set<String> myTransitiveDependencies = Sets.newHashSet();
 
   PsdLibraryDependencyModel(@NotNull PsdAndroidModuleModel parent,
@@ -85,15 +87,29 @@ public class PsdLibraryDependencyModel extends PsdAndroidDependencyModel {
     myTransitiveDependencies.add(dependency);
   }
 
+  public void setPomDependencies(@NotNull List<ArtifactDependencySpec> pomDependencies) {
+    myPomDependencies.clear();
+    myPomDependencies.addAll(pomDependencies);
+  }
+
   @NotNull
-  public List<PsdAndroidDependencyModel> getTransitiveDependencies() {
-    List<PsdAndroidDependencyModel> transitive = Lists.newArrayList();
+  public Collection<PsdAndroidDependencyModel> getTransitiveDependencies() {
+    PsdAndroidModuleModel moduleModel = getParent();
+
+    Set<PsdAndroidDependencyModel> transitive = Sets.newHashSet();
     for (String dependency : myTransitiveDependencies) {
-      PsdAndroidDependencyModel found = getParent().findDependency(dependency);
+      PsdAndroidDependencyModel found = moduleModel.findDependency(dependency);
       if (found != null) {
         transitive.add(found);
       }
     }
+    for (ArtifactDependencySpec dependency : myPomDependencies) {
+      PsdAndroidDependencyModel found = moduleModel.findDependency(dependency);
+      if (found != null) {
+        transitive.add(found);
+      }
+    }
+
     return transitive;
   }
 
