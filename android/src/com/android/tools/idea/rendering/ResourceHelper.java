@@ -43,9 +43,7 @@ import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.xml.*;
 import com.intellij.ui.ColorUtil;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.android.uipreview.ChooseResourceDialog;
-import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -571,21 +569,27 @@ public class ResourceHelper {
 
   @Nullable("if there is no statelist with this name")
   private static StateList resolveStateList(@NotNull RenderResources renderResources,
-                                           @NotNull ResourceValue value,
+                                           @NotNull ResourceValue resourceValue,
                                            @NotNull Project project, int depth) {
     if (depth >= MAX_RESOURCE_INDIRECTION) {
-      LOG.warn("too deep " + value);
+      LOG.warn("too deep " + resourceValue);
       return null;
     }
 
-    if (value.getValue().startsWith(PREFIX_RESOURCE_REF)) {
-      final ResourceValue resValue = renderResources.findResValue(value.getValue(), value.isFramework());
+    String value = resourceValue.getValue();
+    if (value == null) {
+      // Not all ResourceValue instances have values (e.g. StyleResourceValue)
+      return null;
+    }
+
+    if (value.startsWith(PREFIX_RESOURCE_REF)) {
+      final ResourceValue resValue = renderResources.findResValue(value, resourceValue.isFramework());
       if (resValue != null) {
         return resolveStateList(renderResources, resValue, project, depth + 1);
       }
     }
     else {
-      VirtualFile virtualFile = LocalFileSystem.getInstance().findFileByPath(value.getValue());
+      VirtualFile virtualFile = LocalFileSystem.getInstance().findFileByPath(value);
       if (virtualFile != null) {
         PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(project, virtualFile);
         if (psiFile instanceof XmlFile) {
@@ -594,7 +598,7 @@ public class ResourceHelper {
           if (rootTag != null && TAG_SELECTOR.equals(rootTag.getName())) {
             StateList stateList = new StateList(psiFile.getName(), psiFile.getContainingDirectory().getName());
             for (XmlTag subTag : rootTag.findSubTags(TAG_ITEM)) {
-              final StateListState stateListState = createStateListState(subTag, value.isFramework());
+              final StateListState stateListState = createStateListState(subTag, resourceValue.isFramework());
               if (stateListState == null) {
                 return null;
               }
@@ -733,6 +737,10 @@ public class ResourceHelper {
       }
     }
 
+    if (result == null) {
+      return null;
+    }
+
     final File file = new File(result);
     return file.isFile() ? file : null;
   }
@@ -840,7 +848,7 @@ public class ResourceHelper {
       // color was present in completionTypes, and not if we added it because of the presence of ResourceType.DRAWABLES.
       // For any other ResourceType, we always include file resources.
       boolean includeFileResources = (type != ResourceType.COLOR) || completionTypesContainsColor;
-      ChooseResourceDialog.ResourceGroup group = new ChooseResourceDialog.ResourceGroup(SdkConstants.ANDROID_NS_NAME, type, facet, SdkConstants.ANDROID_NS_NAME, includeFileResources);
+      ChooseResourceDialog.ResourceGroup group = new ChooseResourceDialog.ResourceGroup(ANDROID_NS_NAME, type, facet, ANDROID_NS_NAME, includeFileResources);
       for (ChooseResourceDialog.ResourceItem item : group.getItems()) {
         resourceNamesList.add(item.getResourceUrl());
       }
