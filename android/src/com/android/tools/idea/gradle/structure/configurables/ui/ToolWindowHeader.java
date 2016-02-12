@@ -43,6 +43,7 @@ public class ToolWindowHeader extends Header implements Disposable {
   @NotNull private final Icon myIcon;
   @Nullable private final ToolWindowAnchor myAnchor;
 
+  private JComponent myPreferredFocusedComponent;
   private AnAction myMinimizeAction;
   private ChildFocusWatcher myFocusWatcher;
 
@@ -91,6 +92,14 @@ public class ToolWindowHeader extends Header implements Disposable {
       };
       setAdditionalActions(Lists.newArrayList(myMinimizeAction));
     }
+    addActivationListener(new ActivationListener() {
+      @Override
+      public void activated() {
+        if (myPreferredFocusedComponent != null) {
+          myPreferredFocusedComponent.requestFocusInWindow();
+        }
+      }
+    }, this);
   }
 
   @Override
@@ -105,6 +114,10 @@ public class ToolWindowHeader extends Header implements Disposable {
 
   private void setFocusWatcher(@NotNull ChildFocusWatcher focusWatcher) {
     myFocusWatcher = focusWatcher;
+  }
+
+  public void setPreferredFocusedComponent(@Nullable JComponent preferredFocusedComponent) {
+    myPreferredFocusedComponent = preferredFocusedComponent;
   }
 
   @Override
