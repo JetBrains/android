@@ -44,9 +44,8 @@
       <option name="JAVA_DECLARATION" value="true" />
     </context>
   </template>
-  <template name="logm" value="android.util.Log.d(TAG, &quot;$METHOD_NAME$() called with: &quot; +  $args$);" description="Log method name and its arguments" toReformat="true" toShortenFQNames="true">
-    <variable name="METHOD_NAME" expression="methodName()" defaultValue="" alwaysStopAt="false" />
-    <variable name="args" expression="groovyScript(&quot;'\&quot;' + _1.collect { it + ' = [\&quot; + ' + it + ' + \&quot;]'}.join(', ') + '\&quot;'&quot;, methodParameters())" defaultValue="" alwaysStopAt="false" />
+  <template name="logm" value="android.util.Log.d(TAG, $content$);" description="Log method name and its arguments" toReformat="true" toShortenFQNames="true">
+    <variable name="content" expression="groovyScript(&quot;def params = _2.collect {it + ' = [\&quot; + ' + it + ' + \&quot;]'}.join(', '); return '\&quot;' + _1 + '() called' + (params.empty  ? '' : ' with: ' + params) + '\&quot;'&quot;, methodName(), methodParameters())" defaultValue="" alwaysStopAt="false" />
     <context>
       <option name="JAVA_STATEMENT" value="true" />
     </context>
