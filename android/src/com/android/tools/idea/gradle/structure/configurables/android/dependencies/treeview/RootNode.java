@@ -15,16 +15,15 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview;
 
-import com.android.tools.idea.gradle.structure.configurables.ui.PsdUISettings;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.PsdAndroidDependencyModelComparator;
 import com.android.tools.idea.gradle.structure.configurables.android.treeview.AbstractRootNode;
 import com.android.tools.idea.gradle.structure.configurables.android.treeview.AbstractVariantNode;
+import com.android.tools.idea.gradle.structure.configurables.ui.PsdUISettings;
 import com.android.tools.idea.gradle.structure.model.android.PsdAndroidDependencyModel;
 import com.android.tools.idea.gradle.structure.model.android.PsdAndroidModuleModel;
 import com.android.tools.idea.gradle.structure.model.android.PsdVariantModel;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.*;
-import com.intellij.util.containers.SortedList;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -83,7 +82,7 @@ class RootNode extends AbstractRootNode {
         for (String variantName : dependency.getVariants()) {
           List<PsdAndroidDependencyModel> variantDependencies = dependenciesByVariant.get(variantName);
           if (variantDependencies == null) {
-            variantDependencies = new SortedList<PsdAndroidDependencyModel>(PsdAndroidDependencyModelComparator.INSTANCE);
+            variantDependencies = Lists.newArrayList();
             dependenciesByVariant.put(variantName, variantDependencies);
           }
           variantDependencies.add(dependency);
@@ -110,12 +109,12 @@ class RootNode extends AbstractRootNode {
     for (PsdAndroidDependencyModel dependency : dependencies) {
       List<String> variants = dependency.getVariants();
       for (String variant : variants) {
-        List<PsdAndroidDependencyModel> sorted = dependenciesByVariant.get(variant);
-        if (sorted == null) {
-          sorted = new SortedList<PsdAndroidDependencyModel>(PsdAndroidDependencyModelComparator.INSTANCE);
-          dependenciesByVariant.put(variant, sorted);
+        List<PsdAndroidDependencyModel> variantDependencies = dependenciesByVariant.get(variant);
+        if (variantDependencies == null) {
+          variantDependencies = Lists.newArrayList();
+          dependenciesByVariant.put(variant, variantDependencies);
         }
-        sorted.add(dependency);
+        variantDependencies.add(dependency);
       }
     }
 
