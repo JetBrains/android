@@ -23,7 +23,6 @@ import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowPanel;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsdNode;
 import com.android.tools.idea.gradle.structure.model.android.PsdAndroidDependencyModel;
 import com.android.tools.idea.gradle.structure.model.android.PsdAndroidModuleModel;
-import com.android.tools.idea.gradle.util.ui.Header;
 import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.*;
@@ -72,6 +71,7 @@ class VariantsToolWindowPanel extends ToolWindowPanel implements DependencySelec
     myTree = new Tree(treeModel);
     myTree.setExpandsSelectedPaths(true);
     myTree.setRootVisible(false);
+    getHeader().setPreferredFocusedComponent(myTree);
 
     TreeSelectionModel selectionModel = myTree.getSelectionModel();
     selectionModel.setSelectionMode(DISCONTIGUOUS_TREE_SELECTION);
@@ -95,13 +95,6 @@ class VariantsToolWindowPanel extends ToolWindowPanel implements DependencySelec
       }
     };
     myTree.addTreeSelectionListener(myTreeSelectionListener);
-
-    getHeader().addActivationListener(new Header.ActivationListener() {
-      @Override
-      public void activated() {
-        myTree.requestFocusInWindow();
-      }
-    }, this);
   }
 
   private void setHeaderActions() {
