@@ -23,10 +23,7 @@ import com.android.tools.idea.ddms.DeviceContext;
 import com.android.tools.idea.ddms.DevicePanel;
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.ddms.OpenVmTraceHandler;
-import com.android.tools.idea.ddms.actions.DumpSysActions;
-import com.android.tools.idea.ddms.actions.ScreenRecorderAction;
-import com.android.tools.idea.ddms.actions.ScreenshotAction;
-import com.android.tools.idea.ddms.actions.TerminateVMAction;
+import com.android.tools.idea.ddms.actions.*;
 import com.android.tools.idea.ddms.adb.AdbService;
 import com.android.tools.idea.logcat.AndroidLogcatView;
 import com.android.tools.idea.run.AndroidProgramRunner;
@@ -221,6 +218,9 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware {
     group.add(new Separator());
 
     group.add(new TerminateVMAction(deviceContext));
+    if (HierarchyViewAction.ENABLED) {
+      group.add(new HierarchyViewAction(deviceContext));
+    }
     //group.add(new MyAllocationTrackerAction());
     group.add(new Separator());
     group.add(new BrowserHelpAction("Android Monitor", "http://developer.android.com/r/studio-ui/android-monitor.html"));
