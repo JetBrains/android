@@ -28,7 +28,7 @@ import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.Soluti
 public enum AccelerationErrorCode {
   ALREADY_INSTALLED(0, "", NONE, ""),
   NESTED_NOT_SUPPORTED(1, "HAXM doesn't support nested virtual machines.", NONE, SOLUTION_NESTED_VIRTUAL_MACHINE),
-  INTEL_REQUIRED(2, "HAXM requires a Geniune Intel processor.", NONE, SOLUTION_ACCERATION_NOT_SUPPORTED),
+  INTEL_REQUIRED(2, "HAXM requires a Genuine Intel processor.", NONE, SOLUTION_ACCERATION_NOT_SUPPORTED),
   NO_CPU_SUPPORT(3, "Your CPU does not support required features (VT-x or SVM).", NONE, SOLUTION_ACCERATION_NOT_SUPPORTED),
   NO_CPU_VTX_SUPPORT(4, "Your CPU does not support VT-x.", NONE, SOLUTION_ACCERATION_NOT_SUPPORTED),
   NO_CPU_NX_SUPPORT(5, "Your CPU does not support NX.", NONE, SOLUTION_ACCERATION_NOT_SUPPORTED),
