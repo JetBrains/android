@@ -29,10 +29,10 @@ public final class ArtifactDependencySpecs {
   @NotNull
   public static String asText(@NotNull ArtifactDependencySpec spec) {
     boolean showGroupId = PsdUISettings.getInstance().DECLARED_DEPENDENCIES_SHOW_GROUP_ID;
-    if (showGroupId) {
-      return spec.toString();
-    }
     StringBuilder text = new StringBuilder();
+    if (showGroupId && isNotEmpty(spec.group)) {
+      text.append(spec.group).append(GRADLE_PATH_SEPARATOR);
+    }
     text.append(spec.name);
     if (isNotEmpty(spec.version)) {
       text.append(GRADLE_PATH_SEPARATOR).append(spec.version);

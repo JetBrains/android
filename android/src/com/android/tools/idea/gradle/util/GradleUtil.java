@@ -131,7 +131,6 @@ public final class GradleUtil {
   private static final Logger LOG = Logger.getInstance(GradleUtil.class);
 
   private static final Pattern GRADLE_JAR_NAME_PATTERN = Pattern.compile("gradle-([^-]*)-(.*)\\.jar");
-  private static final String SOURCES_JAR_NAME_SUFFIX = "-sources.jar";
 
   /**
    * Finds characters that shouldn't be used in the Gradle path.
@@ -1159,6 +1158,18 @@ public final class GradleUtil {
 
   @Nullable
   public static VirtualFile findSourceJarForLibrary(@NotNull File libraryFilePath) {
+    return findArtifactFileInRepository(libraryFilePath, "-sources.jar", true);
+  }
+
+  @Nullable
+  public static VirtualFile findPomForLibrary(@NotNull File libraryFilePath) {
+    return findArtifactFileInRepository(libraryFilePath, ".pom", false);
+  }
+
+  @Nullable
+  private static VirtualFile findArtifactFileInRepository(@NotNull File libraryFilePath,
+                                                          @NotNull String fileNameSuffix,
+                                                          boolean searchInIdeCache) {
     VirtualFile realJarFile = findFileByIoFile(libraryFilePath, true);
 
     if (realJarFile == null) {
@@ -1168,7 +1179,7 @@ public final class GradleUtil {
 
     VirtualFile parent = realJarFile.getParent();
     String name = getNameWithoutExtension(libraryFilePath);
-    String sourceFileName = name + SOURCES_JAR_NAME_SUFFIX;
+    String sourceFileName = name + fileNameSuffix;
     if (parent != null) {
 
       // Try finding sources in the same folder as the jar file. This is the layout of Maven repositories.
@@ -1192,10 +1203,13 @@ public final class GradleUtil {
       }
     }
 
-    // Try IDEA's own cache.
-    File librarySourceDirPath = InternetAttachSourceProvider.getLibrarySourceDir();
-    File sourceJar = new File(librarySourceDirPath, sourceFileName);
-    return findFileByIoFile(sourceJar, true);
+    if (searchInIdeCache) {
+      // Try IDEA's own cache.
+      File librarySourceDirPath = InternetAttachSourceProvider.getLibrarySourceDir();
+      File sourceJar = new File(librarySourceDirPath, sourceFileName);
+      return findFileByIoFile(sourceJar, true);
+    }
+    return null;
   }
 
   /**

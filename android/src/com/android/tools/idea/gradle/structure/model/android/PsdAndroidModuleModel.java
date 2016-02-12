@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.structure.model.android;
 
 import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsdModuleModel;
 import com.android.tools.idea.gradle.structure.model.PsdParsedDependencyModels;
 import com.android.tools.idea.gradle.structure.model.PsdProjectModel;
@@ -84,6 +85,11 @@ public class PsdAndroidModuleModel extends PsdModuleModel {
 
   @Nullable
   public PsdAndroidDependencyModel findDependency(@NotNull String dependency) {
+    return getOrCreateDependencyModels().findDependency(dependency);
+  }
+
+  @Nullable
+  public PsdAndroidDependencyModel findDependency(@NotNull ArtifactDependencySpec dependency) {
     return getOrCreateDependencyModels().findDependency(dependency);
   }
 
