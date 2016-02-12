@@ -559,16 +559,22 @@ public class ResourceHelper {
    */
   @Nullable
   public static StateList resolveStateList(@NotNull RenderResources renderResources,
-                                           @NotNull ResourceValue value,
+                                           @NotNull ResourceValue resourceValue,
                                            @NotNull Project project) {
-    if (value.getValue().startsWith(PREFIX_RESOURCE_REF)) {
-      final ResourceValue resValue = renderResources.findResValue(value.getValue(), value.isFramework());
+    String value = resourceValue.getValue();
+    if (value == null) {
+      // Not all ResourceValue instances have values (e.g. StyleResourceValue)
+      return null;
+    }
+
+    if (value.startsWith(PREFIX_RESOURCE_REF)) {
+      final ResourceValue resValue = renderResources.findResValue(value, resourceValue.isFramework());
       if (resValue != null) {
         return resolveStateList(renderResources, resValue, project);
       }
     }
     else {
-      VirtualFile virtualFile = LocalFileSystem.getInstance().findFileByPath(value.getValue());
+      VirtualFile virtualFile = LocalFileSystem.getInstance().findFileByPath(value);
       if (virtualFile != null) {
         PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(project, virtualFile);
         if (psiFile instanceof XmlFile) {
@@ -577,7 +583,7 @@ public class ResourceHelper {
           if (rootTag != null && TAG_SELECTOR.equals(rootTag.getName())) {
             StateList stateList = new StateList(psiFile.getName(), psiFile.getContainingDirectory().getName());
             for (XmlTag subTag : rootTag.findSubTags(TAG_ITEM)) {
-              final StateListState stateListState = createStateListState(subTag, value.isFramework());
+              final StateListState stateListState = createStateListState(subTag, resourceValue.isFramework());
               if (stateListState == null) {
                 return null;
               }
@@ -714,6 +720,10 @@ public class ResourceHelper {
         StateListState state = states.get(states.size() - 1);
         result = state.getValue();
       }
+    }
+
+    if (result == null) {
+      return null;
     }
 
     final File file = new File(result);
