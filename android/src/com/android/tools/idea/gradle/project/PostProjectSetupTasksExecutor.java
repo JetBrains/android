@@ -60,6 +60,7 @@ import com.intellij.execution.junit.JUnitConfigurationType;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
@@ -408,8 +409,14 @@ public class PostProjectSetupTasksExecutor {
 
     // Piggy-back off of the SDK update check (which is called from a handful of places) to also see if this is an expired preview build
     checkExpiredPreviewBuild(project);
-
-    checkOlderPluginPreviewVersion(project);
+    AndroidProject androidProject = getAppAndroidProject(project);
+    if (androidProject != null) {
+      logProjectVersion(androidProject);
+      checkOlderPluginPreviewVersion(project, androidProject);
+    }
+    else {
+      Logger.getInstance(PostProjectSetupTasksExecutor.class).warn("Unable to obtain application's Android Project");
+    }
 
     File androidHome = IdeSdks.getAndroidSdkPath();
     if (androidHome != null && !VersionCheck.isCompatibleVersion(androidHome)) {
@@ -445,11 +452,17 @@ public class PostProjectSetupTasksExecutor {
     ourCheckedExpiration = true;
   }
 
+  private static void logProjectVersion(@NotNull AndroidProject androidProject) {
+    String message = String.format("Gradle model version: %1$s, latest version for IDE: %2$s",
+                                   androidProject.getModelVersion(), GRADLE_PLUGIN_LATEST_VERSION);
+    Logger.getInstance(PostProjectSetupTasksExecutor.class).info(message);
+  }
+
   // This is temporary code for "preview" release.
-  private static void checkOlderPluginPreviewVersion(@NotNull Project project) {
+  private static void checkOlderPluginPreviewVersion(@NotNull Project project, @NotNull AndroidProject androidProject) {
     String latestVersion = GRADLE_PLUGIN_LATEST_VERSION;
-    AndroidProject androidProject = getAppAndroidProject(project);
-    if (androidProject != null && androidPluginNeedsUpdate(androidProject, latestVersion)) {
+
+    if (androidPluginNeedsUpdate(androidProject, latestVersion)) {
       String message = String.format("%1$s is an old preview version of the Android plugin; please update to the latest version.",
                                      androidProject.getModelVersion());
       NotificationHyperlink quickFix = new FixAndroidGradlePluginVersionHyperlink(latestVersion, null, false);
