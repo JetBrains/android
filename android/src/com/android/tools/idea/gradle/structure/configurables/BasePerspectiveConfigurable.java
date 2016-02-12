@@ -19,7 +19,6 @@ import com.android.tools.idea.gradle.structure.configurables.ui.PsdUISettings;
 import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowHeader;
 import com.android.tools.idea.gradle.structure.model.PsdModuleModel;
 import com.android.tools.idea.gradle.structure.model.PsdProjectModel;
-import com.android.tools.idea.gradle.util.ui.Header;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.options.SearchableConfigurable;
@@ -136,12 +135,7 @@ public abstract class BasePerspectiveConfigurable extends MasterDetailsComponent
       if (first instanceof JPanel && myHeader == null) {
         JPanel panel = (JPanel)first;
         myHeader = ToolWindowHeader.createAndAdd("Modules", AllIcons.Nodes.Module, panel, ToolWindowAnchor.LEFT);
-        myHeader.addActivationListener(new Header.ActivationListener() {
-          @Override
-          public void activated() {
-            myTree.requestFocusInWindow();
-          }
-        }, this);
+        myHeader.setPreferredFocusedComponent(myTree);
         myHeader.addMinimizeListener(new ToolWindowHeader.MinimizeListener() {
           @Override
           public void minimized() {
