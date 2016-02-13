@@ -511,6 +511,7 @@ public final class InstantRunManager implements ProjectComponent {
         refreshDebugger(pkgName);
       }
       needRestart = false;
+      client.stopApp(device, true);
     }
     else {
       // Push to data directory
