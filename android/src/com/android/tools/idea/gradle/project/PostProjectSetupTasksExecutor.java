@@ -33,7 +33,10 @@ import com.android.tools.idea.gradle.messages.Message;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider;
-import com.android.tools.idea.gradle.service.notification.hyperlink.*;
+import com.android.tools.idea.gradle.service.notification.hyperlink.InstallPlatformHyperlink;
+import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.gradle.service.notification.hyperlink.OpenAndroidSdkManagerHyperlink;
+import com.android.tools.idea.gradle.service.notification.hyperlink.OpenUrlHyperlink;
 import com.android.tools.idea.gradle.testing.TestArtifactSearchScopes;
 import com.android.tools.idea.gradle.variant.conflict.Conflict;
 import com.android.tools.idea.gradle.variant.conflict.ConflictSet;
@@ -45,7 +48,6 @@ import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -75,11 +77,11 @@ import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.ui.OrderRoot;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.NonNavigatable;
 import com.intellij.util.SystemProperties;
 import com.intellij.util.ui.UIUtil;
-import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkData;
@@ -90,10 +92,11 @@ import java.io.File;
 import java.util.*;
 
 import static com.android.SdkConstants.*;
-import static com.android.builder.model.AndroidProject.GENERATION_ORIGINAL;
 import static com.android.tools.idea.gradle.customizer.AbstractDependenciesModuleCustomizer.pathToUrl;
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.FAILED_TO_SET_UP_SDK;
+import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.UNHANDLED_SYNC_ISSUE_TYPE;
 import static com.android.tools.idea.gradle.project.LibraryAttachments.getStoredLibraryAttachments;
+import static com.android.tools.idea.gradle.project.PreSyncChecks.isPluginVersionUpgradeNecessary;
 import static com.android.tools.idea.gradle.project.ProjectDiagnostics.findAndReportStructureIssues;
 import static com.android.tools.idea.gradle.project.ProjectJdkChecks.hasCorrectJdkVersion;
 import static com.android.tools.idea.gradle.service.notification.errors.AbstractSyncErrorHandler.FAILED_TO_SYNC_GRADLE_PROJECT_ERROR_GROUP_FORMAT;
@@ -105,7 +108,6 @@ import static com.android.tools.idea.gradle.variant.conflict.ConflictSet.findCon
 import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
 import static com.android.tools.idea.startup.ExternalAnnotationsSupport.attachJdkAnnotations;
 import static com.intellij.notification.NotificationType.INFORMATION;
-import static com.intellij.notification.NotificationType.WARNING;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static com.intellij.openapi.roots.OrderRootType.SOURCES;
 import static com.intellij.openapi.util.io.FileUtil.delete;
@@ -114,9 +116,6 @@ import static com.intellij.util.ExceptionUtil.rethrowAllAsUnchecked;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.*;
 
 public class PostProjectSetupTasksExecutor {
-  // Currently we only want to suggest updates for users who are on non release versions of 2.0.0 plugins
-  private static final GradleVersion SUGGEST_UPDATE_PLUGIN_VERSION = new GradleVersion(2, 0, 0);
-
   /**
    * Whether a message indicating that "a new SDK Tools version is available" is already shown.
    */
@@ -170,6 +169,10 @@ public class PostProjectSetupTasksExecutor {
       addSdkLinkIfNecessary();
       checkSdkToolsVersion(myProject);
       updateGradleSyncState();
+      return;
+    }
+
+    if (shouldForcePluginVersionUpgrade()) {
       return;
     }
 
@@ -227,6 +230,42 @@ public class PostProjectSetupTasksExecutor {
 
     disposeModulesMarkedForRemoval();
   }
+
+  // This method can potentially return 'true' only when a project is imported. Subsequent sync requests will catch the old plugin version
+  // before sync is executed.
+  private boolean shouldForcePluginVersionUpgrade() {
+    AndroidProject androidProject = getAppAndroidProject(myProject);
+    if (androidProject != null) {
+      logProjectVersion(androidProject);
+      GradleVersion current = GradleVersion.parse(androidProject.getModelVersion());
+      String latest = GRADLE_PLUGIN_LATEST_VERSION;
+      if (isPluginVersionUpgradeNecessary(current, latest)) {
+        updateGradleSyncState(); // Update the sync state before starting a new one.
+
+        String message =
+          String.format("%1$s is an old preview version of the Android plugin; the project will be upgraded to version %2$s.",
+                        current, latest);
+        Messages.showErrorDialog(myProject, message, UNHANDLED_SYNC_ISSUE_TYPE);
+        updateGradlePluginVersionAndNotifyFailure(myProject, latest, null);
+      }
+    }
+    else {
+      Logger.getInstance(PostProjectSetupTasksExecutor.class).warn("Unable to obtain application's Android Project");
+    }
+    return false;
+  }
+
+  @Nullable
+  private static AndroidProject getAppAndroidProject(@NotNull Project project) {
+    for (Module module : ModuleManager.getInstance(project).getModules()) {
+      AndroidProject androidProject = getAndroidProject(module);
+      if (androidProject != null && !androidProject.isLibrary()) {
+        return androidProject;
+      }
+    }
+    return null;
+  }
+
 
   private void disposeModulesMarkedForRemoval() {
     final Collection<Module> modulesToDispose = getModulesToDisposePostSync(myProject);
@@ -412,14 +451,6 @@ public class PostProjectSetupTasksExecutor {
 
     // Piggy-back off of the SDK update check (which is called from a handful of places) to also see if this is an expired preview build
     checkExpiredPreviewBuild(project);
-    AndroidProject androidProject = getAppAndroidProject(project);
-    if (androidProject != null) {
-      logProjectVersion(androidProject);
-      checkOlderPluginPreviewVersion(project, androidProject);
-    }
-    else {
-      Logger.getInstance(PostProjectSetupTasksExecutor.class).warn("Unable to obtain application's Android Project");
-    }
 
     File androidHome = IdeSdks.getAndroidSdkPath();
     if (androidHome != null && !VersionCheck.isCompatibleVersion(androidHome)) {
@@ -459,54 +490,6 @@ public class PostProjectSetupTasksExecutor {
     String message = String.format("Gradle model version: %1$s, latest version for IDE: %2$s",
                                    androidProject.getModelVersion(), GRADLE_PLUGIN_LATEST_VERSION);
     Logger.getInstance(PostProjectSetupTasksExecutor.class).info(message);
-  }
-
-  // This is temporary code for "preview" release.
-  private static void checkOlderPluginPreviewVersion(@NotNull Project project, @NotNull AndroidProject androidProject) {
-    String latestVersion = GRADLE_PLUGIN_LATEST_VERSION;
-
-    if (androidPluginNeedsUpdate(androidProject, latestVersion)) {
-      String message = String.format("%1$s is an old preview version of the Android plugin; please update to the latest version.",
-                                     androidProject.getModelVersion());
-      NotificationHyperlink quickFix = new FixAndroidGradlePluginVersionHyperlink(latestVersion, null, false);
-      AndroidGradleNotification.getInstance(project).showBalloon("Old Preview Plugin", message, WARNING, quickFix);
-    }
-  }
-
-
-  @Nullable
-  private static AndroidProject getAppAndroidProject(@NotNull Project project) {
-    for (Module module : ModuleManager.getInstance(project).getModules()) {
-      AndroidProject androidProject = getAndroidProject(module);
-      if (androidProject != null && !androidProject.isLibrary()) {
-        return androidProject;
-      }
-    }
-    return null;
-  }
-
-  @VisibleForTesting
-  static boolean androidPluginNeedsUpdate(@NotNull AndroidProject androidProject, @NotNull String latest) {
-    if (SUGGEST_UPDATE_PLUGIN_VERSION.compareIgnoringQualifiers(androidProject.getModelVersion()) != 0) {
-      // Only suggest updates for plugin 2.0.0
-      return false;
-    }
-    boolean check;
-
-    try {
-      // Only suggest updates for 1st-generation plugin
-      check = androidProject.getPluginGeneration() == GENERATION_ORIGINAL;
-    }
-    catch (UnsupportedMethodException e) {
-      // This is a 2.0.0 alpha version that does not have the method 'getPluginGeneration'.
-      // Suggest update anyway.
-      check = true;
-    }
-    if (check) {
-      GradleVersion actual = GradleVersion.tryParse(androidProject.getModelVersion());
-      return actual != null && actual.compareTo(latest) < 0;
-    }
-    return false;
   }
 
   private void ensureValidSdks() {
