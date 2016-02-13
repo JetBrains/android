@@ -111,7 +111,7 @@ public class InstantRunUserFeedback implements UserFeedback {
     postHtml(type, HtmlEscapers.htmlEscaper().escape(message), null);
   }
 
-  private void postHtml(@NotNull NotificationType type,
+  public void postHtml(@NotNull NotificationType type,
                        @Language("HTML") @NotNull final String htmlMessage,
                        @Nullable final NotificationListener listener) {
     if (!InstantRunSettings.isShowNotificationsEnabled()) {
