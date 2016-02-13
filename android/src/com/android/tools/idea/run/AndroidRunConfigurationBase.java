@@ -502,7 +502,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
         message = "Performing full build &amp; install: manifest changed<br>(or resource referenced from manifest changed)";
       }
 
-      new InstantRunUserFeedback(module).postText(NotificationType.INFORMATION, message);
+      new InstantRunUserFeedback(module).postHtml(NotificationType.INFORMATION, message, null);
     }
   }
 
