@@ -22,6 +22,7 @@ import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.ide.common.repository.GradleVersion.VersionSegment;
 import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.NativeAndroidGradleModel;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.android.AndroidModel;
@@ -30,6 +31,7 @@ import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySp
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.project.AndroidGradleNotification;
+import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.templates.TemplateManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.CharMatcher;
@@ -84,6 +86,8 @@ import static com.android.ide.common.repository.GradleCoordinate.parseCoordinate
 import static com.android.tools.idea.gradle.dsl.model.GradleBuildModel.parseBuildFile;
 import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.CLASSPATH;
 import static com.android.tools.idea.gradle.eclipse.GradleImport.escapeGroovyStringLiteral;
+import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.UNHANDLED_SYNC_ISSUE_TYPE;
+import static com.android.tools.idea.gradle.service.notification.hyperlink.SearchInBuildFilesHyperlink.searchInBuildFiles;
 import static com.android.tools.idea.gradle.util.BuildMode.ASSEMBLE_TRANSLATE;
 import static com.android.tools.idea.gradle.util.EmbeddedDistributionPaths.findAndroidStudioLocalMavenRepoPath;
 import static com.android.tools.idea.gradle.util.EmbeddedDistributionPaths.findEmbeddedGradleDistributionPath;
@@ -1179,6 +1183,40 @@ public final class GradleUtil {
     File librarySourceDirPath = InternetAttachSourceProvider.getLibrarySourceDir();
     File sourceJar = new File(librarySourceDirPath, sourceFileName);
     return findFileByIoFile(sourceJar, true);
+  }
+
+  /**
+   * Updates the Android Gradle plugin version, and optionally the Gradle version of a given project. This method notifies the user if
+   * the version update failed.
+   *
+   * @param project       the given project.
+   * @param pluginVersion the Android Gradle plugin version to update to.
+   * @param gradleVersion the Gradle version to update to.
+   */
+  public static void updateGradlePluginVersionAndNotifyFailure(@NotNull Project project,
+                                                               @NotNull String pluginVersion,
+                                                               @Nullable String gradleVersion) {
+    if (updateGradlePluginVersion(project, pluginVersion, gradleVersion)) {
+      GradleProjectImporter.getInstance().requestProjectSync(project, false, true /* generate sources */, true /* clean */, null);
+      return;
+    }
+
+    invalidateLastSync(project, String.format("Failed to update Android plugin to version '%1$s'", pluginVersion));
+
+    String msg = "Failed to update the version of the Android Gradle plugin.\n\n" +
+                 "Please click 'OK' to perform a textual search and then update the build files manually.";
+    Messages.showErrorDialog(project, msg, UNHANDLED_SYNC_ISSUE_TYPE);
+    searchInBuildFiles(GRADLE_PLUGIN_NAME, project);
+  }
+
+  private static void invalidateLastSync(@NotNull Project project, @NotNull String error) {
+    GradleSyncState.getInstance(project).syncFailed(error);
+    for (Module module : ModuleManager.getInstance(project).getModules()) {
+      AndroidFacet facet = AndroidFacet.getInstance(module);
+      if (facet != null) {
+        facet.setAndroidModel(null);
+      }
+    }
   }
 
   /**
