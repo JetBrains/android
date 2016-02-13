@@ -83,7 +83,6 @@ import static com.android.tools.idea.gradle.util.Projects.*;
 import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.intellij.notification.NotificationType.ERROR;
-import static com.intellij.notification.NotificationType.INFORMATION;
 import static com.intellij.openapi.externalSystem.model.ProjectKeys.MODULE;
 import static com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode.IN_BACKGROUND_ASYNC;
 import static com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode.MODAL_SYNC;
@@ -260,8 +259,6 @@ public class GradleProjectImporter {
       @Override
       public void run() {
         if (isBuildInProgress(project)) {
-          String msg = "Gradle sync will be executed once current build is finished";
-          AndroidGradleNotification.getInstance(project).showBalloon("Gradle Sync", msg, INFORMATION);
           setSyncRequestedDuringBuild(project, true);
           return;
         }
