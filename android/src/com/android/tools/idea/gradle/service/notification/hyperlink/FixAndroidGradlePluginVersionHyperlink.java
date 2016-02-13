@@ -16,16 +16,14 @@
 package com.android.tools.idea.gradle.service.notification.hyperlink;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.gradle.project.AndroidGradleNotification;
-import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static com.android.SdkConstants.*;
-import static com.android.tools.idea.gradle.util.GradleUtil.updateGradlePluginVersion;
+import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
+import static com.android.SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
+import static com.android.tools.idea.gradle.util.GradleUtil.updateGradlePluginVersionAndNotifyFailure;
 import static com.intellij.ide.BrowserUtil.browse;
-import static com.intellij.notification.NotificationType.ERROR;
 
 public class FixAndroidGradlePluginVersionHyperlink extends NotificationHyperlink {
   @NotNull private final String myModelVersion;
@@ -67,16 +65,6 @@ public class FixAndroidGradlePluginVersionHyperlink extends NotificationHyperlin
     if (myOpenMigrationGuide) {
       browse("http://tools.android.com/tech-docs/new-build-system/migrating-to-1-0-0");
     }
-
-    if (updateGradlePluginVersion(project, myModelVersion, myGradleVersion)) {
-      GradleProjectImporter.getInstance().requestProjectSync(project, false, true /* generate sources */, true /* clean */, null);
-      return;
-    }
-
-    String msg = "Failed to update the version of the Gradle plugin.\n\n" +
-                 "Please click the link to perform a textual search and then update the build files manually.";
-    SearchInBuildFilesHyperlink hyperlink = new SearchInBuildFilesHyperlink(GRADLE_PLUGIN_NAME);
-    AndroidGradleNotification.getInstance(project).showBalloon(ERROR_MSG_TITLE, msg, ERROR, hyperlink);
+    updateGradlePluginVersionAndNotifyFailure(project, myModelVersion, myGradleVersion);
   }
-
 }

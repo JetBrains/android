@@ -22,7 +22,6 @@ import com.android.tools.idea.gradle.service.notification.hyperlink.OpenProjectS
 import com.android.tools.idea.gradle.util.GradleProperties;
 import com.android.tools.idea.gradle.util.ProxySettings;
 import com.android.tools.idea.sdk.IdeSdks;
-import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -39,6 +38,8 @@ import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import java.io.File;
 import java.io.IOException;
 
+import static com.android.SdkConstants.GRADLE_PLUGIN_LATEST_VERSION;
+import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.UNHANDLED_SYNC_ISSUE_TYPE;
 import static com.android.tools.idea.gradle.project.SdkSync.syncIdeAndProjectAndroidSdks;
 import static com.android.tools.idea.gradle.util.GradleUtil.*;
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
@@ -118,7 +119,40 @@ final class PreSyncChecks {
       }
     }
 
+    if (project.isInitialized()) {
+      // We need the project to be initialized, otherwise we cannot parse build.gradle files.
+      GradleVersion current = getAndroidGradleModelVersionFromBuildFile(project);
+      if (current != null) {
+        if (shouldForcePluginVersionUpgrade(project, current, GRADLE_PLUGIN_LATEST_VERSION)) {
+          return PreSyncCheckResult.failure(String.format("Old plugin version (%1$s)", current));
+        }
+      }
+    }
+
     return PreSyncCheckResult.success();
+  }
+
+  private static boolean shouldForcePluginVersionUpgrade(@NotNull Project project,
+                                                 @NotNull GradleVersion current,
+                                                 @NotNull String latest) {
+    if (isPluginVersionUpgradeNecessary(current, latest)) {
+      String message = String.format("%1$s is an old preview version of the Android plugin; the project will be upgraded to version %2$s.",
+                                     current, latest);
+      Messages.showErrorDialog(project, message, UNHANDLED_SYNC_ISSUE_TYPE);
+      updateGradlePluginVersionAndNotifyFailure(project, latest, null);
+      return true;
+    }
+    return false;
+  }
+
+  static boolean isPluginVersionUpgradeNecessary(@NotNull GradleVersion current, @NotNull String latest) {
+    if (current.getPreviewType() != null) {
+      // modelVersion is a "preview" (alpha, beta, etc.)
+      // major, micro, minor are the same for both versions, but it is an old "preview"
+      GradleVersion parsedLatest = GradleVersion.parse(latest);
+      return parsedLatest.compareIgnoringQualifiers(current) == 0 && parsedLatest.compareTo(current) > 0;
+    }
+    return false;
   }
 
   // If the IDE is configured to use proxies, we ask the user if she would like to have those settings copied to gradle.properties, if such
@@ -161,7 +195,7 @@ final class PreSyncChecks {
               errMsg += String.format("\nCause: %1$s", cause);
             }
             AndroidGradleNotification notification = AndroidGradleNotification.getInstance(project);
-            notification.showBalloon("Proxy Settings", errMsg, NotificationType.ERROR);
+            notification.showBalloon("Proxy Settings", errMsg, ERROR);
 
             LOG.info("Failed to save changes to gradle.properties file", e);
           }
