@@ -60,7 +60,7 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable {
   private final Runnable myInvalidateRunnable = new Runnable() {
     @Override
     public void run() {
-      ILayoutPullParser parser = new DomPullParser(myDocument.getDocumentElement());
+
       try {
         synchronized (myGraphicsLayoutRendererLock) {
           // The previous GraphicsLayoutRenderer needs to be disposed before we create a new one since there is static state that
@@ -71,6 +71,12 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable {
           }
         }
 
+        // This runs asynchronously, so we may no longer be valid to run
+        if (myConfiguration.getModule().isDisposed()) {
+          return;
+        }
+
+        ILayoutPullParser parser = new DomPullParser(myDocument.getDocumentElement());
         GraphicsLayoutRenderer graphicsLayoutRenderer = GraphicsLayoutRenderer
           .create(myConfiguration, parser, getBackground(), false/*hasHorizontalScroll*/, true/*hasVerticalScroll*/);
         graphicsLayoutRenderer.setScale(myScale);
