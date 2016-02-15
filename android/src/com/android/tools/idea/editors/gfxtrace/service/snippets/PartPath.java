@@ -67,6 +67,16 @@ final class PartPath extends Pathway implements BinaryObject {
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>
 
+  public PartPath(Pathway base, PartKind kind) {
+    myBase = base;
+    myKind = kind;
+  }
+
+  @Override
+  public Pathway base() {
+    return getBase();
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
