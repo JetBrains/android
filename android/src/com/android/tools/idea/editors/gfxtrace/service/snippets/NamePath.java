@@ -73,6 +73,11 @@ final class NamePath extends Pathway implements BinaryObject {
   //<<<End:Java.ClassBody:1>>>
 
   @Override
+  public Pathway base() {
+    return null;
+  }
+
+  @Override
   public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;

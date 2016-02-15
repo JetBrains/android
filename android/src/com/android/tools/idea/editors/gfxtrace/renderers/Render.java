@@ -21,6 +21,8 @@ import com.android.tools.idea.editors.gfxtrace.service.atom.DynamicAtom;
 import com.android.tools.idea.editors.gfxtrace.service.memory.MemoryPointer;
 import com.android.tools.idea.editors.gfxtrace.service.memory.MemoryRange;
 import com.android.tools.idea.editors.gfxtrace.service.memory.PoolID;
+import com.android.tools.idea.editors.gfxtrace.service.snippets.Labels;
+import com.android.tools.idea.editors.gfxtrace.service.snippets.SnippetObject;
 import com.android.tools.rpclib.schema.*;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.SimpleColoredComponent;
@@ -34,12 +36,8 @@ public final class Render {
   // object rendering functions
 
   public static void render(@NotNull Object value, @NotNull SimpleColoredComponent component, @NotNull SimpleTextAttributes attributes) {
-    if (value instanceof Dynamic) {
-      render((Dynamic)value, component, attributes);
-      return;
-    }
-    if (value instanceof Field) {
-      render((Field)value, component, attributes);
+    if (value instanceof SnippetObject) {
+      render((SnippetObject)value, component, attributes);
       return;
     }
     if (value instanceof StateController.Node) {
@@ -73,7 +71,8 @@ public final class Render {
     component.append(value.toString(), attributes);
   }
 
-  public static void render(@NotNull Dynamic dynamic, @NotNull SimpleColoredComponent component, @NotNull SimpleTextAttributes attributes) {
+  public static void render(@NotNull SnippetObject obj, @NotNull Dynamic dynamic,
+                            @NotNull SimpleColoredComponent component, @NotNull SimpleTextAttributes attributes) {
     MemoryPointer mp = tryMemoryPointer(dynamic);
     if (mp != null) {
       render(mp, component, attributes);
@@ -84,7 +83,7 @@ public final class Render {
       if (index > 0) {
         component.append(",", SimpleTextAttributes.GRAY_ATTRIBUTES);
       }
-      render(dynamic.getFieldValue(index), dynamic.getFieldInfo(index).getType(), component, attributes);
+      render(obj.field(dynamic, index), dynamic.getFieldInfo(index).getType(), component, attributes);
     }
     component.append("}", SimpleTextAttributes.GRAY_ATTRIBUTES);
   }
@@ -117,10 +116,6 @@ public final class Render {
     return mp;
   }
 
-  public static void render(@NotNull Field field, @NotNull SimpleColoredComponent component, @NotNull SimpleTextAttributes attributes) {
-    component.append(field.getName(), attributes);
-  }
-
   public static void render(@NotNull StateController.Node node,
                             @NotNull SimpleColoredComponent component,
                             @NotNull SimpleTextAttributes attributes) {
@@ -128,11 +123,16 @@ public final class Render {
       render(node.key.value, node.key.type, component, attributes);
     }
     else {
-      component.append(String.valueOf(node.key.value), attributes);
+      component.append(String.valueOf(node.key.value.getObject()), attributes);
     }
     if (node.isLeaf() && node.value != null && node.value.value != null) {
       component.append(": ", attributes);
-      render(node.value.value, node.value.type, component, SimpleTextAttributes.SYNTHETIC_ATTRIBUTES);
+      if (node.value.value.getObject() != null) {
+        render(node.value.value, node.value.type, component, SimpleTextAttributes.SYNTHETIC_ATTRIBUTES);
+      }
+      else {
+        component.append("null");
+      }
     }
   }
 
@@ -181,6 +181,7 @@ public final class Render {
     int resultIndex = atom.getResultIndex();
     int extrasIndex = atom.getExtrasIndex();
     boolean needComma = false;
+
     for (int i = 0; i < atom.getFieldCount(); ++i) {
       if (i == resultIndex || i == extrasIndex) continue;
       Field field = atom.getFieldInfo(i);
@@ -188,10 +189,10 @@ public final class Render {
         component.append(", ", SimpleTextAttributes.REGULAR_ATTRIBUTES, -1);
       }
       needComma = true;
-      Object parameterValue = atom.getFieldValue(i);
       component.append(field.getDeclared() + ":",
                        (i == highlightedParameter) ? SimpleTextAttributes.LINK_ATTRIBUTES : SimpleTextAttributes.REGULAR_ATTRIBUTES, i);
-      render(parameterValue, field.getType(), component, (i == highlightedParameter) ? SimpleTextAttributes.LINK_ATTRIBUTES : attributes);
+      SnippetObject paramValue = SnippetObject.param(atom, i);
+      render(paramValue, field.getType(), component, (i == highlightedParameter) ? SimpleTextAttributes.LINK_ATTRIBUTES : attributes);
     }
 
     component.append(")", SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES, -1);
@@ -200,8 +201,8 @@ public final class Render {
                              ? SimpleTextAttributes.LINK_ATTRIBUTES
                              : SimpleTextAttributes.REGULAR_ATTRIBUTES, resultIndex);
       Field field = atom.getFieldInfo(resultIndex);
-      Object parameterValue = atom.getFieldValue(resultIndex);
-      render(parameterValue, field.getType(), component, attributes);
+      SnippetObject paramValue = SnippetObject.param(atom, resultIndex);
+      render(paramValue, field.getType(), component, attributes);
     }
   }
 
@@ -223,10 +224,7 @@ public final class Render {
     component.append("0x" + Long.toHexString(range.getBase()), attributes);
   }
 
-
-  // Type based rendering functions
-
-  public static void render(@NotNull Object value,
+  public static void render(@NotNull SnippetObject value,
                             @NotNull Type type,
                             @NotNull SimpleColoredComponent component,
                             @NotNull SimpleTextAttributes attributes) {
@@ -265,14 +263,14 @@ public final class Render {
     render(value, component, attributes);
   }
 
-  public static void render(@NotNull Object value,
+  public static void render(@NotNull SnippetObject value,
                             @NotNull Struct type,
                             @NotNull SimpleColoredComponent component,
                             @NotNull SimpleTextAttributes attributes) {
     render(value, component, attributes);
   }
 
-  public static void render(@NotNull Object value,
+  public static void render(@NotNull SnippetObject value,
                             @NotNull Pointer type,
                             @NotNull SimpleColoredComponent component,
                             @NotNull SimpleTextAttributes attributes) {
@@ -280,7 +278,7 @@ public final class Render {
     render(value, component, attributes);
   }
 
-  public static void render(@NotNull Object value,
+  public static void render(@NotNull SnippetObject value,
                             @NotNull Interface type,
                             @NotNull SimpleColoredComponent component,
                             @NotNull SimpleTextAttributes attributes) {
@@ -288,35 +286,37 @@ public final class Render {
     render(value, component, attributes);
   }
 
-  public static void render(@NotNull Object value,
+  public static void render(@NotNull SnippetObject obj,
                             @NotNull Array type,
                             @NotNull SimpleColoredComponent component,
                             @NotNull SimpleTextAttributes attributes) {
+    Object value = obj.getObject();
     assert (value instanceof Object[]);
-    render((Object[])value, type.getValueType(), component, attributes);
+    render(obj, (Object[])value, type.getValueType(), component, attributes);
   }
 
-  public static void render(@NotNull Object value,
+  public static void render(@NotNull SnippetObject obj,
                             @NotNull Slice type,
                             @NotNull SimpleColoredComponent component,
                             @NotNull SimpleTextAttributes attributes) {
+    Object value = obj.getObject();
     if (value instanceof Object[]) {
-      render((Object[])value, type.getValueType(), component, attributes);
+      render(obj, (Object[])value, type.getValueType(), component, attributes);
     } else if (value instanceof byte[]) {
-      render((byte[])value, type.getValueType(), component, attributes);
+      render(obj, (byte[])value, type.getValueType(), component, attributes);
     } else {
       assert (false);
     }
   }
 
-  public static void render(@NotNull Object value,
+  public static void render(@NotNull SnippetObject value,
                             @NotNull Map type,
                             @NotNull SimpleColoredComponent component,
                             @NotNull SimpleTextAttributes attributes) {
     render(value, component, attributes);
   }
 
-  public static void render(@NotNull Object value,
+  public static void render(@NotNull SnippetObject value,
                             @NotNull AnyType type,
                             @NotNull SimpleColoredComponent component,
                             @NotNull SimpleTextAttributes attributes) {
@@ -336,20 +336,64 @@ public final class Render {
     return shortest;
   }
 
-  public static void render(@NotNull Object value,
+  /**
+   * Try to render a primitive value using it's constant name.
+   *
+   * @param obj the snippet object for the primitive value to render.
+   * @param type the schema type of the primitive object.
+   * @param component the component to render the constant into.
+   * @param attributes text attributes to use during rendering.
+   * @return true if obj was rendered as a constant, false means render underlying value.
+   */
+  public static boolean tryConstantRender(@NotNull SnippetObject obj,
+                                          @NotNull Primitive type,
+                                          @NotNull SimpleColoredComponent component,
+                                          @NotNull SimpleTextAttributes attributes) {
+    final ConstantSet constants = ConstantSet.lookup(type);
+    if (constants != null && constants.getEntries().length != 0) {
+      List<Constant> byValue = constants.getByValue(obj.getObject());
+      if (byValue != null && byValue.size() != 0) {
+        if (byValue.size() == 1) {
+          component.append(byValue.get(0).getName(), attributes);
+          return true;
+        }
+        Labels labels = Labels.fromSnippets(obj.getSnippets());
+        List<Constant> preferred;
+        if (labels != null) {
+          // There are label snippets, use them to disambiguate.
+          preferred = labels.preferred(byValue);
+          if (preferred.size() == 1) {
+            component.append(preferred.get(0).getName(), attributes);
+            return true;
+          } else if (preferred.size() == 0) {
+            // No matches, continue with the unfiltered constants.
+            preferred = byValue;
+          }
+        } else {
+          preferred = byValue;
+        }
+        // labels wasn't enough, try the heuristic.
+        // Using an ambiguity threshold of 8. This side steps the most egregious misinterpretations.
+        if (preferred.size() < 8) {
+          component.append(pickShortestName(preferred).getName(), attributes);
+          return true;
+        }
+        // Nothing worked we will show a numeric value.
+      }
+    }
+    return false;
+  }
+
+  public static void render(@NotNull SnippetObject obj,
                             @NotNull Primitive type,
                             @NotNull SimpleColoredComponent component,
                             @NotNull SimpleTextAttributes attributes) {
-    ConstantSet constants = ConstantSet.lookup(type);
-    if (constants != null && constants.getEntries().length != 0) {
-      List<Constant> byValue = constants.getByValue(value);
-      // Use an ambiguity threshold of 8. This side steps the most egregious misinterpretations
-      if (byValue != null && byValue.size() != 0 && byValue.size() < 8) {
-        component.append(pickShortestName(byValue).getName(), attributes);
-        return;
-      }
+    if (tryConstantRender(obj, type, component, attributes)) {
+      // successfully rendered as a constant.
+      return;
     }
 
+    Object value = obj.getObject();
     // Note: casting to Number instead of Byte, Short, Integer, etc. in case the value was boxed into a different Number type.
     switch (type.getMethod().getValue()) {
       case Method.BoolValue:
@@ -394,10 +438,10 @@ public final class Render {
     }
   }
 
-
   private static final int MAX_DISPLAY = 3;
 
-  public static void render(@NotNull Object[] array,
+  public static void render(@NotNull SnippetObject obj,
+                            @NotNull Object[] array,
                             @NotNull Type valueType,
                             @NotNull SimpleColoredComponent component,
                             @NotNull SimpleTextAttributes attributes) {
@@ -407,14 +451,15 @@ public final class Render {
       if (index > 0) {
         component.append(",", SimpleTextAttributes.GRAY_ATTRIBUTES);
       }
-      render(array[index], valueType, component, attributes);
+      render(obj.elem(array[index]), valueType, component, attributes);
     }
     if (count < array.length) {
       component.append("...", SimpleTextAttributes.GRAY_ATTRIBUTES);
     }
   }
 
-  public static void render(@NotNull byte[] array,
+  public static void render(@NotNull SnippetObject obj,
+                            @NotNull byte[] array,
                             @NotNull Type valueType,
                             @NotNull SimpleColoredComponent component,
                             @NotNull SimpleTextAttributes attributes) {
@@ -424,11 +469,20 @@ public final class Render {
       if (index > 0) {
         component.append(",", SimpleTextAttributes.GRAY_ATTRIBUTES);
       }
-      render(array[index], valueType, component, attributes);
+      render(obj.elem(array[index]), valueType, component, attributes);
     }
     if (count < array.length) {
       component.append("...", SimpleTextAttributes.GRAY_ATTRIBUTES);
     }
+  }
+
+  public static void render(@NotNull SnippetObject obj, @NotNull SimpleColoredComponent component, @NotNull SimpleTextAttributes attributes) {
+    if (obj.getObject() instanceof Dynamic) {
+      Dynamic dynamic = (Dynamic)obj.getObject();
+      render(obj, dynamic, component, attributes);
+      return;
+    }
+    render(obj.getObject(), component, attributes);
   }
 
   /**
