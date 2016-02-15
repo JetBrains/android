@@ -33,6 +33,14 @@ public class AndroidLintDomTest extends AndroidDomTest {
     doTestHighlighting("issue_extra_attributes.xml");
   }
 
+  public void testIgnoreTagCompletion() throws Throwable {
+    toTestCompletion("issue_ignore_completion.xml", "issue_ignore_completion_after.xml");
+  }
+
+  public void testIgnorePathAttributeCompletion() throws Throwable {
+    toTestCompletion("issue_ignore_path_completion.xml", "issue_ignore_path_completion_after.xml");
+  }
+
   @Override
   protected String getPathToCopy(String testFileName) {
     return testFileName;

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,20 +15,16 @@
  */
 package org.jetbrains.android.dom.lint;
 
-import com.android.tools.lint.detector.api.Severity;
-import com.intellij.util.xml.*;
+import com.intellij.util.xml.Attribute;
+import com.intellij.util.xml.DefinesXml;
+import com.intellij.util.xml.DomElement;
+import com.intellij.util.xml.GenericAttributeValue;
 
-import java.util.List;
+@DefinesXml
+public interface IgnoreDomElement extends DomElement {
+  @Attribute("path")
+  GenericAttributeValue<String> getPath();
 
-public interface IssueDomElement extends DomElement {
-  @Required
-  @Attribute("id")
-  GenericAttributeValue<String> getId();
-
-  @Attribute("severity")
-  @Convert(SeverityConverter.class)
-  GenericAttributeValue<Severity> getSeverity();
-
-  @SubTagList("ignore")
-  List<IgnoreDomElement> getIgnores();
+  @Attribute("regexp")
+  GenericAttributeValue<String> getRegexp();
 }
