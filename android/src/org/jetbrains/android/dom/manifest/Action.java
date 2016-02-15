@@ -15,16 +15,16 @@
  */
 package org.jetbrains.android.dom.manifest;
 
+import com.intellij.ide.presentation.Presentation;
 import com.intellij.util.xml.Attribute;
 import com.intellij.util.xml.Convert;
 import org.jetbrains.android.dom.AndroidAttributeValue;
 import org.jetbrains.android.dom.LookupClass;
 import org.jetbrains.android.dom.LookupPrefix;
 import org.jetbrains.android.dom.converters.ConstantFieldConverter;
+import org.jetbrains.android.dom.structure.manifest.GenericNamedPresentationProvider;
 
-/**
- * @author yole
- */
+@Presentation(provider = GenericNamedPresentationProvider.class)
 public interface Action extends ManifestElementWithName {
     @Attribute("name")
     @Convert(ConstantFieldConverter.class)
