@@ -35,6 +35,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import javax.annotation.Nonnull;
 import javax.swing.*;
 import java.awt.*;
 import java.io.IOException;
@@ -146,45 +147,6 @@ public class ThemeEditorTableTest {
     }, GuiTests.SHORT_TIMEOUT);
   }
 
-  @Test
-  public void testResourcePickerNameError() throws IOException {
-    guiTest.importSimpleApplication();
-    ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(guiTest.ideFrame());
-
-    ThemeEditorTableFixture themeEditorTable = themeEditor.getPropertiesTable();
-
-    // Cell (1,0) should be some color
-    JTableCellFixture colorCell = themeEditorTable.cell(row(1).column(0));
-
-    // click on a color
-    ResourceComponentFixture resourceComponent = new ResourceComponentFixture(guiTest.robot(), (ResourceComponent)colorCell.editor());
-    colorCell.startEditing();
-    resourceComponent.getSwatchButton().click();
-
-    final ChooseResourceDialogFixture dialog = ChooseResourceDialogFixture.find(guiTest.robot());
-    JTextComponentFixture name = dialog.getNameTextField();
-
-    // add mistake into name field
-    String badText = "(";
-    name.deleteText();
-    name.enterText("color" + badText);
-    String text = name.text();
-    assertNotNull(text);
-    assertTrue(text.endsWith(badText));
-
-    final String expectedError = "<html><font color='#ff0000'><left>'" + badText +
-                                 "' is not a valid resource name character</left></b></font></html>";
-    pause(new Condition("Waiting for error to update") {
-      @Override
-      public boolean test() {
-        return dialog.getError().equals(expectedError);
-      }
-    }, GuiTests.SHORT_TIMEOUT);
-
-    dialog.clickCancel();
-    colorCell.cancelEditing();
-  }
-
   @Ignore("causes ComponentLookupException in next test method")
   @Test
   public void testSettingColorAttribute() throws IOException {
@@ -219,43 +181,6 @@ public class ThemeEditorTableTest {
     editor.moveTo(editor.findOffset(null, "holo", true));
     assertEquals("<color name=\"^holo_light_primary\">" + ResourceHelper.colorToString(color) + "</color>",
                  editor.getCurrentLineContents(true, true, 0));
-  }
-
-  /**
-   * Test that the alpha slider and the textfield are hidden when we are not in ARGB.
-   */
-  @Ignore("causes ComponentLookupException in next test method")
-  @Test
-  public void testColorPickerAlpha() throws IOException {
-    guiTest.importSimpleApplication();
-    ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(guiTest.ideFrame());
-    ThemeEditorTableFixture themeEditorTable = themeEditor.getPropertiesTable();
-
-    TableCell cell = row(1).column(0);
-
-    JTableCellFixture colorCell = themeEditorTable.cell(cell);
-    ResourceComponentFixture resourceComponent = new ResourceComponentFixture(guiTest.robot(), (ResourceComponent)colorCell.editor());
-    colorCell.startEditing();
-    resourceComponent.getSwatchButton().click();
-
-    ChooseResourceDialogFixture dialog = ChooseResourceDialogFixture.find(guiTest.robot());
-    ColorPickerFixture colorPicker = dialog.getColorPicker();
-    Color color = new Color(200, 0, 0, 200);
-    colorPicker.setFormat("ARGB");
-    colorPicker.setColorWithIntegers(color);
-    JTextComponentFixture alphaLabel = colorPicker.getLabel("A:");
-    SlideFixture alphaSlide = colorPicker.getAlphaSlide();
-    alphaLabel.requireVisible();
-    alphaSlide.requireVisible();
-    colorPicker.setFormat("RGB");
-    alphaLabel.requireNotVisible();
-    alphaSlide.requireNotVisible();
-    colorPicker.setFormat("HSB");
-    alphaLabel.requireNotVisible();
-    alphaSlide.requireNotVisible();
-
-    dialog.clickOK();
-    colorCell.stopEditing();
   }
 
   /**
@@ -423,5 +348,109 @@ public class ThemeEditorTableTest {
     completionPopup.item(0).doubleClick();
     tableCell.stopEditing();
     assertEquals(suggestions[0], themeEditorTable.valueAt(cell));
+  }
+
+  /**
+   * @see com.android.tools.idea.editors.theme.ThemeEditorTable#getPopupMenuAtCell(int, int)
+   */
+  @Test
+  public void testResettingColorAttribute() throws IOException {
+    guiTest.importSimpleApplication();
+    ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(guiTest.ideFrame());
+    ThemeEditorTableFixture themeEditorTable = themeEditor.getPropertiesTable();
+
+    TableCell cell = row(1).column(0);
+    assertEquals("android:colorPrimary", themeEditorTable.attributeNameAt(cell));
+    assertEquals("@android:color/holo_light_primary", themeEditorTable.valueAt(cell));
+
+    JTableCellFixture colorCell = themeEditorTable.cell(cell);
+    ResourceComponentFixture resourceComponent = new ResourceComponentFixture(guiTest.robot(), (ResourceComponent)colorCell.editor());
+    colorCell.startEditing();
+    resourceComponent.getSwatchButton().click();
+
+    ChooseResourceDialogFixture dialog = ChooseResourceDialogFixture.find(guiTest.robot());
+    Color color = new Color(200, 0, 0, 200);
+    dialog.getColorPicker().setColorWithIntegers(color);
+    dialog.clickOK();
+
+    assertEquals("@color/holo_light_primary", themeEditorTable.valueAt(cell));
+
+    colorCell.startEditing();
+    JPopupMenuFixture popupMenu = resourceComponent.showPopupMenu();
+
+    popupMenu.menuItem(new GenericTypeMatcher<JMenuItem>(JMenuItem.class) {
+      @Override
+      protected boolean isMatching(@NotNull JMenuItem component) {
+        return "Reset value".equals(component.getText());
+      }
+    }).click();
+
+    assertEquals("@android:color/holo_light_primary", themeEditorTable.valueAt(cell));
+  }
+
+  /**
+   * @see com.android.tools.idea.editors.theme.attributes.ShowJavadocAction
+   */
+  @Test
+  public void testShowDocumentation() throws IOException {
+    guiTest.importSimpleApplication();
+    ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(guiTest.ideFrame());
+    ThemeEditorTableFixture themeEditorTable = themeEditor.getPropertiesTable();
+
+    TableCell cell = row(1).column(0);
+    assertEquals("android:colorPrimary", themeEditorTable.attributeNameAt(cell));
+    assertEquals("@android:color/holo_light_primary", themeEditorTable.valueAt(cell));
+
+    JTableCellFixture colorCell = themeEditorTable.cell(cell);
+    ResourceComponentFixture resourceComponent = new ResourceComponentFixture(guiTest.robot(), (ResourceComponent)colorCell.editor());
+    colorCell.startEditing();
+    JPopupMenuFixture popupMenu = resourceComponent.showPopupMenu();
+
+    popupMenu.menuItem(new GenericTypeMatcher<JMenuItem>(JMenuItem.class) {
+      @Override
+      protected boolean isMatching(@NotNull JMenuItem component) {
+        return "Show documentation".equals(component.getText());
+      }
+    }).click();
+
+    JWindow docWindow = GuiTests.waitUntilFound(guiTest.robot(), new GenericTypeMatcher<JWindow>(JWindow.class) {
+      @Override
+      protected boolean isMatching(@Nonnull JWindow component) {
+        return true;
+      }
+    });
+
+    JEditorPane docComp = guiTest.robot().finder().find(docWindow, new GenericTypeMatcher<JEditorPane>(JEditorPane.class) {
+      @Override
+      protected boolean isMatching(@NotNull JEditorPane checkBox) {
+        return true;
+      }
+    });
+
+    JTextComponentFixture quickDoc = new JTextComponentFixture(guiTest.robot(), docComp);
+
+    String expected = "<html>\n" +
+                      "  <head>\n" +
+                      "    <font size=\"3\">\n" +
+                      "</font>  </head>\n" +
+                      "  <body>\n" +
+                      "    <b><font size=\"3\">android:colorPrimary</font></b><font size=\"3\"> (Added in \n" +
+                      "    API level 21)<br>The primary branding color for the app. By default, this \n" +
+                      "    is the color applied to the action bar background.<br><hr>\n" +
+                      "</font>\n" +
+                      "    <table border=\"0\" align=\"center\" style=\"background-color: rgb(230,230,230); width: 200px\">\n" +
+                      "      <tr height=\"100\">\n" +
+                      "        <td align=\"center\" valign=\"middle\" height=\"100\">\n" +
+                      "          <font size=\"3\">#e6e6e6\n" +
+                      "</font>        </td>\n" +
+                      "      </tr>\n" +
+                      "    </table>\n" +
+                      "    <font size=\"3\"><br>\n" +
+                      "    <br>\n" +
+                      "    ?android:attr/colorPrimary =&gt; @color/holo_light_primary =&gt; #ffe6e6e6<br><br></font>\n" +
+                      "  </body>\n" +
+                      "</html>\n";
+
+    quickDoc.requireText(expected);
   }
 }
