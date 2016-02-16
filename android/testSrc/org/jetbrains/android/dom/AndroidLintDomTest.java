@@ -28,6 +28,10 @@ public class AndroidLintDomTest extends AndroidDomTest {
     doTestCompletionVariants("issue_severity.xml", "fatal", "informational", "ignore", "error", "warning");
   }
 
+  public void testIssueIdCompletion() throws Throwable {
+    doTestCompletionVariants("issue_id_completion.xml", "UselessLeaf", "UselessParent");
+  }
+
   // Attributes other than "id" and "severity" are not allowed and should be highlighted in red
   public void testExtraAttributes() throws Throwable {
     doTestHighlighting("issue_extra_attributes.xml");
