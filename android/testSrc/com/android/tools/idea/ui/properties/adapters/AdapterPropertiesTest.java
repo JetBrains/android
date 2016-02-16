@@ -17,12 +17,22 @@ package com.android.tools.idea.ui.properties.adapters;
 
 import com.android.tools.idea.ui.properties.BindingsManager;
 import com.android.tools.idea.ui.properties.core.*;
+import org.junit.After;
 import org.junit.Test;
 
+import java.util.Locale;
+
 import static com.android.tools.idea.ui.properties.BatchInvoker.INVOKE_IMMEDIATELY_STRATEGY;
+import static junit.framework.Assert.fail;
 import static org.fest.assertions.Assertions.assertThat;
 
 public class AdapterPropertiesTest {
+
+  @After
+  public void resetLocale() {
+    Locale.setDefault(Locale.US);
+  }
+
   @Test
   public void bindingStringToDoubleAdapterWorks() throws Exception {
     BindingsManager bindings = new BindingsManager(INVOKE_IMMEDIATELY_STRATEGY);
@@ -39,6 +49,38 @@ public class AdapterPropertiesTest {
 
     doubleString.set("not a double");
     assertThat(doubleValue.get()).isEqualTo(100.5);
+  }
+
+  @Test
+  public void bindingStringToDoubleAdapterWithLocale() throws Exception {
+    Locale.setDefault(Locale.ITALIAN);
+    BindingsManager bindings = new BindingsManager(INVOKE_IMMEDIATELY_STRATEGY);
+    StringProperty doubleString = new StringValueProperty("0");
+    DoubleProperty doubleValue = new DoubleValueProperty(0.9876);
+
+    bindings.bindTwoWay(new StringToDoubleAdapterProperty(doubleString, 2, 3), doubleValue);
+
+    assertThat(doubleString.get()).isEqualTo("0,988");
+
+    doubleValue.set(0.3);
+    assertThat(doubleString.get()).isEqualTo("0,30");
+
+    doubleValue.set(0.299);
+    assertThat(doubleString.get()).isEqualTo("0,299");
+  }
+
+  @Test
+  public void bindingStringToDoubleWithBadParameters() throws Exception {
+    BindingsManager bindings = new BindingsManager(INVOKE_IMMEDIATELY_STRATEGY);
+    StringProperty doubleString = new StringValueProperty("0");
+    DoubleProperty doubleValue = new DoubleValueProperty(0.9876);
+    //noinspection EmptyCatchBlock
+    try {
+      bindings.bindTwoWay(new StringToDoubleAdapterProperty(doubleString, 4, 3), doubleValue);
+      fail("Expect an exception because maxDecimals is specified smaller than num decimals");
+    }
+    catch (IllegalArgumentException unused) {
+    }
   }
 
   @Test
