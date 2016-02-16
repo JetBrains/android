@@ -16,10 +16,12 @@
 package com.android.tools.idea.uibuilder.property;
 
 import com.android.SdkConstants;
+import com.android.ide.common.resources.ResourceResolver;
+import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.property.editors.NlPropertyEditors;
 import com.android.tools.idea.uibuilder.property.ptable.PTableCellEditor;
 import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
-import com.android.tools.idea.uibuilder.property.editors.NlPropertyEditors;
 import com.android.tools.idea.uibuilder.property.renderer.NlPropertyRenderers;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
@@ -29,10 +31,10 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.xml.NamespaceAwareXmlAttributeDescriptor;
 import com.intellij.xml.XmlAttributeDescriptor;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
+import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 import java.util.Collections;
 import java.util.List;
@@ -46,14 +48,25 @@ public class NlProperty extends PTableItem {
     SdkConstants.ATTR_LAYOUT // <include layout="..." />
   );
 
-  @NotNull private final NlComponent myComponent;
-  @Nullable private final AttributeDefinition myDefinition;
+  @NotNull protected final NlComponent myComponent;
+  @Nullable protected final AttributeDefinition myDefinition;
   @NotNull private final String myName;
   @Nullable private final String myNamespace;
 
-  public NlProperty(@NotNull NlComponent component,
-                    @NotNull XmlAttributeDescriptor descriptor,
-                    @Nullable AttributeDefinition attributeDefinition) {
+  public static NlProperty create(@NotNull NlComponent component,
+                                  @NotNull XmlAttributeDescriptor descriptor,
+                                  @Nullable AttributeDefinition attributeDefinition) {
+    if (attributeDefinition != null && attributeDefinition.getFormats().contains(AttributeFormat.Flag)) {
+      return new NlFlagProperty(component, descriptor, attributeDefinition);
+    }
+    else {
+      return new NlProperty(component, descriptor, attributeDefinition);
+    }
+  }
+
+  protected NlProperty(@NotNull NlComponent component,
+                       @NotNull XmlAttributeDescriptor descriptor,
+                       @Nullable AttributeDefinition attributeDefinition) {
     if (attributeDefinition == null && !ATTRS_WITHOUT_DEFN.contains(descriptor.getName())) {
       throw new IllegalArgumentException("Missing attribute definition for " + descriptor.getName());
     }
@@ -79,10 +92,23 @@ public class NlProperty extends PTableItem {
     return myName;
   }
 
+  @Override
   @Nullable
   public String getValue() {
     ApplicationManager.getApplication().assertIsDispatchThread();
     return myComponent.getAttribute(myNamespace, myName);
+  }
+
+  @Nullable
+  public ResourceResolver getResolver() {
+    Configuration configuration = myComponent.getModel().getConfiguration();
+    //noinspection ConstantConditions
+    if (configuration == null) { // happens in unit test
+      return null;
+    }
+
+    // TODO: what happens if this is configuration dependent? (in theory, those should be edited in the theme editor)
+    return configuration.getResourceResolver();
   }
 
   @Override

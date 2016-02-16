@@ -90,6 +90,7 @@ public class PTableModelTest extends TestCase {
       myName = name;
     }
 
+    @NotNull
     @Override
     public String getName() {
       return myName;
