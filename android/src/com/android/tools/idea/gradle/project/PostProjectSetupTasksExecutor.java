@@ -239,7 +239,7 @@ public class PostProjectSetupTasksExecutor {
       logProjectVersion(androidProject);
       GradleVersion current = GradleVersion.parse(androidProject.getModelVersion());
       String latest = GRADLE_PLUGIN_LATEST_VERSION;
-      if (isPluginVersionUpgradeNecessary(current, latest)) {
+      if (isNonExperimentalPlugin(androidProject) && isPluginVersionUpgradeNecessary(current, latest)) {
         updateGradleSyncState(); // Update the sync state before starting a new one.
 
         String message =
@@ -253,6 +253,16 @@ public class PostProjectSetupTasksExecutor {
       Logger.getInstance(PostProjectSetupTasksExecutor.class).warn("Unable to obtain application's Android Project");
     }
     return false;
+  }
+
+  private static boolean isNonExperimentalPlugin(@NotNull AndroidProject androidProject) {
+    try {
+      // only true for non experimental plugin 2.0.0-betaX (or whenever the getPluginGeneration() was added)
+      return androidProject.getPluginGeneration() == 1;
+    } catch (Throwable t) {
+      // happens for 2.0.0-alphaX, 1.5.x or for experimental plugins on those versions
+      return false;
+    }
   }
 
   @Nullable
