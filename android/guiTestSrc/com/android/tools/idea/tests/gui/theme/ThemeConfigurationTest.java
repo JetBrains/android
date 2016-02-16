@@ -46,7 +46,6 @@ public class ThemeConfigurationTest {
   /**
    * Tests that the theme editor deals well with themes defined only in certain configurations
    */
-  @Ignore("causes IDE internal error in next test method")
   @Test
   public void testThemesWithConfiguration() throws IOException {
     guiTest.importSimpleApplication();
