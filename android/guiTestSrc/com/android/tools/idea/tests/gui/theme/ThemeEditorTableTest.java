@@ -55,7 +55,6 @@ public class ThemeEditorTableTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
-  @Ignore("causes IDE internal error in next test method")
   @Test
   public void testParentValueCell() throws IOException {
     guiTest.importSimpleApplication();

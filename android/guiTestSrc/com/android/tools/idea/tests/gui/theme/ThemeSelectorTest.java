@@ -59,7 +59,6 @@ public class ThemeSelectorTest {
    * Tests the theme renaming functionality of the theme selector
    * and that IntelliJ's Undo works can revert this action
    */
-  @Ignore("causes IDE internal error in next test method")
   @Test
   public void testRenameTheme() throws IOException {
     guiTest.importSimpleApplication();
@@ -170,7 +169,6 @@ public class ThemeSelectorTest {
    * Tests the theme creation functionality of the theme selector
    * and that IntelliJ's Undo can revert this action
    */
-  @Ignore("causes IDE internal error in next test method")
   @Test
   public void testCreateNewTheme() throws IOException {
     guiTest.importSimpleApplication();
