@@ -95,7 +95,7 @@ public class NlProperties {
       }
       AttributeDefinitions attrDefs = SdkConstants.NS_RESOURCES.equals(namespace) ? systemAttrDefs : localAttrDefs;
       AttributeDefinition attrDef = attrDefs == null ? null : attrDefs.getAttrDefByName(desc.getName());
-      properties.add(new NlProperty(component, desc, attrDef));
+      properties.add(NlProperty.create(component, desc, attrDef));
     }
 
     return properties;

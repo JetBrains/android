@@ -22,11 +22,11 @@ import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.table.TableCellEditor;
 import java.util.Set;
 
 public class NlPropertyEditors {
   private static NlBooleanEditor ourBooleanEditor;
+  private static NlFlagEditor ourFlagEditor;
   private static NlEnumEditor ourComboEditor;
   private static NlReferenceEditor ourDefaultEditor;
 
@@ -60,6 +60,14 @@ public class NlPropertyEditors {
     }
 
     return ourBooleanEditor;
+  }
+
+  public static PTableCellEditor getFlagEditor() {
+    if (ourFlagEditor == null) {
+      ourFlagEditor = new NlFlagEditor();
+    }
+
+    return ourFlagEditor;
   }
 
   private static PTableCellEditor getComboEditor() {

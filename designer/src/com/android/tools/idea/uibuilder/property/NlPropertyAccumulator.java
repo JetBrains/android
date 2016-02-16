@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
+import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.uibuilder.property.ptable.PTableGroupItem;
 import com.google.common.base.Predicate;
 import com.intellij.ui.ColoredTableCellRenderer;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.table.TableCellRenderer;
@@ -67,6 +69,7 @@ class NlPropertyAccumulator {
       myStyleable = styleable;
     }
 
+    @NotNull
     @Override
     public String getName() {
       return myStyleable;
