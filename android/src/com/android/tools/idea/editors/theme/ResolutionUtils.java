@@ -18,12 +18,17 @@ package com.android.tools.idea.editors.theme;
 import com.android.ide.common.rendering.api.ItemResourceValue;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.StyleResourceValue;
+import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.ResourceUrl;
+import com.android.ide.common.resources.configuration.Configurable;
+import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
+import com.android.tools.idea.rendering.AppResourceRepository;
 import com.android.tools.lint.checks.ApiLookup;
 import com.google.common.base.Strings;
 import com.intellij.openapi.diagnostic.Logger;
@@ -191,7 +196,7 @@ public class ResolutionUtils {
       if (configuration == null) {
         AndroidFacet facet = AndroidFacet.getInstance(module);
         assert facet != null;
-        target = facet.getConfigurationManager().getDefaultTarget();
+        target = facet.getConfigurationManager().getDefaultTarget(); // same as getHighestApiTarget();
       }
       else {
         target = configuration.getTarget();
@@ -308,5 +313,32 @@ public class ResolutionUtils {
     }
     // sometimes we won't find the type of the attr, this means it's either a reference that points to @null, or a enum
     return null;
+  }
+
+  /**
+   * Gets the {@link FolderConfiguration} of a ResourceValue
+   * e.g. if we resolve a drawable using a mdpi configuration, yet that drawable only exists inside xhdpi, this method will return xhdpi
+   * @param configuration the FolderConfiguration that was used for resolving the ResourceValue
+   * @return the FolderConfiguration of the ResourceValue
+   */
+  @NotNull
+  public static FolderConfiguration getFolderConfiguration(@NotNull AndroidFacet facet, @NotNull ResourceValue resolvedValue, @NotNull FolderConfiguration configuration) {
+    List<? extends Configurable> configurables;
+    if (resolvedValue.isFramework()) {
+      ConfigurationManager configurationManager = facet.getConfigurationManager();
+      IAndroidTarget target = configurationManager.getDefaultTarget(); // same as getHighestApiTarget();
+      assert target != null;
+      ResourceRepository resourceRepository = configurationManager.getResolverCache().getFrameworkResources(configuration, target);
+      assert resourceRepository != null;
+      com.android.ide.common.resources.ResourceItem resourceItem = resourceRepository.getResourceItem(resolvedValue.getResourceType(), resolvedValue.getName());
+      configurables = resourceItem.getSourceFileList();
+    }
+    else {
+      AppResourceRepository appResourceRepository = facet.getAppResources(true);
+      configurables = appResourceRepository.getResourceItem(resolvedValue.getResourceType(), resolvedValue.getName());
+    }
+    Configurable configurable = configuration.findMatchingConfigurable(configurables);
+    assert configurable != null;
+    return configurable.getConfiguration();
   }
 }

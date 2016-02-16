@@ -104,6 +104,35 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
                  "</table></body></html>", VERTICAL_ALIGN, divTag, imgTag1, imgTag2));
   }
 
+  public void testStateListDrawables() {
+    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/drawables/selector.xml", "res/drawable/selector.xml");
+    String p1 = myFixture.copyFileToProject(getTestDataPath() + "/javadoc/drawables/ic_launcher.png",
+                                            "res/drawable/button.png").getPath();
+    String p2 = myFixture.copyFileToProject(getTestDataPath() + "/javadoc/drawables/ic_launcher.png",
+                                            "res/drawable/button_active.png").getPath();
+    String p3 = myFixture.copyFileToProject(getTestDataPath() + "/javadoc/drawables/ic_launcher.png",
+                                            "res/drawable/button_disabled.png").getPath();
+
+    String imgTag1 = String.format("<img src='file:%1$s' alt=\"%2$s\" />", (p1.startsWith("/") ? p1 : '/' + p1),
+                                   FileUtil.toSystemDependentName(p1));
+    String imgTag2 = String.format("<img src='file:%1$s' alt=\"%2$s\" />", (p2.startsWith("/") ? p2 : '/' + p2),
+                                   FileUtil.toSystemDependentName(p2));
+    String imgTag3 = String.format("<img src='file:%1$s' alt=\"%2$s\" />", (p3.startsWith("/") ? p3 : '/' + p3),
+                                   FileUtil.toSystemDependentName(p3));
+    checkJavadoc("/javadoc/drawables/Activity2.java",
+                 String.format("<html><body><table><tr><td><div style=\"background-color:gray;padding:10px\">" +
+                               "%3$s" +
+                               "</div>12&#xd7;12 px (12&#xd7;12 dp @ mdpi)</td><td>Not enabled</td><td><BR/>@drawable/button_disabled => button_disabled.png<BR/>" +
+                               "</td></tr><tr><td><div style=\"background-color:gray;padding:10px\">" +
+                               "%2$s" +
+                               "</div>12&#xd7;12 px (12&#xd7;12 dp @ mdpi)</td><td>Active</td><td><BR/>@drawable/button_active => button_active.png<BR/>" +
+                               "</td></tr><tr><td><div style=\"background-color:gray;padding:10px\">" +
+                               "%1$s" +
+                               "</div>12&#xd7;12 px (12&#xd7;12 dp @ mdpi)</td><td>Default</td><td><BR/>@drawable/button => button.png<BR/>" +
+                               "</td></tr></table><BR/>@drawable/selector => selector.xml<BR/></body></html>",
+                               imgTag1, imgTag2, imgTag3));
+  }
+
   public void testMipmaps() {
     String p1 = myFixture.copyFileToProject(getTestDataPath() + "/javadoc/mipmaps/ic_launcher.png",
                                             "res/mipmap/ic_launcher.png").getPath();
@@ -331,6 +360,21 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
   public void testStyleName() {
     checkJavadoc("/javadoc/styles/styles_attribute_documentation.xml", "res/values/styles.xml",
                  "Default text typeface style.");
+  }
+
+  public void testInjectExternalDocumentation() throws Exception {
+    assertEquals("firstsecond", AndroidJavaDocRenderer.injectExternalDocumentation("first","second"));
+    assertEquals("<html a=\"b\"><body b=\"c\">firstsecond</body></html>", AndroidJavaDocRenderer.injectExternalDocumentation("<html a=\"b\"><body b=\"c\">first</body></html>", "second"));
+    assertEquals("<HTML a=\"b\"><BODY b=\"c\">firstsecond</BODY></HTML>", AndroidJavaDocRenderer.injectExternalDocumentation("<HTML a=\"b\"><BODY b=\"c\">first</BODY></HTML>", "second"));
+    assertEquals("firstsecond", AndroidJavaDocRenderer.injectExternalDocumentation("first","<html a=\"b\"><body b=\"c\">second</body></html>"));
+    assertEquals("firstsecond", AndroidJavaDocRenderer.injectExternalDocumentation("first","<HTML a=\"b\"><BODY b=\"c\">second</BODY></HTML>"));
+    assertEquals("<html a=\"b\">firstsecond</html>", AndroidJavaDocRenderer.injectExternalDocumentation("<html a=\"b\">first</html>","<html b=\"c\">second</html>"));
+    assertEquals("<BODY a=\"b\">firstsecond</BODY>", AndroidJavaDocRenderer.injectExternalDocumentation("<BODY a=\"b\">first</BODY>","<BODY b=\"c\">second</BODY>"));
+
+    // insert style with head
+    assertEquals("<head>head<style>s2</style></head><body>firstsecond</body>", AndroidJavaDocRenderer.injectExternalDocumentation("<head>head</head><body>first</body>","<style>s2</style>second"));
+    // insert style without head
+    assertEquals("<head><style>s2</style></head><body>firstsecond</body>", AndroidJavaDocRenderer.injectExternalDocumentation("<body>first</body>","<style>s2</style>second"));
   }
 
   // TODO: Test flavor docs
