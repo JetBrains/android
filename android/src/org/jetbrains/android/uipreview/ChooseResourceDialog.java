@@ -37,6 +37,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.ObjectArrays;
 import com.intellij.icons.AllIcons;
+import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.ide.util.treeView.AbstractTreeStructure;
 import com.intellij.ide.util.treeView.NodeDescriptor;
 import com.intellij.openapi.actionSystem.*;
@@ -86,6 +87,7 @@ import javax.swing.text.View;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.util.*;
 import java.util.List;
 
@@ -1084,8 +1086,29 @@ public class ChooseResourceDialog extends DialogWrapper {
       }
 
       String doc = AndroidJavaDocRenderer.render(myModule, element.getGroup().getType(), element.getName(), element.isFramework());
-      myHtmlTextArea.setText(doc);
-      layout.show(myPreviewPanel, TEXT);
+      if (doc != null) {
+        myHtmlTextArea.setText(doc);
+        layout.show(myPreviewPanel, TEXT);
+      }
+      else {
+        VirtualFile file = element.getFile();
+        if (file != null && file.getFileType() == XmlFileType.INSTANCE) {
+          String value;
+          try {
+            value = new String(file.contentsToByteArray());
+          }
+          catch (IOException ex) {
+            LOG.warn("cant read file " + file, ex);
+            value = ex.toString();
+          }
+          myComboBox.setVisible(false);
+          myComboTextArea.setText(value);
+          layout.show(myPreviewPanel, COMBO);
+        }
+        else {
+          layout.show(myPreviewPanel, NONE);
+        }
+      }
     }
 
     public void editResourceItem(@NotNull com.android.ide.common.res2.ResourceItem selected) {
@@ -1093,36 +1116,36 @@ public class ChooseResourceDialog extends DialogWrapper {
       assert resourceValue != null;
 
       @NotNull ResourceEditorTab resourceEditorTab;
-      ResourceHelper.StateList stateList = ResourceHelper.resolveStateList(getResourceResolver(), resourceValue, myModule.getProject());
-      if (stateList != null) { // if this is not a statelist, it may be just a normal color
-        assert myStateListPickerPanel != null;
-        assert myStateListPicker != null;
-
-        if (stateList.getType() != myStateListPickerPanel.getLocationSettings().getType()) {
-          LOG.warn("StateList type mismatch " + stateList.getType() + " " + myStateListPickerPanel.getLocationSettings().getType());
-          showPreview(getSelectedElement(), false);
-          return;
-        }
-        myStateListPicker.setStateList(stateList);
-        if (myStateListPickerPanel.getFullPanel().getParent() == null) {
-          myEditorPanel.addTab(myStateListPickerPanel);
-        }
-        resourceEditorTab = myStateListPickerPanel;
+      String value = resourceValue.getValue();
+      if (value != null && (value.startsWith(SdkConstants.PREFIX_RESOURCE_REF) || value.startsWith(SdkConstants.PREFIX_THEME_REF))) {
+        myReferenceComponent.setValueText(value);
+        resourceEditorTab = myReferencePanel;
       }
       else {
-        Color color = ResourceHelper.parseColor(resourceValue.getValue());
-        if (color != null) { // if invalid color because of user error or a reference to another color
-          assert myColorPickerPanel != null;
-          assert myColorPicker != null;
+        ResourceHelper.StateList stateList = ResourceHelper.resolveStateList(getResourceResolver(), resourceValue, myModule.getProject());
+        if (stateList != null) { // if this is not a statelist, it may be just a normal color
+          assert myStateListPickerPanel != null;
+          assert myStateListPicker != null;
 
-          myColorPicker.setColor(color);
-          resourceEditorTab = myColorPickerPanel;
+          if (stateList.getType() != myStateListPickerPanel.getLocationSettings().getType()) {
+            LOG.warn("StateList type mismatch " + stateList.getType() + " " + myStateListPickerPanel.getLocationSettings().getType());
+            showPreview(getSelectedElement(), false);
+            return;
+          }
+          myStateListPicker.setStateList(stateList);
+          if (myStateListPickerPanel.getFullPanel().getParent() == null) {
+            myEditorPanel.addTab(myStateListPickerPanel);
+          }
+          resourceEditorTab = myStateListPickerPanel;
         }
         else {
-          String value = resourceValue.getValue();
-          if (value != null && (value.startsWith(SdkConstants.PREFIX_RESOURCE_REF) || value.startsWith(SdkConstants.PREFIX_THEME_REF))) {
-            myReferenceComponent.setValueText(value);
-            resourceEditorTab = myReferencePanel;
+          Color color = ResourceHelper.parseColor(resourceValue.getValue());
+          if (color != null) { // if invalid color because of user error or a reference to another color
+            assert myColorPickerPanel != null;
+            assert myColorPicker != null;
+
+            myColorPicker.setColor(color);
+            resourceEditorTab = myColorPickerPanel;
           }
           else {
             // we are an actual image, so we need to just display it.
