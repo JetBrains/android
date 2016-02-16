@@ -733,12 +733,12 @@ public class AndroidJavaDocRenderer {
               if (rv != null) {
                 String value2 = rv.getValue();
                 if (value2 != null) {
-                  ResourceUrl resourceUrl = ResourceUrl.parse(value2);
+                  ResourceUrl resourceUrl = ResourceUrl.parse(value2, rv.isFramework());
                   if (resourceUrl != null && !resourceUrl.theme) {
                     ResourceValueRenderer renderer = create(resourceUrl.type, myModule, myConfiguration);
                     if (renderer != null && renderer.getClass() != this.getClass()) {
                       found = true;
-                      ResourceValue resolved = new ResourceValue(url.type, url.name, url.framework);
+                      ResourceValue resolved = new ResourceValue(resourceUrl.type, resourceUrl.name, resourceUrl.framework);
                       resolved.setValue(value);
                       renderer.renderToHtml(builder, item, resourceUrl, false, resolved);
                       builder.newline();
@@ -919,7 +919,7 @@ public class AndroidJavaDocRenderer {
       FolderConfiguration configuration = item.configuration;
       DensityQualifier densityQualifier = configuration.getDensityQualifier();
       ResourceItemResolver resolver;
-      if (densityQualifier == null) {
+      if (densityQualifier == null || !densityQualifier.isValid()) {
         // default to mdpi for when we show images in a not-dpi specific mode, (e.g. when showing a drawable statelist)
         densityQualifier = new DensityQualifier(Density.MEDIUM);
         // we need to make a copy of the FolderConfiguration, as we we change the actual one, it will chance for model inside the IDE
@@ -1014,9 +1014,9 @@ public class AndroidJavaDocRenderer {
         assert facet != null;
         FolderConfiguration folderConfiguration = ResolutionUtils.getFolderConfiguration(facet, resolvedValue, configuration);
         DensityQualifier densityQualifier = folderConfiguration.getDensityQualifier();
-        if (densityQualifier == null) {
+        if (densityQualifier == null || !densityQualifier.isValid()) {
           densityQualifier = configuration.getDensityQualifier();
-          assert densityQualifier != null; // this can never be null, as we have set this in the first renderToHtml method
+          assert densityQualifier != null && densityQualifier.isValid(); // this can never be null, as we have set this in the first renderToHtml method
         }
         String value = resolvedValue.getValue();
         assert value != null; // the value is always the path to the drawable file
