@@ -21,6 +21,7 @@ import com.intellij.util.xml.*;
 public interface IssueDomElement extends DomElement {
   @Required
   @Attribute("id")
+  @Convert(IssueIdConverter.class)
   GenericAttributeValue<String> getId();
 
   @Attribute("severity")
