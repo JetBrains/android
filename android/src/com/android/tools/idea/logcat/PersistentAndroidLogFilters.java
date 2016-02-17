@@ -71,16 +71,6 @@ public final class PersistentAndroidLogFilters implements PersistentStateCompone
     }));
   }
 
-  @NotNull
-  public FilterData createFilterForClient(@NotNull ClientData clientData) {
-    FilterData filter = new FilterData();
-    filter.setPackageNameIsRegex(false);
-    String processName = clientData.getClientDescription();
-    filter.setPackageNamePattern(processName);
-    filter.setName("Process: " + processName);
-    return filter;
-  }
-
   public void setFilters(List<FilterData> filterEntries) {
     myFilters = filterEntries;
   }
