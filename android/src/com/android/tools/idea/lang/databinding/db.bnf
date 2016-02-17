@@ -18,7 +18,7 @@
 // used inside layout files.
 // To code from this bnf file, install the grammar-kit plugin first.
 // After edits, generate the lexer (only if tokens changed).
-//   - right click anywhere and "Generate Lexer Code" and overwrite _DbLexer.flex
+//   - right click anywhere and "Generate JFlex Lexer" and overwrite _DbLexer.flex
 //   - Open the flex file and re-add the custom tokens that only exist in flex file
 //       Use "git diff" to make sure only changes you intended are in the flex file.
 //   - Run runflex.sh to generate _DbLexer.java
@@ -87,6 +87,7 @@
     OR='|'
     XOR='^'
     PERC='%'
+    LAMBDA='->'
 
     // other symbols
     LPARENTH='('
@@ -101,7 +102,9 @@
 
 }
 
-dataBindingExpression ::= expr defaults?
+dataBindingExpression
+  ::= lambdaExpression  // RootLambda
+  |   expr defaults?    // RootExpr
 
 // All branches here must end in "Expr"
 expr
@@ -126,8 +129,9 @@ expr
   |   dotExpr              //  field access
   |   resourcesExpr
   |   classExtractionExpr
-  |   literalExpr
   |   idExpr
+  |   voidExpr
+  |   literalExpr
   |   parenExpr           //  (grouping)
 
 nullCoalesceExpr ::= expr '??' expr
@@ -150,7 +154,8 @@ methodExpr ::= expr '.' methodName '(' expressionList? ')'
 bracketExpr ::= expr '[' expr ']'
 dotExpr ::= expr '.' fieldName
 resourcesExpr ::= RESOURCE_REFERENCE resourceParameters?
-classExtractionExpr ::= (type|'void') '.' 'class'
+classExtractionExpr ::= type '.' 'class'
+voidExpr ::= voidLiteral
 literalExpr ::= literal
 idExpr ::= IDENTIFIER
 parenExpr ::= '(' expr ')'
@@ -174,6 +179,10 @@ private literal
   |   NULL
   |   CHARACTER_LITERAL
   |   STRING_LITERAL
+
+private voidLiteral
+  ::= 'void'
+  |   'Void'   // TODO: Add /shruggie if escaping works fine.
 
 typeArguments ::= '<' type (',' type)* '>'
 
@@ -202,3 +211,12 @@ constantValue
   ::= literal
   |   RESOURCE_REFERENCE
   |   IDENTIFIER
+
+lambdaExpression
+  ::= lambdaParameters '->' expr
+
+lambdaParameters
+  ::= IDENTIFIER
+  |   '(' inferredFormalParameterList? ')'
+
+inferredFormalParameterList ::= IDENTIFIER (',' IDENTIFIER)*

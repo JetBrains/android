@@ -5,9 +5,12 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface PsiDbClassExtractionExpr extends PsiDbExpr {
+public interface PsiDbLambdaExpression extends PsiElement {
 
   @NotNull
-  PsiDbType getType();
+  PsiDbExpr getExpr();
+
+  @NotNull
+  PsiDbLambdaParameters getLambdaParameters();
 
 }
