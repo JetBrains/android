@@ -1,8 +1,10 @@
 package org.jetbrains.android.newProject;
 
 import com.android.tools.idea.npw.NewProjectWizardDynamic;
+import com.android.tools.idea.wizard.dynamic.AndroidStudioWizardPath;
 import com.android.tools.idea.wizard.dynamic.DynamicWizard;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardHost;
+import com.android.tools.idea.wizard.dynamic.DynamicWizardPath;
 import com.intellij.ide.util.newProjectWizard.WizardDelegate;
 import com.intellij.ide.util.projectWizard.ModuleBuilder;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
@@ -10,6 +12,7 @@ import com.intellij.ide.util.projectWizard.SettingsStep;
 import com.intellij.ide.util.projectWizard.WizardContext;
 import com.intellij.ide.wizard.AbstractWizard;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.JavaModuleType;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleType;
@@ -17,6 +20,7 @@ import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModifiableRootModel;
+import com.intellij.openapi.ui.DialogEarthquakeShaker;
 import com.intellij.openapi.ui.DialogWrapper;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
@@ -65,7 +69,7 @@ public class AndroidWizardWrapper extends ModuleBuilder implements WizardDelegat
   @Override
   public ModuleWizardStep getCustomOptionsStep(WizardContext context, Disposable parentDisposable) {
     if (myWizard == null) {
-      myWizard = new NewProjectWizardDynamic(context.getProject(), null, new WizardHostDelegate(context.getWizard()));
+      myWizard = new Wizard(context.getProject(), null, new WizardHostDelegate(context.getWizard()));
       myWizard.init();
     }
     return new ModuleWizardStep() {
@@ -137,7 +141,9 @@ public class AndroidWizardWrapper extends ModuleBuilder implements WizardDelegat
 
     @Override
     public void shakeWindow() {
-
+      if (!ApplicationManager.getApplication().isUnitTestMode()) {
+        DialogEarthquakeShaker.shake((JDialog)myWizard.getPeer().getWindow());
+      }
     }
 
     @Override
@@ -168,16 +174,21 @@ public class AndroidWizardWrapper extends ModuleBuilder implements WizardDelegat
 
   private static class Wizard extends NewProjectWizardDynamic {
 
-    public Wizard(@Nullable Project project, @Nullable Module module) {
-      super(project, module);
+    public Wizard(@Nullable Project project, @Nullable Module module, DynamicWizardHost host) {
+      super(project, module, host);
     }
 
-    public boolean hasNext() {
-      return super.hasNext();
+    @Override
+    public void init() {
+      super.init();
+      AndroidStudioWizardPath path = getCurrentPath();
+      if (path instanceof DynamicWizardPath) {
+        ((DynamicWizardPath)path).invokeUpdate(null);
+      }
     }
 
-    public boolean hasPrevious() {
-      return super.hasPrevious();
+    @Override
+    protected void checkSdk() {
     }
   }
 }

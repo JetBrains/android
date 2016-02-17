@@ -77,6 +77,13 @@ public class NewProjectWizardDynamic extends DynamicWizard {
 
   @Override
   public void init() {
+    checkSdk();
+    addPaths();
+    initState();
+    super.init();
+  }
+
+  protected void checkSdk() {
     if (!AndroidSdkUtils.isAndroidSdkAvailable() || !TemplateManager.templatesAreValid()) {
       String title = "SDK problem";
       String msg = "<html>Your Android SDK is missing, out of date, or is missing templates.<br>" +
@@ -84,9 +91,6 @@ public class NewProjectWizardDynamic extends DynamicWizard {
       Messages.showErrorDialog(msg, title);
       throw new IllegalStateException("Android SDK missing");
     }
-    addPaths();
-    initState();
-    super.init();
   }
 
   /**
