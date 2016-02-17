@@ -65,6 +65,19 @@ public final class AndroidLogcatReceiver extends AndroidOutputReceiver implement
 
   @Override
   public void processNewLine(@NotNull String line) {
+    // Really, the user's log should never put any system characters in it ever - that will cause
+    // it to get filtered by our strict regex patterns (see AndroidLogcatFormatter). The reason
+    // this might happen in practice is due to a bug where either adb or logcat (not sure which)
+    // is too aggressive about converting \n's to \r\n's, including those that are quoted. This
+    // means that a user's log, if it uses \r\n itself, is converted to \r\r\n. Then, when
+    // MultiLineReceiver, which expects valid input, strips out \r\n, it leaves behind an extra \r.
+    //
+    // Unfortunately this isn't a case where we can fix the root cause because adb and logcat are
+    // both external to Android Studio. In fact, the latest adb/logcat versions have already fixed
+    // this issue! But we still need to run properly with older versions. Also, putting this fix in
+    // MultilineReceiver isn't right either because it is used for more than just receiving logcat.
+    line = line.replaceAll("\\r", "");
+
     if (line.isEmpty()) {
       myDelayedNewlineCount++;
       return;
