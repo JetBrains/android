@@ -8,23 +8,30 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.util.PsiTreeUtil;
 import static com.android.tools.idea.lang.databinding.psi.DbTokenTypes.*;
+import com.android.tools.idea.lang.databinding.DataBindingPsiElement;
 import com.android.tools.idea.lang.databinding.psi.*;
 
-public class PsiDbClassExtractionExprImpl extends PsiDbExprImpl implements PsiDbClassExtractionExpr {
+public class PsiDbLambdaExpressionImpl extends DataBindingPsiElement implements PsiDbLambdaExpression {
 
-  public PsiDbClassExtractionExprImpl(ASTNode node) {
+  public PsiDbLambdaExpressionImpl(ASTNode node) {
     super(node);
   }
 
   public void accept(@NotNull PsiElementVisitor visitor) {
-    if (visitor instanceof PsiDbVisitor) ((PsiDbVisitor)visitor).visitClassExtractionExpr(this);
+    if (visitor instanceof PsiDbVisitor) ((PsiDbVisitor)visitor).visitLambdaExpression(this);
     else super.accept(visitor);
   }
 
   @Override
   @NotNull
-  public PsiDbType getType() {
-    return findNotNullChildByClass(PsiDbType.class);
+  public PsiDbExpr getExpr() {
+    return findNotNullChildByClass(PsiDbExpr.class);
+  }
+
+  @Override
+  @NotNull
+  public PsiDbLambdaParameters getLambdaParameters() {
+    return findNotNullChildByClass(PsiDbLambdaParameters.class);
   }
 
 }
