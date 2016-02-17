@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android.dom;
+package org.jetbrains.android.dom.structure.resources;
 
 import com.intellij.ide.structureView.StructureViewBuilder;
 import com.intellij.ide.structureView.xml.XmlStructureViewBuilderProvider;
@@ -25,8 +25,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Factory class for structure view builder for Android resources XML files
- *
  * @see ResourceStructureViewBuilder
  */
 public class ResourceStructureViewBuilderProvider implements XmlStructureViewBuilderProvider {

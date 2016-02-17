@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android.dom;
+package org.jetbrains.android.dom.structure.resources;
 
 import com.android.resources.ResourceType;
 import com.google.common.collect.ImmutableList;
@@ -41,19 +41,13 @@ import java.util.Collection;
 import java.util.Collections;
 
 /**
- * Builds data model for structure view (can be invoked with Alt+7 or Ctrl+F12 on default keymap)
- * for Android resources files.
+ * Structure view builder for &lt;resources&gt; XML files
  */
 public class ResourceStructureViewBuilder extends TreeBasedStructureViewBuilder {
   private final DomFileElement<Resources> myResources;
 
   public ResourceStructureViewBuilder(@NotNull DomFileElement<Resources> resources) {
     myResources = resources;
-  }
-
-  @NotNull
-  StructureViewModel createStructureViewModel() {
-    return new StructureViewModelBase(myResources.getFile(), new Root(myResources));
   }
 
   @NotNull
