@@ -18,10 +18,7 @@ package com.android.tools.idea.tests.gui.ndk;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
-import com.android.tools.idea.tests.gui.framework.fixture.ChooseDeviceDialogFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.DebugToolWindowFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.*;
 import com.intellij.util.containers.HashMap;
 import org.fest.swing.timing.Condition;
 import org.fest.swing.timing.Timeout;
@@ -60,6 +57,7 @@ public class BasicJniBasedNativeAppTest {
   @Ignore("failed in http://go/aj/job/studio-ui-test/389 and from IDEA")
   @Test
   public void testMultiBreakAndResume() throws IOException, ClassNotFoundException {
+    final Timeout testTimeout = Timeout.timeout(50000);
     // Import the project and select the debug config 'app-native'.
     guiTest.importProjectAndWaitForProjectSyncToFinish("JniBasedBasicNdkApp", "2.5");
     final IdeFrameFixture projectFrame = guiTest.ideFrame();
@@ -115,7 +113,7 @@ public class BasicJniBasedNativeAppTest {
     final ExecutionToolWindowFixture.ContentFixture contentFixture = debugToolWindowFixture.findContent(DEBUG_CONFIG_NAME);
     assertNotNull(contentFixture);
     contentFixture.waitForOutput(new PatternTextMatcher(Pattern.compile(".*Debugger attached to process.*", Pattern.DOTALL)),
-                                 Timeout.timeout(50000));
+                                 testTimeout);
 
     // Loop through all the breakpoints and match the strings printed in the Variables pane with the expected patterns setup in
     // breakpointToExpectedPatterns.
@@ -127,9 +125,12 @@ public class BasicJniBasedNativeAppTest {
         public boolean test() {
           return projectFrame.verifyVariablesAtBreakpoint(expectedPatterns, DEBUG_CONFIG_NAME, 15000);
         }
-      }, Timeout.timeout(30000));
+      }, testTimeout);
 
       projectFrame.resumeProgram();
     }
+    projectFrame.getDebugToolWindow().findContent(DEBUG_CONFIG_NAME).stop();
+    contentFixture.waitForOutput(new PatternTextMatcher(Pattern.compile(".*Process finished with exit code.*", Pattern.DOTALL)),
+                                 testTimeout);
   }
 }
