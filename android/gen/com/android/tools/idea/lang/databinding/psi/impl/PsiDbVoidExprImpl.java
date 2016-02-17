@@ -10,21 +10,15 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.android.tools.idea.lang.databinding.psi.DbTokenTypes.*;
 import com.android.tools.idea.lang.databinding.psi.*;
 
-public class PsiDbClassExtractionExprImpl extends PsiDbExprImpl implements PsiDbClassExtractionExpr {
+public class PsiDbVoidExprImpl extends PsiDbExprImpl implements PsiDbVoidExpr {
 
-  public PsiDbClassExtractionExprImpl(ASTNode node) {
+  public PsiDbVoidExprImpl(ASTNode node) {
     super(node);
   }
 
   public void accept(@NotNull PsiElementVisitor visitor) {
-    if (visitor instanceof PsiDbVisitor) ((PsiDbVisitor)visitor).visitClassExtractionExpr(this);
+    if (visitor instanceof PsiDbVisitor) ((PsiDbVisitor)visitor).visitVoidExpr(this);
     else super.accept(visitor);
-  }
-
-  @Override
-  @NotNull
-  public PsiDbType getType() {
-    return findNotNullChildByClass(PsiDbType.class);
   }
 
 }

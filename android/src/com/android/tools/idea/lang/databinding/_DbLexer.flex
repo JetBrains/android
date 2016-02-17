@@ -109,6 +109,7 @@ RESOURCE_TYPE=anim|animator|bool|color|colorStateList|dimen|dimenOffset|dimenSiz
   "|"                     { return OR; }
   "^"                     { return XOR; }
   "%"                     { return PERC; }
+  "->"                    { return LAMBDA; }
   "("                     { return LPARENTH; }
   ")"                     { return RPARENTH; }
   "["                     { return LBRACKET; }
