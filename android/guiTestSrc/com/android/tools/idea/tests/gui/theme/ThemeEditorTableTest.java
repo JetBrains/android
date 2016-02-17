@@ -30,7 +30,6 @@ import org.fest.swing.fixture.*;
 import org.fest.swing.timing.Condition;
 import org.jetbrains.android.uipreview.ChooseResourceDialog;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -147,7 +146,6 @@ public class ThemeEditorTableTest {
     }, GuiTests.SHORT_TIMEOUT);
   }
 
-  @Ignore("causes ComponentLookupException in next test method")
   @Test
   public void testSettingColorAttribute() throws IOException {
     guiTest.importSimpleApplication();
