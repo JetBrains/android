@@ -25,6 +25,9 @@ import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.impl.FakePsiElement;
 import com.intellij.ui.awt.RelativePoint;
 import org.jetbrains.annotations.NotNull;
 
@@ -63,7 +66,32 @@ public class ShowJavadocAction extends AbstractAction {
     DocumentationManager documentationManager = DocumentationManager.getInstance(project);
     final DocumentationComponent docComponent = new DocumentationComponent(documentationManager);
     String tooltip = ThemeEditorUtils.generateToolTipText(item.getSelectedValue(), myContext.getCurrentContextModule(), myContext.getConfiguration());
-    docComponent.setText(tooltip, null, true);
+    // images will not work unless we pass a valid PsiElement {@link DocumentationComponent#myImageProvider}
+    docComponent.setText(tooltip, new FakePsiElement() {
+      @Override
+      public boolean isValid() {
+        // this needs to return true for the DocumentationComponent to accept this PsiElement {@link DocumentationComponent#setData(PsiElement, String, boolean, String, String)}
+        return true;
+      }
+
+      @NotNull
+      @Override
+      public Project getProject() {
+        // superclass implementation throws an exception
+        return myContext.getProject();
+      }
+
+      @Override
+      public PsiElement getParent() {
+        return null;
+      }
+
+      @Override
+      public PsiFile getContainingFile() {
+        // superclass implementation throws an exception
+        return null;
+      }
+    }, true);
 
     JBPopup hint = JBPopupFactory.getInstance().createComponentPopupBuilder(docComponent, docComponent).setProject(project)
       .setDimensionServiceKey(project, DocumentationManager.JAVADOC_LOCATION_AND_SIZE, false).setResizable(true).setMovable(true)
