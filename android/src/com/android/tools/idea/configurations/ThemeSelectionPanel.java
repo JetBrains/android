@@ -159,6 +159,10 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
     });
   }
 
+  public void installDoubleClickListener(@NotNull DoubleClickListener listener) {
+    listener.installOn(myThemeList);
+  }
+
   public void setThemeChangedListener(@NotNull ThemeChangedListener themeChangedListener) {
     myThemeChangedListener = themeChangedListener;
   }
