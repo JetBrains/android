@@ -105,5 +105,14 @@
     <orderEntry type="module" module-name="db-compiler" />
     <orderEntry type="library" name="jogl-all" level="project" />
     <orderEntry type="library" name="gluegen-rt" level="project" />
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/lib/libwebp.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
   </component>
 </module>
