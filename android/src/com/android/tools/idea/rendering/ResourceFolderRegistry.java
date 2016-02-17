@@ -25,12 +25,15 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.DumbModeTask;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.concurrency.BoundedTaskExecutor;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.ide.PooledThreadExecutor;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -139,6 +142,17 @@ public class ResourceFolderRegistry {
         filterOutCached(resDirectories);
         // Might already be done, as there can be a race for filling the memory caches.
         if (resDirectories.isEmpty()) {
+          return;
+        }
+        // Make sure the cache root is created before parallel execution to avoid racing to create the root.
+        File projectCacheRoot = ResourceFolderRepositoryFileCacheService.get().getProjectDir(myProject);
+        if (projectCacheRoot == null) {
+          return;
+        }
+        try {
+          FileUtil.ensureExists(projectCacheRoot);
+        }
+        catch (IOException e) {
           return;
         }
         Application application = ApplicationManager.getApplication();
