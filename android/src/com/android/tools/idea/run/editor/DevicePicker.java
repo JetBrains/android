@@ -473,7 +473,7 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
 
   // TODO: this needs to become a diagnostics dialog
   public static void launchDiagnostics(@Nullable Project project) {
-    BrowserUtil.browse("http://developer.android.com/tools/device.html", project);
+    BrowserUtil.browse("https://developer.android.com/r/studio-ui/devicechooser.html", project);
   }
 
   public void installDoubleClickListener(@NotNull DoubleClickListener listener) {
