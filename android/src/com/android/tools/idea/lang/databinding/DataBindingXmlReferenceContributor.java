@@ -381,7 +381,6 @@ public class DataBindingXmlReferenceContributor extends PsiReferenceContributor 
       }
     }
 
-    @NotNull
     @Override
     public PsiModelClass getResolvedType() {
       return myModelClass;
