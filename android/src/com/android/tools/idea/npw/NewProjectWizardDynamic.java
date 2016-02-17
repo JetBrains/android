@@ -20,10 +20,13 @@ import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.npw.FormFactorUtils.FormFactor;
+import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.startup.AndroidStudioInitializer;
 import com.android.tools.idea.templates.KeystoreUtils;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.dynamic.DynamicWizard;
+import com.android.tools.idea.wizard.dynamic.DynamicWizardHost;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.android.tools.idea.wizard.template.TemplateWizard;
 import com.intellij.openapi.application.ApplicationManager;
@@ -32,6 +35,8 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
+import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.pom.java.LanguageLevel;
@@ -60,6 +65,13 @@ public class NewProjectWizardDynamic extends DynamicWizard {
 
   public NewProjectWizardDynamic(@Nullable Project project, @Nullable Module module) {
     super(project, module, "New Project");
+    setTitle("Create New Project");
+  }
+
+  public NewProjectWizardDynamic(@Nullable Project project,
+                                 @Nullable Module module,
+                                 @NotNull DynamicWizardHost host) {
+    super(project, module, "New Project", host);
     setTitle("Create New Project");
   }
 
@@ -183,6 +195,18 @@ public class NewProjectWizardDynamic extends DynamicWizard {
       }
     }
 
+    // This is required for Android plugin in IDEA
+    if (!AndroidStudioInitializer.isAndroidStudio()) {
+      final Sdk jdk = IdeSdks.getJdk();
+      if (jdk != null) {
+        ApplicationManager.getApplication().runWriteAction(new Runnable() {
+          @Override
+          public void run() {
+            ProjectRootManager.getInstance(myProject).setProjectSdk(jdk);
+          }
+        });
+      }
+    }
     try {
       Collection<File> targetFiles = myState.get(WizardConstants.TARGET_FILES_KEY);
       assert targetFiles != null;
