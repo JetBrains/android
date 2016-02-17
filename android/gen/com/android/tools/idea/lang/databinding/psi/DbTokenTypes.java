@@ -26,7 +26,10 @@ public interface DbTokenTypes {
   IElementType FIELD_NAME = new DbElementType("FIELD_NAME");
   IElementType ID_EXPR = new DbElementType("ID_EXPR");
   IElementType INEQ_COMPARISON_EXPR = new DbElementType("INEQ_COMPARISON_EXPR");
+  IElementType INFERRED_FORMAL_PARAMETER_LIST = new DbElementType("INFERRED_FORMAL_PARAMETER_LIST");
   IElementType INSTANCE_OF_EXPR = new DbElementType("INSTANCE_OF_EXPR");
+  IElementType LAMBDA_EXPRESSION = new DbElementType("LAMBDA_EXPRESSION");
+  IElementType LAMBDA_PARAMETERS = new DbElementType("LAMBDA_PARAMETERS");
   IElementType LITERAL_EXPR = new DbElementType("LITERAL_EXPR");
   IElementType LOGICAL_AND_EXPR = new DbElementType("LOGICAL_AND_EXPR");
   IElementType LOGICAL_OR_EXPR = new DbElementType("LOGICAL_OR_EXPR");
@@ -43,6 +46,7 @@ public interface DbTokenTypes {
   IElementType TERNARY_EXPR = new DbElementType("TERNARY_EXPR");
   IElementType TYPE = new DbElementType("TYPE");
   IElementType TYPE_ARGUMENTS = new DbElementType("TYPE_ARGUMENTS");
+  IElementType VOID_EXPR = new DbElementType("VOID_EXPR");
 
   IElementType AND = new DbTokenType("&");
   IElementType ANDAND = new DbTokenType("&&");
@@ -73,6 +77,7 @@ public interface DbTokenTypes {
   IElementType INSTANCEOF_KEYWORD = new DbTokenType("instanceof");
   IElementType INTEGER_LITERAL = new DbTokenType("INTEGER_LITERAL");
   IElementType INT_KEYWORD = new DbTokenType("int");
+  IElementType LAMBDA = new DbTokenType("->");
   IElementType LBRACKET = new DbTokenType("[");
   IElementType LE = new DbTokenType("<=");
   IElementType LONG_KEYWORD = new DbTokenType("long");
@@ -156,8 +161,17 @@ public interface DbTokenTypes {
       else if (type == INEQ_COMPARISON_EXPR) {
         return new PsiDbIneqComparisonExprImpl(node);
       }
+      else if (type == INFERRED_FORMAL_PARAMETER_LIST) {
+        return new PsiDbInferredFormalParameterListImpl(node);
+      }
       else if (type == INSTANCE_OF_EXPR) {
         return new PsiDbInstanceOfExprImpl(node);
+      }
+      else if (type == LAMBDA_EXPRESSION) {
+        return new PsiDbLambdaExpressionImpl(node);
+      }
+      else if (type == LAMBDA_PARAMETERS) {
+        return new PsiDbLambdaParametersImpl(node);
       }
       else if (type == LITERAL_EXPR) {
         return new PsiDbLiteralExprImpl(node);
@@ -206,6 +220,9 @@ public interface DbTokenTypes {
       }
       else if (type == TYPE_ARGUMENTS) {
         return new PsiDbTypeArgumentsImpl(node);
+      }
+      else if (type == VOID_EXPR) {
+        return new PsiDbVoidExprImpl(node);
       }
       throw new AssertionError("Unknown element type: " + type);
     }
