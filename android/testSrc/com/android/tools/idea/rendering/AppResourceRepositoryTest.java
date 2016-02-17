@@ -32,6 +32,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 
@@ -185,6 +186,26 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
 
     Set<VirtualFile> foldersWithAar = appResources.getResourceDirs();
     assertSameElements(foldersWithAar, res1, res2);
+  }
+
+  public void testGetItemsOfTypeIdIncludeAAR() throws IOException {
+    VirtualFile res1 = myFixture.copyFileToProject(LAYOUT, "res/layout/some_layout.xml").getParent().getParent();
+    final LocalResourceRepository moduleRepository = ModuleResourceRepository.createForTest(
+      myFacet, ImmutableList.of(res1));
+    final LocalResourceRepository projectResources = ProjectResourceRepository.createForTest(
+      myFacet, ImmutableList.of(moduleRepository));
+
+    FileResourceRepository aar = FileResourceRepositoryTest.getTestRepository();
+    final AppResourceRepository appResources = AppResourceRepository.createForTest(
+      myFacet, ImmutableList.of(projectResources, aar), ImmutableList.of(aar));
+
+    Collection<String> idResources = appResources.getItemsOfType(ResourceType.ID);
+    Collection<String> aarIds = aar.getAllDeclaredIds();
+    assertNotNull(aarIds);
+    assertNotEmpty(aarIds);
+    assertContainsElements(idResources, aarIds);
+    assertFalse(aarIds.contains("btn_title_refresh"));
+    assertContainsElements(idResources, "btn_title_refresh");
   }
 
   static AppResourceRepository createTestAppResourceRepository(AndroidFacet facet) throws IOException {

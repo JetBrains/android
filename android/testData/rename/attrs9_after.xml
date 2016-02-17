@@ -1,5 +1,5 @@
 <resources>
   <declare-styleable name="LabelView">
-    <attr name="attr1"/>
+    <attr name="attr1" format="boolean" />
   </declare-styleable>
 </resources>
