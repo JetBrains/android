@@ -15,19 +15,20 @@
  */
 package com.android.tools.idea.tests.gui.editing;
 
+import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.CreateFileFromTemplateDialogFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.CreateFileFromTemplateDialogFixture.ComponentVisibility;
 import com.android.tools.idea.tests.gui.framework.fixture.CreateFileFromTemplateDialogFixture.Kind;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
-import com.google.common.collect.ImmutableList;
 import com.intellij.ide.actions.as.CreateFileFromTemplateDialog.Visibility;
 import com.intellij.ide.actions.as.CreateNewClassDialogValidatorExImpl;
-import org.fest.swing.exception.ComponentLookupException;
+import org.fest.swing.query.ComponentVisibleQuery;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import java.io.IOException;
@@ -35,6 +36,7 @@ import java.io.IOException;
 import static org.junit.Assert.*;
 
 @RunWith(GuiTestRunner.class)
+@BelongsToTestGroups(TestGroup.LAYOUT)
 public class CreateNewClassDialogGuiTest {
   private static final String PROVIDED_ACTIVITY = "app/src/main/java/google/simpleapplication/MyActivity.java";
   private static final String THING_NAME = "TestThing";
@@ -51,16 +53,22 @@ public class CreateNewClassDialogGuiTest {
   private static final String SUPERCLASS_AND_INTERFACE_DECLARATION = "public %s TestThing extends Super0 implements Interface0 {";
   private static final String CLASS_IMPLEMENTING_ONE_INTERFACE_DECLARATION = "public %s TestThing implements Interface0 {";
   private static final String CLASS_IMPLEMENTING_TWO_INTERFACES_DECLARATION = "public %s TestThing implements Interface0, Interface1 {";
+  private static final String CLASS_IMPLEMENTING_INTERFACE_THAT_NEEDS_IMPORT_DECLARATION = "public %s TestThing implements InterfaceX {";
   private static final String INTERFACE_EXTENDING_ONE_INTERFACE_DECLARATION = "public %s TestThing extends Interface0 {";
   private static final String INTERFACE_EXTENDING_TWO_INTERFACES_DECLARATION = "public %s TestThing extends Interface0, Interface1 {";
+  private static final String INTERFACE_EXTENDING_INTERFACE_THAT_NEEDS_IMPORT_DECLARATION = "public %s TestThing extends InterfaceX {";
   private static final String SUPERCLASS_0 = "Super0";
   private static final String INVALID_NAME = "Invalid-Class Name";
-  private static final ImmutableList<String> ONE_INTERFACE = ImmutableList.of("Interface0");
-  private static final ImmutableList<String> TWO_INTERFACES = ImmutableList.of("Interface0", "Interface1");
-  private static final ImmutableList<String> INVALID_INTERFACE = ImmutableList.of("Bad-Interface-Name");
+  private static final String INTERFACE_0 = "Interface0";
+  private static final String INTERFACE_1 = "Interface1";
+  private static final String INVALID_INTERFACE = "Invalid-Interface-Name";
+  private static final String FULLY_QUALIFIED_INTERFACE = "com.example.foo.InterfaceX";
+  private static final String INTERFACE_IMPORT = "import " + FULLY_QUALIFIED_INTERFACE + ";";
+  private static final String JAVA_UTIL_MAP_ENTRY = "java.util.Map.Entry";
+  private static final String JAVA_UTIL_MAP_IMPORT = "import java.util.Map;";
+  private static final String JAVA_UTIL_MAP_ENTRY_DECLARATION = "public %s TestThing implements Map.Entry {";
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
-  @Rule public final ExpectedException thrown = ExpectedException.none();
   private EditorFixture myEditor;
 
   @Before
@@ -90,6 +98,13 @@ public class CreateNewClassDialogGuiTest {
     assertEquals(String.format(expectedDeclaration, kind), declarationLine);
   }
 
+  private void assertImport(String filePath, String expectedImport) {
+    myEditor.open(filePath);
+    myEditor.moveTo(myEditor.findOffset(expectedImport + "|"));
+    String actualImport = myEditor.getCurrentLineContents(true, false, 0);
+    assertEquals(expectedImport, actualImport);
+  }
+
   private void createPackagePrivate(Kind kind) throws IOException {
     CreateFileFromTemplateDialogFixture dialog = invokeDialog();
     dialog.setName(THING_NAME);
@@ -107,7 +122,8 @@ public class CreateNewClassDialogGuiTest {
     CreateFileFromTemplateDialogFixture dialog = invokeDialog();
     dialog.setName(THING_NAME);
     dialog.selectKind(kind);
-    dialog.setInterfaces(ONE_INTERFACE);
+    dialog.setInterface(INTERFACE_0);
+    dialog.clickAddInterfaceButton();
     dialog.setPackage(PACKAGE_NAME_0);
     dialog.setVisibility(Visibility.PUBLIC);
     dialog.clickOk();
@@ -120,11 +136,13 @@ public class CreateNewClassDialogGuiTest {
     assertDeclaration(THING_FILE_PATH_0, declaration, kind);
   }
 
-  private void createWithTwoInterfaces(Kind kind) throws IOException {
+  private void createWithTwoInterfacesImplicitly(Kind kind) throws IOException {
     CreateFileFromTemplateDialogFixture dialog = invokeDialog();
     dialog.setName(THING_NAME);
     dialog.selectKind(kind);
-    dialog.setInterfaces(TWO_INTERFACES);
+    dialog.setInterface(INTERFACE_0);
+    dialog.clickAddInterfaceButton();
+    dialog.setInterface(INTERFACE_1);
     dialog.setPackage(PACKAGE_NAME_0);
     dialog.setVisibility(Visibility.PUBLIC);
     dialog.clickOk();
@@ -133,6 +151,25 @@ public class CreateNewClassDialogGuiTest {
     String declaration = kind.equals(Kind.INTERFACE) || kind.equals(Kind.ANNOTATION)
                          ? INTERFACE_EXTENDING_TWO_INTERFACES_DECLARATION
                          : CLASS_IMPLEMENTING_TWO_INTERFACES_DECLARATION;
+    assertDeclaration(THING_FILE_PATH_0, declaration, kind);
+  }
+
+  private void createWithAnImport(Kind kind) throws IOException {
+    CreateFileFromTemplateDialogFixture dialog = invokeDialog();
+    dialog.setName(THING_NAME);
+    dialog.selectKind(kind);
+    dialog.setInterface(FULLY_QUALIFIED_INTERFACE);
+    dialog.clickAddInterfaceButton();
+    dialog.setPackage(PACKAGE_NAME_0);
+    dialog.setVisibility(Visibility.PUBLIC);
+    dialog.clickOk();
+
+    assertPackageName(THING_FILE_PATH_0, PACKAGE_NAME_0);
+    String declaration = kind.equals(Kind.INTERFACE) || kind.equals(Kind.ANNOTATION)
+                         ? INTERFACE_EXTENDING_INTERFACE_THAT_NEEDS_IMPORT_DECLARATION
+                         : CLASS_IMPLEMENTING_INTERFACE_THAT_NEEDS_IMPORT_DECLARATION;
+
+    assertImport(THING_FILE_PATH_0, INTERFACE_IMPORT);
     assertDeclaration(THING_FILE_PATH_0, declaration, kind);
   }
 
@@ -216,8 +253,25 @@ public class CreateNewClassDialogGuiTest {
   }
 
   @Test
-  public void createClassWithTwoInterfaces() throws IOException {
-    createWithTwoInterfaces(Kind.CLASS);
+  public void createClassWithTwoInterfacesExplicitly() throws IOException {
+    CreateFileFromTemplateDialogFixture dialog = invokeDialog();
+    dialog.setName(THING_NAME);
+    dialog.selectKind(Kind.CLASS);
+    dialog.setInterface(INTERFACE_0);
+    dialog.clickAddInterfaceButton();
+    dialog.setInterface(INTERFACE_1);
+    dialog.clickAddInterfaceButton();
+    dialog.setPackage(PACKAGE_NAME_0);
+    dialog.setVisibility(Visibility.PUBLIC);
+    dialog.clickOk();
+
+    assertPackageName(THING_FILE_PATH_0, PACKAGE_NAME_0);
+    assertDeclaration(THING_FILE_PATH_0, CLASS_IMPLEMENTING_TWO_INTERFACES_DECLARATION, Kind.CLASS);
+  }
+
+  @Test
+  public void createClassWithTwoInterfacesImplicitly() throws IOException {
+    createWithTwoInterfacesImplicitly(Kind.CLASS);
   }
 
   @Test
@@ -240,13 +294,33 @@ public class CreateNewClassDialogGuiTest {
     dialog.setName(THING_NAME);
     dialog.selectKind(Kind.CLASS);
     dialog.setSuperclass(SUPERCLASS_0);
-    dialog.setInterfaces(ONE_INTERFACE);
+    dialog.setInterface(INTERFACE_0);
     dialog.setPackage(PACKAGE_NAME_0);
     dialog.setVisibility(Visibility.PUBLIC);
     dialog.clickOk();
 
     assertPackageName(THING_FILE_PATH_0, PACKAGE_NAME_0);
     assertDeclaration(THING_FILE_PATH_0, SUPERCLASS_AND_INTERFACE_DECLARATION, Kind.CLASS);
+  }
+
+  @Test
+  public void createClassWithInterfaceImport() throws IOException {
+    createWithAnImport(Kind.CLASS);
+  }
+
+  @Test
+  public void createClassWithNestedInterfaceImport() throws IOException {
+    CreateFileFromTemplateDialogFixture dialog = invokeDialog();
+    dialog.setName(THING_NAME);
+    dialog.selectKind(Kind.CLASS);
+    dialog.setInterface(JAVA_UTIL_MAP_ENTRY);
+    dialog.setPackage(PACKAGE_NAME_0);
+    dialog.setVisibility(Visibility.PUBLIC);
+    dialog.clickOk();
+
+    assertPackageName(THING_FILE_PATH_0, PACKAGE_NAME_0);
+    assertImport(THING_FILE_PATH_0, JAVA_UTIL_MAP_IMPORT);
+    assertDeclaration(THING_FILE_PATH_0, JAVA_UTIL_MAP_ENTRY_DECLARATION, Kind.CLASS);
   }
 
   // New enum file template tests.
@@ -262,7 +336,12 @@ public class CreateNewClassDialogGuiTest {
 
   @Test
   public void createEnumWithTwoInterfaces() throws IOException {
-    createWithTwoInterfaces(Kind.ENUM);
+    createWithTwoInterfacesImplicitly(Kind.ENUM);
+  }
+
+  @Test
+  public void createEnumWithInterfaceImport() throws IOException {
+    createWithAnImport(Kind.ENUM);
   }
 
   // New interface file template tests.
@@ -278,7 +357,12 @@ public class CreateNewClassDialogGuiTest {
 
   @Test
   public void createInterfaceWithTwoInterfaces() throws IOException {
-    createWithTwoInterfaces(Kind.INTERFACE);
+    createWithTwoInterfacesImplicitly(Kind.INTERFACE);
+  }
+
+  @Test
+  public void createInterfaceWithInterfaceImport() throws IOException {
+    createWithAnImport(Kind.INTERFACE);
   }
 
   // Invalid field entries tests. These tests ensure the UI reacts appropriately to invalid input. They do not test
@@ -319,13 +403,13 @@ public class CreateNewClassDialogGuiTest {
     CreateFileFromTemplateDialogFixture dialog = invokeDialog();
     dialog.setName(THING_NAME);
     dialog.selectKind(Kind.CLASS);
-    dialog.setInterfaces(INVALID_INTERFACE);
+    dialog.setInterface(INVALID_INTERFACE);
     dialog.setPackage(PACKAGE_NAME_0);
     dialog.setVisibility(Visibility.PUBLIC);
     dialog.clickOk();
     dialog.waitForErrorMessageToAppear();
     String actualMessage = dialog.getMessage();
-    String expectedMessage = CreateNewClassDialogValidatorExImpl.INVALID_INTERFACES_MESSAGE.replaceAll("&gt;", ">").replaceAll("&lt;", "<");
+    String expectedMessage = CreateNewClassDialogValidatorExImpl.INVALID_QUALIFIED_NAME;
     assertEquals(expectedMessage, actualMessage.replaceAll("\n", " "));
     dialog.clickCancel();
   }
@@ -349,24 +433,50 @@ public class CreateNewClassDialogGuiTest {
   public void hidingComponents() throws IOException {
     CreateFileFromTemplateDialogFixture dialog = invokeDialog();
     dialog.selectKind(Kind.CLASS);
-
-    assertTrue(dialog.getAbstractCheckBox().isVisible());
-    assertTrue(dialog.getFinalCheckBox().isVisible());
-    assertTrue(dialog.getOverridesCheckBox().isVisible());
+    assertTrue(ComponentVisibleQuery.isVisible(dialog.getAbstractCheckBox(ComponentVisibility.VISIBLE)));
+    assertTrue(ComponentVisibleQuery.isVisible(dialog.getFinalCheckBox(ComponentVisibility.VISIBLE)));
+    // TODO Uncomment this when the overrides work is done.
+    //assertTrue(ComponentVisibleQuery.isVisible(dialog.getOverridesCheckBox(ComponentVisibility.VISIBLE)));
 
     dialog.selectKind(Kind.INTERFACE);
-    thrown.expect(ComponentLookupException.class);
-    assertFalse(dialog.getAbstractCheckBox().isVisible());
-    thrown.expect(ComponentLookupException.class);
-    assertFalse(dialog.getFinalCheckBox().isVisible());
-    thrown.expect(ComponentLookupException.class);
-    assertFalse(dialog.getOverridesCheckBox().isVisible());
+    assertFalse(ComponentVisibleQuery.isVisible(dialog.getAbstractCheckBox(ComponentVisibility.NOT_VISIBLE)));
+    assertFalse(ComponentVisibleQuery.isVisible(dialog.getFinalCheckBox(ComponentVisibility.NOT_VISIBLE)));
+    // TODO Uncomment this when the overrides work is done.
+    //assertFalse(ComponentVisibleQuery.isVisible(dialog.getOverridesCheckBox(ComponentVisibility.NOT_VISIBLE)));
 
     dialog.selectKind(Kind.CLASS);
-    assertTrue(dialog.getAbstractCheckBox().isVisible());
-    assertTrue(dialog.getFinalCheckBox().isVisible());
-    assertTrue(dialog.getOverridesCheckBox().isVisible());
+    assertTrue(ComponentVisibleQuery.isVisible(dialog.getAbstractCheckBox(ComponentVisibility.VISIBLE)));
+    assertTrue(ComponentVisibleQuery.isVisible(dialog.getFinalCheckBox(ComponentVisibility.VISIBLE)));
+    // TODO Uncomment this when the overrides work is done.
+    //assertTrue(ComponentVisibleQuery.isVisible(dialog.getOverridesCheckBox(ComponentVisibility.VISIBLE)));
 
+    dialog.clickCancel();
+  }
+
+  // Interfaces vs. classes.
+  @Test
+  public void implementAClass() throws IOException {
+    CreateFileFromTemplateDialogFixture dialog = invokeDialog();
+    dialog.setName(THING_NAME);
+    dialog.selectKind(Kind.CLASS);
+    dialog.setInterface("java.lang.Object");
+    dialog.clickAddInterfaceButton();
+    dialog.waitForErrorMessageToAppear();
+    String actualMessage = dialog.getMessage();
+    assertEquals(CreateNewClassDialogValidatorExImpl.INVALID_QUALIFIED_NAME, actualMessage);
+    dialog.clickCancel();
+  }
+
+  @Test
+  public void extendAnInterface() throws IOException {
+    CreateFileFromTemplateDialogFixture dialog = invokeDialog();
+    dialog.setName(THING_NAME);
+    dialog.selectKind(Kind.CLASS);
+    dialog.setSuperclass("java.lang.Runnable");
+    dialog.clickOk();
+    dialog.waitForErrorMessageToAppear();
+    String actualMessage = dialog.getMessage();
+    assertEquals(CreateNewClassDialogValidatorExImpl.INVALID_QUALIFIED_NAME, actualMessage);
     dialog.clickCancel();
   }
 }
