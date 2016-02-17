@@ -29,7 +29,6 @@ import org.fest.swing.fixture.FontFixture;
 import org.fest.swing.fixture.JTableCellFixture;
 import org.fest.swing.fixture.JTextComponentFixture;
 import org.fest.swing.timing.Condition;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -176,7 +175,6 @@ public class ChooseResourceDialogTest {
   /**
    * Test that the alpha slider and the textfield are hidden when we are not in ARGB.
    */
-  @Ignore("causes ComponentLookupException in next test method")
   @Test
   public void testColorPickerAlpha() throws IOException {
     guiTest.importSimpleApplication();
