@@ -79,8 +79,20 @@ public class PsiDbVisitor extends PsiElementVisitor {
     visitExpr(o);
   }
 
+  public void visitInferredFormalParameterList(@NotNull PsiDbInferredFormalParameterList o) {
+    visitPsiElement(o);
+  }
+
   public void visitInstanceOfExpr(@NotNull PsiDbInstanceOfExpr o) {
     visitExpr(o);
+  }
+
+  public void visitLambdaExpression(@NotNull PsiDbLambdaExpression o) {
+    visitPsiElement(o);
+  }
+
+  public void visitLambdaParameters(@NotNull PsiDbLambdaParameters o) {
+    visitPsiElement(o);
   }
 
   public void visitLiteralExpr(@NotNull PsiDbLiteralExpr o) {
@@ -145,6 +157,10 @@ public class PsiDbVisitor extends PsiElementVisitor {
 
   public void visitTypeArguments(@NotNull PsiDbTypeArguments o) {
     visitPsiElement(o);
+  }
+
+  public void visitVoidExpr(@NotNull PsiDbVoidExpr o) {
+    visitExpr(o);
   }
 
   public void visitPsiElement(@NotNull PsiElement o) {
