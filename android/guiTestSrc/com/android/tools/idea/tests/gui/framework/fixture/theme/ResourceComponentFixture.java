@@ -21,6 +21,7 @@ import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.JButtonFixture;
 import org.fest.swing.fixture.JLabelFixture;
 import org.fest.swing.fixture.JPanelFixture;
+import org.fest.swing.fixture.JPopupMenuFixture;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -68,5 +69,12 @@ public class ResourceComponentFixture extends JPanelFixture {
 
   public boolean hasWarningIcon() {
     return getValueComponent().hasWarningIcon();
+  }
+
+  @NotNull
+  @Override
+  public JPopupMenuFixture showPopupMenu() {
+    // TODO fix clicking on the editable text box
+    return getLabel().showPopupMenu();
   }
 }
