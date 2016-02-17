@@ -26,8 +26,11 @@ import java.util.Collection;
 
 import static org.junit.Assert.*;
 
+/**
+ * Tests for {@link PostProjectSetupTasksExecutor}.
+ */
 @RunWith(Parameterized.class)
-public class PreSyncChecksTest {
+public class PostProjectSetupTasksExecutorTest {
   @Parameterized.Parameters
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][] {
@@ -45,7 +48,7 @@ public class PreSyncChecksTest {
 
   private final boolean myForceUpgrade;
 
-  public PreSyncChecksTest(@NotNull String current, @NotNull String latest, boolean forceUpgrade) {
+  public PostProjectSetupTasksExecutorTest(@NotNull String current, @NotNull String latest, boolean forceUpgrade) {
     myCurrent = GradleVersion.parse(current);
     myLatest = latest;
     myForceUpgrade = forceUpgrade;
@@ -53,6 +56,6 @@ public class PreSyncChecksTest {
 
   @Test
   public void testIsPluginVersionUpgradeNecessary() {
-    assertEquals(myForceUpgrade, PreSyncChecks.isPluginVersionUpgradeNecessary(myCurrent, myLatest));
+    assertEquals(myForceUpgrade, PostProjectSetupTasksExecutor.isPluginVersionUpgradeNecessary(myCurrent, myLatest));
   }
 }
