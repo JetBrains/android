@@ -16,6 +16,7 @@
 
 package org.jetbrains.android.resourceManagers;
 
+import com.android.SdkConstants;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.rendering.AppResourceRepository;
 import com.intellij.openapi.application.ApplicationManager;
@@ -27,7 +28,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
-import com.intellij.util.containers.HashSet;
+import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.dom.attrs.AttributeDefinitionsImpl;
 import org.jetbrains.android.dom.resources.Attr;
@@ -263,28 +264,34 @@ public class LocalResourceManager extends ResourceManager {
   @Override
   @NotNull
   public Collection<String> getResourceNames(@NotNull String type, boolean publicOnly) {
-    ResourceType t = ResourceType.getEnum(type);
-    if (publicOnly && t != null) {
-      Set<String> result = new HashSet<String>();
+    ResourceType resourceType = ResourceType.getEnum(type);
+    if (resourceType != null) {
       AppResourceRepository appResources = AppResourceRepository.getAppResources(myFacet, true);
-      for (String name : getValueResourceNames(type)) {
-        if (!appResources.isPrivate(t, name)) {
-          result.add(name);
-        }
+      Collection<String> resourceNames;
+      if (resourceType == ResourceType.STYLEABLE) {
+        // Convert from the tag-oriented types that appResource hold to the inner-class oriented type.
+        resourceNames = appResources.getItemsOfType(ResourceType.DECLARE_STYLEABLE);
+      } else {
+        resourceNames = appResources.getItemsOfType(resourceType);
       }
-      for (String name : getFileResourcesNames(type)) {
-        if (!appResources.isPrivate(t, name)) {
-          result.add(name);
-        }
-      }
-      if (t == ResourceType.ID) {
-        for (String name : getIds(true)) {
-          if (!appResources.isPrivate(t, name)) {
-            result.add(name);
+      // We may need to filter out public only, or if the type is attr, filter out android: attributes.
+      if (publicOnly || resourceType == ResourceType.ATTR) {
+        Set<String> filtered = ContainerUtil.newHashSet(resourceNames.size());
+        for (String name : resourceNames) {
+          if (resourceType == ResourceType.ATTR) {
+            if (!name.startsWith(SdkConstants.ANDROID_NS_NAME_PREFIX)) {
+              filtered.add(name);
+            }
+          }
+          if (publicOnly) {
+            if (!appResources.isPrivate(resourceType, name)) {
+              filtered.add(name);
+            }
           }
         }
+        resourceNames = filtered;
       }
-      return result;
+      return resourceNames;
     } else {
       return super.getResourceNames(type, publicOnly);
     }

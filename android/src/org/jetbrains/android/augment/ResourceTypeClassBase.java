@@ -38,7 +38,7 @@ public abstract class ResourceTypeClassBase extends AndroidLightClass {
     }
 
     if (styleable) {
-      for (ResourceEntry entry : manager.getValueResourceEntries(ResourceType.ATTR.getName())) {
+      for (ResourceEntry entry : manager.getValueResourceEntries(ResourceType.ATTR)) {
         final String resName = entry.getName();
         final String resContext = entry.getContext();
 
