@@ -32,15 +32,56 @@ public final class AndroidLogcatFilter {
   @Nullable private final String myPid;
   @Nullable private final Log.LogLevel myLogLevel;
 
-  public AndroidLogcatFilter(@NotNull String name,
-                             @Nullable Pattern messagePattern,
-                             @Nullable Pattern tagPattern,
-                             @Nullable Pattern pkgNamePattern,
-                             @Nullable Integer pid,
-                             @Nullable Log.LogLevel logLevel) {
-    this(name, messagePattern, tagPattern, pkgNamePattern, pid != null ? pid.toString() : null, logLevel);
+  public static final class Builder {
+    @NotNull private final String myName;
+    @Nullable private Pattern myMessagePattern;
+    @Nullable private Pattern myTagPattern;
+    @Nullable private Pattern myPkgNamePattern;
+    @Nullable private String myPid;
+    @Nullable private Log.LogLevel myLogLevel;
+
+    public Builder(@NotNull String name) {
+      myName = name;
+    }
+
+    public Builder setMessagePattern(@Nullable Pattern messagePattern) {
+      myMessagePattern = messagePattern;
+      return this;
+    }
+
+    public Builder setTagPattern(@Nullable Pattern tagPattern) {
+      myTagPattern = tagPattern;
+      return this;
+    }
+
+    public Builder setPackagePattern(@Nullable Pattern pkgNamePattern) {
+      myPkgNamePattern = pkgNamePattern;
+      return this;
+    }
+
+    public Builder setPid(@Nullable String pid) {
+      myPid = pid;
+      return this;
+    }
+
+    public Builder setPid(@Nullable Integer pid) {
+      return setPid(pid != null ? pid.toString() : null);
+    }
+
+    public Builder setLogLevel(@Nullable Log.LogLevel logLevel) {
+      myLogLevel = logLevel;
+      return this;
+    }
+
+    @NotNull
+    public AndroidLogcatFilter build() {
+      return new AndroidLogcatFilter(myName, myMessagePattern, myTagPattern, myPkgNamePattern, myPid, myLogLevel);
+    }
   }
 
+  // Temporarily deprecated, since there's one plugin that currently relies on this.
+  // TODO: Update caller to use the Builder instead, then set this to private.
+  @Deprecated
   public AndroidLogcatFilter(@NotNull String name,
                              @Nullable Pattern messagePattern,
                              @Nullable Pattern tagPattern,
