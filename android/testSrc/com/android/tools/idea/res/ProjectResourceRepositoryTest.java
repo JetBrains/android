@@ -57,6 +57,7 @@ import java.io.IOException;
 import java.util.*;
 
 import static com.android.tools.idea.res.ModuleResourceRepositoryTest.getFirstItem;
+import static com.android.tools.idea.res.ModuleResourceRepositoryTest.assertHasExactResourceTypes;
 
 public class ProjectResourceRepositoryTest extends AndroidTestCase {
   private static final String LAYOUT = "resourceRepository/layout.xml";
@@ -206,6 +207,42 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     // However, the resourceDirs should now be different, missing the first flavor directory.
     Set<VirtualFile> newResourceDirs = repository.getResourceDirs();
     assertSameElements(newResourceDirs, flavorDirs);
+  }
+
+  public void testHasResourcesOfType() {
+    // Test hasResourcesOfType merging (which may be optimized to be lighter-weight than map merging).
+    VirtualFile res1 = myFixture.copyFileToProject(LAYOUT, "res/layout/layout.xml").getParent().getParent();
+    VirtualFile res2 = myFixture.copyFileToProject(VALUES_OVERLAY1, "res2/values/values.xml").getParent().getParent();
+    VirtualFile values3 = myFixture.copyFileToProject(VALUES, "res3/values/many_more_values.xml");
+    VirtualFile res3 = values3.getParent().getParent();
+
+    assertNotSame(res1, res2);
+    assertNotSame(res1, res3);
+    assertNotSame(res2, res3);
+    // Test having some overlap between the modules.
+    LocalResourceRepository module1 = ModuleResourceRepository.createForTest(myFacet, Arrays.asList(res1, res2));
+    LocalResourceRepository module2 = ModuleResourceRepository.createForTest(myFacet, Arrays.asList(res2, res3));
+    final ProjectResourceRepository resources = ProjectResourceRepository.createForTest(myFacet, Arrays.asList(module1, module2));
+
+    // Create a repo with res1, res2, res3 and check types.
+    // After that, delete a file in res3 and check types again.
+    EnumSet<ResourceType> typesWithoutRes3 = EnumSet.of(ResourceType.ARRAY, ResourceType.ID, ResourceType.LAYOUT,
+                                                        ResourceType.STRING, ResourceType.STYLE);
+    EnumSet<ResourceType> allTypes = EnumSet.copyOf(typesWithoutRes3);
+    allTypes.addAll(Arrays.asList(ResourceType.ATTR, ResourceType.INTEGER, ResourceType.DECLARE_STYLEABLE, ResourceType.PLURALS));
+
+
+    assertHasExactResourceTypes(resources, allTypes);
+    // Now delete the values file and check again.
+    final PsiFile psiValues3 = PsiManager.getInstance(getProject()).findFile(values3);
+    assertNotNull(psiValues3);
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
+      @Override
+      public void run() {
+        psiValues3.delete();
+      }
+    });
+    assertHasExactResourceTypes(resources, typesWithoutRes3);
   }
 
   private void addArchiveLibraries() {

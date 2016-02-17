@@ -29,6 +29,7 @@ import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
@@ -38,10 +39,7 @@ import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 @SuppressWarnings("SpellCheckingInspection")
 public class ModuleResourceRepositoryTest extends AndroidTestCase {
@@ -375,6 +373,40 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
     assertStringIs(resources, "title_layout_changes", "New Layout Changes", false);
   }
 
+  public void testHasResourcesOfType() {
+    // Test hasResourcesOfType merging (which may be optimized to be lighter-weight than map merging).
+    VirtualFile res1 = myFixture.copyFileToProject(LAYOUT, "res/layout/layout.xml").getParent().getParent();
+    VirtualFile res2 = myFixture.copyFileToProject(VALUES_OVERLAY1, "res2/values/values.xml").getParent().getParent();
+
+    assertNotSame(res1, res2);
+    ModuleResourceRepository resources = ModuleResourceRepository.createForTest(myFacet, Arrays.asList(res1, res2));
+    EnumSet<ResourceType> typesWithoutRes3 = EnumSet.of(ResourceType.ARRAY, ResourceType.ID, ResourceType.LAYOUT,
+                                                        ResourceType.STRING, ResourceType.STYLE);
+
+    assertHasExactResourceTypes(resources, typesWithoutRes3);
+    // Now update the repo with additional files, to test that merging picks up the new types.
+    VirtualFile values3 = myFixture.copyFileToProject(VALUES, "res3/values/many_more_values.xml");
+    VirtualFile res3 = values3.getParent().getParent();
+    assertNotSame(res1, res3);
+    assertNotSame(res2, res3);
+    resources.updateRoots(Arrays.asList(res1, res2, res3));
+
+    EnumSet<ResourceType> allTypes = EnumSet.copyOf(typesWithoutRes3);
+    allTypes.addAll(Arrays.asList(ResourceType.ATTR, ResourceType.INTEGER, ResourceType.DECLARE_STYLEABLE, ResourceType.PLURALS));
+    assertHasExactResourceTypes(resources, allTypes);
+
+    // Now delete the values file and check again.
+    final PsiFile psiValues3 = PsiManager.getInstance(getProject()).findFile(values3);
+    assertNotNull(psiValues3);
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
+      @Override
+      public void run() {
+        psiValues3.delete();
+      }
+    });
+    assertHasExactResourceTypes(resources, typesWithoutRes3);
+  }
+
   // Unit test support methods
 
   static void assertItemIsInDir(VirtualFile dir, ResourceItem item) {
@@ -424,6 +456,17 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
     ResourceValue resourceValue = item.getResourceValue(false);
     assertNotNull(resourceValue);
     assertEquals(expected, resourceValue.getValue());
+  }
+
+  static void assertHasExactResourceTypes(LocalResourceRepository resources, EnumSet<ResourceType> types) {
+    for (ResourceType type : ResourceType.values()) {
+      if (types.contains(type)) {
+        assertTrue(resources.hasResourcesOfType(type));
+      }
+      else {
+        assertFalse(resources.hasResourcesOfType(type));
+      }
+    }
   }
 
   public void testAllowEmpty() {
