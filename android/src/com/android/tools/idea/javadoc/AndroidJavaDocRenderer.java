@@ -1059,7 +1059,6 @@ public class AndroidJavaDocRenderer {
           Dimension size = getSize(file);
           if (size != null) {
 
-
             builder.addHtml(String.format(Locale.US, "%1$d&#xd7;%2$d px (%3$d&#xd7;%4$d dp @ %5$s)", size.width, size.height,
                                           px2dp(size.width, density), px2dp(size.height, density), density.getResourceValue()));
           }
@@ -1333,9 +1332,14 @@ public class AndroidJavaDocRenderer {
       if (density1 != null && density2 != null) {
         // Start with the lowest densities to avoid case where you have a giant asset (say xxxhdpi)
         // and you only see the top left corner in the documentation window.
-        int delta = density2.getValue().compareTo(density1.getValue());
+        Density density1Value = density1.getValue() == null ? Density.MEDIUM : density1.getValue();
+        Density density2Value = density2.getValue() == null ? Density.MEDIUM : density2.getValue();
+        int delta = density2Value.compareTo(density1Value);
         if (delta != 0) {
           return delta;
+        }
+        if (density1Value == Density.MEDIUM && density1 != density2) {
+          return density2 == density2.getNullQualifier() ? 1 : 0;
         }
       }
 
