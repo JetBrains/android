@@ -512,7 +512,7 @@ public final class InstantRunManager implements ProjectComponent {
       }
       needRestart = false;
       if (!buildInfo.canHotswap()) {
-        client.stopApp(device, true);
+        client.stopApp(device, false /* sendChangeBroadcast */);
       }
     }
     else {
