@@ -19,20 +19,28 @@ import com.android.tools.idea.editors.theme.ui.ResourceComponent;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.ChooseResourceDialogFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.ColorPickerFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.SlideFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.*;
 import org.fest.swing.data.TableCell;
 import org.fest.swing.fixture.FontFixture;
 import org.fest.swing.fixture.JTableCellFixture;
+import org.fest.swing.fixture.JTextComponentFixture;
+import org.fest.swing.timing.Condition;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.awt.*;
 import java.io.IOException;
 
 import static com.android.tools.idea.tests.gui.framework.TestGroup.THEME;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.swing.data.TableCell.row;
+import static org.fest.swing.timing.Pause.pause;
 import static org.junit.Assert.*;
 
 /**
@@ -124,5 +132,81 @@ public class ChooseResourceDialogTest {
 
     dialog.clickCancel();
     stateListCell.stopEditing();
+  }
+
+  @Test
+  public void testResourcePickerNameError() throws IOException {
+    guiTest.importSimpleApplication();
+    ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(guiTest.ideFrame());
+
+    ThemeEditorTableFixture themeEditorTable = themeEditor.getPropertiesTable();
+
+    // Cell (1,0) should be some color
+    JTableCellFixture colorCell = themeEditorTable.cell(row(1).column(0));
+
+    // click on a color
+    ResourceComponentFixture resourceComponent = new ResourceComponentFixture(guiTest.robot(), (ResourceComponent)colorCell.editor());
+    colorCell.startEditing();
+    resourceComponent.getSwatchButton().click();
+
+    final ChooseResourceDialogFixture dialog = ChooseResourceDialogFixture.find(guiTest.robot());
+    JTextComponentFixture name = dialog.getNameTextField();
+
+    // add mistake into name field
+    String badText = "(";
+    name.deleteText();
+    name.enterText("color" + badText);
+    String text = name.text();
+    assertNotNull(text);
+    assertTrue(text.endsWith(badText));
+
+    final String expectedError = "<html><font color='#ff0000'><left>'" + badText +
+                                 "' is not a valid resource name character</left></b></font></html>";
+    pause(new Condition("Waiting for error to update") {
+      @Override
+      public boolean test() {
+        return dialog.getError().equals(expectedError);
+      }
+    }, GuiTests.SHORT_TIMEOUT);
+
+    dialog.clickCancel();
+    colorCell.cancelEditing();
+  }
+
+  /**
+   * Test that the alpha slider and the textfield are hidden when we are not in ARGB.
+   */
+  @Ignore("causes ComponentLookupException in next test method")
+  @Test
+  public void testColorPickerAlpha() throws IOException {
+    guiTest.importSimpleApplication();
+    ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(guiTest.ideFrame());
+    ThemeEditorTableFixture themeEditorTable = themeEditor.getPropertiesTable();
+
+    TableCell cell = row(1).column(0);
+
+    JTableCellFixture colorCell = themeEditorTable.cell(cell);
+    ResourceComponentFixture resourceComponent = new ResourceComponentFixture(guiTest.robot(), (ResourceComponent)colorCell.editor());
+    colorCell.startEditing();
+    resourceComponent.getSwatchButton().click();
+
+    ChooseResourceDialogFixture dialog = ChooseResourceDialogFixture.find(guiTest.robot());
+    ColorPickerFixture colorPicker = dialog.getColorPicker();
+    Color color = new Color(200, 0, 0, 200);
+    colorPicker.setFormat("ARGB");
+    colorPicker.setColorWithIntegers(color);
+    JTextComponentFixture alphaLabel = colorPicker.getLabel("A:");
+    SlideFixture alphaSlide = colorPicker.getAlphaSlide();
+    alphaLabel.requireVisible();
+    alphaSlide.requireVisible();
+    colorPicker.setFormat("RGB");
+    alphaLabel.requireNotVisible();
+    alphaSlide.requireNotVisible();
+    colorPicker.setFormat("HSB");
+    alphaLabel.requireNotVisible();
+    alphaSlide.requireNotVisible();
+
+    dialog.clickOK();
+    colorCell.stopEditing();
   }
 }
