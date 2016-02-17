@@ -48,6 +48,7 @@ import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -92,11 +93,11 @@ import java.io.File;
 import java.util.*;
 
 import static com.android.SdkConstants.*;
+import static com.android.builder.model.AndroidProject.GENERATION_ORIGINAL;
 import static com.android.tools.idea.gradle.customizer.AbstractDependenciesModuleCustomizer.pathToUrl;
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.FAILED_TO_SET_UP_SDK;
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.UNHANDLED_SYNC_ISSUE_TYPE;
 import static com.android.tools.idea.gradle.project.LibraryAttachments.getStoredLibraryAttachments;
-import static com.android.tools.idea.gradle.project.PreSyncChecks.isPluginVersionUpgradeNecessary;
 import static com.android.tools.idea.gradle.project.ProjectDiagnostics.findAndReportStructureIssues;
 import static com.android.tools.idea.gradle.project.ProjectJdkChecks.hasCorrectJdkVersion;
 import static com.android.tools.idea.gradle.service.notification.errors.AbstractSyncErrorHandler.FAILED_TO_SYNC_GRADLE_PROJECT_ERROR_GROUP_FORMAT;
@@ -258,7 +259,7 @@ public class PostProjectSetupTasksExecutor {
   private static boolean isNonExperimentalPlugin(@NotNull AndroidProject androidProject) {
     try {
       // only true for non experimental plugin 2.0.0-betaX (or whenever the getPluginGeneration() was added)
-      return androidProject.getPluginGeneration() == 1;
+      return androidProject.getPluginGeneration() == GENERATION_ORIGINAL;
     } catch (Throwable t) {
       // happens for 2.0.0-alphaX, 1.5.x or for experimental plugins on those versions
       return false;
@@ -276,6 +277,16 @@ public class PostProjectSetupTasksExecutor {
     return null;
   }
 
+  @VisibleForTesting
+  static boolean isPluginVersionUpgradeNecessary(@NotNull GradleVersion current, @NotNull String latest) {
+    if (current.getPreviewType() != null) {
+      // modelVersion is a "preview" (alpha, beta, etc.)
+      // major, micro, minor are the same for both versions, but it is an old "preview"
+      GradleVersion parsedLatest = GradleVersion.parse(latest);
+      return parsedLatest.compareIgnoringQualifiers(current) == 0 && parsedLatest.compareTo(current) > 0;
+    }
+    return false;
+  }
 
   private void disposeModulesMarkedForRemoval() {
     final Collection<Module> modulesToDispose = getModulesToDisposePostSync(myProject);
