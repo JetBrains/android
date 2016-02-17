@@ -18,6 +18,7 @@ package com.android.tools.idea.rendering;
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.RenderResources;
 import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.res2.ResourceFile;
 import com.android.ide.common.resources.ResourceUrl;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.FolderTypeRelationship;
@@ -237,6 +238,15 @@ public class ResourceHelper {
       }
     }
 
+    return null;
+  }
+
+  @Nullable
+  public static ResourceFolderType getFolderType(@NotNull ResourceFile file) {
+    File parent = file.getFile().getParentFile();
+    if (parent != null) {
+      return ResourceFolderType.getFolderType(parent.getName());
+    }
     return null;
   }
 

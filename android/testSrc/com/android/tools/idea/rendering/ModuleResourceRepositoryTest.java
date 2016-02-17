@@ -23,11 +23,14 @@ import com.android.resources.ResourceType;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
+import com.intellij.util.containers.ContainerUtil;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 
@@ -276,13 +279,29 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
         documentManager.commitDocument(document);
       }
     });
+    // The first edit to psiValues3 causes ResourceFolderRepository to transition from non-Psi -> Psi which requires a rescan.
+    assertTrue(resources.isScanPending(psiValues3));
+    UIUtil.dispatchAllInvocationEvents();
     assertTrue(resources.getModificationCount() > generation);
 
-    // Should still be defined in res3 but have new value
-    appName = getFirstItem(resources, ResourceType.STRING, "app_name");
+    // Should still be defined in res3 but have new value.
+    // The order of items may have swapped if a full rescan is done.
+    List<ResourceItem> list = resources.getResourceItem(ResourceType.STRING, "app_name");
+    assertNotNull(list);
+    assertSize(2, list);
+    appName = ContainerUtil.find(list, new Condition<ResourceItem>() {
+      @Override
+      public boolean value(ResourceItem resourceItem) {
+        return resourceItem.getQualifiers().isEmpty();
+      }
+    });
+    assertNotNull(appName);
     assertItemIsInDir(res3, appName);
-    assertStringIs(resources, "app_name", "Not Very Different App Name", false);
+    ResourceValue appNameResourceValue = appName.getResourceValue(false);
+    assertNotNull(appNameResourceValue);
+    assertEquals("Not Very Different App Name", appNameResourceValue.getValue());
 
+    // Try renaming the item name.
     generation = resources.getModificationCount();
     WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
@@ -331,11 +350,16 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
         documentManager.commitDocument(document2);
       }
     });
+    // The first edit to psiValues1 causes ResourceFolderRepository to transition from non-Psi -> Psi which requires a rescan.
+    assertTrue(resources.isScanPending(psiValues1));
+    UIUtil.dispatchAllInvocationEvents();
     // Unaffected by above change
     assertStringIs(resources, "app_name", "Different App Name", false);
 
     // Finally check that editing an non-overridden attribute also gets picked up as a change
     generation = resources.getModificationCount();
+    // Observe after the rescan, so that an edit causes a generation bump.
+    assertStringIs(resources, "title_layout_changes", "Layout Changes");
     WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
