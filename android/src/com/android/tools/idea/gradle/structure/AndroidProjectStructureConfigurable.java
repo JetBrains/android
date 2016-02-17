@@ -22,11 +22,11 @@ import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.parser.GradleSettingsFile;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
+import com.android.tools.idea.gradle.structure.editors.AndroidModuleConfigurable;
+import com.android.tools.idea.gradle.structure.editors.AndroidProjectConfigurable;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.ModuleTypeComparator;
 import com.android.tools.idea.gradle.util.Projects;
-import com.android.tools.idea.gradle.structure.editors.AndroidModuleConfigurable;
-import com.android.tools.idea.gradle.structure.editors.AndroidProjectConfigurable;
 import com.android.tools.idea.structure.services.DeveloperService;
 import com.android.tools.idea.structure.services.DeveloperServices;
 import com.android.tools.idea.structure.services.ServiceCategory;
@@ -89,7 +89,7 @@ import java.util.List;
 /**
  * Contents of the "Project Structure" dialog, for Gradle-based Android projects, in Android Studio.
  */
-public class AndroidProjectStructureConfigurable extends BaseConfigurable implements GradleSyncListener, SearchableConfigurable {
+public class AndroidProjectStructureConfigurable extends BaseConfigurable implements GradleSyncListener, SearchableConfigurable, Configurable.NoScroll {
   public static final DataKey<AndroidProjectStructureConfigurable> KEY = DataKey.create("AndroidProjectStructureConfiguration");
 
   private static final Logger LOG = Logger.getInstance(AndroidProjectStructureConfigurable.class);
@@ -631,7 +631,9 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
         }
       });
 
-      add(ScrollPaneFactory.createScrollPane(myList), BorderLayout.CENTER);
+      final JScrollPane scrollPane = ScrollPaneFactory
+        .createScrollPane(myList, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+      add(scrollPane, BorderLayout.CENTER);
 
       if (!myProject.isDefault()) {
         DefaultActionGroup group = new DefaultActionGroup();
