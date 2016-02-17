@@ -47,8 +47,10 @@ public final class OpenDeveloperServicesSidePanelAction extends AnAction {
 
         if (toolWindow == null) {
           toolWindow = toolWindowManager.registerToolWindow(TOOL_WINDOW_TITLE, true, ToolWindowAnchor.RIGHT);
-          factory.createToolWindowContent(thisProject, toolWindow);
         }
+
+        factory.createToolWindowContent(thisProject, toolWindow);
+
         // Always active the window, in case it was previously minimized.
         toolWindow.activate(null);
       }
