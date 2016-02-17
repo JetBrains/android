@@ -22,6 +22,7 @@ import com.android.tools.idea.editors.gfxtrace.service.memory.MemoryRange;
 import com.android.tools.idea.editors.gfxtrace.service.memory.PoolID;
 import com.android.tools.rpclib.binary.*;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 
@@ -54,6 +55,10 @@ public final class AtomPath extends Path {
 
   public FieldPath field(String name) {
     return new FieldPath().setStruct(this).setName(name);
+  }
+
+  public MeshPath mesh(@Nullable MeshPathOptions options) {
+    return new MeshPath().setObject(this).setOptions(options);
   }
 
   //<<<Start:Java.ClassBody:1>>>
