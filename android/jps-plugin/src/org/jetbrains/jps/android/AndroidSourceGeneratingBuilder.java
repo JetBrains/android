@@ -1,6 +1,7 @@
 package org.jetbrains.jps.android;
 
 import com.android.SdkConstants;
+import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
@@ -1182,9 +1183,8 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
       valueResFilesTimestamps.put(resFilePath, resFileTimestamp);
     }
     else {
-      final ResourceType resTypeObj = ResourceType.getEnum(resType);
-      final boolean idProvidingType =
-        resTypeObj != null && ArrayUtil.find(AndroidCommonUtils.ID_PROVIDING_RESOURCE_TYPES, resTypeObj) >= 0;
+      final ResourceFolderType resTypeObj = ResourceFolderType.getFolderType(resType);
+      final boolean idProvidingType = FolderTypeRelationship.isIdGeneratingFolderType(resTypeObj);
       final ResourceFileData data =
         new ResourceFileData(Collections.<ResourceEntry>emptyList(), idProvidingType ? resFileTimestamp : 0);
       resDataMap.put(resFilePath, data);
