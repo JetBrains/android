@@ -272,7 +272,7 @@ public class ChooseResourceDialog extends DialogWrapper {
 
         @NotNull
         @Override
-        public String doSaveAndOk() {
+        public String doSave() {
           String stateListName = getSelectedPanel().myEditorPanel.getResourceName();
           Module module = getSelectedModule();
           List<String> dirNames = getLocationSettings().getDirNames();
@@ -322,7 +322,7 @@ public class ChooseResourceDialog extends DialogWrapper {
                                                  false, ResourceFolderType.VALUES, true, ResourceType.COLOR) {
         @NotNull
         @Override
-        public String doSaveAndOk() {
+        public String doSave() {
           String value = ResourceHelper.colorToString(myColorPicker.getColor());
           if (getResourceNameVisibility() == ResourceNameVisibility.FORCE ||
               (getResourceNameVisibility() == ResourceNameVisibility.SHOW && !getSelectedPanel().myEditorPanel.getResourceName().isEmpty())) {
@@ -685,13 +685,13 @@ public class ChooseResourceDialog extends DialogWrapper {
    */
   public void openLocationSettings() {
     if (myColorPickerPanel != null) {
-      myColorPickerPanel.openLocationSettings();
+      myColorPickerPanel.setLocationSettingsOpen(true);
     }
     if (myStateListPickerPanel != null) {
-      myStateListPickerPanel.openLocationSettings();
+      myStateListPickerPanel.setLocationSettingsOpen(true);
     }
     for (ResourcePanel panel : myPanels) {
-      panel.myReferencePanel.openLocationSettings();
+      panel.myReferencePanel.setLocationSettingsOpen(true);
     }
   }
 
@@ -708,7 +708,7 @@ public class ChooseResourceDialog extends DialogWrapper {
     notifyResourcePickerListeners(null);
 
     if (editor != null) {
-      myResultResourceName = editor.doSaveAndOk();
+      myResultResourceName = editor.doSave();
     }
     else {
       ResourceItem element = resourcePanel.getSelectedElement();
@@ -1001,7 +1001,7 @@ public class ChooseResourceDialog extends DialogWrapper {
 
         @NotNull
         @Override
-        public String doSaveAndOk() {
+        public String doSave() {
           return saveValuesResource(myEditorPanel.getResourceName(), myReferenceComponent.getValueText(), getLocationSettings());
         }
       };
@@ -1346,7 +1346,7 @@ public class ChooseResourceDialog extends DialogWrapper {
             }
           }
           else {
-            if (value.isFramework() == item.isFramework() && value.getName().equals(item.getName())) {
+            if (!item.isAttr() && value.isFramework() == item.isFramework() && value.getName().equals(item.getName())) {
               myList.setSelectedElement(item);
               return;
             }

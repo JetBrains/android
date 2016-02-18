@@ -105,12 +105,12 @@ public abstract class ResourceEditorTab {
     return myFullPanel;
   }
 
-  public void showExpertPanel(boolean show) {
-    myExpertPlaceholder.setVisible(show);
+  public void setLocationSettingsVisible(boolean visible) {
+    myExpertPlaceholder.setVisible(visible);
   }
 
-  public void setExpertPanelOn(boolean on) {
-    myExpertDecorator.setOn(on);
+  public void setLocationSettingsOpen(boolean open) {
+    myExpertDecorator.setOn(open);
   }
 
   @NotNull
@@ -123,10 +123,6 @@ public abstract class ResourceEditorTab {
     return myResourceNameVisibility;
   }
 
-  public void openLocationSettings() {
-    setExpertPanelOn(true);
-  }
-
   @Nullable("if there is no error")
   public ValidationInfo doValidate() {
     return getLocationSettings().doValidate();
@@ -137,7 +133,7 @@ public abstract class ResourceEditorTab {
    * @return the value that is returned by the resource chooser.
    */
   @NotNull
-  public abstract String doSaveAndOk();
+  public abstract String doSave();
 
   @NotNull
   public Module getSelectedModule() {
