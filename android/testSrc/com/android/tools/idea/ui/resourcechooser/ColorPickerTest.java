@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android.uipreview;
+package com.android.tools.idea.ui.resourcechooser;
 
 import com.intellij.ui.ColorUtil;
 import java.awt.Color;
