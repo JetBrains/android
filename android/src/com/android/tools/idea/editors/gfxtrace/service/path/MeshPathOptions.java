@@ -25,6 +25,13 @@ import com.android.tools.rpclib.schema.*;
 import java.io.IOException;
 
 public final class MeshPathOptions implements BinaryObject {
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder();
+    sb.append("Faceted: ").append(myFaceted);
+    return sb.toString();
+  }
+
   //<<<Start:Java.ClassBody:1>>>
   private boolean myFaceted;
 
