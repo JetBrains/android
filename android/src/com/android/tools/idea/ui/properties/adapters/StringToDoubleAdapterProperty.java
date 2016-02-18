@@ -16,7 +16,12 @@
 package com.android.tools.idea.ui.properties.adapters;
 
 import com.android.tools.idea.ui.properties.ObservableProperty;
+import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
+
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.text.ParsePosition;
 
 /**
  * Adapter property that wraps a String type which represents a Double value.
@@ -28,7 +33,7 @@ public final class StringToDoubleAdapterProperty extends AdapterProperty<String,
 
   private double lastGoodValue;
 
-  @NotNull private final String myFormatString;
+  @NotNull private final DecimalFormat myFormat;
 
   /**
    * Defaults to 1 decimal point of precision.
@@ -38,15 +43,27 @@ public final class StringToDoubleAdapterProperty extends AdapterProperty<String,
   }
 
   public StringToDoubleAdapterProperty(@NotNull ObservableProperty<String> wrappedProperty, int numDecimals) {
+    this(wrappedProperty, numDecimals, numDecimals);
+  }
+
+  public StringToDoubleAdapterProperty(@NotNull ObservableProperty<String> wrappedProperty, int numDecimals, int maxDecimals) {
     super(wrappedProperty);
-    myFormatString = "%1$." + numDecimals + "f";
+    if (maxDecimals < numDecimals) {
+      throw new IllegalArgumentException("maxDecimals must be larger or equal to numDecimals");
+    }
+    myFormat = new DecimalFormat("0." + StringUtil.repeat("0", numDecimals) + StringUtil.repeat("#", maxDecimals - numDecimals),
+                                 new DecimalFormatSymbols());
   }
 
   @NotNull
   @Override
   protected Double convertFromSourceType(@NotNull String value) {
     try {
-      lastGoodValue = Double.parseDouble(value);
+      ParsePosition pos = new ParsePosition(0);
+      Number number = myFormat.parse(value, pos);
+      if (number != null && pos.getIndex() == value.length()) {
+        lastGoodValue = number.doubleValue();
+      }
       return lastGoodValue;
     }
     catch (NumberFormatException e) {
@@ -57,7 +74,7 @@ public final class StringToDoubleAdapterProperty extends AdapterProperty<String,
   @NotNull
   @Override
   protected String convertFromDestType(@NotNull Double value) {
-    return String.format(myFormatString, value);
+    return myFormat.format(value);
   }
 }
 
