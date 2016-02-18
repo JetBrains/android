@@ -37,7 +37,7 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ArrayUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.ChooseClassDialog;
-import org.jetbrains.android.uipreview.ChooseResourceDialog;
+import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
 
 import java.awt.*;
 import java.util.Collections;

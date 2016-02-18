@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.rendering;
 
-import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.RenderResources;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.res2.ResourceFile;
@@ -27,6 +26,9 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.databinding.DataBindingUtil;
 import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
+import com.android.tools.idea.ui.resourcechooser.ResourceGroup;
+import com.android.tools.idea.ui.resourcechooser.ResourceItem;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.google.common.base.Joiner;
 import com.google.common.collect.*;
@@ -44,7 +46,6 @@ import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.xml.*;
 import com.intellij.ui.ColorUtil;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.uipreview.ChooseResourceDialog;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -858,13 +859,13 @@ public class ResourceHelper {
       // color was present in completionTypes, and not if we added it because of the presence of ResourceType.DRAWABLES.
       // For any other ResourceType, we always include file resources.
       boolean includeFileResources = (type != ResourceType.COLOR) || completionTypesContainsColor;
-      ChooseResourceDialog.ResourceGroup group = new ChooseResourceDialog.ResourceGroup(ANDROID_NS_NAME, type, facet, ANDROID_NS_NAME, includeFileResources);
-      for (ChooseResourceDialog.ResourceItem item : group.getItems()) {
+      ResourceGroup group = new ResourceGroup(ANDROID_NS_NAME, type, facet, ANDROID_NS_NAME, includeFileResources);
+      for (ResourceItem item : group.getItems()) {
         resourceNamesList.add(item.getResourceUrl());
       }
 
-      group = new ChooseResourceDialog.ResourceGroup(ChooseResourceDialog.APP_NAMESPACE_LABEL, type, facet, null, includeFileResources);
-      for (ChooseResourceDialog.ResourceItem item : group.getItems()) {
+      group = new ResourceGroup(ChooseResourceDialog.APP_NAMESPACE_LABEL, type, facet, null, includeFileResources);
+      for (ResourceItem item : group.getItems()) {
         resourceNamesList.add(item.getResourceUrl());
       }
     }

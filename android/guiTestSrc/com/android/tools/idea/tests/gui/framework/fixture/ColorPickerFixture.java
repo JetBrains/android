@@ -22,7 +22,7 @@ import org.fest.swing.fixture.JComboBoxFixture;
 import org.fest.swing.fixture.JPanelFixture;
 import org.fest.swing.fixture.JTextComponentFixture;
 import org.fest.swing.timing.Condition;
-import org.jetbrains.android.uipreview.ColorPicker;
+import com.android.tools.idea.ui.resourcechooser.ColorPicker;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;

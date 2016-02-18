@@ -28,7 +28,7 @@ import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.data.TableCell;
 import org.fest.swing.fixture.*;
 import org.fest.swing.timing.Condition;
-import org.jetbrains.android.uipreview.ChooseResourceDialog;
+import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
 import org.junit.Test;
