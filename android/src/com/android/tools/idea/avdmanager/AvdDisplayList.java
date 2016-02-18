@@ -23,10 +23,12 @@ import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Storage;
 import com.android.sdklib.internal.avd.AvdInfo;
+import com.android.tools.idea.actions.BrowserHelpAction;
 import com.android.tools.idea.npw.WizardUtils;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.icons.AllIcons;
+import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Comparing;
@@ -35,10 +37,7 @@ import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.table.TableView;
-import com.intellij.util.ui.AbstractTableCellEditor;
-import com.intellij.util.ui.ColumnInfo;
-import com.intellij.util.ui.JBUI;
-import com.intellij.util.ui.ListTableModel;
+import com.intellij.util.ui.*;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -66,7 +65,6 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
   public static final String EMPTY = "empty";
 
   private final Project myProject;
-  private final JButton myRefreshButton = new JButton(AllIcons.Actions.Refresh);
   private final JPanel myCenterCardPanel;
   private final JPanel myNotificationPanel;
   private final AvdListDialog myDialog;
@@ -103,18 +101,37 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
     myCenterCardPanel.add(new EmptyAvdListPanel(this), EMPTY);
     add(myCenterCardPanel, BorderLayout.CENTER);
     JPanel southPanel = new JPanel(new BorderLayout());
-    southPanel.add(myRefreshButton, BorderLayout.EAST);
-    myRefreshButton.addActionListener(new ActionListener() {
+    JButton helpButton = new JButton(AllIcons.Actions.Help);
+    helpButton.putClientProperty("JButton.buttonType", "segmented-only");
+    helpButton.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        BrowserUtil.browse("http://developer.android.com/r/studio-ui/virtualdeviceconfig.html");
+      }
+    });
+    JButton refreshButton = new JButton(AllIcons.Actions.Refresh);
+    refreshButton.putClientProperty("JButton.buttonType", "segmented-only");
+    refreshButton.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
         refreshAvds();
       }
     });
-    myRefreshButton.putClientProperty("JButton.buttonType", "segmented-only");
-    CreateAvdAction createAvdAction = new CreateAvdAction(this);
-    JButton newButton = new JButton(createAvdAction);
+    JButton newButton = new JButton(new CreateAvdAction(this));
     newButton.putClientProperty("JButton.buttonType", "segmented-only");
-    southPanel.add(newButton, BorderLayout.WEST);
+
+    JPanel southEastPanel = new JPanel(new FlowLayout());
+    JPanel southWestPanel = new JPanel(new FlowLayout());
+    southEastPanel.add(refreshButton);
+    if (UIUtil.isUnderAquaBasedLookAndFeel()) {
+      southWestPanel.add(helpButton);
+    }
+    else {
+      southEastPanel.add(helpButton);
+    }
+    southWestPanel.add(newButton);
+    southPanel.add(southEastPanel, BorderLayout.EAST);
+    southPanel.add(southWestPanel, BorderLayout.WEST);
     nonemptyPanel.add(southPanel, BorderLayout.SOUTH);
     myTable.getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     myTable.getSelectionModel().addListSelectionListener(this);
