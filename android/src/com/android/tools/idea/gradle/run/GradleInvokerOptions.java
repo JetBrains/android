@@ -92,13 +92,16 @@ public class GradleInvokerOptions {
         }
       }
     }
-    return create(testCompileType, instantRunBuildOptions, new GradleModuleTasksProvider(modules), userGoal, cmdLineArgs);
+
+    return create(testCompileType, instantRunBuildOptions, new GradleModuleTasksProvider(modules), RunAsValidityService.getInstance(),
+                  userGoal, cmdLineArgs);
   }
 
   @VisibleForTesting()
   static GradleInvokerOptions create(@NotNull GradleInvoker.TestCompileType testCompileType,
                                      @Nullable InstantRunBuildOptions instantRunBuildOptions,
                                      @NotNull GradleTasksProvider gradleTasksProvider,
+                                     @NotNull RunAsValidator runAsValidator,
                                      @Nullable String userGoal,
                                      @Nullable List<String> additionalArguments) {
     if (!StringUtil.isEmpty(userGoal)) {
@@ -120,7 +123,7 @@ public class GradleInvokerOptions {
     // Inject instant run attributes
     // Note that these are specifically not injected for the unit or instrumentation tests
     if (testCompileType == GradleInvoker.TestCompileType.NONE && instantRunBuildOptions != null) {
-      boolean incrementalBuild = canBuildIncrementally(instantRunBuildOptions);
+      boolean incrementalBuild = canBuildIncrementally(instantRunBuildOptions, runAsValidator);
 
       cmdLineArgs.add(getInstantDevProperty(instantRunBuildOptions, incrementalBuild));
       cmdLineArgs.addAll(getDeviceSpecificArguments(instantRunBuildOptions.devices));
@@ -141,7 +144,7 @@ public class GradleInvokerOptions {
     return new GradleInvokerOptions(tasks, buildMode, cmdLineArgs);
   }
 
-  private static boolean canBuildIncrementally(@NotNull InstantRunBuildOptions options) {
+  private static boolean canBuildIncrementally(@NotNull InstantRunBuildOptions options, @NotNull RunAsValidator runAsValidator) {
     if (options.cleanBuild              // e.g. build ids changed
         || options.needsFullBuild) {    // e.g. manifest changed
       return false;
@@ -156,6 +159,10 @@ public class GradleInvokerOptions {
       AndroidDevice device = options.devices.get(0); // Instant Run only supports launching to a single device
       AndroidVersion version = device.getVersion();
       if (!version.isGreaterOrEqualThan(21)) { // don't support cold swap on API < 21
+        return false;
+      }
+
+      if (!runAsValidator.hasWorkingRunAs(device)) {
         return false;
       }
     }
