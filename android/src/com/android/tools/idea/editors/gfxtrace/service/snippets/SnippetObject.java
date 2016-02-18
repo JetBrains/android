@@ -35,7 +35,7 @@ import java.util.Map;
 public class SnippetObject {
   private final Object myObject;  // the underlying object
   private final Pathway myPath;   // the pathway for this object.
-  private final KindredSnippets[] mySnippets; // the snippets at the root.
+  private final KindredSnippets[] mySnippets;  // the snippets at the root.
 
   /**
    * Construct a snippet object from its sub-components.
@@ -85,14 +85,14 @@ public class SnippetObject {
    * @return an array containing the snippets for this object.
    */
   public KindredSnippets[] getSnippets() {
-    ArrayList<KindredSnippets> snippets = new ArrayList<KindredSnippets>();
+    ArrayList<KindredSnippets> snippets = null;  // avoid allocation if not required.
     for (KindredSnippets snip : mySnippets) {
       Pathway path = snip.getPath();
       if (path.equals(myPath)) {
-        snippets.add(snip);
+        snippets = KindredSnippets.append(snippets, snip);
       }
     }
-    return snippets.toArray(new KindredSnippets[snippets.size()]);
+    return KindredSnippets.toArray(snippets);
   }
 
   /**
