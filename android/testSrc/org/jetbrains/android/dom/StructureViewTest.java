@@ -16,16 +16,21 @@
 package org.jetbrains.android.dom;
 
 import com.intellij.ide.structureView.StructureViewModel;
+import com.intellij.ide.structureView.StructureViewTreeElement;
+import com.intellij.ide.util.treeView.smartTree.TreeElement;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.util.xml.DomFileElement;
 import com.intellij.util.xml.DomManager;
+import com.intellij.util.xml.structure.DomStructureViewBuilder;
+import com.intellij.util.xml.structure.DomStructureViewBuilderProvider;
 import org.jetbrains.android.dom.layout.LayoutViewElement;
 import org.jetbrains.android.dom.resources.Resources;
 import org.jetbrains.android.dom.structure.layout.LayoutStructureViewBuilder;
 import org.jetbrains.android.dom.structure.resources.ResourceStructureViewBuilder;
+import org.jetbrains.annotations.NotNull;
 
 public class StructureViewTest extends AndroidDomTest {
   public StructureViewTest() {
@@ -94,6 +99,58 @@ public class StructureViewTest extends AndroidDomTest {
                       "  Include\n" +
                       "  Fragment\n";
     assertEquals(expected, model.getRoot().toString());
+  }
+
+  public void testManifestStructure() throws Exception {
+    copyFileToProject("manifest/MyActivity.java", "src/p1/p2/MyActivity.java");
+    deleteManifest();
+    final VirtualFile file = copyFileToProject("manifest/structure_view_test.xml", "AndroidManifest.xml");
+    final PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(file);
+    assertInstanceOf(psiFile, XmlFile.class);
+    final DomStructureViewBuilder builder =
+      new DomStructureViewBuilder(((XmlFile)psiFile), DomStructureViewBuilderProvider.DESCRIPTOR);
+    final StructureViewTreeElement root = builder.createStructureViewModel(null).getRoot();
+    assertNotNull(root);
+
+    final String expected = "Manifest\n" +
+                            "  Application\n" +
+                            "    Activity\n" +
+                            "      Intent Filter\n" +
+                            "        Action (android.intent.action.MAIN)\n" +
+                            "        Category (android.intent.category.LAUNCHER)\n" +
+                            "    Activity Alias\n" +
+                            "      Intent Filter\n" +
+                            "        Action (android.intent.action.CREATE_SHORTCUT)\n" +
+                            "        Category (android.intent.category.DEFAULT)\n";
+    assertEquals(expected, dumpTree(root));
+  }
+
+  /**
+   * Pretty-print any TreeElement to a String
+   */
+  @NotNull
+  public static String dumpTree(@NotNull TreeElement root) {
+    final StringBuilder builder = new StringBuilder();
+    dumpTreeToBuilder(builder, root, 0);
+    return builder.toString();
+  }
+
+  /**
+   * Helper function for pretty-printing a tree element
+   *
+   * @param builder     where results would be written to
+   * @param element     tree node being pretty-printed
+   * @param indentation level of indentation for the current node
+   */
+  public static void dumpTreeToBuilder(final @NotNull StringBuilder builder, final @NotNull TreeElement element, final int indentation) {
+    for (int i = 0; i < indentation; i++) {
+      builder.append("  ");
+    }
+
+    builder.append(element.getPresentation().getPresentableText()).append('\n');
+    for (TreeElement treeElement : element.getChildren()) {
+      dumpTreeToBuilder(builder, treeElement, indentation + 1);
+    }
   }
 
   @Override
