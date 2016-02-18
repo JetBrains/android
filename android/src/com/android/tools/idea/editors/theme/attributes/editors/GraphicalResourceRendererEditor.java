@@ -42,7 +42,7 @@ import com.intellij.openapi.ui.JBMenuItem;
 import com.intellij.ui.CollectionComboBoxModel;
 import com.intellij.ui.ColorUtil;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.uipreview.ChooseResourceDialog;
+import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

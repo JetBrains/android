@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android.uipreview;
+package com.android.tools.idea.ui.resourcechooser;
 
 import com.android.ide.common.res2.ResourceItem;
 import com.google.common.collect.Lists;
@@ -46,7 +46,7 @@ public class EditResourcePanel extends JBScrollPane {
     Color notificationsBackgroundColor = EditorColorsManager.getInstance().getGlobalScheme().getColor(EditorColors.NOTIFICATION_BACKGROUND);
     myResourceNameMessage.setBackground(notificationsBackgroundColor == null ? JBColor.YELLOW : notificationsBackgroundColor);
 
-    myEditorTabs.setUI(new ChooseResourceDialog.SimpleTabUI());
+    myEditorTabs.setUI(new SimpleTabUI());
 
     if (resourceName != null) {
       myResourceNameField.setText(resourceName);
