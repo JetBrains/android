@@ -31,7 +31,7 @@ import javax.swing.*;
 import java.io.IOException;
 import java.util.List;
 
-import static com.android.tools.idea.tests.gui.framework.GuiTests.clickPopupMenuItem;
+import static com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorFixture.clickPopupMenuItem;
 import static com.android.tools.idea.tests.gui.framework.TestGroup.THEME;
 import static org.fest.assertions.Assertions.assertThat;
 
@@ -100,18 +100,18 @@ public class ThemeEditorTest {
 
     JButton apiButton = themeEditor.findToolbarButton("Android version to use when rendering layouts in the IDE");
     guiTest.robot().click(apiButton);
-    clickPopupMenuItem("API 21", apiButton, guiTest.robot());
+    clickPopupMenuItem("API 21", "21", apiButton, guiTest.robot());
 
     JButton deviceButton = themeEditor.findToolbarButton("The virtual device to render the layout with");
     guiTest.robot().click(deviceButton);
-    clickPopupMenuItem("Nexus 6P", deviceButton, guiTest.robot());
+    clickPopupMenuItem("Nexus 6P", "Nexus 6P", deviceButton, guiTest.robot());
 
     themeEditor.requireApi(21).requireDevice("Nexus 6P");
 
     // Tests that Preview All Screen Sizes is disabled
     guiTest.robot().click(deviceButton);
-    clickPopupMenuItem("Preview All Screen Sizes", deviceButton, guiTest.robot());
-    clickPopupMenuItem("Nexus 9", deviceButton, guiTest.robot());
+    clickPopupMenuItem("Preview All Screen Sizes", "Nexus 6P", deviceButton, guiTest.robot());
+    clickPopupMenuItem("Nexus 9", "Nexus 9", deviceButton, guiTest.robot());
     themeEditor.requireDevice("Nexus 9");
   }
 }
