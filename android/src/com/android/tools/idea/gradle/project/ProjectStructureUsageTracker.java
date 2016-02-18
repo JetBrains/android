@@ -61,15 +61,20 @@ class ProjectStructureUsageTracker {
     AndroidGradleModel appModel = null;
     AndroidGradleModel libModel = null;
 
+    int appCount = 0;
+    int libCount = 0;
+
     for (Module module : modules) {
       AndroidGradleModel androidModel = AndroidGradleModel.get(module);
       if (androidModel != null) {
         AndroidProject androidProject = androidModel.getAndroidProject();
         if (androidProject.isLibrary()) {
           libModel = androidModel;
+          libCount++;
           continue;
         }
         appModel = androidModel;
+        appCount++;
         trackExternalDependenciesInAndroidApp(androidProject);
       }
     }
@@ -91,6 +96,20 @@ class ProjectStructureUsageTracker {
                                                              androidProject.getModelVersion(),
                                                              gradleVersion != null ? gradleVersion.toString() : "<Not Found>",
                                                              irSettings);
+      UsageTracker.getInstance().trackModuleCount(appId, modules.length, appCount, libCount);
+
+      for (Module module : modules) {
+        AndroidGradleModel androidModel = AndroidGradleModel.get(module);
+        if (androidModel != null) {
+          UsageTracker.getInstance().trackAndroidModule(appId,
+                                                        module.getName(),
+                                                        androidModel.isLibrary(),
+                                                        androidModel.getAndroidProject().getSigningConfigs().size(),
+                                                        androidModel.getBuildTypeNames().size(),
+                                                        androidModel.getProductFlavorNames().size(),
+                                                        androidModel.getAndroidProject().getFlavorDimensions().size());
+        }
+      }
     }
   }
 
