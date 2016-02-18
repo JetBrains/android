@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.run.AndroidDevice;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -40,6 +41,20 @@ public class GradleInvokerOptionsTest {
   private GradleInvokerOptions.GradleTasksProvider myTasksProvider;
   private AndroidDevice myDevice;
   private List<AndroidDevice> myDevices;
+
+  private static final RunAsValidator ourRunAsSupported = new RunAsValidator() {
+    @Override
+    public boolean hasWorkingRunAs(@NotNull AndroidDevice device) {
+      return true;
+    }
+  };
+
+  private static final RunAsValidator ourRunAsNotSupported = new RunAsValidator() {
+    @Override
+    public boolean hasWorkingRunAs(@NotNull AndroidDevice device) {
+      return false;
+    }
+  };
 
   private static final List<String> ASSEMBLE_TASKS = ImmutableList.of(":app:assemble");
   private static final List<String> CLEAN_TASKS = ImmutableList.of("clean", ":app:generateSources");
@@ -60,7 +75,7 @@ public class GradleInvokerOptionsTest {
   @Test
   public void userGoalsHaveNoInstantRunOptions() throws Exception {
     GradleInvokerOptions options =
-      GradleInvokerOptions.create(GradleInvoker.TestCompileType.NONE, null, myTasksProvider, "foo");
+      GradleInvokerOptions.create(GradleInvoker.TestCompileType.NONE, null, myTasksProvider, ourRunAsSupported, "foo");
 
     assertEquals(options.tasks, Collections.singletonList("foo"));
     assertTrue("Command line arguments aren't set for user goals", options.commandLineArguments.isEmpty());
@@ -72,7 +87,7 @@ public class GradleInvokerOptionsTest {
     when(myTasksProvider.getUnitTestTasks(BuildMode.COMPILE_JAVA)).thenReturn(tasks);
 
     GradleInvokerOptions options =
-      GradleInvokerOptions.create(GradleInvoker.TestCompileType.JAVA_TESTS, null, myTasksProvider, null);
+      GradleInvokerOptions.create(GradleInvoker.TestCompileType.JAVA_TESTS, null, myTasksProvider, ourRunAsSupported, null);
 
     assertEquals(tasks, options.tasks);
     assertTrue("Command line arguments aren't set for unit test tasks", options.commandLineArguments.isEmpty());
@@ -89,7 +104,8 @@ public class GradleInvokerOptionsTest {
       new GradleInvokerOptions.InstantRunBuildOptions(true, false, true, true, ColdSwapMode.DEFAULT, changes, myDevices);
 
     GradleInvokerOptions options =
-      GradleInvokerOptions.create(GradleInvoker.TestCompileType.NONE, instantRunOptions, myTasksProvider, null);
+      GradleInvokerOptions.create(GradleInvoker.TestCompileType.NONE, instantRunOptions, myTasksProvider,
+                                  ourRunAsSupported, null);
 
     assertTrue(options.commandLineArguments.contains("-Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY"));
     assertTrue(options.commandLineArguments.contains("-Pandroid.injected.build.api=20"));
@@ -112,7 +128,8 @@ public class GradleInvokerOptionsTest {
       new GradleInvokerOptions.InstantRunBuildOptions(false, true, true, true, ColdSwapMode.DEFAULT, changes, myDevices);
 
     GradleInvokerOptions options =
-      GradleInvokerOptions.create(GradleInvoker.TestCompileType.NONE, instantRunOptions, myTasksProvider, null);
+      GradleInvokerOptions.create(GradleInvoker.TestCompileType.NONE, instantRunOptions, myTasksProvider,
+                                  ourRunAsSupported, null);
 
     assertTrue(options.commandLineArguments.contains("-Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY"));
     assertTrue(options.commandLineArguments.contains("-Pandroid.injected.build.api=20"));
@@ -129,7 +146,8 @@ public class GradleInvokerOptionsTest {
       new GradleInvokerOptions.InstantRunBuildOptions(false, false, true, true, ColdSwapMode.DEFAULT, changes, myDevices);
 
     GradleInvokerOptions options =
-      GradleInvokerOptions.create(GradleInvoker.TestCompileType.NONE, instantRunOptions, myTasksProvider, null);
+      GradleInvokerOptions.create(GradleInvoker.TestCompileType.NONE, instantRunOptions, myTasksProvider,
+                                  ourRunAsSupported, null);
 
     assertTrue(options.commandLineArguments.contains("-Pandroid.optional.compilation=INSTANT_DEV,LOCAL_RES_ONLY"));
     assertTrue(options.commandLineArguments.contains("-Pandroid.injected.build.api=21"));
@@ -147,7 +165,8 @@ public class GradleInvokerOptionsTest {
       new GradleInvokerOptions.InstantRunBuildOptions(false, false, false, true, ColdSwapMode.DEFAULT, changes, myDevices);
 
     GradleInvokerOptions options =
-      GradleInvokerOptions.create(GradleInvoker.TestCompileType.NONE, instantRunOptions, myTasksProvider, null);
+      GradleInvokerOptions.create(GradleInvoker.TestCompileType.NONE, instantRunOptions, myTasksProvider,
+                                  ourRunAsSupported, null);
 
     assertTrue(options.commandLineArguments.contains("-Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY,LOCAL_JAVA_ONLY"));
     assertTrue(options.commandLineArguments.contains("-Pandroid.injected.build.api=21"));
@@ -164,7 +183,8 @@ public class GradleInvokerOptionsTest {
       new GradleInvokerOptions.InstantRunBuildOptions(false, false, false, false, ColdSwapMode.DEFAULT, changes, myDevices);
 
     GradleInvokerOptions options =
-      GradleInvokerOptions.create(GradleInvoker.TestCompileType.NONE, instantRunOptions, myTasksProvider, null);
+      GradleInvokerOptions.create(GradleInvoker.TestCompileType.NONE, instantRunOptions, myTasksProvider,
+                                  ourRunAsSupported, null);
 
     assertTrue(options.commandLineArguments.contains("-Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY"));
     assertEquals(ASSEMBLE_TASKS, options.tasks);
@@ -179,7 +199,24 @@ public class GradleInvokerOptionsTest {
       new GradleInvokerOptions.InstantRunBuildOptions(false, false, false, true, ColdSwapMode.DEFAULT, changes, myDevices);
 
     GradleInvokerOptions options =
-      GradleInvokerOptions.create(GradleInvoker.TestCompileType.NONE, instantRunOptions, myTasksProvider, null);
+      GradleInvokerOptions.create(GradleInvoker.TestCompileType.NONE, instantRunOptions, myTasksProvider,
+                                  ourRunAsSupported, null);
+
+    assertTrue(options.commandLineArguments.contains("-Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY"));
+    assertEquals(ASSEMBLE_TASKS, options.tasks);
+  }
+
+  @Test
+  public void disableDexswapIfRunAsIsBroken() {
+    FileChangeListener.Changes changes = new FileChangeListener.Changes(false, false, true);
+    when(myDevice.getVersion()).thenReturn(new AndroidVersion(23, null));
+
+    GradleInvokerOptions.InstantRunBuildOptions instantRunOptions =
+      new GradleInvokerOptions.InstantRunBuildOptions(false, false, false, true, ColdSwapMode.DEFAULT, changes, myDevices);
+
+    GradleInvokerOptions options =
+      GradleInvokerOptions.create(GradleInvoker.TestCompileType.NONE, instantRunOptions, myTasksProvider,
+                                  ourRunAsNotSupported, null);
 
     assertTrue(options.commandLineArguments.contains("-Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY"));
     assertEquals(ASSEMBLE_TASKS, options.tasks);
@@ -195,7 +232,8 @@ public class GradleInvokerOptionsTest {
       new GradleInvokerOptions.InstantRunBuildOptions(false, false, true, true, ColdSwapMode.DEFAULT, changes, myDevices);
 
     GradleInvokerOptions options =
-      GradleInvokerOptions.create(GradleInvoker.TestCompileType.NONE, instantRunOptions, myTasksProvider, null);
+      GradleInvokerOptions.create(GradleInvoker.TestCompileType.NONE, instantRunOptions, myTasksProvider,
+                                  ourRunAsSupported, null);
 
     assertTrue(options.commandLineArguments.contains("-Pandroid.injected.build.api=24"));
   }
