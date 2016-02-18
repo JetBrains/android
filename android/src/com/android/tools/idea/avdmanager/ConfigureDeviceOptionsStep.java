@@ -137,7 +137,7 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
   private void bindUi() {
     myBindings.bindTwoWay(new TextProperty(myDeviceName), getModel().getDeviceData().name());
 
-    myBindings.bindTwoWay(new StringToDoubleAdapterProperty(new TextProperty(myDiagonalScreenSize)), getModel().getDeviceData().diagonalScreenSize());
+    myBindings.bindTwoWay(new StringToDoubleAdapterProperty(new TextProperty(myDiagonalScreenSize), 1, 2), getModel().getDeviceData().diagonalScreenSize());
     myBindings.bindTwoWay(new StringToIntAdapterProperty(new TextProperty(myScreenResolutionWidth)), getModel().getDeviceData().screenResolutionWidth());
     myBindings.bindTwoWay(new StringToIntAdapterProperty(new TextProperty(myScreenResolutionHeight)), getModel().getDeviceData().screenResolutionHeight());
 
