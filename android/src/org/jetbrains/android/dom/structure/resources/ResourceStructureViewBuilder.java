@@ -16,9 +16,7 @@
 package org.jetbrains.android.dom.structure.resources;
 
 import com.android.resources.ResourceType;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.google.common.primitives.Ints;
 import com.intellij.ide.structureView.StructureViewModel;
 import com.intellij.ide.structureView.StructureViewModelBase;
 import com.intellij.ide.structureView.StructureViewTreeElement;
@@ -32,13 +30,14 @@ import com.intellij.util.xml.DomElementVisitor;
 import com.intellij.util.xml.DomFileElement;
 import org.jetbrains.android.dom.resources.ResourceElement;
 import org.jetbrains.android.dom.resources.Resources;
+import org.jetbrains.android.dom.structure.StructureUtils;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 /**
  * Structure view builder for &lt;resources&gt; XML files
@@ -67,31 +66,23 @@ public class ResourceStructureViewBuilder extends TreeBasedStructureViewBuilder 
     @NotNull
     @Override
     public Collection<StructureViewTreeElement> getChildrenBase() {
-      final ArrayList<Leaf> result = Lists.newArrayList();
-      myResources.getRootElement().acceptChildren(new DomElementVisitor() {
-        @Override
-        public void visitDomElement(DomElement element) {
-          if (element instanceof ResourceElement) {
-            final ResourceElement resourceElement = (ResourceElement)element;
-            final ResourceType type = AndroidResourceUtil.getType(resourceElement.getXmlTag());
-
-            final String name = ((ResourceElement)element).getName().getValue();
-            final XmlElement xmlElement = element.getXmlElement();
-            if (name != null && type != null && xmlElement != null) {
-              result.add(new Leaf(xmlElement, name, type));
-            }
+      final List<StructureViewTreeElement> result = Lists.newArrayList();
+      final DomElementVisitor visitor = new DomElementVisitor() {
+        public void visitResourceElement(ResourceElement element) {
+          final ResourceType type = AndroidResourceUtil.getType(element.getXmlTag());
+          final String name = element.getName().getValue();
+          final XmlElement xmlElement = element.getXmlElement();
+          if (name != null && type != null && xmlElement != null) {
+            result.add(new Leaf(xmlElement, name, type));
           }
         }
-      });
-      // acceptChildren doesn't call visitor on children in the order they appear in file,
-      // but calls it using the order children appear in defining DOM interface.
-      // Thus, to make all the elements appear in the order they are in source file, we
-      // need to sort them by offset.
-      Collections.sort(result);
 
-      // Copy is required because method's signature is Collection<StructureViewTreeElement>,
-      // not Collection<? extends StructureViewTreeElement>
-      return ImmutableList.<StructureViewTreeElement>copyOf(result);
+        @Override
+        public void visitDomElement(DomElement element) {
+        }
+      };
+      StructureUtils.acceptChildrenInOrder(myResources.getRootElement(), visitor);
+      return result;
     }
 
     @NotNull
@@ -111,16 +102,14 @@ public class ResourceStructureViewBuilder extends TreeBasedStructureViewBuilder 
     }
   }
 
-  private static class Leaf extends PsiTreeElementBase<PsiElement> implements Comparable<Leaf> {
+  private static class Leaf extends PsiTreeElementBase<PsiElement> {
     private final String myName;
     private final ResourceType myResourceType;
-    private final int myOffset;
 
     protected Leaf(@NotNull PsiElement psiElement, @NotNull String name, @NotNull ResourceType resourceType) {
       super(psiElement);
       myName = name;
       myResourceType = resourceType;
-      myOffset = psiElement.getTextOffset();
     }
 
     @NotNull
@@ -133,11 +122,6 @@ public class ResourceStructureViewBuilder extends TreeBasedStructureViewBuilder 
     @Override
     public String getPresentableText() {
       return myResourceType.getDisplayName() + " - " + myName;
-    }
-
-    @Override
-    public int compareTo(Leaf o) {
-      return (o == null) ? 1 : Ints.compare(myOffset, o.myOffset);
     }
 
     @Override
