@@ -161,6 +161,11 @@ public abstract class UsageTracker {
    */
   public abstract void trackLibraryCount(@NotNull String applicationId, int jarDependencyCount, int aarDependencyCount);
 
+  public abstract void trackModuleCount(@NotNull String applicationId, int total, int appModuleCount, int libModuleCount);
+
+  public abstract void trackAndroidModule(@NotNull String applicationId, @NotNull String moduleName, boolean isLibrary,
+                                          int signingConfigCount, int buildTypeCount, int flavorCount, int flavorDimension);
+
   public abstract void trackGradleArtifactVersions(@NotNull String applicationId,
                                                    @NotNull String androidPluginVersion,
                                                    @NotNull String gradleVersion,
