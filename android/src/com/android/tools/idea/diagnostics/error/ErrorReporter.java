@@ -83,7 +83,7 @@ public class ErrorReporter extends ErrorReportSubmitter {
       final PluginId pluginId = IdeErrorsDialog.findPluginId(t);
       if (pluginId != null) {
         final IdeaPluginDescriptor ideaPluginDescriptor = PluginManager.getPlugin(pluginId);
-        if (ideaPluginDescriptor != null && !ideaPluginDescriptor.isBundled()) {
+        if (ideaPluginDescriptor != null && (!ideaPluginDescriptor.isBundled() || ideaPluginDescriptor.allowBundledUpdate())) {
           bean.setPluginName(ideaPluginDescriptor.getName());
           bean.setPluginVersion(ideaPluginDescriptor.getVersion());
         }
