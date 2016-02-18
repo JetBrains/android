@@ -18,7 +18,7 @@ package com.intellij.android.designer.propertyTable.editors;
 import com.android.resources.ResourceType;
 import com.intellij.android.designer.model.RadViewComponent;
 import com.intellij.openapi.module.Module;
-import org.jetbrains.android.uipreview.ChooseResourceDialog;
+import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
 
 /**
  * @author Alexander Lobas

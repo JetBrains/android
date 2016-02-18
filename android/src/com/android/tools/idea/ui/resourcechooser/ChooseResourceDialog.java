@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android.uipreview;
+package com.android.tools.idea.ui.resourcechooser;
 
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ItemResourceValue;
@@ -32,7 +32,6 @@ import com.android.tools.idea.javadoc.AndroidJavaDocRenderer;
 import com.android.tools.idea.rendering.*;
 import com.android.tools.idea.ui.SearchField;
 import com.android.tools.swing.ui.SwatchComponent;
-import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.ObjectArrays;
@@ -70,20 +69,15 @@ import org.jetbrains.android.dom.resources.ResourceElement;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.refactoring.AndroidBaseLayoutRefactoringAction;
 import org.jetbrains.android.refactoring.AndroidExtractStyleAction;
-import org.jetbrains.android.resourceManagers.FileResourceProcessor;
 import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import sun.swing.SwingUtilities2;
 
 import javax.swing.*;
 import javax.swing.border.CompoundBorder;
 import javax.swing.event.*;
-import javax.swing.plaf.UIResource;
-import javax.swing.plaf.basic.BasicTabbedPaneUI;
-import javax.swing.text.View;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
@@ -803,6 +797,40 @@ public class ChooseResourceDialog extends DialogWrapper {
     return text;
   }
 
+  /**
+   * Saves any value that can be saved into the values.xml file and does not require its own file.
+   * @param value of the resource being edited to be saved
+   * @return the value that is returned by the resource chooser.
+   */
+  @NotNull
+  private String saveValuesResource(@NotNull String name, @NotNull String value, @NotNull CreateXmlResourcePanel locationSettings) {
+    ResourceType type = locationSettings.getType();
+    Module module = locationSettings.getModule();
+    assert module != null;
+    String fileName = locationSettings.getFileName();
+    List<String> dirNames = locationSettings.getDirNames();
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    assert facet != null;
+    if (!AndroidResourceUtil.changeValueResource(facet, name, type, value, fileName, dirNames, myUseGlobalUndo)) {
+      // Changing value resource has failed, one possible reason is that resource isn't defined in the project.
+      // Trying to create the resource instead.
+      AndroidResourceUtil.createValueResource(module, name, type, fileName, dirNames, value);
+    }
+    return SdkConstants.PREFIX_RESOURCE_REF + type + "/" + name;
+  }
+
+  @NotNull
+  private static ResourceType[] getAllowedTypes(@NotNull ResourceType type) {
+    switch(type) {
+      case COLOR:
+        return GraphicalResourceRendererEditor.COLORS_ONLY;
+      case DRAWABLE:
+        return GraphicalResourceRendererEditor.DRAWABLES_ONLY;
+      default:
+        return new ResourceType[] { type };
+    }
+  }
+
   private class ResourcePanel {
 
     private static final String NONE = "None";
@@ -1422,213 +1450,6 @@ public class ChooseResourceDialog extends DialogWrapper {
     }
   }
 
-  @NotNull
-  private static ResourceType[] getAllowedTypes(@NotNull ResourceType type) {
-    switch(type) {
-      case COLOR:
-        return GraphicalResourceRendererEditor.COLORS_ONLY;
-      case DRAWABLE:
-        return GraphicalResourceRendererEditor.DRAWABLES_ONLY;
-      default:
-        return new ResourceType[] { type };
-    }
-  }
-
-  /**
-   * Saves any value that can be saved into the values.xml file and does not require its own file.
-   * @param value of the resource being edited to be saved
-   * @return the value that is returned by the resource chooser.
-   */
-  private String saveValuesResource(@NotNull String name, @NotNull String value, @NotNull CreateXmlResourcePanel locationSettings) {
-    ResourceType type = locationSettings.getType();
-    Module module = locationSettings.getModule();
-    assert module != null;
-    String fileName = locationSettings.getFileName();
-    List<String> dirNames = locationSettings.getDirNames();
-    AndroidFacet facet = AndroidFacet.getInstance(module);
-    assert facet != null;
-    if (!AndroidResourceUtil.changeValueResource(facet, name, type, value, fileName, dirNames, myUseGlobalUndo)) {
-      // Changing value resource has failed, one possible reason is that resource isn't defined in the project.
-      // Trying to create the resource instead.
-      AndroidResourceUtil.createValueResource(module, name, type, fileName, dirNames, value);
-    }
-    return SdkConstants.PREFIX_RESOURCE_REF + type + "/" + name;
-  }
-
-  public static class ResourceGroup {
-    private final @NotNull List<ResourceItem> myItems = new ArrayList<ResourceItem>();
-    private final @NotNull String myLabel;
-    private final @NotNull ResourceType myType;
-
-    public ResourceGroup(@NotNull String label, @NotNull ResourceType type, @NotNull AndroidFacet facet, final @Nullable String namespace, boolean includeFileResources) {
-      myType = type;
-      myLabel = label;
-
-      final String resourceType = type.getName();
-
-      ResourceManager manager = facet.getResourceManager(namespace);
-      assert manager != null;
-      Collection<String> resourceNames = manager.getValueResourceNames(type);
-      for (String resourceName : resourceNames) {
-        myItems.add(new ResourceItem(this, namespace, resourceName, null));
-      }
-      final Set<String> fileNames = new HashSet<String>();
-
-      if (includeFileResources) {
-        manager.processFileResources(resourceType, new FileResourceProcessor() {
-          @Override
-          public boolean process(@NotNull VirtualFile resFile, @NotNull String resName) {
-            if (fileNames.add(resName)) {
-              myItems.add(new ResourceItem(ResourceGroup.this, namespace, resName, resFile));
-            }
-            return true;
-          }
-        });
-      }
-
-      if (type == ResourceType.ID) {
-        for (String id : manager.getIds(true)) {
-          if (!resourceNames.contains(id)) {
-            myItems.add(new ResourceItem(this, namespace, id, null));
-          }
-        }
-      }
-      sortItems();
-    }
-
-    public ResourceGroup(@NotNull String label, @NotNull ResourceType type, @NotNull Collection<String> attrs) {
-      myType = type;
-      myLabel = label;
-      for (String name : attrs) {
-        myItems.add(new ResourceItem(this, ResolutionUtils.getNamespaceFromQualifiedName(name), ResolutionUtils.getNameFromQualifiedName(name), true));
-      }
-      sortItems();
-    }
-
-    private void sortItems() {
-      Collections.sort(myItems, new Comparator<ResourceItem>() {
-        @Override
-        public int compare(ResourceItem resource1, ResourceItem resource2) {
-          if (Objects.equal(resource1.getNamespace(), resource2.getNamespace())) {
-            return resource1.getName().compareTo(resource2.getName());
-          }
-          if (resource1.getNamespace() == null) {
-            return -1;
-          }
-          if (resource2.getNamespace() == null) {
-            return 1;
-          }
-          return resource1.getNamespace().compareTo(resource2.getNamespace());
-        }
-      });
-    }
-
-    @NotNull
-    public ResourceType getType() {
-      return myType;
-    }
-
-    @NotNull
-    public List<ResourceItem> getItems() {
-      return myItems;
-    }
-
-    @Override
-    public String toString() {
-      return myLabel;
-    }
-  }
-
-  public static class ResourceItem {
-    private final boolean myIsAttr;
-    private final @NotNull ResourceGroup myGroup;
-    private final @Nullable String myNamespace;
-    private final @NotNull String myName;
-    private final @Nullable VirtualFile myFile;
-    private @Nullable Icon myIcon;
-
-    public ResourceItem(@NotNull ResourceGroup group, @Nullable String namespace, @NotNull String name, @Nullable VirtualFile file) {
-      myGroup = group;
-      myNamespace = namespace;
-      myName = name;
-      myFile = file;
-      myIsAttr = false;
-    }
-
-    public ResourceItem(@NotNull ResourceGroup group, @Nullable String namespace, @NotNull String name, boolean isAttr) {
-      myGroup = group;
-      myNamespace = namespace;
-      myName = name;
-      myFile = null;
-      myIsAttr = isAttr;
-    }
-
-    @NotNull
-    public ResourceGroup getGroup() {
-      return myGroup;
-    }
-
-    @NotNull
-    public String getName() {
-      return myName;
-    }
-
-    @NotNull
-    public String getQualifiedName() {
-      return getNamespace() == null ? getName() : getNamespace() + ":" + getName();
-    }
-
-    @Nullable
-    public VirtualFile getFile() {
-      return myFile;
-    }
-
-    @NotNull
-    public String getResourceUrl() {
-      if (myIsAttr) {
-        return String.format("?%sattr/%s", getNamespace() == null ? "" : getNamespace() + ":", getName());
-      }
-      return String.format("@%s%s/%s", getNamespace() == null ? "" : getNamespace() + ":", myGroup.getType().getName(), myName);
-    }
-
-    @NotNull
-    public ResourceValue getResourceValue() {
-      // No need to try and find the resource as we know exactly what it's going to be like
-      return new ResourceValue(myGroup.getType(), getName(), myFile == null ? getResourceUrl() : myFile.getPath(), isFramework());
-    }
-
-    @Override
-    public String toString() {
-      if (myIsAttr) {
-        return getQualifiedName(); // as all attrs are inside 1 section, we show the full name
-      }
-      // we need to return JUST the name so quicksearch in JList works
-      return getName();
-    }
-
-    @Nullable("if no icon has been set on this item")
-    public Icon getIcon() {
-      return myIcon;
-    }
-
-    public void setIcon(@Nullable Icon icon) {
-      myIcon = icon;
-    }
-
-    @Nullable("null for app namespace")
-    public String getNamespace() {
-      return myNamespace;
-    }
-
-    public boolean isFramework() {
-      return SdkConstants.ANDROID_NS_NAME.equals(getNamespace());
-    }
-
-    public boolean isAttr() {
-      return myIsAttr;
-    }
-  }
-
   private static class TreeContentProvider extends AbstractTreeStructure {
     private final Object myTreeRoot = new Object();
     private final ResourceGroup[] myGroups;
@@ -1676,188 +1497,6 @@ public class ChooseResourceDialog extends DialogWrapper {
 
     @Override
     public void commit() {
-    }
-  }
-
-  private static class SizedIcon implements Icon {
-    private final int mySize;
-    private final Image myImage;
-
-    public SizedIcon(int size, Image image) {
-      mySize = size;
-      myImage = image;
-    }
-
-    public SizedIcon(int size, ImageIcon icon) {
-      this(size, icon.getImage());
-    }
-
-    @Override
-    public void paintIcon(Component c, Graphics g, int i, int j) {
-      double scale = Math.min(getIconHeight()/(double)myImage.getHeight(c),getIconWidth()/(double)myImage.getWidth(c));
-      int x = (int) (getIconWidth() - (myImage.getWidth(c) * scale)) / 2;
-      int y = (int) (getIconHeight() - (myImage.getHeight(c) * scale)) / 2;
-      ((Graphics2D) g).setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-      g.drawImage(myImage, i + x, j + y, (int) (myImage.getWidth(c) * scale), (int) (myImage.getHeight(c) * scale), null);
-    }
-
-    @Override
-    public int getIconWidth() {
-      return mySize;
-    }
-
-    @Override
-    public int getIconHeight() {
-      return mySize;
-    }
-  }
-
-  public static class SimpleTabUI extends BasicTabbedPaneUI {
-
-    @Override
-    protected void installDefaults() {
-      super.installDefaults();
-      tabInsets = JBUI.insets(8);
-      selectedTabPadInsets = JBUI.emptyInsets();
-      contentBorderInsets = JBUI.emptyInsets();
-    }
-
-    @Override
-    protected void paintTabBorder(Graphics g, int tabPlacement, int tabIndex, int x, int y, int w, int h, boolean isSelected) {
-      // dont want tab border
-    }
-
-    @Override
-    protected void paintTabBackground(Graphics g, int tabPlacement, int tabIndex, int x, int y, int w, int h, boolean isSelected) {
-      // dont want a background
-    }
-
-    @Override
-    protected void paintContentBorder(Graphics g, int tabPlacement, int selectedIndex) {
-      int width = tabPane.getWidth();
-      int height = tabPane.getHeight();
-      Insets insets = tabPane.getInsets();
-
-      int x = insets.left;
-      int y = insets.top;
-      int w = width - insets.right - insets.left;
-      int h = height - insets.top - insets.bottom;
-
-      int thickness = JBUI.scale(1);
-      g.setColor(OnePixelDivider.BACKGROUND);
-
-      // use fillRect instead of drawLine with thickness as drawLine has bugs on OS X retina
-      switch(tabPlacement) {
-        case LEFT:
-          x += calculateTabAreaWidth(tabPlacement, runCount, maxTabWidth);
-          g.fillRect(x - thickness, y, thickness, h);
-          break;
-        case RIGHT:
-          w -= calculateTabAreaWidth(tabPlacement, runCount, maxTabWidth);
-          g.fillRect(x + w, y, thickness, h);
-          break;
-        case BOTTOM:
-          h -= calculateTabAreaHeight(tabPlacement, runCount, maxTabHeight);
-          g.fillRect(x, y + h, w, thickness);
-          break;
-        case TOP:
-        default:
-          y += calculateTabAreaHeight(tabPlacement, runCount, maxTabHeight);
-          g.fillRect(x, y - thickness, w, thickness);
-      }
-    }
-
-    @Override
-    protected int getTabLabelShiftX(int tabPlacement, int tabIndex, boolean isSelected) {
-      return super.getTabLabelShiftX(tabPlacement, tabIndex, false);
-    }
-
-    @Override
-    protected int getTabLabelShiftY(int tabPlacement, int tabIndex, boolean isSelected) {
-      return super.getTabLabelShiftY(tabPlacement, tabIndex, false);
-    }
-
-    @Override
-    protected void layoutLabel(int tabPlacement,
-                               FontMetrics metrics, int tabIndex,
-                               String title, Icon icon,
-                               Rectangle tabRect, Rectangle iconRect,
-                               Rectangle textRect, boolean isSelected ) {
-      textRect.x = textRect.y = iconRect.x = iconRect.y = 0;
-
-      View v = getTextViewForTab(tabIndex);
-      if (v != null) {
-        tabPane.putClientProperty("html", v);
-      }
-
-      // CHANGE FROM DEFAULT: take tab insets into account
-      Insets insets = getTabInsets(tabPlacement, tabIndex);
-      tabRect = new Rectangle(tabRect);
-      tabRect.x += insets.left;
-      tabRect.y += insets.top;
-      tabRect.width = tabRect.width - insets.left - insets.right;
-      tabRect.height = tabRect.height - insets.top - insets.bottom;
-
-      SwingUtilities.layoutCompoundLabel(tabPane,
-                                         metrics, title, icon,
-                                         SwingConstants.CENTER,
-                                         SwingConstants.LEADING, // CHANGE FROM DEFAULT
-                                         SwingConstants.CENTER,
-                                         SwingConstants.TRAILING,
-                                         tabRect,
-                                         iconRect,
-                                         textRect,
-                                         textIconGap);
-
-      tabPane.putClientProperty("html", null);
-
-      int xNudge = getTabLabelShiftX(tabPlacement, tabIndex, isSelected);
-      int yNudge = getTabLabelShiftY(tabPlacement, tabIndex, isSelected);
-      iconRect.x += xNudge;
-      iconRect.y += yNudge;
-      textRect.x += xNudge;
-      textRect.y += yNudge;
-    }
-
-    @Override
-    protected void paintText(Graphics g, int tabPlacement,
-                             Font font, FontMetrics metrics, int tabIndex,
-                             String title, Rectangle textRect,
-                             boolean isSelected) {
-
-      g.setFont(font);
-
-      View v = getTextViewForTab(tabIndex);
-      if (v != null) {
-        // html
-        v.paint(g, textRect);
-      } else {
-        // plain text
-        int mnemIndex = tabPane.getDisplayedMnemonicIndexAt(tabIndex);
-
-        if (tabPane.isEnabled() && tabPane.isEnabledAt(tabIndex)) {
-          Color fg = tabPane.getForegroundAt(tabIndex);
-          if (isSelected && (fg instanceof UIResource)) {
-            Color selectedFG = JBColor.BLUE; // CHANGE FROM DEFAULT
-            if (selectedFG != null) {
-              fg = selectedFG;
-            }
-          }
-          g.setColor(fg);
-          SwingUtilities2.drawStringUnderlineCharAt(tabPane, g,
-                                                    title, mnemIndex,
-                                                    textRect.x, textRect.y + metrics.getAscent());
-        } else { // tab disabled
-          g.setColor(tabPane.getBackgroundAt(tabIndex).brighter());
-          SwingUtilities2.drawStringUnderlineCharAt(tabPane, g,
-                                                    title, mnemIndex,
-                                                    textRect.x, textRect.y + metrics.getAscent());
-          g.setColor(tabPane.getBackgroundAt(tabIndex).darker());
-          SwingUtilities2.drawStringUnderlineCharAt(tabPane, g,
-                                                    title, mnemIndex,
-                                                    textRect.x - 1, textRect.y + metrics.getAscent() - 1);
-        }
-      }
     }
   }
 }
