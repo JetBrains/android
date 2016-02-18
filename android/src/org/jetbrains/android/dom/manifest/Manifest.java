@@ -23,9 +23,6 @@ import org.jetbrains.android.dom.converters.AndroidPackageConverter;
 
 import java.util.List;
 
-/**
- * @author yole
- */
 @DefinesXml
 public interface Manifest extends ManifestElement {
   Application getApplication();
