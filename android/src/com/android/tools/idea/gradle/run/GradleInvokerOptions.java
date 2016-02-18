@@ -88,7 +88,7 @@ public class GradleInvokerOptions {
       if (configuration instanceof AndroidRunConfigurationBase) {
         ProfilerState state = ((AndroidRunConfigurationBase)configuration).getProfilerState();
         if (state.ENABLE_ADVANCED_PROFILING) {
-          Collections.singletonList(AndroidGradleSettings.createProjectProperty("android.profiler.enabled", "true"));
+          cmdLineArgs = Collections.singletonList(AndroidGradleSettings.createProjectProperty("android.profiler.enabled", "true"));
         }
       }
     }
