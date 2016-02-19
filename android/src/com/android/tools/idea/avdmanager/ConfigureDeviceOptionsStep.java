@@ -45,7 +45,6 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.*;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.Consumer;
-import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -94,7 +93,7 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
 
   public ConfigureDeviceOptionsStep(@NotNull ConfigureDeviceModel model, @Nullable Project project) {
     super(model, "Configure Hardware Profile");
-    FormScalingUtil.scaleComponentTree(this.getClass(), UIUtil.getRootPane(myRootPanel));
+    FormScalingUtil.scaleComponentTree(this.getClass(), myRootPanel);
     myValidatorPanel = new ValidatorPanel(this, myRootPanel);
     myStudioPanel = new StudioWizardStepPanel(myValidatorPanel, getModel().wizardPanelDescription().get());
     myProject = project;
