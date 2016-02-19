@@ -22,11 +22,13 @@ import com.android.tools.fd.client.InstantRunBuildInfo;
 import com.android.tools.idea.fd.*;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
+import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.run.editor.*;
 import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.run.tasks.LaunchTasksProviderFactory;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.run.util.LaunchUtils;
+import com.android.tools.idea.stats.UsageTracker;
 import com.google.common.collect.*;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -48,6 +50,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.*;
+import com.intellij.openapi.util.text.StringUtil;
 import icons.AndroidIcons;
 import org.intellij.lang.annotations.Language;
 import org.jdom.Element;
@@ -470,40 +473,95 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       InstantRunManager.LOG.info("Instant run: app is not running on the selected device.");
     }
 
+    BooleanStatus canBuildIncrementally = canBuildIncrementally(env, facet, model, device);
+    InstantRunUtils.setNeedsFullBuild(env, !canBuildIncrementally.success);
+
+    if (!canBuildIncrementally.success) {
+      @Language("HTML") String message = canBuildIncrementally.getCause();
+      boolean show = true;
+      if (StringUtil.isEmpty(message)) {
+        message = "Installed APK cache not populated (first deployment)";
+        show = false;
+      }
+
+      LOG.info(message);
+      UsageTracker.getInstance().trackEvent(
+        UsageTracker.CATEGORY_INSTANTRUN, UsageTracker.ACTION_INSTANTRUN_FULLBUILD, message, null);
+
+      if (show) {
+        new InstantRunUserFeedback(module).postHtml(NotificationType.INFORMATION, message, null);
+      }
+    }
+  }
+
+  private static BooleanStatus canBuildIncrementally(@NotNull ExecutionEnvironment env,
+                                                     @NotNull AndroidFacet facet,
+                                                     @NotNull AndroidGradleModel model,
+                                                     @NotNull IDevice device) {
+    @Language("HTML") String FULL_BUILD_PREFIX = "Performing full build &amp; install: ";
+
+    AndroidVersion deviceVersion = device.getVersion();
+    if (!InstantRunManager.isInstantRunCapableDeviceVersion(deviceVersion)) {
+      return BooleanStatus.failure(FULL_BUILD_PREFIX + "Device with API level '" + deviceVersion + "' not capable of Instant Run.");
+    }
+
+    boolean isRestartedSession = InstantRunUtils.getRestartDevice(env) != null;
+    if (isRestartedSession) {
+      // Also look up the verifier failure and include it here; without this; the verifier failure
+      // is displayed, but is quickly hidden as we realize we can't coldswap, and the below
+      // full build message is shown instead.
+      InstantRunBuildInfo buildInfo = InstantRunGradleUtils.getBuildInfo(model);
+      String verifierFailure = "";
+      if (buildInfo != null) {
+        verifierFailure = InstantRunManager.getVerifierMessage(buildInfo);
+        if (!StringUtil.isEmpty(verifierFailure)) {
+          verifierFailure += "<br>";
+        }
+        else {
+          verifierFailure = "";
+        }
+      }
+
+      if (!InstantRunSettings.isColdSwapEnabled()) {
+        return BooleanStatus.failure(verifierFailure + FULL_BUILD_PREFIX + "Cold swap has been disabled");
+      }
+
+      if (deviceVersion.getApiLevel() < 21) {
+        return BooleanStatus.failure(verifierFailure + FULL_BUILD_PREFIX + "Cold swap not supported on API level &lt; 21");
+      }
+
+      // If we get here, we don't know why the session was restarted, so show a generic message.
+      return BooleanStatus.failure(verifierFailure + FULL_BUILD_PREFIX + "Session restarted");
+    }
+
+    if (!InstantRunManager.hasLocalCacheOfDeviceData(device, facet.getModule())) {
+      return BooleanStatus.failure("");
+    }
+
+    String pkgName = AndroidModuleInfo.get(facet).getPackage();
+    if (StringUtil.isEmpty(pkgName)) {
+      return BooleanStatus.failure(FULL_BUILD_PREFIX + "Could not determine package name of application");
+    }
+
     // Normally, all files are saved when Gradle runs (in GradleInvoker#executeTasks). However,
     // we need to save the files a bit earlier than that here (turning the Gradle file save into
     // a no-op) because we need to check whether the manifest file has been edited since an
     // edited manifest changes what the incremental run build has to do.
     GradleInvoker.saveAllFilesSafely();
-    boolean isRestartedSession = InstantRunUtils.getRestartDevice(env) != null;
-    boolean needsFullBuild = isRestartedSession || InstantRunManager.needsFullBuild(device, facet);
-    InstantRunUtils.setNeedsFullBuild(env, needsFullBuild);
-    if (needsFullBuild &&
-        InstantRunManager.hasLocalCacheOfDeviceData(Iterables.getOnlyElement(devices), module)) { // don't show this if we decided to build because we don't have a local cache
-      @Language("HTML") String message;
-      if (isRestartedSession && (device.getVersion().getApiLevel() < 21 || !InstantRunSettings.isColdSwapEnabled())) {
-        if (!InstantRunSettings.isColdSwapEnabled()) {
-          message = "Performing full build &amp; install: cold swap has been disabled";
-        } else {
-          message = "Performing full build &amp; install: can't push patches to device with API level &lt; 21";
-        }
 
-        // Also look up the verifier failure and include it here; without this; the verifier failure
-        // is displayed, but is quickly hidden as we realize we can't coldswap, and the below
-        // full build message is shown instead.
-        InstantRunBuildInfo buildInfo = InstantRunGradleUtils.getBuildInfo(model);
-        if (buildInfo != null) {
-          @Language("HTML") String verifierFailure = InstantRunManager.getVerifierMessage(buildInfo);
-          if (verifierFailure != null) {
-            message = verifierFailure + "<br/>" + message;
-          }
-        }
-      } else {
-        message = "Performing full build &amp; install: manifest changed<br>(or resource referenced from manifest changed)";
-      }
-
-      new InstantRunUserFeedback(module).postHtml(NotificationType.INFORMATION, message, null);
+    if (InstantRunManager.manifestChanged(device, facet, pkgName)) {
+      return BooleanStatus.failure(FULL_BUILD_PREFIX + "Merged Manifest changed");
     }
+
+    if (InstantRunManager.manifestResourceChanged(device, facet, pkgName)) {
+      return BooleanStatus.failure(FULL_BUILD_PREFIX + "Resource referenced from has manifest changed");
+    }
+
+    if (InstantRunManager.usesMultipleProcesses(facet)) {
+      return BooleanStatus.failure(FULL_BUILD_PREFIX + "Instant Run not supported if the application uses multiple processes");
+    }
+
+    return BooleanStatus.SUCCESS;
   }
 
   private static String canDebug(@NotNull DeviceFutures deviceFutures, @NotNull AndroidFacet facet, @NotNull String moduleName) {
