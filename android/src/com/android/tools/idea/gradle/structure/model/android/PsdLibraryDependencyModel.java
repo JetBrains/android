@@ -17,8 +17,8 @@ package com.android.tools.idea.gradle.structure.model.android;
 
 import com.android.builder.model.Library;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
-import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpec;
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependencyModel;
+import com.android.tools.idea.gradle.structure.model.PsdArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsdProblem;
 import com.android.tools.idea.gradle.structure.model.PsdProblem.Severity;
 import com.google.common.base.Objects;
@@ -37,17 +37,17 @@ import static com.intellij.util.PlatformIcons.LIBRARY_ICON;
 import static icons.AndroidIcons.ProjectStructure.LibraryWarning;
 
 public class PsdLibraryDependencyModel extends PsdAndroidDependencyModel {
-  @NotNull private final ArtifactDependencySpec myResolvedSpec;
+  @NotNull private final PsdArtifactDependencySpec myResolvedSpec;
 
   @Nullable private final Library myGradleModel;
-  @Nullable private final ArtifactDependencySpec myMismatchingRequestedSpec;
+  @Nullable private final PsdArtifactDependencySpec myMismatchingRequestedSpec;
   @Nullable private final PsdProblem myProblem;
 
-  @NotNull private final List<ArtifactDependencySpec> myPomDependencies = Lists.newArrayList();
+  @NotNull private final List<PsdArtifactDependencySpec> myPomDependencies = Lists.newArrayList();
   @NotNull private final Set<String> myTransitiveDependencies = Sets.newHashSet();
 
   PsdLibraryDependencyModel(@NotNull PsdAndroidModuleModel parent,
-                            @NotNull ArtifactDependencySpec resolvedSpec,
+                            @NotNull PsdArtifactDependencySpec resolvedSpec,
                             @Nullable Library gradleModel,
                             @Nullable ArtifactDependencyModel parsedModel) {
     super(parent, parsedModel);
@@ -65,10 +65,10 @@ public class PsdLibraryDependencyModel extends PsdAndroidDependencyModel {
   }
 
   @Nullable
-  private ArtifactDependencySpec findMismatchingSpec() {
+  private PsdArtifactDependencySpec findMismatchingSpec() {
     DependencyModel parsedModel = getParsedModel();
     if (parsedModel instanceof ArtifactDependencyModel) {
-      ArtifactDependencySpec requestedSpec = ArtifactDependencySpec.create((ArtifactDependencyModel)parsedModel);
+      PsdArtifactDependencySpec requestedSpec = PsdArtifactDependencySpec.create((ArtifactDependencyModel)parsedModel);
       if (!requestedSpec.equals(myResolvedSpec)) {
         // Version mismatch. This can happen when the project specifies an artifact version but Gradle uses a different version
         // from a transitive dependency.
@@ -87,7 +87,7 @@ public class PsdLibraryDependencyModel extends PsdAndroidDependencyModel {
     myTransitiveDependencies.add(dependency);
   }
 
-  public void setPomDependencies(@NotNull List<ArtifactDependencySpec> pomDependencies) {
+  public void setPomDependencies(@NotNull List<PsdArtifactDependencySpec> pomDependencies) {
     myPomDependencies.clear();
     myPomDependencies.addAll(pomDependencies);
   }
@@ -98,13 +98,13 @@ public class PsdLibraryDependencyModel extends PsdAndroidDependencyModel {
 
     Set<PsdAndroidDependencyModel> transitive = Sets.newHashSet();
     for (String dependency : myTransitiveDependencies) {
-      PsdAndroidDependencyModel found = moduleModel.findDependency(dependency);
+      PsdAndroidDependencyModel found = moduleModel.findLibraryDependency(dependency);
       if (found != null) {
         transitive.add(found);
       }
     }
-    for (ArtifactDependencySpec dependency : myPomDependencies) {
-      PsdAndroidDependencyModel found = moduleModel.findDependency(dependency);
+    for (PsdArtifactDependencySpec dependency : myPomDependencies) {
+      PsdLibraryDependencyModel found = moduleModel.findLibraryDependency(dependency);
       if (found != null) {
         transitive.add(found);
       }
@@ -114,12 +114,12 @@ public class PsdLibraryDependencyModel extends PsdAndroidDependencyModel {
   }
 
   @NotNull
-  public ArtifactDependencySpec getResolvedSpec() {
+  public PsdArtifactDependencySpec getResolvedSpec() {
     return myResolvedSpec;
   }
 
   @Nullable
-  public ArtifactDependencySpec getMismatchingRequestedSpec() {
+  public PsdArtifactDependencySpec getMismatchingRequestedSpec() {
     return myMismatchingRequestedSpec;
   }
 
