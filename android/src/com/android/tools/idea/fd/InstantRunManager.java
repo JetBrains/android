@@ -36,6 +36,7 @@ import com.android.utils.ILogger;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.hash.HashCode;
+import com.google.common.io.Files;
 import com.intellij.debugger.DebuggerManagerEx;
 import com.intellij.debugger.engine.JavaExecutionStack;
 import com.intellij.debugger.engine.SuspendContextImpl;
@@ -68,6 +69,7 @@ import java.util.*;
 
 import static com.android.tools.fd.client.InstantRunArtifactType.*;
 import static com.android.tools.fd.client.InstantRunBuildInfo.VALUE_VERIFIER_STATUS_COMPATIBLE;
+import static com.google.common.base.Charsets.UTF_8;
 
 /**
  * The {@linkplain InstantRunManager} is responsible for handling Instant Run related functionality
@@ -256,46 +258,9 @@ public final class InstantRunManager implements ProjectComponent {
   }
 
   /**
-   * Returns true if a full build is required for the app. Currently, this is the
-   * case if something in the manifest has changed (at the moment, we're only looking
-   * at manifest file edits, not diffing the contents or disregarding "irrelevant"
-   * edits such as whitespace or comments.
-   */
-  public static boolean needsFullBuild(@NotNull IDevice device, @NotNull AndroidFacet facet) {
-    AndroidVersion deviceVersion = device.getVersion();
-    if (!isInstantRunCapableDeviceVersion(deviceVersion)) {
-      String message = "Device with API level " + deviceVersion + " not capable of instant run.";
-      LOG.info(message);
-      UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_INSTANTRUN, UsageTracker.ACTION_INSTANTRUN_FULLBUILD, message, null);
-      return true;
-    }
-
-    String pkgName = getPackageName(facet);
-    if (pkgName == null) {
-      return true;
-    }
-
-    if (manifestChanged(device, facet, pkgName)) {
-      String message = "Merged Manifest has changed.";
-      LOG.info(message);
-      UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_INSTANTRUN, UsageTracker.ACTION_INSTANTRUN_FULLBUILD, message, null);
-      return true;
-    }
-
-    if (manifestResourceChanged(device, facet, pkgName)) {
-      String message = "Resource referenced from the manifest has changed.";
-      LOG.info(message);
-      UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_INSTANTRUN, UsageTracker.ACTION_INSTANTRUN_FULLBUILD, message, null);
-      return true;
-    }
-
-    return false;
-  }
-
-  /**
    * Returns true if the manifest has changed since the last manifest push to the device.
    */
-  private static boolean manifestChanged(@NotNull IDevice device, @NotNull AndroidFacet facet, @NotNull String pkgName) {
+  public static boolean manifestChanged(@NotNull IDevice device, @NotNull AndroidFacet facet, @NotNull String pkgName) {
     InstalledPatchCache cache = ServiceManager.getService(InstalledPatchCache.class);
 
     long currentTimeStamp = getManifestLastModified(facet);
@@ -307,7 +272,7 @@ public final class InstantRunManager implements ProjectComponent {
   /**
    * Returns true if a resource referenced from the manifest has changed since the last manifest push to the device.
    */
-  private static boolean manifestResourceChanged(@NotNull IDevice device, @NotNull AndroidFacet facet, @NotNull String pkgName) {
+  public static boolean manifestResourceChanged(@NotNull IDevice device, @NotNull AndroidFacet facet, @NotNull String pkgName) {
     InstalledPatchCache cache = ServiceManager.getService(InstalledPatchCache.class);
 
     // See if the resources have changed.
@@ -357,6 +322,29 @@ public final class InstantRunManager implements ProjectComponent {
     }
 
     return maxLastModified;
+  }
+
+  public static boolean usesMultipleProcesses(@NotNull AndroidFacet facet) {
+    // Note: Relying on the merged manifest implies that this will not work if a build has not already taken place.
+    // But in this partciular scenario (i.e. for instant run), we are ok with such a situation because:
+    //      a) if there is no existing build, we are doing a full build anyway
+    //      b) if there is an existing build, then we can examine the previous merged manifest
+    //      c) if there is an existing build, and the manifest has since been changed, then a full build will be triggered anyway
+    File manifest = findMergedManifestFile(facet);
+    if (manifest == null || !manifest.exists()) {
+      return false;
+    }
+
+    String xml;
+    try {
+      xml = Files.toString(manifest, UTF_8);
+    }
+    catch (IOException e) {
+      LOG.warn("Error while reading merged manifest", e);
+      return false;
+    }
+
+    return xml.contains("android:process");
   }
 
   @NotNull
