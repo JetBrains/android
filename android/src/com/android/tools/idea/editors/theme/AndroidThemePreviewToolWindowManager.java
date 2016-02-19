@@ -19,7 +19,6 @@ import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
-import com.android.ide.common.resources.configuration.LocaleQualifier;
 import com.android.ide.common.resources.configuration.VersionQualifier;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.Configuration;
@@ -27,7 +26,6 @@ import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
 import com.android.tools.idea.editors.theme.preview.ThemePreviewComponent;
 import com.android.tools.idea.editors.theme.qualifiers.RestrictedConfiguration;
-import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.google.common.base.Function;
@@ -223,7 +221,11 @@ public class AndroidThemePreviewToolWindowManager implements ProjectComponent {
     });
 
     FolderConfiguration selectedFileFolderConfiguration = ResourceHelper.getFolderConfiguration(psiFile);
-    assert selectedFileFolderConfiguration != null;
+    if (selectedFileFolderConfiguration == null) {
+      // This folder probably has invalid qualifiers or they are in the wrong order
+      return null;
+    }
+
     RestrictedConfiguration restrictedConfiguration =
       RestrictedConfiguration.restrict(selectedFileFolderConfiguration, incompatible);
 
@@ -233,21 +235,14 @@ public class AndroidThemePreviewToolWindowManager implements ProjectComponent {
     }
 
     FolderConfiguration restricted = restrictedConfiguration.getAny();
-    Configuration newConfiguration = manager.getConfiguration(virtualFile);
+    Configuration newConfiguration = Configuration.create(manager, virtualFile, null, restricted);
 
-    // Target and locale are global so we need to set them in the configuration manager when updated
     VersionQualifier newVersionQualifier = restricted.getVersionQualifier();
     if (newVersionQualifier != null) {
       IAndroidTarget realTarget = manager.getHighestApiTarget() != null ? manager.getHighestApiTarget() : manager.getTarget();
       assert realTarget != null;
-      manager.setTarget(new CompatibilityRenderTarget(realTarget, newVersionQualifier.getVersion(), null));
+      newConfiguration.setTarget(new CompatibilityRenderTarget(realTarget, newVersionQualifier.getVersion(), null));
     }
-    else {
-      manager.setTarget(null);
-    }
-
-    LocaleQualifier newLocaleQualifier = restricted.getLocaleQualifier();
-    manager.setLocale(newLocaleQualifier != null ? Locale.create(newLocaleQualifier) : Locale.ANY);
 
     return newConfiguration;
   }
@@ -286,6 +281,8 @@ public class AndroidThemePreviewToolWindowManager implements ProjectComponent {
       if (configuration != null) {
         if (myThemeEditorContext == null) {
           myThemeEditorContext = new ThemeEditorContext(configuration);
+        } else {
+          myThemeEditorContext.setConfiguration(configuration);
         }
 
         // Check if there is a theme at the current offset before enabling the preview
