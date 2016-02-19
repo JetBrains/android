@@ -18,9 +18,9 @@ package com.android.tools.idea.welcome.wizard;
 import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
+import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.dynamic.DynamicWizard;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardHost;
-import com.android.tools.idea.wizard.WizardConstants;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.util.concurrent.Atomics;
@@ -226,7 +226,7 @@ public class FirstRunWizardHost extends JPanel implements WelcomeScreen, Dynamic
 
     JPanel panel = new JPanel(new BorderLayout());
     final JPanel lrButtonsPanel = new JPanel(new GridBagLayout());
-    final Insets insets = SystemInfo.isMacOSLeopard ? new Insets(0, 0, 0, 0) : new Insets(8, 0, 0, 0);
+    final Insets insets = SystemInfo.isMacOSLeopard ? JBUI.emptyInsets() : JBUI.insetsTop(8);
 
     if (actions.length > 0) {
       int gridX = 0;
