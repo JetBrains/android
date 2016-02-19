@@ -121,7 +121,7 @@ public class ResourceFolderRegistry {
   /**
    * Populate the registry's in-memory ResourceFolderRepository caches (if not already cached).
    */
-  static class PopulateCachesTask extends DumbModeTask {
+  public static class PopulateCachesTask extends DumbModeTask {
     @NotNull private final Project myProject;
 
     public PopulateCachesTask(@NotNull Project project) {
