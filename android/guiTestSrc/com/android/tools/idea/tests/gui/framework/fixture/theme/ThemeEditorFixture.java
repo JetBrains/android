@@ -15,12 +15,9 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.theme;
 
-import com.android.sdklib.IAndroidTarget;
-import com.android.sdklib.devices.Device;
-import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.AttributesPanel;
 import com.android.tools.idea.editors.theme.ThemeEditorComponent;
-import com.android.tools.idea.editors.theme.preview.AndroidThemePreviewPanel;
+import com.android.tools.idea.editors.theme.preview.ThemePreviewComponent;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.SearchTextFieldFixture;
@@ -38,8 +35,6 @@ import java.util.List;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilFound;
 import static org.fest.swing.timing.Pause.pause;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 
 public class ThemeEditorFixture extends ComponentFixture<ThemeEditorFixture, ThemeEditorComponent> {
   private final JComboBoxFixture myThemesComboBox;
@@ -66,12 +61,6 @@ public class ThemeEditorFixture extends ComponentFixture<ThemeEditorFixture, The
   @NotNull
   public ThemeEditorTableFixture getPropertiesTable() {
     return ThemeEditorTableFixture.find(robot());
-  }
-
-  @NotNull
-  public AndroidThemePreviewPanelFixture getThemePreviewPanel() {
-    return new AndroidThemePreviewPanelFixture(robot(), robot().finder()
-      .findByType(this.target().getFirstComponent(), AndroidThemePreviewPanel.class));
   }
 
   @NotNull
@@ -112,29 +101,10 @@ public class ThemeEditorFixture extends ComponentFixture<ThemeEditorFixture, The
     });
   }
 
-  @Nullable
-  private Configuration getConfiguration() {
-    return getThemePreviewPanel().target().getConfiguration();
-  }
-
   @NotNull
-  public ThemeEditorFixture requireDevice(@NotNull String id) {
-    Configuration configuration = getConfiguration();
-    assertNotNull(configuration);
-    Device device = configuration.getDevice();
-    assertNotNull(device);
-    assertEquals(id, device.getId());
-    return this;
-  }
-
-  @NotNull
-  public ThemeEditorFixture requireApi(int apiLevel) {
-    Configuration configuration = getConfiguration();
-    assertNotNull(configuration);
-    IAndroidTarget androidTarget = configuration.getTarget();
-    assertNotNull(androidTarget);
-    assertEquals(apiLevel, androidTarget.getVersion().getApiLevel());
-    return this;
+  public ThemePreviewComponentFixture getPreviewComponent() {
+    return new ThemePreviewComponentFixture(robot(), robot().finder()
+      .findByType(target(), ThemePreviewComponent.class));
   }
 
   public static void clickPopupMenuItem(@NotNull String labelPrefix, @NotNull final String expectedLabel, @NotNull final JButton button, @NotNull org.fest.swing.core.Robot robot) {
