@@ -25,9 +25,9 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.Processor;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.dom.resources.ResourceElement;
 import org.jetbrains.android.dom.resources.Style;
@@ -83,9 +83,9 @@ public class ThemeAttributeResolverTest extends AndroidTestCase {
     createNewStyle("ThemeB", "ThemeA", "blue", Lists.newArrayList("values-v12"));
     createNewStyle("ThemeB", "ThemeA", null, Lists.newArrayList("values-v15"));
 
-    // This is because ResourceFolderRepository may re-initialize from files instead of Psi.
-    FileDocumentManager.getInstance().saveAllDocuments();
-    myFacet.refreshResources();
+    // ResourceFolderRepository needs to rescan the files to pick up the changes.
+    UIUtil.dispatchAllInvocationEvents();
+
     ThemeResolver themeResolver = new ThemeResolver(configuration);
     ConfiguredThemeEditorStyle style = themeResolver.getTheme("ThemeB");
     assertNotNull(style);
@@ -117,9 +117,9 @@ public class ThemeAttributeResolverTest extends AndroidTestCase {
     createNewStyle("ThemeA", "android:Theme", "red", Lists.newArrayList("values-port", "values-square", "values-land"));
     createNewStyle("ThemeB", "ThemeA", null, Lists.newArrayList("values", "values-port"));
 
-    // This is because ResourceFolderRepository may re-initialize from files instead of Psi.
-    FileDocumentManager.getInstance().saveAllDocuments();
-    myFacet.refreshResources();
+    // ResourceFolderRepository needs to rescan the files to pick up the changes.
+    UIUtil.dispatchAllInvocationEvents();
+
     ThemeResolver themeResolver = new ThemeResolver(configuration);
     ConfiguredThemeEditorStyle style = themeResolver.getTheme("ThemeB");
     assertNotNull(style);
