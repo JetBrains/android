@@ -19,7 +19,6 @@ package com.android.tools.idea.gradle.structure.model;
 import com.android.builder.model.MavenCoordinates;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
-import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpec;
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependencyModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ModuleDependencyModel;
 import com.google.common.base.Joiner;

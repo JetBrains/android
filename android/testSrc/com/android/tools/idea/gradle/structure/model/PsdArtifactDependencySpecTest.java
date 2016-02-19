@@ -13,16 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.configurables.android.dependencies;
+package com.android.tools.idea.gradle.structure.model;
 
-import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.configurables.ui.PsdUISettings;
 import com.intellij.testFramework.IdeaTestCase;
 
 /**
- * Tests for {@link ArtifactDependencySpecs}.
+ * Tests for {@link PsdArtifactDependencySpec}.
  */
-public class ArtifactDependencySpecsTest extends IdeaTestCase {
+public class PsdArtifactDependencySpecTest extends IdeaTestCase {
   private boolean myShowGroupId;
 
   @Override
@@ -41,25 +40,26 @@ public class ArtifactDependencySpecsTest extends IdeaTestCase {
     }
   }
 
-  public void testAsText1() {
-    ArtifactDependencySpec spec = ArtifactDependencySpec.create("group:name:version");
+  public void testGetDisplayText1() {
+    PsdArtifactDependencySpec spec = PsdArtifactDependencySpec.create("group:name:version");
     assertNotNull(spec);
 
     PsdUISettings.getInstance().DECLARED_DEPENDENCIES_SHOW_GROUP_ID = true;
-    assertEquals("group:name:version", ArtifactDependencySpecs.asText(spec));
+    assertEquals("group:name:version", spec.getDisplayText());
 
     PsdUISettings.getInstance().DECLARED_DEPENDENCIES_SHOW_GROUP_ID = false;
-    assertEquals("name:version", ArtifactDependencySpecs.asText(spec));
+    assertEquals("name:version", spec.getDisplayText());
   }
 
-  public void testAsText2() {
-    ArtifactDependencySpec spec = ArtifactDependencySpec.create("group:name");
+  public void testGetDisplayText2() {
+    PsdArtifactDependencySpec spec = PsdArtifactDependencySpec.create("group:name");
     assertNotNull(spec);
 
     PsdUISettings.getInstance().DECLARED_DEPENDENCIES_SHOW_GROUP_ID = true;
-    assertEquals("group:name", ArtifactDependencySpecs.asText(spec));
+    assertEquals("group:name", spec.getDisplayText());
 
     PsdUISettings.getInstance().DECLARED_DEPENDENCIES_SHOW_GROUP_ID = false;
-    assertEquals("name", ArtifactDependencySpecs.asText(spec));
+    assertEquals("name", spec.getDisplayText());
   }
+
 }

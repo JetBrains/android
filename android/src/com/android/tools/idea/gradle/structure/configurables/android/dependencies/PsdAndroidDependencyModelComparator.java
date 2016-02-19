@@ -22,8 +22,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Comparator;
 
-import static com.android.tools.idea.gradle.structure.configurables.android.dependencies.ArtifactDependencySpecs.asText;
-
 public class PsdAndroidDependencyModelComparator implements Comparator<PsdAndroidDependencyModel> {
   @NotNull public static final PsdAndroidDependencyModelComparator INSTANCE = new PsdAndroidDependencyModelComparator();
 
@@ -34,8 +32,8 @@ public class PsdAndroidDependencyModelComparator implements Comparator<PsdAndroi
   public int compare(PsdAndroidDependencyModel m1, PsdAndroidDependencyModel m2) {
     if (m1 instanceof PsdLibraryDependencyModel) {
       if (m2 instanceof PsdLibraryDependencyModel) {
-        String s1 = asText(((PsdLibraryDependencyModel)m1).getResolvedSpec());
-        String s2 = asText(((PsdLibraryDependencyModel)m2).getResolvedSpec());
+        String s1 = ((PsdLibraryDependencyModel)m1).getResolvedSpec().getDisplayText();
+        String s2 = ((PsdLibraryDependencyModel)m2).getResolvedSpec().getDisplayText();
         return s1.compareTo(s2);
       }
     }
