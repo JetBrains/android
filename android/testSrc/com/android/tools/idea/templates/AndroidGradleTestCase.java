@@ -81,10 +81,13 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.*;
+import static com.android.tools.idea.AndroidTestCaseHelper.getAndroidSdkPath;
 import static com.android.tools.idea.gradle.util.Projects.*;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API_STRING;
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
+import static com.intellij.openapi.projectRoots.JdkUtil.checkForJdk;
 import static com.intellij.openapi.util.SystemInfo.isWindows;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
@@ -101,6 +104,9 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
    * The name of the gradle wrapper executable associated with the current OS.
    */
   @NonNls private static final String GRADLE_WRAPPER_EXECUTABLE_NAME = isWindows ? FN_GRADLE_WRAPPER_WIN : FN_GRADLE_WRAPPER_UNIX;
+
+  /** Environment variable pointing to the JDK to be used for tests */
+  public static final String JDK_HOME_FOR_TESTS = "JDK_HOME_FOR_TESTS";
 
   private static AndroidSdkData ourPreviousSdkData;
 
@@ -137,29 +143,40 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
     ensureSdkManagerAvailable();
 
+    setUpSdks();
+  }
+
+  private void setUpSdks() {
     // We seem to have two different locations where the SDK needs to be specified.
     // One is whatever is already defined in the JDK Table, and the other is the global one as defined by IdeSdks.
     // Gradle import will fail if the global one isn't set.
-    AndroidSdkData sdkData = tryToChooseAndroidSdk();
-    if (sdkData != null) {
-      final File location = sdkData.getLocation();
-      LOG.info("sdk @ " + location);
-      File ideSdkPath = IdeSdks.getAndroidSdkPath();
-      if (ideSdkPath == null) {
-        UIUtil.invokeAndWaitIfNeeded(new Runnable() {
-          @Override
-          public void run() {
-            runWriteCommandAction(getProject(), new Runnable() {
-              @Override
-              public void run() {
-                IdeSdks.setAndroidSdkPath(location, getProject());
-                LOG.info("Set IDE Sdk Path to " + location);
-              }
-            });
-          }
-        });
-      }
+    final File androidSdkPath = getAndroidSdkPath();
+
+    String jdkHome = System.getenv(JDK_HOME_FOR_TESTS);
+    if (isNullOrEmpty(jdkHome) || !checkForJdk(jdkHome)) {
+      fail("Please specify the path to a valid JDK using system property " + JDK_HOME_FOR_TESTS);
     }
+    final File jdkPath = new File(jdkHome);
+
+    UIUtil.invokeAndWaitIfNeeded(new Runnable() {
+      @Override
+      public void run() {
+        File currentAndroidSdkPath = IdeSdks.getAndroidSdkPath();
+        File currentJdkPath = IdeSdks.getJdkPath();
+        if (!filesEqual(androidSdkPath, currentAndroidSdkPath) || !filesEqual(jdkPath, currentJdkPath)) {
+          runWriteCommandAction(getProject(), new Runnable() {
+            @Override
+            public void run() {
+              IdeSdks.setAndroidSdkPath(androidSdkPath, getProject());
+              LOG.info("Set IDE Sdk Path to " + androidSdkPath);
+
+              IdeSdks.setJdkPath(jdkPath);
+              LOG.info("Set JDK to " + jdkPath);
+            }
+          });
+        }
+      }
+    });
   }
 
   @Override
