@@ -136,5 +136,20 @@ public class ThemeEditorFixture extends ComponentFixture<ThemeEditorFixture, The
     assertEquals(apiLevel, androidTarget.getVersion().getApiLevel());
     return this;
   }
+
+  public static void clickPopupMenuItem(@NotNull String labelPrefix, @NotNull final String expectedLabel, @NotNull final JButton button, @NotNull org.fest.swing.core.Robot robot) {
+    com.android.tools.idea.tests.gui.framework.GuiTests.clickPopupMenuItem(labelPrefix, button, robot);
+
+    // TODO: This should be moved to clickPopupMenuItem().
+    // It waits for normal buttons, but not after pressing a PopupMenuItem
+    robot.waitForIdle();
+
+    pause(new Condition("Wait for UI update") {
+      @Override
+      public boolean test() {
+        return expectedLabel.equals(button.getText());
+      }
+    }, GuiTests.SHORT_TIMEOUT);
+  }
 }
 
