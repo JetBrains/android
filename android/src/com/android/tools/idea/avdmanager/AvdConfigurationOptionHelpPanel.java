@@ -144,7 +144,8 @@ public class AvdConfigurationOptionHelpPanel extends JPanel {
     put(HOST_GPU_MODE_KEY, "Choose how the graphics should be rendered in the emulator.<br><br>" +
                            "<b>Hardware</b><br>Use your computer's graphics card for faster rendering.<br><br>" +
                            "<b>Software</b><br>Emulate the graphics in software, use this to work around issues with your " +
-                           "computer's graphics card.").
+                           "computer's graphics card.<br><br>" +
+                           "<b>Auto</b><br>Let the emulator decide the best option based on knowledge about your graphics card.").
     put(CUSTOM_SKIN_FILE_KEY, "A collection of images and configuration data that indicates how to populate the window. Each skin can have " +
                               "several \"layouts\" (e.g. \"landscape\" and \"portrait\") corresponding to different orientation " +
                               "/ physical configurations of the emulated device.").
