@@ -208,6 +208,11 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     setAdvanceSettingsVisible(false);
     myScrollPane.getVerticalScrollBar().setUnitIncrement(10);
     initCpuCoreDropDown();
+
+    myFrontCameraCombo.setModel(new DefaultComboBoxModel(AvdCamera.values()));
+    myBackCameraCombo.setModel(new DefaultComboBoxModel(AvdCamera.values()));
+    mySpeedCombo.setModel(new DefaultComboBoxModel(AvdNetworkSpeed.values()));
+    myLatencyCombo.setModel(new DefaultComboBoxModel(AvdNetworkLatency.values()));
   }
 
   /**
@@ -370,11 +375,6 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
 
     updateSystemImageData();
 
-    setSelectedIndexByStringValue(myFrontCameraCombo, getModel().selectedFrontCamera().getValueOrNull());
-    setSelectedIndexByStringValue(myBackCameraCombo, getModel().selectedBackCamera().getValueOrNull());
-    setSelectedIndexByStringValue(myLatencyCombo, getModel().selectedNetworkLatency().getValueOrNull());
-    setSelectedIndexByStringValue(mySpeedCombo, getModel().selectedNetworkSpeed().getValueOrNull());
-
     myOriginalSdCard = getModel().sdCardStorage().getValue();
   }
 
@@ -454,19 +454,6 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
         myOrientationToggle.setSelectedElement(screenOrientation);
       }
     });
-  }
-
-  // TODO: Create Camera, Speed, and Latency enums and get rid of this method
-  private void setSelectedIndexByStringValue(@NotNull JComboBox comboBox, @Nullable String value) {
-    if (value == null) {
-      return;
-    }
-    for (int i = 0; i < comboBox.getModel().getSize(); i++) {
-      String element = comboBox.getModel().getElementAt(i).toString();
-      if (element.equalsIgnoreCase(value)) {
-        comboBox.setSelectedIndex(i);
-      }
-    }
   }
 
   private void updateSystemImageData() {
@@ -575,11 +562,16 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
 
     myBindings.bindTwoWay(new TextProperty(myExternalSdCard.getTextField()), getModel().externalSdCardLocation());
 
-    myBindings.bindTwoWay(new SelectedItemProperty<String>(myFrontCameraCombo), getModel().selectedFrontCamera());
-    myBindings.bindTwoWay(new SelectedItemProperty<String>(myBackCameraCombo), getModel().selectedBackCamera());
+    myBindings.bindTwoWay(new OptionalToValuePropertyAdapter<AvdCamera>(new SelectedItemProperty<AvdCamera>(myFrontCameraCombo)),
+                          getModel().selectedFrontCamera());
+    myBindings.bindTwoWay(new OptionalToValuePropertyAdapter<AvdCamera>(new SelectedItemProperty<AvdCamera>(myBackCameraCombo)),
+                          getModel().selectedBackCamera());
 
-    myBindings.bindTwoWay(new SelectedItemProperty<String>(myLatencyCombo), getModel().selectedNetworkLatency());
-    myBindings.bindTwoWay(new SelectedItemProperty<String>(mySpeedCombo), getModel().selectedNetworkSpeed());
+    myBindings.bindTwoWay(new OptionalToValuePropertyAdapter<AvdNetworkSpeed>(new SelectedItemProperty<AvdNetworkSpeed>(mySpeedCombo)),
+                          getModel().selectedNetworkSpeed());
+    myBindings
+      .bindTwoWay(new OptionalToValuePropertyAdapter<AvdNetworkLatency>(new SelectedItemProperty<AvdNetworkLatency>(myLatencyCombo)),
+                  getModel().selectedNetworkLatency());
 
     myBindings.bindTwoWay(new SelectedItemProperty<AvdScaleFactor>(myScalingComboBox), getModel().selectedAvdScale());
 
