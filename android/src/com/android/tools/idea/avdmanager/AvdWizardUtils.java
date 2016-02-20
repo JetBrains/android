@@ -141,9 +141,9 @@ public class AvdWizardUtils {
 
   // Defaults
   public static final AvdScaleFactor DEFAULT_SCALE = AvdScaleFactor.AUTO;
-  public static final String DEFAULT_NETWORK_SPEED = "full";
-  public static final String DEFAULT_NETWORK_LATENCY = "none";
-  public static final String DEFAULT_CAMERA = "none";
+  public static final AvdNetworkSpeed DEFAULT_NETWORK_SPEED = AvdNetworkSpeed.FULL;
+  public static final AvdNetworkLatency DEFAULT_NETWORK_LATENCY = AvdNetworkLatency.NONE;
+  public static final AvdCamera DEFAULT_CAMERA = AvdCamera.NONE;
   public static final Storage DEFAULT_INTERNAL_STORAGE = new Storage(200, Unit.MiB);
 
   // Fonts
