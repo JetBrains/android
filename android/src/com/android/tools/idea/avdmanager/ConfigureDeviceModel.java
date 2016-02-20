@@ -43,12 +43,18 @@ public final class ConfigureDeviceModel extends WizardModel {
   private final AvdDeviceData myDeviceData;
 
   public ConfigureDeviceModel(@NotNull DeviceUiAction.DeviceProvider provider) {
-    this(provider, null, true);
+    this(provider, null, false);
   }
 
-  public ConfigureDeviceModel(@NotNull DeviceUiAction.DeviceProvider provider, @Nullable Device device, boolean forcedCreation) {
+  public ConfigureDeviceModel(@NotNull DeviceUiAction.DeviceProvider provider, @Nullable Device device, boolean cloneDevice) {
     myProvider = provider;
-    myDeviceData = new AvdDeviceData(device, forcedCreation);
+    myDeviceData = new AvdDeviceData(device);
+    if (cloneDevice) {
+      if (device == null) {
+        throw new IllegalArgumentException("Can't clone a device without specifying a device.");
+      }
+      myDeviceData.setUniqueName(String.format("%s (Edited)", device.getDisplayName()));
+    }
     Disposer.register(this, myDeviceData);
     if (device != null) {
       initBootProperties(device);
