@@ -106,7 +106,7 @@ public final class AvdOptionsModel extends WizardModel {
 
   public AvdOptionsModel(@Nullable AvdInfo avdInfo) {
     myAvdInfo = avdInfo;
-    myAvdDeviceData = new AvdDeviceData(null, false);
+    myAvdDeviceData = new AvdDeviceData();
     initData();
   }
 
@@ -386,7 +386,7 @@ public final class AvdOptionsModel extends WizardModel {
       }
     }
     myDevice.setNullableValue(selectedDevice);
-    myAvdDeviceData = new AvdDeviceData(myDevice.getValueOrNull(), false);
+    myAvdDeviceData = new AvdDeviceData(myDevice.getValueOrNull());
     ISystemImage selectedImage = avdInfo.getSystemImage();
     if (selectedImage != null) {
       SystemImageDescription systemImageDescription = new SystemImageDescription(selectedImage);
