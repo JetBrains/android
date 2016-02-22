@@ -23,6 +23,7 @@ import com.android.tools.idea.fd.*;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.gradle.run.RunAsValidityService;
 import com.android.tools.idea.run.editor.*;
 import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.run.tasks.LaunchTasksProviderFactory;
@@ -459,18 +460,27 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     List<IDevice> devices = deviceFutures.getIfReady();
     IDevice device = devices == null ? null : devices.get(0);
 
+    boolean isRestartedSession = InstantRunUtils.getRestartDevice(env) != null;
     boolean buildsMatch = device != null && InstantRunManager.buildTimestampsMatch(device, module);
-    if (!buildsMatch || !InstantRunManager.apiLevelsMatch(device, module)) {
-      String cause = buildsMatch ? "API levels" : "build timestamps";
-      InstantRunManager.LOG.info("Performing a clean build since " + cause + " don't match across the device and local state");
-      InstantRunUtils.setNeedsCleanBuild(env, true);
-      return;
-    }
 
     boolean appRunning = isAppRunning(module, devices);
     InstantRunUtils.setAppRunning(env, appRunning);
     if (!appRunning) {
       InstantRunManager.LOG.info("Instant run: app is not running on the selected device.");
+    }
+
+    BooleanStatus canBuildWithoutClean = canBuildWithoutClean(isRestartedSession, buildsMatch, device, module);
+    InstantRunUtils.setNeedsCleanBuild(env, !canBuildWithoutClean.success);
+    if (!canBuildWithoutClean.success) {
+      @Language("HTML") String message = canBuildWithoutClean.getCause();
+      LOG.info(message);
+      UsageTracker.getInstance().trackEvent(
+        UsageTracker.CATEGORY_INSTANTRUN, UsageTracker.ACTION_INSTANTRUN_FULLBUILD, message, null);
+      new InstantRunUserFeedback(module).postHtml(NotificationType.INFORMATION, message, null);
+
+      // implied that a clean build requires a full build
+      InstantRunUtils.setNeedsFullBuild(env, true);
+      return;
     }
 
     BooleanStatus canBuildIncrementally = canBuildIncrementally(env, facet, model, device);
@@ -492,6 +502,25 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
         new InstantRunUserFeedback(module).postHtml(NotificationType.INFORMATION, message, null);
       }
     }
+  }
+
+  private static BooleanStatus canBuildWithoutClean(boolean isRestartedSession,
+                                                    boolean buildsMatch,
+                                                    @Nullable IDevice device,
+                                                    @NotNull Module module) {
+    @Language("HTML") String CLEAN_BUILD_PREFIX = "Performing clean build &amp; install: ";
+
+    if (!isRestartedSession) { // no need to compare build ids for restarted sessions
+      if (!buildsMatch) {
+        return BooleanStatus.failure(CLEAN_BUILD_PREFIX + "Build timestamps don't match");
+      }
+    }
+
+    if (device != null && !InstantRunManager.apiLevelsMatch(device, module)) {
+      return BooleanStatus.failure(CLEAN_BUILD_PREFIX + "API level of target device differs from API level targeted by existing build");
+    }
+
+    return BooleanStatus.SUCCESS;
   }
 
   private static BooleanStatus canBuildIncrementally(@NotNull ExecutionEnvironment env,
@@ -520,6 +549,10 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
         else {
           verifierFailure = "";
         }
+      }
+
+      if (!RunAsValidityService.getInstance().hasWorkingRunAs(device)) {
+        return BooleanStatus.failure(verifierFailure + FULL_BUILD_PREFIX + "Device does not have a working 'run-as' command");
       }
 
       if (!InstantRunSettings.isColdSwapEnabled()) {
