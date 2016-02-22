@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies;
 
-import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpec;
-import com.android.tools.idea.gradle.structure.configurables.ui.PsdUISettings;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.EditableDependenciesTableModel.DependencyCellRenderer;
+import com.android.tools.idea.gradle.structure.configurables.ui.PsdUISettings;
+import com.android.tools.idea.gradle.structure.model.PsdArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.android.PsdAndroidDependencyModel;
 import com.android.tools.idea.gradle.structure.model.android.PsdLibraryDependencyModel;
 import com.google.common.collect.Lists;
@@ -60,7 +60,7 @@ public class EditableDependenciesTableModelTest extends IdeaTestCase {
   }
 
   public void testShowArtifactDependencySpec() {
-    ArtifactDependencySpec spec = new ArtifactDependencySpec("appcompat-v7", "com.android.support", "23.1.0");
+    PsdArtifactDependencySpec spec = new PsdArtifactDependencySpec("appcompat-v7", "com.android.support", "23.1.0");
     when(myLibraryDependencyModel.getResolvedSpec()).thenReturn(spec);
     when(myLibraryDependencyModel.getValueAsText()).thenReturn("com.android.support:appcompat-v7:23.1.0");
 

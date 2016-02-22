@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.structure.model.android;
 
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpec;
+import com.android.tools.idea.gradle.structure.model.PsdArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsdModuleModel;
 import com.android.tools.idea.gradle.structure.model.PsdParsedDependencyModels;
 import com.android.tools.idea.gradle.structure.model.PsdProjectModel;
@@ -84,13 +84,20 @@ public class PsdAndroidModuleModel extends PsdModuleModel {
   }
 
   @Nullable
-  public PsdAndroidDependencyModel findDependency(@NotNull String dependency) {
-    return getOrCreateDependencyModels().findDependency(dependency);
+  public PsdModuleDependencyModel findModuleDependency(@NotNull String dependency) {
+    return getOrCreateDependencyModels().findModuleDependency(dependency);
   }
 
   @Nullable
-  public PsdAndroidDependencyModel findDependency(@NotNull ArtifactDependencySpec dependency) {
-    return getOrCreateDependencyModels().findDependency(dependency);
+  public PsdLibraryDependencyModel findLibraryDependency(@NotNull String compactNotation) {
+    PsdArtifactDependencySpec spec = PsdArtifactDependencySpec.create(compactNotation);
+    assert spec != null;
+    return findLibraryDependency(spec);
+  }
+
+  @Nullable
+  public PsdLibraryDependencyModel findLibraryDependency(@NotNull PsdArtifactDependencySpec dependency) {
+    return getOrCreateDependencyModels().findLibraryDependency(dependency);
   }
 
   @NotNull
