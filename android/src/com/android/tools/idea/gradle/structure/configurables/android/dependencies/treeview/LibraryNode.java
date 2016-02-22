@@ -32,7 +32,6 @@ class LibraryNode extends AbstractDependencyNode<PsdLibraryDependencyModel> {
     super(model);
     PsdArtifactDependencySpec spec = model.getResolvedSpec();
     myName = spec.getDisplayText();
-    setIcon(model.getIcon());
     setAutoExpandNode(true);
   }
 

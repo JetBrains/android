@@ -16,45 +16,26 @@
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview;
 
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.PsdAndroidDependencyModelComparator;
-import com.android.tools.idea.gradle.structure.configurables.android.treeview.AbstractVariantNode;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsdNode;
 import com.android.tools.idea.gradle.structure.model.android.PsdAndroidDependencyModel;
 import com.android.tools.idea.gradle.structure.model.android.PsdLibraryDependencyModel;
 import com.android.tools.idea.gradle.structure.model.android.PsdModuleDependencyModel;
-import com.android.tools.idea.gradle.structure.model.android.PsdVariantModel;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
-import com.intellij.ui.treeStructure.SimpleNode;
 import com.intellij.util.containers.SortedList;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
-class VariantNode extends AbstractVariantNode {
-  private List<AbstractPsdNode<?>> myChildren = Collections.emptyList();
-
-  public VariantNode(@NotNull PsdVariantModel model) {
-    super(model);
+final class PsdAndroidDependencyNodes {
+  private PsdAndroidDependencyNodes() {
   }
 
-  public VariantNode(@NotNull List<PsdVariantModel> models) {
-    super(models);
-  }
-
-  @Override
-  public SimpleNode[] getChildren() {
-    return myChildren.toArray(new SimpleNode[myChildren.size()]);
-  }
-
-  void setChildren(@NotNull List<AbstractPsdNode<?>> children) {
-    myChildren = children;
-  }
-
-  void setChildren(@NotNull Collection<PsdAndroidDependencyModel> dependencies) {
-    myChildren = Lists.newArrayList();
+  @NotNull
+  static List<AbstractPsdNode<?>> createNodesFor(@NotNull Collection<PsdAndroidDependencyModel> dependencies) {
+    List<AbstractPsdNode<?>> children = Lists.newArrayList();
 
     List<PsdAndroidDependencyModel> declared = new SortedList<PsdAndroidDependencyModel>(PsdAndroidDependencyModelComparator.INSTANCE);
     Multimap<PsdAndroidDependencyModel, PsdAndroidDependencyModel> allTransitive = HashMultimap.create();
@@ -79,12 +60,14 @@ class VariantNode extends AbstractVariantNode {
 
     for (PsdAndroidDependencyModel dependency : declared) {
       if (dependency instanceof PsdLibraryDependencyModel) {
-        myChildren.add(new LibraryNode((PsdLibraryDependencyModel)dependency));
+        children.add(new LibraryNode((PsdLibraryDependencyModel)dependency));
       }
       else if (dependency instanceof PsdModuleDependencyModel) {
-        myChildren.add(new ModuleNode((PsdModuleDependencyModel)dependency));
+        children.add(new ModuleNode((PsdModuleDependencyModel)dependency));
       }
     }
+
+    return children;
   }
 
   private static void addTransitive(@NotNull PsdAndroidDependencyModel dependency,
