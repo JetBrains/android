@@ -25,6 +25,7 @@ import com.android.tools.idea.run.tasks.LaunchTasksProvider;
 import com.android.tools.idea.run.tasks.LaunchTasksProviderFactory;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.ExecutionEnvironment;
+import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -59,7 +60,10 @@ public class AndroidLaunchTasksProviderFactory implements LaunchTasksProviderFac
     if (InstantRunUtils.isInstantRunEnabled(myEnv)) {
       InstantRunBuildInfo buildInfo = getInstantRunBuildInfo();
       if (buildInfo != null) {
-        InstantRunManager.LOG.info("Build timestamp: " + buildInfo.getTimeStamp() + ", verifier status: " + buildInfo.getVerifierStatus());
+        InstantRunManager.LOG.info("Build timestamp: " +
+                                   buildInfo.getTimeStamp() +
+                                   ", verifier status: " +
+                                   StringUtil.notNullize(buildInfo.getVerifierStatus(), "empty"));
       }
 
       if (canHotSwap()) {
