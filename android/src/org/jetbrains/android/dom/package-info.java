@@ -52,6 +52,13 @@
  * <a href="http://developer.android.com/guide/topics/resources/providing-resources.html">this page</a> is a good
  * starting point for searching for relevant docs. Of course, when relevant documentation is
  * found you should consider adding a link to file description class as well.
+ * <p/>
+ * Useful annotation facts:
+ * <ul>
+ *   <li>To disable spellchecking inside a tag's value, use {@link com.intellij.spellchecker.xml.NoSpellchecking} annotation.
+ *   Look {@link com.intellij.spellchecker.xml.XmlSpellcheckingStrategy#isSuppressedFor(com.intellij.psi.PsiElement, java.lang.String)}
+ *   for the code that implements that.</li>
+ * </ul>
  *
  * TODO write about {@link AndroidDomExtender} and {@link Styleable} annotation
  */
