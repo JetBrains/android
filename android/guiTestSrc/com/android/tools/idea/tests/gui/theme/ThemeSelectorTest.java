@@ -216,6 +216,7 @@ public class ThemeSelectorTest {
     themeList.clickItem(0);
     themeList.requireSelection("android:Theme.Holo");
     themeSelectionDialog.clickOk();
+    newStyleDialog.target().requestFocus();
 
     parentComboBox.requireSelection("android:Theme.Holo");
     newNameTextField.requireText("Theme.AppTheme");
