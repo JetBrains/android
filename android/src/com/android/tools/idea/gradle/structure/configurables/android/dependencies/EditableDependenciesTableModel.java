@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies;
 
-import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.configurables.ui.BaseTableCellRenderer;
+import com.android.tools.idea.gradle.structure.model.PsdArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.android.PsdAndroidDependencyModel;
 import com.android.tools.idea.gradle.structure.model.android.PsdLibraryDependencyModel;
 import com.intellij.util.ui.ColumnInfo;
@@ -27,8 +27,6 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.table.TableCellRenderer;
 import java.util.Collections;
 import java.util.List;
-
-import static com.android.tools.idea.gradle.structure.configurables.android.dependencies.ArtifactDependencySpecs.asText;
 
 /**
  * Model for the table displaying the "editable" dependencies of a module.
@@ -93,12 +91,12 @@ class EditableDependenciesTableModel extends ListTableModel<PsdAndroidDependency
 
       if (model instanceof PsdLibraryDependencyModel) {
         PsdLibraryDependencyModel library = (PsdLibraryDependencyModel)model;
-        ArtifactDependencySpec spec = library.getResolvedSpec();
-        ArtifactDependencySpec requestedSpec = library.getMismatchingRequestedSpec();
+        PsdArtifactDependencySpec spec = library.getResolvedSpec();
+        PsdArtifactDependencySpec requestedSpec = library.getMismatchingRequestedSpec();
         if (requestedSpec != null) {
           spec = requestedSpec;
         }
-        text = asText(spec);
+        text = spec.getDisplayText();
       }
       return text;
     }
