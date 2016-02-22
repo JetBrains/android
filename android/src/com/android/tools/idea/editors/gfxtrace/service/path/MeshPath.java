@@ -27,7 +27,14 @@ import java.io.IOException;
 public final class MeshPath extends Path {
   @Override
   public StringBuilder stringPath(StringBuilder builder) {
-    return myObject.stringPath(builder).append("<mesh>");
+    myObject.stringPath(builder);
+    builder.append("<mesh");
+    if (myOptions != null) {
+      builder.append(" options: ");
+      builder.append(myOptions.toString());
+    }
+    builder.append(">");
+    return builder;
   }
 
   @Override
