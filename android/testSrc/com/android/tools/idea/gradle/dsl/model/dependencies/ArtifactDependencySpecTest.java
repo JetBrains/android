@@ -19,6 +19,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 /**
  * Tests for {@link ArtifactDependencySpec}.
@@ -29,6 +30,48 @@ public class ArtifactDependencySpecTest {
   @Before
   public void setUp() {
     myDependency = new ArtifactDependencySpec("name", "group", "version");
+  }
+
+  @Test
+  public void testCreate1() {
+    myDependency = ArtifactDependencySpec.create("group:name:version:classifier@extension");
+    assertNotNull(myDependency);
+    assertEquals("group", myDependency.group);
+    assertEquals("name", myDependency.name);
+    assertEquals("version", myDependency.version);
+    assertEquals("classifier", myDependency.classifier);
+    assertEquals("extension", myDependency.extension);
+  }
+
+  @Test
+  public void testCreate2() {
+    myDependency = ArtifactDependencySpec.create("group:name:version@extension");
+    assertNotNull(myDependency);
+    assertEquals("group", myDependency.group);
+    assertEquals("name", myDependency.name);
+    assertEquals("version", myDependency.version);
+    assertNull(myDependency.classifier);
+    assertEquals("extension", myDependency.extension);
+  }
+
+  @Test
+  public void testCreate3() {
+    myDependency = ArtifactDependencySpec.create("group:name:version@extension");
+    assertNotNull(myDependency);
+    assertEquals("group", myDependency.group);
+    assertEquals("name", myDependency.name);
+    assertEquals("version", myDependency.version);
+    assertNull(myDependency.classifier);
+    assertEquals("extension", myDependency.extension);
+  }
+
+  @Test
+  public void testCreate4() {
+    myDependency = ArtifactDependencySpec.create("com.google.javascript:closure-compiler:v20151216");
+    assertNotNull(myDependency);
+    assertEquals("com.google.javascript", myDependency.group);
+    assertEquals("closure-compiler", myDependency.name);
+    assertEquals("v20151216", myDependency.version);
   }
 
   @Test
