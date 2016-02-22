@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.model.pom;
 
-import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpec;
+import com.android.tools.idea.gradle.structure.model.PsdArtifactDependencySpec;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -41,12 +41,12 @@ public class MavenPoms {
   }
 
   @NotNull
-  public static List<ArtifactDependencySpec> findDependenciesInPomFile(@NotNull File libraryPath) {
+  public static List<PsdArtifactDependencySpec> findDependenciesInPomFile(@NotNull File libraryPath) {
     VirtualFile pomFile = findPomForLibrary(libraryPath);
     if (pomFile == null) {
       return Collections.emptyList();
     }
-    List<ArtifactDependencySpec> dependencies = Lists.newArrayList();
+    List<PsdArtifactDependencySpec> dependencies = Lists.newArrayList();
     try {
       Document document = loadDocument(virtualToIoFile(pomFile));
       Element rootElement = document.getRootElement();
@@ -62,7 +62,7 @@ public class MavenPoms {
         if (dependenciesElement != null) {
           for (Element childElement : dependenciesElement.getChildren()) {
             if ("dependency".equals(childElement.getName())) {
-              ArtifactDependencySpec spec = createSpec(childElement);
+              PsdArtifactDependencySpec spec = createSpec(childElement);
               if (spec != null) {
                 dependencies.add(spec);
               }
@@ -79,7 +79,7 @@ public class MavenPoms {
   }
 
   @Nullable
-  private static ArtifactDependencySpec createSpec(@NotNull Element dependencyElement) {
+  private static PsdArtifactDependencySpec createSpec(@NotNull Element dependencyElement) {
     String artifactId = null;
     String groupId = null;
     String version = null;
@@ -95,7 +95,7 @@ public class MavenPoms {
       }
     }
     if (isNotEmpty(artifactId)) {
-      return new ArtifactDependencySpec(artifactId, groupId, version);
+      return new PsdArtifactDependencySpec(artifactId, groupId, version);
     }
 
     return null;
