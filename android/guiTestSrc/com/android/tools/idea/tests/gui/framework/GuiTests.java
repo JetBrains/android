@@ -116,7 +116,7 @@ public final class GuiTests {
       StringBuilder messageBuilder = new StringBuilder(errorMessage.getMessage());
       String additionalInfo = errorMessage.getAdditionalInfo();
       if (isNotEmpty(additionalInfo)) {
-        messageBuilder.append(System.getProperty("line.separator") + "Additional Info: " + additionalInfo);
+        messageBuilder.append(System.getProperty("line.separator")).append("Additional Info: ").append(additionalInfo);
       }
       Error error = new Error(messageBuilder.toString());
       error.initCause(errorMessage.getThrowable());
@@ -438,22 +438,19 @@ public final class GuiTests {
     java.util.List<String> items = Lists.newArrayList();
     for (int i = 0; i < model.getSize(); i++) {
       Object elementAt = model.getElementAt(i);
+      String s;
       if (elementAt instanceof PopupFactoryImpl.ActionItem) {
-        PopupFactoryImpl.ActionItem item = (PopupFactoryImpl.ActionItem)elementAt;
-        String s = item.getText();
-        if (labelMatcher.matches(s)) {
-          new JListFixture(robot, list).clickItem(i);
-          return;
-        }
-        items.add(s);
+        s = ((PopupFactoryImpl.ActionItem) elementAt).getText();
       } else { // For example package private class IntentionActionWithTextCaching used in quickfix popups
-        String s = elementAt.toString();
-        if (labelMatcher.matches(s)) {
-          new JListFixture(robot, list).clickItem(i);
-          return;
-        }
-        items.add(s);
+        s = elementAt.toString();
       }
+
+      if (labelMatcher.matches(s)) {
+        new JListFixture(robot, list).clickItem(i);
+        robot.waitForIdle();
+        return;
+      }
+      items.add(s);
     }
 
     if (items.isEmpty()) {
