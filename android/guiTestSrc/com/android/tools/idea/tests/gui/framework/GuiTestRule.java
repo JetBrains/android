@@ -160,15 +160,13 @@ public class GuiTestRule implements TestRule {
 
   private List<AssertionError> cleanUpAndCheckForModalDialogs() {
     List<AssertionError> errors = new ArrayList<AssertionError>();
-    if (myRobot != null) {
-      myRobot.cleanUpWithoutDisposingWindows();
-      // We close all modal dialogs left over, because they block the AWT thread and could trigger a deadlock in the next test.
-      Dialog modalDialog;
-      while ((modalDialog = getActiveModalDialog()) != null) {
-        myRobot.close(modalDialog);
-        errors.add(new AssertionError(
-          String.format("Modal dialog showing: %s with title '%s'", modalDialog.getClass().getName(), modalDialog.getTitle())));
-      }
+    myRobot.cleanUpWithoutDisposingWindows();
+    // We close all modal dialogs left over, because they block the AWT thread and could trigger a deadlock in the next test.
+    Dialog modalDialog;
+    while ((modalDialog = getActiveModalDialog()) != null) {
+      myRobot.close(modalDialog);
+      errors.add(new AssertionError(
+        String.format("Modal dialog showing: %s with title '%s'", modalDialog.getClass().getName(), modalDialog.getTitle())));
     }
     return errors;
   }
