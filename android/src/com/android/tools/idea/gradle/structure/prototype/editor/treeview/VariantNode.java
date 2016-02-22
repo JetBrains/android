@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.structure.prototype.editor.treeview;
 
 import com.android.builder.model.Variant;
-import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -27,7 +26,6 @@ public class VariantNode extends GradleNode {
     super(parentDescriptor);
     myVariant = variant;
     myName = variant.getName();
-    setIcon(AndroidIcons.Variant);
   }
 
   @NotNull
