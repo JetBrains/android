@@ -72,7 +72,7 @@ public class InstantRunStatsService {
 
   public void notifyDeployType(@NotNull DeployType type) {
     synchronized (LOCK) {
-      if (type == DeployType.FULLAPK) {
+      if (type == DeployType.FULLAPK || type == DeployType.LEGACY || type == DeployType.SPLITAPK) {
         // We want to assign a session id for all launches in order to compute the number of hot/coldswaps between each APK push
         // Installing an APK starts a new session.
         resetSession();
