@@ -375,7 +375,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       }
       else if (InstantRunGradleUtils.getIrSupportStatus(module, devices.get(0).getVersion()).success) {
         InstantRunUtils.setInstantRunEnabled(env, true);
-        setInstantRunBuildOptions(env, module, deviceFutures);
+        setInstantRunBuildOptions(env, info, module, deviceFutures);
       }
     }
 
@@ -443,6 +443,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   }
 
   private static void setInstantRunBuildOptions(@NotNull ExecutionEnvironment env,
+                                                @Nullable AndroidSessionInfo existingSession,
                                                 @NotNull Module module,
                                                 @NotNull DeviceFutures deviceFutures) {
     AndroidFacet facet = AndroidFacet.getInstance(module);
@@ -463,7 +464,8 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     boolean isRestartedSession = InstantRunUtils.getRestartDevice(env) != null;
     boolean buildsMatch = device != null && InstantRunManager.buildTimestampsMatch(device, module);
 
-    boolean appRunning = isAppRunning(module, devices);
+    boolean appRunning = existingSession != null && // handles the scenario where app could still be running, but with the wrong executor (run vs debug)
+                         isAppRunning(module, devices);
     InstantRunUtils.setAppRunning(env, appRunning);
     if (!appRunning) {
       InstantRunManager.LOG.info("Instant run: app is not running on the selected device.");
