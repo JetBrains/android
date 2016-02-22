@@ -3733,7 +3733,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertEquals(3, resources.getInitialInitialScanState().numXmlReparsed);
 
     ResourceFolderRepositoryFileCache cache = ResourceFolderRepositoryFileCacheService.get();
-    resources.saveStateToFile(cache.getResourceDir(getProject(), getResourceDirectory()));
+    resources.saveStateToFile();
 
     ResourceFolderRegistry.reset();
     ResourceFolderRepository resourcesReloaded = createRepository();
@@ -3755,14 +3755,35 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     myFixture.copyFileToProject(XLIFF, "res/values/xliff.xml");
     final ResourceFolderRepository resources = createRepository();
     assertNotNull(resources);
-    resources.saveStateToFile(ResourceFolderRepositoryFileCacheService.get().getResourceDir(
-      getProject(), getResourceDirectory()));
+    resources.saveStateToFile();
     ResourceFolderRegistry.reset();
     final ResourceFolderRepository fromBlob = createRepository();
     assertNotNull(fromBlob);
 
     assertNotSame(resources, fromBlob);
     assertTrue(fromBlob.equalFilesItems(resources));
+  }
+
+  public void testInvalidateCache() throws Exception {
+    myFixture.copyFileToProject(LAYOUT1, "res/layout/layout.xml");
+    myFixture.copyFileToProject(LAYOUT1, "res/layout-xlarge-land/layout.xml");
+    myFixture.copyFileToProject(LAYOUT_WITH_DATA_BINDING, "res/layout/layout_with_data_binding.xml");
+    myFixture.copyFileToProject(DRAWABLE, "res/drawable/logo.png");
+    myFixture.copyFileToProject(DRAWABLE, "res/drawable-hdpi/logo.png");
+    myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
+    myFixture.copyFileToProject(STRINGS, "res/values/strings.xml");
+    myFixture.copyFileToProject(STRINGS, "res/values-fr/not_really_french_strings.xml");
+    myFixture.copyFileToProject(XLIFF, "res/values/xliff.xml");
+    final ResourceFolderRepository resources = createRepository();
+    assertNotNull(resources);
+    resources.saveStateToFile();
+    ResourceFolderRegistry.reset();
+    ResourceFolderRepositoryFileCacheService.get().invalidate();
+    ResourceFolderRepository resourcesReloaded = createRepository();
+    resourcesReloaded.saveStateToFile();
+
+    assertNotSame(0, resourcesReloaded.getInitialInitialScanState().numXmlReparsed);
+    assertEquals(resourcesReloaded.getInitialInitialScanState().numXml, resourcesReloaded.getInitialInitialScanState().numXmlReparsed);
   }
 
   public void testSerializationRemoveXmlFileAndLoad() throws Exception {
@@ -3781,8 +3802,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(resources.hasResourceItem(ResourceType.ID, "noteArea"));
     assertTrue(resources.hasResourceItem(ResourceType.DRAWABLE, "logo"));
     assertTrue(resources.hasResourceItem(ResourceType.STRING, "hello_world"));
-    resources.saveStateToFile(ResourceFolderRepositoryFileCacheService.get().getResourceDir(
-      getProject(), getResourceDirectory()));
+    resources.saveStateToFile();
 
     // Delete a non-value file.
     WriteCommandAction.runWriteCommandAction(null, new Runnable() {
@@ -3802,8 +3822,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(fromBlob.hasResourceItem(ResourceType.STRING, "hello_world"));
 
     // Update the blob first, then delete a value file.
-    resources.saveStateToFile(ResourceFolderRepositoryFileCacheService.get().getResourceDir(
-      getProject(), getResourceDirectory()));
+    resources.saveStateToFile();
     final PsiFile psiFile2 = PsiManager.getInstance(getProject()).findFile(file2);
     assertNotNull(psiFile2);
     WriteCommandAction.runWriteCommandAction(null, new Runnable() {
@@ -3837,8 +3856,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(resources.hasResourceItem(ResourceType.DRAWABLE, "logo"));
     assertTrue(resources.hasResourceItem(ResourceType.STRING, "hello_world"));
 
-    resources.saveStateToFile(ResourceFolderRepositoryFileCacheService.get().getResourceDir(
-      getProject(), getResourceDirectory()));
+    resources.saveStateToFile();
     WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
@@ -3864,8 +3882,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertNotNull(resources);
 
     assertTrue(resources.hasResourceItem(ResourceType.STRING, "hello_world"));
-    resources.saveStateToFile(ResourceFolderRepositoryFileCacheService.get().getResourceDir(
-      getProject(), getResourceDirectory()));
+    resources.saveStateToFile();
 
     // Editing via the DocumentManager.commitDocument interface doesn't touch the lastModified
     // stamp of the actual file in time, so just edit the file directly and bump the lastModified
@@ -3893,8 +3910,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertFalse(resources.hasResourceItem(ResourceType.LAYOUT, "layout"));
     assertFalse(resources.hasResourceItem(ResourceType.ID, "noteArea"));
 
-    resources.saveStateToFile(ResourceFolderRepositoryFileCacheService.get().getResourceDir(
-      getProject(), getResourceDirectory()));
+    resources.saveStateToFile();
 
     myFixture.copyFileToProject(LAYOUT1, "res/layout/layout.xml");
 
@@ -3914,8 +3930,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(resources.hasResourceItem(ResourceType.STRING, "hello_world"));
     assertFalse(resources.hasResourceItem(ResourceType.DRAWABLE, "logo"));
 
-    resources.saveStateToFile(ResourceFolderRepositoryFileCacheService.get().getResourceDir(
-      getProject(), getResourceDirectory()));
+    resources.saveStateToFile();
 
     myFixture.copyFileToProject(DRAWABLE, "res/drawable/logo.png");
 

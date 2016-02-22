@@ -107,7 +107,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
     Application app = ApplicationManager.getApplication();
     // For now, automatically save the state. We may want to move this out to a separate task.
     if (!hasFreshFileCache() && !app.isUnitTestMode()) {
-      saveStateToFile(ResourceFolderRepositoryFileCacheService.get().getResourceDir(myModule.getProject(), resourceDir));
+      saveStateToFile();
     }
     // Clear some unneeded state (resource merger holds a second map of items).
     // Skip for unit tests, which may need to test saving separately (saving is normally skipped for unit tests).
@@ -134,10 +134,13 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
   /**
    * Saves the non-Psi XML state as a single blob for faster loading the second time
    * by {@link #loadPreviousStateIfExists}.
-   *
-   * @param blobRoot directory to store file cache for this resource repository.
    */
-  void saveStateToFile(File blobRoot) {
+  void saveStateToFile() {
+    File blobRoot = ResourceFolderRepositoryFileCacheService.get().getResourceDir(myModule.getProject(), myResourceDir);
+    if (blobRoot == null) {
+      // The cache is invalid, do nothing
+      return;
+    }
     try {
       ResourcePreprocessor preprocessor = new NoOpResourcePreprocessor();
       MergeConsumer<ResourceItem> consumer = MergedResourceWriter.createWriterWithoutPngCruncher(
