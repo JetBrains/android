@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview;
 
-import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpec;
+import com.android.tools.idea.gradle.structure.model.PsdArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsdModel;
 import com.android.tools.idea.gradle.structure.model.android.PsdAndroidDependencyModel;
 import com.android.tools.idea.gradle.structure.model.android.PsdLibraryDependencyModel;
@@ -25,15 +25,13 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-import static com.android.tools.idea.gradle.structure.configurables.android.dependencies.ArtifactDependencySpecs.asText;
-
 class LibraryNode extends AbstractDependencyNode<PsdLibraryDependencyModel> {
   private List<SimpleNode> myChildren;
 
   LibraryNode(@NotNull PsdLibraryDependencyModel model) {
     super(model);
-    ArtifactDependencySpec spec = model.getResolvedSpec();
-    myName = asText(spec);
+    PsdArtifactDependencySpec spec = model.getResolvedSpec();
+    myName = spec.getDisplayText();
     setIcon(model.getIcon());
     setAutoExpandNode(true);
   }
