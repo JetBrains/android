@@ -15,22 +15,27 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.intellij.openapi.wm.impl.welcomeScreen.FlatWelcomeFrame;
+import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
-import org.fest.swing.exception.ComponentLookupException;
 import org.jetbrains.annotations.NotNull;
 
-import java.awt.*;
+import javax.annotation.Nonnull;
 
 public class WelcomeFrameFixture extends ComponentFixture<WelcomeFrameFixture, FlatWelcomeFrame> {
+
+  private static final GenericTypeMatcher<FlatWelcomeFrame> WELCOME_FRAME_SHOWING =
+    new GenericTypeMatcher<FlatWelcomeFrame>(FlatWelcomeFrame.class) {
+      @Override
+      protected boolean isMatching(@Nonnull FlatWelcomeFrame frame) {
+        return frame.isShowing();
+      }
+    };
+
   @NotNull
   public static WelcomeFrameFixture find(@NotNull Robot robot) {
-    for (Frame frame : Frame.getFrames()) {
-      if (frame instanceof FlatWelcomeFrame && frame.isShowing()) {
-        return new WelcomeFrameFixture(robot, (FlatWelcomeFrame)frame);
-      }
-    }
-    throw new ComponentLookupException("Unable to find 'Welcome' window");
+    return new WelcomeFrameFixture(robot, GuiTests.waitUntilFound(robot, WELCOME_FRAME_SHOWING));
   }
 
   private WelcomeFrameFixture(@NotNull Robot robot, @NotNull FlatWelcomeFrame target) {
