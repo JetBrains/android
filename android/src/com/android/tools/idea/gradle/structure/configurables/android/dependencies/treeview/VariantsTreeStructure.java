@@ -32,11 +32,6 @@ public class VariantsTreeStructure extends AbstractTreeStructure {
   }
 
   @Override
-  public boolean isToBuildChildrenInBackground(Object element) {
-    return true;
-  }
-
-  @Override
   public Object getRootElement() {
     return myRootNode;
   }

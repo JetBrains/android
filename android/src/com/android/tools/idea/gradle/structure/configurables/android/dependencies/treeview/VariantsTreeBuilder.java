@@ -24,12 +24,18 @@ import com.intellij.ide.util.treeView.AbstractTreeStructure;
 import com.intellij.ide.util.treeView.IndexComparator;
 import com.intellij.ide.util.treeView.NodeDescriptor;
 import com.intellij.openapi.util.ActionCallback;
+import com.intellij.util.ui.tree.TreeUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreePath;
+
+import static com.intellij.util.ui.tree.TreeUtil.collapseAll;
 
 public class VariantsTreeBuilder extends AbstractTreeBuilder {
+  private static final TreePath[] EMPTY_TREE_PATH = new TreePath[0];
+
   @NotNull private final DependencySelection myDependencySelectionSource;
   @NotNull private final DependencySelection myDependencySelectionDestination;
 
@@ -75,5 +81,34 @@ public class VariantsTreeBuilder extends AbstractTreeBuilder {
       return ((AbstractPsdNode)nodeDescriptor).isAutoExpandNode();
     }
     return super.isAutoExpandNode(nodeDescriptor);
+  }
+
+  @Override
+  protected boolean isSmartExpand() {
+    return true;
+  }
+
+  public void expand() {
+    JTree tree = getTree();
+    if (tree != null) {
+      TreeUtil.expandAll(tree);
+      getReady(this).doWhenDone(new Runnable() {
+        @Override
+        public void run() {
+          PsdAndroidDependencyModel selection = myDependencySelectionSource.getSelection();
+          if (selection != null) {
+            myDependencySelectionDestination.setSelection(selection);
+          }
+        }
+      });
+    }
+  }
+
+  public void collapse() {
+    JTree tree = getTree();
+    if (tree != null) {
+      collapseAll(tree, 1);
+      tree.setSelectionPaths(EMPTY_TREE_PATH);
+    }
   }
 }
