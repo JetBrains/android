@@ -17,8 +17,6 @@ package org.jetbrains.android.util;
 
 import com.android.SdkConstants;
 import com.android.jarutils.SignedJarBuilder;
-import com.android.resources.ResourceFolderType;
-import com.android.resources.ResourceType;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.internal.project.ProjectProperties;
@@ -305,12 +303,6 @@ public class AndroidCommonUtils {
     finally {
       bis.close();
     }
-  }
-
-  @Nullable
-  public static String getResourceTypeByDirName(@NotNull String name) {
-    ResourceFolderType folderType = ResourceFolderType.getFolderType(name);
-    return folderType != null ? folderType.getName() : null;
   }
 
   @NotNull
