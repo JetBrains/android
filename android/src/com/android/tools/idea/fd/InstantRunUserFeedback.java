@@ -66,16 +66,16 @@ public class InstantRunUserFeedback implements UserFeedback {
     if (updateMode == UpdateMode.HOT_SWAP && !InstantRunSettings.isRestartActivity()) {
       StringBuilder sb = new StringBuilder(300);
       sb.append("Instant Run applied code changes.\n");
-      sb.append("You can restart the current activity by clicking <a href=\"restart\">here</a>");
+      sb.append("You may need to <a href=\"restart\">restart</a>");
       Shortcut[] shortcuts = ActionManager.getInstance().getAction("Android.RestartActivity").getShortcutSet().getShortcuts();
       String shortcut;
       if (shortcuts.length > 0) {
         shortcut = KeymapUtil.getShortcutText(shortcuts[0]);
-        sb.append(" or pressing ").append(shortcut).append(" anytime");
+        sb.append(" ( ").append(shortcut).append(" )");
       }
-      sb.append(".\n");
+      sb.append(" the current activity to see the changes.\n");
 
-      sb.append("You can also <a href=\"configure\">configure</a> restarts to happen automatically. ");
+      sb.append("You can also <a href=\"configure\">configure</a> Instant Run to restart Activities automatically.");
       @Language("HTML") String message = sb.toString();
       NotificationListener listener = new NotificationListener() {
         @Override
@@ -96,6 +96,10 @@ public class InstantRunUserFeedback implements UserFeedback {
         }
       };
       postHtml(NotificationType.INFORMATION, message, listener);
+    }
+    else if (updateMode == UpdateMode.WARM_SWAP) {
+      @Language("HTML") String message = "Instant Run applied code changes and restarted the current Activity.";
+      postHtml(NotificationType.INFORMATION, message, null);
     }
   }
 
