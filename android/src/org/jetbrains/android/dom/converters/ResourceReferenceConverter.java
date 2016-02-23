@@ -58,7 +58,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
   implements CustomReferenceConverter<ResourceValue>, AttributeValueDocumentationProvider {
   private static final ImmutableSet<String> TOP_PRIORITY_VALUES =
     ImmutableSet.of(VALUE_MATCH_PARENT, VALUE_WRAP_CONTENT);
-  private final List<String> myResourceTypes;
+  private final Set<ResourceType> myResourceTypes;
   private ResolvingConverter<String> myAdditionalConverter;
   private boolean myAdditionalConverterSoft = false;
   private boolean myWithPrefix = true;
@@ -69,17 +69,17 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
   private @Nullable AttributeDefinition myAttributeDefinition = null;
 
   public ResourceReferenceConverter() {
-    this(new ArrayList<String>());
+    this(EnumSet.noneOf(ResourceType.class));
   }
 
-  public ResourceReferenceConverter(@NotNull Collection<String> resourceTypes) {
-    myResourceTypes = new ArrayList<String>(resourceTypes);
+  public ResourceReferenceConverter(@NotNull Collection<ResourceType> resourceTypes) {
+    myResourceTypes = EnumSet.copyOf(resourceTypes);
   }
 
   // TODO: it should be possible to get rid of AttributeDefinition dependency and use ResourceManager
   // to acquire AttributeDefinition when needed.
-  public ResourceReferenceConverter(@NotNull Collection<String> resourceTypes, @Nullable AttributeDefinition attributeDefinition) {
-    myResourceTypes = new ArrayList<String>(resourceTypes);
+  public ResourceReferenceConverter(@NotNull Collection<ResourceType> resourceTypes, @Nullable AttributeDefinition attributeDefinition) {
+    myResourceTypes = EnumSet.copyOf(resourceTypes);
     myAttributeDefinition = attributeDefinition;
   }
 
@@ -92,8 +92,8 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
    * @param withPrefix if true, this will force all the resolved references to contain the reference prefix @
    * @param withExplicitResourceType if true, this will force the resourceType to be part of the resolved name (e.g. "@style/")
    */
-  public ResourceReferenceConverter(@NotNull String resourceType, boolean withPrefix, boolean withExplicitResourceType) {
-    myResourceTypes = Collections.singletonList(resourceType);
+  public ResourceReferenceConverter(@NotNull ResourceType resourceType, boolean withPrefix, boolean withExplicitResourceType) {
+    myResourceTypes = EnumSet.of(resourceType);
     myWithPrefix = withPrefix;
     myWithExplicitResourceType = withExplicitResourceType;
   }
@@ -140,10 +140,10 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
     AndroidFacet facet = AndroidFacet.getInstance(module);
     if (facet == null) return result;
 
-    final Set<String> recommendedTypes = getResourceTypes(context);
+    final Set<ResourceType> recommendedTypes = getResourceTypes(context);
 
     // hack to check if it is a real id attribute
-    if (recommendedTypes.contains(ResourceType.ID.getName()) && recommendedTypes.size() == 1) {
+    if (recommendedTypes.contains(ResourceType.ID) && recommendedTypes.size() == 1) {
       result.add(ResourceValue.reference(NEW_ID_PREFIX));
     }
 
@@ -170,7 +170,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
       }
 
       if (recommendedTypes.size() == 1) {
-        String type = recommendedTypes.iterator().next();
+        ResourceType type = recommendedTypes.iterator().next();
         // We will add the resource type (e.g. @style/) if the current value starts like a reference using @
         boolean explicitResourceType = startsWithRefChar || myWithExplicitResourceType;
         addResourceReferenceValues(facet, prefix, type, resourcePackage, result, explicitResourceType);
@@ -184,9 +184,9 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
           final String type = resourceType.getName();
           String typePrefix = getTypePrefix(resourcePackage, type);
           if (value.startsWith(typePrefix)) {
-            addResourceReferenceValues(facet, prefix, type, resourcePackage, result, true);
+            addResourceReferenceValues(facet, prefix, resourceType, resourcePackage, result, true);
           }
-          else if (recommendedTypes.contains(type) &&
+          else if (recommendedTypes.contains(resourceType) &&
                    (filteringSet == null || filteringSet.contains(resourceType))) {
             result.add(ResourceValue.literal(typePrefix));
           }
@@ -218,14 +218,14 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
 
   private static void completeAttributeReferences(String value, AndroidFacet facet, Set<ResourceValue> result) {
     if (StringUtil.startsWith(value, "?attr/")) {
-      addResourceReferenceValues(facet, '?', ResourceType.ATTR.getName(), null, result, true);
+      addResourceReferenceValues(facet, '?', ResourceType.ATTR, null, result, true);
     }
     else if (StringUtil.startsWith(value, "?android:attr/")) {
-      addResourceReferenceValues(facet, '?', ResourceType.ATTR.getName(), SYSTEM_RESOURCE_PACKAGE, result, true);
+      addResourceReferenceValues(facet, '?', ResourceType.ATTR, SYSTEM_RESOURCE_PACKAGE, result, true);
     }
     else if (StringUtil.startsWithChar(value, '?')) {
-      addResourceReferenceValues(facet, '?', ResourceType.ATTR.getName(), null, result, false);
-      addResourceReferenceValues(facet, '?', ResourceType.ATTR.getName(), SYSTEM_RESOURCE_PACKAGE, result, false);
+      addResourceReferenceValues(facet, '?', ResourceType.ATTR, null, result, false);
+      addResourceReferenceValues(facet, '?', ResourceType.ATTR, SYSTEM_RESOURCE_PACKAGE, result, false);
       result.add(ResourceValue.literal("?attr/"));
       result.add(ResourceValue.literal("?android:attr/"));
     }
@@ -233,7 +233,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
 
   @NotNull
   public static Set<ResourceType> getResourceTypesInCurrentModule(@NotNull AndroidFacet facet) {
-    Set<ResourceType> result = ContainerUtil.newHashSet();
+    Set<ResourceType> result = EnumSet.noneOf(ResourceType.class);
     AppResourceRepository resourceRepository = facet.getAppResources(true);
     for (ResourceType type : ResourceType.values()) {
       if (resourceRepository.hasResourcesOfType(type)) {
@@ -255,37 +255,43 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
     return getPackagePrefix(resourcePackage, true) + typePart;
   }
 
-  private Set<String> getResourceTypes(ConvertContext context) {
+  private Set<ResourceType> getResourceTypes(ConvertContext context) {
     return getResourceTypes(context.getInvocationElement());
   }
 
   @NotNull
-  public Set<String> getResourceTypes(@NotNull DomElement element) {
+  public Set<ResourceType> getResourceTypes(@NotNull DomElement element) {
     AndroidResourceType resourceType = element.getAnnotation(AndroidResourceType.class);
-    Set<String> types = new HashSet<String>(myResourceTypes);
+    Set<ResourceType> types = EnumSet.copyOf(myResourceTypes);
     if (resourceType != null) {
       String s = resourceType.value();
-      if (s != null) types.add(s);
+      if (s != null) {
+        ResourceType t = ResourceType.getEnum(s);
+        if (t != null) {
+          types.add(t);
+        }
+      }
     }
     if (types.size() == 0) {
-      types.addAll(AndroidResourceUtil.getNames(AndroidResourceUtil.VALUE_RESOURCE_TYPES));
+      types.addAll(AndroidResourceUtil.VALUE_RESOURCE_TYPES);
     }
-    else if (types.contains(ResourceType.DRAWABLE.getName())) {
-      types.add(ResourceType.COLOR.getName());
+    else if (types.contains(ResourceType.DRAWABLE)) {
+      types.add(ResourceType.COLOR);
     }
     return types;
   }
 
   private static void addResourceReferenceValues(AndroidFacet facet,
                                                  char prefix,
-                                                 String type,
+                                                 ResourceType type,
                                                  @Nullable String resPackage,
                                                  Collection<ResourceValue> result,
                                                  boolean explicitResourceType) {
     final ResourceManager manager = facet.getResourceManager(resPackage);
+    String typeName = type.getName();
     if (manager != null) {
       for (String name : manager.getResourceNames(type, true)) {
-        result.add(referenceTo(prefix, type, resPackage, name, explicitResourceType));
+        result.add(referenceTo(prefix, typeName, resPackage, name, explicitResourceType));
       }
     }
   }
@@ -426,7 +432,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
           return null;
         }
         if (myResourceTypes.size() == 1) {
-          parsed.setResourceType(myResourceTypes.get(0));
+          parsed.setResourceType(myResourceTypes.iterator().next().getName());
         }
       }
     }
@@ -485,7 +491,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
             String aPackage = resourceValue.getNamespace();
             ResourceType resType = resourceValue.getType();
             if (resType == null && myResourceTypes.size() == 1) {
-              resType = ResourceType.getEnum(myResourceTypes.get(0));
+              resType = myResourceTypes.iterator().next();
             }
             final String resourceName = resourceValue.getResourceName();
             if (aPackage == null &&
