@@ -57,7 +57,7 @@ public class AndroidVirtualDeviceTest extends AndroidTestBase {
     builder.put("hw.cpu.arch", "x86");
     builder.put("hw.dPad", "no");
     builder.put("hw.device.manufacturer", "Google");
-    builder.put("hw.device.name", "Nexus 5");
+    builder.put("hw.device.name", "Nexus 5X");
     builder.put("hw.gps", "yes");
     builder.put("hw.gpu.enabled", "yes");
     builder.put("hw.keyboard", "yes");
@@ -74,7 +74,7 @@ public class AndroidVirtualDeviceTest extends AndroidTestBase {
     builder.put("runtime.scalefactor", "auto");
     builder.put("sdcard.size", "200M");
     builder.put("skin.dynamic", "no");
-    builder.put("skin.name", "nexus_5");
+    builder.put("skin.name", "nexus_5x");
     builder.put("snapshot.present", "no");
     builder.put("tag.display", "Google APIs");
     builder.put("tag.id", "google_apis");
@@ -107,7 +107,7 @@ public class AndroidVirtualDeviceTest extends AndroidTestBase {
     recordPlatform23(fop);
     recordGoogleApisAddon23(fop);
     recordGoogleApisSysImg23(fop);
-    fop.recordExistingFile(new File(DeviceArtDescriptor.getBundledDescriptorsFolder(), "nexus_5"));
+    fop.recordExistingFile(new File(DeviceArtDescriptor.getBundledDescriptorsFolder(), "nexus_5x"));
 
     AndroidSdkHandler sdkHandler = new AndroidSdkHandler(new File("/sdk"), fop);
 
@@ -138,7 +138,7 @@ public class AndroidVirtualDeviceTest extends AndroidTestBase {
     // AVD manager will set some extra properties that we don't care about and that may be system dependant.
     // We do not care about those so we only ensure we have the ones we need.
     File skin = new File(properties.get(AvdManager.AVD_INI_SKIN_PATH));
-    assertEquals("nexus_5", skin.getName());
+    assertEquals("nexus_5x", skin.getName());
     assertEquals("device-art-resources", skin.getParentFile().getName());
   }
 
