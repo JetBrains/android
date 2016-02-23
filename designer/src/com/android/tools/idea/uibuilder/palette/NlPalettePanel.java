@@ -18,10 +18,11 @@ package com.android.tools.idea.uibuilder.palette;
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
-import com.android.tools.idea.dependencies.DependencyManager;
+import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
 import com.android.tools.idea.rendering.ImageUtils;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.idea.uibuilder.editor.NlPreviewForm;
@@ -29,6 +30,7 @@ import com.android.tools.idea.uibuilder.model.DnDTransferComponent;
 import com.android.tools.idea.uibuilder.model.DnDTransferItem;
 import com.android.tools.idea.uibuilder.model.ItemTransferable;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.google.common.collect.Lists;
 import com.intellij.designer.DesignerEditorPanelFacade;
 import com.intellij.designer.LightToolWindowContent;
 import com.intellij.icons.AllIcons;
@@ -74,10 +76,8 @@ import java.awt.event.InputEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
-import java.util.Collections;
-import java.util.HashSet;
+import java.util.*;
 import java.util.List;
-import java.util.Set;
 
 import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
 import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
@@ -405,10 +405,9 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent, Co
         NlPaletteItem item = getItemForPath(myTree.getPathForLocation(event.getX(), event.getY()));
         if (item != null && needsLibraryLoad(item)) {
           Module module = getModule();
-          DependencyManager manager = module != null ? DependencyManager.getDependencyManager(module.getProject()) : null;
-          if (manager != null) {    // todo: remove when DependencyManager has been implemented for other BUILD cases.
-            manager.ensureLibraryIsIncluded(module, item.getLibraries(), null);
-          }
+          assert module != null;
+          GradleDependencyManager manager = GradleDependencyManager.getInstance(module.getProject());
+          manager.ensureLibraryIsIncluded(module, toGradleCoordinates(item.getLibraries()), null);
         }
       }
     });
@@ -428,17 +427,46 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent, Co
 
   private boolean checkForNewMissingDependencies() {
     Module module = getModule();
-    DependencyManager manager = module != null ? DependencyManager.getDependencyManager(module.getProject()) : null;
-    List<String> missing = Collections.emptyList();
-    if (manager != null) {
-      missing = manager.findMissingDependencies(module, myModel.getLibrariesUsed());
-    }
+    assert module != null;
+    GradleDependencyManager manager = GradleDependencyManager.getInstance(module.getProject());
+    List<String> missing = fromGradleCoordinates(manager.findMissingDependencies(module, toGradleCoordinates(myModel.getLibrariesUsed())));
     if (missing.size() == myMissingLibraries.size() && myMissingLibraries.containsAll(missing)) {
       return false;
     }
     myMissingLibraries.clear();
     myMissingLibraries.addAll(missing);
     return true;
+  }
+
+  @NonNull
+  private static List<GradleCoordinate> toGradleCoordinates(@NonNull Collection<String> dependencies) {
+    if (dependencies.isEmpty()) {
+      return Collections.emptyList();
+    }
+    List<GradleCoordinate> coordinates = Lists.newArrayList();
+    for (String dependency : dependencies) {
+      GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString(dependency + ":+");
+      if (coordinate == null) {
+        continue;
+      }
+      coordinates.add(coordinate);
+    }
+    return coordinates;
+  }
+
+  @NonNull
+  private static List<String> fromGradleCoordinates(@NonNull Collection<GradleCoordinate> coordinates) {
+    if (coordinates.isEmpty()) {
+      return Collections.emptyList();
+    }
+    List<String> dependencies = Lists.newArrayList();
+    for (GradleCoordinate coordinate : coordinates) {
+      String dependency = coordinate.getId();
+      if (dependency != null) {
+        dependencies.add(dependency);
+      }
+    }
+    return dependencies;
   }
 
   @Nullable
