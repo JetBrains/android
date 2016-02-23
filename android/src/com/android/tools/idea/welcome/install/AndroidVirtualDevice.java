@@ -62,7 +62,7 @@ import static com.android.tools.idea.avdmanager.AvdWizardConstants.*;
  */
 public class AndroidVirtualDevice extends InstallableComponent {
   public static final Logger LOG = Logger.getInstance(AndroidVirtualDevice.class);
-  private static final String ID_DEVICE_NEXUS_5 = "Nexus 5";
+  private static final String DEFAULT_DEVICE_ID = "Nexus 5X";
   private static final IdDisplay ID_ADDON_GOOGLE_API_IMG = IdDisplay.create("google_apis", "Google APIs");
   private static final IdDisplay ID_VENDOR_GOOGLE = IdDisplay.create("google", "Google Inc.");
   private static final Storage DEFAULT_RAM_SIZE = new Storage(1536, Storage.Unit.MiB);
@@ -96,11 +96,11 @@ public class AndroidVirtualDevice extends InstallableComponent {
   private static Device getDevice(@NotNull File sdkPath) throws WizardException {
     List<Device> devices = DeviceManagerConnection.getDeviceManagerConnection(sdkPath).getDevices();
     for (Device device : devices) {
-      if (Objects.equal(device.getId(), ID_DEVICE_NEXUS_5)) {
+      if (Objects.equal(device.getId(), DEFAULT_DEVICE_ID)) {
         return device;
       }
     }
-    throw new WizardException(String.format("No device definition with \"%s\" ID found", ID_DEVICE_NEXUS_5));
+    throw new WizardException(String.format("No device definition with \"%s\" ID found", DEFAULT_DEVICE_ID));
   }
 
   private SystemImageDescription getSystemImageDescription(AndroidSdkHandler sdkHandler) throws WizardException {
