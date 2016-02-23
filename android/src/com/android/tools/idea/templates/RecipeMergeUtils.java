@@ -264,7 +264,7 @@ public class RecipeMergeUtils {
         })
         .merge();
       if (mergeReport.getResult().isSuccess()) {
-        return mergeReport.getMergedDocument(MergingReport.DocumentState.MERGED);
+        return mergeReport.getMergedDocument(MergingReport.MergedManifestKind.MERGED);
       }
       return null;
     }
