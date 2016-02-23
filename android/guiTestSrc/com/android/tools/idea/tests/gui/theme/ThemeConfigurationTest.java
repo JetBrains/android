@@ -77,7 +77,7 @@ public class ThemeConfigurationTest {
 
     newStyleDialog.clickOk();
     themeEditor.waitForThemeSelection("MyMaterialTheme");
-    AndroidThemePreviewPanelFixture themePreviewPanel = themeEditor.getThemePreviewPanel();
+    AndroidThemePreviewPanelFixture themePreviewPanel = themeEditor.getPreviewComponent().getThemePreviewPanel();
     themePreviewPanel.requirePreviewPanel();
 
     JButton apiButton = themeEditor.findToolbarButton("Android version to use when rendering layouts in the IDE");
