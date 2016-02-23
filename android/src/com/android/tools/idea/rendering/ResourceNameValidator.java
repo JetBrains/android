@@ -146,7 +146,7 @@ public class ResourceNameValidator implements InputValidatorEx {
       if (myIsFileType) {
         char first = inputString.charAt(0);
         if (!(first >= 'a' && first <= 'z')) {
-          return String.format("File-based resource names must start with a lowercase letter.");
+          return "File-based resource names must start with a lowercase letter.";
         }
 
         // AAPT only allows lowercase+digits+_:
@@ -154,7 +154,7 @@ public class ResourceNameValidator implements InputValidatorEx {
         for (int i = 0, n = inputString.length(); i < n; i++) {
           char c = inputString.charAt(i);
           if (!((c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '_')) {
-            return String.format("File-based resource names must contain only lowercase a-z, 0-9, or _.");
+            return "File-based resource names must contain only lowercase a-z, 0-9, or _.";
           }
         }
       }
