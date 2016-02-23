@@ -20,9 +20,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.ISystemImage;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.repositoryv2.AndroidSdkHandler;
-import com.android.sdklib.repositoryv2.targets.AndroidTargetManager;
 import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
-import com.android.tools.idea.avdmanager.legacy.AvdEditWizard;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
@@ -45,7 +43,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import static com.android.tools.idea.avdmanager.AvdWizardConstants.NO_SKIN;
+import static com.android.tools.idea.avdmanager.AvdWizardUtils.NO_SKIN;
 
 /**
  * Combobox that populates itself with the skins used by existing devices. Also allows adding a
@@ -106,7 +104,7 @@ public class SkinChooser extends ComboboxWithBrowseButton implements ItemListene
 
     Set<File> result = Sets.newTreeSet();
     for (Device device : devices) {
-      File skinFile = AvdEditWizard.resolveSkinPath(device.getDefaultHardware().getSkinFile(), null, FileOpUtils.create());
+      File skinFile = AvdWizardUtils.resolveSkinPath(device.getDefaultHardware().getSkinFile(), null, FileOpUtils.create());
       if (skinFile != null && skinFile.exists()) {
         result.add(skinFile);
       }

@@ -20,13 +20,11 @@ import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.internal.avd.AvdInfo;
-import com.android.tools.idea.avdmanager.AccelerationErrorCode;
-import com.android.tools.idea.avdmanager.AccelerationErrorNotificationPanel;
-import com.android.tools.idea.avdmanager.legacy.AvdEditWizard;
-import com.android.tools.idea.avdmanager.AvdManagerConnection;
+import com.android.tools.idea.avdmanager.*;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.run.*;
 import com.android.tools.idea.run.util.LaunchUtils;
+import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
@@ -189,11 +187,12 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
   @Override
   public void actionPerformed(ActionEvent e) {
     if (e.getSource() == myCreateEmulatorButton) {
-      AvdEditWizard wizard = new AvdEditWizard(myPanel, myFacet.getModule().getProject(), myFacet.getModule(), null, false);
-      wizard.init();
-      wizard.showAndGet();
-      AvdInfo createdAvd = wizard.getCreatedAvd();
-      refreshAvds(createdAvd);
+      AvdOptionsModel avdOptionsModel = new AvdOptionsModel(null);
+      ModelWizardDialog dialog = AvdWizardUtils.createAvdWizard(myPanel,myFacet.getModule().getProject(), avdOptionsModel);
+      if (dialog.showAndGet()) {
+        AvdInfo createdAvd = avdOptionsModel.getCreatedAvd();
+        refreshAvds(createdAvd);
+      }
     }
   }
 

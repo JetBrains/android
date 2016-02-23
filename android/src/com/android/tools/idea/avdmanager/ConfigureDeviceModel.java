@@ -22,8 +22,6 @@ import com.android.sdklib.devices.State;
 import com.android.sdklib.repositoryv2.IdDisplay;
 import com.android.sdklib.repositoryv2.targets.SystemImage;
 import com.android.tools.idea.ui.properties.BindingsManager;
-import com.android.tools.idea.ui.properties.core.StringProperty;
-import com.android.tools.idea.ui.properties.core.StringValueProperty;
 import com.android.tools.idea.wizard.model.WizardModel;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.util.Disposer;
@@ -39,19 +37,10 @@ import java.util.Map;
  */
 public final class ConfigureDeviceModel extends WizardModel {
 
-  private BindingsManager myBindings = new BindingsManager();
-  private Device.Builder myBuilder = new Device.Builder();
   private final DeviceUiAction.DeviceProvider myProvider;
-  private StringProperty myWizardPanelDescription = new StringValueProperty();
-  private AvdDeviceData myDeviceData;
-
-  public StringProperty wizardPanelDescription() {
-    return myWizardPanelDescription;
-  }
-
-  public AvdDeviceData getDeviceData() {
-    return myDeviceData;
-  }
+  private final BindingsManager myBindings = new BindingsManager();
+  private final Device.Builder myBuilder = new Device.Builder();
+  private final AvdDeviceData myDeviceData;
 
   public ConfigureDeviceModel(@NotNull DeviceUiAction.DeviceProvider provider) {
     this(provider, null, true);
@@ -61,48 +50,9 @@ public final class ConfigureDeviceModel extends WizardModel {
     myProvider = provider;
     myDeviceData = new AvdDeviceData(device, forcedCreation);
     Disposer.register(this, myDeviceData);
-
-    String description =
-      (device == null) ? "Create a new hardware profile by selecting hardware features below." : device.getDisplayName() + " (Edited)";
-    myWizardPanelDescription.set(description);
-
-    initBootProperties(device);
-  }
-
-  /**
-   * Initialize boot properties from the given device
-   */
-  private void initBootProperties(@Nullable Device device) {
     if (device != null) {
-      for (Map.Entry<String, String> entry : device.getBootProps().entrySet()) {
-        myBuilder.addBootProp(entry.getKey(), entry.getValue());
-      }
+      initBootProperties(device);
     }
-  }
-
-  @Override
-  protected void handleFinished() {
-    Device device = buildDevice();
-    DeviceManagerConnection.getDefaultDeviceManagerConnection().createOrEditDevice(device);
-    myProvider.refreshDevices();
-    myProvider.setDevice(device);
-  }
-
-  /**
-   * Once we finish editing the device, we set it to its final configuration
-   */
-  @NotNull
-  private Device buildDevice() {
-    String deviceName = myDeviceData.name().get();
-    myBuilder.setName(deviceName);
-    myBuilder.setId(deviceName);
-    myBuilder.addSoftware(myDeviceData.software().getValue());
-    myBuilder.setManufacturer(myDeviceData.manufacturer().get());
-    IdDisplay tag = myDeviceData.deviceType().getValueOrNull();
-    myBuilder.setTagId((SystemImage.DEFAULT_TAG.equals(tag) || tag == null) ? null : tag.getId());
-    List<State> states = generateStates(new AvdHardwareData(myDeviceData).buildHardware());
-    myBuilder.addAllState(states);
-    return myBuilder.build();
   }
 
   @Nullable
@@ -144,6 +94,41 @@ public final class ConfigureDeviceModel extends WizardModel {
     }
 
     return state;
+  }
+
+  public AvdDeviceData getDeviceData() {
+    return myDeviceData;
+  }
+
+  private void initBootProperties(@NotNull Device device) {
+    for (Map.Entry<String, String> entry : device.getBootProps().entrySet()) {
+      myBuilder.addBootProp(entry.getKey(), entry.getValue());
+    }
+  }
+
+  @Override
+  protected void handleFinished() {
+    Device device = buildDevice();
+    DeviceManagerConnection.getDefaultDeviceManagerConnection().createOrEditDevice(device);
+    myProvider.refreshDevices();
+    myProvider.setDevice(device);
+  }
+
+  /**
+   * Once we finish editing the device, we set it to its final configuration
+   */
+  @NotNull
+  private Device buildDevice() {
+    String deviceName = myDeviceData.name().get();
+    myBuilder.setName(deviceName);
+    myBuilder.setId(deviceName);
+    myBuilder.addSoftware(myDeviceData.software().getValue());
+    myBuilder.setManufacturer(myDeviceData.manufacturer().get());
+    IdDisplay tag = myDeviceData.deviceType().getValueOrNull();
+    myBuilder.setTagId((SystemImage.DEFAULT_TAG.equals(tag) || tag == null) ? null : tag.getId());
+    List<State> states = generateStates(new AvdHardwareData(myDeviceData).buildHardware());
+    myBuilder.addAllState(states);
+    return myBuilder.build();
   }
 
   private List<State> generateStates(Hardware hardware) {
