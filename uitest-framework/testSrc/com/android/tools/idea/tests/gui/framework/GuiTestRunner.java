@@ -42,7 +42,6 @@ public class GuiTestRunner extends BlockJUnit4ClassRunner {
     Method methodFromClassLoader;
     try {
       ClassLoader ideClassLoader = IdeTestApplication.getInstance().getIdeClassLoader();
-      Thread.currentThread().setContextClassLoader(ideClassLoader);
       myTestClass = new TestClass(ideClassLoader.loadClass(getTestClass().getJavaClass().getName()));
       methodFromClassLoader = myTestClass.getJavaClass().getMethod(method.getName());
     }

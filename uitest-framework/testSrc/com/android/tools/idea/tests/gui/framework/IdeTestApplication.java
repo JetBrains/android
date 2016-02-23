@@ -171,7 +171,6 @@ public class IdeTestApplication implements Disposable {
       Main.showMessage("Plugin Installation Error", e);
     }
 
-    Thread.currentThread().setContextClassLoader(newClassLoader);
     return newClassLoader;
   }
 
