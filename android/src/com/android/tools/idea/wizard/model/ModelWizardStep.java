@@ -147,7 +147,14 @@ public abstract class ModelWizardStep<M extends WizardModel> implements Disposab
 
   /**
    * A base class for steps which don't need to store their state in any model, for example a step
-   * that can act simply on data passed into its constructor. Should be relatively rare.
+   * that can act simply on data passed into its constructor.
+   *
+   * This should not be something you'll commonly do, and you should almost always prefer
+   * inheriting from {@link ModelWizardStep} or consider using another solution entirely. For
+   * example, it might be more appropriate to use a standard dialog instead of a ModelWizard with a
+   * model-less step.
+   *
+   * If you do inherit from this, you should document why in a header comment.
    */
   public static abstract class WithoutModel extends ModelWizardStep<BlankModel> {
     protected WithoutModel(@NotNull String title) {

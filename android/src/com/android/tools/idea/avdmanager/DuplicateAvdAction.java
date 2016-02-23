@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.avdmanager;
 
-import com.android.tools.idea.avdmanager.legacy.AvdEditWizard;
+import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.diagnostic.Logger;
 
@@ -30,10 +30,10 @@ public class DuplicateAvdAction extends AvdUiAction {
 
   @Override
   public void actionPerformed(ActionEvent e) {
-    AvdEditWizard wizard = new AvdEditWizard(myAvdInfoProvider.getComponent(), null, null, getAvdInfo(), true);
-    wizard.init();
-    wizard.showAndGet();
-    refreshAvds();
+    ModelWizardDialog dialog = AvdWizardUtils.createAvdWizard(myAvdInfoProvider.getComponent(), null, getAvdInfo());
+    if (dialog.showAndGet()) {
+      refreshAvds();
+    }
   }
 
   @Override

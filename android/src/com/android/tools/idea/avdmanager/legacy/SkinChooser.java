@@ -43,7 +43,7 @@ import java.io.File;
 import java.util.List;
 import java.util.Set;
 
-import static com.android.tools.idea.avdmanager.AvdWizardConstants.NO_SKIN;
+import static com.android.tools.idea.avdmanager.AvdWizardUtils.NO_SKIN;
 
 /**
  * @deprecated Replace by {@link com.android.tools.idea.avdmanager.SkinChooser}

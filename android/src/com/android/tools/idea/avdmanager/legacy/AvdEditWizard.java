@@ -54,7 +54,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static com.android.tools.idea.avdmanager.AvdWizardConstants.*;
+import static com.android.tools.idea.avdmanager.AvdWizardUtils.*;
 
 /**
  * Wizard for creating/editing AVDs
@@ -418,7 +418,9 @@ public class AvdEditWizard extends DynamicWizard {
    * @param path  The path to resolve.
    * @param image A SystemImageDescription to use as an additional source of skin directories.
    * @return The resolved path.
+   * @deprecated Moved to {@link AvdWizardUtils#resolveSkinPath(File, SystemImageDescription, FileOp)}
    */
+  @Deprecated
   @Nullable
   public static File resolveSkinPath(@Nullable File path, @Nullable SystemImageDescription image, @NotNull FileOp fop) {
     if (path == null || path.getPath().isEmpty()) {
@@ -511,7 +513,10 @@ public class AvdEditWizard extends DynamicWizard {
    * @param uniquify      if true, _n will be appended to the name if necessary to make the name unique, where n is the first
    *                      number that makes the filename unique.
    * @return The modified filename.
+   *
+   * @deprecated Moved to {@link AvdWizardUtils#cleanAvdName(AvdManagerConnection, String, boolean)}
    */
+  @Deprecated
   public static String cleanAvdName(@NotNull AvdManagerConnection connection, @NotNull String candidateBase, boolean uniquify) {
     candidateBase = candidateBase.replaceAll("[^0-9a-zA-Z_-]+", " ").trim().replaceAll("[ _]+", "_");
     if (candidateBase.isEmpty()) {
