@@ -106,12 +106,12 @@ public class ThemeEditorTest {
     guiTest.robot().click(deviceButton);
     clickPopupMenuItem("Nexus 6P", "Nexus 6P", deviceButton, guiTest.robot());
 
-    themeEditor.requireApi(21).requireDevice("Nexus 6P");
+    themeEditor.getPreviewComponent().requireApi(21).requireDevice("Nexus 6P");
 
     // Tests that Preview All Screen Sizes is disabled
     guiTest.robot().click(deviceButton);
     clickPopupMenuItem("Preview All Screen Sizes", "Nexus 6P", deviceButton, guiTest.robot());
     clickPopupMenuItem("Nexus 9", "Nexus 9", deviceButton, guiTest.robot());
-    themeEditor.requireDevice("Nexus 9");
+    themeEditor.getPreviewComponent().requireDevice("Nexus 9");
   }
 }
