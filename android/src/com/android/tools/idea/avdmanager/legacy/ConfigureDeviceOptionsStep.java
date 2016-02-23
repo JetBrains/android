@@ -22,7 +22,7 @@ import com.android.resources.*;
 import com.android.sdklib.devices.*;
 import com.android.sdklib.repositoryv2.IdDisplay;
 import com.android.sdklib.repositoryv2.targets.SystemImage;
-import com.android.tools.idea.avdmanager.AvdWizardConstants;
+import com.android.tools.idea.avdmanager.AvdWizardUtils;
 import com.android.tools.idea.avdmanager.DeviceManagerConnection;
 import com.android.tools.idea.ddms.screenshot.DeviceArtDescriptor;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStepWithDescription;
@@ -47,7 +47,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static com.android.tools.idea.avdmanager.AvdWizardConstants.*;
+import static com.android.tools.idea.avdmanager.AvdWizardUtils.*;
 
 /**
  * UI for configuring a Device Hardware Profile.
@@ -142,7 +142,7 @@ public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithDescription
     myHelpAndErrorLabel.setForeground(JBColor.foreground());
     myHelpAndErrorLabel.setOpaque(true);
     myHardwareSkinHelpLabel = new HyperlinkLabel("How do I create a custom hardware skin?");
-    myHardwareSkinHelpLabel.setHyperlinkTarget(AvdWizardConstants.CREATE_SKIN_HELP_LINK);
+    myHardwareSkinHelpLabel.setHyperlinkTarget(AvdWizardUtils.CREATE_SKIN_HELP_LINK);
     myCustomSkinPath = new SkinChooser(getProject());
   }
 
@@ -202,7 +202,7 @@ public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithDescription
     myState.put(DIAGONAL_SCREENSIZE_KEY, screen.getDiagonalLength());
     myState.put(RESOLUTION_WIDTH_KEY, screen.getXDimension());
     myState.put(RESOLUTION_HEIGHT_KEY, screen.getYDimension());
-    myState.put(RAM_STORAGE_KEY, AvdWizardConstants.getDefaultRam(defaultHardware));
+    myState.put(RAM_STORAGE_KEY, AvdWizardUtils.getDefaultRam(defaultHardware));
 
     myState.put(HAS_HARDWARE_BUTTONS_KEY, defaultHardware.getButtonType() == ButtonType.HARD);
     myState.put(HAS_HARDWARE_KEYBOARD_KEY, defaultHardware.getKeyboard() != Keyboard.NOKEY);

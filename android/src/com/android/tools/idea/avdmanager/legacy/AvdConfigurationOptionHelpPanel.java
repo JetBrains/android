@@ -31,7 +31,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.Map;
 
-import static com.android.tools.idea.avdmanager.AvdWizardConstants.*;
+import static com.android.tools.idea.avdmanager.AvdWizardUtils.*;
 
 /**
  * A help panel that displays help text and error messaging for AVD options.

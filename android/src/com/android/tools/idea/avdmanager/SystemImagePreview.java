@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.avdmanager;
 
+import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.repositoryv2.IdDisplay;
 import com.android.sdklib.repositoryv2.targets.SystemImage;
@@ -66,16 +67,16 @@ public class SystemImagePreview {
   public SystemImagePreview(@Nullable Disposable disposable) {
     myDisposable = disposable;
     myRootPanel.setLayout(new CardLayout());
-    myReleaseName.setFont(AvdWizardConstants.TITLE_FONT);
-    myApiLevel.setFont(AvdWizardConstants.TITLE_FONT);
-    myAndroidVersion.setFont(AvdWizardConstants.TITLE_FONT);
-    myVendor.setFont(AvdWizardConstants.TITLE_FONT);
+    myReleaseName.setFont(AvdWizardUtils.TITLE_FONT);
+    myApiLevel.setFont(AvdWizardUtils.TITLE_FONT);
+    myAndroidVersion.setFont(AvdWizardUtils.TITLE_FONT);
+    myVendor.setFont(AvdWizardUtils.TITLE_FONT);
     myDocumentationLink.setOpaque(false);
-    myAbi.setFont(AvdWizardConstants.TITLE_FONT);
+    myAbi.setFont(AvdWizardUtils.TITLE_FONT);
     myRootPanel.add(myMainPanel, MAIN_CONTENT);
     JPanel nonePanel = new JPanel(new BorderLayout());
     JBLabel noneLabel = new JBLabel(NO_SYSTEM_IMAGE_SELECTED);
-    noneLabel.setHorizontalAlignment(JBLabel.CENTER);
+    noneLabel.setHorizontalAlignment(SwingConstants.CENTER);
     nonePanel.add(noneLabel, BorderLayout.CENTER);
     nonePanel.setBackground(JBColor.WHITE);
     myRootPanel.add(nonePanel, NO_IMAGE_CONTENT);
@@ -96,9 +97,13 @@ public class SystemImagePreview {
 
     if (image != null) {
       ((CardLayout)myRootPanel.getLayout()).show(myRootPanel, MAIN_CONTENT);
-      int apiLevel = image.getVersion().getApiLevel();
+      AndroidVersion version = image.getVersion();
+      if (version == null) {
+        return;
+      }
+      int apiLevel = version.getApiLevel();
       myApiLevelListener.setApiLevel(apiLevel);
-      String codeName = getCodeName(myImageDescription);
+      String codeName = SdkVersionInfo.getCodeName(myImageDescription.getVersion().getApiLevel());
       if (codeName != null) {
         myReleaseName.setText(codeName);
       }
@@ -123,18 +128,6 @@ public class SystemImagePreview {
 
   public void showExplanationForRecommended(boolean show) {
     myRecommendedExplanation.setVisible(show);
-  }
-
-  /**
-   * @return the codename for the given System Image's API level
-   */
-  @Nullable
-  public static String getCodeName(@NotNull SystemImageDescription description) {
-    String codeName = description.getVersion().getCodename();
-    if (codeName == null) {
-      codeName = SdkVersionInfo.getCodeName(description.getVersion().getApiLevel());
-    }
-    return codeName;
   }
 
   /**

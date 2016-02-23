@@ -38,7 +38,7 @@ import java.awt.geom.RoundRectangle2D;
 import java.text.DecimalFormat;
 import java.util.List;
 
-import static com.android.tools.idea.avdmanager.AvdWizardConstants.*;
+import static com.android.tools.idea.avdmanager.AvdWizardUtils.*;
 
 /**
  * @deprecated Replaced by {@link com.android.tools.idea.avdmanager.DeviceDefinitionPreview}

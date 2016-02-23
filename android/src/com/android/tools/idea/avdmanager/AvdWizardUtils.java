@@ -15,26 +15,41 @@
  */
 package com.android.tools.idea.avdmanager;
 
+import com.android.repository.io.FileOp;
+import com.android.repository.io.FileOpUtils;
 import com.android.resources.Navigation;
 import com.android.resources.ScreenOrientation;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Hardware;
 import com.android.sdklib.devices.Screen;
 import com.android.sdklib.devices.Storage;
+import com.android.sdklib.devices.Storage.Unit;
+import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.internal.avd.GpuMode;
 import com.android.sdklib.internal.avd.HardwareProperties;
 import com.android.sdklib.repositoryv2.IdDisplay;
 import com.android.sdklib.repositoryv2.targets.SystemImage;
+import com.android.tools.idea.ddms.screenshot.DeviceArtDescriptor;
+import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder;
+import com.android.tools.idea.ui.wizard.WizardUtils;
+import com.android.tools.idea.wizard.model.ModelWizard;
+import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.ui.JBFont;
+import org.jetbrains.android.sdk.AndroidSdkData;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
-import static com.android.sdklib.devices.Storage.Unit;
 import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
 import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Scope.STEP;
 import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Scope.WIZARD;
@@ -43,11 +58,11 @@ import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.createKey;
 /**
  * State store keys for the AVD Manager wizards
  */
-public class AvdWizardConstants {
+public class AvdWizardUtils {
+
   public static final String WIZARD_ONLY = "AvdManager.WizardOnly.";
 
   // Avd option keys
-
   public static final Key<Device> DEVICE_DEFINITION_KEY = createKey(WIZARD_ONLY + "DeviceDefinition", WIZARD, Device.class);
   public static final Key<SystemImageDescription> SYSTEM_IMAGE_KEY = createKey(WIZARD_ONLY + "SystemImage", WIZARD, SystemImageDescription.class);
 
@@ -148,8 +163,18 @@ public class AvdWizardConstants {
 
   public static final File NO_SKIN = new File("_no_skin");
 
+  // The AVD wizard needs a bit of extra width as its options panel is pretty dense
+  private static final Dimension AVD_WIZARD_SIZE = new Dimension(1000, 650);
+
+  private static final String AVD_WIZARD_HELP_URL = "https://developer.android.com/r/studio-ui/avd-manager.html";
+
   /** Maximum amount of RAM to *default* an AVD to, if the physical RAM on the device is higher */
   private static final int MAX_RAM_MB = 1536;
+
+  private static Logger getLog() {
+    return Logger.getInstance(AvdWizardUtils.class);
+  }
+
 
   /**
    * Get the default amount of ram to use for the given hardware in an AVD. This is typically
@@ -163,11 +188,32 @@ public class AvdWizardConstants {
    */
   @NotNull
   public static Storage getDefaultRam(@NotNull Hardware hardware) {
-    Storage ram = hardware.getRam();
+    return getMaxPossibleRam(hardware.getRam());
+  }
+
+  /**
+   * Get the default amount of ram to use for the given hardware in an AVD. This is typically
+   * the same RAM as is used in the hardware, but it is maxed out at {@link #MAX_RAM_MB} since more than that
+   * is usually detrimental to development system performance and most likely not needed by the
+   * emulated app (e.g. it's intended to let the hardware run smoothly with lots of services and
+   * apps running simultaneously)
+   *
+   * @param data the {@link AvdDeviceData} to look up the default amount of RAM on
+   * @return the amount of RAM to default an AVD to for the given hardware
+   */
+  @NotNull
+  public static Storage getDefaultRam(@NotNull AvdDeviceData data) {
+    return getMaxPossibleRam(data.ramStorage().get());
+  }
+
+  /**
+   * Limits the ram to {@link #MAX_RAM_MB}
+   */
+  @NotNull
+  private static Storage getMaxPossibleRam(Storage ram) {
     if (ram.getSizeAsUnit(Storage.Unit.MiB) >= MAX_RAM_MB) {
       return new Storage(MAX_RAM_MB, Storage.Unit.MiB);
     }
-
     return ram;
   }
 
@@ -176,5 +222,113 @@ public class AvdWizardConstants {
    */
   public static int getMaxCpuCores() {
     return Runtime.getRuntime().availableProcessors() / 2;
+  }
+
+  /**
+   * Get a version of {@code candidateBase} modified such that it is a valid filename. Invalid characters will be
+   * removed, and if requested the name will be made unique.
+   *
+   * @param candidateBase the name on which to base the avd name.
+   * @param uniquify      if true, _n will be appended to the name if necessary to make the name unique, where n is the first
+   *                      number that makes the filename unique.
+   * @return The modified filename.
+   */
+  public static String cleanAvdName(@NotNull AvdManagerConnection connection, @NotNull String candidateBase, boolean uniquify) {
+    candidateBase = candidateBase.replaceAll("[^0-9a-zA-Z_-]+", " ").trim().replaceAll("[ _]+", "_");
+    if (candidateBase.isEmpty()) {
+      candidateBase = "myavd";
+    }
+    String candidate = candidateBase;
+    if (uniquify) {
+      int i = 1;
+      while (connection.avdExists(candidate)) {
+        candidate = String.format("%1$s_%2$d", candidateBase, i++);
+      }
+    }
+    return candidate;
+  }
+
+  @Nullable
+  public static File resolveSkinPath(@Nullable File path, @Nullable SystemImageDescription image, @NotNull FileOp fop) {
+    if (path == null || path.getPath().isEmpty()) {
+      return path;
+    }
+    if (FileUtil.filesEqual(path, NO_SKIN)) {
+      return NO_SKIN;
+    }
+    if (!path.isAbsolute()) {
+      if (image != null) {
+        File[] skins = image.getSkins();
+        for (File skin : skins) {
+          if (skin.getPath().endsWith(File.separator + path.getPath())) {
+            return skin;
+          }
+        }
+      }
+      AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
+      File dest = null;
+      if (sdkData != null) {
+        File sdkDir = sdkData.getLocation();
+        File sdkSkinDir = new File(sdkDir, "skins");
+        dest = new File(sdkSkinDir, path.getPath());
+        if (fop.exists(dest)) {
+          return dest;
+        }
+      }
+
+      File resourceDir = DeviceArtDescriptor.getBundledDescriptorsFolder();
+      if (resourceDir != null) {
+        File resourcePath = new File(resourceDir, path.getPath());
+        if (fop.exists(resourcePath)) {
+          if (dest != null) {
+            try {
+              FileOpUtils.recursiveCopy(resourcePath, dest.getParentFile(), fop);
+              return new File(dest, path.getPath());
+            }
+            catch (IOException e) {
+              getLog().warn(String.format("Failed to copy skin directory to %1$s, using studio-relative path %2$s",
+                                     dest, resourcePath));
+            }
+          }
+          return resourcePath;
+        }
+      }
+    }
+    return path;
+  }
+
+  /**
+   * Creates a {@link ModelWizardDialog} containing all the steps needed to create a new AVD
+   */
+  public static ModelWizardDialog createAvdWizard(@Nullable Component parent,
+                                                  @Nullable Project project) {
+    return createAvdWizard(parent, project, new AvdOptionsModel(null));
+  }
+
+  /**
+   * Creates a {@link ModelWizardDialog} containing all the steps needed to create or edit AVDs
+   */
+  public static ModelWizardDialog createAvdWizard(@Nullable Component parent,
+                                                  @Nullable Project project,
+                                                  @Nullable AvdInfo avdInfo) {
+    return createAvdWizard(parent, project, new AvdOptionsModel(avdInfo));
+  }
+
+  /**
+   * Creates a {@link ModelWizardDialog} containing all the steps needed to create or edit AVDs
+   */
+  public static ModelWizardDialog createAvdWizard(@Nullable Component parent,
+                                                  @Nullable Project project,
+                                                  @NotNull AvdOptionsModel model) {
+    ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
+    if (!model.isInEditMode().get()) {
+      wizardBuilder.addStep(new ChooseDeviceDefinitionStep(model.device()));
+      wizardBuilder.addStep(new ChooseSystemImageStep(project, model.device(), model.systemImage()));
+    }
+    wizardBuilder.addStep(new ConfigureAvdOptionsStep(project, model));
+    ModelWizard wizard = wizardBuilder.build();
+    StudioWizardDialogBuilder builder = new StudioWizardDialogBuilder(wizard, "Virtual Device Configuration", parent);
+    builder.setMinimumSize(AVD_WIZARD_SIZE);
+    return builder.setHelpUrl(WizardUtils.toUrl(AVD_WIZARD_HELP_URL)).build();
   }
 }
