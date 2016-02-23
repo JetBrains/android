@@ -65,18 +65,20 @@ public final class AvdOptionsModel extends WizardModel {
   private StringProperty myAvdId = new StringValueProperty();
   private StringProperty myAvdDisplayName = new StringValueProperty();
 
-  private ObjectProperty<Storage> myInternalStorage = new ObjectValueProperty<Storage>(new Storage(200, Storage.Unit.MiB));
+  private ObjectProperty<Storage> myInternalStorage = new ObjectValueProperty<Storage>(AvdWizardUtils.DEFAULT_INTERNAL_STORAGE);
   private ObjectProperty<ScreenOrientation> mySelectedAvdOrientation =
     new ObjectValueProperty<ScreenOrientation>(ScreenOrientation.PORTRAIT);
-  private OptionalProperty<String> mySelectedAvdFrontCamera = new OptionalValueProperty<String>();
-  private OptionalProperty<String> mySelectedAvdBackCamera = new OptionalValueProperty<String>();
+  private ObjectProperty<AvdCamera> mySelectedAvdFrontCamera = new ObjectValueProperty<AvdCamera>(AvdWizardUtils.DEFAULT_CAMERA);
+  private ObjectProperty<AvdCamera> mySelectedAvdBackCamera = new ObjectValueProperty<AvdCamera>(AvdWizardUtils.DEFAULT_CAMERA);
 
   private BoolProperty myHasDeviceFrame = new BoolValueProperty();
   private BoolProperty myUseExternalSdCard = new BoolValueProperty();
-  private BoolProperty myUseBuiltInSdCard = new BoolValueProperty();
-  private OptionalProperty<String> mySelectedNetworkSpeed = new OptionalValueProperty<String>();
-  private OptionalProperty<String> mySelectedNetworkLatency = new OptionalValueProperty<String>();
-  private OptionalProperty<AvdScaleFactor> mySelectedAvdScale = new OptionalValueProperty<AvdScaleFactor>(AvdScaleFactor.AUTO);
+  private BoolProperty myUseBuiltInSdCard = new BoolValueProperty(true);
+  private ObjectProperty<AvdNetworkSpeed> mySelectedNetworkSpeed =
+    new ObjectValueProperty<AvdNetworkSpeed>(AvdWizardUtils.DEFAULT_NETWORK_SPEED);
+  private ObjectProperty<AvdNetworkLatency> mySelectedNetworkLatency =
+    new ObjectValueProperty<AvdNetworkLatency>(AvdWizardUtils.DEFAULT_NETWORK_LATENCY);
+  private OptionalProperty<AvdScaleFactor> mySelectedAvdScale = new OptionalValueProperty<AvdScaleFactor>(AvdWizardUtils.DEFAULT_SCALE);
 
   private StringProperty mySystemImageName = new StringValueProperty();
   private StringProperty mySystemImageDetails = new StringValueProperty();
@@ -85,9 +87,9 @@ public final class AvdOptionsModel extends WizardModel {
   private ObjectProperty<Storage> myVmHeapStorage = new ObjectValueProperty<Storage>(new Storage(16, Storage.Unit.MiB));
 
   private StringProperty myExternalSdCardLocation = new StringValueProperty();
-  private OptionalProperty<Storage> mySdCardStorage = new OptionalValueProperty<Storage>();
+  private OptionalProperty<Storage> mySdCardStorage = new OptionalValueProperty<Storage>(new Storage(100, Storage.Unit.MiB));
 
-  private BoolProperty myUseHostGpu = new BoolValueProperty();
+  private BoolProperty myUseHostGpu = new BoolValueProperty(true);
   private OptionalProperty<GpuMode> myHostGpuMode = new OptionalValueProperty<GpuMode>(GpuMode.DEFAULT);
   private BoolProperty myEnableHardwareKeyboard = new BoolValueProperty();
 
@@ -103,11 +105,12 @@ public final class AvdOptionsModel extends WizardModel {
   private AvdDeviceData myAvdDeviceData;
   private AvdInfo myCreatedAvd;
 
-
   public AvdOptionsModel(@Nullable AvdInfo avdInfo) {
     myAvdInfo = avdInfo;
     myAvdDeviceData = new AvdDeviceData();
-    initData();
+    if (myAvdInfo != null) {
+      updateValuesWithAvdInfo(myAvdInfo);
+    }
   }
 
   /**
@@ -228,12 +231,12 @@ public final class AvdOptionsModel extends WizardModel {
   }
 
   @NotNull
-  public OptionalProperty<String> selectedFrontCamera() {
+  public ObjectProperty<AvdCamera> selectedFrontCamera() {
     return mySelectedAvdFrontCamera;
   }
 
   @NotNull
-  public OptionalProperty<String> selectedBackCamera() {
+  public ObjectProperty<AvdCamera> selectedBackCamera() {
     return mySelectedAvdBackCamera;
   }
 
@@ -248,12 +251,12 @@ public final class AvdOptionsModel extends WizardModel {
   }
 
   @NotNull
-  public OptionalProperty<String> selectedNetworkSpeed() {
+  public ObjectProperty<AvdNetworkSpeed> selectedNetworkSpeed() {
     return mySelectedNetworkSpeed;
   }
 
   @NotNull
-  public OptionalProperty<String> selectedNetworkLatency() {
+  public ObjectProperty<AvdNetworkLatency> selectedNetworkLatency() {
     return mySelectedNetworkLatency;
   }
 
@@ -346,34 +349,6 @@ public final class AvdOptionsModel extends WizardModel {
     myAvdDeviceData = avdDeviceData;
   }
 
-  private void initData() {
-    if (myAvdInfo != null) {
-      updateValuesWithAvdInfo(myAvdInfo);
-    }
-    else {
-      initDefaultInfo();
-    }
-  }
-
-  /**
-   * Init the wizard with a set of reasonable defaults
-   */
-  private void initDefaultInfo() {
-    mySelectedAvdScale.setValue(AvdWizardUtils.DEFAULT_SCALE);
-    mySelectedNetworkSpeed.setValue(AvdWizardUtils.DEFAULT_NETWORK_SPEED);
-    mySelectedNetworkLatency.setValue(AvdWizardUtils.DEFAULT_NETWORK_LATENCY);
-    mySelectedAvdFrontCamera.setValue(AvdWizardUtils.DEFAULT_CAMERA);
-    mySelectedAvdBackCamera.setValue(AvdWizardUtils.DEFAULT_CAMERA);
-    myInternalStorage.set(AvdWizardUtils.DEFAULT_INTERNAL_STORAGE);
-    myIsInEditMode.set(false);
-    myUseHostGpu.set(true);
-    myHostGpuMode.setValue(GpuMode.DEFAULT);
-    mySdCardStorage.setValue(new Storage(100, Storage.Unit.MiB));
-    myUseExternalSdCard.set(false);
-    myUseBuiltInSdCard.set(true);
-    mySelectedAvdOrientation.set(ScreenOrientation.PORTRAIT);
-  }
-
   private void updateValuesWithAvdInfo(@NotNull AvdInfo avdInfo) {
     List<Device> devices = DeviceManagerConnection.getDefaultDeviceManagerConnection().getDevices();
     Device selectedDevice = null;
@@ -451,10 +426,10 @@ public final class AvdOptionsModel extends WizardModel {
     }
 
     myUseHostGpu.set(fromIniString(properties.get(AvdWizardUtils.USE_HOST_GPU_KEY.name)));
-    mySelectedAvdFrontCamera.setValue(properties.get(AvdWizardUtils.FRONT_CAMERA_KEY.name));
-    mySelectedAvdBackCamera.setValue(properties.get(AvdWizardUtils.BACK_CAMERA_KEY.name));
-    mySelectedNetworkLatency.setValue(properties.get(AvdWizardUtils.NETWORK_LATENCY_KEY.name));
-    mySelectedNetworkSpeed.setValue(properties.get(AvdWizardUtils.NETWORK_SPEED_KEY.name));
+    mySelectedAvdFrontCamera.set(AvdCamera.fromName(properties.get(AvdWizardUtils.FRONT_CAMERA_KEY.name)));
+    mySelectedAvdBackCamera.set(AvdCamera.fromName(properties.get(AvdWizardUtils.BACK_CAMERA_KEY.name)));
+    mySelectedNetworkLatency.set(AvdNetworkLatency.fromName(properties.get(AvdWizardUtils.NETWORK_LATENCY_KEY.name)));
+    mySelectedNetworkSpeed.set(AvdNetworkSpeed.fromName(properties.get(AvdWizardUtils.NETWORK_SPEED_KEY.name)));
     myEnableHardwareKeyboard.set(fromIniString(properties.get(AvdWizardUtils.HAS_HARDWARE_KEYBOARD_KEY.name)));
     myAvdDisplayName.set(AvdManagerConnection.getAvdDisplayName(avdInfo));
     myHasDeviceFrame.set(fromIniString(properties.get(AvdWizardUtils.DEVICE_FRAME_KEY.name)));
@@ -533,15 +508,11 @@ public final class AvdOptionsModel extends WizardModel {
     }
     map.put(AvdWizardUtils.DISPLAY_USE_EXTERNAL_SD_KEY.name, myUseExternalSdCard.get());
     map.put(AvdWizardUtils.INTERNAL_STORAGE_KEY.name, myInternalStorage.get());
-    if (mySelectedNetworkSpeed.get().isPresent()) {
-      map.put(AvdWizardUtils.NETWORK_SPEED_KEY.name, mySelectedNetworkSpeed.getValue().toLowerCase(Locale.US));
-    }
-    if (mySelectedAvdFrontCamera.get().isPresent()) {
-      map.put(AvdWizardUtils.FRONT_CAMERA_KEY.name, mySelectedAvdFrontCamera.getValue().toLowerCase(Locale.US));
-    }
-    if (mySelectedAvdBackCamera.get().isPresent()) {
-      map.put(AvdWizardUtils.BACK_CAMERA_KEY.name, mySelectedAvdBackCamera.getValue().toLowerCase(Locale.US));
-    }
+    map.put(AvdWizardUtils.NETWORK_SPEED_KEY.name, mySelectedNetworkSpeed.get().getAsParameter());
+    map.put(AvdWizardUtils.NETWORK_LATENCY_KEY.name, mySelectedNetworkLatency.get().getAsParameter());
+    map.put(AvdWizardUtils.FRONT_CAMERA_KEY.name, mySelectedAvdFrontCamera.get().getAsParameter());
+    map.put(AvdWizardUtils.BACK_CAMERA_KEY.name, mySelectedAvdBackCamera.get().getAsParameter());
+
     if (mySelectedAvdScale.get().isPresent()) {
       map.put(AvdWizardUtils.SCALE_SELECTION_KEY.name, mySelectedAvdScale.getValue());
     }
@@ -554,9 +525,6 @@ public final class AvdOptionsModel extends WizardModel {
       map.put(AvdWizardUtils.BACKUP_SKIN_FILE_KEY.name, myBackupSkinFile.getValue());
     }
 
-    if (mySelectedNetworkLatency.get().isPresent()) {
-      map.put(AvdWizardUtils.NETWORK_LATENCY_KEY.name, mySelectedNetworkLatency.getValue().toLowerCase(Locale.US));
-    }
     if (mySdCardStorage.get().isPresent()) {
       map.put(AvdWizardUtils.DISPLAY_SD_SIZE_KEY.name, mySdCardStorage.getValue());
     }
