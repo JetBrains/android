@@ -342,9 +342,6 @@ public class AvdEditWizard extends DynamicWizard {
     }
 
     // Add defaults if they aren't already set differently
-    if (!hardwareProperties.containsKey(AvdManager.AVD_INI_SKIN_DYNAMIC)) {
-      hardwareProperties.put(AvdManager.AVD_INI_SKIN_DYNAMIC, toIniString(true));
-    }
     if (!hardwareProperties.containsKey(HardwareProperties.HW_KEYBOARD)) {
       hardwareProperties.put(HardwareProperties.HW_KEYBOARD, toIniString(false));
     }
