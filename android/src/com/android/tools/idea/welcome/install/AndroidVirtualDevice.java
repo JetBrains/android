@@ -29,8 +29,8 @@ import com.android.sdklib.repositoryv2.AndroidSdkHandler;
 import com.android.sdklib.repositoryv2.IdDisplay;
 import com.android.sdklib.repositoryv2.meta.DetailsTypes;
 import com.android.sdklib.repositoryv2.targets.SystemImage;
-import com.android.tools.idea.avdmanager.AvdOptionsModel;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
+import com.android.tools.idea.avdmanager.AvdOptionsModel;
 import com.android.tools.idea.avdmanager.DeviceManagerConnection;
 import com.android.tools.idea.avdmanager.SystemImageDescription;
 import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
@@ -131,7 +131,7 @@ public class AndroidVirtualDevice extends InstallableComponent {
     Map<String, String> settings = getAvdSettings(internalName, d);
     settings.put(AvdManagerConnection.AVD_INI_DISPLAY_NAME, displayName);
     if (useRanchu) {
-      settings.put(CPU_CORES_KEY.name, String.valueOf(supportsSmp ? getMaxCpuCores() : 1));
+      settings.put(CPU_CORES_KEY, String.valueOf(supportsSmp ? getMaxCpuCores() : 1));
     }
     return connection
       .createOrUpdateAvd(null, internalName, d, systemImageDescription, ScreenOrientation.PORTRAIT, false, cardSize, hardwareSkinPath,
