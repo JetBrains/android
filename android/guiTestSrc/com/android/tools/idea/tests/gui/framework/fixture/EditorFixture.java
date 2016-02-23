@@ -24,6 +24,7 @@ import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.LayoutEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.LayoutPreviewFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemePreviewFixture;
 import com.google.common.collect.Lists;
 import com.intellij.android.designer.AndroidDesignerEditor;
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
@@ -41,6 +42,8 @@ import com.intellij.openapi.keymap.KeymapManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.wm.ToolWindow;
+import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.components.JBList;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
@@ -1052,6 +1055,55 @@ public class EditorFixture {
       });
 
     return new ThemeEditorFixture(robot, themeEditorComponent);
+  }
+
+  /**
+   * Returns a fixture around the theme preview window, <b>if</b> the currently edited file
+   * is a styles file and if the XML editor tab of the layout is currently showing.
+   *
+   * @param switchToTabIfNecessary if true, switch to the editor tab if it is not already showing
+   * @return the theme preview fixture
+   */
+  @Nullable
+  public ThemePreviewFixture getThemePreview(boolean switchToTabIfNecessary) {
+    VirtualFile currentFile = getCurrentFile();
+    if (ResourceHelper.getFolderType(currentFile) != ResourceFolderType.VALUES) {
+      return null;
+    }
+
+    if (switchToTabIfNecessary) {
+      selectEditorTab(Tab.EDITOR);
+    }
+
+    Boolean visible = GuiActionRunner.execute(new GuiQuery<Boolean>() {
+      @Override
+      protected Boolean executeInEDT() throws Throwable {
+        final ToolWindow window = ToolWindowManager.getInstance(myFrame.getProject()).getToolWindow("Theme Preview");
+        return window.isActive();
+      }
+    });
+    if (visible == null || !visible) {
+      myFrame.invokeMenuPath("View", "Tool Windows", "Theme Preview");
+    }
+
+    pause(new Condition("Theme Preview window is visible") {
+      @Override
+      public boolean test() {
+        final ToolWindow window = ToolWindowManager.getInstance(myFrame.getProject()).getToolWindow("Theme Preview");
+        Boolean result = execute(new GuiQuery<Boolean>() {
+          @Override
+          protected Boolean executeInEDT() throws Throwable {
+            return window.isVisible();
+          }
+        });
+
+        return result != null && result;
+      }
+    }, SHORT_TIMEOUT);
+
+    // Wait for it to be fully opened
+    robot.waitForIdle();
+    return new ThemePreviewFixture(robot, myFrame.getProject());
   }
 
   /**
