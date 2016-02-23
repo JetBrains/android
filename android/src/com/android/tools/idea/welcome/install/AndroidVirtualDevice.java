@@ -71,8 +71,7 @@ public class AndroidVirtualDevice extends InstallableComponent {
   private static final Set<String> ENABLED_HARDWARE = ImmutableSet
     .of(HW_ACCELEROMETER, HW_AUDIO_INPUT, HW_BATTERY, HW_GPS, HW_KEYBOARD, HW_ORIENTATION_SENSOR, HW_PROXIMITY_SENSOR, HW_SDCARD,
         AVD_INI_GPU_EMULATION, AVD_INI_GPU_MODE);
-  private static final Set<String> DISABLED_HARDWARE =
-    ImmutableSet.of(HW_DPAD, HW_MAINKEYS, HW_TRACKBALL, AVD_INI_SNAPSHOT_PRESENT, AVD_INI_SKIN_DYNAMIC);
+  private static final Set<String> DISABLED_HARDWARE = ImmutableSet.of(HW_DPAD, HW_MAINKEYS, HW_TRACKBALL, AVD_INI_SNAPSHOT_PRESENT);
   private ProgressStep myProgressStep;
   @Nullable
   private final AndroidVersion myLatestVersion;
