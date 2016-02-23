@@ -50,7 +50,7 @@ public class ThemePreviewTest {
     // No style or theme selected
     assertFalse(ToolWindowManager.getInstance(project).getToolWindow("Theme Preview").isAvailable());
 
-    editor.moveTo(editor.findOffset("AppTheme^"));
+    editor.moveTo(editor.findOffset("PreviewTheme^"));
     guiTest.robot().waitForIdle();
     assertTrue(ToolWindowManager.getInstance(project).getToolWindow("Theme Preview").isAvailable());
 
@@ -73,7 +73,7 @@ public class ThemePreviewTest {
     int savedApiLevel = layoutPreview.getToolbar().getApiLevel();
 
     editor.open("app/src/main/res/values-v19/styles.xml", EditorFixture.Tab.EDITOR);
-    editor.moveTo(editor.findOffset("AppTheme^"));
+    editor.moveTo(editor.findOffset("PreviewTheme^"));
     guiTest.robot().waitForIdle();
     assertTrue(ToolWindowManager.getInstance(project).getToolWindow("Theme Preview").isAvailable());
 
@@ -83,7 +83,7 @@ public class ThemePreviewTest {
     preview.getPreviewComponent().requireApi(19);
 
     editor.open("app/src/main/res/values/styles.xml", EditorFixture.Tab.EDITOR);
-    editor.moveTo(editor.findOffset("AppTheme^"));
+    editor.moveTo(editor.findOffset("PreviewTheme^"));
     guiTest.robot().waitForIdle();
     preview = editor.getThemePreview(true);
     assertNotNull(preview);
