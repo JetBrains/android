@@ -73,7 +73,6 @@ public class AndroidVirtualDeviceTest extends AndroidTestBase {
     builder.put("runtime.network.speed", "full");
     builder.put("runtime.scalefactor", "auto");
     builder.put("sdcard.size", "200M");
-    builder.put("skin.dynamic", "no");
     builder.put("skin.name", "nexus_5x");
     builder.put("snapshot.present", "no");
     builder.put("tag.display", "Google APIs");
