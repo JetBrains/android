@@ -101,6 +101,7 @@ public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionL
     myDeviceData.deviceType().addWeakListener(myRepaintListener);
     myDeviceData.diagonalScreenSize().addWeakListener(myRepaintListener);
     myDeviceData.isScreenRound().addWeakListener(myRepaintListener);
+    myDeviceData.screenDpi().addWeakListener(myRepaintListener);
   }
 
   @Override
