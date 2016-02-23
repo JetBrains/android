@@ -104,8 +104,20 @@ public class StateController extends TreeController implements GpuState.Listener
       if (node == null) break;
       treePath = treePath.pathByAddingChild(node);
     }
-    myTree.expandPath((node == null || node.isLeaf()) ? treePath.getParentPath() : treePath);
+    final TreePath expandPath = (node == null || node.isLeaf()) ? treePath.getParentPath() : treePath;
+
+    myTree.expandPath(expandPath);
     myTree.setSelectionPath(treePath);
+    // Avoid making the user scroll to see the contents of the item they just selected.
+    // First we scroll to the last child, then back to the selected item. After this,
+    // the expanded item will either be at the top of the window or child count rows
+    // above the bottom or the selected item is at the bottom and the expanded item
+    // is above the top of the window.
+    int row = myTree.getRowForPath(expandPath) + node.getChildCount();
+    if (row >= myTree.getRowCount()) {
+      row = myTree.getRowCount() - 1;
+    }
+    myTree.scrollPathToVisible(myTree.getPathForRow(row));
     myTree.scrollPathToVisible(treePath);
   }
 
