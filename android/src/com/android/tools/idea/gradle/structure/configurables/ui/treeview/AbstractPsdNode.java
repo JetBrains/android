@@ -36,10 +36,18 @@ public abstract class AbstractPsdNode<T extends PsdModel> extends SimpleNode {
 
   public AbstractPsdNode(@NotNull T...models) {
     myModels = Lists.newArrayList(models);
+    updateIcon();
   }
 
   public AbstractPsdNode(@NotNull List<T> models) {
     myModels = models;
+    updateIcon();
+  }
+
+  private void updateIcon() {
+    if (!myModels.isEmpty()) {
+      setIcon(myModels.get(0).getIcon());
+    }
   }
 
   @NotNull
