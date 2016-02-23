@@ -509,7 +509,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     public void consume(Optional<Device> device) {
       toggleOptionals(device, true);
       if (device.isPresent()) {
-        getModel().setAvdDeviceData(new AvdDeviceData(getModel().device().getValue(), false));
+        getModel().setAvdDeviceData(new AvdDeviceData(getModel().device().getValue()));
         myDeviceName.setIcon(DeviceDefinitionPreview.getIcon(getModel().getAvdDeviceData()));
         myDeviceName.setText(getModel().device().getValue().getDisplayName());
         updateDeviceDetails();
@@ -928,7 +928,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
         new StudioWizardDialogBuilder(new ChooseDeviceDefinitionStep(newDevice), "Select a device").build();
       if (dialog.showAndGet() && newDevice.get().isPresent()) {
         getModel().device().setValue(newDevice.getValue());
-        getModel().setAvdDeviceData(new AvdDeviceData(newDevice.getValue(), false));
+        getModel().setAvdDeviceData(new AvdDeviceData(newDevice.getValue()));
       }
     }
   };
