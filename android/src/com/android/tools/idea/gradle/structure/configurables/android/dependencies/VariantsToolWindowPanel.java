@@ -99,6 +99,7 @@ class VariantsToolWindowPanel extends ToolWindowPanel implements DependencySelec
 
   private void setHeaderActions() {
     final DefaultActionGroup settingsGroup = new DefaultActionGroup();
+
     settingsGroup.add(new ToggleAction("Group Variants") {
       @Override
       public boolean isSelected(AnActionEvent e) {
@@ -116,6 +117,23 @@ class VariantsToolWindowPanel extends ToolWindowPanel implements DependencySelec
     });
 
     List<AnAction> additionalActions = Lists.newArrayList();
+
+    additionalActions.add(new DumbAwareAction("Expand All", "", AllIcons.General.ExpandAll) {
+      @Override
+      public void actionPerformed(AnActionEvent e) {
+        myTreeBuilder.expand();
+      }
+    });
+
+    additionalActions.add(new DumbAwareAction("Collapse All", "", AllIcons.General.CollapseAll) {
+      @Override
+      public void actionPerformed(AnActionEvent e) {
+        myTreeBuilder.collapse();
+      }
+    });
+
+    additionalActions.add(Separator.getInstance());
+
     additionalActions.add(new DumbAwareAction("", "", AllIcons.General.Gear) {
       @Override
       public void actionPerformed(AnActionEvent e) {
@@ -132,6 +150,7 @@ class VariantsToolWindowPanel extends ToolWindowPanel implements DependencySelec
         popupMenu.getComponent().show(inputEvent.getComponent(), x, y);
       }
     });
+
     getHeader().setAdditionalActions(additionalActions);
   }
 
