@@ -75,16 +75,16 @@ public class ThemeEditorTest {
     // 6. Create New Theme
     // 7. Rename AppTheme
     assertThat(themeList)
-      .hasSize(8)
+      .hasSize(9)
       .contains("AppTheme", Index.atIndex(0))
-      .contains("Theme.AppCompat.Light.NoActionBar", Index.atIndex(2))
-      .contains("Theme.AppCompat.NoActionBar", Index.atIndex(3))
-      .contains("Show all themes", Index.atIndex(4))
-      .contains("Create New Theme", Index.atIndex(6))
-      .contains("Rename AppTheme", Index.atIndex(7));
+      .contains("Theme.AppCompat.Light.NoActionBar", Index.atIndex(3))
+      .contains("Theme.AppCompat.NoActionBar", Index.atIndex(4))
+      .contains("Show all themes", Index.atIndex(5))
+      .contains("Create New Theme", Index.atIndex(7))
+      .contains("Rename AppTheme", Index.atIndex(8));
 
-    assertThat(themeList.get(1)).startsWith("javax.swing.JSeparator");
-    assertThat(themeList.get(5)).startsWith("javax.swing.JSeparator");
+    assertThat(themeList.get(2)).startsWith("javax.swing.JSeparator");
+    assertThat(themeList.get(6)).startsWith("javax.swing.JSeparator");
 
     // Check the attributes table is populated
     assertThat(themeEditor.getPropertiesTable().rowCount()).isGreaterThan(0);
