@@ -257,8 +257,6 @@
                         <properties>
                           <model>
                             <item value="None"/>
-                            <item value="Emulated"/>
-                            <item value="Webcam0"/>
                           </model>
                           <toolTipText value="&lt;html&gt;None - no camera installed for AVD&lt;br&gt;Emulated - use a simulated camera&lt;br&gt;Device -  use host computer webcam or built-in camera&lt;/html&gt;"/>
                         </properties>
@@ -270,8 +268,6 @@
                         <properties>
                           <model>
                             <item value="None"/>
-                            <item value="Emulated"/>
-                            <item value="Webcam0"/>
                           </model>
                           <toolTipText value="&lt;html&gt;None - no camera installed for AVD&lt;br&gt;Emulated - use a simulated camera&lt;br&gt;Device -  use host computer webcam or built-in camera&lt;/html&gt;"/>
                         </properties>
@@ -337,9 +333,6 @@
                         <properties>
                           <model>
                             <item value="None"/>
-                            <item value="UMTS"/>
-                            <item value="EDGE"/>
-                            <item value="GPRS"/>
                           </model>
                           <toolTipText value="&lt;html&gt;Sets the initial state of the simulated network transfer latency used by AVD. Latency is the delay in processing data across the network. The latency speed can also be adjusted in the emulator.&lt;/html&gt;"/>
                         </properties>
@@ -351,12 +344,6 @@
                         <properties>
                           <model>
                             <item value="Full"/>
-                            <item value="HSDPA"/>
-                            <item value="UMTS"/>
-                            <item value="EDGE"/>
-                            <item value="GPRS"/>
-                            <item value="HSCSD"/>
-                            <item value="GSM"/>
                           </model>
                           <toolTipText value="&lt;html&gt;Sets the initial state of the simulated network transfer rate used by AVD. The network speed can also be adjusted in the emulator.&lt;/html&gt;"/>
                         </properties>
@@ -439,6 +426,7 @@
                                   <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                                 </constraints>
                                 <properties>
+                                  <model/>
                                   <toolTipText value="&lt;html&gt;Select the number of CPU cores for the emulator to use.&lt;/html&gt;"/>
                                 </properties>
                               </component>
@@ -476,6 +464,7 @@
                               <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                             </constraints>
                             <properties>
+                              <model/>
                               <toolTipText value="&lt;html&gt;Choose how the graphics should be rendered in the emulator.&lt;br&gt;&lt;br&gt;&lt;b&gt;Hardware&lt;/b&gt;&lt;br&gt;Use your computer's graphics card for faster rendering.&lt;br&gt;&lt;br&gt;&lt;b&gt;Software&lt;/b&gt;&lt;br&gt;Emulate the graphics in software, use this to work around issues with your computer's graphics card.&lt;/html&gt;"/>
                             </properties>
                           </component>
