@@ -22,12 +22,14 @@ import com.android.tools.fd.client.InstantRunBuildInfo;
 import com.android.tools.idea.fd.InstantRunManager;
 import com.android.tools.fd.client.InstantRunPushFailedException;
 import com.android.tools.idea.fd.InstantRunStatsService;
+import com.android.tools.idea.fd.InstantRunUserFeedback;
 import com.android.tools.idea.fd.InstantRunUtils;
 import com.android.tools.idea.gradle.run.RunAsValidityService;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.ExecutionUtil;
+import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.ApplicationManager;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -57,8 +59,6 @@ public class DexDeployTask implements LaunchTask {
   @Override
   public boolean perform(@NotNull final IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
       try {
-        InstantRunManager.displayVerifierStatus(myFacet, myBuildInfo);
-
         InstantRunManager manager = InstantRunManager.get(myFacet.getModule().getProject());
         manager.pushArtifacts(device, myFacet, UpdateMode.HOT_SWAP, myBuildInfo);
         // Note that the above method will update the build id on the device
@@ -66,6 +66,9 @@ public class DexDeployTask implements LaunchTask {
 
         InstantRunStatsService.get(myFacet.getModule().getProject())
           .notifyDeployType(InstantRunStatsService.DeployType.DEX);
+
+        String status = "Instant run applied code changes and restarted the app.";
+        new InstantRunUserFeedback(myFacet.getModule()).postHtml(NotificationType.INFORMATION, status, null);
 
         return true;
       }
