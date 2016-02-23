@@ -370,28 +370,28 @@ public final class AvdOptionsModel extends WizardModel {
 
     Map<String, String> properties = avdInfo.getProperties();
 
-    myIsRanchu.set(properties.containsKey(AvdWizardUtils.CPU_CORES_KEY.name));
-    String cpuCoreCount = properties.get(AvdWizardUtils.CPU_CORES_KEY.name);
+    myIsRanchu.set(properties.containsKey(AvdWizardUtils.CPU_CORES_KEY));
+    String cpuCoreCount = properties.get(AvdWizardUtils.CPU_CORES_KEY);
     myCpuCoreCount.setValue(cpuCoreCount==null ? 1 : Integer.parseInt(cpuCoreCount));
 
-    Storage storage = getStorageFromIni(properties.get(AvdWizardUtils.RAM_STORAGE_KEY.name));
+    Storage storage = getStorageFromIni(properties.get(AvdWizardUtils.RAM_STORAGE_KEY));
     if (storage != null) {
       myAvdDeviceData.ramStorage().set(storage);
     }
-    storage = getStorageFromIni(properties.get(AvdWizardUtils.VM_HEAP_STORAGE_KEY.name));
+    storage = getStorageFromIni(properties.get(AvdWizardUtils.VM_HEAP_STORAGE_KEY));
     if (storage != null) {
       myVmHeapStorage.set(storage);
     }
-    storage = getStorageFromIni(properties.get(AvdWizardUtils.INTERNAL_STORAGE_KEY.name));
+    storage = getStorageFromIni(properties.get(AvdWizardUtils.INTERNAL_STORAGE_KEY));
     if (storage != null) {
       myInternalStorage.set(storage);
     }
 
     String sdCardLocation = null;
-    if (properties.get(AvdWizardUtils.EXISTING_SD_LOCATION.name) != null) {
-      sdCardLocation = properties.get(AvdWizardUtils.EXISTING_SD_LOCATION.name);
+    if (properties.get(AvdWizardUtils.EXISTING_SD_LOCATION) != null) {
+      sdCardLocation = properties.get(AvdWizardUtils.EXISTING_SD_LOCATION);
     }
-    else if (properties.get(AvdWizardUtils.SD_CARD_STORAGE_KEY.name) != null) {
+    else if (properties.get(AvdWizardUtils.SD_CARD_STORAGE_KEY) != null) {
       sdCardLocation = FileUtil.join(avdInfo.getDataFolderPath(), "sdcard.img");
     }
     existingSdLocation = new StringValueProperty(sdCardLocation);
@@ -419,20 +419,20 @@ public final class AvdOptionsModel extends WizardModel {
       }
     }
 
-    String scale = properties.get(AvdWizardUtils.SCALE_SELECTION_KEY.name);
+    String scale = properties.get(AvdWizardUtils.SCALE_SELECTION_KEY);
     if (scale != null) {
       AvdScaleFactor scaleFactor = AvdScaleFactor.findByValue(scale);
       selectedAvdScale().setValue((scaleFactor == null) ? AvdScaleFactor.AUTO : scaleFactor);
     }
 
-    myUseHostGpu.set(fromIniString(properties.get(AvdWizardUtils.USE_HOST_GPU_KEY.name)));
-    mySelectedAvdFrontCamera.set(AvdCamera.fromName(properties.get(AvdWizardUtils.FRONT_CAMERA_KEY.name)));
-    mySelectedAvdBackCamera.set(AvdCamera.fromName(properties.get(AvdWizardUtils.BACK_CAMERA_KEY.name)));
-    mySelectedNetworkLatency.set(AvdNetworkLatency.fromName(properties.get(AvdWizardUtils.NETWORK_LATENCY_KEY.name)));
-    mySelectedNetworkSpeed.set(AvdNetworkSpeed.fromName(properties.get(AvdWizardUtils.NETWORK_SPEED_KEY.name)));
-    myEnableHardwareKeyboard.set(fromIniString(properties.get(AvdWizardUtils.HAS_HARDWARE_KEYBOARD_KEY.name)));
+    myUseHostGpu.set(fromIniString(properties.get(AvdWizardUtils.USE_HOST_GPU_KEY)));
+    mySelectedAvdFrontCamera.set(AvdCamera.fromName(properties.get(AvdWizardUtils.FRONT_CAMERA_KEY)));
+    mySelectedAvdBackCamera.set(AvdCamera.fromName(properties.get(AvdWizardUtils.BACK_CAMERA_KEY)));
+    mySelectedNetworkLatency.set(AvdNetworkLatency.fromName(properties.get(AvdWizardUtils.NETWORK_LATENCY_KEY)));
+    mySelectedNetworkSpeed.set(AvdNetworkSpeed.fromName(properties.get(AvdWizardUtils.NETWORK_SPEED_KEY)));
+    myEnableHardwareKeyboard.set(fromIniString(properties.get(AvdWizardUtils.HAS_HARDWARE_KEYBOARD_KEY)));
     myAvdDisplayName.set(AvdManagerConnection.getAvdDisplayName(avdInfo));
-    myHasDeviceFrame.set(fromIniString(properties.get(AvdWizardUtils.DEVICE_FRAME_KEY.name)));
+    myHasDeviceFrame.set(fromIniString(properties.get(AvdWizardUtils.DEVICE_FRAME_KEY)));
 
     ScreenOrientation screenOrientation = null;
     String orientation = properties.get(HardwareProperties.HW_INITIAL_ORIENTATION);
@@ -441,7 +441,7 @@ public final class AvdOptionsModel extends WizardModel {
     }
     mySelectedAvdOrientation.set((screenOrientation == null) ? ScreenOrientation.PORTRAIT : screenOrientation);
 
-    String skinPath = properties.get(AvdWizardUtils.CUSTOM_SKIN_FILE_KEY.name);
+    String skinPath = properties.get(AvdWizardUtils.CUSTOM_SKIN_FILE_KEY);
     if (skinPath != null) {
       File skinFile = (skinPath.equals(AvdWizardUtils.NO_SKIN.getPath())) ? AvdWizardUtils.NO_SKIN : new File(skinPath);
 
@@ -449,14 +449,14 @@ public final class AvdOptionsModel extends WizardModel {
         myAvdDeviceData.customSkinFile().setValue(skinFile);
       }
     }
-    String backupSkinPath = properties.get(AvdWizardUtils.BACKUP_SKIN_FILE_KEY.name);
+    String backupSkinPath = properties.get(AvdWizardUtils.BACKUP_SKIN_FILE_KEY);
     if (backupSkinPath != null) {
       File skinFile = new File(backupSkinPath);
       if (skinFile.isDirectory() || FileUtil.filesEqual(skinFile, AvdWizardUtils.NO_SKIN)) {
         backupSkinFile().setValue(skinFile);
       }
     }
-    String modeString = properties.get(AvdWizardUtils.HOST_GPU_MODE_KEY.name);
+    String modeString = properties.get(AvdWizardUtils.HOST_GPU_MODE_KEY);
     myHostGpuMode.setValue(GpuMode.fromGpuSetting(modeString));
 
     myIsInEditMode.set(true);
@@ -467,66 +467,66 @@ public final class AvdOptionsModel extends WizardModel {
    */
   private Map<String, Object> generateUserEditedPropertiesMap() {
     HashMap<String, Object> map = new HashMap<String, Object>();
-    map.put(AvdWizardUtils.DEVICE_DEFINITION_KEY.name, myDevice);
-    map.put(AvdWizardUtils.SYSTEM_IMAGE_KEY.name, mySystemImage);
-    map.put(AvdWizardUtils.AVD_ID_KEY.name, myAvdId.get());
-    map.put(AvdWizardUtils.VM_HEAP_STORAGE_KEY.name, myVmHeapStorage.get());
-    map.put(AvdWizardUtils.DISPLAY_NAME_KEY.name, myAvdDisplayName.get());
-    map.put(AvdWizardUtils.DEFAULT_ORIENTATION_KEY.name, mySelectedAvdOrientation.get());
-    map.put(AvdWizardUtils.RAM_STORAGE_KEY.name, myAvdDeviceData.ramStorage().get());
-    map.put(AvdWizardUtils.IS_IN_EDIT_MODE_KEY.name, myIsInEditMode.get());
-    map.put(AvdWizardUtils.HAS_HARDWARE_KEYBOARD_KEY.name, myEnableHardwareKeyboard.get());
+    map.put(AvdWizardUtils.DEVICE_DEFINITION_KEY, myDevice);
+    map.put(AvdWizardUtils.SYSTEM_IMAGE_KEY, mySystemImage);
+    map.put(AvdWizardUtils.AVD_ID_KEY, myAvdId.get());
+    map.put(AvdWizardUtils.VM_HEAP_STORAGE_KEY, myVmHeapStorage.get());
+    map.put(AvdWizardUtils.DISPLAY_NAME_KEY, myAvdDisplayName.get());
+    map.put(AvdWizardUtils.DEFAULT_ORIENTATION_KEY, mySelectedAvdOrientation.get());
+    map.put(AvdWizardUtils.RAM_STORAGE_KEY, myAvdDeviceData.ramStorage().get());
+    map.put(AvdWizardUtils.IS_IN_EDIT_MODE_KEY, myIsInEditMode.get());
+    map.put(AvdWizardUtils.HAS_HARDWARE_KEYBOARD_KEY, myEnableHardwareKeyboard.get());
     map.put(HardwareProperties.HW_INITIAL_ORIENTATION, mySelectedAvdOrientation.get().getShortDisplayValue());
-    map.put(AvdWizardUtils.USE_HOST_GPU_KEY.name, myUseHostGpu.get());
-    map.put(AvdWizardUtils.DEVICE_FRAME_KEY.name, myHasDeviceFrame.get());
-    map.put(AvdWizardUtils.HOST_GPU_MODE_KEY.name, myHostGpuMode.getValue());
+    map.put(AvdWizardUtils.USE_HOST_GPU_KEY, myUseHostGpu.get());
+    map.put(AvdWizardUtils.DEVICE_FRAME_KEY, myHasDeviceFrame.get());
+    map.put(AvdWizardUtils.HOST_GPU_MODE_KEY, myHostGpuMode.getValue());
 
-    map.put(AvdWizardUtils.RANCHU_KEY.name, myIsRanchu.get());
+    map.put(AvdWizardUtils.RANCHU_KEY, myIsRanchu.get());
     if (myIsRanchu.get()) {
       if (myCpuCoreCount.get().isPresent()) {
-        map.put(AvdWizardUtils.CPU_CORES_KEY.name, myCpuCoreCount.getValue());
+        map.put(AvdWizardUtils.CPU_CORES_KEY, myCpuCoreCount.getValue());
       }
       else {
         // Force the use the new emulator (qemu2)
-        map.put(AvdWizardUtils.CPU_CORES_KEY.name, 1);
+        map.put(AvdWizardUtils.CPU_CORES_KEY, 1);
       }
     }
     else {
       // Do NOT use the new emulator (qemu2)
-      map.remove(AvdWizardUtils.CPU_CORES_KEY.name);
+      map.remove(AvdWizardUtils.CPU_CORES_KEY);
     }
 
     if (myOriginalSdCard != null) {
-      map.put(AvdWizardUtils.SD_CARD_STORAGE_KEY.name, myOriginalSdCard);
+      map.put(AvdWizardUtils.SD_CARD_STORAGE_KEY, myOriginalSdCard);
     }
 
     if (!Strings.isNullOrEmpty(existingSdLocation.get())) {
-      map.put(AvdWizardUtils.EXISTING_SD_LOCATION.name, existingSdLocation.get());
+      map.put(AvdWizardUtils.EXISTING_SD_LOCATION, existingSdLocation.get());
     }
     if (!Strings.isNullOrEmpty(myExternalSdCardLocation.get())) {
-      map.put(AvdWizardUtils.DISPLAY_SD_LOCATION_KEY.name, myExternalSdCardLocation.get());
+      map.put(AvdWizardUtils.DISPLAY_SD_LOCATION_KEY, myExternalSdCardLocation.get());
     }
-    map.put(AvdWizardUtils.DISPLAY_USE_EXTERNAL_SD_KEY.name, myUseExternalSdCard.get());
-    map.put(AvdWizardUtils.INTERNAL_STORAGE_KEY.name, myInternalStorage.get());
-    map.put(AvdWizardUtils.NETWORK_SPEED_KEY.name, mySelectedNetworkSpeed.get().getAsParameter());
-    map.put(AvdWizardUtils.NETWORK_LATENCY_KEY.name, mySelectedNetworkLatency.get().getAsParameter());
-    map.put(AvdWizardUtils.FRONT_CAMERA_KEY.name, mySelectedAvdFrontCamera.get().getAsParameter());
-    map.put(AvdWizardUtils.BACK_CAMERA_KEY.name, mySelectedAvdBackCamera.get().getAsParameter());
+    map.put(AvdWizardUtils.DISPLAY_USE_EXTERNAL_SD_KEY, myUseExternalSdCard.get());
+    map.put(AvdWizardUtils.INTERNAL_STORAGE_KEY, myInternalStorage.get());
+    map.put(AvdWizardUtils.NETWORK_SPEED_KEY, mySelectedNetworkSpeed.get().getAsParameter());
+    map.put(AvdWizardUtils.NETWORK_LATENCY_KEY, mySelectedNetworkLatency.get().getAsParameter());
+    map.put(AvdWizardUtils.FRONT_CAMERA_KEY, mySelectedAvdFrontCamera.get().getAsParameter());
+    map.put(AvdWizardUtils.BACK_CAMERA_KEY, mySelectedAvdBackCamera.get().getAsParameter());
 
     if (mySelectedAvdScale.get().isPresent()) {
-      map.put(AvdWizardUtils.SCALE_SELECTION_KEY.name, mySelectedAvdScale.getValue());
+      map.put(AvdWizardUtils.SCALE_SELECTION_KEY, mySelectedAvdScale.getValue());
     }
 
     if(myAvdDeviceData.customSkinFile().get().isPresent()){
-      map.put(AvdWizardUtils.CUSTOM_SKIN_FILE_KEY.name, myAvdDeviceData.customSkinFile().getValue());
+      map.put(AvdWizardUtils.CUSTOM_SKIN_FILE_KEY, myAvdDeviceData.customSkinFile().getValue());
     }
 
     if (myBackupSkinFile.get().isPresent()) {
-      map.put(AvdWizardUtils.BACKUP_SKIN_FILE_KEY.name, myBackupSkinFile.getValue());
+      map.put(AvdWizardUtils.BACKUP_SKIN_FILE_KEY, myBackupSkinFile.getValue());
     }
 
     if (mySdCardStorage.get().isPresent()) {
-      map.put(AvdWizardUtils.DISPLAY_SD_SIZE_KEY.name, mySdCardStorage.getValue());
+      map.put(AvdWizardUtils.DISPLAY_SD_SIZE_KEY, mySdCardStorage.getValue());
     }
     return map;
   }
@@ -554,7 +554,7 @@ public final class AvdOptionsModel extends WizardModel {
     boolean hasSdCard;
     if (!useExisting) {
 
-      userEditedProperties.remove(AvdWizardUtils.EXISTING_SD_LOCATION.name);
+      userEditedProperties.remove(AvdWizardUtils.EXISTING_SD_LOCATION);
       Storage storage = null;
       myOriginalSdCard = new ObjectValueProperty<Storage>(mySdCardStorage.getValue());
       if (mySdCardStorage.get().isPresent()) {
@@ -565,7 +565,7 @@ public final class AvdOptionsModel extends WizardModel {
     }
     else {
       sdCard = existingSdLocation.get();
-      userEditedProperties.remove(AvdWizardUtils.SD_CARD_STORAGE_KEY.name);
+      userEditedProperties.remove(AvdWizardUtils.SD_CARD_STORAGE_KEY);
       hasSdCard = true;
     }
     hardwareProperties.put(HardwareProperties.HW_SDCARD, toIniString(hasSdCard));
@@ -582,7 +582,7 @@ public final class AvdOptionsModel extends WizardModel {
       @Override
       public String transformEntry(String key, Object value) {
         if (value instanceof Storage) {
-          if (key.equals(AvdWizardUtils.RAM_STORAGE_KEY.name) || key.equals(AvdWizardUtils.VM_HEAP_STORAGE_KEY.name)) {
+          if (key.equals(AvdWizardUtils.RAM_STORAGE_KEY) || key.equals(AvdWizardUtils.VM_HEAP_STORAGE_KEY)) {
             return toIniString((Storage)value, true);
           }
           else {
