@@ -26,29 +26,25 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 class LibraryNode extends AbstractDependencyNode<PsdLibraryDependencyModel> {
-  private List<SimpleNode> myChildren;
+  @NotNull private final List<SimpleNode> myChildren = Lists.newArrayList();
 
   LibraryNode(@NotNull PsdLibraryDependencyModel model) {
     super(model);
+
     PsdArtifactDependencySpec spec = model.getResolvedSpec();
     myName = spec.getDisplayText();
-    setAutoExpandNode(true);
+
+    for (PsdAndroidDependencyModel transitive : model.getTransitiveDependencies()) {
+      if (transitive instanceof PsdLibraryDependencyModel) {
+        PsdLibraryDependencyModel transitiveLibrary = (PsdLibraryDependencyModel)transitive;
+        LibraryNode child = new LibraryNode(transitiveLibrary);
+        myChildren.add(child);
+      }
+    }
   }
 
   @Override
   public SimpleNode[] getChildren() {
-    if (myChildren == null) {
-      List<SimpleNode> children = Lists.newArrayList();
-      for (PsdAndroidDependencyModel transitive : getModels().get(0).getTransitiveDependencies()) {
-        if (transitive instanceof PsdLibraryDependencyModel) {
-          PsdLibraryDependencyModel transitiveLibrary = (PsdLibraryDependencyModel)transitive;
-          LibraryNode child = new LibraryNode(transitiveLibrary);
-          children.add(child);
-        }
-      }
-
-      myChildren = children;
-    }
     return myChildren.toArray(new SimpleNode[myChildren.size()]);
   }
 
