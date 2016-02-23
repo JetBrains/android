@@ -75,20 +75,20 @@ public class ThemeSelectorTest {
 
     List<String> themeList = themeEditor.getThemesList();
     assertThat(themeList)
-      .hasSize(8)
+      .hasSize(9)
       .contains("NewAppTheme", atIndex(0))
-      .contains("Rename NewAppTheme", atIndex(7));
+      .contains("Rename NewAppTheme", atIndex(8));
 
     themesComboBox.selectItem("Theme.AppCompat.NoActionBar"); // AppCompat is read-only, being a library theme
 
     themeList = themeEditor.getThemesList();
     assertThat(themeList)
-      .hasSize(7)
+      .hasSize(8)
       .contains("NewAppTheme", atIndex(0))
-      .contains("Theme.AppCompat.Light.NoActionBar", atIndex(2))
-      .contains("Theme.AppCompat.NoActionBar", atIndex(3))
-      .contains("Show all themes", atIndex(4))
-      .contains("Create New Theme", atIndex(6));
+      .contains("Theme.AppCompat.Light.NoActionBar", atIndex(3))
+      .contains("Theme.AppCompat.NoActionBar", atIndex(4))
+      .contains("Show all themes", atIndex(5))
+      .contains("Create New Theme", atIndex(7));
 
     guiTest.ideFrame().invokeMenuPath("Window", "Editor Tabs", "Select Previous Tab");
     EditorFixture editor = guiTest.ideFrame().getEditor();
@@ -152,7 +152,7 @@ public class ThemeSelectorTest {
 
     categoriesTree.clickRow(2);
     assertEquals("Project Themes", categoriesTree.node(2).value());
-    assertThat(ImmutableList.copyOf(themeList.contents())).hasSize(1)
+    assertThat(ImmutableList.copyOf(themeList.contents())).hasSize(2)
       .contains("AppTheme", atIndex(0));
 
     categoriesTree.clickRow(10);
