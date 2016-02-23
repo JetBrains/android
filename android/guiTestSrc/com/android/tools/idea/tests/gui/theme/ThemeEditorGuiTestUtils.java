@@ -49,7 +49,7 @@ public class ThemeEditorGuiTestUtils {
 
     ThemeEditorFixture themeEditor = editor.getThemeEditor();
 
-    themeEditor.getThemePreviewPanel().getPreviewPanel().waitForRender();
+    themeEditor.getPreviewComponent().getThemePreviewPanel().getPreviewPanel().waitForRender();
 
     return themeEditor;
   }

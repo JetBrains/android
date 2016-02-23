@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.layout;
 
+import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.idea.configurations.Configuration;
@@ -88,6 +89,27 @@ public class ConfigurationToolbarFixture {
   @NotNull
   public ConfigurationToolbarFixture requireTheme(@NotNull String theme)  {
     assertEquals(theme, getNonNullConfiguration().getTheme());
+    return this;
+  }
+
+  /**
+   * Returns the selected api level
+   */
+  @SuppressWarnings("ConstantConditions")
+  public int getApiLevel()  {
+    IAndroidTarget target = getNonNullConfiguration().getTarget();
+
+    return target.getVersion().getApiLevel();
+  }
+
+  /**
+   * Requires the given api level
+   */
+  @SuppressWarnings("ConstantConditions")
+  public ConfigurationToolbarFixture requireApi(int apiLevel)  {
+    IAndroidTarget target = getNonNullConfiguration().getTarget();
+
+    assertEquals(apiLevel, target.getVersion().getApiLevel());
     return this;
   }
 
