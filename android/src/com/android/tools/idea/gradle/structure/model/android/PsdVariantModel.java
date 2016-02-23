@@ -24,6 +24,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.util.Collection;
 import java.util.List;
 
 public class PsdVariantModel extends PsdChildModel {
@@ -31,6 +32,8 @@ public class PsdVariantModel extends PsdChildModel {
   @NotNull private final List<String> myProductFlavors;
 
   @Nullable private final Variant myGradleModel;
+
+  private PsdAndroidArtifactModels myArtifactModels;
 
   PsdVariantModel(@NotNull PsdAndroidModuleModel parent,
                   @NotNull String name,
@@ -56,6 +59,24 @@ public class PsdVariantModel extends PsdChildModel {
   @Nullable
   public Variant getGradleModel() {
     return myGradleModel;
+  }
+
+  @Nullable
+  public PsdAndroidArtifactModel findArtifact(@NotNull String name) {
+    return getOrCreateArtifactModels().findArtifact(name);
+  }
+
+  @NotNull
+  public Collection<PsdAndroidArtifactModel> getArtifacts() {
+    return getOrCreateArtifactModels().getArtifacts();
+  }
+
+  @NotNull
+  private PsdAndroidArtifactModels getOrCreateArtifactModels() {
+    if (myArtifactModels == null) {
+      myArtifactModels = new PsdAndroidArtifactModels(this);
+    }
+    return myArtifactModels;
   }
 
   @NotNull

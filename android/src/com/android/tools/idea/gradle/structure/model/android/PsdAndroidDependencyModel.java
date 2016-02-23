@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.structure.model.android;
 
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependencyModel;
 import com.android.tools.idea.gradle.structure.model.PsdChildModel;
+import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
@@ -27,6 +28,7 @@ import java.util.Set;
 
 public abstract class PsdAndroidDependencyModel extends PsdChildModel {
   @NotNull private final Set<String> myVariants = Sets.newHashSet();
+  @NotNull private final Set<Container> myContainers = Sets.newHashSet();
 
   @Nullable private DependencyModel myParsedModel;
 
@@ -42,8 +44,9 @@ public abstract class PsdAndroidDependencyModel extends PsdChildModel {
     return (PsdAndroidModuleModel)super.getParent();
   }
 
-  void addContainer(@NotNull PsdVariantModel container) {
-    myVariants.add(container.getName());
+  void addContainer(@NotNull PsdAndroidArtifactModel artifactModel) {
+    myContainers.add(new Container(artifactModel));
+    myVariants.add(artifactModel.getName());
   }
 
   @NotNull
@@ -51,8 +54,9 @@ public abstract class PsdAndroidDependencyModel extends PsdChildModel {
     return ImmutableList.copyOf(myVariants);
   }
 
-  public boolean isInVariant(@NotNull PsdVariantModel variantName) {
-    return myVariants.contains(variantName.getName());
+  @NotNull
+  public Set<Container> getContainers() {
+    return myContainers;
   }
 
   @Nullable
@@ -72,4 +76,32 @@ public abstract class PsdAndroidDependencyModel extends PsdChildModel {
 
   @NotNull
   public abstract String getValueAsText();
+
+  public static class Container {
+    @NotNull public final String variant;
+    @NotNull public final String artifact;
+
+    Container(@NotNull PsdAndroidArtifactModel artifactModel) {
+      variant = artifactModel.getParent().getName();
+      artifact = artifactModel.getGradleModel().getName();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+      Container container = (Container)o;
+      return Objects.equal(variant, container.variant) &&
+             Objects.equal(artifact, container.artifact);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hashCode(variant, artifact);
+    }
+  }
 }
