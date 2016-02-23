@@ -76,10 +76,6 @@ public final class AvdDeviceData implements Disposable {
   private BindingsManager myBindings = new BindingsManager();
 
   public AvdDeviceData() {
-    this(null, false);
-  }
-
-  public AvdDeviceData(@Nullable Device device, boolean forcedCreation) {
     Software software = new Software();
     software.setLiveWallpaperSupport(true);
     software.setGlVersion("2.0");
@@ -87,12 +83,7 @@ public final class AvdDeviceData implements Disposable {
     mySoftware.setValue(software);
     myManufacturer.set("User");
 
-    if (device == null) {
-      initDefaultValues();
-    }
-    else {
-      getValuesFromDevice(device, forcedCreation);
-    }
+    initDefaultValues();
 
     // Every time the screen size is changed we calculate its dpi to validate it on the step
     DoubleExpression dpiExpression =
@@ -108,10 +99,28 @@ public final class AvdDeviceData implements Disposable {
     myBindings.bind(myScreenDpi, dpiExpression);
   }
 
+  /**
+   * @param device Optional source device from which to derive values from, if present
+   */
+  public AvdDeviceData(@Nullable Device device) {
+    this();
+    if (device != null) {
+      updateValuesFromDevice(device);
+    }
+  }
+
   private static String getUniqueId(@Nullable String id) {
     return DeviceManagerConnection.getDefaultDeviceManagerConnection().getUniqueId(id);
   }
 
+  public void setUniqueName(@NotNull String name) {
+    myName.set(getUniqueId(name));
+  }
+
+  /**
+   * Consider using {@link #setUniqueName(String)} instead of modifying this value directly, if you
+   * need to ensure that an initial name is unique across devices.
+   */
   public StringProperty name() {
     return myName;
   }
@@ -242,11 +251,8 @@ public final class AvdDeviceData implements Disposable {
     myHasProximitySensor.set(true);
   }
 
-  /**
-   * Match our property values to the device we've been given
-   */
-  public void getValuesFromDevice(@NotNull Device device, boolean forceCreation) {
-    myName.set((forceCreation) ? getUniqueId(device.getDisplayName() + " (Edited)") : device.getDisplayName());
+  public void updateValuesFromDevice(@NotNull Device device) {
+    myName.set(device.getDisplayName());
     String tagId = device.getTagId();
     if (myTagId.get().isEmpty()) {
       myTagId.set(SystemImage.DEFAULT_TAG.getId());
