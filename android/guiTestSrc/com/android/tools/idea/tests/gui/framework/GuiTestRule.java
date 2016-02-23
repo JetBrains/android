@@ -22,8 +22,6 @@ import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.templates.AndroidGradleTestCase;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.intellij.openapi.application.Application;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -112,9 +110,6 @@ public class GuiTestRule implements TestRule {
     // we just customized so that modules can't be loaded correctly.
     // This is a hack to prevent StoreAwareProjectManager from doing any reloading during test.
     ProjectManagerEx.getInstanceEx().blockReloadingProjectOnExternalChanges();
-
-    Application application = ApplicationManager.getApplication();
-    assertNotNull(application); // verify that we are using the IDE's ClassLoader.
 
     setUpDefaultProjectCreationLocationPath();
 
