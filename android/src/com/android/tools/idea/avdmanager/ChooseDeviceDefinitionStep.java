@@ -17,7 +17,6 @@ package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.devices.Device;
 import com.android.tools.idea.ui.properties.core.ObservableBool;
-import com.android.tools.idea.ui.properties.core.OptionalProperty;
 import com.android.tools.idea.ui.validation.Validator;
 import com.android.tools.idea.ui.validation.ValidatorPanel;
 import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
@@ -25,45 +24,34 @@ import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.tools.swing.util.FormScalingUtil;
 import com.google.common.base.Optional;
-import com.intellij.ui.JBColor;
+import com.intellij.openapi.util.Disposer;
+import com.intellij.util.Consumer;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
 /**
  * {@link ModelWizardStep} for selecting a device definition from the devices declared in the SDK
  * and defined by the user.
- *
- * The whole purpose of this step is to select a single device from a list of possible devices, and
- * instead of relying on a model, it takes an a constructor argument to store the selected result.
  */
-public final class ChooseDeviceDefinitionStep extends ModelWizardStep.WithoutModel implements DeviceUiAction.DeviceProvider {
-  private final EditDeviceAction myEditDeviceAction = new EditDeviceAction(this, "Edit Device...");
-  private final CreateDeviceAction myCreateDeviceAction = new CreateDeviceAction(this, "Create Device...");
-  private final CloneDeviceAction myCloneDeviceAction = new CloneDeviceAction(this, "Clone Device...");
-
-  private DeviceDefinitionPreview myDeviceDefinitionPreview;
-  private JPanel myEditButtonContainer;
-  private JButton myEditDeviceButton;
-  private JPanel myPanel;
+public final class ChooseDeviceDefinitionStep extends ModelWizardStep<AvdOptionsModel> {
+  private JPanel myRootPanel;
+  private ChooseDeviceDefinitionPanel myDeviceDefinitionPanel;
   private StudioWizardStepPanel myStudioWizardStepPanel;
   private ValidatorPanel myValidatorPanel;
-  private DeviceDefinitionList myDeviceDefinitionList;
-  private OptionalProperty<Device> myDevice;
 
-  public ChooseDeviceDefinitionStep(OptionalProperty<Device> device) {
-    super("Select Hardware");
-    myStudioWizardStepPanel = new StudioWizardStepPanel(myPanel, "Choose a device definition");
-    myValidatorPanel = new ValidatorPanel(this, myStudioWizardStepPanel);
-    myDevice = device;
+  public ChooseDeviceDefinitionStep(@NotNull AvdOptionsModel model) {
+    super(model, "Select Hardware");
+    myValidatorPanel = new ValidatorPanel(this, myRootPanel);
+    myStudioWizardStepPanel = new StudioWizardStepPanel(myValidatorPanel, "Choose a device definition");
+    FormScalingUtil.scaleComponentTree(this.getClass(), myStudioWizardStepPanel);
+
+    Disposer.register(this, myDeviceDefinitionPanel);
   }
 
   @Override
   protected void onWizardStarting(@NotNull ModelWizard.Facade wizard) {
-    FormScalingUtil.scaleComponentTree(this.getClass(), myPanel);
-
-    myValidatorPanel.registerValidator(myDevice, new Validator<Optional<Device>>() {
+    myValidatorPanel.registerValidator(getModel().device(), new Validator<Optional<Device>>() {
       @NotNull
       @Override
       public Result validate(@NotNull Optional<Device> value) {
@@ -73,36 +61,17 @@ public final class ChooseDeviceDefinitionStep extends ModelWizardStep.WithoutMod
       }
     });
 
-    myDeviceDefinitionList.addSelectionListener(new DeviceDefinitionList.DeviceDefinitionSelectionListener() {
+    myDeviceDefinitionPanel.addDeviceListener(new Consumer<Device>() {
       @Override
-      public void onDeviceSelectionChanged(@Nullable Device selectedDevice) {
-        if (selectedDevice != null && myDeviceDefinitionPreview.getDeviceData() != null) {
-          myDeviceDefinitionPreview.getDeviceData().updateValuesFromDevice(selectedDevice);
-        }
-        else {
-          myDeviceDefinitionPreview.getDeviceData().name().set(DeviceDefinitionPreview.DO_NOT_DISPLAY);
-        }
-        updateEditButton(selectedDevice);
-        myDevice.setNullableValue(selectedDevice);
+      public void consume(Device device) {
+        getModel().device().setNullableValue(device);
       }
     });
-
-    myDeviceDefinitionList.addCategoryListener(myDeviceDefinitionPreview);
-    myDeviceDefinitionList.setBorder(BorderFactory.createLineBorder(JBColor.lightGray));
-
-    myEditButtonContainer.setBackground(JBColor.background());
-    myEditDeviceButton.setBackground(JBColor.background());
-    updateEditButton(null);
   }
 
   @Override
   protected void onEntering() {
-    if (myDevice.get().isPresent()) {
-      myDeviceDefinitionList.setSelectedDevice(myDevice.getValue());
-    }
-    else {
-      myDeviceDefinitionList.selectDefaultDevice();
-    }
+    myDeviceDefinitionPanel.setDevice(getModel().device().getValueOrNull());
   }
 
   @NotNull
@@ -111,53 +80,13 @@ public final class ChooseDeviceDefinitionStep extends ModelWizardStep.WithoutMod
     return myValidatorPanel.hasErrors().not();
   }
 
-  private void updateEditButton(@Nullable Device selectedDevice) {
-    myEditDeviceButton.setAction(null);
-    Action action;
-    if (selectedDevice == null) {
-      action = myCreateDeviceAction;
-    }
-    else if (DeviceManagerConnection.getDefaultDeviceManagerConnection().isUserDevice(selectedDevice)) {
-      action = myEditDeviceAction;
-    }
-    else {
-      action = myCloneDeviceAction;
-    }
-    myEditDeviceButton.setAction(action);
-  }
-
   @NotNull
   @Override
   protected JComponent getComponent() {
     return myValidatorPanel;
   }
 
-  @Nullable
-  @Override
-  public Device getDevice() {
-    if (myDevice.get().isPresent()) {
-      return myDevice.getValue();
-    }
-    return null;
-  }
-
-  @Override
-  public void setDevice(@Nullable Device device) {
-    myDeviceDefinitionList.setSelectedDevice(device);
-    myDevice.setNullableValue(device);
-  }
-
-  @Override
-  public void selectDefaultDevice() {
-    myDeviceDefinitionList.selectDefaultDevice();
-  }
-
-  @Override
-  public void refreshDevices() {
-    myDeviceDefinitionList.refreshDevices();
-  }
-
   private void createUIComponents() {
-    myDeviceDefinitionPreview = new DeviceDefinitionPreview(new AvdDeviceData());
+    myDeviceDefinitionPanel = new ChooseDeviceDefinitionPanel(getModel().device().getValueOrNull());
   }
 }
