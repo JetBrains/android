@@ -104,10 +104,10 @@ public class AvdEditWizard extends DynamicWizard {
   private void initDefaultInfo() {
     ScopedStateStore state = getState();
     state.put(SCALE_SELECTION_KEY, DEFAULT_SCALE);
-    state.put(NETWORK_SPEED_KEY, DEFAULT_NETWORK_SPEED);
-    state.put(NETWORK_LATENCY_KEY, DEFAULT_NETWORK_LATENCY);
-    state.put(FRONT_CAMERA_KEY, DEFAULT_CAMERA);
-    state.put(BACK_CAMERA_KEY, DEFAULT_CAMERA);
+    state.put(NETWORK_SPEED_KEY, DEFAULT_NETWORK_SPEED.getAsParameter());
+    state.put(NETWORK_LATENCY_KEY, DEFAULT_NETWORK_LATENCY.getAsParameter());
+    state.put(FRONT_CAMERA_KEY, DEFAULT_CAMERA.getAsParameter());
+    state.put(BACK_CAMERA_KEY, DEFAULT_CAMERA.getAsParameter());
     state.put(INTERNAL_STORAGE_KEY, DEFAULT_INTERNAL_STORAGE);
     state.put(IS_IN_EDIT_MODE_KEY, false);
     state.put(DISPLAY_SD_SIZE_KEY, new Storage(100, Storage.Unit.MiB));
