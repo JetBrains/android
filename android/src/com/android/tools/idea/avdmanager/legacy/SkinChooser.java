@@ -20,7 +20,6 @@ import com.android.repository.io.FileOpUtils;
 import com.android.sdklib.ISystemImage;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.repositoryv2.targets.SystemImageManager;
-import com.android.tools.idea.avdmanager.AvdEditWizard;
 import com.android.tools.idea.avdmanager.DeviceManagerConnection;
 import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
 import com.android.tools.idea.wizard.dynamic.ScopedDataBinder;
