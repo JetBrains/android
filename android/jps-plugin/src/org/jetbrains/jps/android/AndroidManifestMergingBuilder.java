@@ -180,8 +180,8 @@ public class AndroidManifestMergingBuilder
     }
 
     if (!result.isError()) {
-      XmlDocument xmlDocument = mergingReport.getMergedDocument().get();
-      Files.write(xmlDocument.prettyPrint(), outputFile, Charsets.UTF_8);
+      String xmlDocument = mergingReport.getMergedDocument(MergingReport.MergedManifestKind.MERGED);
+      Files.write(xmlDocument, outputFile, Charsets.UTF_8);
     }
     return result.isSuccess();
   }
