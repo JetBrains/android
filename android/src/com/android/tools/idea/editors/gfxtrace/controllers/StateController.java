@@ -19,6 +19,9 @@ import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.models.GpuState;
 import com.android.tools.idea.editors.gfxtrace.renderers.Render;
 import com.android.tools.idea.editors.gfxtrace.service.ErrDataUnavailable;
+import com.android.tools.idea.editors.gfxtrace.service.path.FieldPath;
+import com.android.tools.idea.editors.gfxtrace.service.path.MapIndexPath;
+import com.android.tools.idea.editors.gfxtrace.service.path.Path;
 import com.android.tools.idea.editors.gfxtrace.service.snippets.KindredSnippets;
 import com.android.tools.idea.editors.gfxtrace.service.snippets.SnippetObject;
 import com.android.tools.rpclib.schema.Dynamic;
@@ -43,6 +46,7 @@ import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 
 public class StateController extends TreeController implements GpuState.Listener {
@@ -91,7 +95,8 @@ public class StateController extends TreeController implements GpuState.Listener
   }
 
   @Override
-  public void onStateSelection(GpuState state, Object[] selection) {
+  public void onStateSelection(GpuState state, Path path) {
+    SnippetObject[] selection = getStatePath(path);
     Node node = (Node)myModel.getRoot();
     TreePath treePath = new TreePath(node);
     for (int i = 0; i < selection.length && !node.isLeaf(); i++) {
@@ -102,6 +107,23 @@ public class StateController extends TreeController implements GpuState.Listener
     myTree.expandPath((node == null || node.isLeaf()) ? treePath.getParentPath() : treePath);
     myTree.setSelectionPath(treePath);
     myTree.scrollPathToVisible(treePath);
+  }
+
+  private static SnippetObject[] getStatePath(Path path) {
+    LinkedList<SnippetObject> result = Lists.newLinkedList();
+    while (path != null) {
+      if (path instanceof FieldPath) {
+        result.add(0, SnippetObject.symbol(((FieldPath)path).getName()));
+      }
+      else if (path instanceof MapIndexPath) {
+        result.add(0, SnippetObject.symbol(((MapIndexPath)path).getKey()));
+      }
+      else {
+        break;
+      }
+      path = path.getParent();
+    }
+    return result.toArray(new SnippetObject[result.size()]);
   }
 
   private KindredSnippets[] getSnippets(GpuState state) {
