@@ -15,11 +15,13 @@
  */
 package com.android.tools.idea.gradle.util.ui;
 
+import com.intellij.icons.AllIcons;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.Separator;
 import com.intellij.openapi.actionSystem.ex.ActionManagerEx;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.wm.impl.content.BaseLabel;
@@ -188,8 +190,15 @@ public class Header extends JPanel {
 
     ActionButton(@NotNull AnAction action) {
       myAction = action;
-      Icon icon = action.getTemplatePresentation().getIcon();
-      Icon hoveredIcon = action.getTemplatePresentation().getHoveredIcon();
+      Icon icon;
+      Icon hoveredIcon = null;
+      if (action instanceof Separator) {
+        icon = AllIcons.General.Divider;
+      }
+      else {
+        icon = action.getTemplatePresentation().getIcon();
+        hoveredIcon = action.getTemplatePresentation().getHoveredIcon();
+      }
       if (hoveredIcon == null) {
         hoveredIcon = icon;
       }
