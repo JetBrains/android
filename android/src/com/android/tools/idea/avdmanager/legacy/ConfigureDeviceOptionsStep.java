@@ -22,7 +22,6 @@ import com.android.resources.*;
 import com.android.sdklib.devices.*;
 import com.android.sdklib.repositoryv2.IdDisplay;
 import com.android.sdklib.repositoryv2.targets.SystemImage;
-import com.android.tools.idea.avdmanager.AvdEditWizard;
 import com.android.tools.idea.avdmanager.AvdWizardConstants;
 import com.android.tools.idea.avdmanager.DeviceManagerConnection;
 import com.android.tools.idea.ddms.screenshot.DeviceArtDescriptor;
@@ -52,7 +51,10 @@ import static com.android.tools.idea.avdmanager.AvdWizardConstants.*;
 
 /**
  * UI for configuring a Device Hardware Profile.
+ *
+ * @deprecated Replaced by {@link com.android.tools.idea.avdmanager.ConfigureDeviceOptionsStep}
  */
+@Deprecated
 public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithDescription {
   private static final String DEFAULT_DEVICE_TYPE_LABEL = "Phone/Tablet";
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2015 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.avdmanager;
+package com.android.tools.idea.avdmanager.legacy;
 
 import com.android.SdkConstants;
 import com.android.repository.io.FileOpUtils;
@@ -25,6 +25,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.devices.*;
 import com.android.sdklib.internal.avd.GpuMode;
 import com.android.sdklib.repositoryv2.IdDisplay;
+import com.android.tools.idea.avdmanager.*;
 import com.android.tools.idea.ui.ASGallery;
 import com.android.tools.idea.wizard.dynamic.*;
 import com.android.tools.swing.util.FormScalingUtil;
@@ -95,10 +96,10 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
   private JComboBox mySpeedCombo;
   private JComboBox myLatencyCombo;
   private JButton myShowAdvancedSettingsButton;
-  private com.android.tools.idea.avdmanager.legacy.StorageField myRamStorage;
-  private com.android.tools.idea.avdmanager.legacy.StorageField myVmHeapStorage;
-  private com.android.tools.idea.avdmanager.legacy.StorageField myInternalStorage;
-  private com.android.tools.idea.avdmanager.legacy.StorageField myNewSdCardStorage;
+  private StorageField myRamStorage;
+  private StorageField myVmHeapStorage;
+  private StorageField myInternalStorage;
+  private StorageField myNewSdCardStorage;
   private JBLabel myMemoryAndStorageLabel;
   private JBLabel myRamLabel;
   private JBLabel myVmHeapLabel;
@@ -109,7 +110,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
   private JBLabel mySkinDefinitionLabel;
   private JBLabel myAvdId;
   private JLabel myAvdIdLabel;
-  private com.android.tools.idea.avdmanager.legacy.SkinChooser mySkinComboBox;
+  private SkinChooser mySkinComboBox;
   private JPanel myAvdDisplayNamePanel;
   private JBLabel myAvdNameLabel;
   private JCheckBox myEnableComputerKeyboard;
@@ -130,7 +131,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
   private JBLabel myKeyboardLabel;
   private JSeparator myKeyboardSeparator;
   private JSeparator myNetworkSeparator;
-  private AvdConfigurationOptionHelpPanel myAvdConfigurationOptionHelpPanel;
+  private com.android.tools.idea.avdmanager.legacy.AvdConfigurationOptionHelpPanel myAvdConfigurationOptionHelpPanel;
   private JBScrollPane myScrollPane;
   private JCheckBox myRanchuCheckBox;
   private JComboBox myCoreCount;
@@ -513,8 +514,8 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
         c.setForeground(JBColor.foreground());
         ((JLabel)c).setIcon(null);
       }
-      else if (c instanceof com.android.tools.idea.avdmanager.legacy.StorageField) {
-        ((com.android.tools.idea.avdmanager.legacy.StorageField)c).setError(false);
+      else if (c instanceof StorageField) {
+        ((StorageField)c).setError(false);
       }
       else if (c instanceof JCheckBox) {
         c.setForeground(JBColor.foreground());
@@ -548,8 +549,8 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
           c.setForeground(JBColor.RED);
           ((JLabel)c).setIcon(AllIcons.General.BalloonError);
         }
-        else if (c instanceof StorageField) {
-          ((com.android.tools.idea.avdmanager.legacy.StorageField)c).setError(true);
+        else if (c instanceof com.android.tools.idea.avdmanager.StorageField) {
+          ((StorageField)c).setError(true);
         }
         else if (c instanceof JCheckBox) {
           c.setForeground(JBColor.RED);
@@ -822,7 +823,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
     myScalingComboBox = new ComboBox(new EnumComboBoxModel<AvdScaleFactor>(AvdScaleFactor.class));
     myHardwareSkinHelpLabel = new HyperlinkLabel("How do I create a custom hardware skin?");
     myHardwareSkinHelpLabel.setHyperlinkTarget(CREATE_SKIN_HELP_LINK);
-    mySkinComboBox = new com.android.tools.idea.avdmanager.legacy.SkinChooser(getProject());
+    mySkinComboBox = new SkinChooser(getProject());
   }
 
   @NotNull

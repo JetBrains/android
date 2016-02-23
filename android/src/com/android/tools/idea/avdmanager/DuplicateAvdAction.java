@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.avdmanager;
 
+import com.android.tools.idea.avdmanager.legacy.AvdEditWizard;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.diagnostic.Logger;
 
