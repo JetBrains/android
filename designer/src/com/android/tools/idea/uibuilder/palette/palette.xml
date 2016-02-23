@@ -138,7 +138,7 @@
 
   <meta model="com.intellij.android.designer.model.RadViewComponent"
         class="android.support.v7.widget.Toolbar"
-        library="appcompat-v7"
+        library="com.android.support:appcompat-v7"
         tag="android.support.v7.widget.Toolbar">
 
     <palette title="Toolbar" icon="AndroidIcons.Views.Toolbar"
@@ -1412,7 +1412,7 @@
 
   <meta model="com.intellij.android.designer.model.RadViewComponent"
         class="android.support.design.widget.FloatingActionButton"
-        library="design"
+        library="com.android.support:design"
         tag="android.support.design.widget.FloatingActionButton">
 
     <palette title="Floating Action Button" icon="AndroidIcons.Views.FloatingActionButton"/>
@@ -1432,7 +1432,7 @@
 
   <meta model="com.intellij.android.designer.model.RadViewComponent"
         class="com.google.android.gms.ads.AdView"
-        library="play-services-ads"
+        library="com.google.android.gms:play-services-ads"
         tag="com.google.android.gms.ads.AdView">
 
     <palette title="Ad View" icon="AndroidIcons.Views.ToggleButton"/>
@@ -1452,7 +1452,7 @@
 
   <meta model="com.intellij.android.designer.model.RadViewComponent"
         class="com.google.android.gms.maps.MapFragment"
-        library="play-services"
+        library="com.google.android.gms:play-services"
         tag="com.google.android.gms.maps.MapFragment">
 
     <palette title="MapFragment" icon="AndroidIcons.Views.MapFragment"/>
@@ -1469,7 +1469,7 @@
 
   <meta model="com.intellij.android.designer.model.RadViewComponent"
         class="com.google.android.gms.maps.MapView"
-        library="play-services"
+        library="com.google.android.gms:play-services"
         tag="com.google.android.gms.maps.MapView">
 
     <palette title="MapView" icon="AndroidIcons.Views.MapView"/>
@@ -1485,7 +1485,7 @@
 
   <meta model="com.intellij.android.designer.model.RadViewComponent"
         class="android.support.v7.widget.ToolBar"
-        library="appcompat-v7"
+        library="com.android.support:appcompat-v7"
         tag="android.support.v7.widget.ToolBar">
 
     <palette title="ToolBar" icon="AndroidIcons.Views.ToggleButton"/>
@@ -1501,7 +1501,7 @@
 
   <meta model="com.intellij.android.designer.model.RadViewComponent"
         class="android.support.v7.widget.RecyclerView"
-        library="recyclerview-v7"
+        library="com.android.support:recyclerview-v7"
         tag="android.support.v7.widget.RecyclerView">
 
     <palette title="RecycleView" icon="AndroidIcons.Views.ToggleButton"/>
@@ -1517,7 +1517,7 @@
 
   <meta model="com.intellij.android.designer.model.RadViewComponent"
         class="android.support.v7.widget.CardView"
-        library="cardview-v7"
+        library="com.android.support:cardview-v7"
         tag="android.support.v7.widget.CardView">
 
     <palette title="CardView" icon="AndroidIcons.Views.CardView"/>
@@ -1533,7 +1533,7 @@
   </meta>
 
   <meta model="com.intellij.android.designer.model.RadViewComponent"
-        library="leanback-v17"
+        library="com.android.support:leanback-v17"
         tag="BrowseFragment">
 
     <palette title="BrowseFragment" icon="AndroidIcons.Views.BrowseFragment"/>
@@ -1551,7 +1551,7 @@
   </meta>
 
   <meta model="com.intellij.android.designer.model.RadViewComponent"
-        library="leanback-v17"
+        library="com.android.support:leanback-v17"
         tag="DetailsFragment">
 
     <palette title="DetailsFragment" icon="AndroidIcons.Views.DetailsFragment"/>
@@ -1569,7 +1569,7 @@
   </meta>
 
   <meta model="com.intellij.android.designer.model.RadViewComponent"
-        library="leanback-v17"
+        library="com.android.support:leanback-v17"
         tag="PlaybackOverlayFragment">
 
     <palette title="PlaybackOverlayFragment" icon="AndroidIcons.Views.PlaybackOverlayFragment"/>
@@ -1587,7 +1587,7 @@
   </meta>
 
   <meta model="com.intellij.android.designer.model.RadViewComponent"
-        library="leanback-v17"
+        library="com.android.support:leanback-v17"
         tag="SearchFragment">
 
     <palette title="SearchFragment" icon="AndroidIcons.Views.ToggleButton"/>
@@ -1664,7 +1664,7 @@
 
   <meta model="com.intellij.android.designer.model.RadViewContainer"
         class="android.support.design.widget.CoordinatorLayout"
-        library="design"
+        library="com.android.support:design"
         tag="android.support.design.widget.CoordinatorLayout">
 
     <palette title="CoordinatorLayout" icon="AndroidIcons.Views.CoordinatorLayout"
@@ -1685,7 +1685,7 @@
 
   <meta model="com.intellij.android.designer.model.RadViewContainer"
         class="android.support.design.widget.TextInputLayout"
-        library="design"
+        library="com.android.support:design"
         tag="android.support.design.widget.TextInputLayout">
 
     <palette title="TextInputLayout" icon="AndroidIcons.Views.TextInputLayout"
@@ -1706,7 +1706,7 @@
 
   <meta model="com.intellij.android.designer.model.RadViewContainer"
         class="android.support.design.widget.CollapsingToolbarLayout"
-        library="design"
+        library="com.android.support:design"
         tag="android.support.design.widget.CollapsingToolbarLayout">
 
     <palette title="CollapsingToolbarLayout" icon="AndroidIcons.Views.VerticalLinearLayout"
@@ -1725,7 +1725,7 @@
 
   <meta model="com.intellij.android.designer.model.RadViewContainer"
         class="android.support.design.widget.AppBarLayout"
-        library="design"
+        library="com.android.support:design"
         tag="android.support.design.widget.AppBarLayout">
 
     <palette title="AppBarLayout" icon="AndroidIcons.Views.AppBarLayout"
@@ -1843,7 +1843,7 @@
         layout="com.intellij.android.designer.model.layout.grid.RadGridLayout"
         class="android.support.v7.widget.GridLayout"
         tag="android.support.v7.widget.GridLayout"
-        library="gridlayout-v7"
+        library="com.android.support:gridlayout-v7"
         fill="both">
 
     <properties inplace="rowCount columnCount orientation "
