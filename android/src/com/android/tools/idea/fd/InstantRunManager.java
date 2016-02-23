@@ -326,7 +326,7 @@ public final class InstantRunManager implements ProjectComponent {
 
   public static boolean usesMultipleProcesses(@NotNull AndroidFacet facet) {
     // Note: Relying on the merged manifest implies that this will not work if a build has not already taken place.
-    // But in this partciular scenario (i.e. for instant run), we are ok with such a situation because:
+    // But in this particular scenario (i.e. for instant run), we are ok with such a situation because:
     //      a) if there is no existing build, we are doing a full build anyway
     //      b) if there is an existing build, then we can examine the previous merged manifest
     //      c) if there is an existing build, and the manifest has since been changed, then a full build will be triggered anyway
