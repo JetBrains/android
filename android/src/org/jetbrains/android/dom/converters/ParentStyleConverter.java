@@ -37,7 +37,7 @@ import java.util.List;
  */
 public class ParentStyleConverter extends ResourceReferenceConverter {
   public ParentStyleConverter() {
-    super(ResourceType.STYLE.getName(), false, false);
+    super(ResourceType.STYLE, false, false);
     setAllowAttributeReferences(false);
   }
 

@@ -335,21 +335,19 @@ public abstract class ResourceManager {
 
   /**
    * Get the collection of resource names that match the given type.
-   * @param type a string describing a ResourceType or ResourceFolderType.
+   * @param type the type of resource
    * @return resource names
    */
   @NotNull
-  public Collection<String> getResourceNames(@NotNull String type) {
+  public Collection<String> getResourceNames(@NotNull ResourceType type) {
     return getResourceNames(type, false);
   }
 
-  public Collection<String> getResourceNames(@NotNull String type, boolean publicOnly) {
-    ResourceType resourceType = ResourceType.getEnum(type);
+  @NotNull
+  public Collection<String> getResourceNames(@NotNull ResourceType resourceType, boolean publicOnly) {
     final Set<String> result = new HashSet<String>();
-    if (resourceType != null) {
-      result.addAll(getValueResourceNames(resourceType));
-    }
-    result.addAll(getFileResourcesNames(type));
+    result.addAll(getValueResourceNames(resourceType));
+    result.addAll(getFileResourcesNames(resourceType.getName()));
     if (resourceType == ResourceType.ID) {
       result.addAll(getIds(true));
     }
