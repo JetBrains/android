@@ -77,7 +77,7 @@ public final class ChooseDeviceDefinitionStep extends ModelWizardStep.WithoutMod
       @Override
       public void onDeviceSelectionChanged(@Nullable Device selectedDevice) {
         if (selectedDevice != null && myDeviceDefinitionPreview.getDeviceData() != null) {
-          myDeviceDefinitionPreview.getDeviceData().getValuesFromDevice(selectedDevice, false);
+          myDeviceDefinitionPreview.getDeviceData().updateValuesFromDevice(selectedDevice);
         }
         else {
           myDeviceDefinitionPreview.getDeviceData().name().set(DeviceDefinitionPreview.DO_NOT_DISPLAY);
