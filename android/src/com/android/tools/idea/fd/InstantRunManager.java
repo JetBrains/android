@@ -437,7 +437,9 @@ public final class InstantRunManager implements ProjectComponent {
     List<FileTransfer> files = Lists.newArrayList();
     InstantRunClient client = getInstantRunClient(model, facet);
 
-    boolean appRunning = isAppInForeground(device, facet.getModule());
+    AppState appState = getInstantRunClient(facet.getModule()).getAppState(device);
+    boolean appInForeground = appState == AppState.FOREGROUND;
+    boolean appRunning = appState == AppState.FOREGROUND || appState == AppState.BACKGROUND;
 
     List<InstantRunArtifact> artifacts = buildInfo.getArtifacts();
     for (InstantRunArtifact artifact : artifacts) {
@@ -466,7 +468,7 @@ public final class InstantRunManager implements ProjectComponent {
           files.add(FileTransfer.createRestartDex(file));
           break;
         case RELOAD_DEX:
-          if (appRunning) {
+          if (appInForeground) {
             files.add(FileTransfer.createHotswapPatch(file));
           } else {
             // Gradle created a reload dex, but the app is no longer running.
@@ -499,8 +501,9 @@ public final class InstantRunManager implements ProjectComponent {
         refreshDebugger(pkgName);
       }
       needRestart = false;
-      if (!buildInfo.canHotswap()) {
+      if (!appInForeground || !buildInfo.canHotswap()) {
         client.stopApp(device, false /* sendChangeBroadcast */);
+        needRestart = true;
       }
     }
     else {
