@@ -342,9 +342,9 @@ public class AvdManagerConnection {
     }
 
     Map<String, String> properties = info.getProperties();
-    String scaleFactor = properties.get(AvdWizardConstants.AVD_INI_SCALE_FACTOR);
-    String netDelay = properties.get(AvdWizardConstants.AVD_INI_NETWORK_LATENCY);
-    String netSpeed = properties.get(AvdWizardConstants.AVD_INI_NETWORK_SPEED);
+    String scaleFactor = properties.get(AvdWizardUtils.AVD_INI_SCALE_FACTOR);
+    String netDelay = properties.get(AvdWizardUtils.AVD_INI_NETWORK_LATENCY);
+    String netSpeed = properties.get(AvdWizardUtils.AVD_INI_NETWORK_SPEED);
 
     GeneralCommandLine commandLine = new GeneralCommandLine();
     commandLine.setExePath(emulatorBinary.getPath());
@@ -577,7 +577,7 @@ public class AvdManagerConnection {
     if (skinFolder == null && isCircular) {
       skinFolder = getRoundSkin(systemImageDescription);
     }
-    if (FileUtil.filesEqual(skinFolder, AvdWizardConstants.NO_SKIN)) {
+    if (FileUtil.filesEqual(skinFolder, AvdWizardUtils.NO_SKIN)) {
       skinFolder = null;
     }
     if (skinFolder == null) {

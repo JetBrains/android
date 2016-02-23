@@ -22,7 +22,7 @@ import com.android.resources.Navigation;
 import com.android.resources.ScreenOrientation;
 import com.android.sdklib.devices.*;
 import com.android.sdklib.repositoryv2.IdDisplay;
-import com.android.tools.idea.avdmanager.legacy.AvdEditWizard;
+import com.android.sdklib.repositoryv2.targets.SystemImage;
 import com.android.tools.idea.ui.properties.BindingsManager;
 import com.android.tools.idea.ui.properties.core.*;
 import com.android.tools.idea.ui.properties.expressions.double_.DoubleExpression;
@@ -30,16 +30,18 @@ import com.intellij.openapi.Disposable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.awt.*;
 import java.io.File;
 import java.util.List;
 
 /**
  * Data class containing all properties needed to build a device.
  */
-public final class AvdDeviceData implements Disposable{
+public final class AvdDeviceData implements Disposable {
   private StringProperty myName = new StringValueProperty();
   private OptionalProperty<IdDisplay> myDeviceType = new OptionalValueProperty<IdDisplay>();
   private StringProperty myManufacturer = new StringValueProperty();
+  private StringProperty myTagId = new StringValueProperty();
 
   private DoubleProperty myDiagonalScreenSize = new DoubleValueProperty();
   private IntProperty myScreenResolutionWidth = new IntValueProperty();
@@ -72,6 +74,10 @@ public final class AvdDeviceData implements Disposable{
   private OptionalProperty<Software> mySoftware = new OptionalValueProperty<Software>();
 
   private BindingsManager myBindings = new BindingsManager();
+
+  public AvdDeviceData() {
+    this(null, false);
+  }
 
   public AvdDeviceData(@Nullable Device device, boolean forcedCreation) {
     Software software = new Software();
@@ -116,6 +122,10 @@ public final class AvdDeviceData implements Disposable{
 
   public StringProperty manufacturer() {
     return myManufacturer;
+  }
+
+  public StringProperty tagId() {
+    return myTagId;
   }
 
   public DoubleProperty diagonalScreenSize() {
@@ -235,18 +245,21 @@ public final class AvdDeviceData implements Disposable{
   /**
    * Match our property values to the device we've been given
    */
-  private void getValuesFromDevice(Device device, boolean forceCreation) {
+  public void getValuesFromDevice(@NotNull Device device, boolean forceCreation) {
     myName.set((forceCreation) ? getUniqueId(device.getDisplayName() + " (Edited)") : device.getDisplayName());
     String tagId = device.getTagId();
-    if (tagId != null) {
-      for (IdDisplay tag : AvdWizardConstants.ALL_TAGS) {
+    if (myTagId.get().isEmpty()) {
+      myTagId.set(SystemImage.DEFAULT_TAG.getId());
+      myDeviceType.setValue(SystemImage.DEFAULT_TAG);
+    }
+    else {
+      for (IdDisplay tag : AvdWizardUtils.ALL_TAGS) {
         if (tag.getId().equals(tagId)) {
           myDeviceType.setValue(tag);
           break;
         }
       }
     }
-
     Hardware defaultHardware = device.getDefaultHardware();
     Screen screen = defaultHardware.getScreen();
 
@@ -254,16 +267,18 @@ public final class AvdDeviceData implements Disposable{
     myScreenResolutionWidth.set(screen.getXDimension());
     myScreenResolutionHeight.set(screen.getYDimension());
     /**
-     * This is maxed out at {@link AvdWizardConstants.MAX_RAM_MB}, for more information read
-     * {@link AvdWizardConstants#getDefaultRam(Hardware)}
+     * This is maxed out at {@link AvdWizardUtils.MAX_RAM_MB}, for more information read
+     * {@link AvdWizardUtils#getDefaultRam(Hardware)}
      */
-    myRamStorage.set(AvdWizardConstants.getDefaultRam(defaultHardware));
+    myRamStorage.set(AvdWizardUtils.getDefaultRam(defaultHardware));
     myHasHardwareButtons.set(defaultHardware.getButtonType() == ButtonType.HARD);
     myHasHardwareKeyboard.set(defaultHardware.getKeyboard() != Keyboard.NOKEY);
     myNavigation.setValue(defaultHardware.getNav());
 
     List<State> states = device.getAllStates();
 
+    mySupportsPortrait.set(false);
+    mySupportsLandscape.set(false);
     for (State state : states) {
       if (state.getOrientation().equals(ScreenOrientation.PORTRAIT)) {
         mySupportsPortrait.set(true);
@@ -281,13 +296,48 @@ public final class AvdDeviceData implements Disposable{
     myHasGps.set(defaultHardware.getSensors().contains(Sensor.GPS));
     myHasProximitySensor.set(defaultHardware.getSensors().contains(Sensor.PROXIMITY_SENSOR));
 
-    File skinFile = AvdEditWizard.resolveSkinPath(defaultHardware.getSkinFile(), null, FileOpUtils.create());
-    myCustomSkinFile.setValue((skinFile == null) ? AvdWizardConstants.NO_SKIN : skinFile);
+    File skinFile = AvdWizardUtils.resolveSkinPath(defaultHardware.getSkinFile(), null, FileOpUtils.create());
+    myCustomSkinFile.setValue((skinFile == null) ? AvdWizardUtils.NO_SKIN : skinFile);
 
     myIsTv.set(HardwareConfigHelper.isTv(device));
     myIsWear.set(HardwareConfigHelper.isWear(device));
     myIsScreenRound.set(device.isScreenRound());
     myScreenChinSize.set(device.getChinSize());
+  }
+
+  @SuppressWarnings("SuspiciousNameCombination") // We sometimes deliberately swap x/width y/height relationships depending on orientation
+  @NotNull
+  public Dimension getDeviceScreenDimension() {
+    int width = myScreenResolutionWidth.get();
+    int height = myScreenResolutionHeight.get();
+    ScreenOrientation orientation = getDefaultDeviceOrientation();
+
+    assert width > 0 && height > 0;
+
+    // compute width and height to take orientation into account.
+    int finalWidth, finalHeight;
+
+    // Landscape should always be longer than taller; portrait taller than longer
+    if (orientation == ScreenOrientation.LANDSCAPE) {
+      finalWidth = Math.max(width, height);
+      finalHeight = Math.min(width, height);
+    }
+    else {
+      finalWidth = Math.min(width, height);
+      finalHeight = Math.max(width, height);
+    }
+    return new Dimension(finalWidth, finalHeight);
+  }
+
+  /**
+   * Going from the most common to the default case, return the {@link AvdDeviceData} instance
+   * default orientation
+   */
+  @NotNull
+  public ScreenOrientation getDefaultDeviceOrientation() {
+    return (mySupportsPortrait.get())
+           ? ScreenOrientation.PORTRAIT
+           : (mySupportsLandscape.get()) ? ScreenOrientation.LANDSCAPE : ScreenOrientation.SQUARE;
   }
 
   @Override

@@ -95,14 +95,14 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
     super(model, "Configure Hardware Profile");
     FormScalingUtil.scaleComponentTree(this.getClass(), myRootPanel);
     myValidatorPanel = new ValidatorPanel(this, myRootPanel);
-    myStudioPanel = new StudioWizardStepPanel(myValidatorPanel, getModel().wizardPanelDescription().get());
+    myStudioPanel = new StudioWizardStepPanel(myValidatorPanel, "Configure this hardware profile");
     myProject = project;
   }
 
 
   @Override
   protected void onWizardStarting(@NotNull ModelWizard.Facade wizard) {
-    myDeviceTypeComboBox.setModel(new CollectionComboBoxModel<IdDisplay>(AvdWizardConstants.ALL_TAGS));
+    myDeviceTypeComboBox.setModel(new CollectionComboBoxModel<IdDisplay>(AvdWizardUtils.ALL_TAGS));
 
     myDeviceTypeComboBox.setRenderer(new ListCellRendererWrapper<IdDisplay>() {
       @Override
@@ -175,9 +175,9 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
            *    remove listener
            * }
            */
-          getModel().getDeviceData().isWear().set(selectedType.equals(AvdWizardConstants.WEAR_TAG));
-          getModel().getDeviceData().isTv().set(selectedType.equals(AvdWizardConstants.TV_TAG));
-          myIsScreenRound.setEnabled(selectedType.equals(AvdWizardConstants.WEAR_TAG));
+          getModel().getDeviceData().isWear().set(selectedType.equals(AvdWizardUtils.WEAR_TAG));
+          getModel().getDeviceData().isTv().set(selectedType.equals(AvdWizardUtils.TV_TAG));
+          myIsScreenRound.setEnabled(selectedType.equals(AvdWizardUtils.WEAR_TAG));
           myIsScreenRound.setSelected(getModel().getDeviceData().isScreenRound().get());
         }
       }
@@ -198,7 +198,7 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
     };
 
     myHardwareSkinHelpLabel = new HyperlinkLabel("How do I create a custom hardware skin?");
-    myHardwareSkinHelpLabel.setHyperlinkTarget(AvdWizardConstants.CREATE_SKIN_HELP_LINK);
+    myHardwareSkinHelpLabel.setHyperlinkTarget(AvdWizardUtils.CREATE_SKIN_HELP_LINK);
     myCustomSkinPath = new SkinChooser(myProject);
     myDeviceDefinitionPreview = new DeviceDefinitionPreview(getModel().getDeviceData());
   }
@@ -263,7 +263,7 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
       @Override
       public Result validate(@NotNull Optional<File> value) {
         File skinPath = value.orNull();
-        if (skinPath != null && !FileUtil.filesEqual(skinPath, AvdWizardConstants.NO_SKIN)) {
+        if (skinPath != null && !FileUtil.filesEqual(skinPath, AvdWizardUtils.NO_SKIN)) {
           File layoutFile = new File(skinPath, SdkConstants.FN_SKIN_LAYOUT);
           if (!layoutFile.isFile()) {
             return new Result(Severity.ERROR, "The skin directory does not point to a valid skin.");

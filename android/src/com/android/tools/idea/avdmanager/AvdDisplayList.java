@@ -17,8 +17,6 @@ package com.android.tools.idea.avdmanager;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.resources.Density;
-import com.android.sdklib.IAndroidTarget;
-import com.android.sdklib.ISystemImage;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Storage;
@@ -307,7 +305,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
   private static Icon getIcon(@NotNull AvdInfo info) {
     String id = info.getTag().getId();
     String path;
-    if (id.contains("android-")) {
+    if (id != null && id.contains("android-")) {
       path = String.format("/icons/formfactors/%s_32.png", id.substring("android-".length()));
       return IconLoader.getIcon(path, AvdDisplayList.class);
     } else {
