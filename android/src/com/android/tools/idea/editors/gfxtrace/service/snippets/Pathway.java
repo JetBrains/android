@@ -31,7 +31,81 @@ public abstract class Pathway implements BinaryObject {
       return this;
   }
 
+  /**
+   * Get the base path for this pathway. If this pathway is a root return null.
+   * @return the base path for this pathway or null if it is a root.
+   */
+  public abstract Pathway base();
+
+  /**
+   * Make a pathway for a command parameter.
+   * @param paramName the name of the parameter.
+   * @return a pathway for the parameter.
+   */
   public static Pathway param(String paramName) {
     return new NamePath(SymbolCategory.Parameter, paramName);
+  }
+
+  /**
+   * Make a pathway for a global (aka state variable).
+   * @param name the name of the global.
+   * @return a pathway for the global.
+   */
+  public static Pathway global(String name) { return new NamePath(SymbolCategory.Global, name); }
+
+  /**
+   * Make a pathway to the field of this the entity at this pathway.
+   * @param name the name of the field of the entity.
+   * @return a pathway for the field.
+   */
+  public Pathway field(String name) { return new FieldPath(this, name); }
+
+  /**
+   * Make a pathway to the key of the collection at this pathway.
+   * @return a pathway for the key.
+   */
+  public Pathway key() { return new PartPath(this, PartKind.KeyPart); }
+
+  /**
+   * Make a pathway to the element of the collection at this pathway.
+   * @return a pathway for the element.
+   */
+  public Pathway elem() { return new PartPath(this, PartKind.ElemPart); }
+
+  /**
+   * See if the receiver pathway is a prefix (or equal) to the specified
+   * pathway.
+   * @param pathway see if the receiver is a prefix of this pathway
+   * @return true if the receiver is a prefix of the specified pathway.
+   */
+  public boolean isPrefix(Pathway pathway) {
+    int thisDepth = depth();
+    int otherDepth = pathway.depth();
+    if (thisDepth > otherDepth) {
+      return false;
+    }
+    int diff = otherDepth - thisDepth;
+    Pathway p = pathway;
+    for (int i = 0; i < diff; i++) {
+      p = p.base();
+    }
+    if (equals(p)) {
+      return true;
+    }
+    return false;  //equals(p);
+  }
+
+  /**
+   * Computes the number of steps to reach the root of the pathway.
+   * @return number of steps to reach the root.
+   */
+  private int depth() {
+    Pathway p = this;
+    int i = 0;
+    while (p != null) {
+      p = p.base();
+      i++;
+    }
+    return i;
   }
 }
