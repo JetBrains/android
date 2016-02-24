@@ -282,6 +282,8 @@ public class ThemeEditorTableTest {
       }
     });
 
+    dialog.requireNoError();
+
     dialog.focus();
     dialog.clickOK();
     stateListCell.stopEditing();
