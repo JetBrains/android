@@ -22,6 +22,7 @@ public interface Constants {
   String MODEL_VIEW_UNIFORM = "uModelView";
   String MODEL_VIEW_PROJECTION_UNIFORM = "uModelViewProj";
   String NORMAL_MATRIX_UNIFORM = "uNormalMatrix";
+  String INVERT_NORMALS_UNIFORM = "uInvertNormals";
 
   // Camera constants.
   int STANDARD_WIDTH = 36;
