@@ -1,0 +1,246 @@
+/*
+ * Copyright (C) 2015 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.android.tools.idea.editors.gfxtrace.controllers;
+
+import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
+import com.android.tools.idea.editors.gfxtrace.models.AtomStream;
+import com.android.tools.idea.editors.gfxtrace.service.gfxapi.DrawPrimitive;
+import com.android.tools.idea.editors.gfxtrace.service.gfxapi.Mesh;
+import com.android.tools.idea.editors.gfxtrace.service.path.AtomPath;
+import com.android.tools.idea.editors.gfxtrace.service.path.MeshPath;
+import com.android.tools.idea.editors.gfxtrace.service.path.MeshPathOptions;
+import com.android.tools.idea.editors.gfxtrace.service.vertex.*;
+import com.android.tools.idea.editors.gfxtrace.viewer.Geometry;
+import com.android.tools.idea.editors.gfxtrace.viewer.Viewer;
+import com.android.tools.idea.editors.gfxtrace.viewer.camera.CylindricalCameraModel;
+import com.android.tools.idea.editors.gfxtrace.viewer.camera.IsoSurfaceCameraModel;
+import com.android.tools.idea.editors.gfxtrace.viewer.geo.Model;
+import com.android.tools.rpclib.rpccore.Rpc;
+import com.android.tools.rpclib.rpccore.RpcException;
+import com.google.common.base.Function;
+import com.google.common.util.concurrent.AsyncFunction;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.ui.components.JBLoadingPanel;
+import com.intellij.util.ui.StatusText;
+import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLProfile;
+import com.jogamp.opengl.awt.GLCanvas;
+import icons.AndroidIcons;
+import org.jetbrains.annotations.NotNull;
+
+import javax.swing.*;
+import java.awt.*;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
+
+public class GeometryController extends Controller implements AtomStream.Listener {
+  public static JComponent createUI(GfxTraceEditor editor) {
+    return new GeometryController(editor).myPanel;
+  }
+
+  private static final Logger LOG = Logger.getInstance(GeometryController.class);
+
+  private static final String CARD_EMPTY = "empty";
+  private static final String CARD_GEOMETRY = "geometry";
+  private static final FmtFloat32 FMT_XYZ_F32 = new FmtFloat32().setOrder(
+    new VectorElement[]{VectorElement.X, VectorElement.Y, VectorElement.Z}
+  );
+
+  private final JPanel myPanel = new JPanel(new CardLayout());
+  private final JBLoadingPanel myLoading = new JBLoadingPanel(new BorderLayout(), myEditor.getProject(), 50);
+  private final EmptyPanel myEmptyPanel = new EmptyPanel();
+  private final GLCanvas myCanvas;
+  private final IsoSurfaceCameraModel myCamera = new IsoSurfaceCameraModel(new CylindricalCameraModel());
+  private final Viewer myViewer = new Viewer(myCamera);
+
+  private Geometry myGeometry = new Geometry();
+  private boolean myZUp = false;
+
+  public GeometryController(@NotNull GfxTraceEditor editor) {
+    super(editor);
+    editor.getAtomStream().addListener(this);
+
+    GLProfile profile = GLProfile.getDefault();
+    GLCapabilities caps = new GLCapabilities(profile);
+    caps.setDoubleBuffered(true);
+    caps.setHardwareAccelerated(true);
+    caps.setSampleBuffers(true);
+    myCanvas = new GLCanvas(caps);
+    myCanvas.addGLEventListener(myViewer);
+    myViewer.addMouseListeners(myCanvas);
+
+    JPanel geoPanel = new JPanel(new BorderLayout());
+    geoPanel.add(myCanvas, BorderLayout.CENTER);
+    geoPanel.add(
+      ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN, getToolbarActions(), false).getComponent(), BorderLayout.WEST);
+    myLoading.add(geoPanel, BorderLayout.CENTER);
+    myPanel.add(myEmptyPanel, CARD_EMPTY);
+    myPanel.add(myLoading, CARD_GEOMETRY);
+  }
+
+  private DefaultActionGroup getToolbarActions() {
+    DefaultActionGroup group = new DefaultActionGroup();
+    group.add(new ToggleAction("Y-Up", "Toggle Y-Up/Z-Up", AndroidIcons.GfxTrace.YUp) {
+      @Override
+      public boolean isSelected(AnActionEvent e) {
+        return myZUp;
+      }
+
+      @Override
+      public void setSelected(AnActionEvent e, boolean state) {
+        myZUp = state;
+        Presentation presentation = e.getPresentation();
+        presentation.setIcon(myZUp ? AndroidIcons.GfxTrace.ZUp : AndroidIcons.GfxTrace.YUp);
+        presentation.setText(myZUp ? "Z-Up" : "Y-Up");
+        if (myGeometry != null) {
+          myGeometry.setZUp(myZUp);
+          updateViewer();
+        }
+      }
+    });
+    group.add(new ToggleAction("Triangle Winding", "Toggle triangle winding", AndroidIcons.GfxTrace.WindingCCW) {
+      @Override
+      public boolean isSelected(AnActionEvent e) {
+        return myViewer.getWinding() == Viewer.Winding.CW;
+      }
+
+      @Override
+      public void setSelected(AnActionEvent e, boolean state) {
+        myViewer.setWinding(state ? Viewer.Winding.CW : Viewer.Winding.CCW);
+        Presentation presentation = e.getPresentation();
+        presentation.setIcon(state ? AndroidIcons.GfxTrace.WindingCW : AndroidIcons.GfxTrace.WindingCCW);
+        if (myGeometry != null) {
+          updateViewer();
+        }
+      }
+    });
+
+    return group;
+  }
+
+  @Override
+  public void onAtomLoadingStart(AtomStream atoms) {
+  }
+
+  @Override
+  public void onAtomLoadingComplete(AtomStream atoms) {
+  }
+
+  @Override
+  public void onAtomSelected(AtomPath path) {
+    CardLayout layout = (CardLayout)myPanel.getLayout();
+    if (myEditor.getAtomStream().getSelectedAtom().isDrawCall()) {
+      layout.show(myPanel, CARD_GEOMETRY);
+      fetchMeshes(path);
+    }
+    else {
+      layout.show(myPanel, CARD_EMPTY);
+    }
+  }
+
+  private void fetchMeshes(AtomPath path) {
+    myLoading.startLoading();
+    Rpc.listen(fetchModel(path.mesh(new MeshPathOptions().setFaceted(true))), LOG, new Rpc.Callback<Model>() {
+      @Override
+      public void onFinish(Rpc.Result<Model> result) throws RpcException, ExecutionException {
+        try {
+          myGeometry.setModel(result.get());
+          updateRenderable();
+        }
+        finally {
+          myLoading.stopLoading();
+        }
+      }
+    });
+  }
+
+  private ListenableFuture<Model> fetchModel(MeshPath path) {
+    ListenableFuture<Mesh> meshFuture = myEditor.getClient().get(path);
+    return Futures.transform(meshFuture, new AsyncFunction<Mesh, Model>() {
+      @Override
+      public ListenableFuture<Model> apply(Mesh mesh) throws Exception {
+        VertexBuffer vb = mesh.getVertexBuffer();
+
+        ListenableFuture<VertexStreamData> positionsFuture = null;
+        ListenableFuture<VertexStreamData> normalsFuture = null;
+
+        for (VertexStream stream : vb.getStreams()) {
+          SemanticType semantic = stream.getSemantic().getType();
+          if (positionsFuture == null && semantic == SemanticType.Position) {
+            positionsFuture = myEditor.getClient().get(stream.getData(), FMT_XYZ_F32);
+          } else if (normalsFuture == null && semantic == SemanticType.Normal) {
+            normalsFuture = myEditor.getClient().get(stream.getData(), FMT_XYZ_F32);
+          }
+        }
+
+        if (positionsFuture == null || normalsFuture == null) {
+          return Futures.immediateFuture(null); // Model doesn't have the data we need.
+        }
+
+        final int[] indices = mesh.getIndexBuffer().getIndices();
+        final DrawPrimitive primitive = mesh.getDrawPrimitive();
+
+        return Futures.transform(Futures.allAsList(positionsFuture, normalsFuture), new Function<List<VertexStreamData>, Model>() {
+          @Override
+          public Model apply(List<VertexStreamData> inputs) {
+            float[] positions = inputs.get(0).getDataAndCast();
+            float[] normals = inputs.get(1).getDataAndCast();
+            return new Model(primitive, positions, normals, indices);
+          }
+        });
+      }
+    });
+  }
+
+  @Override
+  public void notifyPath(PathEvent event) {
+  }
+
+  private void updateRenderable() {
+    // Repaint will happen below.
+    myViewer.setRenderable(myGeometry.asRenderable());
+    updateViewer();
+  }
+
+  private void updateViewer() {
+    myCamera.setEmitter(myGeometry.getEmitter());
+    myPanel.repaint();
+    myCanvas.display();
+  }
+
+  private static class EmptyPanel extends JComponent {
+    private final StatusText myEmptyText = new StatusText() {
+      @Override
+      protected boolean isStatusVisible() {
+        return true;
+      }
+    };
+
+    public EmptyPanel() {
+      myEmptyText.setText(GfxTraceEditor.SELECT_DRAW_CALL);
+      myEmptyText.attachTo(this);
+    }
+
+    @Override
+    protected void paintComponent(Graphics graphics) {
+      super.paintComponent(graphics);
+      myEmptyText.paint(this, graphics);
+    }
+  }
+}
