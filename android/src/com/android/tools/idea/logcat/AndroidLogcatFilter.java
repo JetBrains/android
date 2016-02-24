@@ -79,15 +79,15 @@ public final class AndroidLogcatFilter {
     }
   }
 
-  // Temporarily deprecated, since there's one plugin that currently relies on this.
-  // TODO: Update caller to use the Builder instead, then set this to private.
-  @Deprecated
-  public AndroidLogcatFilter(@NotNull String name,
-                             @Nullable Pattern messagePattern,
-                             @Nullable Pattern tagPattern,
-                             @Nullable Pattern pkgNamePattern,
-                             @Nullable String pid,
-                             @Nullable Log.LogLevel logLevel) {
+  /**
+   * Use a {@link Builder} to construct a filter.
+   */
+  private AndroidLogcatFilter(@NotNull String name,
+                              @Nullable Pattern messagePattern,
+                              @Nullable Pattern tagPattern,
+                              @Nullable Pattern pkgNamePattern,
+                              @Nullable String pid,
+                              @Nullable Log.LogLevel logLevel) {
     myName = name;
     myMessagePattern = messagePattern;
     myTagPattern = tagPattern;
