@@ -35,7 +35,7 @@ import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.io.Files;
-import com.intellij.codeInspection.ui.InspectionTree;
+import com.intellij.codeInspection.ui.tree.InspectionTree;
 import com.intellij.ide.RecentProjectsManager;
 import com.intellij.ide.actions.ShowSettingsUtilImpl;
 import com.intellij.openapi.Disposable;
@@ -816,7 +816,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
       }
     });
 
-    return new InspectionsFixture(robot(), getProject(), tree);
+    return new InspectionsFixture(robot(), getProject(), tree.getBuilder());
   }
 
   @NotNull
