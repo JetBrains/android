@@ -17,10 +17,10 @@ package com.android.tools.idea.editors.gfxtrace.controllers;
 
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.models.GpuState;
+import com.android.tools.idea.editors.gfxtrace.renderers.Render;
 import com.android.tools.idea.editors.gfxtrace.service.ErrDataUnavailable;
 import com.android.tools.idea.editors.gfxtrace.service.snippets.KindredSnippets;
 import com.android.tools.idea.editors.gfxtrace.service.snippets.SnippetObject;
-import com.android.tools.rpclib.binary.BinaryObject;
 import com.android.tools.rpclib.schema.Dynamic;
 import com.android.tools.rpclib.schema.Field;
 import com.android.tools.rpclib.schema.Map;
@@ -29,6 +29,8 @@ import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.ui.ColoredTreeCellRenderer;
+import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.util.containers.IntArrayList;
 import org.jetbrains.annotations.NotNull;
 
@@ -36,6 +38,7 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.TreeModelEvent;
 import javax.swing.event.TreeModelListener;
+import javax.swing.tree.TreeCellRenderer;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 import java.util.ArrayList;
@@ -343,5 +346,20 @@ public class StateController extends TreeController implements GpuState.Listener
         }
       }
     }
+  }
+
+  protected TreeCellRenderer getRenderer() {
+    return new ColoredTreeCellRenderer() {
+      @Override
+      public void customizeCellRenderer(@NotNull JTree tree, Object value,
+                                        boolean selected, boolean expanded, boolean leaf, int row, boolean hasFocus) {
+        if (value instanceof StateController.Node) {
+          Render.render((StateController.Node)value, this, SimpleTextAttributes.REGULAR_ATTRIBUTES);
+        }
+        else {
+          assert false;
+        }
+      }
+    };
   }
 }
