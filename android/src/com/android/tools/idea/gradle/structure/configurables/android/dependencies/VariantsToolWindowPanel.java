@@ -20,7 +20,6 @@ import com.android.tools.idea.gradle.structure.configurables.android.dependencie
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.VariantsTreeBuilder;
 import com.android.tools.idea.gradle.structure.configurables.ui.PsdUISettings;
 import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowPanel;
-import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsdNode;
 import com.android.tools.idea.gradle.structure.model.android.PsdAndroidDependencyModel;
 import com.android.tools.idea.gradle.structure.model.android.PsdAndroidModuleModel;
 import com.google.common.collect.Lists;
@@ -121,14 +120,14 @@ class VariantsToolWindowPanel extends ToolWindowPanel implements DependencySelec
     additionalActions.add(new DumbAwareAction("Expand All", "", AllIcons.General.ExpandAll) {
       @Override
       public void actionPerformed(AnActionEvent e) {
-        myTreeBuilder.expand();
+        myTreeBuilder.expandAllNodes();
       }
     });
 
     additionalActions.add(new DumbAwareAction("Collapse All", "", AllIcons.General.CollapseAll) {
       @Override
       public void actionPerformed(AnActionEvent e) {
-        myTreeBuilder.collapse();
+        myTreeBuilder.collapseAllNodes();
       }
     });
 
@@ -155,41 +154,8 @@ class VariantsToolWindowPanel extends ToolWindowPanel implements DependencySelec
   }
 
   @Override
-  public void setSelection(@NotNull final PsdAndroidDependencyModel selection) {
-    myTreeBuilder.getInitialized().doWhenDone(new Runnable() {
-      @Override
-      public void run() {
-        DefaultMutableTreeNode rootNode = myTreeBuilder.getRootNode();
-        if (rootNode != null) {
-          List<TreePath> selectionPaths = Lists.newArrayList();
-
-          int variantCount = rootNode.getChildCount();
-          for (int i = 0; i < variantCount; i++) {
-            DefaultMutableTreeNode variantNode = (DefaultMutableTreeNode)rootNode.getChildAt(i);
-            collectMatching(selection, variantNode, selectionPaths);
-          }
-          updateSelection(selectionPaths);
-        }
-      }
-    });
-  }
-
-  private static void collectMatching(@NotNull PsdAndroidDependencyModel dependencyModel,
-                                      @NotNull DefaultMutableTreeNode parentNode,
-                                      @NotNull List<TreePath> selectionPaths) {
-    int dependencyCount = parentNode.getChildCount();
-    for (int i = 0; i < dependencyCount; i++) {
-      DefaultMutableTreeNode childNode = (DefaultMutableTreeNode)parentNode.getChildAt(i);
-      Object userObject = childNode.getUserObject();
-      if (userObject instanceof AbstractPsdNode) {
-        AbstractPsdNode node = (AbstractPsdNode)userObject;
-        if (node.matches(dependencyModel)) {
-          TreePath path = new TreePath(childNode.getPath());
-          selectionPaths.add(path);
-        }
-      }
-      collectMatching(dependencyModel, childNode, selectionPaths);
-    }
+  public void setSelection(@NotNull PsdAndroidDependencyModel selection) {
+    myTreeBuilder.setSelection(selection);
   }
 
   private void updateSelection(@NotNull List<TreePath> selectionPaths) {

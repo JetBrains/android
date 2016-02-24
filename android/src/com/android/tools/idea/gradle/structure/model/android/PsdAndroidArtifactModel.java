@@ -72,4 +72,9 @@ public class PsdAndroidArtifactModel extends PsdChildModel {
   public boolean isEditable() {
     return false;
   }
+
+  @Override
+  public String toString() {
+    return getName();
+  }
 }

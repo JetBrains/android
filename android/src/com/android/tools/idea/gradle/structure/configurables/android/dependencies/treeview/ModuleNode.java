@@ -15,13 +15,14 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview;
 
+import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsdNode;
 import com.android.tools.idea.gradle.structure.model.android.PsdModuleDependencyModel;
 import com.intellij.ui.treeStructure.SimpleNode;
 import org.jetbrains.annotations.NotNull;
 
 public class ModuleNode extends AbstractDependencyNode<PsdModuleDependencyModel> {
-  ModuleNode(@NotNull PsdModuleDependencyModel model) {
-    super(model);
+  ModuleNode(@NotNull AbstractPsdNode parent, @NotNull PsdModuleDependencyModel model) {
+    super(parent, model);
     myName = model.getValueAsText();
   }
 
