@@ -328,5 +328,7 @@ public class AndroidIcons {
     public static final Icon ZUp = load("/icons/gfxtrace/zup.png"); // 16x16
     public static final Icon WindingCCW = load("/icons/gfxtrace/winding_ccw.png"); // 16x16
     public static final Icon WindingCW = load("/icons/gfxtrace/winding_cw.png"); // 16x16
+    public static final Icon Smooth = load("/icons/gfxtrace/smooth.png"); // 16x16
+    public static final Icon Faceted = load("/icons/gfxtrace/faceted.png"); // 16x16
   }
 }
