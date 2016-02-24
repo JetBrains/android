@@ -18,7 +18,6 @@ package com.android.tools.idea.structure.services;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
 import java.awt.*;
 import java.util.Collection;
 
@@ -50,10 +49,10 @@ public interface DeveloperServiceCreators {
    *
    * The component should typically use {@code BorderLayout}, filling the
    * entire panel and try to match pre-existing patterns and styles as much as
-   * is possible. More formal guidelines are currently pending.
+   * is possible.
    *
-   * @return the custom panel.
+   * Note that this method will go away in favor of a more structured type. Designs pending refactor.
    */
   @NotNull
-  Component getPanel();
+  Component getPanel(@NotNull DeveloperServiceMap serviceMap);
 }
