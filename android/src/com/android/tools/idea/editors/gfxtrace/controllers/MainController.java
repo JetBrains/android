@@ -66,6 +66,7 @@ public class MainController extends Controller {
     imageTabs.setBorder(JBUI.Borders.empty(0, 2, 0, 0));
     imageTabs.addTab(new TabInfo(FrameBufferController.createUI(editor)).setText("Framebuffer"));
     imageTabs.addTab(new TabInfo(TexturesController.createUI(editor)).setText("Textures"));
+    imageTabs.addTab(new TabInfo(GeometryController.createUI(editor)).setText("Geometry"));
 
 
     // Now add the atom tree and buffer views to the middle pane in the main pane.

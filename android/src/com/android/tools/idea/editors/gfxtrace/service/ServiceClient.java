@@ -19,10 +19,12 @@ package com.android.tools.idea.editors.gfxtrace.service;
 
 import com.android.tools.idea.editors.gfxtrace.service.atom.AtomGroup;
 import com.android.tools.idea.editors.gfxtrace.service.atom.AtomList;
+import com.android.tools.idea.editors.gfxtrace.service.gfxapi.Mesh;
 import com.android.tools.idea.editors.gfxtrace.service.image.ImageInfo;
 import com.android.tools.idea.editors.gfxtrace.service.path.*;
 import com.android.tools.idea.editors.gfxtrace.service.stringtable.Info;
 import com.android.tools.idea.editors.gfxtrace.service.stringtable.StringTable;
+import com.android.tools.idea.editors.gfxtrace.service.vertex.VertexStreamData;
 import com.android.tools.rpclib.schema.Message;
 import com.google.common.base.Function;
 import com.google.common.util.concurrent.Futures;
@@ -80,6 +82,14 @@ public abstract class ServiceClient {
 
   public ListenableFuture<MemoryInfo> get(MemoryRangePath p) {
     return getAndCast(p);
+  }
+
+  public ListenableFuture<Mesh> get(MeshPath p) {
+    return getAndCast(p);
+  }
+
+  public ListenableFuture<VertexStreamData> get(VertexStreamDataPath path, Object type) {
+    return getAndCast(path.as(type));
   }
 
   private <T> ListenableFuture<T> getAndCast(Path p) {
