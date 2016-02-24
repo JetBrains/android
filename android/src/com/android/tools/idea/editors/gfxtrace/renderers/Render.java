@@ -35,25 +35,9 @@ public final class Render {
   @NotNull private static final Logger LOG = Logger.getInstance(Render.class);
   // object rendering functions
 
-  public static void render(@NotNull Object value, @NotNull SimpleColoredComponent component, @NotNull SimpleTextAttributes attributes) {
+  private static void render(@NotNull Object value, @NotNull SimpleColoredComponent component, @NotNull SimpleTextAttributes attributes) {
     if (value instanceof SnippetObject) {
       render((SnippetObject)value, component, attributes);
-      return;
-    }
-    if (value instanceof StateController.Node) {
-      render((StateController.Node)value, component, attributes);
-      return;
-    }
-    if (value instanceof AtomController.Node) {
-      render((AtomController.Node)value, component, attributes);
-      return;
-    }
-    if (value instanceof AtomController.Memory) {
-      render((AtomController.Memory)value, component, attributes);
-      return;
-    }
-    if (value instanceof AtomController.Group) {
-      render((AtomController.Group)value, component, attributes);
       return;
     }
     if (value instanceof DynamicAtom) {
