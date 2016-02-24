@@ -36,6 +36,7 @@ import org.junit.Test;
 import org.junit.rules.TestName;
 import org.junit.runner.RunWith;
 
+import java.io.File;
 import java.util.Collections;
 import java.util.List;
 
@@ -172,14 +173,13 @@ public class LayoutPreviewTest {
     toolbar.removePreviews();
   }
 
-  @Ignore("failed in http://go/aj/job/studio-ui-test/389 and from IDEA")
   @Test
   public void testEdits() throws Exception {
     guiTest.importSimpleApplication();
 
     // Load layout, wait for render to be shown in the preview window
     EditorFixture editor = guiTest.ideFrame().getEditor();
-    editor.open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN);
+    editor.open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR);
     LayoutPreviewFixture preview = editor.getLayoutPreview(true);
     assertNotNull(preview);
     editor.requireName("activity_my.xml");
@@ -272,10 +272,9 @@ public class LayoutPreviewTest {
     assertNotNull(currentFileName);
     String prefix = this.getClass().getSimpleName() + "-" + myTestName.getMethodName();
     String pngFileName = LintUtils.getBaseName(currentFileName) + DOT_PNG;
-    return THUMBNAIL_FOLDER + "/" + prefix + "-" + pngFileName;
+    return THUMBNAIL_FOLDER + File.separatorChar + prefix + '-' + pngFileName;
   }
 
-  @Ignore("failed in http://go/aj/job/studio-ui-test/389 and from IDEA")
   @Test
   public void testRendering() throws Exception {
     // Opens a number of layouts in the layout test project and checks that the rendering looks roughly
@@ -340,7 +339,6 @@ public class LayoutPreviewTest {
     // ScrollViews (no device clipping)
   }
 
-  @Ignore("failed in http://go/aj/job/studio-ui-test/389 and from IDEA")
   @Test
   public void testEditCustomView() throws Exception {
     // Opens the LayoutTest project, opens a layout with a custom view, checks
