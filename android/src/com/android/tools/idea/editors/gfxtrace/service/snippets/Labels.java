@@ -24,6 +24,7 @@ import com.android.tools.rpclib.schema.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 public final class Labels extends KindredSnippets implements BinaryObject {
   //<<<Start:Java.ClassBody:1>>>
@@ -80,6 +81,23 @@ public final class Labels extends KindredSnippets implements BinaryObject {
       }
     }
     return null;
+  }
+
+  /**
+   * filter a list of constants down to those present in the snippet.
+   * @param constants a list of constants to filter.
+   * @return the constants to prefer.
+   */
+  public List<Constant> preferred(List<Constant> constants) {
+    List<Constant> preferred = new ArrayList<Constant>();
+    for (Constant c : constants) {
+      for (int i = 0; i < myLabels.length; i++) {
+         if (c.getName().equals(myLabels[i])) {
+           preferred.add(c);
+         }
+      }
+    }
+    return preferred;
   }
 
   public enum Klass implements BinaryClass {
