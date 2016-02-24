@@ -99,7 +99,7 @@ public abstract class DynamicWizardStep extends ScopedDataBinder implements Step
    * If the this wizard is a global one, this function returns null.
    */
   @Nullable
-  protected final Project getProject() {
+  public final Project getProject() {
     return myPath != null ? myPath.getProject() : null;
   }
 
