@@ -17,6 +17,7 @@ package com.android.tools.idea.editors.gfxtrace.models;
 
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
+import com.android.tools.idea.editors.gfxtrace.controllers.StateController;
 import com.android.tools.idea.editors.gfxtrace.service.ErrDataUnavailable;
 import com.android.tools.idea.editors.gfxtrace.service.path.*;
 import com.android.tools.rpclib.futures.SingleInFlight;
@@ -32,7 +33,7 @@ import java.util.concurrent.ExecutionException;
 
 public class GpuState implements PathListener {
   private static final Logger LOG = Logger.getInstance(GpuState.class);
-  private static final Object[] NO_SELECTION = new Object[0];
+  private static final Path NO_SELECTION = Path.EMPTY;
 
   private final GfxTraceEditor myEditor;
   private final PathStore<StatePath> myStatePath = new PathStore<StatePath>();
@@ -49,8 +50,8 @@ public class GpuState implements PathListener {
   private final Listeners myListeners = new Listeners();
 
   private Dynamic myState;
-  private Object[] mySelection = NO_SELECTION;
-  private Object[] myCachedSelection = NO_SELECTION;
+  private Path mySelection = NO_SELECTION;
+  private Path myCachedSelection = NO_SELECTION;
 
   public GpuState(GfxTraceEditor editor) {
     myEditor = editor;
@@ -73,10 +74,10 @@ public class GpuState implements PathListener {
     }
     if (event.findStatePath() != null) {
       if (myState == null) {
-        myCachedSelection = getStatePath(event.path);
+        myCachedSelection = event.path;
       }
       else {
-        mySelection = getStatePath(event.path);
+        mySelection = event.path;
         myCachedSelection = NO_SELECTION;
         myListeners.onStateSelection(this, mySelection);
       }
@@ -90,29 +91,12 @@ public class GpuState implements PathListener {
     }
     else {
       myListeners.onStateLoadingSuccess(this);
-      if (myCachedSelection.length != 0) {
+      if (myCachedSelection.getParent() != null) {
         mySelection = myCachedSelection;
         myCachedSelection = NO_SELECTION;
         myListeners.onStateSelection(this, mySelection);
       }
     }
-  }
-
-  private static Object[] getStatePath(Path path) {
-    LinkedList<Object> result = Lists.newLinkedList();
-    while (path != null) {
-      if (path instanceof FieldPath) {
-        result.add(0, ((FieldPath)path).getName());
-      }
-      else if (path instanceof MapIndexPath) {
-        result.add(0, ((MapIndexPath)path).getKey());
-      }
-      else {
-        break;
-      }
-      path = path.getParent();
-    }
-    return result.toArray(new Object[result.size()]);
   }
 
   public StatePath getPath() {
@@ -123,8 +107,8 @@ public class GpuState implements PathListener {
     return myState;
   }
 
-  public Object[] getSelection() {
-    return (myCachedSelection.length == 0) ? mySelection : myCachedSelection;
+  public Path getSelection() {
+    return (myCachedSelection.getParent() == null) ? mySelection : myCachedSelection;
   }
 
   public void addListener(Listener listener) {
@@ -142,7 +126,7 @@ public class GpuState implements PathListener {
 
     void onStateLoadingSuccess(GpuState state);
 
-    void onStateSelection(GpuState state, Object[] selection);
+    void onStateSelection(GpuState state, Path selection);
   }
 
   private static class Listeners extends ArrayList<Listener> implements Listener {
@@ -168,7 +152,7 @@ public class GpuState implements PathListener {
     }
 
     @Override
-    public void onStateSelection(GpuState state, Object[] selection) {
+    public void onStateSelection(GpuState state, Path selection) {
       for (Listener listener : toArray(new Listener[size()])) {
         listener.onStateSelection(state, selection);
       }
