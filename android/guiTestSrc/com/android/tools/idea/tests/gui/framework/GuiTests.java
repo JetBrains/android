@@ -17,6 +17,7 @@ package com.android.tools.idea.tests.gui.framework;
 
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.diagnostic.AbstractMessage;
 import com.intellij.diagnostic.MessagePool;
@@ -293,6 +294,16 @@ public final class GuiTests {
         robot.cleanUpWithoutDisposingWindows();
       }
     }
+  }
+
+  static ImmutableList<Window> windowsShowing() {
+    ImmutableList.Builder<Window> listBuilder = ImmutableList.builder();
+    for (Window window : Window.getWindows()) {
+      if (window.isShowing()) {
+        listBuilder.add(window);
+      }
+    }
+    return listBuilder.build();
   }
 
   static void closeAllProjects() {
