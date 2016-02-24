@@ -199,4 +199,8 @@ public class AndroidResourceUtilTest extends AndroidTestCase {
     assertNotNull(libRClassFile);
     assertTrue(AndroidResourceUtil.isRJavaFile(myFacet, libRClassFile));
   }
+
+  public void testValidResourceFileName() {
+    assertEquals("ic_my_icon", AndroidResourceUtil.getValidResourceFileName("ic_My-icon"));
+  }
 }
