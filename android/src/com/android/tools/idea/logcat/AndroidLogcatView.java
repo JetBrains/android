@@ -209,7 +209,7 @@ public abstract class AndroidLogcatView implements Disposable {
       deviceContext.addListener(deviceSelectionListener, this);
     }
 
-    myNoFilter = new AndroidLogcatFilter.Builder(NO_FILTERS).build();
+    myNoFilter = new DefaultAndroidLogcatFilter.Builder(NO_FILTERS).build();
 
     JComponent consoleComponent = myLogConsole.getComponent();
 
@@ -376,7 +376,7 @@ public abstract class AndroidLogcatView implements Disposable {
 
     int insertIndex = 0;
 
-    AndroidLogcatFilter.Builder selectedAppFilterBuilder = new AndroidLogcatFilter.Builder(SELECTED_APP_FILTER);
+    DefaultAndroidLogcatFilter.Builder selectedAppFilterBuilder = new DefaultAndroidLogcatFilter.Builder(SELECTED_APP_FILTER);
     if (client != null) {
       selectedAppFilterBuilder.setPid(client.getPid());
     }
@@ -410,7 +410,7 @@ public abstract class AndroidLogcatView implements Disposable {
       final String name = filter.getName();
       assert name != null; // The UI that creates filters should ensure a name was created
 
-      AndroidLogcatFilter compiled = AndroidLogcatFilter.compile(filter, name);
+      AndroidLogcatFilter compiled = DefaultAndroidLogcatFilter.compile(filter, name);
       myFilterComboBoxModel.addElement(compiled);
     }
   }
