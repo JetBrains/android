@@ -15,9 +15,8 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
-import com.google.common.collect.Lists;
-import com.intellij.codeInspection.ui.InspectionTree;
-import com.intellij.codeInspection.ui.InspectionTreeNode;
+import com.intellij.codeInspection.ui.tree.InspectionTreeBuilder;
+import com.intellij.codeInspection.ui.tree.InspectionTreeNode;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindowId;
 import org.fest.swing.core.Robot;
@@ -25,9 +24,7 @@ import org.fest.swing.edt.GuiQuery;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 import static org.fest.swing.edt.GuiActionRunner.execute;
 
@@ -35,9 +32,9 @@ import static org.fest.swing.edt.GuiActionRunner.execute;
  * Fixture for the Inspections window in the IDE
  */
 public class InspectionsFixture extends ToolWindowFixture {
-  private final InspectionTree myTree;
+  private final InspectionTreeBuilder myTree;
 
-  public InspectionsFixture(@NotNull Robot robot, @NotNull Project project, InspectionTree tree) {
+  public InspectionsFixture(@NotNull Robot robot, @NotNull Project project, InspectionTreeBuilder tree) {
     super(ToolWindowId.INSPECTION, project, robot);
     myTree = tree;
   }
@@ -51,7 +48,7 @@ public class InspectionsFixture extends ToolWindowFixture {
       @Nullable
       protected String executeInEDT() throws Throwable {
         StringBuilder sb = new StringBuilder();
-        InspectionsFixture.describe(myTree.getRoot(), sb, 0);
+        InspectionsFixture.describe((InspectionTreeNode)myTree.getTreeStructure().getRootElement(), sb, 0);
         return sb.toString();
       }
     });
@@ -66,10 +63,7 @@ public class InspectionsFixture extends ToolWindowFixture {
 
     // The exact order of the results sometimes varies so sort the children alphabetically
     // instead to ensure stable test output
-    List<InspectionTreeNode> children = Lists.newArrayListWithExpectedSize(node.getChildCount());
-    for (int i = 0, n = node.getChildCount(); i < n; i++) {
-      children.add((InspectionTreeNode)node.getChildAt(i));
-    }
+    List<InspectionTreeNode> children = new ArrayList<InspectionTreeNode>(node.getChildren());
     Collections.sort(children, new Comparator<InspectionTreeNode>() {
       @Override
       public int compare(InspectionTreeNode node1, InspectionTreeNode node2) {
