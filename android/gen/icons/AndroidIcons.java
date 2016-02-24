@@ -331,5 +331,10 @@ public class AndroidIcons {
     public static final Icon WindingCW = load("/icons/gfxtrace/winding_cw.png"); // 16x16
     public static final Icon Smooth = load("/icons/gfxtrace/smooth.png"); // 16x16
     public static final Icon Faceted = load("/icons/gfxtrace/faceted.png"); // 16x16
+    public static final Icon CullingEnabled = load("/icons/gfxtrace/culling_enabled.png"); // 16x16
+    public static final Icon CullingDisabled = load("/icons/gfxtrace/culling_disabled.png"); // 16x16
+    public static final Icon Lit = load("/icons/gfxtrace/lit.png"); // 16x16
+    public static final Icon Flat = load("/icons/gfxtrace/flat.png"); // 16x16
+    public static final Icon Normals = load("/icons/gfxtrace/normals.png"); // 16x16
   }
 }

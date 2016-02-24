@@ -147,6 +147,29 @@ public class GeometryController extends Controller implements AtomStream.Listene
     group.add(new NormalsAction("Original", "Smooth normals", AndroidIcons.GfxTrace.Smooth, NormalsAction.ORIGINAL));
     group.add(new NormalsAction("Faceted", "Per-face normals", AndroidIcons.GfxTrace.Faceted, NormalsAction.FACETED));
 
+    group.add(new Separator());
+    group.add(new ToggleAction("Backface Culling", "Toggle culling of backfaces", AndroidIcons.GfxTrace.CullingDisabled) {
+      @Override
+      public boolean isSelected(AnActionEvent e) {
+        return myViewer.getCulling() != Viewer.Culling.OFF;
+      }
+
+      @Override
+      public void setSelected(AnActionEvent e, boolean state) {
+        myViewer.setCulling(state ? Viewer.Culling.ON : Viewer.Culling.OFF);
+        Presentation presentation = e.getPresentation();
+        presentation.setIcon(state ? AndroidIcons.GfxTrace.CullingEnabled : AndroidIcons.GfxTrace.CullingDisabled);
+        if (myGeometry != null) {
+          updateViewer();
+        }
+      }
+    });
+
+    group.add(new Separator());
+    group.add(new ShadingAction("Lit", "Lit shading", AndroidIcons.GfxTrace.Lit, Viewer.Shading.LIT));
+    group.add(new ShadingAction("Flat", "Flat shading", AndroidIcons.GfxTrace.Flat, Viewer.Shading.FLAT));
+    group.add(new ShadingAction("Normals", "Show face normals", AndroidIcons.GfxTrace.Normals, Viewer.Shading.NORMALS));
+
     return group;
   }
 
@@ -338,6 +361,28 @@ public class GeometryController extends Controller implements AtomStream.Listene
       super.update(e);
       Presentation presentation = e.getPresentation();
       presentation.setEnabled((myGeometry != null)); // TODO:  && myGeometry.canRenderAs(myDisplayMode));
+    }
+  }
+
+  private class ShadingAction extends ToggleAction {
+    private Viewer.Shading myTargetShading;
+
+    public ShadingAction(@Nullable String text, @Nullable String description, @Nullable Icon icon, Viewer.Shading targetShading) {
+      super(text, description, icon);
+      myTargetShading = targetShading;
+    }
+
+    @Override
+    public boolean isSelected(AnActionEvent e) {
+      return myViewer.getShading() == myTargetShading;
+    }
+
+    @Override
+    public void setSelected(AnActionEvent e, boolean state) {
+      myViewer.setShading(myTargetShading);
+      if (myGeometry != null) {
+        updateViewer();
+      }
     }
   }
 }
