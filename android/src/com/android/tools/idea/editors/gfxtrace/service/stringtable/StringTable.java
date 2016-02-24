@@ -86,7 +86,7 @@ public final class StringTable implements BinaryObject {
   static {
     ENTITY.setFields(new Field[]{
       new Field("Info", new Struct(Info.Klass.INSTANCE.entity())),
-      new Field("Entries", new Map("", new Primitive("string", Method.String), new Interface("Node"))),
+      new Field("Entries", new Map("MapType", new Primitive("string", Method.String), new Interface("Node"))),
     });
     Namespace.register(Klass.INSTANCE);
   }
