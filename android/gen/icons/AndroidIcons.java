@@ -322,6 +322,7 @@ public class AndroidIcons {
     public static final Icon WireframeNone = load("/icons/gfxtrace/wireframe_none.png"); // 16x16
     public static final Icon WireframeOverlay = load("/icons/gfxtrace/wireframe_overlay.png"); // 16x16
     public static final Icon WireframeAll = load("/icons/gfxtrace/wireframe_all.png"); // 16x16
+    public static final Icon PointCloud = load("/icons/gfxtrace/point_cloud.png"); // 16x16
     public static final Icon FlipVertically = load("/icons/gfxtrace/flip_vertically.png"); // 16x16
     public static final Icon Opacity = load("/icons/gfxtrace/opacity.png"); // 16x16
     public static final Icon YUp = load("/icons/gfxtrace/yup.png"); // 16x16

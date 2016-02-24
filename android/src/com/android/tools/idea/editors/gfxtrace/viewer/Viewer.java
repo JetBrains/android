@@ -77,6 +77,7 @@ public class Viewer implements GLEventListener {
 
     gl.glEnable(GL.GL_DEPTH_TEST);
     gl.glClearColor(.8f, .8f, .8f, 1);
+    gl.getGL2GL3().glPointSize(4);
   }
 
   @Override
