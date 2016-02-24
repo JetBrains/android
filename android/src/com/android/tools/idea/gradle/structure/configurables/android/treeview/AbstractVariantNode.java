@@ -25,13 +25,13 @@ import java.util.List;
  * Tree Node that represents a variant.
  */
 public abstract class AbstractVariantNode extends AbstractPsdNode<PsdVariantModel> {
-  public AbstractVariantNode(@NotNull PsdVariantModel...models) {
-    super(models);
+  public AbstractVariantNode(@NotNull AbstractRootNode parent, @NotNull PsdVariantModel...models) {
+    super(parent, models);
     setUpNode();
   }
 
-  public AbstractVariantNode(@NotNull List<PsdVariantModel> models) {
-    super(models);
+  public AbstractVariantNode(@NotNull AbstractRootNode parent, @NotNull List<PsdVariantModel> models) {
+    super(parent, models);
     setUpNode();
   }
 

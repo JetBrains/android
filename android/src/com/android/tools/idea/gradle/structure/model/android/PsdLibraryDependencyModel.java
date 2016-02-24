@@ -49,8 +49,9 @@ public class PsdLibraryDependencyModel extends PsdAndroidDependencyModel {
   PsdLibraryDependencyModel(@NotNull PsdAndroidModuleModel parent,
                             @NotNull PsdArtifactDependencySpec resolvedSpec,
                             @Nullable Library gradleModel,
+                            @Nullable PsdAndroidArtifactModel artifactModel,
                             @Nullable ArtifactDependencyModel parsedModel) {
-    super(parent, parsedModel);
+    super(parent, artifactModel, parsedModel);
     myResolvedSpec = resolvedSpec;
     myGradleModel = gradleModel;
     myMismatchingRequestedSpec = findMismatchingSpec();
