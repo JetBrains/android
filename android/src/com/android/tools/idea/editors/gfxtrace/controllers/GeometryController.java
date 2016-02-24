@@ -43,6 +43,7 @@ import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.awt.GLCanvas;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -71,6 +72,8 @@ public class GeometryController extends Controller implements AtomStream.Listene
 
   private Geometry myGeometry = new Geometry();
   private boolean myZUp = false;
+  private Model myOriginalModel = null;
+  private Model myFacetedModel = null;
 
   public GeometryController(@NotNull GfxTraceEditor editor) {
     super(editor);
@@ -131,6 +134,10 @@ public class GeometryController extends Controller implements AtomStream.Listene
       }
     });
 
+    group.add(new Separator());
+    group.add(new NormalsAction("Original", "Original vertex normals", AndroidIcons.GfxTrace.Smooth, NormalsAction.ORIGINAL));
+    group.add(new NormalsAction("Faceted", "Per-face normals", AndroidIcons.GfxTrace.Faceted, NormalsAction.FACETED));
+
     return group;
   }
 
@@ -156,12 +163,19 @@ public class GeometryController extends Controller implements AtomStream.Listene
 
   private void fetchMeshes(AtomPath path) {
     myLoading.startLoading();
-    Rpc.listen(fetchModel(path.mesh(new MeshPathOptions().setFaceted(true))), LOG, new Rpc.Callback<Model>() {
+
+    ListenableFuture<Model> originalFuture = fetchModel(path.mesh(null));
+    ListenableFuture<Model> facetedFuture = fetchModel(path.mesh(new MeshPathOptions().setFaceted(true)));
+
+    Rpc.listen(Futures.allAsList(originalFuture, facetedFuture), LOG, new Rpc.Callback<List<Model>>() {
       @Override
-      public void onFinish(Rpc.Result<Model> result) throws RpcException, ExecutionException {
+      public void onFinish(Rpc.Result<List<Model>> results) throws RpcException, ExecutionException {
         try {
-          myGeometry.setModel(result.get());
-          updateRenderable();
+          List<Model> models = results.get();
+          myOriginalModel = models.get(0);
+          myFacetedModel = models.get(1);
+
+          setModel((myOriginalModel != null) ? myOriginalModel : myFacetedModel);
         }
         finally {
           myLoading.stopLoading();
@@ -208,6 +222,11 @@ public class GeometryController extends Controller implements AtomStream.Listene
     });
   }
 
+  private void setModel(Model model) {
+    myGeometry.setModel(model);
+    updateRenderable();
+  }
+
   @Override
   public void notifyPath(PathEvent event) {
   }
@@ -241,6 +260,47 @@ public class GeometryController extends Controller implements AtomStream.Listene
     protected void paintComponent(Graphics graphics) {
       super.paintComponent(graphics);
       myEmptyText.paint(this, graphics);
+    }
+  }
+
+  private class NormalsAction extends ToggleAction {
+    private static final int ORIGINAL = 0;
+    private static final int FACETED = 1;
+
+    private int myTargetMode;
+
+    public NormalsAction(@Nullable String text, @Nullable String description, @Nullable Icon icon, int targetMode) {
+      super(text, description, icon);
+      myTargetMode = targetMode;
+    }
+
+    @Override
+    public boolean isSelected(AnActionEvent e) {
+      Model model = myGeometry.getModel();
+      return model != null && model == getModel();
+    }
+
+    @Override
+    public void update(@NotNull AnActionEvent e) {
+      super.update(e);
+      Presentation presentation = e.getPresentation();
+      presentation.setEnabled(getModel() != null);
+    }
+
+    @Override
+    public void setSelected(AnActionEvent e, boolean state) {
+      setModel(getModel());
+    }
+
+    private Model getModel() {
+      switch (myTargetMode) {
+        case ORIGINAL:
+          return myOriginalModel;
+        case FACETED:
+          return myFacetedModel;
+        default:
+          return null;
+      }
     }
   }
 }
