@@ -15,30 +15,30 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service.snippets;
 
-import com.android.tools.rpclib.binary.BinaryClass;
 import com.android.tools.rpclib.binary.BinaryObject;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Created by anton on 2/10/16.
  */
 public abstract class Pathway implements BinaryObject {
   public static Pathway wrap(BinaryObject obj) {
-      return (Pathway)obj;
+    return (Pathway)obj;
   }
 
   public BinaryObject unwrap() {
-      return this;
+    return this;
   }
 
   /**
    * Get the base path for this pathway. If this pathway is a root return null.
+   *
    * @return the base path for this pathway or null if it is a root.
    */
   public abstract Pathway base();
 
   /**
    * Make a pathway for a command parameter.
+   *
    * @param paramName the name of the parameter.
    * @return a pathway for the parameter.
    */
@@ -48,33 +48,46 @@ public abstract class Pathway implements BinaryObject {
 
   /**
    * Make a pathway for a global (aka state variable).
+   *
    * @param name the name of the global.
    * @return a pathway for the global.
    */
-  public static Pathway global(String name) { return new NamePath(SymbolCategory.Global, name); }
+  public static Pathway global(String name) {
+    return new NamePath(SymbolCategory.Global, name);
+  }
 
   /**
    * Make a pathway to the field of this the entity at this pathway.
+   *
    * @param name the name of the field of the entity.
    * @return a pathway for the field.
    */
-  public Pathway field(String name) { return new FieldPath(this, name); }
+  public Pathway field(String name) {
+    return new FieldPath(this, name);
+  }
 
   /**
    * Make a pathway to the key of the collection at this pathway.
+   *
    * @return a pathway for the key.
    */
-  public Pathway key() { return new PartPath(this, PartKind.KeyPart); }
+  public Pathway key() {
+    return new PartPath(this, PartKind.KeyPart);
+  }
 
   /**
    * Make a pathway to the element of the collection at this pathway.
+   *
    * @return a pathway for the element.
    */
-  public Pathway elem() { return new PartPath(this, PartKind.ElemPart); }
+  public Pathway elem() {
+    return new PartPath(this, PartKind.ElemPart);
+  }
 
   /**
    * See if the receiver pathway is a prefix (or equal) to the specified
    * pathway.
+   *
    * @param pathway see if the receiver is a prefix of this pathway
    * @return true if the receiver is a prefix of the specified pathway.
    */
@@ -97,6 +110,7 @@ public abstract class Pathway implements BinaryObject {
 
   /**
    * Computes the number of steps to reach the root of the pathway.
+   *
    * @return number of steps to reach the root.
    */
   private int depth() {
