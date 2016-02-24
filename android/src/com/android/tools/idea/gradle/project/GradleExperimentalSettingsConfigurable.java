@@ -47,6 +47,7 @@ public class GradleExperimentalSettingsConfigurable implements SearchableConfigu
 
   public GradleExperimentalSettingsConfigurable() {
     mySettings = GradleExperimentalSettings.getInstance();
+    myUseNewProjectStructureCheckBox.setVisible(false);
   }
 
   @Override

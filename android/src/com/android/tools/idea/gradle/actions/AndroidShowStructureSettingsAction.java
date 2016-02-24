@@ -59,10 +59,6 @@ public class AndroidShowStructureSettingsAction extends ShowStructureSettingsAct
   }
 
   private static void showAndroidProjectStructure(@NotNull Project project) {
-    if (GradleExperimentalSettings.getInstance().USE_NEW_PROJECT_STRUCTURE_DIALOG) {
-      ProjectStructureConfigurable.getInstance(project).showDialog();
-      return;
-    }
     AndroidProjectStructureConfigurable.getInstance(project).showDialog();
   }
 }
