@@ -52,7 +52,6 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.Processor;
-import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.graph.Graph;
 import org.jetbrains.android.AndroidFileTemplateProvider;
 import org.jetbrains.android.actions.CreateTypedResourceFileAction;
@@ -463,6 +462,17 @@ public class AndroidResourceUtil {
       }
     }
     return PsiField.EMPTY_ARRAY;
+  }
+
+  /**
+   * Generate an extension-less file name based on a passed string, that should pass
+   * validation as a resource file name by Gradle plugin.
+   * <p/>
+   * For names validation in the Gradle plugin, see {@link com.android.ide.common.res2.FileResourceNameValidator}
+   */
+  @NotNull
+  public static String getValidResourceFileName(@NotNull String base) {
+    return base.replace('-', '_').toLowerCase(Locale.US);
   }
 
   @Nullable
