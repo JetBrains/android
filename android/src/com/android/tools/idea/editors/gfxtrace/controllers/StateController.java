@@ -18,8 +18,9 @@ package com.android.tools.idea.editors.gfxtrace.controllers;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.models.GpuState;
 import com.android.tools.idea.editors.gfxtrace.service.ErrDataUnavailable;
-import com.android.tools.idea.editors.gfxtrace.service.path.PathStore;
-import com.android.tools.idea.editors.gfxtrace.service.path.StatePath;
+import com.android.tools.idea.editors.gfxtrace.service.snippets.KindredSnippets;
+import com.android.tools.idea.editors.gfxtrace.service.snippets.SnippetObject;
+import com.android.tools.rpclib.binary.BinaryObject;
 import com.android.tools.rpclib.schema.Dynamic;
 import com.android.tools.rpclib.schema.Field;
 import com.android.tools.rpclib.schema.Map;
@@ -47,9 +48,8 @@ public class StateController extends TreeController implements GpuState.Listener
   }
 
   @NotNull private static final Logger LOG = Logger.getInstance(StateController.class);
-  @NotNull private static final TypedValue ROOT_TYPE = new TypedValue(null, "state");
+  @NotNull private static final TypedValue ROOT_TYPE = new TypedValue(null, SnippetObject.symbol("state"));
 
-  private final PathStore<StatePath> myStatePath = new PathStore<StatePath>();
   private final StateTreeModel myModel = new StateTreeModel(new Node(ROOT_TYPE, null));
 
   private StateController(@NotNull GfxTraceEditor editor) {
@@ -84,8 +84,7 @@ public class StateController extends TreeController implements GpuState.Listener
     if (getModel() != myModel) {
       setModel(myModel);
     }
-
-    myModel.setRoot(convert(new TypedValue(null, "state"), new TypedValue(null, state.getState())));
+    myModel.setRoot(convert(ROOT_TYPE, new TypedValue(null, SnippetObject.root(state.getState(), getSnippets(state)))));
   }
 
   @Override
@@ -102,21 +101,28 @@ public class StateController extends TreeController implements GpuState.Listener
     myTree.scrollPathToVisible(treePath);
   }
 
+  private KindredSnippets[] getSnippets(GpuState state) {
+    return KindredSnippets.fromMetadata(state.getState().klass().entity().getMetadata());
+  }
+
   private static Node convert(TypedValue key, TypedValue value) {
-    Node result = new Node(key, value);
-    if (value.value instanceof Dynamic || value.type instanceof Map) {
-      if (value.value instanceof Dynamic) {
-        Dynamic dynamic = (Dynamic)value.value;
+    final Node result = new Node(key, value);
+    final SnippetObject obj = value.value;
+    final Object underlying = obj.getObject();
+    if (underlying instanceof Dynamic || value.type instanceof Map) {
+      if (underlying instanceof Dynamic) {
+        final Dynamic dynamic = (Dynamic)underlying;
         for (int i = 0; i < dynamic.getFieldCount(); i++) {
-          Field field = dynamic.getFieldInfo(i);
-          result.addChild(convert(new TypedValue(null, field.getDeclared()), new TypedValue(field.getType(), dynamic.getFieldValue(i))));
+          final Field field = dynamic.getFieldInfo(i);
+          final SnippetObject fieldObj = obj.field(dynamic, i);
+          result.addChild(convert(new TypedValue(null, SnippetObject.symbol(field.getDeclared())), new TypedValue(field.getType(), fieldObj)));
         }
       }
       else {
-        java.util.Map<Object, Object> map = (java.util.Map<Object, Object>)value.value;
-        Type keyType = ((Map)value.type).getKeyType(), valueType = ((Map)value.type).getValueType();
+        final java.util.Map<Object, Object> map = (java.util.Map<Object, Object>)underlying;
+        final Type keyType = ((Map)value.type).getKeyType(), valueType = ((Map)value.type).getValueType();
         for (java.util.Map.Entry<Object, Object> e : map.entrySet()) {
-          result.addChild(convert(new TypedValue(keyType, e.getKey()), new TypedValue(valueType, e.getValue())));
+          result.addChild(convert(new TypedValue(keyType, obj.key(e)), new TypedValue(valueType, obj.elem(e))));
         }
       }
     }
@@ -125,12 +131,11 @@ public class StateController extends TreeController implements GpuState.Listener
 
   public static class TypedValue {
     public final Type type;
-    public final Object value;
+    public final SnippetObject value;
 
-    public TypedValue(Type type, Object value) {
+    public TypedValue(Type type, SnippetObject value) {
       this.type = type;
-      // Turn integers into longs, so they equal longs from paths.
-      this.value = (value instanceof Integer) ? ((Integer)value).longValue() : value;
+      this.value = value;
     }
 
     @Override

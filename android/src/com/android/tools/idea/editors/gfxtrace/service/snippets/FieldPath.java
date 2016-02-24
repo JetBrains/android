@@ -67,6 +67,16 @@ final class FieldPath extends Pathway implements BinaryObject {
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>
 
+  public FieldPath(Pathway base, String name) {
+    myBase = base;
+    myName = name;
+  }
+
+  @Override
+  public Pathway base() {
+    return getBase();
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
