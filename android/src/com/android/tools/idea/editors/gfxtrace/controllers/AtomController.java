@@ -20,7 +20,6 @@ import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.models.AtomStream;
 import com.android.tools.idea.editors.gfxtrace.renderers.Render;
 import com.android.tools.idea.editors.gfxtrace.renderers.RenderUtils;
-import com.android.tools.idea.editors.gfxtrace.renderers.TreeRenderer;
 import com.android.tools.idea.editors.gfxtrace.service.RenderSettings;
 import com.android.tools.idea.editors.gfxtrace.service.ServiceClient;
 import com.android.tools.idea.editors.gfxtrace.service.WireframeMode;
@@ -42,6 +41,9 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.popup.Balloon;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
+import com.intellij.ui.ColoredTreeCellRenderer;
+import com.intellij.ui.SimpleColoredComponent;
+import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.awt.RelativePoint;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ConcurrencyUtil;
@@ -72,7 +74,11 @@ public class AtomController extends TreeController implements AtomStream.Listene
   @NotNull private static final Logger LOG = Logger.getInstance(GfxTraceEditor.class);
   private final PathStore<DevicePath> myRenderDevice = new PathStore<DevicePath>();
 
-  public static class Node {
+  private interface Renderable {
+     void render(@NotNull SimpleColoredComponent component, @NotNull SimpleTextAttributes attributes);
+  }
+
+  public static class Node implements Renderable {
     public final long index;
     public final Atom atom;
     public int hoveredParameter = -1;
@@ -128,9 +134,14 @@ public class AtomController extends TreeController implements AtomStream.Listene
         }
       }
     }
+
+    @Override
+    public void render(@NotNull SimpleColoredComponent component, @NotNull SimpleTextAttributes attributes) {
+      Render.render(this, component, attributes);
+    }
   }
 
-  public static class Group {
+  public static class Group implements Renderable {
     public static final int THUMBNAIL_SIZE = JBUI.scale(18);
     public static final int PREVIEW_SIZE = JBUI.scale(200);
 
@@ -160,9 +171,14 @@ public class AtomController extends TreeController implements AtomStream.Listene
         return thumbnail;
       }
     }
+
+    @Override
+    public void render(@NotNull SimpleColoredComponent component, @NotNull SimpleTextAttributes attributes) {
+      Render.render(this, component, attributes);
+    }
   }
 
-  public static class Memory {
+  public static class Memory implements Renderable {
     public final long index;
     public final Observation observation;
     public final boolean isRead;
@@ -171,6 +187,11 @@ public class AtomController extends TreeController implements AtomStream.Listene
       this.index = index;
       this.observation = observation;
       this.isRead = isRead;
+    }
+
+    @Override
+    public void render(@NotNull SimpleColoredComponent component, @NotNull SimpleTextAttributes attributes) {
+      Render.render(this, component, attributes);
     }
   }
 
@@ -284,7 +305,7 @@ public class AtomController extends TreeController implements AtomStream.Listene
           // Check if hovering an atom parameter.
           int index = -1;
           if (userObject instanceof Node) {
-            TreeRenderer renderer = (TreeRenderer)myTree.getCellRenderer();
+            ColoredTreeCellRenderer renderer = (ColoredTreeCellRenderer)myTree.getCellRenderer();
             renderer.getTreeCellRendererComponent(myTree, node, false, false, false, 0, false);
             index = Render.getAtomParameterIndex(renderer, x);
           }
@@ -433,11 +454,24 @@ public class AtomController extends TreeController implements AtomStream.Listene
   @NotNull
   @Override
   protected TreeCellRenderer getRenderer() {
-    return new TreeRenderer() {
+    return new ColoredTreeCellRenderer() {
       @Override
       public void customizeCellRenderer(
           @NotNull final JTree tree, Object value, boolean selected, boolean expanded, boolean leaf, int row, boolean hasFocus) {
-        super.customizeCellRenderer(tree, value, selected, expanded, leaf, row, hasFocus);
+        if (value instanceof DefaultMutableTreeNode) {
+          DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode)value;
+          Object obj = treeNode.getUserObject();
+          if (obj instanceof Renderable) {
+            Renderable renderable = (Renderable)obj;
+            renderable.render(this, SimpleTextAttributes.REGULAR_ATTRIBUTES);
+          }
+          else {
+            assert false;
+          }
+        }
+        else {
+          assert false;
+        }
         Object userObject = ((DefaultMutableTreeNode)value).getUserObject();
         DevicePath device = myRenderDevice.getPath();
         AtomsPath atoms = myEditor.getAtomStream().getPath();

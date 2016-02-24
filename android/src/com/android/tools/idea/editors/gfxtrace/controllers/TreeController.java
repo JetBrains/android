@@ -16,7 +16,6 @@
 package com.android.tools.idea.editors.gfxtrace.controllers;
 
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
-import com.android.tools.idea.editors.gfxtrace.renderers.TreeRenderer;
 import com.android.tools.idea.editors.gfxtrace.widgets.Tree;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.ui.components.JBLoadingPanel;
@@ -54,9 +53,7 @@ public abstract class TreeController extends Controller {
   }
 
   @NotNull
-  protected TreeCellRenderer getRenderer() {
-    return new TreeRenderer();
-  }
+  protected abstract TreeCellRenderer getRenderer();
 
   @Override
   public void clear() {
