@@ -67,8 +67,8 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
   private static final String TABLET_TYPE = "Tablet";
   private static final String OTHER_TYPE = "Other";
 
-  private static final String DEFAULT_PHONE = "Nexus 5";
-  private static final String DEFAULT_TABLET = "Nexus 10";
+  private static final String DEFAULT_PHONE = "Nexus 5X";
+  private static final String DEFAULT_TABLET = "Nexus 9";
   private static final String DEFAULT_WEAR = "Android Wear Square";
   private static final String DEFAULT_TV = "Android TV (1080p)";
 
