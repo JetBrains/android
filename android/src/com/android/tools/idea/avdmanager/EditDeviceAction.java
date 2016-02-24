@@ -45,9 +45,11 @@ public class EditDeviceAction extends DeviceUiAction {
   @Override
   public void actionPerformed(ActionEvent e) {
     ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
-    wizardBuilder.addStep(new ConfigureDeviceOptionsStep(new ConfigureDeviceModel(myProvider, myProvider.getDevice(), false), null));
+    wizardBuilder.addStep(
+      new ConfigureDeviceOptionsStep(new ConfigureDeviceModel(myProvider, myProvider.getDevice(), false), myProvider.getProject()));
     ModelWizard wizard = wizardBuilder.build();
-    ModelWizardDialog dialog = new StudioWizardDialogBuilder(wizard, "Hardware Profile Configuration").build();
+    ModelWizardDialog dialog =
+      new StudioWizardDialogBuilder(wizard, "Hardware Profile Configuration").setProject(myProvider.getProject()).build();
     dialog.show();
   }
 }

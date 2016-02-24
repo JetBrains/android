@@ -101,7 +101,7 @@ public class AvdSummaryAction extends AvdUiAction {
     }
     htmlBuilder.closeHtmlBody();
     String[] options = {"Copy to Clipboard and Close", "Close"};
-    int i = Messages.showDialog((Project)null, htmlBuilder.getHtml(), "Details for " + info.getName(),
+    int i = Messages.showDialog(getProject(), htmlBuilder.getHtml(), "Details for " + info.getName(),
                                 options, 0, AllIcons.General.InformationDialog);
     if (i == 0) {
       CopyPasteManager.getInstance().setContents(new StringSelection(StringUtil.stripHtml(htmlBuilder.getHtml(), true)));

@@ -29,7 +29,7 @@ public class DuplicateAvdAction extends AvdUiAction {
 
   @Override
   public void actionPerformed(ActionEvent e) {
-    AvdEditWizard wizard = new AvdEditWizard(myAvdInfoProvider.getComponent(), null, null, getAvdInfo(), true);
+    AvdEditWizard wizard = new AvdEditWizard(myAvdInfoProvider.getComponent(), getProject(), null, getAvdInfo(), true);
     wizard.init();
     wizard.showAndGet();
     refreshAvds();
