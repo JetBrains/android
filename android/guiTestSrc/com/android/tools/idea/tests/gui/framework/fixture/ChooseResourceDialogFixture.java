@@ -74,6 +74,15 @@ public class ChooseResourceDialogFixture extends IdeaDialogFixture<ChooseResourc
     return error.getText();
   }
 
+  public void requireNoError() {
+    GuiTests.waitUntilGone(robot(), target(), new GenericTypeMatcher<JLabel>(JLabel.class) {
+      @Override
+      protected boolean isMatching(@NotNull JLabel component) {
+        return component.isShowing() && component.getIcon() == AllIcons.General.Error;
+      }
+    });
+  }
+
   @NotNull
   public ColorPickerFixture getColorPicker() {
     return new ColorPickerFixture(robot(), robot().finder().findByType(this.target(), ColorPicker.class));
