@@ -71,6 +71,7 @@ public class GeometryController extends Controller implements AtomStream.Listene
   private final Viewer myViewer = new Viewer(myCamera);
 
   private Geometry myGeometry = new Geometry();
+  private Geometry.DisplayMode myDisplayMode = Geometry.DisplayMode.TRIANGLES;
   private boolean myZUp = false;
   private Model myOriginalModel = null;
   private Model myFacetedModel = null;
@@ -135,7 +136,15 @@ public class GeometryController extends Controller implements AtomStream.Listene
     });
 
     group.add(new Separator());
-    group.add(new NormalsAction("Original", "Original vertex normals", AndroidIcons.GfxTrace.Smooth, NormalsAction.ORIGINAL));
+    group.add(new DisplayModeAction("Shaded", "Display the goemetry with shading", AndroidIcons.GfxTrace.WireframeNone,
+                                    Geometry.DisplayMode.TRIANGLES));
+    group.add(new DisplayModeAction("Wireframe", "Display the geometry with wireframes", AndroidIcons.GfxTrace.WireframeAll,
+                                    Geometry.DisplayMode.LINES));
+    group.add(new DisplayModeAction("Point Cloud", "Display the geometry as a point cloud", AndroidIcons.GfxTrace.PointCloud,
+                                    Geometry.DisplayMode.POINTS));
+
+    group.add(new Separator());
+    group.add(new NormalsAction("Original", "Smooth normals", AndroidIcons.GfxTrace.Smooth, NormalsAction.ORIGINAL));
     group.add(new NormalsAction("Faceted", "Per-face normals", AndroidIcons.GfxTrace.Faceted, NormalsAction.FACETED));
 
     return group;
@@ -198,7 +207,8 @@ public class GeometryController extends Controller implements AtomStream.Listene
           SemanticType semantic = stream.getSemantic().getType();
           if (positionsFuture == null && semantic == SemanticType.Position) {
             positionsFuture = myEditor.getClient().get(stream.getData(), FMT_XYZ_F32);
-          } else if (normalsFuture == null && semantic == SemanticType.Normal) {
+          }
+          else if (normalsFuture == null && semantic == SemanticType.Normal) {
             normalsFuture = myEditor.getClient().get(stream.getData(), FMT_XYZ_F32);
           }
         }
@@ -233,7 +243,7 @@ public class GeometryController extends Controller implements AtomStream.Listene
 
   private void updateRenderable() {
     // Repaint will happen below.
-    myViewer.setRenderable(myGeometry.asRenderable());
+    myViewer.setRenderable(myGeometry.asRenderable(myDisplayMode));
     updateViewer();
   }
 
@@ -301,6 +311,33 @@ public class GeometryController extends Controller implements AtomStream.Listene
         default:
           return null;
       }
+    }
+  }
+
+  private class DisplayModeAction extends ToggleAction {
+    private Geometry.DisplayMode myDisplayMode;
+
+    public DisplayModeAction(@Nullable String text, @Nullable String description, @Nullable Icon icon, Geometry.DisplayMode displayMode) {
+      super(text, description, icon);
+      myDisplayMode = displayMode;
+    }
+
+    @Override
+    public boolean isSelected(AnActionEvent e) {
+      return GeometryController.this.myDisplayMode == myDisplayMode;
+    }
+
+    @Override
+    public void setSelected(AnActionEvent e, boolean state) {
+      GeometryController.this.myDisplayMode = myDisplayMode;
+      updateRenderable();
+    }
+
+    @Override
+    public void update(@NotNull AnActionEvent e) {
+      super.update(e);
+      Presentation presentation = e.getPresentation();
+      presentation.setEnabled((myGeometry != null)); // TODO:  && myGeometry.canRenderAs(myDisplayMode));
     }
   }
 }

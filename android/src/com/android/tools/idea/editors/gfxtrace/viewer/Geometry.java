@@ -23,6 +23,7 @@ import com.android.tools.idea.editors.gfxtrace.viewer.gl.Buffer;
 import com.android.tools.idea.editors.gfxtrace.viewer.vec.MatD;
 import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GL2ES2;
+import com.jogamp.opengl.GL2GL3;
 
 public class Geometry {
   private Model myModel;
@@ -58,10 +59,12 @@ public class Geometry {
     myModelMatrix = getBounds().getCenteringMatrix(Constants.SCENE_SCALE_FACTOR, myZUp);
   }
 
-  public Renderable asRenderable() {
+  public Renderable asRenderable(DisplayMode displayMode) {
     if (myModel == null) {
       return Renderable.NOOP;
     }
+
+    final int polygonMode = displayMode.glPolygonMode;
     final int modelPrimitive = translatePrimitive(myModel.getPrimitive());
     final float[] positions = myModel.getPositions();
     final float[] normals = myModel.getNormals();
@@ -86,6 +89,8 @@ public class Geometry {
         state.transform.push(myModelMatrix);
         state.transform.apply(state.shader);
 
+        gl.getGL2GL3().glPolygonMode(GL.GL_FRONT_AND_BACK, polygonMode);
+
         positionBuffer.bind();
         state.shader.bindAttribute(Constants.POSITION_ATTRIBUTE, 3, GL.GL_FLOAT, 3 * 4, 0);
         if (normalBuffer != null) {
@@ -100,6 +105,7 @@ public class Geometry {
         if (normalBuffer != null) {
           state.shader.unbindAttribute(Constants.NORMAL_ATTRIBUTE);
         }
+        gl.getGL2GL3().glPolygonMode(GL.GL_FRONT_AND_BACK, GL2GL3.GL_FILL);
 
         state.transform.pop();
       }
@@ -144,6 +150,18 @@ public class Geometry {
         return GL.GL_TRIANGLE_FAN;
       default:
         throw new AssertionError();
+    }
+  }
+
+  public enum DisplayMode {
+    POINTS(GL2GL3.GL_POINT),
+    LINES(GL2GL3.GL_LINE),
+    TRIANGLES(GL2GL3.GL_FILL);
+
+    public final int glPolygonMode;
+
+    DisplayMode(int glPolygonMode) {
+      this.glPolygonMode = glPolygonMode;
     }
   }
 }
