@@ -265,7 +265,8 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     else if (!SystemInfo.isMac) {
       otherMode = GpuMode.MESA;
     }
-    myHostGraphics.addItem(GpuMode.DEFAULT);
+    myHostGraphics.addItem(GpuMode.AUTO);
+    myHostGraphics.addItem(GpuMode.HOST);
     myHostGraphics.addItem(otherMode);
 
     boolean atLeastVersion16 = getSelectedApiLevel() >= 16;
@@ -274,14 +275,21 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
   }
 
   private void updateGpuControlsAfterSystemImageChange() {
-    GpuMode mode = getModel().hostGpuMode().getValueOrNull();
-    if (mode == null) {
-      populateHostGraphicsDropDown();
-      myHostGraphics.setSelectedIndex(getModel().useHostGpu().get() ? 0 : 1);
-    }
-    else {
-      populateHostGraphicsDropDown();
-      myHostGraphics.setSelectedItem(mode);
+    GpuMode mode = getModel().hostGpuMode().getValueOr(GpuMode.AUTO);
+    populateHostGraphicsDropDown();
+    switch (mode) {
+      case AUTO:
+        myHostGraphics.setSelectedIndex(0);
+        break;
+      case HOST:
+        myHostGraphics.setSelectedIndex(1);
+        break;
+      case MESA:
+      case SWIFT:
+      case OFF:
+      default:
+        myHostGraphics.setSelectedIndex(2);
+        break;
     }
   }
 
