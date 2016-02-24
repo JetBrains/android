@@ -43,6 +43,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.Consumer;
+import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -192,9 +193,9 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
             if (path.exists() && !path.isDirectory()) {
               String name = FileUtil.getNameWithoutExtension(path).toLowerCase(Locale.getDefault());
               if (!name.startsWith(ICON_PREFIX)) {
-                name = ICON_PREFIX + name;
+                name = ICON_PREFIX + AndroidResourceUtil.getValidResourceFileName(name);
               }
-              return name;
+              return AndroidResourceUtil.getValidResourceFileName(name);
             }
             else {
               return "ic_vector_name";
