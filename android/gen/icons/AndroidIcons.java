@@ -324,5 +324,9 @@ public class AndroidIcons {
     public static final Icon WireframeAll = load("/icons/gfxtrace/wireframe_all.png"); // 16x16
     public static final Icon FlipVertically = load("/icons/gfxtrace/flip_vertically.png"); // 16x16
     public static final Icon Opacity = load("/icons/gfxtrace/opacity.png"); // 16x16
+    public static final Icon YUp = load("/icons/gfxtrace/yup.png"); // 16x16
+    public static final Icon ZUp = load("/icons/gfxtrace/zup.png"); // 16x16
+    public static final Icon WindingCCW = load("/icons/gfxtrace/winding_ccw.png"); // 16x16
+    public static final Icon WindingCW = load("/icons/gfxtrace/winding_cw.png"); // 16x16
   }
 }

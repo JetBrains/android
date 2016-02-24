@@ -115,6 +115,10 @@ public class GpuState implements PathListener {
     return result.toArray(new Object[result.size()]);
   }
 
+  public StatePath getPath() {
+    return myStatePath.getPath();
+  }
+
   public Dynamic getState() {
     return myState;
   }
