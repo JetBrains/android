@@ -152,14 +152,20 @@ public class SnippetObject {
     return myObject instanceof Map || myObject instanceof Object[] || myObject instanceof byte[];
   }
 
+  private static Object longify(Object value) {
+    // Behavior inherited from StateController.
+    // Turn integers into longs, so they equal longs from paths.
+    return (value instanceof Integer) ? ((Integer)value).longValue() : value;
+  }
+
   /**
    * Build a symbol object. Symbol objects are used so that entity
    * field names and map keys can share the same tree structure.
    * Note the symbol themselves do not have snippets.
    * @return true if this is a symbol object.
    */
-  public static SnippetObject symbol(String symbol) {
-    return new SnippetObject(symbol, null, null);
+  public static SnippetObject symbol(Object symbol) {
+    return new SnippetObject(longify(symbol), null, null);
   }
 
   /**
@@ -168,7 +174,7 @@ public class SnippetObject {
    * @return a new snippet object for the key.
    */
   public SnippetObject key(Map.Entry<Object, Object> e) {
-    return new SnippetObject(e.getKey(), myPath.key(), mySnippets);
+    return new SnippetObject(longify(e.getKey()), myPath.key(), mySnippets);
   }
 
   /**
