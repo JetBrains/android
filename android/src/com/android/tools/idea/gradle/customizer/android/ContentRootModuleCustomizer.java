@@ -18,12 +18,17 @@ package com.android.tools.idea.gradle.customizer.android;
 import com.android.builder.model.*;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.NativeAndroidGradleModel;
 import com.android.tools.idea.gradle.customizer.AbstractContentRootModuleCustomizer;
+import com.android.tools.idea.gradle.facet.NativeAndroidGradleFacet;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
+import com.android.tools.idea.gradle.util.Facets;
 import com.android.tools.idea.gradle.util.FilePaths;
 import com.android.tools.idea.gradle.variant.view.BuildVariantModuleCustomizer;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
+import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import org.jetbrains.annotations.NotNull;
@@ -49,6 +54,14 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
   implements BuildVariantModuleCustomizer<AndroidGradleModel> {
 
   @Override
+  protected boolean shouldRemoveContentEntries(@NotNull Module module, @NotNull IdeModifiableModelsProvider modelsProvider) {
+    // The old content entries are already removed by the cpp.ContentRootModuleCustomizer if this module also contain
+    // NativeAndroidGradleModel, otherwise they need to be clear now.
+    NativeAndroidGradleFacet nativeAndroidGradleFacet = Facets.findFacet(module, modelsProvider, NativeAndroidGradleFacet.TYPE_ID);
+    return nativeAndroidGradleFacet == null || nativeAndroidGradleFacet.getNativeAndroidGradleModel() == null;
+  }
+
+  @Override
   @NotNull
   protected Collection<ContentEntry> findOrCreateContentEntries(@NotNull ModifiableRootModel moduleModel,
                                                                 @NotNull AndroidGradleModel androidModel) {
@@ -67,40 +80,43 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
                                      @NotNull List<RootSourceFolder> orphans) {
     Variant selectedVariant = androidModel.getSelectedVariant();
 
+    // Native sources from AndroidGradleModel needs to be added only when NativeAndroidGradleModel is not present.
+    boolean shouldAddNativeSources = NativeAndroidGradleModel.get(moduleModel.getModule()) == null;
+
     AndroidArtifact mainArtifact = selectedVariant.getMainArtifact();
-    addSourceFolders(androidModel, contentEntries, mainArtifact, false, orphans);
+    addSourceFolders(androidModel, contentEntries, mainArtifact, false, shouldAddNativeSources, orphans);
 
     if (GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS) {
       for (BaseArtifact artifact : androidModel.getTestArtifactsInSelectedVariant()) {
-        addSourceFolders(androidModel, contentEntries, artifact, true, orphans);
+        addSourceFolders(androidModel, contentEntries, artifact, true, shouldAddNativeSources, orphans);
       }
     } else {
       BaseArtifact testArtifact = androidModel.findSelectedTestArtifact(androidModel.getSelectedVariant());
       if (testArtifact != null) {
-        addSourceFolders(androidModel, contentEntries, testArtifact, true, orphans);
+        addSourceFolders(androidModel, contentEntries, testArtifact, true, shouldAddNativeSources, orphans);
       }
     }
 
     for (String flavorName : selectedVariant.getProductFlavors()) {
       ProductFlavorContainer flavor = androidModel.findProductFlavor(flavorName);
       if (flavor != null) {
-        addSourceFolder(androidModel, contentEntries, flavor, orphans);
+        addSourceFolder(androidModel, contentEntries, flavor, shouldAddNativeSources, orphans);
       }
     }
 
     String buildTypeName = selectedVariant.getBuildType();
     BuildTypeContainer buildTypeContainer = androidModel.findBuildType(buildTypeName);
     if (buildTypeContainer != null) {
-      addSourceFolder(androidModel, contentEntries, buildTypeContainer.getSourceProvider(), false, orphans);
+      addSourceFolder(androidModel, contentEntries, buildTypeContainer.getSourceProvider(), false, shouldAddNativeSources, orphans);
 
       Collection<SourceProvider> testSourceProviders = androidModel.getTestSourceProviders(buildTypeContainer.getExtraSourceProviders());
       for (SourceProvider testSourceProvider : testSourceProviders) {
-        addSourceFolder(androidModel, contentEntries, testSourceProvider, true, orphans);
+        addSourceFolder(androidModel, contentEntries, testSourceProvider, true, shouldAddNativeSources, orphans);
       }
     }
 
     ProductFlavorContainer defaultConfig = androidModel.getAndroidProject().getDefaultConfig();
-    addSourceFolder(androidModel, contentEntries, defaultConfig, orphans);
+    addSourceFolder(androidModel, contentEntries, defaultConfig, shouldAddNativeSources, orphans);
 
     addExcludedOutputFolders(contentEntries, androidModel);
   }
@@ -109,17 +125,18 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
                                 @NotNull Collection<ContentEntry> contentEntries,
                                 @NotNull BaseArtifact artifact,
                                 boolean isTest,
+                                boolean shouldAddNativeSources,
                                 @NotNull List<RootSourceFolder> orphans) {
     addGeneratedSourceFolders(androidModel, contentEntries, artifact, isTest, orphans);
 
     SourceProvider variantSourceProvider = artifact.getVariantSourceProvider();
     if (variantSourceProvider != null) {
-      addSourceFolder(androidModel, contentEntries, variantSourceProvider, isTest, orphans);
+      addSourceFolder(androidModel, contentEntries, variantSourceProvider, isTest, shouldAddNativeSources, orphans);
     }
 
     SourceProvider multiFlavorSourceProvider = artifact.getMultiFlavorSourceProvider();
     if (multiFlavorSourceProvider != null) {
-      addSourceFolder(androidModel, contentEntries, multiFlavorSourceProvider, isTest, orphans);
+      addSourceFolder(androidModel, contentEntries, multiFlavorSourceProvider, isTest, shouldAddNativeSources, orphans);
     }
   }
 
@@ -155,12 +172,13 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
   private void addSourceFolder(@NotNull AndroidGradleModel androidModel,
                                @NotNull Collection<ContentEntry> contentEntries,
                                @NotNull ProductFlavorContainer flavor,
+                               boolean shouldAddNativeSources,
                                @NotNull List<RootSourceFolder> orphans) {
-    addSourceFolder(androidModel, contentEntries, flavor.getSourceProvider(), false, orphans);
+    addSourceFolder(androidModel, contentEntries, flavor.getSourceProvider(), false, shouldAddNativeSources, orphans);
 
     Collection<SourceProvider> testSourceProviders = androidModel.getTestSourceProviders(flavor.getExtraSourceProviders());
     for (SourceProvider sourceProvider : testSourceProviders) {
-      addSourceFolder(androidModel, contentEntries, sourceProvider, true, orphans);
+      addSourceFolder(androidModel, contentEntries, sourceProvider, true, shouldAddNativeSources, orphans);
     }
   }
 
@@ -168,6 +186,7 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
                                @NotNull Collection<ContentEntry> contentEntries,
                                @NotNull SourceProvider sourceProvider,
                                boolean isTest,
+                               boolean shouldAddNativeSources,
                                @NotNull List<RootSourceFolder> orphans) {
     JpsModuleSourceRootType sourceType = getResourceSourceType(isTest);
     addSourceFolders(androidModel, contentEntries, sourceProvider.getResDirectories(), sourceType, false, orphans);
@@ -177,8 +196,10 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
     sourceType = getSourceType(isTest);
     addSourceFolders(androidModel, contentEntries, sourceProvider.getAidlDirectories(), sourceType, false, orphans);
     addSourceFolders(androidModel, contentEntries, sourceProvider.getJavaDirectories(), sourceType, false, orphans);
-    addSourceFolders(androidModel, contentEntries, sourceProvider.getCDirectories(), sourceType, false, orphans);
-    addSourceFolders(androidModel, contentEntries, sourceProvider.getCppDirectories(), sourceType, false, orphans);
+    if (shouldAddNativeSources) {
+      addSourceFolders(androidModel, contentEntries, sourceProvider.getCDirectories(), sourceType, false, orphans);
+      addSourceFolders(androidModel, contentEntries, sourceProvider.getCppDirectories(), sourceType, false, orphans);
+    }
     addSourceFolders(androidModel, contentEntries, sourceProvider.getRenderscriptDirectories(), sourceType, false, orphans);
   }
 
