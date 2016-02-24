@@ -12,6 +12,7 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
+import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.inspections.lint.AndroidAddStringResourceQuickFix;
@@ -769,8 +770,13 @@ public class AndroidLintTest extends AndroidTestCase {
                                                            @NotNull String extension) throws IOException {
     doTestHighlighting(inspection, copyTo, extension);
 
+    return getIntentionAction(message, myFixture);
+  }
+
+  @Nullable
+  public static IntentionAction getIntentionAction(@NotNull String message, JavaCodeInsightTestFixture fixture) {
     IntentionAction action = null;
-    for (IntentionAction a : myFixture.getAvailableIntentions()) {
+    for (IntentionAction a : fixture.getAvailableIntentions()) {
       String text = a.getText();
       if (message.equals(text)) {
         action = a;

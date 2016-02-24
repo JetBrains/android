@@ -159,6 +159,9 @@ abstract class AndroidDomTest extends AndroidTestCase {
     assertInstanceOf(((QuickFixWrapper)fixes.get(1)).getFix(), AcceptWordAsCorrect.class);
   }
 
+  /**
+   * Return a destination for files to be copied by {@link #copyFileToProject(String)}
+   */
   protected abstract String getPathToCopy(String testFileName);
 
   protected VirtualFile copyFileToProject(String path) throws IOException {
