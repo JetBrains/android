@@ -53,6 +53,7 @@ import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.fixture.DialogFixture;
 import org.fest.swing.timing.Condition;
+import org.jetbrains.android.uipreview.AndroidLayoutPreviewToolWindowForm;
 import org.jetbrains.android.uipreview.AndroidLayoutPreviewToolWindowManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -992,7 +993,8 @@ public class EditorFixture {
       @Override
       protected Boolean executeInEDT() throws Throwable {
         AndroidLayoutPreviewToolWindowManager manager = AndroidLayoutPreviewToolWindowManager.getInstance(myFrame.getProject());
-        return manager.getToolWindowForm() != null;
+        AndroidLayoutPreviewToolWindowForm toolWindowForm = manager.getToolWindowForm();
+        return toolWindowForm != null && toolWindowForm.getPreviewPanel().isShowing();
       }
     });
     if (visible == null || !visible) {
@@ -1003,7 +1005,8 @@ public class EditorFixture {
       @Override
       public boolean test() {
         AndroidLayoutPreviewToolWindowManager manager = AndroidLayoutPreviewToolWindowManager.getInstance(myFrame.getProject());
-        return manager.getToolWindowForm() != null;
+        AndroidLayoutPreviewToolWindowForm toolWindowForm = manager.getToolWindowForm();
+        return toolWindowForm != null && toolWindowForm.getPreviewPanel().isShowing();
       }
     }, SHORT_TIMEOUT);
 

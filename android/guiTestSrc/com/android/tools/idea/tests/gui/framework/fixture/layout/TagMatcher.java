@@ -42,6 +42,7 @@ public abstract class TagMatcher {
     }
 
     @Override
+    @RunsInCurrentThread
     protected boolean isMatching(@NotNull XmlTag tag) {
       return stripIdPrefix(tag.getAttributeValue(ATTR_ID, ANDROID_URI)).equals(myId);
     }
@@ -62,6 +63,7 @@ public abstract class TagMatcher {
     }
 
     @Override
+    @RunsInCurrentThread
     protected boolean isMatching(@NotNull XmlTag tag) {
       return myValue.equals(tag.getAttributeValue(myAttribute, myNamespace));
     }
