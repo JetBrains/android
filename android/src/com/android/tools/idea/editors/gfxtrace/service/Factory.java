@@ -26,6 +26,7 @@ public final class Factory {
     com.android.tools.idea.editors.gfxtrace.service.memory.Factory.register();
     com.android.tools.idea.editors.gfxtrace.service.msg.Factory.register();
     com.android.tools.idea.editors.gfxtrace.service.path.Factory.register();
+    com.android.tools.idea.editors.gfxtrace.service.snippets.Factory.register();
     com.android.tools.idea.editors.gfxtrace.service.stringtable.Factory.register();
     com.android.tools.idea.editors.gfxtrace.service.vertex.Factory.register();
     //<<<Start:Java.FactoryBody:2>>>
