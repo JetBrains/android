@@ -90,7 +90,7 @@ public final class AvdOptionsModel extends WizardModel {
   private OptionalProperty<Storage> mySdCardStorage = new OptionalValueProperty<Storage>(new Storage(100, Storage.Unit.MiB));
 
   private BoolProperty myUseHostGpu = new BoolValueProperty(true);
-  private OptionalProperty<GpuMode> myHostGpuMode = new OptionalValueProperty<GpuMode>(GpuMode.DEFAULT);
+  private OptionalProperty<GpuMode> myHostGpuMode = new OptionalValueProperty<GpuMode>(GpuMode.AUTO);
   private BoolProperty myEnableHardwareKeyboard = new BoolValueProperty();
 
   private BoolProperty myIsInEditMode = new BoolValueProperty();
