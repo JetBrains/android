@@ -305,16 +305,30 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
   }
 
   private void setInitialGpuMode() {
-    GpuMode mode = myState.get(HOST_GPU_MODE_KEY);
-    int index = mode == GpuMode.DEFAULT ? 0 : 1;
+    GpuMode mode = myState.getNotNull(HOST_GPU_MODE_KEY, getDefaultGpuMode());
     populateHostGraphicsDropDown();
-    if (mode == null) {
-      index = 0;
-      if (!myState.getNotNull(USE_HOST_GPU_KEY, true)) {
-        index = 1;
-      }
+    switch (mode) {
+      case AUTO:
+        myHostGraphics.setSelectedIndex(0);
+        break;
+      case HOST:
+        myHostGraphics.setSelectedIndex(1);
+        break;
+      case MESA:
+      case SWIFT:
+      case OFF:
+      default:
+        myHostGraphics.setSelectedIndex(2);
+        break;
     }
-    myHostGraphics.setSelectedIndex(index);
+  }
+
+  // Return our best default setting if HOST_GPU_MODE_KEY is not set yet
+  private GpuMode getDefaultGpuMode() {
+    if (!myState.containsKey(USE_HOST_GPU_KEY)) {
+      return GpuMode.AUTO;
+    }
+    return myState.getNotNull(USE_HOST_GPU_KEY, true) ? GpuMode.HOST : GpuMode.OFF;
   }
 
   private void populateHostGraphicsDropDown() {
@@ -326,7 +340,8 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
     else if (!SystemInfo.isMac) {
       otherMode = GpuMode.MESA;
     }
-    myHostGraphics.addItem(GpuMode.DEFAULT);
+    myHostGraphics.addItem(GpuMode.AUTO);
+    myHostGraphics.addItem(GpuMode.HOST);
     myHostGraphics.addItem(otherMode);
 
     boolean atLeastVersion16 = getSelectedApiLevel() >= 16;
