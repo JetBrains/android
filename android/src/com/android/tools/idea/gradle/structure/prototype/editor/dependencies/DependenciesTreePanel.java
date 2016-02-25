@@ -22,7 +22,7 @@ import com.android.tools.idea.gradle.structure.prototype.editor.dependencies.Dep
 import com.android.tools.idea.gradle.structure.prototype.model.ArtifactDependencyMergedModel;
 import com.android.tools.idea.gradle.structure.prototype.model.DependencyMergedModel;
 import com.android.tools.idea.gradle.structure.prototype.model.ModuleDependencyMergedModel;
-import com.android.tools.idea.structure.dialog.HeaderPanel;
+import com.android.tools.idea.structure.dialog.Header;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.util.ActionCallback;
 import com.intellij.ui.components.JBScrollPane;
@@ -88,7 +88,7 @@ class DependenciesTreePanel extends JPanel {
 
     myTreeBuilder = new DependenciesTreeBuilder(dependenciesPanel, myTree, treeModel);
 
-    add(new HeaderPanel("Variants"), BorderLayout.NORTH);
+    add(new Header("Variants"), BorderLayout.NORTH);
     add(new JBScrollPane(myTree), BorderLayout.CENTER);
 
     ActionCallback initialized = myTreeBuilder.getInitialized();
