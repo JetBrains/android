@@ -20,7 +20,7 @@ import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.gradle.structure.prototype.model.ArtifactDependencyMergedModel;
 import com.android.tools.idea.gradle.structure.prototype.model.DependencyMergedModel;
 import com.android.tools.idea.gradle.structure.prototype.model.ModuleMergedModel;
-import com.android.tools.idea.structure.dialog.HeaderPanel;
+import com.android.tools.idea.structure.dialog.Header;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionManager;
@@ -103,7 +103,7 @@ class DependenciesPanel extends JPanel {
 
     // This is the panel where users see/edit details of a dependency selected in the "Dependencies" table.
     myEditorPanel = new JPanel(new BorderLayout());
-    myEditorPanel.add(new HeaderPanel("Details"), BorderLayout.NORTH);
+    myEditorPanel.add(new Header("Details"), BorderLayout.NORTH);
     myEditorScrollPane = new JBScrollPane();
     myEditorScrollPane.setBorder(IdeBorderFactory.createEmptyBorder(2));
     myEditorPanel.add(myEditorScrollPane, BorderLayout.CENTER);
@@ -383,14 +383,14 @@ class DependenciesPanel extends JPanel {
   private static class ModulesPanel extends AddDependencyPanel {
     ModulesPanel() {
       super("Module", Module);
-      add(new HeaderPanel("Modules"), BorderLayout.NORTH);
+      add(new Header("Modules"), BorderLayout.NORTH);
     }
   }
 
   private static class FilesPanel extends AddDependencyPanel {
     FilesPanel() {
       super("File", Any_type);
-      add(new HeaderPanel("Files"), BorderLayout.NORTH);
+      add(new Header("Files"), BorderLayout.NORTH);
     }
   }
 }

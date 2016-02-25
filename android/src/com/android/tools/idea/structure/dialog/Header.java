@@ -28,8 +28,8 @@ import java.awt.*;
 import static com.intellij.ui.tabs.TabsUtil.getTabsHeight;
 import static com.intellij.util.ui.UIUtil.getLabelFont;
 
-public class HeaderPanel extends JPanel {
-  public HeaderPanel(@NotNull String title) {
+public class Header extends JPanel {
+  public Header(@NotNull String title) {
     super(new BorderLayout());
     JLabel titleLabel = new JLabel(title);
     titleLabel.setBorder(IdeBorderFactory.createEmptyBorder(2, 5, 2, 10));
