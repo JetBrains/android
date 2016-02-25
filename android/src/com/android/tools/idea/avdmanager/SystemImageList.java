@@ -208,12 +208,11 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
    * @param partlyDownloaded if true we are restoring after the local images has been reloaded but not the remote.
    *                         When this is the case do NOT fallback to the best image if the last selection could not be found,
    *                         instead wait for the remote images and keep looking for the current last selected system image.
-   * @param systemImage if this is our first time opening the image list, we might not have the last selected image at hand,
-   *                    so we use this OptionalProperty to retrieve it if needed.
+   * @param defaultSystemImage System image to use if a previous image was not already selected
    */
-  public void restoreSelection(boolean partlyDownloaded, OptionalProperty<SystemImageDescription> systemImage) {
+  public void restoreSelection(boolean partlyDownloaded, @Nullable SystemImageDescription defaultSystemImage) {
     SystemImageDescription best = null;
-    SystemImageDescription toFind = myLastSelectedImage != null ? myLastSelectedImage : systemImage.getValueOrNull();
+    SystemImageDescription toFind = myLastSelectedImage != null ? myLastSelectedImage : defaultSystemImage;
     for (int index = 0; index < myTable.getRowCount(); index++) {
       SystemImageDescription desc = myModel.getRowValue(myTable.convertRowIndexToModel(index));
       if (desc.equals(toFind)) {
