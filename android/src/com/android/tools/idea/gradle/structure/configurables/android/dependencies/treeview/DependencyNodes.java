@@ -29,12 +29,12 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Collection;
 import java.util.List;
 
-final class PsdAndroidDependencyNodes {
-  private PsdAndroidDependencyNodes() {
+final class DependencyNodes {
+  private DependencyNodes() {
   }
 
   @NotNull
-  static List<AbstractPsdNode<?>> createNodesFor(@NotNull Collection<PsdAndroidDependencyModel> dependencies) {
+  static List<AbstractPsdNode<?>> createNodesFor(@NotNull AbstractPsdNode parent, @NotNull Collection<PsdAndroidDependencyModel> dependencies) {
     List<AbstractPsdNode<?>> children = Lists.newArrayList();
 
     List<PsdAndroidDependencyModel> declared = new SortedList<PsdAndroidDependencyModel>(PsdAndroidDependencyModelComparator.INSTANCE);
@@ -60,10 +60,10 @@ final class PsdAndroidDependencyNodes {
 
     for (PsdAndroidDependencyModel dependency : declared) {
       if (dependency instanceof PsdLibraryDependencyModel) {
-        children.add(new LibraryNode((PsdLibraryDependencyModel)dependency));
+        children.add(new LibraryNode(parent, (PsdLibraryDependencyModel)dependency));
       }
       else if (dependency instanceof PsdModuleDependencyModel) {
-        children.add(new ModuleNode((PsdModuleDependencyModel)dependency));
+        children.add(new ModuleNode(parent, (PsdModuleDependencyModel)dependency));
       }
     }
 
