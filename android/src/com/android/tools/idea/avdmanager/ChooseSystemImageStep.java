@@ -95,8 +95,7 @@ public class ChooseSystemImageStep extends DynamicWizardStepWithDescription
       // Remove this when they are fully supported.
       return SystemImageClassification.X86;
     }
-    IdDisplay tag = image.getTag();
-    if (GOOGLE_APIS_TAG.equals(tag) || WEAR_TAG.equals(tag) || TV_TAG.equals(tag)) {
+    if (TAGS_WITH_GOOGLE_API.contains(image.getTag())) {
       return SystemImageClassification.RECOMMENDED;
     }
     return SystemImageClassification.X86;

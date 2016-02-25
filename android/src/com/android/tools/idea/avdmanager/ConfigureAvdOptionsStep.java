@@ -505,8 +505,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithDescription {
   private boolean isGoogleApiSelected() {
     SystemImageDescription systemImage = myState.get(SYSTEM_IMAGE_KEY);
     assert systemImage != null;
-    IdDisplay tag = systemImage.getTag();
-    return WEAR_TAG.equals(tag) || TV_TAG.equals(tag) || GOOGLE_APIS_TAG.equals(tag);
+    return TAGS_WITH_GOOGLE_API.contains(systemImage.getTag());
   }
 
   private boolean isIntel() {
