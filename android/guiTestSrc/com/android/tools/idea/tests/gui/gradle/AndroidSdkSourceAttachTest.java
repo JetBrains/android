@@ -88,7 +88,7 @@ public class AndroidSdkSourceAttachTest {
 
   @Test
   public void testDownloadSdkSource() throws IOException {
-    assumeTrue("SDK with platform '" + ANDROID_PLATFORM + "' not found", mySdk == null);
+    assumeTrue("SDK with platform '" + ANDROID_PLATFORM + "' not found", mySdk != null);
 
     if (mySdkSourcePath.isDirectory()) {
       delete(mySdkSourceTmpPath);
@@ -134,7 +134,7 @@ public class AndroidSdkSourceAttachTest {
 
   @Test
   public void testRefreshSdkSource() throws IOException {
-    assumeTrue("SDK with platform '" + ANDROID_PLATFORM + "' not found", mySdk == null);
+    assumeTrue("SDK with platform '" + ANDROID_PLATFORM + "' not found", mySdk != null);
     assumeTrue("Android Sdk Source for '" + mySdk.getName() + "' must be installed before running 'testRefreshSdkSource'",
                mySdkSourcePath.isDirectory());
 
