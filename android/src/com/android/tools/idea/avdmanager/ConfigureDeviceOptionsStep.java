@@ -245,18 +245,17 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
       }
     });
 
-    Validator<Boolean> orientationValidator = new Validator<Boolean>() {
-      @NotNull
-      @Override
-      public Result validate(@NotNull Boolean value) {
-        return (getModel().getDeviceData().supportsLandscape().or(getModel().getDeviceData().supportsPortrait()).not().get()
-                ? new Result(Severity.ERROR, "A device must support at least one orientation (Portrait or Landscape).")
-                : Result.OK);
-      }
-    };
-
-    myValidatorPanel.registerValidator(getModel().getDeviceData().supportsLandscape(), orientationValidator);
-    myValidatorPanel.registerValidator(getModel().getDeviceData().supportsPortrait(), orientationValidator);
+    myValidatorPanel.registerValidator(
+      getModel().getDeviceData().supportsLandscape().or(getModel().getDeviceData().supportsPortrait()),
+      new Validator<Boolean>() {
+        @NotNull
+        @Override
+        public Result validate(@NotNull Boolean value) {
+          return (value
+                  ? Result.OK
+                  : new Result(Severity.ERROR, "A device must support at least one orientation (Portrait or Landscape)."));
+        }
+      });
 
     myValidatorPanel.registerValidator(getModel().getDeviceData().customSkinFile(), new Validator<Optional<File>>() {
       @NotNull
