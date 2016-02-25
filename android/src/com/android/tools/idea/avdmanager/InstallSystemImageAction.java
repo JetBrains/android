@@ -51,7 +51,7 @@ public class InstallSystemImageAction extends AvdUiAction {
     if (response != Messages.OK) {
       return;
     }
-    ModelWizardDialog sdkQuickfixWizard = SdkQuickfixUtils.createDialogForPaths((Project) null, requested);
+    ModelWizardDialog sdkQuickfixWizard = SdkQuickfixUtils.createDialogForPaths(getProject(), requested);
     if (sdkQuickfixWizard != null) {
       sdkQuickfixWizard.show();
       refreshAvds();

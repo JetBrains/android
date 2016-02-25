@@ -47,7 +47,7 @@ public class ChooseDeviceDefinitionStep extends DynamicWizardStepWithDescription
     super(parentDisposable);
     setBodyComponent(myPanel);
     FormScalingUtil.scaleComponentTree(this.getClass(), createStepBody());
-
+    myDeviceDefinitionList.setParentProvider(this);
     myDeviceDefinitionList.addSelectionListener(new DeviceDefinitionList.DeviceDefinitionSelectionListener() {
       @Override
       public void onDeviceSelectionChanged(@Nullable Device selectedDevice) {
@@ -140,4 +140,5 @@ public class ChooseDeviceDefinitionStep extends DynamicWizardStepWithDescription
   protected String getStepDescription() {
     return "Choose a device definition";
   }
+
 }

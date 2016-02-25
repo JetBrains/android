@@ -17,13 +17,9 @@ package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.devices.Device;
 import com.google.common.collect.ImmutableList;
-import com.intellij.openapi.fileChooser.FileChooser;
-import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserFactory;
 import com.intellij.openapi.fileChooser.FileSaverDescriptor;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileWrapper;
 import org.jetbrains.annotations.NotNull;
@@ -53,7 +49,7 @@ public class ExportDeviceAction extends DeviceUiAction {
     File parentPath = homePath == null ? new File("/") : new File(homePath);
     VirtualFile parent = LocalFileSystem.getInstance().findFileByIoFile(parentPath);
     VirtualFileWrapper fileWrapper =
-      FileChooserFactory.getInstance().createSaveFileDialog(descriptor, (Project)null).save(parent, "device.xml");
+      FileChooserFactory.getInstance().createSaveFileDialog(descriptor, myProvider.getProject()).save(parent, "device.xml");
     Device device = myProvider.getDevice();
     if (device != null && fileWrapper != null) {
       DeviceManagerConnection.writeDevicesToFile(ImmutableList.of(device), fileWrapper.getFile());
