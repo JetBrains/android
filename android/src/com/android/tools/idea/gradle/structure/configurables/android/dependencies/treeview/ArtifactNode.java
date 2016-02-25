@@ -26,8 +26,8 @@ import java.util.List;
 class ArtifactNode extends AbstractPsdNode<PsdAndroidArtifactModel> {
   @NotNull private List<AbstractPsdNode<?>> myChildren = Lists.newArrayList();
 
-  ArtifactNode(@NotNull PsdAndroidArtifactModel model) {
-    super(model);
+  ArtifactNode(@NotNull VariantNode parent, @NotNull PsdAndroidArtifactModel model) {
+    super(parent, model);
     myName = model.getName();
     setAutoExpandNode(true);
   }

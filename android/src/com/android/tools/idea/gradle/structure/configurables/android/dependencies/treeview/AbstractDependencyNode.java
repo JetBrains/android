@@ -20,7 +20,7 @@ import com.android.tools.idea.gradle.structure.model.android.PsdAndroidDependenc
 import org.jetbrains.annotations.NotNull;
 
 public abstract class AbstractDependencyNode<T extends PsdAndroidDependencyModel> extends AbstractPsdNode<T> {
-  protected AbstractDependencyNode(@NotNull T model) {
-    super(model);
+  protected AbstractDependencyNode(@NotNull AbstractPsdNode parent, @NotNull T model) {
+    super(parent, model);
   }
 }

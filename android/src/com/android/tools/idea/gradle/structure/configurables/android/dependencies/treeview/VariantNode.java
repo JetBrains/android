@@ -36,12 +36,12 @@ import java.util.List;
 class VariantNode extends AbstractVariantNode {
   private List<AbstractPsdNode<?>> myChildren = Collections.emptyList();
 
-  public VariantNode(@NotNull PsdVariantModel model) {
-    super(model);
+  public VariantNode(@NotNull RootNode parent, @NotNull PsdVariantModel model) {
+    super(parent, model);
   }
 
-  public VariantNode(@NotNull List<PsdVariantModel> models) {
-    super(models);
+  public VariantNode(@NotNull RootNode parent, @NotNull List<PsdVariantModel> models) {
+    super(parent, models);
   }
 
   @Override
@@ -79,10 +79,10 @@ class VariantNode extends AbstractVariantNode {
 
     for (PsdAndroidDependencyModel dependency : declared) {
       if (dependency instanceof PsdLibraryDependencyModel) {
-        myChildren.add(new LibraryNode((PsdLibraryDependencyModel)dependency));
+        myChildren.add(new LibraryNode(this, (PsdLibraryDependencyModel)dependency));
       }
       else if (dependency instanceof PsdModuleDependencyModel) {
-        myChildren.add(new ModuleNode((PsdModuleDependencyModel)dependency));
+        myChildren.add(new ModuleNode(this, (PsdModuleDependencyModel)dependency));
       }
     }
   }

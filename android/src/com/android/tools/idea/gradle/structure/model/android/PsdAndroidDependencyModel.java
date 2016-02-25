@@ -33,9 +33,13 @@ public abstract class PsdAndroidDependencyModel extends PsdChildModel {
   @Nullable private DependencyModel myParsedModel;
 
   PsdAndroidDependencyModel(@NotNull PsdAndroidModuleModel parent,
+                            @Nullable PsdAndroidArtifactModel artifactModel,
                             @Nullable DependencyModel parsedModel) {
     super(parent);
     myParsedModel = parsedModel;
+    if (artifactModel != null) {
+      addContainer(artifactModel);
+    }
   }
 
   @Override
@@ -102,6 +106,11 @@ public abstract class PsdAndroidDependencyModel extends PsdChildModel {
     @Override
     public int hashCode() {
       return Objects.hashCode(variant, artifact);
+    }
+
+    @Override
+    public String toString() {
+      return variant + " - " + artifact;
     }
   }
 }
