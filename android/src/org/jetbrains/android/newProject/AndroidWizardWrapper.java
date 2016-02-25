@@ -1,5 +1,6 @@
 package org.jetbrains.android.newProject;
 
+import com.android.tools.idea.npw.NewModuleWizardDynamic;
 import com.android.tools.idea.npw.NewProjectWizardDynamic;
 import com.android.tools.idea.wizard.dynamic.AndroidStudioWizardPath;
 import com.android.tools.idea.wizard.dynamic.DynamicWizard;
@@ -14,7 +15,6 @@ import com.intellij.ide.wizard.AbstractWizard;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.JavaModuleType;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -34,7 +34,7 @@ import java.awt.*;
  */
 public class AndroidWizardWrapper extends ModuleBuilder implements WizardDelegate {
 
-  private NewProjectWizardDynamic myWizard;
+  private DynamicWizard myWizard;
 
   @Override
   public void setupRootModel(ModifiableRootModel modifiableRootModel) throws ConfigurationException {
@@ -69,7 +69,10 @@ public class AndroidWizardWrapper extends ModuleBuilder implements WizardDelegat
   @Override
   public ModuleWizardStep getCustomOptionsStep(WizardContext context, Disposable parentDisposable) {
     if (myWizard == null) {
-      myWizard = new Wizard(context.getProject(), null, new WizardHostDelegate(context.getWizard()));
+      WizardHostDelegate host = new WizardHostDelegate(context.getWizard());
+      myWizard = context.isCreatingNewProject() ? 
+                 new ProjectWizard(context.getProject(), host) : 
+                 new ModuleWizard(context.getProject(), host);
       myWizard.init();
     }
     return new ModuleWizardStep() {
@@ -172,10 +175,9 @@ public class AndroidWizardWrapper extends ModuleBuilder implements WizardDelegat
     }
   }
 
-  private static class Wizard extends NewProjectWizardDynamic {
-
-    public Wizard(@Nullable Project project, @Nullable Module module, DynamicWizardHost host) {
-      super(project, module, host);
+  private static class ProjectWizard extends NewProjectWizardDynamic {
+    public ProjectWizard(@Nullable Project project, DynamicWizardHost host) {
+      super(project, null, host);
     }
 
     @Override
@@ -189,6 +191,26 @@ public class AndroidWizardWrapper extends ModuleBuilder implements WizardDelegat
 
     @Override
     protected void checkSdk() {
+    }
+  }
+  
+  private static class ModuleWizard extends NewModuleWizardDynamic {
+    public ModuleWizard(@Nullable Project project, @NotNull DynamicWizardHost host) {
+      super(project, null, host);
+    }
+
+    @Override
+    public void init() {
+      super.init();
+      AndroidStudioWizardPath path = getCurrentPath();
+      if (path instanceof DynamicWizardPath) {
+        ((DynamicWizardPath)path).invokeUpdate(null);
+      }
+    }
+
+    @Override
+    protected boolean checkSdk() {
+      return true;
     }
   }
 }

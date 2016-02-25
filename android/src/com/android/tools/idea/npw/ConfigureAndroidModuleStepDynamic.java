@@ -94,6 +94,7 @@ public class ConfigureAndroidModuleStepDynamic extends DynamicWizardStepWithHead
 
       // As we are re-using the SAME Step object (this) and the SAME Path object (NewFormFactorModulePath) for both
       // new "phone and tablet module" and "android lib module" we have to update the title here.
+      getComponent(); // ensure header created
       myHeader.setTitle(myModuleType.getName());
     } else {
       LOG.error("init() Called on ConfigureAndroidModuleStepDynamic with an incorrect selected ModuleType");
