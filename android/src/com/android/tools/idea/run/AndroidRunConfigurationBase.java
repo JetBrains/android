@@ -511,8 +511,12 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   private static BooleanStatus canBuildIncrementally(@NotNull ExecutionEnvironment env,
                                                      @NotNull AndroidFacet facet,
                                                      @NotNull AndroidGradleModel model,
-                                                     @NotNull IDevice device) {
+                                                     @Nullable IDevice device) {
     @Language("HTML") String FULL_BUILD_PREFIX = "Performing full build &amp; install: <br>";
+
+    if (device == null) {
+      return BooleanStatus.failure(FULL_BUILD_PREFIX + "Device API level unknown");
+    }
 
     AndroidVersion deviceVersion = device.getVersion();
     if (!InstantRunManager.isInstantRunCapableDeviceVersion(deviceVersion)) {
@@ -650,7 +654,11 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     return true;
   }
 
-  private static boolean isAppRunning(@NotNull Module module, @NotNull Collection<IDevice> usedDevices) {
+  private static boolean isAppRunning(@NotNull Module module, @Nullable Collection<IDevice> usedDevices) {
+    if (usedDevices == null) {
+      return false;
+    }
+
     for (IDevice device : usedDevices) {
       if (!InstantRunManager.isAppInForeground(device, module)) {
         return false;
