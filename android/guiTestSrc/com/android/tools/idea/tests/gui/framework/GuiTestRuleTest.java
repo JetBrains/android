@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.tests.gui.framework;
 
+import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture;
+import com.intellij.openapi.wm.impl.welcomeScreen.WelcomeFrame;
 import com.intellij.util.ui.UIUtil;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.jetbrains.annotations.NotNull;
@@ -34,6 +36,7 @@ import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilFound;
+import static com.google.common.truth.Truth.assertThat;
 import static org.hamcrest.CoreMatchers.allOf;
 import static org.hamcrest.CoreMatchers.containsString;
 
@@ -43,10 +46,7 @@ public class GuiTestRuleTest {
   private final Verifier guiTestVerifier = new Verifier() {
     @Override
     protected void verify() throws Throwable {
-      Window activeWindow = KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow();
-      if (activeWindow instanceof Dialog && ((Dialog)activeWindow).isModal()) {
-        throw new AssertionError("Modal dialog still active: " + activeWindow);
-      }
+      assertThat(GuiTests.windowsShowing()).containsExactly(WelcomeFrame.getInstance());
     }
   };
 
@@ -55,6 +55,12 @@ public class GuiTestRuleTest {
   private final GuiTestRule guiTest = new GuiTestRule(new Timeout(5, TimeUnit.SECONDS));
 
   @Rule public final RuleChain ruleChain = RuleChain.outerRule(guiTestVerifier).around(exception).around(guiTest);
+
+  @Test
+  public void createNewProjectDialogLeftShowing() throws Exception {
+    exception.expectMessage("Create New Project");
+    WelcomeFrameFixture.find(guiTest.robot()).createNewProject();
+  }
 
   @Test
   public void testModalDialogsLeftOpen() throws IOException {
