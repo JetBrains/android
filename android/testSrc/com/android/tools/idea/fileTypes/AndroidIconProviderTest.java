@@ -31,7 +31,6 @@ public class AndroidIconProviderTest extends AndroidTestCase {
     PsiFile file = PsiManager.getInstance(getProject()).findFile(vFile);
     assertNotNull(file);
 
-    checkIcon("AndroidManifest.xml", null);
     checkIcon("gen/p1/p2/R.java", null);
     checkIcon("res/wrong/path.xml", null);
     checkIcon("res/layout/file.xml", null);
