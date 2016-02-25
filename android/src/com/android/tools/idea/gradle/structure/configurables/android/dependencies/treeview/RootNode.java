@@ -31,7 +31,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 
 import static com.android.builder.model.AndroidProject.ARTIFACT_MAIN;
-import static com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.PsdAndroidDependencyNodes.createNodesFor;
+import static com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.DependencyNodes.createNodesFor;
 
 class RootNode extends AbstractRootNode {
   private boolean myGroupVariants = PsdUISettings.getInstance().VARIANTS_DEPENDENCIES_GROUP_VARIANTS;
@@ -74,7 +74,7 @@ class RootNode extends AbstractRootNode {
           groupVariants.add(found);
         }
         Collections.sort(groupVariants, variantComparator);
-        VariantNode variantNode = new VariantNode(groupVariants);
+        VariantNode variantNode = new VariantNode(this, groupVariants);
         List<PsdAndroidDependencyModel> variantDependencies = groups.get(variantNames);
         variantNode.setChildren(variantDependencies);
 
@@ -110,7 +110,7 @@ class RootNode extends AbstractRootNode {
 
       for (String variantName : variantNames) {
         PsdVariantModel variantModel = variantsByName.get(variantName);
-        VariantNode variantNode = new VariantNode(variantModel);
+        VariantNode variantNode = new VariantNode(this, variantModel);
 
         List<AbstractPsdNode<?>> children = Lists.newArrayList();
 
@@ -121,7 +121,7 @@ class RootNode extends AbstractRootNode {
 
           if (dependenciesByArtifact.containsKey(ARTIFACT_MAIN)) {
             mainArtifactDependencies = dependenciesByArtifact.get(ARTIFACT_MAIN);
-            children.addAll(createNodesFor(mainArtifactDependencies));
+            children.addAll(createNodesFor(variantNode, mainArtifactDependencies));
             dependenciesByArtifact.remove(ARTIFACT_MAIN);
           }
 
@@ -135,8 +135,8 @@ class RootNode extends AbstractRootNode {
             artifactDependencies.removeAll(mainArtifactDependencies); // Remove any dependencies already shown in "Main" artifact.
 
             if (!artifactDependencies.isEmpty()) {
-              ArtifactNode artifactNode = new ArtifactNode(artifactModel);
-              artifactNode.setChildren(createNodesFor(artifactDependencies));
+              ArtifactNode artifactNode = new ArtifactNode(variantNode, artifactModel);
+              artifactNode.setChildren(createNodesFor(artifactNode, artifactDependencies));
               children.add(artifactNode);
             }
           }

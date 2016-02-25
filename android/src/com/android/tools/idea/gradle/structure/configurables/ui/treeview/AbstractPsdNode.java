@@ -34,12 +34,24 @@ public abstract class AbstractPsdNode<T extends PsdModel> extends SimpleNode {
 
   private boolean myAutoExpandNode;
 
-  public AbstractPsdNode(@NotNull T...models) {
+  protected AbstractPsdNode(@NotNull AbstractPsdNode<?> parent, @NotNull T...models) {
+    super(parent);
     myModels = Lists.newArrayList(models);
     updateIcon();
   }
 
-  public AbstractPsdNode(@NotNull List<T> models) {
+  protected AbstractPsdNode(@NotNull T...models) {
+    myModels = Lists.newArrayList(models);
+    updateIcon();
+  }
+
+  protected AbstractPsdNode(@NotNull AbstractPsdNode<?> parent, @NotNull List<T> models) {
+    super(parent);
+    myModels = models;
+    updateIcon();
+  }
+
+  protected AbstractPsdNode(@NotNull List<T> models) {
     myModels = models;
     updateIcon();
   }

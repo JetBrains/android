@@ -89,7 +89,7 @@ class PsdAndroidDependencyModels {
     }
     PsdModuleDependencyModel dependencyModel = findModuleDependency(gradlePath);
     if (dependencyModel == null) {
-      dependencyModel = new PsdModuleDependencyModel(myParent, gradlePath, module, matchingParsedDependency);
+      dependencyModel = new PsdModuleDependencyModel(myParent, gradlePath, module, artifactModel, matchingParsedDependency);
       myModuleDependencies.put(gradlePath, dependencyModel);
     }
     dependencyModel.addContainer(artifactModel);
@@ -123,6 +123,23 @@ class PsdAndroidDependencyModels {
             // 2. Module 'app' depends on Guava 18.0
             // 3. Module 'lib' depends on Guava 19.0
             // Gradle will force module 'app' to use Guava 19.0
+
+            // This is a case that may look as a version mismatch:
+            //
+            // testCompile 'junit:junit:4.11+'
+            // androidTestCompile 'com.android.support.test.espresso:espresso-core:2.2.1'
+            //
+            // Here 'espresso' brings junit 4.12, but there is no mismatch with junit 4.11, because they are in different artifacts.
+            PsdLibraryDependencyModel potentialDuplicate = null;
+            for (PsdLibraryDependencyModel dependencyModel : myLibraryDependencies.values()) {
+              if (dependencyModel.getParsedModel() == matchingParsedDependency) {
+                potentialDuplicate = dependencyModel;
+                break;
+              }
+            }
+            if (potentialDuplicate != null) {
+              // TODO match ArtifactDependencyModel#configurationName with potentialDuplicate.getContainers().artifact
+            }
 
             // Create the dependency model that will be displayed in the "Dependencies" table.
             PsdArtifactDependencySpec spec = PsdArtifactDependencySpec.create(coordinates);
@@ -163,7 +180,7 @@ class PsdAndroidDependencyModels {
                                                       @NotNull PsdArtifactDependencySpec resolvedSpec,
                                                       @NotNull PsdAndroidArtifactModel artifactModel,
                                                       @Nullable ArtifactDependencyModel parsedDependencyModel) {
-    PsdAndroidDependencyModel dependencyModel = getOrCreateDependency(resolvedSpec, androidLibrary, parsedDependencyModel);
+    PsdAndroidDependencyModel dependencyModel = getOrCreateDependency(resolvedSpec, androidLibrary, artifactModel, parsedDependencyModel);
 
     for (AndroidLibrary library : androidLibrary.getLibraryDependencies()) {
       PsdAndroidDependencyModel transitive = addLibrary(library, artifactModel);
@@ -182,7 +199,7 @@ class PsdAndroidDependencyModels {
                                                    @NotNull PsdArtifactDependencySpec resolvedSpec,
                                                    @NotNull PsdAndroidArtifactModel artifactModel,
                                                    @Nullable ArtifactDependencyModel parsedDependencyModel) {
-    PsdAndroidDependencyModel dependencyModel = getOrCreateDependency(resolvedSpec, javaLibrary, parsedDependencyModel);
+    PsdAndroidDependencyModel dependencyModel = getOrCreateDependency(resolvedSpec, javaLibrary, artifactModel, parsedDependencyModel);
 
     for (JavaLibrary library : javaLibrary.getDependencies()) {
       PsdAndroidDependencyModel transitive = addLibrary(library, artifactModel);
@@ -223,19 +240,20 @@ class PsdAndroidDependencyModels {
 
   @NotNull
   private PsdAndroidDependencyModel getOrCreateDependency(@NotNull PsdArtifactDependencySpec resolvedSpec,
-                                                          @NotNull Library gradleModel,
+                                                          @NotNull Library library,
+                                                          @NotNull PsdAndroidArtifactModel artifactModel,
                                                           @Nullable ArtifactDependencyModel parsedModel) {
     PsdLibraryDependencyModel dependencyModel = myLibraryDependencies.get(resolvedSpec);
     if (dependencyModel == null) {
-      dependencyModel = new PsdLibraryDependencyModel(myParent, resolvedSpec, gradleModel, parsedModel);
+      dependencyModel = new PsdLibraryDependencyModel(myParent, resolvedSpec, library, artifactModel, parsedModel);
       myLibraryDependencies.put(resolvedSpec, dependencyModel);
 
       File libraryPath = null;
-      if (gradleModel instanceof AndroidLibrary) {
-        libraryPath = ((AndroidLibrary)gradleModel).getBundle();
+      if (library instanceof AndroidLibrary) {
+        libraryPath = ((AndroidLibrary)library).getBundle();
       }
-      else if (gradleModel instanceof JavaLibrary) {
-        libraryPath = ((JavaLibrary)gradleModel).getJarFile();
+      else if (library instanceof JavaLibrary) {
+        libraryPath = ((JavaLibrary)library).getJarFile();
       }
       List<PsdArtifactDependencySpec> pomDependencies = Collections.emptyList();
       if (libraryPath != null) {
