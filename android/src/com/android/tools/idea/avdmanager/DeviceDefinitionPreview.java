@@ -74,13 +74,14 @@ public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionL
     }
   };
 
-  public AvdDeviceData getDeviceData() {
-    return myDeviceData;
-  }
-
   public DeviceDefinitionPreview(@NotNull AvdDeviceData deviceData) {
     myDeviceData = deviceData;
     addListeners();
+  }
+
+  @NotNull
+  public AvdDeviceData getDeviceData() {
+    return myDeviceData;
   }
 
   /**
