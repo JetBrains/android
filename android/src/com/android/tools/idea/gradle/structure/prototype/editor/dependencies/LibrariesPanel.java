@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.prototype.editor.dependencies;
 
-import com.android.tools.idea.structure.dialog.HeaderPanel;
+import com.android.tools.idea.structure.dialog.Header;
 import com.google.common.collect.Lists;
 import com.intellij.ui.*;
 import com.intellij.ui.components.JBScrollPane;
@@ -51,7 +51,7 @@ class LibrariesPanel extends AddDependencyPanel {
     super("Library", LIBRARY_ICON);
     JBSplitter splitter = new OnePixelSplitter(false, "psd.dependencies.libraries.splitter.proportion", 0.80f);
     JPanel librarySearchPanel = new JPanel(new BorderLayout());
-    librarySearchPanel.add(new HeaderPanel("Library Search"), BorderLayout.NORTH);
+    librarySearchPanel.add(new Header("Library Search"), BorderLayout.NORTH);
     librarySearchPanel.add(new LibrarySearch(dependenciesPanel, searches).getPanel(), BorderLayout.CENTER);
 
     splitter.setFirstComponent(librarySearchPanel);
@@ -84,7 +84,7 @@ class LibrariesPanel extends AddDependencyPanel {
         }
       });
 
-      add(new HeaderPanel("Popular Libraries"), BorderLayout.NORTH);
+      add(new Header("Popular Libraries"), BorderLayout.NORTH);
       add(new JBScrollPane(textPane), BorderLayout.CENTER);
       setBorder(IdeBorderFactory.createBorder(SideBorder.RIGHT));
     }
