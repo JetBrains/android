@@ -62,7 +62,7 @@ class VariantsToolWindowPanel extends ToolWindowPanel implements DependencySelec
   @NotNull private final List<SelectionListener> mySelectionListeners = Lists.newCopyOnWriteArrayList();
 
   VariantsToolWindowPanel(@NotNull PsdAndroidModuleModel moduleModel, @NotNull DependencySelection dependencySelection) {
-    super("Variants", AndroidIcons.Variant, ToolWindowAnchor.RIGHT);
+    super("Resolved Dependencies", AndroidIcons.Variant, ToolWindowAnchor.RIGHT);
     setHeaderActions();
 
     DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode();
