@@ -53,8 +53,9 @@ public class GpuMonitorView extends BaseMonitorView<GpuSampler> implements Profi
   private static final Color BACKGROUND_COLOR = UIUtil.getTextFieldBackground();
 
   private static final String NEEDS_NEWER_API_LABEL = "This device does not support the minimum API level (16) for GPU monitor.";
+  private static final String PROFILING_URL = "https://developer.android.com/r/studio-ui/am-gpu.html";
   private static final String NEEDS_PROFILING_ENABLED_LABEL = "GPU Profiling needs to be enabled in the device's developer options. " +
-                                                              "<a href='https://developer.android.com/preview/testing/performance.html#timing-dump'>Learn more</a>.";
+                                                              "<a href='" + PROFILING_URL + "'>Learn more</a>.";
 
   @NotNull private final JPanel myPanel;
   private int myApiLevel = MHandler.MIN_API_LEVEL;
@@ -89,7 +90,7 @@ public class GpuMonitorView extends BaseMonitorView<GpuSampler> implements Profi
       group.add(new GfxTraceCaptureAction.Listen(this));
       group.add(new GfxTraceCaptureAction.Launch(this));
       group.add(new Separator());
-      group.add(new BrowserHelpAction("GPU monitor", "http://developer.android.com/r/studio-ui/am-gpu.html"));
+      group.add(new BrowserHelpAction("GPU monitor", PROFILING_URL));
     }
     return group;
   }
