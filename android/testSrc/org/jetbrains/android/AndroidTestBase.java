@@ -60,8 +60,6 @@ public abstract class AndroidTestBase extends UsefulTestCase {
   protected JavaCodeInsightTestFixture myFixture;
 
   protected AndroidTestBase() {
-    IdeaTestCase.initPlatformPrefix();
-
     // IDEA14 seems to be stricter regarding validating accesses against known roots. By default, it contains the entire idea folder,
     // but it doesn't seem to include our custom structure tools/idea/../adt/idea where the android plugin is placed.
     // The following line explicitly adds that folder as an allowed root.
