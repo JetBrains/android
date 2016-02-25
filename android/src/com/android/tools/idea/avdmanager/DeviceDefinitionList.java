@@ -92,6 +92,7 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
   private Device myDefaultDevice;
 
   public DeviceDefinitionList() {
+    super(new BorderLayout());
     /**
      * List of columns present in our table. Each column is represented by a ColumnInfo which tells the table how to get
      * the cell value in that column for a given row item.
@@ -216,7 +217,7 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
     myTable.getRowSorter().toggleSortOrder(0);
     myTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     myTable.setRowSelectionAllowed(true);
-    setLayout(new BorderLayout());
+
     myRefreshButton.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {

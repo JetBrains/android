@@ -284,8 +284,8 @@ public class AvdWizardUtils {
                                                   @NotNull AvdOptionsModel model) {
     ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
     if (!model.isInEditMode().get()) {
-      wizardBuilder.addStep(new ChooseDeviceDefinitionStep(model.device()));
-      wizardBuilder.addStep(new ChooseSystemImageStep(project, model.device(), model.systemImage()));
+      wizardBuilder.addStep(new ChooseDeviceDefinitionStep(model));
+      wizardBuilder.addStep(new ChooseSystemImageStep(model, project));
     }
     wizardBuilder.addStep(new ConfigureAvdOptionsStep(project, model));
     ModelWizard wizard = wizardBuilder.build();
