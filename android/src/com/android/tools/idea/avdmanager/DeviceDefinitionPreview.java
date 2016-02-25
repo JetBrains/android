@@ -57,9 +57,7 @@ public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionL
   public static final int DIMENSION_LINE_WIDTH = JBUI.scale(1); // px
   public static final int OUTLINE_LINE_WIDTH = JBUI.scale(5);   // px
   private static final String NO_DEVICE_SELECTED = "No Device Selected";
-  double myMaxOutlineHeight;
   double myMaxOutlineWidth;
-  double myMinOutlineHeightIn;
   double myMinOutlineWidthIn;
   private static final int PADDING = JBUI.scale(20);
 
@@ -293,51 +291,35 @@ public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionL
     }
     double diagonalIn = myDeviceData.diagonalScreenSize().get();
     double sideRatio = pixelSize.getWidth() / pixelSize.getHeight();
-    double heightIn = diagonalIn / Math.sqrt(1 + sideRatio);
+    double heightIn = diagonalIn / Math.sqrt(1 + sideRatio * sideRatio);
     double widthIn = sideRatio * heightIn;
 
-    double maxHeightIn = myMaxOutlineHeight == 0 ? heightIn : myMaxOutlineHeight;
     double maxWidthIn = myMaxOutlineWidth == 0 ? widthIn : myMaxOutlineWidth;
-    double maxDimIn = Math.max(maxHeightIn, maxWidthIn);
+    double desiredMaxWidthPx = getWidth() * 0.40;
+    double desiredMinWidthPx = getWidth() * 0.10;
 
-    double desiredMaxWidthPx = getWidth() / 2;
-    double desiredMaxHeightPx = getHeight() / 2;
-    double desiredMaxPx = Math.min(desiredMaxHeightPx, desiredMaxWidthPx);
+    // This is the scaled with we want to use.
+    double widthPixels = widthIn * desiredMaxWidthPx / maxWidthIn;
 
-    double scalingFactorPxToIn = maxDimIn / desiredMaxPx;
-
-    // Test if we have to scale the min as well
-    double desiredMinWidthPx = getWidth() / 10;
-    double desiredMinHeightPx = getHeight() / 10;
-    double desiredMinIn = Math.max(desiredMinWidthPx, desiredMinHeightPx) * scalingFactorPxToIn;
-
-    double minDimIn = Math.min(myMinOutlineHeightIn, myMinOutlineWidthIn);
-    if (minDimIn < desiredMinIn) {
-      // compute F and C such that F * minDimIn + C = desiredMinIn and F * maxDimIn + C = maxDimIn
-      double f = (maxDimIn - desiredMinIn) / (maxDimIn - minDimIn);
-      double c = (desiredMinIn * myMaxOutlineWidth - maxDimIn * minDimIn) / (maxDimIn - minDimIn);
-
-      // scale the diagonal and then recompute the edges, since the edges need to be scaled evenly
-      diagonalIn = myDeviceData.diagonalScreenSize().get() * f + c;
-      heightIn = diagonalIn / Math.sqrt(1 + sideRatio);
-      widthIn = sideRatio * heightIn;
+    // However a search result can contain both very small devices (wear) and very
+    // large devices (TV). When this is the case use this alternate scaling
+    // algorithm to avoid the wear devices to show up as a dot.
+    if (myMinOutlineWidthIn * desiredMaxWidthPx / maxWidthIn < desiredMinWidthPx) {
+      widthPixels =
+        desiredMinWidthPx + (widthIn - myMinOutlineWidthIn) * (desiredMaxWidthPx - desiredMinWidthPx) / (maxWidthIn - myMinOutlineWidthIn);
     }
-
-    return new Dimension((int)(widthIn / scalingFactorPxToIn), (int)(heightIn / scalingFactorPxToIn));
+    double heightPixels = widthPixels / widthIn * heightIn;
+    return new Dimension((int)widthPixels, (int)heightPixels);
   }
 
   @Override
   public void onCategorySelectionChanged(@Nullable String category, @Nullable List<Device> devices) {
     if (devices == null) {
-      myMaxOutlineHeight = 0;
       myMaxOutlineWidth = 0;
-      myMinOutlineHeightIn = 0;
       myMinOutlineWidthIn = 0;
     }
     else {
-      double maxHeight = 0;
       double maxWidth = 0;
-      double minHeight = Double.MAX_VALUE;
       double minWidth = Double.MAX_VALUE;
       for (Device d : devices) {
         Dimension pixelSize = d.getScreenSize(d.getDefaultState().getOrientation());
@@ -345,18 +327,13 @@ public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionL
           continue;
         }
         double diagonal = d.getDefaultHardware().getScreen().getDiagonalLength();
-        double sideRatio = pixelSize.getWidth() / pixelSize.getHeight();
-        double heightIn = diagonal / Math.sqrt(1 + sideRatio * sideRatio);
-        double widthIn = sideRatio * heightIn;
+        double sideRatio = pixelSize.getHeight() / pixelSize.getWidth();
+        double widthIn = diagonal / Math.sqrt(1 + sideRatio * sideRatio);
 
         maxWidth = Math.max(maxWidth, widthIn);
-        maxHeight = Math.max(maxHeight, heightIn);
         minWidth = Math.min(minWidth, widthIn);
-        minHeight = Math.min(minHeight, heightIn);
       }
-      myMaxOutlineHeight = maxHeight;
       myMaxOutlineWidth = maxWidth;
-      myMinOutlineHeightIn = minHeight;
       myMinOutlineWidthIn = minWidth;
     }
   }
