@@ -25,6 +25,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.JBMenuItem;
 import com.intellij.openapi.ui.JBPopupMenu;
 import com.intellij.ui.IdeBorderFactory;
@@ -32,7 +33,6 @@ import com.intellij.ui.SearchTextField;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.table.TableView;
 import com.intellij.util.ui.ColumnInfo;
-import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.ListTableModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -89,6 +89,7 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
   private List<DeviceCategorySelectionListener> myCategoryListeners = Lists.newArrayList();
   private List<Device> myDevices;
   private Device myDefaultDevice;
+  private DeviceUiAction.DeviceProvider myParentProvider;
 
   public DeviceDefinitionList() {
     myModel.setColumnInfos(myColumnInfos);
@@ -212,6 +213,12 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
   @Override
   public void selectDefaultDevice() {
     setSelectedDevice(myDefaultDevice);
+  }
+
+  @Nullable
+  @Override
+  public Project getProject() {
+    return myParentProvider.getProject();
   }
 
   /**
@@ -558,6 +565,10 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
       return label;
     }
   };
+
+  public void setParentProvider(DeviceUiAction.DeviceProvider parentProvider) {
+    myParentProvider = parentProvider;
+  }
 
   private abstract class DeviceColumnInfo extends ColumnInfo<Device, String> {
     private final int myWidth;
