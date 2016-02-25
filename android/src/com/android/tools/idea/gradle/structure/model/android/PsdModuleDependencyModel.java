@@ -26,15 +26,18 @@ import javax.swing.*;
 public class PsdModuleDependencyModel extends PsdAndroidDependencyModel {
   @NotNull private final String myGradlePath;
 
+  @Nullable private final String myVariant;
   @Nullable private final String myName;
 
   PsdModuleDependencyModel(@NotNull PsdAndroidModuleModel parent,
                            @NotNull String gradlePath,
+                           @Nullable String variant,
                            @Nullable Module module,
                            @Nullable PsdAndroidArtifactModel artifactModel,
                            @Nullable ModuleDependencyModel parsedModel) {
     super(parent, artifactModel, parsedModel);
     myGradlePath = gradlePath;
+    myVariant = variant;
     String name = null;
     if (module != null) {
       name = module.getName();
@@ -48,6 +51,11 @@ public class PsdModuleDependencyModel extends PsdAndroidDependencyModel {
   @NotNull
   public String getGradlePath() {
     return myGradlePath;
+  }
+
+  @Nullable
+  public String getModuleVariant() {
+    return myVariant;
   }
 
   @Nullable
