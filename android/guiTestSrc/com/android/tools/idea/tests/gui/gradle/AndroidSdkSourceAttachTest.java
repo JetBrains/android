@@ -74,22 +74,19 @@ public class AndroidSdkSourceAttachTest {
   @Before
   public void restoreAndroidSdkSource() throws IOException {
     mySdk = findSuitableAndroidSdk(ANDROID_PLATFORM);
+    assumeTrue("SDK with platform '" + ANDROID_PLATFORM + "' not found", mySdk != null);
 
-    if (mySdk != null) {
-      String sdkHomePath = mySdk.getHomePath();
-      mySdkSourcePath = new File(sdkHomePath, join("sources", ANDROID_PLATFORM));
-      mySdkSourceTmpPath = new File(sdkHomePath, join("sources.tmp", ANDROID_PLATFORM)); // it can't be in 'sources' folder
+    String sdkHomePath = mySdk.getHomePath();
+    mySdkSourcePath = new File(sdkHomePath, join("sources", ANDROID_PLATFORM));
+    mySdkSourceTmpPath = new File(sdkHomePath, join("sources.tmp", ANDROID_PLATFORM)); // it can't be in 'sources' folder
 
-      if (!mySdkSourcePath.isDirectory() && mySdkSourceTmpPath.isDirectory()) {
-        rename(mySdkSourceTmpPath, mySdkSourcePath);
-      }
+    if (!mySdkSourcePath.isDirectory() && mySdkSourceTmpPath.isDirectory()) {
+      rename(mySdkSourceTmpPath, mySdkSourcePath);
     }
   }
 
   @Test
   public void testDownloadSdkSource() throws IOException {
-    assumeTrue("SDK with platform '" + ANDROID_PLATFORM + "' not found", mySdk != null);
-
     if (mySdkSourcePath.isDirectory()) {
       delete(mySdkSourceTmpPath);
       rename(mySdkSourcePath, mySdkSourceTmpPath);
@@ -134,7 +131,6 @@ public class AndroidSdkSourceAttachTest {
 
   @Test
   public void testRefreshSdkSource() throws IOException {
-    assumeTrue("SDK with platform '" + ANDROID_PLATFORM + "' not found", mySdk != null);
     assumeTrue("Android Sdk Source for '" + mySdk.getName() + "' must be installed before running 'testRefreshSdkSource'",
                mySdkSourcePath.isDirectory());
 
