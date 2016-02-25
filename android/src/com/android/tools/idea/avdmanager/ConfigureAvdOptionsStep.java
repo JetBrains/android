@@ -29,18 +29,14 @@ import com.android.sdklib.repositoryv2.IdDisplay;
 import com.android.tools.idea.ui.ASGallery;
 import com.android.tools.idea.ui.properties.*;
 import com.android.tools.idea.ui.properties.adapters.OptionalToValuePropertyAdapter;
-import com.android.tools.idea.ui.properties.core.OptionalProperty;
-import com.android.tools.idea.ui.properties.core.OptionalValueProperty;
 import com.android.tools.idea.ui.properties.expressions.string.StringExpression;
 import com.android.tools.idea.ui.properties.swing.SelectedItemProperty;
 import com.android.tools.idea.ui.properties.swing.SelectedProperty;
 import com.android.tools.idea.ui.properties.swing.TextProperty;
 import com.android.tools.idea.ui.validation.Validator;
 import com.android.tools.idea.ui.validation.ValidatorPanel;
-import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder;
 import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
 import com.android.tools.idea.wizard.model.ModelWizard;
-import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.tools.swing.util.FormScalingUtil;
 import com.google.common.base.Function;
@@ -52,6 +48,7 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
+import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.IconLoader;
@@ -689,7 +686,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
         if (deviceAndImageArePresent) {
           Optional<Device> device = getModel().device().get();
           Optional<SystemImageDescription> systemImage = getModel().systemImage().get();
-          if (!ChooseSystemImageStep.systemImageMatchesDevice(systemImage.get(), device.get())) {
+          if (!ChooseSystemImagePanel.systemImageMatchesDevice(systemImage.get(), device.get())) {
             return new Validator.Result(Validator.Severity.ERROR, "The selected system image is incompatible with the selected device.");
           }
         }
@@ -904,16 +901,34 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
   private ActionListener myChangeSystemImageButtonListener = new ActionListener() {
     @Override
     public void actionPerformed(ActionEvent e) {
-      OptionalProperty<SystemImageDescription> newImage =
-        getModel().systemImage().get().isPresent() ? new OptionalValueProperty<SystemImageDescription>(getModel().systemImage().getValue())
-                                                   : OptionalValueProperty.<SystemImageDescription>absent();
-      getModel().isInEditMode().set(false);
-      ModelWizardDialog dialog =
-        new StudioWizardDialogBuilder(
-          new ChooseSystemImageStep(myProject, getModel().device(), newImage),
-          "Select a system image").build();
+      final ChooseSystemImagePanel chooseImagePanel =
+        new ChooseSystemImagePanel(myProject, getModel().device().getValueOrNull(), getModel().systemImage().getValueOrNull());
+
+      DialogWrapper dialog = new DialogWrapper(myProject) {
+        {
+          setTitle("Select a System Image");
+          init();
+          chooseImagePanel.addSystemImageListener(new Consumer<SystemImageDescription>() {
+            @Override
+            public void consume(SystemImageDescription systemImage) {
+              setOKActionEnabled(systemImage != null);
+            }
+          });
+        }
+
+        @Nullable
+        @Override
+        protected JComponent createCenterPanel() {
+          return chooseImagePanel;
+        }
+      };
+
       if (dialog.showAndGet()) {
-        getModel().systemImage().setValue(newImage.getValue());
+        SystemImageDescription image = chooseImagePanel.getSystemImage();
+
+        if (image != null) {
+          getModel().systemImage().setValue(image);
+        }
       }
     }
   };
@@ -921,14 +936,33 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
   private ActionListener myChangeDeviceButtonListener = new ActionListener() {
     @Override
     public void actionPerformed(ActionEvent e) {
-      OptionalProperty<Device> newDevice = new OptionalValueProperty<Device>();
-      newDevice.setNullableValue(getModel().device().getValueOrNull());
-      getModel().isInEditMode().set(false);
-      ModelWizardDialog dialog =
-        new StudioWizardDialogBuilder(new ChooseDeviceDefinitionStep(newDevice), "Select a device").build();
-      if (dialog.showAndGet() && newDevice.get().isPresent()) {
-        getModel().device().setValue(newDevice.getValue());
-        getModel().setAvdDeviceData(new AvdDeviceData(newDevice.getValue()));
+      final ChooseDeviceDefinitionPanel chooseDevicePanel = new ChooseDeviceDefinitionPanel(getModel().device().getValueOrNull());
+      DialogWrapper dialog = new DialogWrapper(myProject) {
+        {
+          setTitle("Select a Device");
+          init();
+          chooseDevicePanel.addDeviceListener(new Consumer<Device>() {
+            @Override
+            public void consume(Device device) {
+              setOKActionEnabled(device != null);
+            }
+          });
+        }
+
+        @Nullable
+        @Override
+        protected JComponent createCenterPanel() {
+          return chooseDevicePanel;
+        }
+      };
+
+      if (dialog.showAndGet()) {
+        Device device = chooseDevicePanel.getDevice();
+
+        if (device != null) {
+          getModel().device().setValue(device);
+          getModel().setAvdDeviceData(new AvdDeviceData(device));
+        }
       }
     }
   };
