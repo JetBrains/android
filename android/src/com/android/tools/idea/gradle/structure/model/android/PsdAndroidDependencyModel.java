@@ -81,6 +81,21 @@ public abstract class PsdAndroidDependencyModel extends PsdChildModel {
   @NotNull
   public abstract String getValueAsText();
 
+  public boolean isIn(@NotNull String artifactName, @Nullable String variantName) {
+    for (Container container : myContainers) {
+      if (artifactName.equals(container.artifact)) {
+        if (variantName == null) {
+          return true;
+        }
+        if (variantName.equals(container.variant)) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
   public static class Container {
     @NotNull public final String variant;
     @NotNull public final String artifact;
