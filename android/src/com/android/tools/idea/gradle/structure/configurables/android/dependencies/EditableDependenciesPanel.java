@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.structure.configurables.android.dependenci
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.DependencySelection;
 import com.android.tools.idea.gradle.structure.model.android.PsdAndroidDependencyModel;
 import com.android.tools.idea.gradle.structure.model.android.PsdAndroidModuleModel;
+import com.android.tools.idea.structure.dialog.Header;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
@@ -93,11 +94,15 @@ class EditableDependenciesPanel extends JPanel implements DependencySelection, D
     myDependenciesTable.setIntercellSpacing(new Dimension(0, 0));
     myDependenciesTable.setShowGrid(false);
 
+    Header header = new Header("Declared Dependencies");
+    add(header, BorderLayout.NORTH);
+
+    JPanel contents = new JPanel(new BorderLayout());
+    contents.add(createActionsPanel(), BorderLayout.NORTH);
     JScrollPane scrollPane = createScrollPane(myDependenciesTable);
     scrollPane.setBorder(IdeBorderFactory.createEmptyBorder());
-    add(scrollPane, BorderLayout.CENTER);
-
-    add(createActionsPanel(), BorderLayout.NORTH);
+    contents.add(scrollPane, BorderLayout.CENTER);
+    add(contents, BorderLayout.CENTER);
 
     updateTableColumnSizes();
   }
