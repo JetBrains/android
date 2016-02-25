@@ -471,15 +471,9 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       InstantRunManager.LOG.info("Instant run: app is not running on the selected device.");
     }
 
-    BooleanStatus canBuildWithoutClean = canBuildWithoutClean(isRestartedSession, buildsMatch, device, module);
-    InstantRunUtils.setNeedsCleanBuild(env, !canBuildWithoutClean.success);
-    if (!canBuildWithoutClean.success) {
-      @Language("HTML") String message = canBuildWithoutClean.getCause();
-      LOG.info(message);
-      UsageTracker.getInstance().trackEvent(
-        UsageTracker.CATEGORY_INSTANTRUN, UsageTracker.ACTION_INSTANTRUN_FULLBUILD, message, null);
-      new InstantRunUserFeedback(module).postHtml(NotificationType.INFORMATION, message, null);
-
+    boolean needsCleanBuild = needsCleanBuild(isRestartedSession, buildsMatch);
+    InstantRunUtils.setNeedsCleanBuild(env, needsCleanBuild);
+    if (needsCleanBuild) {
       // implied that a clean build requires a full build
       InstantRunUtils.setNeedsFullBuild(env, true);
       return;
@@ -506,23 +500,12 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     }
   }
 
-  private static BooleanStatus canBuildWithoutClean(boolean isRestartedSession,
-                                                    boolean buildsMatch,
-                                                    @Nullable IDevice device,
-                                                    @NotNull Module module) {
-    @Language("HTML") String CLEAN_BUILD_PREFIX = "Performing clean build &amp; install: ";
-
-    if (!isRestartedSession) { // no need to compare build ids for restarted sessions
-      if (!buildsMatch) {
-        return BooleanStatus.failure(CLEAN_BUILD_PREFIX + "Build timestamps don't match");
-      }
-    }
-
-    if (device != null && !InstantRunManager.apiLevelsMatch(device, module)) {
-      return BooleanStatus.failure(CLEAN_BUILD_PREFIX + "API level of target device differs from API level targeted by existing build");
-    }
-
-    return BooleanStatus.SUCCESS;
+  private static boolean needsCleanBuild(boolean isRestartedSession, boolean buildsMatch) {
+    // restarted sessions don't need a clean build
+    // Otherwise, we only need a clean build if the build ids don't match
+    // Note: build id's not matching takes care of all device specific settings in the build (i.e. if any of api level, abi, etc,
+    // change, then the build id will also have changed)
+    return !isRestartedSession && !buildsMatch;
   }
 
   private static BooleanStatus canBuildIncrementally(@NotNull ExecutionEnvironment env,
