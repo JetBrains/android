@@ -121,10 +121,8 @@ public class DeployApkTask implements LaunchTask {
 
   public static void cacheManifestInstallationData(@NotNull IDevice device, @NotNull AndroidFacet facet, @NotNull String pkgName) {
     InstalledPatchCache patchCache = ServiceManager.getService(InstalledPatchCache.class);
-    File manifest = InstantRunManager.findMergedManifestFile(facet);
-    long manifestTimeStamp = manifest == null ? 0L : manifest.lastModified();
 
-    patchCache.setInstalledManifestTimestamp(device, pkgName, manifestTimeStamp);
+    patchCache.setInstalledManifestTimestamp(device, pkgName, InstantRunManager.getManifestLastModified(facet));
 
     HashCode currentHash = InstalledPatchCache.computeManifestResources(facet);
     patchCache.setInstalledManifestResourcesHash(device, pkgName, currentHash);

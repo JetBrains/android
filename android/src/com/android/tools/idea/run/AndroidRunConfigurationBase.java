@@ -512,7 +512,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
                                                      @NotNull AndroidFacet facet,
                                                      @NotNull AndroidGradleModel model,
                                                      @NotNull IDevice device) {
-    @Language("HTML") String FULL_BUILD_PREFIX = "Performing full build &amp; install: ";
+    @Language("HTML") String FULL_BUILD_PREFIX = "Performing full build &amp; install: <br>";
 
     AndroidVersion deviceVersion = device.getVersion();
     if (!InstantRunManager.isInstantRunCapableDeviceVersion(deviceVersion)) {
@@ -568,11 +568,12 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     GradleInvoker.saveAllFilesSafely();
 
     if (InstantRunManager.manifestChanged(device, facet, pkgName)) {
-      return BooleanStatus.failure(FULL_BUILD_PREFIX + "Merged Manifest changed");
+      return BooleanStatus.failure(FULL_BUILD_PREFIX + "Instant Run detected that one of the AndroidManifest.xml files have changed.");
     }
 
     if (InstantRunManager.manifestResourceChanged(device, facet, pkgName)) {
-      return BooleanStatus.failure(FULL_BUILD_PREFIX + "Resource referenced from has manifest changed");
+      return BooleanStatus.failure(FULL_BUILD_PREFIX +
+                                   "Instant Run detected that a resource referenced from the AndroidManifest.xml file has changed");
     }
 
     if (InstantRunManager.usesMultipleProcesses(facet)) {

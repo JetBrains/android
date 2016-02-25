@@ -307,7 +307,7 @@ public final class InstantRunManager implements ProjectComponent {
   /**
    * Returns the timestamp of the most recently modified manifest file applicable for the given facet
    */
-  private static long getManifestLastModified(@NotNull AndroidFacet facet) {
+  public static long getManifestLastModified(@NotNull AndroidFacet facet) {
     long maxLastModified = 0L;
     AndroidModel androidModel = facet.getAndroidModel();
     if (androidModel != null) {
