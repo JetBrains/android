@@ -20,6 +20,7 @@ import com.intellij.openapi.wm.impl.welcomeScreen.WelcomeFrame;
 import com.intellij.util.ui.UIUtil;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -62,6 +63,7 @@ public class GuiTestRuleTest {
     WelcomeFrameFixture.find(guiTest.robot()).createNewProject();
   }
 
+  @Ignore("We don't yet have a reliable way to close multiple modal dialogs.")
   @Test
   public void testModalDialogsLeftOpen() throws IOException {
     exception.expectMessage(allOf(
