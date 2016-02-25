@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview;
 
+import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsdNode;
 import com.android.tools.idea.gradle.structure.model.PsdArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsdModel;
 import com.android.tools.idea.gradle.structure.model.android.PsdAndroidDependencyModel;
@@ -28,8 +29,8 @@ import java.util.List;
 class LibraryNode extends AbstractDependencyNode<PsdLibraryDependencyModel> {
   @NotNull private final List<SimpleNode> myChildren = Lists.newArrayList();
 
-  LibraryNode(@NotNull PsdLibraryDependencyModel model) {
-    super(model);
+  LibraryNode(@NotNull AbstractPsdNode parent, @NotNull PsdLibraryDependencyModel model) {
+    super(parent, model);
 
     PsdArtifactDependencySpec spec = model.getResolvedSpec();
     myName = spec.getDisplayText();
@@ -37,7 +38,7 @@ class LibraryNode extends AbstractDependencyNode<PsdLibraryDependencyModel> {
     for (PsdAndroidDependencyModel transitive : model.getTransitiveDependencies()) {
       if (transitive instanceof PsdLibraryDependencyModel) {
         PsdLibraryDependencyModel transitiveLibrary = (PsdLibraryDependencyModel)transitive;
-        LibraryNode child = new LibraryNode(transitiveLibrary);
+        LibraryNode child = new LibraryNode(this, transitiveLibrary);
         myChildren.add(child);
       }
     }

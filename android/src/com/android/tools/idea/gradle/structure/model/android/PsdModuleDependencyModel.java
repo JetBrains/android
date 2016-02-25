@@ -31,8 +31,9 @@ public class PsdModuleDependencyModel extends PsdAndroidDependencyModel {
   PsdModuleDependencyModel(@NotNull PsdAndroidModuleModel parent,
                            @NotNull String gradlePath,
                            @Nullable Module module,
+                           @Nullable PsdAndroidArtifactModel artifactModel,
                            @Nullable ModuleDependencyModel parsedModel) {
-    super(parent, parsedModel);
+    super(parent, artifactModel, parsedModel);
     myGradlePath = gradlePath;
     String name = null;
     if (module != null) {

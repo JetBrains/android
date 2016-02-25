@@ -19,17 +19,18 @@ import com.android.tools.idea.gradle.structure.configurables.ui.PsdUISettings;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsdNode;
 import com.android.tools.idea.gradle.structure.model.android.PsdAndroidDependencyModel;
 import com.android.tools.idea.gradle.structure.model.android.PsdAndroidModuleModel;
-import com.intellij.ide.util.treeView.AbstractTreeBuilder;
-import com.intellij.ide.util.treeView.AbstractTreeStructure;
-import com.intellij.ide.util.treeView.IndexComparator;
-import com.intellij.ide.util.treeView.NodeDescriptor;
+import com.google.common.collect.Lists;
+import com.intellij.ide.util.treeView.*;
 import com.intellij.openapi.util.ActionCallback;
+import com.intellij.ui.treeStructure.SimpleNode;
 import com.intellij.util.ui.tree.TreeUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
+import java.util.List;
 
 import static com.intellij.util.ui.tree.TreeUtil.collapseAll;
 
@@ -88,7 +89,7 @@ public class VariantsTreeBuilder extends AbstractTreeBuilder {
     return true;
   }
 
-  public void expand() {
+  public void expandAllNodes() {
     JTree tree = getTree();
     if (tree != null) {
       TreeUtil.expandAll(tree);
@@ -104,11 +105,68 @@ public class VariantsTreeBuilder extends AbstractTreeBuilder {
     }
   }
 
-  public void collapse() {
+  public void collapseAllNodes() {
     JTree tree = getTree();
     if (tree != null) {
       collapseAll(tree, 1);
       tree.setSelectionPaths(EMPTY_TREE_PATH);
+    }
+  }
+
+  public void setSelection(@NotNull final PsdAndroidDependencyModel dependencyModel) {
+    getInitialized().doWhenDone(new Runnable() {
+      @Override
+      public void run() {
+        final List<AbstractDependencyNode> toSelect = Lists.newArrayList();
+        accept(AbstractDependencyNode.class, new TreeVisitor<AbstractDependencyNode>() {
+          @Override
+          public boolean visit(@NotNull AbstractDependencyNode node) {
+            if (node.matches(dependencyModel)) {
+              toSelect.add(node);
+            }
+            return false;
+          }
+        });
+        if (isDisposed()) {
+          return;
+        }
+        // Expand the parents of all selected nodes, so they can be visible to the user.
+        Runnable onDone = new Runnable() {
+          @Override
+          public void run() {
+            List<SimpleNode> toExpand = Lists.newArrayList();
+            for (AbstractDependencyNode dependencyNode : toSelect) {
+              SimpleNode parent = dependencyNode.getParent();
+              if (parent != null) {
+                toExpand.add(parent);
+              }
+            }
+            expand(toExpand.toArray(), null);
+          }
+        };
+        getUi().userSelect(toSelect.toArray(), new UserRunnable(onDone), false, false);
+      }
+    });
+  }
+
+  private class UserRunnable implements Runnable {
+    @Nullable private final Runnable myRunnable;
+
+    UserRunnable(@Nullable Runnable runnable) {
+      myRunnable = runnable;
+    }
+
+    @Override
+    public void run() {
+      if (myRunnable != null) {
+        AbstractTreeUi treeUi = getUi();
+        if (treeUi != null) {
+          treeUi.executeUserRunnable(myRunnable);
+        }
+        else {
+          myRunnable.run();
+        }
+      }
     }
   }
 }
