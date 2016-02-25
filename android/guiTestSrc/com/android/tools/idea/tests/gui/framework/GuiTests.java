@@ -125,6 +125,22 @@ public final class GuiTests {
     return Collections.unmodifiableList(errors);
   }
 
+  static void setIdeSettings() {
+    GradleExperimentalSettings.getInstance().SELECT_MODULES_ON_PROJECT_IMPORT = false;
+
+    // Clear HTTP proxy settings, in case a test changed them.
+    HttpConfigurable ideSettings = HttpConfigurable.getInstance();
+    ideSettings.USE_HTTP_PROXY = false;
+    ideSettings.PROXY_HOST = "";
+    ideSettings.PROXY_PORT = 80;
+
+    AndroidPlugin.GuiTestSuiteState state = getGuiTestSuiteState();
+    state.setSkipSdkMerge(false);
+    state.setUseCachedGradleModelOnly(false);
+
+    // TODO: setUpDefaultGeneralSettings();
+  }
+
   // Called by IdeTestApplication via reflection.
   @SuppressWarnings("unused")
   public static void setUpDefaultGeneralSettings() {
@@ -618,22 +634,5 @@ public final class GuiTests {
     public void describeTo(Description description) {
       description.appendText("with prefix '" + prefix +"'");
     }
-  }
-
-  // temporary, to be moved above setUpDefaultGeneralSettings where commit 77ea80a should have put it
-  static void setIdeSettings() {
-    GradleExperimentalSettings.getInstance().SELECT_MODULES_ON_PROJECT_IMPORT = false;
-
-    // Clear HTTP proxy settings, in case a test changed them.
-    HttpConfigurable ideSettings = HttpConfigurable.getInstance();
-    ideSettings.USE_HTTP_PROXY = false;
-    ideSettings.PROXY_HOST = "";
-    ideSettings.PROXY_PORT = 80;
-
-    AndroidPlugin.GuiTestSuiteState state = getGuiTestSuiteState();
-    state.setSkipSdkMerge(false);
-    state.setUseCachedGradleModelOnly(false);
-
-    // TODO: setUpDefaultGeneralSettings();
   }
 }
