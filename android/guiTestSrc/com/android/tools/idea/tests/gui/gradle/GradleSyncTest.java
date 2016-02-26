@@ -110,6 +110,7 @@ import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
 import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPORT;
 import static com.android.tools.idea.tests.gui.framework.fixture.FileChooserDialogFixture.findImportProjectDialog;
 import static com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.MessageMatcher.firstLineStartingWith;
+import static com.google.common.truth.TruthJUnit.assume;
 import static com.intellij.ide.errorTreeView.ErrorTreeElementKind.*;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
@@ -132,7 +133,6 @@ import static org.fest.swing.timing.Pause.pause;
 import static org.jetbrains.android.AndroidPlugin.GRADLE_SYNC_COMMAND_LINE_OPTIONS_KEY;
 import static org.jetbrains.android.AndroidPlugin.getGuiTestSuiteState;
 import static org.junit.Assert.*;
-import static org.junit.Assume.assumeTrue;
 
 @BelongsToTestGroups({PROJECT_SUPPORT})
 @RunWith(GuiTestRunner.class)
@@ -592,7 +592,8 @@ public class GradleSyncTest {
   public void testUpdateGradleVersionWithLocalDistribution() throws IOException {
     File unsupportedGradleHome = getUnsupportedGradleHome();
     File gradleHomePath = getGradleHomePath();
-    assumeTrue(unsupportedGradleHome != null && gradleHomePath != null);
+    assume().that(unsupportedGradleHome).isNotNull();
+    assume().that(gradleHomePath).isNotNull();
 
     guiTest.importSimpleApplication();
 
@@ -610,7 +611,7 @@ public class GradleSyncTest {
   @Test
   public void testShowUserFriendlyErrorWhenUsingUnsupportedVersionOfGradle() throws IOException {
     File unsupportedGradleHome = getUnsupportedGradleHome();
-    assumeTrue(unsupportedGradleHome != null);
+    assume().that(unsupportedGradleHome).isNotNull();
 
     guiTest.importMultiModule();
     guiTest.ideFrame().deleteGradleWrapper().useLocalGradleDistribution(unsupportedGradleHome).requestProjectSync();
@@ -997,7 +998,7 @@ public class GradleSyncTest {
   @Test
   public void testUserDefinedLibraryAttachments() throws IOException {
     File javadocJarPath = getFilePathProperty("guava.javadoc.jar.path", "the path of the Javadoc jar file for Guava", false);
-    assumeTrue(javadocJarPath != null);
+    assume().that(javadocJarPath).isNotNull();
 
     guiTest.importProjectAndWaitForProjectSyncToFinish("MultipleModuleTypes");
     LibraryPropertiesDialogFixture propertiesDialog = guiTest.ideFrame().showPropertiesForLibrary("guava");
@@ -1127,7 +1128,7 @@ public class GradleSyncTest {
   @Test
   public void testSdkSwitch() throws IOException {
     File secondSdkPath = getFilePathProperty("second.android.sdk.path", "the path of a secondary Android SDK", true);
-    assumeTrue(secondSdkPath != null);
+    assume().that(secondSdkPath).isNotNull();
 
     getGuiTestSuiteState().setSkipSdkMerge(true);
 
@@ -1268,7 +1269,7 @@ public class GradleSyncTest {
 
   @Test
   public void testModuleLanguageLevelWithJdk8() throws IOException {
-    assumeTrue("needs JDK 1.8 or newer", JavaSdk.getInstance().getVersion(IdeSdks.getJdk()).isAtLeast(JavaSdkVersion.JDK_1_8));
+    assume().that(JavaSdk.getInstance().getVersion(IdeSdks.getJdk())).isAtLeast(JavaSdkVersion.JDK_1_8);
     guiTest.importProjectAndWaitForProjectSyncToFinish("MultipleModuleTypes");
     Module javaLib = guiTest.ideFrame().getModule("javaLib");
     assertEquals(JDK_1_8, getJavaLanguageLevel(javaLib));
