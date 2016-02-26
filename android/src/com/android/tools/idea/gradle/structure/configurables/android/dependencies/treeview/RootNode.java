@@ -86,6 +86,9 @@ class RootNode extends AbstractRootNode {
       // [Inner map] key: artifact name, value: dependencies
       Map<String, Map<String, List<PsdAndroidDependencyModel>>> dependenciesByVariantAndArtifact = Maps.newHashMap();
       for (PsdAndroidDependencyModel dependency : dependencies) {
+        if (!dependency.isEditable()) {
+          continue; // Only show "declared" dependencies as top-level dependencies.
+        }
         for (PsdAndroidDependencyModel.Container container : dependency.getContainers()) {
           Map<String, List<PsdAndroidDependencyModel>> dependenciesByArtifact =
             dependenciesByVariantAndArtifact.get(container.variant);
@@ -119,8 +122,9 @@ class RootNode extends AbstractRootNode {
         if (dependenciesByArtifact != null) {
           List<PsdAndroidDependencyModel> mainArtifactDependencies = Collections.emptyList();
 
-          if (dependenciesByArtifact.containsKey(ARTIFACT_MAIN)) {
-            mainArtifactDependencies = dependenciesByArtifact.get(ARTIFACT_MAIN);
+          String mainArtifactName = ARTIFACT_MAIN;
+          if (dependenciesByArtifact.containsKey(mainArtifactName)) {
+            mainArtifactDependencies = dependenciesByArtifact.get(mainArtifactName);
             children.addAll(createNodesFor(variantNode, mainArtifactDependencies));
             dependenciesByArtifact.remove(ARTIFACT_MAIN);
           }

@@ -64,7 +64,8 @@ class PsdAndroidDependencyModels {
     for (AndroidLibrary androidLibrary : dependencies.getLibraries()) {
       String gradlePath = androidLibrary.getProject();
       if (gradlePath != null) {
-        addModule(gradlePath, artifactModel);
+        String projectVariant = androidLibrary.getProjectVariant();
+        addModule(gradlePath, artifactModel, projectVariant);
       }
       else {
         // This is an AAR
@@ -77,7 +78,7 @@ class PsdAndroidDependencyModels {
     }
   }
 
-  private void addModule(@NotNull String gradlePath, @NotNull PsdAndroidArtifactModel artifactModel) {
+  private void addModule(@NotNull String gradlePath, @NotNull PsdAndroidArtifactModel artifactModel, @Nullable String projectVariant) {
     PsdParsedDependencyModels parsedDependencies = myParent.getParsedDependencyModels();
 
     ModuleDependencyModel matchingParsedDependency = parsedDependencies.findMatchingModuleDependency(gradlePath);
@@ -89,7 +90,7 @@ class PsdAndroidDependencyModels {
     }
     PsdModuleDependencyModel dependencyModel = findModuleDependency(gradlePath);
     if (dependencyModel == null) {
-      dependencyModel = new PsdModuleDependencyModel(myParent, gradlePath, module, artifactModel, matchingParsedDependency);
+      dependencyModel = new PsdModuleDependencyModel(myParent, gradlePath, projectVariant, module, artifactModel, matchingParsedDependency);
       myModuleDependencies.put(gradlePath, dependencyModel);
     }
     dependencyModel.addContainer(artifactModel);
