@@ -172,10 +172,10 @@ public class GradleFileMerger {
         if (RepositoryUrlManager.supports(highest.getArtifactId())) {
           String filter = highest.getGroupId() != null && ImportModule.SUPPORT_GROUP_ID.equals(highest.getGroupId())
                           ? mSupportLibVersionFilter : null;
-          String libraryCoordinate = urlManager.getLibraryCoordinate(highest.getArtifactId(), filter, false /* No previews */);
+          String libraryCoordinate = urlManager.getLibraryCoordinate(highest.getArtifactId(), filter, true /* Accept previews */);
           if (libraryCoordinate == null && filter != null) {
             // No library found at the support lib version filter level, so look for any match
-            libraryCoordinate = urlManager.getLibraryCoordinate(highest.getArtifactId(), null, false /* No previews */);
+            libraryCoordinate = urlManager.getLibraryCoordinate(highest.getArtifactId(), null, true /* Accept previews */);
           }
           if (libraryCoordinate != null) {
             GradleCoordinate available = GradleCoordinate.parseCoordinateString(libraryCoordinate);
