@@ -31,6 +31,7 @@ import com.android.tools.idea.ui.properties.expressions.value.AsValueExpression;
 import com.android.tools.idea.ui.properties.swing.SelectedItemProperty;
 import com.android.tools.idea.ui.validation.Validator;
 import com.android.tools.idea.ui.validation.ValidatorPanel;
+import com.android.tools.idea.ui.validation.validators.TrueValidator;
 import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
@@ -105,19 +106,10 @@ public final class ConfirmGenerateIconsStep extends ModelWizardStep<GenerateIcon
     myOutputPreviewTree.setRowHeight(-1);
     myOutputPreviewTree.getEmptyText().setText("No resource folder defined in project");
 
-    myValidatorPanel.registerValidator(myFilesAlreadyExist, new Validator<Boolean>() {
-      @NotNull
-      @Override
-      public Result validate(@NotNull Boolean filesAlreadyExist) {
-        if (filesAlreadyExist) {
-          return new Result(Severity.WARNING, WizardUtils.toHtmlString("Some existing files will be overwritten by this operation.<br>" +
-                                                                       "Files which replace existing files are marked red in the preview above."));
-        }
-        else {
-          return Result.OK;
-        }
-      }
-    });
+    String alreadyExistsError = WizardUtils.toHtmlString(
+      "Some existing files will be overwritten by this operation.<br>" +
+      "Files which replace existing files are marked red in the preview above.");
+    myValidatorPanel.registerValidator(myFilesAlreadyExist, new TrueValidator(Validator.Severity.WARNING, alreadyExistsError));
   }
 
   @NotNull

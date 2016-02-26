@@ -32,6 +32,8 @@ import com.android.tools.idea.ui.properties.core.BoolValueProperty;
 import com.android.tools.idea.ui.properties.core.ObservableBool;
 import com.android.tools.idea.ui.validation.Validator;
 import com.android.tools.idea.ui.validation.ValidatorPanel;
+import com.android.tools.idea.ui.validation.validators.FalseValidator;
+import com.android.tools.idea.ui.validation.validators.TrueValidator;
 import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.model.ModelWizard;
@@ -127,26 +129,13 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
   @Override
   protected void onWizardStarting(@NotNull ModelWizard.Facade wizard) {
     // This will show a warning to the user once installation starts and will disable the next/finish button until installation finishes
-    myValidatorPanel.registerValidator(myInstallationFinished, new Validator<Boolean>() {
-      @NotNull
-      @Override
-      public Result validate(@NotNull Boolean value) {
-        return (value) ? Result.OK : new Result(Severity.INFO, "Please wait until the installation finishes to continue");
-      }
-    });
+    String finishedText = "Please wait until the installation finishes to continue";
+    myValidatorPanel.registerValidator(myInstallationFinished, new TrueValidator(Validator.Severity.INFO, finishedText));
 
-
-    myValidatorPanel.registerValidator(myInstallFailed, new Validator<Boolean>() {
-      @NotNull
-      @Override
-      public Result validate(@NotNull Boolean value) {
-        String error = "Install Failed. Please check your network connection and try again. " +
-                       "You may continue with creating your project, but it will not compile correctly " +
-                       "without the missing components.";
-
-        return (value) ? new Result(Severity.ERROR, error) : Result.OK;
-      }
-    });
+    String installError = "Install Failed. Please check your network connection and try again. " +
+                          "You may continue with creating your project, but it will not compile correctly " +
+                          "without the missing components.";
+    myValidatorPanel.registerValidator(myInstallFailed, new FalseValidator(installError));
   }
 
   @Override

@@ -23,6 +23,7 @@ import com.android.sdklib.repositoryv2.targets.SystemImage;
 import com.android.tools.idea.ui.TooltipLabel;
 import com.android.tools.idea.ui.properties.BindingsManager;
 import com.android.tools.idea.ui.properties.ListenerManager;
+import com.android.tools.idea.ui.properties.ObservableValue;
 import com.android.tools.idea.ui.properties.adapters.StringToDoubleAdapterProperty;
 import com.android.tools.idea.ui.properties.adapters.StringToIntAdapterProperty;
 import com.android.tools.idea.ui.properties.core.ObservableBool;
@@ -31,6 +32,7 @@ import com.android.tools.idea.ui.properties.swing.SelectedProperty;
 import com.android.tools.idea.ui.properties.swing.TextProperty;
 import com.android.tools.idea.ui.validation.Validator;
 import com.android.tools.idea.ui.validation.ValidatorPanel;
+import com.android.tools.idea.ui.validation.validators.TrueValidator;
 import com.android.tools.idea.ui.validation.validators.PositiveDoubleValidator;
 import com.android.tools.idea.ui.validation.validators.PositiveIntValidator;
 import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
@@ -235,27 +237,13 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
       }
     });
 
-    myValidatorPanel.registerValidator(getModel().getDeviceData().screenDpi(), new Validator<Double>() {
-      @NotNull
-      @Override
-      public Result validate(@NotNull Double value) {
-        return (value < 0)
-               ? new Result(Severity.ERROR, "The given resolution and screen size specified have a DPI that is too low.")
-               : Result.OK;
-      }
-    });
+    myValidatorPanel.registerValidator(getModel().getDeviceData().screenDpi(), new PositiveDoubleValidator (
+      "The given resolution and screen size specified have a DPI that is too low."));
 
-    myValidatorPanel.registerValidator(
-      getModel().getDeviceData().supportsLandscape().or(getModel().getDeviceData().supportsPortrait()),
-      new Validator<Boolean>() {
-        @NotNull
-        @Override
-        public Result validate(@NotNull Boolean value) {
-          return (value
-                  ? Result.OK
-                  : new Result(Severity.ERROR, "A device must support at least one orientation (Portrait or Landscape)."));
-        }
-      });
+    ObservableValue<Boolean> orientationState =
+      getModel().getDeviceData().supportsLandscape().or(getModel().getDeviceData().supportsPortrait());
+    myValidatorPanel.registerValidator(orientationState, new TrueValidator(
+      "A device must support at least one orientation (Portrait or Landscape)."));
 
     myValidatorPanel.registerValidator(getModel().getDeviceData().customSkinFile(), new Validator<Optional<File>>() {
       @NotNull
