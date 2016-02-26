@@ -34,6 +34,8 @@ import com.intellij.openapi.roots.LanguageLevelModuleExtension;
 import com.intellij.openapi.roots.LanguageLevelModuleExtensionImpl;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.pom.java.LanguageLevel;
+import org.fest.swing.timing.Condition;
+import org.fest.swing.timing.Pause;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -168,15 +170,22 @@ public class NewProjectTest {
     }
   }
 
-  @Ignore("failed in http://go/aj/job/studio-ui-test/389")
   @Test
   public void testStillBuildingMessage() throws Exception {
     // Creates a new project with minSdk 15, which should use appcompat.
     // Check that if there are render-error messages on first render,
     // they don't include "Missing Styles" (should now talk about project building instead)
     newProject("Test Application").withBriefNames().withMinSdk("15").withoutSync().create();
-    EditorFixture editor = guiTest.ideFrame().getEditor();
-    editor.open("app/src/main/res/layout/activity_a.xml", EditorFixture.Tab.DESIGN);
+    final EditorFixture editor = guiTest.ideFrame().getEditor();
+
+    Pause.pause(new Condition("Wait for file to open") {
+      @Override
+      public boolean test() {
+        return "A.java".equals(editor.getCurrentFileName());
+      }
+    });
+
+    editor.open("app/src/main/res/layout/activity_a.xml", EditorFixture.Tab.EDITOR);
     LayoutEditorFixture layoutEditor = editor.getLayoutEditor(true);
     assertNotNull(layoutEditor);
     layoutEditor.waitForNextRenderToFinish();
