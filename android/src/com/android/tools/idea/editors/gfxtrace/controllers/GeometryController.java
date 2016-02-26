@@ -144,7 +144,7 @@ public class GeometryController extends Controller implements AtomStream.Listene
                                     Geometry.DisplayMode.POINTS));
 
     group.add(new Separator());
-    group.add(new NormalsAction("Original", "Smooth normals", AndroidIcons.GfxTrace.Smooth, NormalsAction.ORIGINAL));
+    group.add(new NormalsAction("Original", "Original vertex normals", AndroidIcons.GfxTrace.Smooth, NormalsAction.ORIGINAL));
     group.add(new NormalsAction("Faceted", "Per-face normals", AndroidIcons.GfxTrace.Faceted, NormalsAction.FACETED));
 
     group.add(new Separator());
