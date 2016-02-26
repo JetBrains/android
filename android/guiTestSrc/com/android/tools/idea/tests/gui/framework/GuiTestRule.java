@@ -44,12 +44,7 @@ import org.junit.runners.model.Statement;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
-import java.lang.management.GarbageCollectorMXBean;
-import java.lang.management.ManagementFactory;
-import java.lang.management.MemoryMXBean;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -75,10 +70,8 @@ public class GuiTestRule implements TestRule {
   private final Timeout myTimeout;
   private final RuleChain myRuleChain = RuleChain.emptyRuleChain()
     .around(new IdeHandling())
+    .around(new TestPerformance())
     .around(new ScreenshotOnFailure());
-
-  private final List<GarbageCollectorMXBean> myGarbageCollectorMXBeans = ManagementFactory.getGarbageCollectorMXBeans();
-  private final MemoryMXBean myMemoryMXBean = ManagementFactory.getMemoryMXBean();
 
   public GuiTestRule() {
     myTimeout = DEFAULT_TIMEOUT;
@@ -130,32 +123,10 @@ public class GuiTestRule implements TestRule {
     setUpSdks();
 
     refreshFiles();
-
-    printPerfStats();
-    printTimestamp();
-  }
-
-  private static void printTimestamp() {
-    final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
-    System.out.println(dateFormat.format(new Date()));
-  }
-
-  private void printPerfStats() {
-    long gcCount = 0, gcTime = 0;
-    for (GarbageCollectorMXBean garbageCollectorMXBean : myGarbageCollectorMXBeans) {
-      gcCount += garbageCollectorMXBean.getCollectionCount();
-      gcTime += garbageCollectorMXBean.getCollectionTime();
-    }
-    System.out.printf("%d garbage collections; cumulative %d ms%n", gcCount, gcTime);
-    myMemoryMXBean.gc();
-    System.out.printf("heap: %s%n", myMemoryMXBean.getHeapMemoryUsage());
-    System.out.printf("non-heap: %s%n", myMemoryMXBean.getNonHeapMemoryUsage());
   }
 
   private void tearDown() throws Exception {
     waitForBackgroundTasks();
-    printTimestamp();
-    printPerfStats();
     List<Throwable> errors = new ArrayList<Throwable>(cleanUpAndCheckForModalDialogs());
     closeAllProjects();
     errors.addAll(fatalErrorsFromIde());
