@@ -125,8 +125,7 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
 
     myHelpAndErrorLabel.setBorder(BorderFactory.createEmptyBorder(15, 15, 10, 10));
 
-    bindUi();
-    attachValidators();
+    attachBindingsAndValidators();
   }
 
   @NotNull
@@ -135,10 +134,12 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
     return myValidatorPanel.hasErrors().not();
   }
 
-  private void bindUi() {
+  private void attachBindingsAndValidators() {
     myBindings.bindTwoWay(new TextProperty(myDeviceName), getModel().getDeviceData().name());
 
-    myBindings.bindTwoWay(new StringToDoubleAdapterProperty(new TextProperty(myDiagonalScreenSize), 1, 2), getModel().getDeviceData().diagonalScreenSize());
+    final StringToDoubleAdapterProperty diagonalScreenSizeAdapter =
+      new StringToDoubleAdapterProperty(new TextProperty(myDiagonalScreenSize), 1, 2);
+    myBindings.bindTwoWay(diagonalScreenSizeAdapter, getModel().getDeviceData().diagonalScreenSize());
     myBindings.bindTwoWay(new StringToIntAdapterProperty(new TextProperty(myScreenResolutionWidth)), getModel().getDeviceData().screenResolutionWidth());
     myBindings.bindTwoWay(new StringToIntAdapterProperty(new TextProperty(myScreenResolutionHeight)), getModel().getDeviceData().screenResolutionHeight());
 
@@ -184,34 +185,8 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
         }
       }
     });
-  }
 
-  private void createUIComponents() {
-    myNavigationControlsCombo = new ComboBox(new EnumComboBoxModel<Navigation>(Navigation.class)) {
-      @Override
-      public ListCellRenderer getRenderer() {
-        return new ColoredListCellRenderer() {
-          @Override
-          protected void customizeCellRenderer(JList list, Object value, int index, boolean selected, boolean hasFocus) {
-            append(((Navigation)value).getShortDisplayValue());
-          }
-        };
-      }
-    };
 
-    myHardwareSkinHelpLabel = new HyperlinkLabel("How do I create a custom hardware skin?");
-    myHardwareSkinHelpLabel.setHyperlinkTarget(AvdWizardUtils.CREATE_SKIN_HELP_LINK);
-    myCustomSkinPath = new SkinChooser(myProject);
-    myDeviceDefinitionPreview = new DeviceDefinitionPreview(getModel().getDeviceData());
-  }
-
-  @NotNull
-  @Override
-  protected JComponent getComponent() {
-    return myStudioPanel;
-  }
-
-  private void attachValidators() {
     myValidatorPanel.registerValidator(getModel().getDeviceData().name(), new Validator<String>() {
       @NotNull
       @Override
@@ -259,5 +234,38 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
         return Result.OK;
       }
     });
+
+    myValidatorPanel.registerValidator(diagonalScreenSizeAdapter.inSync(), new Validator<Boolean>() {
+      @NotNull
+      @Override
+      public Result validate(@NotNull Boolean inSync) {
+        return inSync ? Result.OK : new Result(Severity.ERROR, "Please enter a non-zero positive floating point value for the screen size.");
+      }
+    });
+  }
+
+  private void createUIComponents() {
+    myNavigationControlsCombo = new ComboBox(new EnumComboBoxModel<Navigation>(Navigation.class)) {
+      @Override
+      public ListCellRenderer getRenderer() {
+        return new ColoredListCellRenderer() {
+          @Override
+          protected void customizeCellRenderer(JList list, Object value, int index, boolean selected, boolean hasFocus) {
+            append(((Navigation)value).getShortDisplayValue());
+          }
+        };
+      }
+    };
+
+    myHardwareSkinHelpLabel = new HyperlinkLabel("How do I create a custom hardware skin?");
+    myHardwareSkinHelpLabel.setHyperlinkTarget(AvdWizardUtils.CREATE_SKIN_HELP_LINK);
+    myCustomSkinPath = new SkinChooser(myProject);
+    myDeviceDefinitionPreview = new DeviceDefinitionPreview(getModel().getDeviceData());
+  }
+
+  @NotNull
+  @Override
+  protected JComponent getComponent() {
+    return myValidatorPanel;
   }
 }

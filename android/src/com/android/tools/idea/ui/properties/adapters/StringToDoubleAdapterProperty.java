@@ -18,6 +18,7 @@ package com.android.tools.idea.ui.properties.adapters;
 import com.android.tools.idea.ui.properties.ObservableProperty;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
@@ -30,8 +31,6 @@ import java.text.ParsePosition;
  * good value.
  */
 public final class StringToDoubleAdapterProperty extends AdapterProperty<String, Double> {
-
-  private double lastGoodValue;
 
   @NotNull private final DecimalFormat myFormat;
 
@@ -47,7 +46,7 @@ public final class StringToDoubleAdapterProperty extends AdapterProperty<String,
   }
 
   public StringToDoubleAdapterProperty(@NotNull ObservableProperty<String> wrappedProperty, int numDecimals, int maxDecimals) {
-    super(wrappedProperty);
+    super(wrappedProperty, 0d);
     if (maxDecimals < numDecimals) {
       throw new IllegalArgumentException("maxDecimals must be larger or equal to numDecimals");
     }
@@ -55,20 +54,19 @@ public final class StringToDoubleAdapterProperty extends AdapterProperty<String,
                                  new DecimalFormatSymbols());
   }
 
-  @NotNull
+  @Nullable
   @Override
   protected Double convertFromSourceType(@NotNull String value) {
     try {
       ParsePosition pos = new ParsePosition(0);
       Number number = myFormat.parse(value, pos);
       if (number != null && pos.getIndex() == value.length()) {
-        lastGoodValue = number.doubleValue();
+        return number.doubleValue();
       }
-      return lastGoodValue;
     }
-    catch (NumberFormatException e) {
-      return lastGoodValue;
+    catch (NumberFormatException ignored) {
     }
+    return null;
   }
 
   @NotNull
