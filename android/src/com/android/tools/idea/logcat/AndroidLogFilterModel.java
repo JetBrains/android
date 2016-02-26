@@ -173,7 +173,7 @@ public abstract class AndroidLogFilterModel extends LogFilterModel {
   // Checks if the log message (with header stripped) matches the active filter, if set. Note that
   // this should ONLY be called if myPrevHeader was already set (which is how the filter will test
   // against header information).
-  private boolean isApplicableByConfiguredFilter(String message) {
+  private boolean isApplicableByConfiguredFilter(@NotNull String message) {
     final AndroidLogcatFilter filter = getLogcatFilter();
     if (filter == null) {
       return true;
