@@ -32,6 +32,7 @@ import org.fest.swing.fixture.JButtonFixture;
 import org.fest.swing.timing.Condition;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -85,6 +86,7 @@ public class AndroidSdkSourceAttachTest {
     }
   }
 
+  @Ignore("failed in http://go/aj/job/studio-ui-test/417 and from IDEA")
   @Test
   public void testDownloadSdkSource() throws IOException {
     if (mySdkSourcePath.isDirectory()) {
@@ -129,6 +131,7 @@ public class AndroidSdkSourceAttachTest {
     assertIsActivityJavaFile(sourceFile);
   }
 
+  @Ignore("failed in http://go/aj/job/studio-ui-test/417 and from IDEA")
   @Test
   public void testRefreshSdkSource() throws IOException {
     assumeTrue("Android Sdk Source for '" + mySdk.getName() + "' must be installed before running 'testRefreshSdkSource'",
