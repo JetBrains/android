@@ -188,17 +188,12 @@ public final class TestArtifactSearchScopes {
 
   @NotNull
   private FileRootSearchScope getExcludedDependenciesScope(@NotNull String artifactName) {
-    Set<File> excludedRoots = Sets.newHashSet();
-
     BaseArtifact unitTestArtifact = myAndroidModel.getUnitTestArtifactInSelectedVariant();
     BaseArtifact androidTestArtifact = myAndroidModel.getAndroidTestArtifactInSelectedVariant();
 
     boolean isAndroidTestArtifact = ARTIFACT_ANDROID_TEST.equals(artifactName);
 
     BaseArtifact excludeArtifact = isAndroidTestArtifact ? unitTestArtifact : androidTestArtifact;
-    if (excludeArtifact != null) {
-      excludedRoots.add(excludeArtifact.getClassesFolder());
-    }
 
     DependencySet androidTestDependencies = null;
     DependencySet unitTestDependencies = null;
@@ -220,16 +215,40 @@ public final class TestArtifactSearchScopes {
     Set<Module> excludedModules = Sets.newHashSet();
 
     if (dependenciesToExclude != null) {
-      for (LibraryDependency dependency : dependenciesToExclude.onLibraries()) {
-        for (String path : dependency.getPaths(LibraryDependency.PathType.BINARY)) {
-          excludedRoots.add(new File(path));
-        }
-      }
-
       for (ModuleDependency dependency : dependenciesToExclude.onModules()) {
         Module dependencyModule = dependency.getModule(project);
         if (dependencyModule != null) {
           excludedModules.add(dependencyModule);
+        }
+      }
+    }
+
+    if (dependenciesToInclude != null) {
+      for (ModuleDependency dependency : dependenciesToInclude.onModules()) {
+        Module dependencyModule = dependency.getModule(project);
+        if (dependencyModule != null) {
+          excludedModules.remove(dependencyModule);
+        }
+      }
+    }
+
+    for (ModuleDependency dependency : mainDependencies.onModules()) {
+      Module dependencyModule = dependency.getModule(project);
+      if (dependencyModule != null) {
+        excludedModules.remove(dependencyModule);
+      }
+    }
+
+    Set<File> excludedRoots = Sets.newHashSet();
+    if (excludeArtifact != null) {
+      // TODO this is not enough, we should also exclude those artifacts from depended modules
+      excludedRoots.add(excludeArtifact.getClassesFolder());
+    }
+
+    if (dependenciesToExclude != null) {
+      for (LibraryDependency dependency : dependenciesToExclude.onLibraries()) {
+        for (String path : dependency.getPaths(LibraryDependency.PathType.BINARY)) {
+          excludedRoots.add(new File(path));
         }
       }
     }
@@ -254,18 +273,10 @@ public final class TestArtifactSearchScopes {
       }
     }
 
-    // All removal should happen after adding
     if (dependenciesToInclude != null) {
       for (LibraryDependency dependency : dependenciesToInclude.onLibraries()) {
         for (String path : dependency.getPaths(LibraryDependency.PathType.BINARY)) {
           excludedRoots.remove(new File(path));
-        }
-      }
-
-      for (ModuleDependency dependency : dependenciesToInclude.onModules()) {
-        Module dependencyModule = dependency.getModule(project);
-        if (dependencyModule != null) {
-          excludedModules.remove(dependencyModule);
         }
       }
     }
@@ -275,14 +286,6 @@ public final class TestArtifactSearchScopes {
         excludedRoots.remove(new File(path));
       }
     }
-
-    for (ModuleDependency dependency : mainDependencies.onModules()) {
-      Module dependencyModule = dependency.getModule(project);
-      if (dependencyModule != null) {
-        excludedModules.remove(dependencyModule);
-      }
-    }
-
     return new FileRootSearchScope(project, excludedRoots);
   }
 
