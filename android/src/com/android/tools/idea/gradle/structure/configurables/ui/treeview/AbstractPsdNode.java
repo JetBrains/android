@@ -37,29 +37,50 @@ public abstract class AbstractPsdNode<T extends PsdModel> extends SimpleNode {
   protected AbstractPsdNode(@NotNull AbstractPsdNode<?> parent, @NotNull T...models) {
     super(parent);
     myModels = Lists.newArrayList(models);
-    updateIcon();
+    updateNameAndIcon();
   }
 
   protected AbstractPsdNode(@NotNull T...models) {
     myModels = Lists.newArrayList(models);
-    updateIcon();
+    updateNameAndIcon();
   }
 
   protected AbstractPsdNode(@NotNull AbstractPsdNode<?> parent, @NotNull List<T> models) {
     super(parent);
     myModels = models;
-    updateIcon();
+    updateNameAndIcon();
   }
 
   protected AbstractPsdNode(@NotNull List<T> models) {
     myModels = models;
-    updateIcon();
+    updateNameAndIcon();
   }
 
-  private void updateIcon() {
-    if (!myModels.isEmpty()) {
-      setIcon(myModels.get(0).getIcon());
+  protected void updateNameAndIcon() {
+    int modelCount = myModels.size();
+    if (modelCount != 0) {
+      T first = myModels.get(0);
+      if (modelCount == 1) {
+        myName = nameOf(first);
+      }
+      else {
+        StringBuilder buffer = new StringBuilder();
+        for (int i = 0; i < modelCount; i++) {
+          T model = myModels.get(i);
+          buffer.append(nameOf(model));
+          if (i < modelCount - 1) {
+            buffer.append(", ");
+          }
+        }
+        myName = buffer.toString();
+      }
+      setIcon(first.getIcon());
     }
+  }
+
+  @NotNull
+  protected String nameOf(T model) {
+    return model.getName();
   }
 
   @NotNull

@@ -15,14 +15,17 @@
  */
 package com.android.tools.idea.gradle.structure.model.android;
 
-import com.android.builder.model.AndroidProject;
 import com.android.builder.model.BaseArtifact;
 import com.android.tools.idea.gradle.structure.model.PsdChildModel;
 import com.intellij.icons.AllIcons;
-import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+
+import static com.android.builder.model.AndroidProject.*;
+import static com.intellij.icons.AllIcons.Modules.TestRoot;
+import static com.intellij.icons.AllIcons.Nodes.Artifact;
+import static icons.AndroidIcons.AndroidTestRoot;
 
 public class PsdAndroidArtifactModel extends PsdChildModel {
   @NotNull private final String myName;
@@ -31,21 +34,26 @@ public class PsdAndroidArtifactModel extends PsdChildModel {
 
   PsdAndroidArtifactModel(@NotNull PsdVariantModel parent, @NotNull BaseArtifact gradleModel) {
     super(parent);
-    Icon icon = AllIcons.Nodes.Artifact;
+    Icon icon = Artifact;
     String name = gradleModel.getName();
-    if (AndroidProject.ARTIFACT_ANDROID_TEST.equals(name)) {
-      name = "Android Tests";
-      icon = AndroidIcons.AndroidTestRoot;
+    if (ARTIFACT_MAIN.equals(name)) {
+      name = "";
+      icon = AllIcons.Modules.SourceRoot;
     }
-    else if (AndroidProject.ARTIFACT_UNIT_TEST.equals(name)) {
-      name = "Unit Tests";
-      icon = AllIcons.Modules.TestRoot;
+    if (ARTIFACT_ANDROID_TEST.equals(name)) {
+      name = "AndroidTest";
+      icon = AndroidTestRoot;
+    }
+    else if (ARTIFACT_UNIT_TEST.equals(name)) {
+      name = "Test";
+      icon = TestRoot;
     }
     myName = name;
     myIcon = icon;
     myGradleModel = gradleModel;
   }
 
+  @Override
   @NotNull
   public String getName() {
     return myName;
@@ -71,10 +79,5 @@ public class PsdAndroidArtifactModel extends PsdChildModel {
   @Override
   public boolean isEditable() {
     return false;
-  }
-
-  @Override
-  public String toString() {
-    return getName();
   }
 }

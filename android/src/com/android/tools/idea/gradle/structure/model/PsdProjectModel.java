@@ -29,7 +29,7 @@ import java.util.List;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
 
-public class PsdProjectModel implements PsdModel {
+public class PsdProjectModel extends PsdModel {
   @NotNull private final Project myProject;
 
   @NotNull private final List<PsdModuleModel> myModuleModels = Lists.newArrayList();
@@ -37,6 +37,7 @@ public class PsdProjectModel implements PsdModel {
   private boolean myModified;
 
   public PsdProjectModel(@NotNull Project project) {
+    super(null);
     myProject = project;
 
     for (Module module : ModuleManager.getInstance(myProject).getModules()) {
@@ -59,7 +60,7 @@ public class PsdProjectModel implements PsdModel {
   @Nullable
   public PsdModuleModel findModelForModule(@NotNull String moduleName) {
     for (PsdModuleModel model : myModuleModels) {
-      if (moduleName.equals(model.getModuleName())) {
+      if (moduleName.equals(model.getName())) {
         return model;
       }
     }
@@ -79,6 +80,12 @@ public class PsdProjectModel implements PsdModel {
   @NotNull
   public Project getProject() {
     return myProject;
+  }
+
+  @Override
+  @NotNull
+  public String getName() {
+    return myProject.getName();
   }
 
   @NotNull
