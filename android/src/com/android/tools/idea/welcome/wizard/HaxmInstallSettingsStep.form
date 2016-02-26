@@ -30,7 +30,7 @@
           </grid>
         </constraints>
         <properties>
-          <text value="&lt;html&gt;Please set the maximum amount of RAM available for the Intel® Hardware Accelerated Execution Manager (HAXM) to use for all x86 emulator instances. You can change these settings at any time by running the Intel® HAXM installer.&lt;/html&gt;"/>
+          <text value="Set the maximum amount of RAM available for the Intel® Hardware Accelerated Execution Manager (HAXM) to use for all x86 emulator instances. You can change these settings at any time by running the Intel® HAXM installer."/>
         </properties>
       </component>
       <component id="da255" class="javax.swing.JSlider" binding="myMemorySlider">
@@ -60,7 +60,7 @@
           <component id="a0b51" class="javax.swing.JLabel">
             <constraints/>
             <properties>
-              <text value="Please refer to the "/>
+              <text value="Refer to the "/>
             </properties>
           </component>
           <component id="7fc0f" class="com.intellij.ui.HyperlinkLabel" binding="myIntelHAXMDocumentationButton" default-binding="true">
