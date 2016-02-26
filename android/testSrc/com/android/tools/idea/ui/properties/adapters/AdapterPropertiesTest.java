@@ -17,9 +17,11 @@ package com.android.tools.idea.ui.properties.adapters;
 
 import com.android.tools.idea.ui.properties.BindingsManager;
 import com.android.tools.idea.ui.properties.core.*;
+import com.intellij.openapi.util.EmptyRunnable;
 import org.junit.After;
 import org.junit.Test;
 
+import javax.swing.*;
 import java.util.Locale;
 
 import static com.android.tools.idea.ui.properties.BatchInvoker.INVOKE_IMMEDIATELY_STRATEGY;
@@ -40,15 +42,19 @@ public class AdapterPropertiesTest {
     DoubleProperty doubleValue = new DoubleValueProperty(20.0);
 
     // Defaults to 1 decimal point of precision
-    bindings.bindTwoWay(new StringToDoubleAdapterProperty(doubleString), doubleValue);
+    StringToDoubleAdapterProperty adapterProperty = new StringToDoubleAdapterProperty(doubleString);
+    bindings.bindTwoWay(adapterProperty, doubleValue);
 
     assertThat(doubleString.get()).isEqualTo("20.0");
+    assertThat(adapterProperty.inSync().get()).isTrue();
 
     doubleString.set("100.5");
     assertThat(doubleValue.get()).isEqualTo(100.5);
+    assertThat(adapterProperty.inSync().get()).isTrue();
 
     doubleString.set("not a double");
     assertThat(doubleValue.get()).isEqualTo(100.5);
+    assertThat(adapterProperty.inSync().get()).isFalse();
   }
 
   @Test
@@ -117,15 +123,19 @@ public class AdapterPropertiesTest {
     OptionalProperty<String> optionalValue = new OptionalValueProperty<String>("Initial");
     StringProperty stringValue = new StringValueProperty();
 
-    bindings.bindTwoWay(stringValue, new OptionalToValuePropertyAdapter<String>(optionalValue));
+    OptionalToValuePropertyAdapter<String> adapterProperty = new OptionalToValuePropertyAdapter<String>(optionalValue);
+    bindings.bindTwoWay(stringValue, adapterProperty);
 
     assertThat(stringValue.get()).isEqualTo("Initial");
+    assertThat(adapterProperty.inSync().get()).isTrue();
 
     stringValue.set("Modified");
     assertThat(optionalValue.getValue()).isEqualTo("Modified");
+    assertThat(adapterProperty.inSync().get()).isTrue();
 
     optionalValue.clear();
-    assertThat(stringValue.get()).isEqualTo("Initial");
+    assertThat(stringValue.get()).isEqualTo("Modified");
+    assertThat(adapterProperty.inSync().get()).isFalse();
   }
 
   @Test
@@ -134,14 +144,14 @@ public class AdapterPropertiesTest {
     OptionalProperty<String> optionalValue = new OptionalValueProperty<String>();
     StringProperty stringValue = new StringValueProperty();
 
-    bindings.bindTwoWay(stringValue, new OptionalToValuePropertyAdapter<String>(optionalValue, "Default"));
+    bindings.bindTwoWay(stringValue, new OptionalToValuePropertyAdapter<String>(optionalValue, "Initial"));
 
-    assertThat(stringValue.get()).isEqualTo("Default");
+    assertThat(stringValue.get()).isEqualTo("Initial");
 
     stringValue.set("Modified");
     assertThat(optionalValue.getValue()).isEqualTo("Modified");
 
     optionalValue.clear();
-    assertThat(stringValue.get()).isEqualTo("Default");
+    assertThat(stringValue.get()).isEqualTo("Modified");
   }
 }

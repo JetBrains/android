@@ -18,6 +18,7 @@ package com.android.tools.idea.ui.properties.adapters;
 import com.android.tools.idea.ui.properties.ObservableProperty;
 import com.google.common.base.Optional;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Adapter property that wraps an optional type and provides non-null access to its contents. This
@@ -25,25 +26,22 @@ import org.jetbrains.annotations.NotNull;
  * components could technically return null, but in practice never do for some forms.
  */
 public final class OptionalToValuePropertyAdapter<T> extends AdapterProperty<Optional<T>, T> {
-  @NotNull T myDefaultValue;
-
-  public OptionalToValuePropertyAdapter(@NotNull ObservableProperty<Optional<T>> wrappedProperty, @NotNull T defaultValue) {
-    super(wrappedProperty);
-    myDefaultValue = defaultValue;
+  public OptionalToValuePropertyAdapter(@NotNull ObservableProperty<Optional<T>> wrappedProperty, @NotNull T initialValue) {
+    super(wrappedProperty, initialValue);
   }
 
   /**
-   * Constructor which extracts a default value from the optional property's current value. If the
+   * Constructor which extracts an initial value from the optional property's current value. If the
    * optional property is not set, this will throw an exception.
    */
   public OptionalToValuePropertyAdapter(@NotNull ObservableProperty<Optional<T>> wrappedProperty) {
     this(wrappedProperty, wrappedProperty.get().get());
   }
 
-  @NotNull
+  @Nullable
   @Override
   protected T convertFromSourceType(@NotNull Optional<T> value) {
-    return value.or(myDefaultValue);
+    return value.orNull();
   }
 
   @NotNull
