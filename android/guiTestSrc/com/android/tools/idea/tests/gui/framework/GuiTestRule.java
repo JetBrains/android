@@ -25,7 +25,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.fest.swing.core.BasicRobot;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiTask;
 import org.jdom.Document;
@@ -63,12 +62,12 @@ import static org.junit.Assume.assumeTrue;
 public class GuiTestRule implements TestRule {
   private static final Timeout DEFAULT_TIMEOUT = new Timeout(5, TimeUnit.MINUTES);
 
-  private Robot myRobot;
-
   private File myProjectPath;
 
   private final Timeout myTimeout;
+  private final RobotTestRule myRobotTestRule = new RobotTestRule();
   private final RuleChain myRuleChain = RuleChain.emptyRuleChain()
+    .around(myRobotTestRule)
     .around(new IdeHandling())
     .around(new TestPerformance())
     .around(new ScreenshotOnFailure());
@@ -116,9 +115,6 @@ public class GuiTestRule implements TestRule {
 
     setUpDefaultProjectCreationLocationPath();
 
-    myRobot = BasicRobot.robotWithCurrentAwtHierarchy();
-    myRobot.settings().delayBetweenEvents(30);
-
     setIdeSettings();
     setUpSdks();
 
@@ -136,11 +132,10 @@ public class GuiTestRule implements TestRule {
 
   private List<AssertionError> cleanUpAndCheckForModalDialogs() {
     List<AssertionError> errors = new ArrayList<AssertionError>();
-    myRobot.cleanUpWithoutDisposingWindows();
     // We close all modal dialogs left over, because they block the AWT thread and could trigger a deadlock in the next test.
     Dialog modalDialog;
     while ((modalDialog = getActiveModalDialog()) != null) {
-      myRobot.close(modalDialog);
+      robot().close(modalDialog);
       errors.add(new AssertionError(
         String.format("Modal dialog showing: %s with title '%s'", modalDialog.getClass().getName(), modalDialog.getTitle())));
     }
@@ -308,11 +303,11 @@ public class GuiTestRule implements TestRule {
   }
 
   public void waitForBackgroundTasks() {
-    GuiTests.waitForBackgroundTasks(myRobot);
+    GuiTests.waitForBackgroundTasks(robot());
   }
 
   public Robot robot() {
-    return myRobot;
+    return myRobotTestRule.getRobot();
   }
 
   public void setProjectPath(@NotNull File projectPath) {
@@ -327,6 +322,6 @@ public class GuiTestRule implements TestRule {
 
   @NotNull
   public IdeFrameFixture ideFrame() {
-    return IdeFrameFixture.find(myRobot, getProjectPath(), null);
+    return IdeFrameFixture.find(robot(), getProjectPath(), null);
   }
 }
