@@ -62,25 +62,35 @@ public class StudioDownloader implements Downloader {
     return new FileInputStream(file);
   }
 
-  @Nullable
   @Override
-  public File downloadFully(@NonNull URL url, @Nullable SettingsController settings, @NonNull ProgressIndicator indicator)
+  public void downloadFully(@NonNull URL url,
+                            @Nullable SettingsController settings,
+                            @NonNull File target,
+                            @NonNull ProgressIndicator indicator)
     throws IOException {
     // We don't use the settings here explicitly, since HttpRequests picks up the network settings from studio directly.
     indicator.logInfo("Downloading " + url);
     indicator.setText("Downloading...");
     indicator.setSecondaryText(url.toString());
-    // TODO: caching
-    String suffix = url.getPath();
-    suffix = suffix.substring(suffix.lastIndexOf("/") + 1);
-    File tempFile = FileUtil.createTempFile("StudioDownloader", suffix, true);
-    tempFile.deleteOnExit();
     com.intellij.openapi.progress.ProgressIndicator studioProgress = myStudioProgressIndicator;
     if (studioProgress == null) {
       studioProgress = ProgressManager.getInstance().getProgressIndicator();
     }
     HttpRequests.request(url.toExternalForm())
-      .saveToFile(tempFile, new StudioProgressIndicatorAdapter(indicator, studioProgress));
+      .saveToFile(target, new StudioProgressIndicatorAdapter(indicator, studioProgress));
+  }
+
+  @Nullable
+  @Override
+  public File downloadFully(@NonNull URL url,
+                            @Nullable SettingsController settings,
+                            @NonNull ProgressIndicator indicator) throws IOException {
+    // TODO: caching
+    String suffix = url.getPath();
+    suffix = suffix.substring(suffix.lastIndexOf("/") + 1);
+    File tempFile = FileUtil.createTempFile("StudioDownloader", suffix, true);
+    tempFile.deleteOnExit();
+    downloadFully(url, settings, tempFile, indicator);
     return tempFile;
   }
 }

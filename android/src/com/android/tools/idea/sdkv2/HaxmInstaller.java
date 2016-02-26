@@ -40,12 +40,10 @@ public class HaxmInstaller implements PackageInstaller {
   }
 
   @Override
-  public boolean install(@NonNull RemotePackage p,
-                         @NonNull Downloader downloader,
-                         @Nullable SettingsController settings,
-                         @NonNull ProgressIndicator progress,
-                         @NonNull RepoManager manager,
-                         @NonNull FileOp fop) {
+  public boolean completeInstall(@NonNull RemotePackage p,
+                                 @NonNull ProgressIndicator progress,
+                                 @NonNull RepoManager manager,
+                                 @NonNull FileOp fop) {
     final AtomicBoolean result = new AtomicBoolean(false);
     ApplicationManager.getApplication().invokeAndWait(new Runnable() {
       @Override
@@ -56,5 +54,15 @@ public class HaxmInstaller implements PackageInstaller {
       }
     }, ModalityState.any());
     return result.get();
+  }
+
+  @Override
+  public boolean prepareInstall(@NonNull RemotePackage p,
+                                @NonNull Downloader downloader,
+                                @Nullable SettingsController settings,
+                                @NonNull ProgressIndicator progress,
+                                @NonNull RepoManager manager,
+                                @NonNull FileOp fop) {
+    return new BasicInstaller().prepareInstall(p, downloader, settings, progress, manager, fop);
   }
 }

@@ -26,6 +26,7 @@ import com.android.sdklib.internal.avd.HardwareProperties;
 import com.android.sdklib.repositoryv2.IdDisplay;
 import com.android.sdklib.repositoryv2.targets.SystemImage;
 import com.android.tools.idea.ddms.screenshot.DeviceArtDescriptor;
+import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
 import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder;
 import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.android.tools.idea.wizard.model.ModelWizard;
@@ -243,8 +244,8 @@ public class AvdWizardUtils {
         if (fop.exists(resourcePath)) {
           if (dest != null) {
             try {
-              FileOpUtils.recursiveCopy(resourcePath, dest.getParentFile(), fop);
-              return new File(dest, path.getPath());
+              FileOpUtils.recursiveCopy(resourcePath, dest, fop, new StudioLoggerProgressIndicator(AvdWizardUtils.class));
+              return dest;
             }
             catch (IOException e) {
               getLog().warn(String.format("Failed to copy skin directory to %1$s, using studio-relative path %2$s",
