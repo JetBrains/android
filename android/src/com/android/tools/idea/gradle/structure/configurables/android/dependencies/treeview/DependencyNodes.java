@@ -34,7 +34,8 @@ final class DependencyNodes {
   }
 
   @NotNull
-  static List<AbstractPsdNode<?>> createNodesFor(@NotNull AbstractPsdNode parent, @NotNull Collection<PsdAndroidDependencyModel> dependencies) {
+  static List<AbstractPsdNode<?>> createNodesFor(@NotNull AbstractPsdNode parent,
+                                                 @NotNull Collection<PsdAndroidDependencyModel> dependencies) {
     List<AbstractPsdNode<?>> children = Lists.newArrayList();
 
     List<PsdAndroidDependencyModel> declared = new SortedList<PsdAndroidDependencyModel>(PsdAndroidDependencyModelComparator.INSTANCE);
@@ -60,10 +61,10 @@ final class DependencyNodes {
 
     for (PsdAndroidDependencyModel dependency : declared) {
       if (dependency instanceof PsdLibraryDependencyModel) {
-        children.add(new LibraryNode(parent, (PsdLibraryDependencyModel)dependency));
+        children.add(new LibraryDependencyNode(parent, (PsdLibraryDependencyModel)dependency));
       }
       else if (dependency instanceof PsdModuleDependencyModel) {
-        children.add(new ModuleNode(parent, (PsdModuleDependencyModel)dependency));
+        children.add(new ModuleDependencyNode(parent, (PsdModuleDependencyModel)dependency));
       }
     }
 
