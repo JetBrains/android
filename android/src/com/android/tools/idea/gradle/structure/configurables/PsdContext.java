@@ -30,8 +30,8 @@ public class PsdContext {
     return mySelectedModule;
   }
 
-  public void setSelectedModule(String selectedModule, @NotNull Object source) {
-    mySelectedModule = selectedModule;
+  public void setSelectedModule(String moduleName, @NotNull Object source) {
+    mySelectedModule = moduleName;
     myEventDispatcher.getMulticaster().moduleSelectionChanged(mySelectedModule, source);
   }
 
