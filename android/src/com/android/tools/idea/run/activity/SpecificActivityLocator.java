@@ -91,26 +91,16 @@ public class SpecificActivityLocator extends ActivityLocator {
     }
 
     // check whether activity is declared in the manifest
-    List<Activity> activities = ManifestInfo.get(module, false).getActivities();
+    List<Activity> activities = ManifestInfo.get(module).getActivities();
     Activity activity = AndroidDomUtil.getActivityDomElementByClass(activities, c);
-    if (activity != null) {
-      return;
-    }
-
-    activities = ManifestInfo.get(module, true).getActivities();
-    activity = AndroidDomUtil.getActivityDomElementByClass(activities, c);
     if (activity == null) {
       throw new ActivityLocatorException(AndroidBundle.message("activity.not.declared.in.manifest", c.getName()));
-    }
-    else if (!ActivityLocatorUtils.shouldUseMergedManifest(myFacet)) {
-      throw new ActivityLocatorException(
-        AndroidBundle.message("activity.declared.but.manifest.merging.disabled", c.getName(), module.getName()));
     }
   }
 
   @Nullable
   private static ActivityAlias findActivityAlias(@NotNull AndroidFacet facet, @NotNull final String qualifiedName) {
-    final List<ActivityAlias> aliases = ManifestInfo.get(facet.getModule(), true).getActivityAliases();
+    final List<ActivityAlias> aliases = ManifestInfo.get(facet).getActivityAliases();
 
     return ApplicationManager.getApplication().runReadAction(new Computable<ActivityAlias>() {
       @Override

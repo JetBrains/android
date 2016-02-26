@@ -273,7 +273,7 @@ public class DataBindingUtil {
    * @return The package name that can be used to generate R and BR classes.
    */
   public static String getGeneratedPackageName(AndroidFacet facet) {
-    return ManifestInfo.get(facet.getModule(), false).getPackage();
+    return ManifestInfo.get(facet).getPackage();
   }
 
   /**

@@ -20,11 +20,12 @@ import com.android.tools.idea.editors.theme.ThemeEditorContext;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.editors.theme.ThemesListModel;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
+import com.android.tools.idea.model.ManifestInfo;
+import com.android.tools.idea.model.MergedManifest;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.SimpleTextAttributes;
-import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -78,10 +79,8 @@ public class StyleListCellRenderer extends ColoredListCellRenderer {
     String defaultAppThemeResourceUrl = null;
     final AndroidFacet facet = AndroidFacet.getInstance(myContext.getCurrentContextModule());
     if (facet != null) {
-      Manifest manifest = facet.getManifest();
-      if (manifest != null && manifest.getApplication() != null && manifest.getApplication().getXmlTag() != null) {
-        defaultAppThemeResourceUrl = manifest.getApplication().getXmlTag().getAttributeValue(SdkConstants.ATTR_THEME, SdkConstants.ANDROID_URI);
-      }
+      MergedManifest info = ManifestInfo.get(facet);
+      defaultAppThemeResourceUrl = info.getManifestTheme();
     }
 
     if (!style.isProjectStyle()) {

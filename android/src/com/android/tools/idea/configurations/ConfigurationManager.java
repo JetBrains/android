@@ -27,7 +27,8 @@ import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.repositoryv2.targets.PlatformTarget;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.ManifestInfo;
-import com.android.tools.idea.model.ManifestInfo.ActivityAttributes;
+import com.android.tools.idea.model.MergedManifest;
+import com.android.tools.idea.model.MergedManifest.ActivityAttributes;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.LocalResourceRepository;
@@ -304,7 +305,7 @@ public class ConfigurationManager implements Disposable {
    */
   @NotNull
   public String computePreferredTheme(@NotNull Configuration configuration) {
-    ManifestInfo manifest = ManifestInfo.get(myModule, false);
+    MergedManifest manifest = ManifestInfo.get(myModule);
 
     // TODO: If we are rendering a layout in included context, pick the theme
     // from the outer layout instead
@@ -313,11 +314,8 @@ public class ConfigurationManager implements Disposable {
     if (activity != null) {
       String activityFqcn = activity;
       if (activity.startsWith(".")) {
-        AndroidModuleInfo moduleInfo = AndroidModuleInfo.get(myModule);
-        if (moduleInfo != null) {
-          String pkg = StringUtil.notNullize(ManifestInfo.get(myModule, false).getPackage());
-          activityFqcn = pkg + activity;
-        }
+        String pkg = StringUtil.notNullize(manifest.getPackage());
+        activityFqcn = pkg + activity;
       }
 
       ActivityAttributes attributes = manifest.getActivityAttributes(activityFqcn);

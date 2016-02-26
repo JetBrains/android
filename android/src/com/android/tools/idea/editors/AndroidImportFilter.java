@@ -57,7 +57,7 @@ public class AndroidImportFilter extends ImportFilter {
     AndroidFacet facet = AndroidFacet.getInstance(targetFile);
     if (facet != null) {
       // We need the manifest package here, not the Gradle effective package (which can vary by flavor and build type)
-      return ManifestInfo.get(facet.getModule(), false).getPackage();
+      return ManifestInfo.get(facet).getPackage();
     }
 
     return null;

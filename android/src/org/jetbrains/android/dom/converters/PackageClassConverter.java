@@ -87,7 +87,7 @@ public class PackageClassConverter extends ResolvingConverter<PsiClass> implemen
     String manifestPackage = manifest != null ? manifest.getPackage().getValue() : null;
 
     if (manifestPackage == null && myUseManifestBasePackage) {
-      manifestPackage = ManifestInfo.get(context.getModule(), false).getPackage();
+      manifestPackage = ManifestInfo.get(context.getModule()).getPackage();
     }
     return manifestPackage;
   }

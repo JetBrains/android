@@ -17,8 +17,9 @@ package com.android.tools.idea.configurations;
 
 import com.android.resources.ResourceType;
 import com.android.tools.idea.model.ManifestInfo;
-import com.android.tools.idea.model.ManifestInfo.ActivityAttributes;
 import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.model.MergedManifest;
+import com.android.tools.idea.model.MergedManifest.ActivityAttributes;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
@@ -130,7 +131,7 @@ public class ActivityMenuAction extends FlatComboAction {
       // Note: We need the manifest package, not the current variant's package, since
       // the activity names etc are always relative to the manifest package, not the effective
       // variant package
-      String pkg = ManifestInfo.get(module, false).getPackage();
+      String pkg = ManifestInfo.get(module).getPackage();
       if (activity != null && !activity.isEmpty()) {
         int dotIndex = activity.indexOf('.');
         if (dotIndex <= 0) {
@@ -248,7 +249,7 @@ public class ActivityMenuAction extends FlatComboAction {
           @Override
           protected void run(@NotNull Result<Void> result) throws Throwable {
             String activity = myActivity;
-            String pkg = ManifestInfo.get(module, false).getPackage();
+            String pkg = ManifestInfo.get(module).getPackage();
             if (pkg != null && activity.startsWith(pkg) && activity.length() > pkg.length()
                 && activity.charAt(pkg.length()) == '.') {
               activity = activity.substring(pkg.length());
@@ -263,7 +264,7 @@ public class ActivityMenuAction extends FlatComboAction {
         action.execute();
 
         // Consider switching themes if the given activity has an implied theme
-        ManifestInfo manifestInfo = ManifestInfo.get(module);
+        MergedManifest manifestInfo = ManifestInfo.get(module);
         ActivityAttributes attributes = manifestInfo.getActivityAttributes(myActivity);
         if (attributes != null) {
           String theme = attributes.getTheme();

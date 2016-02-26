@@ -29,7 +29,7 @@ import org.jetbrains.annotations.Nullable;
  *
  * Note that in some cases you may need to obtain information from the merged manifest file. In such a case,
  * either obtain it from {@link AndroidModuleInfo} if the information is also available in the gradle model
- * (e.g. minSdk, targetSdk, packageName, etc), or use {@link ManifestInfo#get(Module, boolean)}.
+ * (e.g. minSdk, targetSdk, packageName, etc), or use {@link ManifestInfo#get(Module)}.
  */
 public class AndroidModuleInfo {
   private final @NotNull AndroidFacet myFacet;
@@ -54,7 +54,10 @@ public class AndroidModuleInfo {
     return facet != null ? facet.getAndroidModuleInfo() : null;
   }
 
-  /** Obtains the package name for the current variant, or if not specified, from the primary manifest. */
+  /**
+   * Obtains the applicationId name for the current variant, or if not specified, from the primary manifest.
+   * This method will return the applicationId from gradle, even if the manifest merger fails.
+   */
   @Nullable
   public String getPackage() {
     AndroidModel androidModel = myFacet.getAndroidModel();
@@ -63,7 +66,7 @@ public class AndroidModuleInfo {
     }
 
     // Read from the manifest: Not overridden in the configuration
-    return ManifestInfo.get(myFacet.getModule(), false).getPackage();
+    return ManifestInfo.get(myFacet).getApplicationId();
   }
 
   /**
@@ -83,7 +86,7 @@ public class AndroidModuleInfo {
       // Else: not specified in gradle files; fall back to manifest
     }
 
-    return ManifestInfo.get(myFacet.getModule(), false).getMinSdkVersion();
+    return ManifestInfo.get(myFacet).getMinSdkVersion();
   }
 
   @NotNull
@@ -97,7 +100,7 @@ public class AndroidModuleInfo {
       // Else: not specified in gradle files; fall back to manifest
     }
 
-    return ManifestInfo.get(myFacet.getModule(), false).getMinSdkVersion();
+    return ManifestInfo.get(myFacet).getMinSdkVersion();
   }
 
   @NotNull
@@ -111,7 +114,7 @@ public class AndroidModuleInfo {
       // Else: not specified in gradle files; fall back to manifest
     }
 
-    return ManifestInfo.get(myFacet.getModule(), false).getTargetSdkVersion();
+    return ManifestInfo.get(myFacet).getTargetSdkVersion();
   }
 
   @Nullable
@@ -140,7 +143,7 @@ public class AndroidModuleInfo {
       }
     }
 
-    return ManifestInfo.get(myFacet.getModule(), false).getApplicationDebuggable();
+    return ManifestInfo.get(myFacet).getApplicationDebuggable();
   }
 
   @Nullable
