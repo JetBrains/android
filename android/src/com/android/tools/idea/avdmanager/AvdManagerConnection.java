@@ -618,7 +618,7 @@ public class AvdManagerConnection {
     return null;
   }
 
-  public static boolean doesSystemImageSupportRanchu(SystemImageDescription description) {
+  public static boolean doesSystemImageSupportQemu2(SystemImageDescription description) {
     AndroidVersion version = description.getVersion();
     IdDisplay tag = description.getTag();
     String abiType = description.getAbiType();
