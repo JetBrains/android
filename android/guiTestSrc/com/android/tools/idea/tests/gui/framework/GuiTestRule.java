@@ -34,6 +34,7 @@ import org.jdom.input.SAXBuilder;
 import org.jdom.xpath.XPath;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.junit.rules.RuleChain;
 import org.junit.rules.TestRule;
 import org.junit.rules.Timeout;
 import org.junit.runner.Description;
@@ -72,7 +73,9 @@ public class GuiTestRule implements TestRule {
   private File myProjectPath;
 
   private final Timeout myTimeout;
-  private final ScreenshotOnFailure myScreenshotOnFailure = new ScreenshotOnFailure();
+  private final RuleChain myRuleChain = RuleChain.emptyRuleChain()
+    .around(new IdeHandling())
+    .around(new ScreenshotOnFailure());
 
   private final List<GarbageCollectorMXBean> myGarbageCollectorMXBeans = ManagementFactory.getGarbageCollectorMXBeans();
   private final MemoryMXBean myMemoryMXBean = ManagementFactory.getMemoryMXBean();
@@ -88,20 +91,27 @@ public class GuiTestRule implements TestRule {
   @NotNull
   @Override
   public Statement apply(final Statement base, final Description description) {
-    return new Statement() {
-      @Override
-      public void evaluate() throws Throwable {
-        System.out.println("Starting " + description.getDisplayName());
-        assumeTrue("An IDE internal error occurred previously.", fatalErrorsFromIde().isEmpty());
-        setUp();
-        try {
-          myScreenshotOnFailure.apply(myTimeout.apply(base, description), description).evaluate();
+    return myRuleChain.around(myTimeout).apply(base, description);
+  }
+
+  private class IdeHandling implements TestRule {
+    @NotNull
+    @Override
+    public Statement apply(final Statement base, final Description description) {
+      return new Statement() {
+        @Override
+        public void evaluate() throws Throwable {
+          System.out.println("Starting " + description.getDisplayName());
+          assumeTrue("An IDE internal error occurred previously.", fatalErrorsFromIde().isEmpty());
+          setUp();
+          try {
+            base.evaluate();
+          } finally {
+            tearDown();
+          }
         }
-        finally {
-          tearDown();
-        }
-      }
-    };
+      };
+    }
   }
 
   private void setUp() {
