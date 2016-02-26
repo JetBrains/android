@@ -16,7 +16,9 @@
 package com.android.tools.idea.avdmanager;
 
 import com.android.repository.io.FileOpUtils;
+import com.android.resources.Density;
 import com.android.resources.ScreenOrientation;
+import com.android.resources.ScreenSize;
 import com.android.sdklib.ISystemImage;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.DeviceManager;
@@ -25,6 +27,8 @@ import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.internal.avd.GpuMode;
 import com.android.sdklib.internal.avd.HardwareProperties;
+import com.android.tools.idea.ui.properties.InvalidationListener;
+import com.android.tools.idea.ui.properties.ObservableValue;
 import com.android.tools.idea.ui.properties.core.*;
 import com.android.tools.idea.wizard.model.WizardModel;
 import com.google.common.base.Objects;
@@ -57,10 +61,10 @@ public final class AvdOptionsModel extends WizardModel {
   private final AvdInfo myAvdInfo;
 
   /**
-   * The 'ranchu' moniker is used to name the family of virtual hardware boards
+   * The 'myUseQemu2' is used to name the family of virtual hardware boards
    * supported by the QEMU2 engines (which is different from the one for the classic engines, called 'goldfish').
    */
-  private BoolProperty myIsRanchu = new BoolValueProperty();
+  private BoolProperty myUseQemu2 = new BoolValueProperty(true);
 
   private StringProperty myAvdId = new StringValueProperty();
   private StringProperty myAvdDisplayName = new StringValueProperty();
@@ -71,7 +75,7 @@ public final class AvdOptionsModel extends WizardModel {
   private ObjectProperty<AvdCamera> mySelectedAvdFrontCamera = new ObjectValueProperty<AvdCamera>(AvdWizardUtils.DEFAULT_CAMERA);
   private ObjectProperty<AvdCamera> mySelectedAvdBackCamera = new ObjectValueProperty<AvdCamera>(AvdWizardUtils.DEFAULT_CAMERA);
 
-  private BoolProperty myHasDeviceFrame = new BoolValueProperty();
+  private BoolProperty myHasDeviceFrame = new BoolValueProperty(true);
   private BoolProperty myUseExternalSdCard = new BoolValueProperty();
   private BoolProperty myUseBuiltInSdCard = new BoolValueProperty(true);
   private ObjectProperty<AvdNetworkSpeed> mySelectedNetworkSpeed =
@@ -83,7 +87,7 @@ public final class AvdOptionsModel extends WizardModel {
   private StringProperty mySystemImageName = new StringValueProperty();
   private StringProperty mySystemImageDetails = new StringValueProperty();
 
-  private OptionalProperty<Integer> myCpuCoreCount = new OptionalValueProperty<Integer>();
+  private OptionalProperty<Integer> myCpuCoreCount = new OptionalValueProperty<Integer>(MAX_NUMBER_OF_CORES);
   private ObjectProperty<Storage> myVmHeapStorage = new ObjectValueProperty<Storage>(new Storage(16, Storage.Unit.MiB));
 
   private StringProperty myExternalSdCardLocation = new StringValueProperty();
@@ -91,7 +95,7 @@ public final class AvdOptionsModel extends WizardModel {
 
   private BoolProperty myUseHostGpu = new BoolValueProperty(true);
   private OptionalProperty<GpuMode> myHostGpuMode = new OptionalValueProperty<GpuMode>(GpuMode.AUTO);
-  private BoolProperty myEnableHardwareKeyboard = new BoolValueProperty();
+  private BoolProperty myEnableHardwareKeyboard = new BoolValueProperty(true);
 
   private BoolProperty myIsInEditMode = new BoolValueProperty();
 
@@ -111,6 +115,15 @@ public final class AvdOptionsModel extends WizardModel {
     if (myAvdInfo != null) {
       updateValuesWithAvdInfo(myAvdInfo);
     }
+    myDevice.addListener(new InvalidationListener() {
+      @Override
+      public void onInvalidated(@NotNull ObservableValue<?> sender) {
+        if (myDevice.get().isPresent()) {
+          myAvdDeviceData.updateValuesFromDevice(myDevice.get().get());
+          myVmHeapStorage.set(calculateInitialVmHeap(myAvdDeviceData));
+        }
+      }
+    });
   }
 
   /**
@@ -211,8 +224,8 @@ public final class AvdOptionsModel extends WizardModel {
   }
 
   @NotNull
-  public BoolProperty isRanchu() {
-    return myIsRanchu;
+  public BoolProperty useQemu2() {
+    return myUseQemu2;
   }
 
   @NotNull
@@ -345,10 +358,6 @@ public final class AvdOptionsModel extends WizardModel {
     return myAvdDeviceData;
   }
 
-  public void setAvdDeviceData(AvdDeviceData avdDeviceData) {
-    myAvdDeviceData = avdDeviceData;
-  }
-
   private void updateValuesWithAvdInfo(@NotNull AvdInfo avdInfo) {
     List<Device> devices = DeviceManagerConnection.getDefaultDeviceManagerConnection().getDevices();
     Device selectedDevice = null;
@@ -360,8 +369,9 @@ public final class AvdOptionsModel extends WizardModel {
         break;
       }
     }
+
+    myAvdDeviceData = new AvdDeviceData(selectedDevice);
     myDevice.setNullableValue(selectedDevice);
-    myAvdDeviceData = new AvdDeviceData(myDevice.getValueOrNull());
     ISystemImage selectedImage = avdInfo.getSystemImage();
     if (selectedImage != null) {
       SystemImageDescription systemImageDescription = new SystemImageDescription(selectedImage);
@@ -370,7 +380,7 @@ public final class AvdOptionsModel extends WizardModel {
 
     Map<String, String> properties = avdInfo.getProperties();
 
-    myIsRanchu.set(properties.containsKey(AvdWizardUtils.CPU_CORES_KEY));
+    myUseQemu2.set(properties.containsKey(AvdWizardUtils.CPU_CORES_KEY));
     String cpuCoreCount = properties.get(AvdWizardUtils.CPU_CORES_KEY);
     myCpuCoreCount.setValue(cpuCoreCount==null ? 1 : Integer.parseInt(cpuCoreCount));
 
@@ -463,6 +473,41 @@ public final class AvdOptionsModel extends WizardModel {
   }
 
   /**
+   * Set the initial VM heap size. This is based on the Android CDD minimums for each screen size and density.
+   */
+  @NotNull
+  private static Storage calculateInitialVmHeap(@NotNull AvdDeviceData deviceData) {
+    ScreenSize size = AvdScreenData.getScreenSize(deviceData.diagonalScreenSize().get());
+    Density density = AvdScreenData.getScreenDensity(deviceData.screenDpi().get());
+    int vmHeapSize = 32;
+    boolean isScreenXLarge = size.equals(ScreenSize.XLARGE);
+    switch (density) {
+      case LOW:
+      case MEDIUM:
+        vmHeapSize = (isScreenXLarge) ? 32 : 16;
+        break;
+      case TV:
+      case HIGH:
+      case DPI_280:
+      case DPI_360:
+        vmHeapSize = (isScreenXLarge) ? 64 : 32;
+        break;
+      case XHIGH:
+      case DPI_400:
+      case DPI_420:
+      case XXHIGH:
+      case DPI_560:
+      case XXXHIGH:
+        vmHeapSize = (isScreenXLarge) ? 128 : 64;
+        break;
+      case NODPI:
+      case ANYDPI:
+        break;
+    }
+    return new Storage(vmHeapSize, Storage.Unit.MiB);
+  }
+
+  /**
    * Returns a map containing all of the properties editable on this wizard to be passed on to the AVD prior to serialization
    */
   private Map<String, Object> generateUserEditedPropertiesMap() {
@@ -481,8 +526,7 @@ public final class AvdOptionsModel extends WizardModel {
     map.put(AvdWizardUtils.DEVICE_FRAME_KEY, myHasDeviceFrame.get());
     map.put(AvdWizardUtils.HOST_GPU_MODE_KEY, myHostGpuMode.getValue());
 
-    map.put(AvdWizardUtils.RANCHU_KEY, myIsRanchu.get());
-    if (myIsRanchu.get()) {
+    if (myUseQemu2.get()) {
       if (myCpuCoreCount.get().isPresent()) {
         map.put(AvdWizardUtils.CPU_CORES_KEY, myCpuCoreCount.getValue());
       }

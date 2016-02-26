@@ -23,10 +23,8 @@ import com.android.resources.ScreenOrientation;
 import com.android.sdklib.devices.*;
 import com.android.sdklib.repositoryv2.IdDisplay;
 import com.android.sdklib.repositoryv2.targets.SystemImage;
-import com.android.tools.idea.ui.properties.BindingsManager;
 import com.android.tools.idea.ui.properties.core.*;
 import com.android.tools.idea.ui.properties.expressions.double_.DoubleExpression;
-import com.intellij.openapi.Disposable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -37,7 +35,7 @@ import java.util.List;
 /**
  * Data class containing all properties needed to build a device.
  */
-public final class AvdDeviceData implements Disposable {
+public final class AvdDeviceData {
   private StringProperty myName = new StringValueProperty();
   private OptionalProperty<IdDisplay> myDeviceType = new OptionalValueProperty<IdDisplay>();
   private StringProperty myManufacturer = new StringValueProperty();
@@ -46,7 +44,6 @@ public final class AvdDeviceData implements Disposable {
   private DoubleProperty myDiagonalScreenSize = new DoubleValueProperty();
   private IntProperty myScreenResolutionWidth = new IntValueProperty();
   private IntProperty myScreenResolutionHeight = new IntValueProperty();
-  private DoubleProperty myScreenDpi = new DoubleValueProperty();
 
   private ObjectProperty<Storage> myRamStorage = new ObjectValueProperty<Storage>(new Storage(0, Storage.Unit.MiB));
 
@@ -73,7 +70,16 @@ public final class AvdDeviceData implements Disposable {
 
   private OptionalProperty<Software> mySoftware = new OptionalValueProperty<Software>();
 
-  private BindingsManager myBindings = new BindingsManager();
+  private DoubleExpression myScreenDpi =
+    // Every time the screen size is changed we calculate its dpi to validate it on the step
+    new DoubleExpression(myScreenResolutionWidth, myScreenResolutionHeight, myDiagonalScreenSize) {
+      @NotNull
+      @Override
+      public Double get() {
+        // The diagonal DPI will be somewhere in between the X and Y dpi if they differ
+        return AvdScreenData.calculateDpi(myScreenResolutionWidth.get(), myScreenResolutionHeight.get(), myDiagonalScreenSize.get());
+      }
+    };
 
   public AvdDeviceData() {
     Software software = new Software();
@@ -84,19 +90,6 @@ public final class AvdDeviceData implements Disposable {
     myManufacturer.set("User");
 
     initDefaultValues();
-
-    // Every time the screen size is changed we calculate its dpi to validate it on the step
-    DoubleExpression dpiExpression =
-      new DoubleExpression(myScreenResolutionWidth, myScreenResolutionHeight, myDiagonalScreenSize) {
-        @NotNull
-        @Override
-        public Double get() {
-          // The diagonal DPI will be somewhere in between the X and Y dpi if they differ
-          return AvdScreenData.calculateDpi(myScreenResolutionWidth.get(), myScreenResolutionHeight.get(),
-                                            myDiagonalScreenSize.get());
-        }
-      };
-    myBindings.bind(myScreenDpi, dpiExpression);
   }
 
   /**
@@ -344,10 +337,5 @@ public final class AvdDeviceData implements Disposable {
     return (mySupportsPortrait.get())
            ? ScreenOrientation.PORTRAIT
            : (mySupportsLandscape.get()) ? ScreenOrientation.LANDSCAPE : ScreenOrientation.SQUARE;
-  }
-
-  @Override
-  public void dispose() {
-    myBindings.releaseAll();
   }
 }
