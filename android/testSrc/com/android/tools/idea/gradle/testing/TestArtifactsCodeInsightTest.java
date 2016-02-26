@@ -33,7 +33,7 @@ public abstract class TestArtifactsCodeInsightTest extends AndroidGradleArtifact
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    loadProject("projects/sync/multiproject", false);
+    loadProject("projects/testArtifacts/multiproject", false);
   }
 
   @NotNull
@@ -59,7 +59,7 @@ public abstract class TestArtifactsCodeInsightTest extends AndroidGradleArtifact
    * @return virtual file for the specific path
    */
   @NotNull
-  private VirtualFile setFileContent(@NotNull String path, @NotNull String content) {
+  protected VirtualFile setFileContent(@NotNull String path, @NotNull String content) {
     File file = new File(myFixture.getProject().getBasePath(), path.replace('/', File.separatorChar));
     createIfDoesntExist(file);
     VirtualFile virtualFile = findFileByIoFile(file, true);
