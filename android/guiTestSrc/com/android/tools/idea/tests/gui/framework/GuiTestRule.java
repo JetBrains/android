@@ -22,7 +22,6 @@ import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.templates.AndroidGradleTestCase;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.fest.swing.core.Robot;
@@ -67,6 +66,7 @@ public class GuiTestRule implements TestRule {
   private final Timeout myTimeout;
   private final RobotTestRule myRobotTestRule = new RobotTestRule();
   private final RuleChain myRuleChain = RuleChain.emptyRuleChain()
+    .around(new BlockReloading())
     .around(myRobotTestRule)
     .around(new IdeHandling())
     .around(new TestPerformance())
@@ -107,17 +107,9 @@ public class GuiTestRule implements TestRule {
   }
 
   private void setUp() {
-
-    // There is a race condition between reloading the configuration file after file deletion detected and the serialization of IDEA model
-    // we just customized so that modules can't be loaded correctly.
-    // This is a hack to prevent StoreAwareProjectManager from doing any reloading during test.
-    ProjectManagerEx.getInstanceEx().blockReloadingProjectOnExternalChanges();
-
     setUpDefaultProjectCreationLocationPath();
-
     setIdeSettings();
     setUpSdks();
-
     refreshFiles();
   }
 
@@ -126,7 +118,6 @@ public class GuiTestRule implements TestRule {
     List<Throwable> errors = new ArrayList<Throwable>(cleanUpAndCheckForModalDialogs());
     closeAllProjects();
     errors.addAll(fatalErrorsFromIde());
-    ProjectManagerEx.getInstanceEx().unblockReloadingProjectOnExternalChanges();
     MultipleFailureException.assertEmpty(errors);
   }
 
