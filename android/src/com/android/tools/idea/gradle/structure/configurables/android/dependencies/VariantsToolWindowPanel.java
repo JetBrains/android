@@ -41,7 +41,6 @@ import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 import java.awt.*;
 import java.awt.event.InputEvent;
@@ -101,6 +100,12 @@ class VariantsToolWindowPanel extends ToolWindowPanel implements DependencySelec
 
     settingsGroup.add(new ToggleAction("Group Variants") {
       @Override
+      public void update(@NotNull AnActionEvent e) {
+        super.update(e);
+        e.getPresentation().setEnabled(false); // TODO: Fix "Group Variants" functionality.
+      }
+
+      @Override
       public boolean isSelected(AnActionEvent e) {
         return PsdUISettings.getInstance().VARIANTS_DEPENDENCIES_GROUP_VARIANTS;
       }
@@ -120,6 +125,7 @@ class VariantsToolWindowPanel extends ToolWindowPanel implements DependencySelec
     additionalActions.add(new DumbAwareAction("Expand All", "", AllIcons.General.ExpandAll) {
       @Override
       public void actionPerformed(AnActionEvent e) {
+        myTree.requestFocusInWindow();
         myTreeBuilder.expandAllNodes();
       }
     });
@@ -127,7 +133,7 @@ class VariantsToolWindowPanel extends ToolWindowPanel implements DependencySelec
     additionalActions.add(new DumbAwareAction("Collapse All", "", AllIcons.General.CollapseAll) {
       @Override
       public void actionPerformed(AnActionEvent e) {
-        myTreeBuilder.collapseAllNodes();
+        collapseAllNodes();
       }
     });
 
@@ -153,23 +159,20 @@ class VariantsToolWindowPanel extends ToolWindowPanel implements DependencySelec
     getHeader().setAdditionalActions(additionalActions);
   }
 
+  private void collapseAllNodes() {
+    myTree.requestFocusInWindow();
+
+    // Remove selection listener because the selection changes when collapsing all nodes and the tree will try to use the previously
+    // selected dependency, expanding nodes while restoring the selection.
+    myTree.removeTreeSelectionListener(myTreeSelectionListener);
+
+    myTreeBuilder.collapseAllNodes();
+    myTree.addTreeSelectionListener(myTreeSelectionListener);
+  }
+
   @Override
   public void setSelection(@NotNull PsdAndroidDependencyModel selection) {
     myTreeBuilder.setSelection(selection);
-  }
-
-  private void updateSelection(@NotNull List<TreePath> selectionPaths) {
-    if (!selectionPaths.isEmpty()) {
-      // Remove TreeSelectionListener. We only want the selection event when the user selects a tree node directly. If we got here is
-      // because the user selected a dependency in the "Dependencies" table, and we are simply syncing the tree.
-      myTree.removeTreeSelectionListener(myTreeSelectionListener);
-
-      myTree.getSelectionModel().clearSelection();
-      myTree.setSelectionPaths(selectionPaths.toArray(new TreePath[selectionPaths.size()]));
-
-      // Add TreeSelectionListener again, to react when user selects a tree node directly.
-      myTree.addTreeSelectionListener(myTreeSelectionListener);
-    }
   }
 
   void add(@NotNull SelectionListener listener) {
