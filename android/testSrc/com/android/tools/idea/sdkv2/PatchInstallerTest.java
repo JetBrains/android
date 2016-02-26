@@ -115,7 +115,7 @@ public class PatchInstallerTest extends TestCase {
                            "the source to which the diff will be applied");
     File patchFile = new File("/patchfile");
     ourFileOp.recordExistingFile(patchFile.getPath(), "the patch contents");
-    boolean result = PatchInstaller.runInstaller(
+    boolean result = PatchInstaller.runPatcher(
       progress, localPackageLocation, patchFile, FakeRunner.class, FakeUIBase.class, FakeUI.class);
 
     progress.assertNoErrorsOrWarnings();

@@ -228,8 +228,10 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
             myCustomLogger.logInfo(String.format("Installing %1$s", remote.getDisplayName()));
             boolean success = false;
             try {
-              success =
-                installer.install(remote, new StudioDownloader(indicator), mySettings, myProgress, myRepoManager, mySdkHandler.getFileOp());
+              if (installer.prepareInstall(remote, new StudioDownloader(indicator), mySettings, myProgress,
+                                           myRepoManager, mySdkHandler.getFileOp())) {
+                success = installer.completeInstall(remote, myProgress, myRepoManager, mySdkHandler.getFileOp());
+              }
             }
             catch (Exception e) {
               Logger.getInstance(getClass()).warn(e);

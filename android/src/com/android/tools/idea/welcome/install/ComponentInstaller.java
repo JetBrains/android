@@ -19,6 +19,8 @@ import com.android.repository.api.ProgressIndicator;
 import com.android.repository.api.RemotePackage;
 import com.android.repository.api.RepoManager;
 import com.android.repository.api.UpdatablePackage;
+import com.android.repository.impl.installer.PackageInstaller;
+import com.android.repository.io.FileOp;
 import com.android.repository.io.FileOpUtils;
 import com.android.sdklib.repositoryv2.AndroidSdkHandler;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
@@ -66,9 +68,12 @@ public final class ComponentInstaller {
   public void installPackages(@NotNull List<RemotePackage> packages, ProgressIndicator progress) throws WizardException {
     RepoManager sdkManager = mySdkHandler.getSdkManager(progress);
     for (RemotePackage request : packages) {
-      AndroidSdkHandler.findBestInstaller(request)
-        .install(request, new StudioDownloader(), StudioSettingsController.getInstance(), progress,
-                 sdkManager, FileOpUtils.create());
+      PackageInstaller bestInstaller = AndroidSdkHandler.findBestInstaller(request);
+      FileOp fop = FileOpUtils.create();
+      if (bestInstaller.prepareInstall(request, new StudioDownloader(), StudioSettingsController.getInstance(),
+                                       progress, sdkManager, fop)) {
+        bestInstaller.completeInstall(request, progress, sdkManager, fop);
+      }
     }
     sdkManager.loadSynchronously(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, progress, null, null);
   }
