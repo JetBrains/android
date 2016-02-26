@@ -93,8 +93,8 @@ public class GuiTestRule implements TestRule {
       public void evaluate() throws Throwable {
         System.out.println("Starting " + description.getDisplayName());
         assumeTrue("An IDE internal error occurred previously.", fatalErrorsFromIde().isEmpty());
+        setUp();
         try {
-          setUp();
           myScreenshotOnFailure.apply(myTimeout.apply(base, description), description).evaluate();
         }
         finally {
@@ -104,7 +104,7 @@ public class GuiTestRule implements TestRule {
     };
   }
 
-  private void setUp() throws Exception {
+  private void setUp() {
 
     // There is a race condition between reloading the configuration file after file deletion detected and the serialization of IDEA model
     // we just customized so that modules can't be loaded correctly.
