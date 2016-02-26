@@ -38,8 +38,8 @@ public abstract class AbstractRootNode extends AbstractPsdNode<PsdAndroidModuleM
     if (myChildren == null) {
       List<SimpleNode> children = Lists.newArrayList();
       for (PsdAndroidModuleModel moduleModel : getModels()) {
-        List<? extends AbstractVariantNode> variantNodes = createVariantNodes(moduleModel.getVariantModels());
-        children.addAll(variantNodes);
+        List<? extends AbstractPsdNode> variantChildren = createChildren(moduleModel.getVariantModels());
+        children.addAll(variantChildren);
       }
       myChildren = children;
     }
@@ -51,5 +51,5 @@ public abstract class AbstractRootNode extends AbstractPsdNode<PsdAndroidModuleM
   }
 
   @NotNull
-  protected abstract List<? extends AbstractVariantNode> createVariantNodes(@NotNull Collection<PsdVariantModel> variantModels);
+  protected abstract List<? extends AbstractPsdNode> createChildren(@NotNull Collection<PsdVariantModel> variantModels);
 }
