@@ -22,16 +22,19 @@ import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.templates.AndroidGradleTestCase;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiTask;
+import org.fest.swing.exception.WaitTimedOutError;
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.input.SAXBuilder;
 import org.jdom.xpath.XPath;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.junit.AssumptionViolatedException;
 import org.junit.rules.RuleChain;
 import org.junit.rules.TestRule;
 import org.junit.rules.Timeout;
@@ -95,6 +98,7 @@ public class GuiTestRule implements TestRule {
         public void evaluate() throws Throwable {
           System.out.println("Starting " + description.getDisplayName());
           assumeTrue("An IDE internal error occurred previously.", fatalErrorsFromIde().isEmpty());
+          assumeOnlyWelcomeFrameShowing();
           setUp();
           try {
             base.evaluate();
@@ -104,6 +108,16 @@ public class GuiTestRule implements TestRule {
         }
       };
     }
+  }
+
+  private void assumeOnlyWelcomeFrameShowing() {
+    try {
+      WelcomeFrameFixture.find(robot());
+    } catch (WaitTimedOutError e) {
+      throw new AssumptionViolatedException("didn't find welcome frame", e);
+    }
+    List<Window> windowsShowing = windowsShowing();
+    assumeTrue("windows showing: " + windowsShowing, windowsShowing.size() == 1);
   }
 
   private void setUp() {
