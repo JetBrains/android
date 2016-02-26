@@ -19,8 +19,8 @@ import com.android.annotations.NonNull;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.idea.model.ManifestInfo.ActivityAttributes;
 import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.model.MergedManifest.ActivityAttributes;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.AndroidTestCase;
@@ -38,7 +38,7 @@ import static com.android.resources.ScreenSize.*;
 @SuppressWarnings("javadoc")
 public class ManifestInfoTest extends AndroidTestCase {
   public void testGetActivityThemes1() throws Exception {
-    ManifestInfo info = getManifestInfo("<manifest xmlns:android='http://schemas.android.com/apk/res/android'\n" +
+    MergedManifest info = getManifestInfo("<manifest xmlns:android='http://schemas.android.com/apk/res/android'\n" +
                                         "    package='com.android.unittest'>\n" +
                                         "    <uses-sdk android:minSdkVersion='3' android:targetSdkVersion='4'/>\n" +
                                         "</manifest>\n");
@@ -51,7 +51,7 @@ public class ManifestInfoTest extends AndroidTestCase {
   }
 
   public void testGetActivityThemes2() throws Exception {
-    ManifestInfo info = getManifestInfo("<manifest xmlns:android='http://schemas.android.com/apk/res/android'\n" +
+    MergedManifest info = getManifestInfo("<manifest xmlns:android='http://schemas.android.com/apk/res/android'\n" +
                                         "    package='com.android.unittest'>\n" +
                                         "    <uses-sdk android:minSdkVersion='3' android:targetSdkVersion='11'/>\n" +
                                         "</manifest>\n");
@@ -63,7 +63,7 @@ public class ManifestInfoTest extends AndroidTestCase {
   }
 
   public void testGetActivityThemes3() throws Exception {
-    ManifestInfo info = getManifestInfo("<manifest xmlns:android='http://schemas.android.com/apk/res/android'\n" +
+    MergedManifest info = getManifestInfo("<manifest xmlns:android='http://schemas.android.com/apk/res/android'\n" +
                                         "    package='com.android.unittest'>\n" +
                                         "    <uses-sdk android:minSdkVersion='11'/>\n" +
                                         "</manifest>\n");
@@ -75,7 +75,7 @@ public class ManifestInfoTest extends AndroidTestCase {
   }
 
   public void testGetActivityThemes4() throws Exception {
-    ManifestInfo info = getManifestInfo("<manifest xmlns:android='http://schemas.android.com/apk/res/android'\n" +
+    MergedManifest info = getManifestInfo("<manifest xmlns:android='http://schemas.android.com/apk/res/android'\n" +
                                         "    package='com.android.unittest'>\n" +
                                         "    <application\n" +
                                         "        android:label='@string/app_name'\n" +
@@ -103,7 +103,7 @@ public class ManifestInfoTest extends AndroidTestCase {
   }
 
   public void testGetActivityThemes5() throws Exception {
-    ManifestInfo info = getManifestInfo("<manifest xmlns:android='http://schemas.android.com/apk/res/android'\n" +
+    MergedManifest info = getManifestInfo("<manifest xmlns:android='http://schemas.android.com/apk/res/android'\n" +
                                         "    package='com.android.unittest'>\n" +
                                         "    <application\n" +
                                         "        android:label='@string/app_name'\n" +
@@ -136,7 +136,7 @@ public class ManifestInfoTest extends AndroidTestCase {
   public void testGetActivityThemes6() throws Exception {
     // Ensures that when the *rendering* target is less than version 11, we don't
     // use Holo even though the manifest SDK version calls for it.
-    ManifestInfo info = getManifestInfo("<manifest xmlns:android='http://schemas.android.com/apk/res/android'\n" +
+    MergedManifest info = getManifestInfo("<manifest xmlns:android='http://schemas.android.com/apk/res/android'\n" +
                                         "    package='com.android.unittest'>\n" +
                                         "    <uses-sdk android:minSdkVersion='3' android:targetSdkVersion='11'/>\n" +
                                         "</manifest>\n");
@@ -152,7 +152,7 @@ public class ManifestInfoTest extends AndroidTestCase {
   }
 
   public void testGetApplicationLabelAndIcon() throws Exception {
-    ManifestInfo info = getManifestInfo("<manifest xmlns:android='http://schemas.android.com/apk/res/android'\n" +
+    MergedManifest info = getManifestInfo("<manifest xmlns:android='http://schemas.android.com/apk/res/android'\n" +
                                         "    package='com.android.unittest'>\n" +
                                         "    <application android:icon=\"@drawable/icon\"\n" +
                                         "                 android:label=\"@string/app_name\">\n" +
@@ -169,7 +169,7 @@ public class ManifestInfoTest extends AndroidTestCase {
   }
 
   public void testGetApplicationNoLabelOrIcon() throws Exception {
-    ManifestInfo info = getManifestInfo("<manifest xmlns:android='http://schemas.android.com/apk/res/android'\n" +
+    MergedManifest info = getManifestInfo("<manifest xmlns:android='http://schemas.android.com/apk/res/android'\n" +
                                         "    package='com.android.unittest'>\n" +
                                         "    <application>\n" +
                                         "    </application>\n" +
@@ -184,7 +184,7 @@ public class ManifestInfoTest extends AndroidTestCase {
     assertNull(info.getApplicationLabel());
   }
 
-  private ManifestInfo getManifestInfo(String manifestContents) throws Exception {
+  private MergedManifest getManifestInfo(String manifestContents) throws Exception {
     String path = "AndroidManifest.xml";
 
     final VirtualFile manifest = myFixture.findFileInTempDir(path);
@@ -206,8 +206,8 @@ public class ManifestInfoTest extends AndroidTestCase {
     myFixture.addFileToProject(path, manifestContents);
 
     // No sharing between tests:
-    myModule.putUserData(ManifestInfo.MANIFEST_FINDER, null);
-    ManifestInfo info = ManifestInfo.get(myModule, false);
+    myModule.putUserData(ManifestInfo.MERGED_MANIFEST_FINDER, null);
+    MergedManifest info = ManifestInfo.get(myModule);
 
     info.clear();
     return info;
@@ -215,7 +215,7 @@ public class ManifestInfoTest extends AndroidTestCase {
 
   @SuppressWarnings("SpellCheckingInspection")
   public void testGetMinSdkVersionName() throws Exception {
-    ManifestInfo info;
+    MergedManifest info;
 
     info = getManifestInfo("<manifest xmlns:android='http://schemas.android.com/apk/res/android'\n" +
                            "    package='com.android.unittest'>\n" +

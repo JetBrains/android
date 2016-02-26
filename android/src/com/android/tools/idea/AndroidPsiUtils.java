@@ -301,7 +301,7 @@ public class AndroidPsiUtils {
       boolean startsWithDot = context.charAt(0) == '.';
       if (startsWithDot || context.indexOf('.') == -1) {
         // Prepend application package
-        String pkg = ManifestInfo.get(module, false).getPackage();
+        String pkg = ManifestInfo.get(module).getPackage();
         return startsWithDot ? pkg + context : pkg + '.' + context;
       }
 

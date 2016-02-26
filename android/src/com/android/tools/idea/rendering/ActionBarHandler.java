@@ -23,8 +23,9 @@ import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.RenderContext;
 import com.android.tools.idea.model.ManifestInfo;
-import com.android.tools.idea.model.ManifestInfo.ActivityAttributes;
 import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.model.MergedManifest;
+import com.android.tools.idea.model.MergedManifest.ActivityAttributes;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
@@ -200,7 +201,7 @@ public class ActionBarHandler extends ActionBarCallback {
   private ActivityAttributes getActivityAttributes() {
     boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
     try {
-      ManifestInfo manifest = ManifestInfo.get(myRenderTask.getModule(), false);
+      MergedManifest manifest = ManifestInfo.get(myRenderTask.getModule());
       String activity = StringUtil.notNullize(myRenderTask.getConfiguration().getActivity());
       return manifest.getActivityAttributes(activity);
     } finally {

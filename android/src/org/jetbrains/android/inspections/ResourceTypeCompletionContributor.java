@@ -108,7 +108,7 @@ public class ResourceTypeCompletionContributor extends CompletionContributor {
         PsiElementFactory factory = JavaPsiFacade.getElementFactory(pos.getProject());
         String code = "R." + resourceType.getName();
         // Look up the fully qualified name of the application package
-        String fqcn = ManifestInfo.get(facet.getModule(), false).getPackage();
+        String fqcn = ManifestInfo.get(facet).getPackage();
         String qualifiedCode = fqcn + "." + code;
         Project project = facet.getModule().getProject();
         PsiClass cls = JavaPsiFacade.getInstance(project).findClass(qualifiedCode, GlobalSearchScope.allScope(project));

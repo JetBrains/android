@@ -251,7 +251,7 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateW
     }
 
     // Calculate package name
-    String applicationPackageName = ManifestInfo.get(myModule, false).getPackage();
+    String applicationPackageName = ManifestInfo.get(myModule).getPackage();
     String packageName = null;
     if (myTargetFolder != null && IdeaSourceProvider.containsFile(sourceProvider, VfsUtilCore.virtualToIoFile(myTargetFolder))) {
       packageName = getPackageFromDirectory(VfsUtilCore.virtualToIoFile(myTargetFolder), sourceProvider, myModule, myWizardState);
