@@ -79,10 +79,10 @@ class VariantNode extends AbstractVariantNode {
 
     for (PsdAndroidDependencyModel dependency : declared) {
       if (dependency instanceof PsdLibraryDependencyModel) {
-        myChildren.add(new LibraryNode(this, (PsdLibraryDependencyModel)dependency));
+        myChildren.add(new LibraryDependencyNode(this, (PsdLibraryDependencyModel)dependency));
       }
       else if (dependency instanceof PsdModuleDependencyModel) {
-        myChildren.add(new ModuleNode(this, (PsdModuleDependencyModel)dependency));
+        myChildren.add(new ModuleDependencyNode(this, (PsdModuleDependencyModel)dependency));
       }
     }
   }
