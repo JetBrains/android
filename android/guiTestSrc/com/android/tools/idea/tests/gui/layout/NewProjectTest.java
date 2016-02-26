@@ -54,11 +54,12 @@ public class NewProjectTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
-  @Ignore("failed in http://go/aj/job/studio-ui-test/389")
   @Test
   public void testCreateNewMobileProject() {
     newProject("Test Application").create();
-    FileFixture layoutFile = guiTest.ideFrame().findExistingFileByRelativePath("app/src/main/res/layout/content_main.xml");
+    EditorFixture editor = guiTest.ideFrame().getEditor();
+    editor.open("app/src/main/res/layout/activity_main.xml", EditorFixture.Tab.EDITOR);
+    FileFixture layoutFile = guiTest.ideFrame().findExistingFileByRelativePath("app/src/main/res/layout/activity_main.xml");
     layoutFile.requireOpenAndSelected();
 
     // Verify state of project
@@ -74,7 +75,6 @@ public class NewProjectTest {
 
     // Make sure that the activity registration uses the relative syntax
     // (regression test for https://code.google.com/p/android/issues/detail?id=76716)
-    EditorFixture editor = guiTest.ideFrame().getEditor();
     editor.open("app/src/main/AndroidManifest.xml");
     int offset = editor.findOffset("\".^MainActivity\"");
     assertTrue(offset != -1);
@@ -130,14 +130,15 @@ public class NewProjectTest {
                  inspections.getResults());
   }
 
-  @Ignore("failed in http://go/aj/job/studio-ui-test/389")
   @Test
   public void testRenderResourceInitialization() throws IOException {
     // Regression test for https://code.google.com/p/android/issues/detail?id=76966
     newProject("Test Application").withBriefNames().withMinSdk("9").create();
 
     EditorFixture editor = guiTest.ideFrame().getEditor();
-    editor.requireName("content_a.xml");
+    editor.requireName("A.java");
+    editor.close();
+    editor.requireName("activity_a.xml");
     LayoutEditorFixture layoutEditor = editor.getLayoutEditor(false);
     assertNotNull("Layout editor was not showing", layoutEditor);
     layoutEditor.waitForNextRenderToFinish();
