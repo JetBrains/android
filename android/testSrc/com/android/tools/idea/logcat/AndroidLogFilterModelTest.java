@@ -78,7 +78,7 @@ public class AndroidLogFilterModelTest {
     filterData.setLogMessagePattern("Dummy Message");
     filterData.setLogTagPattern("DummyTag");
 
-    myFilterModel.setLogcatFilter(AndroidLogcatFilter.compile(filterData, "(Unused Name)"));
+    myFilterModel.setLogcatFilter(DefaultAndroidLogcatFilter.compile(filterData, "(Unused Name)"));
 
     LogFilterModel.MyProcessingResult result = myFilterModel.processLine("01-23 12:34:56.789 1234-5678/? I/DummyTag: Dummy Message");
     assertThat(result.isApplicable()).isTrue();
@@ -113,7 +113,7 @@ public class AndroidLogFilterModelTest {
 
     // Test multiline log against first line
     filterData.setLogMessagePattern("line 1");
-    myFilterModel.setLogcatFilter(AndroidLogcatFilter.compile(filterData, "(Unused Name)"));
+    myFilterModel.setLogcatFilter(DefaultAndroidLogcatFilter.compile(filterData, "(Unused Name)"));
 
     result = myFilterModel.processLine(lines[0]);
     assertThat(result.isApplicable()).isTrue();
@@ -132,7 +132,7 @@ public class AndroidLogFilterModelTest {
 
     // Test multiline log against second line
     filterData.setLogMessagePattern("line 2");
-    myFilterModel.setLogcatFilter(AndroidLogcatFilter.compile(filterData, "(Unused Name)"));
+    myFilterModel.setLogcatFilter(DefaultAndroidLogcatFilter.compile(filterData, "(Unused Name)"));
 
     result = myFilterModel.processLine(lines[0]);
     assertThat(result.isApplicable()).isFalse();
@@ -149,7 +149,7 @@ public class AndroidLogFilterModelTest {
 
     // Test multiline log against third line
     filterData.setLogMessagePattern("line 3");
-    myFilterModel.setLogcatFilter(AndroidLogcatFilter.compile(filterData, "(Unused Name)"));
+    myFilterModel.setLogcatFilter(DefaultAndroidLogcatFilter.compile(filterData, "(Unused Name)"));
 
     result = myFilterModel.processLine(lines[0]);
     assertThat(result.isApplicable()).isFalse();
@@ -164,7 +164,7 @@ public class AndroidLogFilterModelTest {
 
     // Test multiline log against non-existent line
     filterData.setLogMessagePattern("line x");
-    myFilterModel.setLogcatFilter(AndroidLogcatFilter.compile(filterData, "(Unused Name)"));
+    myFilterModel.setLogcatFilter(DefaultAndroidLogcatFilter.compile(filterData, "(Unused Name)"));
 
     result = myFilterModel.processLine(lines[0]);
     assertThat(result.isApplicable()).isFalse();
