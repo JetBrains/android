@@ -26,7 +26,6 @@ import org.fest.swing.fixture.JComboBoxFixture;
 import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.fixture.JTextComponentFixture;
 import org.fest.swing.fixture.JTreeFixture;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -34,8 +33,8 @@ import org.junit.runner.RunWith;
 import javax.swing.*;
 import java.io.IOException;
 
-import static com.android.tools.idea.tests.gui.framework.GuiTests.clickPopupMenuItem;
 import static com.android.tools.idea.tests.gui.framework.TestGroup.THEME;
+import static com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorFixture.clickPopupMenuItem;
 
 @BelongsToTestGroups({THEME})
 @RunWith(GuiTestRunner.class)
@@ -46,7 +45,6 @@ public class ThemeConfigurationTest {
   /**
    * Tests that the theme editor deals well with themes defined only in certain configurations
    */
-  @Ignore("failed in http://go/aj/job/studio-ui-test/389 and from IDEA")
   @Test
   public void testThemesWithConfiguration() throws IOException {
     guiTest.importSimpleApplication();
@@ -82,7 +80,7 @@ public class ThemeConfigurationTest {
 
     JButton apiButton = themeEditor.findToolbarButton("Android version to use when rendering layouts in the IDE");
     guiTest.robot().click(apiButton);
-    clickPopupMenuItem("API 19", apiButton, guiTest.robot());
+    clickPopupMenuItem("API 19", "19", apiButton, guiTest.robot());
 
     themePreviewPanel.requireErrorPanel();
 
