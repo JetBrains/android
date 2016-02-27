@@ -69,7 +69,7 @@ public class MavenDefaultActivityLocator extends ActivityLocator {
         @Nullable
         @Override
         public String compute() {
-          return DefaultActivityLocator.getDefaultLauncherActivityName(manifest);
+          return DefaultActivityLocator.getDefaultLauncherActivityName(myFacet.getModule().getProject(), manifest);
         }
       });
     }
