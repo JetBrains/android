@@ -36,6 +36,7 @@ import com.android.tools.idea.welcome.config.AndroidFirstRunPersistentData;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.install.*;
 import com.android.tools.idea.wizard.WizardConstants;
+import com.android.tools.idea.wizard.dynamic.DynamicWizard;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardPath;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStep;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
@@ -47,6 +48,7 @@ import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.util.ProgressWindow;
 import com.intellij.openapi.project.ProjectManager;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
@@ -98,7 +100,14 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
                                                 boolean createAvd) {
     List<ComponentTreeNode> components = Lists.newArrayList();
     components.add(new AndroidSdk(stateStore, myInstallUpdates));
+
+    DynamicWizard wizard = getWizard();
     ProgressWindow progressWindow = new ProgressWindow(false, false, null);
+
+    if (wizard != null) {
+      Disposer.register(wizard.getDisposable(), progressWindow);
+    }
+
     com.android.repository.api.ProgressIndicator progress = new RepoProgressIndicatorAdapter(progressWindow);
     RepoManager sdkManager = myLocalHandler.getSdkManager(new StudioLoggerProgressIndicator(getClass()));
     sdkManager.loadSynchronously(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, progress,
