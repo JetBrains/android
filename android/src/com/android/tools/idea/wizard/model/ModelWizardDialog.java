@@ -16,11 +16,16 @@
 package com.android.tools.idea.wizard.model;
 
 import com.android.tools.idea.ui.properties.BindingsManager;
+import com.android.tools.idea.ui.properties.InvalidationListener;
 import com.android.tools.idea.ui.properties.ListenerManager;
+import com.android.tools.idea.ui.properties.ObservableValue;
+import com.android.tools.idea.ui.properties.core.BoolValueProperty;
 import com.android.tools.idea.ui.properties.core.ObservableBool;
+import com.android.tools.idea.ui.properties.core.ObservableOptional;
 import com.android.tools.idea.ui.properties.core.ObservableString;
 import com.android.tools.idea.ui.properties.expressions.bool.BooleanExpressions;
 import com.android.tools.idea.ui.properties.swing.EnabledProperty;
+import com.android.tools.idea.ui.properties.swing.VisibleProperty;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.ide.IdeBundle;
 import com.intellij.openapi.Disposable;
@@ -35,6 +40,8 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.net.URL;
 
 import static com.android.tools.idea.ui.properties.expressions.bool.BooleanExpressions.not;
@@ -56,6 +63,12 @@ public final class ModelWizardDialog extends DialogWrapper implements ModelWizar
 
   @Nullable private CustomLayout myCustomLayout;
   @Nullable private URL myHelpUrl;
+
+  @NotNull
+  @Override
+  protected Action[] createLeftSideActions() {
+    return new Action[] { new StepActionWrapper() };
+  }
 
   public ModelWizardDialog(@NotNull ModelWizard wizard,
                            @NotNull String title,
@@ -155,7 +168,6 @@ public final class ModelWizardDialog extends DialogWrapper implements ModelWizar
     NextAction nextAction = new NextAction();
     PreviousAction prevAction = new PreviousAction();
     FinishAction finishAction = new FinishAction();
-
     if (myHelpUrl == null) {
       if (SystemInfo.isMac) {
         return new Action[]{getCancelAction(), prevAction, nextAction, finishAction};
@@ -184,6 +196,7 @@ public final class ModelWizardDialog extends DialogWrapper implements ModelWizar
     if (action instanceof ModelWizardDialogAction) {
       ModelWizardDialogAction wizardAction = (ModelWizardDialogAction)action;
       myBindings.bind(new EnabledProperty(button), wizardAction.shouldBeEnabled());
+      myBindings.bind(new VisibleProperty(button), wizardAction.shouldBeVisible());
       myListeners.listenAndFire(wizardAction.shouldBeDefault(), new Consumer<Boolean>() {
         @Override
         public void consume(Boolean isDefault) {
@@ -220,6 +233,11 @@ public final class ModelWizardDialog extends DialogWrapper implements ModelWizar
 
     @NotNull
     public abstract ObservableBool shouldBeEnabled();
+
+    @NotNull
+    public ObservableBool shouldBeVisible() {
+      return BooleanExpressions.alwaysTrue();
+    }
 
     @NotNull
     public ObservableBool shouldBeDefault() {
@@ -288,6 +306,72 @@ public final class ModelWizardDialog extends DialogWrapper implements ModelWizar
     @Override
     public ObservableBool shouldBeDefault() {
       return myWizard.onLastStep();
+    }
+  }
+
+  /**
+   * A {@link ModelWizardDialogAction} that behaves (in terms of name, enabled status, and actual action implementation) like the
+   * {@link ModelWizardStep#getExtraAction() extra action} of the current step in our wizard. If the current step has no extra action,
+   * {@link #shouldBeVisible()} will be false.
+   */
+  private final class StepActionWrapper extends ModelWizardDialogAction {
+    private final BoolValueProperty myEnabled = new BoolValueProperty(false);
+    private final ObservableOptional<Action> myExtraAction;
+    private PropertyChangeListener myActionListener;
+
+
+    @NotNull
+    @Override
+    public ObservableBool shouldBeVisible() {
+      return myExtraAction.isPresent();
+    }
+
+    public StepActionWrapper() {
+      super("");
+
+      myExtraAction = myWizard.getExtraAction();
+
+      InvalidationListener extraActionChangedListener = new InvalidationListener() {
+        Action myActiveAction = null;
+
+        @Override
+        public void onInvalidated(@NotNull ObservableValue<?> sender) {
+          if (myActiveAction != null && myActionListener != null) {
+            myActiveAction.removePropertyChangeListener(myActionListener);
+          }
+          myActiveAction = myExtraAction.getValueOrNull();
+          if (myActiveAction != null) {
+            StepActionWrapper.this.putValue(NAME, myActiveAction.getValue(NAME));
+            myActionListener = new PropertyChangeListener() {
+              @Override
+              public void propertyChange(PropertyChangeEvent evt) {
+                if ("enabled".equals(evt.getPropertyName())) {
+                  myEnabled.set((Boolean)evt.getNewValue());
+                }
+              }
+            };
+            myActiveAction.addPropertyChangeListener(myActionListener);
+            myEnabled.set(myActiveAction.isEnabled());
+          }
+          else {
+            myActionListener = null;
+          }
+        }
+      };
+      myExtraAction.addListener(extraActionChangedListener);
+      extraActionChangedListener.onInvalidated(myExtraAction);
+    }
+
+    @NotNull
+    @Override
+    public ObservableBool shouldBeEnabled() {
+      return myEnabled;
+    }
+
+    @Override
+    protected void doAction(ActionEvent e) {
+      assert myExtraAction.get().isPresent();
+      myExtraAction.getValue().actionPerformed(e);
     }
   }
 }
