@@ -136,7 +136,7 @@ public class AndroidFrameworkDetector extends FacetBasedFrameworkDetector<Androi
 
     Manifest manifest = facet.getManifest();
     if (manifest != null) {
-      if (DefaultActivityLocator.getDefaultLauncherActivityName(manifest) != null) {
+      if (DefaultActivityLocator.getDefaultLauncherActivityName(module.getProject(), manifest) != null) {
         AndroidUtils.addRunConfiguration(facet, null, false, null, null);
       }
     }
