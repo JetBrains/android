@@ -19,7 +19,8 @@ import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.model.ManifestInfo;
 import com.google.common.collect.Lists;
-import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.project.DumbService;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Condition;
 import com.intellij.util.containers.ContainerUtil;
@@ -59,13 +60,14 @@ public class DefaultActivityLocator extends ActivityLocator {
     }
   }
 
+  /** Note: this requires indices to be ready, and may take a while to return if indexing is in progress. */
   @Nullable
   @VisibleForTesting
   static String computeDefaultActivity(@NotNull final AndroidFacet facet, @Nullable final IDevice device) {
     assert !facet.getProperties().USE_CUSTOM_COMPILER_MANIFEST;
     final ManifestInfo manifestInfo = ManifestInfo.get(facet.getModule(), ActivityLocatorUtils.shouldUseMergedManifest(facet));
 
-    return ApplicationManager.getApplication().runReadAction(new Computable<String>() {
+    return DumbService.getInstance(facet.getModule().getProject()).runReadActionInSmartMode(new Computable<String>() {
       @Override
       public String compute() {
         return computeDefaultActivity(manifestInfo.getActivities(), manifestInfo.getActivityAliases(), device);
@@ -74,8 +76,8 @@ public class DefaultActivityLocator extends ActivityLocator {
   }
 
   @Nullable
-  public static String getDefaultLauncherActivityName(@NotNull final Manifest manifest) {
-    return ApplicationManager.getApplication().runReadAction(new Computable<String>() {
+  public static String getDefaultLauncherActivityName(@NotNull Project project, @NotNull final Manifest manifest) {
+    return DumbService.getInstance(project).runReadActionInSmartMode(new Computable<String>() {
       @Override
       public String compute() {
         Application application = manifest.getApplication();
