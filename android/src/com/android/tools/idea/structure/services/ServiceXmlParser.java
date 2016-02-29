@@ -74,8 +74,6 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
  * <p/>
  * See {@link Schema} for the full XML schema for a service file to get a better overview of its
  * capabilities.
- *
- * TODO: Consider migrating much of this to JAXB to reduce manual parsing.
  */
 /* package */ final class ServiceXmlParser extends DefaultHandler {
   private static final Logger LOG = Logger.getInstance(ServiceXmlParser.class);
@@ -245,7 +243,6 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
     }
 
     String name = requireAttr(attributes, Schema.Service.ATTR_NAME);
-    String id = requireAttr(attributes, Schema.Service.ATTR_ID);
     String description = requireAttr(attributes, Schema.Service.ATTR_DESCRIPTION);
     String category = requireAttr(attributes, Schema.Service.ATTR_CATEGORY);
     File iconFile = new File(myRootPath, requireAttr(attributes, Schema.Service.ATTR_ICON));
@@ -273,7 +270,7 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
     }
 
     Icon icon = new ImageIcon(iconFile.getPath());
-    myDeveloperServiceMetadata = new DeveloperServiceMetadata(id, name, description, icon);
+    myDeveloperServiceMetadata = new DeveloperServiceMetadata(name, description, icon);
     if (learnLink != null) {
       myDeveloperServiceMetadata.setLearnMoreLink(toUri(learnLink));
     }
@@ -543,7 +540,6 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
       public static final String ATTR_LEARN_MORE = "learnMore";
       public static final String ATTR_MIN_API = "minApi";
       public static final String ATTR_NAME = "name";
-      public static final String ATTR_ID = "id";
     }
 
     public static abstract class UiTag {
