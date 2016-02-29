@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.devservices;
 
-import com.android.tools.idea.structure.services.DeveloperServiceMap;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
@@ -29,24 +28,22 @@ public final class DeveloperServicesToolWindowFactory implements ToolWindowFacto
   private DeveloperServicesSidePanel myDeveloperServicesSidePanel;
   private String myActionId;
   private String myToolWindowTitle;
-  private DeveloperServiceMap myServiceMap;
 
   public DeveloperServicesToolWindowFactory(
-    @NotNull String actionId, @Nullable String toolWindowTitle, @NotNull DeveloperServiceMap serviceMap) {
+      @NotNull String actionId, @Nullable String toolWindowTitle) {
     myActionId = actionId;
     myToolWindowTitle = toolWindowTitle;
-    myServiceMap = serviceMap;
   }
 
   @Override
   public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
     if (myDeveloperServicesSidePanel == null) {
-      myDeveloperServicesSidePanel = new DeveloperServicesSidePanel(myActionId, myServiceMap);
+      myDeveloperServicesSidePanel = new DeveloperServicesSidePanel(myActionId);
     }
 
     ContentFactory contentFactory = ContentFactory.SERVICE.getInstance();
     Content content = contentFactory.createContent(
-      myDeveloperServicesSidePanel, myToolWindowTitle, false);
+        myDeveloperServicesSidePanel, myToolWindowTitle, false);
     ContentManager contentManager = toolWindow.getContentManager();
     contentManager.removeAllContents(true);
     contentManager.addContent(content);

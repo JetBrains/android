@@ -15,8 +15,14 @@
  */
 package com.android.tools.idea.devservices;
 
+import com.android.tools.idea.structure.services.DeveloperService;
+import com.android.tools.idea.structure.services.DeveloperServiceCreator;
 import com.android.tools.idea.structure.services.DeveloperServiceCreators;
-import com.android.tools.idea.structure.services.DeveloperServiceMap;
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.project.Project;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -30,7 +36,7 @@ import java.awt.*;
  */
 public final class DeveloperServicesSidePanel extends JPanel {
 
-  public DeveloperServicesSidePanel(@NotNull String actionId, @NotNull DeveloperServiceMap serviceMap) {
+  public DeveloperServicesSidePanel(@NotNull String actionId) {
     Component customPanel = null;
 
     // TODO: Move layout to a form.
@@ -40,7 +46,7 @@ public final class DeveloperServicesSidePanel extends JPanel {
 
     for (DeveloperServiceCreators creators : DeveloperServiceCreators.EP_NAME.getExtensions()) {
       if (creators.getBundleId().equals(actionId)) {
-        customPanel = creators.getPanel(serviceMap);
+        customPanel = creators.getPanel();
         break;
       }
     }
