@@ -65,14 +65,14 @@ public abstract class AndroidLogFilterModel extends LogFilterModel {
   private boolean myCustomApplicable = false; // True if myCustomPattern matches this message
   private boolean myConfiguredApplicable = false;  // True if the active filter matches this message
 
-  private final ImmutableList<AndroidLogFilter> myLogFilters;
+  private final ImmutableList<AndroidLogLevelFilter> myLogLevelFilters;
 
   public AndroidLogFilterModel() {
-    ImmutableList.Builder<AndroidLogFilter> builder = ImmutableList.builder();
+    ImmutableList.Builder<AndroidLogLevelFilter> builder = ImmutableList.builder();
     for (Log.LogLevel logLevel : Log.LogLevel.values()) {
-      builder.add(new AndroidLogFilter(logLevel));
+      builder.add(new AndroidLogLevelFilter(logLevel));
     }
-    myLogFilters = builder.build();
+    myLogLevelFilters = builder.build();
   }
 
   // Implemented because it is abstract in the parent, but the functionality is no longer used.
@@ -189,14 +189,14 @@ public abstract class AndroidLogFilterModel extends LogFilterModel {
 
   @Override
   public final List<? extends LogFilter> getLogFilters() {
-    return myLogFilters;
+    return myLogLevelFilters;
   }
 
-  private final class AndroidLogFilter extends LogFilter {
+  private final class AndroidLogLevelFilter extends LogFilter {
     final Log.LogLevel myLogLevel;
 
-    private AndroidLogFilter(Log.LogLevel logLevel) {
-      super(StringUtil.capitalize(logLevel.name().toLowerCase()));
+    private AndroidLogLevelFilter(Log.LogLevel logLevel) {
+      super(StringUtil.capitalize(logLevel.getStringValue()));
       myLogLevel = logLevel;
     }
 
@@ -212,8 +212,8 @@ public abstract class AndroidLogFilterModel extends LogFilterModel {
   private LogFilter getSelectedLogLevelFilter() {
     final String filterName = getSelectedLogLevelName();
     if (filterName != null) {
-      for (AndroidLogFilter logFilter : myLogFilters) {
-        if (filterName.equals(logFilter.myLogLevel.name())) {
+      for (AndroidLogLevelFilter logFilter : myLogLevelFilters) {
+        if (filterName.equals(logFilter.myLogLevel.getStringValue())) {
           return logFilter;
         }
       }
@@ -228,10 +228,10 @@ public abstract class AndroidLogFilterModel extends LogFilterModel {
 
   @Override
   public void selectFilter(LogFilter filter) {
-    if (!(filter instanceof AndroidLogFilter)) {
+    if (!(filter instanceof AndroidLogLevelFilter)) {
       return;
     }
-    String newFilterName = ((AndroidLogFilter)filter).myLogLevel.name();
+    String newFilterName = ((AndroidLogLevelFilter)filter).myLogLevel.getStringValue();
     if (!Comparing.equal(newFilterName, getSelectedLogLevelName())) {
       saveLogLevel(newFilterName);
       fireFilterChange(filter);
