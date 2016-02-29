@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview;
 
+import com.android.tools.idea.gradle.dsl.model.dependencies.DependencyModel;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.PsdAndroidDependencyModelComparator;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsdNode;
 import com.android.tools.idea.gradle.structure.model.android.PsdAndroidDependencyModel;
@@ -29,12 +30,14 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Collection;
 import java.util.List;
 
+import static com.android.tools.idea.gradle.structure.model.PsdParsedDependencyModels.isDependencyInArtifact;
+
 final class DependencyNodes {
   private DependencyNodes() {
   }
 
   @NotNull
-  static List<AbstractPsdNode<?>> createNodesFor(@NotNull AbstractPsdNode parent,
+  static List<AbstractPsdNode<?>> createNodesFor(@NotNull ArtifactNode parent,
                                                  @NotNull Collection<PsdAndroidDependencyModel> dependencies) {
     List<AbstractPsdNode<?>> children = Lists.newArrayList();
 
@@ -43,9 +46,17 @@ final class DependencyNodes {
     List<PsdAndroidDependencyModel> mayBeTransitive = Lists.newArrayList();
 
     for (PsdAndroidDependencyModel dependency : dependencies) {
-      if (dependency.isEditable()) {
-        declared.add(dependency);
-        addTransitive(dependency, allTransitive);
+      DependencyModel parsedModel = dependency.getParsedModel();
+      if (parsedModel != null) {
+        // In Android Libraries, the model will include artifacts declared in the "main" artifact in other artifacts as well. For example:
+        //   compile 'com.android.support:appcompat-v7:23.0.1'
+        // will be include as a dependency in "main", "android test" and "unit test" artifacts. Even though this is correct, it is
+        // inconsistent with what Android App models return. In the case of Android Apps, 'appcompat' will be included only in the
+        // "main" artifact.
+        if (isDependencyInArtifact(parsedModel, parent.getModels().get(0))) {
+          declared.add(dependency);
+          addTransitive(dependency, allTransitive);
+        }
       }
       else {
         mayBeTransitive.add(dependency);
