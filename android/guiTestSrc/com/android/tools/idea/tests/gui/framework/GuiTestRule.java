@@ -130,8 +130,10 @@ public class GuiTestRule implements TestRule {
     waitForBackgroundTasks();
     List<Throwable> errors = new ArrayList<Throwable>(cleanUpAndCheckForModalDialogs());
     closeAllProjects();
-    delete(myProjectPath);
-    refreshFiles();
+    if (myProjectPath != null) {
+      delete(myProjectPath);
+      refreshFiles();
+    }
     errors.addAll(fatalErrorsFromIde());
     MultipleFailureException.assertEmpty(errors);
   }
