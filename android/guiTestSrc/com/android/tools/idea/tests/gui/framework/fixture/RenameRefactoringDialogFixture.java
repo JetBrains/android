@@ -24,13 +24,17 @@ import org.fest.swing.core.matcher.JTextComponentMatcher;
 import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
+import org.fest.swing.timing.Condition;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.text.JTextComponent;
 import java.awt.event.KeyEvent;
+import java.io.File;
 import java.util.regex.Pattern;
 
+import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickButton;
+import static org.fest.swing.timing.Pause.pause;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -55,6 +59,12 @@ public class RenameRefactoringDialogFixture extends IdeaDialogFixture<RenameDial
     });
     robot().pressAndReleaseKey(KeyEvent.VK_BACK_SPACE); // to make sure we don't append to existing item on Linux
     robot().enterText(newName);
+    pause(new Condition("Wait for text") {
+      @Override
+      public boolean test() {
+        return newName.equals(field.getText());
+      }
+    }, SHORT_TIMEOUT);
     return this;
   }
 
@@ -92,7 +102,8 @@ public class RenameRefactoringDialogFixture extends IdeaDialogFixture<RenameDial
 
     public String getText() {
       String html = getHtml();
-      return TextFormat.HTML.convertTo(html, TextFormat.TEXT).trim();
+      String text = TextFormat.HTML.convertTo(html, TextFormat.TEXT).trim();
+      return text.replace(File.separatorChar, '/');
     }
 
     public void requireMessageText(@NotNull String text) {
