@@ -31,6 +31,12 @@ import java.util.List;
  * level, including name, description, and various options.
  */
 public final class DeveloperServiceMetadata {
+  /**
+   * A unique string identifying a given feature/service. For features that are part of a collection or relatively common names, namespaces
+   * are suggested. For example "firebase.app_invites". This is used by plugins to retrieve the appropriate DeveloperService instance by
+   * id when necessary.
+   */
+  @NotNull private final String myId;
   @NotNull private final String myName;
   @NotNull private final String myDescription;
   @NotNull private final Icon myIcon;
@@ -42,7 +48,8 @@ public final class DeveloperServiceMetadata {
   @Nullable private URI myLearnMoreLink;
   @Nullable private URI myApiLink;
 
-  public DeveloperServiceMetadata(@NotNull String name, @NotNull String description, @NotNull Icon icon) {
+  public DeveloperServiceMetadata(@NotNull String id, @NotNull String name, @NotNull String description, @NotNull Icon icon) {
+    myId = id;
     myName = name;
     myDescription = description;
     myIcon = icon;
@@ -58,6 +65,11 @@ public final class DeveloperServiceMetadata {
 
   public void addModifiedFile(@NotNull File file) {
     myModifiedFiles.add(file.getName());
+  }
+
+  @NotNull
+  public String getId() {
+    return myId;
   }
 
   @NotNull
