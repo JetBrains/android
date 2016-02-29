@@ -20,6 +20,7 @@ import com.android.ddmlib.Log;
 import com.android.ddmlib.logcat.LogCatHeader;
 import com.android.ddmlib.logcat.LogCatMessage;
 import com.android.ddmlib.logcat.LogCatTimestamp;
+import com.google.common.collect.ImmutableList;
 import com.intellij.diagnostic.logging.LogConsoleBase;
 import com.intellij.diagnostic.logging.LogFilter;
 import com.intellij.diagnostic.logging.LogFilterListener;
@@ -32,7 +33,6 @@ import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -59,17 +59,20 @@ public abstract class AndroidLogFilterModel extends LogFilterModel {
    * A regex which is tested against unprocessed log input. Contrast with
    * {@link #getLogcatFilter()} which, if non-null, does additional filtering on input after
    * it has been parsed and broken up into component parts.
+   * This is normally set by the Android Monitor search bar.
    */
   @Nullable private Pattern myCustomPattern;
   private boolean myCustomApplicable = false; // True if myCustomPattern matches this message
   private boolean myConfiguredApplicable = false;  // True if the active filter matches this message
 
-  private final List<AndroidLogFilter> myLogFilters = new ArrayList<AndroidLogFilter>();
+  private final ImmutableList<AndroidLogFilter> myLogFilters;
 
   public AndroidLogFilterModel() {
+    ImmutableList.Builder<AndroidLogFilter> builder = ImmutableList.builder();
     for (Log.LogLevel logLevel : Log.LogLevel.values()) {
-      myLogFilters.add(new AndroidLogFilter(logLevel));
+      builder.add(new AndroidLogFilter(logLevel));
     }
+    myLogFilters = builder.build();
   }
 
   // Implemented because it is abstract in the parent, but the functionality is no longer used.
