@@ -75,6 +75,7 @@ public final class DeveloperService {
       }
     }.execute();
     getContext().snapshot();
+    getContext().installed().set(true);
     trackEvent(ACTION_DEVELOPER_SERVICES_INSTALLED);
   }
 
@@ -85,7 +86,13 @@ public final class DeveloperService {
 
     Module module = getModule();
     getBuildSystemOperations(module.getProject()).removeDependencies(module, getMetadata());
+    getContext().installed().set(false);
     trackEvent(ACTION_DEVELOPER_SERVICES_REMOVED);
+
+  }
+
+  public boolean isInstalled() {
+    return getContext().installed().get();
   }
 
   private void trackEvent(@NotNull String event) {
