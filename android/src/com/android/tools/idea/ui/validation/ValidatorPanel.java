@@ -21,6 +21,7 @@ import com.android.tools.idea.ui.properties.ObservableValue;
 import com.android.tools.idea.ui.properties.core.BoolProperty;
 import com.android.tools.idea.ui.properties.core.BoolValueProperty;
 import com.android.tools.idea.ui.properties.core.ObservableBool;
+import com.android.tools.idea.ui.validation.validators.TrueValidator;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Table;
@@ -98,6 +99,25 @@ public final class ValidatorPanel extends JPanel implements Disposable {
         updateValidationLabel();
       }
     });
+  }
+
+  /**
+   * Same as {@link #registerValidator(ObservableValue, Validator)}, using a {@link TrueValidator} with a severity of
+   * {@link Validator.Severity#ERROR}
+  **/
+  public void registerValidator(@NotNull ObservableValue<Boolean> value,
+                                @NotNull String errorMessage) {
+    registerValidator(value, new TrueValidator(errorMessage));
+  }
+
+  /**
+   * Same as {@link #registerValidator(ObservableValue, Validator)}, using a {@link TrueValidator} with the specified
+   * {@link Validator.Severity}
+   **/
+  public void registerValidator(@NotNull ObservableValue<Boolean> value,
+                                @NotNull Validator.Severity severity,
+                                @NotNull String errorMessage) {
+    registerValidator(value, new TrueValidator(severity, errorMessage));
   }
 
   /**
