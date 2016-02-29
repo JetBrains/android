@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,22 +28,24 @@ import org.intellij.lang.annotations.Language;
 import java.util.EnumSet;
 
 import static com.android.SdkConstants.ANDROID_URI;
-import static com.android.SdkConstants.ATTR_SRC;
+import static com.android.SdkConstants.ATTR_LAYOUT;
 
 /**
- * Handler for the {@code <ImageView>} widget
+ * Handler for the {@code ViewStub} tag.
  */
-public class ImageViewHandler extends ViewHandler {
+public class ViewStubHandler extends ViewHandler {
 
   @Override
-  @NonNull
   @Language("XML")
+  @NonNull
   public String getXml(@NonNull String tagName, @NonNull XmlType xmlType) {
-    return String.format("<%1$s\n" +
-                         "  android:src=\"%2$s\"\n" +
-                         "  android:layout_width=\"wrap_content\"\n" +
-                         "  android:layout_height=\"wrap_content\">\n" +
-                         "</%1$s>\n", tagName, getSampleImageSrc());
+    switch (xmlType) {
+      case PREVIEW_ON_PALETTE:
+      case DRAG_PREVIEW:
+        return NO_PREVIEW;
+      default:
+        return super.getXml(tagName, xmlType);
+    }
   }
 
   @Override
@@ -51,36 +53,19 @@ public class ImageViewHandler extends ViewHandler {
                           @Nullable NlComponent parent,
                           @NonNull NlComponent newChild,
                           @NonNull InsertType insertType) {
-    if (insertType == InsertType.CREATE) { // NOT InsertType.CREATE_PREVIEW
-      String src = editor.displayResourceInput(EnumSet.of(ResourceType.DRAWABLE), null);
-      if (src != null) {
-        newChild.setAttribute(ANDROID_URI, ATTR_SRC, src);
+    switch (insertType) {
+      case CREATE:
+        // When dropping a ViewStub tag, ask the user which layout to include:
+        String src = editor.displayResourceInput(EnumSet.of(ResourceType.LAYOUT), null);
+        if (src == null) {
+          // Remove the view; the insertion was canceled
+          return false;
+        }
+        newChild.setAttribute(ANDROID_URI, ATTR_LAYOUT, src);
         return true;
-      }
-      else {
-        // Remove the view; the insertion was canceled
-        return false;
-      }
+
+      default:
+        return true;
     }
-
-    // Fallback if dismissed or during previews etc
-    if (insertType.isCreate()) {
-      newChild.setAttribute(ANDROID_URI, ATTR_SRC, getSampleImageSrc());
-    }
-
-    return true;
-  }
-
-  /**
-   * Returns a source attribute value which points to a sample image. This is typically
-   * used to provide an initial image shown on ImageButtons, etc. There is no guarantee
-   * that the source pointed to by this method actually exists.
-   *
-   * @return a source attribute to use for sample images, never null
-   */
-  @NonNull
-  public String getSampleImageSrc() {
-    // Builtin graphics available since v1:
-    return "@android:drawable/btn_star"; //$NON-NLS-1$
   }
 }
