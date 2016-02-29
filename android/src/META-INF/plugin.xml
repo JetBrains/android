@@ -234,12 +234,6 @@
             text="URL" description="Generate a new intent filter for URLs">
       <add-to-group group-id="GenerateGroup" anchor="first"/>
     </action>
-    <group id="DeveloperServices.ServicesMenu"
-           text="Add Developer Services"
-           description="Add various Developer Services to your app"
-           popup="true">
-      <add-to-group group-id="ToolsMenu"/>
-    </group>
   </actions>
 
   <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
