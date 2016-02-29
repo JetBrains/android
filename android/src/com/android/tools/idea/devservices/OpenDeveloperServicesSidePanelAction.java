@@ -15,14 +15,24 @@
  */
 package com.android.tools.idea.devservices;
 
+import com.android.tools.idea.gradle.util.Projects;
+import com.android.tools.idea.structure.services.DeveloperService;
+import com.android.tools.idea.structure.services.DeveloperServiceMap;
+import com.android.tools.idea.structure.services.DeveloperServices;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.openapi.wm.ToolWindowManager;
+import org.jetbrains.android.facet.AndroidFacet;
+
+import java.util.List;
 
 /**
  * Triggers the creation of the Developer Services side panel.
@@ -40,8 +50,31 @@ public final class OpenDeveloperServicesSidePanelAction extends AnAction {
     ApplicationManager.getApplication().invokeLater(new Runnable() {
       @Override
       public void run() {
-        // TODO:  Figure out how to swap out content if a new Developer Service is triggered.
-        DeveloperServicesToolWindowFactory factory = new DeveloperServicesToolWindowFactory(actionId, bundleName);
+        ModuleManager moduleManager = ModuleManager.getInstance(thisProject);
+        Module[] modules = moduleManager.getModules();
+
+        List<Module> moduleList = Lists.newArrayList();
+        if (Projects.isBuildWithGradle(thisProject)) {
+          for (Module module : modules) {
+            // Filter to Android modules
+            if (AndroidFacet.getInstance(module) != null) {
+              moduleList.add(module);
+            }
+          }
+        }
+
+        // TODO: Subscribe to changes on the editor and notify the assist panel when the focused file's project or module changes. Send down
+        // the new service map when this occurs. The plugin will be responsible for updating state (buttons generally) as necessary.
+        // subscription.
+         DeveloperServiceMap serviceMap = new DeveloperServiceMap();
+
+        for (Module module : moduleList) {
+          for (DeveloperService service : DeveloperServices.getAll(module)) {
+            serviceMap.put(service.getMetadata().getId(), service);
+          }
+        }
+
+        DeveloperServicesToolWindowFactory factory = new DeveloperServicesToolWindowFactory(actionId, bundleName, serviceMap);
         ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(thisProject);
         ToolWindow toolWindow = toolWindowManager.getToolWindow(TOOL_WINDOW_TITLE);
 
