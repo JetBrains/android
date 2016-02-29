@@ -19,6 +19,9 @@ import com.android.tools.idea.model.ManifestInfo;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 import com.intellij.codeInsight.completion.JavaLookupElementBuilder;
+import com.intellij.codeInsight.daemon.EmptyResolveMessageProvider;
+import com.intellij.codeInspection.LocalQuickFix;
+import com.intellij.codeInspection.LocalQuickFixProvider;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -279,7 +282,7 @@ public class PackageClassConverter extends ResolvingConverter<PsiClass> implemen
     return new ArrayList<PsiClass>();
   }
 
-  private static class MyReference extends PsiReferenceBase<PsiElement> {
+  private static class MyReference extends PsiReferenceBase<PsiElement> implements EmptyResolveMessageProvider, LocalQuickFixProvider {
     private final int myStart;
     private final String myBasePackage;
     private final boolean myStartsWithPoint;
@@ -431,5 +434,40 @@ public class PackageClassConverter extends ResolvingConverter<PsiClass> implemen
              qName.substring(basePackageName.length()) :
              qName;
     }
+
+    @NotNull
+    @Override
+    public String getUnresolvedMessagePattern() {
+      return myIsPackage ? "Unresolved package ''{0}''" : "Unresolved class ''{0}''";
+    }
+
+    @NotNull
+    @Override
+    public LocalQuickFix[] getQuickFixes() {
+      if (myIsPackage) {
+        return LocalQuickFix.EMPTY_ARRAY;
+      }
+
+      String value = getCurrentValue();
+      if (myStartsWithPoint && myBasePackage != null) {
+        value = getAbsoluteName(value);
+      }
+
+      if (value == null) {
+        return LocalQuickFix.EMPTY_ARRAY;
+      }
+      final int dot = value.lastIndexOf('.');
+      if (dot == -1) {
+        return LocalQuickFix.EMPTY_ARRAY;
+      }
+
+      final PsiPackage aPackage = JavaPsiFacade.getInstance(myModule.getProject()).findPackage(value.substring(0, dot));
+      if (aPackage == null) {
+        return LocalQuickFix.EMPTY_ARRAY;
+      }
+      final String baseClassFqcn = myExtendsClasses.length == 0 ? null : myExtendsClasses[0];
+      return new LocalQuickFix[]{new CreateMissingClassQuickFix(aPackage, value.substring(dot + 1), myModule, baseClassFqcn)};
+    }
   }
+
 }
