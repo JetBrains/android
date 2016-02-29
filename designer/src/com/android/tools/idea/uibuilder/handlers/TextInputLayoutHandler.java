@@ -16,16 +16,26 @@
 package com.android.tools.idea.uibuilder.handlers;
 
 import com.android.annotations.NonNull;
+import com.android.tools.idea.uibuilder.api.XmlType;
+import org.intellij.lang.annotations.Language;
 
 /**
- * Handler for the {@code <ImageButton>} widget
+ * Handler for the {@code <TextInputLayout>} layout
  */
-public class ImageButtonHandler extends ImageViewHandler {
+public class TextInputLayoutHandler extends LinearLayoutHandler {
 
   @Override
+  @Language("XML")
   @NonNull
-  public String getSampleImageSrc() {
-    // Builtin graphics available since v1:
-    return "@android:drawable/btn_star"; //$NON-NLS-1$
+  public String getXml(@NonNull String tagName, @NonNull XmlType xmlType) {
+    switch (xmlType) {
+      case COMPONENT_CREATION:
+        return "<android.support.design.widget.TextInputLayout\n" +
+               "  android:layout_width=\"match_parent\"\n" +
+               "  android:layout_height=\"wrap_content\">\n" +
+               "</android.support.design.widget.TextInputLayout>\n";
+      default:
+        return super.getXml(tagName, xmlType);
+    }
   }
 }

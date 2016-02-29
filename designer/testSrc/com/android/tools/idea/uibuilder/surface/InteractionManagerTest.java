@@ -57,7 +57,7 @@ public class InteractionManagerTest extends LayoutTestCase {
     @Language("XML")
     String xmlFragment = "" +
                          "<TextView xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-                         "     android:layout_width=\"match_parent\"\n" +
+                         "     android:layout_width=\"wrap_content\"\n" +
                          "     android:layout_height=\"wrap_content\"\n" +
                          "     android:text=\"Hello World\"\n" +
                          "/>";
@@ -73,7 +73,7 @@ public class InteractionManagerTest extends LayoutTestCase {
                       "    android:orientation=\"vertical\">\n" +
                       "\n" +
                       "    <TextView\n" +
-                      "            android:layout_width=\"wrap_content\"\n" +
+                      "            android:layout_width=\"match_parent\"\n" +
                       "            android:layout_height=\"wrap_content\"\n" +
                       "            android:text=\"Hello World\"\n" +
                       "            android:id=\"@+id/textView\"/>\n" +

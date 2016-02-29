@@ -21,14 +21,65 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
+import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.intellij.openapi.util.text.StringUtil;
+import icons.AndroidIcons;
+import org.intellij.lang.annotations.Language;
 
+import javax.swing.*;
 import java.util.EnumSet;
 
 import static com.android.SdkConstants.ATTR_LAYOUT;
 
-/** Handler for the {@code <include>} tag */
-public class IncludeHandler extends ViewHandler {
+/**
+ * Handler for the {@code <include>} tag
+ */
+public final class IncludeHandler extends ViewHandler {
+
+  @Override
+  @NonNull
+  public String getTitle(@NonNull String tagName) {
+    return "<include>";
+  }
+
+  @Override
+  @NonNull
+  public String getTitle(@NonNull NlComponent component) {
+    return "<include>";
+  }
+
+  @NonNull
+  @Override
+  public String getTitleAttributes(@NonNull NlComponent component) {
+    String layout = component.getAttribute(null, ATTR_LAYOUT);
+    return StringUtil.isEmpty(layout) ? "" : "- " + layout;
+  }
+
+  @Override
+  @NonNull
+  public Icon getIcon(@NonNull String tagName) {
+    return AndroidIcons.Views.Include;
+  }
+
+  @Override
+  @NonNull
+  public Icon getIcon(@NonNull NlComponent component) {
+    return AndroidIcons.Views.Include;
+  }
+
+  @Override
+  @Language("XML")
+  @NonNull
+  public String getXml(@NonNull String tagName, @NonNull XmlType xmlType) {
+    switch (xmlType) {
+      case COMPONENT_CREATION:
+        return "<include/>";
+      default:
+        return NO_PREVIEW;
+    }
+  }
+
   @Override
   public boolean onCreate(@NonNull ViewEditor editor,
                           @Nullable NlComponent parent,

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.handlers;
+package com.android.tools.idea.uibuilder.handlers.google;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
@@ -22,37 +22,21 @@ import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.google.common.collect.Sets;
 import org.intellij.lang.annotations.Language;
 
-import static com.android.SdkConstants.*;
-
 /**
- * Handler for the {@code <view>} tag
+ * Handler for the {@code <com.google.android.gms.maps.MapFragment>} tag
  */
-public class ViewTagHandler extends ViewHandler {
+public class MapFragmentHandler extends ViewHandler {
 
   @Override
   @NonNull
-  public String getTitle(@NonNull String tagName) {
-    return "View";
-  }
-
-  @Override
-  @NonNull
-  public String getTitle(@NonNull NlComponent component) {
-    return "View";
-  }
-
-  @Override
   @Language("XML")
-  @NonNull
   public String getXml(@NonNull String tagName, @NonNull XmlType xmlType) {
     switch (xmlType) {
-      case COMPONENT_CREATION:
-        return "<view/>";
       case PREVIEW_ON_PALETTE:
       case DRAG_PREVIEW:
+        // TODO: provide a visual clue of the component
         return NO_PREVIEW;
       default:
         return super.getXml(tagName, xmlType);
@@ -64,18 +48,7 @@ public class ViewTagHandler extends ViewHandler {
                           @Nullable NlComponent parent,
                           @NonNull NlComponent newChild,
                           @NonNull InsertType insertType) {
-    if (insertType == InsertType.CREATE) { // NOT InsertType.CREATE_PREVIEW
-      String src = editor.displayClassInput(Sets.newHashSet(CLASS_VIEW), null);
-      if (src != null) {
-        newChild.setAttribute(null, ATTR_NAME, src);
-        return true;
-      }
-      else {
-        // Remove the view; the insertion was canceled
-        return false;
-      }
-    }
-
+    // TODO: Implement onCreate that helps the user get an Maps ID and generate the correct XML
     return true;
   }
 }

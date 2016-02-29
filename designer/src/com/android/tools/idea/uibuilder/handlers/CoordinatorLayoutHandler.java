@@ -30,6 +30,9 @@ import java.util.List;
 
 import static com.android.SdkConstants.*;
 
+/**
+ * Handler for the {@code <android.support.design.widget.CoordinatorLayout>} layout
+ */
 public class CoordinatorLayoutHandler extends FrameLayoutHandler {
   @Nullable
   @Override
@@ -37,9 +40,11 @@ public class CoordinatorLayoutHandler extends FrameLayoutHandler {
                                        @NonNull NlComponent layout,
                                        @NonNull List<NlComponent> components,
                                        @NonNull DragType type) {
-    // The {@link CoordinatorDragHandler} handles the logic for anchoring a single component to an existing component in
-    // the CoordinatorLayout. If we are moving several components we probably dont want them to be anchored to the same place,
-    // so instead we use the FrameLayoutHandler in this case.
+    // The {@link CoordinatorDragHandler} handles the logic for anchoring a
+    // single component to an existing component in the CoordinatorLayout.
+    // If we are moving several components we probably don't want them to be
+    // anchored to the same place, so instead we use the FrameLayoutHandler in
+    // this case.
     if (components.size() == 1 && components.get(0) != null) {
       return new CoordinatorDragHandler(editor, layout, components, type);
     } else {

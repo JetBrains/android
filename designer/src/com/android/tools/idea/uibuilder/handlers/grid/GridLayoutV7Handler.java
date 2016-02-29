@@ -13,19 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.handlers;
+package com.android.tools.idea.uibuilder.handlers.grid;
 
 import com.android.annotations.NonNull;
 
+import static com.android.SdkConstants.GRID_LAYOUT_LIB_ARTIFACT;
+
 /**
- * Handler for the {@code <ImageButton>} widget
+ * Handler for the {@code <android.support.v7.widget.GridLayout>} layout from AppCompat
  */
-public class ImageButtonHandler extends ImageViewHandler {
+public class GridLayoutV7Handler extends GridLayoutHandler {
 
   @Override
   @NonNull
-  public String getSampleImageSrc() {
-    // Builtin graphics available since v1:
-    return "@android:drawable/btn_star"; //$NON-NLS-1$
+  public String getGradleCoordinate(@NonNull String viewTag) {
+    return GRID_LAYOUT_LIB_ARTIFACT;
   }
 }
