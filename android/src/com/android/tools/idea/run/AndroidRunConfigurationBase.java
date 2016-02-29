@@ -55,6 +55,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import icons.AndroidIcons;
 import org.intellij.lang.annotations.Language;
 import org.jdom.Element;
+import org.jetbrains.android.actions.AndroidEnableAdbServiceAction;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.util.AndroidBundle;
@@ -376,6 +377,10 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       else if (InstantRunGradleUtils.getIrSupportStatus(module, devices.get(0).getVersion()).success) {
         InstantRunUtils.setInstantRunEnabled(env, true);
         setInstantRunBuildOptions(env, info, module, deviceFutures);
+
+        if (!AndroidEnableAdbServiceAction.isAdbServiceEnabled()) {
+          throw new ExecutionException("Instant Run requires 'Tools | Android | Enable ADB integration' to be enabled.");
+        }
       }
     }
 
