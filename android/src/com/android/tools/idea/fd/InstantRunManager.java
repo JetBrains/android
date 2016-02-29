@@ -324,7 +324,12 @@ public final class InstantRunManager implements ProjectComponent {
     return maxLastModified;
   }
 
-  public static boolean usesMultipleProcesses(@NotNull AndroidFacet facet) {
+  public static boolean usesMultipleProcesses(@NotNull Module module) {
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    if (facet == null) {
+      return false;
+    }
+
     // Note: Relying on the merged manifest implies that this will not work if a build has not already taken place.
     // But in this particular scenario (i.e. for instant run), we are ok with such a situation because:
     //      a) if there is no existing build, we are doing a full build anyway

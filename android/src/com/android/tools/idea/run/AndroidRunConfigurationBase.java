@@ -585,10 +585,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
                                    "Instant Run detected that a resource referenced from the AndroidManifest.xml file has changed");
     }
 
-    if (InstantRunManager.usesMultipleProcesses(facet)) {
-      return BooleanStatus.failure(FULL_BUILD_PREFIX + "Instant Run not supported if the application uses multiple processes");
-    }
-
     return BooleanStatus.SUCCESS;
   }
 
