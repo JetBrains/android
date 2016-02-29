@@ -56,6 +56,8 @@ public class RepositoryUrlManager {
   public static final String SUPPORT_ID_V13 = "support-v13";
   /** The path ID of the appcompat library. */
   public static final String APP_COMPAT_ID_V7 = "appcompat-v7";
+  /** The path ID of the vector drawable support library. */
+  public static final String SUPPORT_VECTOR_DRAWABLE = "support-vector-drawable";
   /** The path ID of the design support library. */
   public static final String DESIGN = "design";
 
@@ -144,8 +146,8 @@ public class RepositoryUrlManager {
     .put(PALETTE_ID_V7, new RepositoryLibrary(PALETTE_ID_V7, SUPPORT_REPOSITORY_BASE_PATH, SUPPORT_BASE_COORDINATE, SdkConstants.DOT_AAR))
     .put(RECYCLER_VIEW_ID_V7, new RepositoryLibrary(RECYCLER_VIEW_ID_V7, SUPPORT_REPOSITORY_BASE_PATH, SUPPORT_BASE_COORDINATE, SdkConstants.DOT_AAR))
     .put(LEANBACK_ID_V17, new RepositoryLibrary(LEANBACK_ID_V17, SUPPORT_REPOSITORY_BASE_PATH, SUPPORT_BASE_COORDINATE, SdkConstants.DOT_AAR))
-    .put(SUPPORT_WEARABLE_ID, new RepositoryLibrary(SUPPORT_WEARABLE_ID, GOOGLE_SUPPORT_REPOSITORY_BASE_PATH, GOOGLE_SUPPORT_BASE_COORDINATE,
-                                                    SdkConstants.DOT_AAR))
+    .put(SUPPORT_WEARABLE_ID, new RepositoryLibrary(SUPPORT_WEARABLE_ID, GOOGLE_SUPPORT_REPOSITORY_BASE_PATH, GOOGLE_SUPPORT_BASE_COORDINATE, SdkConstants.DOT_AAR))
+    .put(SUPPORT_VECTOR_DRAWABLE, new RepositoryLibrary(SUPPORT_VECTOR_DRAWABLE, SUPPORT_REPOSITORY_BASE_PATH, SUPPORT_BASE_COORDINATE, SdkConstants.DOT_AAR))
     .build();
 
 
