@@ -124,13 +124,14 @@ public class GuiTestRule implements TestRule {
     setUpDefaultProjectCreationLocationPath();
     setIdeSettings();
     setUpSdks();
-    refreshFiles();
   }
 
   private void tearDown() throws Exception {
     waitForBackgroundTasks();
     List<Throwable> errors = new ArrayList<Throwable>(cleanUpAndCheckForModalDialogs());
     closeAllProjects();
+    delete(myProjectPath);
+    refreshFiles();
     errors.addAll(fatalErrorsFromIde());
     MultipleFailureException.assertEmpty(errors);
   }
@@ -183,7 +184,7 @@ public class GuiTestRule implements TestRule {
 
   private void importProject(@NotNull String projectDirName, String gradleVersion) throws IOException {
     setUpProject(projectDirName, gradleVersion);
-    final VirtualFile toSelect = findFileByIoFile(myProjectPath, false);
+    final VirtualFile toSelect = findFileByIoFile(myProjectPath, true);
     assertNotNull(toSelect);
     execute(new GuiTask() {
       @Override
