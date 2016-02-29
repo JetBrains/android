@@ -31,6 +31,11 @@ class ArtifactNode extends AbstractPsdNode<PsdAndroidArtifactModel> {
     setAutoExpandNode(true);
   }
 
+  ArtifactNode(@NotNull AbstractPsdNode<?> parent, @NotNull List<PsdAndroidArtifactModel> models) {
+    super(parent, models);
+    setAutoExpandNode(true);
+  }
+
   @Override
   @NotNull
   protected String nameOf(PsdAndroidArtifactModel model) {
