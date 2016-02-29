@@ -698,9 +698,6 @@ public class EditorFixture {
       }
     }, SHORT_TIMEOUT);
 
-    // TODO: Maybe find a better way to keep Documents in sync with their VirtualFiles.
-    invokeActionViaKeystroke("Synchronize");
-
     return this;
   }
 
