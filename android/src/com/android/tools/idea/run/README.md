@@ -173,12 +173,14 @@ to be replayed to the new process handler so that the console still has all the 
  * Examines if the app is still running
  * Examines the state of the changes on disk
  * Saves all this information in the execution environment so that the build step can use this information.
- * See methods in `AndroidRunConfigurationBase`: `getFastDeployDevices`, `setInstantRunBuildOptions`
+ * See methods in [AndroidRunConfigurationBase](AndroidRunConfiguration.java): `getFastDeployDevices`, `setInstantRunBuildOptions`
+
 ### Build options
  * The build step looks at all the information from the previous phase, and determines:
    * Which build task to execute (full build vs incremental build)
    * Set of flags to pass to Gradle
    * See `GradleInvokerOptions.create`
+
 ### Post Build
  * Examine the build-info.xml file to figure out what actually happened (See `AndroidLaunchTasksProviderFactory`)
  * Determine the appropriate task to use based on the build result.
