@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.structure.configurables.android.dependenci
 
 import com.android.tools.idea.gradle.structure.configurables.ui.PsdUISettings;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsdNode;
+import com.android.tools.idea.gradle.structure.model.PsdModel;
 import com.android.tools.idea.gradle.structure.model.android.PsdAndroidDependencyModel;
 import com.android.tools.idea.gradle.structure.model.android.PsdAndroidModuleModel;
 import com.google.common.collect.Lists;
@@ -31,7 +32,9 @@ import javax.swing.*;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import java.util.List;
+import java.util.Set;
 
+import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static com.intellij.util.ui.tree.TreeUtil.collapseAll;
 
 public class VariantsTreeBuilder extends AbstractTreeBuilder {
@@ -64,9 +67,7 @@ public class VariantsTreeBuilder extends AbstractTreeBuilder {
             actionCallback.doWhenDone(new Runnable() {
               @Override
               public void run() {
-                if (selected != null) {
-                  myDependencySelectionDestination.setSelection(selected);
-                }
+                myDependencySelectionDestination.setSelection(selected);
               }
             });
           }
@@ -97,9 +98,7 @@ public class VariantsTreeBuilder extends AbstractTreeBuilder {
         @Override
         public void run() {
           PsdAndroidDependencyModel selection = myDependencySelectionSource.getSelection();
-          if (selection != null) {
-            myDependencySelectionDestination.setSelection(selection);
-          }
+          myDependencySelectionDestination.setSelection(selection);
         }
       });
     }
@@ -113,15 +112,39 @@ public class VariantsTreeBuilder extends AbstractTreeBuilder {
     }
   }
 
-  public void setSelection(@NotNull final PsdAndroidDependencyModel dependencyModel) {
+  public void updateSelection() {
+    Set<Object> selectedElements = getSelectedElements();
+    if (selectedElements.size() == 1) {
+      Object selection = getFirstItem(selectedElements);
+      if (selection instanceof AbstractPsdNode) {
+        AbstractPsdNode<?> node = (AbstractPsdNode)selection;
+        List<?> models = node.getModels();
+        if (models.size() == 1) {
+          Object model = models.get(0);
+          if (model instanceof PsdModel) {
+            setSelection((PsdModel)model);
+          }
+        }
+      }
+    }
+  }
+
+  public void clearSelection() {
+    JTree tree = getTree();
+    if (tree != null) {
+      tree.setSelectionPaths(EMPTY_TREE_PATH);
+    }
+  }
+
+  public void setSelection(@NotNull final PsdModel model) {
     getInitialized().doWhenDone(new Runnable() {
       @Override
       public void run() {
-        final List<AbstractDependencyNode> toSelect = Lists.newArrayList();
-        accept(AbstractDependencyNode.class, new TreeVisitor<AbstractDependencyNode>() {
+        final List<AbstractPsdNode> toSelect = Lists.newArrayList();
+        accept(AbstractPsdNode.class, new TreeVisitor<AbstractPsdNode>() {
           @Override
-          public boolean visit(@NotNull AbstractDependencyNode node) {
-            if (node.matches(dependencyModel)) {
+          public boolean visit(@NotNull AbstractPsdNode node) {
+            if (node.matches(model)) {
               toSelect.add(node);
             }
             return false;
@@ -135,8 +158,8 @@ public class VariantsTreeBuilder extends AbstractTreeBuilder {
           @Override
           public void run() {
             List<SimpleNode> toExpand = Lists.newArrayList();
-            for (AbstractDependencyNode dependencyNode : toSelect) {
-              SimpleNode parent = dependencyNode.getParent();
+            for (AbstractPsdNode node : toSelect) {
+              SimpleNode parent = node.getParent();
               if (parent != null) {
                 toExpand.add(parent);
               }
