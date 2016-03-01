@@ -23,7 +23,6 @@ import com.android.sdklib.repositoryv2.targets.SystemImage;
 import com.android.tools.idea.ui.TooltipLabel;
 import com.android.tools.idea.ui.properties.BindingsManager;
 import com.android.tools.idea.ui.properties.ListenerManager;
-import com.android.tools.idea.ui.properties.ObservableValue;
 import com.android.tools.idea.ui.properties.adapters.StringToDoubleAdapterProperty;
 import com.android.tools.idea.ui.properties.adapters.StringToIntAdapterProperty;
 import com.android.tools.idea.ui.properties.core.ObservableBool;
@@ -32,9 +31,6 @@ import com.android.tools.idea.ui.properties.swing.SelectedProperty;
 import com.android.tools.idea.ui.properties.swing.TextProperty;
 import com.android.tools.idea.ui.validation.Validator;
 import com.android.tools.idea.ui.validation.ValidatorPanel;
-import com.android.tools.idea.ui.validation.validators.TrueValidator;
-import com.android.tools.idea.ui.validation.validators.PositiveDoubleValidator;
-import com.android.tools.idea.ui.validation.validators.PositiveIntValidator;
 import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
@@ -43,7 +39,6 @@ import com.google.common.base.Optional;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.*;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.Consumer;
@@ -135,34 +130,35 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
   }
 
   private void attachBindingsAndValidators() {
-    myBindings.bindTwoWay(new TextProperty(myDeviceName), getModel().getDeviceData().name());
+    final AvdDeviceData deviceModel = getModel().getDeviceData();
+    myBindings.bindTwoWay(new TextProperty(myDeviceName), deviceModel.name());
 
     final StringToDoubleAdapterProperty diagonalScreenSizeAdapter =
       new StringToDoubleAdapterProperty(new TextProperty(myDiagonalScreenSize), 1, 2);
-    myBindings.bindTwoWay(diagonalScreenSizeAdapter, getModel().getDeviceData().diagonalScreenSize());
-    myBindings.bindTwoWay(new StringToIntAdapterProperty(new TextProperty(myScreenResolutionWidth)), getModel().getDeviceData().screenResolutionWidth());
-    myBindings.bindTwoWay(new StringToIntAdapterProperty(new TextProperty(myScreenResolutionHeight)), getModel().getDeviceData().screenResolutionHeight());
+    myBindings.bindTwoWay(diagonalScreenSizeAdapter, deviceModel.diagonalScreenSize());
+    myBindings.bindTwoWay(new StringToIntAdapterProperty(new TextProperty(myScreenResolutionWidth)), deviceModel.screenResolutionWidth());
+    myBindings.bindTwoWay(new StringToIntAdapterProperty(new TextProperty(myScreenResolutionHeight)), deviceModel.screenResolutionHeight());
 
-    myBindings.bindTwoWay(myRamField.storage(), getModel().getDeviceData().ramStorage());
+    myBindings.bindTwoWay(myRamField.storage(), deviceModel.ramStorage());
 
-    myBindings.bindTwoWay(new SelectedProperty(myHasHardwareButtons), getModel().getDeviceData().hasHardwareButtons());
-    myBindings.bindTwoWay(new SelectedProperty(myHasHardwareKeyboard), getModel().getDeviceData().hasHardwareKeyboard());
-    myBindings.bindTwoWay(new SelectedItemProperty<Navigation>(myNavigationControlsCombo), getModel().getDeviceData().navigation());
+    myBindings.bindTwoWay(new SelectedProperty(myHasHardwareButtons), deviceModel.hasHardwareButtons());
+    myBindings.bindTwoWay(new SelectedProperty(myHasHardwareKeyboard), deviceModel.hasHardwareKeyboard());
+    myBindings.bindTwoWay(new SelectedItemProperty<Navigation>(myNavigationControlsCombo), deviceModel.navigation());
 
-    myBindings.bindTwoWay(new SelectedProperty(myIsScreenRound), getModel().getDeviceData().isScreenRound());
-    myBindings.bindTwoWay(new SelectedProperty(mySupportsLandscape), getModel().getDeviceData().supportsLandscape());
-    myBindings.bindTwoWay(new SelectedProperty(mySupportsPortrait), getModel().getDeviceData().supportsPortrait());
-    myBindings.bindTwoWay(new SelectedProperty(myHasBackFacingCamera), getModel().getDeviceData().hasBackCamera());
-    myBindings.bindTwoWay(new SelectedProperty(myHasFrontFacingCamera), getModel().getDeviceData().hasFrontCamera());
+    myBindings.bindTwoWay(new SelectedProperty(myIsScreenRound), deviceModel.isScreenRound());
+    myBindings.bindTwoWay(new SelectedProperty(mySupportsLandscape), deviceModel.supportsLandscape());
+    myBindings.bindTwoWay(new SelectedProperty(mySupportsPortrait), deviceModel.supportsPortrait());
+    myBindings.bindTwoWay(new SelectedProperty(myHasBackFacingCamera), deviceModel.hasBackCamera());
+    myBindings.bindTwoWay(new SelectedProperty(myHasFrontFacingCamera), deviceModel.hasFrontCamera());
 
-    myBindings.bindTwoWay(new SelectedProperty(myHasAccelerometer), getModel().getDeviceData().hasAccelerometer());
-    myBindings.bindTwoWay(new SelectedProperty(myHasGyroscope), getModel().getDeviceData().hasGyroscope());
-    myBindings.bindTwoWay(new SelectedProperty(myHasGps), getModel().getDeviceData().hasGps());
-    myBindings.bindTwoWay(new SelectedProperty(myHasProximitySensor), getModel().getDeviceData().hasProximitySensor());
-    myBindings.bindTwoWay(new SelectedItemProperty<File>(myCustomSkinPath.getComboBox()), getModel().getDeviceData().customSkinFile());
+    myBindings.bindTwoWay(new SelectedProperty(myHasAccelerometer), deviceModel.hasAccelerometer());
+    myBindings.bindTwoWay(new SelectedProperty(myHasGyroscope), deviceModel.hasGyroscope());
+    myBindings.bindTwoWay(new SelectedProperty(myHasGps), deviceModel.hasGps());
+    myBindings.bindTwoWay(new SelectedProperty(myHasProximitySensor), deviceModel.hasProximitySensor());
+    myBindings.bindTwoWay(new SelectedItemProperty<File>(myCustomSkinPath.getComboBox()), deviceModel.customSkinFile());
 
     SelectedItemProperty<IdDisplay> selectedDeviceType = new SelectedItemProperty<IdDisplay>(myDeviceTypeComboBox);
-    myBindings.bindTwoWay(selectedDeviceType, getModel().getDeviceData().deviceType());
+    myBindings.bindTwoWay(selectedDeviceType, deviceModel.deviceType());
     myListeners.listen(selectedDeviceType, new Consumer<Optional<IdDisplay>>() {
       @Override
       public void consume(Optional<IdDisplay> idDisplayOptional) {
@@ -187,24 +183,19 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
     });
 
 
-    myValidatorPanel.registerValidator(getModel().getDeviceData().name(), new Validator<String>() {
-      @NotNull
-      @Override
-      public Result validate(@NotNull String value) {
-        return StringUtil.isNotEmpty(value) ? Result.OK : new Result(Severity.ERROR, "Please write a name for the new device.");
-      }
-    });
+    myValidatorPanel.registerValidator(deviceModel.name().isEmpty().not(),
+      "Please write a name for the new device.");
 
-    myValidatorPanel.registerValidator(getModel().getDeviceData().diagonalScreenSize(), new PositiveDoubleValidator(
-      "Please enter a non-zero positive floating point value for the screen size."));
+    myValidatorPanel.registerValidator(deviceModel.diagonalScreenSize().isGreaterThan(0d),
+      "Please enter a non-zero positive floating point value for the screen size.");
 
-    myValidatorPanel.registerValidator(getModel().getDeviceData().screenResolutionWidth(), new PositiveIntValidator(
-      "Please enter non-zero positive integer values for the screen resolution width."));
+    myValidatorPanel.registerValidator(deviceModel.screenResolutionWidth().isGreaterThan(0),
+      "Please enter non-zero positive integer values for the screen resolution width.");
 
-    myValidatorPanel.registerValidator(getModel().getDeviceData().screenResolutionHeight(), new PositiveIntValidator(
-      "Please enter non-zero positive integer values for the screen resolution height."));
+    myValidatorPanel.registerValidator(deviceModel.screenResolutionHeight().isGreaterThan(0),
+      "Please enter non-zero positive integer values for the screen resolution height.");
 
-    myValidatorPanel.registerValidator(getModel().getDeviceData().ramStorage(), new Validator<Storage>() {
+    myValidatorPanel.registerValidator(deviceModel.ramStorage(), new Validator<Storage>() {
       @NotNull
       @Override
       public Result validate(@NotNull Storage value) {
@@ -212,15 +203,13 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
       }
     });
 
-    myValidatorPanel.registerValidator(getModel().getDeviceData().screenDpi(), new PositiveDoubleValidator (
-      "The given resolution and screen size specified have a DPI that is too low."));
+    myValidatorPanel.registerValidator(deviceModel.screenDpi().isGreaterThan(0),
+      "The given resolution and screen size specified have a DPI that is too low.");
 
-    ObservableValue<Boolean> orientationState =
-      getModel().getDeviceData().supportsLandscape().or(getModel().getDeviceData().supportsPortrait());
-    myValidatorPanel.registerValidator(orientationState, new TrueValidator(
-      "A device must support at least one orientation (Portrait or Landscape)."));
+    myValidatorPanel.registerValidator(deviceModel.supportsLandscape().or(deviceModel.supportsPortrait()),
+      "A device must support at least one orientation (Portrait or Landscape).");
 
-    myValidatorPanel.registerValidator(getModel().getDeviceData().customSkinFile(), new Validator<Optional<File>>() {
+    myValidatorPanel.registerValidator(deviceModel.customSkinFile(), new Validator<Optional<File>>() {
       @NotNull
       @Override
       public Result validate(@NotNull Optional<File> value) {
@@ -235,13 +224,8 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
       }
     });
 
-    myValidatorPanel.registerValidator(diagonalScreenSizeAdapter.inSync(), new Validator<Boolean>() {
-      @NotNull
-      @Override
-      public Result validate(@NotNull Boolean inSync) {
-        return inSync ? Result.OK : new Result(Severity.ERROR, "Please enter a non-zero positive floating point value for the screen size.");
-      }
-    });
+    myValidatorPanel.registerValidator(diagonalScreenSizeAdapter.inSync(),
+      "Please enter a non-zero positive floating point value for the screen size.");
   }
 
   private void createUIComponents() {
