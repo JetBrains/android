@@ -196,13 +196,18 @@ class EditableDependenciesPanel extends JPanel implements DependencySelection, D
   }
 
   @Override
-  public void setSelection(@NotNull PsdAndroidDependencyModel selection) {
+  public void setSelection(@Nullable PsdAndroidDependencyModel selection) {
     ListSelectionModel tableSelectionModel = myDependenciesTable.getSelectionModel();
     // Remove ListSelectionListener. We only want the selection event when the user selects a table cell directly. If we got here is
     // because the user selected a dependency in the "Variants" tree view, and we are simply syncing the table.
     tableSelectionModel.removeListSelectionListener(myTableSelectionListener);
 
-    myDependenciesTable.setSelection(Collections.singleton(selection));
+    if (selection == null) {
+      myDependenciesTable.clearSelection();
+    }
+    else {
+      myDependenciesTable.setSelection(Collections.singleton(selection));
+    }
 
     // Add ListSelectionListener again, to react when user selects a table cell directly.
     tableSelectionModel.addListSelectionListener(myTableSelectionListener);

@@ -16,12 +16,11 @@
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview;
 
 import com.android.tools.idea.gradle.structure.model.android.PsdAndroidDependencyModel;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public interface DependencySelection {
   @Nullable
   PsdAndroidDependencyModel getSelection();
 
-  void setSelection(@NotNull PsdAndroidDependencyModel selection);
+  void setSelection(@Nullable PsdAndroidDependencyModel selection);
 }
