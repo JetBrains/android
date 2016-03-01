@@ -37,7 +37,6 @@ import com.intellij.pom.java.LanguageLevel;
 import org.fest.swing.timing.Condition;
 import org.fest.swing.timing.Pause;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -92,7 +91,6 @@ public class NewProjectTest {
     }
   }
 
-  @Ignore("failed in http://go/aj/job/studio-ui-test/389")
   @Test
   public void testNoWarningsInNewProjects() throws IOException {
     // Creates a new default project, and checks that if we run Analyze > Inspect Code, there are no warnings.
@@ -106,29 +104,31 @@ public class NewProjectTest {
     EditorFixture editor = guiTest.ideFrame().getEditor();
     String buildGradlePath = "app/build.gradle";
     editor.open(buildGradlePath, EditorFixture.Tab.EDITOR);
-    editor.moveTo(editor.findOffset("defaultConfig {", null, true));
-    editor.enterText("\nresValue \"string\", \"foo\", \"Typpo Here\"");
+    editor.moveTo(editor.findOffset(null, "applicationId", true));
+    editor.enterText("resValue \"string\", \"foo\", \"Typpo Here\"\n");
     guiTest.ideFrame().requireEditorNotification("Gradle files have changed since last project sync").performAction("Sync Now");
     guiTest.ideFrame().waitForGradleProjectSyncToFinish();
 
     InspectionsFixture inspections = guiTest.ideFrame().inspectCode();
 
     assertEquals("Test Application\n" +
-                 "    Android Lint\n" +
+                 // This warning is from the "foo" string we created in the Gradle resValue declaration above
+                 "    Android > Lint > Performance\n" +
+                 "        Unused resources\n" +
+                 "            app\n" +
+                 "                The resource 'R.string.foo' appears to be unused\n" +
+
                  // This warning is unfortunate. We may want to get rid of it.
-                 "        Missing allowBackup attribute\n" +
+                 "    Android > Lint > Security\n" +
+                 "        AllowBackup/FullBackupContent Problems\n" +
                  "            app\n" +
                  "                On SDK version 23 and up, your app data will be automatically backed up and restored on app install. Consider adding the attribute 'android:fullBackupContent' to specify an '@xml' resource which configures which files to backup. More info: https://developer.android.com/preview/backup/index.html\n" +
 
                  // This warning is wrong: http://b.android.com/192605
+                 "    Android > Lint > Usability\n" +
                  "        Missing support for Google App Indexing\n" +
                  "            app\n" +
-                 "                Application should have at least one Activity supporting ACTION_VIEW\n" +
-
-                 // This warning is from the "foo" string we created in the Gradle resValue declaration above
-                 "        Unused resources\n" +
-                 "            app\n" +
-                 "                The resource 'R.string.foo' appears to be unused\n",
+                 "                App is not indexable by Google Search; consider adding at least one Activity with an ACTION-VIEW intent filter. See issue explanation for more details.\n",
                  inspections.getResults());
   }
 
