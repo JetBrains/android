@@ -19,10 +19,12 @@ import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.CreateFileFromTemplateDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.CreateFileFromTemplateDialogFixture.ComponentVisibility;
 import com.android.tools.idea.tests.gui.framework.fixture.CreateFileFromTemplateDialogFixture.Kind;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.JavaOverrideImplementMemberChooserFixture;
 import com.intellij.ide.actions.as.CreateFileFromTemplateDialog.Visibility;
 import com.intellij.ide.actions.as.CreateNewClassDialogValidatorExImpl;
 import org.fest.swing.query.ComponentVisibleQuery;
@@ -78,7 +80,7 @@ public class CreateNewClassDialogGuiTest {
     myEditor.open(PROVIDED_ACTIVITY);
   }
 
-  private CreateFileFromTemplateDialogFixture invokeDialog() {
+  private CreateFileFromTemplateDialogFixture invokeNewFileDialog() {
     guiTest.ideFrame().invokeMenuPath("File", "New", "Java Class");
     return CreateFileFromTemplateDialogFixture.find(guiTest.robot());
   }
@@ -106,7 +108,7 @@ public class CreateNewClassDialogGuiTest {
   }
 
   private void createPackagePrivate(Kind kind) throws IOException {
-    CreateFileFromTemplateDialogFixture dialog = invokeDialog();
+    CreateFileFromTemplateDialogFixture dialog = invokeNewFileDialog();
     dialog.setName(THING_NAME);
     dialog.selectKind(kind);
     dialog.setPackage(PACKAGE_NAME_0);
@@ -119,7 +121,7 @@ public class CreateNewClassDialogGuiTest {
   }
 
   private void createWithOneInterface(Kind kind) throws IOException {
-    CreateFileFromTemplateDialogFixture dialog = invokeDialog();
+    CreateFileFromTemplateDialogFixture dialog = invokeNewFileDialog();
     dialog.setName(THING_NAME);
     dialog.selectKind(kind);
     dialog.setInterface(INTERFACE_0);
@@ -137,7 +139,7 @@ public class CreateNewClassDialogGuiTest {
   }
 
   private void createWithTwoInterfacesImplicitly(Kind kind) throws IOException {
-    CreateFileFromTemplateDialogFixture dialog = invokeDialog();
+    CreateFileFromTemplateDialogFixture dialog = invokeNewFileDialog();
     dialog.setName(THING_NAME);
     dialog.selectKind(kind);
     dialog.setInterface(INTERFACE_0);
@@ -155,7 +157,7 @@ public class CreateNewClassDialogGuiTest {
   }
 
   private void createWithAnImport(Kind kind) throws IOException {
-    CreateFileFromTemplateDialogFixture dialog = invokeDialog();
+    CreateFileFromTemplateDialogFixture dialog = invokeNewFileDialog();
     dialog.setName(THING_NAME);
     dialog.selectKind(kind);
     dialog.setInterface(FULLY_QUALIFIED_INTERFACE);
@@ -176,7 +178,7 @@ public class CreateNewClassDialogGuiTest {
   // Create in package tests.
   @Test
   public void createClassInCurrentPackage() throws IOException {
-    CreateFileFromTemplateDialogFixture dialog = invokeDialog();
+    CreateFileFromTemplateDialogFixture dialog = invokeNewFileDialog();
     dialog.setName(THING_NAME);
     dialog.selectKind(Kind.CLASS);
     dialog.setVisibility(Visibility.PUBLIC);
@@ -188,7 +190,7 @@ public class CreateNewClassDialogGuiTest {
 
   @Test
   public void createClassInNewSubPackage() throws IOException {
-    CreateFileFromTemplateDialogFixture dialog = invokeDialog();
+    CreateFileFromTemplateDialogFixture dialog = invokeNewFileDialog();
     dialog.setName(THING_NAME);
     dialog.selectKind(Kind.CLASS);
     dialog.setPackage(PACKAGE_NAME_1);
@@ -201,7 +203,7 @@ public class CreateNewClassDialogGuiTest {
 
   @Test
   public void createClassInNewParallelPackage() throws IOException {
-    CreateFileFromTemplateDialogFixture dialog1 = invokeDialog();
+    CreateFileFromTemplateDialogFixture dialog1 = invokeNewFileDialog();
     dialog1.setName(THING_NAME);
     dialog1.selectKind(Kind.CLASS);
     dialog1.setPackage(PACKAGE_NAME_1);
@@ -209,7 +211,7 @@ public class CreateNewClassDialogGuiTest {
     dialog1.clickOk();
     myEditor.open(THING_FILE_PATH_1);
 
-    CreateFileFromTemplateDialogFixture dialog2 = invokeDialog();
+    CreateFileFromTemplateDialogFixture dialog2 = invokeNewFileDialog();
     dialog2.setName(THING_NAME);
     dialog2.selectKind(Kind.CLASS);
     dialog2.setPackage(PACKAGE_NAME_2);
@@ -222,7 +224,7 @@ public class CreateNewClassDialogGuiTest {
 
   @Test
   public void createInParentPackage() throws IOException {
-    CreateFileFromTemplateDialogFixture dialog1 = invokeDialog();
+    CreateFileFromTemplateDialogFixture dialog1 = invokeNewFileDialog();
     dialog1.setName(THING_NAME);
     dialog1.selectKind(Kind.CLASS);
     dialog1.setPackage(PACKAGE_NAME_1);
@@ -230,7 +232,7 @@ public class CreateNewClassDialogGuiTest {
     dialog1.clickOk();
     myEditor.open(THING_FILE_PATH_1);
 
-    CreateFileFromTemplateDialogFixture dialog0 = invokeDialog();
+    CreateFileFromTemplateDialogFixture dialog0 = invokeNewFileDialog();
     dialog0.setName(THING_NAME);
     dialog0.selectKind(Kind.CLASS);
     dialog0.setPackage(PACKAGE_NAME_0);
@@ -254,7 +256,7 @@ public class CreateNewClassDialogGuiTest {
 
   @Test
   public void createClassWithTwoInterfacesExplicitly() throws IOException {
-    CreateFileFromTemplateDialogFixture dialog = invokeDialog();
+    CreateFileFromTemplateDialogFixture dialog = invokeNewFileDialog();
     dialog.setName(THING_NAME);
     dialog.selectKind(Kind.CLASS);
     dialog.setInterface(INTERFACE_0);
@@ -276,7 +278,7 @@ public class CreateNewClassDialogGuiTest {
 
   @Test
   public void createClassWithSuperclass() throws IOException {
-    CreateFileFromTemplateDialogFixture dialog = invokeDialog();
+    CreateFileFromTemplateDialogFixture dialog = invokeNewFileDialog();
     dialog.setName(THING_NAME);
     dialog.selectKind(Kind.CLASS);
     dialog.setSuperclass(SUPERCLASS_0);
@@ -290,7 +292,7 @@ public class CreateNewClassDialogGuiTest {
 
   @Test
   public void createClassWithSuperclassAndInterface() throws IOException {
-    CreateFileFromTemplateDialogFixture dialog = invokeDialog();
+    CreateFileFromTemplateDialogFixture dialog = invokeNewFileDialog();
     dialog.setName(THING_NAME);
     dialog.selectKind(Kind.CLASS);
     dialog.setSuperclass(SUPERCLASS_0);
@@ -310,7 +312,7 @@ public class CreateNewClassDialogGuiTest {
 
   @Test
   public void createClassWithNestedInterfaceImport() throws IOException {
-    CreateFileFromTemplateDialogFixture dialog = invokeDialog();
+    CreateFileFromTemplateDialogFixture dialog = invokeNewFileDialog();
     dialog.setName(THING_NAME);
     dialog.selectKind(Kind.CLASS);
     dialog.setInterface(JAVA_UTIL_MAP_ENTRY);
@@ -369,7 +371,7 @@ public class CreateNewClassDialogGuiTest {
   // that all forms of invalid input produce errors. NewClassDialogOptionsValidatorTest does that.
   @Test
   public void invalidName() throws IOException, InterruptedException {
-    CreateFileFromTemplateDialogFixture dialog = invokeDialog();
+    CreateFileFromTemplateDialogFixture dialog = invokeNewFileDialog();
     dialog.setName(INVALID_NAME);
     dialog.selectKind(Kind.CLASS);
     dialog.setPackage(PACKAGE_NAME_0);
@@ -384,7 +386,7 @@ public class CreateNewClassDialogGuiTest {
 
   @Test
   public void invalidSuperclass() throws IOException, InterruptedException {
-    CreateFileFromTemplateDialogFixture dialog = invokeDialog();
+    CreateFileFromTemplateDialogFixture dialog = invokeNewFileDialog();
     dialog.setName(THING_NAME);
     dialog.selectKind(Kind.CLASS);
     dialog.setSuperclass(INVALID_NAME);
@@ -400,7 +402,7 @@ public class CreateNewClassDialogGuiTest {
 
   @Test
   public void invalidInterfaceName() throws IOException, InterruptedException {
-    CreateFileFromTemplateDialogFixture dialog = invokeDialog();
+    CreateFileFromTemplateDialogFixture dialog = invokeNewFileDialog();
     dialog.setName(THING_NAME);
     dialog.selectKind(Kind.CLASS);
     dialog.setInterface(INVALID_INTERFACE);
@@ -416,7 +418,7 @@ public class CreateNewClassDialogGuiTest {
 
   @Test
   public void invalidPackage() throws IOException, InterruptedException {
-    CreateFileFromTemplateDialogFixture dialog = invokeDialog();
+    CreateFileFromTemplateDialogFixture dialog = invokeNewFileDialog();
     dialog.setName(THING_NAME);
     dialog.selectKind(Kind.CLASS);
     dialog.setPackage(INVALID_PACKAGE_NAME);
@@ -431,32 +433,28 @@ public class CreateNewClassDialogGuiTest {
   // (Un)hiding fields tests.
   @Test
   public void hidingComponents() throws IOException {
-    CreateFileFromTemplateDialogFixture dialog = invokeDialog();
+    CreateFileFromTemplateDialogFixture dialog = invokeNewFileDialog();
     dialog.selectKind(Kind.CLASS);
     assertTrue(ComponentVisibleQuery.isVisible(dialog.getAbstractCheckBox(ComponentVisibility.VISIBLE)));
     assertTrue(ComponentVisibleQuery.isVisible(dialog.getFinalCheckBox(ComponentVisibility.VISIBLE)));
-    // TODO Uncomment this when the overrides work is done.
-    //assertTrue(ComponentVisibleQuery.isVisible(dialog.getOverridesCheckBox(ComponentVisibility.VISIBLE)));
+    assertTrue(ComponentVisibleQuery.isVisible(dialog.getOverridesCheckBox(ComponentVisibility.VISIBLE)));
 
     dialog.selectKind(Kind.INTERFACE);
     assertFalse(ComponentVisibleQuery.isVisible(dialog.getAbstractCheckBox(ComponentVisibility.NOT_VISIBLE)));
     assertFalse(ComponentVisibleQuery.isVisible(dialog.getFinalCheckBox(ComponentVisibility.NOT_VISIBLE)));
-    // TODO Uncomment this when the overrides work is done.
-    //assertFalse(ComponentVisibleQuery.isVisible(dialog.getOverridesCheckBox(ComponentVisibility.NOT_VISIBLE)));
+    assertFalse(ComponentVisibleQuery.isVisible(dialog.getOverridesCheckBox(ComponentVisibility.NOT_VISIBLE)));
 
     dialog.selectKind(Kind.CLASS);
     assertTrue(ComponentVisibleQuery.isVisible(dialog.getAbstractCheckBox(ComponentVisibility.VISIBLE)));
     assertTrue(ComponentVisibleQuery.isVisible(dialog.getFinalCheckBox(ComponentVisibility.VISIBLE)));
-    // TODO Uncomment this when the overrides work is done.
-    //assertTrue(ComponentVisibleQuery.isVisible(dialog.getOverridesCheckBox(ComponentVisibility.VISIBLE)));
-
+    assertTrue(ComponentVisibleQuery.isVisible(dialog.getOverridesCheckBox(ComponentVisibility.VISIBLE)));
     dialog.clickCancel();
   }
 
   // Interfaces vs. classes.
   @Test
   public void implementAClass() throws IOException {
-    CreateFileFromTemplateDialogFixture dialog = invokeDialog();
+    CreateFileFromTemplateDialogFixture dialog = invokeNewFileDialog();
     dialog.setName(THING_NAME);
     dialog.selectKind(Kind.CLASS);
     dialog.setInterface("java.lang.Object");
@@ -469,7 +467,7 @@ public class CreateNewClassDialogGuiTest {
 
   @Test
   public void extendAnInterface() throws IOException {
-    CreateFileFromTemplateDialogFixture dialog = invokeDialog();
+    CreateFileFromTemplateDialogFixture dialog = invokeNewFileDialog();
     dialog.setName(THING_NAME);
     dialog.selectKind(Kind.CLASS);
     dialog.setSuperclass("java.lang.Runnable");
@@ -478,5 +476,16 @@ public class CreateNewClassDialogGuiTest {
     String actualMessage = dialog.getMessage();
     assertEquals(CreateNewClassDialogValidatorExImpl.INVALID_QUALIFIED_NAME, actualMessage);
     dialog.clickCancel();
+  }
+
+  // Overrides dialog tests.
+  @Test
+  public void showOverridesDialog() throws IOException {
+    CreateFileFromTemplateDialogFixture newFileDialog = invokeNewFileDialog();
+    newFileDialog.setName(THING_NAME);
+    GuiTests.setSelected(newFileDialog.getOverridesCheckBox(ComponentVisibility.VISIBLE), true);
+    newFileDialog.clickOk();
+    JavaOverrideImplementMemberChooserFixture overridesDialog = JavaOverrideImplementMemberChooserFixture.find(guiTest.robot());
+    overridesDialog.clickCancel();
   }
 }
