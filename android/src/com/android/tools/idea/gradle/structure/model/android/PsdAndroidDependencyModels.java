@@ -81,7 +81,7 @@ class PsdAndroidDependencyModels {
   private void addModule(@NotNull String gradlePath, @NotNull PsdAndroidArtifactModel artifactModel, @Nullable String projectVariant) {
     PsdParsedDependencyModels parsedDependencies = myParent.getParsedDependencyModels();
 
-    ModuleDependencyModel matchingParsedDependency = parsedDependencies.findMatchingModuleDependency(gradlePath);
+    ModuleDependencyModel matchingParsedDependency = parsedDependencies.findMatchingModuleDependency(gradlePath, artifactModel);
 
     Module module = null;
     PsdModuleModel moduleModel = myParent.getParent().findModelByGradlePath(gradlePath);
@@ -102,7 +102,7 @@ class PsdAndroidDependencyModels {
 
     MavenCoordinates coordinates = library.getResolvedCoordinates();
     if (coordinates != null) {
-      ArtifactDependencyModel matchingParsedDependency = parsedDependencies.findMatchingArtifactDependency(coordinates);
+      ArtifactDependencyModel matchingParsedDependency = parsedDependencies.findMatchingArtifactDependency(coordinates, artifactModel);
       if (matchingParsedDependency != null) {
         String parsedVersionValue = matchingParsedDependency.version().value();
         if (parsedVersionValue != null) {
@@ -261,6 +261,11 @@ class PsdAndroidDependencyModels {
         pomDependencies = findDependenciesInPomFile(libraryPath);
       }
       dependencyModel.setPomDependencies(pomDependencies);
+    }
+    else {
+      if (dependencyModel.getParsedModel() == null) {
+        dependencyModel.setParsedModel(parsedModel);
+      }
     }
     return dependencyModel;
   }

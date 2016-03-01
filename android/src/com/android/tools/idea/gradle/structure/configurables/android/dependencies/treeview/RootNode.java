@@ -137,9 +137,14 @@ class RootNode extends AbstractRootNode {
           ArtifactNode mainArtifactNode = null;
           String mainArtifactName = ARTIFACT_MAIN;
           if (!mainArtifactName.equals(artifactName)) {
+            // Add "main" artifact as a dependency of "unit test" or "android test" artifact.
             PsdAndroidArtifactModel mainArtifactModel = variantModel.findArtifact(mainArtifactName);
             if (mainArtifactModel != null) {
-              mainArtifactNode = createArtifactNode(mainArtifactModel, dependenciesByArtifact.get(mainArtifactName), null);
+              List<PsdAndroidDependencyModel> artifactDependencies = dependenciesByArtifact.get(mainArtifactName);
+              if (artifactDependencies == null) {
+                artifactDependencies = Collections.emptyList();
+              }
+              mainArtifactNode = createArtifactNode(mainArtifactModel, artifactDependencies, null);
             }
           }
 
