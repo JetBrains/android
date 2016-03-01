@@ -97,13 +97,21 @@ public final class GuiTests {
 
   public static final String GUI_TESTS_RUNNING_IN_SUITE_PROPERTY = "gui.tests.running.in.suite";
 
-  /** Environment variable set by users to point to sources */
+  /**
+   * Environment variable set by users to point to sources
+   */
   public static final String AOSP_SOURCE_PATH = "AOSP_SOURCE_PATH";
-  /** Older environment variable pointing to the sdk dir inside AOSP; checked for compatibility */
+  /**
+   * Older environment variable pointing to the sdk dir inside AOSP; checked for compatibility
+   */
   public static final String ADT_SDK_SOURCE_PATH = "ADT_SDK_SOURCE_PATH";
-  /** AOSP-relative path to directory containing GUI test data */
+  /**
+   * AOSP-relative path to directory containing GUI test data
+   */
   public static final String RELATIVE_DATA_PATH = "tools/adt/idea/android/testData/guiTests".replace('/', File.separatorChar);
-  /** Environment variable pointing to the JDK to be used for tests */
+  /**
+   * Environment variable pointing to the JDK to be used for tests
+   */
   public static final String JDK_HOME_FOR_TESTS = "JDK_HOME_FOR_TESTS";
 
   private static final EventQueue SYSTEM_EVENT_QUEUE = Toolkit.getDefaultToolkit().getSystemEventQueue();
@@ -264,7 +272,8 @@ public final class GuiTests {
         if (SYSTEM_EVENT_QUEUE.peekEvent() != null) {
           SYSTEM_EVENT_QUEUE.getNextEvent();
         }
-      } catch (InterruptedException ex ) {
+      }
+      catch (InterruptedException ex) {
         // Ignored.
       }
 
@@ -351,7 +360,7 @@ public final class GuiTests {
 
   @NotNull
   public static File getProjectCreationDirPath() {
-   return TMP_PROJECT_ROOT;
+    return TMP_PROJECT_ROOT;
   }
 
   @NotNull
@@ -402,7 +411,9 @@ public final class GuiTests {
     }
   }
 
-  /** Waits until an IDE popup is shown (and returns it */
+  /**
+   * Waits until an IDE popup is shown (and returns it
+   */
   public static JBList waitForPopup(@NotNull Robot robot) {
     return waitUntilFound(robot, null, new GenericTypeMatcher<JBList>(JBList.class) {
       @Override
@@ -417,8 +428,8 @@ public final class GuiTests {
    * Clicks an IntelliJ/Studio popup menu item with the given label prefix
    *
    * @param labelPrefix the target menu item label prefix
-   * @param component a component in the same window that the popup menu is associated with
-   * @param robot the robot to drive it with
+   * @param component   a component in the same window that the popup menu is associated with
+   * @param robot       the robot to drive it with
    */
   public static void clickPopupMenuItem(@NotNull String labelPrefix, @NotNull Component component, @NotNull Robot robot) {
     clickPopupMenuItemMatching(new PrefixMatcher(labelPrefix), component, robot);
@@ -451,8 +462,9 @@ public final class GuiTests {
       Object elementAt = model.getElementAt(i);
       String s;
       if (elementAt instanceof PopupFactoryImpl.ActionItem) {
-        s = ((PopupFactoryImpl.ActionItem) elementAt).getText();
-      } else { // For example package private class IntentionActionWithTextCaching used in quickfix popups
+        s = ((PopupFactoryImpl.ActionItem)elementAt).getText();
+      }
+      else { // For example package private class IntentionActionWithTextCaching used in quickfix popups
         s = elementAt.toString();
       }
 
@@ -470,7 +482,9 @@ public final class GuiTests {
     fail("Did not find menu item '" + labelMatcher + "' among " + on(", ").join(items));
   }
 
-  /** Returns the root container containing the given component */
+  /**
+   * Returns the root container containing the given component
+   */
   @Nullable
   public static Container getRootContainer(@NotNull final Component component) {
     return execute(new GuiQuery<Container>() {
@@ -511,18 +525,29 @@ public final class GuiTests {
   @NotNull
   private static JButton findButton(@NotNull ContainerFixture<? extends Container> container, @NotNull final String text, Robot robot) {
     return robot.finder().find(container.target(), new GenericTypeMatcher<JButton>(JButton.class) {
-        @Override
-        protected boolean isMatching(@NotNull JButton button) {
-          String buttonText = button.getText();
-          if (buttonText != null) {
-            return buttonText.trim().equals(text) && button.isShowing();
-          }
-          return false;
+      @Override
+      protected boolean isMatching(@NotNull JButton button) {
+        String buttonText = button.getText();
+        if (buttonText != null) {
+          return buttonText.trim().equals(text) && button.isShowing();
         }
-      });
+        return false;
+      }
+    });
   }
 
-  /** Returns a full path to the GUI data directory in the user's AOSP source tree, if known, or null */
+  public static void setSelected(@NotNull final JCheckBox checkBox, final boolean selected) {
+    execute(new GuiTask() {
+      @Override
+      protected void executeInEDT() throws Throwable {
+        checkBox.setSelected(selected);
+      }
+    });
+  }
+
+  /**
+   * Returns a full path to the GUI data directory in the user's AOSP source tree, if known, or null
+   */
   @Nullable
   public static File getTestDataDir() {
     File aosp = getAospSourceDir();
@@ -559,13 +584,17 @@ public final class GuiTests {
     return null;
   }
 
-  /** Waits for a first component which passes the given matcher to become visible */
+  /**
+   * Waits for a first component which passes the given matcher to become visible
+   */
   @NotNull
   public static <T extends Component> T waitUntilFound(@NotNull final Robot robot, @NotNull final GenericTypeMatcher<T> matcher) {
     return waitUntilFound(robot, null, matcher);
   }
 
-  /** Waits for a first component which passes the given matcher under the given root to become visible. */
+  /**
+   * Waits for a first component which passes the given matcher under the given root to become visible.
+   */
   @NotNull
   public static <T extends Component> T waitUntilFound(@NotNull final Robot robot,
                                                        @Nullable final Container root,
@@ -592,7 +621,9 @@ public final class GuiTests {
     return reference.get();
   }
 
-  /** Waits until no components match the given criteria under the given root */
+  /**
+   * Waits until no components match the given criteria under the given root
+   */
   public static <T extends Component> void waitUntilGone(@NotNull final Robot robot,
                                                          @NotNull final Container root,
                                                          @NotNull final GenericTypeMatcher<T> matcher) {
@@ -643,7 +674,7 @@ public final class GuiTests {
 
     @Override
     public void describeTo(Description description) {
-      description.appendText("with prefix '" + prefix +"'");
+      description.appendText("with prefix '" + prefix + "'");
     }
   }
 }
