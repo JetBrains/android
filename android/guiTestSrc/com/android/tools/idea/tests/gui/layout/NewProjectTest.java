@@ -141,7 +141,7 @@ public class NewProjectTest {
     editor.requireName("A.java");
     editor.close();
     editor.requireName("activity_a.xml");
-    LayoutEditorFixture layoutEditor = editor.getLayoutEditor(false);
+    LayoutEditorFixture layoutEditor = editor.getLayoutEditor(true);
     assertNotNull("Layout editor was not showing", layoutEditor);
     layoutEditor.waitForNextRenderToFinish();
     guiTest.ideFrame().invokeProjectMake();
