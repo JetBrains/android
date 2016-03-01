@@ -448,11 +448,13 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent, Co
 
   private boolean checkForNewMissingDependencies() {
     Module module = getModule();
-    assert module != null;
-    GradleDependencyManager manager = GradleDependencyManager.getInstance(module.getProject());
-    List<String> missing = fromGradleCoordinates(manager.findMissingDependencies(module, toGradleCoordinates(myModel.getLibrariesUsed())));
-    if (missing.size() == myMissingLibraries.size() && myMissingLibraries.containsAll(missing)) {
-      return false;
+    List<String> missing = Collections.emptyList();
+    if (module != null) {
+      GradleDependencyManager manager = GradleDependencyManager.getInstance(module.getProject());
+      missing = fromGradleCoordinates(manager.findMissingDependencies(module, toGradleCoordinates(myModel.getLibrariesUsed())));
+      if (missing.size() == myMissingLibraries.size() && myMissingLibraries.containsAll(missing)) {
+        return false;
+      }
     }
     myMissingLibraries.clear();
     myMissingLibraries.addAll(missing);
