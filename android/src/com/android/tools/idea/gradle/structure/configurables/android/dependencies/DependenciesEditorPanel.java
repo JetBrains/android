@@ -32,6 +32,7 @@ import com.intellij.ui.JBSplitter;
 import com.intellij.ui.OnePixelSplitter;
 import com.intellij.ui.SideBorder;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -92,7 +93,7 @@ class DependenciesEditorPanel extends JPanel implements Disposable {
 
     myVariantsToolWindowPanel.add(new VariantsToolWindowPanel.SelectionListener() {
       @Override
-      public void dependencyModelSelected(@NotNull PsdAndroidDependencyModel model) {
+      public void dependencyModelSelected(@Nullable PsdAndroidDependencyModel model) {
         myDependenciesPanel.setSelection(model);
       }
     });
