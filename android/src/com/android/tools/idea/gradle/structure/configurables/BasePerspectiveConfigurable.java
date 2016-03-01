@@ -96,7 +96,7 @@ public abstract class BasePerspectiveConfigurable extends MasterDetailsComponent
     if (configurable instanceof BaseNamedConfigurable) {
       BaseNamedConfigurable baseConfigurable = (BaseNamedConfigurable)configurable;
       PsdModuleModel moduleModel = baseConfigurable.getEditableObject();
-      myContext.setSelectedModule(moduleModel.getModuleName(), this);
+      myContext.setSelectedModule(moduleModel.getName(), this);
     }
   }
 

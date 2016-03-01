@@ -52,6 +52,7 @@ public class PsdProductFlavorModel extends PsdChildModel {
     return myParsedModel != null;
   }
 
+  @Override
   @NotNull
   public String getName() {
     return myName;
@@ -60,10 +61,5 @@ public class PsdProductFlavorModel extends PsdChildModel {
   public void setName(@NotNull String name) {
     myName = name;
     setModified(true);
-  }
-
-  @Override
-  public String toString() {
-    return myName;
   }
 }
