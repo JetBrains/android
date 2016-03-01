@@ -23,6 +23,7 @@ import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.ToolWindowFixture;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.project.Project;
+import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.timing.Condition;
@@ -63,7 +64,13 @@ public class LayoutPreviewFixture extends ToolWindowFixture implements LayoutFix
   @NotNull
   public ConfigurationToolbarFixture getToolbar() {
     AndroidLayoutPreviewToolWindowForm form = getContent();
-    ConfigurationToolBar toolbar = myRobot.finder().findByType(form.getContentPanel(), ConfigurationToolBar.class, true);
+    ConfigurationToolBar toolbar =
+      GuiTests.waitUntilFound(myRobot, form.getContentPanel(), new GenericTypeMatcher<ConfigurationToolBar>(ConfigurationToolBar.class) {
+        @Override
+        protected boolean isMatching(@NotNull ConfigurationToolBar component) {
+          return component.isShowing();
+        }
+      });
     assertNotNull(toolbar);
     return new ConfigurationToolbarFixture(myRobot, this, form, toolbar);
   }
