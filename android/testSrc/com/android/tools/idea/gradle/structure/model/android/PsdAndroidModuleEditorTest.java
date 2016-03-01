@@ -127,7 +127,7 @@ public class PsdAndroidModuleEditorTest extends AndroidGradleTestCase {
     // Verify that appcompat is considered a "editable" dependency, and it was matched properly
     PsdLibraryDependencyModel appCompatV7Editor = (PsdLibraryDependencyModel)declaredDependencies.get(0);
     assertTrue(appCompatV7Editor.isEditable());
-    assertEquals("com.android.support:appcompat-v7:23.1.1", appCompatV7Editor.getResolvedSpec().toString());
+    assertEquals("com.android.support:appcompat-v7:23.1.1", appCompatV7Editor.getSpec().toString());
 
     // Verify that the variants where appcompat is are properly registered.
     List<String> variants = appCompatV7Editor.getVariants();
@@ -155,7 +155,7 @@ public class PsdAndroidModuleEditorTest extends AndroidGradleTestCase {
     // Verify that appcompat is considered a "editable" dependency, and it was matched properly
     PsdLibraryDependencyModel appCompatV7Editor = (PsdLibraryDependencyModel)declaredDependencies.get(0);
     assertTrue(appCompatV7Editor.isEditable());
-    assertEquals("com.android.support:appcompat-v7:+", appCompatV7Editor.getResolvedSpec().toString());
+    assertEquals("com.android.support:appcompat-v7:+", appCompatV7Editor.getSpec().toString());
 
     // Verify that the variants where appcompat is are properly registered.
     List<String> variants = appCompatV7Editor.getVariants();
