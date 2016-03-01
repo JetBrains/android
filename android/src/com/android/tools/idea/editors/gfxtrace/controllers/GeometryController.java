@@ -40,7 +40,7 @@ import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.util.ui.StatusText;
 import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLProfile;
-import com.jogamp.opengl.awt.GLCanvas;
+import com.jogamp.opengl.awt.GLJPanel;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -66,7 +66,7 @@ public class GeometryController extends Controller implements AtomStream.Listene
   private final JPanel myPanel = new JPanel(new CardLayout());
   private final JBLoadingPanel myLoading = new JBLoadingPanel(new BorderLayout(), myEditor.getProject(), 50);
   private final EmptyPanel myEmptyPanel = new EmptyPanel();
-  private final GLCanvas myCanvas;
+  private final GLJPanel myCanvas;
   private final IsoSurfaceCameraModel myCamera = new IsoSurfaceCameraModel(new CylindricalCameraModel());
   private final Viewer myViewer = new Viewer(myCamera);
 
@@ -85,7 +85,7 @@ public class GeometryController extends Controller implements AtomStream.Listene
     caps.setDoubleBuffered(true);
     caps.setHardwareAccelerated(true);
     caps.setSampleBuffers(true);
-    myCanvas = new GLCanvas(caps);
+    myCanvas = new GLJPanel(caps);
     myCanvas.addGLEventListener(myViewer);
     myViewer.addMouseListeners(myCanvas);
 
