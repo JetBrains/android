@@ -52,7 +52,10 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.List;
 import java.util.Set;
 
@@ -106,9 +109,9 @@ class VariantsToolWindowPanel extends ToolWindowPanel implements DependencySelec
     myTreeSelectionListener = new TreeSelectionListener() {
       @Override
       public void valueChanged(TreeSelectionEvent e) {
+        myTreeBuilder.updateSelection();
         PsdAndroidDependencyModel selected = getSelection();
         if (selected != null) {
-          setSelection(selected);
           for (SelectionListener listener : mySelectionListeners) {
             listener.dependencyModelSelected(selected);
           }
@@ -335,8 +338,15 @@ class VariantsToolWindowPanel extends ToolWindowPanel implements DependencySelec
   }
 
   @Override
-  public void setSelection(@NotNull PsdAndroidDependencyModel selection) {
-    myTreeBuilder.setSelection(selection);
+  public void setSelection(@Nullable PsdAndroidDependencyModel selection) {
+    myTree.removeTreeSelectionListener(myTreeSelectionListener);
+    if (selection == null) {
+      myTreeBuilder.clearSelection();
+    }
+    else {
+      myTreeBuilder.setSelection(selection);
+    }
+    myTree.addTreeSelectionListener(myTreeSelectionListener);
   }
 
   void add(@NotNull SelectionListener listener) {
@@ -374,6 +384,6 @@ class VariantsToolWindowPanel extends ToolWindowPanel implements DependencySelec
   }
 
   public interface SelectionListener {
-    void dependencyModelSelected(@NotNull PsdAndroidDependencyModel model);
+    void dependencyModelSelected(@Nullable PsdAndroidDependencyModel model);
   }
 }

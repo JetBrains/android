@@ -23,6 +23,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -132,11 +133,18 @@ class RootNode extends AbstractRootNode {
         for (String artifactName : artifactNames) {
           PsdAndroidArtifactModel artifactModel = variantModel.findArtifact(artifactName);
           assert artifactModel != null;
-          List<PsdAndroidDependencyModel> artifactDependencies = dependenciesByArtifact.get(artifactName);
 
-          if (!artifactDependencies.isEmpty()) {
-            ArtifactNode artifactNode = new ArtifactNode(this, artifactModel);
-            artifactNode.setChildren(createNodesFor(artifactNode, artifactDependencies));
+          ArtifactNode mainArtifactNode = null;
+          String mainArtifactName = ARTIFACT_MAIN;
+          if (!mainArtifactName.equals(artifactName)) {
+            PsdAndroidArtifactModel mainArtifactModel = variantModel.findArtifact(mainArtifactName);
+            if (mainArtifactModel != null) {
+              mainArtifactNode = createArtifactNode(mainArtifactModel, dependenciesByArtifact.get(mainArtifactName), null);
+            }
+          }
+
+          ArtifactNode artifactNode = createArtifactNode(artifactModel, dependenciesByArtifact.get(artifactName), mainArtifactNode);
+          if (artifactNode != null) {
             childrenNodes.add(artifactNode);
           }
         }
@@ -144,6 +152,22 @@ class RootNode extends AbstractRootNode {
     }
 
     return childrenNodes;
+  }
+
+  @Nullable
+  private ArtifactNode createArtifactNode(@NotNull PsdAndroidArtifactModel artifactModel,
+                                          @NotNull List<PsdAndroidDependencyModel> artifactDependencies,
+                                          @Nullable ArtifactNode mainArtifactNode) {
+    if (!artifactDependencies.isEmpty() || mainArtifactNode != null) {
+      ArtifactNode artifactNode = new ArtifactNode(this, artifactModel);
+      List<AbstractPsdNode<?>> children = createNodesFor(artifactNode, artifactDependencies);
+      if (mainArtifactNode != null) {
+        children.add(0, mainArtifactNode);
+      }
+      artifactNode.setChildren(children);
+      return artifactNode;
+    }
+    return null;
   }
 
   @VisibleForTesting
