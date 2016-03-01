@@ -34,7 +34,7 @@ public abstract class BaseNamedConfigurable<T extends PsdModuleModel> extends Na
 
   protected BaseNamedConfigurable(@NotNull T moduleModel) {
     myModuleModel = moduleModel;
-    myDisplayName = moduleModel.getModuleName();
+    myDisplayName = moduleModel.getName();
   }
 
   @Override

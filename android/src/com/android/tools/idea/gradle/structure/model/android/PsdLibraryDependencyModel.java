@@ -126,6 +126,12 @@ public class PsdLibraryDependencyModel extends PsdAndroidDependencyModel {
 
   @Override
   @NotNull
+  public String getName() {
+    return myResolvedSpec.name;
+  }
+
+  @Override
+  @NotNull
   public Icon getIcon() {
     Icon icon = LIBRARY_ICON;
     if (myProblem != null) {

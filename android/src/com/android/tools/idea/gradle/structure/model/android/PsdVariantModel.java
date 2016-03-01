@@ -45,6 +45,7 @@ public class PsdVariantModel extends PsdChildModel {
     myGradleModel = gradleModel;
   }
 
+  @Override
   @NotNull
   public String getName() {
     return myName;
@@ -110,10 +111,5 @@ public class PsdVariantModel extends PsdChildModel {
   @Override
   public int hashCode() {
     return Objects.hashCode(myName);
-  }
-
-  @Override
-  public String toString() {
-    return myName;
   }
 }
