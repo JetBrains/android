@@ -61,7 +61,7 @@ public class EditableDependenciesTableModelTest extends IdeaTestCase {
 
   public void testShowArtifactDependencySpec() {
     PsdArtifactDependencySpec spec = new PsdArtifactDependencySpec("appcompat-v7", "com.android.support", "23.1.0");
-    when(myLibraryDependencyModel.getResolvedSpec()).thenReturn(spec);
+    when(myLibraryDependencyModel.getSpec()).thenReturn(spec);
     when(myLibraryDependencyModel.getValueAsText()).thenReturn("com.android.support:appcompat-v7:23.1.0");
 
     ColumnInfo[] columnInfos = myTableModel.getColumnInfos();
