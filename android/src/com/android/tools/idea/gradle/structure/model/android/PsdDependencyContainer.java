@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.structure.model.android;
 
 import com.google.common.base.Objects;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.TestOnly;
 
 public class PsdDependencyContainer {
   @NotNull private final String myVariant;
@@ -26,7 +27,19 @@ public class PsdDependencyContainer {
   PsdDependencyContainer(@NotNull PsdAndroidArtifactModel artifactModel) {
     myVariant = artifactModel.getParent().getName();
     myArtifact = artifactModel.getGradleModel().getName();
-    myName = myVariant + " " + myArtifact;
+    myName = createName(myVariant, myArtifact);
+  }
+
+  @TestOnly
+  public PsdDependencyContainer(@NotNull String variant, @NotNull String artifact) {
+    myVariant = variant;
+    myArtifact = artifact;
+    myName = createName(myVariant, myArtifact);
+  }
+
+  @NotNull
+  private static String createName(@NotNull String variant, @NotNull String artifact) {
+    return variant + " " + artifact;
   }
 
   @NotNull
