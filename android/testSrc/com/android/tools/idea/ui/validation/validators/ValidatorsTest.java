@@ -22,29 +22,6 @@ import static org.fest.assertions.Assertions.assertThat;
 public class ValidatorsTest {
 
   @Test
-  public void postiveIntValidatorWorks() throws Exception {
-    PositiveIntValidator validator = new PositiveIntValidator("Dummy error message");
-    assertThat(validator.validate(1).getSeverity()).isEqualTo(Validator.Severity.OK);
-    assertThat(validator.validate(Integer.MAX_VALUE).getSeverity()).isEqualTo(Validator.Severity.OK);
-    assertThat(validator.validate(0).getSeverity()).isEqualTo(Validator.Severity.ERROR);
-    assertThat(validator.validate(-1).getSeverity()).isEqualTo(Validator.Severity.ERROR);
-    assertThat(validator.validate(Integer.MIN_VALUE).getSeverity()).isEqualTo(Validator.Severity.ERROR);
-  }
-
-  @Test
-  public void positiveDoubleValidatorWorks() throws Exception {
-    PositiveDoubleValidator validator = new PositiveDoubleValidator("Dummy error message");
-    assertThat(validator.validate(1.0).getSeverity()).isEqualTo(Validator.Severity.OK);
-    assertThat(validator.validate(Double.MAX_VALUE).getSeverity()).isEqualTo(Validator.Severity.OK);
-    // Double.MIN_VALUE is the smallest *positive* value, despite sane expectations
-    assertThat(validator.validate(Double.MIN_VALUE).getSeverity()).isEqualTo(Validator.Severity.OK);
-    assertThat(validator.validate(0.0).getSeverity()).isEqualTo(Validator.Severity.ERROR);
-    assertThat(validator.validate(-1.0).getSeverity()).isEqualTo(Validator.Severity.ERROR);
-    assertThat(validator.validate(-0.000001).getSeverity()).isEqualTo(Validator.Severity.ERROR);
-    assertThat(validator.validate(-Double.MAX_VALUE).getSeverity()).isEqualTo(Validator.Severity.ERROR);
-  }
-
-  @Test
   public void trueValidatorWorks() throws Exception {
     TrueValidator validator = new TrueValidator("Dummy error message");
     assertThat(validator.validate(Boolean.TRUE).getSeverity()).isEqualTo(Validator.Severity.OK);
