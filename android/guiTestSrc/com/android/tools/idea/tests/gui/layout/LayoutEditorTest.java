@@ -60,8 +60,7 @@ public class LayoutEditorTest {
 
     // Open file as XML and switch to design tab, wait for successful render
     EditorFixture editor = guiTest.ideFrame().getEditor();
-    editor.open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR);
-    editor.selectEditorTab(EditorFixture.Tab.DESIGN);
+    editor.open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN);
 
     LayoutEditorFixture layout = editor.getLayoutEditor(false);
     assertNotNull(layout);
@@ -137,7 +136,6 @@ public class LayoutEditorTest {
     property.requireXmlValue("?android:attr");
   }
 
-  @Ignore("failed in http://go/aj/job/studio-ui-test/389 and from IDEA")
   @Test
   public void testDeletion() throws Exception {
     // Tests deletion: Opens a layout, finds the first TextView, deletes it,
