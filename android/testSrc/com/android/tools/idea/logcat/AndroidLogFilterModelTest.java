@@ -192,7 +192,7 @@ public class AndroidLogFilterModelTest {
 
     @Override
     public String getSelectedLogLevelName() {
-      return myMinimumLevel.name();
+      return myMinimumLevel.getStringValue();
     }
 
     @Override
