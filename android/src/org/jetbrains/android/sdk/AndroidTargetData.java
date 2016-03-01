@@ -224,7 +224,7 @@ public class AndroidTargetData {
 
   @Nullable
   public synchronized FrameworkResources getFrameworkResources(boolean withLocale) throws IOException {
-    // if the framework resources that we got was created by someone else who didnt need locale data
+    // if the framework resources that we got was created by someone else who didn't need locale data
     if (withLocale && myFrameworkResources instanceof FrameworkResourceLoader.IdeFrameworkResources && ((FrameworkResourceLoader.IdeFrameworkResources)myFrameworkResources).getSkippedLocales()) {
       myFrameworkResources = null;
     }
