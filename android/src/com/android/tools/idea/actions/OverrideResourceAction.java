@@ -60,7 +60,6 @@ import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static com.android.SdkConstants.ATTR_NAME;
@@ -491,7 +490,7 @@ public class OverrideResourceAction extends AbstractIntentionAction {
     }
 
     @Override
-    public PsiElement[] create(String newName, Map<String, String> creationOptions) throws Exception {
+    public PsiElement[] create(String newName) throws Exception {
       PsiDirectory subdirectory = myDirectory.findSubdirectory(newName);
       if (subdirectory == null) {
         subdirectory = myDirectory.createSubdirectory(newName);
@@ -512,7 +511,7 @@ public class OverrideResourceAction extends AbstractIntentionAction {
         myCreatedElements = new PsiDirectory[]{subdirectory};
         return true;
       }
-      myCreatedElements = tryCreate(inputString, Collections.<String, String>emptyMap());
+      myCreatedElements = tryCreate(inputString);
       return myCreatedElements.length > 0;
     }
 

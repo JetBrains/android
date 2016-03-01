@@ -52,8 +52,6 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.Collections;
-import java.util.Map;
 
 /**
  * @author Eugene.Kudelevsky
@@ -95,7 +93,7 @@ public class NewAndroidComponentDialog extends DialogWrapper {
     myCreator = new ElementCreator(module.getProject(), CommonBundle.getErrorTitle()) {
 
       @Override
-      protected PsiElement[] create(String newName, Map<String, String> creationOptions) throws Exception {
+      protected PsiElement[] create(String newName) throws Exception {
         final PsiElement element = NewAndroidComponentDialog.this.create(newName, directory, module.getProject());
         if (element != null) {
           return new PsiElement[]{element};
@@ -325,7 +323,7 @@ public class NewAndroidComponentDialog extends DialogWrapper {
 
   @Override
   protected void doOKAction() {
-    myCreatedElements = myCreator.tryCreate(myNameField.getText(), Collections.<String, String>emptyMap());
+    myCreatedElements = myCreator.tryCreate(myNameField.getText());
     if (myCreatedElements.length == 0) {
       return;
     }
