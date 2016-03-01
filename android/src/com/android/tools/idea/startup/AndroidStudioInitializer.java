@@ -19,6 +19,7 @@ import com.android.tools.idea.actions.MakeIdeaModuleAction;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.intellij.lang.injection.MultiHostInjector;
+import com.intellij.ide.actions.as.CreateClassAction;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.ex.ApplicationManagerEx;
 import com.intellij.openapi.diagnostic.Logger;
@@ -83,12 +84,13 @@ public class AndroidStudioInitializer implements Runnable {
     setUpNewFilePopupActions();
     setUpMakeActions();
     disableGroovyLanguageInjection();
+    setUpNewProjectActions();
 
     // Modify built-in "Default" color scheme to remove background from XML tags.
     // "Darcula" and user schemes will not be touched.
     EditorColorsScheme colorsScheme = EditorColorsManager.getInstance().getScheme(EditorColorsScheme.DEFAULT_SCHEME_NAME);
     TextAttributes textAttributes = colorsScheme.getAttributes(HighlighterColors.TEXT);
-    TextAttributes xmlTagAttributes   = colorsScheme.getAttributes(XmlHighlighterColors.XML_TAG);
+    TextAttributes xmlTagAttributes = colorsScheme.getAttributes(XmlHighlighterColors.XML_TAG);
     xmlTagAttributes.setBackgroundColor(textAttributes.getBackgroundColor());
 
     /* Causes IDE startup failure (from the command line)
@@ -123,7 +125,8 @@ public class AndroidStudioInitializer implements Runnable {
     File[] children = notNullize(androidPluginLibFolderPath.listFiles());
     if (hasMoreThanOneBuilderModelFile(children)) {
       cause = "(Found multiple versions of builder-model-*.jar in plugins/android/lib.)";
-    } else if (new File(studioHomePath, join("plugins", "android-designer")).exists()) {
+    }
+    else if (new File(studioHomePath, join("plugins", "android-designer")).exists()) {
       cause = "(Found plugins/android-designer which should not be present.)";
     }
     if (cause != null) {
@@ -201,7 +204,8 @@ public class AndroidStudioInitializer implements Runnable {
     ProjectManager.getInstance().addProjectManagerListener(new ProjectManagerAdapter() {
       @Override
       public void projectOpened(@NotNull Project project) {
-        ExtensionPoint<MultiHostInjector> extensionPoint = Extensions.getArea(project).getExtensionPoint(MultiHostInjector.MULTIHOST_INJECTOR_EP_NAME);
+        ExtensionPoint<MultiHostInjector> extensionPoint =
+          Extensions.getArea(project).getExtensionPoint(MultiHostInjector.MULTIHOST_INJECTOR_EP_NAME);
 
         for (MultiHostInjector injector : extensionPoint.getExtensions()) {
           if (injector instanceof GrConcatenationInjector) {
@@ -212,6 +216,11 @@ public class AndroidStudioInitializer implements Runnable {
 
         LOG.info("Failed to disable 'org.intellij.plugins.intelliLang.inject.groovy.GrConcatenationInjector'");
       }
+
     });
+  }
+
+  private static void setUpNewProjectActions() {
+    replaceAction("NewClass", new CreateClassAction());
   }
 }

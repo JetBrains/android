@@ -46,9 +46,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.io.File;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Based on {@link com.intellij.ide.actions.CreateElementActionBase} but
@@ -290,7 +288,7 @@ public abstract class CreateResourceActionBase extends AnAction {
     }
 
     @Override
-    public PsiElement[] create(String newName, Map<String, String> creationOptions) throws Exception {
+    public PsiElement[] create(String newName) throws Exception {
       return CreateResourceActionBase.this.create(newName, myDirectory);
     }
 
@@ -301,7 +299,7 @@ public abstract class CreateResourceActionBase extends AnAction {
 
     @Override
     public boolean canClose(final String inputString) {
-      myCreatedElements = tryCreate(inputString, Collections.<String, String>emptyMap());
+      myCreatedElements = tryCreate(inputString);
       return myCreatedElements.length > 0;
     }
 
