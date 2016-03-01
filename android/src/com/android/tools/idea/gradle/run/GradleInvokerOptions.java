@@ -31,6 +31,7 @@ import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.DeviceFutures;
 import com.android.tools.idea.run.editor.ProfilerState;
+import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.intellij.execution.configurations.ModuleRunProfile;
 import com.intellij.execution.configurations.RunConfiguration;
@@ -91,6 +92,10 @@ public class GradleInvokerOptions {
           cmdLineArgs = Collections.singletonList(AndroidGradleSettings.createProjectProperty("android.profiler.enabled", "true"));
         }
       }
+    }
+
+    if (instantRunBuildOptions != null) {
+      InstantRunManager.LOG.info(instantRunBuildOptions.toString());
     }
 
     return create(testCompileType, instantRunBuildOptions, new GradleModuleTasksProvider(modules), RunAsValidityService.getInstance(),
@@ -167,6 +172,11 @@ public class GradleInvokerOptions {
       }
     }
 
+    if (options.usesMultipleProcesses && !options.coldSwapEnabled) {
+      // multi-process forces cold swap, but if cold swap is disabled, then we need a full build
+      return false;
+    }
+
     return true;
   }
 
@@ -199,8 +209,12 @@ public class GradleInvokerOptions {
       return true;
     }
 
-    // on incremental builds, we need it only if the app is not running, and cold swap is enabled
-    return !buildOptions.isAppRunning && buildOptions.coldSwapEnabled;
+    // using multiple processes, or attempting to update when the app is not running requires cold swap to be enabled
+    if (buildOptions.usesMultipleProcesses || !buildOptions.isAppRunning) {
+      return buildOptions.coldSwapEnabled;
+    }
+
+    return false;
   }
 
   @NotNull
@@ -282,6 +296,7 @@ public class GradleInvokerOptions {
     public final boolean cleanBuild;
     public final boolean needsFullBuild;
     public final boolean isAppRunning;
+    public final boolean usesMultipleProcesses;
     public final boolean coldSwapEnabled;
     public final ColdSwapMode coldSwapMode;
     @NotNull private final FileChangeListener.Changes fileChanges;
@@ -290,6 +305,7 @@ public class GradleInvokerOptions {
     InstantRunBuildOptions(boolean cleanBuild,
                            boolean needsFullBuild,
                            boolean isAppRunning,
+                           boolean usesMultipleProcesses,
                            boolean coldSwapEnabled,
                            @NotNull ColdSwapMode coldSwapMode,
                            @NotNull FileChangeListener.Changes changes,
@@ -297,6 +313,7 @@ public class GradleInvokerOptions {
       this.cleanBuild = cleanBuild;
       this.needsFullBuild = needsFullBuild;
       this.isAppRunning = isAppRunning;
+      this.usesMultipleProcesses = usesMultipleProcesses;
       this.coldSwapEnabled = coldSwapEnabled;
       this.coldSwapMode = coldSwapMode;
       this.fileChanges = changes;
@@ -322,10 +339,26 @@ public class GradleInvokerOptions {
       return new InstantRunBuildOptions(InstantRunUtils.needsCleanBuild(env),
                                         InstantRunUtils.needsFullBuild(env),
                                         InstantRunUtils.isAppRunning(env),
+                                        InstantRunManager.usesMultipleProcesses(module),
                                         InstantRunSettings.isColdSwapEnabled(),
                                         InstantRunSettings.getColdSwapMode(),
                                         changes,
                                         targetDevices);
+    }
+
+    @Override
+    public String toString() {
+      return Objects.toStringHelper(this)
+        .add("cleanBuild", cleanBuild)
+        .add("needsFullBuild", needsFullBuild)
+        .add("isAppRunning", isAppRunning)
+        .add("multiProcess", usesMultipleProcesses)
+        .add("coldSwapEnabled", coldSwapEnabled)
+        .add("coldSwapMode", coldSwapMode.display)
+        .add("javaFileChange", fileChanges.localJavaChanges)
+        .add("resFileChange", fileChanges.localResourceChanges)
+        .add("nonSrcFileChange", fileChanges.nonSourceChanges)
+        .toString();
     }
   }
 
