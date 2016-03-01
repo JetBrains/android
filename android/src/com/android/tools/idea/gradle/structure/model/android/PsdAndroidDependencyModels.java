@@ -162,26 +162,26 @@ class PsdAndroidDependencyModels {
 
   @Nullable
   private PsdAndroidDependencyModel addLibrary(@NotNull Library library,
-                                               @NotNull PsdArtifactDependencySpec resolvedSpec,
+                                               @NotNull PsdArtifactDependencySpec spec,
                                                @NotNull PsdAndroidArtifactModel artifactModel,
                                                @Nullable ArtifactDependencyModel parsedDependencyModel) {
     if (library instanceof AndroidLibrary) {
       AndroidLibrary androidLibrary = (AndroidLibrary)library;
-      return addAndroidLibrary(androidLibrary, resolvedSpec, artifactModel, parsedDependencyModel);
+      return addAndroidLibrary(androidLibrary, spec, artifactModel, parsedDependencyModel);
     }
     else if (library instanceof JavaLibrary) {
       JavaLibrary javaLibrary = (JavaLibrary)library;
-      return addJavaLibrary(javaLibrary, resolvedSpec, artifactModel, parsedDependencyModel);
+      return addJavaLibrary(javaLibrary, spec, artifactModel, parsedDependencyModel);
     }
     return null;
   }
 
   @NotNull
   private PsdAndroidDependencyModel addAndroidLibrary(@NotNull AndroidLibrary androidLibrary,
-                                                      @NotNull PsdArtifactDependencySpec resolvedSpec,
+                                                      @NotNull PsdArtifactDependencySpec spec,
                                                       @NotNull PsdAndroidArtifactModel artifactModel,
                                                       @Nullable ArtifactDependencyModel parsedDependencyModel) {
-    PsdAndroidDependencyModel dependencyModel = getOrCreateDependency(resolvedSpec, androidLibrary, artifactModel, parsedDependencyModel);
+    PsdAndroidDependencyModel dependencyModel = getOrCreateDependency(spec, androidLibrary, artifactModel, parsedDependencyModel);
 
     for (AndroidLibrary library : androidLibrary.getLibraryDependencies()) {
       PsdAndroidDependencyModel transitive = addLibrary(library, artifactModel);
@@ -197,10 +197,10 @@ class PsdAndroidDependencyModels {
 
   @NotNull
   private PsdAndroidDependencyModel addJavaLibrary(@NotNull JavaLibrary javaLibrary,
-                                                   @NotNull PsdArtifactDependencySpec resolvedSpec,
+                                                   @NotNull PsdArtifactDependencySpec spec,
                                                    @NotNull PsdAndroidArtifactModel artifactModel,
                                                    @Nullable ArtifactDependencyModel parsedDependencyModel) {
-    PsdAndroidDependencyModel dependencyModel = getOrCreateDependency(resolvedSpec, javaLibrary, artifactModel, parsedDependencyModel);
+    PsdAndroidDependencyModel dependencyModel = getOrCreateDependency(spec, javaLibrary, artifactModel, parsedDependencyModel);
 
     for (JavaLibrary library : javaLibrary.getDependencies()) {
       PsdAndroidDependencyModel transitive = addLibrary(library, artifactModel);
