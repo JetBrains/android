@@ -140,7 +140,7 @@ public class ShowChooserTargetProvider extends DeployTargetProvider<ShowChooserT
     List<DeployTargetProvider> targets = Lists.newArrayList();
 
     for (DeployTargetProvider target : DeployTargetProvider.getProviders()) {
-      if (target.showInDevicePicker() && target.isApplicable(androidTests)) {
+      if (target.showInDevicePicker(executor) && target.isApplicable(androidTests)) {
         targets.add(target);
       }
     }
