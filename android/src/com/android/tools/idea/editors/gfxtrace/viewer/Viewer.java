@@ -93,7 +93,6 @@ public class Viewer implements GLEventListener {
       myRenderable.init(gl);
     }
 
-    gl.getGL2ES1().glPointSize(5);
     gl.glEnable(GL.GL_DEPTH_TEST);
     gl.glClearColor(.8f, .8f, .8f, 1);
     gl.getGL2GL3().glPointSize(4);
@@ -128,6 +127,9 @@ public class Viewer implements GLEventListener {
       state.transform.setProjection(myCamera.getProjection());
       state.transform.setModelView(myCamera.getViewTransform());
       myRenderable.render(gl, state);
+
+      // Disable culling to work around a GLJPanel silliness (https://jogamp.org/bugzilla/show_bug.cgi?id=842).
+      gl.glDisable(GL.GL_CULL_FACE);
     }
   }
 
