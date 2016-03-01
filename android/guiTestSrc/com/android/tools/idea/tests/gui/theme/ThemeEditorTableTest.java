@@ -357,9 +357,9 @@ public class ThemeEditorTableTest {
   public void testResettingColorAttribute() throws IOException {
     guiTest.importSimpleApplication();
     ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(guiTest.ideFrame());
-    ThemeEditorTableFixture themeEditorTable = themeEditor.getPropertiesTable();
+    final ThemeEditorTableFixture themeEditorTable = themeEditor.getPropertiesTable();
 
-    TableCell cell = row(1).column(0);
+    final TableCell cell = row(1).column(0);
     assertEquals("android:colorPrimary", themeEditorTable.attributeNameAt(cell));
     assertEquals("@android:color/holo_light_primary", themeEditorTable.valueAt(cell));
 
@@ -373,7 +373,7 @@ public class ThemeEditorTableTest {
     dialog.getColorPicker().setColorWithIntegers(color);
     dialog.clickOK();
 
-    assertEquals("@color/holo_light_primary", themeEditorTable.valueAt(cell));
+    themeEditorTable.requireValueAt(cell, "@color/holo_light_primary");
 
     colorCell.startEditing();
     JPopupMenuFixture popupMenu = resourceComponent.showPopupMenu();
@@ -385,7 +385,7 @@ public class ThemeEditorTableTest {
       }
     }).click();
 
-    assertEquals("@android:color/holo_light_primary", themeEditorTable.valueAt(cell));
+    themeEditorTable.requireValueAt(cell, "@android:color/holo_light_primary");
   }
 
   /**
