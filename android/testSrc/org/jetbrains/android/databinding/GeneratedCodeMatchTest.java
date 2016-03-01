@@ -26,10 +26,10 @@ import com.intellij.psi.*;
 import com.intellij.util.containers.ContainerUtil;
 import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.asm4.ClassReader;
-import org.jetbrains.asm4.ClassVisitor;
-import org.jetbrains.asm4.FieldVisitor;
-import org.jetbrains.asm4.MethodVisitor;
+import org.jetbrains.org.objectweb.asm.ClassReader;
+import org.jetbrains.org.objectweb.asm.ClassVisitor;
+import org.jetbrains.org.objectweb.asm.FieldVisitor;
+import org.jetbrains.org.objectweb.asm.MethodVisitor;
 import org.jetbrains.org.objectweb.asm.Opcodes;
 
 import java.io.File;
