@@ -25,9 +25,9 @@ import javax.swing.*;
 
 public class PsdModuleDependencyModel extends PsdAndroidDependencyModel {
   @NotNull private final String myGradlePath;
+  @NotNull private final String myName;
 
   @Nullable private final String myVariant;
-  @Nullable private final String myName;
 
   PsdModuleDependencyModel(@NotNull PsdAndroidModuleModel parent,
                            @NotNull String gradlePath,
@@ -45,6 +45,7 @@ public class PsdModuleDependencyModel extends PsdAndroidDependencyModel {
     else if (parsedModel != null) {
       name = parsedModel.name();
     }
+    assert name != null;
     myName = name;
   }
 
@@ -58,7 +59,8 @@ public class PsdModuleDependencyModel extends PsdAndroidDependencyModel {
     return myVariant;
   }
 
-  @Nullable
+  @Override
+  @NotNull
   public String getName() {
     return myName;
   }
@@ -72,9 +74,6 @@ public class PsdModuleDependencyModel extends PsdAndroidDependencyModel {
   @Override
   @NotNull
   public String getValueAsText() {
-    if (myName != null) {
-      return myName;
-    }
-    return myGradlePath;
+    return myName;
   }
 }
