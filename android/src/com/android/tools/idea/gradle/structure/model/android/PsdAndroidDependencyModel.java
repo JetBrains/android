@@ -73,8 +73,12 @@ public abstract class PsdAndroidDependencyModel extends PsdChildModel {
   }
 
   @Nullable
-  protected DependencyModel getParsedModel() {
+  public DependencyModel getParsedModel() {
     return myParsedModel;
+  }
+
+  protected void setParsedModel(@Nullable DependencyModel parsedModel) {
+    myParsedModel = parsedModel;
   }
 
   @NotNull
