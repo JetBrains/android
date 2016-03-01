@@ -100,11 +100,17 @@ public class GuiTestRule implements TestRule {
           assumeTrue("An IDE internal error occurred previously.", fatalErrorsFromIde().isEmpty());
           assumeOnlyWelcomeFrameShowing();
           setUp();
+          List<Throwable> errors = new ArrayList<Throwable>();
           try {
             base.evaluate();
+          } catch (MultipleFailureException e) {
+            errors.addAll(e.getFailures());
+          } catch (Throwable e) {
+            errors.add(e);
           } finally {
-            tearDown();
+            tearDown(errors);
           }
+          MultipleFailureException.assertEmpty(errors);
         }
       };
     }
@@ -126,16 +132,15 @@ public class GuiTestRule implements TestRule {
     setUpSdks();
   }
 
-  private void tearDown() throws Exception {
+  private void tearDown(List<Throwable> errors) throws Exception {
     waitForBackgroundTasks();
-    List<Throwable> errors = new ArrayList<Throwable>(cleanUpAndCheckForModalDialogs());
+    errors.addAll(cleanUpAndCheckForModalDialogs());
     closeAllProjects();
     if (myProjectPath != null) {
       delete(myProjectPath);
       refreshFiles();
     }
     errors.addAll(fatalErrorsFromIde());
-    MultipleFailureException.assertEmpty(errors);
   }
 
   private List<AssertionError> cleanUpAndCheckForModalDialogs() {
