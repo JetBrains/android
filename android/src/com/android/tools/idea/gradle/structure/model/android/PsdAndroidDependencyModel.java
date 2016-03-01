@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.structure.model.android;
 
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependencyModel;
 import com.android.tools.idea.gradle.structure.model.PsdChildModel;
-import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
@@ -28,7 +27,7 @@ import java.util.Set;
 
 public abstract class PsdAndroidDependencyModel extends PsdChildModel {
   @NotNull private final Set<String> myVariants = Sets.newHashSet();
-  @NotNull private final Set<Container> myContainers = Sets.newHashSet();
+  @NotNull private final Set<PsdDependencyContainer> myContainers = Sets.newHashSet();
 
   @Nullable private DependencyModel myParsedModel;
 
@@ -49,7 +48,7 @@ public abstract class PsdAndroidDependencyModel extends PsdChildModel {
   }
 
   void addContainer(@NotNull PsdAndroidArtifactModel artifactModel) {
-    myContainers.add(new Container(artifactModel));
+    myContainers.add(new PsdDependencyContainer(artifactModel));
     myVariants.add(artifactModel.getName());
   }
 
@@ -59,7 +58,7 @@ public abstract class PsdAndroidDependencyModel extends PsdChildModel {
   }
 
   @NotNull
-  public Set<Container> getContainers() {
+  public Set<PsdDependencyContainer> getContainers() {
     return myContainers;
   }
 
@@ -82,50 +81,17 @@ public abstract class PsdAndroidDependencyModel extends PsdChildModel {
   public abstract String getValueAsText();
 
   public boolean isIn(@NotNull String artifactName, @Nullable String variantName) {
-    for (Container container : myContainers) {
-      if (artifactName.equals(container.artifact)) {
+    for (PsdDependencyContainer container : myContainers) {
+      if (artifactName.equals(container.getArtifact())) {
         if (variantName == null) {
           return true;
         }
-        if (variantName.equals(container.variant)) {
+        if (variantName.equals(container.getVariant())) {
           return true;
         }
       }
     }
 
     return false;
-  }
-
-  public static class Container {
-    @NotNull public final String variant;
-    @NotNull public final String artifact;
-
-    Container(@NotNull PsdAndroidArtifactModel artifactModel) {
-      variant = artifactModel.getParent().getName();
-      artifact = artifactModel.getGradleModel().getName();
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      if (this == o) {
-        return true;
-      }
-      if (o == null || getClass() != o.getClass()) {
-        return false;
-      }
-      Container container = (Container)o;
-      return Objects.equal(variant, container.variant) &&
-             Objects.equal(artifact, container.artifact);
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hashCode(variant, artifact);
-    }
-
-    @Override
-    public String toString() {
-      return variant + " - " + artifact;
-    }
   }
 }

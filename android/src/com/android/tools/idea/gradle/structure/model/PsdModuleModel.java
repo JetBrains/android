@@ -48,8 +48,9 @@ public abstract class PsdModuleModel extends PsdChildModel {
     return (PsdProjectModel)super.getParent();
   }
 
+  @Override
   @NotNull
-  public String getModuleName() {
+  public String getName() {
     return myModuleName;
   }
 
