@@ -68,7 +68,7 @@ import static java.awt.Cursor.*;
 import static java.awt.Event.CTRL_MASK;
 import static java.awt.Event.META_MASK;
 import static java.awt.event.KeyEvent.*;
-import static java.awt.event.MouseEvent.BUTTON1;
+import static java.awt.event.MouseEvent.MOUSE_PRESSED;
 import static javax.swing.SwingUtilities.convertPointFromScreen;
 import static javax.swing.tree.TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION;
 
@@ -92,7 +92,23 @@ class VariantsToolWindowPanel extends ToolWindowPanel implements DependencySelec
 
     DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode();
     DefaultTreeModel treeModel = new DefaultTreeModel(rootNode);
-    myTree = new Tree(treeModel);
+    myTree = new Tree(treeModel) {
+      @Override
+      protected void processMouseEvent(MouseEvent e) {
+        int id = e.getID();
+        if (id == MOUSE_PRESSED) {
+          ModuleDependencyNode node = getIfHyperlink(e.getModifiers(), e.getX(), e.getY());
+          if (node != null) {
+            PsdModuleDependencyModel moduleDependencyModel = node.getModels().get(0);
+            String name = moduleDependencyModel.getName();
+            myContext.setSelectedModule(name, VariantsToolWindowPanel.this);
+            // Do not call super, to avoid selecting the 'module' node when clicking a hyperlink.
+            return;
+          }
+        }
+        super.processMouseEvent(e);
+      }
+    };
     myTree.setExpandsSelectedPaths(true);
     myTree.setRootVisible(false);
     getHeader().setPreferredFocusedComponent(myTree);
@@ -231,18 +247,6 @@ class VariantsToolWindowPanel extends ToolWindowPanel implements DependencySelec
 
     MouseAdapter mouseListener = new MouseAdapter() {
       @Override
-      public void mousePressed(MouseEvent e) {
-        if (e.getButton() == BUTTON1) {
-          ModuleDependencyNode node = getIfHyperlink(e.getModifiers(), e.getX(), e.getY());
-          if (node != null) {
-            PsdModuleDependencyModel moduleDependencyModel = node.getModels().get(0);
-            String name = moduleDependencyModel.getName();
-            myContext.setSelectedModule(name, VariantsToolWindowPanel.this);
-          }
-        }
-      }
-
-      @Override
       public void mouseMoved(MouseEvent e) {
         Cursor cursor = getDefaultCursor();
         ModuleDependencyNode node = getIfHyperlink(e.getModifiers(), e.getX(), e.getY());
@@ -252,16 +256,7 @@ class VariantsToolWindowPanel extends ToolWindowPanel implements DependencySelec
         setHoveredNode(node);
         myTree.setCursor(cursor);
       }
-
-      @Nullable
-      private ModuleDependencyNode getIfHyperlink(int modifiers, int x, int y) {
-        if (isSet(modifiers, CTRL_MASK) || isSet(modifiers, META_MASK)) {
-          return getNodeForLocation(ModuleDependencyNode.class, x, y);
-        }
-        return null;
-      }
     };
-    myTree.addMouseListener(mouseListener);
     myTree.addMouseMotionListener(mouseListener);
 
     // Make the cursor change to 'hand' if the mouse pointer is over a 'module' node and the user presses Ctrl or Cmd.
@@ -304,6 +299,14 @@ class VariantsToolWindowPanel extends ToolWindowPanel implements DependencySelec
       myHoveredNode.getPresentation().clearText();
     }
     myTree.repaint();
+  }
+
+  @Nullable
+  private ModuleDependencyNode getIfHyperlink(int modifiers, int x, int y) {
+    if (isSet(modifiers, CTRL_MASK) || isSet(modifiers, META_MASK)) {
+      return getNodeForLocation(ModuleDependencyNode.class, x, y);
+    }
+    return null;
   }
 
   private <T extends AbstractPsdNode> T getNodeUnderMousePointer(@NotNull Class<T> nodeType) {
