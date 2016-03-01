@@ -170,6 +170,7 @@ public class ThemeEditorTableTest {
     dialog.clickOK();
     colorCell.stopEditing();
 
+    themeEditorTable.requireValueAt(cell, "@color/holo_light_primary");
     cellFont = themeEditorTable.fontAt(cell);
     cellFont.requireBold();
     assertEquals("android:colorPrimary", themeEditorTable.attributeNameAt(cell));
