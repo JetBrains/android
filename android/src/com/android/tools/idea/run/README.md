@@ -105,7 +105,81 @@ The following steps are taken to actually perform a launch:
    except that actually starting the process is moved to a separate pooled thread. This means that all error conditions will have to
    be communicated via the process handler..
 
+## Android Run Configuration Execution Flow
+
+The previous section talked about the overall execution flow. In this section, we look at the specific parts implemented within the android
+plugin. Overall, there are 3 parts to this:
+
+1. User presses Run/Debug. At this point, `AndroidRunConfigurationBase.getState` is called, and it constructs and returns
+an `AndroidRunState`
+2. The Gradle build is performed.
+3. Once the build is complete, the actual deployment is performed by the `AndroidRunState.execute` method.
+
+The first two are fairly straightforward, see the respective classes. The 3rd part is also straightforward, but keep in mind that it is
+shared by the Blaze plugin as well, so it is important to not make assumptions about the type of project there.
+
+At a high level, `AndroidRunState.execute` obtains the list of `LaunchTask`s to execute, and runs them sequentially in a background task.
+A console (what you see in the Run/Debug toolwindow) is created, along with a `ProcessHandler`. The console is used to display the output
+from the launch tasks. The `ProcessHandler` is a proxy for the Android application that will eventually be launched once the launch tasks
+are complete. Until then, it is a proxy for the `LaunchTasksRunner` itself. Users can use the stop button on the console to kill the process
+handler, or one of the launch tasks may terminate the launch process (in case of an error) by terminating the process handler.
+
+### Waiting for devices to be launched
+
+When running an application, users may choose to deploy it to an emulator(s). The emulators that are not running are launched. The
+gradle build and the launch flow continues in parallel with the emulator launch. In order to achieve this (allowing the launch to continue
+while the device doesn't yet exist), `AndroidRunConfigurationBase` wraps the target set of devices in a `DeviceFutures` class.
+When `LaunchTasksRunner` eventually reaches a stage where it requires the device, it simply waits on these futures to complete.
+This allows monitoring of both failures in the emulator launch, or terminating the run config launch if the user cancels the operation.
+
+### Launch Tasks
+
+The list of launch tasks (e.g. install app, launch activity) used to be hard coded. This mechanism doesn't scale as the list of tasks
+became configurable. Now, each task is represented by a single `LaunchTask` interface. The `LaunchTask.perform` method receives:
+ * a device on which the task should be performed.
+ * The `LaunchStatus` that allows the task to terminate the entire launch process, or inspect whether the launch has been terminated
+ * The `ConsolePrinter` allows the task to print its output on the console.
+
+### Obtaining the list of tasks
+
+The list of launch tasks are obtained through the `LaunchTasksProvider`. Typically, this class would just need the information from the
+run configuration UX to determine the list of tasks requested by the user. However, Instant Run complicates this a little bit, and requires
+examining the build output. `LaunchTasksProviderFactory` adds a level of indirection and allows for first examining the build outputs,
+and then constructing the appropriate `LaunchTasksProvider`.
+
+### Connecting the debugger
+
+There is one special task outside of the `LaunchTask` interface, and that is the `ConnectDebuggerTask`. This task is only present when
+using the debug executor, and in such a case, the launch is specific to a single device. When present, this is always the last task
+executed as part of the launch flow. Launching the debugger itself is fairly straightforward: it first waits for the application to start,
+and then launches the appropriate debugger (Java or native). The reason why this task falls outside of the other `LaunchTask`s is that
+when using the debugger, the existing `ProcessHandler` that was connected to the console needs to be switched to point to the new
+`DebugProcessHandler` which actually monitors the debugger instead of the remote process. The existing output on the console also needs
+to be replayed to the new process handler so that the console still has all the output.
+
+## Running tests
+ * Execute shell command: `am instrument ...` command. (See `RemoteAndroidTestRunner`)
+ * Parse the output from the shell command (`InstrumentationResultParser`), construct appropriate events (`AndroidTestListener`) and pass it on to IJ framework
+ * IJ parses the rewritten output from the console (`GeneralToSMTRunnerEventsConvertor`) and updates the test tree UX
+
 ## Instant Run
+ * Hot swap: push the incremental changes (as a dex file) to the running app, restart activity alone
+ * Cold swap: push the changes to the running app, then restart the entire process
+ * Freeze swap (aka dex swap): app doesn't have to run, push changes via adb, then launch the process
 
-
-
+### Pre Build
+ * First determines the previous device on which the launch took place.
+ * Examines if the build on the device matches the build on disk
+ * Examines if the app is still running
+ * Examines the state of the changes on disk
+ * Saves all this information in the execution environment so that the build step can use this information.
+ * See methods in `AndroidRunConfigurationBase`: `getFastDeployDevices`, `setInstantRunBuildOptions`
+### Build options
+ * The build step looks at all the information from the previous phase, and determines:
+   * Which build task to execute (full build vs incremental build)
+   * Set of flags to pass to Gradle
+   * See `GradleInvokerOptions.create`
+### Post Build
+ * Examine the build-info.xml file to figure out what actually happened (See `AndroidLaunchTasksProviderFactory`)
+ * Determine the appropriate task to use based on the build result.
+   * See `AndroidLaunchTasksProvider` and `HotswapTasksProvider`
