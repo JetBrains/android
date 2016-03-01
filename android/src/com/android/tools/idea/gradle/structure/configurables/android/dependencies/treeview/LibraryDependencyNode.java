@@ -35,6 +35,9 @@ class LibraryDependencyNode extends AbstractDependencyNode<PsdLibraryDependencyM
     super(parent, model);
 
     PsdArtifactDependencySpec spec = model.getResolvedSpec();
+    if (spec == null) {
+      spec = model.getSpec();
+    }
     myName = spec.getDisplayText();
 
     List<PsdAndroidDependencyModel> transitiveDependencies = Lists.newArrayList(model.getTransitiveDependencies());
@@ -63,7 +66,7 @@ class LibraryDependencyNode extends AbstractDependencyNode<PsdLibraryDependencyM
       int modelCount = models.size();
       if (modelCount == 1) {
         PsdLibraryDependencyModel myModel = models.get(0);
-        return myModel.getResolvedSpec().equals(other.getResolvedSpec());
+        return myModel.getSpec().equals(other.getSpec());
       }
     }
     return false;
