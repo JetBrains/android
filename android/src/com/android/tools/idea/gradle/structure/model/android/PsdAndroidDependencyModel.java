@@ -17,16 +17,14 @@ package com.android.tools.idea.gradle.structure.model.android;
 
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependencyModel;
 import com.android.tools.idea.gradle.structure.model.PsdChildModel;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
-import java.util.List;
 import java.util.Set;
 
 public abstract class PsdAndroidDependencyModel extends PsdChildModel {
-  @NotNull private final Set<String> myVariants = Sets.newHashSet();
   @NotNull private final Set<PsdDependencyContainer> myContainers = Sets.newHashSet();
 
   @Nullable private DependencyModel myParsedModel;
@@ -49,12 +47,16 @@ public abstract class PsdAndroidDependencyModel extends PsdChildModel {
 
   void addContainer(@NotNull PsdAndroidArtifactModel artifactModel) {
     myContainers.add(new PsdDependencyContainer(artifactModel));
-    myVariants.add(artifactModel.getName());
   }
 
+  @TestOnly
   @NotNull
-  public List<String> getVariants() {
-    return ImmutableList.copyOf(myVariants);
+  public Set<String> getVariants() {
+    Set<String> variants = Sets.newHashSet();
+    for (PsdDependencyContainer container : myContainers) {
+      variants.add(container.getVariant());
+    }
+    return variants;
   }
 
   @NotNull
