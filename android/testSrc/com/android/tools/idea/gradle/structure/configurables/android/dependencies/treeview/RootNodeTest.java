@@ -16,13 +16,18 @@
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview;
 
 import com.android.tools.idea.gradle.structure.model.android.PsdAndroidDependencyModel;
+import com.android.tools.idea.gradle.structure.model.android.PsdDependencyContainer;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.util.List;
 import java.util.Map;
 
+import static com.android.builder.model.AndroidProject.ARTIFACT_MAIN;
+import static com.android.builder.model.AndroidProject.ARTIFACT_UNIT_TEST;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -34,55 +39,136 @@ public class RootNodeTest {
   private PsdAndroidDependencyModel myD1;
   private PsdAndroidDependencyModel myD2;
   private PsdAndroidDependencyModel myD3;
-  private PsdAndroidDependencyModel myD4;
-  private PsdAndroidDependencyModel myD5;
-  private PsdAndroidDependencyModel myD6;
-  private List<PsdAndroidDependencyModel> myDependencies;
 
   @Before
   public void setUp() {
     myD1 = mock(PsdAndroidDependencyModel.class);
-    myD2 = mock(PsdAndroidDependencyModel.class);
-    myD3 = mock(PsdAndroidDependencyModel.class);
-    myD4 = mock(PsdAndroidDependencyModel.class);
-    myD5 = mock(PsdAndroidDependencyModel.class);
-    myD6 = mock(PsdAndroidDependencyModel.class);
+    when(myD1.toString()).thenReturn("d1");
 
-    myDependencies = Lists.newArrayList(myD1, myD2, myD3, myD4, myD5, myD6);
+    myD2 = mock(PsdAndroidDependencyModel.class);
+    when(myD2.toString()).thenReturn("d2");
+
+    myD3 = mock(PsdAndroidDependencyModel.class);
+    when(myD3.toString()).thenReturn("d3");
   }
 
   @Test
-  public void testGroupingByVariants() {
-    when(myD1.getVariants()).thenReturn(Lists.newArrayList("v1", "v2", "v6"));
-    when(myD1.toString()).thenReturn("d1");
+  public void testGroupingByArtifacts1() {
+    // v1 main
+    //    d1
+    //    d2
+    // v2 main
+    //    d1
+    //    d2
+    // v3 main
+    //    d1
 
-    when(myD2.getVariants()).thenReturn(Lists.newArrayList("v3"));
-    when(myD2.toString()).thenReturn("d2");
+    when(myD1.getContainers()).thenReturn(
+      Sets.newHashSet(container("v1", ARTIFACT_MAIN),
+                      container("v2", ARTIFACT_MAIN),
+                      container("v3", ARTIFACT_MAIN)
+      ));
+    when(myD2.getContainers()).thenReturn(
+      Sets.newHashSet(container("v1", ARTIFACT_MAIN),
+                      container("v2", ARTIFACT_MAIN)
+      ));
 
-    when(myD3.getVariants()).thenReturn(Lists.newArrayList("v1", "v2"));
-    when(myD3.toString()).thenReturn("d3");
+    List<PsdAndroidDependencyModel> allDependencies = Lists.newArrayList(myD1, myD2);
+    Map<List<PsdDependencyContainer>, List<PsdAndroidDependencyModel>> groups = RootNode.group(allDependencies);
+    assertThat(groups).hasSize(2);
 
-    when(myD4.getVariants()).thenReturn(Lists.newArrayList("v3"));
-    when(myD4.toString()).thenReturn("d4");
-
-    when(myD5.getVariants()).thenReturn(Lists.newArrayList("v4"));
-    when(myD5.toString()).thenReturn("d5");
-
-    when(myD6.getVariants()).thenReturn(Lists.newArrayList("v3"));
-    when(myD6.toString()).thenReturn("d6");
-
-    Map<List<String>, List<PsdAndroidDependencyModel>> groups = RootNode.groupVariants(myDependencies);
-
-    List<String> group = Lists.newArrayList("v3");
+    List<PsdDependencyContainer> group = Lists.newArrayList(container("v3", ARTIFACT_MAIN));
     List<PsdAndroidDependencyModel> dependencies = groups.get(group);
-    assertThat(dependencies).containsOnly(myD2, myD4, myD6);
+    assertThat(dependencies).containsOnly(myD1);
 
-    group = Lists.newArrayList("v1", "v2");
+    group = Lists.newArrayList(container("v1", ARTIFACT_MAIN),
+                               container("v2", ARTIFACT_MAIN));
     dependencies = groups.get(group);
-    assertThat(dependencies).containsOnly(myD1, myD3);
+    assertThat(dependencies).containsOnly(myD1, myD2);
+  }
 
-    group = Lists.newArrayList("v4");
+  @Test
+  public void testGroupingByArtifacts2() {
+    // v1 main
+    //    d2
+    //    d3
+    // v1 unit test
+    //    d1
+    // v2 main
+    //    d2
+    // v2 unit test
+    //    d1
+
+    when(myD1.getContainers()).thenReturn(
+      Sets.newHashSet(container("v1", ARTIFACT_UNIT_TEST),
+                      container("v2", ARTIFACT_UNIT_TEST)
+      ));
+    when(myD2.getContainers()).thenReturn(
+      Sets.newHashSet(container("v1", ARTIFACT_MAIN),
+                      container("v2", ARTIFACT_MAIN)
+      ));
+    when(myD3.getContainers()).thenReturn(
+      Sets.newHashSet(container("v1", ARTIFACT_MAIN)
+      ));
+
+    List<PsdAndroidDependencyModel> allDependencies = Lists.newArrayList(myD1, myD2, myD3);
+    Map<List<PsdDependencyContainer>, List<PsdAndroidDependencyModel>> groups = RootNode.group(allDependencies);
+    assertThat(groups).hasSize(4);
+
+    List<PsdDependencyContainer> group = Lists.newArrayList(container("v1", ARTIFACT_MAIN));
+    List<PsdAndroidDependencyModel> dependencies = groups.get(group);
+    assertThat(dependencies).containsOnly(myD2, myD3);
+
+    group = Lists.newArrayList(container("v1", ARTIFACT_UNIT_TEST));
     dependencies = groups.get(group);
-    assertThat(dependencies).containsOnly(myD5);
+    assertThat(dependencies).containsOnly(myD1);
+
+    group = Lists.newArrayList(container("v2", ARTIFACT_MAIN));
+    dependencies = groups.get(group);
+    assertThat(dependencies).containsOnly(myD2);
+
+    group = Lists.newArrayList(container("v2", ARTIFACT_UNIT_TEST));
+    dependencies = groups.get(group);
+    assertThat(dependencies).containsOnly(myD1);
+  }
+
+  @Test
+  public void testGroupingByArtifacts3() {
+    // v1 main
+    //    d2
+    // v1 unit test
+    //    d1
+    // v2 main
+    //    d2
+    // v2 unit test
+    //    d1
+
+    when(myD1.getContainers()).thenReturn(
+      Sets.newHashSet(container("v1", ARTIFACT_UNIT_TEST),
+                      container("v2", ARTIFACT_UNIT_TEST)
+      ));
+    when(myD2.getContainers()).thenReturn(
+      Sets.newHashSet(container("v1", ARTIFACT_MAIN),
+                      container("v2", ARTIFACT_MAIN)
+      ));
+
+    List<PsdAndroidDependencyModel> allDependencies = Lists.newArrayList(myD1, myD2);
+    Map<List<PsdDependencyContainer>, List<PsdAndroidDependencyModel>> groups = RootNode.group(allDependencies);
+    assertThat(groups).hasSize(2);
+
+    List<PsdDependencyContainer> group = Lists.newArrayList(container("v1", ARTIFACT_MAIN),
+                                                            container("v2", ARTIFACT_MAIN));
+    List<PsdAndroidDependencyModel> dependencies = groups.get(group);
+    assertThat(dependencies).containsOnly(myD2);
+
+    group = Lists.newArrayList(container("v1", ARTIFACT_UNIT_TEST),
+                               container("v2", ARTIFACT_UNIT_TEST));
+    dependencies = groups.get(group);
+    assertThat(dependencies).containsOnly(myD1);
+  }
+
+  @NotNull
+  private static PsdDependencyContainer container(@NotNull String variant, @NotNull String artifact) {
+    return new PsdDependencyContainer(variant, artifact);
   }
 }
