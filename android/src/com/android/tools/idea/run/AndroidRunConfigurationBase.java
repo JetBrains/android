@@ -370,7 +370,9 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     if (supportsInstantRun() && InstantRunSettings.isInstantRunEnabled()) {
       List<AndroidDevice> devices = deviceFutures.getDevices();
       if (devices.size() > 1) {
-        String message = "Cannot Instant Run: launching on multiple devices concurrently not supported.";
+        @Language("HTML") String message = "Instant Run is disabled:<br>" +
+                         "Instant Run does not support deploying to multiple targets.<br>" +
+                         "To enable Instant Run, deploy to a single target.";
         new InstantRunUserFeedback(module).notifyDisabledForLaunch(message);
         LOG.info(message);
       }
@@ -440,7 +442,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     BooleanStatus status = InstantRunGradleUtils.getIrSupportStatus(model, version);
     if (!status.success) {
       InstantRunManager.LOG.info("Cannot Instant Run: " + status.getCause());
-      new InstantRunUserFeedback(facet.getModule()).notifyDisabledForLaunch("Cannot Instant Run: " + status.getCause());
+      new InstantRunUserFeedback(facet.getModule()).notifyDisabledForLaunch("Instant Run is disabled:<br>" + status.getCause());
       return null;
     }
 
@@ -518,6 +520,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
                                                      @NotNull AndroidGradleModel model,
                                                      @Nullable IDevice device) {
     @Language("HTML") String FULL_BUILD_PREFIX = "Performing full build &amp; install: <br>";
+    @Language("HTML") String DISABLED_PREFIX = "Instant Run is disabled: <br>";
 
     if (device == null) {
       return BooleanStatus.failure(FULL_BUILD_PREFIX + "Device API level unknown");
@@ -525,7 +528,9 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
     AndroidVersion deviceVersion = device.getVersion();
     if (!InstantRunManager.isInstantRunCapableDeviceVersion(deviceVersion)) {
-      return BooleanStatus.failure(FULL_BUILD_PREFIX + "Device with API level '" + deviceVersion + "' not capable of Instant Run.");
+      return BooleanStatus.failure(DISABLED_PREFIX +
+                                   "Instant Run does not support deployment to targets with API levels 14 or below.<br><br>" +
+                                   "To use Instant Run, deploy to a target with API level 15 or higher.");
     }
 
     boolean isRestartedSession = InstantRunUtils.getRestartDevice(env) != null;
@@ -546,15 +551,18 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       }
 
       if (!RunAsValidityService.getInstance().hasWorkingRunAs(device)) {
-        return BooleanStatus.failure(verifierFailure + FULL_BUILD_PREFIX + "Device does not have a working 'run-as' command");
+        return BooleanStatus.failure(FULL_BUILD_PREFIX +
+                                     "Instant Run detected that the deployment target does not properly support the 'run-as' command.");
       }
 
       if (!InstantRunSettings.isColdSwapEnabled()) {
-        return BooleanStatus.failure(verifierFailure + FULL_BUILD_PREFIX + "Cold swap has been disabled");
+        return BooleanStatus.failure(FULL_BUILD_PREFIX + "Instant Run's cold swap feature has been disabled.");
       }
 
       if (deviceVersion.getApiLevel() < 21) {
-        return BooleanStatus.failure(verifierFailure + FULL_BUILD_PREFIX + "Cold swap not supported on API level &lt; 21");
+        return BooleanStatus.failure(FULL_BUILD_PREFIX +
+                                     "Instant Run does not support cold swaps on deployment targets with API level 20 or below.<br><br>" +
+                                     "To enable cold swaps, deploy to a target with API level 21 or higher.");
       }
 
       // If we get here, we don't know why the session was restarted, so show a generic message.
