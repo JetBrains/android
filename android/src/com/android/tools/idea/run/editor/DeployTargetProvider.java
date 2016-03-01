@@ -51,7 +51,7 @@ public abstract class DeployTargetProvider<S extends DeployTargetState> {
   @NotNull
   public abstract S createState();
 
-  public boolean showInDevicePicker() {
+  public boolean showInDevicePicker(@NotNull Executor executor) {
     return false;
   }
 
