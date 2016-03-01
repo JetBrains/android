@@ -70,6 +70,7 @@ public final class AvdDeviceData implements Disposable {
   private BoolValueProperty myIsWear = new BoolValueProperty();
   private BoolValueProperty myIsScreenRound = new BoolValueProperty();
   private IntValueProperty myScreenChinSize = new IntValueProperty();
+  private State myDefaultState;
 
   private OptionalProperty<Software> mySoftware = new OptionalValueProperty<Software>();
 
@@ -286,6 +287,9 @@ public final class AvdDeviceData implements Disposable {
     mySupportsPortrait.set(false);
     mySupportsLandscape.set(false);
     for (State state : states) {
+      if (state.isDefaultState()) {
+        myDefaultState = state;
+      }
       if (state.getOrientation().equals(ScreenOrientation.PORTRAIT)) {
         mySupportsPortrait.set(true);
       }
@@ -341,6 +345,10 @@ public final class AvdDeviceData implements Disposable {
    */
   @NotNull
   public ScreenOrientation getDefaultDeviceOrientation() {
+    if (myDefaultState != null && myDefaultState.getOrientation() == ScreenOrientation.LANDSCAPE && mySupportsLandscape.get()) {
+      return ScreenOrientation.LANDSCAPE;
+    }
+
     return (mySupportsPortrait.get())
            ? ScreenOrientation.PORTRAIT
            : (mySupportsLandscape.get()) ? ScreenOrientation.LANDSCAPE : ScreenOrientation.SQUARE;
