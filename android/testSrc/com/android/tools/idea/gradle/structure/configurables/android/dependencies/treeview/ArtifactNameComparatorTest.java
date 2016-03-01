@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.structure.configurables.android.dependenci
 
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.RootNode.ArtifactNameComparator;
 import com.google.common.collect.Lists;
-import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Collections;
@@ -30,17 +29,10 @@ import static org.fest.assertions.Assertions.assertThat;
  * Tests for {@link ArtifactNameComparator}.
  */
 public class ArtifactNameComparatorTest {
-  private ArtifactNameComparator myComparator;
-
-  @Before
-  public void setUp() {
-    myComparator = new ArtifactNameComparator();
-  }
-
   @Test
   public void testCompare() {
     List<String> names = Lists.newArrayList(ARTIFACT_UNIT_TEST, ARTIFACT_MAIN, ARTIFACT_ANDROID_TEST);
-    Collections.sort(names, myComparator);
+    Collections.sort(names, ArtifactNameComparator.INSTANCE);
     assertThat(names).containsSequence(ARTIFACT_MAIN, ARTIFACT_ANDROID_TEST, ARTIFACT_UNIT_TEST);
   }
 }
