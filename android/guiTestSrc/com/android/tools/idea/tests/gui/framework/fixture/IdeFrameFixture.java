@@ -64,7 +64,6 @@ import com.intellij.util.ThreeState;
 import com.intellij.xdebugger.impl.ui.tree.nodes.XDebuggerTreeNode;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
-import org.fest.swing.core.matcher.JButtonMatcher;
 import org.fest.swing.core.matcher.JLabelMatcher;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
@@ -797,15 +796,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   public InspectionsFixture inspectCode() {
     invokeMenuPath("Analyze", "Inspect Code...");
 
-    //final Ref<FileChooserDialogImpl> wrapperRef = new Ref<FileChooserDialogImpl>();
-    JDialog dialog = robot().finder().find(new GenericTypeMatcher<JDialog>(JDialog.class) {
-      @Override
-      protected boolean isMatching(@NotNull JDialog dialog) {
-        return "Specify Inspection Scope".equals(dialog.getTitle());
-      }
-    });
-    JButton button = robot().finder().find(dialog, JButtonMatcher.withText("OK").andShowing());
-    robot().click(button);
+    InspectCodeDialogFixture.find(robot()).clickOk();
 
     final InspectionTree tree = waitUntilFound(robot(), new GenericTypeMatcher<InspectionTree>(InspectionTree.class) {
       @Override
