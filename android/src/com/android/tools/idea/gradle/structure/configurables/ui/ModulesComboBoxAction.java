@@ -59,8 +59,8 @@ public class ModulesComboBoxAction extends LabeledComboBoxAction {
     @NotNull private final String myModuleName;
 
     ModuleAction(@NotNull PsdModuleModel moduleModel) {
-      super(moduleModel.getModuleName(), "", moduleModel.getIcon());
-      myModuleName = moduleModel.getModuleName();
+      super(moduleModel.getName(), "", moduleModel.getIcon());
+      myModuleName = moduleModel.getName();
     }
 
     @Override
