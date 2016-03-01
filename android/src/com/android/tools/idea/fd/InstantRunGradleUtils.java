@@ -73,7 +73,9 @@ public class InstantRunGradleUtils {
         return BooleanStatus.SUCCESS;
       }
       else {
-        return BooleanStatus.failure("legacy multi-dex on Dalvik runtime");
+        return BooleanStatus.failure(
+          "Instant Run does not support deploying build variants with multidex enabled, to a target with API level 20 or below.<br><br>" +
+          "To use Instant Run with a multidex enabled build variant, deploy to a target with API level 21 or higher.");
       }
     }
 
@@ -84,7 +86,8 @@ public class InstantRunGradleUtils {
   private static BooleanStatus getIrSupportStatus(@NotNull AndroidGradleModel model) {
     String version = model.getAndroidProject().getModelVersion();
     if (!modelSupportsInstantRun(model)) {
-      String msg = "old gradle plugin: " + version + ", requires: " + InstantRunManager.MINIMUM_GRADLE_PLUGIN_VERSION_STRING;
+      String msg = "Android Plugin for Gradle version " + version + " does not support Instant Run. Please update to version " +
+                   InstantRunManager.MINIMUM_GRADLE_PLUGIN_VERSION_STRING;
       return BooleanStatus.failure(msg);
     }
 
