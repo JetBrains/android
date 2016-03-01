@@ -17,6 +17,7 @@ package com.android.tools.idea.editors.gfxtrace.viewer;
 
 import com.android.tools.idea.editors.gfxtrace.viewer.gl.Shader;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.util.ui.UIUtil;
 import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GLAutoDrawable;
@@ -39,7 +40,7 @@ public class Viewer implements GLEventListener {
   private Culling myCulling = Culling.OFF;
 
   public Viewer(CameraModel camera) {
-    this.myCamera = camera;
+    myCamera = camera;
   }
 
   public void addMouseListeners(Component component) {
@@ -84,6 +85,8 @@ public class Viewer implements GLEventListener {
 
   @Override
   public void init(GLAutoDrawable drawable) {
+    float[] background = UIUtil.getPanelBackground().getRGBComponents(null);
+
     GL2ES2 gl = drawable.getGL().getGL2ES2();
     LOG.debug("GL Version:   " + gl.glGetString(GL.GL_VERSION));
     LOG.debug("GLSL Version: " + gl.glGetString(GL2ES2.GL_SHADING_LANGUAGE_VERSION));
@@ -94,7 +97,7 @@ public class Viewer implements GLEventListener {
     }
 
     gl.glEnable(GL.GL_DEPTH_TEST);
-    gl.glClearColor(.8f, .8f, .8f, 1);
+    gl.glClearColor(background[0], background[1], background[2], background[3]);
     gl.getGL2GL3().glPointSize(4);
   }
 
