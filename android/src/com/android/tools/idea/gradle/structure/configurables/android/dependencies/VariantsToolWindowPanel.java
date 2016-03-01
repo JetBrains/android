@@ -132,13 +132,7 @@ class VariantsToolWindowPanel extends ToolWindowPanel implements DependencySelec
   private void setHeaderActions() {
     final DefaultActionGroup settingsGroup = new DefaultActionGroup();
 
-    settingsGroup.add(new ToggleAction("Group Variants") {
-      @Override
-      public void update(@NotNull AnActionEvent e) {
-        super.update(e);
-        e.getPresentation().setEnabled(false); // TODO: Fix "Group Variants" functionality.
-      }
-
+    settingsGroup.add(new ToggleAction("Group Similar") {
       @Override
       public boolean isSelected(AnActionEvent e) {
         return PsdUISettings.getInstance().VARIANTS_DEPENDENCIES_GROUP_VARIANTS;

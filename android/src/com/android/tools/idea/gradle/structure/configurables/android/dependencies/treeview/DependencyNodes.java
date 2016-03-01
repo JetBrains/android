@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.structure.configurables.android.dependenci
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependencyModel;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.PsdAndroidDependencyModelComparator;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsdNode;
+import com.android.tools.idea.gradle.structure.model.android.PsdAndroidArtifactModel;
 import com.android.tools.idea.gradle.structure.model.android.PsdAndroidDependencyModel;
 import com.android.tools.idea.gradle.structure.model.android.PsdLibraryDependencyModel;
 import com.android.tools.idea.gradle.structure.model.android.PsdModuleDependencyModel;
@@ -53,10 +54,13 @@ final class DependencyNodes {
         // will be include as a dependency in "main", "android test" and "unit test" artifacts. Even though this is correct, it is
         // inconsistent with what Android App models return. In the case of Android Apps, 'appcompat' will be included only in the
         // "main" artifact.
-        if (isDependencyInArtifact(parsedModel, parent.getModels().get(0))) {
-          declared.add(dependency);
-          addTransitive(dependency, allTransitive);
+        for (PsdAndroidArtifactModel model : parent.getModels()) {
+          if (isDependencyInArtifact(parsedModel, model)) {
+            declared.add(dependency);
+            break;
+          }
         }
+        addTransitive(dependency, allTransitive);
       }
       else {
         mayBeTransitive.add(dependency);
