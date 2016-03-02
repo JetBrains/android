@@ -23,9 +23,14 @@ import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.templates.AndroidGradleTestCase;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture;
+import com.intellij.openapi.project.ProjectCoreUtil;
+import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.fest.swing.core.Robot;
+import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.exception.WaitTimedOutError;
 import org.jdom.Document;
@@ -49,16 +54,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
-import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
 import static com.google.common.base.Preconditions.checkState;
-import static com.intellij.openapi.project.ProjectCoreUtil.DIRECTORY_BASED_PROJECT_DIR;
-import static com.intellij.openapi.util.io.FileUtil.copyDir;
-import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
-import static com.intellij.openapi.util.io.FileUtilRt.delete;
-import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
-import static junit.framework.Assert.assertNotNull;
-import static org.fest.swing.edt.GuiActionRunner.execute;
+import static org.fest.util.Preconditions.checkNotNull;
 import static org.junit.Assume.assumeTrue;
 
 public class GuiTestRule implements TestRule {
@@ -97,7 +94,7 @@ public class GuiTestRule implements TestRule {
         @Override
         public void evaluate() throws Throwable {
           System.out.println("Starting " + description.getDisplayName());
-          assumeTrue("An IDE internal error occurred previously.", fatalErrorsFromIde().isEmpty());
+          assumeTrue("An IDE internal error occurred previously.", GuiTests.fatalErrorsFromIde().isEmpty());
           assumeOnlyWelcomeFrameShowing();
           setUp();
           List<Throwable> errors = new ArrayList<Throwable>();
@@ -122,25 +119,25 @@ public class GuiTestRule implements TestRule {
     } catch (WaitTimedOutError e) {
       throw new AssumptionViolatedException("didn't find welcome frame", e);
     }
-    List<Window> windowsShowing = windowsShowing();
+    List<Window> windowsShowing = GuiTests.windowsShowing();
     assumeTrue("windows showing: " + windowsShowing, windowsShowing.size() == 1);
   }
 
   private void setUp() {
-    setUpDefaultProjectCreationLocationPath();
-    setIdeSettings();
-    setUpSdks();
+    GuiTests.setUpDefaultProjectCreationLocationPath();
+    GuiTests.setIdeSettings();
+    GuiTests.setUpSdks();
   }
 
   private void tearDown(List<Throwable> errors) throws Exception {
     waitForBackgroundTasks();
     errors.addAll(cleanUpAndCheckForModalDialogs());
-    closeAllProjects();
+    GuiTests.closeAllProjects();
     if (myProjectPath != null) {
-      delete(myProjectPath);
-      refreshFiles();
+      FileUtilRt.delete(myProjectPath);
+      GuiTests.refreshFiles();
     }
-    errors.addAll(fatalErrorsFromIde());
+    errors.addAll(GuiTests.fatalErrorsFromIde());
   }
 
   private List<AssertionError> cleanUpAndCheckForModalDialogs() {
@@ -191,9 +188,8 @@ public class GuiTestRule implements TestRule {
 
   private void importProject(@NotNull String projectDirName, String gradleVersion) throws IOException {
     setUpProject(projectDirName, gradleVersion);
-    final VirtualFile toSelect = findFileByIoFile(myProjectPath, true);
-    assertNotNull(toSelect);
-    execute(new GuiTask() {
+    final VirtualFile toSelect = checkNotNull(VfsUtil.findFileByIoFile(myProjectPath, true));
+    GuiActionRunner.execute(new GuiTask() {
       @Override
       protected void executeInEDT() throws Throwable {
         GradleProjectImporter.getInstance().importProject(toSelect);
@@ -226,11 +222,11 @@ public class GuiTestRule implements TestRule {
 
     File gradlePropertiesFilePath = new File(myProjectPath, SdkConstants.FN_GRADLE_PROPERTIES);
     if (gradlePropertiesFilePath.isFile()) {
-      delete(gradlePropertiesFilePath);
+      FileUtilRt.delete(gradlePropertiesFilePath);
     }
 
     if (gradleVersion == null) {
-      createGradleWrapper(myProjectPath, GRADLE_LATEST_VERSION);
+      createGradleWrapper(myProjectPath, SdkConstants.GRADLE_LATEST_VERSION);
     }
     else {
       createGradleWrapper(myProjectPath, gradleVersion);
@@ -246,9 +242,9 @@ public class GuiTestRule implements TestRule {
 
     setProjectPath(getTestProjectDirPath(projectDirName));
     if (myProjectPath.isDirectory()) {
-      delete(myProjectPath);
+      FileUtilRt.delete(myProjectPath);
     }
-    copyDir(masterProjectPath, myProjectPath);
+    FileUtil.copyDir(masterProjectPath, myProjectPath);
     System.out.println(String.format("Copied project '%1$s' to path '%2$s'", projectDirName, myProjectPath.getPath()));
   }
 
@@ -257,11 +253,8 @@ public class GuiTestRule implements TestRule {
   }
 
   protected void updateLocalProperties(File projectPath) throws IOException {
-    File androidHomePath = IdeSdks.getAndroidSdkPath();
-    assertNotNull(androidHomePath);
-
     LocalProperties localProperties = new LocalProperties(projectPath);
-    localProperties.setAndroidSdkPath(androidHomePath);
+    localProperties.setAndroidSdkPath(checkNotNull(IdeSdks.getAndroidSdkPath()));
     localProperties.save();
   }
 
@@ -271,16 +264,16 @@ public class GuiTestRule implements TestRule {
 
   @NotNull
   protected File getMasterProjectDirPath(@NotNull String projectDirName) {
-    return new File(getTestProjectsRootDirPath(), projectDirName);
+    return new File(GuiTests.getTestProjectsRootDirPath(), projectDirName);
   }
 
   @NotNull
   protected File getTestProjectDirPath(@NotNull String projectDirName) {
-    return new File(getProjectCreationDirPath(), projectDirName);
+    return new File(GuiTests.getProjectCreationDirPath(), projectDirName);
   }
 
   public void cleanUpProjectForImport(@NotNull File projectPath) {
-    File dotIdeaFolderPath = new File(projectPath, DIRECTORY_BASED_PROJECT_DIR);
+    File dotIdeaFolderPath = new File(projectPath, ProjectCoreUtil.DIRECTORY_BASED_PROJECT_DIR);
     if (dotIdeaFolderPath.isDirectory()) {
       File modulesXmlFilePath = new File(dotIdeaFolderPath, "modules.xml");
       if (modulesXmlFilePath.isFile()) {
@@ -294,15 +287,15 @@ public class GuiTestRule implements TestRule {
           for (Element module : modules) {
             String fileUrl = module.getAttributeValue("fileurl");
             if (!StringUtil.isEmpty(fileUrl)) {
-              String relativePath = toSystemDependentName(fileUrl.substring(urlPrefixSize));
+              String relativePath = FileUtil.toSystemDependentName(fileUrl.substring(urlPrefixSize));
               File imlFilePath = new File(projectPath, relativePath);
               if (imlFilePath.isFile()) {
-                delete(imlFilePath);
+                FileUtilRt.delete(imlFilePath);
               }
               // It is likely that each module has a "build" folder. Delete it as well.
               File buildFilePath = new File(imlFilePath.getParentFile(), "build");
               if (buildFilePath.isDirectory()) {
-                delete(buildFilePath);
+                FileUtilRt.delete(buildFilePath);
               }
             }
           }
@@ -311,7 +304,7 @@ public class GuiTestRule implements TestRule {
           // if something goes wrong, just ignore. Most likely it won't affect project import in any way.
         }
       }
-      delete(dotIdeaFolderPath);
+      FileUtilRt.delete(dotIdeaFolderPath);
     }
   }
 
