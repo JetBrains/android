@@ -687,7 +687,7 @@ public class EditorFixture {
       }
     });
 
-    pause(new Condition("File " + quote(file.getPath()) + " to be opened") {
+    pause(new Condition("file " + quote(file.getPath()) + " to be opened") {
       @Override
       public boolean test() {
         //noinspection ConstantConditions
@@ -1009,7 +1009,7 @@ public class EditorFixture {
       myFrame.invokeMenuPath("View", "Tool Windows", "Preview");
     }
 
-    pause(new Condition("Preview window is visible") {
+    pause(new Condition("Preview window to be visible") {
       @Override
       public boolean test() {
         AndroidLayoutPreviewToolWindowManager manager = AndroidLayoutPreviewToolWindowManager.getInstance(myFrame.getProject());
@@ -1097,7 +1097,7 @@ public class EditorFixture {
       myFrame.invokeMenuPath("View", "Tool Windows", "Theme Preview");
     }
 
-    pause(new Condition("Theme Preview window is visible") {
+    pause(new Condition("Theme Preview window to be visible") {
       @Override
       public boolean test() {
         final ToolWindow window = ToolWindowManager.getInstance(myFrame.getProject()).getToolWindow("Theme Preview");

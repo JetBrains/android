@@ -57,7 +57,7 @@ public class ConfigureAndroidProjectStepFixture extends AbstractWizardStepFixtur
     robot().click(editLabel);
 
     final JTextField textField = robot().finder().findByType(link, JTextField.class);
-    pause(new Condition("'Package name' field is visible") {
+    pause(new Condition("'Package name' field to be visible") {
       @Override
       public boolean test() {
         return textField.isShowing();

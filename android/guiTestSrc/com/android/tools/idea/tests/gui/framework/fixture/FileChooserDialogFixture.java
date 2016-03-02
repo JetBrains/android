@@ -86,7 +86,7 @@ public class FileChooserDialogFixture extends IdeaDialogFixture<FileChooserDialo
       }
     });
 
-    pause(new Condition("File " + quote(file.getPath()) + " is selected") {
+    pause(new Condition("file " + quote(file.getPath()) + " to be selected") {
       @Override
       public boolean test() {
         return fileSelected.get();

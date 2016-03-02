@@ -278,7 +278,7 @@ public final class GuiTests {
       }
 
       if (listener.myActive) {
-        pause(new Condition("Project to be opened") {
+        pause(new Condition("project to be opened") {
           @Override
           public boolean test() {
             boolean notified = listener.myNotified;
@@ -316,7 +316,7 @@ public final class GuiTests {
   }
 
   static void closeAllProjects() {
-    pause(new Condition("Close all projects") {
+    pause(new Condition("all projects to be closed") {
       @Override
       public boolean test() {
         final Project[] openProjects = ProjectManager.getInstance().getOpenProjects();
@@ -513,7 +513,7 @@ public final class GuiTests {
   public static void findAndClickButtonWhenEnabled(@NotNull ContainerFixture<? extends Container> container, @NotNull final String text) {
     Robot robot = container.robot();
     final JButton button = findButton(container, text, robot);
-    pause(new Condition("Wait for button " + text + " to be enabled.") {
+    pause(new Condition("button " + text + " to be enabled") {
       @Override
       public boolean test() {
         return button.isEnabled() && button.isVisible() && button.isShowing();
@@ -600,7 +600,7 @@ public final class GuiTests {
                                                        @Nullable final Container root,
                                                        @NotNull final GenericTypeMatcher<T> matcher) {
     final AtomicReference<T> reference = new AtomicReference<T>();
-    pause(new Condition("Find component using " + matcher.toString()) {
+    pause(new Condition("component to be found using " + matcher.toString()) {
       @Override
       public boolean test() {
         ComponentFinder finder = robot.finder();
@@ -627,7 +627,7 @@ public final class GuiTests {
   public static <T extends Component> void waitUntilGone(@NotNull final Robot robot,
                                                          @NotNull final Container root,
                                                          @NotNull final GenericTypeMatcher<T> matcher) {
-    pause(new Condition("Find component using " + matcher.toString()) {
+    pause(new Condition("component to be found using " + matcher.toString()) {
       @Override
       public boolean test() {
         Collection<T> allFound = robot.finder().findAll(root, matcher);
