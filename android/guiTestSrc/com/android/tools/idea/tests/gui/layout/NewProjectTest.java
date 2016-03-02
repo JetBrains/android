@@ -178,7 +178,7 @@ public class NewProjectTest {
     newProject("Test Application").withBriefNames().withMinSdk("15").withoutSync().create();
     final EditorFixture editor = guiTest.ideFrame().getEditor();
 
-    Pause.pause(new Condition("Wait for file to open") {
+    Pause.pause(new Condition("file to open") {
       @Override
       public boolean test() {
         return "A.java".equals(editor.getCurrentFileName());

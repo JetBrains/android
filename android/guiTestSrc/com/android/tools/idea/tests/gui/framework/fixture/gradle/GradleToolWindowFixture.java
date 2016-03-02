@@ -52,7 +52,7 @@ public class GradleToolWindowFixture extends ToolWindowFixture {
     final Tree tasksTree = findComponentOfType(content.getComponent(), Tree.class);
     assertNotNull(tasksTree);
 
-    pause(new Condition("tree gets populated") {
+    pause(new Condition("tree to be populated") {
       @Override
       public boolean test() {
         //noinspection ConstantConditions
