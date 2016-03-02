@@ -33,6 +33,7 @@ public class NoLaunch extends LaunchOption<NoLaunch.State> {
     public LaunchTask getLaunchTask(@NotNull String applicationId,
                                     @NotNull AndroidFacet facet,
                                     boolean waitForDebugger,
+                                    @Nullable AndroidDebugger androidDebugger,
                                     @NotNull String extraAmOptions) {
       return null;
     }
