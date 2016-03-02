@@ -108,7 +108,7 @@ public class LayoutPreviewFixture extends ToolWindowFixture implements LayoutFix
   public Object waitForNextRenderToFinish(@Nullable final Object previous) {
     myRobot.waitForIdle();
 
-    pause(new Condition("Render is pending") {
+    pause(new Condition("render to finish") {
       @Override
       public boolean test() {
         AndroidLayoutPreviewToolWindowManager manager = getManager();

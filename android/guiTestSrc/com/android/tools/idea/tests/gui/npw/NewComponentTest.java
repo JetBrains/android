@@ -50,14 +50,14 @@ public class NewComponentTest {
     wizardFixture.getFileNameField().enterText("strings");
     final JLabelFixture errorLabel = wizardFixture.findLabel("Values File Name must be unique");
 
-    pause(new Condition("Waiting for Finish to be disabled") {
+    pause(new Condition("Finish to be disabled") {
       @Override
       public boolean test() {
         return !finishFixture.isEnabled();
       }
     }, SHORT_TIMEOUT);
     wizardFixture.getFileNameField().enterText("2");
-    pause(new Condition("Waiting for Finish to be enabled") {
+    pause(new Condition("Finish to be enabled") {
       @Override
       public boolean test() {
         return finishFixture.isEnabled();
@@ -66,7 +66,7 @@ public class NewComponentTest {
 
     // Now test an invalid file name. Currently we have "strings2" so add an space to make it invalid.
     wizardFixture.getFileNameField().enterText(" ");
-    pause(new Condition("Waiting for Finish to be disabled") {
+    pause(new Condition("Finish to be disabled") {
       @Override
       public boolean test() {
         return !finishFixture.isEnabled();

@@ -67,7 +67,7 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
     }
 
     public void waitForOutput(@NotNull final TextMatcher matcher, @NotNull Timeout timeout) {
-      pause(new Condition("LogCat tool window output check for package name.") {
+      pause(new Condition("LogCat tool window output check for package name") {
         @Override
         public boolean test() {
           return outputMatches(matcher);
@@ -199,7 +199,7 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
     }
 
     public void waitForExecutionToFinish(@NotNull Timeout timeout) {
-      Pause.pause(new Condition("Wait for execution to finish") {
+      Pause.pause(new Condition("execution to finish") {
         @Override
         public boolean test() {
           return !isExecutionInProgress();

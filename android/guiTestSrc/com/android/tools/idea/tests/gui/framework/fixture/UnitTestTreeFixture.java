@@ -38,7 +38,7 @@ public class UnitTestTreeFixture {
 
   @Nullable
   public TestFrameworkRunningModel getModel() {
-    Pause.pause(new Condition("Wait for the test results model.") {
+    Pause.pause(new Condition("the test results model") {
       @Override
       public boolean test() {
         return myTreeView.getData(TestTreeView.MODEL_DATA_KEY.getName()) != null;

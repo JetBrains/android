@@ -158,7 +158,7 @@ public class HprofEditorFixture extends EditorFixture {
   }
 
   private void waitForHprofEditor() {
-    pause(new Condition("Wait for editor to be ready") {
+    pause(new Condition("editor to be ready") {
       @Override
       public boolean test() {
         try {
@@ -196,7 +196,7 @@ public class HprofEditorFixture extends EditorFixture {
       assertTrue(buttonPanel instanceof Container);
 
       final JButton button = robot().finder().findByType((Container)buttonPanel, JButton.class, false);
-      pause(new Condition("Wait for button to be visible.") {
+      pause(new Condition("button to be visible") {
         @Override
         public boolean test() {
           return button.isShowing();
