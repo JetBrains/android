@@ -19,7 +19,6 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.intellij.lang.annotation.HighlightSeverity;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -34,17 +33,19 @@ public class TestManifestTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
-  @Ignore("failed in http://go/aj/job/studio-ui-test/389 and from IDEA")
   @Test
   public void testManifest() throws IOException {
     guiTest.importProjectAndWaitForProjectSyncToFinish("ProjectWithUnitTests");
     EditorFixture editor = guiTest.ideFrame().getEditor();
+    guiTest.waitForBackgroundTasks(); // Needed to make sure nothing will interfere with the typing later
 
     editor.open("app/src/main/AndroidManifest.xml");
     editor.waitForCodeAnalysisHighlightCount(HighlightSeverity.ERROR, 0);
     editor.select(editor.findOffset("^.MainActivity"), editor.findOffset(".MainActivity^"));
     // TestActivity shouldn't be accessible from the main AndroidManifest.xml
     editor.enterText(".TestActivity");
+    // Close the auto-completion window
+    editor.invokeAction(EditorFixture.EditorAction.ESCAPE);
     editor.waitForCodeAnalysisHighlightCount(HighlightSeverity.ERROR, 1);
 
     // but it should be from the test manifest
