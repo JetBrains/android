@@ -1192,13 +1192,14 @@ public final class GradleUtil {
    * @param project       the given project.
    * @param pluginVersion the Android Gradle plugin version to update to.
    * @param gradleVersion the Gradle version to update to.
+   * @return {@code true} if the plugin version was updated successfully; {@code false} otherwise.
    */
-  public static void updateGradlePluginVersionAndNotifyFailure(@NotNull Project project,
-                                                               @NotNull String pluginVersion,
-                                                               @Nullable String gradleVersion) {
+  public static boolean updateGradlePluginVersionAndNotifyFailure(@NotNull Project project,
+                                                                  @NotNull String pluginVersion,
+                                                                  @Nullable String gradleVersion) {
     if (updateGradlePluginVersion(project, pluginVersion, gradleVersion)) {
       GradleProjectImporter.getInstance().requestProjectSync(project, false, true /* generate sources */, true /* clean */, null);
-      return;
+      return true;
     }
 
     invalidateLastSync(project, String.format("Failed to update Android plugin to version '%1$s'", pluginVersion));
@@ -1207,6 +1208,8 @@ public final class GradleUtil {
                  "Please click 'OK' to perform a textual search and then update the build files manually.";
     Messages.showErrorDialog(project, msg, UNHANDLED_SYNC_ISSUE_TYPE);
     searchInBuildFiles(GRADLE_PLUGIN_NAME, project);
+
+    return false;
   }
 
   private static void invalidateLastSync(@NotNull Project project, @NotNull String error) {
