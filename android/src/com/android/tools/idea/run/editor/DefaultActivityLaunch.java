@@ -37,8 +37,12 @@ public class DefaultActivityLaunch extends LaunchOption<DefaultActivityLaunch.St
   public static final class State extends LaunchOptionState {
     @Nullable
     @Override
-    public LaunchTask getLaunchTask(@NotNull String applicationId, @NotNull AndroidFacet facet, boolean waitForDebugger, @NotNull String extraAmOptions) {
-      return new DefaultActivityLaunchTask(applicationId, getActivityLocator(facet), waitForDebugger, extraAmOptions);
+    public LaunchTask getLaunchTask(@NotNull String applicationId,
+                                    @NotNull AndroidFacet facet,
+                                    boolean waitForDebugger,
+                                    @Nullable AndroidDebugger androidDebugger,
+                                    @NotNull String extraAmOptions) {
+      return new DefaultActivityLaunchTask(applicationId, getActivityLocator(facet), waitForDebugger, androidDebugger, extraAmOptions);
     }
 
     @NotNull

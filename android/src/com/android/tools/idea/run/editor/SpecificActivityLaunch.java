@@ -40,8 +40,9 @@ public class SpecificActivityLaunch extends LaunchOption<SpecificActivityLaunch.
     public LaunchTask getLaunchTask(@NotNull String applicationId,
                                     @NotNull AndroidFacet facet,
                                     boolean waitForDebugger,
+                                    @Nullable AndroidDebugger androidDebugger,
                                     @NotNull String extraAmOptions) {
-      return new SpecificActivityLaunchTask(applicationId, ACTIVITY_CLASS, waitForDebugger, extraAmOptions);
+      return new SpecificActivityLaunchTask(applicationId, ACTIVITY_CLASS, waitForDebugger, androidDebugger, extraAmOptions);
     }
 
     @NotNull
