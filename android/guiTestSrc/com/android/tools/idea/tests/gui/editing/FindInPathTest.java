@@ -33,7 +33,6 @@ public class FindInPathTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
-  @Ignore("failed in http://go/aj/job/studio-ui-test/389 and from IDEA")
   @Test
   public void testResultsOnlyInGeneratedCode() throws Exception {
     guiTest.importSimpleApplication();
@@ -50,7 +49,6 @@ public class FindInPathTest {
     selectedContext.findUsagesInGeneratedCodeGroup();
   }
 
-  @Ignore("failed in http://go/aj/job/studio-ui-test/389 and from IDEA")
   @Test
   public void testResultsInBothProductionAndGeneratedCode() throws Exception {
     guiTest.importSimpleApplication();
