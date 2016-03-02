@@ -44,7 +44,7 @@ public class RestrictedEnum implements RestrictedQualifier {
 
   @Override
   public void setRestrictions(@Nullable ResourceQualifier compatible, @NotNull Collection<ResourceQualifier> incompatibles) {
-    if (compatible != null && compatible.isValid()) {
+    if (ResourceQualifier.isValid(compatible)) {
       myPossibleValues.clear();
       //noinspection unchecked
       myPossibleValues.addAll((Collection)Collections.singletonList(getValue(compatible)));
@@ -59,7 +59,7 @@ public class RestrictedEnum implements RestrictedQualifier {
 
   @Override
   public boolean isMatchFor(@Nullable ResourceQualifier qualifier) {
-    if (qualifier == null || !qualifier.isValid()) {
+    if (!ResourceQualifier.isValid(qualifier)) {
       return false;
     }
     return myPossibleValues.contains(getValue(qualifier));
