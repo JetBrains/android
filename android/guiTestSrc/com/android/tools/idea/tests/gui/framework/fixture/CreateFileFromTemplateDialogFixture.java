@@ -83,7 +83,7 @@ public class CreateFileFromTemplateDialogFixture extends IdeaDialogFixture<Creat
 
   @NotNull
   public CreateFileFromTemplateDialogFixture waitForErrorMessageToAppear() {
-    pause(new Condition("Waiting for an error message to appear.") {
+    pause(new Condition("an error message to appear") {
       @Override
       public boolean test() {
         try {
