@@ -25,6 +25,7 @@ import com.google.common.collect.Lists;
 import com.intellij.openapi.project.Project;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
+import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.timing.Condition;
 import org.jetbrains.android.uipreview.AndroidLayoutPreviewToolWindowForm;
@@ -264,9 +265,18 @@ public class LayoutPreviewFixture extends ToolWindowFixture implements LayoutFix
     return result;
   }
 
-  private void addMatching(@NotNull RenderedView view, @NotNull TagMatcher matcher, @NotNull List<LayoutWidgetFixture> result) {
-    if (view.tag != null && matcher.isMatching(view.tag)) {
-      result.add(new LayoutWidgetFixture(this, view));
+  private void addMatching(@NotNull final RenderedView view, @NotNull final TagMatcher matcher, @NotNull List<LayoutWidgetFixture> result) {
+    if (view.tag != null) {
+      Boolean isMatching = execute(new GuiQuery<Boolean>() {
+        @Nullable
+        @Override
+        protected Boolean executeInEDT() throws Throwable {
+          return matcher.isMatching(view.tag);
+        }
+      });
+      if (isMatching != null && isMatching) {
+        result.add(new LayoutWidgetFixture(this, view));
+      }
     }
     for (RenderedView child : view.getChildren()) {
       addMatching(child, matcher, result);
