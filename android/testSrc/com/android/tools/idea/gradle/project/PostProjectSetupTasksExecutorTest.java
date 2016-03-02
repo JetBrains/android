@@ -56,6 +56,6 @@ public class PostProjectSetupTasksExecutorTest {
 
   @Test
   public void testIsPluginVersionUpgradeNecessary() {
-    assertEquals(myForceUpgrade, PostProjectSetupTasksExecutor.isPluginVersionUpgradeNecessary(myCurrent, myLatest));
+    assertEquals(myForceUpgrade, PostProjectSetupTasksExecutor.isForcedPluginVersionUpgradeNecessary(myCurrent, myLatest));
   }
 }
