@@ -26,6 +26,7 @@ import com.intellij.openapi.project.Project;
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static org.fest.assertions.Assertions.assertThat;
@@ -88,8 +89,7 @@ public class PsdAndroidModuleEditorTest extends AndroidGradleTestCase {
     assertThat(flavors).containsOnly("basic");
   }
 
-  // Failing on go/studio-builder bots (b.android.com/201596).
-  public void ignore_testEditableDependencies() throws Throwable {
+  public void testEditableDependencies() throws Throwable {
     loadProject("projects/projectWithAppandLib");
 
     Project project = myFixture.getProject();
@@ -130,7 +130,7 @@ public class PsdAndroidModuleEditorTest extends AndroidGradleTestCase {
     assertEquals("com.android.support:appcompat-v7:23.1.1", appCompatV7Editor.getSpec().toString());
 
     // Verify that the variants where appcompat is are properly registered.
-    List<String> variants = appCompatV7Editor.getVariants();
+    Set<String> variants = appCompatV7Editor.getVariants();
     assertThat(variants).containsOnly("paidDebug", "paidRelease", "basicDebug", "basicRelease");
 
     // Verify that the variants where appcompat is have editors
@@ -139,8 +139,7 @@ public class PsdAndroidModuleEditorTest extends AndroidGradleTestCase {
     }
   }
 
-  // Failing on go/studio-builder bots (b.android.com/201596).
-  public void ignore_testEditableDependenciesWithPlusInVersion() throws Throwable {
+  public void testEditableDependenciesWithPlusInVersion() throws Throwable {
     loadProject("projects/projectWithAppandLib");
 
     Project project = myFixture.getProject();
@@ -158,7 +157,7 @@ public class PsdAndroidModuleEditorTest extends AndroidGradleTestCase {
     assertEquals("com.android.support:appcompat-v7:+", appCompatV7Editor.getSpec().toString());
 
     // Verify that the variants where appcompat is are properly registered.
-    List<String> variants = appCompatV7Editor.getVariants();
+    Set<String> variants = appCompatV7Editor.getVariants();
     assertThat(variants).containsOnly("paidDebug", "paidRelease", "basicDebug", "basicRelease");
 
     // Verify that the variants where appcompat is have editors
