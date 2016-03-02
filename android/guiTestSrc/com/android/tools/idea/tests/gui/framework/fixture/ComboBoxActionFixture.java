@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import com.android.tools.idea.tests.gui.framework.Wait;
 import com.intellij.openapi.actionSystem.ex.ComboBoxAction;
 import com.intellij.ui.JBListWithHintProvider;
 import com.intellij.ui.popup.PopupFactoryImpl;
@@ -25,15 +26,12 @@ import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.exception.ComponentLookupException;
 import org.fest.swing.fixture.JButtonFixture;
-import org.fest.swing.timing.Condition;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
 
-import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
 import static org.fest.swing.edt.GuiActionRunner.execute;
-import static org.fest.swing.timing.Pause.pause;
 import static org.junit.Assert.*;
 
 public class ComboBoxActionFixture {
@@ -93,9 +91,9 @@ public class ComboBoxActionFixture {
 
   private void click() {
     final JButtonFixture comboBoxButtonFixture = new JButtonFixture(myRobot, myTarget);
-    pause(new Condition("comboBoxButton to be enabled") {
+    Wait.minutes(2).expecting("comboBoxButton to be enabled").until(new Wait.Objective() {
       @Override
-      public boolean test() {
+      public boolean isMet() {
         //noinspection ConstantConditions
         return execute(new GuiQuery<Boolean>() {
           @Override
@@ -104,7 +102,7 @@ public class ComboBoxActionFixture {
           }
         });
       }
-    }, SHORT_TIMEOUT);
+    });
     comboBoxButtonFixture.click();
   }
 
@@ -114,9 +112,9 @@ public class ComboBoxActionFixture {
   }
 
   private static void selectItemByText(@NotNull final JList list, @NotNull final String text) {
-    pause(new Condition("the list to be populated") {
+    Wait.minutes(2).expecting("the list to be populated").until(new Wait.Objective() {
       @Override
-      public boolean test() {
+      public boolean isMet() {
         ListPopupModel popupModel = (ListPopupModel)list.getModel();
         for (int i = 0; i < popupModel.getSize(); ++i) {
           PopupFactoryImpl.ActionItem actionItem = (PopupFactoryImpl.ActionItem)popupModel.get(i);
@@ -127,7 +125,7 @@ public class ComboBoxActionFixture {
         }
         return false;
       }
-    }, SHORT_TIMEOUT);
+    });
 
     final Integer appIndex = execute(new GuiQuery<Integer>() {
       @Override

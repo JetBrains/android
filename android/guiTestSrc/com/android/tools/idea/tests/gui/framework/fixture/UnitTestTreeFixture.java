@@ -15,11 +15,10 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import com.android.tools.idea.tests.gui.framework.Wait;
 import com.intellij.execution.testframework.AbstractTestProxy;
 import com.intellij.execution.testframework.TestFrameworkRunningModel;
 import com.intellij.execution.testframework.TestTreeView;
-import org.fest.swing.timing.Condition;
-import org.fest.swing.timing.Pause;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -38,9 +37,9 @@ public class UnitTestTreeFixture {
 
   @Nullable
   public TestFrameworkRunningModel getModel() {
-    Pause.pause(new Condition("the test results model") {
+    Wait.seconds(30).expecting("the test results model").until(new Wait.Objective() {
       @Override
-      public boolean test() {
+      public boolean isMet() {
         return myTreeView.getData(TestTreeView.MODEL_DATA_KEY.getName()) != null;
       }
     });

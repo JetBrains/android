@@ -33,6 +33,7 @@ import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.Wait;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.Tab;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.ContentFixture;
@@ -74,7 +75,6 @@ import org.fest.swing.edt.GuiTask;
 import org.fest.swing.fixture.DialogFixture;
 import org.fest.swing.fixture.JButtonFixture;
 import org.fest.swing.fixture.JCheckBoxFixture;
-import org.fest.swing.timing.Condition;
 import org.jetbrains.android.AndroidPlugin.GuiTestSuiteState;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
@@ -96,6 +96,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.android.SdkConstants.*;
@@ -129,7 +130,6 @@ import static org.fest.reflect.core.Reflection.field;
 import static org.fest.swing.core.matcher.JButtonMatcher.withText;
 import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.fest.swing.finder.WindowFinder.findDialog;
-import static org.fest.swing.timing.Pause.pause;
 import static org.jetbrains.android.AndroidPlugin.GRADLE_SYNC_COMMAND_LINE_OPTIONS_KEY;
 import static org.jetbrains.android.AndroidPlugin.getGuiTestSuiteState;
 import static org.junit.Assert.*;
@@ -306,14 +306,14 @@ public class GradleSyncTest {
       protected boolean isMatching(@NotNull Dialog dialog) {
         return "Install Missing Components".equals(dialog.getTitle());
       }
-    }).withTimeout(SHORT_TIMEOUT.duration()).using(guiTest.robot());
+    }).withTimeout(TimeUnit.MINUTES.toMillis(2)).using(guiTest.robot());
 
     final JButtonFixture finish = quickFixDialog.button(withText("Finish"));
 
     // Wait until installation is finished. By then the "Finish" button will be enabled.
-    pause(new Condition("Android Support Repository to be installed") {
+    Wait.minutes(2).expecting("Android Support Repository to be installed").until(new Wait.Objective() {
       @Override
-      public boolean test() {
+      public boolean isMet() {
         //noinspection ConstantConditions
         return execute(new GuiQuery<Boolean>() {
           @Override
@@ -322,7 +322,7 @@ public class GradleSyncTest {
           }
         });
       }
-    }, SHORT_TIMEOUT);
+    });
 
     // Installation finished. Click finish to resync project.
     finish.click();
@@ -370,14 +370,14 @@ public class GradleSyncTest {
     ProjectViewFixture.NodeFixture externalLibrariesNode = projectPane.findExternalLibrariesNode();
     projectPane.expand();
 
-    pause(new Condition("'Project View' to be customized") {
+    Wait.minutes(2).expecting("'Project View' to be customized").until(new Wait.Objective() {
       @Override
-      public boolean test() {
+      public boolean isMet() {
         // 2 nodes should be changed: JDK (remove all children except rt.jar) and rt.jar (remove all children except packages 'java' and
         // 'javax'.
         return changedNodes.size() == 2;
       }
-    }, SHORT_TIMEOUT);
+    });
 
     List<ProjectViewFixture.NodeFixture> libraryNodes = externalLibrariesNode.getChildren();
 
@@ -392,9 +392,9 @@ public class GradleSyncTest {
     assertNotNull(jdkNode);
 
     final ProjectViewFixture.NodeFixture finalJdkNode = jdkNode;
-    pause(new Condition("JDK node to be customized") {
+    Wait.seconds(30).expecting("JDK node to be customized").until(new Wait.Objective() {
       @Override
-      public boolean test() {
+      public boolean isMet() {
         List<ProjectViewFixture.NodeFixture> jdkChildren = finalJdkNode.getChildren();
         return jdkChildren.size() == 1;
       }
@@ -1522,11 +1522,11 @@ public class GradleSyncTest {
       }
     });
 
-    pause(new Condition("sync to be skipped") {
+    Wait.minutes(2).expecting("sync to be skipped").until(new Wait.Objective() {
       @Override
-      public boolean test() {
+      public boolean isMet() {
         return syncSkipped.get();
       }
-    }, SHORT_TIMEOUT);
+    });
   }
 }

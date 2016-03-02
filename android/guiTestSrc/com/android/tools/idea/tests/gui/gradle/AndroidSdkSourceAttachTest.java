@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.Wait;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorNotificationPanelFixture;
 import com.intellij.ide.util.PropertiesComponent;
@@ -29,7 +30,6 @@ import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.fest.swing.fixture.DialogFixture;
 import org.fest.swing.fixture.JButtonFixture;
-import org.fest.swing.timing.Condition;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -39,8 +39,8 @@ import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
-import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
 import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPORT;
 import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.util.io.FileUtil.rename;
@@ -49,7 +49,6 @@ import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.swing.core.matcher.DialogMatcher.withTitle;
 import static org.fest.swing.core.matcher.JButtonMatcher.withText;
 import static org.fest.swing.finder.WindowFinder.findDialog;
-import static org.fest.swing.timing.Pause.pause;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.*;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assume.assumeTrue;
@@ -106,25 +105,25 @@ public class AndroidSdkSourceAttachTest {
     // Download the source.
     findNotificationPanel().performAction("Download");
 
-    DialogFixture downloadDialog = findDialog(withTitle("SDK Quickfix Installation")).withTimeout(SHORT_TIMEOUT.duration()).using(
+    DialogFixture downloadDialog = findDialog(withTitle("SDK Quickfix Installation")).withTimeout(TimeUnit.MINUTES.toMillis(2)).using(
       guiTest.robot());
     final JButtonFixture finish = downloadDialog.button(withText("Finish"));
 
     // Wait until installation is finished. By then the "Finish" button will be enabled.
-    pause(new Condition("Android source to be installed") {
+    Wait.seconds(30).expecting("Android source to be installed").until(new Wait.Objective() {
       @Override
-      public boolean test() {
+      public boolean isMet() {
         return finish.isEnabled();
       }
     });
     finish.click();
 
-    pause(new Condition("source file to be opened") {
+    Wait.minutes(2).expecting("source file to be opened").until(new Wait.Objective() {
       @Override
-      public boolean test() {
+      public boolean isMet() {
         return !classFile.equals(editor.getCurrentFile());
       }
-    }, SHORT_TIMEOUT);
+    });
 
     VirtualFile sourceFile = editor.getCurrentFile();
     assertNotNull(sourceFile);
@@ -152,12 +151,12 @@ public class AndroidSdkSourceAttachTest {
     // Refresh the source.
     findNotificationPanel().performAction("Refresh (if already downloaded)");
 
-    pause(new Condition("source file to be opened") {
+    Wait.minutes(2).expecting("source file to be opened").until(new Wait.Objective() {
       @Override
-      public boolean test() {
+      public boolean isMet() {
         return !classFile.equals(editor.getCurrentFile());
       }
-    }, SHORT_TIMEOUT);
+    });
 
     VirtualFile sourceFile = editor.getCurrentFile();
     assertNotNull(sourceFile);
@@ -170,7 +169,7 @@ public class AndroidSdkSourceAttachTest {
 
   private void acceptLegalNoticeIfNeeded() {
     if(!PropertiesComponent.getInstance().isTrueValue("decompiler.legal.notice.accepted")) {
-      DialogFixture acceptTermDialog = findDialog(withTitle("JetBrains Decompiler")).withTimeout(SHORT_TIMEOUT.duration()).using(
+      DialogFixture acceptTermDialog = findDialog(withTitle("JetBrains Decompiler")).withTimeout(TimeUnit.MINUTES.toMillis(2)).using(
         guiTest.robot());
       acceptTermDialog.button(withText("Accept")).click();
     }

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import com.android.tools.idea.tests.gui.framework.Wait;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
@@ -23,17 +24,14 @@ import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.exception.ComponentLookupException;
-import org.fest.swing.timing.Condition;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import java.awt.*;
 import java.util.Collection;
 
-import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static org.fest.swing.edt.GuiActionRunner.execute;
-import static org.fest.swing.timing.Pause.pause;
 
 public class ActionButtonFixture extends JComponentFixture<ActionButtonFixture, ActionButton> {
   @NotNull
@@ -41,9 +39,9 @@ public class ActionButtonFixture extends JComponentFixture<ActionButtonFixture, 
                                                    @NotNull final Robot robot,
                                                    @NotNull final Container container) {
     final Ref<ActionButton> actionButtonRef = new Ref<ActionButton>();
-    pause(new Condition("ActionButton with ID '" + actionId + "' to be visible") {
+    Wait.minutes(2).expecting("ActionButton with ID '" + actionId + "' to be visible").until(new Wait.Objective() {
       @Override
-      public boolean test() {
+      public boolean isMet() {
         Collection<ActionButton> found = robot.finder().findAll(container, new GenericTypeMatcher<ActionButton>(ActionButton.class) {
           @Override
           protected boolean isMatching(@NotNull ActionButton button) {
@@ -63,7 +61,7 @@ public class ActionButtonFixture extends JComponentFixture<ActionButtonFixture, 
         }
         return false;
       }
-    }, SHORT_TIMEOUT);
+    });
 
     ActionButton button = actionButtonRef.get();
     if (button == null) {
@@ -74,9 +72,9 @@ public class ActionButtonFixture extends JComponentFixture<ActionButtonFixture, 
 
   @NotNull
   public ActionButtonFixture waitUntilEnabledAndShowing() {
-    pause(new Condition("action to be enabled and showing") {
+    Wait.minutes(2).expecting("action to be enabled and showing").until(new Wait.Objective() {
       @Override
-      public boolean test() {
+      public boolean isMet() {
         //noinspection ConstantConditions
         return execute(new GuiQuery<Boolean>() {
           @Nullable
@@ -90,7 +88,7 @@ public class ActionButtonFixture extends JComponentFixture<ActionButtonFixture, 
           }
         });
       }
-    }, SHORT_TIMEOUT);
+    });
     return this;
   }
 

@@ -15,24 +15,22 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import com.android.tools.idea.tests.gui.framework.Wait;
 import com.intellij.openapi.fileChooser.ex.FileChooserDialogImpl;
 import com.intellij.openapi.fileChooser.ex.FileSystemTreeImpl;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiTask;
-import org.fest.swing.timing.Condition;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Assert;
 
 import javax.swing.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
 import static org.fest.reflect.core.Reflection.field;
 import static org.fest.swing.edt.GuiActionRunner.execute;
-import static org.fest.swing.timing.Pause.pause;
 import static org.fest.util.Strings.quote;
 import static org.junit.Assert.assertNotNull;
 
@@ -86,12 +84,12 @@ public class FileChooserDialogFixture extends IdeaDialogFixture<FileChooserDialo
       }
     });
 
-    pause(new Condition("file " + quote(file.getPath()) + " to be selected") {
+    Wait.minutes(2).expecting("file " + quote(file.getPath()) + " to be selected").until(new Wait.Objective() {
       @Override
-      public boolean test() {
+      public boolean isMet() {
         return fileSelected.get();
       }
-    }, SHORT_TIMEOUT);
+    });
 
     return this;
   }
