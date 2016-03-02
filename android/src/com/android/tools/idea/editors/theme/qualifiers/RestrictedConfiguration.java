@@ -133,13 +133,13 @@ public class RestrictedConfiguration {
       ArrayList<ResourceQualifier> incompatibleQualifiers = Lists.newArrayList();
       for (FolderConfiguration matching : matchingIncompatibles) {
         ResourceQualifier qualifier = matching.getQualifier(qualifierIndex);
-        if (qualifier != null && qualifier.isValid()) {
+        if (ResourceQualifier.isValid(qualifier)) {
           incompatibleQualifiers.add(qualifier);
         }
       }
 
       // If no one has this qualifier, we skip it
-      if ((compatibleQualifier == null || !compatibleQualifier.isValid()) && incompatibleQualifiers.isEmpty()) {
+      if (!ResourceQualifier.isValid(compatibleQualifier) && incompatibleQualifiers.isEmpty()) {
         continue;
       }
 
