@@ -20,7 +20,7 @@ import com.android.tools.idea.editors.hprof.HprofView;
 import com.android.tools.idea.editors.hprof.views.ClassesTreeView;
 import com.android.tools.idea.editors.hprof.views.InstanceReferenceTreeView;
 import com.android.tools.idea.editors.hprof.views.InstancesTreeView;
-import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.android.tools.idea.tests.gui.framework.Wait;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.ex.ComboBoxAction;
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl;
@@ -37,14 +37,12 @@ import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.exception.ComponentLookupException;
 import org.fest.swing.fixture.JTableFixture;
 import org.fest.swing.fixture.JTreeFixture;
-import org.fest.swing.timing.Condition;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import javax.swing.*;
 import java.awt.*;
 
-import static org.fest.swing.timing.Pause.pause;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -158,9 +156,9 @@ public class HprofEditorFixture extends EditorFixture {
   }
 
   private void waitForHprofEditor() {
-    pause(new Condition("editor to be ready") {
+    Wait.minutes(2).expecting("editor to be ready").until(new Wait.Objective() {
       @Override
-      public boolean test() {
+      public boolean isMet() {
         try {
           robot.finder().findByName(myHprofEditor.getComponent(), "HprofClassesTree", true);
           return true;
@@ -169,7 +167,7 @@ public class HprofEditorFixture extends EditorFixture {
           return false;
         }
       }
-    }, GuiTests.SHORT_TIMEOUT);
+    });
   }
 
   protected static class ActionToolbarFixture extends JComponentFixture<ActionToolbarFixture, ActionToolbarImpl> {
@@ -196,12 +194,12 @@ public class HprofEditorFixture extends EditorFixture {
       assertTrue(buttonPanel instanceof Container);
 
       final JButton button = robot().finder().findByType((Container)buttonPanel, JButton.class, false);
-      pause(new Condition("button to be visible") {
+      Wait.minutes(2).expecting("button to be visible").until(new Wait.Objective() {
         @Override
-        public boolean test() {
+        public boolean isMet() {
           return button.isShowing();
         }
-      }, GuiTests.SHORT_TIMEOUT);
+      });
       return ComboBoxActionFixture.findComboBox(robot(), (Container)buttonPanel);
     }
 

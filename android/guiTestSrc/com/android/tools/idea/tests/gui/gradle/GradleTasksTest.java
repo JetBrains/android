@@ -18,14 +18,13 @@ package com.android.tools.idea.tests.gui.gradle;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.Wait;
 import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleToolWindowFixture;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.Consumer;
-import org.fest.swing.timing.Condition;
-import org.fest.swing.timing.Timeout;
 import org.fest.swing.util.PatternTextMatcher;
 import org.fest.swing.util.TextMatcher;
 import org.jetbrains.annotations.NotNull;
@@ -37,14 +36,10 @@ import java.io.IOException;
 import java.util.regex.Pattern;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
-import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
 import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPORT;
 import static com.android.tools.idea.tests.gui.framework.fixture.FileFixture.getDocument;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
-import static java.util.concurrent.TimeUnit.SECONDS;
 import static java.util.regex.Pattern.DOTALL;
-import static org.fest.swing.timing.Pause.pause;
-import static org.fest.swing.timing.Timeout.timeout;
 import static org.fest.swing.util.Strings.match;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -78,17 +73,16 @@ public class GradleTasksTest {
     runTask(taskName, new Consumer<ExecutionToolWindowFixture.ContentFixture>() {
       @Override
       public void consume(final ExecutionToolWindowFixture.ContentFixture runContent) {
-        Timeout timeout = timeout(2, SECONDS);
         for (int i = 0; i < 7; i++) {
-          runContent.waitForOutput(new PatternTextMatcher(Pattern.compile(".*output entry " + i + ".*", DOTALL)), timeout);
+          runContent.waitForOutput(new PatternTextMatcher(Pattern.compile(".*output entry " + i + ".*", DOTALL)), 2);
           assertTrue(runContent.isExecutionInProgress());
         }
-        pause(new Condition("task execution to finish") {
+        Wait.minutes(2).expecting("task execution to finish").until(new Wait.Objective() {
           @Override
-          public boolean test() {
+          public boolean isMet() {
             return !runContent.isExecutionInProgress();
           }
-        }, SHORT_TIMEOUT);
+        });
       }
     });
   }
@@ -110,9 +104,9 @@ public class GradleTasksTest {
       public void consume(final ExecutionToolWindowFixture.ContentFixture runContent) {
         boolean askedToStop = runContent.stop();
         assertTrue(askedToStop);
-        pause(new Condition("'build' task to stop") {
+        Wait.seconds(30).expecting("'build' task to stop").until(new Wait.Objective() {
           @Override
-          public boolean test() {
+          public boolean isMet() {
             if (runContent.isExecutionInProgress()) {
               return false;
             }
