@@ -18,7 +18,6 @@ package com.android.tools.idea.tests.gui.editing;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -37,7 +36,6 @@ public class AttributeResolveTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
-  @Ignore("failed in http://go/aj/job/studio-ui-test/417 and from IDEA")
   @Test
   public void testResolveNewlyAddedTag() throws IOException {
     guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest");
@@ -48,6 +46,7 @@ public class AttributeResolveTest {
     assertThat(appBuildFile).isFile();
     appendToFile(appBuildFile, "\ndependencies { compile 'com.android.support:cardview-v7:22.1.1' }\n");
     guiTest.ideFrame().requestProjectSync();
+    guiTest.ideFrame().waitForGradleProjectSyncToFinish();
 
     editor.open("app/src/main/res/layout/layout2.xml", EditorFixture.Tab.EDITOR);
     editor.moveTo(editor.findOffset("^<TextView"));
