@@ -401,6 +401,21 @@
     <renamePsiElementProcessor implementation="org.jetbrains.android.AndroidApplicationPackageRenameProcessor" order="first"/>
 
     <intentionAction>
+      <className>org.jetbrains.android.intentions.AddActivityToManifest</className>
+      <category>Android</category>
+    </intentionAction>
+
+    <intentionAction>
+      <className>org.jetbrains.android.intentions.AddBroadcastReceiverToManifest</className>
+      <category>Android</category>
+    </intentionAction>
+
+    <intentionAction>
+      <className>org.jetbrains.android.intentions.AddServiceToManifest</className>
+      <category>Android</category>
+    </intentionAction>
+
+    <intentionAction>
       <className>org.jetbrains.android.intentions.AndroidAddStringResourceAction</className>
       <category>Android</category>
     </intentionAction>
