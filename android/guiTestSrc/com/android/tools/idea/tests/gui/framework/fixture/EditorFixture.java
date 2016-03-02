@@ -747,6 +747,9 @@ public class EditorFixture {
       case BACK_SPACE:
         invokeActionViaKeystroke("EditorBackSpace");
         break;
+      case ESCAPE:
+        invokeActionViaKeystroke("EditorEscape");
+        break;
       case UNDO:
         invokeActionViaKeystroke("$Undo");
         break;
@@ -1176,7 +1179,8 @@ public class EditorFixture {
     PREVIOUS_ERROR,
     NEXT_METHOD,
     PREVIOUS_METHOD,
-    RUN_FROM_CONTEXT
+    RUN_FROM_CONTEXT,
+    ESCAPE
   }
 
   /**
