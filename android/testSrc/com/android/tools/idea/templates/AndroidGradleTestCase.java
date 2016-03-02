@@ -82,6 +82,7 @@ import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.AndroidTestCaseHelper.getAndroidSdkPath;
+import static com.android.tools.idea.AndroidTestCaseHelper.getSystemPropertyOrEnvironmentVariable;
 import static com.android.tools.idea.gradle.util.Projects.*;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API_STRING;
@@ -152,9 +153,9 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     // Gradle import will fail if the global one isn't set.
     final File androidSdkPath = getAndroidSdkPath();
 
-    String jdkHome = System.getenv(JDK_HOME_FOR_TESTS);
+    String jdkHome = getSystemPropertyOrEnvironmentVariable(JDK_HOME_FOR_TESTS);
     if (isNullOrEmpty(jdkHome) || !checkForJdk(jdkHome)) {
-      fail("Please specify the path to a valid JDK using system property " + JDK_HOME_FOR_TESTS);
+      fail("Please specify the path to a valid JDK using system property or environment variable " + JDK_HOME_FOR_TESTS);
     }
     final File jdkPath = new File(jdkHome);
 
