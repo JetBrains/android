@@ -71,7 +71,8 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
     ImmutableSet.of(VIEW_MERGE, TABLE_ROW, VIEW_INCLUDE, REQUEST_FOCUS, TAG_LAYOUT, TAG_DATA, TAG_IMPORT, TAG);
 
   private static final ImmutableSet<String> SIZE_NOT_REQUIRED_PARENT_TAG_NAMES =
-    ImmutableSet.of(TABLE_ROW, TABLE_LAYOUT, VIEW_MERGE, GRID_LAYOUT, FQCN_GRID_LAYOUT_V7);
+    ImmutableSet
+      .of(TABLE_ROW, TABLE_LAYOUT, VIEW_MERGE, GRID_LAYOUT, FQCN_GRID_LAYOUT_V7, CLASS_PERCENT_RELATIVE_LAYOUT, CLASS_PERCENT_FRAME_LAYOUT);
 
   public static boolean isLayoutAttributeRequired(@NotNull XmlName attributeName, @NotNull DomElement element) {
     // Mark layout_width and layout_height required - if the context calls for it
