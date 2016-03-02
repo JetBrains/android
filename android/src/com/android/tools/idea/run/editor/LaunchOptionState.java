@@ -31,6 +31,7 @@ public abstract class LaunchOptionState {
   public abstract LaunchTask getLaunchTask(@NotNull String applicationId,
                                            @NotNull AndroidFacet facet,
                                            boolean waitForDebugger,
+                                           @Nullable AndroidDebugger androidDebugger,
                                            @NotNull String extraAmOptions);
 
   @NotNull
