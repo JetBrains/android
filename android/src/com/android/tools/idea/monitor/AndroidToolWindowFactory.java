@@ -219,7 +219,7 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware {
 
     group.add(new TerminateVMAction(deviceContext));
     if (HierarchyViewAction.ENABLED) {
-      group.add(new HierarchyViewAction(deviceContext));
+      group.add(new HierarchyViewAction(project, deviceContext));
     }
     //group.add(new MyAllocationTrackerAction());
     group.add(new Separator());
