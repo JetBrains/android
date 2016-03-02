@@ -44,6 +44,7 @@ import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
+import com.intellij.openapi.wm.impl.IdeFrameImpl;
 import com.intellij.ui.components.JBList;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
@@ -699,6 +700,16 @@ public class EditorFixture {
       }
     }, SHORT_TIMEOUT);
 
+    execute(new GuiTask() {
+      @Override
+      protected void executeInEDT() throws Throwable {
+        // If Android Studio lost the focus, get it back
+        IdeFrameImpl ideFrame = myFrame.target();
+        if (ideFrame.getFocusOwner() == null) {
+          ideFrame.requestFocus();
+        }
+      }
+    });
     return this;
   }
 
