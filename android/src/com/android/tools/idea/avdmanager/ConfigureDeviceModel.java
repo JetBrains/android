@@ -24,7 +24,6 @@ import com.android.sdklib.repositoryv2.targets.SystemImage;
 import com.android.tools.idea.ui.properties.BindingsManager;
 import com.android.tools.idea.wizard.model.WizardModel;
 import com.google.common.collect.Lists;
-import com.intellij.openapi.util.Disposer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -55,7 +54,6 @@ public final class ConfigureDeviceModel extends WizardModel {
       }
       myDeviceData.setUniqueName(String.format("%s (Edited)", device.getDisplayName()));
     }
-    Disposer.register(this, myDeviceData);
     if (device != null) {
       initBootProperties(device);
     }

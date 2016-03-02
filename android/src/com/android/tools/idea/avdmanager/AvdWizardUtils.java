@@ -94,7 +94,6 @@ public class AvdWizardUtils {
   public static final String AVD_INI_AVD_ID = "AvdId";
   public static final String AVD_ID_KEY = AVD_INI_AVD_ID;
 
-  public static final String RANCHU_KEY = WIZARD_ONLY + "ranchu.emulator";
   public static final String CPU_CORES_KEY = AvdManager.AVD_INI_CPU_CORES;
 
   // Device definition keys
@@ -160,12 +159,11 @@ public class AvdWizardUtils {
    * emulated app (e.g. it's intended to let the hardware run smoothly with lots of services and
    * apps running simultaneously)
    *
-   * @param data the {@link AvdDeviceData} to look up the default amount of RAM on
    * @return the amount of RAM to default an AVD to for the given hardware
    */
   @NotNull
-  public static Storage getDefaultRam(@NotNull AvdDeviceData data) {
-    return getMaxPossibleRam(data.ramStorage().get());
+  public static Storage getMaxPossibleRam() {
+    return new Storage(MAX_RAM_MB, Storage.Unit.MiB);
   }
 
   /**
