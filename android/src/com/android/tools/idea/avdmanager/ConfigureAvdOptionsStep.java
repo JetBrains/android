@@ -17,10 +17,8 @@ package com.android.tools.idea.avdmanager;
 
 import com.android.SdkConstants;
 import com.android.repository.io.FileOpUtils;
-import com.android.resources.Density;
 import com.android.resources.Keyboard;
 import com.android.resources.ScreenOrientation;
-import com.android.resources.ScreenSize;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.devices.*;
@@ -138,7 +136,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
   private JComboBox myScalingComboBox;
   private JComboBox myBackCameraCombo;
   private JComboBox myFrontCameraCombo;
-  private JCheckBox myRanchuCheckBox;
+  private JCheckBox myQemu2CheckBox;
   private JCheckBox myDeviceFrameCheckbox;
   private JCheckBox myEnableComputerKeyboard;
   private StorageField myRamStorage;
@@ -166,7 +164,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
   private JPanel myStoragePanel;
   private JPanel myFramePanel;
   private JPanel myKeyboardPanel;
-  private JPanel myRanchuPanel;
+  private JPanel myQemu2Panel;
   private JPanel myAvdIdRow;
   private JPanel myCustomSkinPanel;
   private JPanel myScrollRootPane;
@@ -188,6 +186,11 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
    * Device's original Sd card
    */
   private Storage myOriginalSdCard;
+  /**
+   * The selected core count while enabled
+   */
+  private int mySelectedCoreCount;
+
 
   public ConfigureAvdOptionsStep(@Nullable Project project, @NotNull AvdOptionsModel model) {
     super(model, "Android Virtual Device (AVD)");
@@ -210,40 +213,6 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     myBackCameraCombo.setModel(new DefaultComboBoxModel(AvdCamera.values()));
     mySpeedCombo.setModel(new DefaultComboBoxModel(AvdNetworkSpeed.values()));
     myLatencyCombo.setModel(new DefaultComboBoxModel(AvdNetworkLatency.values()));
-  }
-
-  /**
-   * Set the default VM heap size. This is based on the Android CDD minimums for each screen size and density.
-   */
-  private static Storage calculateVmHeap(@NotNull AvdDeviceData deviceData) {
-    ScreenSize size = AvdScreenData.getScreenSize(deviceData.diagonalScreenSize().get());
-    Density density = AvdScreenData.getScreenDensity(deviceData.screenDpi().get());
-    int vmHeapSize = 32;
-    boolean isScreenXLarge = size.equals(ScreenSize.XLARGE);
-    switch (density) {
-      case LOW:
-      case MEDIUM:
-        vmHeapSize = (isScreenXLarge) ? 32 : 16;
-        break;
-      case TV:
-      case HIGH:
-      case DPI_280:
-      case DPI_360:
-        vmHeapSize = (isScreenXLarge) ? 64 : 32;
-        break;
-      case XHIGH:
-      case DPI_400:
-      case DPI_420:
-      case XXHIGH:
-      case DPI_560:
-      case XXXHIGH:
-        vmHeapSize = (isScreenXLarge) ? 128 : 64;
-        break;
-      case NODPI:
-      case ANYDPI:
-        break;
-    }
-    return new Storage(vmHeapSize, Storage.Unit.MiB);
   }
 
   private void initCpuCoreDropDown() {
@@ -339,7 +308,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     myLatencyCombo.putClientProperty(AvdConfigurationOptionHelpPanel.TITLE_KEY, "Network Latency");
     myScalingComboBox.putClientProperty(AvdConfigurationOptionHelpPanel.TITLE_KEY, "Start-Up Size");
     myFrontCameraCombo.putClientProperty(AvdConfigurationOptionHelpPanel.TITLE_KEY, "Front Camera");
-    myRanchuCheckBox.putClientProperty(AvdConfigurationOptionHelpPanel.TITLE_KEY, "Number of cores");
+    myQemu2CheckBox.putClientProperty(AvdConfigurationOptionHelpPanel.TITLE_KEY, "Number of cores");
     myInternalStorage.putClientProperty(AvdConfigurationOptionHelpPanel.TITLE_KEY, "Internal Flash");
     myHostGraphics.putClientProperty(AvdConfigurationOptionHelpPanel.TITLE_KEY, "Graphics Rendering");
     mySkinComboBox.putClientProperty(AvdConfigurationOptionHelpPanel.TITLE_KEY, "Custom Device Frame");
@@ -381,6 +350,8 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     updateSystemImageData();
 
     myOriginalSdCard = getModel().sdCardStorage().getValue();
+
+    mySelectedCoreCount = getModel().useQemu2().get() ? getModel().cpuCoreCount().getValueOr(1) : AvdOptionsModel.MAX_NUMBER_OF_CORES;
   }
 
   private void addListeners() {
@@ -446,7 +417,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
 
     myListeners.listen(getModel().sdCardStorage(), mySdCardStorageConsumer);
 
-    myListeners.listen(getModel().isRanchu(), new InvalidationListener() {
+    myListeners.listen(getModel().useQemu2(), new InvalidationListener() {
       @Override
       public void onInvalidated(@NotNull ObservableValue<?> sender) {
         toggleSystemOptionals(true);
@@ -496,12 +467,12 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
       }
     }
   };
+
   private Consumer<Optional<Device>> myDeviceConsumer = new Consumer<Optional<Device>>() {
     @Override
     public void consume(Optional<Device> device) {
       toggleOptionals(device, true);
       if (device.isPresent()) {
-        getModel().setAvdDeviceData(new AvdDeviceData(getModel().device().getValue()));
         myDeviceName.setIcon(DeviceDefinitionPreview.getIcon(getModel().getAvdDeviceData()));
         myDeviceName.setText(getModel().device().getValue().getDisplayName());
         updateDeviceDetails();
@@ -525,7 +496,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     myBindings.bindTwoWay(new TextProperty(mySystemImageName), getModel().systemImageName());
     myBindings.bindTwoWay(new TextProperty(mySystemImageDetails), getModel().systemImageDetails());
 
-    myBindings.bindTwoWay(new SelectedProperty(myRanchuCheckBox), getModel().isRanchu());
+    myBindings.bindTwoWay(new SelectedProperty(myQemu2CheckBox), getModel().useQemu2());
     myBindings.bindTwoWay(new SelectedItemProperty<Integer>(myCoreCount), getModel().cpuCoreCount());
     myBindings.bindTwoWay(myRamStorage.storage(), getModel().getAvdDeviceData().ramStorage());
     myBindings.bindTwoWay(myVmHeapStorage.storage(), getModel().vmHeapStorage());
@@ -533,11 +504,6 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     myBindings.bindTwoWay(myBuiltInSdCardStorage.storage(), new OptionalToValuePropertyAdapter<Storage>(getModel().sdCardStorage()));
 
     myBindings.bindTwoWay(new SelectedItemProperty<GpuMode>(myHostGraphics), getModel().hostGpuMode());
-
-    if (!getModel().isInEditMode().get()) {
-      getModel().getAvdDeviceData().ramStorage().set(AvdWizardUtils.getDefaultRam(getModel().getAvdDeviceData()));
-      getModel().vmHeapStorage().set(calculateVmHeap(getModel().getAvdDeviceData()));
-    }
 
     myBindings.bindTwoWay(new SelectedProperty(myDeviceFrameCheckbox), getModel().hasDeviceFrame());
 
@@ -751,21 +717,27 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     return myShowAdvancedSettingsButton.getText().equals(HIDE);
   }
 
-  private void toggleSystemOptionals(boolean useRanchuChanged) {
-    boolean showMultiCoreOption = isAdvancedPanel() && doesSystemImageSupportRanchu();
-    myRanchuPanel.setVisible(showMultiCoreOption);
+  private void toggleSystemOptionals(boolean useQemu2Changed) {
+    boolean showMultiCoreOption = isAdvancedPanel() && doesSystemImageSupportQemu2();
+    myQemu2Panel.setVisible(showMultiCoreOption);
     if (showMultiCoreOption) {
-      boolean showCores = supportsMultipleCpuCores() && getModel().isRanchu().get() && AvdOptionsModel.MAX_NUMBER_OF_CORES > 1;
-      if (useRanchuChanged && !showCores) {
-        getModel().cpuCoreCount().setValue(1);
+      boolean showCores = supportsMultipleCpuCores() && getModel().useQemu2().get() && AvdOptionsModel.MAX_NUMBER_OF_CORES > 1;
+      if (useQemu2Changed) {
+        if (showCores) {
+          getModel().cpuCoreCount().setValue(mySelectedCoreCount);
+        }
+        else {
+          mySelectedCoreCount = getModel().cpuCoreCount().getValueOr(AvdOptionsModel.MAX_NUMBER_OF_CORES);
+          getModel().cpuCoreCount().setValue(1);
+        }
       }
       myCoreCount.setEnabled(showCores);
     }
   }
 
-  private boolean doesSystemImageSupportRanchu() {
+  private boolean doesSystemImageSupportQemu2() {
     assert getModel().systemImage().get().isPresent();
-    return AvdManagerConnection.doesSystemImageSupportRanchu(getModel().systemImage().getValue());
+    return AvdManagerConnection.doesSystemImageSupportQemu2(getModel().systemImage().getValue());
   }
 
   private int getSelectedApiLevel() {
@@ -791,7 +763,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
 
   private void registerAdvancedOptionsVisibility() {
     myAdvancedOptionsComponents =
-      Lists.<JComponent>newArrayList(myStoragePanel, myCameraPanel, myNetworkPanel, myRanchuPanel, myKeyboardPanel, myCustomSkinPanel,
+      Lists.<JComponent>newArrayList(myStoragePanel, myCameraPanel, myNetworkPanel, myQemu2Panel, myKeyboardPanel, myCustomSkinPanel,
                                      myAvdIdRow);
   }
 
@@ -957,12 +929,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
       };
 
       if (dialog.showAndGet()) {
-        Device device = chooseDevicePanel.getDevice();
-
-        if (device != null) {
-          getModel().device().setValue(device);
-          getModel().setAvdDeviceData(new AvdDeviceData(device));
-        }
+        getModel().device().setNullableValue(chooseDevicePanel.getDevice());
       }
     }
   };
