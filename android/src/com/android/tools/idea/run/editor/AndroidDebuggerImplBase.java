@@ -16,6 +16,7 @@
 package com.android.tools.idea.run.editor;
 
 import com.android.annotations.concurrency.GuardedBy;
+import com.android.sdklib.AndroidVersion;
 import com.google.common.collect.Sets;
 import com.intellij.xdebugger.XDebuggerUtil;
 import com.intellij.xdebugger.breakpoints.XBreakpointType;
@@ -44,5 +45,11 @@ public abstract class AndroidDebuggerImplBase<S extends AndroidDebuggerState> im
       }
     }
     return mySupportedBreakpointTypes;
+  }
+
+  @Override
+  @NotNull
+  public String getAmStartOptions(@NotNull AndroidVersion version) {
+    return "";
   }
 }

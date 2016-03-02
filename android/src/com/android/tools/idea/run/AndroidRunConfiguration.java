@@ -198,8 +198,11 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
     assert state != null;
 
     try {
-      String applicationId = apkProvider.getPackageName();
-      return state.getLaunchTask(applicationId, facet, waitForDebugger, ACTIVITY_EXTRA_FLAGS);
+      return state.getLaunchTask(apkProvider.getPackageName(),
+                                 facet,
+                                 waitForDebugger,
+                                 getAndroidDebugger(),
+                                 ACTIVITY_EXTRA_FLAGS);
     }
     catch (ApkProvisionException e) {
       Logger.getInstance(AndroidRunConfiguration.class).error(e);

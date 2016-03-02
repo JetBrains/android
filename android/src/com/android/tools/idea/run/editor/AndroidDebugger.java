@@ -16,6 +16,7 @@
 package com.android.tools.idea.run.editor;
 
 import com.android.ddmlib.Client;
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.tasks.DebugConnectorTask;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.extensions.ExtensionPointName;
@@ -63,4 +64,7 @@ public interface AndroidDebugger<S extends AndroidDebuggerState> {
       append(debugger.getDisplayName());
     }
   }
+
+  @NotNull
+  String getAmStartOptions(@NotNull AndroidVersion version);
 }
