@@ -111,7 +111,7 @@ public class ThemeEditorTableTest {
     guiTest.ideFrame().invokeMenuPathRegex("Edit", "Redo.*");
     assertEquals(newParent, themeEditorTable.getComboBoxSelectionAt(parentCell));
 
-    pause(new Condition("Wait for potential tooltips to disappear") {
+    pause(new Condition("potential tooltips to disappear") {
       @Override
       public boolean test() {
         return guiTest.robot().findActivePopupMenu() == null;
@@ -136,7 +136,7 @@ public class ThemeEditorTableTest {
     edit.click();
 
     final JComboBoxFixture themesComboBox = themeEditor.getThemesComboBox();
-    pause(new Condition("Waiting for parent to load") {
+    pause(new Condition("parent to load") {
       @Override
       public boolean test() {
         // Cannot use themesComboBox.selectedItem() here
@@ -241,7 +241,7 @@ public class ThemeEditorTableTest {
     });
     secondDialog.getColorPicker().setColorWithIntegers(new Color(200, 0, 0, 200));
     secondDialog.clickOK();
-    pause(new Condition("Waiting for component update") {
+    pause(new Condition("component update") {
       @Override
       public boolean test() {
         return "@color/primary_text_default_material_dark".equals(state0.getValue());
@@ -259,7 +259,7 @@ public class ThemeEditorTableTest {
     secondDialog.getList(ChooseResourceDialog.APP_NAMESPACE_LABEL).clickItem("abc_disabled_alpha_material_dark");
     secondDialog.focus();
     secondDialog.clickOK();
-    pause(new Condition("Waiting for component update") {
+    pause(new Condition("component update") {
       @Override
       public boolean test() {
         return "@dimen/abc_disabled_alpha_material_dark".equals(state0.getAlphaValue());
@@ -276,7 +276,7 @@ public class ThemeEditorTableTest {
     });
     secondDialog.getColorPicker().setColorWithIntegers(new Color(0, 200, 0, 255));
     secondDialog.clickOK();
-    pause(new Condition("Waiting for component update") {
+    pause(new Condition("component update") {
       @Override
       public boolean test() {
         return "@color/primary_text_default_material_dark".equals(state1.getValue());
@@ -318,7 +318,7 @@ public class ThemeEditorTableTest {
     textComponent.requireText("@android:color/background_holo_light");
     textComponent.enterText("invalid");
     tableCell.stopEditing();
-    pause(new Condition("Waiting for warning icon to be loaded") {
+    pause(new Condition("warning icon to be loaded") {
       @Override
       public boolean test() {
         return themeEditorTable.hasWarningIconAt(cell);

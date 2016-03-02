@@ -60,7 +60,7 @@ public class ProjectViewFixture extends ToolWindowFixture {
   public PaneFixture selectProjectPane() {
     activate();
     final ProjectView projectView = ProjectView.getInstance(myProject);
-    pause(new Condition("Project view is initialized") {
+    pause(new Condition("ProjectView to be initialized") {
       @Override
       public boolean test() {
         //noinspection ConstantConditions
@@ -82,7 +82,7 @@ public class ProjectViewFixture extends ToolWindowFixture {
   public PaneFixture selectAndroidPane() {
     activate();
     final ProjectView projectView = ProjectView.getInstance(myProject);
-    pause(new Condition("Project view is initialized") {
+    pause(new Condition("ProjectView to be initialized") {
       @Override
       public boolean test() {
         //noinspection ConstantConditions
@@ -121,7 +121,7 @@ public class ProjectViewFixture extends ToolWindowFixture {
     @NotNull
     private AbstractTreeStructure getTreeStructure() {
       final AtomicReference<AbstractTreeStructure> treeStructureRef = new AtomicReference<AbstractTreeStructure>();
-      pause(new Condition("Tree Structure to be built") {
+      pause(new Condition("AbstractTreeStructure to be built") {
         @Override
         public boolean test() {
           AbstractTreeStructure treeStructure = GuiActionRunner.execute(new GuiQuery<AbstractTreeStructure>() {
@@ -209,7 +209,7 @@ public class ProjectViewFixture extends ToolWindowFixture {
 
       assertNotNull(node);
 
-      pause(new Condition("Node to be selected") {
+      pause(new Condition("node to be selected") {
         @Override
         public boolean test() {
           return node.equals(GuiActionRunner.execute(new GuiQuery<Object>() {

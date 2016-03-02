@@ -110,7 +110,7 @@ public class ChooseGradleHomeDialogFixture extends ComponentFixture<ChooseGradle
 
   @NotNull
   public ChooseGradleHomeDialogFixture requireValidationError(@NotNull final String errorText) {
-    pause(new Condition(String.format("Find error message '%1$s'", errorText)) {
+    pause(new Condition(String.format("error message '%1$s' to appear", errorText)) {
       @Override
       public boolean test() {
         ComponentFinder finder = robot().finder();
