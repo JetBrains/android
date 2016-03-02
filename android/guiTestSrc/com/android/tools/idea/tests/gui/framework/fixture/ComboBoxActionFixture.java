@@ -93,7 +93,7 @@ public class ComboBoxActionFixture {
 
   private void click() {
     final JButtonFixture comboBoxButtonFixture = new JButtonFixture(myRobot, myTarget);
-    pause(new Condition("Wait until comboBoxButton is enabled") {
+    pause(new Condition("comboBoxButton to be enabled") {
       @Override
       public boolean test() {
         //noinspection ConstantConditions
@@ -114,7 +114,7 @@ public class ComboBoxActionFixture {
   }
 
   private static void selectItemByText(@NotNull final JList list, @NotNull final String text) {
-    pause(new Condition("Wait until the list is populated.") {
+    pause(new Condition("the list to be populated") {
       @Override
       public boolean test() {
         ListPopupModel popupModel = (ListPopupModel)list.getModel();

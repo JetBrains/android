@@ -40,7 +40,7 @@ public class AndroidPreviewPanelFixture extends ComponentFixture<AndroidPreviewP
 
   @NotNull
   public AndroidPreviewPanelFixture waitForRender() {
-    pause(new Condition("Waiting for preview finish loading") {
+    pause(new Condition("preview to finish loading") {
       @Override
       public boolean test() {
         return target().findViewAtPoint(new Point(10, 10)) != null;

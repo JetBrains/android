@@ -60,7 +60,7 @@ public class FileFixture {
   @NotNull
   public FileFixture requireOpenAndSelected() {
     requireVirtualFile();
-    pause(new Condition("File " + quote(myPath.getPath()) + " to be opened") {
+    pause(new Condition("file " + quote(myPath.getPath()) + " to be opened") {
       @Override
       public boolean test() {
         //noinspection ConstantConditions
@@ -98,7 +98,7 @@ public class FileFixture {
 
   @NotNull
   public FileFixture waitUntilErrorAnalysisFinishes() {
-    pause(new Condition("error analysis finishes") {
+    pause(new Condition("error analysis to finish") {
       @Override
       public boolean test() {
         //noinspection ConstantConditions
@@ -152,7 +152,7 @@ public class FileFixture {
   @NotNull
   public FileFixture waitForCodeAnalysisHighlightCount(@NotNull final HighlightSeverity severity, final int expected) {
     final Document document = getNotNullDocument();
-    pause(new Condition("Waiting for code analysis " + severity + " count to reach " + expected) {
+    pause(new Condition("code analysis " + severity + " count to reach " + expected) {
       @Override
       public boolean test() {
         Collection<HighlightInfo> highlightInfos = execute(new GuiQuery<Collection<HighlightInfo>>() {

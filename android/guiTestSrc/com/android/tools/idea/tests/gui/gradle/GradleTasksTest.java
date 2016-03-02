@@ -83,7 +83,7 @@ public class GradleTasksTest {
           runContent.waitForOutput(new PatternTextMatcher(Pattern.compile(".*output entry " + i + ".*", DOTALL)), timeout);
           assertTrue(runContent.isExecutionInProgress());
         }
-        pause(new Condition("task execution is successfully finished") {
+        pause(new Condition("task execution to finish") {
           @Override
           public boolean test() {
             return !runContent.isExecutionInProgress();
@@ -110,7 +110,7 @@ public class GradleTasksTest {
       public void consume(final ExecutionToolWindowFixture.ContentFixture runContent) {
         boolean askedToStop = runContent.stop();
         assertTrue(askedToStop);
-        pause(new Condition("stopping 'build' task") {
+        pause(new Condition("'build' task to stop") {
           @Override
           public boolean test() {
             if (runContent.isExecutionInProgress()) {

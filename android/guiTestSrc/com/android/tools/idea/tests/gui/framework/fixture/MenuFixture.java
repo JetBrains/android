@@ -102,7 +102,7 @@ class MenuFixture {
   @NotNull
   private List<JPopupMenu> findShowingPopupMenus(final int expectedCount) {
     final Ref<List<JPopupMenu>> ref = new Ref<List<JPopupMenu>>();
-    Pause.pause(new Condition("waiting for " + expectedCount + " JPopupMenus to show up") {
+    Pause.pause(new Condition(expectedCount + " JPopupMenus to show up") {
       @Override
       public boolean test() {
         List<JPopupMenu> popupMenus = newArrayList(myRobot.finder().findAll(new GenericTypeMatcher<JPopupMenu>(JPopupMenu.class) {

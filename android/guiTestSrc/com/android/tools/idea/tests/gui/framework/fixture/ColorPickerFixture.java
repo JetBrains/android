@@ -75,7 +75,7 @@ public class ColorPickerFixture extends JPanelFixture {
   @NotNull
   public ColorPickerFixture setColorWithIntegers(final Color color) {
     setColor(color);
-    pause(new Condition("Waiting for the color picker to update") {
+    pause(new Condition("the color picker to update") {
       @Override
       public boolean test() {
         return String.format("%08X", color.getRGB()).equals(getHexField().text());

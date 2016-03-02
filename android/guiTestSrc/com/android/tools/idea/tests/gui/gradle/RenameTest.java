@@ -74,7 +74,7 @@ public class RenameTest {
             // 'Rename dialog' show a warning asynchronously to the text change, that's why we wait here for the
             // warning to appear
             final Ref<Boolean> ok = new Ref<Boolean>();
-            pause(new Condition("Wait until error text appears") {
+            pause(new Condition("error text to appear") {
               @Override
               public boolean test() {
                 ok.set(renameDialog.warningExists(AndroidBundle.message("android.refactoring.gradle.warning.rename.source.root")));

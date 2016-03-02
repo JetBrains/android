@@ -59,7 +59,7 @@ public class RenameRefactoringDialogFixture extends IdeaDialogFixture<RenameDial
     });
     robot().pressAndReleaseKey(KeyEvent.VK_BACK_SPACE); // to make sure we don't append to existing item on Linux
     robot().enterText(newName);
-    pause(new Condition("Wait for text") {
+    pause(new Condition("EditorTextField to show new name") {
       @Override
       public boolean test() {
         return newName.equals(field.getText());
