@@ -114,7 +114,6 @@ public class CreateNewClassDialogGuiTest {
     dialog.setPackage(PACKAGE_NAME_0);
     dialog.setVisibility(Visibility.PACKAGE_PRIVATE);
     dialog.clickOk();
-    myEditor.open(THING_FILE_PATH_0);
 
     assertPackageName(THING_FILE_PATH_0, PACKAGE_NAME_0);
     assertDeclaration(THING_FILE_PATH_0, PACKAGE_PRIVATE_DECLARATION, kind);
@@ -209,7 +208,6 @@ public class CreateNewClassDialogGuiTest {
     dialog1.setPackage(PACKAGE_NAME_1);
     dialog1.setVisibility(Visibility.PUBLIC);
     dialog1.clickOk();
-    myEditor.open(THING_FILE_PATH_1);
 
     CreateFileFromTemplateDialogFixture dialog2 = invokeNewFileDialog();
     dialog2.setName(THING_NAME);
@@ -230,7 +228,6 @@ public class CreateNewClassDialogGuiTest {
     dialog1.setPackage(PACKAGE_NAME_1);
     dialog1.setVisibility(Visibility.PUBLIC);
     dialog1.clickOk();
-    myEditor.open(THING_FILE_PATH_1);
 
     CreateFileFromTemplateDialogFixture dialog0 = invokeNewFileDialog();
     dialog0.setName(THING_NAME);
