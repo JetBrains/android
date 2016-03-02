@@ -22,7 +22,7 @@ import org.fest.swing.timing.Timeout;
 import javax.annotation.Nonnull;
 import java.util.concurrent.TimeUnit;
 
-/** A fluent API to wait, up to a time limit, for an {@link Objective} to be met. */
+/** A fluent API to wait, up to a time limit, for a {@link Wait.Objective} to be met. */
 public final class Wait {
   private final Timeout myTimeout;
 
