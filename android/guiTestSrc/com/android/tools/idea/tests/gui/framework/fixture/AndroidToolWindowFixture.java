@@ -46,7 +46,7 @@ public class AndroidToolWindowFixture extends ToolWindowFixture {
     show();
 
     final JPanel contentPanel = getContentPanel();
-    pause(new Condition("Wait for window to finish initializing.") {
+    pause(new Condition("window to finish initializing") {
       @Override
       public boolean test() {
         try {
@@ -113,7 +113,7 @@ public class AndroidToolWindowFixture extends ToolWindowFixture {
 
     @NotNull
     public ProcessListFixture waitForProcess(@NotNull final String packageName) {
-      pause(new Condition("Wait for the process list to show the package name.") {
+      pause(new Condition("the process list to show the package name") {
         @Override
         public boolean test() {
           //noinspection ConstantConditions

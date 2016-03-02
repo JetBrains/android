@@ -38,7 +38,7 @@ public class ActionLinkFixture extends JComponentFixture<ActionLinkFixture, Acti
                                                  @NotNull final Robot robot,
                                                  @NotNull final Container container) {
     final Ref<ActionLink> actionLinkRef = new Ref<ActionLink>();
-    pause(new Condition("Find ActionLink with ID '" + actionId + "'") {
+    pause(new Condition("ActionLink with ID '" + actionId + "' to be visible") {
       @Override
       public boolean test() {
         Collection<ActionLink> found = robot.finder().findAll(container, new GenericTypeMatcher<ActionLink>(ActionLink.class) {
