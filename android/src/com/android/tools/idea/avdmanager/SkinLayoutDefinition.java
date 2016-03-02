@@ -17,7 +17,6 @@ package com.android.tools.idea.avdmanager;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.repository.io.FileOp;
-import com.android.tools.idea.templates.TemplateUtils;
 import com.google.common.base.Charsets;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Maps;
