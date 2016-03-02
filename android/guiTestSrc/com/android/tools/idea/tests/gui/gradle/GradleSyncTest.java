@@ -311,7 +311,7 @@ public class GradleSyncTest {
     final JButtonFixture finish = quickFixDialog.button(withText("Finish"));
 
     // Wait until installation is finished. By then the "Finish" button will be enabled.
-    pause(new Condition("Android Support Repository is installed") {
+    pause(new Condition("Android Support Repository to be installed") {
       @Override
       public boolean test() {
         //noinspection ConstantConditions
@@ -370,7 +370,7 @@ public class GradleSyncTest {
     ProjectViewFixture.NodeFixture externalLibrariesNode = projectPane.findExternalLibrariesNode();
     projectPane.expand();
 
-    pause(new Condition("Wait for 'Project View' to be customized") {
+    pause(new Condition("'Project View' to be customized") {
       @Override
       public boolean test() {
         // 2 nodes should be changed: JDK (remove all children except rt.jar) and rt.jar (remove all children except packages 'java' and
@@ -392,7 +392,7 @@ public class GradleSyncTest {
     assertNotNull(jdkNode);
 
     final ProjectViewFixture.NodeFixture finalJdkNode = jdkNode;
-    pause(new Condition("JDK node is customized") {
+    pause(new Condition("JDK node to be customized") {
       @Override
       public boolean test() {
         List<ProjectViewFixture.NodeFixture> jdkChildren = finalJdkNode.getChildren();
@@ -1531,7 +1531,7 @@ public class GradleSyncTest {
       }
     });
 
-    pause(new Condition("Sync to be skipped") {
+    pause(new Condition("sync to be skipped") {
       @Override
       public boolean test() {
         return syncSkipped.get();

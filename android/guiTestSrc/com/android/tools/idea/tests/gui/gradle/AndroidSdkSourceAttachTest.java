@@ -111,7 +111,7 @@ public class AndroidSdkSourceAttachTest {
     final JButtonFixture finish = downloadDialog.button(withText("Finish"));
 
     // Wait until installation is finished. By then the "Finish" button will be enabled.
-    pause(new Condition("Android source is installed") {
+    pause(new Condition("Android source to be installed") {
       @Override
       public boolean test() {
         return finish.isEnabled();
@@ -119,7 +119,7 @@ public class AndroidSdkSourceAttachTest {
     });
     finish.click();
 
-    pause(new Condition("Source file is opened") {
+    pause(new Condition("source file to be opened") {
       @Override
       public boolean test() {
         return !classFile.equals(editor.getCurrentFile());
@@ -152,7 +152,7 @@ public class AndroidSdkSourceAttachTest {
     // Refresh the source.
     findNotificationPanel().performAction("Refresh (if already downloaded)");
 
-    pause(new Condition("Source file is opened") {
+    pause(new Condition("source file to be opened") {
       @Override
       public boolean test() {
         return !classFile.equals(editor.getCurrentFile());

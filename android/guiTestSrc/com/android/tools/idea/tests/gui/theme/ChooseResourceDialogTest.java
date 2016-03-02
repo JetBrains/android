@@ -161,7 +161,7 @@ public class ChooseResourceDialogTest {
 
     final String expectedError = "<html><font color='#ff0000'><left>'" + badText +
                                  "' is not a valid resource name character</left></b></font></html>";
-    pause(new Condition("Waiting for error to update") {
+    pause(new Condition("error to update") {
       @Override
       public boolean test() {
         return dialog.getError().equals(expectedError);

@@ -47,7 +47,7 @@ public abstract class ToolWindowFixture {
     myToolWindowId = toolWindowId;
     myProject = project;
     final Ref<ToolWindow> toolWindowRef = new Ref<ToolWindow>();
-    pause(new Condition("Find tool window with ID '" + toolWindowId + "'") {
+    pause(new Condition("tool window with ID '" + toolWindowId + "' to be found") {
       @Override
       public boolean test() {
         ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow(toolWindowId);
@@ -63,7 +63,7 @@ public abstract class ToolWindowFixture {
   protected Content getContent(@NotNull final String displayName) {
     activateAndWaitUntilIsVisible();
     final Ref<Content> contentRef = new Ref<Content>();
-    pause(new Condition("finding content '" + displayName + "'") {
+    pause(new Condition("content '" + displayName + "' to be found") {
       @Override
       public boolean test() {
         Content[] contents = getContents();
@@ -87,7 +87,7 @@ public abstract class ToolWindowFixture {
     long revisedNow = System.currentTimeMillis();
     budget -= (revisedNow - now);
     final Ref<Content> contentRef = new Ref<Content>();
-    pause(new Condition("finding content with display name " + displayName) {
+    pause(new Condition("content with display name " + displayName + " to be found") {
       @Override
       public boolean test() {
         Content[] contents = getContents();
@@ -117,7 +117,7 @@ public abstract class ToolWindowFixture {
     budget -= (revisedNow - now);
     now = revisedNow;
     final Ref<Content> contentRef = new Ref<Content>();
-    pause(new Condition("finding content matching " + displayNameMatcher.formattedValues()) {
+    pause(new Condition("content matching " + displayNameMatcher.formattedValues() + " to be found") {
       @Override
       public boolean test() {
         Content[] contents = getContents();
@@ -174,7 +174,7 @@ public abstract class ToolWindowFixture {
       }
     });
 
-    pause(new Condition("Wait for ToolWindow '" + myToolWindowId + "' to be activated") {
+    pause(new Condition("ToolWindow '" + myToolWindowId + "' to be activated") {
       @Override
       public boolean test() {
         return callback.finished;
@@ -187,7 +187,7 @@ public abstract class ToolWindowFixture {
   }
 
   protected void waitUntilIsVisible(@NotNull Timeout timeout) {
-    pause(new Condition("Wait for ToolWindow '" + myToolWindowId + "' to be visible") {
+    pause(new Condition("ToolWindow '" + myToolWindowId + "' to be visible") {
       @Override
       public boolean test() {
         if (!isActive()) {

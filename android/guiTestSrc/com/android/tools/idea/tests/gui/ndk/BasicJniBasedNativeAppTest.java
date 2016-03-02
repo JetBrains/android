@@ -119,8 +119,7 @@ public class BasicJniBasedNativeAppTest {
     // breakpointToExpectedPatterns.
     for (int breakPoint : breakPoints) {
       final String[] expectedPatterns = breakpointToExpectedPatterns.get(breakPoint);
-      // Wait for the debugger tree to appear.
-      pause(new Condition("Looking for debugger tree.") {
+      pause(new Condition("the debugger tree to appear") {
         @Override
         public boolean test() {
           return projectFrame.verifyVariablesAtBreakpoint(expectedPatterns, DEBUG_CONFIG_NAME, 15000);

@@ -41,7 +41,7 @@ public class ActionButtonFixture extends JComponentFixture<ActionButtonFixture, 
                                                    @NotNull final Robot robot,
                                                    @NotNull final Container container) {
     final Ref<ActionButton> actionButtonRef = new Ref<ActionButton>();
-    pause(new Condition("Find ActionButton with ID '" + actionId + "'") {
+    pause(new Condition("ActionButton with ID '" + actionId + "' to be visible") {
       @Override
       public boolean test() {
         Collection<ActionButton> found = robot.finder().findAll(container, new GenericTypeMatcher<ActionButton>(ActionButton.class) {
@@ -74,7 +74,7 @@ public class ActionButtonFixture extends JComponentFixture<ActionButtonFixture, 
 
   @NotNull
   public ActionButtonFixture waitUntilEnabledAndShowing() {
-    pause(new Condition("wait for action to be enabled and showing") {
+    pause(new Condition("action to be enabled and showing") {
       @Override
       public boolean test() {
         //noinspection ConstantConditions

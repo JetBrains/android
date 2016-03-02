@@ -325,7 +325,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     if (application.getUserData(GRADLE_BUILD_OUTPUT_IN_GUI_TEST_KEY) == null) {
       fail("No fake gradle output is configured");
     }
-    pause(new Condition("Waiting for fake gradle output to be applied") {
+    pause(new Condition("fake gradle output to be applied") {
       @Override
       public boolean test() {
         return application.getUserData(GRADLE_BUILD_OUTPUT_IN_GUI_TEST_KEY) == null;
@@ -518,7 +518,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
     // We wait until all "Run Configurations" are populated in the toolbar combo-box. Until then the "Project Sync" button is not in its
     // final position, and FEST will click the wrong button.
-    pause(new Condition("Waiting for 'Run Configurations' to be populated") {
+    pause(new Condition("'Run Configurations' to be populated") {
       @Override
       public boolean test() {
         RunConfigurationComboBoxFixture runConfigurationComboBox = RunConfigurationComboBoxFixture.find(IdeFrameFixture.this);
@@ -643,7 +643,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   public EditorNotificationPanelFixture requireEditorNotification(@NotNull final String message) {
     final Ref<EditorNotificationPanel> notificationPanelRef = new Ref<EditorNotificationPanel>();
 
-    pause(new Condition("Notification with message '" + message + "' shows up") {
+    pause(new Condition("EditorNotificationPanel with message '" + message + "' to show up") {
       @Override
       public boolean test() {
         EditorNotificationPanel notificationPanel = findNotificationPanel(message);
@@ -829,7 +829,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
         WelcomeFrame.showIfNoProjectOpened();
       }
     });
-    pause(new Condition("Waiting for 'Welcome' page to show up") {
+    pause(new Condition("'Welcome' page to show up") {
       @Override
       public boolean test() {
         for (Frame frame : Frame.getFrames()) {
@@ -1061,8 +1061,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     final ExecutionToolWindowFixture.ContentFixture contentFixture = debugToolWindowFixture.findContent(debugConfigName);
 
     contentFixture.clickDebuggerTreeRoot();
-    // Wait for the debugger tree to appear.
-    pause(new Condition("Looking for debugger tree.") {
+    pause(new Condition("debugger tree to appear") {
       @Override
       public boolean test() {
         return contentFixture.getDebuggerTreeRoot() != null;

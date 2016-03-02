@@ -62,7 +62,7 @@ public class CapturesToolWindowFixture extends ToolWindowFixture {
 
     if (pathName != null) {
       final String finalPathName = pathName;
-      pause(new Condition("Wait for file to be recognized") {
+      pause(new Condition("the file to be recognized") {
         @Override
         public boolean test() {
           try {
