@@ -557,6 +557,15 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
     assertEquals("GridLayout", completionResult.get(1));
   }
 
+  // Test android:layout_width and android:layout_height highlighting for framework and library layouts
+  public void testWidthHeightHighlighting() throws Throwable {
+    // For unit tests there are no support libraries, copy dummy classes that imitate support library ones
+    myFixture.copyFileToProject(testFolder + "/PercentRelativeLayout.java", "src/android/support/percent/PercentRelativeLayout.java");
+    myFixture.copyFileToProject(testFolder + "/PercentFrameLayout.java", "src/android/support/percent/PercentFrameLayout.java");
+
+    doTestHighlighting("dimensions_layout.xml");
+  }
+
   public void testTagNameIcons1() throws Throwable {
     doTestTagNameIcons("tn10.xml");
   }
