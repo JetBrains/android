@@ -35,7 +35,6 @@ import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.fest.swing.timing.Pause.pause;
-import static org.fest.swing.timing.Timeout.timeout;
 
 public abstract class ToolWindowFixture {
   @NotNull protected final String myToolWindowId;
@@ -80,42 +79,12 @@ public abstract class ToolWindowFixture {
   }
 
   @Nullable
-  protected Content getContent(@NotNull final String displayName, @NotNull Timeout timeout) {
-    long now = System.currentTimeMillis();
-    long budget = timeout.duration();
-    activateAndWaitUntilIsVisible(Timeout.timeout(budget));
-    long revisedNow = System.currentTimeMillis();
-    budget -= (revisedNow - now);
-    final Ref<Content> contentRef = new Ref<Content>();
-    pause(new Condition("content with display name " + displayName + " to be found") {
-      @Override
-      public boolean test() {
-        Content[] contents = getContents();
-        for (Content content : contents) {
-          if (displayName.equals(content.getDisplayName())) {
-            contentRef.set(content);
-            return true;
-          }
-        }
-        return false;
-      }
-    }, Timeout.timeout(budget));
-    return contentRef.get();
-  }
-
-  @Nullable
   protected Content getContent(@NotNull final TextMatcher displayNameMatcher) {
-    return getContent(displayNameMatcher, SHORT_TIMEOUT);
-  }
-
-  @Nullable
-  protected Content getContent(@NotNull final TextMatcher displayNameMatcher, @NotNull Timeout timeout) {
     long now = System.currentTimeMillis();
-    long budget = timeout.duration();
+    long budget = SHORT_TIMEOUT.duration();
     activateAndWaitUntilIsVisible(Timeout.timeout(budget));
     long revisedNow = System.currentTimeMillis();
     budget -= (revisedNow - now);
-    now = revisedNow;
     final Ref<Content> contentRef = new Ref<Content>();
     pause(new Condition("content matching " + displayNameMatcher.formattedValues() + " to be found") {
       @Override
@@ -183,7 +152,7 @@ public abstract class ToolWindowFixture {
   }
 
   protected void waitUntilIsVisible() {
-    waitUntilIsVisible(timeout(30, SECONDS));
+    waitUntilIsVisible(Timeout.timeout(30, SECONDS));
   }
 
   protected void waitUntilIsVisible(@NotNull Timeout timeout) {
