@@ -102,11 +102,6 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     return mainModule;
   }
 
-  @Override
-  protected void checkForSettingsDamage(@NotNull List<Throwable> exceptions) {
-    // for this test we don't care for this check
-  }
-
   protected void writeToSettingsFile(@NotNull String text) throws IOException {
     writeToFile(mySettingsFile, text);
   }

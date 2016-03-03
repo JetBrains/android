@@ -47,11 +47,6 @@ public abstract class AbstractGradleInvokerTest extends AndroidGradleArtifactsTe
   protected GradleInvoker myInvoker;
 
   @Override
-  protected void checkForSettingsDamage(@NotNull List<Throwable> exceptions) {
-    // for this test we don't care for this check
-  }
-
-  @Override
   public void setUp() throws Exception {
     super.setUp();
 

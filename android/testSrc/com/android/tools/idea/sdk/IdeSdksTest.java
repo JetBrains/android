@@ -65,11 +65,6 @@ public class IdeSdksTest extends IdeaTestCase {
     facet.getProperties().ALLOW_USER_CONFIGURATION = false;
   }
 
-  @Override
-  protected void checkForSettingsDamage(@NotNull List<Throwable> exceptions) {
-    // for this test we don't care for this check
-  }
-
   public void testCreateAndroidSdkPerAndroidTarget() {
     List<Sdk> sdks = IdeSdks.createAndroidSdkPerAndroidTarget(myAndroidSdkPath);
     assertOneSdkPerAvailableTarget(sdks);
