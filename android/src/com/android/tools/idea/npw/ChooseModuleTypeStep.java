@@ -16,6 +16,7 @@
 package com.android.tools.idea.npw;
 
 import com.android.tools.idea.ui.ASGallery;
+import com.android.tools.idea.wizard.dynamic.DynamicWizard;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStepWithDescription;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.google.common.base.Function;
@@ -37,6 +38,7 @@ import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import java.awt.*;
+import java.awt.event.ActionEvent;
 import java.util.List;
 import java.util.Set;
 
@@ -70,7 +72,14 @@ public final class ChooseModuleTypeStep extends DynamicWizardStepWithDescription
       public String apply(@Nullable ModuleTemplate input) {
         return input == null ? "<none>" : input.getName();
       }
-    }, thumbnailSize) {
+    }, thumbnailSize, new AbstractAction() {
+      @Override
+      public void actionPerformed(ActionEvent actionEvent) {
+        DynamicWizard wizard = getWizard();
+        assert wizard != null;
+        getWizard().doNextAction();
+      }
+    }) {
       @Override
       public Dimension getPreferredScrollableViewportSize() {
         Dimension preferred = getPreferredSize();
