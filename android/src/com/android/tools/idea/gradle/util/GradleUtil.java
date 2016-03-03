@@ -1218,20 +1218,24 @@ public final class GradleUtil {
    * Updates the Android Gradle plugin version, and optionally the Gradle version of a given project. This method notifies the user if
    * the version update failed.
    *
-   * @param project       the given project.
-   * @param pluginVersion the Android Gradle plugin version to update to.
-   * @param gradleVersion the Gradle version to update to.
+   * @param project                 the given project.
+   * @param pluginVersion           the Android Gradle plugin version to update to.
+   * @param gradleVersion           the Gradle version to update to.
+   * @param invalidateSyncOnFailure indicates if the last project sync should be invalidated if the version update fails.
    * @return {@code true} if the plugin version was updated successfully; {@code false} otherwise.
    */
   public static boolean updateGradlePluginVersionAndNotifyFailure(@NotNull Project project,
                                                                   @NotNull String pluginVersion,
-                                                                  @Nullable String gradleVersion) {
+                                                                  @Nullable String gradleVersion,
+                                                                  boolean invalidateSyncOnFailure) {
     if (updateGradlePluginVersion(project, pluginVersion, gradleVersion)) {
       GradleProjectImporter.getInstance().requestProjectSync(project, false, true /* generate sources */, true /* clean */, null);
       return true;
     }
 
-    invalidateLastSync(project, String.format("Failed to update Android plugin to version '%1$s'", pluginVersion));
+    if (invalidateSyncOnFailure) {
+      invalidateLastSync(project, String.format("Failed to update Android plugin to version '%1$s'", pluginVersion));
+    }
 
     String msg = "Failed to update the version of the Android Gradle plugin.\n\n" +
                  "Please click 'OK' to perform a textual search and then update the build files manually.";
