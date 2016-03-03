@@ -55,11 +55,6 @@ public class AndroidGradleBuildProcessParametersProviderTest extends IdeaTestCas
     myParametersProvider = new AndroidGradleBuildProcessParametersProvider(myProject);
   }
 
-  @Override
-  protected void checkForSettingsDamage(@NotNull List<Throwable> exceptions) {
-    // for this test we don't care for this check
-  }
-
   public void testPopulateJvmArgsWithGradleExecutionSettings() {
     executeProjectChangeAction(true, new DisposeAwareProjectChange(myProject) {
       @Override

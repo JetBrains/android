@@ -96,11 +96,6 @@ public class GradleInvokerTest extends IdeaTestCase {
     super.tearDown();
   }
 
-  @Override
-  protected void checkForSettingsDamage(@NotNull List<Throwable> exceptions) {
-    // for this test we don't care for this check
-  }
-
   public void testAssembleTranslate() throws Exception {
     myInvoker.addBeforeGradleInvocationTask(new GradleInvoker.BeforeGradleInvocationTask() {
       @Override
