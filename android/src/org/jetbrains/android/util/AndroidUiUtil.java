@@ -11,12 +11,17 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.ui.HyperlinkAdapter;
 import org.jetbrains.android.compiler.artifact.ApkSigningSettingsForm;
 import org.jetbrains.android.compiler.artifact.ChooseKeyDialog;
 import org.jetbrains.android.compiler.artifact.NewKeyStoreDialog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.text.html.HTMLDocument;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
@@ -26,6 +31,9 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.util.List;
 
+import static com.intellij.ide.BrowserUtil.browse;
+import static com.intellij.util.ui.UIUtil.getLabelFont;
+
 /**
  * @author Eugene.Kudelevsky
  */
@@ -33,6 +41,21 @@ public class AndroidUiUtil {
   private static final Logger LOG = Logger.getInstance("org.jetbrains.android.util.AndroidUiUtil");
 
   private AndroidUiUtil() {
+  }
+
+  public static void setUpAsHtmlLabel(@NotNull JEditorPane editorPane) {
+    editorPane.setContentType("text/html");
+    editorPane.setEditable(false);
+    editorPane.setOpaque(false);
+    Font font = getLabelFont();
+    String bodyRule = "body { font-family: " + font.getFamily() + "; " + "font-size: " + font.getSize() + "pt; }";
+    ((HTMLDocument)editorPane.getDocument()).getStyleSheet().addRule(bodyRule);
+    editorPane.addHyperlinkListener(new HyperlinkAdapter() {
+      @Override
+      protected void hyperlinkActivated(HyperlinkEvent e) {
+        browse(e.getURL());
+      }
+    });
   }
 
   @Nullable
