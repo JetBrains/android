@@ -24,7 +24,10 @@ import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
 import org.jetbrains.plugins.groovy.lang.psi.api.auxiliary.GrListOrMap;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrNamedArgument;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.*;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrApplicationStatement;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrAssignmentExpression;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrCommandArgumentList;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
 import org.jetbrains.plugins.groovy.lang.psi.util.GrStringUtil;
 
@@ -120,7 +123,7 @@ public final class GradleDslLiteral extends GradleDslElement {
 
     GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(newLiteral.getProject());
     GrNamedArgument namedArgument = factory.createNamedArgument(myName, newLiteral);
-    PsiElement added = parentPsiElement.addAfter(namedArgument, parentPsiElement.getLastChild());
+    PsiElement added = addToParent(parentPsiElement, namedArgument);
     if (added instanceof GrNamedArgument) {
       GrNamedArgument addedNameArgument = (GrNamedArgument)added;
       GrLiteral literal = getChildOfType(addedNameArgument, GrLiteral.class);
@@ -191,7 +194,7 @@ public final class GradleDslLiteral extends GradleDslElement {
       }
     }
     else {
-      PsiElement added = psiElement.addAfter(newLiteral, psiElement.getLastChild());
+      PsiElement added = addToParent(psiElement, newLiteral);
       if (added instanceof GrLiteral) {
         myLiteral = (GrLiteral)added;
       }
@@ -234,5 +237,21 @@ public final class GradleDslLiteral extends GradleDslElement {
       return null;
     }
     return (GrLiteral)newExpression;
+  }
+
+  private static PsiElement addToParent(PsiElement parent, PsiElement child) {
+    GrCommandArgumentList argumentList = null;
+    if (parent instanceof GrApplicationStatement) {
+      argumentList = ((GrApplicationStatement)parent).getArgumentList();
+    }
+    else if (parent instanceof GrCommandArgumentList) {
+      argumentList = (GrCommandArgumentList)parent;
+    }
+    if (argumentList != null && DUMMY_ARGUMENT_LIST.equals(argumentList.getText())) {
+      GroovyPsiElement[] arguments = argumentList.getAllArguments();
+      assert arguments.length == 1;
+      return arguments[0].replace(child);
+    }
+    return parent.addAfter(child, parent.getLastChild());
   }
 }
