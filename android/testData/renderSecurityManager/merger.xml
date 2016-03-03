@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merger version="3" xmlns:ns1="urn:oasis:names:tc:xliff:document:1.2">
+    <dataSet config="main">
+        <source path="$TOP$$SEP$..$SEP$baseSet">
+            <file name="icon" path="$TOP$$SEP$..$SEP$baseSet$SEP$drawable$SEP$icon.png" qualifiers="" type="drawable"/>
+            <file name="patch" path="$TOP$$SEP$..$SEP$baseSet$SEP$drawable$SEP$patch.9.png" qualifiers="" type="drawable"/>
+            <file name="file_replaced_by_alias" path="$TOP$$SEP$..$SEP$baseSet$SEP$layout$SEP$file_replaced_by_alias.xml" qualifiers="" type="layout"/>
+            <file name="main" path="$TOP$$SEP$..$SEP$baseSet$SEP$layout$SEP$main.xml" qualifiers="" type="layout"/>
+            <file name="foo" path="$TOP$$SEP$..$SEP$baseSet$SEP$raw$SEP$foo.dat" qualifiers="" type="raw"/>
+            <file path="$TOP$$SEP$..$SEP$baseSet$SEP$values$SEP$values.xml" qualifiers="">
+                <dimen name="dimen">164dp</dimen>
+                <integer name="integer">75</integer>
+                <color name="color">#00000000</color>
+                <drawable name="color_drawable">#ffffffff</drawable>
+                <declare-styleable name="declare_styleable">
+
+                    <!-- ============== -->
+                    <!-- Generic styles -->
+                    <!-- ============== -->
+                    <eat-comment/>
+
+                    <!-- Default color of foreground imagery. -->
+                    <attr format="color" name="blah"/>
+
+                    <!-- Default color of foreground imagery on an inverted background. -->
+                    <attr name="android:colorForegroundInverse"/>
+
+                </declare-styleable>
+                <style name="style">
+                    <item name="android:singleLine">true</item>
+                    <item name="android:textAppearance">@style$SEP$TextAppearance.WindowTitle</item>
+                    <item name="android:shadowColor">#BB000000</item>
+                    <item name="android:shadowRadius">2.75</item>
+                </style>
+                <string name="styled_string">Forgot your username or password\?\nVisit<b>google.com$SEP$accounts$SEP$recovery</b>.</string>
+                <attr format="dimension" name="dimen_attr"/>
+                <string-array name="string_array" translatable="false">
+                    <item/>
+                    <!-- 0 -->
+                    <item/>
+                    <!-- 1 -->
+                    <item>ABC</item>
+                    <!-- 2 -->
+                    <item>DEF</item>
+                    <!-- 3 -->
+                    <item>GHI</item>
+                    <!-- 4 -->
+                    <item>JKL</item>
+                    <!-- 5 -->
+                    <item>MNO</item>
+                    <!-- 6 -->
+                    <item>PQRS</item>
+                    <!-- 7 -->
+                    <item>TUV</item>
+                    <!-- 8 -->
+                    <item>WXYZ</item>
+                    <!-- 9 -->
+                </string-array>
+                <item name="alias_replaced_by_file" type="layout">@layout$SEP$ref </item>
+                <string name="basic_string">basic_string</string>
+                <string name="xliff_string"><ns1:g example="123" id="number">%1$s</ns1:g><ns1:g example="KB" id="unit">%2$s</ns1:g></string>
+                <attr name="enum_attr">
+                    <enum name="normal" value="0"/>
+                    <enum name="sans" value="1"/>
+                    <enum name="serif" value="2"/>
+                    <enum name="monospace" value="3"/>
+                </attr>
+                <item name="item_id" type="id"/>
+                <item name="layout_ref" type="layout">@layout$SEP$ref</item>
+                <drawable name="drawable_ref">@drawable$SEP$stat_notify_sync_anim0</drawable>
+                <attr format="string" name="string_attr"/>
+                <attr name="flag_attr">
+                    <flag name="normal" value="0"/>
+                    <flag name="bold" value="1"/>
+                    <flag name="italic" value="2"/>
+                </attr>
+            </file>
+        </source>
+    </dataSet>
+    <dataSet config="overlay">
+        <source path="$TOP$$SEP$overlay">
+            <file name="icon2" path="$TOP$$SEP$overlay$SEP$drawable$SEP$icon2.png" qualifiers="" type="drawable"/>
+            <file name="icon" path="$TOP$$SEP$overlay$SEP$drawable-ldpi$SEP$icon.png" qualifiers="ldpi" type="drawable"/>
+            <file name="alias_replaced_by_file" path="$TOP$$SEP$overlay$SEP$layout$SEP$alias_replaced_by_file.xml" qualifiers="" type="layout"/>
+            <file name="main" path="$TOP$$SEP$overlay$SEP$layout$SEP$main.xml" qualifiers="" type="layout"/>
+            <file path="$TOP$$SEP$overlay$SEP$values$SEP$values.xml" qualifiers="">
+                <color name="color">#FFFFFFFF</color>
+                <item name="file_replaced_by_alias" type="layout">@layout$SEP$ref</item>
+                <string name="basic_string">overlay_string</string>
+            </file>
+        </source>
+    </dataSet>
+</merger>

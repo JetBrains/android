@@ -23,7 +23,7 @@ import java.io.File;
 
 import static com.android.tools.idea.rendering.webp.WebpImageReaderSpi.getLogger;
 
-class NativeLibHelper {
+public class NativeLibHelper {
 
   @SuppressWarnings("FieldAccessedSynchronizedAndUnsynchronized") private static boolean sJniLibLoaded;
   @SuppressWarnings("FieldAccessedSynchronizedAndUnsynchronized") private static boolean sJniLibLoadAttempted;
@@ -66,7 +66,7 @@ class NativeLibHelper {
   /**
    * Copied from {@link com.intellij.util.lang.UrlClassLoader}.
    */
-  private static String getLibName() {
+  public static String getLibName() {
     String baseName = SystemInfo.is64Bit ? "webp_jni64" : "webp_jni";
     String fileName = System.mapLibraryName(baseName);
     if (SystemInfo.isMac) {
@@ -75,7 +75,7 @@ class NativeLibHelper {
     return fileName;
   }
 
-  private static File getLibLocation() {
+  public static File getLibLocation() {
     // A terrible hack for dev environment.
     String adtPath = PathManager.getHomePath() + "/../adt/idea/android/lib/libwebp/" + getPlatformName();
     File adtFile = new File(adtPath);
