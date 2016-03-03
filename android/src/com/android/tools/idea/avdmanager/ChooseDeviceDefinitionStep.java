@@ -83,7 +83,7 @@ public final class ChooseDeviceDefinitionStep extends ModelWizardStep<AvdOptions
   @NotNull
   @Override
   protected JComponent getComponent() {
-    return myValidatorPanel;
+    return myStudioWizardStepPanel;
   }
 
   private void createUIComponents() {
