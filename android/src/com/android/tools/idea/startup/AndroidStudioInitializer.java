@@ -18,6 +18,7 @@ package com.android.tools.idea.startup;
 import com.android.tools.idea.actions.MakeIdeaModuleAction;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
+import com.intellij.lang.injection.MultiHostInjector;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.ex.ApplicationManagerEx;
 import com.intellij.openapi.diagnostic.Logger;
@@ -30,8 +31,12 @@ import com.intellij.openapi.extensions.ExtensionPoint;
 import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurableEP;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectManager;
+import com.intellij.openapi.project.ProjectManagerAdapter;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.util.SystemProperties;
+import org.intellij.plugins.intelliLang.inject.groovy.GrConcatenationInjector;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -77,6 +82,7 @@ public class AndroidStudioInitializer implements Runnable {
     removeIdeSettings();
     setUpNewFilePopupActions();
     setUpMakeActions();
+    disableGroovyLanguageInjection();
 
     // Modify built-in "Default" color scheme to remove background from XML tags.
     // "Darcula" and user schemes will not be touched.
@@ -188,5 +194,24 @@ public class AndroidStudioInitializer implements Runnable {
 
     // 'Build' > 'Compile Modules' action
     hideAction(ACTION_COMPILE);
+  }
+
+  // Fix https://code.google.com/p/android/issues/detail?id=201624
+  private static void disableGroovyLanguageInjection() {
+    ProjectManager.getInstance().addProjectManagerListener(new ProjectManagerAdapter() {
+      @Override
+      public void projectOpened(@NotNull Project project) {
+        ExtensionPoint<MultiHostInjector> extensionPoint = Extensions.getArea(project).getExtensionPoint(MultiHostInjector.MULTIHOST_INJECTOR_EP_NAME);
+
+        for (MultiHostInjector injector : extensionPoint.getExtensions()) {
+          if (injector instanceof GrConcatenationInjector) {
+            extensionPoint.unregisterExtension(injector);
+            return;
+          }
+        }
+
+        LOG.info("Failed to disable 'org.intellij.plugins.intelliLang.inject.groovy.GrConcatenationInjector'");
+      }
+    });
   }
 }
