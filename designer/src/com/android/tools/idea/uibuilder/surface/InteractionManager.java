@@ -20,6 +20,7 @@ import com.android.annotations.Nullable;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.uibuilder.api.DragType;
 import com.android.tools.idea.uibuilder.api.InsertType;
+import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.model.*;
 import com.google.common.collect.Lists;
 import com.intellij.ide.IdeTooltipManager;
@@ -315,7 +316,25 @@ public class InteractionManager {
       myLastMouseY = event.getY();
       myLastStateMask = event.getModifiersEx();
 
-      // Not yet used. Should be, for Mac and Linux.
+      // Check if we have a ViewGroupHandler that might want
+      // to handle the entire interaction
+
+      ScreenView screenView = mySurface.getScreenView(myLastMouseX, myLastMouseY);
+      if (screenView == null) {
+        return;
+      }
+      NlComponent component = Coordinates.findComponent(screenView, myLastMouseX, myLastMouseY);
+      if (component == null) {
+        return;
+      }
+      ViewGroupHandler viewGroupHandler = component.getViewGroupHandler();
+      if (viewGroupHandler == null) {
+        return;
+      }
+      Interaction interaction = viewGroupHandler.createInteraction(screenView, component);
+      if (interaction != null) {
+        startInteraction(myLastMouseX, myLastMouseY, interaction, myLastStateMask);
+      }
     }
 
     @Override

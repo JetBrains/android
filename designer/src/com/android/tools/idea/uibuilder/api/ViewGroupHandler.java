@@ -20,6 +20,8 @@ import com.android.annotations.Nullable;
 import com.android.tools.idea.uibuilder.model.FillPolicy;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.SegmentType;
+import com.android.tools.idea.uibuilder.surface.Interaction;
+import com.android.tools.idea.uibuilder.surface.ScreenView;
 
 import java.util.List;
 
@@ -55,6 +57,19 @@ public class ViewGroupHandler extends ViewHandler {
    */
   public boolean deleteChildren(@NonNull NlComponent parent, @NonNull List<NlComponent> deleted) {
     return false;
+  }
+
+  /**
+   * Creates a new complete interaction for this view
+   *
+   * @param screenView  the associated screen view
+   * @param layout      the layout creating the interaction
+   *
+   * @return a new interaction, or null if this view does not handle full interactions and use other Handlers
+   */
+  @Nullable
+  public Interaction createInteraction(@NonNull ScreenView screenView, @NonNull NlComponent layout) {
+    return null;
   }
 
   /**
