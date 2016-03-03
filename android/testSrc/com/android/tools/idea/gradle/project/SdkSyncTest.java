@@ -43,11 +43,6 @@ public class SdkSyncTest extends IdeaTestCase {
     assertNull(IdeSdks.getAndroidSdkPath());
   }
 
-  @Override
-  protected void checkForSettingsDamage(@NotNull List<Throwable> exceptions) {
-    // for this test we don't care for this check
-  }
-
   public void testSyncIdeAndProjectAndroidHomesWithIdeSdkAndNoProjectSdk() throws Exception {
     IdeSdks.setAndroidSdkPath(myAndroidSdkPath, null);
 

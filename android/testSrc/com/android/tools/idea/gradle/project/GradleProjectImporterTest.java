@@ -103,11 +103,6 @@ public class GradleProjectImporterTest extends IdeaTestCase {
     }
   }
 
-  @Override
-  protected void checkForSettingsDamage(@NotNull List<Throwable> exceptions) {
-    // for this test we don't care for this check
-  }
-
   public void testImportNewlyCreatedProject() throws Exception {
     MyGradleSyncListener callback = new MyGradleSyncListener();
     myImporter.importNewlyCreatedProject(myProjectName, myProjectRootDir, callback, null, null);
