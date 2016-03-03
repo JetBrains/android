@@ -30,6 +30,7 @@ import org.fest.swing.fixture.*;
 import org.fest.swing.timing.Condition;
 import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -146,6 +147,7 @@ public class ThemeEditorTableTest {
     }, GuiTests.SHORT_TIMEOUT);
   }
 
+  @Ignore("Too flaky")
   @Test
   public void testSettingColorAttribute() throws IOException {
     guiTest.importSimpleApplication();
@@ -298,6 +300,7 @@ public class ThemeEditorTableTest {
   /**
    * Test the text completion for attribute values
    */
+  @Ignore("Too flaky")
   @Test
   public void testResourceCompletion() throws IOException {
     guiTest.importSimpleApplication();
@@ -354,6 +357,7 @@ public class ThemeEditorTableTest {
   /**
    * @see com.android.tools.idea.editors.theme.ThemeEditorTable#getPopupMenuAtCell(int, int)
    */
+  @Ignore("Too flaky")
   @Test
   public void testResettingColorAttribute() throws IOException {
     guiTest.importSimpleApplication();
