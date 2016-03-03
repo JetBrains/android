@@ -20,7 +20,6 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.fixture.FindDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.FindToolWindowFixture;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
