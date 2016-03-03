@@ -17,14 +17,13 @@ package com.android.tools.idea.gradle.dsl.parser.elements;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
-import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
 import org.jetbrains.plugins.groovy.lang.psi.api.auxiliary.GrListOrMap;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrArgumentList;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrApplicationStatement;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrCommandArgumentList;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
 
@@ -146,27 +145,13 @@ public final class GradleDslLiteralList extends GradleDslElement {
     }
 
     if (psiElement instanceof GrArgumentList) {
-      if (((GrArgumentList)psiElement).getAllArguments().length == 1) {
-        // Sometimes it's not possible to append to the arguments list with one item. eg. proguardFile "xyz".
-        // Set the psiElement to null and create a new psiElement of an empty application statement.
-        setPsiElement(null);
-        psiElement = super.create();
-      }
-      else {
         return psiElement;
-      }
     }
 
     if (psiElement instanceof GrApplicationStatement) {
-      GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(psiElement.getProject());
-      GrArgumentList argumentList = factory.createArgumentListFromText("xyz");
-      argumentList.getFirstChild().delete(); // Workaround to get an empty argument list.
-      PsiElement added = psiElement.addAfter(argumentList, psiElement.getLastChild());
-      if (added instanceof GrArgumentList) {
-        GrArgumentList addedArgumentList = (GrArgumentList)added;
-        setPsiElement(addedArgumentList);
-        return addedArgumentList;
-      }
+      GrCommandArgumentList argumentList = ((GrApplicationStatement)psiElement).getArgumentList();
+      setPsiElement(argumentList);
+      return argumentList;
     }
 
     return null;

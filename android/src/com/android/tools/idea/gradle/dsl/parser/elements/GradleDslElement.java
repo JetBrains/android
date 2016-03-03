@@ -33,6 +33,9 @@ import java.util.Collection;
  * Provide Gradle specific abstraction over a {@link GroovyPsiElement}.
  */
 public abstract class GradleDslElement {
+  // some GUID, that should never appear in user code
+  protected static final String DUMMY_ARGUMENT_LIST = "\"b640eb34b4af4ba1924ad8ff1859fe8f\"";
+
   @Nullable protected final GradleDslElement myParent;
 
   @NotNull protected final String myName;
@@ -87,12 +90,8 @@ public abstract class GradleDslElement {
     Project project = parentPsiElement.getProject();
     GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(project);
 
-    String statementText = isBlockElement() ? myName + " {\n}\n" : myName + " \"abc\", \"xyz\"";
+    String statementText = myName + " " + (isBlockElement() ? "{\n}\n" : DUMMY_ARGUMENT_LIST);
     GrStatement statement = factory.createStatementFromText(statementText);
-    if (statement instanceof GrApplicationStatement) {
-      // Workaround to create an application statement.
-      ((GrApplicationStatement)statement).getArgumentList().delete();
-    }
     PsiElement addedElement = parentPsiElement.addBefore(statement, parentPsiElement.getLastChild());
     if (isBlockElement()) {
       GrClosableBlock closableBlock = getClosableBlock(addedElement);
