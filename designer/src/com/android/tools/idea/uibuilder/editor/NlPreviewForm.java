@@ -107,8 +107,6 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
     if (showing) {
       properties.setValue(key, Boolean.toString(false));
     }
-
-    paletteManager.bind(this);
   }
 
   private void setEditor(@Nullable TextEditor editor) {
@@ -183,6 +181,7 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
 
   @Override
   public void dispose() {
+    NlPaletteManager.get(myManager.getProject()).dispose(this);
   }
 
   public void setUseInteractiveSelector(boolean useInteractiveSelector) {
@@ -268,6 +267,8 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
       setEditor(myManager.getActiveLayoutXmlEditor());
       model.activate();
       myManager.setDesignSurface(mySurface);
+
+      NlPaletteManager.get(myManager.getProject()).bind(this);
     }
   }
 
