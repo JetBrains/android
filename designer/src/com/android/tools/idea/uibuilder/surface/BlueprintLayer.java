@@ -38,7 +38,7 @@ public class BlueprintLayer extends Layer {
   }
 
   @Override
-  public void paint(@NonNull Graphics2D gc) {
+  public boolean paint(@NonNull Graphics2D gc) {
     int tlx = myScreenView.getX();
     int tly = myScreenView.getY();
 
@@ -47,7 +47,7 @@ public class BlueprintLayer extends Layer {
 
     RenderResult renderResult = myModel.getRenderResult();
     if (renderResult == null || renderResult.getImage() == null) {
-      return;
+      return false;
     }
     BufferedImage originalImage = renderResult.getImage().getOriginalImage();
     gc.setColor(BLUEPRINT_BG_COLOR);
@@ -69,6 +69,7 @@ public class BlueprintLayer extends Layer {
     for (NlComponent component : myScreenView.getModel().getComponents()) {
       drawComponent(gc, component, viewHandlerManager);
     }
+    return false;
   }
 
   private void drawComponent(@NonNull Graphics2D gc, @NonNull NlComponent component, @NonNull ViewHandlerManager viewHandlerManager) {

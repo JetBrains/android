@@ -816,9 +816,10 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
 
       g2d.setComposite(oldComposite);
 
+      boolean needsRepaint = false;
       for (Layer layer : myLayers) {
         if (!layer.isHidden()) {
-          layer.paint(g2d);
+          needsRepaint |= layer.paint(g2d);
         }
       }
 
@@ -827,9 +828,13 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
       if (layers != null) {
         for (Layer layer : layers) {
           if (!layer.isHidden()) {
-            layer.paint(g2d);
+            needsRepaint |= layer.paint(g2d);
           }
         }
+      }
+
+      if (needsRepaint) {
+        repaint();
       }
     }
 
