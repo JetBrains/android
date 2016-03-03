@@ -17,7 +17,7 @@
 package org.jetbrains.android;
 
 import com.android.SdkConstants;
-import com.android.ide.common.rendering.RenderSecurityManager;
+import com.android.tools.idea.rendering.RenderSecurityManager;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.codeInspection.GlobalInspectionTool;
 import com.intellij.codeInspection.InspectionManager;
