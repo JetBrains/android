@@ -78,7 +78,6 @@ import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.ui.OrderRoot;
-import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.NonNavigatable;
 import com.intellij.util.SystemProperties;
@@ -97,7 +96,6 @@ import static com.android.SdkConstants.*;
 import static com.android.builder.model.AndroidProject.GENERATION_ORIGINAL;
 import static com.android.tools.idea.gradle.customizer.AbstractDependenciesModuleCustomizer.pathToUrl;
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.FAILED_TO_SET_UP_SDK;
-import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.UNHANDLED_SYNC_ISSUE_TYPE;
 import static com.android.tools.idea.gradle.project.LibraryAttachments.getStoredLibraryAttachments;
 import static com.android.tools.idea.gradle.project.ProjectDiagnostics.findAndReportStructureIssues;
 import static com.android.tools.idea.gradle.project.ProjectJdkChecks.hasCorrectJdkVersion;
@@ -109,11 +107,13 @@ import static com.android.tools.idea.gradle.variant.conflict.ConflictResolution.
 import static com.android.tools.idea.gradle.variant.conflict.ConflictSet.findConflicts;
 import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
 import static com.android.tools.idea.startup.ExternalAnnotationsSupport.attachJdkAnnotations;
+import static com.intellij.ide.impl.ProjectUtil.closeAndDispose;
 import static com.intellij.notification.NotificationType.INFORMATION;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static com.intellij.openapi.roots.OrderRootType.SOURCES;
 import static com.intellij.openapi.util.io.FileUtil.delete;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
+import static com.intellij.openapi.wm.impl.welcomeScreen.WelcomeFrame.showIfNoProjectOpened;
 import static com.intellij.util.ExceptionUtil.rethrowAllAsUnchecked;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.*;
 
@@ -174,7 +174,7 @@ public class PostProjectSetupTasksExecutor {
       return;
     }
 
-    if (shouldForcePluginVersionUpgrade()) {
+    if (shouldForcePluginVersionUpgrade() || myProject.isDisposed()) {
       return;
     }
 
@@ -221,9 +221,9 @@ public class PostProjectSetupTasksExecutor {
     updateGradleSyncState();
 
     if (shouldRecommendPluginVersionUpgrade()) {
-      boolean upgrade = new PluginVersionUpgradeDialog(myProject).showAndGet();
+      boolean upgrade = new PluginVersionRecommendedUpdateDialog(myProject).showAndGet();
       if (upgrade) {
-        if (updateGradlePluginVersionAndNotifyFailure(myProject, GRADLE_PLUGIN_LATEST_VERSION, GRADLE_LATEST_VERSION)) {
+        if (updateGradlePluginVersionAndNotifyFailure(myProject, GRADLE_PLUGIN_LATEST_VERSION, GRADLE_LATEST_VERSION, false)) {
           // plugin version updated and a project sync was requested. No need to continue.
           return;
         }
@@ -243,8 +243,6 @@ public class PostProjectSetupTasksExecutor {
     disposeModulesMarkedForRemoval();
   }
 
-  // This method can potentially return 'true' only when a project is imported. Subsequent sync requests will catch the old plugin version
-  // before sync is executed.
   private boolean shouldForcePluginVersionUpgrade() {
     AndroidProject androidProject = getAppAndroidProject(myProject);
     if (androidProject != null) {
@@ -254,11 +252,16 @@ public class PostProjectSetupTasksExecutor {
       if (isNonExperimentalPlugin(androidProject) && isForcedPluginVersionUpgradeNecessary(current, latest)) {
         updateGradleSyncState(); // Update the sync state before starting a new one.
 
-        String message =
-          String.format("%1$s is an old preview version of the Android plugin; the project will be upgraded to version %2$s.",
-                        current, latest);
-        Messages.showErrorDialog(myProject, message, UNHANDLED_SYNC_ISSUE_TYPE);
-        updateGradlePluginVersionAndNotifyFailure(myProject, latest, null);
+        boolean update = new PluginVersionForcedUpdateDialog(myProject).showAndGet();
+        if (update) {
+          updateGradlePluginVersionAndNotifyFailure(myProject, latest, null, true);
+          return true;
+        }
+        else {
+          // Close project.
+          closeAndDispose(myProject);
+          showIfNoProjectOpened();
+        }
       }
     }
     else {
