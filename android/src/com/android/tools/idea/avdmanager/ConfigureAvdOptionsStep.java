@@ -194,10 +194,10 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
 
   public ConfigureAvdOptionsStep(@Nullable Project project, @NotNull AvdOptionsModel model) {
     super(model, "Android Virtual Device (AVD)");
-    myStudioWizardStepPanel = new StudioWizardStepPanel(myRoot, "Verify Configuration");
-    myValidatorPanel = new ValidatorPanel(this, myStudioWizardStepPanel);
+    myValidatorPanel = new ValidatorPanel(this, myRoot);
+    myStudioWizardStepPanel = new StudioWizardStepPanel(myValidatorPanel, "Verify Configuration");
 
-    FormScalingUtil.scaleComponentTree(this.getClass(), myRoot);
+    FormScalingUtil.scaleComponentTree(this.getClass(), myStudioWizardStepPanel);
     myOrientationToggle.setOpaque(false);
     myScrollPane.getVerticalScrollBar().setUnitIncrement(10);
 
@@ -693,7 +693,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
   @NotNull
   @Override
   protected JComponent getComponent() {
-    return myValidatorPanel;
+    return myStudioWizardStepPanel;
   }
 
   @Nullable

@@ -250,6 +250,6 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
   @NotNull
   @Override
   protected JComponent getComponent() {
-    return myValidatorPanel;
+    return myStudioPanel;
   }
 }
