@@ -84,7 +84,7 @@ public class ChooseSystemImageStep extends ModelWizardStep<AvdOptionsModel> {
   @NotNull
   @Override
   protected JComponent getComponent() {
-    return myValidatorPanel;
+    return myStudioWizardStepPanel;
   }
 
   private void createUIComponents() {
