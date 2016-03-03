@@ -15,46 +15,59 @@
  */
 package com.android.tools.idea.gradle.project;
 
+import com.google.common.collect.Lists;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.openapi.ui.OnePixelDivider;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.HyperlinkAdapter;
+import com.intellij.ui.border.CustomLineBorder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.border.Border;
+import javax.swing.border.CompoundBorder;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.text.html.HTMLDocument;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.util.List;
 
 import static com.android.SdkConstants.GRADLE_PLUGIN_LATEST_VERSION;
 import static com.intellij.ide.BrowserUtil.browse;
+import static com.intellij.util.ui.JBUI.Borders.empty;
+import static com.intellij.util.ui.JBUI.Borders.emptyTop;
 import static com.intellij.util.ui.UIUtil.getLabelFont;
+import static javax.swing.Action.MNEMONIC_KEY;
 import static javax.swing.Action.NAME;
 
 public class PluginVersionUpgradeDialog extends DialogWrapper {
   private static final String SHOW_DO_NOT_ASK_TO_UPGRADE_PLUGIN_PROPERTY_NAME = "show.do.not.ask.upgrade.gradle.plugin";
 
   @NotNull private final Project myProject;
+  @NotNull private final PropertyBasedDoNotAskOption myDoNotAskOption;
 
   private JPanel myCenterPanel;
   private JEditorPane myMessagePane;
+  private JButton[] myButtons;
 
   public PluginVersionUpgradeDialog(@NotNull Project project) {
     super(project);
     myProject = project;
-    setTitle("Android Gradle Plugin Upgrade Recommended");
-    setDoNotAskOption(new PropertyBasedDoNotAskOption(project, SHOW_DO_NOT_ASK_TO_UPGRADE_PLUGIN_PROPERTY_NAME) {
+    setTitle("Android Gradle Plugin Update Recommended");
+    myDoNotAskOption = new PropertyBasedDoNotAskOption(project, SHOW_DO_NOT_ASK_TO_UPGRADE_PLUGIN_PROPERTY_NAME) {
       @Override
       @NotNull
       public String getDoNotShowMessage() {
         return "Don't remind me again for this project";
       }
-    });
+    };
     init();
 
     String msg = "<b>The project is using an old version of the Android Gradle plugin.</b><br/<br/>" +
-                 "To take advantage of all the latest features, such as <a href=''>Instant Run</a>, we strongly recommend " +
+                 "To take advantage of all the latest features, such as <b>Instant Run</b>, we strongly recommend " +
                  "that you update the Android Gradle plugin to version " +
                  GRADLE_PLUGIN_LATEST_VERSION + ".<br/><br/>" +
                  "You can learn more about this version of the plugin from the " +
@@ -63,8 +76,8 @@ public class PluginVersionUpgradeDialog extends DialogWrapper {
     myMessagePane.setEditable(false);
     myMessagePane.setOpaque(false);
     myMessagePane.setText(msg);
-    Font font1 = getLabelFont();
-    String bodyRule = "body { font-family: " + font1.getFamily() + "; " + "font-size: " + font1.getSize() + "pt; }";
+    Font font = getLabelFont();
+    String bodyRule = "body { font-family: " + font.getFamily() + "; " + "font-size: " + font.getSize() + "pt; }";
     ((HTMLDocument)myMessagePane.getDocument()).getStyleSheet().addRule(bodyRule);
 
     myMessagePane.addHyperlinkListener(new HyperlinkAdapter() {
@@ -73,6 +86,40 @@ public class PluginVersionUpgradeDialog extends DialogWrapper {
         browse(e.getURL());
       }
     });
+  }
+
+  @Override
+  @NotNull
+  protected JComponent createSouthPanel() {
+    Action[] actions = createActions();
+    List<JButton> buttons = Lists.newArrayList();
+
+    JPanel panel = new JPanel(new BorderLayout());
+
+    if (actions.length > 0) {
+      JPanel buttonsPanel = createButtons(actions, buttons);
+      panel.add(buttonsPanel, BorderLayout.CENTER);
+      myButtons = buttons.toArray(new JButton[buttons.size()]);
+    }
+
+    if (getStyle() == DialogStyle.COMPACT) {
+      Border line = new CustomLineBorder(OnePixelDivider.BACKGROUND, 1, 0, 0, 0);
+      panel.setBorder(new CompoundBorder(line, empty(8, 12)));
+    }
+    else {
+      panel.setBorder(emptyTop(8));
+    }
+
+    return panel;
+  }
+
+  @Override
+  @NotNull
+  protected Action[] createActions() {
+    if (SystemInfo.isMac) {
+      return new Action[]{new DoNotAskAction(), getCancelAction(), getOKAction()};
+    }
+    return new Action[]{getOKAction(), getCancelAction(), new DoNotAskAction()};
   }
 
   @Override
@@ -91,6 +138,28 @@ public class PluginVersionUpgradeDialog extends DialogWrapper {
     return action;
   }
 
+  @NotNull
+  private JPanel createButtons(@NotNull Action[] actions, @NotNull List<JButton> buttons) {
+    // Use FlowLayout to prevent all buttons to have same width. Right now buttons are too long.
+    JPanel buttonsPanel = new JPanel(new FlowLayout(FlowLayout.TRAILING));
+    for (Action action : actions) {
+      JButton button = createJButtonForAction(action);
+      Object value = action.getValue(MNEMONIC_KEY);
+      if (value instanceof Integer) {
+        int mnemonic = ((Integer)value).intValue();
+        button.setMnemonic(mnemonic);
+      }
+
+      if (action.getValue(FOCUSED_ACTION) != null) {
+        myPreferredFocusedComponent = button;
+      }
+
+      buttons.add(button);
+      buttonsPanel.add(button);
+    }
+    return buttonsPanel;
+  }
+
   @Override
   public void show() {
     if (PropertiesComponent.getInstance(myProject).getBoolean(SHOW_DO_NOT_ASK_TO_UPGRADE_PLUGIN_PROPERTY_NAME, true)) {
@@ -99,9 +168,31 @@ public class PluginVersionUpgradeDialog extends DialogWrapper {
     // By default the exit code is CANCEL_EXIT_CODE
   }
 
+  @Override
+  protected void dispose() {
+    super.dispose();
+    if (myButtons != null) {
+      for (JButton button : myButtons) {
+        button.setAction(null); // avoid memory leak via KeyboardManager
+      }
+    }
+  }
+
   @Nullable
   @Override
   protected JComponent createCenterPanel() {
     return myCenterPanel;
+  }
+
+  private class DoNotAskAction extends DialogWrapperAction {
+    protected DoNotAskAction() {
+      super(myDoNotAskOption.getDoNotShowMessage());
+    }
+
+    @Override
+    protected void doAction(ActionEvent e) {
+      myDoNotAskOption.setToBeShown(false, CANCEL_EXIT_CODE);
+      doCancelAction();
+    }
   }
 }
