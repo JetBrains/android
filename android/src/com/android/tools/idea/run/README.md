@@ -136,6 +136,7 @@ This allows monitoring of both failures in the emulator launch, or terminating t
 
 The list of launch tasks (e.g. install app, launch activity) used to be hard coded. This mechanism doesn't scale as the list of tasks
 became configurable. Now, each task is represented by a single `LaunchTask` interface. The `LaunchTask.perform` method receives:
+
  * a device on which the task should be performed.
  * The `LaunchStatus` that allows the task to terminate the entire launch process, or inspect whether the launch has been terminated
  * The `ConsolePrinter` allows the task to print its output on the console.
