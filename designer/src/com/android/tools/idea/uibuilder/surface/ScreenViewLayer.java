@@ -40,16 +40,17 @@ public class ScreenViewLayer extends Layer {
   }
 
   @Override
-  public void paint(@NonNull Graphics2D g) {
+  public boolean paint(@NonNull Graphics2D g) {
     NlModel myModel = myScreenView.getModel();
     RenderResult renderResult = myModel.getRenderResult();
     if (renderResult != null && renderResult.getImage() != null) {
       BufferedImage originalImage = renderResult.getImage().getOriginalImage();
       if (UIUtil.isRetina() && paintHiDpi(g, originalImage)) {
-        return;
+        return false;
       }
       paintLoDpi(g, originalImage);
     }
+    return false;
   }
 
   public void paintLoDpi(@NonNull Graphics g, @NonNull BufferedImage originalImage) {
