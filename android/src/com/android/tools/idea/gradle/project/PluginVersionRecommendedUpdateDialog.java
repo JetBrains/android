@@ -21,7 +21,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.OnePixelDivider;
 import com.intellij.openapi.util.SystemInfo;
-import com.intellij.ui.HyperlinkAdapter;
 import com.intellij.ui.border.CustomLineBorder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -29,21 +28,18 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.border.CompoundBorder;
-import javax.swing.event.HyperlinkEvent;
-import javax.swing.text.html.HTMLDocument;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.util.List;
 
 import static com.android.SdkConstants.GRADLE_PLUGIN_LATEST_VERSION;
-import static com.intellij.ide.BrowserUtil.browse;
 import static com.intellij.util.ui.JBUI.Borders.empty;
 import static com.intellij.util.ui.JBUI.Borders.emptyTop;
-import static com.intellij.util.ui.UIUtil.getLabelFont;
 import static javax.swing.Action.MNEMONIC_KEY;
 import static javax.swing.Action.NAME;
+import static org.jetbrains.android.util.AndroidUiUtil.setUpAsHtmlLabel;
 
-public class PluginVersionUpgradeDialog extends DialogWrapper {
+public class PluginVersionRecommendedUpdateDialog extends DialogWrapper {
   private static final String SHOW_DO_NOT_ASK_TO_UPGRADE_PLUGIN_PROPERTY_NAME = "show.do.not.ask.upgrade.gradle.plugin";
 
   @NotNull private final Project myProject;
@@ -53,7 +49,7 @@ public class PluginVersionUpgradeDialog extends DialogWrapper {
   private JEditorPane myMessagePane;
   private JButton[] myButtons;
 
-  public PluginVersionUpgradeDialog(@NotNull Project project) {
+  public PluginVersionRecommendedUpdateDialog(@NotNull Project project) {
     super(project);
     myProject = project;
     setTitle("Android Gradle Plugin Update Recommended");
@@ -66,26 +62,14 @@ public class PluginVersionUpgradeDialog extends DialogWrapper {
     };
     init();
 
+    setUpAsHtmlLabel(myMessagePane);
     String msg = "<b>The project is using an old version of the Android Gradle plugin.</b><br/<br/>" +
                  "To take advantage of all the latest features, such as <b>Instant Run</b>, we strongly recommend " +
                  "that you update the Android Gradle plugin to version " +
                  GRADLE_PLUGIN_LATEST_VERSION + ".<br/><br/>" +
                  "You can learn more about this version of the plugin from the " +
                  "<a href='http://developer.android.com/tools/revisions/gradle-plugin.html'>release notes</a>.<br/><br/>";
-    myMessagePane.setContentType("text/html");
-    myMessagePane.setEditable(false);
-    myMessagePane.setOpaque(false);
     myMessagePane.setText(msg);
-    Font font = getLabelFont();
-    String bodyRule = "body { font-family: " + font.getFamily() + "; " + "font-size: " + font.getSize() + "pt; }";
-    ((HTMLDocument)myMessagePane.getDocument()).getStyleSheet().addRule(bodyRule);
-
-    myMessagePane.addHyperlinkListener(new HyperlinkAdapter() {
-      @Override
-      protected void hyperlinkActivated(HyperlinkEvent e) {
-        browse(e.getURL());
-      }
-    });
   }
 
   @Override
