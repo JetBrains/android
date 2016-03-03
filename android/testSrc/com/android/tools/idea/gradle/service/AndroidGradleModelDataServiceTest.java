@@ -75,11 +75,6 @@ public class AndroidGradleModelDataServiceTest extends IdeaTestCase {
     super.tearDown();
   }
 
-  @Override
-  protected void checkForSettingsDamage(@NotNull List<Throwable> exceptions) {
-    // for this test we don't care for this check
-  }
-
   public void testImportData() {
     String jdkPath = Jdks.getJdkHomePath(LanguageLevel.JDK_1_6);
 
