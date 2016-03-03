@@ -17,6 +17,7 @@ package com.android.tools.idea.monitor;
 
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
+import com.android.tools.chartlib.Choreographer;
 import com.android.tools.chartlib.EventData;
 import com.android.tools.chartlib.TimelineComponent;
 import com.android.tools.idea.ddms.DeviceContext;
@@ -92,6 +93,7 @@ public abstract class BaseMonitorView<T extends DeviceSampler>
     mySampler.addListener(this);
     myTimelineComponent =
       new TimelineComponent(mySampler.getTimelineData(), myEvents, bufferTime, initialMax, absoluteMax, initialMarkerSeparation);
+    Choreographer.animate(myTimelineComponent);
     myContentPane = new JBLayeredPane() {
       @Override
       public void doLayout() {
@@ -233,7 +235,6 @@ public abstract class BaseMonitorView<T extends DeviceSampler>
         setOverlayEnabled(PAUSED_LABEL, false);
       }
     });
-    myTimelineComponent.setUpdateData(true);
   }
 
   @Override
@@ -244,7 +245,6 @@ public abstract class BaseMonitorView<T extends DeviceSampler>
         setOverlayEnabled(PAUSED_LABEL, true);
       }
     });
-    myTimelineComponent.setUpdateData(false);
   }
 
   @NotNull
@@ -349,7 +349,6 @@ public abstract class BaseMonitorView<T extends DeviceSampler>
   private void performPausing(boolean paused) {
     mySampler.setIsPaused(paused);
     setOverlayEnabled(PAUSED_LABEL, paused);
-    myTimelineComponent.setUpdateData(!paused);
   }
 
   private void updateOverlayText(String text) {
