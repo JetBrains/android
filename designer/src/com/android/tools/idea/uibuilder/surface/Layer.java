@@ -60,9 +60,12 @@ public abstract class Layer implements Disposable {
    * Paints the overlay.
    *
    * @param gc The Graphics object to draw into
+   *
+   * @return return true if repaint is needed
    */
-  public void paint(@NonNull Graphics2D gc) {
+  public boolean paint(@NonNull Graphics2D gc) {
     assert false; // probably using wrong paint signature in overlay
+    return false;
   }
 
   /**

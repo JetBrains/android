@@ -307,10 +307,11 @@ public class DragDropInteraction extends Interaction {
     }
 
     @Override
-    public void paint(@NonNull Graphics2D gc) {
+    public boolean paint(@NonNull Graphics2D gc) {
       if (myDragHandler != null) {
         myDragHandler.paint(new NlGraphics(gc, myScreenView));
       }
+      return false;
     }
   }
 }
