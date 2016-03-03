@@ -83,6 +83,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.NonNavigatable;
 import com.intellij.util.SystemProperties;
 import com.intellij.util.ui.UIUtil;
+import org.jetbrains.android.AndroidPlugin;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkData;
@@ -219,6 +220,16 @@ public class PostProjectSetupTasksExecutor {
     setMakeStepInJunitRunConfigurations(taskName);
     updateGradleSyncState();
 
+    if (shouldRecommendPluginVersionUpgrade()) {
+      boolean upgrade = new PluginVersionUpgradeDialog(myProject).showAndGet();
+      if (upgrade) {
+        if (updateGradlePluginVersionAndNotifyFailure(myProject, GRADLE_PLUGIN_LATEST_VERSION, GRADLE_LATEST_VERSION)) {
+          // plugin version updated and a project sync was requested. No need to continue.
+          return;
+        }
+      }
+    }
+
     if (myGenerateSourcesAfterSync) {
       GradleProjectBuilder.getInstance(myProject).generateSourcesOnly(myCleanProjectAfterSync);
     }
@@ -240,7 +251,7 @@ public class PostProjectSetupTasksExecutor {
       logProjectVersion(androidProject);
       GradleVersion current = GradleVersion.parse(androidProject.getModelVersion());
       String latest = GRADLE_PLUGIN_LATEST_VERSION;
-      if (isNonExperimentalPlugin(androidProject) && isPluginVersionUpgradeNecessary(current, latest)) {
+      if (isNonExperimentalPlugin(androidProject) && isForcedPluginVersionUpgradeNecessary(current, latest)) {
         updateGradleSyncState(); // Update the sync state before starting a new one.
 
         String message =
@@ -256,13 +267,33 @@ public class PostProjectSetupTasksExecutor {
     return false;
   }
 
+  private boolean shouldRecommendPluginVersionUpgrade() {
+    if (ApplicationManager.getApplication().isUnitTestMode() || AndroidPlugin.isGuiTestingMode()) {
+      return false;
+    }
+    AndroidProject androidProject = getAppAndroidProject(myProject);
+    if (androidProject != null) {
+      logProjectVersion(androidProject);
+      if (isNonExperimentalPlugin(androidProject)) {
+        GradleVersion latest = GradleVersion.parse(GRADLE_PLUGIN_LATEST_VERSION);
+        if (latest.getPreviewType() != null) {
+          // Latest is a preview. Do not suggest upgrading to a preview.
+          return false;
+        }
+        String current = androidProject.getModelVersion();
+        return latest.compareTo(current) > 0;
+      }
+    }
+    return false;
+  }
+
   private static boolean isNonExperimentalPlugin(@NotNull AndroidProject androidProject) {
     try {
       // only true for non experimental plugin 2.0.0-betaX (or whenever the getPluginGeneration() was added)
       return androidProject.getPluginGeneration() == GENERATION_ORIGINAL;
     } catch (Throwable t) {
       // happens for 2.0.0-alphaX, 1.5.x or for experimental plugins on those versions
-      return false;
+      return true;
     }
   }
 
@@ -278,7 +309,7 @@ public class PostProjectSetupTasksExecutor {
   }
 
   @VisibleForTesting
-  static boolean isPluginVersionUpgradeNecessary(@NotNull GradleVersion current, @NotNull String latest) {
+  static boolean isForcedPluginVersionUpgradeNecessary(@NotNull GradleVersion current, @NotNull String latest) {
     if (current.getPreviewType() != null) {
       // modelVersion is a "preview" (alpha, beta, etc.)
       // major, micro, minor are the same for both versions, but it is an old "preview"
