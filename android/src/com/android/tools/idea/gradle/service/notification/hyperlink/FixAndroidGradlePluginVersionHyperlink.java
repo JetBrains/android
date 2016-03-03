@@ -65,6 +65,6 @@ public class FixAndroidGradlePluginVersionHyperlink extends NotificationHyperlin
     if (myOpenMigrationGuide) {
       browse("http://tools.android.com/tech-docs/new-build-system/migrating-to-1-0-0");
     }
-    updateGradlePluginVersionAndNotifyFailure(project, myModelVersion, myGradleVersion);
+    updateGradlePluginVersionAndNotifyFailure(project, myModelVersion, myGradleVersion, false);
   }
 }
