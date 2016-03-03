@@ -32,7 +32,7 @@ public class SelectionLayer extends Layer {
   }
 
   @Override
-  public void paint(@NonNull Graphics2D gc) {
+  public boolean paint(@NonNull Graphics2D gc) {
     SelectionModel model = myScreenView.getSelectionModel();
     for (NlComponent component : model.getSelection()) {
       if (component.isRoot() || !component.isShowing()) {
@@ -52,5 +52,6 @@ public class SelectionLayer extends Layer {
                                         PIXEL_RADIUS, PIXEL_RADIUS);
       }
     }
+    return false;
   }
 }
