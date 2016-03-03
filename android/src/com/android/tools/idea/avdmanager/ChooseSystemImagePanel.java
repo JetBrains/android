@@ -112,13 +112,12 @@ public class ChooseSystemImagePanel extends JPanel
       return SystemImageClassification.OTHER;
     }
     int apiLevel = image.getVersion().getApiLevel();
-    if (apiLevel == 21) {
+    if (apiLevel <= 21) {
       // The emulator does not yet work very well on older system images.
       // Remove this when they are fully supported.
       return SystemImageClassification.X86;
     }
-    IdDisplay tag = image.getTag();
-    if (AvdManagerConnection.GOOGLE_APIS_TAG.equals(tag) || AvdWizardUtils.WEAR_TAG.equals(tag) || AvdWizardUtils.TV_TAG.equals(tag)) {
+    if (AvdWizardUtils.TAGS_WITH_GOOGLE_API.contains(image.getTag())) {
       return SystemImageClassification.RECOMMENDED;
     }
     return SystemImageClassification.X86;
@@ -281,6 +280,4 @@ public class ChooseSystemImagePanel extends JPanel
       return image.getVersion().getApiLevel() != 15;
     }
   }
-
-
 }

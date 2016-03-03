@@ -99,7 +99,7 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
 
   @Override
   protected void onWizardStarting(@NotNull ModelWizard.Facade wizard) {
-    myDeviceTypeComboBox.setModel(new CollectionComboBoxModel<IdDisplay>(AvdWizardUtils.ALL_TAGS));
+    myDeviceTypeComboBox.setModel(new CollectionComboBoxModel<IdDisplay>(AvdWizardUtils.ALL_DEVICE_TAGS));
 
     myDeviceTypeComboBox.setRenderer(new ListCellRendererWrapper<IdDisplay>() {
       @Override

@@ -253,7 +253,7 @@ public final class AvdDeviceData {
       myDeviceType.setValue(SystemImage.DEFAULT_TAG);
     }
     else {
-      for (IdDisplay tag : AvdWizardUtils.ALL_TAGS) {
+      for (IdDisplay tag : AvdWizardUtils.ALL_DEVICE_TAGS) {
         if (tag.getId().equals(tagId)) {
           myDeviceType.setValue(tag);
           break;
