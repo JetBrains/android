@@ -21,6 +21,7 @@ import com.android.util.Pair;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 
@@ -104,7 +105,7 @@ public class LayoutFilePullParserTest extends AndroidTestCase {
     }
 
     @Override
-    public ILayoutPullParser getParser(ResourceValue layoutResource) {
+    public ILayoutPullParser getParser(@NotNull ResourceValue layoutResource) {
       fail("Should not be used by unit test");
       return null;
     }
