@@ -15,22 +15,31 @@
  */
 package com.android.tools.idea.gradle.structure.configurables;
 
+import com.android.tools.idea.gradle.structure.model.PsdIssues;
 import com.intellij.openapi.Disposable;
-import org.jetbrains.annotations.NotNull;
 import com.intellij.util.EventDispatcher;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.EventListener;
 
 public class PsdContext {
-  private final EventDispatcher<ChangeListener> myEventDispatcher = EventDispatcher.create(ChangeListener.class);
+  @NotNull private final EventDispatcher<ChangeListener> myEventDispatcher = EventDispatcher.create(ChangeListener.class);
+  @NotNull private final PsdIssues myIssues = new PsdIssues();
 
-  private String mySelectedModule;
+  @Nullable private String mySelectedModule;
 
+  @NotNull
+  public PsdIssues getIssues() {
+    return myIssues;
+  }
+
+  @Nullable
   public String getSelectedModule() {
     return mySelectedModule;
   }
 
-  public void setSelectedModule(String moduleName, @NotNull Object source) {
+  public void setSelectedModule(@NotNull String moduleName, @NotNull Object source) {
     mySelectedModule = moduleName;
     myEventDispatcher.getMulticaster().moduleSelectionChanged(mySelectedModule, source);
   }
