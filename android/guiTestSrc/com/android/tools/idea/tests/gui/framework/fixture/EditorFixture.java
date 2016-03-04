@@ -910,6 +910,8 @@ public class EditorFixture {
   public EditorFixture waitForCodeAnalysisHighlightCount(@NotNull final HighlightSeverity severity, int expected) {
     FileFixture file = getCurrentFileFixture();
     file.waitForCodeAnalysisHighlightCount(severity, expected);
+    file.waitUntilErrorAnalysisFinishes();
+    robot.waitForIdle();
     return this;
   }
 
@@ -917,6 +919,7 @@ public class EditorFixture {
   public EditorFixture waitUntilErrorAnalysisFinishes() {
     FileFixture file = getCurrentFileFixture();
     file.waitUntilErrorAnalysisFinishes();
+    robot.waitForIdle();
     return this;
   }
 
