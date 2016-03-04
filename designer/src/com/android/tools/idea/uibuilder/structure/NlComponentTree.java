@@ -426,6 +426,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
       clearToggledPaths();
       List<NlComponent> components = myModel != null ? myModel.getComponents() : null;
       replaceChildNodes(rootPath, components);
+      expandPath(rootPath);
     }
 
     private void recordVisibleNodes(@NonNull TreePath path) {
