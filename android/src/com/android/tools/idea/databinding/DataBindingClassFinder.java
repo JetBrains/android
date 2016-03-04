@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.databinding;
 
-import com.android.tools.idea.rendering.DataBindingInfo;
-import com.android.tools.idea.rendering.LocalResourceRepository;
+import com.android.tools.idea.res.DataBindingInfo;
+import com.android.tools.idea.res.LocalResourceRepository;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.psi.PsiClass;

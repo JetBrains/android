@@ -23,7 +23,7 @@ import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.configurations.RenderContext;
-import com.android.tools.idea.rendering.ResourceHelper;
+import com.android.tools.idea.res.ResourceHelper;
 import com.android.utils.Pair;
 import com.google.common.collect.Lists;
 import com.intellij.codeInsight.intention.AbstractIntentionAction;

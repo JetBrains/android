@@ -1,6 +1,6 @@
 package org.jetbrains.android.dom.layout;
 
-import com.android.tools.idea.rendering.PsiDataBindingResourceItem;
+import com.android.tools.idea.res.PsiDataBindingResourceItem;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.util.xml.GenericAttributeValue;

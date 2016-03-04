@@ -20,7 +20,7 @@ import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.ide.common.resources.ResourceUrl;
 import com.android.tools.idea.fd.InstantRunManager;
-import com.android.tools.idea.rendering.AppResourceRepository;
+import com.android.tools.idea.res.AppResourceRepository;
 import com.android.utils.XmlUtils;
 import com.google.common.hash.HashCode;
 import com.google.common.hash.HashFunction;

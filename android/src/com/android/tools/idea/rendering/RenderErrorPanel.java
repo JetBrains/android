@@ -110,7 +110,7 @@ import static com.android.tools.idea.configurations.RenderContext.UsageType.LAYO
 import static com.android.tools.idea.gradle.util.GradleUtil.hasLayoutRenderingIssue;
 import static com.android.tools.idea.rendering.HtmlLinkManager.URL_ACTION_CLOSE;
 import static com.android.tools.idea.rendering.RenderLogger.TAG_STILL_BUILDING;
-import static com.android.tools.idea.rendering.ResourceHelper.isViewPackageNeeded;
+import static com.android.tools.idea.res.ResourceHelper.isViewPackageNeeded;
 import static com.android.tools.lint.detector.api.LintUtils.editDistance;
 import static com.android.tools.lint.detector.api.LintUtils.stripIdPrefix;
 import static com.intellij.openapi.util.SystemInfo.JAVA_VERSION;
