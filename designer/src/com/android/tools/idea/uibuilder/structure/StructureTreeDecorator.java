@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.structure;
 
 import com.android.SdkConstants;
 import com.android.annotations.NonNull;
+import com.android.annotations.Nullable;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.model.NlComponent;
@@ -25,6 +26,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.SimpleTextAttributes;
+import icons.AndroidIcons;
 
 public class StructureTreeDecorator {
   private final ViewHandlerManager myViewHandlerManager;
@@ -34,38 +36,57 @@ public class StructureTreeDecorator {
   }
 
   public void decorate(@NonNull NlComponent component, @NonNull SimpleColoredComponent renderer, boolean full) {
-    String id = component.getId();
-    id = LintUtils.stripIdPrefix(id);
-    id = StringUtil.nullize(id);
-
-    ViewHandler handler = myViewHandlerManager.getHandlerOrDefault(component);
-    String title = handler.getTitle(component);
-    String attrs = handler.getTitleAttributes(component);
-
-    if (id != null) {
-      renderer.append(id, SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
+    if (component.getTag().equals(EmptyXmlTag.INSTANCE)) {
+      // The root of the tree contains an empty XML tag that does not refer to a tag in the layout file.
+      // Since this is the EmptyXmlTag we know this is the root node.
+      String title = "Device Screen";
+      String shownIn = getLayoutNameOfShownInAttribute(component);
+      if (shownIn != null) {
+        title = "Shown in " + shownIn;
+      }
+      renderer.append(title, SimpleTextAttributes.REGULAR_ATTRIBUTES);
+      if (full) {
+        renderer.setIcon(AndroidIcons.Views.DeviceScreen);
+      }
     }
+    else {
+      String id = component.getId();
+      id = LintUtils.stripIdPrefix(id);
+      id = StringUtil.nullize(id);
 
-    // Take shownIn into account when we display the root node...
-    //if (component.isRoot()) {
-    //  String shownIn = component.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_SHOW_IN);
-    //  if (shownIn != null) {
-    //    title = "Shown in " + shownIn;
-    //  }
-    //}
+      ViewHandler handler = myViewHandlerManager.getHandlerOrDefault(component);
+      String title = handler.getTitle(component);
+      String attrs = handler.getTitleAttributes(component);
 
-    // Don't display the type title if it's obvious from the id (e.g.
-    // if the id is button1, don't display (Button) as the type)
-    if (id == null || !StringUtil.startsWithIgnoreCase(id, title)) {
-      renderer.append(id != null ? " (" + title + ")" : title, SimpleTextAttributes.REGULAR_ATTRIBUTES);
+      if (id != null) {
+        renderer.append(id, SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
+      }
+
+      // Don't display the type title if it's obvious from the id (e.g.
+      // if the id is button1, don't display (Button) as the type)
+      if (id == null || !StringUtil.startsWithIgnoreCase(id, title)) {
+        renderer.append(id != null ? " (" + title + ")" : title, SimpleTextAttributes.REGULAR_ATTRIBUTES);
+      }
+
+      if (!StringUtil.isEmpty(attrs)) {
+        renderer.append(String.format(" %1$s", attrs), SimpleTextAttributes.GRAYED_ATTRIBUTES);
+      }
+
+      if (full) {
+        renderer.setIcon(handler.getIcon(component));
+      }
     }
+  }
 
-    if (!StringUtil.isEmpty(attrs)) {
-      renderer.append(String.format(" %1$s", attrs), SimpleTextAttributes.GRAYED_ATTRIBUTES);
+  // Return the attribute value of tools:shownIn or null
+  @Nullable
+  private static String getLayoutNameOfShownInAttribute(@NonNull NlComponent root) {
+    for (NlComponent component : root.getChildren()) {
+      String shownIn = component.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_SHOW_IN);
+      if (shownIn != null) {
+        return shownIn;
+      }
     }
-
-    if (full) {
-      renderer.setIcon(handler.getIcon(component));
-    }
+    return null;
   }
 }
