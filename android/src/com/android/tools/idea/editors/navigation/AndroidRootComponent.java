@@ -235,16 +235,14 @@ public class AndroidRootComponent extends JComponent {
 
           RenderResult renderedResult = task.render(factory);
           if (renderedResult != null) {
-            RenderSession session = renderedResult.getSession();
-            if (session != null) {
-              Result result = session.getResult();
-              if (result.isSuccess()) {
-                setRenderResult(renderedResult);
-                myScaledImage = image;
-                task.dispose();
-                myRenderPending = false;
-                return;
-              }
+            Result result = renderedResult.getRenderResult();
+
+            if (result.isSuccess()) {
+              setRenderResult(renderedResult);
+              myScaledImage = image;
+              task.dispose();
+              myRenderPending = false;
+              return;
             }
           }
           if (DEBUG) System.out.println("AndroidRootComponent: rendering failed ");
