@@ -34,9 +34,6 @@ import static com.android.tools.lint.detector.api.TextFormat.*;
 import static com.intellij.xml.CommonXmlStrings.HTML_END;
 import static com.intellij.xml.CommonXmlStrings.HTML_START;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.inspections.lint.AndroidLintInspectionBase");
 
@@ -53,12 +50,9 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
     myIssue = issue;
 
     final Category category = issue.getCategory();
-    final String[] categoryNames = category != null
-                                   ? computeAllNames(category)
-                                   : ArrayUtil.EMPTY_STRING_ARRAY;
 
     myGroupPath = ArrayUtil.mergeArrays(new String[]{AndroidBundle.message("android.inspections.group.name"),
-      AndroidBundle.message("android.lint.inspections.subgroup.name")}, categoryNames);
+      AndroidBundle.message("android.lint.inspections.subgroup.name")}, computeAllNames(category));
     myDisplayName = displayName;
   }
 
