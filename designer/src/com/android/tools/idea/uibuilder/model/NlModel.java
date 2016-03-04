@@ -352,11 +352,11 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   private final Map<XmlTag,NlComponent> myMergeComponentMap = Maps.newHashMap();
 
   private void updateHierarchy(@Nullable RenderResult result) {
-    if (result == null || result.getSession() == null || !result.getSession().getResult().isSuccess()) {
+    if (result == null || !result.getRenderResult().isSuccess()) {
       myComponents.clear();
       return;
     }
-    updateHierarchy(result.getSession().getRootViews());
+    updateHierarchy(result.getRootViews());
   }
 
   @VisibleForTesting

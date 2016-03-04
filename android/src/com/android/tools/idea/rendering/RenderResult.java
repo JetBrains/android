@@ -15,17 +15,19 @@
  */
 package com.android.tools.idea.rendering;
 
-import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.ide.common.rendering.api.RenderSession;
+import com.android.ide.common.rendering.api.Result;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.sdklib.devices.Device;
 import com.android.tools.idea.configurations.Configuration;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.List;
 
@@ -35,23 +37,29 @@ public class RenderResult {
   @NotNull private final PsiFile myFile;
   @NotNull private final RenderLogger myLogger;
   @Nullable private final List<ViewInfo> myRootViews;
+  @Nullable private final List<ViewInfo> mySystemRootViews;
   @Nullable private final RenderedImage myImage;
   @Nullable private RenderedViewHierarchy myHierarchy;
   @Nullable private final RenderTask myRenderTask;
-  @Nullable private final RenderSession mySession; // TEMPORARY
+  @NotNull private final Result myRenderResult;
   @Nullable private IncludeReference myIncludedWithin = IncludeReference.NONE;
+  @NotNull private final Rectangle myImageBounds;
 
   public RenderResult(@Nullable RenderTask renderTask,
                       @Nullable RenderSession session,
                       @NotNull PsiFile file,
                       @NotNull RenderLogger logger) {
     myRenderTask = renderTask;
-    mySession = session;
     myFile = file;
     myLogger = logger;
-    if (session != null && session.getResult().isSuccess() && renderTask != null) {
+    myRenderResult = session != null ? session.getResult() : Result.Status.ERROR_UNKNOWN.createResult("Failed to initialize session");
+
+    if (session != null && myRenderResult.isSuccess() && renderTask != null) {
+      List<ViewInfo> rootViews = session.getRootViews();
+      myRootViews = rootViews != null ? ImmutableList.copyOf(rootViews) : null;
       List<ViewInfo> systemRootViews = session.getSystemRootViews();
-      myRootViews = systemRootViews != null ? systemRootViews : session.getRootViews();
+      mySystemRootViews = systemRootViews != null ? ImmutableList.copyOf(systemRootViews) : null;
+
       Configuration configuration = renderTask.getConfiguration();
       BufferedImage image = session.getImage();
       boolean alphaChannelImage = session.isAlphaChannelImage() || renderTask.requiresTransparency();
@@ -67,8 +75,12 @@ public class RenderResult {
       myImage = new RenderedImage(configuration, image, alphaChannelImage, shadowType);
     } else {
       myRootViews = null;
+      mySystemRootViews = null;
       myImage = null;
     }
+
+    myImageBounds =
+      new Rectangle(0, 0, myImage != null ? myImage.getOriginalWidth() : 0, myImage != null ? myImage.getOriginalHeight() : 0);
   }
 
   /**
@@ -84,9 +96,9 @@ public class RenderResult {
     return new RenderResult(null, null, file, logger != null ? logger : new RenderLogger(null, module));
   }
 
-  @Nullable
-  public RenderSession getSession() {
-    return mySession;
+  @NotNull
+  public Result getRenderResult() {
+    return myRenderResult;
   }
 
   @NotNull
@@ -96,8 +108,9 @@ public class RenderResult {
 
   @Nullable
   public RenderedViewHierarchy getHierarchy() {
-    if (myHierarchy == null && myRootViews != null) {
-      myHierarchy = RenderedViewHierarchy.create(myFile, myRootViews, myIncludedWithin != IncludeReference.NONE);
+    List<ViewInfo> rootViews = mySystemRootViews != null ? mySystemRootViews : myRootViews;
+    if (myHierarchy == null && rootViews != null) {
+      myHierarchy = RenderedViewHierarchy.create(myFile, rootViews, myIncludedWithin != IncludeReference.NONE);
     }
 
     return myHierarchy;
@@ -143,5 +156,10 @@ public class RenderResult {
 
   public void setIncludedWithin(@Nullable IncludeReference includedWithin) {
     myIncludedWithin = includedWithin;
+  }
+
+  @NotNull
+  public Rectangle getOriginalBounds() {
+    return myImageBounds;
   }
 }

@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.rendering.multi;
 
-import com.android.ide.common.rendering.HardwareConfigHelper;
-import com.android.ide.common.rendering.api.RenderSession;
 import com.android.ide.common.rendering.api.Result;
 import com.android.ide.common.rendering.api.Result.Status;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
@@ -568,37 +566,36 @@ public class RenderPreview implements Disposable {
       renderTask.setIncludedWithin(myIncludedWithin);
     }
 
-    RenderResult result = renderTask.render();
-    RenderSession session = result != null ? result.getSession() : null;
-    if (session != null) {
-      Result render = session.getResult();
+    RenderResult renderResult = renderTask.render();
+    if (renderResult != null) {
+      Result result = renderResult.getRenderResult();
 
       if (DUMP_RENDER_DIAGNOSTICS) {
-        if (logger.hasProblems() || !session.getResult().isSuccess()) {
+        if (logger.hasProblems() || !result.isSuccess()) {
           RenderErrorPanel panel = new RenderErrorPanel();
-          String html = panel.showErrors(result);
+          String html = panel.showErrors(renderResult);
           LOG.info("Found problems rendering preview " + getDisplayName() + ": " + html);
         }
       }
 
-      if (render.isSuccess()) {
+      if (result.isSuccess()) {
         myError = null;
       }
       else {
-        myError = render.getErrorMessage();
+        myError = result.getErrorMessage();
         if (myError == null) {
           myError = "<unknown error>";
         }
       }
 
-      if (render.getStatus() == Status.ERROR_TIMEOUT) {
+      if (result.getStatus() == Status.ERROR_TIMEOUT) {
         // TODO: Special handling? schedule update again later
         return false;
       }
 
       disposeThumbnail();
-      if (render.isSuccess()) {
-        RenderedImage renderedImage = result.getImage();
+      if (result.isSuccess()) {
+        RenderedImage renderedImage = renderResult.getImage();
         if (renderedImage != null) {
           myFullImage = renderedImage.getOriginalImage();
         }
