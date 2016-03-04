@@ -103,9 +103,17 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
   @NotNull private ServicePanelBuilder myPanelBuilder;
 
   // These fields are not initialized by the constructor but are by the parsing step and not null afterward.
-  @NotNull @SuppressWarnings("NullableProblems") private ServiceCategory myServiceCategory;
-  @NotNull @SuppressWarnings("NullableProblems") private DeveloperServiceMetadata myDeveloperServiceMetadata;
-  @NotNull @SuppressWarnings("NullableProblems") private File myRecipeFile;
+  @NotNull
+  @SuppressWarnings("NullableProblems")
+  private ServiceCategory myServiceCategory;
+
+  @NotNull
+  @SuppressWarnings("NullableProblems")
+  private DeveloperServiceMetadata myDeveloperServiceMetadata;
+
+  @NotNull
+  @SuppressWarnings("NullableProblems")
+  private File myRecipeFile;
 
   public ServiceXmlParser(@NotNull Module module, @NotNull File rootPath, @NotNull ServiceContext serviceContext) {
     myModule = module;
