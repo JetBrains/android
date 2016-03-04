@@ -16,6 +16,7 @@
 package com.android.tools.idea.editors.allocations;
 
 import com.android.ddmlib.AllocationInfo;
+import com.android.tools.chartlib.Choreographer;
 import com.android.tools.chartlib.SunburstComponent;
 import com.android.tools.chartlib.ValuedTreeNode;
 import com.android.tools.idea.actions.EditMultipleSourcesAction;
@@ -239,6 +240,7 @@ public class AllocationsView implements SunburstComponent.SliceSelectionListener
     myLayout.addSelectionListener(this);
     myLayout.setBorder(IdeBorderFactory.createBorder());
     myLayout.setBackground(UIUtil.getTreeBackground());
+    Choreographer.animate(myLayout);
 
     toolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN, getChartActions(), true);
     myChartOrientation = "Sunburst";
