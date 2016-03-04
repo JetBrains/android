@@ -34,9 +34,6 @@ import java.util.List;
 
 import static com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_STABLE_API;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidLintTest extends AndroidTestCase {
   @NonNls private static final String BASE_PATH = "/lint/";
   @NonNls private static final String BASE_PATH_GLOBAL = BASE_PATH + "global/";
@@ -715,6 +712,33 @@ public class AndroidLintTest extends AndroidTestCase {
                 "/res/layout/deprecation.xml", "xml");
   }
 
+  /**
+   * Quick fix is available on singleLine="true" and does the right thing
+   */
+  public void testSingleLine() throws Exception {
+    deleteManifest();
+    myFixture.copyFileToProject(BASE_PATH_GLOBAL + "deprecation/AndroidManifest.xml", "AndroidManifest.xml");
+    myFixture.enableInspections(new AndroidLintInspectionToolProvider.AndroidLintDeprecatedInspection());
+    myFixture.configureFromExistingVirtualFile(
+      myFixture.copyFileToProject(BASE_PATH + "singleLine.xml", "res/layout/singleLine.xml"));
+    final IntentionAction action = getIntentionAction("Replace singleLine=\"true\" with maxLines=\"1\"", myFixture);
+    assertNotNull(action);
+    doTestWithAction("xml", action);
+  }
+
+  /**
+   * Specialized quick fix is not available on singleLine="false"
+   */
+  public void testSingleLineFalse() throws Exception {
+    deleteManifest();
+    myFixture.copyFileToProject(BASE_PATH_GLOBAL + "deprecation/AndroidManifest.xml", "AndroidManifest.xml");
+    myFixture.enableInspections(new AndroidLintInspectionToolProvider.AndroidLintDeprecatedInspection());
+    myFixture.configureFromExistingVirtualFile(
+      myFixture.copyFileToProject(BASE_PATH + "singleLineFalse.xml", "res/layout/singleLineFalse.xml"));
+    final IntentionAction action = getIntentionAction("Replace singleLine=\"true\" with maxLines=\"1\"", myFixture);
+    assertNull(action);
+  }
+
   public void testActivityRegistered() throws Exception {
     createManifest();
     myFixture.copyFileToProject(getGlobalTestDir() + "/MyActivity.java", "src/p1/p2/MyActivity.java");
@@ -751,6 +775,10 @@ public class AndroidLintTest extends AndroidTestCase {
     throws IOException {
     final IntentionAction action = doTestHighlightingAndGetQuickfix(inspection, message, copyTo, extension);
     assertNotNull(action);
+    doTestWithAction(extension, action);
+  }
+
+  private void doTestWithAction(@NotNull String extension, @NotNull final IntentionAction action) {
     assertTrue(action.isAvailable(myFixture.getProject(), myFixture.getEditor(), myFixture.getFile()));
 
     new WriteCommandAction(myFixture.getProject(), "") {
