@@ -25,8 +25,6 @@ import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
-
 import static org.easymock.classextension.EasyMock.*;
 
 /**
