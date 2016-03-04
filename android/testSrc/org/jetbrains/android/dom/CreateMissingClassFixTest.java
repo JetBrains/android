@@ -20,7 +20,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.search.GlobalSearchScope;
-import org.jetbrains.android.AndroidLintTest;
+import org.jetbrains.android.AndroidTestUtils;
 
 public class CreateMissingClassFixTest extends AndroidDomTest {
   public CreateMissingClassFixTest() {
@@ -36,7 +36,7 @@ public class CreateMissingClassFixTest extends AndroidDomTest {
     final VirtualFile file = copyFileToProject("activity_missing_class.xml", "AndroidManifest.xml");
     myFixture.configureFromExistingVirtualFile(file);
 
-    final IntentionAction action = AndroidLintTest.getIntentionAction("Create class 'MyActivity'", myFixture);
+    final IntentionAction action = AndroidTestUtils.getIntentionAction(myFixture, "Create class 'MyActivity'");
     assertNotNull(action);
 
     action.invoke(getProject(), myFixture.getEditor(), myFixture.getFile());
@@ -51,7 +51,7 @@ public class CreateMissingClassFixTest extends AndroidDomTest {
     final VirtualFile file = copyFileToProject("application_missing_class.xml", "AndroidManifest.xml");
     myFixture.configureFromExistingVirtualFile(file);
 
-    final IntentionAction action = AndroidLintTest.getIntentionAction("Create class 'MyApplication'", myFixture);
+    final IntentionAction action = AndroidTestUtils.getIntentionAction(myFixture, "Create class 'MyApplication'");
     assertNotNull(action);
 
     action.invoke(getProject(), myFixture.getEditor(), myFixture.getFile());
