@@ -20,6 +20,7 @@ import com.android.ide.common.rendering.api.*;
 import com.android.ide.common.res2.DataBindingResourceType;
 import com.android.ide.common.res2.ResourceFile;
 import com.android.ide.common.res2.ResourceItem;
+import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.Density;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
@@ -3740,7 +3741,8 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertNotSame(resources, resourcesReloaded);
     assertTrue(resourcesReloaded.hasFreshFileCache());
     assertEquals(3, resourcesReloaded.getInitialInitialScanState().numXml);
-    assertEquals(0, resourcesReloaded.getInitialInitialScanState().numXmlReparsed);
+    // Layout are still reparsed for now.
+    assertEquals(2, resourcesReloaded.getInitialInitialScanState().numXmlReparsed);
   }
 
   public void testSerialization() throws Exception {
@@ -3939,6 +3941,37 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertNotNull(fromBlob);
     assertTrue(fromBlob.hasResourceItem(ResourceType.STRING, "hello_world"));
     assertTrue(resources.hasResourceItem(ResourceType.DRAWABLE, "logo"));
+  }
+
+  public void testSerializeLayoutAndIdResourceValues() throws Exception {
+    myFixture.copyFileToProject(STRINGS, "res/values/strings.xml");
+    myFixture.copyFileToProject(LAYOUT1, "res/layout/activity_foo.xml");
+    myFixture.copyFileToProject(LAYOUT1, "res/layout-xlarge-land/activity_foo.xml");
+    final ResourceFolderRepository resources = createRepository();
+    assertNotNull(resources);
+    FolderConfiguration config = FolderConfiguration.getConfigForFolder("layout-xlarge-land");
+    assertNotNull(config);
+    // For layouts, the ResourceValue#getValue is the file path.
+    ResourceValue value = resources.getConfiguredValue(ResourceType.LAYOUT, "activity_foo", config);
+    assertNotNull(value);
+    String valueString = value.getValue();
+    assertNotNull(valueString);
+    assertTrue(valueString.endsWith("activity_foo.xml"));
+    assertTrue(valueString.contains("layout-xlarge-land"));
+
+    resources.saveStateToFile();
+    ResourceFolderRegistry.reset();
+    final ResourceFolderRepository fromBlob = createRepository();
+    assertNotNull(fromBlob);
+
+    assertNotSame(resources, fromBlob);
+    assertTrue(fromBlob.equalFilesItems(resources));
+    value = fromBlob.getConfiguredValue(ResourceType.LAYOUT, "activity_foo", config);
+    assertNotNull(value);
+    valueString = value.getValue();
+    assertNotNull(valueString);
+    assertTrue(valueString.endsWith("activity_foo.xml"));
+    assertTrue(valueString.contains("layout-xlarge-land"));
   }
 
   private static void validateViewWithId(AndroidFacet facet, DataBindingInfo.ViewWithId viewWithId, String qualified, String variableName) {
