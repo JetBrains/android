@@ -704,6 +704,15 @@ public class AndroidLintInspectionToolProvider {
     public AndroidLintDeprecatedInspection() {
       super(AndroidBundle.message("android.lint.inspections.deprecated"), DeprecationDetector.ISSUE);
     }
+
+    @NotNull
+    @Override
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
+      return new AndroidLintQuickFix[]{
+        new SingleLineTrueQuickFix(),
+        new RemoveAttributeQuickFix()
+      };
+    }
   }
 
   public static class AndroidLintDeviceAdminInspection extends AndroidLintInspectionBase {
