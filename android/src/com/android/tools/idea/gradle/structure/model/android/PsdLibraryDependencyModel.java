@@ -19,8 +19,8 @@ import com.android.builder.model.Library;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependencyModel;
 import com.android.tools.idea.gradle.structure.model.PsdArtifactDependencySpec;
-import com.android.tools.idea.gradle.structure.model.PsdProblem;
-import com.android.tools.idea.gradle.structure.model.PsdProblem.Severity;
+import com.android.tools.idea.gradle.structure.model.PsdIssue;
+import com.android.tools.idea.gradle.structure.model.PsdIssue.Type;
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -32,7 +32,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-import static com.android.tools.idea.gradle.structure.model.PsdProblem.Severity.WARNING;
+import static com.android.tools.idea.gradle.structure.model.PsdIssue.Type.WARNING;
 import static com.intellij.util.PlatformIcons.LIBRARY_ICON;
 import static icons.AndroidIcons.ProjectStructure.LibraryWarning;
 
@@ -43,7 +43,7 @@ public class PsdLibraryDependencyModel extends PsdAndroidDependencyModel {
   @Nullable private final PsdArtifactDependencySpec myMismatchingRequestedSpec;
   @Nullable private final PsdArtifactDependencySpec myResolvedSpec;
 
-  @Nullable private final PsdProblem myProblem;
+  @Nullable private final PsdIssue myProblem;
   @NotNull private final List<PsdArtifactDependencySpec> myPomDependencies = Lists.newArrayList();
   @NotNull private final Set<String> myTransitiveDependencies = Sets.newHashSet();
 
@@ -64,11 +64,11 @@ public class PsdLibraryDependencyModel extends PsdAndroidDependencyModel {
 
     myMismatchingRequestedSpec = findMismatchingSpec();
 
-    PsdProblem problem = null;
+    PsdIssue problem = null;
     if (myMismatchingRequestedSpec != null) {
       String requestedVersion = myMismatchingRequestedSpec.version;
       String msg = String.format("Version requested: '%1$s'. Version resolved: '%2$s'", requestedVersion, mySpec.version);
-      problem = new PsdProblem(msg, WARNING);
+      problem = new PsdIssue(msg, WARNING);
     }
     myProblem = problem;
   }
@@ -148,18 +148,12 @@ public class PsdLibraryDependencyModel extends PsdAndroidDependencyModel {
   public Icon getIcon() {
     Icon icon = LIBRARY_ICON;
     if (myProblem != null) {
-      Severity severity = myProblem.getSeverity();
-      if (severity == WARNING) {
+      Type type = myProblem.getType();
+      if (type == WARNING) {
         icon = LibraryWarning;
       }
     }
     return icon;
-  }
-
-  @Override
-  @Nullable
-  public PsdProblem getProblem() {
-    return myProblem;
   }
 
   @Override
