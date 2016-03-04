@@ -116,9 +116,10 @@ public class AvdWizardUtils {
   public static final IdDisplay WEAR_TAG = IdDisplay.create("android-wear", "Android Wear");
   public static final IdDisplay TV_TAG = IdDisplay.create("android-tv", "Android TV");
   public static final IdDisplay GOOGLE_APIS_TAG = IdDisplay.create("google_apis", "Google APIs");
+  public static final IdDisplay GOOGLE_APIS_X86_TAG = IdDisplay.create("google_apis_x86", "Google APIs x86");
 
-  public static final List<IdDisplay> ALL_TAGS = ImmutableList.of(SystemImage.DEFAULT_TAG, WEAR_TAG, TV_TAG);
-  public static final List<IdDisplay> TAGS_WITH_GOOGLE_API = ImmutableList.of(GOOGLE_APIS_TAG, WEAR_TAG, TV_TAG);
+  public static final List<IdDisplay> ALL_DEVICE_TAGS = ImmutableList.of(SystemImage.DEFAULT_TAG, WEAR_TAG, TV_TAG);
+  public static final List<IdDisplay> TAGS_WITH_GOOGLE_API = ImmutableList.of(GOOGLE_APIS_TAG, GOOGLE_APIS_X86_TAG, WEAR_TAG, TV_TAG);
 
   public static final String CREATE_SKIN_HELP_LINK = "http://developer.android.com/tools/devices/managing-avds.html#skins";
 
