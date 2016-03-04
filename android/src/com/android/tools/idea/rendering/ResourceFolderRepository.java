@@ -444,6 +444,10 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
             itemMap = map;
           }
           itemMap.put(item.getName(), item);
+          // It's not yet safe to serialize layout, menu, etc. items to blob files. They are currently serialized the same way
+          // as value resource <item />s, which isn't right. Their ResourceValue should represent the file path, but when read back
+          // from a blob, the ResourceValue is the blob's XML node value which is an empty string.
+          item.setIgnoredFromDiskMerge(true);
         }
       }
       catch (MergingException e) {
