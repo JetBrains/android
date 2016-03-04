@@ -46,12 +46,13 @@ public class StructureTreeDecorator {
       renderer.append(id, SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
     }
 
-    if (component.isRoot()) {
-      String shownIn = component.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_SHOW_IN);
-      if (shownIn != null) {
-        title = "Shown in " + shownIn;
-      }
-    }
+    // Take shownIn into account when we display the root node...
+    //if (component.isRoot()) {
+    //  String shownIn = component.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_SHOW_IN);
+    //  if (shownIn != null) {
+    //    title = "Shown in " + shownIn;
+    //  }
+    //}
 
     // Don't display the type title if it's obvious from the id (e.g.
     // if the id is button1, don't display (Button) as the type)
