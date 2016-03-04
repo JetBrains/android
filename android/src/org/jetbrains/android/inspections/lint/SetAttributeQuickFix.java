@@ -19,9 +19,6 @@ import org.jetbrains.annotations.Nullable;
 
 import static org.jetbrains.android.inspections.lint.SuppressLintIntentionAction.ensureNamespaceImported;
 
-/**
- * @author Eugene.Kudelevsky
- */
 class SetAttributeQuickFix implements AndroidLintQuickFix {
 
   private final String myName;
@@ -84,7 +81,7 @@ class SetAttributeQuickFix implements AndroidLintQuickFix {
         final XmlAttributeValue valueElement = attribute.getValueElement();
         final TextRange valueTextRange = attribute.getValueTextRange();
 
-        if (valueElement != null && valueTextRange != null) {
+        if (valueElement != null) {
           final int valueElementStart = valueElement.getTextRange().getStartOffset();
           editor.getCaretModel().moveToOffset(valueElementStart + valueTextRange.getStartOffset());
 
