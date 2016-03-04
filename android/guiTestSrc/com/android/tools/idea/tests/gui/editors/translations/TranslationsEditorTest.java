@@ -63,7 +63,7 @@ public class TranslationsEditorTest {
     waitUntilFound(guiTest.robot(), new GenericTypeMatcher<JTable>(JTable.class) {
       @Override
       protected boolean isMatching(@NotNull JTable table) {
-        return table.getModel() != null && table.getModel().getColumnCount() > 0;
+        return table.isShowing() && table.getModel() != null && table.getModel().getColumnCount() > 0;
       }
     });
 
