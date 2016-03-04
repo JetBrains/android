@@ -53,8 +53,6 @@ public class PropertyParser {
   private Map<String, List<Property>> myCachedProperties;
 
   public PropertyParser(@NotNull RenderResult result)  {
-    assert result.getSession() != null;
-    assert result.getSession().getResult().isSuccess();
     RenderTask renderTask = result.getRenderTask();
     assert renderTask != null;
     IAndroidTarget target = renderTask.getConfiguration().getTarget();

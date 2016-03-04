@@ -16,7 +16,6 @@
 package com.intellij.android.designer.model;
 
 import com.android.ide.common.rendering.api.MergeCookie;
-import com.android.ide.common.rendering.api.RenderSession;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderService;
@@ -41,7 +40,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
-import java.awt.image.BufferedImage;
 import java.util.List;
 import java.util.Map;
 
@@ -160,20 +158,17 @@ public class RadModelBuilder {
       }
     }
 
-    RenderSession session = result.getSession();
-    assert session != null;
-
     updateClientProperties(result, nativeComponent, root);
     initTagMap(root);
     root.getChildren().clear();
-    updateHierarchy(root, session);
+    updateHierarchy(root, result);
 
     // I've removed any tags that are still in the map. I could call removeComponent on these, but I'm worried
     //for (RadViewComponent removed : map.values()) {
     //  myIdManager.removeComponent(removed, false);
     //}
 
-    updateRootBounds(root, session);
+    updateRootBounds(root, result);
 
     return root;
   }
@@ -185,19 +180,18 @@ public class RadModelBuilder {
     root.setClientProperty(ATTR_RENDER_IN, result.getIncludedWithin());
   }
 
-  protected void updateRootBounds(RadViewComponent root, RenderSession session) {
+  protected void updateRootBounds(RadViewComponent root, RenderResult result) {
     // Ensure bounds for the root matches actual top level children
-    BufferedImage image = session.getImage();
-    Rectangle bounds = new Rectangle(0, 0, image != null ? image.getWidth() : 0, image != null ? image.getHeight() : 0);
+    Rectangle bounds = result.getOriginalBounds();
     for (RadComponent radComponent : root.getChildren()) {
       bounds = bounds.union(radComponent.getBounds());
     }
     root.setBounds(bounds.x, bounds.y, bounds.width, bounds.height);
   }
 
-  protected void updateHierarchy(RadViewComponent root, RenderSession session) {
+  protected void updateHierarchy(RadViewComponent root, RenderResult result) {
     myNativeComponent.clearEmptyRegions();
-    List<ViewInfo> rootViews = session.getRootViews();
+    List<ViewInfo> rootViews = result.getRootViews();
     if (rootViews != null) {
       for (ViewInfo info : rootViews) {
         updateHierarchy(root, info, 0, 0);
