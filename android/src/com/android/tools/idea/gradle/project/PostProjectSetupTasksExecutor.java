@@ -267,6 +267,15 @@ public class PostProjectSetupTasksExecutor {
     return false;
   }
 
+  @VisibleForTesting
+  static boolean isForcedPluginVersionUpgradeNecessary(@NotNull GradleVersion current, @NotNull String latest) {
+    if (current.getPreviewType() != null) {
+      // current is a "preview" (alpha, beta, etc.)
+      return current.compareTo(latest) < 0;
+    }
+    return false;
+  }
+
   private boolean shouldRecommendPluginVersionUpgrade() {
     if (ApplicationManager.getApplication().isUnitTestMode() || AndroidPlugin.isGuiTestingMode()) {
       return false;
@@ -306,17 +315,6 @@ public class PostProjectSetupTasksExecutor {
       }
     }
     return null;
-  }
-
-  @VisibleForTesting
-  static boolean isForcedPluginVersionUpgradeNecessary(@NotNull GradleVersion current, @NotNull String latest) {
-    if (current.getPreviewType() != null) {
-      // modelVersion is a "preview" (alpha, beta, etc.)
-      // major, micro, minor are the same for both versions, but it is an old "preview"
-      GradleVersion parsedLatest = GradleVersion.parse(latest);
-      return parsedLatest.compareIgnoringQualifiers(current) == 0 && parsedLatest.compareTo(current) > 0;
-    }
-    return false;
   }
 
   private void disposeModulesMarkedForRemoval() {
