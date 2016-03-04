@@ -527,6 +527,11 @@ public class NlComponent {
     return ViewHandlerManager.get(myTag.getProject()).getHandler(this);
   }
 
+  @Nullable
+  public ViewGroupHandler getViewGroupHandler() {
+    return ViewHandlerManager.get(myTag.getProject()).findLayoutHandler(this, false);
+  }
+
   /**
    * Creates a new child of the given type, and inserts it before the given sibling (or null to append at the end).
    * Note: This operation can only be called when the caller is already holding a write lock. This will be the
@@ -579,4 +584,5 @@ public class NlComponent {
 
     return fqcn;
   }
+
 }
