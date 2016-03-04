@@ -226,6 +226,9 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
 
     myValidatorPanel.registerValidator(diagonalScreenSizeAdapter.inSync(),
       "Please enter a non-zero positive floating point value for the screen size.");
+
+    myValidatorPanel.registerValidator(getModel().getDeviceData().compatibleSkinSize(),
+      Validator.Severity.WARNING, "The selected skin is not large enough to view the entire screen.");
   }
 
   private void createUIComponents() {
