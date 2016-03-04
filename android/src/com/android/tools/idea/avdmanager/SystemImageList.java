@@ -110,6 +110,7 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
       }
     });
     myTable.getSelectionModel().addListSelectionListener(this);
+    myTable.getEmptyText().setText("No System Images available. Are you connected to the internet?");
   }
 
   public void setModel(@NotNull SystemImageListModel model) {
