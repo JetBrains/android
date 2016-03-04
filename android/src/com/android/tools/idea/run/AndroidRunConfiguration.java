@@ -202,7 +202,8 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
                                  facet,
                                  waitForDebugger,
                                  getAndroidDebugger(),
-                                 ACTIVITY_EXTRA_FLAGS);
+                                 ACTIVITY_EXTRA_FLAGS,
+                                 getProfilerState());
     }
     catch (ApkProvisionException e) {
       Logger.getInstance(AndroidRunConfiguration.class).error(e);

@@ -41,7 +41,8 @@ public class DefaultActivityLaunch extends LaunchOption<DefaultActivityLaunch.St
                                     @NotNull AndroidFacet facet,
                                     boolean waitForDebugger,
                                     @Nullable AndroidDebugger androidDebugger,
-                                    @NotNull String extraAmOptions) {
+                                    @NotNull String extraAmOptions,
+                                    @NotNull ProfilerState profilerState) {
       return new DefaultActivityLaunchTask(applicationId, getActivityLocator(facet), waitForDebugger, androidDebugger, extraAmOptions);
     }
 
