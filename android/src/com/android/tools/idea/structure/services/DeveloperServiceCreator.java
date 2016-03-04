@@ -49,19 +49,9 @@ import static com.android.tools.idea.structure.services.BuildSystemOperationsLoo
 public abstract class DeveloperServiceCreator {
 
   /**
-   * Simple interface for a callback that runs on the dispatch thread.
-   *
-   * @see #runInBackground(Callable, Dispatchable)
-   */
-  protected interface Dispatchable<T> {
-    void dispatch(@NotNull T input);
-  }
-
-  /**
    * Reserved filename for the xml file which defines a service.
    */
   private static final String SERVICE_XML = "service.xml";
-
   /**
    * Plugins return resources via InputStreams. We create a temporary directory and create Files
    * for each of the InputStreams, which is important because the template parsing APIs we work
@@ -97,56 +87,6 @@ public abstract class DeveloperServiceCreator {
     catch (IOException e) {
       throw new RuntimeException(e);
     }
-  }
-
-  /**
-   * Returns a new {@link DeveloperService}, which can be used to install the service into the
-   * associated {@link Module}. Returns {@code null} if the initialization fails for any reason.
-   */
-  @Nullable
-  public final DeveloperService createService(@NotNull Module module) {
-    if (AndroidFacet.getInstance(module) == null) {
-      throw new IllegalArgumentException(
-        String.format("Developer service cannot be associated with non-Android module %s", module.getName()));
-    }
-
-    final ServiceContext context = createContext(module);
-    initializeContext(context);
-
-    final ServiceXmlParser serviceParser = new ServiceXmlParser(module, myRootPath, context);
-
-    try {
-      final InputStream serviceXml = new FileInputStream(new File(myRootPath, SERVICE_XML));
-      try {
-        WriteCommandAction.runWriteCommandAction(module.getProject(), new Runnable() {
-          @Override
-          public void run() {
-            try {
-              SAXParserFactory.newInstance().newSAXParser().parse(serviceXml, serviceParser);
-            }
-            catch (ParserConfigurationException e) {
-              throw new RuntimeException(e);
-            }
-            catch (SAXException e) {
-              throw new RuntimeException(e);
-            }
-            catch (IOException e) {
-              throw new RuntimeException(e);
-            }
-          }
-        });
-      }
-      finally {
-        serviceXml.close();
-      }
-    }
-    catch (Exception e) {
-      Logger.getInstance(getClass())
-        .warn(String.format("Skipping over invalid service in module %1$s: %2$s", module.getName(), e.getMessage()));
-      return null;
-    }
-
-    return new DeveloperService(serviceParser);
   }
 
   @NotNull
@@ -206,6 +146,56 @@ public abstract class DeveloperServiceCreator {
   }
 
   /**
+   * Returns a new {@link DeveloperService}, which can be used to install the service into the
+   * associated {@link Module}. Returns {@code null} if the initialization fails for any reason.
+   */
+  @Nullable
+  public final DeveloperService createService(@NotNull Module module) {
+    if (AndroidFacet.getInstance(module) == null) {
+      throw new IllegalArgumentException(
+        String.format("Developer service cannot be associated with non-Android module %s", module.getName()));
+    }
+
+    final ServiceContext context = createContext(module);
+    initializeContext(context);
+
+    final ServiceXmlParser serviceParser = new ServiceXmlParser(module, myRootPath, context);
+
+    try {
+      final InputStream serviceXml = new FileInputStream(new File(myRootPath, SERVICE_XML));
+      try {
+        WriteCommandAction.runWriteCommandAction(module.getProject(), new Runnable() {
+          @Override
+          public void run() {
+            try {
+              SAXParserFactory.newInstance().newSAXParser().parse(serviceXml, serviceParser);
+            }
+            catch (ParserConfigurationException e) {
+              throw new RuntimeException(e);
+            }
+            catch (SAXException e) {
+              throw new RuntimeException(e);
+            }
+            catch (IOException e) {
+              throw new RuntimeException(e);
+            }
+          }
+        });
+      }
+      finally {
+        serviceXml.close();
+      }
+    }
+    catch (Exception e) {
+      Logger.getInstance(getClass())
+        .warn(String.format("Skipping over invalid service in module %1$s: %2$s", module.getName(), e.getMessage()));
+      return null;
+    }
+
+    return new DeveloperService(serviceParser);
+  }
+
+  /**
    * Returns the root path that all resource paths returned by {@link #getResources()} live under.
    * <p/>
    * Be sure any slashes included in this path are forward slashes, as the value will be passed
@@ -226,5 +216,15 @@ public abstract class DeveloperServiceCreator {
   /**
    * Given a fresh context, initialize it with values used by this service.
    */
-  protected void initializeContext(@NotNull ServiceContext serviceContext) {}
+  protected void initializeContext(@NotNull ServiceContext serviceContext) {
+  }
+
+  /**
+   * Simple interface for a callback that runs on the dispatch thread.
+   *
+   * @see #runInBackground(Callable, Dispatchable)
+   */
+  protected interface Dispatchable<T> {
+    void dispatch(@NotNull T input);
+  }
 }

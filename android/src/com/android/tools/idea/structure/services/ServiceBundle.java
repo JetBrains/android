@@ -100,7 +100,10 @@ public class ServiceBundle {
     public List<String> getResources() {
       return ImmutableList.copyOf(myResources);
     }
-    public String getResourceRoot() { return myResourceRoot; }
+
+    public String getResourceRoot() {
+      return myResourceRoot;
+    }
 
     @Override
     public String toString() {
