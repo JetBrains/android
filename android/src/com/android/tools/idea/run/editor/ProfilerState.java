@@ -23,10 +23,13 @@ import org.jdom.Element;
 
 import java.util.Properties;
 
+import static com.android.tools.idea.startup.GradleSpecificInitializer.ENABLE_EXPERIMENTAL_PROFILING;
+
 /**
  * Holds all the project persisted state variables for the profilers.
  */
 public class ProfilerState {
+  public static final String GAPID_LAUNCH_ACTIVITY = "com.google.android.gfxtracer.GfxTracer";
 
   /** Whether to apply the profiling plugin. */
   public boolean ENABLE_ADVANCED_PROFILING = true;
@@ -63,5 +66,9 @@ public class ProfilerState {
     result.setProperty(GAPID_DISABLE_PCS_NAME, String.valueOf(GAPID_DISABLE_PCS));
     result.setProperty(GAPID_AAR_PATH_NAME, GapiPaths.findTracerAar().getAbsolutePath());
     return result;
+  }
+
+  public boolean isGapidEnabled() {
+    return System.getProperty(ENABLE_EXPERIMENTAL_PROFILING) != null && GAPID_ENABLED;
   }
 }
