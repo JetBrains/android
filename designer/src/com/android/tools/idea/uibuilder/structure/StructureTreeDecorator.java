@@ -28,6 +28,9 @@ import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.SimpleTextAttributes;
 import icons.AndroidIcons;
 
+/**
+ * Decorator for the structure pane tree control.
+ */
 public class StructureTreeDecorator {
   private final ViewHandlerManager myViewHandlerManager;
 
@@ -35,6 +38,10 @@ public class StructureTreeDecorator {
     myViewHandlerManager = ViewHandlerManager.get(project);
   }
 
+  /**
+   * Decorate a tree node with ID, title, and attributes of the current component.
+   * Any changes made to this method should be duplicated in {@link #getText}.
+   */
   public void decorate(@NonNull NlComponent component, @NonNull SimpleColoredComponent renderer, boolean full) {
     if (component.getTag().equals(EmptyXmlTag.INSTANCE)) {
       // The root of the tree contains an empty XML tag that does not refer to a tag in the layout file.
@@ -76,6 +83,30 @@ public class StructureTreeDecorator {
         renderer.setIcon(handler.getIcon(component));
       }
     }
+  }
+
+  /**
+   * Generate the string shown by {@link #decorate} that can be used for searches.
+   * Any changes made to this method should be duplicated in {@link #decorate}.
+   */
+  @NonNull
+  public String getText(@NonNull NlComponent component) {
+    if (component.getTag().equals(EmptyXmlTag.INSTANCE)) {
+      return "";
+    }
+    String id = component.getId();
+    id = LintUtils.stripIdPrefix(id);
+    id = StringUtil.nullize(id);
+
+    ViewHandler handler = myViewHandlerManager.getHandlerOrDefault(component);
+    String title = handler.getTitle(component);
+    String attrs = handler.getTitleAttributes(component);
+
+    String text = id != null ? id + "(" + title + ")" : title;
+    if (!StringUtil.isEmpty(attrs)) {
+      text += " " + attrs;
+    }
+    return text;
   }
 
   // Return the attribute value of tools:shownIn or null

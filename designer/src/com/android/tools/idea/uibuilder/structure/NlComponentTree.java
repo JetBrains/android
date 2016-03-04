@@ -26,6 +26,7 @@ import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.ColoredTreeCellRenderer;
+import com.intellij.ui.TreeSpeedSearch;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.IJSwingUtilities;
 import com.intellij.util.ui.UIUtil;
@@ -87,7 +88,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
     TreeUtil.installActions(this);
     createCellRenderer();
     addTreeSelectionListener(new StructurePaneSelectionListener());
-//todo:    new StructureSpeedSearch(myTree);
+    new StructureSpeedSearch(this);
     enableDnD();
     setDesignSurface(designSurface);
   }
@@ -339,8 +340,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
     TreePath[] paths = getSelectionPaths();
     if (paths != null) {
       for (TreePath path : paths) {
-        DefaultMutableTreeNode node = (DefaultMutableTreeNode)path.getLastPathComponent();
-        selected.add((NlComponent)node.getUserObject());
+        selected.add(getComponentForPath(path));
       }
     }
     return selected;
@@ -388,6 +388,11 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
     if (model != null) {
       modelRendered(model);
     }
+  }
+
+  private static NlComponent getComponentForPath(@NonNull TreePath path) {
+    DefaultMutableTreeNode node = (DefaultMutableTreeNode)path.getLastPathComponent();
+    return (NlComponent)node.getUserObject();
   }
 
   /**
@@ -501,7 +506,6 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   }
 
   private static final class FakeRootComponent extends NlComponent {
-
     FakeRootComponent(@NonNull NlModel model) {
       super(model, EmptyXmlTag.INSTANCE);
     }
@@ -516,6 +520,25 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
     @Override
     public ViewGroupHandler getViewGroupHandler() {
       return null;
+    }
+  }
+
+  private static final class StructureSpeedSearch extends TreeSpeedSearch {
+    private final StructureTreeDecorator myDecorator;
+
+    StructureSpeedSearch(@NonNull NlComponentTree tree) {
+      super(tree);
+      myDecorator = tree.myDecorator;
+    }
+
+    @Override
+    protected boolean isMatchingElement(Object element, String pattern) {
+      if (pattern == null) {
+        return false;
+      }
+      TreePath path = (TreePath)element;
+      NlComponent component = getComponentForPath(path);
+      return compare(myDecorator.getText(component), pattern);
     }
   }
 }
