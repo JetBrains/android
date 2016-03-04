@@ -19,7 +19,7 @@ import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.LocaleQualifier;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.rendering.LocalResourceRepository;
+import com.android.tools.idea.res.LocalResourceRepository;
 import com.intellij.lang.folding.FoldingDescriptor;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.util.text.StringUtil;

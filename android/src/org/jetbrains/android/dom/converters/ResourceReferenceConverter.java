@@ -17,7 +17,7 @@ package org.jetbrains.android.dom.converters;
 
 import com.android.resources.ResourceType;
 import com.android.tools.idea.databinding.DataBindingUtil;
-import com.android.tools.idea.rendering.AppResourceRepository;
+import com.android.tools.idea.res.AppResourceRepository;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.codeInsight.completion.PrioritizedLookupElement;
 import com.intellij.codeInsight.lookup.LookupElement;

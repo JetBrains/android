@@ -20,7 +20,7 @@ import com.android.ide.common.res2.AbstractResourceRepository;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.rendering.Locale;
-import com.android.tools.idea.rendering.ModuleResourceRepository;
+import com.android.tools.idea.res.ModuleResourceRepository;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiManager;

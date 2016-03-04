@@ -18,7 +18,7 @@ package org.jetbrains.android.resourceManagers;
 
 import com.android.SdkConstants;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.rendering.AppResourceRepository;
+import com.android.tools.idea.res.AppResourceRepository;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Pair;

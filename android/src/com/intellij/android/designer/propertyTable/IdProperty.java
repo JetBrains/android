@@ -17,7 +17,7 @@ package com.intellij.android.designer.propertyTable;
 
 import com.android.SdkConstants;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.rendering.ResourceNameValidator;
+import com.android.tools.idea.res.ResourceNameValidator;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.intellij.android.designer.model.IdManager;
 import com.intellij.android.designer.model.RadModelBuilder;

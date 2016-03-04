@@ -16,7 +16,7 @@
 package com.android.tools.idea.tests.gui.theme;
 
 import com.android.tools.idea.editors.theme.ui.ResourceComponent;
-import com.android.tools.idea.rendering.ResourceHelper;
+import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;

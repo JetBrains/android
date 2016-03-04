@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.configurations;
 
-import com.android.tools.idea.rendering.AppResourceRepository;
+import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.rendering.RenderService;
 import com.intellij.android.designer.AndroidDesignerEditor;
 import com.intellij.android.designer.AndroidDesignerEditorProvider;
