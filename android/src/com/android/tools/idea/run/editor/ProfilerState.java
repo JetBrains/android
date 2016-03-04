@@ -20,6 +20,8 @@ import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.WriteExternalException;
 import org.jdom.Element;
 
+import java.util.Properties;
+
 /**
  * Holds all the project persisted state variables for the profilers.
  */
@@ -27,9 +29,11 @@ public class ProfilerState {
 
   /** Whether to apply the profiling plugin. */
   public boolean ENABLE_ADVANCED_PROFILING = true;
+  public static final String ENABLE_ADVANCED_PROFILING_NAME = "android.profiler.enabled";
 
   /** GAPID disable pre-compiled shader support. */
   public boolean GAPID_DISABLE_PCS = false;
+  public static final String GAPID_DISABLE_PCS_NAME = "android.profiler.gapid.disable_pcs";
 
   /**
    * Reads the state from the {@link Element}, overwriting all member values.
@@ -43,5 +47,12 @@ public class ProfilerState {
    */
   public void writeExternal(Element element) throws WriteExternalException {
     DefaultJDOMExternalizer.writeExternal(this, element);
+  }
+
+  public Properties toProperties() {
+    Properties result = new Properties();
+    result.setProperty(ENABLE_ADVANCED_PROFILING_NAME, String.valueOf(ENABLE_ADVANCED_PROFILING));
+    result.setProperty(GAPID_DISABLE_PCS_NAME, String.valueOf(GAPID_DISABLE_PCS));
+    return result;
   }
 }
