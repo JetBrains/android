@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.avdmanager;
 
+import com.android.SdkConstants;
 import com.android.ide.common.rendering.HardwareConfigHelper;
+import com.android.repository.io.FileOp;
 import com.android.repository.io.FileOpUtils;
 import com.android.resources.Keyboard;
 import com.android.resources.Navigation;
@@ -24,7 +26,10 @@ import com.android.sdklib.devices.*;
 import com.android.sdklib.repositoryv2.IdDisplay;
 import com.android.sdklib.repositoryv2.targets.SystemImage;
 import com.android.tools.idea.ui.properties.core.*;
+import com.android.tools.idea.ui.properties.expressions.bool.BooleanExpression;
 import com.android.tools.idea.ui.properties.expressions.double_.DoubleExpression;
+import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -68,6 +73,8 @@ public final class AvdDeviceData {
   private BoolValueProperty myIsScreenRound = new BoolValueProperty();
   private IntValueProperty myScreenChinSize = new IntValueProperty();
   private State myDefaultState;
+  private File myLastSkinFolder;
+  private Dimension myLastSkinDimension;
 
   private OptionalProperty<Software> mySoftware = new OptionalValueProperty<Software>();
 
@@ -81,6 +88,21 @@ public final class AvdDeviceData {
         return AvdScreenData.calculateDpi(myScreenResolutionWidth.get(), myScreenResolutionHeight.get(), myDiagonalScreenSize.get());
       }
     };
+
+  private ObservableBool mySkinSizeIsCompatible = new BooleanExpression(myScreenResolutionWidth, myScreenResolutionHeight, myCustomSkinFile) {
+    @NotNull
+    @Override
+    public Boolean get() {
+      if (!myCustomSkinFile.get().isPresent()) {
+        return true;
+      }
+
+      Dimension dimension = getSkinDimension(myCustomSkinFile.getValueOrNull());
+      return dimension == null ||
+             (dimension.getWidth() >= myScreenResolutionWidth.get() &&
+              dimension.getHeight() >= myScreenResolutionHeight.get());
+    }
+  };
 
   public AvdDeviceData() {
     Software software = new Software();
@@ -115,108 +137,139 @@ public final class AvdDeviceData {
    * Consider using {@link #setUniqueName(String)} instead of modifying this value directly, if you
    * need to ensure that an initial name is unique across devices.
    */
+  @NotNull
   public StringProperty name() {
     return myName;
   }
 
+  @NotNull
   public OptionalProperty<IdDisplay> deviceType() {
     return myDeviceType;
   }
 
+  @NotNull
   public StringProperty manufacturer() {
     return myManufacturer;
   }
 
+  @NotNull
   public StringProperty tagId() {
     return myTagId;
   }
 
+  @NotNull
   public DoubleProperty diagonalScreenSize() {
     return myDiagonalScreenSize;
   }
 
+  @NotNull
   public IntProperty screenResolutionWidth() {
     return myScreenResolutionWidth;
   }
 
+  @NotNull
   public IntProperty screenResolutionHeight() {
     return myScreenResolutionHeight;
   }
 
+  @NotNull
   public ObservableDouble screenDpi() {
     return myScreenDpi;
   }
 
+  @NotNull
   public ObjectProperty<Storage> ramStorage() {
     return myRamStorage;
   }
 
+  @NotNull
   public BoolProperty hasHardwareButtons() {
     return myHasHardwareButtons;
   }
 
+  @NotNull
   public BoolProperty hasHardwareKeyboard() {
     return myHasHardwareKeyboard;
   }
 
+  @NotNull
   public OptionalProperty<Navigation> navigation() {
     return myNavigation;
   }
 
+  @NotNull
   public BoolProperty supportsLandscape() {
     return mySupportsLandscape;
   }
 
+  @NotNull
   public BoolProperty supportsPortrait() {
     return mySupportsPortrait;
   }
 
+  @NotNull
   public BoolProperty hasFrontCamera() {
     return myHasFrontCamera;
   }
 
+  @NotNull
   public BoolProperty hasBackCamera() {
     return myHasBackCamera;
   }
 
+  @NotNull
   public BoolProperty hasAccelerometer() {
     return myHasAccelerometer;
   }
 
+  @NotNull
   public BoolProperty hasGyroscope() {
     return myHasGyroscope;
   }
 
+  @NotNull
   public BoolProperty hasGps() {
     return myHasGps;
   }
 
+  @NotNull
   public BoolProperty hasProximitySensor() {
     return myHasProximitySensor;
   }
 
+  @NotNull
   public OptionalProperty<Software> software() {
     return mySoftware;
   }
 
+  @NotNull
   public OptionalProperty<File> customSkinFile() {
     return myCustomSkinFile;
   }
 
+  @NotNull
   public BoolProperty isTv() {
     return myIsTv;
   }
 
+  @NotNull
   public BoolProperty isWear() {
     return myIsWear;
   }
 
+  @NotNull
   public BoolProperty isScreenRound() {
     return myIsScreenRound;
   }
 
+  @NotNull
   public IntProperty screenChinSize() {
     return myScreenChinSize;
+  }
+
+  @NotNull
+  public ObservableBool compatibleSkinSize() {
+    return mySkinSizeIsCompatible;
   }
 
   /**
@@ -243,6 +296,37 @@ public final class AvdDeviceData {
     myHasGyroscope.set(true);
     myHasGps.set(true);
     myHasProximitySensor.set(true);
+  }
+
+  @Nullable
+  private Dimension getSkinDimension(@Nullable File skinFolder) {
+    if (!FileUtil.filesEqual(skinFolder, myLastSkinFolder)) {
+      myLastSkinDimension = computeSkinDimension(skinFolder);
+      myLastSkinFolder = skinFolder;
+    }
+    return myLastSkinDimension;
+  }
+
+  @Nullable
+  private static Dimension computeSkinDimension(@Nullable File skinFolder) {
+    if (skinFolder == null || FileUtil.filesEqual(skinFolder, AvdWizardUtils.NO_SKIN)) {
+      return null;
+    }
+    File skinLayoutFile = new File(skinFolder, SdkConstants.FN_SKIN_LAYOUT);
+    if (!skinLayoutFile.isFile()) {
+      return null;
+    }
+    FileOp fop = FileOpUtils.create();
+    SkinLayoutDefinition skin = SkinLayoutDefinition.parseFile(skinLayoutFile, fop);
+    if (skin == null) {
+      return null;
+    }
+    int height = StringUtil.parseInt(skin.get("parts.device.display.height"), -1);
+    int width = StringUtil.parseInt(skin.get("parts.device.display.width"), -1);
+    if (height <= 0 || width <= 0) {
+      return null;
+    }
+    return new Dimension(width, height);
   }
 
   public void updateValuesFromDevice(@NotNull Device device) {
