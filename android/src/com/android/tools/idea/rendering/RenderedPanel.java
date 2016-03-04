@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.rendering;
 
-import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.ide.common.rendering.api.SessionParams;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.rendering.api.ViewType;

@@ -507,6 +507,9 @@ public class RenderTask implements IImageFactory {
             int retries = 0;
             RenderSession session = null;
             while (retries < 10) {
+              if (session != null) {
+                session.dispose();
+              }
               session = myLayoutLib.createSession(params);
               Result result = session.getResult();
               if (result.getStatus() != Result.Status.ERROR_TIMEOUT) {
@@ -520,14 +523,16 @@ public class RenderTask implements IImageFactory {
               retries++;
             }
 
-            return new RenderResult(RenderTask.this, session, myPsiFile, myLogger);
+            RenderResult result = new RenderResult(RenderTask.this, session, myPsiFile, myLogger);
+            session.dispose();
+            return result;
           }
           finally {
             securityManager.dispose(myCredential);
           }
         }
       });
-      addDiagnostics(result.getSession());
+      addDiagnostics(result.getRenderResult());
       result.setIncludedWithin(myIncludedWithin);
       return result;
     }
@@ -630,18 +635,14 @@ public class RenderTask implements IImageFactory {
   }
 
   @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
-  private void addDiagnostics(@Nullable RenderSession session) {
-    if (session == null) {
-      return;
-    }
-    Result r = session.getResult();
-    if (!myLogger.hasProblems() && !r.isSuccess()) {
-      if (r.getException() != null || r.getErrorMessage() != null) {
-        myLogger.error(null, r.getErrorMessage(), r.getException(), null);
-      } else if (r.getStatus() == Result.Status.ERROR_TIMEOUT) {
+  private void addDiagnostics(@NotNull Result result) {
+    if (!myLogger.hasProblems() && !result.isSuccess()) {
+      if (result.getException() != null || result.getErrorMessage() != null) {
+        myLogger.error(null, result.getErrorMessage(), result.getException(), null);
+      } else if (result.getStatus() == Result.Status.ERROR_TIMEOUT) {
         myLogger.error(null, "Rendering timed out.", null);
       } else {
-        myLogger.error(null, "Unknown render problem: " + r.getStatus(), null);
+        myLogger.error(null, "Unknown render problem: " + result.getStatus(), null);
       }
     } else if (myIncludedWithin != null && myIncludedWithin != IncludeReference.NONE) {
       ILayoutPullParser layoutEmbeddedParser = myLayoutlibCallback.getLayoutEmbeddedParser();
@@ -850,10 +851,14 @@ public class RenderTask implements IImageFactory {
     ILayoutPullParser modelParser = new DomPullParser(parent);
     RenderSession session = measure(modelParser);
     if (session != null) {
-      Result result = session.getResult();
-      if (result != null && result.isSuccess()) {
-        assert session.getRootViews().size() == 1;
-        return session.getRootViews();
+      try {
+        Result result = session.getResult();
+        if (result != null && result.isSuccess()) {
+          assert session.getRootViews().size() == 1;
+          return session.getRootViews();
+        }
+      } finally {
+        session.dispose();
       }
     }
 
@@ -874,20 +879,25 @@ public class RenderTask implements IImageFactory {
     Map<XmlTag, ViewInfo> map = Maps.newHashMap();
     RenderSession session = measure(modelParser);
     if (session != null) {
-      Result result = session.getResult();
-      if (result != null && result.isSuccess()) {
-        assert session.getRootViews().size() == 1;
-        ViewInfo root = session.getRootViews().get(0);
-        List<ViewInfo> children = root.getChildren();
-        for (ViewInfo info : children) {
-          Object cookie = info.getCookie();
-          if (cookie instanceof XmlTag) {
-            map.put((XmlTag)cookie, info);
+      try {
+        Result result = session.getResult();
+
+        if (result != null && result.isSuccess()) {
+          assert session.getRootViews().size() == 1;
+          ViewInfo root = session.getRootViews().get(0);
+          List<ViewInfo> children = root.getChildren();
+          for (ViewInfo info : children) {
+            Object cookie = info.getCookie();
+            if (cookie instanceof XmlTag) {
+              map.put((XmlTag)cookie, info);
+            }
           }
         }
-      }
 
-      return map;
+        return map;
+      } finally {
+        session.dispose();
+      }
     }
 
     return null;
@@ -969,6 +979,7 @@ public class RenderTask implements IImageFactory {
               // Sometimes happens at startup; treat it as a timeout; typically a retry fixes it
               if (!result.isSuccess() && "The main Looper has already been prepared.".equals(result.getErrorMessage())) {
                 retries++;
+                session.dispose();
                 continue;
               }
               return session;
