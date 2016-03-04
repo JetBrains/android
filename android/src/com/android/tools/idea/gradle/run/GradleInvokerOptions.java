@@ -30,8 +30,9 @@ import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.DeviceFutures;
-import com.android.tools.idea.run.editor.ProfilerState;
+import com.google.common.base.Charsets;
 import com.google.common.base.Objects;
+import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import com.intellij.execution.configurations.ModuleRunProfile;
 import com.intellij.execution.configurations.RunConfiguration;
@@ -45,9 +46,11 @@ import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Properties;
 
 import static com.android.builder.model.AndroidProject.PROPERTY_BUILD_API;
 import static com.android.builder.model.AndroidProject.PROPERTY_BUILD_DENSITY;
@@ -87,9 +90,20 @@ public class GradleInvokerOptions {
     List<String> cmdLineArgs = null;
     if (System.getProperty(ENABLE_EXPERIMENTAL_PROFILING) != null) {
       if (configuration instanceof AndroidRunConfigurationBase) {
-        ProfilerState state = ((AndroidRunConfigurationBase)configuration).getProfilerState();
-        if (state.ENABLE_ADVANCED_PROFILING) {
-          cmdLineArgs = Collections.singletonList(AndroidGradleSettings.createProjectProperty("android.profiler.enabled", "true"));
+        Properties profilerProperties = ((AndroidRunConfigurationBase)configuration).getProfilerState().toProperties();
+        try {
+          File propertiesFile = File.createTempFile("profiler", ".properties");
+          propertiesFile.deleteOnExit(); // TODO: It'd be nice to clean this up sooner than at exit.
+
+          Writer writer = new OutputStreamWriter(new FileOutputStream(propertiesFile), Charsets.UTF_8);
+          profilerProperties.store(writer, "Android Studio Profiler Gradle Plugin Properties");
+          writer.close();
+
+          cmdLineArgs = Collections.singletonList(
+            AndroidGradleSettings.createProjectProperty("android.profiler.properties", propertiesFile.getAbsolutePath()));
+        }
+        catch (IOException e) {
+          Throwables.propagate(e);
         }
       }
     }
