@@ -16,6 +16,7 @@
 package com.android.tools.idea.monitor.gpu;
 
 import com.android.ddmlib.Client;
+import com.android.tools.chartlib.Choreographer;
 import com.android.tools.chartlib.TimelineComponent;
 import com.android.tools.chartlib.TimelineData;
 import com.android.tools.idea.actions.BrowserHelpAction;
@@ -160,6 +161,8 @@ public class GpuMonitorView extends BaseMonitorView<GpuSampler> implements Profi
       myTimelineComponent =
         new TimelineComponent(data, myEvents, POST_M_TIMELINE_BUFFER_TIME, TIMELINE_INITIAL_MAX, POST_M_TIMELINE_ABSOLUTE_MAX,
                               TIMELINE_INITIAL_MARKER_SEPARATION);
+      Choreographer.animate(myTimelineComponent);
+
 
       myTimelineComponent.configureUnits("ms");
       myTimelineComponent.configureStream(0, "VSync Delay", new JBColor(0x007c6d, 0x00695c));
@@ -181,6 +184,7 @@ public class GpuMonitorView extends BaseMonitorView<GpuSampler> implements Profi
       myTimelineComponent =
         new TimelineComponent(data, myEvents, PRE_M_TIMELINE_BUFFER_TIME, TIMELINE_INITIAL_MAX, PRE_M_TIMELINE_ABSOLUTE_MAX,
                               TIMELINE_INITIAL_MARKER_SEPARATION);
+      Choreographer.animate(myTimelineComponent);
 
       if (myApiLevel >= LHandler.MIN_API_LEVEL) {
         myTimelineComponent.configureUnits("ms");
