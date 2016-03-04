@@ -30,7 +30,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 
 import static com.android.SdkConstants.*;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
