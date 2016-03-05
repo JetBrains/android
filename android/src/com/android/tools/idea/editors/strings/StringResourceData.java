@@ -19,7 +19,7 @@ import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.tools.idea.configurations.LocaleMenuAction;
-import com.android.tools.idea.rendering.LocalResourceRepository;
+import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.rendering.Locale;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;

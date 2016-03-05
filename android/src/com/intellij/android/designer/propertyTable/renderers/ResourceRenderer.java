@@ -15,7 +15,7 @@
  */
 package com.intellij.android.designer.propertyTable.renderers;
 
-import com.android.tools.idea.rendering.ResourceHelper;
+import com.android.tools.idea.res.ResourceHelper;
 import com.intellij.android.designer.model.RadModelBuilder;
 import com.intellij.designer.model.PropertiesContainer;
 import com.intellij.designer.model.PropertyContext;

@@ -18,7 +18,7 @@ package org.jetbrains.android.actions;
 import com.android.builder.model.SourceProvider;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.rendering.ResourceHelper;
+import com.android.tools.idea.res.ResourceHelper;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;

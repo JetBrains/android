@@ -28,6 +28,8 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.rendering.*;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
+import com.android.tools.idea.res.AppResourceRepository;
+import com.android.tools.idea.res.AssetRepositoryImpl;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;

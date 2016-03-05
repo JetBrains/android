@@ -16,7 +16,7 @@
 package org.jetbrains.android.refactoring;
 
 import com.android.resources.ResourceFolderType;
-import com.android.tools.idea.rendering.ResourceHelper;
+import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.lint.checks.UnusedResourceDetector;
 import com.android.tools.lint.client.api.LintDriver;
 import com.android.tools.lint.client.api.LintRequest;

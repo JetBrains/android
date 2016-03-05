@@ -24,7 +24,7 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
 import com.android.tools.idea.rendering.ImageUtils;
-import com.android.tools.idea.rendering.ResourceHelper;
+import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.uibuilder.editor.NlPreviewForm;
 import com.android.tools.idea.uibuilder.model.DnDTransferComponent;
 import com.android.tools.idea.uibuilder.model.DnDTransferItem;

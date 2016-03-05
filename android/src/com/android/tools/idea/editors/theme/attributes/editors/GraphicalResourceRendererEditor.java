@@ -31,7 +31,7 @@ import com.android.tools.idea.editors.theme.preview.AndroidThemePreviewPanel;
 import com.android.tools.idea.editors.theme.qualifiers.RestrictedConfiguration;
 import com.android.tools.idea.editors.theme.ui.ResourceComponent;
 import com.android.tools.idea.editors.theme.ui.VariantsComboBox;
-import com.android.tools.idea.rendering.ResourceHelper;
+import com.android.tools.idea.res.ResourceHelper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;

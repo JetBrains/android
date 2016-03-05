@@ -28,7 +28,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
-import com.android.tools.idea.rendering.AppResourceRepository;
+import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.lint.checks.ApiLookup;
 import com.google.common.base.Strings;
 import com.intellij.openapi.diagnostic.Logger;

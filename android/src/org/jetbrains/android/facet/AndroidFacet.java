@@ -33,6 +33,7 @@ import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.rendering.*;
+import com.android.tools.idea.res.*;
 import com.android.tools.idea.run.LaunchCompatibility;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.utils.ILogger;

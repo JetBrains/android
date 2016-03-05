@@ -19,7 +19,7 @@ import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.editors.strings.StringResourceEditor;
 import com.android.tools.idea.editors.strings.StringsVirtualFile;
 import com.android.tools.idea.editors.theme.ThemeEditorComponent;
-import com.android.tools.idea.rendering.ResourceHelper;
+import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.LayoutEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.LayoutPreviewFixture;

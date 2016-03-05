@@ -19,6 +19,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.configurations.RenderContext;
+import com.android.tools.idea.res.AarResourceClassRegistry;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
