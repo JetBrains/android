@@ -341,7 +341,7 @@ class VariantsToolWindowPanel extends ToolWindowPanel implements DependencySelec
       myTreeBuilder.clearSelection();
     }
     else {
-      myTreeBuilder.setSelection(selection);
+      myTreeBuilder.setSelection(selection, true);
     }
     myTree.addTreeSelectionListener(myTreeSelectionListener);
   }
