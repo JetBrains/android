@@ -30,6 +30,9 @@ import com.android.tools.idea.editors.theme.attributes.editors.GraphicalResource
 import com.android.tools.idea.editors.theme.ui.ResourceComponent;
 import com.android.tools.idea.javadoc.AndroidJavaDocRenderer;
 import com.android.tools.idea.rendering.*;
+import com.android.tools.idea.res.ProjectResourceRepository;
+import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.ResourceNameValidator;
 import com.android.tools.idea.ui.SearchField;
 import com.android.tools.swing.ui.SwatchComponent;
 import com.google.common.collect.ImmutableMap;

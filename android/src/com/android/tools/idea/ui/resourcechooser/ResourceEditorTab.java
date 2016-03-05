@@ -17,8 +17,8 @@ package com.android.tools.idea.ui.resourcechooser;
 
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.rendering.AppResourceRepository;
-import com.android.tools.idea.rendering.ResourceNameValidator;
+import com.android.tools.idea.res.AppResourceRepository;
+import com.android.tools.idea.res.ResourceNameValidator;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.ui.HideableDecorator;

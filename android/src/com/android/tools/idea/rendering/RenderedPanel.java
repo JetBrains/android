@@ -25,6 +25,7 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.RenderContext;
 import com.android.tools.idea.rendering.multi.RenderPreviewManager;
 import com.android.tools.idea.rendering.multi.RenderPreviewMode;
+import com.android.tools.idea.res.ResourceHelper;
 import com.google.common.base.Objects;
 import com.intellij.android.designer.AndroidDesignerEditorProvider;
 import com.intellij.android.designer.designSurface.graphics.DesignerGraphics;

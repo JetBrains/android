@@ -2,7 +2,7 @@ package org.jetbrains.android.inspections.lint;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.util.Projects;
-import com.android.tools.idea.rendering.PsiProjectListener;
+import com.android.tools.idea.res.PsiProjectListener;
 import com.android.tools.lint.checks.DeprecationDetector;
 import com.android.tools.lint.checks.GradleDetector;
 import com.android.tools.lint.client.api.IssueRegistry;

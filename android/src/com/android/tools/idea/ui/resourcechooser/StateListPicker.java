@@ -28,7 +28,7 @@ import com.android.tools.idea.editors.theme.attributes.editors.DrawableRendererE
 import com.android.tools.idea.editors.theme.attributes.editors.GraphicalResourceRendererEditor;
 import com.android.tools.idea.editors.theme.ui.ResourceComponent;
 import com.android.tools.idea.rendering.RenderTask;
-import com.android.tools.idea.rendering.ResourceHelper;
+import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.swing.ui.SwatchComponent;
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
