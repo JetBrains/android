@@ -26,7 +26,7 @@ import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
 import com.android.tools.idea.editors.theme.preview.ThemePreviewComponent;
 import com.android.tools.idea.editors.theme.qualifiers.RestrictedConfiguration;
-import com.android.tools.idea.rendering.ResourceHelper;
+import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.google.common.base.Function;
 import com.google.common.collect.Collections2;

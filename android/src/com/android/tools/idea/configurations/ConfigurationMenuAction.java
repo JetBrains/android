@@ -25,7 +25,7 @@ import com.android.resources.ScreenSize;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.actions.OverrideResourceAction;
 import com.android.tools.idea.rendering.RenderService;
-import com.android.tools.idea.rendering.ResourceHelper;
+import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.rendering.multi.RenderPreviewManager;
 import com.android.tools.idea.rendering.multi.RenderPreviewMode;
 import com.intellij.icons.AllIcons;

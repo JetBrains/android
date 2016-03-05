@@ -55,11 +55,11 @@
       <skipForDefaultProject/>
     </component>
     <component>
-      <implementation-class>com.android.tools.idea.rendering.PsiProjectListener</implementation-class>
+      <implementation-class>com.android.tools.idea.res.PsiProjectListener</implementation-class>
       <skipForDefaultProject/>
     </component>
     <component>
-      <implementation-class>com.android.tools.idea.rendering.ResourceNotificationManager</implementation-class>
+      <implementation-class>com.android.tools.idea.res.ResourceNotificationManager</implementation-class>
       <skipForDefaultProject/>
     </component>
     <component>
@@ -247,11 +247,11 @@
     <debugger.positionManagerFactory implementation="com.android.tools.idea.fd.debugger.InstantRunPositionManagerFactory"/>
     <debuggerExtension implementation="com.android.tools.idea.fd.debugger.InstantRunDebuggerExtension"/>
     <postStartupActivity implementation="com.android.tools.idea.gradle.project.AndroidGradleProjectStartupActivity"/>
-    <applicationService serviceInterface="com.android.tools.idea.rendering.ResourceFolderRepositoryFileCache"
-                        serviceImplementation="com.android.tools.idea.rendering.ResourceFolderRepositoryFileCacheImpl"/>
-    <postStartupActivity implementation="com.android.tools.idea.rendering.ResourceFolderRepositoryFileCacheImpl$MaintenanceActivity"/>
-    <cachesInvalidator implementation="com.android.tools.idea.rendering.ResourceFolderRepositoryFileCacheImpl$CacheInvalidator"/>
-    <postStartupActivity implementation="com.android.tools.idea.rendering.ResourceFolderRepositoryFileCacheImpl$PopulateCachesActivity"/>
+    <applicationService serviceInterface="com.android.tools.idea.res.ResourceFolderRepositoryFileCache"
+                        serviceImplementation="com.android.tools.idea.res.ResourceFolderRepositoryFileCacheImpl"/>
+    <postStartupActivity implementation="com.android.tools.idea.res.ResourceFolderRepositoryFileCacheImpl$MaintenanceActivity"/>
+    <cachesInvalidator implementation="com.android.tools.idea.res.ResourceFolderRepositoryFileCacheImpl$CacheInvalidator"/>
+    <postStartupActivity implementation="com.android.tools.idea.res.ResourceFolderRepositoryFileCacheImpl$PopulateCachesActivity"/>
     <externalSystemTaskNotificationListener implementation="com.android.tools.idea.gradle.AndroidGradleImportTaskNotificationListener"/>
     <externalSystemNotificationExtension implementation="com.android.tools.idea.gradle.service.notification.GradleNotificationExtension"/>
     <buildProcess.parametersProvider implementation="com.android.tools.idea.gradle.compiler.AndroidGradleBuildProcessParametersProvider"/>
@@ -819,7 +819,7 @@
     <projectService serviceInterface="com.android.tools.idea.debug.ResourceIdResolver"
                     serviceImplementation="com.android.tools.idea.debug.ProjectResourceIdResolver"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.dependencies.GradleDependencyManager"/>
-    <projectService serviceImplementation="com.android.tools.idea.rendering.ProjectResourceRepositoryRootListener"/>
+    <projectService serviceImplementation="com.android.tools.idea.res.ProjectResourceRepositoryRootListener"/>
     <projectService serviceImplementation="com.android.tools.idea.structure.services.DeveloperServices" />
 
     <projectConfigurable instance="org.jetbrains.android.compiler.AndroidDexCompilerSettingsConfigurable" id="android.dex.compiler"
@@ -1053,7 +1053,7 @@
       <implementation-class>com.intellij.android.designer.designSurface.BuildProjectListener</implementation-class>
     </component>
     <component>
-      <implementation-class>com.android.tools.idea.rendering.AarResourceClassRegistry</implementation-class>
+      <implementation-class>com.android.tools.idea.res.AarResourceClassRegistry</implementation-class>
     </component>
     <component>
       <implementation-class>com.android.tools.idea.fd.InstantRunManager</implementation-class>

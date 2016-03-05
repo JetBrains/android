@@ -17,8 +17,8 @@ package com.intellij.android.designer.model;
 
 import com.android.resources.ResourceType;
 import com.android.tools.idea.AndroidPsiUtils;
-import com.android.tools.idea.rendering.AppResourceRepository;
-import com.android.tools.idea.rendering.ResourceHelper;
+import com.android.tools.idea.res.AppResourceRepository;
+import com.android.tools.idea.res.ResourceHelper;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.designer.model.RadComponent;
