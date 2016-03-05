@@ -35,7 +35,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.rendering.*;
+import com.android.tools.idea.res.*;
 import com.android.utils.HtmlBuilder;
 import com.android.utils.SdkUtils;
 import com.google.common.base.Joiner;
@@ -396,7 +396,7 @@ public class AndroidJavaDocRenderer {
       for (File dir : resDirectories) {
         VirtualFile virtualFile = fileSystem.findFileByIoFile(dir);
         if (virtualFile != null) {
-          ResourceFolderRepository resources = ResourceFolderRegistry.get(facet,  virtualFile);
+          ResourceFolderRepository resources = ResourceFolderRegistry.get(facet, virtualFile);
           addItemsFromRepository(flavor, mask, rank, resources, type, name, results);
         }
       }

@@ -21,7 +21,7 @@ import com.android.ide.common.rendering.RenderSecurityManager;
 import com.android.ide.common.rendering.api.LayoutLog;
 import com.android.ide.common.resources.IntArrayWrapper;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.rendering.AppResourceRepository;
+import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.rendering.InconvertibleClassError;
 import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderProblem;

@@ -27,8 +27,10 @@ import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
-import com.android.tools.idea.editors.theme.ThemeEditorVirtualFile;
 import com.android.tools.idea.rendering.*;
+import com.android.tools.idea.res.AppResourceRepository;
+import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.idea.res.ResourceHelper;
 import com.google.common.base.Objects;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -1189,7 +1191,7 @@ public class Configuration implements Disposable, ModificationTracker {
   }
 
   /**
-   * Returns a {@link com.android.tools.idea.rendering.LocalResourceRepository} for the framework resources based on the current
+   * Returns a {@link LocalResourceRepository} for the framework resources based on the current
    * configuration selection.
    *
    * @return the framework resources or null if not found.

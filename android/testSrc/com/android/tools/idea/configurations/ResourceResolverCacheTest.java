@@ -17,8 +17,7 @@ package com.android.tools.idea.configurations;
 
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceResolver;
-import com.android.tools.idea.rendering.LocalResourceRepository;
-import com.android.tools.idea.rendering.Locale;
+import com.android.tools.idea.res.LocalResourceRepository;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;

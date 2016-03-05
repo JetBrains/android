@@ -17,8 +17,8 @@ package org.jetbrains.android.dom.converters;
 
 import com.android.ide.common.res2.DataBindingResourceType;
 import com.android.tools.idea.lang.databinding.DataBindingXmlReferenceContributor;
-import com.android.tools.idea.rendering.DataBindingInfo;
-import com.android.tools.idea.rendering.PsiDataBindingResourceItem;
+import com.android.tools.idea.res.DataBindingInfo;
+import com.android.tools.idea.res.PsiDataBindingResourceItem;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;

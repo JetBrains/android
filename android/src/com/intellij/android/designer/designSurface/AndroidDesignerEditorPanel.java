@@ -28,6 +28,7 @@ import com.android.tools.idea.configurations.*;
 import com.android.tools.idea.rendering.*;
 import com.android.tools.idea.rendering.multi.RenderPreviewManager;
 import com.android.tools.idea.rendering.multi.RenderPreviewMode;
+import com.android.tools.idea.res.ModuleResourceRepository;
 import com.google.common.collect.Queues;
 import com.google.common.primitives.Ints;
 import com.intellij.android.designer.componentTree.AndroidTreeDecorator;
