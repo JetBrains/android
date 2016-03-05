@@ -131,6 +131,12 @@ public final class ModelWizardDialog extends DialogWrapper {
     BrowserUtil.browse(myHelpUrl);
   }
 
+  @Override
+  public void doCancelAction() {
+    myWizard.cancel();
+    super.doCancelAction();
+  }
+
   @NotNull
   @Override
   protected Action[] createActions() {
