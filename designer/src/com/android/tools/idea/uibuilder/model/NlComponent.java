@@ -354,7 +354,7 @@ public class NlComponent {
   }
 
   /** Looks up the existing set of id's reachable from the given module */
-  private static Collection<String> getIds(@NonNull AndroidFacet facet) {
+  public static Collection<String> getIds(@NonNull AndroidFacet facet) {
     AppResourceRepository resources = AppResourceRepository.getAppResources(facet, true);
     return resources.getItemsOfType(ResourceType.ID);
   }
