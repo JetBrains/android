@@ -201,7 +201,7 @@ public final class ModelWizard implements Disposable {
   /**
    * Returns the currently active step.
    * <p/>
-   * It is an error to call this method before the wizard has started or after it has finished.
+   * It is an error to call this on a wizard that has already finished.
    */
   @VisibleForTesting
   @NotNull
@@ -251,8 +251,7 @@ public final class ModelWizard implements Disposable {
    * Moves the wizard to the next page. If we're currently on the last page, then this action
    * finishes the wizard.
    * <p/>
-   * It is an error to call this without first calling {@link #start()} or on a wizard that has
-   * already finished.
+   * It is an error to call this on a wizard that has already finished.
    */
   public void goForward() {
     ensureWizardIsRunning();
@@ -310,8 +309,7 @@ public final class ModelWizard implements Disposable {
   /**
    * Cancels the wizard, discarding all work done so far.
    * <p/>
-   * It is an error to call this without first calling {@link #start()} or on a wizard that has
-   * already finished.
+   * It is an error to call this on a wizard that has already finished.
    */
   public void cancel() {
     ensureWizardIsRunning();
