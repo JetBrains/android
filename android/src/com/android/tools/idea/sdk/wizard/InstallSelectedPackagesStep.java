@@ -223,24 +223,29 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
       final List<RemotePackage> failures = Lists.newArrayList();
       try {
         for (RemotePackage remote : myRequestedPackages) {
-          PackageInstaller installer = StudioSdkUtil.findBestInstaller(remote);
-          myCustomLogger.logInfo(String.format("Installing %1$s", remote.getDisplayName()));
-          boolean success = false;
           try {
-            success =
-              installer.install(remote, new StudioDownloader(indicator), mySettings, myProgress, myRepoManager, mySdkHandler.getFileOp());
+            PackageInstaller installer = StudioSdkUtil.findBestInstaller(remote, mySdkHandler);
+            myCustomLogger.logInfo(String.format("Installing %1$s", remote.getDisplayName()));
+            boolean success = false;
+            try {
+              success =
+                installer.install(remote, new StudioDownloader(indicator), mySettings, myProgress, myRepoManager, mySdkHandler.getFileOp());
+            }
+            catch (Exception e) {
+              Logger.getInstance(getClass()).warn(e);
+            }
+            if (!success) {
+              myCustomLogger.logInfo(String.format("Failed to install %1$s!", remote.getDisplayName()));
+              failures.add(remote);
+            }
+            else {
+              myCustomLogger.logInfo(String.format("Installation of %1$s complete.", remote.getDisplayName()));
+            }
+            myCustomLogger.logInfo("");
           }
           catch (Exception e) {
-            Logger.getInstance(getClass()).warn(e);
-          }
-          if (!success) {
-            myCustomLogger.logInfo(String.format("Failed to install %1$s!", remote.getDisplayName()));
             failures.add(remote);
           }
-          else {
-            myCustomLogger.logInfo(String.format("Installation of %1$s complete.", remote.getDisplayName()));
-          }
-          myCustomLogger.logInfo("");
         }
       }
       finally {
