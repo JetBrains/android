@@ -113,6 +113,10 @@ public final class AvdDeviceData {
     myManufacturer.set("User");
 
     initDefaultValues();
+
+    myDiagonalScreenSize.addConstraint(value -> Math.max(0.1d, value));
+    myScreenResolutionWidth.addConstraint(value -> Math.max(1, value));
+    myScreenResolutionHeight.addConstraint(value -> Math.max(1, value));
   }
 
   /**
@@ -398,6 +402,8 @@ public final class AvdDeviceData {
     int width = myScreenResolutionWidth.get();
     int height = myScreenResolutionHeight.get();
     ScreenOrientation orientation = getDefaultDeviceOrientation();
+
+    assert width > 0 && height > 0;
 
     // compute width and height to take orientation into account.
     int finalWidth, finalHeight;
