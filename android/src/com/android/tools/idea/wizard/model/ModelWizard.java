@@ -53,6 +53,7 @@ public final class ModelWizard implements Disposable {
 
   private final List<ModelWizardStep> mySteps;
   private final Facade myFacade = new Facade();
+
   /**
    * When we check if we should show a step, we also check the step's ancestor chain, and make sure
    * all of those should be shown as well. In this way, skipping a parent step automatically will
@@ -69,6 +70,8 @@ public final class ModelWizard implements Disposable {
 
   private final StringProperty myTitle = new StringValueProperty();
   private final JPanel myContentPanel = new JPanel(new CardLayout());
+
+  private final List<ResultListener> myResultListeners = Lists.newArrayListWithExpectedSize(1);
 
   private int myCurrIndex = -1;
 
@@ -317,6 +320,14 @@ public final class ModelWizard implements Disposable {
     handleFinished(false);
   }
 
+  public void addResultListener(@NotNull ResultListener listener) {
+    myResultListeners.add(listener);
+  }
+
+  public void removeResultListener(@NotNull ResultListener listener) {
+    myResultListeners.remove(listener);
+  }
+
   public boolean isFinished() {
     return myCurrIndex >= mySteps.size();
   }
@@ -345,6 +356,13 @@ public final class ModelWizard implements Disposable {
     myCanGoBack.set(false);
     myCanGoForward.set(false);
     myOnLastStep.set(false);
+
+    // Make a copy of the event list, as a listener may attempt to remove their listener when this
+    // is fired.
+    List<ResultListener> listenersCopy = Lists.newArrayList(myResultListeners);
+    for (ResultListener listener : listenersCopy) {
+      listener.onWizardFinished(success);
+    }
   }
 
   private void showCurrentStep() {
@@ -400,6 +418,14 @@ public final class ModelWizard implements Disposable {
   @Override
   public void dispose() {
     myBindings.releaseAll();
+    myResultListeners.clear();
+  }
+
+  /**
+   * Listener interface which is fired when the wizard is either finished or canceled.
+   */
+  public interface ResultListener {
+    void onWizardFinished(boolean success);
   }
 
   /**
@@ -446,6 +472,25 @@ public final class ModelWizard implements Disposable {
         return; // Protects against user calling this method in ModelWizardStep#onWizardStarting
       }
       ModelWizard.this.updateNavigationProperties();
+    }
+
+    /**
+     * Allows the child step to cancel the wizard. This should be used very sparingly, as normally
+     * you should encourage the user to cancel the wizard via the UI and not do it directly.
+     * However, this can be useful if you need to, say, close the wizard after some timeout passed,
+     * or close it if you instead intend to finish the rest of the wizard's work on a background
+     * task, etc.
+     *
+     * Because this class is passed to child steps before the wizard has even started, this method
+     * will throw an exception if called too early. The step is expected to delay the call at least
+     * until the wizard has started, such as on a button press or other UI event.
+     */
+    public void cancel() {
+      if (myCurrIndex < 0) {
+        // Protects against user calling this method directly in ModelWizardStep#onWizardStarting
+        throw new IllegalStateException("Attempting to cancel before the wizard has even started");
+      }
+      ModelWizard.this.cancel();
     }
   }
 }

@@ -45,7 +45,7 @@ import static com.android.tools.idea.ui.properties.expressions.bool.BooleanExpre
  * Note that the dialog owns responsibility for starting the wizard. If you start it externally
  * first, this dialog will throw an exception on {@link #show()}.
  */
-public final class ModelWizardDialog extends DialogWrapper {
+public final class ModelWizardDialog extends DialogWrapper implements ModelWizard.ResultListener {
 
   @SuppressWarnings("NullableProblems") // Always NotNull but initialized indirectly in constructor
   @NotNull
@@ -79,6 +79,7 @@ public final class ModelWizardDialog extends DialogWrapper {
   private void init(@NotNull ModelWizard wizard, @NotNull String title, @Nullable CustomLayout customLayout, @Nullable URL helpUrl) {
     Disposer.register(getDisposable(), wizard);
     myWizard = wizard;
+    myWizard.addResultListener(this);
     myCustomLayout = customLayout;
     myHelpUrl = helpUrl;
     setTitle(title);
@@ -95,6 +96,7 @@ public final class ModelWizardDialog extends DialogWrapper {
     super.dispose();
     myBindings.releaseAll();
     myListeners.releaseAll();
+    myWizard.removeResultListener(this);
   }
 
   @Override
@@ -134,7 +136,17 @@ public final class ModelWizardDialog extends DialogWrapper {
   @Override
   public void doCancelAction() {
     myWizard.cancel();
-    super.doCancelAction();
+    // DON'T call super.doCancelAction - that's triggered by onWizardFinished
+  }
+
+  @Override
+  public void onWizardFinished(boolean success) {
+    if (!success) {
+      // DON'T call doCancelAction directly - that would just trigger us again recursively
+      // This roundabout way of handling cancel allows us to also handle someone externally
+      // cancelling a wizard.
+      super.doCancelAction();
+    }
   }
 
   @NotNull
