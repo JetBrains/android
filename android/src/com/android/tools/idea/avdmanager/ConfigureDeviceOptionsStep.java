@@ -77,6 +77,9 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
   private TooltipLabel myHelpAndErrorLabel;
   private JCheckBox myIsScreenRound;
   private JBScrollPane myScrollPane;
+  private StringToDoubleAdapterProperty myDiagScreenSizeAdapter;
+  private StringToIntAdapterProperty myScreenResWidthAdapter;
+  private StringToIntAdapterProperty myScreenResHeightAdapter;
 
   private final StudioWizardStepPanel myStudioPanel;
   private final ValidatorPanel myValidatorPanel;
@@ -115,7 +118,19 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
 
     myHelpAndErrorLabel.setBorder(BorderFactory.createEmptyBorder(15, 15, 10, 10));
 
+    myDiagScreenSizeAdapter = new StringToDoubleAdapterProperty(new TextProperty(myDiagonalScreenSize), 1, 2);
+    myScreenResWidthAdapter = new StringToIntAdapterProperty(new TextProperty(myScreenResolutionWidth));
+    myScreenResHeightAdapter = new StringToIntAdapterProperty(new TextProperty(myScreenResolutionHeight));
+
     attachBindingsAndValidators();
+  }
+
+  @Override
+  protected void onEntering() {
+    final AvdDeviceData deviceModel = getModel().getDeviceData();
+    myDiagScreenSizeAdapter.set(deviceModel.diagonalScreenSize());
+    myScreenResWidthAdapter.set(deviceModel.screenResolutionWidth());
+    myScreenResHeightAdapter.set(deviceModel.screenResolutionHeight());
   }
 
   @NotNull
@@ -128,11 +143,9 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
     final AvdDeviceData deviceModel = getModel().getDeviceData();
     myBindings.bindTwoWay(new TextProperty(myDeviceName), deviceModel.name());
 
-    final StringToDoubleAdapterProperty diagonalScreenSizeAdapter =
-      new StringToDoubleAdapterProperty(new TextProperty(myDiagonalScreenSize), 1, 2);
-    myBindings.bindTwoWay(diagonalScreenSizeAdapter, deviceModel.diagonalScreenSize());
-    myBindings.bindTwoWay(new StringToIntAdapterProperty(new TextProperty(myScreenResolutionWidth)), deviceModel.screenResolutionWidth());
-    myBindings.bindTwoWay(new StringToIntAdapterProperty(new TextProperty(myScreenResolutionHeight)), deviceModel.screenResolutionHeight());
+    myBindings.bind(deviceModel.diagonalScreenSize(), myDiagScreenSizeAdapter);
+    myBindings.bind(deviceModel.screenResolutionWidth(), myScreenResWidthAdapter);
+    myBindings.bind(deviceModel.screenResolutionHeight(), myScreenResHeightAdapter);
 
     myBindings.bindTwoWay(myRamField.storage(), deviceModel.ramStorage());
 
@@ -181,14 +194,16 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
     myValidatorPanel.registerValidator(deviceModel.name().isEmpty().not(),
       "Please write a name for the new device.");
 
-    myValidatorPanel.registerValidator(deviceModel.diagonalScreenSize().isGreaterThan(0d),
+    myValidatorPanel.registerValidator(
+      myDiagScreenSizeAdapter.inSync().and(deviceModel.diagonalScreenSize().isEqualTo(myDiagScreenSizeAdapter)),
       "Please enter a non-zero positive floating point value for the screen size.");
 
-    myValidatorPanel.registerValidator(deviceModel.screenResolutionWidth().isGreaterThan(0),
-      "Please enter non-zero positive integer values for the screen resolution width.");
-
-    myValidatorPanel.registerValidator(deviceModel.screenResolutionHeight().isGreaterThan(0),
-      "Please enter non-zero positive integer values for the screen resolution height.");
+    myValidatorPanel.registerValidator(
+      myScreenResWidthAdapter.inSync().and(deviceModel.screenResolutionWidth().isEqualTo(myScreenResWidthAdapter)),
+      "Please enter a valid value for the screen width");
+    myValidatorPanel.registerValidator(
+      myScreenResHeightAdapter.inSync().and(deviceModel.screenResolutionHeight().isEqualTo(myScreenResHeightAdapter)),
+      "Please enter a valid value for the screen height");
 
     myValidatorPanel.registerValidator(deviceModel.ramStorage(), new Validator<Storage>() {
       @NotNull
@@ -218,9 +233,6 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
         return Result.OK;
       }
     });
-
-    myValidatorPanel.registerValidator(diagonalScreenSizeAdapter.inSync(),
-      "Please enter a non-zero positive floating point value for the screen size.");
 
     myValidatorPanel.registerValidator(getModel().getDeviceData().compatibleSkinSize(),
       Validator.Severity.WARNING, "The selected skin is not large enough to view the entire screen.");
