@@ -67,7 +67,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
-import static com.android.tools.fd.client.InstantRunArtifactType.*;
 import static com.android.tools.fd.client.InstantRunBuildInfo.VALUE_VERIFIER_STATUS_COMPATIBLE;
 import static com.google.common.base.Charsets.UTF_8;
 
@@ -425,121 +424,29 @@ public final class InstantRunManager implements ProjectComponent {
    * If the app is running, the artifacts are sent directly to the server running as part of the app.
    * Otherwise, we save it to a file on the device.
    *
-   * @return true if the method handled app restart; false if the caller needs to
-   * manually starts the app.
+   * @return true if the caller needs to manually start the app.
    */
   public boolean pushArtifacts(@NotNull final IDevice device,
                                @NotNull final AndroidFacet facet,
                                @NotNull UpdateMode updateMode,
                                @NotNull InstantRunBuildInfo buildInfo) throws InstantRunPushFailedException {
-    if (!buildInfo.canHotswap()) {
-      updateMode = updateMode.combine(UpdateMode.COLD_SWAP);
-    }
-
     AndroidGradleModel model = AndroidGradleModel.get(facet);
     assert model != null : "Instant Run push artifacts called without a Gradle model";
 
-    List<FileTransfer> files = Lists.newArrayList();
     InstantRunClient client = getInstantRunClient(model, facet);
+    updateMode = client.pushPatches(device,
+                              buildInfo,
+                              updateMode,
+                              InstantRunSettings.isRestartActivity(),
+                              InstantRunSettings.isShowToastEnabled());
 
-    AppState appState = getInstantRunClient(facet.getModule()).getAppState(device);
-    boolean appInForeground = appState == AppState.FOREGROUND;
-    boolean appRunning = appState == AppState.FOREGROUND || appState == AppState.BACKGROUND;
-
-    List<InstantRunArtifact> artifacts = buildInfo.getArtifacts();
-    for (InstantRunArtifact artifact : artifacts) {
-      InstantRunArtifactType type = artifact.type;
-      File file = artifact.file;
-      switch (type) {
-        case MAIN:
-        case SPLIT_MAIN:
-          // Should only be used here when we're doing a *compatible*
-          // resource swap and also got an APK for split. Ignore here.
-          continue;
-        case SPLIT:
-          // Should never be used with this method: APK splits should
-          // be pushed by SplitApkDeployTask
-          assert false : artifact;
-          break;
-        case RESOURCES:
-          updateMode = updateMode.combine(UpdateMode.WARM_SWAP);
-          files.add(FileTransfer.createResourceFile(file));
-          break;
-        case DEX:
-          String name = file.getParentFile().getName() + "-" + file.getName();
-          files.add(FileTransfer.createSliceDex(file, name));
-          break;
-        case RESTART_DEX:
-          files.add(FileTransfer.createRestartDex(file));
-          break;
-        case RELOAD_DEX:
-          if (appInForeground) {
-            files.add(FileTransfer.createHotswapPatch(file));
-          } else {
-            // Gradle created a reload dex, but the app is no longer running.
-            // If it created a cold swap artifact, we can use it; otherwise we're out of luck.
-            if (!buildInfo.hasOneOf(DEX, RESTART_DEX, SPLIT)) {
-              throw new InstantRunPushFailedException("Can't apply hot swap patch: app is no longer running");
-            }
-          }
-          break;
-        default:
-          assert false : artifact;
-      }
+    String packageName = getPackageName(facet);
+    if ((updateMode == UpdateMode.HOT_SWAP || updateMode == UpdateMode.WARM_SWAP) && packageName != null) {
+      refreshDebugger(packageName);
     }
 
-    boolean needRestart;
-    String pkgName = getPackageName(facet);
-    String buildId = getLocalBuildTimestamp(facet.getModule());
-    assert !StringUtil.isEmpty(buildId) : "Unable to detect build timestamp";
+    return updateMode == UpdateMode.COLD_SWAP;
 
-    if (appRunning) {
-      List<ApplicationPatch> changes = getApplicationPatches(files);
-      boolean restartActivity = InstantRunSettings.isRestartActivity();
-      boolean showToast = InstantRunSettings.isShowToastEnabled();
-      client.pushPatches(device, buildId, changes, updateMode, restartActivity, showToast);
-
-      // Note that while we update the patch cache with the resource file timestamp here,
-      // we *don't* do that for the manifest file: the resource timestamp is updated because
-      // the resource files will be pushed to the app, but the manifest changes can't be.
-      if (pkgName != null) {
-        refreshDebugger(pkgName);
-      }
-      needRestart = false;
-      if (!appInForeground || !buildInfo.canHotswap()) {
-        client.stopApp(device, false /* sendChangeBroadcast */);
-        needRestart = true;
-      }
-    }
-    else {
-      // Push to data directory
-      client.pushFiles(files, device, buildId);
-      needRestart = true;
-    }
-
-    logFilesPushed(files, needRestart);
-    return needRestart;
-  }
-
-  private static void logFilesPushed(@NotNull List<FileTransfer> files, boolean needRestart) {
-    StringBuilder sb = new StringBuilder("Pushing files: ");
-    if (needRestart) {
-      sb.append("(needs restart) ");
-    }
-
-    sb.append('[');
-    String separator = "";
-    for (int i = 0; i < files.size(); i++) {
-      sb.append(separator);
-      sb.append(files.get(i).source.getName());
-      sb.append(" as ");
-      sb.append(files.get(i).name);
-
-      separator = ", ";
-    }
-    sb.append(']');
-
-    LOG.info(sb.toString());
   }
 
   @NonNull
