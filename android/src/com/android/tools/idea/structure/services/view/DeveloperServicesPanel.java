@@ -41,14 +41,13 @@ import java.util.List;
  */
 public final class DeveloperServicesPanel extends EditorPanel {
 
+  // Keep a copy of service panel children so we can iterate over them directly
+  private final List<DeveloperServicePanel> myPanelsList = Lists.newArrayList();
   private JPanel myRoot;
   private JComboBox myModuleCombo;
   private JPanel myServicesPanel;
   private JPanel myHeaderPanel;
   private JBScrollPane myScrollPane;
-
-  // Keep a copy of service panel children so we can iterate over them directly
-  private final List<DeveloperServicePanel> myPanelsList = Lists.newArrayList();
 
   public DeveloperServicesPanel(@NotNull ComboBoxModel moduleList, @NotNull final ServiceCategory serviceCategory) {
     super(new BorderLayout());

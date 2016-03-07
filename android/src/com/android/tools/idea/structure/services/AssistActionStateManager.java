@@ -26,8 +26,8 @@ import org.jetbrains.annotations.Nullable;
  * project scoped service but this is generally discouraged. Please reach out to the Android Studio team about adding capabilities before
  * directly accessing the Project object.
  */
-public interface ActionStateManager {
-  ExtensionPointName<ActionStateManager> EP_NAME =
+public interface AssistActionStateManager {
+  ExtensionPointName<AssistActionStateManager> EP_NAME =
     ExtensionPointName.create("com.android.tools.idea.structure.services.actionStateManager");
 
   /**
@@ -37,7 +37,7 @@ public interface ActionStateManager {
    * TODO: Convert TutorialBundle.Action to a POJO and move it to this package.
    */
   @NotNull
-  public String getId();
+  String getId();
 
   /**
    * Allows you to initialize your instance of your manager if necessary.
@@ -47,17 +47,18 @@ public interface ActionStateManager {
    *
    * @param developerService
    */
-  public void init(@NotNull DeveloperService developerService);
+  void init(@NotNull DeveloperService developerService);
 
   /**
    * Returns true if the action may still be completed. If false, {@link getStateDisplay} is called
    */
-  public boolean isCompletable(@NotNull DeveloperService developerService);
+  boolean isCompletable(@NotNull DeveloperService developerService);
 
   /**
    * Gets the display for a given action button when the action may not be completed. For example, if the action adds a dependency, this
-   * would confirm that the dependency has already been added.
+   * would confirm that the dependency has already been added. It may also be used for things like permanent failures.
    */
   @Nullable("When null and isCompletable returns false, defaults to disabling the button.")
-  public StatefulButtonMessage getStateDisplay(@NotNull DeveloperService developerService);
+  StatefulButtonMessage getStateDisplay(@NotNull DeveloperService developerService,
+                                        @Nullable("ignored if null") String message);
 }
