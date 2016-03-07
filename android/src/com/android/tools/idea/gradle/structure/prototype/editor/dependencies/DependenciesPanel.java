@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.structure.prototype.editor.dependencies;
 
 import com.android.builder.model.Library;
 import com.android.ide.common.repository.GradleCoordinate;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.editor.LibraryDependencyEditor;
 import com.android.tools.idea.gradle.structure.prototype.model.ArtifactDependencyMergedModel;
 import com.android.tools.idea.gradle.structure.prototype.model.DependencyMergedModel;
 import com.android.tools.idea.gradle.structure.prototype.model.ModuleMergedModel;
@@ -69,7 +70,7 @@ class DependenciesPanel extends JPanel {
   @NotNull private final JPanel myEditorPanel;
   @NotNull private JPanel myEmptyEditorPanel;
   @NotNull private final JBScrollPane myEditorScrollPane;
-  @NotNull private final ArtifactDependencyEditor myArtifactDependencyEditor;
+  @NotNull private final LibraryDependencyEditor myLibraryDependencyEditor;
   @NotNull private final DependenciesTreePanel myDependenciesTreePanel;
 
   private boolean myShowGroupId;
@@ -116,7 +117,7 @@ class DependenciesPanel extends JPanel {
     emptyText.setHorizontalAlignment(SwingConstants.CENTER);
     myEmptyEditorPanel.add(emptyText, BorderLayout.CENTER);
 
-    myArtifactDependencyEditor = new ArtifactDependencyEditor();
+    myLibraryDependencyEditor = new LibraryDependencyEditor();
 
     setUpUI();
   }
@@ -174,8 +175,8 @@ class DependenciesPanel extends JPanel {
     if (selection.size() == 1) {
       DependencyMergedModel dependency = getFirstItem(selection);
       if (dependency instanceof ArtifactDependencyMergedModel) {
-        myArtifactDependencyEditor.update((ArtifactDependencyMergedModel)dependency);
-        setCurrentEditor(myArtifactDependencyEditor.getPanel());
+        //myLibraryDependencyEditor.update((ArtifactDependencyMergedModel)dependency);
+        setCurrentEditor(myLibraryDependencyEditor.getPanel());
         return;
       }
     }
