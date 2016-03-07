@@ -82,6 +82,18 @@ class EditableDependenciesPanel extends JPanel implements DependencySelection, D
     myDependenciesTableModel = new EditableDependenciesTableModel(dependencies);
     myDependenciesTable = new TableView<PsdAndroidDependencyModel>(myDependenciesTableModel);
 
+    initializeEditors();
+    myEmptyEditorPanel = new EmptyEditorPanel();
+    myEditorScrollPane = createScrollPane(myEmptyEditorPanel);
+    myEditorScrollPane.setBorder(createEmptyBorder());
+
+    ListSelectionModel tableSelectionModel = myDependenciesTable.getSelectionModel();
+    tableSelectionModel.setSelectionMode(MULTIPLE_INTERVAL_SELECTION);
+
+    if (!myDependenciesTable.getItems().isEmpty()) {
+      myDependenciesTable.changeSelection(0, 0, false, false);
+      updateEditor();
+    }
     myTableSelectionListener = new ListSelectionListener() {
       @Override
       public void valueChanged(ListSelectionEvent e) {
@@ -91,15 +103,10 @@ class EditableDependenciesPanel extends JPanel implements DependencySelection, D
             listener.dependencyModelSelected(selected);
           }
         }
+        updateEditor();
       }
     };
-
-    ListSelectionModel tableSelectionModel = myDependenciesTable.getSelectionModel();
     tableSelectionModel.addListSelectionListener(myTableSelectionListener);
-    tableSelectionModel.setSelectionMode(MULTIPLE_INTERVAL_SELECTION);
-    if (!myDependenciesTable.getItems().isEmpty()) {
-      myDependenciesTable.changeSelection(0, 0, false, false);
-    }
 
     myDependenciesTable.setDragEnabled(false);
     myDependenciesTable.setIntercellSpacing(new Dimension(0, 0));
@@ -116,17 +123,28 @@ class EditableDependenciesPanel extends JPanel implements DependencySelection, D
     scrollPane.setBorder(createEmptyBorder());
     contents.add(scrollPane, BorderLayout.CENTER);
 
-    initializeEditors();
-    myEmptyEditorPanel = new EmptyEditorPanel();
-    myEditorScrollPane = createScrollPane(myEmptyEditorPanel);
-    myEditorScrollPane.setBorder(createEmptyBorder());
-
     splitter.setFirstComponent(contents);
     splitter.setSecondComponent(myEditorScrollPane);
 
     add(splitter, BorderLayout.CENTER);
 
     updateTableColumnSizes();
+  }
+
+  private void updateEditor() {
+    Collection<PsdAndroidDependencyModel> selection = myDependenciesTable.getSelection();
+    if (selection.size() == 1) {
+      PsdAndroidDependencyModel selected = getFirstItem(selection);
+      assert selected != null;
+      DependencyEditor editor = myEditors.get(selected.getClass());
+      if (editor != null) {
+        myEditorScrollPane.setViewportView(editor.getPanel());
+        //noinspection unchecked
+        editor.display(selected);
+        return;
+      }
+    }
+    myEditorScrollPane.setViewportView(myEmptyEditorPanel);
   }
 
   @NotNull
@@ -238,26 +256,9 @@ class EditableDependenciesPanel extends JPanel implements DependencySelection, D
     else {
       myDependenciesTable.setSelection(Collections.singleton(selection));
     }
-    updateEditor();
 
     // Add ListSelectionListener again, to react when user selects a table cell directly.
     tableSelectionModel.addListSelectionListener(myTableSelectionListener);
-  }
-
-  private void updateEditor() {
-    Collection<PsdAndroidDependencyModel> selection = myDependenciesTable.getSelection();
-    if (selection.size() == 1) {
-      PsdAndroidDependencyModel selected = getFirstItem(selection);
-      assert selected != null;
-      DependencyEditor editor = myEditors.get(selected.getClass());
-      if (editor != null) {
-        myEditorScrollPane.setViewportView(editor.getPanel());
-        //noinspection unchecked
-        editor.display(selected);
-        return;
-      }
-    }
-    myEditorScrollPane.setViewportView(myEmptyEditorPanel);
   }
 
   public interface SelectionListener {
