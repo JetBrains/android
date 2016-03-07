@@ -54,6 +54,7 @@ public class NewStyleDialogGuiTest {
     assertEquals("Theme.AppCompat.Light.NoActionBar", newStyleDialog1.getParentComboBox().selectedItem());
     newStyleDialog1.clickCancel();
 
+    themeEditor.waitForThemeSelection("Theme.AppCompat.Light.NoActionBar");
     themesComboBox.selectItem("Theme.AppCompat.NoActionBar");
     themesComboBox.selectItem("Create New Theme");
     final NewStyleDialogFixture newStyleDialog2 = NewStyleDialogFixture.find(guiTest.robot());
