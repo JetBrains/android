@@ -631,7 +631,7 @@ public final class InstantRunManager implements ProjectComponent {
       // Convert tokens like "FIELD_REMOVED" to "Field Removed" for better readability
       status = StringUtil.capitalizeWords(status.toLowerCase(Locale.US).replace('_', ' '), true);
       //noinspection LanguageMismatch
-      return "Instant Run couldn't apply changes on the fly: " + status;
+      return "Instant Run restarted app to apply changes: " + status;
     }
 
     return null;
