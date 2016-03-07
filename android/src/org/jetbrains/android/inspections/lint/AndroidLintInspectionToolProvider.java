@@ -2058,6 +2058,12 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
+  public static class AndroidLintSupportAnnotationUsageInspection extends AndroidLintInspectionBase {
+    public AndroidLintSupportAnnotationUsageInspection() {
+      super(AndroidBundle.message("android.lint.inspections.support.annotation.usage"), AnnotationDetector.ANNOTATION_USAGE);
+    }
+  }
+
   public static class AndroidLintSuspicious0dpInspection extends AndroidLintInspectionBase {
     public AndroidLintSuspicious0dpInspection() {
       super(AndroidBundle.message("android.lint.inspections.suspicious0dp"), InefficientWeightDetector.WRONG_0DP);
