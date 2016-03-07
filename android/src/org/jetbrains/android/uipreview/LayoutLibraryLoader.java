@@ -21,12 +21,14 @@ import com.android.ide.common.rendering.LayoutLibrary;
 import com.android.ide.common.rendering.api.LayoutLog;
 import com.android.ide.common.sdk.LoadStatus;
 import com.android.sdklib.IAndroidTarget;
+import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.internal.project.ProjectProperties;
 import com.android.tools.idea.rendering.LayoutLogWrapper;
 import com.android.tools.idea.rendering.LogWrapper;
 import com.android.utils.ILogger;
 import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -82,6 +84,12 @@ public class LayoutLibraryLoader {
     if (!buildProp.isFile()) {
       throw new RenderingException(
         AndroidBundle.message("android.file.not.exist.error", FileUtil.toSystemDependentName(buildProp.getPath())));
+    }
+
+    if (!SystemInfo.isJavaVersionAtLeast("1.8") && target.getVersion().getFeatureLevel() >= 24) {
+      // From N, we require to be running in Java 8
+      throw new UnsupportedJavaRuntimeException(AndroidBundle.message("android.layout.preview.unsupported.jdk",
+                                                                      SdkVersionInfo.getCodeName(target.getVersion().getFeatureLevel())));
     }
 
     final ILogger logger = new LogWrapper(LOG);
