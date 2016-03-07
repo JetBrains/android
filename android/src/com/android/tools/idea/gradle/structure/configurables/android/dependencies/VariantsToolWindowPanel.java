@@ -281,7 +281,7 @@ class VariantsToolWindowPanel extends ToolWindowPanel implements DependencySelec
           }
           myTree.setCursor(getDefaultCursor());
         }
-        return true;
+        return false;
       }
 
       private boolean isControlOrMetaKey(@NotNull KeyEvent e) {
