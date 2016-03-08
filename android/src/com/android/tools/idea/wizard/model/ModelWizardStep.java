@@ -139,6 +139,18 @@ public abstract class ModelWizardStep<M extends WizardModel> implements Disposab
   public void dispose() {
   }
 
+  /**
+   * An extra action that should be shown along with the standard wizard navigation actions
+   * (forward, back, finish, etc.). For example, in {@link ModelWizardDialog} this action is shown
+   * as a button on the left side.
+   *
+   * @return The action to show. If {@code null} no extra action will be shown.
+   */
+  @Nullable
+  protected Action getExtraAction() {
+    return null;
+  }
+
   private static final class BlankModel extends WizardModel {
     @Override
     protected void handleFinished() {

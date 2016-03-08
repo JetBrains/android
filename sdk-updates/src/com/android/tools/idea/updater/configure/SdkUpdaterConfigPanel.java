@@ -18,6 +18,7 @@ package com.android.tools.idea.updater.configure;
 import com.android.SdkConstants;
 import com.android.repository.api.*;
 import com.android.repository.api.RepoManager.RepoLoadedCallback;
+import com.android.repository.impl.installer.PackageInstaller;
 import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.repository.impl.meta.TypeDetails;
 import com.android.sdklib.AndroidVersion;
@@ -296,6 +297,8 @@ public class SdkUpdaterConfigPanel {
       }
     });
     mySdkLocation.setEditable(false);
+    myToolComponentsPanel.setConfigurable(myConfigurable);
+    myPlatformComponentsPanel.setConfigurable(myConfigurable);
   }
 
   private static final class DownloadingComponentsStep extends ConsolidatedProgressStep {
