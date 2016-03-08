@@ -72,6 +72,7 @@ public class ToolComponentsPanel {
       refreshModified();
     }
   };
+  private SdkUpdaterConfigurable myConfigurable;
 
   public ToolComponentsPanel() {
     myToolsDetailsCheckbox.addActionListener(new ActionListener() {
@@ -107,7 +108,7 @@ public class ToolComponentsPanel {
     for (UpdatablePackage info : myBuildToolsPackages) {
       NodeStateHolder holder = new NodeStateHolder(info);
       myStates.add(holder);
-      UpdaterTreeNode node = new PlatformDetailsTreeNode(holder, myModificationListener);
+      UpdaterTreeNode node = new PlatformDetailsTreeNode(holder, myModificationListener, myConfigurable);
       buildToolsParent.add(node);
       buildToolsNodes.add(node);
     }
@@ -118,10 +119,10 @@ public class ToolComponentsPanel {
     for (UpdatablePackage info : myToolsPackages) {
       NodeStateHolder holder = new NodeStateHolder(info);
       myStates.add(holder);
-      UpdaterTreeNode node = new PlatformDetailsTreeNode(holder, myModificationListener);
+      UpdaterTreeNode node = new PlatformDetailsTreeNode(holder, myModificationListener, myConfigurable);
       myToolsDetailsRootNode.add(node);
       if (!info.getRepresentative().obsolete()) {
-        myToolsSummaryRootNode.add(new PlatformDetailsTreeNode(holder, myModificationListener));
+        myToolsSummaryRootNode.add(new PlatformDetailsTreeNode(holder, myModificationListener, myConfigurable));
       }
     }
     refreshModified();
@@ -194,5 +195,9 @@ public class ToolComponentsPanel {
       new ColumnInfo[]{new DownloadStatusColumnInfo(), new TreeColumnInfo("Name"), new VersionColumnInfo(), new StatusColumnInfo()};
     myToolsDetailTable = new TreeTableView(new ListTreeTableModelOnColumns(myToolsDetailsRootNode, toolsDetailColumns));
     SdkUpdaterConfigPanel.setTreeTableProperties(myToolsDetailTable, renderer, myModificationListener);
+  }
+
+  public void setConfigurable(@NotNull SdkUpdaterConfigurable configurable) {
+    myConfigurable = configurable;
   }
 }
