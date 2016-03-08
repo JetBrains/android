@@ -72,6 +72,11 @@ public class PatchInstaller extends BasicInstaller {
   private static final String REPO_UI_CLASS_NAME = "com.android.tools.idea.updaterui.RepoUpdaterUI";
 
   /**
+   * Subdirectory in the install temp dir where we'll actually prepare the patch.
+   */
+  private static final String WORK_DIR_FN = "work";
+
+  /**
    * Cache of patcher classes. Key is jar file, subkey is class name.
    */
   private static Map<File, Map<String, Class<?>>> ourPatcherCache = new WeakHashMap<File, Map<String, Class<?>>>();
@@ -82,15 +87,16 @@ public class PatchInstaller extends BasicInstaller {
    * If the patch fails, fall back to trying a complete install.
    */
   @Override
-  public boolean install(@NotNull RemotePackage p,
-                         @NotNull Downloader downloader,
-                         @Nullable SettingsController settings,
-                         @NotNull ProgressIndicator progress,
-                         @NotNull RepoManager manager,
-                         @NotNull FileOp fop) {
-    if (!doInstall(p, downloader, settings, progress, manager, fop)) {
+  protected boolean doPrepareInstall(@NotNull RemotePackage p,
+                                     @NotNull File installTempPath,
+                                     @NotNull Downloader downloader,
+                                     @Nullable SettingsController settings,
+                                     @NotNull ProgressIndicator progress,
+                                     @NotNull RepoManager manager,
+                                     @NotNull FileOp fop) {
+    if (!doPrepareInstallInternal(p, installTempPath, downloader, settings, progress, manager, fop)) {
       progress.logWarning("Failed to install patch, attempting fresh install...");
-      return super.install(p, downloader, settings, progress, manager, fop);
+      return super.doPrepareInstall(p, installTempPath, downloader, settings, progress, manager, fop);
     }
     return true;
   }
@@ -98,12 +104,13 @@ public class PatchInstaller extends BasicInstaller {
   /**
    * Actually do the patch install.
    */
-  private boolean doInstall(@NotNull RemotePackage p,
-                            @NotNull Downloader downloader,
-                            @Nullable SettingsController settings,
-                            @NotNull ProgressIndicator progress,
-                            @NotNull RepoManager manager,
-                            @NotNull FileOp fop) {
+  private boolean doPrepareInstallInternal(@NotNull RemotePackage p,
+                                           @NotNull File tempDir,
+                                           @NotNull Downloader downloader,
+                                           @Nullable SettingsController settings,
+                                           @NotNull ProgressIndicator progress,
+                                           @NotNull RepoManager manager,
+                                           @NotNull FileOp fop) {
     Map<String, ? extends LocalPackage> localPackages = manager.getPackages().getLocalPackages();
     LocalPackage local = localPackages.get(p.getPath());
     assert local != null;
@@ -111,6 +118,12 @@ public class PatchInstaller extends BasicInstaller {
     assert archive != null;
     Archive.PatchType patch = archive.getPatch(local.getVersion());
     assert patch != null;
+
+    File patchFile = getPatchFile(patch, p, tempDir, downloader, settings, progress);
+    if (patchFile == null) {
+      progress.logWarning("Patch failed to download.");
+      return false;
+    }
 
     File patcherJar = getPatcherFile(p, localPackages, progress, fop);
     if (patcherJar == null) {
@@ -123,52 +136,33 @@ public class PatchInstaller extends BasicInstaller {
       return false;
     }
 
-    File patchFile = getPatchFile(patch, p, downloader, settings, progress);
-    if (patchFile == null) {
-      progress.logWarning("Patch failed to download.");
+    File workDir = new File(tempDir, WORK_DIR_FN);
+    if (fop.exists(workDir)) {
+      fop.deleteFileOrFolder(workDir);
+    }
+    try {
+      FileOpUtils.recursiveCopy(local.getLocation(), workDir, fop, progress);
+    }
+    catch (IOException e) {
+      progress.logWarning("Failed to copy package to temporary location", e);
       return false;
     }
+    fop.deleteFileOrFolder(new File(workDir, InstallerUtil.INSTALLER_DIR_FN));
+    fop.delete(new File(workDir, LocalRepoLoader.PACKAGE_XML_FN));
 
-    final File tempDir = FileOpUtils.getNewTempDir("PatchInstaller", fop);
-    if (tempDir == null) {
-      progress.logWarning("Failed to create temporary directory");
+    boolean result = runPatcher(progress, workDir, patchFile, classMap.get(RUNNER_CLASS_NAME), classMap.get(UPDATER_UI_CLASS_NAME),
+                                classMap.get(REPO_UI_CLASS_NAME));
+    if (!result) {
       return false;
     }
     try {
-      try {
-        FileOpUtils.recursiveCopy(local.getLocation(), tempDir, fop);
-      }
-      catch (IOException e) {
-        progress.logWarning("Failed to copy package to temporary location", e);
-        return false;
-      }
-      fop.delete(new File(tempDir, LocalRepoLoader.PACKAGE_XML_FN));
-
-      boolean result = runInstaller(progress, tempDir, patchFile, classMap.get(RUNNER_CLASS_NAME), classMap.get(UPDATER_UI_CLASS_NAME),
-                                    classMap.get(REPO_UI_CLASS_NAME));
-      if (!result) {
-        return false;
-      }
-      try {
-        InstallerUtil.writePackageXml(p, tempDir, manager, fop, progress);
-      }
-      catch (IOException e) {
-        progress.logWarning("Failed to write new package.xml");
-        return false;
-      }
-
-      progress.logInfo("Moving files into place...");
-      try {
-        FileOpUtils.safeRecursiveOverwrite(tempDir, local.getLocation(), fop, progress);
-      }
-      catch (IOException e) {
-        progress.logWarning("Failed to move patched files into place", e);
-        return false;
-      }
+      InstallerUtil.writePackageXml(p, tempDir, manager, fop, progress);
     }
-    finally {
-      fop.deleteFileOrFolder(tempDir);
+    catch (IOException e) {
+      progress.logWarning("Failed to write new package.xml");
+      return false;
     }
+
     progress.logInfo("Done");
     progress.setFraction(1);
     progress.setIndeterminate(false);
@@ -177,19 +171,44 @@ public class PatchInstaller extends BasicInstaller {
     return true;
   }
 
+  @Override
+  protected boolean doCompleteInstall(@NotNull RemotePackage p,
+                                      @NotNull File installTempPath,
+                                      @NotNull File destination,
+                                      @NotNull ProgressIndicator progress,
+                                      @NotNull RepoManager manager,
+                                      @NotNull FileOp fop) {
+
+    File workDir = new File(installTempPath, WORK_DIR_FN);
+    if (!doCompleteInstallInternal(workDir, destination, fop, progress)) {
+      return super.doCompleteInstall(p, installTempPath, destination, progress, manager, fop);
+    }
+    return true;
+  }
+
+  private static boolean doCompleteInstallInternal(@NotNull File src, @NotNull File dest, @NotNull FileOp fop, @NotNull ProgressIndicator progress) {
+    progress.logInfo("Moving files into place...");
+    try {
+      FileOpUtils.safeRecursiveOverwrite(src, dest, fop, progress);
+    }
+    catch (IOException e) {
+      progress.logWarning("Failed to move patched files into place", e);
+      return false;
+    }
+    return true;
+  }
+
   /**
-   * Run the installer by reflection.
-   *
-   * @see #install(RemotePackage, Downloader, SettingsController, ProgressIndicator, RepoManager, FileOp)
+   * Run the patcher by reflection.
    */
   @SuppressWarnings("unchecked")
   @VisibleForTesting
-  static boolean runInstaller(@NotNull ProgressIndicator progress,
-                              @NotNull File localPackageLocation,
-                              @NotNull File patchFile,
-                              @NotNull Class runnerClass,
-                              @NotNull Class uiBaseClass,
-                              @NotNull Class uiClass) {
+  static boolean runPatcher(@NotNull ProgressIndicator progress,
+                            @NotNull File localPackageLocation,
+                            @NotNull File patchFile,
+                            @NotNull Class runnerClass,
+                            @NotNull Class uiBaseClass,
+                            @NotNull Class uiClass) {
     Object ui;
     try {
       ui = uiClass.getConstructor(ProgressIndicator.class).newInstance(progress);
@@ -243,6 +262,7 @@ public class PatchInstaller extends BasicInstaller {
   @VisibleForTesting
   static File getPatchFile(@NotNull Archive.PatchType patch,
                            @NotNull RemotePackage p,
+                           @NotNull File tempDir,
                            @NotNull Downloader downloader,
                            @Nullable SettingsController settings,
                            @NotNull ProgressIndicator progress) {
@@ -251,15 +271,15 @@ public class PatchInstaller extends BasicInstaller {
       progress.logWarning("Failed to resolve URL: " + patch.getUrl());
       return null;
     }
-    final File patchFile;
     try {
-      patchFile = downloader.downloadFully(url, settings, progress);
+      File patchFile = new File(tempDir, "patch.jar");
+      downloader.downloadFully(url, settings, patchFile, progress);
+      return patchFile;
     }
     catch (IOException e) {
       progress.logWarning("Error during downloading", e);
       return null;
     }
-    return patchFile;
   }
 
   /**

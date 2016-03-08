@@ -71,6 +71,7 @@ public class PlatformComponentsPanel {
       refreshModified();
     }
   };
+  private SdkUpdaterConfigurable myConfigurable;
 
   public PlatformComponentsPanel() {
     myPlatformSummaryTable.setColumnSelectionAllowed(false);
@@ -103,7 +104,7 @@ public class PlatformComponentsPanel {
         RepoPackage pkg = info.getRepresentative();
         NodeStateHolder holder = new NodeStateHolder(info);
         myStates.add(holder);
-        UpdaterTreeNode node = new PlatformDetailsTreeNode(holder, myModificationListener);
+        UpdaterTreeNode node = new PlatformDetailsTreeNode(holder, myModificationListener, myConfigurable);
         marker.add(node);
         versionNodes.add(node);
         if (pkg.obsolete() && pkg.getTypeDetails() instanceof DetailsTypes.PlatformDetailsType) {
@@ -189,5 +190,9 @@ public class PlatformComponentsPanel {
     myPlatformDetailTable.setEnabled(enabled);
     myPlatformSummaryTable.setEnabled(enabled);
     myPlatformDetailsCheckbox.setEnabled(enabled);
+  }
+
+  public void setConfigurable(@NotNull SdkUpdaterConfigurable configurable) {
+    myConfigurable = configurable;
   }
 }

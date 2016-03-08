@@ -40,14 +40,14 @@ public class PlatformToolsInstaller extends BasicInstaller {
   }
 
   @Override
-  public boolean install(@NonNull RemotePackage p,
-                         @NonNull Downloader downloader,
-                         @Nullable SettingsController settings,
-                         @NonNull ProgressIndicator progress,
-                         @NonNull RepoManager manager,
-                         @NonNull FileOp fop) {
+  protected boolean doCompleteInstall(@NonNull RemotePackage p,
+                                      @NonNull File installTempPath,
+                                      @NonNull File destination,
+                                      @NonNull ProgressIndicator progress,
+                                      @NonNull RepoManager manager,
+                                      @NonNull FileOp fop) {
     stopAdb(progress, manager);
-    return super.install(p, downloader, settings, progress, manager, fop);
+    return super.doCompleteInstall(p, installTempPath, destination, progress, manager, fop);
   }
 
   private static void stopAdb(@NonNull ProgressIndicator progress, @NonNull RepoManager manager) {

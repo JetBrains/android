@@ -141,7 +141,6 @@ public class AndroidVirtualDeviceTest extends AndroidTestBase {
     // We do not care about those so we only ensure we have the ones we need.
     File skin = new File(properties.get(AvdManager.AVD_INI_SKIN_PATH));
     assertEquals("nexus_5x", skin.getName());
-    assertEquals("device-art-resources", skin.getParentFile().getName());
   }
 
   private static void recordPlatform23(MockFileOp fop) {
