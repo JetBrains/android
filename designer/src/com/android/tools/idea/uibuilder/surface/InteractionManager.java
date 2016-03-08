@@ -250,8 +250,21 @@ public class InteractionManager {
     }
     SelectionModel selectionModel = screenView.getSelectionModel();
     if (!selectionModel.isEmpty()) {
+      // Gives a chance to the ViewGroupHandlers to update the cursor
       int mx = Coordinates.getAndroidX(screenView, x);
       int my = Coordinates.getAndroidY(screenView, y);
+      // TODO: we should have a better model for keeping track of regions handled
+      // by different view group handlers. This would let us better handles
+      // picking a handler over another one, as well as allowing mouse over behaviour
+      // in other cases than just for the currently selected widgets.
+      for (NlComponent component : selectionModel.getSelection()) {
+        ViewGroupHandler viewGroupHandler = component.getViewGroupHandler();
+        if (viewGroupHandler != null) {
+          if (viewGroupHandler.updateCursor(mySurface, mx, my)) {
+            return;
+          }
+        }
+      }
       int max = Coordinates.getAndroidDimension(screenView, PIXEL_RADIUS + PIXEL_MARGIN);
       SelectionHandle handle = selectionModel.findHandle(mx, my, max);
       if (handle != null) {
