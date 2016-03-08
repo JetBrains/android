@@ -26,6 +26,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleTypeId;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 
@@ -150,7 +151,7 @@ public class ConfigureAndroidModuleStepTest extends AndroidGradleTestCase {
     myState.put(ATTR_TARGET_API_STRING, "19");
     myState.put(ATTR_MIN_API_LEVEL, 8);
     myState.put(ATTR_JAVA_VERSION, "1.6");
-    myState.put(ATTR_PROJECT_LOCATION, FileUtil.join(getProject().getBasePath(), "SafeTestLocation"));
+    myState.put(ATTR_PROJECT_LOCATION, FileUtil.join(FileUtil.toSystemDependentName(getProject().getBasePath()), "SafeTestLocation"));
 
     myState.myHidden.clear();
     myState.myModified.clear();
@@ -168,7 +169,7 @@ public class ConfigureAndroidModuleStepTest extends AndroidGradleTestCase {
     myState.put(ATTR_APP_TITLE, "app");
     assertValidationWarning("The application name for most apps begins with an uppercase letter");
 
-   resetValues();
+    resetValues();
 
     myState.put(ATTR_PACKAGE_NAME, "com.example.blah");
     assertValidationWarning("The prefix 'com.example.' is meant as a placeholder and should not be used");
@@ -250,7 +251,7 @@ public class ConfigureAndroidModuleStepTest extends AndroidGradleTestCase {
     myState.put(ATTR_PROJECT_LOCATION, plainFileRooted.getPath());
     assertValidationError("The project location's parent directory must be a directory, not a plain file");
 
-    String basePath = getProject().getBasePath() + File.separator;
+    String basePath = FileUtil.toSystemDependentName(getProject().getBasePath()) + File.separator;
 
     if (File.separatorChar == '/') {
       myState.put(ATTR_PROJECT_LOCATION, basePath + "My\\ApplicationProject");
@@ -278,11 +279,19 @@ public class ConfigureAndroidModuleStepTest extends AndroidGradleTestCase {
     myState.put(ATTR_PROJECT_LOCATION, basePath + "My \u2603 Project");
     assertValidationWarning("Your project location contains non-ASCII characters. This can cause problems on Windows. Proceed with caution.");
 
-    File nonEditableFile = new File(getProject().getBasePath(), "NotEditable");
-    nonEditableFile.mkdir();
-    nonEditableFile.setReadOnly();
-    myState.put(ATTR_PROJECT_LOCATION, new File(nonEditableFile, "myapp").getPath());
-    assertValidationError(String.format("The path '%s' is not writeable. Please choose a new location.", nonEditableFile.getPath()));
+    // Java's File.setReadOnly() returns false on Windows if the file is a directory.
+    // Probably that's because Windows' read-only attribute for folders isn't clearly defined and isn't treated in the same way as in Linux
+    // - typically one can still write there, and therefore the canWrite() check which this test relies on will still return true.
+    // So this testcase assertion only makes sense on non-Windows platforms.
+    // Simulating non-writable directory on Windows would probably involve some tricks with the security and ownership, but
+    // that is likely to involve a significant effort for little or no value
+    if (!SystemInfo.isWindows) {
+      File nonEditableFile = new File(FileUtil.toSystemDependentName(getProject().getBasePath()), "NotEditable");
+      nonEditableFile.mkdir();
+      nonEditableFile.setReadOnly();
+      myState.put(ATTR_PROJECT_LOCATION, new File(nonEditableFile, "myapp").getPath());
+      assertValidationError(String.format("The path '%s' is not writeable. Please choose a new location.", nonEditableFile.getPath()));
+    }
 
     resetValues();
 
