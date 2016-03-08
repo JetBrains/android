@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.editors.theme;
 
-
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
@@ -28,7 +27,6 @@ import java.util.List;
 import static com.android.tools.idea.editors.theme.SeparatedList.group;
 
 public class ParentThemesListModel extends AbstractListModel implements MutableComboBoxModel {
-  private static final JSeparator SEPARATOR = new JSeparator(SwingConstants.HORIZONTAL);
   private static final int MAX_SIZE = 5;
 
   public static final String SHOW_ALL_THEMES = "Show all themes";
@@ -46,7 +44,8 @@ public class ParentThemesListModel extends AbstractListModel implements MutableC
       myRecentParentThemeList.add(defaultParent);
     }
 
-    myAllItems = new SeparatedList(SEPARATOR, group(myRecentParentThemeList), group(ImmutableList.copyOf(defaultThemeList)), group(SHOW_ALL_THEMES));
+    myAllItems = new SeparatedList(new JSeparator(SwingConstants.HORIZONTAL), group(myRecentParentThemeList),
+                                   group(ImmutableList.copyOf(defaultThemeList)), group(SHOW_ALL_THEMES));
 
     // Set default parent if present, first item otherwise
     setSelectedItem(defaultParent == null ? myAllItems.get(0) : defaultParent);
