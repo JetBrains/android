@@ -72,7 +72,6 @@ public class GradleTestArtifactSyncTest {
     GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS = myOriginalLoadAllTestArtifactsValue;
   }
 
-  @Ignore("failed in http://go/aj/job/studio-ui-test/389 and from IDEA")
   @Test
   public void testLoadAllTestArtifacts() throws IOException {
     guiTest.importProjectAndWaitForProjectSyncToFinish("LoadMultiTestArtifacts");
