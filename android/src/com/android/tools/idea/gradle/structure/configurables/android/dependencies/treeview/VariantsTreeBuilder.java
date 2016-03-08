@@ -122,7 +122,7 @@ public class VariantsTreeBuilder extends AbstractTreeBuilder {
         if (models.size() == 1) {
           Object model = models.get(0);
           if (model instanceof PsdModel) {
-            setSelection((PsdModel)model);
+            setSelection((PsdModel)model, false);
           }
         }
       }
@@ -136,7 +136,7 @@ public class VariantsTreeBuilder extends AbstractTreeBuilder {
     }
   }
 
-  public void setSelection(@NotNull final PsdModel model) {
+  public void setSelection(@NotNull final PsdModel model, final boolean scroll) {
     getInitialized().doWhenDone(new Runnable() {
       @Override
       public void run() {
@@ -167,7 +167,7 @@ public class VariantsTreeBuilder extends AbstractTreeBuilder {
             expand(toExpand.toArray(), null);
           }
         };
-        getUi().userSelect(toSelect.toArray(), new UserRunnable(onDone), false, false);
+        getUi().userSelect(toSelect.toArray(), new UserRunnable(onDone), false, scroll);
       }
     });
   }

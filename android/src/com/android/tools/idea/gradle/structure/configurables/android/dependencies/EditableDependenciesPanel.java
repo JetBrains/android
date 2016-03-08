@@ -15,11 +15,14 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies;
 
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.editor.DependencyEditor;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.editor.LibraryDependencyEditor;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.DependencySelection;
 import com.android.tools.idea.gradle.structure.model.android.PsdAndroidDependencyModel;
 import com.android.tools.idea.gradle.structure.model.android.PsdAndroidModuleModel;
 import com.android.tools.idea.structure.dialog.Header;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.project.DumbAwareAction;
@@ -28,8 +31,10 @@ import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.ui.popup.PopupStep;
 import com.intellij.openapi.ui.popup.util.BaseListPopupStep;
 import com.intellij.ui.IdeBorderFactory;
+import com.intellij.ui.OnePixelSplitter;
 import com.intellij.ui.SideBorder;
 import com.intellij.ui.awt.RelativePoint;
+import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.table.TableView;
 import com.intellij.util.IconUtil;
 import org.jetbrains.annotations.NotNull;
@@ -44,10 +49,13 @@ import java.awt.event.ActionListener;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
+import static com.intellij.ui.IdeBorderFactory.createEmptyBorder;
 import static com.intellij.ui.ScrollPaneFactory.createScrollPane;
 import static com.intellij.util.PlatformIcons.LIBRARY_ICON;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
+import static com.intellij.util.ui.UIUtil.getInactiveTextColor;
 import static javax.swing.ListSelectionModel.MULTIPLE_INTERVAL_SELECTION;
 
 /**
@@ -58,8 +66,11 @@ class EditableDependenciesPanel extends JPanel implements DependencySelection, D
   @NotNull private final EditableDependenciesTableModel myDependenciesTableModel;
   @NotNull private final TableView<PsdAndroidDependencyModel> myDependenciesTable;
   @NotNull private final ListSelectionListener myTableSelectionListener;
+  @NotNull private final JScrollPane myEditorScrollPane;
+  @NotNull private final EmptyEditorPanel myEmptyEditorPanel;
 
   @NotNull private final List<SelectionListener> mySelectionListeners = Lists.newCopyOnWriteArrayList();
+  @NotNull private final Map<Class<?>, DependencyEditor> myEditors = Maps.newHashMap();
 
   private List<AbstractPopupAction> myPopupActions;
 
@@ -71,6 +82,18 @@ class EditableDependenciesPanel extends JPanel implements DependencySelection, D
     myDependenciesTableModel = new EditableDependenciesTableModel(dependencies);
     myDependenciesTable = new TableView<PsdAndroidDependencyModel>(myDependenciesTableModel);
 
+    initializeEditors();
+    myEmptyEditorPanel = new EmptyEditorPanel();
+    myEditorScrollPane = createScrollPane(myEmptyEditorPanel);
+    myEditorScrollPane.setBorder(createEmptyBorder());
+
+    ListSelectionModel tableSelectionModel = myDependenciesTable.getSelectionModel();
+    tableSelectionModel.setSelectionMode(MULTIPLE_INTERVAL_SELECTION);
+
+    if (!myDependenciesTable.getItems().isEmpty()) {
+      myDependenciesTable.changeSelection(0, 0, false, false);
+      updateEditor();
+    }
     myTableSelectionListener = new ListSelectionListener() {
       @Override
       public void valueChanged(ListSelectionEvent e) {
@@ -80,15 +103,10 @@ class EditableDependenciesPanel extends JPanel implements DependencySelection, D
             listener.dependencyModelSelected(selected);
           }
         }
+        updateEditor();
       }
     };
-
-    ListSelectionModel tableSelectionModel = myDependenciesTable.getSelectionModel();
     tableSelectionModel.addListSelectionListener(myTableSelectionListener);
-    tableSelectionModel.setSelectionMode(MULTIPLE_INTERVAL_SELECTION);
-    if (!myDependenciesTable.getItems().isEmpty()) {
-      myDependenciesTable.changeSelection(0, 0, false, false);
-    }
 
     myDependenciesTable.setDragEnabled(false);
     myDependenciesTable.setIntercellSpacing(new Dimension(0, 0));
@@ -97,14 +115,36 @@ class EditableDependenciesPanel extends JPanel implements DependencySelection, D
     Header header = new Header("Declared Dependencies");
     add(header, BorderLayout.NORTH);
 
+    OnePixelSplitter splitter = new OnePixelSplitter(true, "psd.editable.dependencies.main.horizontal.splitter.proportion", 0.75f);
+
     JPanel contents = new JPanel(new BorderLayout());
     contents.add(createActionsPanel(), BorderLayout.NORTH);
     JScrollPane scrollPane = createScrollPane(myDependenciesTable);
-    scrollPane.setBorder(IdeBorderFactory.createEmptyBorder());
+    scrollPane.setBorder(createEmptyBorder());
     contents.add(scrollPane, BorderLayout.CENTER);
-    add(contents, BorderLayout.CENTER);
+
+    splitter.setFirstComponent(contents);
+    splitter.setSecondComponent(myEditorScrollPane);
+
+    add(splitter, BorderLayout.CENTER);
 
     updateTableColumnSizes();
+  }
+
+  private void updateEditor() {
+    Collection<PsdAndroidDependencyModel> selection = myDependenciesTable.getSelection();
+    if (selection.size() == 1) {
+      PsdAndroidDependencyModel selected = getFirstItem(selection);
+      assert selected != null;
+      DependencyEditor editor = myEditors.get(selected.getClass());
+      if (editor != null) {
+        myEditorScrollPane.setViewportView(editor.getPanel());
+        //noinspection unchecked
+        editor.display(selected);
+        return;
+      }
+    }
+    myEditorScrollPane.setViewportView(myEmptyEditorPanel);
   }
 
   @NotNull
@@ -164,6 +204,14 @@ class EditableDependenciesPanel extends JPanel implements DependencySelection, D
       actions.add(new AddDependencyAction());
       myPopupActions = actions;
     }
+  }
+
+  private void initializeEditors() {
+    addEditor(new LibraryDependencyEditor());
+  }
+
+  private void addEditor(@NotNull DependencyEditor<?> editor) {
+    myEditors.put(editor.getSupportedModelType(), editor);
   }
 
   void updateTableColumnSizes() {
@@ -247,5 +295,15 @@ class EditableDependenciesPanel extends JPanel implements DependencySelection, D
     }
 
     abstract void execute();
+  }
+
+  private static class EmptyEditorPanel extends JPanel {
+    EmptyEditorPanel() {
+      super(new BorderLayout());
+      JBLabel emptyText = new JBLabel("Please select a declared dependency");
+      emptyText.setForeground(getInactiveTextColor());
+      emptyText.setHorizontalAlignment(SwingConstants.CENTER);
+      add(emptyText, BorderLayout.CENTER);
+    }
   }
 }

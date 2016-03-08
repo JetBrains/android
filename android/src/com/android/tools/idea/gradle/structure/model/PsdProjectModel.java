@@ -119,10 +119,4 @@ public class PsdProjectModel extends PsdModel {
   public Icon getIcon() {
     return null;
   }
-
-  @Override
-  @Nullable
-  public PsdProblem getProblem() {
-    return null;
-  }
 }

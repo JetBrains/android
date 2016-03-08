@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,46 +13,57 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.prototype.editor.dependencies;
+package com.android.tools.idea.gradle.structure.configurables.android.dependencies.editor;
 
-import com.android.ide.common.repository.GradleCoordinate;
-import com.android.tools.idea.gradle.structure.prototype.model.ArtifactDependencyMergedModel;
+import com.android.tools.idea.gradle.structure.model.PsdArtifactDependencySpec;
+import com.android.tools.idea.gradle.structure.model.android.PsdLibraryDependencyModel;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.ui.components.JBLabel;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-
 import java.awt.*;
 
 import static com.intellij.util.ui.UIUtil.getLabelBackground;
 
-class ArtifactDependencyEditor {
+public class LibraryDependencyEditor implements DependencyEditor<PsdLibraryDependencyModel> {
   private JPanel myPanel;
   private JTextField myGroupIdTextField;
   private JTextField myArtifactNameTextField;
   private JBLabel myScopeLabel;
   private TextFieldWithBrowseButton myScopeField;
-  private JTextField myVersionTextField;
+  private JTextField myDeclaredVersionTextField;
+  private JTextField myResolvedVersionTextField;
   private JButton myCheckForUpdatesButton;
 
-  ArtifactDependencyEditor() {
+  public LibraryDependencyEditor() {
     myScopeLabel.setLabelFor(myScopeField.getTextField());
     Color background = getLabelBackground();
     myGroupIdTextField.setBackground(background);
     myArtifactNameTextField.setBackground(background);
+    myResolvedVersionTextField.setBackground(background);
   }
 
+  @Override
   @NotNull
   public JPanel getPanel() {
     return myPanel;
   }
 
-  void update(@NotNull ArtifactDependencyMergedModel dependency) {
-    GradleCoordinate coordinate = dependency.getCoordinate();
-    myGroupIdTextField.setText(coordinate.getGroupId());
-    myArtifactNameTextField.setText(coordinate.getArtifactId());
-    myVersionTextField.setText(coordinate.getRevision());
-    myScopeField.setText(dependency.getConfigurationName());
+  @Override
+  public void display(@NotNull PsdLibraryDependencyModel model) {
+    PsdArtifactDependencySpec declaredSpec = model.getDeclaredSpec();
+    assert declaredSpec != null;
+    myGroupIdTextField.setText(declaredSpec.group);
+    myArtifactNameTextField.setText(declaredSpec.name);
+    myScopeField.setText(model.getConfigurationName());
+    myDeclaredVersionTextField.setText(declaredSpec.version);
+    myResolvedVersionTextField.setText(model.getResolvedSpec().version);
+  }
+
+  @Override
+  @NotNull
+  public Class<PsdLibraryDependencyModel> getSupportedModelType() {
+    return PsdLibraryDependencyModel.class;
   }
 }
