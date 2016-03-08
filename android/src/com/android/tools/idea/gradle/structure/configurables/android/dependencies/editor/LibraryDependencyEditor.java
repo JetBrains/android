@@ -24,24 +24,30 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import java.awt.*;
 
+import static com.intellij.ui.IdeBorderFactory.createEmptyBorder;
 import static com.intellij.util.ui.UIUtil.getLabelBackground;
 
 public class LibraryDependencyEditor implements DependencyEditor<PsdLibraryDependencyModel> {
   private JPanel myPanel;
   private JTextField myGroupIdTextField;
   private JTextField myArtifactNameTextField;
+  private JTextField myResolvedVersionTextField;
+  private JTextField myDeclaredVersionTextField;
   private JBLabel myScopeLabel;
   private TextFieldWithBrowseButton myScopeField;
-  private JTextField myDeclaredVersionTextField;
-  private JTextField myResolvedVersionTextField;
   private JButton myCheckForUpdatesButton;
 
   public LibraryDependencyEditor() {
     myScopeLabel.setLabelFor(myScopeField.getTextField());
+    showAsLabel(myGroupIdTextField, myArtifactNameTextField, myResolvedVersionTextField);
+  }
+
+  private static void showAsLabel(@NotNull JTextField... textFields) {
     Color background = getLabelBackground();
-    myGroupIdTextField.setBackground(background);
-    myArtifactNameTextField.setBackground(background);
-    myResolvedVersionTextField.setBackground(background);
+    for (JTextField textField : textFields) {
+      textField.setBackground(background);
+      textField.setBorder(createEmptyBorder());
+    }
   }
 
   @Override
@@ -56,9 +62,9 @@ public class LibraryDependencyEditor implements DependencyEditor<PsdLibraryDepen
     assert declaredSpec != null;
     myGroupIdTextField.setText(declaredSpec.group);
     myArtifactNameTextField.setText(declaredSpec.name);
-    myScopeField.setText(model.getConfigurationName());
-    myDeclaredVersionTextField.setText(declaredSpec.version);
     myResolvedVersionTextField.setText(model.getResolvedSpec().version);
+    myDeclaredVersionTextField.setText(declaredSpec.version);
+    myScopeField.setText(model.getConfigurationName());
   }
 
   @Override
