@@ -17,10 +17,12 @@ package com.android.tools.idea.uibuilder.api;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
+import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.FillPolicy;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.SegmentType;
 import org.intellij.lang.annotations.Language;
+import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.Interaction;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 
@@ -146,6 +148,17 @@ public class ViewGroupHandler extends ViewHandler {
   public void onChildInserted(@NonNull NlComponent layout,
                               @NonNull NlComponent newChild,
                               @NonNull InsertType insertType) {
+  }
+
+  /**
+   * Allows a ViewGroupHandler to update the mouse cursor
+   *
+   * @return true if the cursor has been changed
+   */
+  public boolean updateCursor(@NonNull DesignSurface designSurface,
+                              @AndroidCoordinate int x,
+                              @AndroidCoordinate int y) {
+    return false;
   }
 
   @Override
