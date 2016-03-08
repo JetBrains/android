@@ -585,4 +585,43 @@ public class NlComponent {
     return fqcn;
   }
 
+  /**
+   * Utility function to extract the id
+   *
+   * @param str the string to extract the id from
+   * @return the string id
+   */
+  @Nullable
+  public static String extractId(@Nullable String str) {
+    if (str == null) {
+      return null;
+    }
+    int index = str.lastIndexOf("@id/");
+    if (index != -1) {
+      return str.substring(index + 4);
+    }
+    if (index == -1) {
+      index = str.lastIndexOf("@+id/");
+    }
+    if (index != -1) {
+      return str.substring(index + 5);
+    }
+    return null;
+  }
+
+
+  /**
+   * Returns the value if a String contains a dp value
+   */
+  @Nullable
+  public static int extractDp(@Nullable String str) {
+    if (str == null) {
+      return 0;
+    }
+    int index = str.lastIndexOf("dp");
+    if (index != -1) {
+      return Integer.parseInt(str.substring(0, index));
+    }
+    return 0;
+  }
 }

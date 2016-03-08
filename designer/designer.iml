@@ -20,5 +20,8 @@
     <orderEntry type="module" module-name="java-impl" />
     <orderEntry type="module" module-name="lang-impl" />
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
+    <orderEntry type="module" module-name="sherpa-solver" />
+    <orderEntry type="module" module-name="sherpa" />
+    <orderEntry type="module" module-name="sherpa-ui" />
   </component>
 </module>

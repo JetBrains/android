@@ -16,8 +16,11 @@
 package com.android.tools.idea.uibuilder.surface;
 
 import com.android.annotations.NonNull;
+import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
+import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
+import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.model.*;
 
 import java.awt.*;
@@ -34,8 +37,13 @@ public class SelectionLayer extends Layer {
   @Override
   public boolean paint(@NonNull Graphics2D gc) {
     SelectionModel model = myScreenView.getSelectionModel();
+    ViewHandlerManager viewHandlerManager = ViewHandlerManager.get(
+      myScreenView.getModel().getFacet());
     for (NlComponent component : model.getSelection()) {
       if (component.isRoot() || !component.isShowing()) {
+        continue;
+      }
+      if (parentHandlingSelection(component, viewHandlerManager)) {
         continue;
       }
       int x = Coordinates.getSwingX(myScreenView, component.x);
@@ -49,7 +57,28 @@ public class SelectionLayer extends Layer {
         int sx = Coordinates.getSwingX(myScreenView, handle.getCenterX());
         int sy = Coordinates.getSwingY(myScreenView, handle.getCenterY());
         NlGraphics.drawFilledRect(NlDrawingStyle.SELECTION, gc, sx - PIXEL_RADIUS / 2, sy - PIXEL_RADIUS / 2,
-                                        PIXEL_RADIUS, PIXEL_RADIUS);
+                                  PIXEL_RADIUS, PIXEL_RADIUS);
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Utility function that checks if the component is a child of a view group that
+   * handles painting
+   *
+   * @param component          the component we are looking at
+   * @param viewHandlerManager the current view handler manager
+   * @return true if the parent container handels painting
+   */
+  private boolean parentHandlingSelection(NlComponent component,
+                                          ViewHandlerManager viewHandlerManager) {
+    String className = component.getParent().viewInfo.getClassName();
+    ViewHandler handler = viewHandlerManager.getHandler(className);
+    if (handler != null && handler instanceof ViewGroupHandler) {
+      ViewGroupHandler viewGroupHandler = (ViewGroupHandler)handler;
+      if (viewGroupHandler.handlesPainting()) {
+        return true;
       }
     }
     return false;

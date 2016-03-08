@@ -1,0 +1,413 @@
+/*
+ * Copyright (C) 2016 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.android.tools.idea.uibuilder.handlers.constraint;
+
+import com.android.SdkConstants;
+import com.android.annotations.NonNull;
+import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
+import com.android.tools.idea.uibuilder.model.ModelListener;
+import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.sherpa.drawing.SceneDraw;
+import com.android.tools.sherpa.drawing.ViewTransform;
+import com.android.tools.sherpa.drawing.decorator.WidgetDecorator;
+import com.android.tools.sherpa.interaction.MouseInteraction;
+import com.android.tools.sherpa.interaction.WidgetMotion;
+import com.android.tools.sherpa.interaction.WidgetResize;
+import com.android.tools.sherpa.structure.Selection;
+import com.android.tools.sherpa.structure.WidgetsScene;
+import com.google.tnt.solver.widgets.*;
+
+import java.awt.*;
+import java.awt.event.InputEvent;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
+/**
+ * Maintains a constraint model shadowing the current NlModel
+ * and handles the user interactions on it
+ */
+public class ConstraintModel {
+
+  public static final int DEFAULT_DENSITY = 160;
+
+  private int myDpi = DEFAULT_DENSITY;
+  private float myDpiFactor;
+
+  static ConstraintModel ourConstraintModel = new ConstraintModel();
+  static ModelListener ourModelListener = null;
+  static NlModel ourCurrentModel = null;
+
+  private ViewTransform myViewTransform = new ViewTransform();
+  private WidgetsScene myWidgetsScene = new WidgetsScene();
+  private Selection mySelection = new Selection(null);
+  private WidgetMotion myWidgetMotion;
+  private WidgetResize myWidgetResize = new WidgetResize();
+
+  private SceneDraw mySceneDraw;
+  private MouseInteraction myMouseInteraction;
+
+  private static Lock ourLock = new ReentrantLock();
+
+  //////////////////////////////////////////////////////////////////////////////
+  // Static functions
+  //////////////////////////////////////////////////////////////////////////////
+
+  /**
+   * Update the current model with a new one
+   *
+   * @param model new model
+   */
+  public static void useNewModel(@NonNull NlModel model) {
+    useNewModel(model, false);
+  }
+
+  /**
+   * Update the current model with a new one
+   *
+   * @param model     new model
+   * @param didChange true if the new model comes from the modelChanged callback
+   */
+  private static void useNewModel(@NonNull NlModel model, boolean didChange) {
+    ourLock.lock();
+
+    // First, let's make sure we have a listener
+    if (ourModelListener == null) {
+      ourModelListener = new ModelListener() {
+        @Override
+        public void modelChanged(@NonNull NlModel model) {
+          // TODO: it seems that NlComponentTree / NlModel aren't calling this?..
+          useNewModel(model, true);
+        }
+
+        @Override
+        public void modelRendered(@NonNull NlModel model) {
+          // TODO: Check things on render for now, but this ought not to be necessary
+          useNewModel(model, true);
+        }
+      };
+    }
+
+    // if the current instance of NlModel we have doesn't correspond, update it
+    if (ourCurrentModel != model) {
+      didChange = true;
+      if (ourCurrentModel != null) {
+        ourCurrentModel.removeListener(ourModelListener);
+      }
+      ourCurrentModel = model;
+      if (ourCurrentModel != null) {
+        ourCurrentModel.addListener(ourModelListener);
+      }
+      ourConstraintModel = null;
+    }
+
+    if (ourConstraintModel == null) {
+      ourConstraintModel = new ConstraintModel();
+    }
+
+    // If we have a new model or a changed model, let's rebuild our scene
+    if (ourCurrentModel != null && didChange) {
+      ourConstraintModel.setDpiValue(ourCurrentModel.getConfiguration().getDensity().getDpiValue());
+      boolean previousAnimationState = Animator.isAnimationEnabled();
+      Animator.setAnimationEnabled(false);
+      ourConstraintModel.updateNlModel(model.getComponents());
+      Animator.setAnimationEnabled(previousAnimationState);
+    }
+
+    ourLock.unlock();
+  }
+
+  /**
+   * Static accessor for the singleton holding the ConstraintModel
+   *
+   * @return the current ConstraintModel
+   */
+  @NonNull
+  public static ConstraintModel getModel() {
+    ourLock.lock();
+    ConstraintModel model = ourConstraintModel;
+    ourLock.unlock();
+    return model;
+  }
+
+  //////////////////////////////////////////////////////////////////////////////
+  // Constructor and accessors
+  //////////////////////////////////////////////////////////////////////////////
+
+  /**
+   * Base constructor
+   */
+  public ConstraintModel() {
+    mySelection.setSelectedAnchor(null);
+    myWidgetsScene.setSelection(mySelection);
+    myWidgetMotion = new WidgetMotion(myWidgetsScene, mySelection);
+    mySceneDraw = new SceneDraw(myWidgetsScene, mySelection,
+                                myWidgetMotion, myWidgetResize);
+    myMouseInteraction = new MouseInteraction(myViewTransform,
+                                              myWidgetsScene, mySelection,
+                                              myWidgetMotion, myWidgetResize,
+                                              mySceneDraw);
+  }
+
+  /**
+   * Accessor for the WidgetsScene
+   *
+   * @return the current WidgetsScene
+   */
+  @NonNull
+  public WidgetsScene getScene() {
+    return myWidgetsScene;
+  }
+
+  /**
+   * Accessor for the view transform
+   *
+   * @return the current view transform
+   */
+  @NonNull
+  public ViewTransform getViewTransform() {
+    return myViewTransform;
+  }
+
+  /**
+   * Accessor for the current selection in our model
+   *
+   * @return the current selection
+   */
+  @NonNull
+  public Selection getSelection() {
+    return mySelection;
+  }
+
+  //////////////////////////////////////////////////////////////////////////////
+  // Models synchronization
+  //////////////////////////////////////////////////////////////////////////////
+
+  /**
+   * Use the new components in our model
+   *
+   * @param components list of components in NlModel
+   */
+  private void updateNlModel(@NonNull List<NlComponent> components) {
+    // Initialize a list of widgets to potentially removed from the current list of widgets
+    ArrayList<ConstraintWidget> widgets = new ArrayList(myWidgetsScene.getWidgets());
+
+    // Let's check for widgets to remove
+    for (NlComponent component : components) {
+      findComponent(component, widgets);
+    }
+
+    // After the above loop, the widgets array will only contains widget that
+    // are not in the list of components, so we should remove them
+    for (ConstraintWidget widget : widgets) {
+      myWidgetsScene.removeWidget(widget);
+    }
+
+    // Now update our widget from the list of components...
+    for (NlComponent component : components) {
+      updateSolverWidgetFromComponent(component);
+    }
+
+    // Finally, layout using our model.
+    WidgetContainer root = myWidgetsScene.getRoot();
+    if (root != null) {
+      root = root.getRootWidgetContainer();
+      if (root != null) {
+        root.layout();
+      }
+    }
+  }
+
+  /**
+   * Look up the given component in the current scene. If the widget is present,
+   * we remove it from the list of widgets that are candidate to be removed.
+   *
+   * @param component the component to look up
+   * @param widgets   a list of widgets to remove from the scene
+   */
+  private void findComponent(@NonNull NlComponent component, @NonNull ArrayList<ConstraintWidget> widgets) {
+    ConstraintWidget widget = myWidgetsScene.getWidget(component.getId());
+    if (widget != null) {
+      widgets.remove(widget);
+    }
+    if (component.children != null) {
+      for (NlComponent child : component.children) {
+        findComponent(child, widgets);
+      }
+    }
+  }
+
+
+  /**
+   * Update the widget associated to a component with the current component attributes.
+   * Will create the associated widget if necessary.
+   *
+   * @param component the component we want to update from
+   */
+  private void updateSolverWidgetFromComponent(@NonNull NlComponent component) {
+    ConstraintWidget widget = null;
+    if (component.getId() != null) {
+      widget = myWidgetsScene.getWidget(component.getId());
+    } else {
+      for (ConstraintWidget w : myWidgetsScene.getWidgets()) {
+        WidgetDecorator decorator = (WidgetDecorator)w.getCompanionWidget();
+        NlComponent c = (NlComponent)decorator.getCompanionObject();
+        if (component == c) {
+          widget = w;
+          break;
+        }
+      }
+    }
+    if (widget == null) {
+      if (component.getTagName().equalsIgnoreCase(SdkConstants.CONSTRAINT_LAYOUT)) {
+        widget = new ConstraintWidgetContainer();
+      }
+      else if (component.getTagName().equalsIgnoreCase(SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE)) {
+        widget = new Guideline();
+        ((Guideline)widget).setOrientation(Guideline.VERTICAL);
+      }
+      else {
+        if (component.children != null && component.children.size() > 0) {
+          widget = new WidgetContainer();
+        } else {
+          widget = new ConstraintWidget();
+        }
+      }
+      WidgetDecorator decorator = new WidgetDecorator(widget);
+      decorator.setCompanionObject(component);
+      widget.setCompanionWidget(decorator);
+      widget.setDebugName(component.getId());
+      myWidgetsScene.addWidget(widget);
+    }
+    ConstraintUtilities.updateWidget(this, widget, component);
+
+    for (NlComponent child : component.getChildren()) {
+      updateSolverWidgetFromComponent(child);
+    }
+  }
+
+  //////////////////////////////////////////////////////////////////////////////
+  // Interaction
+  //////////////////////////////////////////////////////////////////////////////
+
+  /**
+   * Handles mouse press in the user interaction with our model
+   *
+   * @param x x mouse coordinate
+   * @param y y mouse coordinate
+   */
+  public void mousePressed(@AndroidCoordinate int x, @AndroidCoordinate int y) {
+    if (myMouseInteraction != null) {
+      myMouseInteraction.mousePressed(pxToDp(x), pxToDp(y));
+    }
+    Animator.setAnimationEnabled(true);
+  }
+
+  /**
+   * Handles mouse drag in the user interaction with our model
+   *
+   * @param x x mouse coordinate
+   * @param y y mouse coordinate
+   */
+  public void mouseDragged(@AndroidCoordinate int x, @AndroidCoordinate int y) {
+    if (myMouseInteraction != null) {
+      myMouseInteraction.mouseDragged(pxToDp(x), pxToDp(y));
+    }
+  }
+
+  /**
+   * Handles mouse release in the user interaction with our model
+   *
+   * @param x x mouse coordinate
+   * @param y y mouse coordinate
+   */
+  public void mouseReleased(@AndroidCoordinate int x, @AndroidCoordinate int y) {
+    if (myMouseInteraction != null) {
+      myMouseInteraction.mouseReleased(pxToDp(x), pxToDp(y));
+    }
+    Animator.setAnimationEnabled(true);
+  }
+
+  /**
+   * Update the key modifiers mask
+   *
+   * @param modifiers new mask
+   */
+  public void updateModifiers(int modifiers) {
+    myMouseInteraction.setIsControlDown((modifiers & InputEvent.CTRL_DOWN_MASK) != 0);
+    myMouseInteraction.setIsShiftDown((modifiers & InputEvent.SHIFT_DOWN_MASK) != 0);
+    myMouseInteraction.setIsAltDown((modifiers & InputEvent.ALT_DOWN_MASK) != 0);
+  }
+
+  //////////////////////////////////////////////////////////////////////////////
+  // Painting
+  //////////////////////////////////////////////////////////////////////////////
+
+  /**
+   * Paint ourselves and our children
+   *
+   * @param gc                  the graphic context
+   * @param width              width of the canvas
+   * @param height             height of the canvas
+   * @param showAllConstraints flag to show or not all the existing constraints
+   * @return true if we need to repaint
+   */
+  public boolean paint(@NonNull Graphics2D gc, int width, int height, boolean showAllConstraints) {
+    Graphics2D g = (Graphics2D) gc.create();
+    boolean ret = mySceneDraw.paintWidgets(width, height, myViewTransform, g, showAllConstraints, myMouseInteraction);
+    g.dispose();
+    return ret;
+  }
+
+  //////////////////////////////////////////////////////////////////////////////
+  // Utilities
+  //////////////////////////////////////////////////////////////////////////////
+
+  /**
+   * Transform android pixels into Dp
+   *
+   * @param px android pixels
+   * @return Dp values
+   */
+  public int pxToDp(@AndroidCoordinate int px) {
+    return (int)(px / myDpiFactor);
+  }
+
+  /**
+   * Use the dpi value to set the dpi and dpi factor
+   *
+   * @param dpiValue the current dpi
+   */
+  public void setDpiValue(int dpiValue) {
+    myDpi = dpiValue;
+    myDpiFactor = dpiValue / (float)DEFAULT_DENSITY;
+  }
+
+  /**
+   * Mark the given component as being selected
+   *
+   * @param component
+   */
+  public void selectComponent(@NonNull NlComponent component) {
+    // TODO: move to NlModel's selection system
+    ConstraintWidget widget = myWidgetsScene.getWidget(component.getId());
+    if (widget != null && !widget.isRoot()) {
+      mySelection.add(widget);
+    }
+  }
+}
