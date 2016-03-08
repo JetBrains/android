@@ -65,6 +65,7 @@ public final class ModelWizard implements Disposable {
   private final BoolProperty myCanGoBack = new BoolValueProperty();
   private final BoolProperty myCanGoForward = new BoolValueProperty();
   private final BoolProperty myOnLastStep = new BoolValueProperty();
+  private final OptionalProperty<Action> myExtraAction = new OptionalValueProperty<Action>();
 
   private final Stack<ModelWizardStep> myPrevSteps = new Stack<ModelWizardStep>();
 
@@ -204,15 +205,20 @@ public final class ModelWizard implements Disposable {
   /**
    * Returns the currently active step.
    * <p/>
-   * It is an error to call this on a wizard that has already finished.
+   * Calling this method after a wizard has finished should not be done and has undefined behavior.
    */
   @VisibleForTesting
   @NotNull
   ModelWizardStep getCurrentStep() {
-    ensureWizardIsRunning();
-
     return mySteps.get(myCurrIndex);
   }
+
+  /**
+   * Returns an (optional) action to be shown in addition to the normal wizard actions (next, previous, etc.).
+   * This action is provided by the current wizard step.
+   */
+  @NotNull
+  ObservableOptional<Action> getExtraAction() { return myExtraAction; }
 
   /**
    * Returns the panel that will contain the UI for each step. It is up to an external UI class
@@ -368,6 +374,7 @@ public final class ModelWizard implements Disposable {
   private void showCurrentStep() {
     ModelWizardStep step = mySteps.get(myCurrIndex);
     myTitle.set(step.getTitle());
+    myExtraAction.setNullableValue(step.getExtraAction());
     ((CardLayout)myContentPanel.getLayout()).show(myContentPanel, Integer.toString(myCurrIndex));
 
     JComponent focusedComponent = step.getPreferredFocusComponent();
