@@ -193,8 +193,6 @@ public final class TestArtifactSearchScopes {
 
     boolean isAndroidTestArtifact = ARTIFACT_ANDROID_TEST.equals(artifactName);
 
-    BaseArtifact excludeArtifact = isAndroidTestArtifact ? unitTestArtifact : androidTestArtifact;
-
     DependencySet androidTestDependencies = null;
     DependencySet unitTestDependencies = null;
 
@@ -240,10 +238,6 @@ public final class TestArtifactSearchScopes {
     }
 
     Set<File> excludedRoots = Sets.newHashSet();
-    if (excludeArtifact != null) {
-      // TODO this is not enough, we should also exclude those artifacts from depended modules
-      excludedRoots.add(excludeArtifact.getClassesFolder());
-    }
 
     if (dependenciesToExclude != null) {
       for (LibraryDependency dependency : dependenciesToExclude.onLibraries()) {
@@ -270,6 +264,50 @@ public final class TestArtifactSearchScopes {
       AndroidGradleModel androidGradleModel = AndroidGradleModel.get(excludedModule);
       if (androidGradleModel != null) {
         excludedRoots.add(androidGradleModel.getMainArtifact().getJavaResourcesFolder());
+      }
+    }
+
+    for (Module module : ModuleManager.getInstance(project).getModules()) {
+      if (excludedModules.contains(module)) {
+        // Excluded modules have already been dealt with
+        continue;
+      }
+      AndroidGradleModel androidGradleModel = AndroidGradleModel.get(module);
+      if (androidGradleModel != null) {
+        BaseArtifact excludeArtifact = isAndroidTestArtifact ?
+                                       androidGradleModel.getUnitTestArtifactInSelectedVariant() :
+                                       androidGradleModel.getAndroidTestArtifactInSelectedVariant();
+        BaseArtifact includeArtifact = isAndroidTestArtifact ?
+                                       androidGradleModel.getAndroidTestArtifactInSelectedVariant() :
+                                       androidGradleModel.getUnitTestArtifactInSelectedVariant();
+
+        if (excludeArtifact != null) {
+          excludedRoots.add(excludeArtifact.getClassesFolder());
+
+          for (File file : excludeArtifact.getGeneratedSourceFolders()) {
+            excludedRoots.add(file);
+          }
+
+          for (SourceProvider sourceProvider : androidGradleModel.getTestSourceProviders(excludeArtifact.getName())) {
+            for (File file : getAllSourceFolders(sourceProvider)) {
+              excludedRoots.add(file);
+            }
+          }
+        }
+
+        if (includeArtifact != null) {
+          excludedRoots.remove(includeArtifact.getClassesFolder());
+
+          for (File file : includeArtifact.getGeneratedSourceFolders()) {
+            excludedRoots.remove(file);
+          }
+
+          for (SourceProvider sourceProvider : androidGradleModel.getTestSourceProviders(includeArtifact.getName())) {
+            for (File file : getAllSourceFolders(sourceProvider)) {
+              excludedRoots.remove(file);
+            }
+          }
+        }
       }
     }
 
