@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.structure.model.android;
 
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
+import com.android.tools.idea.gradle.structure.model.PsdArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsdProjectModel;
 import com.android.tools.idea.templates.AndroidGradleTestCase;
 import com.intellij.openapi.module.Module;
@@ -127,7 +128,7 @@ public class PsdAndroidModuleEditorTest extends AndroidGradleTestCase {
     // Verify that appcompat is considered a "editable" dependency, and it was matched properly
     PsdLibraryDependencyModel appCompatV7Editor = (PsdLibraryDependencyModel)declaredDependencies.get(0);
     assertTrue(appCompatV7Editor.isEditable());
-    assertEquals("com.android.support:appcompat-v7:23.1.1", appCompatV7Editor.getSpec().toString());
+    assertEquals("com.android.support:appcompat-v7:23.1.1", appCompatV7Editor.getResolvedSpec().toString());
 
     // Verify that the variants where appcompat is are properly registered.
     Set<String> variants = appCompatV7Editor.getVariants();
@@ -154,7 +155,10 @@ public class PsdAndroidModuleEditorTest extends AndroidGradleTestCase {
     // Verify that appcompat is considered a "editable" dependency, and it was matched properly
     PsdLibraryDependencyModel appCompatV7Editor = (PsdLibraryDependencyModel)declaredDependencies.get(0);
     assertTrue(appCompatV7Editor.isEditable());
-    assertEquals("com.android.support:appcompat-v7:+", appCompatV7Editor.getSpec().toString());
+    PsdArtifactDependencySpec declaredSpec = appCompatV7Editor.getDeclaredSpec();
+    assertNotNull(declaredSpec);
+    assertEquals("com.android.support:appcompat-v7:+", declaredSpec.toString());
+    assertEquals("com.android.support:appcompat-v7:23.1.1", appCompatV7Editor.getResolvedSpec().toString());
 
     // Verify that the variants where appcompat is are properly registered.
     Set<String> variants = appCompatV7Editor.getVariants();
