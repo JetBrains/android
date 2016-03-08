@@ -63,7 +63,7 @@ public final class Msg implements BinaryObject {
   static {
     ENTITY.setFields(new Field[]{
       new Field("Identifier", new Primitive("string", Method.String)),
-      new Field("Arguments", new Map("MapType", new Primitive("string", Method.String), new Interface("binary.Object"))),
+      new Field("Arguments", new Map("", new Primitive("string", Method.String), new Interface("binary.Object"))),
     });
     Namespace.register(Klass.INSTANCE);
   }
