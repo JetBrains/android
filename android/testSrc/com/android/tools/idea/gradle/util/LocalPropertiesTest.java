@@ -173,17 +173,4 @@ public class LocalPropertiesTest extends IdeaTestCase {
     sdk.delete();
     tempDir.delete();
   }
-
-  public void testOnlyChangesAreSavedToFile() throws IOException {
-    myLocalProperties.setAndroidSdkPath("~/sdk");
-    myLocalProperties.save();
-    File localPropertiesFile = new File(myProject.getBasePath(), SdkConstants.FN_LOCAL_PROPERTIES);
-    long lastModified = localPropertiesFile.lastModified();
-
-    // Set the value again. The "lastModified" value should not change.
-    myLocalProperties.setAndroidSdkPath("~/sdk");
-    myLocalProperties.save();
-
-    assertEquals(lastModified, localPropertiesFile.lastModified());
-  }
 }
