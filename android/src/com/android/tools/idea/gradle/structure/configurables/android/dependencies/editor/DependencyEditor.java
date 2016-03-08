@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.prototype.editor;
+package com.android.tools.idea.gradle.structure.configurables.android.dependencies.editor;
 
-import com.intellij.openapi.options.Configurable;
-import com.intellij.ui.navigation.History;
-import org.jetbrains.annotations.Nullable;
+import com.android.tools.idea.gradle.structure.model.android.PsdAndroidDependencyModel;
+import org.jetbrains.annotations.NotNull;
 
-public interface ModuleConfigurationEditor extends Configurable {
-  void setHistory(@Nullable  History history);
-  void saveData();
-  void moduleStateChanged();
+import javax.swing.*;
+
+public interface DependencyEditor<T extends PsdAndroidDependencyModel> {
+  @NotNull
+  JPanel getPanel();
+
+  void display(T model);
+
+  @NotNull
+  Class<T> getSupportedModelType();
 }
