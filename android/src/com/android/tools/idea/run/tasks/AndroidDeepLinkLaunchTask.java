@@ -43,7 +43,7 @@ public class AndroidDeepLinkLaunchTask implements LaunchTask {
   @NotNull
   @Override
   public String getDescription() {
-    return "Launching deeplink";
+    return "Launching URL";
   }
 
   @Override
