@@ -44,6 +44,7 @@ import org.jetbrains.android.maven.AndroidMavenUtil;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.uipreview.RenderingException;
+import org.jetbrains.android.uipreview.UnsupportedJavaRuntimeException;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -63,6 +64,8 @@ import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
 public class RenderService {
   public static final boolean NELE_ENABLED = true;
   private static final Object RENDERING_LOCK = new Object();
+
+  private static final String JDK_INSTALL_URL = "https://developer.android.com/preview/setup-sdk.html#java8";
 
   @NotNull
   private final AndroidFacet myFacet;
@@ -167,6 +170,15 @@ public class RenderService {
         logger.addMessage(RenderProblem.createPlain(ERROR, message));
         return null;
       }
+    }
+    catch (UnsupportedJavaRuntimeException e) {
+      RenderProblem.Html javaVersionProblem = RenderProblem.create(ERROR);
+      javaVersionProblem.getHtmlBuilder()
+        .add(e.getPresentableMessage())
+        .newline()
+        .addLink("Install a supported JDK", JDK_INSTALL_URL);
+      logger.addMessage(javaVersionProblem);
+      return null;
     }
     catch (RenderingException e) {
       String message = e.getPresentableMessage();
