@@ -60,6 +60,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
 import com.intellij.openapi.wm.impl.welcomeScreen.WelcomeFrame;
 import com.intellij.ui.EditorNotificationPanel;
+import com.intellij.util.PathUtil;
 import com.intellij.util.ThreeState;
 import com.intellij.xdebugger.impl.ui.tree.nodes.XDebuggerTreeNode;
 import org.fest.swing.core.GenericTypeMatcher;
@@ -189,6 +190,9 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     throw new AssertionError("Unable to find AndroidGradleModel for module " + quote(name));
   }
 
+  /**
+   * Returns a list of system independent paths
+   */
   @NotNull
   public Collection<String> getSourceFolderRelativePaths(@NotNull String moduleName, @NotNull final JpsModuleSourceRootType<?> sourceType) {
     final Set<String> paths = Sets.newHashSet();
@@ -207,7 +211,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
               if (rootType.equals(sourceType)) {
                 String path = urlToPath(folder.getUrl());
                 String relativePath = getRelativePath(myProjectPath, new File(toSystemDependentName(path)));
-                paths.add(relativePath);
+                paths.add(PathUtil.toSystemIndependentName(relativePath));
               }
             }
           }
