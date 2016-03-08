@@ -16,6 +16,7 @@
 package com.android.tools.idea.updater.configure;
 
 import com.android.repository.api.*;
+import com.android.repository.impl.installer.PackageInstaller;
 import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.repository.io.FileOp;
 import com.android.repository.io.FileOpUtils;
@@ -233,9 +234,20 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
           }
         }, "Uninstalling", false, null, myPanel.getComponent());
         if (!requestedPackages.isEmpty()) {
-          ModelWizardDialog dialog = SdkQuickfixUtils.createDialogForPackages(myPanel.getComponent(), requestedPackages.values());
+          ModelWizardDialog dialog = SdkQuickfixUtils.createDialogForPackages(myPanel.getComponent(), requestedPackages.values(), true);
           if (dialog != null) {
             dialog.show();
+            for (RemotePackage remotePackage : requestedPackages.keySet()) {
+              PackageInstaller installer = getRepoManager().getInProgressInstaller(remotePackage);
+              if (installer != null) {
+                installer.registerStateChangeListener(new PackageInstaller.StatusChangeListener() {
+                  @Override
+                  public void statusChanged(PackageInstaller installer) {
+                    myPanel.getComponent().repaint();
+                  }
+                });
+              }
+            }
           }
         }
 

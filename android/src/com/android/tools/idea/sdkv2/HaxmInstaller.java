@@ -24,28 +24,20 @@ import com.android.repository.io.FileOp;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 
+import java.io.File;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * {@link PackageInstaller} for installing HAXM. Runs the {@link HaxmWizard} instead of the normal quickfix wizard.
  */
-public class HaxmInstaller implements PackageInstaller {
+public class HaxmInstaller extends BasicInstaller {
   @Override
-  public boolean uninstall(@NonNull LocalPackage p,
-                           @NonNull ProgressIndicator progress,
-                           @NonNull RepoManager manager,
-                           @NonNull FileOp fop) {
-    // We just uninstall the package; we don't actually remove the extension.
-    return new BasicInstaller().uninstall(p, progress, manager, fop);
-  }
-
-  @Override
-  public boolean install(@NonNull RemotePackage p,
-                         @NonNull Downloader downloader,
-                         @Nullable SettingsController settings,
-                         @NonNull ProgressIndicator progress,
-                         @NonNull RepoManager manager,
-                         @NonNull FileOp fop) {
+  protected boolean doCompleteInstall(@NonNull RemotePackage p,
+                                      @NonNull File installTempPath,
+                                      @NonNull File destination,
+                                      @NonNull ProgressIndicator progress,
+                                      @NonNull RepoManager manager,
+                                      @NonNull FileOp fop) {
     final AtomicBoolean result = new AtomicBoolean(false);
     ApplicationManager.getApplication().invokeAndWait(new Runnable() {
       @Override

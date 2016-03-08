@@ -20,6 +20,7 @@ import com.android.repository.api.RemotePackage;
 import com.android.repository.api.RepoManager;
 import com.android.repository.impl.installer.BasicInstaller;
 import com.android.repository.impl.meta.RepositoryPackages;
+import com.android.repository.io.FileOp;
 import com.android.repository.io.FileOpUtils;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
@@ -200,8 +201,11 @@ public class SmwOldApiDirectInstall extends DynamicWizardStepWithDescription {
       BasicInstaller installer = new BasicInstaller();
       final RepoManager sdkManager = mySdkHandler.getSdkManager(repoProgress);
       for (RemotePackage p : myRequestedPackages) {
-        installer.install(p, new StudioDownloader(indicator), StudioSettingsController.getInstance(), repoProgress,
-                          sdkManager, FileOpUtils.create());
+        FileOp fop = FileOpUtils.create();
+        if (installer.prepareInstall(p, new StudioDownloader(indicator),
+                                     StudioSettingsController.getInstance(), repoProgress, sdkManager, fop)) {
+          installer.completeInstall(p, repoProgress, sdkManager, fop);
+        }
       }
       sdkManager.loadSynchronously(0, repoProgress, null, null);
       myState.remove(INSTALL_REQUESTS_KEY);
