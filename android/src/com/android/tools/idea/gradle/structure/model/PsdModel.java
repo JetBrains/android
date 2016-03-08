@@ -19,6 +19,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.util.Collections;
+import java.util.List;
 
 public abstract class PsdModel {
   @Nullable private final PsdModel myParent;
@@ -52,11 +54,6 @@ public abstract class PsdModel {
 
   @Nullable
   public Icon getIcon() {
-    return null;
-  }
-
-  @Nullable
-  public PsdProblem getProblem() {
     return null;
   }
 

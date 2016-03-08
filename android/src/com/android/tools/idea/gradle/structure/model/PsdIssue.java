@@ -15,18 +15,21 @@
  */
 package com.android.tools.idea.gradle.structure.model;
 
-import com.intellij.ui.JBColor;
+import com.google.common.base.Objects;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 
-public class PsdProblem {
-  @NotNull private final String myText;
-  @NotNull private final Severity mySeverity;
+import static com.intellij.ui.JBColor.GRAY;
+import static com.intellij.ui.JBColor.RED;
 
-  public PsdProblem(@NotNull String text, @NotNull Severity severity) {
+public class PsdIssue {
+  @NotNull private final String myText;
+  @NotNull private final Type myType;
+
+  public PsdIssue(@NotNull String text, @NotNull Type type) {
     myText = text;
-    mySeverity = severity;
+    myType = type;
   }
 
   @NotNull
@@ -35,16 +38,39 @@ public class PsdProblem {
   }
 
   @NotNull
-  public Severity getSeverity() {
-    return mySeverity;
+  public Type getType() {
+    return myType;
   }
 
-  public enum Severity {
-    ERROR(JBColor.RED), WARNING(JBColor.GRAY);
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    PsdIssue psdIssue = (PsdIssue)o;
+    return Objects.equal(myText, psdIssue.myText) &&
+           myType == psdIssue.myType;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(myText, myType);
+  }
+
+  @Override
+  public String toString() {
+    return myType.name() + ": " + myText;
+  }
+
+  public enum Type {
+    ERROR(RED), WARNING(GRAY);
 
     @NotNull private final Color myColor;
 
-    Severity(@NotNull Color color) {
+    Type(@NotNull Color color) {
       myColor = color;
     }
 

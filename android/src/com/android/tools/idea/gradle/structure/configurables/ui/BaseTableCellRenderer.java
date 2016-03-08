@@ -16,17 +16,11 @@
 package com.android.tools.idea.gradle.structure.configurables.ui;
 
 import com.android.tools.idea.gradle.structure.model.PsdModel;
-import com.android.tools.idea.gradle.structure.model.PsdProblem;
 import com.intellij.ui.ColoredTableCellRenderer;
-import com.intellij.ui.SimpleTextAttributes;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.awt.*;
-
-import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
-import static com.intellij.ui.SimpleTextAttributes.STYLE_WAVED;
 
 public abstract class BaseTableCellRenderer<T extends PsdModel> extends ColoredTableCellRenderer {
   @NotNull private final T myModel;
@@ -40,21 +34,7 @@ public abstract class BaseTableCellRenderer<T extends PsdModel> extends ColoredT
     setIcon(myModel.getIcon());
     setIconOpaque(true);
     setFocusBorderAroundIcon(true);
-
-    String text = getText();
-
-    PsdProblem problem = myModel.getProblem();
-    if (problem != null) {
-      SimpleTextAttributes textAttributes = REGULAR_ATTRIBUTES;
-      Color waveColor = problem.getSeverity().getColor();
-      textAttributes = textAttributes.derive(STYLE_WAVED, null, null, waveColor);
-      append(text, textAttributes);
-
-      setToolTipText(problem.getText());
-      return;
-    }
-
-    append(text);
+    append(getText());
   }
 
   @NotNull
