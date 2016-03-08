@@ -34,6 +34,7 @@ import com.android.tools.idea.run.*;
 import com.android.tools.idea.stats.UsageTracker;
 import com.android.utils.ILogger;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.hash.HashCode;
 import com.google.common.io.Files;
@@ -66,6 +67,8 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static com.android.tools.fd.client.InstantRunArtifactType.*;
 import static com.android.tools.fd.client.InstantRunBuildInfo.VALUE_VERIFIER_STATUS_COMPATIBLE;
@@ -82,6 +85,16 @@ public final class InstantRunManager implements ProjectComponent {
 
   public static final Logger LOG = Logger.getInstance("#InstantRun");
   private static final ILogger ILOGGER = new LogWrapper(LOG);
+
+  /**
+   * White list of processes whose presence will not disable hotswap.
+   *
+   * Instant Run (hotswap) does not work with multiple processes right now. If we detect that the app uses multiple processes,
+   * we always force a cold swap. However, a common scenario is where an app uses multiple processes, but just for the purpose of
+   * a 3rd party library (e.g. leakcanary). In this case, we are ok doing a hotswap to just the main process (assuming that the
+   * main process starts up first).
+   */
+  public static final ImmutableSet<String> ALLOWED_PROCESSES = ImmutableSet.of(":leakcanary");
 
   @NotNull private final Project myProject;
   @NotNull private final FileChangeListener myFileChangeListener;
@@ -349,7 +362,20 @@ public final class InstantRunManager implements ProjectComponent {
       return false;
     }
 
-    return xml.contains("android:process");
+    return manifestSpecifiesMultiProcess(xml, ALLOWED_PROCESSES);
+  }
+
+  /** Returns whether the given manifest file uses multiple processes other than the specified ones. */
+  static boolean manifestSpecifiesMultiProcess(@NotNull String manifest, @NotNull Set<String> allowedProcesses) {
+    Matcher m = Pattern.compile("android:process\\s?=\\s?\"(.*)\"").matcher(manifest);
+    while (m.find()) {
+      String group = m.group(1);
+      if (!allowedProcesses.contains(group)) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   @NotNull
