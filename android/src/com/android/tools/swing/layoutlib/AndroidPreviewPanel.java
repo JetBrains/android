@@ -24,6 +24,7 @@ import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.DumbService;
+import org.jetbrains.android.uipreview.UnsupportedJavaRuntimeException;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Document;
 
@@ -91,7 +92,13 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable {
         notifyUnsupportedLayoutlib();
       }
       catch (InitializationException e) {
-        LOG.error(e);
+        Throwable cause = e.getCause();
+
+        if (cause instanceof UnsupportedJavaRuntimeException) {
+          notifyUnsupportedJavaRuntime(((UnsupportedJavaRuntimeException)cause).getPresentableMessage());
+        } else {
+          LOG.error(e);
+        }
       }
     }
   };
@@ -135,9 +142,9 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable {
   }
 
   private static final Notification UNSUPPORTED_LAYOUTLIB_NOTIFICATION =
-    new Notification("Android", "Layoutlib", "The Theme Editor preview requires at least Android M Preview SDK", NotificationType.ERROR);
-
+    new Notification("Android", "Preview", "The Theme Editor preview requires at least Android M Platform SDK", NotificationType.ERROR);
   private static final AtomicBoolean ourLayoutlibNotification = new AtomicBoolean(false);
+  private static final AtomicBoolean ourJavaRuntimeNotification = new AtomicBoolean(false);
 
   private final DumbService myDumbService;
   private final Object myGraphicsLayoutRendererLock = new Object();
@@ -234,6 +241,12 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable {
   private static void notifyUnsupportedLayoutlib() {
     if (ourLayoutlibNotification.compareAndSet(false, true)) {
       Notifications.Bus.notify(UNSUPPORTED_LAYOUTLIB_NOTIFICATION);
+    }
+  }
+
+  private static void notifyUnsupportedJavaRuntime(String message) {
+    if (ourJavaRuntimeNotification.compareAndSet(false, true)) {
+      Notifications.Bus.notify(new Notification("Android", "Preview", message, NotificationType.ERROR));
     }
   }
 
