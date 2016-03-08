@@ -91,11 +91,8 @@ class EditableDependenciesTableModel extends ListTableModel<PsdAndroidDependency
 
       if (model instanceof PsdLibraryDependencyModel) {
         PsdLibraryDependencyModel library = (PsdLibraryDependencyModel)model;
-        PsdArtifactDependencySpec spec = library.getSpec();
-        PsdArtifactDependencySpec requestedSpec = library.getMismatchingRequestedSpec();
-        if (requestedSpec != null) {
-          spec = requestedSpec;
-        }
+        PsdArtifactDependencySpec spec = library.getDeclaredSpec();
+        assert spec != null;
         text = spec.getDisplayText();
       }
       return text;

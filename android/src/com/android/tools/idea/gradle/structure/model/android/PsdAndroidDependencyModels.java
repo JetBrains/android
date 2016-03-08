@@ -102,6 +102,8 @@ class PsdAndroidDependencyModels {
 
     MavenCoordinates coordinates = library.getResolvedCoordinates();
     if (coordinates != null) {
+      PsdArtifactDependencySpec spec = PsdArtifactDependencySpec.create(coordinates);
+
       ArtifactDependencyModel matchingParsedDependency = parsedDependencies.findMatchingArtifactDependency(coordinates, artifactModel);
       if (matchingParsedDependency != null) {
         String parsedVersionValue = matchingParsedDependency.version().value();
@@ -113,7 +115,6 @@ class PsdAndroidDependencyModels {
           GradleVersion versionFromGradle = GradleVersion.parse(coordinates.getVersion());
           if (parsedVersion != null && compare(parsedVersion, versionFromGradle) == 0) {
             // Match.
-            PsdArtifactDependencySpec spec = PsdArtifactDependencySpec.create(matchingParsedDependency);
             return addLibrary(library, spec, artifactModel, matchingParsedDependency);
           }
           else {
@@ -143,7 +144,6 @@ class PsdAndroidDependencyModels {
             }
 
             // Create the dependency model that will be displayed in the "Dependencies" table.
-            PsdArtifactDependencySpec spec = PsdArtifactDependencySpec.create(coordinates);
             addLibrary(library, spec, artifactModel, matchingParsedDependency);
 
             // Create a dependency model for the transitive dependency, so it can be displayed in the "Variants" tool window.
@@ -153,7 +153,6 @@ class PsdAndroidDependencyModels {
       }
       else {
         // This dependency was not declared, it could be a transitive one.
-        PsdArtifactDependencySpec spec = PsdArtifactDependencySpec.create(coordinates);
         return addLibrary(library, spec, artifactModel, null);
       }
     }
@@ -162,26 +161,26 @@ class PsdAndroidDependencyModels {
 
   @Nullable
   private PsdAndroidDependencyModel addLibrary(@NotNull Library library,
-                                               @NotNull PsdArtifactDependencySpec spec,
+                                               @NotNull PsdArtifactDependencySpec resolvedSpec,
                                                @NotNull PsdAndroidArtifactModel artifactModel,
                                                @Nullable ArtifactDependencyModel parsedDependencyModel) {
     if (library instanceof AndroidLibrary) {
       AndroidLibrary androidLibrary = (AndroidLibrary)library;
-      return addAndroidLibrary(androidLibrary, spec, artifactModel, parsedDependencyModel);
+      return addAndroidLibrary(androidLibrary, resolvedSpec, artifactModel, parsedDependencyModel);
     }
     else if (library instanceof JavaLibrary) {
       JavaLibrary javaLibrary = (JavaLibrary)library;
-      return addJavaLibrary(javaLibrary, spec, artifactModel, parsedDependencyModel);
+      return addJavaLibrary(javaLibrary, resolvedSpec, artifactModel, parsedDependencyModel);
     }
     return null;
   }
 
   @NotNull
   private PsdAndroidDependencyModel addAndroidLibrary(@NotNull AndroidLibrary androidLibrary,
-                                                      @NotNull PsdArtifactDependencySpec spec,
+                                                      @NotNull PsdArtifactDependencySpec resolvedSpec,
                                                       @NotNull PsdAndroidArtifactModel artifactModel,
                                                       @Nullable ArtifactDependencyModel parsedDependencyModel) {
-    PsdAndroidDependencyModel dependencyModel = getOrCreateDependency(spec, androidLibrary, artifactModel, parsedDependencyModel);
+    PsdAndroidDependencyModel dependencyModel = getOrCreateDependency(resolvedSpec, androidLibrary, artifactModel, parsedDependencyModel);
 
     for (AndroidLibrary library : androidLibrary.getLibraryDependencies()) {
       PsdAndroidDependencyModel transitive = addLibrary(library, artifactModel);
@@ -197,10 +196,10 @@ class PsdAndroidDependencyModels {
 
   @NotNull
   private PsdAndroidDependencyModel addJavaLibrary(@NotNull JavaLibrary javaLibrary,
-                                                   @NotNull PsdArtifactDependencySpec spec,
+                                                   @NotNull PsdArtifactDependencySpec resolvedSpec,
                                                    @NotNull PsdAndroidArtifactModel artifactModel,
                                                    @Nullable ArtifactDependencyModel parsedDependencyModel) {
-    PsdAndroidDependencyModel dependencyModel = getOrCreateDependency(spec, javaLibrary, artifactModel, parsedDependencyModel);
+    PsdAndroidDependencyModel dependencyModel = getOrCreateDependency(resolvedSpec, javaLibrary, artifactModel, parsedDependencyModel);
 
     for (JavaLibrary library : javaLibrary.getDependencies()) {
       PsdAndroidDependencyModel transitive = addLibrary(library, artifactModel);
@@ -263,7 +262,7 @@ class PsdAndroidDependencyModels {
       dependencyModel.setPomDependencies(pomDependencies);
     }
     else {
-      if (dependencyModel.getParsedModel() == null) {
+      if (dependencyModel.getParsedModel() == null && parsedModel != null) {
         dependencyModel.setParsedModel(parsedModel);
       }
     }

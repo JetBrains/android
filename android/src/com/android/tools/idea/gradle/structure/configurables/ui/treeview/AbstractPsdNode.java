@@ -16,18 +16,14 @@
 package com.android.tools.idea.gradle.structure.configurables.ui.treeview;
 
 import com.android.tools.idea.gradle.structure.model.PsdModel;
-import com.android.tools.idea.gradle.structure.model.PsdProblem;
 import com.google.common.collect.Lists;
 import com.intellij.ide.projectView.PresentationData;
-import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.treeStructure.SimpleNode;
 import org.jetbrains.annotations.NotNull;
 
-import java.awt.*;
 import java.util.List;
 
 import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
-import static com.intellij.ui.SimpleTextAttributes.STYLE_WAVED;
 
 public abstract class AbstractPsdNode<T extends PsdModel> extends SimpleNode {
   @NotNull private final List<T> myModels;
@@ -109,18 +105,6 @@ public abstract class AbstractPsdNode<T extends PsdModel> extends SimpleNode {
   protected void doUpdate() {
     PresentationData presentation = getTemplatePresentation();
     presentation.clearText();
-
-    SimpleTextAttributes textAttributes = REGULAR_ATTRIBUTES;
-    if (myModels.size() == 1) {
-      T model = myModels.get(0);
-      PsdProblem problem = model.getProblem();
-      if (problem != null) {
-        Color waveColor = problem.getSeverity().getColor();
-        textAttributes = textAttributes.derive(STYLE_WAVED, null, null, waveColor);
-        presentation.setTooltip(problem.getText());
-      }
-    }
-
-    presentation.addText(myName, textAttributes);
+    presentation.addText(myName, REGULAR_ATTRIBUTES);
   }
 }

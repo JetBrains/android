@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview;
 
+import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.PsdAndroidDependencyModelComparator;
+import com.android.tools.idea.gradle.structure.configurables.ui.PsdUISettings;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsdNode;
 import com.android.tools.idea.gradle.structure.model.PsdArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsdModel;
@@ -24,21 +26,20 @@ import com.android.tools.idea.gradle.structure.model.android.PsdLibraryDependenc
 import com.google.common.collect.Lists;
 import com.intellij.ui.treeStructure.SimpleNode;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.List;
+
+import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 class LibraryDependencyNode extends AbstractDependencyNode<PsdLibraryDependencyModel> {
   @NotNull private final List<SimpleNode> myChildren = Lists.newArrayList();
 
   LibraryDependencyNode(@NotNull AbstractPsdNode parent, @NotNull PsdLibraryDependencyModel model) {
     super(parent, model);
-
-    PsdArtifactDependencySpec spec = model.getResolvedSpec();
-    if (spec == null) {
-      spec = model.getSpec();
-    }
-    myName = spec.getDisplayText();
+    myName = getText(model);
 
     List<PsdAndroidDependencyModel> transitiveDependencies = Lists.newArrayList(model.getTransitiveDependencies());
     Collections.sort(transitiveDependencies, PsdAndroidDependencyModelComparator.INSTANCE);
@@ -50,6 +51,35 @@ class LibraryDependencyNode extends AbstractDependencyNode<PsdLibraryDependencyM
         myChildren.add(child);
       }
     }
+  }
+
+  @NotNull
+  private static String getText(@NotNull PsdLibraryDependencyModel model) {
+    PsdArtifactDependencySpec resolvedSpec = model.getResolvedSpec();
+    if (resolvedSpec.version != null) {
+      PsdArtifactDependencySpec declaredSpec = model.getDeclaredSpec();
+      if (declaredSpec != null && declaredSpec.version != null) {
+        GradleVersion declaredVersion = GradleVersion.tryParse(declaredSpec.version);
+        if (declaredVersion != null) {
+          if (declaredVersion.compareTo(resolvedSpec.version) < 0) {
+            String version = declaredSpec.version + "→" + resolvedSpec.version;
+            return getTextForSpec(declaredSpec.name, version, declaredSpec.group);
+          }
+        }
+      }
+    }
+    return resolvedSpec.getDisplayText();
+  }
+
+  @NotNull
+  private static String getTextForSpec(@NotNull String name, @NotNull String version, @Nullable String group) {
+    boolean showGroupId = PsdUISettings.getInstance().DECLARED_DEPENDENCIES_SHOW_GROUP_ID;
+    StringBuilder text = new StringBuilder();
+    if (showGroupId && isNotEmpty(group)) {
+      text.append(group).append(GRADLE_PATH_SEPARATOR);
+    }
+    text.append(name).append(GRADLE_PATH_SEPARATOR).append(version);
+    return text.toString();
   }
 
   @Override
@@ -66,7 +96,7 @@ class LibraryDependencyNode extends AbstractDependencyNode<PsdLibraryDependencyM
       int modelCount = models.size();
       if (modelCount == 1) {
         PsdLibraryDependencyModel myModel = models.get(0);
-        return myModel.getSpec().equals(other.getSpec());
+        return myModel.getResolvedSpec().equals(other.getResolvedSpec());
       }
     }
     return false;
