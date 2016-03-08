@@ -68,7 +68,10 @@ public class AndroidVirtualDeviceTest extends AndroidTestBase {
     builder.put("hw.sensors.orientation", "yes");
     builder.put("hw.sensors.proximity", "yes");
     builder.put("hw.trackBall", "no");
-    builder.put("image.sysdir.1", "system-images/android-23/google_apis/x86/");
+    // AVD Manager will return a system-dependent path, so the baseline must comply
+    String systemImageDir = "system-images/android-23/google_apis/x86/".replace('/', File.separatorChar);
+    builder.put("image.sysdir.1", systemImageDir);
+
     builder.put("runtime.network.latency", "none");
     builder.put("runtime.network.speed", "full");
     builder.put("runtime.scalefactor", "auto");
