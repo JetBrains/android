@@ -32,17 +32,13 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.AppLifecycleListener;
-import com.intellij.openapi.application.Application;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.application.ex.ApplicationEx;
 import com.intellij.openapi.application.ex.ApplicationManagerEx;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.util.messages.MessageBus;
 import com.intellij.util.messages.MessageBusConnection;
-import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
 import org.jetbrains.android.actions.RunAndroidSdkManagerAction;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
@@ -67,7 +63,7 @@ public final class SdkQuickfixUtils {
    */
   @Nullable
   public static ModelWizardDialog createDialogForPaths(@Nullable Component parent, @NotNull Collection<String> requestedPaths) {
-    return createDialog(null, parent, requestedPaths, null, getSdkHandler());
+    return createDialog(null, parent, requestedPaths, null, getSdkHandler(), false);
   }
 
   /**
@@ -75,11 +71,12 @@ public final class SdkQuickfixUtils {
    *
    * @param parent The component to use as a parent for the wizard dialog.
    * @param requestedPackages The packages to install. Callers should ensure that the given packages include remote versions.
+   * @param backgroundable Whether the dialog should show a "background" button on the progress step.
    */
   @Nullable
   public static ModelWizardDialog createDialogForPackages(@Nullable Component parent,
-                                                          @NotNull Collection<UpdatablePackage> requestedPackages) {
-    return createDialog(null, parent, null, requestedPackages, getSdkHandler());
+                                                          @NotNull Collection<UpdatablePackage> requestedPackages, boolean backgroundable) {
+    return createDialog(null, parent, null, requestedPackages, getSdkHandler(), backgroundable);
   }
 
   /**
@@ -90,7 +87,7 @@ public final class SdkQuickfixUtils {
    */
   @Nullable
   public static ModelWizardDialog createDialogForPaths(@Nullable Project project, @NotNull Collection<String> requestedPaths) {
-    return createDialog(project, null, requestedPaths, null, getSdkHandler());
+    return createDialog(project, null, requestedPaths, null, getSdkHandler(), false);
   }
 
   private static AndroidSdkHandler getSdkHandler() {
@@ -114,7 +111,8 @@ public final class SdkQuickfixUtils {
                                         @Nullable Component parent,
                                         @Nullable Collection<String> requestedPaths,
                                         @Nullable Collection<UpdatablePackage> requestedPackages,
-                                        @Nullable AndroidSdkHandler sdkHandler) {
+                                        @Nullable AndroidSdkHandler sdkHandler,
+                                        boolean backgroundable) {
     if (sdkHandler == null) {
       return null;
     }
@@ -176,7 +174,8 @@ public final class SdkQuickfixUtils {
 
     ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
     wizardBuilder.addStep(new LicenseAgreementStep(new LicenseAgreementModel(mgr.getLocalPath()), installRequests));
-    wizardBuilder.addStep(new InstallSelectedPackagesStep(installRequests, mgr, sdkHandler));
+    InstallSelectedPackagesStep installStep = new InstallSelectedPackagesStep(installRequests, mgr, sdkHandler, backgroundable && skippedInstallRequests.isEmpty());
+    wizardBuilder.addStep(installStep);
     if (!skippedInstallRequests.isEmpty()) {
       HandleSkippedInstallationsModel handleSkippedInstallationsModel =
         new HandleSkippedInstallationsModel(project, skippedInstallRequests, mgr.getLocalPath());
