@@ -201,6 +201,7 @@ public class InteractionManager {
   private void updateMouse(@SwingCoordinate int x, @SwingCoordinate int y) {
     if (myCurrentInteraction != null) {
       myCurrentInteraction.update(x, y, myLastStateMask);
+      mySurface.repaint();
     }
   }
 
@@ -412,6 +413,7 @@ public class InteractionManager {
         myLastMouseY = y;
         myLastStateMask = event.getModifiersEx();
         myCurrentInteraction.update(myLastMouseX, myLastMouseY, myLastStateMask);
+        mySurface.repaint();
       } else {
         x = myLastMouseX; // initiate the drag from the mousePress location, not the point we've dragged to
         y = myLastMouseY;

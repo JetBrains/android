@@ -3,6 +3,7 @@ package icons;
 import com.intellij.openapi.util.IconLoader;
 
 import javax.swing.*;
+import java.awt.*;
 
 /**
  * Note: This file should be auto generated once build/scripts/icons.gant is part of CE.
@@ -11,6 +12,10 @@ import javax.swing.*;
 public class AndroidIcons {
   private static Icon load(String path) {
     return IconLoader.getIcon(path, AndroidIcons.class);
+  }
+
+  private static ImageIcon loadImage(String path) {
+    return new ImageIcon(AndroidIcons.class.getClassLoader().getResource(path));
   }
 
   public static final Icon Android = load("/icons/android.png"); // 16x16
@@ -198,12 +203,31 @@ public class AndroidIcons {
     public static final Icon Restart = load("/icons/run/restart.png");
   }
 
+  public static class SherpaIcons {
+    public static final Icon ShowConstraints = load("/icons/sherpa/show_constraints.png");
+    public static final Icon ShowNoConstraints = load("/icons/sherpa/show_no_constraints.png");
+    public static final Icon ShowText = load("/icons/sherpa/show_text.png");
+    public static final Icon ShowNoText = load("/icons/sherpa/show_no_text.png");
+    public static final Icon ShowBlueprintOn = load("/icons/sherpa/switch_blueprint_on.png");
+    public static final Icon ShowBlueprintOff = load("/icons/sherpa/switch_blueprint_off.png");
+    public static final Icon ShowBlueprintBoth = load("/icons/sherpa/switch_blueprint_both.png");
+    public static final Icon ShowInfoIdOn = load("/icons/sherpa/info_on.png");
+    public static final Icon ShowInfoIdOff = load("/icons/sherpa/info_off.png");
+    public static final ImageIcon Delete = loadImage("/icons/sherpa/delete.png");
+    public static final ImageIcon LeftConstraintCursor = loadImage("/icons/sherpa/left_constraint_cursor.png");
+    public static final ImageIcon TopConstraintCursor = loadImage("/icons/sherpa/top_constraint_cursor.png");
+    public static final ImageIcon RightConstraintCursor = loadImage("/icons/sherpa/right_constraint_cursor.png");
+    public static final ImageIcon BottomConstraintCursor = loadImage("/icons/sherpa/bottom_constraint_cursor.png");
+    public static final ImageIcon BaselineConstraintCursor = loadImage("/icons/sherpa/baseline_constraint_cursor.png");
+    public static final ImageIcon UnlinkConstraintCursor = loadImage("/icons/sherpa/unlink_constraint_cursor.png");
+  }
+
   public static class Views {
     public static final Icon AbsoluteLayout = load("/icons/views/AbsoluteLayout.png"); // 16x16
     public static final Icon AdapterViewFlipper = load("/icons/views/AdapterViewFlipper.png"); // 16x16
     public static final Icon AdView = load("/icons/views/AdView.png"); // 16x16
     public static final Icon AnalogClock = load("/icons/views/AnalogClock.png"); // 16x16
-    public static final Icon AppBarLayout = load("/icons/views/AppBarLayout.png"); // 16x16
+    public static final Icon AppbarLayout = load("/icons/views/AppBarLayout.png"); // 16x16
     public static final Icon AutoCompleteTextView = load("/icons/views/AutoCompleteTextView.png"); // 16x16
     public static final Icon BrowseFragment = load("/icons/views/BrowseFragment.png"); // 16x16
     public static final Icon Button = load("/icons/views/Button.png"); // 16x16

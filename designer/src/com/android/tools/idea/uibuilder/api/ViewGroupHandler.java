@@ -17,15 +17,13 @@ package com.android.tools.idea.uibuilder.api;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
-import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
-import com.android.tools.idea.uibuilder.model.FillPolicy;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.SegmentType;
+import com.android.tools.idea.uibuilder.model.*;
 import org.intellij.lang.annotations.Language;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.Interaction;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 
+import java.awt.*;
 import java.util.List;
 
 /**
@@ -164,5 +162,31 @@ public class ViewGroupHandler extends ViewHandler {
   @Override
   public FillPolicy getFillPolicy() {
     return FillPolicy.BOTH;
+  }
+
+  /**
+   * Returns true to handles painting the component
+   *
+   * @return true if the ViewGroupHandler want to be in charge of painting
+   */
+  public boolean handlesPainting() {
+    return false;
+  }
+
+  /**
+   * Paint the component and its children on the given context
+   *
+   * @param gc graphics context
+   * @param screenView the current screenview
+   * @param width width of the surface
+   * @param height height of the surface
+   * @param component the component to draw
+   *
+   * @return true to indicate that we will need to be repainted
+   */
+  public boolean drawGroup(@NonNull Graphics2D gc, @NonNull ScreenView screenView,
+                           int width, int height, @NonNull NlComponent component) {
+    // do nothing here, subclasses need to override this and handlesPainting() to be called
+    return false;
   }
 }

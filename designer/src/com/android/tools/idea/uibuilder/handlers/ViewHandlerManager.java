@@ -19,6 +19,7 @@ import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
+import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler;
 import com.android.tools.idea.uibuilder.handlers.google.AdViewHandler;
 import com.android.tools.idea.uibuilder.handlers.google.MapFragmentHandler;
 import com.android.tools.idea.uibuilder.handlers.google.MapViewHandler;
@@ -198,6 +199,12 @@ public class ViewHandlerManager implements ProjectComponent {
     }
     if (RELATIVE_LAYOUT.equals(viewTag) || FQCN_RELATIVE_LAYOUT.equals(viewTag) || DIALER_FILTER.equals(viewTag)) {
       return new RelativeLayoutHandler();
+    }
+    if (CONSTRAINT_LAYOUT.equals(viewTag)) {
+      return new ConstraintLayoutHandler();
+    }
+    if (TABLE_CONSTRAINT_LAYOUT.equals(viewTag)) {
+      return new ConstraintLayoutHandler();
     }
     if (SCROLL_VIEW.equals(viewTag)) {
       return new ScrollViewHandler();
