@@ -25,8 +25,8 @@ import com.android.tools.idea.tests.gui.framework.fixture.CreateFileFromTemplate
 import com.android.tools.idea.tests.gui.framework.fixture.CreateFileFromTemplateDialogFixture.Kind;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.JavaOverrideImplementMemberChooserFixture;
-import com.intellij.ide.actions.as.CreateFileFromTemplateDialog.Visibility;
-import com.intellij.ide.actions.as.CreateNewClassDialogValidatorExImpl;
+import com.intellij.androidstudio.actions.CreateFileFromTemplateDialog.Visibility;
+import com.intellij.androidstudio.actions.CreateNewClassDialogValidatorExImpl;
 import org.fest.swing.query.ComponentVisibleQuery;
 import org.junit.Before;
 import org.junit.Rule;
@@ -374,10 +374,7 @@ public class CreateNewClassDialogGuiTest {
     dialog.setPackage(PACKAGE_NAME_0);
     dialog.setVisibility(Visibility.PUBLIC);
     dialog.clickOk();
-    dialog.waitForErrorMessageToAppear();
-    String actualMessage = dialog.getMessage();
-    String expectedMessage = CreateNewClassDialogValidatorExImpl.INVALID_QUALIFIED_NAME;
-    assertEquals(expectedMessage, actualMessage.replaceAll("\n", " "));
+    dialog.waitForErrorMessageToAppear(CreateNewClassDialogValidatorExImpl.INVALID_QUALIFIED_NAME);
     dialog.clickCancel();
   }
 
@@ -390,10 +387,7 @@ public class CreateNewClassDialogGuiTest {
     dialog.setPackage(PACKAGE_NAME_0);
     dialog.setVisibility(Visibility.PUBLIC);
     dialog.clickOk();
-    dialog.waitForErrorMessageToAppear();
-    String actualMessage = dialog.getMessage();
-    String expectedMessage = CreateNewClassDialogValidatorExImpl.INVALID_QUALIFIED_NAME;
-    assertEquals(expectedMessage, actualMessage.replaceAll("\n", " "));
+    dialog.waitForErrorMessageToAppear(CreateNewClassDialogValidatorExImpl.INVALID_QUALIFIED_NAME);
     dialog.clickCancel();
   }
 
@@ -406,10 +400,7 @@ public class CreateNewClassDialogGuiTest {
     dialog.setPackage(PACKAGE_NAME_0);
     dialog.setVisibility(Visibility.PUBLIC);
     dialog.clickOk();
-    dialog.waitForErrorMessageToAppear();
-    String actualMessage = dialog.getMessage();
-    String expectedMessage = CreateNewClassDialogValidatorExImpl.INVALID_QUALIFIED_NAME;
-    assertEquals(expectedMessage, actualMessage.replaceAll("\n", " "));
+    dialog.waitForErrorMessageToAppear(CreateNewClassDialogValidatorExImpl.INVALID_QUALIFIED_NAME);
     dialog.clickCancel();
   }
 
@@ -421,9 +412,7 @@ public class CreateNewClassDialogGuiTest {
     dialog.setPackage(INVALID_PACKAGE_NAME);
     dialog.setVisibility(Visibility.PUBLIC);
     dialog.clickOk();
-    dialog.waitForErrorMessageToAppear();
-    String actualMessage = dialog.getMessage();
-    assertEquals(CreateNewClassDialogValidatorExImpl.INVALID_PACKAGE_MESSAGE, actualMessage.replaceAll("\n", " "));
+    dialog.waitForErrorMessageToAppear(CreateNewClassDialogValidatorExImpl.INVALID_PACKAGE_MESSAGE);
     dialog.clickCancel();
   }
 
@@ -456,9 +445,7 @@ public class CreateNewClassDialogGuiTest {
     dialog.selectKind(Kind.CLASS);
     dialog.setInterface("java.lang.Object");
     dialog.clickAddInterfaceButton();
-    dialog.waitForErrorMessageToAppear();
-    String actualMessage = dialog.getMessage();
-    assertEquals(CreateNewClassDialogValidatorExImpl.INVALID_QUALIFIED_NAME, actualMessage);
+    dialog.waitForErrorMessageToAppear(CreateNewClassDialogValidatorExImpl.INVALID_QUALIFIED_NAME);
     dialog.clickCancel();
   }
 
@@ -469,9 +456,7 @@ public class CreateNewClassDialogGuiTest {
     dialog.selectKind(Kind.CLASS);
     dialog.setSuperclass("java.lang.Runnable");
     dialog.clickOk();
-    dialog.waitForErrorMessageToAppear();
-    String actualMessage = dialog.getMessage();
-    assertEquals(CreateNewClassDialogValidatorExImpl.INVALID_QUALIFIED_NAME, actualMessage);
+    dialog.waitForErrorMessageToAppear(CreateNewClassDialogValidatorExImpl.INVALID_QUALIFIED_NAME);
     dialog.clickCancel();
   }
 
