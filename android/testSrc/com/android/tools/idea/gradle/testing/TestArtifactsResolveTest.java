@@ -88,6 +88,31 @@ public class TestArtifactsResolveTest extends TestArtifactsCodeInsightTest {
     assertNotNull(resolveReferenceAtCaret());
   }
 
+  public void testMultiModuleAndroidSourceNotResolvableInTests() throws Exception {
+    setFileContent("module2/src/androidTest/java/MyClass.java", "class MyClass {}");
+
+    String importString = "import MyC<caret>lass;";
+    setFileContent("module3/src/test/java/Test.java", importString);
+    assertNull(resolveReferenceAtCaret());
+
+    // TODO depended android tests should also have no access to the code
+    //setFileContent("module3/src/androidTest/java/AndroidTest.java", importString);
+    //assertNull(resolveReferenceAtCaret());
+  }
+
+  public void testMultiModuleUnitSourceNotResolvableInTests() throws Exception {
+    setFileContent("module2/src/test/java/MyClass.java", "class MyClass {}");
+
+    String importString = "import MyC<caret>lass;";
+    setFileContent("module3/src/androidTest/java/Test.java", importString);
+    assertNull(resolveReferenceAtCaret());
+
+    // TODO depended unit tests should also have no access to the code
+    //setFileContent("module3/src/androidTest/java/AndroidTest.java", importString);
+    //assertNull(resolveReferenceAtCaret());
+  }
+
+
   @Nullable
   private PsiElement resolveReferenceAtCaret() {
     return myFixture.getReferenceAtCaretPositionWithAssertion().resolve();
