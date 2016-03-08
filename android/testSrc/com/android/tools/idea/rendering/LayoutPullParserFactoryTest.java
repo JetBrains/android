@@ -17,6 +17,8 @@ package com.android.tools.idea.rendering;
 
 import com.android.ide.common.rendering.api.ILayoutPullParser;
 import com.android.ide.common.xml.XmlPrettyPrinter;
+import com.android.utils.SdkUtils;
+import com.google.common.base.Joiner;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiManager;
 import org.w3c.dom.Element;
@@ -45,14 +47,17 @@ public class LayoutPullParserFactoryTest extends RenderTestBase {
     assertTrue(parser instanceof DomPullParser);
     Element root = ((DomPullParser)parser).getRoot();
 
-    String layout = XmlPrettyPrinter.prettyPrint(root, true);
-    assertEquals(
-      "<ImageView\n" +
-      "xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-      "layout_width=\"fill_parent\"\n" +
-      "layout_height=\"fill_parent\"\n" +
-      "src=\"@drawable/progress_horizontal\" />\n",
-      layout);
+    String actualLayout = XmlPrettyPrinter.prettyPrint(root, true);
+    String expectedLayout = Joiner.on(SdkUtils.getLineSeparator()).join(
+      "<ImageView",
+      "xmlns:android=\"http://schemas.android.com/apk/res/android\"",
+      "layout_width=\"fill_parent\"",
+      "layout_height=\"fill_parent\"",
+      "src=\"@drawable/progress_horizontal\" />",
+      ""
+    );
+
+    assertEquals(expectedLayout, actualLayout);
 
     checkRendering(task, "drawable/progress_horizontal.png");
   }
