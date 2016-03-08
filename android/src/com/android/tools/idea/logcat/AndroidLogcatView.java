@@ -81,13 +81,6 @@ public abstract class AndroidLogcatView implements Disposable {
   private final AndroidLogcatFilter myNoFilter;
 
   /**
-   * A filter which represents the current app, which is updated every time the app pulldown is
-   * changed. Will be null until UI initialization happens.
-   */
-  @Nullable
-  private AndroidLogcatFilter mySelectedAppFilter;
-
-  /**
    * Called internally when the device may have changed, or been significantly altered.
    * @param forceReconnect Forces the logcat connection to restart even if the device has not changed.
    */
@@ -150,28 +143,24 @@ public abstract class AndroidLogcatView implements Disposable {
 
     myLogFilterModel =
       new AndroidLogFilterModel() {
-        @Nullable private AndroidLogcatFilter myFilter;
+
+        private AndroidLogcatPreferences getPreferences() {
+          return AndroidLogcatPreferences.getInstance(project);
+        }
 
         @Override
         protected void saveLogLevel(String logLevelName) {
-          AndroidLogcatPreferences.getInstance(project).TOOL_WINDOW_LOG_LEVEL = logLevelName;
+          getPreferences().TOOL_WINDOW_LOG_LEVEL = logLevelName;
         }
 
         @Override
         public String getSelectedLogLevelName() {
-          return AndroidLogcatPreferences.getInstance(project).TOOL_WINDOW_LOG_LEVEL;
+          return getPreferences().TOOL_WINDOW_LOG_LEVEL;
         }
 
         @Override
-        protected void setLogcatFilter(@Nullable AndroidLogcatFilter filter) {
-          AndroidLogcatPreferences.getInstance(project).TOOL_WINDOW_CONFIGURED_FILTER = filter != null ? filter.getName() : "";
-          myFilter = filter;
-        }
-
-        @Nullable
-        @Override
-        protected AndroidLogcatFilter getLogcatFilter() {
-          return myFilter;
+        protected void saveConfiguredFilterName(String filterName) {
+          getPreferences().TOOL_WINDOW_CONFIGURED_FILTER = filterName;
         }
       };
 
@@ -382,8 +371,7 @@ public abstract class AndroidLogcatView implements Disposable {
     }
     // Even if "client" is null, create a dummy "Selected app" filter as a placeholder which will
     // be replaced when a client is eventually created.
-    mySelectedAppFilter = selectedAppFilterBuilder.build();
-    myFilterComboBoxModel.insertElementAt(mySelectedAppFilter, insertIndex++);
+    myFilterComboBoxModel.insertElementAt(selectedAppFilterBuilder.build(), insertIndex++);
 
     for (LogcatFilterProvider filterProvider : LogcatFilterProvider.EP_NAME.getExtensions()) {
       AndroidLogcatFilter filter = filterProvider.getFilter(client);

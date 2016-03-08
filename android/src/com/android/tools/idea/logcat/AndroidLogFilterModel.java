@@ -65,6 +65,8 @@ public abstract class AndroidLogFilterModel extends LogFilterModel {
   private boolean myCustomApplicable = false; // True if myCustomPattern matches this message
   private boolean myConfiguredApplicable = false;  // True if the active filter matches this message
 
+  @Nullable private AndroidLogcatFilter myConfiguredFilter;
+
   private final ImmutableList<AndroidLogLevelFilter> myLogLevelFilters;
 
   public AndroidLogFilterModel() {
@@ -91,15 +93,12 @@ public abstract class AndroidLogFilterModel extends LogFilterModel {
   }
 
   public final void updateLogcatFilter(@Nullable AndroidLogcatFilter filter) {
-    setLogcatFilter(filter);
+    saveConfiguredFilterName(filter != null ? filter.getName() : "");
+    myConfiguredFilter = filter;
     fireTextFilterChange();
   }
 
-  protected abstract void setLogcatFilter(@Nullable AndroidLogcatFilter filter);
-
-  @Nullable
-  protected abstract AndroidLogcatFilter getLogcatFilter();
-
+  protected abstract void saveConfiguredFilterName(String filterName);
   protected abstract void saveLogLevel(String logLevelName);
 
   @Override
@@ -177,13 +176,12 @@ public abstract class AndroidLogFilterModel extends LogFilterModel {
   // this should ONLY be called if myPrevHeader was already set (which is how the filter will test
   // against header information).
   private boolean isApplicableByConfiguredFilter(@NotNull String message) {
-    final AndroidLogcatFilter filter = getLogcatFilter();
-    if (filter == null) {
+    if (myConfiguredFilter == null) {
       return true;
     }
 
     assert myPrevHeader != null; // We never call this method unless we already parsed a header
-    return filter
+    return myConfiguredFilter
       .isApplicable(message, myPrevHeader.getTag(), myPrevHeader.getAppName(), myPrevHeader.getPid(), myPrevHeader.getLogLevel());
   }
 
