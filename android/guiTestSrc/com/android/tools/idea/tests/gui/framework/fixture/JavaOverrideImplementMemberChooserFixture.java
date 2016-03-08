@@ -21,7 +21,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class JavaOverrideImplementMemberChooserFixture extends IdeaDialogFixture<JavaOverrideImplementMemberChooser> {
   JavaOverrideImplementMemberChooserFixture(@NotNull Robot robot,
-                                                      @NotNull DialogAndWrapper<JavaOverrideImplementMemberChooser> dialogAndWrapper) {
+                                            @NotNull DialogAndWrapper<JavaOverrideImplementMemberChooser> dialogAndWrapper) {
     super(robot, dialogAndWrapper);
   }
 

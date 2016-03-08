@@ -20,7 +20,6 @@ import com.android.tools.lint.detector.api.TextFormat;
 import com.intellij.ide.actions.TemplateKindCombo;
 import com.intellij.ide.actions.as.CreateFileFromTemplateDialog;
 import com.intellij.ide.actions.as.CreateFileFromTemplateDialog.Visibility;
-import com.intellij.ide.fileTemplates.JavaTemplateUtil;
 import com.intellij.ui.EditorTextField;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiActionRunner;
@@ -72,12 +71,7 @@ public class CreateFileFromTemplateDialogFixture extends IdeaDialogFixture<Creat
   public CreateFileFromTemplateDialogFixture setPackage(@NotNull final String newPackage) {
     final EditorTextField packageField = robot().finder().findByLabel(target(), "Package:", EditorTextField.class);
     GuiActionRunner.execute(new SelectFieldTask(packageField));
-    GuiActionRunner.execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
-        packageField.setText(newPackage);
-      }
-    });
+    GuiTests.setText(packageField, newPackage);
     return this;
   }
 
@@ -138,20 +132,20 @@ public class CreateFileFromTemplateDialogFixture extends IdeaDialogFixture<Creat
   public void setInterface(@NotNull String iface) {
     EditorTextField interfacesField = robot().finder().findByLabel(target(), "Interface(s):", EditorTextField.class);
     GuiActionRunner.execute(new SelectFieldTask(interfacesField));
-    robot().enterText(iface);
+    GuiTests.setText(interfacesField, iface);
   }
 
   public void setSuperclass(@NotNull String superclass) {
     EditorTextField superclassField = robot().finder().findByLabel(target(), "Superclass:", EditorTextField.class);
     GuiActionRunner.execute(new SelectFieldTask(superclassField));
-    robot().enterText(superclass);
+    GuiTests.setText(superclassField, superclass);
   }
 
   public enum Kind {
-    CLASS("class", JavaTemplateUtil.INTERNAL_CLASS_TEMPLATE_NAME),
-    ENUM("enum", JavaTemplateUtil.INTERNAL_ENUM_TEMPLATE_NAME),
-    INTERFACE("interface", JavaTemplateUtil.INTERNAL_INTERFACE_TEMPLATE_NAME),
-    ANNOTATION("@interface", JavaTemplateUtil.INTERNAL_ANNOTATION_TYPE_TEMPLATE_NAME);
+    CLASS("class", "ASClass"),
+    ENUM("enum", "ASEnum"),
+    INTERFACE("interface", "ASInterface"),
+    ANNOTATION("@interface", "ASAnnotationType");
 
     private final String myKindName;
     private final String myTemplateName;
