@@ -16,14 +16,12 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.tools.idea.tests.gui.framework.GuiTests;
-import com.android.tools.lint.detector.api.TextFormat;
+import com.intellij.androidstudio.actions.CreateFileFromTemplateDialog;
+import com.intellij.androidstudio.actions.CreateFileFromTemplateDialog.Visibility;
 import com.intellij.ide.actions.TemplateKindCombo;
-import com.intellij.ide.actions.as.CreateFileFromTemplateDialog;
-import com.intellij.ide.actions.as.CreateFileFromTemplateDialog.Visibility;
 import com.intellij.ui.EditorTextField;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiActionRunner;
-import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.exception.ComponentLookupException;
 import org.fest.swing.timing.Condition;
@@ -76,12 +74,12 @@ public class CreateFileFromTemplateDialogFixture extends IdeaDialogFixture<Creat
   }
 
   @NotNull
-  public CreateFileFromTemplateDialogFixture waitForErrorMessageToAppear() {
+  public CreateFileFromTemplateDialogFixture waitForErrorMessageToAppear(@NotNull final String errorMessage) {
     pause(new Condition("an error message to appear") {
       @Override
       public boolean test() {
         try {
-          robot().finder().findByName(target(), "error_text_label", JLabel.class);
+          GuiTests.findLabelByText(CreateFileFromTemplateDialogFixture.this, errorMessage);
           return true;
         }
         catch (ComponentLookupException e) {
@@ -176,20 +174,6 @@ public class CreateFileFromTemplateDialogFixture extends IdeaDialogFixture<Creat
     protected void executeInEDT() throws Throwable {
       myJComponent.requestFocus();
     }
-  }
-
-  public String getHtml() {
-    final JLabel errorMessage = robot().finder().findByName(target(), "error_text_label", JLabel.class);
-    return GuiActionRunner.execute(new GuiQuery<String>() {
-      @Override
-      protected String executeInEDT() throws Throwable {
-        return errorMessage.getText();
-      }
-    });
-  }
-
-  public String getMessage() {
-    return TextFormat.HTML.convertTo(getHtml(), TextFormat.TEXT).trim();
   }
 
   public enum ComponentVisibility {
