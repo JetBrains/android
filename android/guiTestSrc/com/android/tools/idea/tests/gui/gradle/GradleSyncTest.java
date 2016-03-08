@@ -420,7 +420,7 @@ public class GradleSyncTest {
 
   // See https://code.google.com/p/android/issues/detail?id=75060
   @Test
-  @Ignore("failed in http://go/aj/job/studio-ui-test/389 and when run individually from IDEA")
+  @Ignore("failed in http://go/aj/job/studio-ui-test/389 and when run individually from IDEA, Windows OK")
   public void testHandlingOfOutOfMemoryErrors() throws IOException {
     guiTest.importSimpleApplication();
 
@@ -766,7 +766,6 @@ public class GradleSyncTest {
     syncMessages.findMessage(ERROR, firstLineStartingWith("Failed to resolve: com.android.support:appcompat-v7:"));
   }
 
-  @Ignore("failed in http://go/aj/job/studio-ui-test/417 and from IDEA")
   @Test
   public void testImportProjectWithoutWrapper() throws IOException {
     GradleExperimentalSettings settings = GradleExperimentalSettings.getInstance();
@@ -1055,7 +1054,6 @@ public class GradleSyncTest {
 
   // Verifies that the IDE, during sync, asks the user to copy IDE proxy settings to gradle.properties, if applicable.
   // See https://code.google.com/p/android/issues/detail?id=65325
-  @Ignore("failed in http://go/aj/job/studio-ui-test/389 and when run individually from IDEA")
   @Test
   public void testWithIdeProxySettings() throws IOException {
     System.getProperties().setProperty("show.do.not.copy.http.proxy.settings.to.gradle", "true");
@@ -1075,18 +1073,9 @@ public class GradleSyncTest {
     guiTest.ideFrame().requestProjectSync();
 
     // Expect IDE to ask user to copy proxy settings.
-    MessagesFixture message = guiTest.ideFrame().findMessageDialog("Proxy Settings");
-    JCheckBox checkBox = message.find(new GenericTypeMatcher<JCheckBox>(JCheckBox.class) {
-      @Override
-      protected boolean isMatching(@NotNull JCheckBox c) {
-        return c.isVisible() && c.isShowing() && "Do not show this dialog in the future".equals(c.getText());
-      }
-    });
-    assertNotNull(checkBox);
-    JCheckBoxFixture checkBoxFixture = new JCheckBoxFixture(guiTest.robot(), checkBox);
-    checkBoxFixture.setSelected(true);
-
-    message.clickYes();
+    ProxySettingsDialogFixture proxyDialog = ProxySettingsDialogFixture.find(guiTest.robot());
+    proxyDialog.setDoNotShowThisDialog(true);
+    proxyDialog.clickOk();
 
     guiTest.ideFrame().waitForGradleProjectSyncToStart().waitForGradleProjectSyncToFinish();
 
