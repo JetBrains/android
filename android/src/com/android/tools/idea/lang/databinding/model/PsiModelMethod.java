@@ -72,6 +72,11 @@ public class PsiModelMethod extends ModelMethod {
   }
 
   @Override
+  public boolean isProtected() {
+    return myPsiMethod.hasModifierProperty(PsiModifier.PROTECTED);
+  }
+
+  @Override
   public boolean isStatic() {
     return myPsiMethod.hasModifierProperty(PsiModifier.STATIC);
   }
