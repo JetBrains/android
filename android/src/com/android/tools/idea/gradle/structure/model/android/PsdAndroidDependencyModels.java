@@ -30,6 +30,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -277,7 +278,7 @@ class PsdAndroidDependencyModels {
         models.add(model);
       }
     }
-    for (PsdAndroidDependencyModel model : myModuleDependencies.values()) {
+    for (PsdAndroidDependencyModel model : getModuleDependencies()) {
       if (model.isEditable()) {
         models.add(model);
       }
@@ -289,8 +290,13 @@ class PsdAndroidDependencyModels {
   public List<PsdAndroidDependencyModel> getDependencies() {
     List<PsdAndroidDependencyModel> dependencies = Lists.newArrayList();
     dependencies.addAll(myLibraryDependencies.values());
-    dependencies.addAll(myModuleDependencies.values());
+    dependencies.addAll(getModuleDependencies());
     return dependencies;
+  }
+
+  @NotNull
+  public Collection<PsdModuleDependencyModel> getModuleDependencies() {
+    return myModuleDependencies.values();
   }
 
   @Nullable
