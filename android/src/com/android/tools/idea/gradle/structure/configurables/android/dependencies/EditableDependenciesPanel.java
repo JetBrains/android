@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies;
 
+import com.android.tools.idea.gradle.structure.configurables.PsdContext;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.editor.DependencyEditor;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.editor.LibraryDependencyEditor;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.DependencySelection;
@@ -74,7 +75,7 @@ class EditableDependenciesPanel extends JPanel implements DependencySelection, D
 
   private List<AbstractPopupAction> myPopupActions;
 
-  EditableDependenciesPanel(@NotNull PsdAndroidModuleModel moduleModel) {
+  EditableDependenciesPanel(@NotNull PsdAndroidModuleModel moduleModel, @NotNull PsdContext context) {
     super(new BorderLayout());
     myModuleModel = moduleModel;
 
@@ -82,7 +83,7 @@ class EditableDependenciesPanel extends JPanel implements DependencySelection, D
     myDependenciesTableModel = new EditableDependenciesTableModel(dependencies);
     myDependenciesTable = new TableView<PsdAndroidDependencyModel>(myDependenciesTableModel);
 
-    initializeEditors();
+    initializeEditors(context);
     myEmptyEditorPanel = new EmptyEditorPanel();
     myEditorScrollPane = createScrollPane(myEmptyEditorPanel);
     myEditorScrollPane.setBorder(createEmptyBorder());
@@ -206,8 +207,8 @@ class EditableDependenciesPanel extends JPanel implements DependencySelection, D
     }
   }
 
-  private void initializeEditors() {
-    addEditor(new LibraryDependencyEditor());
+  private void initializeEditors(@NotNull PsdContext context) {
+    addEditor(new LibraryDependencyEditor(context));
   }
 
   private void addEditor(@NotNull DependencyEditor<?> editor) {
@@ -256,6 +257,7 @@ class EditableDependenciesPanel extends JPanel implements DependencySelection, D
     else {
       myDependenciesTable.setSelection(Collections.singleton(selection));
     }
+    updateEditor();
 
     // Add ListSelectionListener again, to react when user selects a table cell directly.
     tableSelectionModel.addListSelectionListener(myTableSelectionListener);
