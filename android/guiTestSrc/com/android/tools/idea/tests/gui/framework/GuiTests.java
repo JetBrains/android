@@ -538,6 +538,11 @@ public final class GuiTests {
     });
   }
 
+  /**
+   * @deprecated Instead use {@link org.fest.swing.fixture.JCheckBoxFixture},
+   *     which simulates keyboard input rather than manipulating UI components directly.
+   */
+  @Deprecated
   public static void setSelected(@NotNull final JCheckBox checkBox, final boolean selected) {
     execute(new GuiTask() {
       @Override
