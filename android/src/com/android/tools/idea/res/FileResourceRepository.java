@@ -128,6 +128,7 @@ public class FileResourceRepository extends LocalResourceRepository {
 
     ResourceSet resourceSet = new ResourceSet(file.getName(), false /* validateEnabled */);
     resourceSet.addSource(file);
+    resourceSet.setTrackSourcePositions(false);
     try {
       resourceSet.loadFromFiles(logger);
     }

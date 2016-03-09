@@ -268,6 +268,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
       myResourceSet = myResourceMerger.getDataSets().get(0);
       myResourceSet.setShouldParseResourceIds(true);
       myResourceSet.setDontNormalizeQualifiers(true);
+      myResourceSet.setTrackSourcePositions(false);
       myILogger = new LogWrapper(LOG);
       myResourceDir = resourceDir;
     }
