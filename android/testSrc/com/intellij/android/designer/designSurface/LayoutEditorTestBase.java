@@ -46,20 +46,6 @@ import java.io.File;
 import java.util.Collections;
 
 public abstract class LayoutEditorTestBase extends AndroidTestCase {
-  @Override
-  public void setUp() throws Exception {
-    super.setUp();
-  }
-
-  @Override
-  public void tearDown() throws Exception {
-    try {
-      // Prevent LeakHunter from flagging this as a memory leak (RadViewLayout.INSTANCE points to the last seen component).
-      RadViewLayout.INSTANCE.setContainer(null);
-    } finally {
-      super.tearDown();
-    }
-  }
 
   @Override
   protected boolean requireRecentSdk() {
