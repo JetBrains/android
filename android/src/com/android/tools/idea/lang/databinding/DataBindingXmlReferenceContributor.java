@@ -247,7 +247,7 @@ public class DataBindingXmlReferenceContributor extends PsiReferenceContributor 
 
         if (!hasInvalidArg) {
           // todo check static
-          ModelMethod method = psiModelClass.getMethod(methodExpr.getMethodName().getText(), args, false);
+          ModelMethod method = psiModelClass.getMethod(methodExpr.getMethodName().getText(), args, false, false);
           if (method instanceof PsiModelMethod) {
             return toArray(new PsiMethodReference(methodExpr, ((PsiModelMethod)method).getPsiMethod()));
           }
