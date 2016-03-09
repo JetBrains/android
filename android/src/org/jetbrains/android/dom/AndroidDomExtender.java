@@ -576,6 +576,12 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
           registerToolsAttribute(ATTR_LISTHEADER, callback);
           registerToolsAttribute(ATTR_LISTFOOTER, callback);
         }
+
+        final PsiClass drawerLayout = classMap.get(CLASS_DRAWER_LAYOUT);
+        if (drawerLayout != null && psiClass != null &&
+            (psiClass.isEquivalentTo(drawerLayout) || psiClass.isInheritor(drawerLayout, true))) {
+          registerToolsAttribute(ATTR_OPEN_DRAWER, callback);
+        }
       }
     }
     else if (element instanceof XmlResourceElement) {

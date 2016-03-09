@@ -71,6 +71,7 @@ public class ToolsAttributeUtil {
     .put(ATTR_LAYOUT, singletonList(AttributeFormat.Reference))
     .put(ATTR_LOCALE, NO_FORMATS)
     .put(ATTR_MENU, NO_FORMATS)
+    .put(ATTR_OPEN_DRAWER, singletonList(AttributeFormat.Enum))
     .put(ATTR_SHOW_IN, singletonList(AttributeFormat.Reference))
     .put(ATTR_TARGET_API, NO_FORMATS)
     // Manifest merger attributes
@@ -83,6 +84,7 @@ public class ToolsAttributeUtil {
   /** List of converters to be applied to some of the attributes */
   private static final ImmutableMap<String, ResolvingConverter> CONVERTERS = ImmutableMap.<String, ResolvingConverter>builder()
     .put(ATTR_ACTION_BAR_NAV_MODE, new StaticEnumConverter("standard", "list", "tabs"))
+    .put(ATTR_OPEN_DRAWER, new StaticEnumConverter("start", "end", "left", "right"))
     .put(ATTR_CONTEXT, ACTIVITY_CLASS_CONVERTER)
     .put(ATTR_LISTFOOTER, LAYOUT_REFERENCE_CONVERTER)
     .put(ATTR_LISTHEADER, LAYOUT_REFERENCE_CONVERTER)
