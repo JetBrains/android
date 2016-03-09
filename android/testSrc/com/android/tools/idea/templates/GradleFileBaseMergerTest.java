@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,18 +19,27 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 
 /**
- * Test gradle merging by PSI tree implementation
+ * This is a base class for 2 tests that test methods.
+ * Each test will supply its own version of {@link #mergeGradleFile}.
  */
-public class GradleFileMergerTest extends AndroidTestCase {
+@SuppressWarnings("unused")
+public abstract class GradleFileBaseMergerTest extends AndroidTestCase {
+
+  /**
+   * This method is implemented in the 2 actual tests: {@link GradleFilePsiMergerTest} and {@link GradleFileSimpleMergerTest}.
+   */
+  public abstract String mergeGradleFile(@NotNull String source, @NotNull String dest, @Nullable Project project,
+                                         @Nullable final String supportLibVersionFilter);
 
   public void testProjectDisposal() throws Exception {
     Project[] openProjects = ProjectManager.getInstance().getOpenProjects();
-    checkFileMerge("templates/Base.gradle", "templates/NewFlavor.gradle", "templates/MergedNewFlavor.gradle", null);
+    checkFileMerge("templates/Base.gradle", "templates/NewFlavor.gradle", "templates/MergedNewFlavor.gradle");
     Project[] postMergeOpenProjects = ProjectManager.getInstance().getOpenProjects();
     assertFalse(postMergeOpenProjects.length > openProjects.length);
     for (Project p : postMergeOpenProjects) {
@@ -53,39 +62,20 @@ public class GradleFileMergerTest extends AndroidTestCase {
   }
 
   public void testMergeDependencies() throws Exception {
-    checkDependencyMerge("templates/Base.gradle", "templates/NewDependencies.gradle", "templates/MergedNewDependencies.gradle");
+    checkFileMerge("templates/Base.gradle", "templates/NewDependencies.gradle", "templates/MergedNewDependencies.gradle");
   }
 
   public void testMergeCloudDependencies() throws Exception {
-    checkDependencyMerge("templates/Base.gradle", "templates/CloudDependencies.gradle", "templates/MergedCloudDependencies.gradle");
+    checkFileMerge("templates/Base.gradle", "templates/CloudDependencies.gradle", "templates/MergedCloudDependencies.gradle");
   }
 
   public void testMergeCloudDependenciesDuplicate() throws Exception {
-    checkDependencyMerge("templates/Base.gradle", "templates/CloudDependenciesDuplicate.gradle",
-                         "templates/MergedCloudDependenciesDuplicate.gradle");
+    checkFileMerge("templates/Base.gradle", "templates/CloudDependenciesDuplicate.gradle",
+                   "templates/MergedCloudDependenciesDuplicate.gradle");
   }
 
   public void testMergeCloudDependenciesExclude() throws Exception {
-    checkDependencyMerge("templates/BaseExclude.gradle", "templates/CloudDependencies.gradle",
-                         "templates/MergedCloudDependenciesExclude.gradle");
-  }
-
-  private void checkDependencyMerge(String destPath, String srcPath, String goldenPath) {
-    File destFile = new File(getTestDataPath(), FileUtil.toSystemDependentName(destPath));
-    String dest = TemplateUtils.readTextFromDisk(destFile);
-    assertNotNull(dest);
-
-    File srcFile = new File(getTestDataPath(), FileUtil.toSystemDependentName(srcPath));
-    String source = TemplateUtils.readTextFromDisk(srcFile);
-    assertNotNull(source);
-
-    File goldenFile = new File(getTestDataPath(), FileUtil.toSystemDependentName(goldenPath));
-    String golden = TemplateUtils.readTextFromDisk(goldenFile);
-    assertNotNull(golden);
-
-    // Strip comments from merged file
-    assertEquals(golden.replaceAll("\\s+","\n"),
-                 GradleFileMerger.mergeGradleFiles(source, dest, getProject(), null).replaceAll("\\s+//.*", "").replaceAll("\\s+", "\n"));
+    checkFileMerge("templates/BaseExclude.gradle", "templates/CloudDependencies.gradle", "templates/MergedCloudDependenciesExclude.gradle");
   }
 
   public void testRemapFlavorAssetDir() throws Exception {
@@ -101,11 +91,6 @@ public class GradleFileMergerTest extends AndroidTestCase {
   }
 
   private void checkFileMerge(@Nullable String destPath, @Nullable String srcPath, @Nullable String goldenPath) throws Exception {
-    checkFileMerge(destPath, srcPath, goldenPath, getProject());
-  }
-
-  private static void checkFileMerge(@Nullable String destPath, @Nullable String srcPath, @Nullable String goldenPath,
-                                     @Nullable Project project) throws Exception {
     String source = "";
     String dest = "";
     String golden = "";
@@ -127,7 +112,8 @@ public class GradleFileMergerTest extends AndroidTestCase {
       assertNotNull(golden);
     }
 
-    assertEquals(golden.replaceAll("\\s+","\n"),
-                 GradleFileMerger.mergeGradleFiles(source, dest, project, null).replaceAll("\\s+", "\n"));
+    String result = mergeGradleFile(source, dest, getProject(), null);
+
+    assertEquals(golden.replaceAll("\\s+","\n"), result.replaceAll("\\s+", "\n"));
   }
 }

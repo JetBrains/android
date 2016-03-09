@@ -19,7 +19,8 @@ import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateProcessingException;
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateUserVisibleException;
-import com.android.tools.idea.templates.GradleFileMerger;
+import com.android.tools.idea.templates.GradleFilePsiMerger;
+import com.android.tools.idea.templates.GradleFileSimpleMerger;
 import com.android.tools.idea.templates.RecipeMergeUtils;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.intellij.diff.comparison.ComparisonManager;
@@ -27,6 +28,7 @@ import com.intellij.diff.comparison.ComparisonPolicy;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.vfs.*;
 import freemarker.template.Configuration;
 import freemarker.template.TemplateException;
@@ -207,7 +209,7 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
       }
       else if (targetFile.getName().equals(FN_BUILD_GRADLE)) {
         String compileSdkVersion = (String)getParamMap().get(TemplateMetadata.ATTR_BUILD_API_STRING);
-        contents = GradleFileMerger.mergeGradleFiles(sourceText, targetText, myContext.getProject(), compileSdkVersion);
+        contents = myIO.mergeGradleFiles(sourceText, targetText, myContext.getProject(), compileSdkVersion);
         myNeedsGradleSync = true;
       }
       else if (hasExtension(targetFile, DOT_XML)) {
@@ -476,11 +478,21 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
                                    @NotNull String destinationContents,
                                    Project project,
                                    @Nullable String supportLibVersionFilter) {
-      return GradleFileMerger.mergeGradleFiles(dependencies, destinationContents, project, supportLibVersionFilter);
+      if (project.isInitialized()) {
+        return GradleFilePsiMerger.mergeGradleFiles(dependencies, destinationContents, project, supportLibVersionFilter);
+      }
+      else {
+        return GradleFileSimpleMerger.mergeGradleFiles(dependencies, destinationContents, project, supportLibVersionFilter);
+      }
     }
 
-    public void requestGradleSync(@NotNull Project project) {
-      GradleProjectImporter.getInstance().requestProjectSync(project, null);
+    public void requestGradleSync(@NotNull final Project project) {
+      StartupManager.getInstance(project).runWhenProjectIsInitialized(new Runnable() {
+        @Override
+        public void run() {
+          GradleProjectImporter.getInstance().requestProjectSync(project, null);
+        }
+      });
     }
   }
 

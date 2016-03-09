@@ -49,7 +49,7 @@ import java.util.*;
 /**
  * Utility class to help with merging Gradle files into one another
  */
-public class GradleFileMerger {
+public class GradleFilePsiMerger {
   private static final String DEPENDENCIES = "dependencies";
   private static final String COMPILE = "compile";
   public static final String COMPILE_FORMAT = "compile '%s'\n";
