@@ -62,6 +62,7 @@ public class GuiTestRule implements TestRule {
   private static final Timeout DEFAULT_TIMEOUT = new Timeout(5, TimeUnit.MINUTES);
 
   private File myProjectPath;
+  private IdeFrameFixture myIdeFrameFixture;
 
   private final Timeout myTimeout;
   private final RobotTestRule myRobotTestRule = new RobotTestRule();
@@ -318,6 +319,7 @@ public class GuiTestRule implements TestRule {
 
   public void setProjectPath(@NotNull File projectPath) {
     myProjectPath = projectPath;
+    myIdeFrameFixture = null;
   }
 
   @NotNull
@@ -328,6 +330,12 @@ public class GuiTestRule implements TestRule {
 
   @NotNull
   public IdeFrameFixture ideFrame() {
-    return IdeFrameFixture.find(robot(), getProjectPath(), null);
+    if (myIdeFrameFixture == null) {
+      // This call to find() creates a new IdeFrameFixture object every time. Each of these Objects creates a new gradleProjectEventListener
+      // and registers it with GradleSyncState. This keeps adding more and more listeners, and the new recent listeners are only updated
+      // with gradle State when that State changes. This means the listeners may have outdated info.
+      myIdeFrameFixture = IdeFrameFixture.find(robot(), getProjectPath(), null);
+    }
+    return myIdeFrameFixture;
   }
 }
