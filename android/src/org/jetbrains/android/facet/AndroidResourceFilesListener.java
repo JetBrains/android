@@ -41,7 +41,6 @@ import org.jetbrains.android.compiler.AndroidAutogeneratorMode;
 import org.jetbrains.android.compiler.AndroidCompileUtil;
 import org.jetbrains.android.dom.manifest.Manifest;
 import com.android.tools.idea.lang.aidl.AidlFileType;
-import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -97,8 +96,8 @@ public class AndroidResourceFilesListener extends BulkFileListener.Adapter imple
       final VirtualFile parent = file.getParent();
 
       if (parent != null && parent.isDirectory()) {
-        final String resType = AndroidCommonUtils.getResourceTypeByDirName(parent.getName());
-        return ResourceFolderType.VALUES.getName().equals(resType);
+        final ResourceFolderType resType = ResourceFolderType.getFolderType(parent.getName());
+        return ResourceFolderType.VALUES.equals(resType);
       }
     }
     return false;
@@ -182,7 +181,7 @@ public class AndroidResourceFilesListener extends BulkFileListener.Adapter imple
 
         if (gp != null &&
             Comparing.equal(gp, resourceDir) &&
-            ResourceFolderType.VALUES.getName().equals(AndroidCommonUtils.getResourceTypeByDirName(parent.getName()))) {
+            ResourceFolderType.VALUES.equals(ResourceFolderType.getFolderType(parent.getName()))) {
           modulesToInvalidateAttributeDefs.add(module);
         }
         final List<AndroidAutogeneratorMode> modes = computeCompilersToRunAndInvalidateLocalAttributesMap(facet, file);

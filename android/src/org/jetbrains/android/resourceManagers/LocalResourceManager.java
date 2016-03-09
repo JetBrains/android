@@ -263,37 +263,32 @@ public class LocalResourceManager extends ResourceManager {
 
   @Override
   @NotNull
-  public Collection<String> getResourceNames(@NotNull String type, boolean publicOnly) {
-    ResourceType resourceType = ResourceType.getEnum(type);
-    if (resourceType != null) {
-      AppResourceRepository appResources = AppResourceRepository.getAppResources(myFacet, true);
-      Collection<String> resourceNames;
-      if (resourceType == ResourceType.STYLEABLE) {
-        // Convert from the tag-oriented types that appResource hold to the inner-class oriented type.
-        resourceNames = appResources.getItemsOfType(ResourceType.DECLARE_STYLEABLE);
-      } else {
-        resourceNames = appResources.getItemsOfType(resourceType);
-      }
-      // We may need to filter out public only, or if the type is attr, filter out android: attributes.
-      if (publicOnly || resourceType == ResourceType.ATTR) {
-        Set<String> filtered = ContainerUtil.newHashSet(resourceNames.size());
-        for (String name : resourceNames) {
-          if (resourceType == ResourceType.ATTR) {
-            if (!name.startsWith(SdkConstants.ANDROID_NS_NAME_PREFIX)) {
-              filtered.add(name);
-            }
-          }
-          if (publicOnly) {
-            if (!appResources.isPrivate(resourceType, name)) {
-              filtered.add(name);
-            }
+  public Collection<String> getResourceNames(@NotNull ResourceType resourceType, boolean publicOnly) {
+    AppResourceRepository appResources = AppResourceRepository.getAppResources(myFacet, true);
+    Collection<String> resourceNames;
+    if (resourceType == ResourceType.STYLEABLE) {
+      // Convert from the tag-oriented types that appResource hold to the inner-class oriented type.
+      resourceNames = appResources.getItemsOfType(ResourceType.DECLARE_STYLEABLE);
+    } else {
+      resourceNames = appResources.getItemsOfType(resourceType);
+    }
+    // We may need to filter out public only, or if the type is attr, filter out android: attributes.
+    if (publicOnly || resourceType == ResourceType.ATTR) {
+      Set<String> filtered = ContainerUtil.newHashSet(resourceNames.size());
+      for (String name : resourceNames) {
+        if (resourceType == ResourceType.ATTR) {
+          if (!name.startsWith(SdkConstants.ANDROID_NS_NAME_PREFIX)) {
+            filtered.add(name);
           }
         }
-        resourceNames = filtered;
+        if (publicOnly) {
+          if (!appResources.isPrivate(resourceType, name)) {
+            filtered.add(name);
+          }
+        }
       }
-      return resourceNames;
-    } else {
-      return super.getResourceNames(type, publicOnly);
+      resourceNames = filtered;
     }
+    return resourceNames;
   }
 }
