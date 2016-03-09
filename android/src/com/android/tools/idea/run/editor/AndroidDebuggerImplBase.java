@@ -36,7 +36,7 @@ public abstract class AndroidDebuggerImplBase<S extends AndroidDebuggerState> im
 
   @Override
   @NotNull
-  public synchronized Set<XBreakpointType<?, ?>> getSupportedBreakpointTypes() {
+  public synchronized Set<XBreakpointType<?, ?>> getSupportedBreakpointTypes(@NotNull AndroidVersion version) {
     if (mySupportedBreakpointTypes == null) {
       XDebuggerUtil debuggerUtil = XDebuggerUtil.getInstance();
       mySupportedBreakpointTypes = Sets.newHashSet();
