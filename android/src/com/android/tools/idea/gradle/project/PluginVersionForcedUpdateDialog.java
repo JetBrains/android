@@ -17,12 +17,15 @@ package com.android.tools.idea.gradle.project;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.ui.HyperlinkAdapter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.event.HyperlinkEvent;
 
 import static com.android.SdkConstants.GRADLE_PLUGIN_LATEST_VERSION;
+import static com.intellij.ide.BrowserUtil.browse;
 import static javax.swing.Action.NAME;
 import static org.jetbrains.android.util.AndroidUiUtil.setUpAsHtmlLabel;
 
@@ -33,6 +36,8 @@ public class PluginVersionForcedUpdateDialog extends DialogWrapper {
   public PluginVersionForcedUpdateDialog(@Nullable Project project) {
     super(project);
     setTitle("Android Gradle Plugin Update Required");
+    init();
+
     setUpAsHtmlLabel(myMessagePane);
     String msg = "<b>The project is using an incompatible version of the Android Gradle plugin.</b><br/<br/>" +
                  "To continue opening the project, the IDE will update the Android Gradle plugin to version " +
@@ -40,9 +45,12 @@ public class PluginVersionForcedUpdateDialog extends DialogWrapper {
                  "You can learn more about this version of the plugin from the " +
                  "<a href='http://tools.android.com/tech-docs/new-build-system'>release notes</a>.<br/><br/>";
     myMessagePane.setText(msg);
-    init();
-    myMessagePane.invalidate();
-    myMessagePane.repaint();
+    myMessagePane.addHyperlinkListener(new HyperlinkAdapter() {
+      @Override
+      protected void hyperlinkActivated(HyperlinkEvent e) {
+        browse(e.getURL());
+      }
+    });
   }
 
   @Override
