@@ -15,12 +15,9 @@
  */
 package com.android.tools.idea.res;
 
-import com.android.tools.idea.res.ResourceFolderRepositoryFileCache;
-import com.android.tools.idea.res.ResourceFolderRepositoryFileCacheImpl;
 import com.android.tools.idea.res.ResourceFolderRepositoryFileCacheImpl.CacheInvalidator;
 import com.android.tools.idea.res.ResourceFolderRepositoryFileCacheImpl.ManageLruProjectFilesTask;
 import com.android.tools.idea.res.ResourceFolderRepositoryFileCacheImpl.PruneTask;
-import com.android.tools.idea.res.ResourceFolderRepositoryFileCacheService;
 import com.google.common.collect.Lists;
 import com.intellij.mock.MockProgressIndicator;
 import com.intellij.mock.MockProjectEx;
@@ -85,12 +82,11 @@ public class ResourceFolderRepositoryFileCacheTest extends AndroidTestCase {
 
   public void testInvalidationBlocksDirectoryQuery() throws Exception {
     ResourceFolderRepositoryFileCache cache = ResourceFolderRepositoryFileCacheService.get();
-    File rootDir = cache.getRootDir();
-    assertNotNull(rootDir);
 
     VirtualFile resDir = getResourceDir();
     File resCacheDir = cache.getResourceDir(getProject(), resDir);
     assertNotNull(resCacheDir);
+    assertTrue(cache.isValid());
 
     // Now invalidate, and check blocked.
     cache.invalidate();
@@ -98,7 +94,7 @@ public class ResourceFolderRepositoryFileCacheTest extends AndroidTestCase {
     resCacheDir = cache.getResourceDir(getProject(), resDir);
     assertNull(resCacheDir);
 
-    // Remove the stamp. We can use the cache again.
+    // Remove the invalidation stamp. We can use the cache again.
     cache.delete();
     resCacheDir = cache.getResourceDir(getProject(), resDir);
     assertNotNull(resCacheDir);
@@ -255,6 +251,57 @@ public class ResourceFolderRepositoryFileCacheTest extends AndroidTestCase {
     pruneTask.performInDumbMode(new MockProgressIndicator());
     assertFalse(dummyDirectory.exists());
     assertTrue(resourceCacheDir.exists());
+  }
+
+  public void testCacheVersionCheck() throws IOException {
+    ResourceFolderRepositoryFileCacheImpl cache =
+      (ResourceFolderRepositoryFileCacheImpl)ResourceFolderRepositoryFileCacheService.get();
+    // Creating the root dir the first time gives us a stamp file.
+    File rootDir = cache.getRootDir();
+    assertNotNull(rootDir);
+    assertTrue(cache.isVersionSame(rootDir));
+
+    // If we delete the cache, it'll be empty without a stamp file.
+    cache.delete();
+    assertFalse(rootDir.exists());
+    assertFalse(cache.isVersionSame(rootDir));
+
+    // If we imagine a situation before the stamp file was introduced into the codebase
+    // (root dir is made and it has content, but no stamp file) it is not valid.
+    assertTrue(rootDir.mkdirs());
+    List<File> files = addProjectDirectories(3, 0);
+    for (File file : files) {
+      assertTrue(file.exists());
+    }
+    assertFalse(cache.isVersionSame(rootDir));
+    assertFalse(cache.isValid());
+
+    // Now try setting up the correct version and a few directories (stamping happens automatically).
+    cache.delete();
+    files = addProjectDirectories(3, 0);
+    for (File file : files) {
+      assertTrue(file.exists());
+    }
+    assertTrue(cache.isVersionSame(rootDir));
+    assertTrue(cache.isValid());
+
+    // Now try overwriting version stamp with a too old version.
+    cache.stampVersion(rootDir, ResourceFolderRepositoryFileCacheImpl.EXPECTED_CACHE_VERSION - 1);
+    assertFalse(cache.isVersionSame(rootDir));
+    assertFalse(cache.isValid());
+    // The management task should clean up old files if the version is invalid.
+    ManageLruProjectFilesTask task = new ManageLruProjectFilesTask(getProject());
+    task.performInDumbMode(new MockProgressIndicator());
+    assertFalse(rootDir.exists());
+    for (File file : files) {
+      assertFalse(file.exists());
+    }
+    assertFalse(cache.isVersionSame(rootDir));
+    // However, once anything grabs the root dir again, it is stamped and valid again.
+    rootDir = cache.getRootDir();
+    assertNotNull(rootDir);
+    assertTrue(cache.isVersionSame(rootDir));
+    assertTrue(cache.isValid());
   }
 
   /**
