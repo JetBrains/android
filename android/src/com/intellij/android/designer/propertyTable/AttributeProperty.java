@@ -89,11 +89,11 @@ public class AttributeProperty extends PropertyWithNamespace implements IXmlAttr
   }
 
   protected PropertyEditor createResourceEditor(AttributeDefinition definition, Set<AttributeFormat> formats) {
-    String type = AndroidDomUtil.SPECIAL_RESOURCE_TYPES.get(definition.getName());
+    ResourceType type = AndroidDomUtil.SPECIAL_RESOURCE_TYPES.get(definition.getName());
     if (type == null) {
       return new ResourceEditor(formats, definition.getValues());
     }
-    return new ResourceEditor(new ResourceType[]{ResourceType.getEnum(type)}, formats, definition.getValues());
+    return new ResourceEditor(new ResourceType[]{type}, formats, definition.getValues());
   }
 
   @Override

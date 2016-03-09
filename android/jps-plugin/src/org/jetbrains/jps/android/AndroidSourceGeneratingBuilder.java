@@ -3,7 +3,6 @@ package org.jetbrains.jps.android;
 import com.android.SdkConstants;
 import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
-import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.internal.build.BuildConfigGenerator;
 import com.intellij.openapi.diagnostic.Logger;
@@ -1136,7 +1135,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
 
       if (resSubdirs != null) {
         for (File resSubdir : resSubdirs) {
-          final String resType = AndroidCommonUtils.getResourceTypeByDirName(resSubdir.getName());
+          final ResourceFolderType resType = ResourceFolderType.getFolderType(resSubdir.getName());
 
           if (resType != null) {
             final File[] resFiles = resSubdir.listFiles();
@@ -1154,7 +1153,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
   }
 
   private static void collectResources(@NotNull File resFile,
-                                       @NotNull String resType,
+                                       @NotNull ResourceFolderType resourceFolderType,
                                        @NotNull Map<String, ResourceFileData> resDataMap,
                                        @NotNull TObjectLongHashMap<String> valueResFilesTimestamps,
                                        @Nullable AndroidAptValidityState oldState)
@@ -1162,7 +1161,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
     final String resFilePath = FileUtil.toSystemIndependentName(resFile.getPath());
     final long resFileTimestamp = resFile.lastModified();
 
-    if (ResourceFolderType.VALUES.getName().equals(resType) && FileUtilRt.extensionEquals(resFile.getName(), "xml")) {
+    if (ResourceFolderType.VALUES.equals(resourceFolderType) && FileUtilRt.extensionEquals(resFile.getName(), "xml")) {
       ResourceFileData dataToReuse = null;
 
       if (oldState != null) {
@@ -1183,8 +1182,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
       valueResFilesTimestamps.put(resFilePath, resFileTimestamp);
     }
     else {
-      final ResourceFolderType resTypeObj = ResourceFolderType.getFolderType(resType);
-      final boolean idProvidingType = FolderTypeRelationship.isIdGeneratingFolderType(resTypeObj);
+      final boolean idProvidingType = FolderTypeRelationship.isIdGeneratingFolderType(resourceFolderType);
       final ResourceFileData data =
         new ResourceFileData(Collections.<ResourceEntry>emptyList(), idProvidingType ? resFileTimestamp : 0);
       resDataMap.put(resFilePath, data);

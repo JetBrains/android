@@ -369,7 +369,7 @@ public class CreateXmlResourcePanel {
         myResourceDir = facet.getPrimaryResourceDir();
 
         if (myResourceDir != null) {
-          directories = AndroidResourceUtil.getResourceSubdirs(myFolderType.getName(), new VirtualFile[]{myResourceDir});
+          directories = AndroidResourceUtil.getResourceSubdirs(myFolderType, new VirtualFile[]{myResourceDir});
         }
       }
     }

@@ -29,11 +29,15 @@ public abstract class ResourceTypeClassBase extends AndroidLightClass {
                                         boolean nonFinal,
                                         @NotNull String resClassName,
                                         @NotNull final PsiClass context) {
+    ResourceType resourceType = ResourceType.getEnum(resClassName);
+    if (resourceType == null) {
+      return PsiField.EMPTY_ARRAY;
+    }
     final Map<String, PsiType> fieldNames = new HashMap<String, PsiType>();
-    final boolean styleable = ResourceType.STYLEABLE.getName().equals(resClassName);
+    final boolean styleable = ResourceType.STYLEABLE.equals(resourceType);
     final PsiType basicType = styleable ? PsiType.INT.createArrayType() : PsiType.INT;
 
-    for (String resName : manager.getResourceNames(resClassName)) {
+    for (String resName : manager.getResourceNames(resourceType)) {
       fieldNames.put(resName, basicType);
     }
 
@@ -50,7 +54,7 @@ public abstract class ResourceTypeClassBase extends AndroidLightClass {
     final PsiField[] result = new PsiField[fieldNames.size()];
     final PsiElementFactory factory = JavaPsiFacade.getElementFactory(context.getProject());
 
-    int idIterator = ResourceType.getEnum(resClassName).ordinal() * 100000;
+    int idIterator = resourceType.ordinal() * 100000;
     int i = 0;
 
     for (Map.Entry<String, PsiType> entry : fieldNames.entrySet()) {
