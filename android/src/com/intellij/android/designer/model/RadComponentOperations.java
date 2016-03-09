@@ -61,7 +61,7 @@ public class RadComponentOperations {
 
     Class<RadLayout> layout = metaModel.getLayout();
     if (layout == null) {
-      component.setLayout(RadViewLayout.INSTANCE);
+      component.setLayout(new RadViewLayout());
     }
     else {
       component.setLayout(layout.newInstance());
