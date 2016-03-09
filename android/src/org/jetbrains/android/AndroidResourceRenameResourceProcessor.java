@@ -366,13 +366,20 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
       renamedStyles.add(name);
 
       final String stylePrefix = name + ".";
-      Collection<String> renameCandidates = Collections2.filter(manager.getResourceNames(type),
-        new Predicate<String>() {
-          @Override
-          public boolean apply(String input) {
-            return input.startsWith(stylePrefix);
-          }
-        });
+      Collection<String> renameCandidates;
+      ResourceType resourceType = ResourceType.getEnum(type);
+      if (resourceType == null) {
+        renameCandidates = Collections.emptyList();
+      }
+      else {
+        renameCandidates = Collections2.filter(manager.getResourceNames(resourceType),
+                                               new Predicate<String>() {
+                                                 @Override
+                                                 public boolean apply(String input) {
+                                                   return input.startsWith(stylePrefix);
+                                                 }
+                                               });
+      }
 
       for (String resourceName : ORDER_BY_LENGTH.sortedCopy(renameCandidates)) {
         // resourceName.lastIndexOf will never return -1 because we've filtered all names that

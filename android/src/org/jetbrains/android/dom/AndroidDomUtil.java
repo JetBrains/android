@@ -64,7 +64,7 @@ public class AndroidDomUtil {
 
 
   public static final StaticEnumConverter BOOLEAN_CONVERTER = new StaticEnumConverter(VALUE_TRUE, VALUE_FALSE);
-  public static final Map<String, String> SPECIAL_RESOURCE_TYPES = Maps.newHashMapWithExpectedSize(20);
+  public static final Map<String, ResourceType> SPECIAL_RESOURCE_TYPES = Maps.newHashMapWithExpectedSize(20);
   private static final PackageClassConverter ACTIVITY_CONVERTER = new PackageClassConverter(AndroidUtils.ACTIVITY_BASE_CLASS_NAME);
   private static final FragmentClassConverter FRAGMENT_CLASS_CONVERTER = new FragmentClassConverter();
 
@@ -80,11 +80,11 @@ public class AndroidDomUtil {
     // This section adds additional resource type registrations where the attrs metadata is lacking. For
     // example, attrs_manifest.xml tells us that the android:icon attribute can be a reference, but not
     // that it's a reference to a drawable.
-    addSpecialResourceType(ResourceType.STRING.getName(), ATTR_LABEL, "description", ATTR_TITLE);
-    addSpecialResourceType(ResourceType.DRAWABLE.getName(), ATTR_ICON);
-    addSpecialResourceType(ResourceType.STYLE.getName(), ATTR_THEME);
-    addSpecialResourceType(ResourceType.ANIM.getName(), "animation");
-    addSpecialResourceType(ResourceType.ID.getName(), ATTR_ID, ATTR_LAYOUT_TO_RIGHT_OF, ATTR_LAYOUT_TO_LEFT_OF, ATTR_LAYOUT_ABOVE,
+    addSpecialResourceType(ResourceType.STRING, ATTR_LABEL, "description", ATTR_TITLE);
+    addSpecialResourceType(ResourceType.DRAWABLE, ATTR_ICON);
+    addSpecialResourceType(ResourceType.STYLE, ATTR_THEME);
+    addSpecialResourceType(ResourceType.ANIM, "animation");
+    addSpecialResourceType(ResourceType.ID, ATTR_ID, ATTR_LAYOUT_TO_RIGHT_OF, ATTR_LAYOUT_TO_LEFT_OF, ATTR_LAYOUT_ABOVE,
                            ATTR_LAYOUT_BELOW, ATTR_LAYOUT_ALIGN_BASELINE, ATTR_LAYOUT_ALIGN_LEFT, ATTR_LAYOUT_ALIGN_TOP,
                            ATTR_LAYOUT_ALIGN_RIGHT, ATTR_LAYOUT_ALIGN_BOTTOM, ATTR_LAYOUT_ALIGN_START, ATTR_LAYOUT_ALIGN_END,
                            ATTR_LAYOUT_TO_START_OF, ATTR_LAYOUT_TO_END_OF);
@@ -134,7 +134,7 @@ public class AndroidDomUtil {
   public static ResourceReferenceConverter getResourceReferenceConverter(@NotNull AttributeDefinition attr) {
     boolean containsReference = false;
     boolean containsNotReference = false;
-    Set<String> resourceTypes = new HashSet<String>();
+    Set<ResourceType> resourceTypes = EnumSet.noneOf(ResourceType.class);
     Set<AttributeFormat> formats = attr.getFormats();
     for (AttributeFormat format : formats) {
       if (format == AttributeFormat.Reference) {
@@ -145,22 +145,22 @@ public class AndroidDomUtil {
       }
       ResourceType type = getResourceType(format);
       if (type != null) {
-        resourceTypes.add(type.getName());
+        resourceTypes.add(type);
       }
     }
-    String specialResourceType = getSpecialResourceType(attr.getName());
+    ResourceType specialResourceType = getSpecialResourceType(attr.getName());
     if (specialResourceType != null) {
       resourceTypes.add(specialResourceType);
     }
     if (containsReference) {
-      if (resourceTypes.contains(ResourceType.COLOR.getName())) {
-        resourceTypes.add(ResourceType.DRAWABLE.getName());
+      if (resourceTypes.contains(ResourceType.COLOR)) {
+        resourceTypes.add(ResourceType.DRAWABLE);
       }
-      if (resourceTypes.contains(ResourceType.DRAWABLE.getName())) {
-        resourceTypes.add(ResourceType.MIPMAP.getName());
+      if (resourceTypes.contains(ResourceType.DRAWABLE)) {
+        resourceTypes.add(ResourceType.MIPMAP);
       }
       if (resourceTypes.size() == 0) {
-        resourceTypes.addAll(AndroidResourceUtil.getNames(AndroidResourceUtil.REFERRABLE_RESOURCE_TYPES));
+        resourceTypes.addAll(AndroidResourceUtil.REFERRABLE_RESOURCE_TYPES);
       }
     }
     if (resourceTypes.size() > 0) {
@@ -237,7 +237,7 @@ public class AndroidDomUtil {
     }
 
     if (resConverter == null && formats.contains(AttributeFormat.Enum)) {
-      resConverter = new ResourceReferenceConverter(Collections.singletonList(ResourceType.INTEGER.getName()), attr);
+      resConverter = new ResourceReferenceConverter(EnumSet.of(ResourceType.INTEGER), attr);
       resConverter.setQuiet(true);
     }
     ResolvingConverter<String> stringConverter = compositeBuilder.build();
@@ -251,15 +251,15 @@ public class AndroidDomUtil {
   /** A "special" resource type is just additional information we've manually added about an attribute
    * name that augments what attrs.xml and attrs_manifest.xml tell us about the attributes */
   @Nullable
-  public static String getSpecialResourceType(String attrName) {
-    String type = SPECIAL_RESOURCE_TYPES.get(attrName);
+  public static ResourceType getSpecialResourceType(String attrName) {
+    ResourceType type = SPECIAL_RESOURCE_TYPES.get(attrName);
     if (type != null) return type;
-    if (attrName.endsWith("Animation")) return "anim";
+    if (attrName.endsWith("Animation")) return ResourceType.ANIM;
     return null;
   }
 
   // for special cases
-  static void addSpecialResourceType(String type, String... attrs) {
+  static void addSpecialResourceType(ResourceType type, String... attrs) {
     for (String attr : attrs) {
       SPECIAL_RESOURCE_TYPES.put(attr, type);
     }

@@ -80,7 +80,7 @@ public class ResourceNameConverter extends ResolvingConverter<String> implements
     if (manager == null) {
       return Collections.emptyList();
     }
-    final Collection<String> styleNames = manager.getResourceNames(ResourceType.STYLE.getName());
+    final Collection<String> styleNames = manager.getResourceNames(ResourceType.STYLE);
     final List<String> result = new ArrayList<String>();
 
     final String currentValue = element.getStringValue();
