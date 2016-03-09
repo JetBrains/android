@@ -27,6 +27,7 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Service that subscribes to project root changes in order to update ResourceRepository roots.
+ * Also invalidates the ResourceFolderManager cache upon changes.
  */
 public class ProjectResourceRepositoryRootListener {
 
@@ -72,6 +73,7 @@ public class ProjectResourceRepositoryRootListener {
         // GradleProjectAvailableListener will be called as soon as it is and do a proper sync
         return;
       }
+      facet.getResourceFolderManager().invalidate();
       ProjectResourceRepository projectResources = ProjectResourceRepository.getProjectResources(facet, false);
       if (projectResources != null) {
         projectResources.updateRoots();

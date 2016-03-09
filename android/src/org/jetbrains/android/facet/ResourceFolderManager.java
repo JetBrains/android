@@ -15,13 +15,12 @@
  */
 package org.jetbrains.android.facet;
 
-import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.android.tools.idea.model.AndroidModel;
+import com.android.tools.idea.res.ProjectResourceRepositoryRootListener;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.*;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.vfs.VfsUtilCore;
@@ -59,7 +58,6 @@ public class ResourceFolderManager implements ModificationTracker {
   private long myGeneration;
   private final List<ResourceFolderListener> myListeners = Lists.newArrayList();
   private boolean myVariantListenerAdded;
-  private boolean myGradleInitListenerAdded;
 
   /**
    * Should only be constructed by {@link AndroidFacet}; others should obtain instance
@@ -72,6 +70,9 @@ public class ResourceFolderManager implements ModificationTracker {
   /** Notifies the resource folder manager that the resource folder set may have changed */
   public void invalidate() {
     List<VirtualFile> old = myResDirCache;
+    if (old == null) {
+      return;
+    }
     myResDirCache = null;
     getFolders(); // sets myResDirCache as a side effect
     //noinspection ConstantConditions
@@ -164,19 +165,9 @@ public class ResourceFolderManager implements ModificationTracker {
           });
         }
       }
-
-      // Add notification listener for when the project is initialized so we can update the
-      // resource set, if necessary
-      if (!myGradleInitListenerAdded) {
-        myGradleInitListenerAdded = true; // Avoid adding multiple listeners if we invalidate and call this repeatedly around startup
-        myFacet.addListener(new GradleSyncListener.Adapter() {
-          @Override
-          public void syncSucceeded(@NotNull Project project) {
-            // Resource folders can change on sync
-            invalidate();
-          }
-        });
-      }
+      // Listen to root change events. Be notified when project is initialized so we can update the
+      // resource set, if necessary.
+      ProjectResourceRepositoryRootListener.ensureSubscribed(myFacet.getModule().getProject());
 
       return resDirectories;
     } else {
