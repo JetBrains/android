@@ -74,7 +74,7 @@ class DependenciesEditorPanel extends JPanel implements Disposable {
       }
     }, this);
 
-    myDependenciesPanel = new EditableDependenciesPanel(moduleModel);
+    myDependenciesPanel = new EditableDependenciesPanel(moduleModel, context);
     myVariantsToolWindowPanel = new VariantsToolWindowPanel(moduleModel, context, myDependenciesPanel);
 
     myVerticalSplitter = new OnePixelSplitter(false, "psd.dependencies.main.vertical.splitter.proportion", .75f);
