@@ -16,11 +16,12 @@
 package com.android.tools.idea.gradle.structure.model.android;
 
 import com.android.builder.model.Library;
+import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependencyModel;
 import com.android.tools.idea.gradle.structure.model.PsdArtifactDependencySpec;
-import com.android.tools.idea.gradle.structure.model.PsdIssue;
-import com.android.tools.idea.gradle.structure.model.PsdIssue.Type;
+import com.android.tools.idea.gradle.structure.model.PsdModuleModel;
+import com.android.tools.idea.gradle.structure.model.PsdProjectModel;
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -29,23 +30,18 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import static com.android.tools.idea.gradle.structure.model.PsdIssue.Type.WARNING;
 import static com.intellij.util.PlatformIcons.LIBRARY_ICON;
-import static icons.AndroidIcons.ProjectStructure.LibraryWarning;
 
 public class PsdLibraryDependencyModel extends PsdAndroidDependencyModel {
   @NotNull private final PsdArtifactDependencySpec myResolvedSpec;
-
-  @Nullable private final Library myGradleModel;
-  @Nullable private final PsdArtifactDependencySpec myMismatchingRequestedSpec;
-  @Nullable private final PsdIssue myProblem;
-
   @NotNull private final List<PsdArtifactDependencySpec> myPomDependencies = Lists.newArrayList();
   @NotNull private final Set<String> myTransitiveDependencies = Sets.newHashSet();
 
+  @Nullable private final Library myGradleModel;
   @Nullable private PsdArtifactDependencySpec myDeclaredSpec;
 
   PsdLibraryDependencyModel(@NotNull PsdAndroidModuleModel parent,
@@ -57,34 +53,6 @@ public class PsdLibraryDependencyModel extends PsdAndroidDependencyModel {
     myResolvedSpec = resolvedSpec;
     myGradleModel = gradleModel;
     setDeclaredSpec(parsedModel);
-    myMismatchingRequestedSpec = findMismatchingSpec();
-
-    PsdIssue problem = null;
-    if (myMismatchingRequestedSpec != null) {
-      String requestedVersion = myMismatchingRequestedSpec.version;
-      String msg = String.format("Version requested: '%1$s'. Version resolved: '%2$s'", requestedVersion, myResolvedSpec.version);
-      problem = new PsdIssue(msg, WARNING);
-    }
-    myProblem = problem;
-  }
-
-  @Nullable
-  private PsdArtifactDependencySpec findMismatchingSpec() {
-    DependencyModel parsedModel = getParsedModel();
-    if (parsedModel instanceof ArtifactDependencyModel) {
-      PsdArtifactDependencySpec requestedSpec = PsdArtifactDependencySpec.create((ArtifactDependencyModel)parsedModel);
-      if (!requestedSpec.equals(myDeclaredSpec)) {
-        // Version mismatch. This can happen when the project specifies an artifact version but Gradle uses a different version
-        // from a transitive dependency.
-        // Example:
-        // 1. Module 'app' depends on module 'lib'
-        // 2. Module 'app' depends on Guava 18.0
-        // 3. Module 'lib' depends on Guava 19.0
-        // Gradle will force module 'app' to use Guava 19.0
-        return requestedSpec;
-      }
-    }
-    return null;
   }
 
   void addTransitiveDependency(@NotNull String dependency) {
@@ -133,6 +101,36 @@ public class PsdLibraryDependencyModel extends PsdAndroidDependencyModel {
     return transitive;
   }
 
+  @NotNull
+  public List<String> findRequestingModuleDependencies() {
+    Set<String> moduleNames = Sets.newHashSet();
+    findRequestingModuleDependencies(getParent(), moduleNames);
+    if (moduleNames.isEmpty()) {
+      return Collections.emptyList();
+    }
+    List<String> sorted = Lists.newArrayList(moduleNames);
+    Collections.sort(sorted);
+    return sorted;
+  }
+
+  private void findRequestingModuleDependencies(@NotNull PsdAndroidModuleModel module, @NotNull Collection<String> found) {
+    PsdProjectModel project = module.getParent();
+    for (PsdModuleDependencyModel moduleDependency : module.getModuleDependencies()) {
+      String gradlePath = moduleDependency.getGradlePath();
+      PsdModuleModel foundModule = project.findModelByGradlePath(gradlePath);
+      if (foundModule instanceof PsdAndroidModuleModel) {
+        PsdAndroidModuleModel androidModule = (PsdAndroidModuleModel)foundModule;
+
+        PsdLibraryDependencyModel libraryDependency = androidModule.findLibraryDependency(myResolvedSpec);
+        if (libraryDependency != null && libraryDependency.isEditable()) {
+          found.add(androidModule.getName());
+        }
+
+        findRequestingModuleDependencies(androidModule, found);
+      }
+    }
+  }
+
   @Nullable
   public PsdArtifactDependencySpec getDeclaredSpec() {
     return myDeclaredSpec;
@@ -141,11 +139,6 @@ public class PsdLibraryDependencyModel extends PsdAndroidDependencyModel {
   @NotNull
   public PsdArtifactDependencySpec getResolvedSpec() {
     return myResolvedSpec;
-  }
-
-  @Nullable
-  public PsdArtifactDependencySpec getMismatchingRequestedSpec() {
-    return myMismatchingRequestedSpec;
   }
 
   @Override
@@ -157,20 +150,21 @@ public class PsdLibraryDependencyModel extends PsdAndroidDependencyModel {
   @Override
   @NotNull
   public Icon getIcon() {
-    Icon icon = LIBRARY_ICON;
-    if (myProblem != null) {
-      Type type = myProblem.getType();
-      if (type == WARNING) {
-        icon = LibraryWarning;
-      }
-    }
-    return icon;
+    return LIBRARY_ICON;
   }
 
   @Override
   @NotNull
   public String getValueAsText() {
-    return myMismatchingRequestedSpec != null ? myMismatchingRequestedSpec.toString() : myResolvedSpec.toString();
+    return myResolvedSpec.toString();
+  }
+
+  public boolean hasPromotedVersion() {
+    if (myResolvedSpec.version != null && myDeclaredSpec != null && myDeclaredSpec.version != null) {
+      GradleVersion declaredVersion = GradleVersion.tryParse(myDeclaredSpec.version);
+      return declaredVersion != null && declaredVersion.compareTo(myResolvedSpec.version) < 0;
+    }
+    return false;
   }
 
   @Override

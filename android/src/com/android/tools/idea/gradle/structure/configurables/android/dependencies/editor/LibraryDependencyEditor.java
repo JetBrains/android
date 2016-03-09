@@ -15,31 +15,104 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.editor;
 
+import com.android.tools.idea.gradle.structure.configurables.PsdContext;
 import com.android.tools.idea.gradle.structure.model.PsdArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.android.PsdLibraryDependencyModel;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
+import com.intellij.openapi.ui.popup.Balloon;
+import com.intellij.ui.HintHint;
+import com.intellij.ui.HyperlinkAdapter;
+import com.intellij.ui.LightweightHint;
 import com.intellij.ui.components.JBLabel;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import javax.swing.event.HyperlinkEvent;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.List;
 
+import static com.intellij.codeInsight.hint.HintUtil.INFORMATION_COLOR;
 import static com.intellij.ui.IdeBorderFactory.createEmptyBorder;
 import static com.intellij.util.ui.UIUtil.getLabelBackground;
+import static org.jetbrains.android.util.AndroidUiUtil.setUpAsHtmlLabel;
 
 public class LibraryDependencyEditor implements DependencyEditor<PsdLibraryDependencyModel> {
+  @NotNull private final PsdContext myContext;
+
   private JPanel myPanel;
   private JTextField myGroupIdTextField;
   private JTextField myArtifactNameTextField;
-  private JTextField myResolvedVersionTextField;
+  private JBLabel myResolvedVersionLabel;
+  private JBLabel mySourceInfoLabel;
   private JTextField myDeclaredVersionTextField;
   private JBLabel myScopeLabel;
   private TextFieldWithBrowseButton myScopeField;
   private JButton myCheckForUpdatesButton;
 
-  public LibraryDependencyEditor() {
+  private LightweightHint mySourceInfoHint;
+  private PsdLibraryDependencyModel myModel;
+
+  public LibraryDependencyEditor(@NotNull PsdContext context) {
+    myContext = context;
     myScopeLabel.setLabelFor(myScopeField.getTextField());
-    showAsLabel(myGroupIdTextField, myArtifactNameTextField, myResolvedVersionTextField);
+    showAsLabel(myGroupIdTextField, myArtifactNameTextField);
+
+    Dimension preferredSize = myGroupIdTextField.getPreferredSize();
+    myResolvedVersionLabel.setPreferredSize(preferredSize);
+
+    mySourceInfoLabel.setPreferredSize(preferredSize);
+    mySourceInfoLabel.setIcon(AllIcons.General.Information);
+
+    mySourceInfoLabel.addMouseListener(new MouseAdapter() {
+      @Override
+      public void mouseEntered(MouseEvent e) {
+        if (mySourceInfoLabel.isVisible() && myModel != null && (mySourceInfoHint == null || !mySourceInfoHint.isVisible())) {
+          List<String> modules = myModel.findRequestingModuleDependencies();
+
+          int moduleCount = modules.size();
+          if (moduleCount > 0) {
+
+            StringBuilder buffer = new StringBuilder();
+            buffer.append("<html>Requested by:<br/>");
+            for (int i = 0; i < moduleCount; i++) {
+              String moduleName = modules.get(i);
+              buffer.append("<a href='").append(moduleName).append("'>").append(moduleName).append("</a>");
+              if (i < moduleCount - 1) {
+                buffer.append("<br/>");
+              }
+            }
+
+            JEditorPane hintContents = new JEditorPane();
+            setUpAsHtmlLabel(hintContents);
+            hintContents.setText(buffer.toString());
+            hintContents.addHyperlinkListener(new HyperlinkAdapter() {
+              @Override
+              protected void hyperlinkActivated(HyperlinkEvent e) {
+                String moduleName = e.getDescription();
+                myContext.setSelectedModule(moduleName, LibraryDependencyEditor.this);
+
+                if (mySourceInfoHint != null) {
+                  mySourceInfoHint.hide();
+                  mySourceInfoHint = null;
+                }
+              }
+            });
+
+            mySourceInfoHint = new LightweightHint(hintContents);
+          }
+
+          Point point = e.getPoint();
+          HintHint hintInfo = new HintHint(mySourceInfoLabel, point).setPreferredPosition(Balloon.Position.above)
+                                                                    .setAwtTooltip(true).setTextBg(INFORMATION_COLOR)
+                                                                    .setShowImmediately(true);
+
+          mySourceInfoHint.show(myPanel, point.x, point.y, mySourceInfoLabel, hintInfo);
+        }
+      }
+    });
   }
 
   private static void showAsLabel(@NotNull JTextField... textFields) {
@@ -58,13 +131,19 @@ public class LibraryDependencyEditor implements DependencyEditor<PsdLibraryDepen
 
   @Override
   public void display(@NotNull PsdLibraryDependencyModel model) {
-    PsdArtifactDependencySpec declaredSpec = model.getDeclaredSpec();
+    myModel = model;
+
+    PsdArtifactDependencySpec declaredSpec = myModel.getDeclaredSpec();
     assert declaredSpec != null;
     myGroupIdTextField.setText(declaredSpec.group);
     myArtifactNameTextField.setText(declaredSpec.name);
-    myResolvedVersionTextField.setText(model.getResolvedSpec().version);
+    myResolvedVersionLabel.setText(myModel.getResolvedSpec().version);
+
+    mySourceInfoLabel.setVisible(myModel.hasPromotedVersion());
+    mySourceInfoHint = null;
+
     myDeclaredVersionTextField.setText(declaredSpec.version);
-    myScopeField.setText(model.getConfigurationName());
+    myScopeField.setText(myModel.getConfigurationName());
   }
 
   @Override

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview;
 
-import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.PsdAndroidDependencyModelComparator;
 import com.android.tools.idea.gradle.structure.configurables.ui.PsdUISettings;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsdNode;
@@ -56,17 +55,11 @@ class LibraryDependencyNode extends AbstractDependencyNode<PsdLibraryDependencyM
   @NotNull
   private static String getText(@NotNull PsdLibraryDependencyModel model) {
     PsdArtifactDependencySpec resolvedSpec = model.getResolvedSpec();
-    if (resolvedSpec.version != null) {
+    if (model.hasPromotedVersion()) {
       PsdArtifactDependencySpec declaredSpec = model.getDeclaredSpec();
-      if (declaredSpec != null && declaredSpec.version != null) {
-        GradleVersion declaredVersion = GradleVersion.tryParse(declaredSpec.version);
-        if (declaredVersion != null) {
-          if (declaredVersion.compareTo(resolvedSpec.version) < 0) {
-            String version = declaredSpec.version + "→" + resolvedSpec.version;
-            return getTextForSpec(declaredSpec.name, version, declaredSpec.group);
-          }
-        }
-      }
+      assert declaredSpec != null;
+      String version = declaredSpec.version + "→" + resolvedSpec.version;
+      return getTextForSpec(declaredSpec.name, version, declaredSpec.group);
     }
     return resolvedSpec.getDisplayText();
   }
