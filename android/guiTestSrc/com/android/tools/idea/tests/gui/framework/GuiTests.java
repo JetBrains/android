@@ -547,6 +547,8 @@ public final class GuiTests {
     });
   }
 
+  /** @deprecated Instead use {@link Robot#enterText}, which simulates keyboard input rather than manipulating UI components directly. */
+  @Deprecated
   public static void setText(@NotNull final EditorTextField textField, @NotNull final String text) {
     execute(new GuiTask() {
       @Override
