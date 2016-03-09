@@ -148,8 +148,8 @@ public class NlReferenceEditor extends PTableCellEditor implements ActionListene
   private static ResourceType[] getResourceTypes(@Nullable AttributeDefinition definition) {
     Set<AttributeFormat> formats = definition != null ? definition.getFormats() : EnumSet.allOf(AttributeFormat.class);
     // for some special known properties, we can narrow down the possible types (rather than the all encompassing reference type)
-    String type = definition != null ? AndroidDomUtil.SPECIAL_RESOURCE_TYPES.get(definition.getName()) : null;
-    return type == null ? ResourceEditor.convertTypes(formats) : new ResourceType[]{ResourceType.getEnum(type)};
+    ResourceType type = definition != null ? AndroidDomUtil.SPECIAL_RESOURCE_TYPES.get(definition.getName()) : null;
+    return type == null ? ResourceEditor.convertTypes(formats) : new ResourceType[]{type};
   }
 
   private static class CompletionProvider extends TextFieldWithAutoCompletionListProvider<String> {
