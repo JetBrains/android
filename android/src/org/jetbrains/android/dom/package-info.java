@@ -53,6 +53,8 @@
  * starting point for searching for relevant docs. Of course, when relevant documentation is
  * found you should consider adding a link to file description class as well.
  * <p/>
+ * See Javadoc on <code>AndroidDomTest</code> class (and check its subclasses) to get an idea how to test changes to files in this package.
+ * <p/>
  * Useful annotation facts:
  * <ul>
  *   <li>To disable spellchecking inside a tag's value, use {@link com.intellij.spellchecker.xml.NoSpellchecking} annotation.

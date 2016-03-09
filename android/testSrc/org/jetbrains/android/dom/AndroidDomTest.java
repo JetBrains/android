@@ -30,6 +30,16 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * Abstract class for creating unit tests for XML editor. Contains utility methods for performing things such as
+ * <ul>
+ * <li>Checking highlighting: {@link #doTestHighlighting()}</li>
+ * <li>Checking results of code completion: {@link #doTestCompletionVariants(String, String...)}, {@link #toTestCompletion(String, String)}
+ * and {@link #toTestFirstCompletion(String, String)}</li>
+ * </ul>
+ * Some of these methods use test name to choose a file from testData folder they're going to use, look out for
+ * {@link #getTestName(String, boolean)} and similar methods to spot that.
+ */
 @SuppressWarnings({"JUnitTestCaseWithNonTrivialConstructors"})
 abstract class AndroidDomTest extends AndroidTestCase {
   protected final String testFolder;
@@ -86,6 +96,9 @@ abstract class AndroidDomTest extends AndroidTestCase {
     assertEquals(expectedVariants, variants);
   }
 
+  /**
+   * Loads file, invokes code completion at &lt;caret&gt; marker and returns resulting completion variants as strings.
+   */
   protected void doTestCompletionVariants(String fileName, String... variants) throws Throwable {
     List<String> lookupElementStrings = getCompletionElements(fileName);
     assertNotNull(lookupElementStrings);
@@ -109,6 +122,10 @@ abstract class AndroidDomTest extends AndroidTestCase {
     doTestHighlighting(getTestName(true) + ".xml");
   }
 
+  /**
+   * Loads a file and checks whether result of highlighting correspond to XML-like markers left in it. Format of the markers is best
+   * described by an example, check the usages of the function to find out.
+   */
   protected void doTestHighlighting(String file) throws Throwable {
     VirtualFile virtualFile = copyFileToProject(file);
     myFixture.configureFromExistingVirtualFile(virtualFile);
@@ -130,6 +147,10 @@ abstract class AndroidDomTest extends AndroidTestCase {
     toTestCompletion(getTestName(lowercaseFirstLetter) + ".xml", getTestName(lowercaseFirstLetter) + "_after.xml");
   }
 
+  /**
+   * Loads first file, puts caret on the &lt;caret&gt; marker, invokes code completion. If running the code completion results in returning
+   * only one completion variant, chooses it to complete code at the caret.
+   */
   protected void toTestCompletion(String fileBefore, String fileAfter) throws Throwable {
     VirtualFile file = copyFileToProject(fileBefore);
     myFixture.configureFromExistingVirtualFile(file);
