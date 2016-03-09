@@ -17,6 +17,7 @@ package com.android.tools.idea.tests.gui.framework;
 
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.lint.detector.api.TextFormat;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.diagnostic.AbstractMessage;
@@ -42,9 +43,7 @@ import com.intellij.ui.popup.PopupFactoryImpl;
 import com.intellij.ui.popup.list.ListPopupModel;
 import com.intellij.util.net.HttpConfigurable;
 import com.intellij.util.ui.UIUtil;
-import org.fest.swing.core.BasicRobot;
-import org.fest.swing.core.ComponentFinder;
-import org.fest.swing.core.GenericTypeMatcher;
+import org.fest.swing.core.*;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
@@ -533,6 +532,22 @@ public final class GuiTests {
         if (buttonText != null) {
           return buttonText.trim().equals(text) && button.isShowing();
         }
+    return false;
+    }
+    });
+  }
+
+  public static JLabel findLabelByText(@NotNull ContainerFixture<? extends Container> container, @NotNull final String text) {
+    return (JLabel)container.robot().finder().find(new ComponentMatcher() {
+      @Override
+      public boolean matches(@Nullable Component component) {
+        if (component instanceof JLabel) {
+          String labelText = ((JLabel)component).getText();
+          if (labelText != null) {
+            return text.equals(TextFormat.HTML.convertTo(labelText, TextFormat.TEXT).trim());
+          }
+        }
+
         return false;
       }
     });
