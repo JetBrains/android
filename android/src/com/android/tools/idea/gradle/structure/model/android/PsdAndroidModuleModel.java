@@ -83,6 +83,11 @@ public class PsdAndroidModuleModel extends PsdModuleModel {
     return getOrCreateDependencyModels().getDependencies();
   }
 
+  @NotNull
+  public Collection<PsdModuleDependencyModel> getModuleDependencies() {
+    return getOrCreateDependencyModels().getModuleDependencies();
+  }
+
   @Nullable
   public PsdModuleDependencyModel findModuleDependency(@NotNull String dependency) {
     return getOrCreateDependencyModels().findModuleDependency(dependency);
