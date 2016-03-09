@@ -19,7 +19,7 @@ import com.android.tools.idea.actions.MakeIdeaModuleAction;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.intellij.lang.injection.MultiHostInjector;
-import com.intellij.ide.actions.as.CreateClassAction;
+import com.intellij.androidstudio.actions.CreateClassAction;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.ex.ApplicationManagerEx;
 import com.intellij.openapi.diagnostic.Logger;
