@@ -35,7 +35,6 @@ import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
  * @author Alexander Lobas
  */
 public class RadViewLayout extends RadLayout {
-  public static final RadLayout INSTANCE = new RadViewLayout();
   public static final ComponentDecorator NON_RESIZE_DECORATOR = new NonResizeSelectionDecorator(DrawingStyle.SELECTION);
 
   @Override
