@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.editor;
 
+import com.android.tools.idea.editors.gfxtrace.gapi.GapiPaths;
 import com.intellij.openapi.util.DefaultJDOMExternalizer;
 import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.WriteExternalException;
@@ -31,9 +32,15 @@ public class ProfilerState {
   public boolean ENABLE_ADVANCED_PROFILING = true;
   public static final String ENABLE_ADVANCED_PROFILING_NAME = "android.profiler.enabled";
 
+  /** Enable GAPID (GPU) tracing. */
+  public boolean GAPID_ENABLED = false;
+  public static final String GAPID_ENABLED_NAME = "android.profiler.gapid.enabled";
+
   /** GAPID disable pre-compiled shader support. */
   public boolean GAPID_DISABLE_PCS = false;
   public static final String GAPID_DISABLE_PCS_NAME = "android.profiler.gapid.disable_pcs";
+
+  public static final String GAPID_AAR_PATH_NAME = "android.profiler.gapid.tracer_aar";  // Hidden setting.
 
   /**
    * Reads the state from the {@link Element}, overwriting all member values.
@@ -52,7 +59,9 @@ public class ProfilerState {
   public Properties toProperties() {
     Properties result = new Properties();
     result.setProperty(ENABLE_ADVANCED_PROFILING_NAME, String.valueOf(ENABLE_ADVANCED_PROFILING));
+    result.setProperty(GAPID_ENABLED_NAME, String.valueOf(GAPID_ENABLED));
     result.setProperty(GAPID_DISABLE_PCS_NAME, String.valueOf(GAPID_DISABLE_PCS));
+    result.setProperty(GAPID_AAR_PATH_NAME, GapiPaths.findTracerAar().getAbsolutePath());
     return result;
   }
 }
