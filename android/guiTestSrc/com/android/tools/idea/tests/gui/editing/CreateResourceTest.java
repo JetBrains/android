@@ -20,6 +20,9 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.fixture.CreateResourceFileDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.intellij.lang.annotation.HighlightSeverity;
+import org.fest.swing.core.Settings;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -31,6 +34,28 @@ import java.io.IOException;
 public class CreateResourceTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
+
+  private int myDelayBetweenEvents;
+  private int myEventPostingDelay;
+
+  @Before
+  public void setup() {
+    Settings setting = guiTest.robot().settings();
+
+    myDelayBetweenEvents = setting.delayBetweenEvents();
+    myEventPostingDelay = setting.eventPostingDelay();
+
+    setting.delayBetweenEvents(200);
+    setting.eventPostingDelay(200);
+  }
+
+  @After
+  public void tearDown() {
+    Settings setting = guiTest.robot().settings();
+
+    setting.delayBetweenEvents(myDelayBetweenEvents);
+    setting.eventPostingDelay(myEventPostingDelay);
+  }
 
   @Test
   public void testLibraryPrefix() throws IOException {
