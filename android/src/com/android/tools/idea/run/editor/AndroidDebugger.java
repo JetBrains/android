@@ -56,7 +56,7 @@ public interface AndroidDebugger<S extends AndroidDebuggerState> {
   void attachToClient(@NotNull Project project, @NotNull Client client);
 
   @NotNull
-  Set<XBreakpointType<?, ?>> getSupportedBreakpointTypes();
+  Set<XBreakpointType<?, ?>> getSupportedBreakpointTypes(@NotNull AndroidVersion version);
 
   class Renderer extends ColoredListCellRenderer<AndroidDebugger> {
     @Override
