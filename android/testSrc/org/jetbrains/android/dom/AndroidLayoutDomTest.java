@@ -89,6 +89,12 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
       "android:layout_alignBottom", "android:layout_alignEnd", "android:layout_alignLeft");
   }
 
+  public void testOpenDrawerAttributeNameCompletion() throws Throwable {
+    // For unit tests there are no support libraries, copy dummy DrawerLayout class that imitates the support library one
+    myFixture.copyFileToProject(testFolder + "/DrawerLayout.java", "src/android/support/v4/widget/DrawerLayout.java");
+    toTestCompletion("drawer_layout.xml", "drawer_layout_after.xml");
+  }
+
   // Deprecated attributes should be crossed out in the completion
   // This test specifically checks for "android:editable" attribute on TextView
   public void testDeprecatedAttributeNamesCompletion() throws Throwable {
@@ -463,6 +469,12 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
   public void testFloatAttributeValuesCompletion() throws Throwable {
     copyFileToProject("myIntResource.xml", "res/values/myIntResource.xml");
     doTestCompletionVariants("floatAttributeValues.xml", "@android:", "@integer/my_integer");
+  }
+
+  public void testDrawerLayoutOpenDrawerCompletion() throws Throwable {
+    // For unit tests there are no support libraries, copy dummy DrawerLayout class that imitates the support library one
+    myFixture.copyFileToProject(testFolder + "/DrawerLayout.java", "src/android/support/v4/widget/DrawerLayout.java");
+    doTestCompletionVariants("drawer_layout_attr_completion.xml", "start", "end", "left", "right");
   }
 
   public void testTagNameCompletion2() throws Throwable {
