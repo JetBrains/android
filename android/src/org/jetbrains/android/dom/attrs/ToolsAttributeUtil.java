@@ -30,6 +30,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
@@ -47,7 +48,7 @@ import static java.util.Collections.singletonList;
  */
 public class ToolsAttributeUtil {
   private static final ResolvingConverter LAYOUT_REFERENCE_CONVERTER =
-    new ResourceReferenceConverter(Collections.singleton(ResourceType.LAYOUT.getName()));
+    new ResourceReferenceConverter(EnumSet.of(ResourceType.LAYOUT));
   private static final ResolvingConverter ACTIVITY_CLASS_CONVERTER = new PackageClassConverter(true, AndroidUtils.ACTIVITY_BASE_CLASS_NAME);
 
   private static final List<AttributeFormat> NO_FORMATS = Collections.emptyList();

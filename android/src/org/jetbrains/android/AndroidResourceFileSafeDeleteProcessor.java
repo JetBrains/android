@@ -1,5 +1,6 @@
 package org.jetbrains.android;
 
+import com.android.resources.ResourceFolderType;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
@@ -84,11 +85,12 @@ public class AndroidResourceFileSafeDeleteProcessor extends SafeDeleteProcessorD
     assert vFile != null;
     final VirtualFile dir = vFile.getParent();
     assert dir != null;
-    final String type = AndroidCommonUtils.getResourceTypeByDirName(dir.getName());
+    ResourceFolderType folderType = ResourceFolderType.getFolderType(dir.getName());
 
-    if (type == null) {
+    if (folderType == null) {
       return Collections.emptyList();
     }
+    final String type = folderType.getName();
     final String name = vFile.getName();
     final List<PsiFile> resourceFiles = facet.getLocalResourceManager().findResourceFiles(
       type, AndroidCommonUtils.getResourceName(type, name), true, false);
