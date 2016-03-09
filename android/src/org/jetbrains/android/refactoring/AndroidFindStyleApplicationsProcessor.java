@@ -1,5 +1,6 @@
 package org.jetbrains.android.refactoring;
 
+import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.lang.injection.InjectedLanguageManager;
@@ -200,7 +201,7 @@ public class AndroidFindStyleApplicationsProcessor extends BaseRefactoringProces
       }
     }
     final List<VirtualFile> subdirs = AndroidResourceUtil.getResourceSubdirs(
-      ResourceType.LAYOUT.getName(), resDirs.toArray(new VirtualFile[resDirs.size()]));
+      ResourceFolderType.LAYOUT, resDirs.toArray(new VirtualFile[resDirs.size()]));
 
     List<VirtualFile> filesToProcess = new ArrayList<VirtualFile>();
 
