@@ -39,12 +39,9 @@ import java.util.Set;
  * Installs SDK components.
  */
 public final class ComponentInstaller {
-  private final boolean myInstallUpdates;
   private final AndroidSdkHandler mySdkHandler;
 
-  public ComponentInstaller(boolean installUpdates,
-                            @NotNull AndroidSdkHandler sdkHandler) {
-    myInstallUpdates = installUpdates;
+  public ComponentInstaller(@NotNull AndroidSdkHandler sdkHandler) {
     mySdkHandler = sdkHandler;
   }
 
@@ -70,10 +67,9 @@ public final class ComponentInstaller {
     RepoManager sdkManager = mySdkHandler.getSdkManager(progress);
     for (RemotePackage request : packages) {
       // Intentionally don't register any listeners on the installer, so we don't recurse on haxm
-      PackageInstaller installer = new BasicInstaller();
+      PackageInstaller installer = new BasicInstaller(request, sdkManager, mySdkHandler.getFileOp());
       FileOp fop = FileOpUtils.create();
-      if (installer.prepareInstall(request, new StudioDownloader(), StudioSettingsController.getInstance(),
-                                       progress, sdkManager, fop)) {
+      if (installer.prepareInstall(new StudioDownloader(), StudioSettingsController.getInstance(), progress)) {
         installer.completeInstall(request, progress, sdkManager, fop);
       }
     }

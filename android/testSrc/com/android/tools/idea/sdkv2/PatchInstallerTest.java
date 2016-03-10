@@ -103,7 +103,7 @@ public class PatchInstallerTest extends TestCase {
     repoManager.loadSynchronously(0, progress, null, null);
     RemotePackage p = getRemotePackage(repoManager, progress);
 
-    File result = new PatchInstaller().getPatcherFile(p, repoManager.getPackages().getLocalPackages(), progress, ourFileOp);
+    File result = new PatchInstaller(p, repoManager, ourFileOp).getPatcherFile(repoManager.getPackages().getLocalPackages(), progress);
     progress.assertNoErrorsOrWarnings();
     assertEquals("/sdk/patcher/v1/patcher.jar", result.getPath());
   }
