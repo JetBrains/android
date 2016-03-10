@@ -15,4 +15,9 @@ public class AndroidStudioUpdateStrategyCustomization extends UpdateStrategyCust
   public boolean allowMajorVersionUpdate() {
     return true;
   }
+
+  @Override
+  public boolean useOnlyCurrentChannel() {
+    return true;
+  }
 }
