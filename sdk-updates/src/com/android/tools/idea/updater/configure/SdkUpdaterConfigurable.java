@@ -229,7 +229,7 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
             com.android.repository.api.ProgressIndicator repoProgress = new RepoProgressIndicatorAdapter(progress);
             FileOp fop = FileOpUtils.create();
             for (LocalPackage item : toDelete) {
-              StudioSdkUtil.findBestInstaller(item, getSdkHandler()).uninstall(item, repoProgress, getRepoManager(), fop);
+              StudioSdkUtil.createInstaller(item, getSdkHandler()).uninstall(repoProgress);
             }
           }
         }, "Uninstalling", false, null, myPanel.getComponent());
@@ -243,7 +243,6 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
                 installer.registerStateChangeListener(new PackageInstaller.StatusChangeListener() {
                   @Override
                   public void statusChanged(@NotNull PackageInstaller installer,
-                                            @NotNull RepoPackage p,
                                             @NotNull ProgressIndicator progress) {
                     myPanel.getComponent().repaint();
                   }

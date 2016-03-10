@@ -50,7 +50,6 @@ import com.intellij.openapi.progress.*;
 import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
-import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -243,12 +242,11 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
           // If there's already an installer in progress for this package, reuse it.
           PackageInstaller installer = myRepoManager.getInProgressInstaller(remote);
           if (installer == null) {
-            installer = StudioSdkUtil.findBestInstaller(remote, mySdkHandler);
+            installer = StudioSdkUtil.createInstaller(remote, mySdkHandler);
           }
           myCustomLogger.logInfo(String.format("Installing %1$s", remote.getDisplayName()));
           try {
-            success = installer.prepareInstall(remote, new StudioDownloader(indicator), mySettings, myProgress,
-                                               myRepoManager, mySdkHandler.getFileOp());
+            success = installer.prepareInstall(new StudioDownloader(indicator), mySettings, myProgress);
           }
           catch (Exception e) {
             Logger.getInstance(getClass()).warn(e);

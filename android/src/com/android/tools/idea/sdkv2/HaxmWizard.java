@@ -113,7 +113,7 @@ public class HaxmWizard extends DynamicWizard {
 
       // Assume install and configure take approximately the same time; assign 0.5 progressRatio to each
       InstallComponentsOperation install =
-        new InstallComponentsOperation(installContext, selectedComponents, new ComponentInstaller(true, sdkHandler), 0.5);
+        new InstallComponentsOperation(installContext, selectedComponents, new ComponentInstaller(sdkHandler), 0.5);
 
       try {
         install.then(InstallOperation.wrap(installContext, new Function<File, File>() {

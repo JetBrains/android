@@ -37,16 +37,17 @@ public final class StudioSdkUtil {
    * Find the best {@link PackageInstaller} for the given {@link RepoPackage}.
    */
   @NotNull
-  public static PackageInstaller findBestInstaller(@NotNull RepoPackage p, @NotNull AndroidSdkHandler sdkHandler) {
+  public static PackageInstaller createInstaller(@NotNull RepoPackage p, @NotNull AndroidSdkHandler sdkHandler) {
     PackageInstaller installer = null;
+    StudioLoggerProgressIndicator progress = new StudioLoggerProgressIndicator(StudioSdkUtil.class);
     if (p instanceof RemotePackage) {
       LocalPackage local = sdkHandler.getLocalPackage(p.getPath(), LOGGER);
       if (local != null && ((RemotePackage)p).getArchive().getPatch(local.getVersion()) != null) {
-        installer = new PatchInstaller();
+        installer = new PatchInstaller(p, sdkHandler.getSdkManager(progress), sdkHandler.getFileOp());
       }
     }
     if (installer == null) {
-      installer = new BasicInstaller();
+      installer = new BasicInstaller(p, sdkHandler.getSdkManager(progress), sdkHandler.getFileOp());
     }
 
     if (p.getPath().equals(Haxm.REPO_PACKAGE_PATH)) {

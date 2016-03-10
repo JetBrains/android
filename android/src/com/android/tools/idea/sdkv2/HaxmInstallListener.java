@@ -16,8 +16,6 @@
 package com.android.tools.idea.sdkv2;
 
 import com.android.repository.api.ProgressIndicator;
-import com.android.repository.api.RemotePackage;
-import com.android.repository.api.RepoPackage;
 import com.android.repository.impl.installer.PackageInstaller;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
@@ -31,7 +29,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class HaxmInstallListener implements PackageInstaller.StatusChangeListener {
   @Override
   public void statusChanged(@NotNull PackageInstaller installer,
-                            @NotNull RepoPackage p,
                             @NotNull ProgressIndicator progress) throws PackageInstaller.StatusChangeListenerException {
     if (installer.getInstallStatus() == PackageInstaller.InstallStatus.COMPLETE) {
       final AtomicBoolean result = new AtomicBoolean(false);

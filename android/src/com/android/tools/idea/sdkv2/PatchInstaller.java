@@ -81,22 +81,23 @@ public class PatchInstaller extends BasicInstaller {
    */
   private static Map<File, Map<String, Class<?>>> ourPatcherCache = new WeakHashMap<File, Map<String, Class<?>>>();
 
+  public PatchInstaller(RepoPackage p, RepoManager repoManager, FileOp fop) {
+    super(p, repoManager, fop);
+  }
+
   /**
    * {@inheritDoc}
    *
    * If the patch fails, fall back to trying a complete install.
    */
   @Override
-  protected boolean doPrepareInstall(@NotNull RemotePackage p,
-                                     @NotNull File installTempPath,
+  protected boolean doPrepareInstall(@NotNull File installTempPath,
                                      @NotNull Downloader downloader,
                                      @Nullable SettingsController settings,
-                                     @NotNull ProgressIndicator progress,
-                                     @NotNull RepoManager manager,
-                                     @NotNull FileOp fop) {
-    if (!doPrepareInstallInternal(p, installTempPath, downloader, settings, progress, manager, fop)) {
+                                     @NotNull ProgressIndicator progress) {
+    if (!doPrepareInstallInternal(installTempPath, downloader, settings, progress)) {
       progress.logWarning("Failed to install patch, attempting fresh install...");
-      return super.doPrepareInstall(p, installTempPath, downloader, settings, progress, manager, fop);
+      return super.doPrepareInstall(installTempPath, downloader, settings, progress);
     }
     return true;
   }
@@ -104,16 +105,14 @@ public class PatchInstaller extends BasicInstaller {
   /**
    * Actually do the patch install.
    */
-  private boolean doPrepareInstallInternal(@NotNull RemotePackage p,
-                                           @NotNull File tempDir,
+  private boolean doPrepareInstallInternal(@NotNull File tempDir,
                                            @NotNull Downloader downloader,
                                            @Nullable SettingsController settings,
-                                           @NotNull ProgressIndicator progress,
-                                           @NotNull RepoManager manager,
-                                           @NotNull FileOp fop) {
-    Map<String, ? extends LocalPackage> localPackages = manager.getPackages().getLocalPackages();
-    LocalPackage local = localPackages.get(p.getPath());
+                                           @NotNull ProgressIndicator progress) {
+    Map<String, ? extends LocalPackage> localPackages = getRepoManager().getPackages().getLocalPackages();
+    LocalPackage local = localPackages.get(getPackage().getPath());
     assert local != null;
+    RemotePackage p = (RemotePackage)getPackage();
     Archive archive = p.getArchive();
     assert archive != null;
     Archive.PatchType patch = archive.getPatch(local.getVersion());
@@ -125,7 +124,7 @@ public class PatchInstaller extends BasicInstaller {
       return false;
     }
 
-    File patcherJar = getPatcherFile(p, localPackages, progress, fop);
+    File patcherJar = getPatcherFile(localPackages, progress);
     if (patcherJar == null) {
       progress.logWarning("Couldn't find patcher jar!");
       return false;
@@ -137,18 +136,18 @@ public class PatchInstaller extends BasicInstaller {
     }
 
     File workDir = new File(tempDir, WORK_DIR_FN);
-    if (fop.exists(workDir)) {
-      fop.deleteFileOrFolder(workDir);
+    if (mFop.exists(workDir)) {
+      mFop.deleteFileOrFolder(workDir);
     }
     try {
-      FileOpUtils.recursiveCopy(local.getLocation(), workDir, fop, progress);
+      FileOpUtils.recursiveCopy(local.getLocation(), workDir, mFop, progress);
     }
     catch (IOException e) {
       progress.logWarning("Failed to copy package to temporary location", e);
       return false;
     }
-    fop.deleteFileOrFolder(new File(workDir, InstallerUtil.INSTALLER_DIR_FN));
-    fop.delete(new File(workDir, LocalRepoLoader.PACKAGE_XML_FN));
+    mFop.deleteFileOrFolder(new File(workDir, InstallerUtil.INSTALLER_DIR_FN));
+    mFop.delete(new File(workDir, LocalRepoLoader.PACKAGE_XML_FN));
 
     boolean result = runPatcher(progress, workDir, patchFile, classMap.get(RUNNER_CLASS_NAME), classMap.get(UPDATER_UI_CLASS_NAME),
                                 classMap.get(REPO_UI_CLASS_NAME));
@@ -156,7 +155,7 @@ public class PatchInstaller extends BasicInstaller {
       return false;
     }
     try {
-      InstallerUtil.writePackageXml(p, tempDir, manager, fop, progress);
+      InstallerUtil.writePackageXml(p, tempDir, getRepoManager(), mFop, progress);
     }
     catch (IOException e) {
       progress.logWarning("Failed to write new package.xml");
@@ -167,21 +166,18 @@ public class PatchInstaller extends BasicInstaller {
     progress.setFraction(1);
     progress.setIndeterminate(false);
 
-    manager.markInvalid();
+    getRepoManager().markInvalid();
     return true;
   }
 
   @Override
-  protected boolean doCompleteInstall(@NotNull RemotePackage p,
-                                      @NotNull File installTempPath,
+  protected boolean doCompleteInstall(@NotNull File installTempPath,
                                       @NotNull File destination,
-                                      @NotNull ProgressIndicator progress,
-                                      @NotNull RepoManager manager,
-                                      @NotNull FileOp fop) {
+                                      @NotNull ProgressIndicator progress) {
 
     File workDir = new File(installTempPath, WORK_DIR_FN);
-    if (!doCompleteInstallInternal(workDir, destination, fop, progress)) {
-      return super.doCompleteInstall(p, installTempPath, destination, progress, manager, fop);
+    if (!doCompleteInstallInternal(workDir, destination, mFop, progress)) {
+      return super.doCompleteInstall(installTempPath, destination, progress);
     }
     return true;
   }
@@ -347,17 +343,16 @@ public class PatchInstaller extends BasicInstaller {
   }
 
   /**
-   * Gets the patcher jar required by the given {@link RemotePackage}.
+   * Gets the patcher jar required by our package.
    *
    * @return The location of the patcher.jar, or null if it was not found.
    */
   @Nullable
   @VisibleForTesting
-  static File getPatcherFile(@NotNull RemotePackage p,
-                             @NotNull Map<String, ? extends LocalPackage> localPackages,
-                             @NotNull ProgressIndicator progress, @NotNull FileOp fop) {
+  File getPatcherFile(@NotNull Map<String, ? extends LocalPackage> localPackages,
+                      @NotNull ProgressIndicator progress) {
     File patcherJar = null;
-    for (Dependency d : p.getAllDependencies()) {
+    for (Dependency d : getPackage().getAllDependencies()) {
       if (d.getPath().startsWith(PATCHER_PATH_PREFIX)) {
         LocalPackage patcher = localPackages.get(d.getPath());
         if (patcher != null) {
@@ -366,7 +361,7 @@ public class PatchInstaller extends BasicInstaller {
         }
       }
     }
-    if (patcherJar == null || !fop.isFile(patcherJar)) {
+    if (patcherJar == null || !mFop.isFile(patcherJar)) {
       progress.logWarning("Failed to find patcher!");
       return null;
     }

@@ -91,7 +91,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     myLocalHandler = AndroidSdkHandler.getInstance(sdkLocation);
 
     myProgressStep = progressStep;
-    myComponentInstaller = new ComponentInstaller(installUpdates, myLocalHandler);
+    myComponentInstaller = new ComponentInstaller(myLocalHandler);
     myInstallUpdates = installUpdates;
   }
 
@@ -279,7 +279,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
         File sdkLocation = new File(sdkPath);
         if (!FileUtil.filesEqual(myLocalHandler.getLocation(), sdkLocation)) {
           myLocalHandler = AndroidSdkHandler.getInstance(sdkLocation);
-          myComponentInstaller = new ComponentInstaller(myInstallUpdates, myLocalHandler);
+          myComponentInstaller = new ComponentInstaller(myLocalHandler);
 
           myComponentTree.updateState(myLocalHandler);
         }
