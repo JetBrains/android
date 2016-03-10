@@ -166,7 +166,7 @@ public class GradleInvokerOptionsTest {
 
     GradleInvokerOptions options =
       GradleInvokerOptions.create(GradleInvoker.TestCompileType.NONE, instantRunOptions, myTasksProvider,
-                                  ourRunAsSupported, null, null);
+                                  ourRunAsSupported, null);
 
     assertTrue(options.commandLineArguments.contains("-Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY,LOCAL_RES_ONLY"));
     assertEquals(INCREMENTAL_TASKS, options.tasks);
