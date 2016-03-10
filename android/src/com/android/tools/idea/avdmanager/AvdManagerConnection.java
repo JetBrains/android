@@ -760,26 +760,26 @@ public class AvdManagerConnection {
   }
 
   private static class SystemImageUpdateDependency {
-    private final int myApiLevel;
+    private final int myFeatureLevel;
     private final IdDisplay myTag;
     private final int myRequiredMajorRevision;
 
-    public SystemImageUpdateDependency(int apiLevel, @NotNull IdDisplay tag, int requiredMajorRevision) {
-      myApiLevel = apiLevel;
+    public SystemImageUpdateDependency(int featureLevel, @NotNull IdDisplay tag, int requiredMajorRevision) {
+      myFeatureLevel = featureLevel;
       myTag = tag;
       myRequiredMajorRevision = requiredMajorRevision;
     }
 
     public boolean updateRequired(@NotNull SystemImage image) {
-      return updateRequired(image.getAbiType(), image.getAndroidVersion().getApiLevel(), image.getTag(), image.getRevision());
+      return updateRequired(image.getAbiType(), image.getAndroidVersion().getFeatureLevel(), image.getTag(), image.getRevision());
     }
 
-    public boolean updateRequired(@NotNull String abiType, int apiLevel, @NotNull IdDisplay tag, @NotNull Revision revision) {
+    public boolean updateRequired(@NotNull String abiType, int featureLevel, @NotNull IdDisplay tag, @NotNull Revision revision) {
       Abi abi = Abi.getEnum(abiType);
       boolean isAvdIntel = abi == Abi.X86 || abi == Abi.X86_64;
 
       return isAvdIntel &&
-             apiLevel == myApiLevel &&
+             featureLevel == myFeatureLevel &&
              myTag.equals(tag) &&
              revision.getMajor() < myRequiredMajorRevision;
     }
