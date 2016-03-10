@@ -97,7 +97,7 @@ public class AndroidResourceFilesListener extends BulkFileListener.Adapter imple
 
       if (parent != null && parent.isDirectory()) {
         final ResourceFolderType resType = ResourceFolderType.getFolderType(parent.getName());
-        return ResourceFolderType.VALUES.equals(resType);
+        return ResourceFolderType.VALUES == resType;
       }
     }
     return false;
@@ -181,7 +181,7 @@ public class AndroidResourceFilesListener extends BulkFileListener.Adapter imple
 
         if (gp != null &&
             Comparing.equal(gp, resourceDir) &&
-            ResourceFolderType.VALUES.equals(ResourceFolderType.getFolderType(parent.getName()))) {
+            ResourceFolderType.VALUES == ResourceFolderType.getFolderType(parent.getName())) {
           modulesToInvalidateAttributeDefs.add(module);
         }
         final List<AndroidAutogeneratorMode> modes = computeCompilersToRunAndInvalidateLocalAttributesMap(facet, file);

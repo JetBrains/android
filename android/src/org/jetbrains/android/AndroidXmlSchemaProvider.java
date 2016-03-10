@@ -115,10 +115,10 @@ public class AndroidXmlSchemaProvider extends XmlSchemaProvider {
     if (resType == null) {
       return false;
     }
-    if (resType.equals(ResourceFolderType.XML)) {
+    if (resType == ResourceFolderType.XML) {
       return XmlResourceDomFileDescription.isXmlResourceFile(file);
     }
-    return !resType.equals(ResourceFolderType.RAW);
+    return resType != ResourceFolderType.RAW;
   }
 
   @NotNull
