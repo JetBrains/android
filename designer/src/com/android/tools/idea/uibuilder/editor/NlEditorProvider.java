@@ -18,7 +18,6 @@ package com.android.tools.idea.uibuilder.editor;
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.tools.idea.AndroidPsiUtils;
-import com.android.tools.idea.rendering.RenderService;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorPolicy;
 import com.intellij.openapi.fileEditor.FileEditorProvider;
@@ -31,25 +30,15 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
 import org.jdom.Element;
 import org.jetbrains.android.dom.layout.LayoutDomFileDescription;
+import org.jetbrains.android.dom.menu.MenuDomFileDescription;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.AndroidEditorSettings;
 
 public class NlEditorProvider implements FileEditorProvider, DumbAware {
-  public static final boolean ENABLED = RenderService.NELE_ENABLED;
-
-  /** FileEditorProvider ID for the layout editor */
-  public static final String DESIGNER_ID = "android-designer2";
-
-  public static boolean acceptLayout(@NonNull Project project, @NonNull VirtualFile file) {
-    if (!ENABLED) {
-      return false;
-    }
-
-    PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(project, file);
-    return psiFile instanceof XmlFile &&
-           getFacet(project, file) != null &&
-           LayoutDomFileDescription.isLayoutFile((XmlFile)psiFile);
-  }
+  /**
+   * FileEditorProvider ID for the layout editor
+   */
+  private static final String DESIGNER_ID = "android-designer2";
 
   @Nullable
   private static AndroidFacet getFacet(@NonNull Project project, @NonNull VirtualFile file) {
@@ -59,7 +48,18 @@ public class NlEditorProvider implements FileEditorProvider, DumbAware {
 
   @Override
   public boolean accept(@NonNull Project project, @NonNull VirtualFile file) {
-    return acceptLayout(project, file);
+    if (getFacet(project, file) == null) {
+      return false;
+    }
+
+    PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(project, file);
+
+    if (!(psiFile instanceof XmlFile)) {
+      return false;
+    }
+
+    XmlFile xmlFile = (XmlFile)psiFile;
+    return LayoutDomFileDescription.isLayoutFile(xmlFile) || MenuDomFileDescription.isMenuFile(xmlFile);
   }
 
   @NonNull
