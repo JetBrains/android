@@ -1161,7 +1161,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
     final String resFilePath = FileUtil.toSystemIndependentName(resFile.getPath());
     final long resFileTimestamp = resFile.lastModified();
 
-    if (ResourceFolderType.VALUES.equals(resourceFolderType) && FileUtilRt.extensionEquals(resFile.getName(), "xml")) {
+    if (ResourceFolderType.VALUES == resourceFolderType && FileUtilRt.extensionEquals(resFile.getName(), "xml")) {
       ResourceFileData dataToReuse = null;
 
       if (oldState != null) {
