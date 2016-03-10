@@ -532,8 +532,8 @@ public final class GuiTests {
         if (buttonText != null) {
           return buttonText.trim().equals(text) && button.isShowing();
         }
-    return false;
-    }
+        return false;
+      }
     });
   }
 
