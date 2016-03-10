@@ -37,7 +37,7 @@ public class ConfigureAvdOptionsStepFixture extends AbstractWizardStepFixture<Co
   @NotNull
   public ConfigureAvdOptionsStepFixture showAdvancedSettings() {
     try {
-      JButton showAdvancedSettingsButton = robot().finder().find(new GenericTypeMatcher<JButton>(JButton.class) {
+      JButton showAdvancedSettingsButton = robot().finder().find(target(), new GenericTypeMatcher<JButton>(JButton.class) {
         @Override
         protected boolean isMatching(@NotNull JButton component) {
           return "Show Advanced Settings".equals(component.getText());
@@ -122,8 +122,8 @@ public class ConfigureAvdOptionsStepFixture extends AbstractWizardStepFixture<Co
   }
 
   @NotNull
-  public ConfigureAvdOptionsStepFixture selectUseHostGpu(boolean value) {
-    findCheckBoxWithLabel("Use Host GPU").setSelected(value);
+  public ConfigureAvdOptionsStepFixture selectGraphicsHardware() {
+    findComboBoxWithLabel("Graphics:").selectItem("Hardware - GLES 2.0");
     return this;
   }
 }
