@@ -17,6 +17,7 @@ package com.android.tools.idea.res;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.VisibleForTesting;
+import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.res2.*;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.FolderTypeRelationship;
@@ -434,6 +435,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
           return;
         }
         ListMultimap<String, ResourceItem> idMap = getMap(ResourceType.ID, true);
+        boolean isDensityBasedResource = folderType == DRAWABLE || folderType == MIPMAP;
         for (ResourceItem item : resourceFile.getItems()) {
           ListMultimap<String, ResourceItem> itemMap;
           if (item.getType() == ResourceType.ID) {
@@ -443,10 +445,12 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
             itemMap = map;
           }
           itemMap.put(item.getName(), item);
-          // It's not yet safe to serialize layout, menu, etc. items to blob files. They are currently serialized the same way
-          // as value resource <item />s, which isn't right. Their ResourceValue should represent the file path, but when read back
-          // from a blob, the ResourceValue is the blob's XML node value which is an empty string.
-          item.setIgnoredFromDiskMerge(true);
+          // It's not yet safe to serialize density-based resources items to blob files.
+          // The ResourceValue should be an instance of DensityBasedResourceValue, but no flags are
+          // serialized to the blob to indicate that.
+          if (isDensityBasedResource) {
+            item.setIgnoredFromDiskMerge(true);
+          }
         }
       }
       catch (MergingException e) {
@@ -2262,7 +2266,33 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
             if (resourceItem.compareTo(item) != 0) {
               return false;
             }
-            // We can only compareValueWith for VALUE items. Others don't have a valid value.
+            // #compareTo doesn't check the ResourceValue. At least check that getValue is equivalent (getRawXmlText may be different).
+            // Skip ID type resources, where the ResourceValues are not important and where blob writing doesn't preserve the value.
+            if (item.getType() != ResourceType.ID) {
+              ResourceValue resValue = item.getResourceValue(false);
+              ResourceValue otherResValue = resourceItem.getResourceValue(false);
+              if (resValue == null || otherResValue == null) {
+                if (resValue != otherResValue) {
+                  return false;
+                }
+              }
+              else {
+                String resValueStr = resValue.getValue();
+                String otherResValueStr = otherResValue.getValue();
+                if (resValueStr == null || otherResValueStr == null) {
+                  if (resValueStr != otherResValueStr) {
+                    return false;
+                  }
+                }
+                else {
+                  if (!resValueStr.equals(otherResValueStr)) {
+                    return false;
+                  }
+                }
+              }
+            }
+            // We can only compareValueWith (compare equivalence of XML nodes) for VALUE items.
+            // For others, the XML node may be different before and after serialization.
             ResourceFile source = item.getSource();
             ResourceFile otherSource = resourceItem.getSource();
             if (source != null && otherSource != null) {
@@ -2271,7 +2301,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
               if (otherFolderType != ownFolderType) {
                 return false;
               }
-              if (otherFolderType == ResourceFolderType.VALUES) {
+              if (otherFolderType == VALUES) {
                 return resourceItem.compareValueWith(item);
               }
             }

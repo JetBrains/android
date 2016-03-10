@@ -25,7 +25,6 @@ import com.android.resources.Density;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.databinding.DataBindingUtil;
-import com.android.tools.idea.res.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
@@ -1128,6 +1127,12 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(resources.hasResourceItem(ResourceType.ID, "note23Area"));
     assertFalse(resources.hasResourceItem(ResourceType.ID, "note2Area"));
     assertTrue(resources.getModificationCount() > generation2);
+
+    // Also check that for IDs the ResourceValue is nothing of consequence.
+    ResourceItem idItem = getOnlyItem(resources, ResourceType.ID, "note23Area");
+    ResourceValue idValue = idItem.getResourceValue(false);
+    assertNotNull(idValue);
+    assertEquals("", idValue.getValue());
 
     // Shouldn't have done any full file rescans during the above edits
     ensureIncremental();
@@ -3732,9 +3737,8 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertNotNull(resources);
     assertFalse(resources.hasFreshFileCache());
     assertEquals(3, resources.getInitialInitialScanState().numXml);
-    assertEquals(3, resources.getInitialInitialScanState().numXmlReparsed);
+    assertEquals(resources.getInitialInitialScanState().numXml, resources.getInitialInitialScanState().numXmlReparsed);
 
-    ResourceFolderRepositoryFileCache cache = ResourceFolderRepositoryFileCacheService.get();
     resources.saveStateToFile();
 
     ResourceFolderRegistry.reset();
@@ -3742,8 +3746,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertNotSame(resources, resourcesReloaded);
     assertTrue(resourcesReloaded.hasFreshFileCache());
     assertEquals(3, resourcesReloaded.getInitialInitialScanState().numXml);
-    // Layout are still reparsed for now.
-    assertEquals(2, resourcesReloaded.getInitialInitialScanState().numXmlReparsed);
+    assertEquals(0, resourcesReloaded.getInitialInitialScanState().numXmlReparsed);
   }
 
   public void testSerialization() throws Exception {
@@ -3758,10 +3761,18 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     myFixture.copyFileToProject(XLIFF, "res/values/xliff.xml");
     final ResourceFolderRepository resources = createRepository();
     assertNotNull(resources);
+    assertFalse(resources.hasFreshFileCache());
+    assertEquals(7, resources.getInitialInitialScanState().numXml);
+    assertEquals(resources.getInitialInitialScanState().numXml, resources.getInitialInitialScanState().numXmlReparsed);
     resources.saveStateToFile();
+
     ResourceFolderRegistry.reset();
     final ResourceFolderRepository fromBlob = createRepository();
     assertNotNull(fromBlob);
+    // Check that fromBlob really avoided reparsing some XML files, before checking equivalence of items.
+    assertTrue(fromBlob.hasFreshFileCache());
+    assertEquals(7, fromBlob.getInitialInitialScanState().numXml);
+    assertTrue(fromBlob.getInitialInitialScanState().numXml > fromBlob.getInitialInitialScanState().numXmlReparsed);
 
     assertNotSame(resources, fromBlob);
     assertTrue(fromBlob.equalFilesItems(resources));
@@ -3772,11 +3783,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     myFixture.copyFileToProject(LAYOUT1, "res/layout-xlarge-land/layout.xml");
     myFixture.copyFileToProject(LAYOUT_WITH_DATA_BINDING, "res/layout/layout_with_data_binding.xml");
     myFixture.copyFileToProject(DRAWABLE, "res/drawable/logo.png");
-    myFixture.copyFileToProject(DRAWABLE, "res/drawable-hdpi/logo.png");
-    myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
     myFixture.copyFileToProject(STRINGS, "res/values/strings.xml");
-    myFixture.copyFileToProject(STRINGS, "res/values-fr/not_really_french_strings.xml");
-    myFixture.copyFileToProject(XLIFF, "res/values/xliff.xml");
     final ResourceFolderRepository resources = createRepository();
     assertNotNull(resources);
     resources.saveStateToFile();
@@ -3973,6 +3980,43 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertNotNull(valueString);
     assertTrue(valueString.endsWith("activity_foo.xml"));
     assertTrue(valueString.contains("layout-xlarge-land"));
+  }
+
+  public void testSerializeDensityBasedResourceValues() throws Exception {
+    myFixture.copyFileToProject(STRINGS, "res/values/strings.xml");
+    myFixture.copyFileToProject(DRAWABLE_ID_SCAN, "res/drawable-hdpi/drawable_foo.xml");
+    myFixture.copyFileToProject(DRAWABLE_ID_SCAN, "res/drawable-xhdpi/drawable_foo.xml");
+    myFixture.copyFileToProject(DRAWABLE_ID_SCAN, "res/drawable-fr/drawable_foo.xml");
+    final ResourceFolderRepository resources = createRepository();
+    assertNotNull(resources);
+    FolderConfiguration config = FolderConfiguration.getConfigForFolder("drawable-xhdpi");
+    assertNotNull(config);
+    // For drawable xml, the ResourceValue#getValue is the file path.
+    ResourceValue value = resources.getConfiguredValue(ResourceType.DRAWABLE, "drawable_foo", config);
+    assertNotNull(value);
+    String valueString = value.getValue();
+    assertNotNull(valueString);
+    assertTrue(valueString.endsWith("drawable_foo.xml"));
+    assertTrue(valueString.contains("drawable-xhdpi"));
+    DensityBasedResourceValue densityValue = (DensityBasedResourceValue)value;
+    assertEquals(Density.XHIGH, densityValue.getResourceDensity());
+
+    resources.saveStateToFile();
+    ResourceFolderRegistry.reset();
+    final ResourceFolderRepository fromBlob = createRepository();
+    assertNotNull(fromBlob);
+
+    assertNotSame(resources, fromBlob);
+    assertTrue(fromBlob.equalFilesItems(resources));
+    value = fromBlob.getConfiguredValue(ResourceType.DRAWABLE, "drawable_foo", config);
+    assertNotNull(value);
+    valueString = value.getValue();
+    assertNotNull(valueString);
+    assertTrue(valueString.endsWith("drawable_foo.xml"));
+    assertTrue(valueString.contains("drawable-xhdpi"));
+    // Make sure that the resource value is still of type DensityBasedResourceValue.
+    densityValue = (DensityBasedResourceValue)value;
+    assertEquals(Density.XHIGH, densityValue.getResourceDensity());
   }
 
   private static void validateViewWithId(AndroidFacet facet, DataBindingInfo.ViewWithId viewWithId, String qualified, String variableName) {
