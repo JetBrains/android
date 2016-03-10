@@ -231,8 +231,8 @@ public abstract class ResourceManager {
 
   @Nullable
   public String getValueResourceType(@NotNull XmlTag tag) {
-    String fileResType = getFileResourceType(tag.getContainingFile());
-    if ("values".equals(fileResType)) {
+    ResourceFolderType fileResType = getFileResourceFolderType(tag.getContainingFile());
+    if (ResourceFolderType.VALUES == fileResType) {
       return tag.getName();
     }
     return null;
