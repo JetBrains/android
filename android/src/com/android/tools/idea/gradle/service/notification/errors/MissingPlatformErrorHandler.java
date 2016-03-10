@@ -40,6 +40,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class MissingPlatformErrorHandler extends AbstractSyncErrorHandler {
+  private static final Pattern MISSING_PLATFORM_PATTERN_0 = Pattern.compile("(Cause: )?failed to find target with hash string '(.*)' in: (.*)");
   private static final Pattern MISSING_PLATFORM_PATTERN_1 = Pattern.compile("(Cause: )?failed to find target (.*) : (.*)");
   // This second format is used in older versions of the Android Gradle plug-in (0.9.+)
   private static final Pattern MISSING_PLATFORM_PATTERN_2 = Pattern.compile("(Cause: )?failed to find target (.*)");
@@ -51,8 +52,12 @@ public class MissingPlatformErrorHandler extends AbstractSyncErrorHandler {
                              @NotNull Project project) {
     String firstLine = message.get(0);
 
-    Matcher matcher = MISSING_PLATFORM_PATTERN_1.matcher(firstLine);
+    Matcher matcher = MISSING_PLATFORM_PATTERN_0.matcher(firstLine);
     boolean missingPlatform = matcher.matches();
+    if (!missingPlatform) {
+      matcher = MISSING_PLATFORM_PATTERN_1.matcher(firstLine);
+      missingPlatform = matcher.matches();
+    }
     if (!missingPlatform) {
       matcher = MISSING_PLATFORM_PATTERN_2.matcher(firstLine);
       missingPlatform = matcher.matches();
