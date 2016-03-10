@@ -39,6 +39,7 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
   private long[] myModificationCounts;
   private Map<ResourceType, ListMultimap<String, ResourceItem>> myItems = Maps.newEnumMap(ResourceType.class);
   private final Map<ResourceType, ListMultimap<String, ResourceItem>> myCachedTypeMaps = Maps.newEnumMap(ResourceType.class);
+  private final Map<ResourceType, Boolean> myCachedHasResourcesOfType = Maps.newEnumMap(ResourceType.class);
   private Map<String, DataBindingInfo> myDataBindingResourceFiles = Maps.newHashMap();
   private long myDataBindingResourceFilesModificationCount = Long.MIN_VALUE;
 
@@ -81,6 +82,7 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
     myItems = null;
     synchronized (this) {
       myCachedTypeMaps.clear();
+      myCachedHasResourcesOfType.clear();
     }
   }
 
@@ -216,6 +218,39 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
   }
 
   @Override
+  public boolean hasResourcesOfType(@NotNull ResourceType type) {
+    if (myChildren.size() == 1) {
+      return myChildren.get(0).hasResourcesOfType(type);
+    }
+
+    synchronized (this) {
+      Boolean result = myCachedHasResourcesOfType.get(type);
+      if (result != null) {
+        return result;
+      }
+    }
+    Set<LocalResourceRepository> visited = Sets.newHashSet();
+    boolean result = computeHasResourcesOfType(type, visited);
+    synchronized (this) {
+      myCachedHasResourcesOfType.put(type, result);
+    }
+    return result;
+  }
+
+  @Override
+  protected boolean computeHasResourcesOfType(@NotNull ResourceType type, @NotNull Set<LocalResourceRepository> visited) {
+    if (!visited.add(this)) {
+      return false;
+    }
+    for (LocalResourceRepository child : myChildren) {
+      if (child.computeHasResourcesOfType(type, visited)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @Override
   public void dispose() {
     for (int i = myChildren.size() - 1; i >= 0; i--) {
       LocalResourceRepository resources = myChildren.get(i);
@@ -234,10 +269,12 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
     synchronized (this) {
       if (types == null || types.length == 0) {
         myCachedTypeMaps.clear();
+        myCachedHasResourcesOfType.clear();
       }
       else {
         for (ResourceType type : types) {
           myCachedTypeMaps.remove(type);
+          myCachedHasResourcesOfType.remove(type);
         }
       }
     }
