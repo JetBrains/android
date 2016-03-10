@@ -778,14 +778,13 @@ public class GradleSyncTest {
 
     guiTest.cleanUpProjectForImport(guiTest.getProjectPath());
 
+    VirtualFile toSelect = findFileByIoFile(guiTest.getProjectPath(), true);
+    assertNotNull(toSelect);
+
     // Import project
     WelcomeFrameFixture welcomeFrame = WelcomeFrameFixture.find(guiTest.robot());
     welcomeFrame.importProject();
     FileChooserDialogFixture importProjectDialog = findImportProjectDialog(guiTest.robot());
-
-    VirtualFile toSelect = findFileByIoFile(guiTest.getProjectPath(), true);
-    assertNotNull(toSelect);
-
     importProjectDialog.select(toSelect).clickOk();
 
     // Expect message suggesting to use Gradle wrapper. Click "OK" to use wrapper.
