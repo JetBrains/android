@@ -83,7 +83,8 @@ public class ShowLicensesUsedAction extends DumbAwareAction {
         "google-cloud-tools",
         "google-cloud-tools-core",
         "google-login",
-        "google-services"
+        "google-services",
+        "firebase"
       );
 
       for (String plugin : extraPlugins) {
