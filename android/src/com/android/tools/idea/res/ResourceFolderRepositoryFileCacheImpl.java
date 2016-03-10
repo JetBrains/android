@@ -48,6 +48,12 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
 
   private static final String CACHE_DIRECTORY = "resource_folder_cache";
   private static final String INVALIDATE_CACHE_STAMP = "invalidate_caches_stamp.dat";
+
+  static final int EXPECTED_CACHE_VERSION = 1;
+  private static final String CACHE_VERSION_FILENAME = "cache_version";
+  // The cache version previously read from the CACHE_VERSION_FILENAME (to avoid re-reading).
+  private Integer myCacheVersion = null;
+
   private final File myRootDir;
 
   public ResourceFolderRepositoryFileCacheImpl() {
@@ -85,15 +91,16 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
   @Nullable
   public File getRootDir() {
     File cacheRootDir = myRootDir;
-    try {
-      FileUtil.ensureExists(cacheRootDir);
-      if (!cacheRootDir.isDirectory()) {
-        getLogger().error(String.format("Cache root dir %1$s is not a directory", cacheRootDir));
+    if (!cacheRootDir.exists()) {
+      // If this is the first time the root directory is created, stamp it with a version.
+      if (!cacheRootDir.mkdirs()) {
+        getLogger().error(String.format("Failed to create cache root directory %1$s", cacheRootDir));
         return null;
       }
+      stampVersion(cacheRootDir, EXPECTED_CACHE_VERSION);
     }
-    catch (IOException e) {
-      getLogger().error(e);
+    if (!cacheRootDir.isDirectory()) {
+      getLogger().error(String.format("Cache root dir %1$s is not a directory", cacheRootDir));
       return null;
     }
     return cacheRootDir;
@@ -151,6 +158,7 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
 
     // Finally, delete the stamp and the directory.
     FileUtil.delete(cacheRootDir);
+    myCacheVersion = null;
   }
 
   @Override
@@ -159,13 +167,68 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
     if (rootDir == null) {
       return false;
     }
+    if (!isVersionSame(rootDir)) {
+      return false;
+    }
     File stamp = new File(rootDir, INVALIDATE_CACHE_STAMP);
     return !stamp.exists();
   }
 
+  @VisibleForTesting
+  boolean isVersionSame(@NotNull File rootDir) {
+    if (myCacheVersion != null) {
+      return myCacheVersion == EXPECTED_CACHE_VERSION;
+    }
+    File versionFile = new File(rootDir, CACHE_VERSION_FILENAME);
+    if (!versionFile.exists()) {
+      return false;
+    }
+    try {
+      final DataInputStream in = new DataInputStream(new FileInputStream(versionFile));
+      try {
+        myCacheVersion = in.readInt();
+      }
+      finally {
+        in.close();
+      }
+    }
+    catch (FileNotFoundException e) {
+      getLogger().error("Could not read cache version from file: " + versionFile, e);
+      return false;
+    }
+    catch (IOException e) {
+      getLogger().error("Could not read cache version from file: " + versionFile, e);
+      return false;
+    }
+    return myCacheVersion == EXPECTED_CACHE_VERSION;
+  }
+
+  @Override
+  @VisibleForTesting
+  public void stampVersion(@NotNull File rootDir, int version) {
+    File versionFile = new File(rootDir, CACHE_VERSION_FILENAME);
+    try {
+      FileUtil.ensureExists(rootDir);
+      final DataOutputStream out = new DataOutputStream(new FileOutputStream(versionFile));
+      try {
+        out.writeInt(version);
+        myCacheVersion = version;
+      }
+      finally {
+        out.close();
+      }
+    }
+    catch (FileNotFoundException e) {
+      getLogger().error("Could not write cache version to file: " + versionFile, e);
+    }
+    catch (IOException e) {
+      getLogger().error("Could not write cache version to file: " + versionFile, e);
+    }
+  }
+
   /**
    * A task that manages and tracks the LRU state of resource repository file caches across projects.
-   * - It deletes the cache if marked invalid.
+   * - It deletes the cache if marked invalid (or version is unexpectedly different).
    * - When a project opens, it will place the project in the front of the LRU queue, and delete
    * caches for projects that have been bumped out of the queue. This helps limit the storage
    * used to be up to only N projects at a time.
@@ -195,7 +258,7 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
       if (cacheRootDir == null) {
         return;
       }
-      // If there's an invalidation stamp, clear it along with the whole cache directory.
+      // If invalid, clear the whole cache directory (including any invalidation stamps).
       if (!cache.isValid()) {
         cache.delete();
         return;
