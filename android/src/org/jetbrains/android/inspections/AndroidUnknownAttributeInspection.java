@@ -83,8 +83,7 @@ public class AndroidUnknownAttributeInspection extends LocalInspectionTool {
   }
 
   static boolean isMyFile(@NotNull AndroidFacet facet, XmlFile file) {
-    String resourceFolderName = facet.getLocalResourceManager().getFileResourceType(file);
-    ResourceFolderType resourceType = resourceFolderName == null ? null : ResourceFolderType.getTypeByName(resourceFolderName);
+    ResourceFolderType resourceType = facet.getLocalResourceManager().getFileResourceFolderType(file);
     if (resourceType != null) {
       if (ourSupportedResourceTypes == null) {
         ourSupportedResourceTypes = EnumSet.noneOf(ResourceFolderType.class);
@@ -97,7 +96,7 @@ public class AndroidUnknownAttributeInspection extends LocalInspectionTool {
       if (!ourSupportedResourceTypes.contains(resourceType)) {
         return false;
       }
-      if (ResourceFolderType.XML.equals(resourceType)) {
+      if (ResourceFolderType.XML == resourceType) {
         final XmlTag rootTag = file.getRootTag();
         return rootTag != null && AndroidXmlResourcesUtil.isSupportedRootTag(facet, rootTag.getName());
       }
