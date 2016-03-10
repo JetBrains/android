@@ -225,6 +225,13 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
     }
   }
 
+  protected boolean computeHasResourcesOfType(@NotNull ResourceType type, @NotNull Set<LocalResourceRepository> visited) {
+    if (!visited.add(this)) {
+      return false;
+    }
+    return hasResourcesOfType(type);
+  }
+
   // ---- Implements ModificationCount ----
 
   /**
