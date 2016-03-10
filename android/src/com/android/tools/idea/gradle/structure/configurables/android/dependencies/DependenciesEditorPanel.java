@@ -42,8 +42,8 @@ class DependenciesEditorPanel extends JPanel implements Disposable {
   @NotNull private final PsdContext myContext;
 
   @NotNull private final JBSplitter myVerticalSplitter;
-  @NotNull private final EditableDependenciesPanel myDependenciesPanel;
-  @NotNull private final VariantsToolWindowPanel myVariantsToolWindowPanel;
+  @NotNull private final EditableDependenciesPanel myEditableDependenciesPanel;
+  @NotNull private final ResolvedDependenciesPanel myResolvedDependenciesPanel;
   @NotNull private final JPanel myAltPanel;
 
   private boolean myShowModulesDropDown;
@@ -74,35 +74,35 @@ class DependenciesEditorPanel extends JPanel implements Disposable {
       }
     }, this);
 
-    myDependenciesPanel = new EditableDependenciesPanel(moduleModel, context);
-    myVariantsToolWindowPanel = new VariantsToolWindowPanel(moduleModel, context, myDependenciesPanel);
+    myEditableDependenciesPanel = new EditableDependenciesPanel(moduleModel, context);
+    myResolvedDependenciesPanel = new ResolvedDependenciesPanel(moduleModel, context, myEditableDependenciesPanel);
 
     myVerticalSplitter = new OnePixelSplitter(false, "psd.dependencies.main.vertical.splitter.proportion", .75f);
-    myVerticalSplitter.setFirstComponent(myDependenciesPanel);
-    myVerticalSplitter.setSecondComponent(myVariantsToolWindowPanel);
+    myVerticalSplitter.setFirstComponent(myEditableDependenciesPanel);
+    myVerticalSplitter.setSecondComponent(myResolvedDependenciesPanel);
 
     add(myVerticalSplitter, BorderLayout.CENTER);
 
-    myDependenciesPanel.updateTableColumnSizes();
-    myDependenciesPanel.add(new EditableDependenciesPanel.SelectionListener() {
+    myEditableDependenciesPanel.updateTableColumnSizes();
+    myEditableDependenciesPanel.add(new EditableDependenciesPanel.SelectionListener() {
       @Override
       public void dependencyModelSelected(@NotNull PsdAndroidDependencyModel model) {
-        myVariantsToolWindowPanel.setSelection(model);
+        myResolvedDependenciesPanel.setSelection(model);
       }
     });
 
-    myVariantsToolWindowPanel.add(new VariantsToolWindowPanel.SelectionListener() {
+    myResolvedDependenciesPanel.add(new ResolvedDependenciesPanel.SelectionListener() {
       @Override
       public void dependencyModelSelected(@Nullable PsdAndroidDependencyModel model) {
-        myDependenciesPanel.setSelection(model);
+        myEditableDependenciesPanel.setSelection(model);
       }
     });
 
     myAltPanel = new JPanel(new BorderLayout());
 
-    ToolWindowHeader header = myVariantsToolWindowPanel.getHeader();
+    ToolWindowHeader header = myResolvedDependenciesPanel.getHeader();
 
-    JPanel minimizedContainerPanel = myVariantsToolWindowPanel.getMinimizedPanel();
+    JPanel minimizedContainerPanel = myResolvedDependenciesPanel.getMinimizedPanel();
     assert minimizedContainerPanel != null;
     myAltPanel.add(minimizedContainerPanel, BorderLayout.EAST);
 
@@ -113,7 +113,7 @@ class DependenciesEditorPanel extends JPanel implements Disposable {
       }
     });
 
-    myVariantsToolWindowPanel.addRestoreListener(new ToolWindowPanel.RestoreListener() {
+    myResolvedDependenciesPanel.addRestoreListener(new ToolWindowPanel.RestoreListener() {
       @Override
       public void restored() {
         restore();
@@ -154,8 +154,8 @@ class DependenciesEditorPanel extends JPanel implements Disposable {
 
   private void restore() {
     remove(myAltPanel);
-    myAltPanel.remove(myDependenciesPanel);
-    myVerticalSplitter.setFirstComponent(myDependenciesPanel);
+    myAltPanel.remove(myEditableDependenciesPanel);
+    myVerticalSplitter.setFirstComponent(myEditableDependenciesPanel);
     add(myVerticalSplitter, BorderLayout.CENTER);
     revalidate();
     repaint();
@@ -165,7 +165,7 @@ class DependenciesEditorPanel extends JPanel implements Disposable {
   private void minimize() {
     remove(myVerticalSplitter);
     myVerticalSplitter.setFirstComponent(null);
-    myAltPanel.add(myDependenciesPanel, BorderLayout.CENTER);
+    myAltPanel.add(myEditableDependenciesPanel, BorderLayout.CENTER);
     add(myAltPanel, BorderLayout.CENTER);
     revalidate();
     repaint();
@@ -194,7 +194,7 @@ class DependenciesEditorPanel extends JPanel implements Disposable {
 
   @Override
   public void dispose() {
-    Disposer.dispose(myDependenciesPanel);
-    Disposer.dispose(myVariantsToolWindowPanel);
+    Disposer.dispose(myEditableDependenciesPanel);
+    Disposer.dispose(myResolvedDependenciesPanel);
   }
 }
