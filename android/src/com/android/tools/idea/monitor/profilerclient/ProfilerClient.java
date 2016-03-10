@@ -446,11 +446,13 @@ public class ProfilerClient implements DeviceContext.DeviceSelectionListener, Di
         while (myInputBuffer.remaining() >= MESSAGE_HEADER_LENGTH) {
           myInputBuffer.mark();
           MessageHeader header = new MessageHeader(myInputBuffer);
-          myInputBuffer.reset();
-
-          if (myInputBuffer.remaining() >= header.length) {
-            dispatchMessage(header);
+          if (myInputBuffer.remaining() < header.length - MESSAGE_HEADER_LENGTH) {
+            myInputBuffer.reset();
+            break;
           }
+
+          dispatchMessage(header);
+
           myInputBuffer.reset();
           myInputBuffer.position(myInputBuffer.position() + header.length);
 
