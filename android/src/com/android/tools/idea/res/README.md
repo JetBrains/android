@@ -51,8 +51,8 @@ like the app does.
 
 ### ModuleResourceRepository
 
-If you want just the resources defined in a specific module, you can look up the [ModuleRepository](ModuleRepository.java) for the given
-module: `ModuleResourceRepository.getModuleResources(module, true)`
+If you want just the resources defined in a specific module, you can look up the [ModuleResourceRepository](ModuleResourceRepository.java)
+for the given module: `ModuleResourceRepository.getModuleResources(module, true)`
 
 Note that this does not include resources that this module depends on!
 
@@ -96,8 +96,8 @@ In the resource repository hierarchy, the MultiResourceRepository is an internal
 
 The [FileResourceRepository](FileResourceRepository.java) on the other hand is a “leaf node” in the resource repository hierarchy:
 it always represents a concrete `java.io.File` directory. This is used for resources that do not change, e.g. are not editable by the user.
-This currently means AAR resources such as the appcompat library’s res folder, but since it’s more efficient than the PSI based repository
-(discussed next) I’d like to switch to it for initial setup as well.
+This currently means AAR resources such as the appcompat library’s res folder. This is more efficient than using IntelliJ's PSI based
+XML parsers (discussed next).
 
 The implementation of the FileResourceRepository is mostly directly using the same implementation as the Android Gradle plugin’s resource
 handler, so it’s fast & accurate.
@@ -110,6 +110,9 @@ folder. This repository is built on top of IntelliJ’s PSI infrastructure. This
 incrementally; for example, when it notices that the user is editing the value inside a <string> element in a value folder XML file, it will
 directly update the resource value for the given resource item, and so on.
 
+For efficiency, the ResourceFolderRepository is initialized via the same parsers as the FileResourceRepository and then lazily switches to
+PSI parsers after edits. This is discussed more in a [later section](#speeding_up_resource_repo_init).
+
 ## ResourceManager
 
 IntelliJ had its own existing resource “repository”. This is the ResourceManager class, with its subclasses LocalResourceManager
@@ -119,29 +122,84 @@ editor machinery in IntelliJ, e.g. code completing @string/, resolving symbols, 
 Longer term, I’d like to rewrite all the editor features to be driven off of our resource repositories instead, and once that’s done,
 remove these.
 
-However, before we can do that we need to make the ResourceRepositories initialize quickly. And to do that:
+However, editor services need to be ready early after project startup, so it is important that ResourceRepositories initialize quickly.
+And to do that:
 
-## Speeding Up ResourceRepository Initialization
+##  Speeding Up ResourceRepository Initialization <a name="speeding_up_resource_repo_init"></a>
 
-All the project resources are currently held in PSI based resource repositories. These are slow to initialize because all XML files must be
+All the project resources are currently held in ResourceFolderRepositories. These are slow to initialize because all XML files must be
 parsed into data structures. However, most of these are not used (e.g. all the non-picked translations of strings etc.)
 
-The file-based resource repositories for non-changing resources are much cheaper.
+### Lazy PSI Parsing
 
-It would be nice to initially initialize all project resources using the light-weight file based resources. We also add PSI listeners.
-And as soon as we notice an edit to a file, we rescan it and replace the resource items for that file with PSI based ones.
-That way we gradually switch over from file based resources to PSI based resources, but only as necessary, meaning the initial
-initialization of the repository is much faster.
+For efficiency, the file-based resource repositories parsers are used instead of PSI parsers for initialization. On initialization,
+we still add PSI listeners and create stub PsiFiles for the listeners. As soon as the listener notices a non-trivial edit to a file,
+we rescan it and replace the file-based resource items ([ResourceItem](ResourceItem.java)) for that file with PSI based ones
+([PsiResourceItem](PsiResourceItem.java)). That way we gradually switch over from file based resources to PSI based resources, but only as
+necessary, meaning the initial initialization of the repository is much faster. The plain file-based XML data structures are also more
+memory efficient than the PSI-based ones.
 
-Furthermore, Gradle already has a fast persistence mechanism for resources. This is used for incremental builds. We should reuse this to
-quickly persist resource repositories.
+Thus it is important that a ResourceItem can be used in place of a PsiResourceItem. Data Binding files are one case that are
+not handled by the file-based parsers at all, and are handled by the PSI-based parser.
+
+### Caching with Blob Files
+
+Still, there remains a problem that the parser is opening many tiny files. To address this, Gradle has a fast persistence mechanism
+for resources, which merges all of the data into a single "blob" XML file (see `ResourceMerger#writeBlobTo` and
+`ResourceMerger#loadFromBlob`). This is used by Gradle for incremental builds. We reuse that mechanism to quickly persist resource
+repositories. There is one cache file per ResourceFolderRepository.
+
+The blob file format is currently XML, but in the future it would be nice to have a compressed binary format which may be smaller
+and quicker to parse.
+
+The XML blob has file nodes of the form:
+
+```
+  <merger ... xmlns:ns1="...xliff..."><dataSet ...><source path="/path/to/original/res">
+    ...
+    <file path="/path/to/original/res/values/some_values.xml" timestamp="12345">
+      <string name="...">some\n  string<ns1:g ...>%1$s</ns1:g></string>
+      <declare-styleable ...>
+        <attr ...><enum .../>...</attr>
+      </declare-styleable>
+    </file>
+
+    <file path="/path/to/original/res/layout-land/activity_foo.xml" timestamp="12345">
+      <item name="activity_foo" type="layout"> ...</item>
+      <item name="someId" type="id"/>
+    </file>
+    ...
+  </source></dataSet></merger>
+```
+
+On reload, the blob loader checks that the `some_values.xml` has not been modified since the cached timestamp. Thus, init still involves
+checking the last-modified times of many files. If enough files are stale, then the repository writes out a fresh blob file.
+Filename-derived resources like drawable PNGs are not cached in the blob file. Instead, we simply get a directory listing and derive the
+ResourceItem from the filename, to avoid checking timestamps and keep the size of the blob file small. A directory listing is also
+required for XML-based resources to discover new files.
+
+The [ResourceFolderRepositoryFileCache](ResourceFolderRepositoryFileCache.java) manages the storage for these blob files.  It maintains
+an LRU list of projects and evicts the oldest project's files once there are "too many" projects. This class also handles invalidation:
+if the version of the cache is different from expected, or if the user invokes the "Invalidate Caches" IDE action.
+
+A developer must bump the expected version to invalidate the cache as needed. For example, if the ResourceFolderRepository is expected to
+track more information (e.g., a new type of ResourceValue, or source XML line numbers for each item) and an old cache would be incomplete.
+
+We may be able to extend this caching to FileResourceRepository as well, but that is currently not done. There are some differences
+between the repositories. For example, FileResourceRepository stores ID items in a simple R.txt file instead of scanning layout, drawable,
+etc. XML files for `android:id=@+id/foo` attributes.
+
+### Parallel Initialization
+
+Even with these optimizations, each ResourceFolderRepository initialization can still involve much I/O, especially on first run. For
+projects with many res/ folders, a `PopulateCachesTask` can be invoked on project startup to initialize separate res/ folders in parallel.
 
 ## ResourceFolderManager
 
 The ResourceFolderManager isn’t part of the resource repository hierarchy; however, it’s related so I’m describing it here.
-The ResourceFolderManager is responsible for knowing which folders are involved in resource computations (e.g. the set of all resource
-folders); it’s providing this set of folders to the resource repositories in a module, and it listens to things like GradleSync to know
-when the resource folders have changed.
+The ResourceFolderManager is responsible for knowing which folders are involved in resource computations (e.g. the set of all res/
+folders); it’s providing this set of folders to the resource repositories in a module, and it listens to things like root-change
+events (e.g., after a GradleSync) to know when the resource folders have changed.
 
 ## ResourceNotificationManager
 
