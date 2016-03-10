@@ -169,6 +169,9 @@ public class ProfilerClient implements DeviceContext.DeviceSelectionListener, Di
     private static final short HANDSHAKE_SUBTYPE = (short)0;
     private static final short HEARTBEAT_SUBTYPE = (short)1;
 
+    private static final byte NETWORK_TYPE = (byte)3;
+    private static final short DATA_SUBTYPE = (short)0;
+
     private static final MessageHeader EXPECTED_HANDSHAKE_RESPONSE =
       new MessageHeader(MESSAGE_HEADER_LENGTH + 1, DEFAULT_ID, NO_REMAINING_CHUNKS, RESPONSE_FLAG, PROTOCOL_MESSAGE_TYPE,
                         HANDSHAKE_SUBTYPE); // +1 to length for the response from the server.
@@ -422,8 +425,27 @@ public class ProfilerClient implements DeviceContext.DeviceSelectionListener, Di
         case PROTOCOL_MESSAGE_TYPE:
           processClientMessage(header, myInputBuffer);
           break;
+        case NETWORK_TYPE:
+          processNetworkMessage(header, myInputBuffer);
+          break;
         default:
           // Process messages to different client components.
+          LOG.error(String.format("Unexpected header type %1$d", header.type));
+          break;
+      }
+    }
+
+    private void processNetworkMessage(@NotNull MessageHeader header, @NotNull ByteBuffer input) throws IOException {
+      switch (header.subType) {
+        case DATA_SUBTYPE:
+          long time = input.getLong();
+          long txBytes = input.getLong();
+          long rxBytes = input.getLong();
+          short networkType = input.getShort();
+          byte highPowerState = input.get();
+          break;
+        default:
+          LOG.error(String.format("Unexpected network subtype %1$d", header.subType));
           break;
       }
     }
