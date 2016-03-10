@@ -125,7 +125,7 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
               final Set<ResourceType> types = ((ResourceReferenceConverter)converter).getResourceTypes(domAttribute);
 
               for (ResourceType type : types) {
-                if (resourceType.equals(type)) {
+                if (resourceType == type) {
                   // This returns the XML attribute text, except for the surrounding quotes
                   String attributeText = ((XmlAttributeValue)element).getValue();
                   if (attributeText != null) {
