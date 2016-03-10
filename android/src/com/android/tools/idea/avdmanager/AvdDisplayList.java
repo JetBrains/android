@@ -21,6 +21,7 @@ import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Storage;
 import com.android.sdklib.internal.avd.AvdInfo;
+import com.android.sdklib.repositoryv2.targets.SystemImage;
 import com.android.tools.idea.actions.BrowserHelpAction;
 import com.android.tools.idea.npw.WizardUtils;
 import com.google.common.collect.Maps;
@@ -392,7 +393,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
       @Override
       public String valueOf(AvdInfo info) {
         String result = "Android " + SdkVersionInfo.getVersionString(info.getAndroidVersion().getFeatureLevel());
-        if (info.getTag() != null) {
+        if (!info.getTag().equals(SystemImage.DEFAULT_TAG)) {
           result += " (" + info.getTag().getDisplay() + ")";
         }
         return result;
