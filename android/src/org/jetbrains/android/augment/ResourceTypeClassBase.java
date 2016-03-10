@@ -34,7 +34,7 @@ public abstract class ResourceTypeClassBase extends AndroidLightClass {
       return PsiField.EMPTY_ARRAY;
     }
     final Map<String, PsiType> fieldNames = new HashMap<String, PsiType>();
-    final boolean styleable = ResourceType.STYLEABLE.equals(resourceType);
+    final boolean styleable = ResourceType.STYLEABLE == resourceType;
     final PsiType basicType = styleable ? PsiType.INT.createArrayType() : PsiType.INT;
 
     for (String resName : manager.getResourceNames(resourceType)) {
