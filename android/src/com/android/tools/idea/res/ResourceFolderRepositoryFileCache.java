@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.res;
 
+import com.android.annotations.VisibleForTesting;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
@@ -64,4 +65,10 @@ public interface ResourceFolderRepositoryFileCache {
    * Delete the cache from disk, clearing the invalidation stamp.
    */
   void delete();
+
+  /**
+   * Stamp the cache with the given version.
+   */
+  @VisibleForTesting
+  void stampVersion(@NotNull File rootDir, int version);
 }
