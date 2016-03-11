@@ -20,12 +20,12 @@ import com.android.repository.impl.manager.RepoManagerImpl;
 import com.android.repository.impl.meta.SchemaModuleUtil;
 import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.testframework.MockFileOp;
-import com.android.tools.idea.sdk.install.PatchInstaller;
 import com.google.common.collect.ImmutableList;
 import junit.framework.TestCase;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.bind.JAXBException;
+import java.awt.*;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
@@ -158,6 +158,6 @@ public class PatchInstallerTest extends TestCase {
   }
 
   private static class FakeUI extends FakeUIBase {
-    public FakeUI(ProgressIndicator progress) {}
+    public FakeUI(Component parent, ProgressIndicator progress) {}
   }
 }
