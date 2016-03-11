@@ -18,12 +18,14 @@ package org.jetbrains.android.inspections.lint;
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.annotations.VisibleForTesting;
+import com.android.tools.lint.client.api.JavaEvaluator;
 import com.android.tools.lint.client.api.JavaParser;
 import com.android.tools.lint.client.api.LintClient;
 import com.android.tools.lint.detector.api.JavaContext;
 import com.android.tools.lint.detector.api.Location;
 import com.android.tools.lint.detector.api.Severity;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.codeInsight.ExternalAnnotationsManager;
 import com.intellij.openapi.application.AccessToken;
@@ -54,12 +56,16 @@ import java.util.List;
 
 import static com.android.SdkConstants.ATTR_VALUE;
 
+// TODO: Rename from Lombok to something else; pick a better prefix for the Lint integration in the IDE.
+// LintIdeJavaParser, LintIdeProject, etc.?
 public class LombokPsiParser extends JavaParser {
   private final LintClient myClient;
+  private final JavaEvaluator myJavaEvaluator;
   private AccessToken myLock;
 
-  public LombokPsiParser(LintClient client) {
+  public LombokPsiParser(LintClient client, Project project) {
     myClient = client;
+    myJavaEvaluator = new MyJavaEvaluator(project);
   }
 
   @Override
@@ -82,6 +88,22 @@ public class LombokPsiParser extends JavaParser {
     myLock.finish();
     myLock = null;
     return null;
+  }
+
+  @NonNull
+  @Override
+  public JavaEvaluator getEvaluator() {
+    return myJavaEvaluator;
+  }
+
+  @Nullable
+  @Override
+  public PsiJavaFile parseJavaToPsi(@NonNull JavaContext context) {
+    PsiFile psiFile = IntellijLintUtils.getPsiFile(context);
+    if (!(psiFile instanceof PsiJavaFile)) {
+      return null;
+    }
+    return (PsiJavaFile)psiFile;
   }
 
   @Override
@@ -251,6 +273,11 @@ public class LombokPsiParser extends JavaParser {
         return getTypeDescriptor(element);
       }
     });
+  }
+
+  @Override
+  public void runReadAction(@NonNull Runnable runnable) {
+    ApplicationManager.getApplication().runReadAction(runnable);
   }
 
   @VisibleForTesting
@@ -463,6 +490,61 @@ public class LombokPsiParser extends JavaParser {
     }
 
     return false;
+  }
+
+  private static class MyJavaEvaluator extends JavaEvaluator {
+    private final Project myProject;
+
+    public MyJavaEvaluator(Project project) {
+      myProject = project;
+    }
+
+    @Override
+    public boolean extendsClass(@Nullable PsiClass cls, @NonNull String className, boolean strict) {
+      // TODO: This checks interfaces too. Let's find a cheaper method which only checks direct super classes!
+      return InheritanceUtil.isInheritor(cls, strict, className);
+    }
+
+    @Override
+    public boolean implementsInterface(@NonNull PsiClass cls, @NonNull String interfaceName, boolean strict) {
+      // TODO: This checks superclasses too. Let's find a cheaper method which only checks interfaces.
+      return false;
+    }
+
+    @Override
+    public boolean inheritsFrom(@NonNull PsiClass cls, @NonNull String className, boolean strict) {
+      return InheritanceUtil.isInheritor(cls, strict, className);
+    }
+
+    @Nullable
+    @Override
+    public PsiClass findClass(@NonNull String qualifiedName) {
+      return JavaPsiFacade.getInstance(myProject).findClass(qualifiedName, GlobalSearchScope.allScope(myProject));
+    }
+
+    @Nullable
+    @Override
+    public PsiClassType getClassType(@Nullable PsiClass cls) {
+      return cls != null ? JavaPsiFacade.getElementFactory(myProject).createType(cls) : null;
+    }
+
+    @NonNull
+    @Override
+    public PsiAnnotation[] getAllAnnotations(@NonNull PsiModifierListOwner owner, boolean inHierarchy) {
+      return AnnotationUtil.getAllAnnotations(owner, inHierarchy, null, true);
+    }
+
+    @Nullable
+    @Override
+    public PsiAnnotation findAnnotationInHierarchy(@NonNull PsiModifierListOwner listOwner, @NonNull String... annotationNames) {
+      return AnnotationUtil.findAnnotationInHierarchy(listOwner, Sets.newHashSet(annotationNames));
+    }
+
+    @Nullable
+    @Override
+    public PsiAnnotation findAnnotation(@Nullable PsiModifierListOwner listOwner, @NonNull String... annotationNames) {
+      return AnnotationUtil.findAnnotation(listOwner, false, annotationNames);
+    }
   }
 
   /* Handle for creating positions cheaply and returning full fledged locations later */
