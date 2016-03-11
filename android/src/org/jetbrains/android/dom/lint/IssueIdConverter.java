@@ -18,6 +18,8 @@ package org.jetbrains.android.dom.lint;
 import com.android.tools.lint.checks.BuiltinIssueRegistry;
 import com.android.tools.lint.detector.api.Issue;
 import com.google.common.collect.ImmutableMap;
+import com.intellij.codeInsight.lookup.LookupElement;
+import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.util.xml.ConvertContext;
 import com.intellij.util.xml.ResolvingConverter;
 import org.jetbrains.annotations.NonNls;
@@ -25,13 +27,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
-import java.util.Map;
 
 public class IssueIdConverter extends ResolvingConverter<Issue> {
-  private static Map<String, Issue> ourIssues = null;
+  private static ImmutableMap<String, Issue> ourIssues = null;
 
   @NotNull
-  private static Map<String, Issue> getIdSet() {
+  public static ImmutableMap<String, Issue> getIdSet() {
     if (ourIssues == null) {
       final ImmutableMap.Builder<String, Issue> builder = ImmutableMap.builder();
       for (Issue issue : new BuiltinIssueRegistry().getIssues()) {
@@ -60,5 +61,11 @@ public class IssueIdConverter extends ResolvingConverter<Issue> {
   @Override
   public String toString(@Nullable Issue issue, ConvertContext context) {
     return issue == null ? null : issue.getId();
+  }
+
+  @Nullable
+  @Override
+  public LookupElement createLookupElement(Issue issue) {
+    return LookupElementBuilder.create(issue, issue.getId());
   }
 }
