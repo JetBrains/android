@@ -41,7 +41,8 @@ public class SpecificActivityLaunch extends LaunchOption<SpecificActivityLaunch.
                                     @NotNull AndroidFacet facet,
                                     boolean waitForDebugger,
                                     @Nullable AndroidDebugger androidDebugger,
-                                    @NotNull String extraAmOptions) {
+                                    @NotNull String extraAmOptions,
+                                    @NotNull ProfilerState profilerState) {
       return new SpecificActivityLaunchTask(applicationId, ACTIVITY_CLASS, waitForDebugger, androidDebugger, extraAmOptions);
     }
 

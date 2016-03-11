@@ -20,6 +20,7 @@ import com.android.tools.idea.run.ValidationError;
 import com.android.tools.idea.run.activity.ActivityLocator;
 import com.android.tools.idea.run.activity.DefaultActivityLocator;
 import com.android.tools.idea.run.activity.MavenDefaultActivityLocator;
+import com.android.tools.idea.run.activity.StaticActivityLocator;
 import com.android.tools.idea.run.tasks.DefaultActivityLaunchTask;
 import com.android.tools.idea.run.tasks.LaunchTask;
 import com.google.common.collect.ImmutableList;
@@ -41,8 +42,10 @@ public class DefaultActivityLaunch extends LaunchOption<DefaultActivityLaunch.St
                                     @NotNull AndroidFacet facet,
                                     boolean waitForDebugger,
                                     @Nullable AndroidDebugger androidDebugger,
-                                    @NotNull String extraAmOptions) {
-      return new DefaultActivityLaunchTask(applicationId, getActivityLocator(facet), waitForDebugger, androidDebugger, extraAmOptions);
+                                    @NotNull String extraAmOptions,
+                                    @NotNull ProfilerState profilerState) {
+      return new DefaultActivityLaunchTask(applicationId, getActivityLocatorForLaunch(profilerState, facet), waitForDebugger,
+                                           androidDebugger, extraAmOptions);
     }
 
     @NotNull
@@ -56,6 +59,15 @@ public class DefaultActivityLaunch extends LaunchOption<DefaultActivityLaunch.St
         // The launch will probably fail, but we allow the user to continue in case we are looking at stale data.
         return ImmutableList.of(ValidationError.warning(e.getMessage()));
       }
+    }
+
+    @NotNull
+    private static ActivityLocator getActivityLocatorForLaunch(@NotNull ProfilerState profilerState,
+                                                               @NotNull AndroidFacet facet) {
+      if (profilerState.isGapidEnabled()) {
+        return new StaticActivityLocator(ProfilerState.GAPID_LAUNCH_ACTIVITY);
+      }
+      return getActivityLocator(facet);
     }
 
     @NotNull

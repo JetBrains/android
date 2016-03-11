@@ -39,7 +39,8 @@ public class DeepLinkLaunch extends LaunchOption<DeepLinkLaunch.State> {
                                     @NotNull AndroidFacet facet,
                                     boolean waitForDebugger,
                                     @Nullable AndroidDebugger androidDebugger,
-                                    @NotNull String extraAmOptions) {
+                                    @NotNull String extraAmOptions,
+                                    @NotNull ProfilerState profilerState) {
       return new AndroidDeepLinkLaunchTask(applicationId, DEEP_LINK, waitForDebugger, extraAmOptions);
     }
 
