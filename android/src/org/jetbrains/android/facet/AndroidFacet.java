@@ -1017,6 +1017,11 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
       return Collections.emptyList();
     }
 
+    @Override
+    public Collection<File> getShadersDirectories() {
+      return Collections.emptyList();
+    }
+
     @NonNull
     @Override
     public Collection<File> getCDirectories() {

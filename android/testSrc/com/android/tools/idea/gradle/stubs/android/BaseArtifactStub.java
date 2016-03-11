@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.stubs.android;
 
 import com.android.annotations.NonNull;
 import com.android.builder.model.BaseArtifact;
+import com.android.builder.model.Dependencies;
 import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.gradle.stubs.FileStructure;
 import com.google.common.collect.Lists;
@@ -84,6 +85,18 @@ public class BaseArtifactStub implements BaseArtifact {
   @NotNull
   public DependenciesStub getDependencies() {
     return myDependencies;
+  }
+
+  @Override
+  @NotNull
+  public Dependencies getCompileDependencies() {
+    return myDependencies;
+  }
+
+  @Override
+  @NotNull
+  public Dependencies getPackageDependencies() {
+    throw new UnsupportedOperationException();
   }
 
   @Override

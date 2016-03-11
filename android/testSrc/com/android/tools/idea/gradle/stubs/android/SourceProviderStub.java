@@ -201,4 +201,10 @@ public class SourceProviderStub implements SourceProvider {
   public Collection<File> getJniLibsDirectories() {
     return Collections.emptyList();
   }
+
+  @Override
+  @NotNull
+  public Collection<File> getShadersDirectories() {
+    return Collections.emptyList();
+  }
 }
