@@ -24,6 +24,7 @@ import com.android.tools.idea.stats.UsageTracker;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -41,6 +42,8 @@ import static com.intellij.util.containers.ContainerUtil.getFirstItem;
  * Tracks, using {@link UsageTracker}, the structure of a project.
  */
 class ProjectStructureUsageTracker {
+  private static final Logger LOG = Logger.getInstance(ProjectStructureUsageTracker.class);
+
   @NotNull private final Project myProject;
 
   ProjectStructureUsageTracker(@NotNull Project project) {
@@ -52,7 +55,13 @@ class ProjectStructureUsageTracker {
       @Override
       public void run() {
         ModuleManager moduleManager = ModuleManager.getInstance(myProject);
-        trackProjectStructure(moduleManager.getModules());
+        try {
+          trackProjectStructure(moduleManager.getModules());
+        }
+        catch (Throwable e) {
+          // Any errors in project tracking should not be displayed to the user.
+          LOG.warn("Failed to track project structure", e);
+        }
       }
     });
   }
