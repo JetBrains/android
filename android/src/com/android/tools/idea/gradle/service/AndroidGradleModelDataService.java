@@ -111,15 +111,15 @@ public class AndroidGradleModelDataService extends AbstractProjectDataService<An
    */
   @Override
   public void importData(@NotNull Collection<DataNode<AndroidGradleModel>> toImport,
-                         @Nullable final ProjectData projectData,
-                         @NotNull final Project project,
-                         @NotNull final IdeModifiableModelsProvider modelsProvider) {
+                         @Nullable ProjectData projectData,
+                         @NotNull Project project,
+                         @NotNull IdeModifiableModelsProvider modelsProvider) {
     if (!toImport.isEmpty()) {
       try {
         doImport(toImport, project, modelsProvider);
       }
       catch (Throwable e) {
-        LOG.error(String.format("Failed to set up Android modules in project '%1$s'", project.getName()), e);
+        LOG.info(String.format("Failed to set up Android modules in project '%1$s'", project.getName()), e);
         String msg = e.getMessage();
         if (msg == null) {
           msg = e.getClass().getCanonicalName();
@@ -129,9 +129,9 @@ public class AndroidGradleModelDataService extends AbstractProjectDataService<An
     }
   }
 
-  private void doImport(final Collection<DataNode<AndroidGradleModel>> toImport,
-                        final Project project,
-                        final IdeModifiableModelsProvider modelsProvider) throws Throwable {
+  private void doImport(@NotNull final Collection<DataNode<AndroidGradleModel>> toImport,
+                        @NotNull final Project project,
+                        @NotNull final IdeModifiableModelsProvider modelsProvider) throws Throwable {
     RunResult result = new WriteCommandAction.Simple(project) {
       @Override
       protected void run() throws Throwable {

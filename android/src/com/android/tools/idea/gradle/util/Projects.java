@@ -205,11 +205,6 @@ public final class Projects {
     return getBoolean(project, HAS_WRONG_JDK);
   }
 
-  private static boolean getBoolean(@NotNull Project project, @NotNull Key<Boolean> key) {
-    Boolean val = project.getUserData(key);
-    return val != null && val.booleanValue();
-  }
-
   /**
    * Indicates the given project requires an Android model, but the model is {@code null}. Possible causes for this scenario to happen are:
    * <ul>
@@ -489,7 +484,11 @@ public final class Projects {
   }
 
   public static boolean isSyncRequestedDuringBuild(@NotNull Project project) {
-    Boolean syncRequested = project.getUserData(SYNC_REQUESTED_DURING_BUILD);
-    return syncRequested != null ? syncRequested : false;
+    return getBoolean(project, SYNC_REQUESTED_DURING_BUILD);
+  }
+
+  private static boolean getBoolean(@NotNull Project project, @NotNull Key<Boolean> key) {
+    Boolean val = project.getUserData(key);
+    return val != null && val.booleanValue();
   }
 }
