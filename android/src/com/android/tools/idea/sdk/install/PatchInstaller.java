@@ -20,7 +20,6 @@ import com.android.repository.impl.installer.BasicInstaller;
 import com.android.repository.impl.manager.LocalRepoLoader;
 import com.android.repository.impl.meta.Archive;
 import com.android.repository.io.FileOp;
-import com.android.repository.io.FileOpUtils;
 import com.android.repository.util.InstallerUtil;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Maps;
@@ -29,6 +28,7 @@ import com.intellij.util.lang.UrlClassLoader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
@@ -70,11 +70,6 @@ public class PatchInstaller extends BasicInstaller {
    * Interface for the actual UI class we'll create.
    */
   private static final String REPO_UI_CLASS_NAME = "com.android.tools.idea.updaterui.RepoUpdaterUI";
-
-  /**
-   * Subdirectory in the install temp dir where we'll actually prepare the patch.
-   */
-  private static final String WORK_DIR_FN = "work";
 
   /**
    * Cache of patcher classes. Key is jar file, subkey is class name.
@@ -124,6 +119,14 @@ public class PatchInstaller extends BasicInstaller {
       return false;
     }
 
+    return true;
+  }
+
+  @Override
+  protected boolean doCompleteInstall(@NotNull File tempDir,
+                                      @NotNull File dest,
+                                      @NotNull ProgressIndicator progress) {
+    Map<String, ? extends LocalPackage> localPackages = getRepoManager().getPackages().getLocalPackages();
     File patcherJar = getPatcherFile(localPackages, progress);
     if (patcherJar == null) {
       progress.logWarning("Couldn't find patcher jar!");
@@ -135,27 +138,17 @@ public class PatchInstaller extends BasicInstaller {
       return false;
     }
 
-    File workDir = new File(tempDir, WORK_DIR_FN);
-    if (mFop.exists(workDir)) {
-      mFop.deleteFileOrFolder(workDir);
-    }
-    try {
-      FileOpUtils.recursiveCopy(local.getLocation(), workDir, mFop, progress);
-    }
-    catch (IOException e) {
-      progress.logWarning("Failed to copy package to temporary location", e);
-      return false;
-    }
-    mFop.deleteFileOrFolder(new File(workDir, InstallerUtil.INSTALLER_DIR_FN));
-    mFop.delete(new File(workDir, LocalRepoLoader.PACKAGE_XML_FN));
+    // TODO: move away? Or somehow ignore in UI?
+    mFop.deleteFileOrFolder(new File(dest, InstallerUtil.INSTALLER_DIR_FN));
+    mFop.delete(new File(dest, LocalRepoLoader.PACKAGE_XML_FN));
 
-    boolean result = runPatcher(progress, workDir, patchFile, classMap.get(RUNNER_CLASS_NAME), classMap.get(UPDATER_UI_CLASS_NAME),
-                                classMap.get(REPO_UI_CLASS_NAME));
+    boolean result = runPatcher(progress, dest, new File(tempDir, "patch.jar"), classMap.get(RUNNER_CLASS_NAME),
+                                classMap.get(UPDATER_UI_CLASS_NAME), classMap.get(REPO_UI_CLASS_NAME));
     if (!result) {
       return false;
     }
     try {
-      InstallerUtil.writePackageXml(p, tempDir, getRepoManager(), mFop, progress);
+      InstallerUtil.writePackageXml((RemotePackage)getPackage(), tempDir, getRepoManager(), mFop, progress);
     }
     catch (IOException e) {
       progress.logWarning("Failed to write new package.xml");
@@ -166,31 +159,6 @@ public class PatchInstaller extends BasicInstaller {
     progress.setFraction(1);
     progress.setIndeterminate(false);
 
-    getRepoManager().markInvalid();
-    return true;
-  }
-
-  @Override
-  protected boolean doCompleteInstall(@NotNull File installTempPath,
-                                      @NotNull File destination,
-                                      @NotNull ProgressIndicator progress) {
-
-    File workDir = new File(installTempPath, WORK_DIR_FN);
-    if (!doCompleteInstallInternal(workDir, destination, mFop, progress)) {
-      return super.doCompleteInstall(installTempPath, destination, progress);
-    }
-    return true;
-  }
-
-  private static boolean doCompleteInstallInternal(@NotNull File src, @NotNull File dest, @NotNull FileOp fop, @NotNull ProgressIndicator progress) {
-    progress.logInfo("Moving files into place...");
-    try {
-      FileOpUtils.safeRecursiveOverwrite(src, dest, fop, progress);
-    }
-    catch (IOException e) {
-      progress.logWarning("Failed to move patched files into place", e);
-      return false;
-    }
     return true;
   }
 
@@ -207,7 +175,7 @@ public class PatchInstaller extends BasicInstaller {
                             @NotNull Class uiClass) {
     Object ui;
     try {
-      ui = uiClass.getConstructor(ProgressIndicator.class).newInstance(progress);
+      ui = uiClass.getConstructor(Component.class, ProgressIndicator.class).newInstance(null, progress);
     }
     catch (Throwable e) {
       progress.logWarning("Failed to create updater ui!", e);
