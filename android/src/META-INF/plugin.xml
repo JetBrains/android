@@ -828,6 +828,7 @@
 
     <lang.documentationProvider language="JAVA" implementationClass="org.jetbrains.android.AndroidDocumentationProvider" order="first"/>
     <lang.documentationProvider language="XML" implementationClass="org.jetbrains.android.dom.AndroidXmlDocumentationProvider" order="first"/>
+    <lang.documentationProvider language="XML" implementationClass="org.jetbrains.android.dom.lint.IssueIdDocumentationProvider" />
 
     <sdkType implementation="org.jetbrains.android.sdk.AndroidSdkType"/>
     <gotoDeclarationHandler implementation="org.jetbrains.android.AndroidGotoDeclarationHandler"/>
