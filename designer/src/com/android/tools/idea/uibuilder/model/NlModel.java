@@ -34,6 +34,7 @@ import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.utils.XmlUtils;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.intellij.android.designer.model.layout.actions.ToggleRenderModeAction;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -890,13 +891,14 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
                               @NonNull InsertType insertType) {
     ViewHandlerManager handlerManager = ViewHandlerManager.get(getProject());
     ViewGroupHandler groupHandler = (ViewGroupHandler)handlerManager.getHandler(receiver);
+    Set<String> ids = Sets.newHashSet(NlComponent.getIds(myFacet));
     assert groupHandler != null;
     for (NlComponent component : added) {
       if (insertType.isMove()) {
         insertType = component.getParent() == receiver ? InsertType.MOVE_WITHIN : InsertType.MOVE_INTO;
       }
       if (component.needsDefaultId() && (StringUtil.isEmpty(component.getId()) || !insertType.isMove())) {
-        component.assignId();
+        ids.add(NlComponent.assignId(component, ids));
       }
       groupHandler.onChildInserted(receiver, component, insertType);
 
