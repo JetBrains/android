@@ -503,6 +503,9 @@ public class GradleSyncTest {
     delete(settingsFilePath);
     writeToFile(settingsFilePath, " ");
     assertThat(settingsFilePath).isFile();
+
+    // Refresh file content
+    findFileByIoFile(settingsFilePath, true);
   }
 
   @Test
