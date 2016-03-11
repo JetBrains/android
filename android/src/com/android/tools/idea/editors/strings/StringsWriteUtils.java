@@ -17,17 +17,19 @@ package com.android.tools.idea.editors.strings;
 
 import com.android.SdkConstants;
 import com.android.ide.common.res2.ResourceItem;
+import com.android.ide.common.res2.ValueXmlHelper;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.LocaleQualifier;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.rendering.Locale;
+import com.android.tools.idea.res.LocalResourceRepository;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -111,9 +113,11 @@ public class StringsWriteUtils {
           for (XmlTagChild child : tag.getValue().getChildren()) {
             child.delete();
           }
+
+          XmlElementFactory factory = XmlElementFactory.getInstance(project);
+
           // Encapsulate the value in a dummy tag (see com.intellij.psi.XmlElementFactoryImpl.createDisplayText()).
-          XmlTag text = XmlElementFactory.getInstance(project).createTagFromText("<a>" + value + "</a>");
-          XmlTagUtils.escape(text);
+          XmlTag text = factory.createTagFromText("<string>" + escapeResourceStringAsXml(value) + "</string>");
 
           for (PsiElement psiElement : text.getValue().getChildren()) {
             tag.add(psiElement);
@@ -149,14 +153,12 @@ public class StringsWriteUtils {
     new WriteCommandAction.Simple(project, "Creating string " + name, resourceFile) {
       @Override
       public void run() {
-        // AndroidResourceUtil.createValueResource tries to format the value it is passed (e.g., by escaping quotation marks)
-        // We want to save the text exactly as entered by the user, so we create and add the XML tag directly
-        XmlTag child = root.createChildTag(ResourceType.STRING.getName(), root.getNamespace(), value, false);
+        XmlTag child = root.createChildTag(ResourceType.STRING.getName(), root.getNamespace(), escapeResourceStringAsXml(value), false);
+
         child.setAttribute(SdkConstants.ATTR_NAME, name);
         // XmlTagImpl handles a null value by deleting the attribute, which is our desired behavior
         //noinspection ConstantConditions
         child.setAttribute(SdkConstants.ATTR_TRANSLATABLE, translatable ? null : SdkConstants.VALUE_FALSE);
-        XmlTagUtils.escape(child);
 
         root.addSubTag(child, false);
       }
@@ -261,5 +263,17 @@ public class StringsWriteUtils {
     }
 
     return resourceFile;
+  }
+
+  @NotNull
+  private static String escapeResourceStringAsXml(@NotNull String xml) {
+    try {
+      return ValueXmlHelper.escapeResourceStringAsXml(xml);
+    }
+    catch (IllegalArgumentException exception) {
+      // TODO Let the user know they've entered invalid XML
+      Logger.getInstance(StringsWriteUtils.class).warn(exception);
+      return xml;
+    }
   }
 }

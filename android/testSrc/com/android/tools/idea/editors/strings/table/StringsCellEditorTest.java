@@ -31,7 +31,7 @@ public final class StringsCellEditorTest extends AndroidTestCase {
   public void testIsCellEditable() {
     List<VirtualFile> resourceDirectories = Collections.singletonList(myFixture.copyDirectoryToProject("stringsEditor/base/res", "res"));
 
-    StringResourceTableModel model = new StringResourceTableModel(getProject());
+    StringResourceTableModel model = new StringResourceTableModel();
     model.setData(StringResourceParser.parse(myFacet, ModuleResourceRepository.createForTest(myFacet, resourceDirectories)));
 
     JTable table = new JBTable(model);
