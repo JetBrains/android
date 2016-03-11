@@ -245,7 +245,7 @@ public class IntellijLintClient extends LintClient implements Disposable {
   @Nullable
   @Override
   public JavaParser getJavaParser(@Nullable com.android.tools.lint.detector.api.Project project) {
-    return new LombokPsiParser(this);
+    return new LombokPsiParser(this, myProject);
   }
 
   @NonNull
