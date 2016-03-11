@@ -484,7 +484,7 @@ public class GradleSyncTest {
 
     // Sync should be successful for multi-module projects with an empty settings.gradle file.
     guiTest.ideFrame().requestProjectSync();
-    guiTest.waitForBackgroundTasks();
+    guiTest.ideFrame().waitForGradleProjectSyncToFinish();
   }
 
   @Test
