@@ -34,7 +34,8 @@ public class NoLaunch extends LaunchOption<NoLaunch.State> {
                                     @NotNull AndroidFacet facet,
                                     boolean waitForDebugger,
                                     @Nullable AndroidDebugger androidDebugger,
-                                    @NotNull String extraAmOptions) {
+                                    @NotNull String extraAmOptions,
+                                    @NotNull ProfilerState profilerState) {
       return null;
     }
   }
