@@ -31,7 +31,6 @@ import com.intellij.psi.PsiReference;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlElement;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.xml.*;
 import org.jetbrains.android.dom.AdditionalConverter;
 import org.jetbrains.android.dom.AndroidResourceType;
@@ -65,6 +64,11 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
   private boolean myWithExplicitResourceType = true;
   private boolean myQuiet = false;
   private boolean myAllowAttributeReferences = true;
+  /**
+   * Whether the completion suggestion should be expanded or not
+   * (e.g. If false, displays @style/ and @color/. If true, displays @style/myStyle1, @style/myStyle2, @color/myColor1, @color/black).
+   */
+  private boolean myExpandedCompletionSuggestion = true;
   private boolean myAllowLiterals = true;
   private @Nullable AttributeDefinition myAttributeDefinition = null;
 
@@ -105,6 +109,10 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
 
   public void setQuiet(boolean quiet) {
     myQuiet = quiet;
+  }
+
+  public void setExpandedCompletionSuggestion(boolean expandedCompletionSuggestion) {
+    myExpandedCompletionSuggestion = expandedCompletionSuggestion;
   }
 
   public void setAllowAttributeReferences(boolean allowAttributeReferences) {
@@ -169,11 +177,12 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
         addVariantsForIdDeclaration(result, facet, prefix, value);
       }
 
-      if (recommendedTypes.size() == 1) {
-        ResourceType type = recommendedTypes.iterator().next();
+      if (recommendedTypes.size() >= 1 && myExpandedCompletionSuggestion) {
         // We will add the resource type (e.g. @style/) if the current value starts like a reference using @
-        boolean explicitResourceType = startsWithRefChar || myWithExplicitResourceType;
-        addResourceReferenceValues(facet, prefix, type, resourcePackage, result, explicitResourceType);
+        final boolean explicitResourceType = startsWithRefChar || myWithExplicitResourceType;
+        for (final ResourceType type : recommendedTypes) {
+          addResourceReferenceValues(facet, prefix, type, resourcePackage, result, explicitResourceType);
+        }
       }
       else {
         final Set<ResourceType> filteringSet = SYSTEM_RESOURCE_PACKAGE.equals(resourcePackage)

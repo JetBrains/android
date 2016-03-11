@@ -422,9 +422,9 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
   }
 
   public void testResourceCompletion() throws Throwable {
-    doTestCompletionVariants("av3.xml", "@color/", "@android:", "@drawable/");
-    doTestCompletionVariants("av8.xml", "@android:", "@anim/", "@color/", "@dimen/", "@drawable/", "@id/", "@layout/", "@string/",
-                             "@style/");
+    doTestCompletionVariantsContains("av3.xml", "@color/color0", "@color/color1", "@android:", "@drawable/picture2", "@drawable/picture1");
+    doTestCompletionVariantsContains("av8.xml", "@android:", "@anim/anim1", "@color/color0", "@color/color1", "@dimen/myDimen", "@id/idd1",
+                                     "@drawable/picture1", "@layout/av3", "@layout/av8", "@string/itStr", "@string/hello", "@style/style1");
   }
 
   public void testLocalResourceCompletion1() throws Throwable {
@@ -450,11 +450,12 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
   }
 
   public void testForceLocalResourceCompletion() throws Throwable {
-    doTestCompletionVariants("av13.xml", "@string/hello", "@string/hello1");
+    // No system colors are suggested as completion.
+    doTestCompletionVariants("av13.xml", "@color/color0", "@color/color1", "@color/color2");
   }
 
   public void testSystemResourceCompletion() throws Throwable {
-    doTestCompletionVariants("av6.xml", "@android:color/", "@android:drawable/", "@android:mipmap/");
+    doTestCompletionVariants("av6.xml", "@android:color/primary_text_dark", "@android:drawable/menuitem_background");
   }
 
   public void testCompletionSpecialCases() throws Throwable {

@@ -44,6 +44,11 @@ public class MetadataValueConverter extends ResolvingConverter<Object> implement
   private ResourceReferenceConverter myResourceReferenceConverter = new ResourceReferenceConverter();
   private PackageClassConverter myPsiClassConverter = new PackageClassConverter();
 
+  public MetadataValueConverter() {
+    // Expanded suggestions list might be too long and take a while to load.
+    myResourceReferenceConverter.setExpandedCompletionSuggestion(false);
+  }
+
   private static boolean isClassContext(ConvertContext context) {
     XmlTag xmlTag = context.getTag();
     return (xmlTag != null && AndroidManifest.VALUE_PARENT_ACTIVITY.equals(xmlTag.getAttributeValue("android:name")));

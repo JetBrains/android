@@ -261,12 +261,18 @@ public class AndroidValueResourcesTest extends AndroidDomTest {
   }
 
   public void testDrawableResourceReference() throws Throwable {
-    myFixture.copyFileToProject(testFolder + "/" + getTestName(true) + ".xml", "res/layout/main.xml");
+    VirtualFile file = copyFileToProject(getTestName(true) + ".xml", "res/layout/main.xml");
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.complete(CompletionType.BASIC);
+    List<String> lookupElements = myFixture.getLookupElementStrings();
+    assertContainsElements(lookupElements, "@android:", "@color/color1", "@color/color2", "@drawable/picture1");
     // mipmap won't be offered as an option since there are not mipmap resources
-    myFixture.testCompletionVariants("res/layout/main.xml", "@android:", "@color/", "@drawable/");
+    assertDoesntContain(lookupElements, "@mipmap/icon");
 
+    // Add a mipmap to resources and expect for it to be listed
     myFixture.copyFileToProject(testFolder + "/icon.png", "res/mipmap/icon.png");
-    myFixture.testCompletionVariants("res/layout/main.xml", "@android:", "@color/", "@drawable/", "@mipmap/");
+    myFixture.complete(CompletionType.BASIC);
+    assertContainsElements(myFixture.getLookupElementStrings(), "@android:", "@color/color1", "@drawable/picture1", "@mipmap/icon");
   }
 
   public void testParentStyleReference() throws Throwable {
