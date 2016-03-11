@@ -24,10 +24,10 @@ import org.jetbrains.annotations.Nullable;
 
 import static com.intellij.util.ArrayUtil.EMPTY_OBJECT_ARRAY;
 
-public class VariantsTreeStructure extends AbstractTreeStructure {
+public class ResolvedDependenciesTreeStructure extends AbstractTreeStructure {
   @NotNull private final RootNode myRootNode;
 
-  VariantsTreeStructure(@NotNull PsdAndroidModuleModel moduleModel) {
+  ResolvedDependenciesTreeStructure(@NotNull PsdAndroidModuleModel moduleModel) {
     myRootNode = new RootNode(moduleModel);
   }
 
