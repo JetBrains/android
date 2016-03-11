@@ -24,10 +24,14 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.GutterIconCache;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.uibuilder.property.NlProperty;
+import com.android.tools.idea.uibuilder.property.editors.NlReferenceEditor;
+import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
+import com.intellij.icons.AllIcons;
 import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.util.ui.ColorIcon;
 import org.jetbrains.android.AndroidColorAnnotator;
+import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -37,7 +41,7 @@ import java.awt.*;
 import java.io.File;
 import java.util.Set;
 
-public class NlDefaultRenderer extends NlAttributeRenderer implements NlPropertyRenderer {
+public class NlDefaultRenderer extends NlAttributeRenderer {
   public static final int ICON_SIZE = 14;
   private final SimpleColoredComponent myLabel;
 
@@ -49,11 +53,28 @@ public class NlDefaultRenderer extends NlAttributeRenderer implements NlProperty
   }
 
   @Override
-  public void customizeRenderContent(@NotNull JTable table, @NotNull NlProperty p, boolean selected, boolean hasFocus, int row, int col) {
+  public void customizeRenderContent(@NotNull JTable table, @NotNull PTableItem item, boolean selected, boolean hasFocus, int row, int col) {
+    assert item instanceof NlProperty;
     myLabel.clear();
+    NlProperty p = (NlProperty)item;
     customize(p, col);
   }
 
+  @Override
+  public Icon getHoverIcon(@NotNull PTableItem item) {
+    assert item instanceof NlProperty;
+    NlProperty property = (NlProperty)item;
+    AttributeDefinition definition = property.getDefinition();
+    if (NlReferenceEditor.hasResourceChooser(property)) {
+      return AllIcons.General.Ellipsis;
+    }
+    else if (definition != null && definition.getFormats().contains(AttributeFormat.Enum)) {
+      return AllIcons.General.ComboArrowDown;
+    }
+    else {
+      return AllIcons.General.EditItemInSection;
+    }
+  }
 
   @VisibleForTesting
   void customize(NlProperty property, int column) {
@@ -65,26 +86,25 @@ public class NlDefaultRenderer extends NlAttributeRenderer implements NlProperty
   }
 
   private void appendValue(@NotNull NlProperty property) {
-    String value = property.getValue();
+    Object value = property.getValue();
+    String text = value == null ? "" : value.toString();
 
     Icon icon = getIcon(property);
     if (icon != null) {
       myLabel.setIcon(icon);
     }
 
-    if (value == null) {
-      value = "";
-    }
-    myLabel.append(value, SimpleTextAttributes.REGULAR_ATTRIBUTES);
-    myLabel.setToolTipText(value);
+    myLabel.append(text, SimpleTextAttributes.REGULAR_ATTRIBUTES);
+    myLabel.setToolTipText(text);
   }
 
   @Nullable
   public static Icon getIcon(@NotNull NlProperty property) {
-    String text = property.getValue();
-    if (text == null) {
+    Object value = property.getValue();
+    if (value == null) {
       return null;
     }
+    String text = value.toString();
 
     if (isColorValue(text)) {
       return getColorIcon(text);
@@ -160,7 +180,7 @@ public class NlDefaultRenderer extends NlAttributeRenderer implements NlProperty
   }
 
   @Override
-  public boolean canRender(@NotNull NlProperty p, @NotNull Set<AttributeFormat> formats) {
+  public boolean canRender(@NotNull PTableItem p, @NotNull Set<AttributeFormat> formats) {
     return true;
   }
 

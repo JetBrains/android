@@ -27,8 +27,8 @@ import com.google.common.collect.Lists;
 import com.intellij.android.designer.propertyTable.editors.ResourceEditor;
 import com.intellij.codeInsight.completion.PrefixMatcher;
 import com.intellij.codeInsight.completion.impl.CamelHumpMatcher;
+import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.impl.EditorComponentImpl;
-import com.intellij.openapi.editor.impl.EditorImpl;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.FixedSizeButton;
@@ -47,12 +47,14 @@ import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import sun.awt.CausedFocusEvent;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.*;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 
 public class NlReferenceEditor extends PTableCellEditor implements ActionListener {
   private final JPanel myPanel;
@@ -71,7 +73,7 @@ public class NlReferenceEditor extends PTableCellEditor implements ActionListene
     myPanel.add(myLabel, BorderLayout.LINE_START);
 
     myCompletionProvider = new CompletionProvider();
-    myTextFieldWithAutoCompletion = new TextFieldWithAutoCompletion<String>(project, myCompletionProvider, false, null);
+    myTextFieldWithAutoCompletion = new TextFieldWithAutoCompletion<String>(project, myCompletionProvider, true, null);
     myPanel.add(myTextFieldWithAutoCompletion, BorderLayout.CENTER);
 
     myBrowseButton = new FixedSizeButton(new JBCheckBox());
@@ -90,9 +92,13 @@ public class NlReferenceEditor extends PTableCellEditor implements ActionListene
       @Override
       public void focusGained(FocusEvent focusEvent) {
         Object source = focusEvent.getSource();
-        if (source instanceof EditorComponentImpl) {
-          EditorImpl editor = ((EditorComponentImpl)source).getEditor();
-          editor.getSelectionModel().setSelection(0, editor.getDocument().getTextLength());
+        if (source instanceof EditorComponentImpl && focusEvent instanceof CausedFocusEvent) {
+          CausedFocusEvent causedFocusEvent = (CausedFocusEvent)focusEvent;
+          EditorComponentImpl editorComponent = (EditorComponentImpl)source;
+          if (causedFocusEvent.getCause() == CausedFocusEvent.Cause.ACTIVATION) {
+            Editor editor = editorComponent.getEditor();
+            editor.getSelectionModel().setSelection(0, editor.getDocument().getTextLength());
+          }
         }
       }
     });
@@ -106,6 +112,8 @@ public class NlReferenceEditor extends PTableCellEditor implements ActionListene
     Icon icon = NlDefaultRenderer.getIcon(myProperty);
     myLabel.setIcon(icon);
     myLabel.setVisible(icon != null);
+
+    myBrowseButton.setVisible(hasResourceChooser(myProperty));
 
     String propValue = StringUtil.notNullize(myProperty.getValue());
     myValue = propValue;
@@ -135,6 +143,10 @@ public class NlReferenceEditor extends PTableCellEditor implements ActionListene
       myValue = myTextFieldWithAutoCompletion.getDocument().getText();
       stopCellEditing();
     }
+  }
+
+  public static boolean hasResourceChooser(@NotNull NlProperty p) {
+    return getResourceTypes(p.getDefinition()).length > 0;
   }
 
   public static ChooseResourceDialog showResourceChooser(@NotNull NlProperty p) {

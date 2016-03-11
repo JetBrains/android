@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.property.editors;
 
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.ptable.PTableCellEditor;
+import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.FixedSizeButton;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
@@ -44,7 +45,7 @@ public class NlEnumEditor extends PTableCellEditor implements ActionListener {
   public NlEnumEditor() {
     myPanel = new JPanel(new BorderLayout(SystemInfo.isMac ? 0 : 2, 0));
 
-    myCombo = new JComboBox();
+    myCombo = new ComboBox();
     myCombo.setEditable(true);
     myPanel.add(myCombo, BorderLayout.CENTER);
 
@@ -63,6 +64,8 @@ public class NlEnumEditor extends PTableCellEditor implements ActionListener {
 
     String propValue = StringUtil.notNullize(myProperty.getValue());
     myValue = propValue;
+
+    myBrowseButton.setVisible(NlReferenceEditor.hasResourceChooser(myProperty));
 
     AttributeDefinition definition = myProperty.getDefinition();
     String[] values = definition == null ? ArrayUtil.EMPTY_STRING_ARRAY : definition.getValues();

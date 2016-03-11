@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.property.ptable;
 
+import com.android.ide.common.resources.ResourceResolver;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.List;
@@ -58,5 +60,16 @@ public abstract class PTableGroupItem extends PTableItem {
   @Override
   public void setExpanded(boolean expanded) {
     myExpanded = expanded;
+  }
+
+  @Nullable
+  @Override
+  public String getValue() {
+    throw new IllegalAccessError();
+  }
+
+  @Override
+  public void setValue(@Nullable Object value) {
+    throw new IllegalAccessError();
   }
 }
