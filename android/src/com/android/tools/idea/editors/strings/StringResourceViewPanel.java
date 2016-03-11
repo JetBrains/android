@@ -23,8 +23,8 @@ import com.android.tools.idea.configurations.LocaleMenuAction;
 import com.android.tools.idea.editors.strings.table.*;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.ManifestInfo;
-import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.rendering.Locale;
+import com.android.tools.idea.res.LocalResourceRepository;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.icons.AllIcons;
@@ -36,7 +36,6 @@ import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.util.text.StringUtil;
@@ -113,7 +112,7 @@ public class StringResourceViewPanel implements HyperlinkListener {
 
     initEditPanel();
 
-    myTableModel = new StringResourceTableModel(myFacet.getModule().getProject());
+    myTableModel = new StringResourceTableModel();
     initTable();
     new TableSpeedSearch(myTable);
 
@@ -191,26 +190,21 @@ public class StringResourceViewPanel implements HyperlinkListener {
         JBPopupFactory.getInstance().createListPopupBuilder(list).setItemChoosenCallback(new Runnable() {
           @Override
           public void run() {
-            // pick some value to add to this locale
-            Map<String, ResourceItem> defaultValues = myData.getDefaultValues();
-            String key = "app_name";
-            ResourceItem defaultValue = defaultValues.get(key);
-
-            if (defaultValue == null) {
-              Map.Entry<String, ResourceItem> firstEntry = defaultValues.entrySet().iterator().next();
-              key = firstEntry.getKey();
-              defaultValue = firstEntry.getValue();
-            }
-
             // TODO(juancnuno) Ask the user to pick a source set instead of defaulting to the primary resource directory
             VirtualFile primaryResourceDir = myFacet.getPrimaryResourceDir();
             assert primaryResourceDir != null;
 
-            Locale l = (Locale)list.getSelectedValue();
+            // Pick a value to add to this locale
+            Map<String, ResourceItem> defaultValues = myData.getDefaultValues();
+            String key = "app_name";
 
-            Project project = myFacet.getModule().getProject();
-            StringsWriteUtils
-              .createItem(myFacet, primaryResourceDir, l, key, StringResourceData.resourceToString(project, defaultValue), true);
+            if (!defaultValues.containsKey(key)) {
+              key = defaultValues.keySet().iterator().next();
+            }
+
+            String string = myData.resourceToString(key);
+
+            StringsWriteUtils.createItem(myFacet, primaryResourceDir, (Locale)list.getSelectedValue(), key, string, true);
             reloadData();
           }
         }).createPopup().showUnderneathOf(toolbar.getComponent());
