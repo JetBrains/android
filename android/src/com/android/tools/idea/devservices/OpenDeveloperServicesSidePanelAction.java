@@ -37,12 +37,12 @@ import java.util.List;
 /**
  * Triggers the creation of the Developer Services side panel.
  */
-public final class OpenDeveloperServicesSidePanelAction extends AnAction {
+public class OpenDeveloperServicesSidePanelAction extends AnAction {
 
   private static final String TOOL_WINDOW_TITLE = "Assistant";
 
   @Override
-  public void actionPerformed(AnActionEvent event) {
+  public final void actionPerformed(AnActionEvent event) {
     final Project thisProject = event.getProject();
     final String actionId = ActionManager.getInstance().getId(this);
     // TODO: Find a cleaner way to manage content concatenation. This gets appended to TOOL_WINDOW_TITLE elsewhere.
