@@ -32,7 +32,8 @@ public abstract class LaunchOptionState {
                                            @NotNull AndroidFacet facet,
                                            boolean waitForDebugger,
                                            @Nullable AndroidDebugger androidDebugger,
-                                           @NotNull String extraAmOptions);
+                                           @NotNull String extraAmOptions,
+                                           @NotNull ProfilerState profilerState);
 
   @NotNull
   public List<ValidationError> checkConfiguration(@NotNull AndroidFacet facet) {
