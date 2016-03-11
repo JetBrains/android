@@ -78,15 +78,19 @@ public class ASGallery<E> extends JBList {
    */
   @NotNull private Map<E, CellRenderer> myCellRenderers = Maps.newHashMap();
 
+  @Nullable private Action myDefaultAction;
+
   public ASGallery() {
-    this(new DefaultListModel(), Functions.<Image>constant(null), Functions.toStringFunction(), new Dimension(0, 0));
+    this(new DefaultListModel(), Functions.<Image>constant(null), Functions.toStringFunction(), new Dimension(0, 0), null);
   }
   public ASGallery(@NotNull ListModel model,
                    @NotNull Function<? super E, Image> imageProvider,
                    @NotNull Function<? super E, String> labelProvider,
-                   @NotNull Dimension thumbnailSize) {
+                   @NotNull Dimension thumbnailSize,
+                   @Nullable Action defaultAction) {
     myThumbnailSize = JBDimension.create(thumbnailSize);
     myLabelProvider = labelProvider;
+    myDefaultAction = defaultAction;
 
     Font listFont = UIUtil.getListFont();
     if (listFont != null) {
@@ -132,6 +136,18 @@ public class ASGallery<E> extends JBList {
         int index = getSelectedIndex();
         if (index < 0) return;
         ensureIndexIsVisible(index);
+      }
+
+      @Override
+      public void mouseClicked(MouseEvent e) {
+        if (e.getClickCount() > 1 && myDefaultAction != null) {
+          int index = getSelectedIndex();
+          if (index < 0) return;
+          Rectangle bounds = getCellBounds(index, index);
+          if (bounds.contains(e.getPoint())) {
+            myDefaultAction.actionPerformed(new ActionEvent(e.getSource(), 0, null));
+          }
+        }
       }
     });
   }
@@ -206,6 +222,10 @@ public class ASGallery<E> extends JBList {
     // JBDimension supports HiDPI
     myThumbnailSize = JBDimension.create(thumbnailSize);
     recomputeCellSize();
+  }
+
+  public void setDefaultAction(@NotNull Action action) {
+    myDefaultAction = action;
   }
 
   private void recomputeCellSize() {
