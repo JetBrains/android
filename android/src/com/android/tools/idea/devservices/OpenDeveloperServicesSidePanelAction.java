@@ -39,13 +39,14 @@ import java.util.List;
  */
 public final class OpenDeveloperServicesSidePanelAction extends AnAction {
 
-  private static final String TOOL_WINDOW_TITLE = "Developer Services";
+  private static final String TOOL_WINDOW_TITLE = "Assistant";
 
   @Override
   public void actionPerformed(AnActionEvent event) {
     final Project thisProject = event.getProject();
     final String actionId = ActionManager.getInstance().getId(this);
-    final String bundleName = event.getPresentation().getText();
+    // TODO: Find a cleaner way to manage content concatenation. This gets appended to TOOL_WINDOW_TITLE elsewhere.
+    final String bundleName = ": " + event.getPresentation().getText();
 
     ApplicationManager.getApplication().invokeLater(new Runnable() {
       @Override
