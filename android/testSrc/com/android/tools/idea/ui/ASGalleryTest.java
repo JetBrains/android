@@ -63,7 +63,8 @@ public final class ASGalleryTest extends AndroidTestCase {
             return input.myLabel;
           }
         },
-        THUMBNAIL_SIZE);
+        THUMBNAIL_SIZE,
+        null);
     asGallery.setBorder(BORDER);
     gallery = asGallery;
   }
