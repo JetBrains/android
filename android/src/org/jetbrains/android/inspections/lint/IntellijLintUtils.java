@@ -19,6 +19,7 @@ import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.builder.model.SourceProvider;
+import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.lint.client.api.LintRequest;
 import com.android.tools.lint.detector.api.*;
@@ -104,7 +105,7 @@ public class IntellijLintUtils {
     if (project.isDisposed()) {
       return null;
     }
-    return PsiManager.getInstance(project).findFile(file);
+    return AndroidPsiUtils.getPsiFileSafely(project, file);
   }
 
   /**
