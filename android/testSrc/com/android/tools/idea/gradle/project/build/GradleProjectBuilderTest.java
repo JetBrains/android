@@ -25,13 +25,23 @@ public class GradleProjectBuilderTest extends TestCase {
   public void testIsSourceGenerationEnabled() throws Exception {
     GradleExperimentalSettings settings = new GradleExperimentalSettings();
 
+    // The default value of settings.MAX_MODULE_COUNT_FOR_SOURCE_GEN is 5.
     settings.SKIP_SOURCE_GEN_ON_PROJECT_SYNC = true;
+    assertTrue(GradleProjectBuilder.isSourceGenerationEnabled(settings, 4));
     assertFalse(GradleProjectBuilder.isSourceGenerationEnabled(settings, 10));
 
+    // The default value of settings.SKIP_SOURCE_GEN_ON_PROJECT_SYNC is false and settings.MAX_MODULE_COUNT_FOR_SOURCE_GEN has no effect
+    // when the settings.SKIP_SOURCE_GEN_ON_PROJECT_SYNC is not set.
     settings.MAX_MODULE_COUNT_FOR_SOURCE_GEN = 100;
-    assertFalse(GradleProjectBuilder.isSourceGenerationEnabled(settings, 10));
+    assertTrue(GradleProjectBuilder.isSourceGenerationEnabled(settings, 10));
 
+    // settings.MAX_MODULE_COUNT_FOR_SOURCE_GEN has no effect when the settings.SKIP_SOURCE_GEN_ON_PROJECT_SYNC is not set.
     settings.SKIP_SOURCE_GEN_ON_PROJECT_SYNC = false;
+    settings.MAX_MODULE_COUNT_FOR_SOURCE_GEN = 2;
+    assertTrue(GradleProjectBuilder.isSourceGenerationEnabled(settings, 3));
+    assertTrue(GradleProjectBuilder.isSourceGenerationEnabled(settings, 1));
+
+    settings.SKIP_SOURCE_GEN_ON_PROJECT_SYNC = true;
     settings.MAX_MODULE_COUNT_FOR_SOURCE_GEN = 2;
     assertFalse(GradleProjectBuilder.isSourceGenerationEnabled(settings, 3));
     assertTrue(GradleProjectBuilder.isSourceGenerationEnabled(settings, 1));

@@ -109,7 +109,7 @@ public class GradleProjectBuilder {
   @VisibleForTesting
   @Contract(pure = true)
   static boolean isSourceGenerationEnabled(@NotNull GradleExperimentalSettings settings, int moduleCount) {
-    return !settings.SKIP_SOURCE_GEN_ON_PROJECT_SYNC && moduleCount <= settings.MAX_MODULE_COUNT_FOR_SOURCE_GEN;
+    return !settings.SKIP_SOURCE_GEN_ON_PROJECT_SYNC || moduleCount <= settings.MAX_MODULE_COUNT_FOR_SOURCE_GEN;
   }
 
   private void buildProjectWithJps(@NotNull BuildMode buildMode) {
