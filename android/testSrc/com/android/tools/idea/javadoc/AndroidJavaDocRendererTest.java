@@ -95,13 +95,13 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
                                    FileUtil.toSystemDependentName(p2));
     checkJavadoc("/javadoc/drawables/Activity1.java",
                  String.format("<html><body><table>" +
-                 "<tr><th %1$s>Configuration</th><th %1$s>Value</th></tr>" +
-                 "<tr><td %1$s>drawable</td><td %1$s>%2$s%3$s</div>12&#xd7;12 px (12&#xd7;12 dp @ mdpi)<BR/>" +
-                 "@drawable/ic_launcher => ic_launcher.png<BR/>" +
-                 "</td></tr>" +
-                 "<tr><td %1$s>drawable-hdpi</td><td %1$s>%2$s%4$s</div>12&#xd7;12 px (8&#xd7;8 dp @ hdpi)" +
-                 "</td></tr>" +
-                 "</table></body></html>", VERTICAL_ALIGN, divTag, imgTag1, imgTag2));
+                               "<tr><th %1$s>Configuration</th><th %1$s>Value</th></tr>" +
+                               "<tr><td %1$s>drawable</td><td %1$s>%2$s%3$s</div>12&#xd7;12 px (12&#xd7;12 dp @ mdpi)<BR/>" +
+                               "@drawable/ic_launcher => ic_launcher.png<BR/>" +
+                               "</td></tr>" +
+                               "<tr><td %1$s>drawable-hdpi</td><td %1$s>%2$s%4$s</div>12&#xd7;12 px (8&#xd7;8 dp @ hdpi)" +
+                               "</td></tr>" +
+                               "</table></body></html>", VERTICAL_ALIGN, divTag, imgTag1, imgTag2));
   }
 
   public void testStateListDrawables() {
@@ -176,7 +176,8 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
   }
 
   public void testAttributeValueDoc() {
-    checkJavadoc("/javadoc/layout/layout.xml", "res/layout/layout.xml", "The view should be only big enough to enclose its content (plus padding).");
+    checkJavadoc("/javadoc/layout/layout.xml", "res/layout/layout.xml",
+                 "The view should be only big enough to enclose its content (plus padding).");
   }
 
   public void testXmlString2() {
@@ -238,6 +239,7 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
                  "            is a period then it is appended to your package name. </body></html>");
   }
 
+  // @formatter:off
   /**
    * This test requires {@link #requireRecentSdk} to return true (since we need a real SDK to resolve this
    * framework color, but unfortunately that doesn't work for other tests; the testLocalAttributes tests don't
@@ -258,8 +260,7 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
                  "</body></html>");
   }
   </pre>
-  */
-
+  */ // @formatter:on
   public void testFrameworkColors2() {
     // @android:color/my_white is defined in
     // testData/sdk1.5/platforms/android-1.5/data/res/values
@@ -348,7 +349,7 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
     checkJavadoc("/javadoc/styles/styles.xml", "res/values/styles.xml",
                  "<html><body><BR/>" +
                  "@android:style/Theme.FrameworkTheme<BR/>" +
-                 "<BR/>" + "" +
+                 "<BR/>" +
                  "<hr><B>Theme.FrameworkTheme</B>:<BR/>" +
                  "&nbsp;&nbsp;&nbsp;&nbsp;android:<B>textColorPrimary</B> = @color/state_list<BR/>" +
                  "<table><tr><td>" +
@@ -375,6 +376,12 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
     assertEquals("<head>head<style>s2</style></head><body>firstsecond</body>", AndroidJavaDocRenderer.injectExternalDocumentation("<head>head</head><body>first</body>","<style>s2</style>second"));
     // insert style without head
     assertEquals("<head><style>s2</style></head><body>firstsecond</body>", AndroidJavaDocRenderer.injectExternalDocumentation("<body>first</body>","<style>s2</style>second"));
+  }
+
+  public void testLintIssueId() {
+    checkJavadoc("/javadoc/lint/lint_issue_id.xml", "lint.xml",
+                 "A layout that has no children or no background can often be removed (since it is invisible) " +
+                 "for a flatter and more efficient layout hierarchy.");
   }
 
   // TODO: Test flavor docs
