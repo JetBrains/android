@@ -19,7 +19,7 @@ import com.android.tools.idea.gradle.structure.configurables.PsdContext;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractDependencyNode;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.DependencySelection;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.ModuleDependencyNode;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.VariantsTreeBuilder;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.ResolvedDependenciesTreeBuilder;
 import com.android.tools.idea.gradle.structure.configurables.ui.PsdUISettings;
 import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowPanel;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsdNode;
@@ -71,9 +71,9 @@ import static java.awt.event.MouseEvent.MOUSE_PRESSED;
 import static javax.swing.SwingUtilities.convertPointFromScreen;
 import static javax.swing.tree.TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION;
 
-class VariantsToolWindowPanel extends ToolWindowPanel implements DependencySelection {
+class ResolvedDependenciesPanel extends ToolWindowPanel implements DependencySelection {
   @NotNull private final Tree myTree;
-  @NotNull private final VariantsTreeBuilder myTreeBuilder;
+  @NotNull private final ResolvedDependenciesTreeBuilder myTreeBuilder;
   @NotNull private final PsdContext myContext;
   @NotNull private final TreeSelectionListener myTreeSelectionListener;
 
@@ -82,9 +82,9 @@ class VariantsToolWindowPanel extends ToolWindowPanel implements DependencySelec
   private ModuleDependencyNode myHoveredNode;
   private KeyEventDispatcher myKeyEventDispatcher;
 
-  VariantsToolWindowPanel(@NotNull PsdAndroidModuleModel moduleModel,
-                          @NotNull PsdContext context,
-                          @NotNull DependencySelection dependencySelection) {
+  ResolvedDependenciesPanel(@NotNull PsdAndroidModuleModel moduleModel,
+                            @NotNull PsdContext context,
+                            @NotNull DependencySelection dependencySelection) {
     super("Resolved Dependencies", AndroidIcons.Variant, ToolWindowAnchor.RIGHT);
     myContext = context;
     setHeaderActions();
@@ -100,7 +100,7 @@ class VariantsToolWindowPanel extends ToolWindowPanel implements DependencySelec
           if (node != null) {
             PsdModuleDependencyModel moduleDependencyModel = node.getModels().get(0);
             String name = moduleDependencyModel.getName();
-            myContext.setSelectedModule(name, VariantsToolWindowPanel.this);
+            myContext.setSelectedModule(name, ResolvedDependenciesPanel.this);
             // Do not call super, to avoid selecting the 'module' node when clicking a hyperlink.
             return;
           }
@@ -115,7 +115,7 @@ class VariantsToolWindowPanel extends ToolWindowPanel implements DependencySelec
     TreeSelectionModel selectionModel = myTree.getSelectionModel();
     selectionModel.setSelectionMode(DISCONTIGUOUS_TREE_SELECTION);
 
-    myTreeBuilder = new VariantsTreeBuilder(moduleModel, myTree, treeModel, dependencySelection, this);
+    myTreeBuilder = new ResolvedDependenciesTreeBuilder(moduleModel, myTree, treeModel, dependencySelection, this);
 
     JScrollPane scrollPane = createScrollPane(myTree);
     scrollPane.setBorder(IdeBorderFactory.createEmptyBorder());
@@ -126,10 +126,15 @@ class VariantsToolWindowPanel extends ToolWindowPanel implements DependencySelec
       public void valueChanged(TreeSelectionEvent e) {
         myTreeBuilder.updateSelection();
         PsdAndroidDependencyModel selected = getSelection();
-        if (selected != null) {
-          for (SelectionListener listener : mySelectionListeners) {
-            listener.dependencyModelSelected(selected);
+        if (selected == null) {
+          AbstractPsdNode selectedNode = getSelectionIfSingle();
+          if (selectedNode != null && !(selectedNode instanceof AbstractDependencyNode)) {
+            // A non-dependency node was selected (e.g. a variant/artifact node)
+            notifySelectionChanged(null);
           }
+        }
+        else {
+          notifySelectionChanged(selected);
         }
       }
     };
@@ -142,6 +147,12 @@ class VariantsToolWindowPanel extends ToolWindowPanel implements DependencySelec
     });
 
     addHyperlinkBehaviorToModuleNodes();
+  }
+
+  private void notifySelectionChanged(@Nullable PsdAndroidDependencyModel selected) {
+    for (SelectionListener listener : mySelectionListeners) {
+      listener.dependencyModelSelected(selected);
+    }
   }
 
   private void setHeaderActions() {
@@ -224,7 +235,7 @@ class VariantsToolWindowPanel extends ToolWindowPanel implements DependencySelec
       group.add(new DumbAwareAction(String.format("Display dependencies of module '%1$s'", name)) {
         @Override
         public void actionPerformed(AnActionEvent e) {
-          myContext.setSelectedModule(name, VariantsToolWindowPanel.this);
+          myContext.setSelectedModule(name, ResolvedDependenciesPanel.this);
         }
       });
 
@@ -364,15 +375,22 @@ class VariantsToolWindowPanel extends ToolWindowPanel implements DependencySelec
   @Override
   @Nullable
   public PsdAndroidDependencyModel getSelection() {
-    Set<AbstractDependencyNode> selection = myTreeBuilder.getSelectedElements(AbstractDependencyNode.class);
-    if (selection.size() == 1) {
-      AbstractDependencyNode node = getFirstItem(selection);
-      if (node != null) {
-        List<?> models = node.getModels();
-        if (!models.isEmpty()) {
-          return (PsdAndroidDependencyModel)models.get(0);
-        }
+    AbstractPsdNode selection = getSelectionIfSingle();
+    if (selection instanceof AbstractDependencyNode) {
+      AbstractDependencyNode node = (AbstractDependencyNode)selection;
+      List<?> models = node.getModels();
+      if (!models.isEmpty()) {
+        return (PsdAndroidDependencyModel)models.get(0);
       }
+    }
+    return null;
+  }
+  
+  @Nullable
+  private AbstractPsdNode getSelectionIfSingle() {
+    Set<AbstractPsdNode> selection = myTreeBuilder.getSelectedElements(AbstractPsdNode.class);
+    if (selection.size() == 1) {
+      return getFirstItem(selection);
     }
     return null;
   }

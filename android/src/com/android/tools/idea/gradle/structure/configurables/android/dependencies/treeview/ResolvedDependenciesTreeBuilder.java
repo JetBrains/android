@@ -37,18 +37,18 @@ import java.util.Set;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static com.intellij.util.ui.tree.TreeUtil.collapseAll;
 
-public class VariantsTreeBuilder extends AbstractTreeBuilder {
+public class ResolvedDependenciesTreeBuilder extends AbstractTreeBuilder {
   private static final TreePath[] EMPTY_TREE_PATH = new TreePath[0];
 
   @NotNull private final DependencySelection myDependencySelectionSource;
   @NotNull private final DependencySelection myDependencySelectionDestination;
 
-  public VariantsTreeBuilder(@NotNull PsdAndroidModuleModel moduleModel,
-                             @NotNull final JTree tree,
-                             @NotNull DefaultTreeModel treeModel,
-                             @NotNull DependencySelection dependencySelectionSource,
-                             @NotNull DependencySelection dependencySelectionDestination) {
-    super(tree, treeModel, new VariantsTreeStructure(moduleModel), IndexComparator.INSTANCE);
+  public ResolvedDependenciesTreeBuilder(@NotNull PsdAndroidModuleModel moduleModel,
+                                         @NotNull JTree tree,
+                                         @NotNull DefaultTreeModel treeModel,
+                                         @NotNull DependencySelection dependencySelectionSource,
+                                         @NotNull DependencySelection dependencySelectionDestination) {
+    super(tree, treeModel, new ResolvedDependenciesTreeStructure(moduleModel), IndexComparator.INSTANCE);
     myDependencySelectionSource = dependencySelectionSource;
     myDependencySelectionDestination = dependencySelectionDestination;
 
@@ -57,13 +57,13 @@ public class VariantsTreeBuilder extends AbstractTreeBuilder {
       public void settingsChanged(@NotNull PsdUISettings settings) {
         AbstractTreeStructure treeStructure = getTreeStructure();
 
-        if (treeStructure instanceof VariantsTreeStructure) {
+        if (treeStructure instanceof ResolvedDependenciesTreeStructure) {
           final PsdAndroidDependencyModel selected = myDependencySelectionSource.getSelection();
 
-          boolean needsUpdate = ((VariantsTreeStructure)treeStructure).settingsChanged();
+          boolean needsUpdate = ((ResolvedDependenciesTreeStructure)treeStructure).settingsChanged();
 
           if (needsUpdate) {
-            ActionCallback actionCallback = VariantsTreeBuilder.this.queueUpdate();
+            ActionCallback actionCallback = ResolvedDependenciesTreeBuilder.this.queueUpdate();
             actionCallback.doWhenDone(new Runnable() {
               @Override
               public void run() {
