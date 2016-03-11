@@ -104,12 +104,13 @@ public class LibraryDependencyEditor implements DependencyEditor<PsdLibraryDepen
             mySourceInfoHint = new LightweightHint(hintContents);
           }
 
-          Point point = e.getPoint();
-          HintHint hintInfo = new HintHint(mySourceInfoLabel, point).setPreferredPosition(Balloon.Position.above)
-                                                                    .setAwtTooltip(true).setTextBg(INFORMATION_COLOR)
-                                                                    .setShowImmediately(true);
+          HintHint hintInfo = new HintHint(e).setPreferredPosition(Balloon.Position.above)
+                                             .setAwtTooltip(true)
+                                             .setTextBg(INFORMATION_COLOR)
+                                             .setShowImmediately(true);
 
-          mySourceInfoHint.show(myPanel, point.x, point.y, mySourceInfoLabel, hintInfo);
+          Point p = e.getPoint();
+          mySourceInfoHint.show(myPanel, p.x, p.y, mySourceInfoLabel, hintInfo);
         }
       }
     });
