@@ -1508,7 +1508,7 @@ public class AndroidLintInspectionToolProvider {
 
   public static class AndroidLintCommitPrefEditsInspection extends AndroidLintInspectionBase {
     public AndroidLintCommitPrefEditsInspection() {
-      super(AndroidBundle.message("android.lint.inspections.commit.pref.edits"), SharedPrefsDetector.ISSUE);
+      super(AndroidBundle.message("android.lint.inspections.commit.pref.edits"), CleanupDetector.SHARED_PREF);
     }
 
     @NotNull
@@ -2055,6 +2055,12 @@ public class AndroidLintInspectionToolProvider {
       }
 
       return AndroidLintQuickFix.EMPTY_ARRAY;
+    }
+  }
+
+  public static class AndroidLintSupportAnnotationUsageInspection extends AndroidLintInspectionBase {
+    public AndroidLintSupportAnnotationUsageInspection() {
+      super(AndroidBundle.message("android.lint.inspections.support.annotation.usage"), AnnotationDetector.ANNOTATION_USAGE);
     }
   }
 
