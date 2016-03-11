@@ -18,7 +18,6 @@ import com.intellij.pom.PomTargetPsiElement;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.impl.FakePsiElement;
-import com.intellij.psi.impl.light.LightElement;
 import com.intellij.psi.util.*;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
@@ -436,41 +435,6 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
     }
 
     return AndroidJavaDocRenderer.render(module, url);
-  }
-
-  /**
-   * Fake PSI element to provide used to provide documentation on autocompletion,
-   * as described in https://devnet.jetbrains.com/thread/436977
-   */
-  static class ProvidedDocumentationPsiElement extends LightElement {
-    private final @NotNull String myValue;
-    private final @NotNull String myDocumentation;
-
-    public ProvidedDocumentationPsiElement(@NotNull PsiManager manager,
-                                           @NotNull Language language,
-                                           @NotNull String value,
-                                           @NotNull String documentation) {
-      super(manager, language);
-      myValue = value;
-      myDocumentation = documentation;
-    }
-
-    public @NotNull String getDocumentation() {
-      return myDocumentation;
-    }
-
-    @Override
-    public String toString() {
-      return myDocumentation;
-    }
-
-    /**
-     * {@link #getText()} is overridden to modify title of documentation popup
-     */
-    @Override
-    public String getText() {
-      return myValue;
-    }
   }
 
   @Override
