@@ -49,6 +49,18 @@ public class JavaLibraryStub implements JavaLibrary {
 
   @Override
   @Nullable
+  public String getProject() {
+    return null;
+  }
+
+  @Override
+  @Nullable
+  public String getName() {
+    return null;
+  }
+
+  @Override
+  @Nullable
   public MavenCoordinates getRequestedCoordinates() {
     throw new UnsupportedOperationException();
   }
@@ -57,5 +69,10 @@ public class JavaLibraryStub implements JavaLibrary {
   @Nullable
   public MavenCoordinates getResolvedCoordinates() {
     throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public boolean isSkipped() {
+    return false;
   }
 }
