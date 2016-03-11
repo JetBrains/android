@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.res;
 
-import com.android.annotations.NonNull;
 import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.AndroidLibrary;
 import com.android.builder.model.AndroidProject;
@@ -31,6 +30,7 @@ import com.google.common.collect.Sets;
 import com.intellij.openapi.module.Module;
 import gnu.trove.TIntObjectHashMap;
 import gnu.trove.TObjectIntHashMap;
+import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.ModuleClassLoader;
 import org.jetbrains.android.util.AndroidUtils;
@@ -59,12 +59,12 @@ public class AppResourceRepository extends MultiResourceRepository {
    * The order of these libraries may not match the order of {@link #myLibraries}. It's intended to be used
    * only to get the R.txt files for declare styleables.
    */
-  private final LinkedList<FileResourceRepository> myAarLibraries = new LinkedList<FileResourceRepository>();
+  private final LinkedList<FileResourceRepository> myAarLibraries = Lists.newLinkedList();
   private Set<String> myIds;
 
   protected AppResourceRepository(@NotNull AndroidFacet facet,
-                                @NotNull List<? extends LocalResourceRepository> delegates,
-                                @NotNull List<FileResourceRepository> libraries) {
+                                  @NotNull List<? extends LocalResourceRepository> delegates,
+                                  @NotNull List<FileResourceRepository> libraries) {
     super(facet.getModule().getName() + " with modules and libraries", delegates);
     myFacet = facet;
     myLibraries = libraries;
@@ -79,7 +79,7 @@ public class AppResourceRepository extends MultiResourceRepository {
    * Returns the Android merge resource repository for the resources in this module, any other modules in this project,
    * and any libraries this project depends on.
    *
-   * @param module the module to look up resources for
+   * @param module            the module to look up resources for
    * @param createIfNecessary if true, create the app resources if necessary, otherwise only return if already computed
    * @return the resource repository
    */
@@ -97,7 +97,7 @@ public class AppResourceRepository extends MultiResourceRepository {
    * Returns the Android merge resource repository for the resources in this module, any other modules in this project,
    * and any libraries this project depends on.
    *
-   * @param facet the module facet to look up resources for
+   * @param facet             the module facet to look up resources for
    * @param createIfNecessary if true, create the app resources if necessary, otherwise only return if already computed
    * @return the resource repository
    */
@@ -108,10 +108,10 @@ public class AppResourceRepository extends MultiResourceRepository {
   }
 
   @NotNull
-  public static AppResourceRepository create(@NotNull final AndroidFacet facet) {
+  public static AppResourceRepository create(@NotNull AndroidFacet facet) {
     List<FileResourceRepository> libraries = computeLibraries(facet);
     List<LocalResourceRepository> delegates = computeRepositories(facet, libraries);
-    final AppResourceRepository repository = new AppResourceRepository(facet, delegates, libraries);
+    AppResourceRepository repository = new AppResourceRepository(facet, delegates, libraries);
 
     ProjectResourceRepositoryRootListener.ensureSubscribed(facet.getModule().getProject());
 
@@ -142,7 +142,7 @@ public class AppResourceRepository extends MultiResourceRepository {
   }
 
   @NotNull
-  private static List<File> findAarLibraries(AndroidFacet facet, List<AndroidFacet> dependentFacets) {
+  private static List<File> findAarLibraries(@NotNull AndroidFacet facet, @NotNull List<AndroidFacet> dependentFacets) {
     // Use the gradle model if available, but if not, fall back to using plain IntelliJ library dependencies
     // which have been persisted since the most recent sync
     AndroidGradleModel androidGradleModel = AndroidGradleModel.get(facet);
@@ -180,7 +180,7 @@ public class AppResourceRepository extends MultiResourceRepository {
   }
 
   /**
-   *  Reads IntelliJ library definitions ({@link com.intellij.openapi.roots.LibraryOrSdkOrderEntry}) and if possible, finds a corresponding
+   * Reads IntelliJ library definitions ({@link com.intellij.openapi.roots.LibraryOrSdkOrderEntry}) and if possible, finds a corresponding
    * {@code .aar} resource library to include. This works before the Gradle project has been initialized.
    */
   private static List<File> findAarLibrariesFromIntelliJ(AndroidFacet facet, List<AndroidFacet> dependentFacets) {
@@ -210,36 +210,47 @@ public class AppResourceRepository extends MultiResourceRepository {
     for (AndroidFacet f : dependentFacets) {
       moduleNames.add(f.getModule().getName());
     }
-    for (AndroidLibrary library : libraries) {
-      // We should only add .aar dependencies if they aren't already provided as modules.
-      // For now, the way we associate them with each other is via the library name;
-      // in the future the model will provide this for us
-      String libraryName = null;
-      String projectName = library.getProject();
-      if (projectName != null && !projectName.isEmpty()) {
-        libraryName = projectName.substring(projectName.lastIndexOf(':') + 1);
-        // Since this library has project!=null, it exists in module form; don't
-        // add it here.
-        moduleNames.add(libraryName);
-        continue;
-      } else {
-        File folder = library.getFolder();
-        String name = folder.getName();
-        if (name.endsWith(DOT_AAR)) {
-          libraryName = name.substring(0, name.length() - DOT_AAR.length());
-        } else if (folder.getPath().contains(AndroidGradleModel.EXPLODED_AAR)) {
-          libraryName = folder.getParentFile().getName();
-        }
-      }
-      if (libraryName != null && !moduleNames.contains(libraryName)) {
-        File resFolder = library.getResFolder();
-        if (resFolder.exists()) {
-          files.add(resFolder);
-
-          // Don't add it again!
+    try {
+      for (AndroidLibrary library : libraries) {
+        // We should only add .aar dependencies if they aren't already provided as modules.
+        // For now, the way we associate them with each other is via the library name;
+        // in the future the model will provide this for us
+        String libraryName = null;
+        String projectName = library.getProject();
+        if (projectName != null && !projectName.isEmpty()) {
+          libraryName = projectName.substring(projectName.lastIndexOf(':') + 1);
+          // Since this library has project!=null, it exists in module form; don't
+          // add it here.
           moduleNames.add(libraryName);
+          continue;
+        }
+        else {
+          File folder = library.getFolder();
+          String name = folder.getName();
+          if (name.endsWith(DOT_AAR)) {
+            libraryName = name.substring(0, name.length() - DOT_AAR.length());
+          }
+          else if (folder.getPath().contains(AndroidGradleModel.EXPLODED_AAR)) {
+            libraryName = folder.getParentFile().getName();
+          }
+        }
+        if (libraryName != null && !moduleNames.contains(libraryName)) {
+          File resFolder = library.getResFolder();
+          if (resFolder.exists()) {
+            files.add(resFolder);
+
+            // Don't add it again!
+            moduleNames.add(libraryName);
+          }
         }
       }
+    }
+    catch (UnsupportedMethodException e) {
+      // This happens when there is an incompatibility between the builder-model interfaces embedded in Android Studio and the
+      // cached model.
+      // If we got here is because this code got invoked before project sync happened (e.g. when reopening a project with open editors).
+      // Project sync now is smart enough to handle this case and will trigger a full sync.
+      LOG.warn("Incompatibility found between the IDE's builder-model and the cached Gradle model", e);
     }
 
     List<File> dirs = Lists.newArrayList();
@@ -294,7 +305,8 @@ public class AppResourceRepository extends MultiResourceRepository {
           }
         }
         myIds = Sets.newHashSetWithExpectedSize(size);
-      } else {
+      }
+      else {
         myIds.clear();
       }
       for (FileResourceRepository library : myLibraries) {
@@ -308,9 +320,9 @@ public class AppResourceRepository extends MultiResourceRepository {
     return myIds;
   }
 
-  @NonNull
   @Override
-  public Collection<String> getItemsOfType(@NonNull ResourceType type) {
+  @NotNull
+  public Collection<String> getItemsOfType(@NotNull ResourceType type) {
     synchronized (ITEM_MAP_LOCK) {
       return type == ResourceType.ID ? getAllIds() : super.getItemsOfType(type);
     }
@@ -350,9 +362,9 @@ public class AppResourceRepository extends MultiResourceRepository {
 
   @VisibleForTesting
   @NotNull
-  static AppResourceRepository createForTest(AndroidFacet facet,
-                                             List<LocalResourceRepository> modules,
-                                             List<FileResourceRepository> libraries) {
+  static AppResourceRepository createForTest(@NotNull AndroidFacet facet,
+                                             @NotNull List<LocalResourceRepository> modules,
+                                             @NotNull List<FileResourceRepository> libraries) {
     assert modules.containsAll(libraries);
     assert modules.size() == libraries.size() + 1; // should only combine with the module set repository
     return new AppResourceRepository(facet, modules, libraries);
@@ -368,7 +380,8 @@ public class AppResourceRepository extends MultiResourceRepository {
         if (repository.getResourceDirectory().getPath().startsWith(aarPath)) {
           return repository;
         }
-      } else {
+      }
+      else {
         assert false : r.getClass();
       }
     }
@@ -390,8 +403,8 @@ public class AppResourceRepository extends MultiResourceRepository {
     return myResourceVisibilityProvider;
   }
 
-  @NonNull
-  public ResourceVisibilityLookup getResourceVisibility(@NonNull AndroidFacet facet) {
+  @NotNull
+  public ResourceVisibilityLookup getResourceVisibility(@NotNull AndroidFacet facet) {
     // TODO: b/23032391
     AndroidGradleModel androidModel = AndroidGradleModel.get(facet);
     if (androidModel != null) {
@@ -413,7 +426,7 @@ public class AppResourceRepository extends MultiResourceRepository {
    * @param name the name of the resource
    * @return true if the given resource is private
    */
-  public boolean isPrivate(@NonNull ResourceType type, @NonNull String name) {
+  public boolean isPrivate(@NotNull ResourceType type, @NotNull String name) {
     if (myResourceVisibility == null) {
       ResourceVisibilityLookup.Provider provider = getResourceVisibilityProvider();
       if (provider == null) {
