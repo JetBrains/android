@@ -131,7 +131,12 @@ public class GuiTestRule implements TestRule {
   }
 
   private void tearDown(List<Throwable> errors) throws Exception {
-    waitForBackgroundTasks();
+    try {
+      waitForBackgroundTasks();
+    }
+    catch (Throwable e) {
+      errors.add(e);
+    }
     errors.addAll(cleanUpAndCheckForModalDialogs());
     GuiTests.closeAllProjects();
     if (myProjectPath != null) {
