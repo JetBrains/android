@@ -15,12 +15,16 @@
  */
 package com.android.tools.idea.gradle.testing;
 
+import com.android.tools.idea.gradle.GradleSyncState;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.ResolveScopeProvider;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.util.ThreeState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import static com.android.tools.idea.gradle.util.Projects.lastGradleSyncFailed;
 
 /**
  * Extension to control the search scope of resolving a PSI element when multiple test artifacts are enabled simultaneously.
@@ -31,6 +35,9 @@ public class TestArtifactResolveScopeProvider extends ResolveScopeProvider {
   @Override
   public GlobalSearchScope getResolveScope(@NotNull VirtualFile file, @Nullable Project project) {
     if (project == null) {
+      return null;
+    }
+    if (lastGradleSyncFailed(project)) {
       return null;
     }
     TestArtifactSearchScopes testScopes = TestArtifactSearchScopes.get(file, project);
