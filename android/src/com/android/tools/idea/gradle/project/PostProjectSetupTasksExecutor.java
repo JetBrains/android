@@ -152,6 +152,14 @@ public class PostProjectSetupTasksExecutor {
    * Invoked after a project has been synced with Gradle.
    */
   public void onProjectSyncCompletion() {
+    if (lastGradleSyncFailed(myProject) && myUsingCachedProjectData) {
+      // Sync with cached model failed (e.g. when Studio has a newer embedded builder-model interfaces and the cache is using an older
+      // version of such interfaces.
+      myUsingCachedProjectData = false;
+      GradleProjectImporter.getInstance().requestProjectSync(myProject, null);
+      return;
+    }
+
     ProjectSyncMessages messages = ProjectSyncMessages.getInstance(myProject);
     messages.reportDependencySetupErrors();
     messages.reportComponentIncompatibilities();
@@ -166,7 +174,7 @@ public class PostProjectSetupTasksExecutor {
       }
     }
 
-    if (hasErrors(myProject)) {
+    if (hasErrors(myProject) || lastGradleSyncFailed(myProject)) {
       addSdkLinkIfNecessary();
       checkSdkToolsVersion(myProject);
       updateGradleSyncState();
