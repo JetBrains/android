@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.property.renderer;
 
-import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.ptable.PTable;
+import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
 import com.intellij.openapi.ui.FixedSizeButton;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.UIBundle;
@@ -24,13 +24,14 @@ import com.intellij.ui.components.JBCheckBox;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 import java.util.Set;
 
-public abstract class NlAttributeRenderer implements NlPropertyRenderer, TableCellRenderer {
+public abstract class NlAttributeRenderer implements TableCellRenderer {
   private final JPanel myPanel;
   private final FixedSizeButton myBrowseButton;
 
@@ -48,7 +49,7 @@ public abstract class NlAttributeRenderer implements NlPropertyRenderer, TableCe
 
   @Override
   public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int col) {
-    assert value instanceof NlProperty;
+    assert value instanceof PTableItem;
     assert table instanceof PTable;
 
     Color fg, bg;
@@ -70,21 +71,24 @@ public abstract class NlAttributeRenderer implements NlPropertyRenderer, TableCe
       comp.setBackground(bg);
     }
 
-    boolean hover = ((PTable)table).isHover(row, col);
+    Icon icon = getHoverIcon((PTableItem)value);
+    boolean hover = icon != null && ((PTable)table).isHover(row, col);
     myBrowseButton.setVisible(hover);
-
-    customizeRenderContent(table, (NlProperty)value, isSelected, hasFocus, row, col);
+    myBrowseButton.setIcon(icon);
+    customizeRenderContent(table, (PTableItem)value, isSelected, hasFocus, row, col);
 
     return myPanel;
   }
 
   public abstract void customizeRenderContent(@NotNull JTable table,
-                                              @NotNull NlProperty p,
+                                              @NotNull PTableItem p,
                                               boolean selected,
                                               boolean hasFocus,
                                               int row,
                                               int col);
 
-  @Override
-  public abstract boolean canRender(@NotNull NlProperty p, @NotNull Set<AttributeFormat> formats);
+  @Nullable
+  public abstract Icon getHoverIcon(@NotNull PTableItem p);
+
+  public abstract boolean canRender(@NotNull PTableItem p, @NotNull Set<AttributeFormat> formats);
 }
