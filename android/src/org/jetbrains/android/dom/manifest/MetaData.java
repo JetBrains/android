@@ -18,7 +18,7 @@ package org.jetbrains.android.dom.manifest;
 import com.intellij.util.xml.*;
 import org.jetbrains.android.dom.AndroidAttributeValue;
 import org.jetbrains.android.dom.converters.MetadataValueConverter;
-import org.jetbrains.android.dom.converters.ResourceReferenceConverter;
+import org.jetbrains.android.dom.converters.NonExpansibleResourceReferenceConverter;
 import org.jetbrains.android.dom.resources.ResourceValue;
 
 /**
@@ -32,6 +32,6 @@ interface MetaData extends ManifestElementWithName {
   @ExtendClass("android.app.Activity")
   AndroidAttributeValue<Object> getValue();
 
-  @Convert(ResourceReferenceConverter.class)
+  @Convert(NonExpansibleResourceReferenceConverter.class)
   AndroidAttributeValue<ResourceValue> getResource();
 }
