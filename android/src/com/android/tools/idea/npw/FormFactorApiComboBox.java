@@ -347,17 +347,14 @@ public final class FormFactorApiComboBox extends JComboBox {
 
     @NotNull
     private static String getLabel(@NotNull IAndroidTarget target) {
-      if (target.isPlatform()
-          && target.getVersion().getApiLevel() <= SdkVersionInfo.HIGHEST_KNOWN_API) {
+      AndroidVersion version = target.getVersion();
+      int featureLevel = version.getFeatureLevel();
+      if (target.isPlatform() && featureLevel <= SdkVersionInfo.HIGHEST_KNOWN_API) {
         if (target.getVersion().isPreview()) {
-          return target.getVersion().getApiString() + ": " + target.getName();
+          return String.format("API %1$d: Android %2$s (%3$s preview)", featureLevel, SdkVersionInfo.getVersionString(featureLevel),
+                               SdkVersionInfo.getCodeName(featureLevel));
         }
-        String name = SdkVersionInfo.getAndroidName(target.getVersion().getApiLevel());
-        if (name == null) {
-          return "API " + Integer.toString(target.getVersion().getApiLevel());
-        } else {
-          return name;
-        }
+        return SdkVersionInfo.getAndroidName(target.getVersion().getFeatureLevel());
       } else {
         return AndroidSdkUtils.getTargetLabel(target);
       }
