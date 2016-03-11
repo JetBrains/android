@@ -793,7 +793,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     };
     myOrientationToggle =
       new ASGallery<ScreenOrientation>(JBList.createDefaultListModel(ScreenOrientation.PORTRAIT, ScreenOrientation.LANDSCAPE),
-                                       orientationIconFunction, orientationNameFunction, JBUI.size(50, 50));
+                                       orientationIconFunction, orientationNameFunction, JBUI.size(50, 50), null);
 
     myOrientationToggle.setCellMargin(JBUI.insets(5, 20, 4, 20));
     myOrientationToggle.setBackground(JBColor.background());
