@@ -59,6 +59,12 @@ public class NativeArtifactStub implements NativeArtifact {
     return myName;
   }
 
+  @Override
+  @NotNull
+  public String getAssembleTaskName() {
+    throw new UnsupportedOperationException();
+  }
+
   @NotNull
   @Override
   public Collection<NativeFolder> getSourceFolders() {
