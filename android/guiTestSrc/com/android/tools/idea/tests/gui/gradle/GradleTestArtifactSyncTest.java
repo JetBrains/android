@@ -83,6 +83,9 @@ public class GradleTestArtifactSyncTest {
     for (VirtualFile sourceRoot : sourceRoots) {
       // Get the last 2 segments of the path for each source folder (e.g. 'testFree/java')
       String path = sourceRoot.getPath();
+      if (path.contains("build")) { // Ignore generated directories
+        continue;
+      }
       List<String> pathSegments = Splitter.on(VIRTUAL_FILE_PATH_SEPARATOR).omitEmptyStrings().splitToList(path);
       int segmentCount = pathSegments.size();
       assertThat(segmentCount).as("number of segments in path '" + path + "'").isGreaterThan(2);
