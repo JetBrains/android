@@ -658,7 +658,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
   private static PermissionFinder.Result getPermissionRequirement(@NonNull PsiField field,
                                                                   @NonNull PsiAnnotation annotation,
                                                                   @NonNull PermissionFinder.Operation operation) {
-    PermissionRequirement requirement = PermissionRequirement.create(null, LombokPsiParser.createResolvedAnnotation(annotation));
+    PermissionRequirement requirement = PermissionRequirement.create(null, annotation);
     PsiClass containingClass = field.getContainingClass();
     String name;
     if (containingClass != null) {
@@ -724,7 +724,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
                                                  @NotNull ProblemsHolder holder,
                                                  @Nullable PsiMethod method,
                                                  @NotNull PsiAnnotation annotation) {
-    PermissionRequirement requirement = PermissionRequirement.create(null, LombokPsiParser.createResolvedAnnotation(annotation));
+    PermissionRequirement requirement = PermissionRequirement.create(null, annotation);
     checkPermissionRequirement(methodCall, holder, method, null, requirement);
   }
 
@@ -811,7 +811,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
       return lookup;
     }
 
-    PermissionRequirement requirement = PermissionRequirement.create(null, LombokPsiParser.createResolvedAnnotation(annotation));
+    PermissionRequirement requirement = PermissionRequirement.create(null, annotation);
     return PermissionHolder.SetPermissionLookup.join(lookup, requirement);
   }
 
@@ -1013,11 +1013,11 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
       // For example, take the case of location permissions: you need COARSE OR FINE.
       // In that case, we check that you do not have COARSE, *and* that you do not have FINE,
       // before we exit.
-      BinaryOperator operator = myRequirement.getOperator();
-      if (operator == null || operator == BinaryOperator.LOGICAL_AND) {
-        operator = BinaryOperator.LOGICAL_OR;
-      } else if (operator == BinaryOperator.LOGICAL_OR) {
-        operator = BinaryOperator.LOGICAL_AND;
+      IElementType operator = myRequirement.getOperator();
+      if (operator == null || operator == JavaTokenType.ANDAND) {
+        operator = JavaTokenType.OROR;
+      } else if (operator == JavaTokenType.OROR) {
+        operator = JavaTokenType.ANDAND;
       }
 
       PsiElementFactory factory = facade.getElementFactory();
@@ -1038,7 +1038,15 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
           first = false;
         } else {
           sb.append(' ');
-          sb.append(operator.getSymbol());
+          if (operator == JavaTokenType.ANDAND) {
+            sb.append("&&");
+          }
+          else if (operator == JavaTokenType.OROR) {
+            sb.append("||");
+          }
+          else if (operator == JavaTokenType.XOR) {
+            sb.append("^");
+          }
           sb.append(' ');
         }
         if (usingAppCompat) {
