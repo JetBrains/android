@@ -99,6 +99,10 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
       launchTasks.add(new ShowLogcatTask(myProject, packageName));
     }
 
+    if (myRunConfig.getProfilerState().isGapidEnabled()) {
+      launchTasks.add(new GapidTraceTask(myRunConfig, packageName));
+    }
+
     return launchTasks;
   }
 
