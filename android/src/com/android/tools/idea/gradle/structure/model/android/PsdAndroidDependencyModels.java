@@ -82,7 +82,7 @@ class PsdAndroidDependencyModels {
   private void addModule(@NotNull String gradlePath, @NotNull PsdAndroidArtifactModel artifactModel, @Nullable String projectVariant) {
     PsdParsedDependencyModels parsedDependencies = myParent.getParsedDependencyModels();
 
-    ModuleDependencyModel matchingParsedDependency = parsedDependencies.findMatchingModuleDependency(gradlePath, artifactModel);
+    ModuleDependencyModel parsedModel = parsedDependencies.findMatchingModuleDependency(gradlePath, artifactModel);
 
     Module module = null;
     PsdModuleModel moduleModel = myParent.getParent().findModelByGradlePath(gradlePath);
@@ -91,8 +91,13 @@ class PsdAndroidDependencyModels {
     }
     PsdModuleDependencyModel dependencyModel = findModuleDependency(gradlePath);
     if (dependencyModel == null) {
-      dependencyModel = new PsdModuleDependencyModel(myParent, gradlePath, projectVariant, module, artifactModel, matchingParsedDependency);
+      dependencyModel = new PsdModuleDependencyModel(myParent, gradlePath, projectVariant, module, artifactModel, parsedModel);
       myModuleDependencies.put(gradlePath, dependencyModel);
+    }
+    else {
+      if (dependencyModel.getParsedModel() == null && parsedModel != null) {
+        dependencyModel.setParsedModel(parsedModel);
+      }
     }
     dependencyModel.addContainer(artifactModel);
   }
