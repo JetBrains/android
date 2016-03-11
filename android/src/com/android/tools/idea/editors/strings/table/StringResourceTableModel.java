@@ -18,7 +18,6 @@ package com.android.tools.idea.editors.strings.table;
 import com.android.tools.idea.configurations.LocaleMenuAction;
 import com.android.tools.idea.editors.strings.StringResourceData;
 import com.android.tools.idea.rendering.Locale;
-import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -26,11 +25,6 @@ import javax.swing.table.AbstractTableModel;
 
 public class StringResourceTableModel extends AbstractTableModel {
   @Nullable private StringResourceData myData;
-  @NotNull private final Project myProject;
-
-  public StringResourceTableModel(@NotNull Project project) {
-    myProject = project;
-  }
 
   public void setData(@NotNull StringResourceData data) {
     myData = data;
@@ -84,19 +78,19 @@ public class StringResourceTableModel extends AbstractTableModel {
       return "";
     }
 
+    String key = keyOfRow(row);
+
     if (column >= ConstantColumn.COUNT) {
       Locale locale = localeOfColumn(column);
-      return myData.getTranslations().contains(keyOfRow(row), locale) ? StringResourceData
-        .resourceToString(myProject, myData.getTranslations().get(keyOfRow(row), locale)) : "";
+      return locale == null ? "" : myData.resourceToString(key, locale);
     }
     switch (ConstantColumn.values()[column]) {
       case KEY:
-        return keyOfRow(row);
+        return key;
       case DEFAULT_VALUE:
-        return myData.getDefaultValues().containsKey(keyOfRow(row)) ? StringResourceData
-          .resourceToString(myProject, myData.getDefaultValues().get(keyOfRow(row))) : "";
+        return myData.resourceToString(key);
       case UNTRANSLATABLE:
-        return myData.getUntranslatableKeys().contains(keyOfRow(row));
+        return myData.getUntranslatableKeys().contains(key);
       default:
         return "";
     }
