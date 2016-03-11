@@ -85,6 +85,8 @@ public class GradlePreSyncTest {
 
     ideProxySettings.setProxyType(ProxySettings.HTTPS_PROXY_TYPE);
     assertEquals(ideProxySettings, properties.getHttpsProxySettings());
+
+    guiTest.ideFrame().waitForGradleProjectSyncToFinish();
   }
 
   @Test
