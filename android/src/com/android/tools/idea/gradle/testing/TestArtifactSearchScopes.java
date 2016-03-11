@@ -38,6 +38,7 @@ import java.util.Set;
 import static com.android.builder.model.AndroidProject.ARTIFACT_ANDROID_TEST;
 import static com.android.builder.model.AndroidProject.ARTIFACT_UNIT_TEST;
 import static com.android.tools.idea.gradle.util.FilePaths.getJarFromJarUrl;
+import static com.android.tools.idea.gradle.util.Projects.lastGradleSyncFailed;
 import static com.android.utils.FileUtils.toSystemDependentPath;
 import static com.intellij.openapi.roots.DependencyScope.COMPILE;
 import static com.intellij.openapi.roots.DependencyScope.TEST;
@@ -60,6 +61,10 @@ public final class TestArtifactSearchScopes {
 
   @Nullable
   public static TestArtifactSearchScopes get(@NotNull VirtualFile file, @NotNull Project project) {
+    if (lastGradleSyncFailed(project)) {
+      return null;
+    }
+
     ProjectFileIndex projectFileIndex = ProjectFileIndex.SERVICE.getInstance(project);
     Module module = projectFileIndex.getModuleForFile(file);
     return module != null ? get(module) : null;
@@ -142,9 +147,8 @@ public final class TestArtifactSearchScopes {
   @NotNull
   public FileRootSearchScope getAndroidTestExcludeScope() {
     if (myAndroidTestExcludeScope == null) {
-      myAndroidTestExcludeScope = getUnitTestSourceScope()
-        .exclude(getAndroidTestSourceScope())
-        .merge(getAndroidTestDependencyExcludeScope());
+      myAndroidTestExcludeScope = getUnitTestSourceScope().exclude(getAndroidTestSourceScope())
+                                                          .merge(getAndroidTestDependencyExcludeScope());
     }
     return myAndroidTestExcludeScope;
   }
@@ -152,9 +156,8 @@ public final class TestArtifactSearchScopes {
   @NotNull
   public FileRootSearchScope getUnitTestExcludeScope() {
     if (myUnitTestExcludeScope == null) {
-      myUnitTestExcludeScope = getAndroidTestSourceScope()
-        .exclude(getUnitTestSourceScope())
-        .merge(getUnitTestDependencyExcludeScope());
+      myUnitTestExcludeScope = getAndroidTestSourceScope().exclude(getUnitTestSourceScope())
+                                                          .merge(getUnitTestDependencyExcludeScope());
     }
     return myUnitTestExcludeScope;
   }
