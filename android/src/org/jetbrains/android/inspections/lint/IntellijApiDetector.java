@@ -17,20 +17,13 @@ package org.jetbrains.android.inspections.lint;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
-import com.android.sdklib.SdkVersionInfo;
 import com.android.tools.lint.checks.ApiDetector;
 import com.android.tools.lint.checks.ApiLookup;
 import com.android.tools.lint.detector.api.*;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.PsiClassReferenceType;
-import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.MethodSignatureUtil;
 import com.intellij.psi.util.PsiTreeUtil;
-import lombok.ast.AstVisitor;
-import lombok.ast.CompilationUnit;
-import lombok.ast.ForwardingAstVisitor;
-import lombok.ast.Node;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
@@ -67,45 +60,26 @@ public class IntellijApiDetector extends ApiDetector {
 
   @NonNls
   private static final String TARGET_API_FQCN = "android.annotation.TargetApi";
-  private static final String SDK_INT = "SDK_INT";
 
-  @Nullable
   @Override
-  public List<Class<? extends Node>> getApplicableNodeTypes() {
-    return Collections.<Class<? extends Node>>singletonList(CompilationUnit.class);
+  public List<Class<? extends PsiElement>> getApplicablePsiTypes() {
+    return Collections.<Class<? extends PsiElement>>singletonList(PsiJavaFile.class);
   }
 
+  // TODO: Reuse the parent ApiVisitor to share more code between these two!
   @Nullable
   @Override
-  public AstVisitor createJavaVisitor(@NonNull final JavaContext context) {
-    return new ForwardingAstVisitor() {
+  public JavaElementVisitor createPsiVisitor(@NonNull final JavaContext context) {
+    return new JavaElementVisitor() {
       @Override
-      public boolean visitCompilationUnit(CompilationUnit node) {
-        check(context);
-        return true;
+      public void visitJavaFile(PsiJavaFile file) {
+        PsiClass[] classes = file.getClasses();
+        if (classes.length > 0) {
+          // TODO: This is weird; I should just perform the per class checks as part of visitClass!!
+          file.accept(new ApiCheckVisitor(context, classes[0], file));
+        }
       }
     };
-  }
-
-  private void check(final JavaContext context) {
-    if (mApiDatabase == null) {
-      return;
-    }
-    ApplicationManager.getApplication().runReadAction(new Runnable() {
-      @Override
-      public void run() {
-        final PsiFile psiFile = IntellijLintUtils.getPsiFile(context);
-        if (!(psiFile instanceof PsiJavaFile)) {
-          return;
-        }
-        PsiJavaFile javaFile = (PsiJavaFile)psiFile;
-        for (PsiClass clz : javaFile.getClasses()) {
-          PsiElementVisitor visitor = new ApiCheckVisitor(context, clz, psiFile);
-
-          javaFile.accept(visitor);
-        }
-      }
-    });
   }
 
   private static int getTargetApi(@NonNull PsiElement e, @NonNull PsiElement file) {
@@ -159,15 +133,6 @@ public class IntellijApiDetector extends ApiDetector {
     }
 
     return -1;
-  }
-
-  private static int codeNameToApi(String text) {
-    int dotIndex = text.lastIndexOf('.');
-    if (dotIndex != -1) {
-      text = text.substring(dotIndex + 1);
-    }
-
-    return SdkVersionInfo.getApiByBuildCode(text, true);
   }
 
   private class ApiCheckVisitor extends JavaRecursiveElementVisitor {
@@ -525,39 +490,6 @@ public class IntellijApiDetector extends ApiDetector {
       return false;
     }
 
-    public boolean isBenignConstantUsage(
-      @NonNull PsiElement node,
-      @NonNull String name,
-      @NonNull String owner) {
-      if (ApiDetector.isBenignConstantUsage(null, name, owner)) {
-        return true;
-      }
-
-      // It's okay to reference the constant as a case constant (since that
-      // code path won't be taken) or in a condition of an if statement
-      // or as a case value
-      PsiElement curr = node.getParent();
-      while (curr != null) {
-        if (curr instanceof PsiSwitchLabelStatement) {
-          PsiSwitchLabelStatement caseStatement = (PsiSwitchLabelStatement)curr;
-          PsiExpression condition = caseStatement.getCaseValue();
-          return condition != null && PsiTreeUtil.isAncestor(condition, node, false);
-        } else if (curr instanceof PsiIfStatement) {
-          PsiIfStatement ifStatement = (PsiIfStatement)curr;
-          PsiExpression condition = ifStatement.getCondition();
-          return condition != null && PsiTreeUtil.isAncestor(condition, node, false);
-        } else if (curr instanceof PsiConditionalExpression) {
-          // ?:-statement
-          PsiConditionalExpression ifStatement = (PsiConditionalExpression)curr;
-          PsiExpression condition = ifStatement.getCondition();
-          return PsiTreeUtil.isAncestor(condition, node, false);
-        }
-        curr = curr.getParent();
-      }
-
-      return false;
-    }
-
     @Override
     public void visitTypeCastExpression(PsiTypeCastExpression expression) {
       super.visitTypeCastExpression(expression);
@@ -883,263 +815,5 @@ public class IntellijApiDetector extends ApiDetector {
         myContext.report(UNSUPPORTED, location, message);
       }
     }
-  }
-
-  private static boolean isPrecededByVersionCheckExit(PsiElement element, int api) {
-    PsiElement current = PsiTreeUtil.getParentOfType(element, PsiStatement.class);
-    if (current != null) {
-      PsiElement prev = getPreviousStatement(current);
-      if (prev == null) {
-        //noinspection unchecked
-        current = PsiTreeUtil.getParentOfType(current, PsiStatement.class, true, PsiMethod.class, PsiClass.class);
-      } else {
-        current = prev;
-      }
-    }
-    while (current != null) {
-      if (current instanceof PsiIfStatement) {
-        PsiIfStatement ifStatement = (PsiIfStatement)current;
-        PsiStatement thenBranch = ifStatement.getThenBranch();
-        PsiStatement elseBranch = ifStatement.getElseBranch();
-        if (thenBranch != null) {
-          Boolean level = isVersionCheckConditional(api, thenBranch, ifStatement);
-          if (level != null) {
-            // See if the body does an immediate return
-            if (isUnconditionalReturn(thenBranch)) {
-              return true;
-            }
-          }
-        }
-        if (elseBranch != null) {
-          Boolean level = isVersionCheckConditional(api, elseBranch, ifStatement);
-          if (level != null) {
-            if (isUnconditionalReturn(elseBranch)) {
-              return true;
-            }
-          }
-        }
-      }
-      PsiElement prev = getPreviousStatement(current);
-      if (prev == null) {
-        //noinspection unchecked
-        current = PsiTreeUtil.getParentOfType(current, PsiStatement.class, true, PsiMethod.class, PsiClass.class);
-        if (current == null) {
-          return false;
-        }
-      } else {
-        current = prev;
-      }
-    }
-
-    return false;
-  }
-
-  private static boolean isUnconditionalReturn(PsiStatement statement) {
-    if (statement instanceof PsiBlockStatement) {
-      PsiBlockStatement blockStatement = (PsiBlockStatement)statement;
-      PsiCodeBlock block = blockStatement.getCodeBlock();
-      PsiStatement[] statements = block.getStatements();
-      if (statements.length == 1 && statements[0] instanceof PsiReturnStatement) {
-        return true;
-      }
-    }
-    if (statement instanceof PsiReturnStatement) {
-      return true;
-    }
-    return false;
-  }
-
-
-  @Nullable
-  public static PsiStatement getPreviousStatement(PsiElement element) {
-    final PsiElement prevStatement = PsiTreeUtil.skipSiblingsBackward(element, PsiWhiteSpace.class, PsiComment.class);
-    return prevStatement instanceof PsiStatement ? (PsiStatement)prevStatement : null;
-  }
-
-  private static boolean isWithinVersionCheckConditional(PsiElement element, int api) {
-    PsiElement current = element.getParent();
-    PsiElement prev = element;
-    while (current != null) {
-      if (current instanceof PsiIfStatement) {
-        PsiIfStatement ifStatement = (PsiIfStatement)current;
-        Boolean isConditional = isVersionCheckConditional(api, prev, ifStatement);
-        if (isConditional != null) {
-          return isConditional;
-        }
-      } else if (current instanceof PsiPolyadicExpression && isAndedWithConditional(current, api, prev)) {
-        return true;
-      } else if (current instanceof PsiMethod || current instanceof PsiFile) {
-        return false;
-      }
-      prev = current;
-      current = current.getParent();
-    }
-
-    return false;
-  }
-
-  @Nullable
-  private static Boolean isVersionCheckConditional(int api, PsiElement prev, PsiIfStatement ifStatement) {
-    PsiExpression condition = ifStatement.getCondition();
-    if (condition != prev && condition instanceof PsiBinaryExpression) {
-      Boolean isConditional = isVersionCheckConditional(api, prev, ifStatement, (PsiBinaryExpression)condition);
-      if (isConditional != null) {
-        return isConditional;
-      }
-    } else if (condition instanceof PsiPolyadicExpression) {
-      PsiPolyadicExpression ppe = (PsiPolyadicExpression)condition;
-      if (ppe.getOperationTokenType() == JavaTokenType.ANDAND && (prev == ifStatement.getThenBranch())) {
-        if (isAndedWithConditional(ppe, api, prev)) {
-          return true;
-        }
-      }
-    } else if (condition instanceof PsiMethodCallExpression) {
-      PsiMethodCallExpression call = (PsiMethodCallExpression) condition;
-      PsiMethod method = call.resolveMethod();
-      if (method != null) {
-        PsiCodeBlock body = method.getBody();
-        if (body != null) {
-          PsiStatement[] statements = body.getStatements();
-          if (statements.length == 1) {
-            PsiStatement statement = statements[0];
-            if (statement instanceof PsiReturnStatement) {
-              PsiReturnStatement returnStatement = (PsiReturnStatement) statement;
-              PsiExpression returnValue = returnStatement.getReturnValue();
-              if (returnValue instanceof PsiBinaryExpression) {
-                Boolean isConditional = isVersionCheckConditional(api, null, null, (PsiBinaryExpression)returnValue);
-                if (isConditional != null) {
-                  return isConditional;
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-    return null;
-  }
-
-  @Nullable
-  private static Boolean isVersionCheckConditional(int api,
-                                                   @Nullable PsiElement prev,
-                                                   @Nullable PsiIfStatement ifStatement,
-                                                   @NonNull PsiBinaryExpression binary) {
-    IElementType tokenType = binary.getOperationTokenType();
-    if (tokenType == JavaTokenType.GT || tokenType == JavaTokenType.GE ||
-        tokenType == JavaTokenType.LE || tokenType == JavaTokenType.LT ||
-        tokenType == JavaTokenType.EQEQ) {
-      PsiExpression left = binary.getLOperand();
-      if (left instanceof PsiReferenceExpression) {
-        PsiReferenceExpression ref = (PsiReferenceExpression)left;
-        if (SDK_INT.equals(ref.getReferenceName())) {
-          PsiExpression right = binary.getROperand();
-          int level = -1;
-          if (right instanceof PsiReferenceExpression) {
-            PsiReferenceExpression ref2 = (PsiReferenceExpression)right;
-            String codeName = ref2.getReferenceName();
-            if (codeName == null) {
-              return false;
-            }
-            level = SdkVersionInfo.getApiByBuildCode(codeName, true);
-          } else if (right instanceof PsiLiteralExpression) {
-            PsiLiteralExpression lit = (PsiLiteralExpression)right;
-            Object value = lit.getValue();
-            if (value instanceof Integer) {
-              level = ((Integer)value).intValue();
-            }
-          }
-          if (level != -1) {
-            boolean fromThen = ifStatement == null || prev == ifStatement.getThenBranch();
-            boolean fromElse = ifStatement != null && prev == ifStatement.getElseBranch();
-            assert fromThen == !fromElse;
-            if (tokenType == JavaTokenType.GE) {
-              // if (SDK_INT >= ICE_CREAM_SANDWICH) { <call> } else { ... }
-              return level >= api && fromThen;
-            }
-            else if (tokenType == JavaTokenType.GT) {
-              // if (SDK_INT > ICE_CREAM_SANDWICH) { <call> } else { ... }
-              return level >= api - 1 && fromThen;
-            }
-            else if (tokenType == JavaTokenType.LE) {
-              // if (SDK_INT <= ICE_CREAM_SANDWICH) { ... } else { <call> }
-              return level >= api - 1 && fromElse;
-            }
-            else if (tokenType == JavaTokenType.LT) {
-              // if (SDK_INT < ICE_CREAM_SANDWICH) { ... } else { <call> }
-              return level >= api && fromElse;
-            }
-            else if (tokenType == JavaTokenType.EQEQ) {
-                // if (SDK_INT == ICE_CREAM_SANDWICH) { <call> } else {  }
-                return level >= api && fromThen;
-            } else {
-              assert false : tokenType;
-            }
-          }
-        }
-      }
-    } else if (tokenType == JavaTokenType.ANDAND && (ifStatement != null && prev == ifStatement.getThenBranch())) {
-      if (isAndedWithConditional(ifStatement.getCondition(), api, prev)) {
-        return true;
-      }
-    }
-    return null;
-  }
-
-  private static boolean isAndedWithConditional(PsiElement element, int api, @Nullable PsiElement before) {
-    if (element instanceof PsiBinaryExpression) {
-      PsiBinaryExpression inner = (PsiBinaryExpression)element;
-      if (inner.getOperationTokenType() == JavaTokenType.ANDAND) {
-        return isAndedWithConditional(inner.getLOperand(), api, before) ||
-               inner.getROperand() != before &&  isAndedWithConditional(inner.getROperand(), api, before);
-      } else  if (inner.getLOperand() instanceof PsiReferenceExpression &&
-          SDK_INT.equals(((PsiReferenceExpression)inner.getLOperand()).getReferenceName())) {
-        int level = -1;
-        IElementType tokenType = inner.getOperationTokenType();
-        PsiExpression right = inner.getROperand();
-        if (right instanceof PsiReferenceExpression) {
-          PsiReferenceExpression ref2 = (PsiReferenceExpression)right;
-          String codeName = ref2.getReferenceName();
-          if (codeName == null) {
-            return false;
-          }
-          level = SdkVersionInfo.getApiByBuildCode(codeName, true);
-        } else if (right instanceof PsiLiteralExpression) {
-          PsiLiteralExpression lit = (PsiLiteralExpression)right;
-          Object value = lit.getValue();
-          if (value instanceof Integer) {
-            level = ((Integer)value).intValue();
-          }
-        }
-        if (level != -1) {
-          if (tokenType == JavaTokenType.GE) {
-            // if (SDK_INT >= ICE_CREAM_SANDWICH && <call>
-            return level >= api;
-          }
-          else if (tokenType == JavaTokenType.GT) {
-            // if (SDK_INT > ICE_CREAM_SANDWICH) && <call>
-            return level >= api - 1;
-          }
-          else if (tokenType == JavaTokenType.EQEQ) {
-            // if (SDK_INT == ICE_CREAM_SANDWICH) && <call>
-            return level >= api;
-          }
-        }
-      }
-    }
-    else if (element instanceof PsiPolyadicExpression) {
-      PsiPolyadicExpression ppe = (PsiPolyadicExpression)element;
-      if (ppe.getOperationTokenType() == JavaTokenType.ANDAND) {
-        for (PsiExpression operand : ppe.getOperands()) {
-          if (operand == before) {
-            break;
-          }
-          else if (isAndedWithConditional(operand, api, before)) {
-            return true;
-          }
-        }
-      }
-    }
-
-    return false;
   }
 }
