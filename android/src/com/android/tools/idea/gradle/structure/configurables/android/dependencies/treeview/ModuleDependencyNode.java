@@ -55,8 +55,17 @@ public class ModuleDependencyNode extends AbstractDependencyNode<PsdModuleDepend
         if (!dependency.isIn(ARTIFACT_MAIN, moduleVariant)) {
           continue; // Only show the dependencies in the main artifact.
         }
+
+        AbstractPsdNode<?> child = null;
+
         if (dependency instanceof PsdLibraryDependencyModel) {
-          LibraryDependencyNode child = new LibraryDependencyNode(this, (PsdLibraryDependencyModel)dependency);
+          child = new LibraryDependencyNode(this, (PsdLibraryDependencyModel)dependency);
+        }
+        else if (dependency instanceof PsdModuleDependencyModel) {
+          child = new ModuleDependencyNode(this, (PsdModuleDependencyModel)dependency);
+        }
+
+        if (child != null) {
           myChildren.add(child);
         }
       }
