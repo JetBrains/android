@@ -313,7 +313,7 @@ public abstract class GfxTraceCaptureAction extends ToggleAction {
    * bindListener returns a {@link GfxTracer.Listener} that will forward update the specified
    * {@link TraceDialog}.
    */
-  protected GfxTracer.Listener bindListener(final TraceDialog dialog) {
+  public static GfxTracer.Listener bindListener(final TraceDialog dialog) {
     return new GfxTracer.Listener() {
       @NotNull private String myCurrentAction = "";
       private long mySizeInBytes = 0;

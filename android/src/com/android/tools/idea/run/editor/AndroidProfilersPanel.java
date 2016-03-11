@@ -15,7 +15,11 @@
  */
 package com.android.tools.idea.run.editor;
 
+import com.android.tools.idea.editors.gfxtrace.gapi.GapiPaths;
+
 import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import static com.android.tools.idea.startup.GradleSpecificInitializer.ENABLE_EXPERIMENTAL_PROFILING;
 
@@ -23,33 +27,67 @@ import static com.android.tools.idea.startup.GradleSpecificInitializer.ENABLE_EX
  * The configuration panel for the Android profiler settings.
  */
 public class AndroidProfilersPanel {
+  private static final boolean EXPERIMENTAL_ENABLED = System.getProperty(ENABLE_EXPERIMENTAL_PROFILING) != null;
+
   private JPanel myPanel;
-  private JCheckBox myGapidDisablePCS;
   private JCheckBox myAdvancedProfilingCheckBox;
+
+  private JCheckBox myGapidEnabled;
+  private JCheckBox myGapidDisablePCS;
 
   public JComponent getComponent() {
     return myPanel;
   }
 
   AndroidProfilersPanel(ProfilerState state) {
-    boolean experimental = System.getProperty(ENABLE_EXPERIMENTAL_PROFILING) != null;
-    myAdvancedProfilingCheckBox.setVisible(experimental);
+    myAdvancedProfilingCheckBox.setVisible(EXPERIMENTAL_ENABLED);
+    myGapidEnabled.setVisible(EXPERIMENTAL_ENABLED);
+
+    ChangeListener checkboxChangeListener = new ChangeListener() {
+      @Override
+      public void stateChanged(ChangeEvent e) {
+        boolean enabled = !EXPERIMENTAL_ENABLED || myAdvancedProfilingCheckBox.isSelected();
+        myGapidEnabled.setEnabled(enabled && isGapidSdkComponentInstalled());
+
+        boolean gapidEnabled = !EXPERIMENTAL_ENABLED || (enabled && isGapidSdkComponentInstalled() && myGapidEnabled.isSelected());
+        myGapidDisablePCS.setEnabled(gapidEnabled);
+      }
+    };
+
+    myAdvancedProfilingCheckBox.addChangeListener(checkboxChangeListener);
+    myGapidEnabled.addChangeListener(checkboxChangeListener);
+
     resetFrom(state);
+  }
+
+  private static boolean isGapidSdkComponentInstalled() {
+    return !EXPERIMENTAL_ENABLED || GapiPaths.findTracerAar().exists();
   }
 
   /**
    * Resets the settings panel to the values in the specified {@link ProfilerState}.
    */
   void resetFrom(ProfilerState state) {
-    myGapidDisablePCS.setSelected(state.GAPID_DISABLE_PCS);
     myAdvancedProfilingCheckBox.setSelected(state.ENABLE_ADVANCED_PROFILING);
+    myGapidEnabled.setSelected(state.GAPID_ENABLED);
+    myGapidDisablePCS.setSelected(state.GAPID_DISABLE_PCS);
+
+    if (isGapidSdkComponentInstalled()) {
+      myGapidEnabled.setToolTipText(null);
+    }
+    else {
+      myGapidEnabled.setEnabled(false);
+      myGapidDisablePCS.setEnabled(false);
+      myGapidEnabled.setToolTipText("GPU debugger tools not installed or out of date.");
+    }
   }
 
   /**
    * Assigns the current UI state to the specified {@link ProfilerState}.
    */
   void applyTo(ProfilerState state) {
-    state.GAPID_DISABLE_PCS = myGapidDisablePCS.isSelected();
     state.ENABLE_ADVANCED_PROFILING = myAdvancedProfilingCheckBox.isSelected() && System.getProperty(ENABLE_EXPERIMENTAL_PROFILING) != null;
+    state.GAPID_ENABLED = myGapidEnabled.isSelected();
+    state.GAPID_DISABLE_PCS = myGapidDisablePCS.isSelected();
   }
 }
