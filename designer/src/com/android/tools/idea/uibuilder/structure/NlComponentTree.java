@@ -82,7 +82,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
     setBorder(new EmptyBorder(INSETS));
     setRootVisible(true);
     setShowsRootHandles(false);
-    setToggleClickCount(1);
+    setToggleClickCount(2);
     ToolTipManager.sharedInstance().registerComponent(this);
     TreeUtil.installActions(this);
     createCellRenderer();
