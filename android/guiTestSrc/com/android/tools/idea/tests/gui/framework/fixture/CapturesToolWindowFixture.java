@@ -19,6 +19,7 @@ import com.android.tools.idea.profiling.capture.CaptureType;
 import com.android.tools.idea.profiling.capture.CaptureTypeService;
 import com.android.tools.idea.profiling.capture.FileCaptureType;
 import com.android.tools.idea.profiling.view.CapturesToolWindowFactory;
+import com.android.tools.idea.tests.gui.framework.Wait;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.LoadingNode;
 import com.intellij.ui.treeStructure.SimpleTree;
@@ -26,16 +27,12 @@ import org.fest.swing.core.KeyPressInfo;
 import org.fest.swing.core.Robot;
 import org.fest.swing.exception.LocationUnavailableException;
 import org.fest.swing.fixture.JTreeFixture;
-import org.fest.swing.timing.Condition;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.tree.TreeNode;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
-
-import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
-import static org.fest.swing.timing.Pause.pause;
 
 public class CapturesToolWindowFixture extends ToolWindowFixture {
   @NotNull private JTreeFixture myTreeFixture;
@@ -62,9 +59,9 @@ public class CapturesToolWindowFixture extends ToolWindowFixture {
 
     if (pathName != null) {
       final String finalPathName = pathName;
-      pause(new Condition("the file to be recognized") {
+      Wait.minutes(2).expecting("the file to be recognized").until(new Wait.Objective() {
         @Override
-        public boolean test() {
+        public boolean isMet() {
           try {
             String fileToSelect = finalPathName + "/" + fileName;
             myTreeFixture.selectPath(fileToSelect);
@@ -77,7 +74,7 @@ public class CapturesToolWindowFixture extends ToolWindowFixture {
             return false;
           }
         }
-      }, SHORT_TIMEOUT);
+      });
     }
   }
 

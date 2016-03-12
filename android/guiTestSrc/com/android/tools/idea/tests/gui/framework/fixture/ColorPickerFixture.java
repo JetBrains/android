@@ -15,20 +15,18 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
-import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.android.tools.idea.tests.gui.framework.Wait;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.JComboBoxFixture;
 import org.fest.swing.fixture.JPanelFixture;
 import org.fest.swing.fixture.JTextComponentFixture;
-import org.fest.swing.timing.Condition;
 import com.android.tools.idea.ui.resourcechooser.ColorPicker;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
 
-import static org.fest.swing.timing.Pause.pause;
 
 public class ColorPickerFixture extends JPanelFixture {
   JComboBoxFixture myFormat;
@@ -75,12 +73,12 @@ public class ColorPickerFixture extends JPanelFixture {
   @NotNull
   public ColorPickerFixture setColorWithIntegers(final Color color) {
     setColor(color);
-    pause(new Condition("the color picker to update") {
+    Wait.minutes(2).expecting("the color picker to update").until(new Wait.Objective() {
       @Override
-      public boolean test() {
+      public boolean isMet() {
         return String.format("%08X", color.getRGB()).equals(getHexField().text());
       }
-    }, GuiTests.SHORT_TIMEOUT);
+    });
     return this;
   }
 

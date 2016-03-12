@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import com.android.tools.idea.tests.gui.framework.Wait;
 import com.intellij.codeInsight.daemon.impl.DaemonCodeAnalyzerEx;
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
 import com.intellij.lang.annotation.HighlightSeverity;
@@ -29,7 +30,6 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.util.CommonProcessors;
 import org.fest.swing.edt.GuiQuery;
-import org.fest.swing.timing.Condition;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -37,13 +37,11 @@ import javax.swing.*;
 import java.io.File;
 import java.util.Collection;
 
-import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static junit.framework.Assert.assertNotNull;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.reflect.core.Reflection.method;
 import static org.fest.swing.edt.GuiActionRunner.execute;
-import static org.fest.swing.timing.Pause.pause;
 import static org.fest.util.Strings.quote;
 
 public class FileFixture {
@@ -60,9 +58,9 @@ public class FileFixture {
   @NotNull
   public FileFixture requireOpenAndSelected() {
     requireVirtualFile();
-    pause(new Condition("file " + quote(myPath.getPath()) + " to be opened") {
+    Wait.minutes(2).expecting("file " + quote(myPath.getPath()) + " to be opened").until(new Wait.Objective() {
       @Override
-      public boolean test() {
+      public boolean isMet() {
         //noinspection ConstantConditions
         return execute(new GuiQuery<Boolean>() {
           @Override
@@ -71,7 +69,7 @@ public class FileFixture {
           }
         });
       }
-    }, SHORT_TIMEOUT);
+    });
     return this;
   }
 
@@ -98,9 +96,9 @@ public class FileFixture {
 
   @NotNull
   public FileFixture waitUntilErrorAnalysisFinishes() {
-    pause(new Condition("error analysis to finish") {
+    Wait.minutes(2).expecting("error analysis to finish").until(new Wait.Objective() {
       @Override
-      public boolean test() {
+      public boolean isMet() {
         //noinspection ConstantConditions
         return execute(new GuiQuery<Boolean>() {
           @Override
@@ -109,7 +107,7 @@ public class FileFixture {
           }
         });
       }
-    }, SHORT_TIMEOUT);
+    });
     return this;
   }
 
@@ -152,9 +150,9 @@ public class FileFixture {
   @NotNull
   public FileFixture waitForCodeAnalysisHighlightCount(@NotNull final HighlightSeverity severity, final int expected) {
     final Document document = getNotNullDocument();
-    pause(new Condition("code analysis " + severity + " count to reach " + expected) {
+    Wait.minutes(2).expecting("code analysis " + severity + " count to reach " + expected).until(new Wait.Objective() {
       @Override
-      public boolean test() {
+      public boolean isMet() {
         Collection<HighlightInfo> highlightInfos = execute(new GuiQuery<Collection<HighlightInfo>>() {
           @Override
           protected Collection<HighlightInfo> executeInEDT() throws Throwable {
@@ -166,7 +164,7 @@ public class FileFixture {
         assertNotNull(highlightInfos);
         return highlightInfos.size() == expected;
       }
-    }, SHORT_TIMEOUT);
+    });
 
     return this;
   }

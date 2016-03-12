@@ -30,6 +30,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.concurrent.TimeUnit;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
 import static org.fest.assertions.Assertions.assertThat;
@@ -42,7 +43,7 @@ public class ChooseDeviceDialogFixture extends ComponentFixture<ChooseDeviceDial
   @NotNull
   public static ChooseDeviceDialogFixture find(@NotNull Robot robot) {
     Dialog dialog = WindowFinder.findDialog(DialogMatcher.withTitle(AndroidBundle.message("choose.device.dialog.title")))
-                                .withTimeout(SHORT_TIMEOUT.duration()).using(robot)
+                                .withTimeout(TimeUnit.MINUTES.toMillis(2)).using(robot)
                                 .target();
     assertThat(dialog).isInstanceOf(JDialog.class);
     return new ChooseDeviceDialogFixture(robot, (JDialog)dialog);
