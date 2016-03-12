@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import com.android.tools.idea.tests.gui.framework.Wait;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.intellij.ide.projectView.ProjectView;
@@ -37,7 +38,6 @@ import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
-import org.fest.swing.timing.Condition;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -45,10 +45,8 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.reflect.core.Reflection.field;
-import static org.fest.swing.timing.Pause.pause;
 import static org.junit.Assert.assertNotNull;
 
 public class ProjectViewFixture extends ToolWindowFixture {
@@ -60,13 +58,13 @@ public class ProjectViewFixture extends ToolWindowFixture {
   public PaneFixture selectProjectPane() {
     activate();
     final ProjectView projectView = ProjectView.getInstance(myProject);
-    pause(new Condition("ProjectView to be initialized") {
+    Wait.minutes(2).expecting("ProjectView to be initialized").until(new Wait.Objective() {
       @Override
-      public boolean test() {
+      public boolean isMet() {
         //noinspection ConstantConditions
         return field("isInitialized").ofType(boolean.class).in(projectView).get();
       }
-    }, SHORT_TIMEOUT);
+    });
 
     final String id = "ProjectPane";
     GuiActionRunner.execute(new GuiTask() {
@@ -82,13 +80,13 @@ public class ProjectViewFixture extends ToolWindowFixture {
   public PaneFixture selectAndroidPane() {
     activate();
     final ProjectView projectView = ProjectView.getInstance(myProject);
-    pause(new Condition("ProjectView to be initialized") {
+    Wait.minutes(2).expecting("ProjectView to be initialized").until(new Wait.Objective() {
       @Override
-      public boolean test() {
+      public boolean isMet() {
         //noinspection ConstantConditions
         return field("isInitialized").ofType(boolean.class).in(projectView).get();
       }
-    }, SHORT_TIMEOUT);
+    });
 
     final String id = "AndroidView";
     GuiActionRunner.execute(new GuiTask() {
@@ -121,9 +119,9 @@ public class ProjectViewFixture extends ToolWindowFixture {
     @NotNull
     private AbstractTreeStructure getTreeStructure() {
       final AtomicReference<AbstractTreeStructure> treeStructureRef = new AtomicReference<AbstractTreeStructure>();
-      pause(new Condition("AbstractTreeStructure to be built") {
+      Wait.minutes(2).expecting("AbstractTreeStructure to be built").until(new Wait.Objective() {
         @Override
-        public boolean test() {
+        public boolean isMet() {
           AbstractTreeStructure treeStructure = GuiActionRunner.execute(new GuiQuery<AbstractTreeStructure>() {
             @Override
             protected AbstractTreeStructure executeInEDT() throws Throwable {
@@ -139,7 +137,7 @@ public class ProjectViewFixture extends ToolWindowFixture {
           treeStructureRef.set(treeStructure);
           return treeStructure != null;
         }
-      }, SHORT_TIMEOUT);
+      });
 
       return treeStructureRef.get();
     }
@@ -209,9 +207,9 @@ public class ProjectViewFixture extends ToolWindowFixture {
 
       assertNotNull(node);
 
-      pause(new Condition("node to be selected") {
+      Wait.minutes(2).expecting("node to be selected").until(new Wait.Objective() {
         @Override
-        public boolean test() {
+        public boolean isMet() {
           return node.equals(GuiActionRunner.execute(new GuiQuery<Object>() {
             @Override
             protected Object executeInEDT() throws Throwable {
@@ -223,7 +221,7 @@ public class ProjectViewFixture extends ToolWindowFixture {
             }
           }));
         }
-      }, SHORT_TIMEOUT);
+      });
     }
   }
 

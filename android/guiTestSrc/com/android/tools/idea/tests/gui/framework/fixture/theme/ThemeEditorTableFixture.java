@@ -17,7 +17,7 @@ package com.android.tools.idea.tests.gui.framework.fixture.theme;
 
 import com.android.tools.idea.editors.theme.ThemeEditorTable;
 import com.android.tools.idea.editors.theme.ui.ResourceComponent;
-import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.android.tools.idea.tests.gui.framework.Wait;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import org.fest.swing.annotation.RunsInCurrentThread;
@@ -27,7 +27,6 @@ import org.fest.swing.driver.BasicJTableCellReader;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.fixture.JComboBoxFixture;
 import org.fest.swing.fixture.JTableFixture;
-import org.fest.swing.timing.Condition;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -36,7 +35,6 @@ import java.awt.Component;
 import java.util.List;
 
 import static org.fest.swing.edt.GuiActionRunner.execute;
-import static org.fest.swing.timing.Pause.pause;
 import static org.junit.Assert.assertTrue;
 
 public class ThemeEditorTableFixture extends JTableFixture {
@@ -116,11 +114,11 @@ public class ThemeEditorTableFixture extends JTableFixture {
   }
 
   public void requireValueAt(@NotNull final TableCell cell, @Nullable final String value) {
-    pause(new Condition("theme editor update") {
+    Wait.minutes(2).expecting("theme editor update").until(new Wait.Objective() {
       @Override
-      public boolean test() {
+      public boolean isMet() {
         return Objects.equal(valueAt(cell), value);
       }
-    }, GuiTests.SHORT_TIMEOUT);
+    });
   }
 }

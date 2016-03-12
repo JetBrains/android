@@ -18,6 +18,7 @@ package com.android.tools.idea.tests.gui.gradle;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.Wait;
 import com.android.tools.idea.tests.gui.framework.fixture.RenameDialogFixture;
 import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.module.Module;
@@ -31,17 +32,14 @@ import com.intellij.psi.PsiManager;
 import com.intellij.refactoring.rename.DirectoryAsPackageRenameHandler;
 import com.intellij.refactoring.rename.RenameHandler;
 import org.fest.swing.edt.GuiQuery;
-import org.fest.swing.timing.Condition;
 import org.jetbrains.android.util.AndroidBundle;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
 import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPORT;
 import static org.fest.swing.edt.GuiActionRunner.execute;
-import static org.fest.swing.timing.Pause.pause;
 import static org.junit.Assert.*;
 
 @BelongsToTestGroups({PROJECT_SUPPORT})
@@ -74,13 +72,13 @@ public class RenameTest {
             // 'Rename dialog' show a warning asynchronously to the text change, that's why we wait here for the
             // warning to appear
             final Ref<Boolean> ok = new Ref<Boolean>();
-            pause(new Condition("error text to appear") {
+            Wait.minutes(2).expecting("error text to appear").until(new Wait.Objective() {
               @Override
-              public boolean test() {
+              public boolean isMet() {
                 ok.set(renameDialog.warningExists(AndroidBundle.message("android.refactoring.gradle.warning.rename.source.root")));
                 return ok.get();
               }
-            }, SHORT_TIMEOUT);
+            });
             assertTrue(ok.get());
             return;
           }

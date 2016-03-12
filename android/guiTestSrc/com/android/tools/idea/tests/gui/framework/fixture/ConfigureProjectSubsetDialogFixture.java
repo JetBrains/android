@@ -24,7 +24,8 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
-import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
+import java.util.concurrent.TimeUnit;
+
 import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
 import static org.fest.swing.core.matcher.DialogMatcher.withTitle;
 import static org.fest.swing.data.TableCell.row;
@@ -37,7 +38,7 @@ public class ConfigureProjectSubsetDialogFixture {
   @NotNull
   public static ConfigureProjectSubsetDialogFixture find(@NotNull Robot robot) {
     DialogMatcher matcher = withTitle("Select Modules to Include in Project Subset").andShowing();
-    DialogFixture dialog = findDialog(matcher).withTimeout(SHORT_TIMEOUT.duration()).using(robot);
+    DialogFixture dialog = findDialog(matcher).withTimeout(TimeUnit.MINUTES.toMillis(2)).using(robot);
     return new ConfigureProjectSubsetDialogFixture(dialog);
   }
 

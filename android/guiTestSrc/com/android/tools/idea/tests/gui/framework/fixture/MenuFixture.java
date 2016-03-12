@@ -15,14 +15,13 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import com.android.tools.idea.tests.gui.framework.Wait;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
-import org.fest.swing.timing.Condition;
-import org.fest.swing.timing.Pause;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -102,9 +101,9 @@ class MenuFixture {
   @NotNull
   private List<JPopupMenu> findShowingPopupMenus(final int expectedCount) {
     final Ref<List<JPopupMenu>> ref = new Ref<List<JPopupMenu>>();
-    Pause.pause(new Condition(expectedCount + " JPopupMenus to show up") {
+    Wait.seconds(30).expecting(expectedCount + " JPopupMenus to show up").until(new Wait.Objective() {
       @Override
-      public boolean test() {
+      public boolean isMet() {
         List<JPopupMenu> popupMenus = newArrayList(myRobot.finder().findAll(new GenericTypeMatcher<JPopupMenu>(JPopupMenu.class) {
           @Override
           protected boolean isMatching(@NotNull JPopupMenu popupMenu) {

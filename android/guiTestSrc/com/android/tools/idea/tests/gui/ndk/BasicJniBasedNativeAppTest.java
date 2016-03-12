@@ -18,10 +18,9 @@ package com.android.tools.idea.tests.gui.ndk;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.Wait;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
 import com.intellij.util.containers.HashMap;
-import org.fest.swing.timing.Condition;
-import org.fest.swing.timing.Timeout;
 import org.fest.swing.util.PatternTextMatcher;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -33,7 +32,6 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPORT;
-import static org.fest.swing.timing.Pause.pause;
 import static org.junit.Assert.assertNotNull;
 
 @BelongsToTestGroups({PROJECT_SUPPORT})
@@ -57,7 +55,7 @@ public class BasicJniBasedNativeAppTest {
   @Ignore("failed in http://go/aj/job/studio-ui-test/389 and from IDEA")
   @Test
   public void testMultiBreakAndResume() throws IOException, ClassNotFoundException {
-    final Timeout testTimeout = Timeout.timeout(50000);
+    int secondsToWait = 50;
     // Import the project and select the debug config 'app-native'.
     guiTest.importProjectAndWaitForProjectSyncToFinish("JniBasedBasicNdkApp", "2.5");
     final IdeFrameFixture projectFrame = guiTest.ideFrame();
@@ -113,23 +111,23 @@ public class BasicJniBasedNativeAppTest {
     final ExecutionToolWindowFixture.ContentFixture contentFixture = debugToolWindowFixture.findContent(DEBUG_CONFIG_NAME);
     assertNotNull(contentFixture);
     contentFixture.waitForOutput(new PatternTextMatcher(Pattern.compile(".*Debugger attached to process.*", Pattern.DOTALL)),
-                                 testTimeout);
+                                 secondsToWait);
 
     // Loop through all the breakpoints and match the strings printed in the Variables pane with the expected patterns setup in
     // breakpointToExpectedPatterns.
     for (int breakPoint : breakPoints) {
       final String[] expectedPatterns = breakpointToExpectedPatterns.get(breakPoint);
-      pause(new Condition("the debugger tree to appear") {
+      Wait.seconds(secondsToWait).expecting("the debugger tree to appear").until(new Wait.Objective() {
         @Override
-        public boolean test() {
-          return projectFrame.verifyVariablesAtBreakpoint(expectedPatterns, DEBUG_CONFIG_NAME, 15000);
+        public boolean isMet() {
+          return projectFrame.verifyVariablesAtBreakpoint(expectedPatterns, DEBUG_CONFIG_NAME);
         }
-      }, testTimeout);
+      });
 
       projectFrame.resumeProgram();
     }
     projectFrame.getDebugToolWindow().findContent(DEBUG_CONFIG_NAME).stop();
     contentFixture.waitForOutput(new PatternTextMatcher(Pattern.compile(".*Process finished with exit code.*", Pattern.DOTALL)),
-                                 testTimeout);
+                                 secondsToWait);
   }
 }

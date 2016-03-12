@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.framework.fixture.layout;
 
 import com.android.tools.idea.configurations.ConfigurationToolBar;
+import com.android.tools.idea.tests.gui.framework.Wait;
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
 import com.google.common.collect.Lists;
 import com.intellij.android.designer.AndroidDesignerEditor;
@@ -34,7 +35,6 @@ import com.intellij.ui.SimpleColoredRenderer;
 import com.intellij.ui.SimpleTextAttributes;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiTask;
-import org.fest.swing.timing.Condition;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -45,9 +45,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
 import static org.fest.swing.edt.GuiActionRunner.execute;
-import static org.fest.swing.timing.Pause.pause;
 import static org.junit.Assert.*;
 
 /**
@@ -112,12 +110,12 @@ public class LayoutEditorFixture extends ComponentFixture<LayoutEditorFixture, C
   public Object waitForNextRenderToFinish(@Nullable final Object previous) {
     robot().waitForIdle();
 
-    pause(new Condition("render to finish") {
+    Wait.minutes(2).expecting("render to finish").until(new Wait.Objective() {
       @Override
-      public boolean test() {
+      public boolean isMet() {
         return !myPanel.isRenderPending() && myPanel.getLastResult() != null && myPanel.getLastResult() != previous;
       }
-    }, SHORT_TIMEOUT);
+    });
 
     robot().waitForIdle();
 
