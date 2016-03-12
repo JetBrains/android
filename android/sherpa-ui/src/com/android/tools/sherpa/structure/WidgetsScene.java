@@ -22,10 +22,7 @@ import com.android.tools.sherpa.drawing.decorator.WidgetDecorator;
 import com.android.tools.sherpa.drawing.ConnectionDraw;
 import com.google.tnt.solver.widgets.*;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.HashMap;
+import java.util.*;
 
 /**
  * Represent a list of widgets and the associated operations
@@ -312,7 +309,7 @@ public class WidgetsScene {
      */
     private void createContainerFromWidgets(ArrayList<ConstraintWidget> widgets,
             ConstraintWidgetContainer containerInstance, String name) {
-        widgets.sort(new Comparator<ConstraintWidget>() {
+        Collections.sort(widgets, new Comparator<ConstraintWidget>() {
             @Override
             public int compare(ConstraintWidget o1, ConstraintWidget o2) {
                 if (o1.getY() + o1.getHeight() < o2.getY()) {
@@ -321,7 +318,8 @@ public class WidgetsScene {
                 if (o2.getY() + o2.getHeight() < o1.getY()) {
                     return 1;
                 }
-                return Integer.compare(o1.getX(), o2.getX());
+                // TODO when JDK 1.6 is no longer used, replace with: Integer.compare(o1.getX(), o2.getX());
+                return o1.getX() - o2.getX();
             }
         });
 
