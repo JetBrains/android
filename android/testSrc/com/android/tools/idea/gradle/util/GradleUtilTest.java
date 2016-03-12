@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.gradle.util;
 
+import com.android.builder.model.BaseArtifact;
+import com.android.builder.model.Dependencies;
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.eclipse.GradleImport;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
-import com.intellij.openapi.util.io.FileUtil;
 import junit.framework.TestCase;
 
 import java.io.File;
@@ -32,7 +32,9 @@ import static com.android.SdkConstants.*;
 import static com.android.tools.idea.gradle.util.PropertiesUtil.getProperties;
 import static com.google.common.io.Files.createTempDir;
 import static com.google.common.io.Files.write;
+import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.util.io.FileUtilRt.createIfNotExists;
+import static org.mockito.Mockito.*;
 
 /**
  * Tests for {@link GradleUtil}.
@@ -44,12 +46,55 @@ public class GradleUtilTest extends TestCase {
   protected void tearDown() throws Exception {
     try {
       if (myTempDir != null) {
-        FileUtil.delete(myTempDir);
+        delete(myTempDir);
       }
     }
     finally {
       super.tearDown();
     }
+  }
+
+  public void testSupportsDependencyGraph() {
+    assertTrue(GradleUtil.androidModelSupportsDependencyGraph(GradleVersion.parse("2.2.0-dev")));
+    assertTrue(GradleUtil.androidModelSupportsDependencyGraph(GradleVersion.parse("2.2.0")));
+    assertTrue(GradleUtil.androidModelSupportsDependencyGraph(GradleVersion.parse("2.2.1")));
+    assertTrue(GradleUtil.androidModelSupportsDependencyGraph(GradleVersion.parse("2.3.0")));
+    assertTrue(GradleUtil.androidModelSupportsDependencyGraph(GradleVersion.parse("2.3+")));
+    assertTrue(GradleUtil.androidModelSupportsDependencyGraph(GradleVersion.parse("3.0.0")));
+  }
+
+  public void testSupportsDependencyGraphWithTextVersion() {
+    assertFalse(GradleUtil.androidModelSupportsDependencyGraph("abc."));
+    assertTrue(GradleUtil.androidModelSupportsDependencyGraph("2.2.0-dev"));
+    assertTrue(GradleUtil.androidModelSupportsDependencyGraph("2.2.0"));
+    assertTrue(GradleUtil.androidModelSupportsDependencyGraph("2.2.1"));
+    assertTrue(GradleUtil.androidModelSupportsDependencyGraph("2.3.0"));
+    assertTrue(GradleUtil.androidModelSupportsDependencyGraph("2.3+"));
+    assertTrue(GradleUtil.androidModelSupportsDependencyGraph("3.0.0"));
+  }
+
+  public void testGetDependenciesWithModelThatSupportsDependencyGraph() {
+    BaseArtifact artifact = mock(BaseArtifact.class);
+    Dependencies dependencies = mock(Dependencies.class);
+
+    when(artifact.getCompileDependencies()).thenReturn(dependencies);
+
+    Dependencies actual = GradleUtil.getDependencies(artifact, GradleVersion.parse("2.2.0"));
+    assertSame(dependencies, actual);
+
+    verify(artifact).getCompileDependencies();
+  }
+
+  public void testGetDependenciesWithModelThatDoesNotSupportDependencyGraph() {
+    BaseArtifact artifact = mock(BaseArtifact.class);
+    Dependencies dependencies = mock(Dependencies.class);
+
+    when(artifact.getDependencies()).thenReturn(dependencies);
+
+    Dependencies actual = GradleUtil.getDependencies(artifact, GradleVersion.parse("1.2.0"));
+    assertSame(dependencies, actual);
+
+    verify(artifact).getDependencies();
   }
 
   public void testGetGradleInvocationJvmArgWithNullBuildMode() {
@@ -126,11 +171,11 @@ public class GradleUtilTest extends TestCase {
     myTempDir = createTempDir();
     File wrapperPath = GradleUtil.getGradleWrapperPropertiesFilePath(myTempDir);
 
-    List<String> expected = Lists.newArrayList(FileUtil.splitPath(myTempDir.getPath()));
-    expected.addAll(FileUtil.splitPath(FD_GRADLE_WRAPPER));
+    List<String> expected = Lists.newArrayList(splitPath(myTempDir.getPath()));
+    expected.addAll(splitPath(FD_GRADLE_WRAPPER));
     expected.add(FN_GRADLE_WRAPPER_PROPERTIES);
 
-    assertEquals(expected, FileUtil.splitPath(wrapperPath.getPath()));
+    assertEquals(expected, splitPath(wrapperPath.getPath()));
   }
 
   public void testGetPathSegments() {
@@ -194,7 +239,7 @@ public class GradleUtilTest extends TestCase {
     assertEquals("--init-script", cmdOptions.get(0));
     assertEquals(initScriptPath.getPath(), cmdOptions.get(1));
 
-    String initScript = FileUtil.loadFile(initScriptPath);
+    String initScript = loadFile(initScriptPath);
     assertEquals(contents, initScript);
   }
 
