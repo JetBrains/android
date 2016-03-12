@@ -20,6 +20,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.npw.assetstudio.wizard.GenerateVectorIconModel;
 import com.android.tools.idea.npw.assetstudio.wizard.NewVectorAssetStep;
+import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -85,11 +86,6 @@ public final class NewVectorAssetAction extends AndroidAssetStudioAction {
   @Nullable
   @Override
   protected URL getHelpUrl() {
-    try {
-      return new URL("http://developer.android.com/tools/help/vector-asset-studio.html");
-    }
-    catch (MalformedURLException e) {
-      return null; // Shouldn't happen
-    }
+    return WizardUtils.toUrl("http://developer.android.com/tools/help/vector-asset-studio.html");
   }
 }
