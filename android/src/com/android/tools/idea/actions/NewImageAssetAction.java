@@ -18,11 +18,14 @@ package com.android.tools.idea.actions;
 import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
 import com.android.tools.idea.npw.assetstudio.wizard.GenerateImageIconsModel;
 import com.android.tools.idea.npw.assetstudio.wizard.NewImageAssetStep;
+import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
+import java.net.URL;
 
 /**
  * Action to invoke the Image Asset Studio. This will allow the user to generate icons using source
@@ -47,5 +50,11 @@ public class NewImageAssetAction extends AndroidAssetStudioAction {
   @Override
   protected Dimension getWizardSize() {
     return new Dimension(800, 750);
+  }
+
+  @Nullable
+  @Override
+  protected URL getHelpUrl() {
+    return WizardUtils.toUrl("https://developer.android.com/r/studio-ui/image-asset-studio.html");
   }
 }
