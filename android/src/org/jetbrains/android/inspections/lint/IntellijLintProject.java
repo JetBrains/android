@@ -355,7 +355,7 @@ class IntellijLintProject extends Project {
                                                @NonNull LintModuleProject project,
                                                @NonNull Map<Project,Module> projectMap,
                                                @NonNull List<Project> dependencies) {
-    Collection<AndroidLibrary> libraries = androidGradleModel.getMainArtifact().getDependencies().getLibraries();
+    Collection<AndroidLibrary> libraries = androidGradleModel.getSelectedMainCompileDependencies().getLibraries();
     for (AndroidLibrary library : libraries) {
       Project p = libraryMap.get(library);
       if (p == null) {
@@ -848,7 +848,7 @@ class IntellijLintProject extends Project {
       if (SUPPORT_CLASS_FILES) {
         if (mJavaLibraries == null) {
           if (myFacet.requiresAndroidModel() && myFacet.getAndroidModel() != null) {
-            Collection<JavaLibrary> libs = myAndroidGradleModel.getMainArtifact().getDependencies().getJavaLibraries();
+            Collection<JavaLibrary> libs = myAndroidGradleModel.getSelectedMainCompileDependencies().getJavaLibraries();
             mJavaLibraries = Lists.newArrayListWithExpectedSize(libs.size());
             for (JavaLibrary lib : libs) {
               if (!includeProvided) {
