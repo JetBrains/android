@@ -20,6 +20,7 @@ import com.android.builder.model.ApiVersion;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.Wait;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.FileFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.InspectionsFixture;
@@ -34,8 +35,6 @@ import com.intellij.openapi.roots.LanguageLevelModuleExtension;
 import com.intellij.openapi.roots.LanguageLevelModuleExtensionImpl;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.pom.java.LanguageLevel;
-import org.fest.swing.timing.Condition;
-import org.fest.swing.timing.Pause;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
 import org.junit.Test;
@@ -178,9 +177,9 @@ public class NewProjectTest {
     newProject("Test Application").withBriefNames().withMinSdk("15").withoutSync().create();
     final EditorFixture editor = guiTest.ideFrame().getEditor();
 
-    Pause.pause(new Condition("file to open") {
+    Wait.seconds(30).expecting("file to open").until(new Wait.Objective() {
       @Override
-      public boolean test() {
+      public boolean isMet() {
         return "A.java".equals(editor.getCurrentFileName());
       }
     });

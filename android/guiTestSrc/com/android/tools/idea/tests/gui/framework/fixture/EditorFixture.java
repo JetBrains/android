@@ -21,6 +21,7 @@ import com.android.tools.idea.editors.strings.StringsVirtualFile;
 import com.android.tools.idea.editors.theme.ThemeEditorComponent;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.android.tools.idea.tests.gui.framework.Wait;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.LayoutEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.LayoutPreviewFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorFixture;
@@ -53,7 +54,6 @@ import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.fixture.DialogFixture;
-import org.fest.swing.timing.Condition;
 import org.jetbrains.android.uipreview.AndroidLayoutPreviewToolWindowForm;
 import org.jetbrains.android.uipreview.AndroidLayoutPreviewToolWindowManager;
 import org.jetbrains.annotations.NotNull;
@@ -73,7 +73,6 @@ import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.reflect.core.Reflection.method;
 import static org.fest.swing.edt.GuiActionRunner.execute;
-import static org.fest.swing.timing.Pause.pause;
 import static org.fest.util.Strings.quote;
 import static org.junit.Assert.*;
 
@@ -687,9 +686,9 @@ public class EditorFixture {
       }
     });
 
-    pause(new Condition("file " + quote(file.getPath()) + " to be opened") {
+    Wait.minutes(2).expecting("file " + quote(file.getPath()) + " to be opened").until(new Wait.Objective() {
       @Override
-      public boolean test() {
+      public boolean isMet() {
         //noinspection ConstantConditions
         return execute(new GuiQuery<Boolean>() {
           @Override
@@ -698,7 +697,7 @@ public class EditorFixture {
           }
         });
       }
-    }, SHORT_TIMEOUT);
+    });
 
     execute(new GuiTask() {
       @Override
@@ -1015,14 +1014,14 @@ public class EditorFixture {
       myFrame.invokeMenuPath("View", "Tool Windows", "Preview");
     }
 
-    pause(new Condition("Preview window to be visible") {
+    Wait.minutes(2).expecting("Preview window to be visible").until(new Wait.Objective() {
       @Override
-      public boolean test() {
+      public boolean isMet() {
         AndroidLayoutPreviewToolWindowManager manager = AndroidLayoutPreviewToolWindowManager.getInstance(myFrame.getProject());
         AndroidLayoutPreviewToolWindowForm toolWindowForm = manager.getToolWindowForm();
         return toolWindowForm != null && toolWindowForm.getPreviewPanel().isShowing();
       }
-    }, SHORT_TIMEOUT);
+    });
 
     return new LayoutPreviewFixture(robot, myFrame.getProject());
   }
@@ -1103,9 +1102,9 @@ public class EditorFixture {
       myFrame.invokeMenuPath("View", "Tool Windows", "Theme Preview");
     }
 
-    pause(new Condition("Theme Preview window to be visible") {
+    Wait.minutes(2).expecting("Theme Preview window to be visible").until(new Wait.Objective() {
       @Override
-      public boolean test() {
+      public boolean isMet() {
         final ToolWindow window = ToolWindowManager.getInstance(myFrame.getProject()).getToolWindow("Theme Preview");
         Boolean result = execute(new GuiQuery<Boolean>() {
           @Override
@@ -1116,7 +1115,7 @@ public class EditorFixture {
 
         return result != null && result;
       }
-    }, SHORT_TIMEOUT);
+    });
 
     // Wait for it to be fully opened
     robot.waitForIdle();

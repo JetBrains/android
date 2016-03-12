@@ -18,7 +18,7 @@ package com.android.tools.idea.tests.gui.framework.fixture.theme;
 import com.android.tools.idea.editors.theme.AttributesPanel;
 import com.android.tools.idea.editors.theme.ThemeEditorComponent;
 import com.android.tools.idea.editors.theme.preview.ThemePreviewComponent;
-import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.android.tools.idea.tests.gui.framework.Wait;
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.SearchTextFieldFixture;
 import com.google.common.collect.ImmutableList;
@@ -26,7 +26,6 @@ import com.intellij.ui.SearchTextField;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.JComboBoxFixture;
-import org.fest.swing.timing.Condition;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -34,7 +33,6 @@ import javax.swing.*;
 import java.util.List;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilFound;
-import static org.fest.swing.timing.Pause.pause;
 
 public class ThemeEditorFixture extends ComponentFixture<ThemeEditorFixture, ThemeEditorComponent> {
   private final JComboBoxFixture myThemesComboBox;
@@ -83,12 +81,12 @@ public class ThemeEditorFixture extends ComponentFixture<ThemeEditorFixture, The
   }
 
   public void waitForThemeSelection(@NotNull final String themeName) {
-    pause(new Condition(themeName + " to be selected") {
+    Wait.minutes(2).expecting(themeName + " to be selected").until(new Wait.Objective() {
       @Override
-      public boolean test() {
+      public boolean isMet() {
         return themeName.equals(myThemesComboBox.selectedItem());
       }
-    }, GuiTests.SHORT_TIMEOUT);
+    });
   }
 
   @NotNull
@@ -110,12 +108,12 @@ public class ThemeEditorFixture extends ComponentFixture<ThemeEditorFixture, The
   public static void clickPopupMenuItem(@NotNull String labelPrefix, @NotNull final String expectedLabel, @NotNull final JButton button, @NotNull org.fest.swing.core.Robot robot) {
     com.android.tools.idea.tests.gui.framework.GuiTests.clickPopupMenuItem(labelPrefix, button, robot);
 
-    pause(new Condition("UI update") {
+    Wait.minutes(2).expecting("UI update").until(new Wait.Objective() {
       @Override
-      public boolean test() {
+      public boolean isMet() {
         return expectedLabel.equals(button.getText());
       }
-    }, GuiTests.SHORT_TIMEOUT);
+    });
   }
 }
 

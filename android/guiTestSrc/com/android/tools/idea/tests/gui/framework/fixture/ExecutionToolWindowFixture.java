@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.annotations.Nullable;
+import com.android.tools.idea.tests.gui.framework.Wait;
 import com.intellij.execution.impl.ConsoleViewImpl;
 import com.intellij.execution.testframework.TestTreeView;
 import com.intellij.execution.ui.layout.impl.GridImpl;
@@ -36,9 +37,6 @@ import org.fest.swing.core.TypeMatcher;
 import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.exception.ComponentLookupException;
-import org.fest.swing.timing.Condition;
-import org.fest.swing.timing.Pause;
-import org.fest.swing.timing.Timeout;
 import org.fest.swing.util.TextMatcher;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.TestOnly;
@@ -52,7 +50,6 @@ import static com.intellij.util.ui.UIUtil.findComponentOfType;
 import static com.intellij.util.ui.UIUtil.findComponentsOfType;
 import static junit.framework.Assert.assertNotNull;
 import static org.fest.reflect.core.Reflection.method;
-import static org.fest.swing.timing.Pause.pause;
 
 public class ExecutionToolWindowFixture extends ToolWindowFixture {
   public static class ContentFixture {
@@ -66,13 +63,13 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
       myContent = content;
     }
 
-    public void waitForOutput(@NotNull final TextMatcher matcher, @NotNull Timeout timeout) {
-      pause(new Condition("LogCat tool window output check for package name") {
+    public void waitForOutput(@NotNull final TextMatcher matcher, @NotNull long secondsToWait) {
+      Wait.seconds(secondsToWait).expecting("LogCat tool window output check for package name").until(new Wait.Objective() {
         @Override
-        public boolean test() {
+        public boolean isMet() {
           return outputMatches(matcher);
         }
-      }, timeout);
+      });
     }
 
     /**
@@ -198,13 +195,13 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
       throw new IllegalStateException("Could not find the Re-run failed tests button.");
     }
 
-    public void waitForExecutionToFinish(@NotNull Timeout timeout) {
-      Pause.pause(new Condition("execution to finish") {
+    public void waitForExecutionToFinish() {
+      Wait.minutes(2).expecting("execution to finish").until(new Wait.Objective() {
         @Override
-        public boolean test() {
+        public boolean isMet() {
           return !isExecutionInProgress();
         }
-      }, timeout);
+      });
     }
 
     @TestOnly
