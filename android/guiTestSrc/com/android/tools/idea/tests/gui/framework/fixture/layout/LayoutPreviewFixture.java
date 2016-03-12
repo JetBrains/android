@@ -20,6 +20,7 @@ import com.android.tools.idea.rendering.*;
 import com.android.tools.idea.rendering.multi.RenderPreview;
 import com.android.tools.idea.rendering.multi.RenderPreviewManager;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.android.tools.idea.tests.gui.framework.Wait;
 import com.android.tools.idea.tests.gui.framework.fixture.ToolWindowFixture;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.project.Project;
@@ -27,7 +28,6 @@ import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
-import org.fest.swing.timing.Condition;
 import org.jetbrains.android.uipreview.AndroidLayoutPreviewToolWindowForm;
 import org.jetbrains.android.uipreview.AndroidLayoutPreviewToolWindowManager;
 import org.jetbrains.annotations.NotNull;
@@ -39,9 +39,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
 import static org.fest.swing.edt.GuiActionRunner.execute;
-import static org.fest.swing.timing.Pause.pause;
 import static org.junit.Assert.*;
 
 /**
@@ -108,16 +106,16 @@ public class LayoutPreviewFixture extends ToolWindowFixture implements LayoutFix
   public Object waitForNextRenderToFinish(@Nullable final Object previous) {
     myRobot.waitForIdle();
 
-    pause(new Condition("render to finish") {
+    Wait.minutes(2).expecting("render to finish").until(new Wait.Objective() {
       @Override
-      public boolean test() {
+      public boolean isMet() {
         AndroidLayoutPreviewToolWindowManager manager = getManager();
         return !manager.isRenderPending() &&
                manager.getToolWindowForm() != null &&
                manager.getToolWindowForm().getLastResult() != null &&
                manager.getToolWindowForm().getLastResult() != previous;
       }
-    }, SHORT_TIMEOUT);
+    });
 
     myRobot.waitForIdle();
 

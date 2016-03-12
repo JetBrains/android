@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.gradle;
 
+import com.android.tools.idea.tests.gui.framework.Wait;
 import com.android.tools.idea.tests.gui.framework.fixture.ToolWindowFixture;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.externalSystem.view.TaskNode;
@@ -23,7 +24,6 @@ import com.intellij.ui.content.Content;
 import com.intellij.ui.treeStructure.Tree;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiTask;
-import org.fest.swing.timing.Condition;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -36,7 +36,6 @@ import static com.intellij.util.ui.tree.TreeUtil.expandAll;
 import static org.fest.reflect.core.Reflection.field;
 import static org.fest.swing.core.MouseButton.LEFT_BUTTON;
 import static org.fest.swing.edt.GuiActionRunner.execute;
-import static org.fest.swing.timing.Pause.pause;
 import static org.fest.util.Strings.quote;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -52,9 +51,9 @@ public class GradleToolWindowFixture extends ToolWindowFixture {
     final Tree tasksTree = findComponentOfType(content.getComponent(), Tree.class);
     assertNotNull(tasksTree);
 
-    pause(new Condition("tree to be populated") {
+    Wait.seconds(30).expecting("tree to be populated").until(new Wait.Objective() {
       @Override
-      public boolean test() {
+      public boolean isMet() {
         //noinspection ConstantConditions
         return !tasksTree.isEmpty() && !field("myBusy").ofType(boolean.class).in(tasksTree).get();
       }

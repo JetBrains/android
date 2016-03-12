@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.android.tools.idea.tests.gui.framework.Wait;
 import com.intellij.androidstudio.actions.CreateFileFromTemplateDialog;
 import com.intellij.androidstudio.actions.CreateFileFromTemplateDialog.Visibility;
 import com.intellij.ide.actions.TemplateKindCombo;
@@ -24,12 +25,10 @@ import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.exception.ComponentLookupException;
-import org.fest.swing.timing.Condition;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
-import static org.fest.swing.timing.Pause.pause;
 
 public class CreateFileFromTemplateDialogFixture extends IdeaDialogFixture<CreateFileFromTemplateDialog> {
 
@@ -75,9 +74,9 @@ public class CreateFileFromTemplateDialogFixture extends IdeaDialogFixture<Creat
 
   @NotNull
   public CreateFileFromTemplateDialogFixture waitForErrorMessageToAppear(@NotNull final String errorMessage) {
-    pause(new Condition("an error message to appear") {
+    Wait.minutes(2).expecting("an error message to appear").until(new Wait.Objective() {
       @Override
-      public boolean test() {
+      public boolean isMet() {
         try {
           GuiTests.findLabelByText(CreateFileFromTemplateDialogFixture.this, errorMessage);
           return true;
@@ -89,7 +88,7 @@ public class CreateFileFromTemplateDialogFixture extends IdeaDialogFixture<Creat
           return false;
         }
       }
-    }, GuiTests.SHORT_TIMEOUT);
+    });
     return this;
   }
 

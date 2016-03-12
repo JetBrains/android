@@ -50,8 +50,6 @@ import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.fixture.ContainerFixture;
 import org.fest.swing.fixture.JListFixture;
-import org.fest.swing.timing.Condition;
-import org.fest.swing.timing.Timeout;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
@@ -68,6 +66,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static com.android.tools.idea.AndroidTestCaseHelper.getAndroidSdkPath;
@@ -80,20 +79,15 @@ import static com.intellij.openapi.projectRoots.JdkUtil.checkForJdk;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
-import static java.util.concurrent.TimeUnit.MINUTES;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.fest.swing.finder.WindowFinder.findFrame;
-import static org.fest.swing.timing.Pause.pause;
-import static org.fest.swing.timing.Timeout.timeout;
 import static org.fest.util.Strings.quote;
 import static org.jetbrains.android.AndroidPlugin.getGuiTestSuiteState;
 import static org.jetbrains.android.AndroidPlugin.setGuiTestingMode;
 import static org.junit.Assert.*;
 
 public final class GuiTests {
-
-  public static final Timeout SHORT_TIMEOUT = timeout(2, MINUTES);
 
   public static final String GUI_TESTS_RUNNING_IN_SUITE_PROPERTY = "gui.tests.running.in.suite";
 
@@ -265,7 +259,7 @@ public final class GuiTests {
           }
           return false;
         }
-      }).withTimeout(SHORT_TIMEOUT.duration()).using(robot);
+      }).withTimeout(TimeUnit.MINUTES.toMillis(2)).using(robot);
 
       // We know the IDE event queue was pushed in front of the AWT queue. Some JDKs will leave a dummy event in the AWT queue, which
       // we attempt to clear here. All other events, including those posted by the Robot, will go through the IDE event queue.
@@ -279,9 +273,9 @@ public final class GuiTests {
       }
 
       if (listener.myActive) {
-        pause(new Condition("project to be opened") {
+        Wait.minutes(2).expecting("project to be opened").until(new Wait.Objective() {
           @Override
-          public boolean test() {
+          public boolean isMet() {
             boolean notified = listener.myNotified;
             if (notified) {
               ProgressManager progressManager = ProgressManager.getInstance();
@@ -295,7 +289,7 @@ public final class GuiTests {
             }
             return false;
           }
-        }, SHORT_TIMEOUT);
+        });
       }
     }
     finally {
@@ -317,9 +311,9 @@ public final class GuiTests {
   }
 
   static void closeAllProjects() {
-    pause(new Condition("all projects to be closed") {
+    Wait.minutes(2).expecting("all projects to be closed").until(new Wait.Objective() {
       @Override
-      public boolean test() {
+      public boolean isMet() {
         final Project[] openProjects = ProjectManager.getInstance().getOpenProjects();
         execute(new GuiTask() {
           @Override
@@ -331,7 +325,7 @@ public final class GuiTests {
         });
         return ProjectManager.getInstance().getOpenProjects().length == 0;
       }
-    }, SHORT_TIMEOUT);
+    });
 
     execute(new GuiTask() {
       @Override
@@ -342,9 +336,9 @@ public final class GuiTests {
       }
     });
 
-    pause(new Condition("'Welcome' frame to show up") {
+    Wait.minutes(2).expecting("'Welcome' frame to show up").until(new Wait.Objective() {
       @Override
-      public boolean test() {
+      public boolean isMet() {
         for (Frame frame : Frame.getFrames()) {
           if (frame == WelcomeFrame.getInstance() && frame.isShowing()) {
             return true;
@@ -352,7 +346,7 @@ public final class GuiTests {
         }
         return false;
       }
-    }, SHORT_TIMEOUT);
+    });
 
     // At this point there are no open projects and we're displaying the welcome screen, with no ongoing animations. The AWT queue might
     // have some events left from project closing actions, so we flush it completely before proceeding.
@@ -514,12 +508,12 @@ public final class GuiTests {
   public static void findAndClickButtonWhenEnabled(@NotNull ContainerFixture<? extends Container> container, @NotNull final String text) {
     Robot robot = container.robot();
     final JButton button = findButton(container, text, robot);
-    pause(new Condition("button " + text + " to be enabled") {
+    Wait.minutes(2).expecting("button " + text + " to be enabled").until(new Wait.Objective() {
       @Override
-      public boolean test() {
+      public boolean isMet() {
         return button.isEnabled() && button.isVisible() && button.isShowing();
       }
-    }, SHORT_TIMEOUT);
+    });
     robot.click(button);
   }
 
@@ -633,9 +627,9 @@ public final class GuiTests {
                                                        @Nullable final Container root,
                                                        @NotNull final GenericTypeMatcher<T> matcher) {
     final AtomicReference<T> reference = new AtomicReference<T>();
-    pause(new Condition("component to be found using " + matcher.toString()) {
+    Wait.minutes(2).expecting("component to be found using " + matcher.toString()).until(new Wait.Objective() {
       @Override
-      public boolean test() {
+      public boolean isMet() {
         ComponentFinder finder = robot.finder();
         Collection<T> allFound = root != null ? finder.findAll(root, matcher) : finder.findAll(matcher);
         boolean found = allFound.size() == 1;
@@ -649,7 +643,7 @@ public final class GuiTests {
         }
         return found;
       }
-    }, SHORT_TIMEOUT);
+    });
 
     return reference.get();
   }
@@ -660,25 +654,25 @@ public final class GuiTests {
   public static <T extends Component> void waitUntilGone(@NotNull final Robot robot,
                                                          @NotNull final Container root,
                                                          @NotNull final GenericTypeMatcher<T> matcher) {
-    pause(new Condition("component to be found using " + matcher.toString()) {
+    Wait.minutes(2).expecting("component to be found using " + matcher.toString()).until(new Wait.Objective() {
       @Override
-      public boolean test() {
+      public boolean isMet() {
         Collection<T> allFound = robot.finder().findAll(root, matcher);
         return allFound.isEmpty();
       }
-    }, SHORT_TIMEOUT);
+    });
   }
 
   public static void waitForBackgroundTasks(Robot robot) {
-    pause(new Condition("background tasks") {
+    Wait.minutes(2).expecting("background tasks to finish").until(new Wait.Objective() {
       @Override
-      public boolean test() {
+      public boolean isMet() {
         ProgressManager progressManager = ProgressManager.getInstance();
         return !progressManager.hasModalProgressIndicator() &&
                !progressManager.hasProgressIndicator() &&
                !progressManager.hasUnsafeProgressIndicator();
       }
-    }, SHORT_TIMEOUT);
+    });
     robot.waitForIdle();
   }
 

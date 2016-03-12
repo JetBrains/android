@@ -152,7 +152,7 @@ public class UnitTestingSupportTest {
   @NotNull
   private UnitTestTreeFixture getTestTree(@NotNull String tabName) {
     ContentFixture content = guiTest.ideFrame().getRunToolWindow().findContent(tabName);
-    content.waitForExecutionToFinish(GuiTests.SHORT_TIMEOUT);
+    content.waitForExecutionToFinish();
     guiTest.waitForBackgroundTasks();
     return content.getUnitTestTree();
   }

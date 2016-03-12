@@ -17,19 +17,16 @@ package com.android.tools.idea.tests.gui.npw;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.Wait;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewXmlValueWizardFixture;
 import org.fest.swing.fixture.JButtonFixture;
 import org.fest.swing.fixture.JLabelFixture;
-import org.fest.swing.timing.Condition;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.IOException;
-
-import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
-import static org.fest.swing.timing.Pause.pause;
 
 @RunWith(GuiTestRunner.class)
 public class NewComponentTest {
@@ -50,28 +47,28 @@ public class NewComponentTest {
     wizardFixture.getFileNameField().enterText("strings");
     final JLabelFixture errorLabel = wizardFixture.findLabel("Values File Name must be unique");
 
-    pause(new Condition("Finish to be disabled") {
+    Wait.minutes(2).expecting("Finish to be disabled").until(new Wait.Objective() {
       @Override
-      public boolean test() {
+      public boolean isMet() {
         return !finishFixture.isEnabled();
       }
-    }, SHORT_TIMEOUT);
+    });
     wizardFixture.getFileNameField().enterText("2");
-    pause(new Condition("Finish to be enabled") {
+    Wait.minutes(2).expecting("Finish to be enabled").until(new Wait.Objective() {
       @Override
-      public boolean test() {
+      public boolean isMet() {
         return finishFixture.isEnabled();
       }
-    }, SHORT_TIMEOUT);
+    });
 
     // Now test an invalid file name. Currently we have "strings2" so add an space to make it invalid.
     wizardFixture.getFileNameField().enterText(" ");
-    pause(new Condition("Finish to be disabled") {
+    Wait.minutes(2).expecting("Finish to be disabled").until(new Wait.Objective() {
       @Override
-      public boolean test() {
+      public boolean isMet() {
         return !finishFixture.isEnabled();
       }
-    }, SHORT_TIMEOUT);
+    });
     errorLabel.requireText("<html>Values File Name is not a valid resource name. ' ' is not a valid resource name character</html>");
   }
 }

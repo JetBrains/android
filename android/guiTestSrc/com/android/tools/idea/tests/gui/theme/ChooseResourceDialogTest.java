@@ -19,7 +19,7 @@ import com.android.tools.idea.editors.theme.ui.ResourceComponent;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
-import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.android.tools.idea.tests.gui.framework.Wait;
 import com.android.tools.idea.tests.gui.framework.fixture.ChooseResourceDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ColorPickerFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.SlideFixture;
@@ -28,7 +28,6 @@ import org.fest.swing.data.TableCell;
 import org.fest.swing.fixture.FontFixture;
 import org.fest.swing.fixture.JTableCellFixture;
 import org.fest.swing.fixture.JTextComponentFixture;
-import org.fest.swing.timing.Condition;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -39,7 +38,6 @@ import java.io.IOException;
 import static com.android.tools.idea.tests.gui.framework.TestGroup.THEME;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.swing.data.TableCell.row;
-import static org.fest.swing.timing.Pause.pause;
 import static org.junit.Assert.*;
 
 /**
@@ -161,12 +159,12 @@ public class ChooseResourceDialogTest {
 
     final String expectedError = "<html><font color='#ff0000'><left>'" + badText +
                                  "' is not a valid resource name character</left></b></font></html>";
-    pause(new Condition("error to update") {
+    Wait.minutes(2).expecting("error to update").until(new Wait.Objective() {
       @Override
-      public boolean test() {
+      public boolean isMet() {
         return dialog.getError().equals(expectedError);
       }
-    }, GuiTests.SHORT_TIMEOUT);
+    });
 
     dialog.clickCancel();
     colorCell.cancelEditing();
