@@ -21,6 +21,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.List;
 
 public class JavaLibraryStub implements JavaLibrary {
@@ -39,7 +40,7 @@ public class JavaLibraryStub implements JavaLibrary {
   @Override
   @NotNull
   public List<? extends JavaLibrary> getDependencies() {
-    throw new UnsupportedOperationException();
+    return Collections.emptyList();
   }
 
   @Override
