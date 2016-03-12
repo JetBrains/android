@@ -17,6 +17,7 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.ddmlib.Client;
 import com.android.tools.idea.monitor.AndroidToolWindowFactory;
+import com.android.tools.idea.tests.gui.framework.Wait;
 import com.intellij.execution.ui.layout.impl.JBRunnerTabs;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.tabs.impl.TabLabel;
@@ -26,16 +27,13 @@ import org.fest.swing.core.matcher.JLabelMatcher;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.exception.ComponentLookupException;
 import org.fest.swing.fixture.JListFixture;
-import org.fest.swing.timing.Condition;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
-import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.swing.edt.GuiActionRunner.execute;
-import static org.fest.swing.timing.Pause.pause;
 import static org.junit.Assert.assertNotNull;
 
 public class AndroidToolWindowFixture extends ToolWindowFixture {
@@ -46,9 +44,9 @@ public class AndroidToolWindowFixture extends ToolWindowFixture {
     show();
 
     final JPanel contentPanel = getContentPanel();
-    pause(new Condition("window to finish initializing") {
+    Wait.minutes(2).expecting("window to finish initializing").until(new Wait.Objective() {
       @Override
-      public boolean test() {
+      public boolean isMet() {
         try {
           myRobot.finder().find(contentPanel, JLabelMatcher.withText("Initializing..."));
         }
@@ -58,7 +56,7 @@ public class AndroidToolWindowFixture extends ToolWindowFixture {
         }
         return false;
       }
-    }, SHORT_TIMEOUT);
+    });
     myProcessListFixture = new ProcessListFixture(robot, robot.finder().findByType(getContentPanel(), JList.class, false));
   }
 
@@ -113,9 +111,9 @@ public class AndroidToolWindowFixture extends ToolWindowFixture {
 
     @NotNull
     public ProcessListFixture waitForProcess(@NotNull final String packageName) {
-      pause(new Condition("the process list to show the package name") {
+      Wait.minutes(2).expecting("the process list to show the package name").until(new Wait.Objective() {
         @Override
-        public boolean test() {
+        public boolean isMet() {
           //noinspection ConstantConditions
           return execute(new GuiQuery<Boolean>() {
             @Override
@@ -133,7 +131,7 @@ public class AndroidToolWindowFixture extends ToolWindowFixture {
             }
           });
         }
-      }, SHORT_TIMEOUT);
+      });
       return this;
     }
 
