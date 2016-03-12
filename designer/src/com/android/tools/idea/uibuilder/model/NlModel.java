@@ -80,7 +80,6 @@ import static com.android.SdkConstants.*;
  */
 public class NlModel implements Disposable, ResourceChangeListener, ModificationTracker {
   private static final Logger LOG = Logger.getInstance(NlModel.class);
-  @AndroidCoordinate public static final int EMPTY_COMPONENT_SIZE = 5;
   @AndroidCoordinate public static final int VISUAL_EMPTY_COMPONENT_SIZE = 14;
 
   @NonNull private final DesignSurface mySurface;
@@ -118,16 +117,6 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     if (parent != null) {
       Disposer.register(parent, this);
     }
-  }
-
-  public void setParentDisposable(Disposable parent) {
-    synchronized (myRenderingQueueLock) {
-      myParent = parent;
-    }
-  }
-
-  public int getRenderDelay() {
-    return myRenderDelay;
   }
 
   public void setRenderDelay(int renderDelay) {
@@ -371,10 +360,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     final List<NlComponent> newRoots = Lists.newArrayList();
     if (rootViews != null) {
       for (ViewInfo info : rootViews) {
-        NlComponent newRoot = updateHierarchy(null, info, 0, 0);
-        if (newRoot != null) {
-          newRoots.add(newRoot);
-        }
+        updateHierarchy(newRoots, null, info, 0, 0);
       }
     }
 
@@ -429,8 +415,11 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   }
 
   @Nullable
-  private NlComponent updateHierarchy(@Nullable NlComponent parent, ViewInfo view,
-                                      @AndroidCoordinate int parentX, @AndroidCoordinate int parentY) {
+  private NlComponent updateHierarchy(@NonNull List<NlComponent> newRoots,
+                                      @Nullable NlComponent parent,
+                                      @NonNull ViewInfo view,
+                                      @AndroidCoordinate int parentX,
+                                      @AndroidCoordinate int parentY) {
     Object cookie = view.getCookie();
     NlComponent component = null;
     ViewInfo bounds = RenderService.getSafeBounds(view);
@@ -461,7 +450,10 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
           Rectangle rectangle = new Rectangle(left, top, width, height);
           rectangle.add(rectanglePrev);
           mergedComponent.setBounds(rectanglePrev.x, rectanglePrev.y, rectanglePrev.width, rectanglePrev.height);
-          return null;
+          if (parent != null) {
+            parent.addChild(mergedComponent);
+          }
+          return mergedComponent;
         }
       }
     }
@@ -470,8 +462,10 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     }
     if (tag != null) {
       component = myTagToComponentMap.get(tag);
+
+      //noinspection StatementWithEmptyBody
       if (component != null) {
-        // TODO: Clear out component is the tag is not valid
+        // TODO: Clear out component if the tag is not valid
         //if (!tag.isValid()) {
         //  component = null;
         //}
@@ -493,7 +487,10 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
       component.setBounds(left, top, Math.max(width, VISUAL_EMPTY_COMPONENT_SIZE), Math.max(height, VISUAL_EMPTY_COMPONENT_SIZE));
 
-      if (parent != null && parent != component) {
+      if (parent == null) {
+        newRoots.add(component);
+      }
+      else if (parent != component) {
         parent.addChild(component);
         if (isMerge) {
           myMergeComponentMap.put(tag, component);
@@ -509,7 +506,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     parentY += bounds.getTop();
 
     for (ViewInfo child : view.getChildren()) {
-      updateHierarchy(parent, child, parentX, parentY);
+      updateHierarchy(newRoots, parent, child, parentX, parentY);
     }
 
     return component;
@@ -735,7 +732,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    * <p/>
    * Note: This operation can only be called when the caller is already holding a write lock. This will be the
    * case from {@link ViewHandler} callbacks such as {@link ViewHandler#onCreate(ViewEditor, NlComponent, NlComponent, InsertType)}
-   * and {@link com.android.tools.idea.uibuilder.api.DragHandler#commit(int, int, int)}.
+   * and {@link DragHandler#commit(int, int, int)}.
    *
    * @param screenView The target screen, if known. Used to handle pixel to dp computations in view handlers, etc.
    * @param fqcn       The fully qualified name of the widget to insert, such as {@code android.widget.LinearLayout}.

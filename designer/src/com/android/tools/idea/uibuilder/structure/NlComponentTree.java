@@ -17,6 +17,8 @@ package com.android.tools.idea.uibuilder.structure;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
+import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
+import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.DesignSurfaceListener;
@@ -73,12 +75,12 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
     mySelectionIsUpdating = new AtomicBoolean(false);
     myUpdateQueue = new MergingUpdateQueue(
       "android.layout.structure-pane", UPDATE_DELAY_MSECS, true, null, null, null, SWING_THREAD);
-    DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode(null);
+    DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode(new FakeRootComponent(myModel));
     DefaultTreeModel treeModel = new DefaultTreeModel(rootNode);
     setModel(treeModel);
     getSelectionModel().setSelectionMode(TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION);
     setBorder(new EmptyBorder(INSETS));
-    setRootVisible(false);
+    setRootVisible(true);
     setShowsRootHandles(false);
     setToggleClickCount(1);
     ToolTipManager.sharedInstance().registerComponent(this);
@@ -426,6 +428,15 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
       clearToggledPaths();
       List<NlComponent> components = myModel != null ? myModel.getComponents() : null;
       replaceChildNodes(rootPath, components);
+      NlComponent root = new FakeRootComponent(myModel);
+      if (components != null) {
+        for (NlComponent component : components) {
+          root.addChild(component);
+        }
+      }
+      DefaultMutableTreeNode rootNode = (DefaultMutableTreeNode) rootPath.getLastPathComponent();
+      rootNode.setUserObject(root);
+      expandPath(rootPath);
     }
 
     private void recordVisibleNodes(@NonNull TreePath path) {
@@ -486,6 +497,25 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
       } finally {
         mySelectionIsUpdating.set(false);
       }
+    }
+  }
+
+  private static final class FakeRootComponent extends NlComponent {
+
+    FakeRootComponent(@NonNull NlModel model) {
+      super(model, EmptyXmlTag.INSTANCE);
+    }
+
+    @Nullable
+    @Override
+    public ViewHandler getViewHandler() {
+      return null;
+    }
+
+    @Nullable
+    @Override
+    public ViewGroupHandler getViewGroupHandler() {
+      return null;
     }
   }
 }
