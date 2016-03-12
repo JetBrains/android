@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard;
 
+import com.android.tools.idea.tests.gui.framework.Wait;
 import com.android.tools.idea.ui.LabelWithEditLink;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.ui.HyperlinkLabel;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiQuery;
-import org.fest.swing.timing.Condition;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -28,7 +28,6 @@ import java.io.File;
 
 import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.swing.edt.GuiActionRunner.execute;
-import static org.fest.swing.timing.Pause.pause;
 
 public class ConfigureAndroidProjectStepFixture extends AbstractWizardStepFixture<ConfigureAndroidProjectStepFixture> {
   protected ConfigureAndroidProjectStepFixture(@NotNull Robot robot, @NotNull JRootPane target) {
@@ -57,9 +56,9 @@ public class ConfigureAndroidProjectStepFixture extends AbstractWizardStepFixtur
     robot().click(editLabel);
 
     final JTextField textField = robot().finder().findByType(link, JTextField.class);
-    pause(new Condition("'Package name' field to be visible") {
+    Wait.seconds(30).expecting("'Package name' field to be visible").until(new Wait.Objective() {
       @Override
-      public boolean test() {
+      public boolean isMet() {
         return textField.isShowing();
       }
     });

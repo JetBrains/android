@@ -21,13 +21,13 @@ import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.android.tools.idea.tests.gui.framework.Wait;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.*;
 import org.fest.assertions.Index;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.data.TableCell;
 import org.fest.swing.fixture.*;
-import org.fest.swing.timing.Condition;
 import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Ignore;
@@ -44,7 +44,6 @@ import java.util.List;
 import static com.android.tools.idea.tests.gui.framework.TestGroup.THEME;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.swing.data.TableCell.row;
-import static org.fest.swing.timing.Pause.pause;
 import static org.junit.Assert.*;
 
 /**
@@ -112,9 +111,9 @@ public class ThemeEditorTableTest {
     guiTest.ideFrame().invokeMenuPathRegex("Edit", "Redo.*");
     assertEquals(newParent, themeEditorTable.getComboBoxSelectionAt(parentCell));
 
-    pause(new Condition("potential tooltips to disappear") {
+    Wait.seconds(30).expecting("potential tooltips to disappear").until(new Wait.Objective() {
       @Override
-      public boolean test() {
+      public boolean isMet() {
         return guiTest.robot().findActivePopupMenu() == null;
       }
     });
@@ -137,14 +136,14 @@ public class ThemeEditorTableTest {
     edit.click();
 
     final JComboBoxFixture themesComboBox = themeEditor.getThemesComboBox();
-    pause(new Condition("parent to load") {
+    Wait.minutes(2).expecting("parent to load").until(new Wait.Objective() {
       @Override
-      public boolean test() {
+      public boolean isMet() {
         // Cannot use themesComboBox.selectedItem() here
         // because the parent theme is not necessarily one of the themes present in the combobox model
         return parentName.equals(themesComboBox.target().getSelectedItem().toString());
       }
-    }, GuiTests.SHORT_TIMEOUT);
+    });
   }
 
   @Ignore("Too flaky")
@@ -243,9 +242,9 @@ public class ThemeEditorTableTest {
     });
     secondDialog.getColorPicker().setColorWithIntegers(new Color(200, 0, 0, 200));
     secondDialog.clickOK();
-    pause(new Condition("component update") {
+    Wait.seconds(30).expecting("component update").until(new Wait.Objective() {
       @Override
-      public boolean test() {
+      public boolean isMet() {
         return "@color/primary_text_default_material_dark".equals(state0.getValue());
       }
     });
@@ -261,9 +260,9 @@ public class ThemeEditorTableTest {
     secondDialog.getList(ChooseResourceDialog.APP_NAMESPACE_LABEL).clickItem("abc_disabled_alpha_material_dark");
     secondDialog.focus();
     secondDialog.clickOK();
-    pause(new Condition("component update") {
+    Wait.seconds(30).expecting("component update").until(new Wait.Objective() {
       @Override
-      public boolean test() {
+      public boolean isMet() {
         return "@dimen/abc_disabled_alpha_material_dark".equals(state0.getAlphaValue());
       }
     });
@@ -278,9 +277,9 @@ public class ThemeEditorTableTest {
     });
     secondDialog.getColorPicker().setColorWithIntegers(new Color(0, 200, 0, 255));
     secondDialog.clickOK();
-    pause(new Condition("component update") {
+    Wait.seconds(30).expecting("component update").until(new Wait.Objective() {
       @Override
-      public boolean test() {
+      public boolean isMet() {
         return "@color/primary_text_default_material_dark".equals(state1.getValue());
       }
     });
@@ -321,12 +320,12 @@ public class ThemeEditorTableTest {
     textComponent.requireText("@android:color/background_holo_light");
     textComponent.enterText("invalid");
     tableCell.stopEditing();
-    pause(new Condition("warning icon to be loaded") {
+    Wait.minutes(2).expecting("warning icon to be loaded").until(new Wait.Objective() {
       @Override
-      public boolean test() {
+      public boolean isMet() {
         return themeEditorTable.hasWarningIconAt(cell);
       }
-    }, GuiTests.SHORT_TIMEOUT);
+    });
 
     tableCell.startEditing();
     textComponent = resourceComponent.getTextField();
