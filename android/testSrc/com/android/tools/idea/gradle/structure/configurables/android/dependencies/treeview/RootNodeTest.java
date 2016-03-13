@@ -15,10 +15,15 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview;
 
+import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.structure.model.PsProject;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.android.tools.idea.gradle.structure.model.android.PsDependencyContainer;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.intellij.openapi.module.Module;
+import com.intellij.util.containers.Predicate;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Test;
@@ -73,8 +78,8 @@ public class RootNodeTest {
                       container("v2", ARTIFACT_MAIN)
       ));
 
-    List<PsAndroidDependency> allDependencies = Lists.newArrayList(myD1, myD2);
-    Map<List<PsDependencyContainer>, List<PsAndroidDependency>> groups = RootNode.group(allDependencies);
+    PsAndroidModule module = new PsAndroidModuleStub(Lists.newArrayList(myD1, myD2));
+    Map<List<PsDependencyContainer>, List<PsAndroidDependency>> groups = RootNode.groupDependencies(module);
     assertThat(groups).hasSize(2);
 
     List<PsDependencyContainer> group = Lists.newArrayList(container("v3", ARTIFACT_MAIN));
@@ -111,8 +116,8 @@ public class RootNodeTest {
       Sets.newHashSet(container("v1", ARTIFACT_MAIN)
       ));
 
-    List<PsAndroidDependency> allDependencies = Lists.newArrayList(myD1, myD2, myD3);
-    Map<List<PsDependencyContainer>, List<PsAndroidDependency>> groups = RootNode.group(allDependencies);
+    PsAndroidModule module = new PsAndroidModuleStub(Lists.newArrayList(myD1, myD2, myD3));
+    Map<List<PsDependencyContainer>, List<PsAndroidDependency>> groups = RootNode.groupDependencies(module);
     assertThat(groups).hasSize(4);
 
     List<PsDependencyContainer> group = Lists.newArrayList(container("v1", ARTIFACT_MAIN));
@@ -152,8 +157,8 @@ public class RootNodeTest {
                       container("v2", ARTIFACT_MAIN)
       ));
 
-    List<PsAndroidDependency> allDependencies = Lists.newArrayList(myD1, myD2);
-    Map<List<PsDependencyContainer>, List<PsAndroidDependency>> groups = RootNode.group(allDependencies);
+    PsAndroidModule module = new PsAndroidModuleStub(Lists.newArrayList(myD1, myD2));
+    Map<List<PsDependencyContainer>, List<PsAndroidDependency>> groups = RootNode.groupDependencies(module);
     assertThat(groups).hasSize(2);
 
     List<PsDependencyContainer> group = Lists.newArrayList(container("v1", ARTIFACT_MAIN),
@@ -170,5 +175,21 @@ public class RootNodeTest {
   @NotNull
   private static PsDependencyContainer container(@NotNull String variant, @NotNull String artifact) {
     return new PsDependencyContainer(variant, artifact);
+  }
+
+  private static class PsAndroidModuleStub extends PsAndroidModule {
+    @NotNull private final List<PsAndroidDependency> myDependencies;
+
+    public PsAndroidModuleStub(@NotNull List<PsAndroidDependency> dependencies) {
+      super(mock(PsProject.class), mock(Module.class), "", mock(AndroidGradleModel.class));
+      myDependencies = dependencies;
+    }
+
+    @Override
+    public void forEachDependency(@NotNull Predicate<PsAndroidDependency> function) {
+      for (PsAndroidDependency dependency : myDependencies) {
+        function.apply(dependency);
+      }
+    }
   }
 }

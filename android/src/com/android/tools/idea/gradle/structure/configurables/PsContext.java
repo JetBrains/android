@@ -23,7 +23,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.EventListener;
 
-public class PsdContext {
+public class PsContext {
   @NotNull private final EventDispatcher<ChangeListener> myEventDispatcher = EventDispatcher.create(ChangeListener.class);
   @NotNull private final PsIssues myIssues = new PsIssues();
 

@@ -82,8 +82,8 @@ public class PsAndroidArtifact extends PsChildModel implements PsAndroidModel {
 
   @Override
   @NotNull
-  public AndroidGradleModel getAndroidGradleModel() {
-    return getParent().getAndroidGradleModel();
+  public AndroidGradleModel getGradleModel() {
+    return getParent().getGradleModel();
   }
 
   @Override

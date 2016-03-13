@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview;
 
-import com.android.tools.idea.gradle.structure.configurables.ui.PsdUISettings;
+import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsdNode;
 import com.android.tools.idea.gradle.structure.model.PsModel;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
@@ -43,18 +43,18 @@ public class ResolvedDependenciesTreeBuilder extends AbstractTreeBuilder {
   @NotNull private final DependencySelection myDependencySelectionSource;
   @NotNull private final DependencySelection myDependencySelectionDestination;
 
-  public ResolvedDependenciesTreeBuilder(@NotNull PsAndroidModule moduleModel,
+  public ResolvedDependenciesTreeBuilder(@NotNull PsAndroidModule module,
                                          @NotNull JTree tree,
                                          @NotNull DefaultTreeModel treeModel,
                                          @NotNull DependencySelection dependencySelectionSource,
                                          @NotNull DependencySelection dependencySelectionDestination) {
-    super(tree, treeModel, new ResolvedDependenciesTreeStructure(moduleModel), IndexComparator.INSTANCE);
+    super(tree, treeModel, new ResolvedDependenciesTreeStructure(module), IndexComparator.INSTANCE);
     myDependencySelectionSource = dependencySelectionSource;
     myDependencySelectionDestination = dependencySelectionDestination;
 
-    PsdUISettings.ChangeListener changeListener = new PsdUISettings.ChangeListener() {
+    PsUISettings.ChangeListener changeListener = new PsUISettings.ChangeListener() {
       @Override
-      public void settingsChanged(@NotNull PsdUISettings settings) {
+      public void settingsChanged(@NotNull PsUISettings settings) {
         AbstractTreeStructure treeStructure = getTreeStructure();
 
         if (treeStructure instanceof ResolvedDependenciesTreeStructure) {
@@ -74,7 +74,7 @@ public class ResolvedDependenciesTreeBuilder extends AbstractTreeBuilder {
         }
       }
     };
-    PsdUISettings.getInstance().addListener(changeListener, this);
+    PsUISettings.getInstance().addListener(changeListener, this);
   }
 
   @Override

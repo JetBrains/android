@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview;
 
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.PsAndroidDependencyComparator;
-import com.android.tools.idea.gradle.structure.configurables.ui.PsdUISettings;
+import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsdNode;
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsModel;
@@ -66,7 +66,7 @@ class LibraryDependencyNode extends AbstractDependencyNode<PsLibraryDependency> 
 
   @NotNull
   private static String getTextForSpec(@NotNull String name, @NotNull String version, @Nullable String group) {
-    boolean showGroupId = PsdUISettings.getInstance().DECLARED_DEPENDENCIES_SHOW_GROUP_ID;
+    boolean showGroupId = PsUISettings.getInstance().DECLARED_DEPENDENCIES_SHOW_GROUP_ID;
     StringBuilder text = new StringBuilder();
     if (showGroupId && isNotEmpty(group)) {
       text.append(group).append(GRADLE_PATH_SEPARATOR);

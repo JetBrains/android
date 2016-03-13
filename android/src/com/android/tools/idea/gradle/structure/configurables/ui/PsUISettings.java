@@ -27,7 +27,7 @@ import java.util.EventListener;
   name = "PsdUISettings",
   storages = @Storage(file = StoragePathMacros.APP_CONFIG + "/android.gradle.psd.xml")
 )
-public class PsdUISettings implements PersistentStateComponent<PsdUISettings> {
+public class PsUISettings implements PersistentStateComponent<PsUISettings> {
   public boolean DECLARED_DEPENDENCIES_SHOW_GROUP_ID;
   public boolean VARIANTS_DEPENDENCIES_SHOW_GROUP_ID;
   public boolean VARIANTS_DEPENDENCIES_GROUP_VARIANTS = true;
@@ -36,8 +36,8 @@ public class PsdUISettings implements PersistentStateComponent<PsdUISettings> {
 
   @NotNull private final EventDispatcher<ChangeListener> myEventDispatcher = EventDispatcher.create(ChangeListener.class);
 
-  public static PsdUISettings getInstance() {
-    return ServiceManager.getService(PsdUISettings.class);
+  public static PsUISettings getInstance() {
+    return ServiceManager.getService(PsUISettings.class);
   }
 
   public void addListener(@NotNull ChangeListener listener, @NotNull Disposable parentDisposable) {
@@ -50,16 +50,16 @@ public class PsdUISettings implements PersistentStateComponent<PsdUISettings> {
 
   @Override
   @NotNull
-  public PsdUISettings getState() {
+  public PsUISettings getState() {
     return this;
   }
 
   @Override
-  public void loadState(PsdUISettings state) {
+  public void loadState(PsUISettings state) {
     XmlSerializerUtil.copyBean(state, this);
   }
 
   public interface ChangeListener extends EventListener {
-    void settingsChanged(@NotNull PsdUISettings settings);
+    void settingsChanged(@NotNull PsUISettings settings);
   }
 }

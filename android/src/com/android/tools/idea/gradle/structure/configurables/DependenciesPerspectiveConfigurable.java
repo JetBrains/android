@@ -32,19 +32,19 @@ import java.util.Map;
 public class DependenciesPerspectiveConfigurable extends BasePerspectiveConfigurable {
   private Map<String, NamedConfigurable<? extends PsModule>> myConfigurablesByGradlePath = Maps.newHashMap();
 
-  public DependenciesPerspectiveConfigurable(@NotNull PsProject projectModel, @NotNull PsdContext context) {
+  public DependenciesPerspectiveConfigurable(@NotNull PsProject projectModel, @NotNull PsContext context) {
     super(projectModel, context);
   }
 
   @Override
   @Nullable
-  protected NamedConfigurable<? extends PsModule> getConfigurable(@NotNull PsModule moduleModel) {
-    String gradlePath = moduleModel.getGradlePath();
+  protected NamedConfigurable<? extends PsModule> getConfigurable(@NotNull PsModule module) {
+    String gradlePath = module.getGradlePath();
     NamedConfigurable<? extends PsModule> configurable = myConfigurablesByGradlePath.get(gradlePath);
     if (configurable == null) {
-      if (moduleModel instanceof PsAndroidModule) {
-        PsAndroidModule androidModuleModel = (PsAndroidModule)moduleModel;
-        configurable = new AndroidModuleDependenciesConfigurable(androidModuleModel, getContext());
+      if (module instanceof PsAndroidModule) {
+        PsAndroidModule androidModule = (PsAndroidModule)module;
+        configurable = new AndroidModuleDependenciesConfigurable(androidModule, getContext());
         myConfigurablesByGradlePath.put(gradlePath, configurable);
       }
     }

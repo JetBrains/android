@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.structure.model.PsChildModel;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
+import com.intellij.util.containers.Predicate;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -53,8 +54,8 @@ public class PsVariant extends PsChildModel implements PsAndroidModel {
 
   @Override
   @NotNull
-  public AndroidGradleModel getAndroidGradleModel() {
-    return getParent().getAndroidGradleModel();
+  public AndroidGradleModel getGradleModel() {
+    return getParent().getGradleModel();
   }
 
   @Override
@@ -74,9 +75,8 @@ public class PsVariant extends PsChildModel implements PsAndroidModel {
     return getOrCreateArtifactCollection().findElement(name, PsAndroidArtifact.class);
   }
 
-  @NotNull
-  public List<PsAndroidArtifact> getArtifacts() {
-    return getOrCreateArtifactCollection().getElements();
+  public void forEachArtifact(@NotNull Predicate<PsAndroidArtifact> function) {
+    getOrCreateArtifactCollection().forEach(function);
   }
 
   @NotNull

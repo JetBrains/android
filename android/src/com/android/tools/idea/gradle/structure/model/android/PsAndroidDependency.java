@@ -42,8 +42,8 @@ public abstract class PsAndroidDependency extends PsChildModel implements PsAndr
 
   @Override
   @NotNull
-  public AndroidGradleModel getAndroidGradleModel() {
-    return getParent().getAndroidGradleModel();
+  public AndroidGradleModel getGradleModel() {
+    return getParent().getGradleModel();
   }
 
   @Override

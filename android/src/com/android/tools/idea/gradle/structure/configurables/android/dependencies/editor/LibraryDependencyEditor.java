@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.editor;
 
-import com.android.tools.idea.gradle.structure.configurables.PsdContext;
+import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.android.PsLibraryDependency;
 import com.intellij.icons.AllIcons;
@@ -40,7 +40,7 @@ import static com.intellij.util.ui.UIUtil.getLabelBackground;
 import static org.jetbrains.android.util.AndroidUiUtil.setUpAsHtmlLabel;
 
 public class LibraryDependencyEditor implements DependencyEditor<PsLibraryDependency> {
-  @NotNull private final PsdContext myContext;
+  @NotNull private final PsContext myContext;
 
   private JPanel myPanel;
   private JTextField myGroupIdTextField;
@@ -55,7 +55,7 @@ public class LibraryDependencyEditor implements DependencyEditor<PsLibraryDepend
   private LightweightHint mySourceInfoHint;
   private PsLibraryDependency myModel;
 
-  public LibraryDependencyEditor(@NotNull PsdContext context) {
+  public LibraryDependencyEditor(@NotNull PsContext context) {
     myContext = context;
     myScopeLabel.setLabelFor(myScopeField.getTextField());
     showAsLabel(myGroupIdTextField, myArtifactNameTextField);

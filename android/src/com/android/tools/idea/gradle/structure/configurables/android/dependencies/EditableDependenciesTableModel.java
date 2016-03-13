@@ -18,7 +18,10 @@ package com.android.tools.idea.gradle.structure.configurables.android.dependenci
 import com.android.tools.idea.gradle.structure.configurables.ui.BaseTableCellRenderer;
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.android.tools.idea.gradle.structure.model.android.PsLibraryDependency;
+import com.google.common.collect.Lists;
+import com.intellij.util.containers.Predicate;
 import com.intellij.util.ui.ColumnInfo;
 import com.intellij.util.ui.ListTableModel;
 import org.jetbrains.annotations.NotNull;
@@ -32,8 +35,16 @@ import java.util.List;
  * Model for the table displaying the "editable" dependencies of a module.
  */
 class EditableDependenciesTableModel extends ListTableModel<PsAndroidDependency> {
-  EditableDependenciesTableModel(@NotNull List<PsAndroidDependency> dependencies) {
+  EditableDependenciesTableModel(@NotNull PsAndroidModule module) {
     createAndSetColumnInfos();
+    final List<PsAndroidDependency> dependencies = Lists.newArrayList();
+    module.forEachDeclaredDependency(new Predicate<PsAndroidDependency>() {
+      @Override
+      public boolean apply(@Nullable PsAndroidDependency dependency) {
+        dependencies.add(dependency);
+        return true;
+      }
+    });
     Collections.sort(dependencies, PsAndroidDependencyComparator.INSTANCE);
     setItems(dependencies);
   }

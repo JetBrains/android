@@ -17,12 +17,10 @@ package com.android.tools.idea.gradle.structure.configurables.android.treeview;
 
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsdNode;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
-import com.android.tools.idea.gradle.structure.model.android.PsVariant;
 import com.google.common.collect.Lists;
 import com.intellij.ui.treeStructure.SimpleNode;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collection;
 import java.util.List;
 
 public abstract class AbstractRootNode extends AbstractPsdNode<PsAndroidModule> {
@@ -36,12 +34,8 @@ public abstract class AbstractRootNode extends AbstractPsdNode<PsAndroidModule> 
   @Override
   public SimpleNode[] getChildren() {
     if (myChildren == null) {
-      List<SimpleNode> children = Lists.newArrayList();
-      for (PsAndroidModule moduleModel : getModels()) {
-        List<? extends AbstractPsdNode> variantChildren = createChildren(moduleModel.getVariants());
-        children.addAll(variantChildren);
-      }
-      myChildren = children;
+      myChildren = Lists.newArrayList();
+      myChildren.addAll(createChildren());
     }
     return myChildren.toArray(new SimpleNode[myChildren.size()]);
   }
@@ -51,5 +45,5 @@ public abstract class AbstractRootNode extends AbstractPsdNode<PsAndroidModule> 
   }
 
   @NotNull
-  protected abstract List<? extends AbstractPsdNode> createChildren(@NotNull Collection<PsVariant> variants);
+  protected abstract List<? extends AbstractPsdNode> createChildren();
 }

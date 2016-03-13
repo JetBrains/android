@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.structure.model;
 
 import com.android.builder.model.MavenCoordinates;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
-import com.android.tools.idea.gradle.structure.configurables.ui.PsdUISettings;
+import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
 import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
 import com.google.common.base.Splitter;
@@ -140,7 +140,7 @@ public class PsArtifactDependencySpec {
 
   @NotNull
   public String getDisplayText() {
-    boolean showGroupId = PsdUISettings.getInstance().DECLARED_DEPENDENCIES_SHOW_GROUP_ID;
+    boolean showGroupId = PsUISettings.getInstance().DECLARED_DEPENDENCIES_SHOW_GROUP_ID;
     StringBuilder text = new StringBuilder();
     if (showGroupId && isNotEmpty(group)) {
       text.append(group).append(GRADLE_PATH_SEPARATOR);

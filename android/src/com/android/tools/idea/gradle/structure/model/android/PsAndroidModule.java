@@ -21,13 +21,12 @@ import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.PsParsedDependencies;
 import com.android.tools.idea.gradle.structure.model.PsProject;
 import com.intellij.openapi.module.Module;
+import com.intellij.util.containers.Predicate;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.util.Collection;
-import java.util.List;
 
 public class PsAndroidModule extends PsModule implements PsAndroidModel {
   @NotNull private final AndroidGradleModel myGradleModel;
@@ -45,9 +44,8 @@ public class PsAndroidModule extends PsModule implements PsAndroidModel {
     myGradleModel = gradleModel;
   }
 
-  @NotNull
-  public List<PsProductFlavor> getProductFlavors() {
-    return getOrCreateProductFlavorCollection().getElements();
+  public void forEachProductFlavor(@NotNull Predicate<PsProductFlavor> function) {
+    getOrCreateProductFlavorCollection().forEach(function);
   }
 
   @Nullable
@@ -63,29 +61,33 @@ public class PsAndroidModule extends PsModule implements PsAndroidModel {
     return myProductFlavorCollection;
   }
 
-  @NotNull
-  public List<PsVariant> getVariants() {
-    return getOrCreateVariantCollection().getElements();
+  public void forEachVariant(@NotNull Predicate<PsVariant> function) {
+    getOrCreateVariantCollection().forEach(function);
   }
 
   @Nullable
-  public PsVariant findVariant(@NotNull String variantName) {
-    return getOrCreateVariantCollection().find(variantName);
+  public PsVariant findVariant(@NotNull String name) {
+    return getOrCreateVariantCollection().findElement(name, PsVariant.class);
   }
 
   @NotNull
-  public List<PsAndroidDependency> getDeclaredDependencies() {
-    return getOrCreateDependencyCollection().getDeclaredDependencies();
+  private PsVariantCollection getOrCreateVariantCollection() {
+    if (myVariantCollection == null) {
+      myVariantCollection = new PsVariantCollection(this);
+    }
+    return myVariantCollection;
   }
 
-  @NotNull
-  public List<PsAndroidDependency> getDependencies() {
-    return getOrCreateDependencyCollection().getElements();
+  public void forEachDeclaredDependency(@NotNull Predicate<PsAndroidDependency> function) {
+    getOrCreateDependencyCollection().forEachDeclaredDependency(function);
   }
 
-  @NotNull
-  public Collection<PsModuleDependency> getModuleDependencies() {
-    return getOrCreateDependencyCollection().getModuleDependencies();
+  public void forEachDependency(@NotNull Predicate<PsAndroidDependency> function) {
+    getOrCreateDependencyCollection().forEach(function);
+  }
+
+  public void forEachModuleDependency(@NotNull Predicate<PsModuleDependency> function) {
+    getOrCreateDependencyCollection().forEachModuleDependency(function);
   }
 
   @Nullable
@@ -94,8 +96,8 @@ public class PsAndroidModule extends PsModule implements PsAndroidModel {
   }
 
   @Nullable
-  public PsLibraryDependency findLibraryDependency(@NotNull PsArtifactDependencySpec dependency) {
-    return getOrCreateDependencyCollection().findElement(dependency.toString(), PsLibraryDependency.class);
+  public PsLibraryDependency findLibraryDependency(@NotNull PsArtifactDependencySpec spec) {
+    return getOrCreateDependencyCollection().findElement(spec.toString(), PsLibraryDependency.class);
   }
 
   @NotNull
@@ -114,17 +116,9 @@ public class PsAndroidModule extends PsModule implements PsAndroidModel {
     return myParsedDependencies;
   }
 
-  @NotNull
-  private PsVariantCollection getOrCreateVariantCollection() {
-    if (myVariantCollection == null) {
-      myVariantCollection = new PsVariantCollection(this);
-    }
-    return myVariantCollection;
-  }
-
   @Override
   @NotNull
-  public AndroidGradleModel getAndroidGradleModel() {
+  public AndroidGradleModel getGradleModel() {
     return myGradleModel;
   }
 

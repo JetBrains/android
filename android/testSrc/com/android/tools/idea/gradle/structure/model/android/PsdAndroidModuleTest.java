@@ -20,9 +20,13 @@ import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyMo
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsProject;
 import com.android.tools.idea.templates.AndroidGradleTestCase;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.util.containers.Predicate;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.Collection;
@@ -39,62 +43,88 @@ public class PsdAndroidModuleTest extends AndroidGradleTestCase {
   public void testProductFlavors() throws Throwable {
     loadProject("projects/projectWithAppandLib");
 
-    Project project = myFixture.getProject();
-    PsProject projectEditor = new PsProject(project);
+    Project resolvedProject = myFixture.getProject();
+    PsProject project = new PsProject(resolvedProject);
 
-    PsAndroidModule appModuleEditor = (PsAndroidModule)projectEditor.findModuleByName("app");
-    assertNotNull(appModuleEditor);
+    PsAndroidModule appModule = (PsAndroidModule)project.findModuleByName("app");
+    assertNotNull(appModule);
 
-    List<PsProductFlavor> flavorEditors = appModuleEditor.getProductFlavors();
-    assertThat(flavorEditors).hasSize(2);
+    List<PsProductFlavor> productFlavors = getProductFlavors(appModule);
+    assertThat(productFlavors).hasSize(2);
 
-    PsProductFlavor basic = appModuleEditor.findProductFlavor("basic");
+    PsProductFlavor basic = appModule.findProductFlavor("basic");
     assertNotNull(basic);
     assertTrue(basic.isEditable());
 
-    PsProductFlavor release = appModuleEditor.findProductFlavor("paid");
+    PsProductFlavor release = appModule.findProductFlavor("paid");
     assertNotNull(release);
     assertTrue(release.isEditable());
+  }
+
+  @NotNull
+  private static List<PsProductFlavor> getProductFlavors(@NotNull PsAndroidModule module) {
+    final List<PsProductFlavor> productFlavors = Lists.newArrayList();
+    module.forEachProductFlavor(new Predicate<PsProductFlavor>() {
+      @Override
+      public boolean apply(@Nullable PsProductFlavor productFlavor) {
+        productFlavors.add(productFlavor);
+        return true;
+      }
+    });
+    return productFlavors;
   }
 
   public void testVariants() throws Throwable {
     loadProject("projects/projectWithAppandLib");
 
-    Project project = myFixture.getProject();
-    PsProject projectEditor = new PsProject(project);
+    Project resolvedProject = myFixture.getProject();
+    PsProject project = new PsProject(resolvedProject);
 
-    PsAndroidModule appModuleEditor = (PsAndroidModule)projectEditor.findModuleByName("app");
-    assertNotNull(appModuleEditor);
+    PsAndroidModule appModule = (PsAndroidModule)project.findModuleByName("app");
+    assertNotNull(appModule);
 
-    Collection<PsVariant> variantEditors = appModuleEditor.getVariants();
-    assertThat(variantEditors).hasSize(4);
+    Collection<PsVariant> variants = getVariants(appModule);
+    assertThat(variants).hasSize(4);
 
-    PsVariant paidDebug = appModuleEditor.findVariant("paidDebug");
+    PsVariant paidDebug = appModule.findVariant("paidDebug");
     assertNotNull(paidDebug);
     List<String> flavors = paidDebug.getProductFlavors();
     assertThat(flavors).containsOnly("paid");
 
-    PsVariant paidRelease = appModuleEditor.findVariant("paidRelease");
+    PsVariant paidRelease = appModule.findVariant("paidRelease");
     assertNotNull(paidRelease);
     flavors = paidRelease.getProductFlavors();
     assertThat(flavors).containsOnly("paid");
 
-    PsVariant basicDebug = appModuleEditor.findVariant("basicDebug");
+    PsVariant basicDebug = appModule.findVariant("basicDebug");
     assertNotNull(basicDebug);
     flavors = basicDebug.getProductFlavors();
     assertThat(flavors).containsOnly("basic");
 
-    PsVariant basicRelease = appModuleEditor.findVariant("basicRelease");
+    PsVariant basicRelease = appModule.findVariant("basicRelease");
     assertNotNull(basicRelease);
     flavors = basicRelease.getProductFlavors();
     assertThat(flavors).containsOnly("basic");
   }
 
+  @NotNull
+  private static List<PsVariant> getVariants(@NotNull PsAndroidModule module) {
+    final List<PsVariant> variants = Lists.newArrayList();
+    module.forEachVariant(new Predicate<PsVariant>() {
+      @Override
+      public boolean apply(@Nullable PsVariant variant) {
+        variants.add(variant);
+        return true;
+      }
+    });
+    return variants;
+  }
+
   public void testEditableDependencies() throws Throwable {
     loadProject("projects/projectWithAppandLib");
 
-    Project project = myFixture.getProject();
-    Module appModule = ModuleManager.getInstance(project).findModuleByName("app");
+    Project resolvedProject = myFixture.getProject();
+    Module appModule = ModuleManager.getInstance(resolvedProject).findModuleByName("app");
     assertNotNull(appModule);
 
     // Make sure 'app' has an artifact dependency with version not including a '+'
@@ -107,7 +137,7 @@ public class PsdAndroidModuleTest extends AndroidGradleTestCase {
       }
     }
 
-    runWriteCommandAction(project, new Runnable() {
+    runWriteCommandAction(resolvedProject, new Runnable() {
       @Override
       public void run() {
         buildModel.applyChanges();
@@ -115,58 +145,77 @@ public class PsdAndroidModuleTest extends AndroidGradleTestCase {
     });
 
     //noinspection ConstantConditions
-    importProject(project, project.getName(), new File(project.getBasePath()), null);
+    importProject(resolvedProject, resolvedProject.getName(), new File(resolvedProject.getBasePath()), null);
 
-    PsProject projectEditor = new PsProject(project);
+    PsProject project = new PsProject(resolvedProject);
 
-    PsAndroidModule appModuleEditor = (PsAndroidModule)projectEditor.findModuleByName("app");
-    assertNotNull(appModuleEditor);
+    PsAndroidModule module = (PsAndroidModule)project.findModuleByName("app");
+    assertNotNull(module);
 
-    List<PsAndroidDependency> declaredDependencies = appModuleEditor.getDeclaredDependencies();
+    List<PsAndroidDependency> declaredDependencies = getDeclaredDependencies(module);
     assertThat(declaredDependencies).hasSize(1);
 
     // Verify that appcompat is considered a "editable" dependency, and it was matched properly
-    PsLibraryDependency appCompatV7Editor = (PsLibraryDependency)declaredDependencies.get(0);
-    assertTrue(appCompatV7Editor.isEditable());
-    assertEquals("com.android.support:appcompat-v7:23.1.1", appCompatV7Editor.getResolvedSpec().toString());
+    PsLibraryDependency appCompatV7 = (PsLibraryDependency)declaredDependencies.get(0);
+    assertTrue(appCompatV7.isEditable());
+
+    PsArtifactDependencySpec resolvedSpec = appCompatV7.getResolvedSpec();
+    assertEquals("com.android.support", resolvedSpec.group);
+    assertEquals("appcompat-v7", resolvedSpec.name);
 
     // Verify that the variants where appcompat is are properly registered.
-    Set<String> variants = appCompatV7Editor.getVariants();
+    Set<String> variants = appCompatV7.getVariants();
     assertThat(variants).containsOnly("paidDebug", "paidRelease", "basicDebug", "basicRelease");
 
-    // Verify that the variants where appcompat is have editors
     for (String variant : variants) {
-      assertNotNull(appModuleEditor.findVariant(variant));
+      assertNotNull(module.findVariant(variant));
     }
   }
 
   public void testEditableDependenciesWithPlusInVersion() throws Throwable {
     loadProject("projects/projectWithAppandLib");
 
-    Project project = myFixture.getProject();
-    PsProject projectEditor = new PsProject(project);
+    Project resolvedProject = myFixture.getProject();
+    PsProject project = new PsProject(resolvedProject);
 
-    PsAndroidModule appModuleEditor = (PsAndroidModule)projectEditor.findModuleByName("app");
-    assertNotNull(appModuleEditor);
+    PsAndroidModule appModule = (PsAndroidModule)project.findModuleByName("app");
+    assertNotNull(appModule);
 
-    List<PsAndroidDependency> declaredDependencies = appModuleEditor.getDeclaredDependencies();
+    List<PsAndroidDependency> declaredDependencies = getDeclaredDependencies(appModule);
     assertThat(declaredDependencies).hasSize(1);
 
     // Verify that appcompat is considered a "editable" dependency, and it was matched properly
-    PsLibraryDependency appCompatV7Editor = (PsLibraryDependency)declaredDependencies.get(0);
-    assertTrue(appCompatV7Editor.isEditable());
-    PsArtifactDependencySpec declaredSpec = appCompatV7Editor.getDeclaredSpec();
+    PsLibraryDependency appCompatV7 = (PsLibraryDependency)declaredDependencies.get(0);
+    assertTrue(appCompatV7.isEditable());
+
+    PsArtifactDependencySpec declaredSpec = appCompatV7.getDeclaredSpec();
     assertNotNull(declaredSpec);
     assertEquals("com.android.support:appcompat-v7:+", declaredSpec.toString());
-    assertEquals("com.android.support:appcompat-v7:23.1.1", appCompatV7Editor.getResolvedSpec().toString());
+
+    PsArtifactDependencySpec resolvedSpec = appCompatV7.getResolvedSpec();
+    assertEquals("com.android.support", resolvedSpec.group);
+    assertEquals("appcompat-v7", resolvedSpec.name);
+    assertThat(resolvedSpec.version).isNotEqualTo("+");
 
     // Verify that the variants where appcompat is are properly registered.
-    Set<String> variants = appCompatV7Editor.getVariants();
+    Set<String> variants = appCompatV7.getVariants();
     assertThat(variants).containsOnly("paidDebug", "paidRelease", "basicDebug", "basicRelease");
 
-    // Verify that the variants where appcompat is have editors
     for (String variant : variants) {
-      assertNotNull(appModuleEditor.findVariant(variant));
+      assertNotNull(appModule.findVariant(variant));
     }
+  }
+
+  @NotNull
+  private static List<PsAndroidDependency> getDeclaredDependencies(@NotNull PsAndroidModule module) {
+    final List<PsAndroidDependency> dependencies = Lists.newArrayList();
+    module.forEachDeclaredDependency(new Predicate<PsAndroidDependency>() {
+      @Override
+      public boolean apply(@Nullable PsAndroidDependency dependency) {
+        dependencies.add(dependency);
+        return true;
+      }
+    });
+    return dependencies;
   }
 }

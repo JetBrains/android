@@ -20,5 +20,5 @@ import org.jetbrains.annotations.NotNull;
 
 public interface PsAndroidModel {
   @NotNull
-  AndroidGradleModel getAndroidGradleModel();
+  AndroidGradleModel getGradleModel();
 }

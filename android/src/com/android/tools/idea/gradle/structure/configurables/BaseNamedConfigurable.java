@@ -28,19 +28,19 @@ import javax.swing.*;
 public abstract class BaseNamedConfigurable<T extends PsModule> extends NamedConfigurable<T>
   implements SearchableConfigurable, Place.Navigator {
 
-  @NotNull private final T myModuleModel;
+  @NotNull private final T myModule;
 
   private String myDisplayName;
 
-  protected BaseNamedConfigurable(@NotNull T moduleModel) {
-    myModuleModel = moduleModel;
-    myDisplayName = moduleModel.getName();
+  protected BaseNamedConfigurable(@NotNull T module) {
+    myModule = module;
+    myDisplayName = module.getName();
   }
 
   @Override
   @Nullable
   public Icon getIcon(boolean expanded) {
-    return myModuleModel.getModuleIcon();
+    return myModule.getModuleIcon();
   }
 
   @Override
@@ -56,7 +56,7 @@ public abstract class BaseNamedConfigurable<T extends PsModule> extends NamedCon
 
   @Override
   public T getEditableObject() {
-    return myModuleModel;
+    return myModule;
   }
 
   @Override
