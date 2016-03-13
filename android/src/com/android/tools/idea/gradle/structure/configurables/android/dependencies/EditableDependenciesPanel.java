@@ -19,8 +19,8 @@ import com.android.tools.idea.gradle.structure.configurables.PsdContext;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.editor.DependencyEditor;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.editor.LibraryDependencyEditor;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.DependencySelection;
-import com.android.tools.idea.gradle.structure.model.android.PsdAndroidDependencyModel;
-import com.android.tools.idea.gradle.structure.model.android.PsdAndroidModuleModel;
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.android.tools.idea.structure.dialog.Header;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -63,9 +63,9 @@ import static javax.swing.ListSelectionModel.MULTIPLE_INTERVAL_SELECTION;
  * Panel that displays the table of "editable" dependencies.
  */
 class EditableDependenciesPanel extends JPanel implements DependencySelection, Disposable {
-  @NotNull private final PsdAndroidModuleModel myModuleModel;
+  @NotNull private final PsAndroidModule myModuleModel;
   @NotNull private final EditableDependenciesTableModel myDependenciesTableModel;
-  @NotNull private final TableView<PsdAndroidDependencyModel> myDependenciesTable;
+  @NotNull private final TableView<PsAndroidDependency> myDependenciesTable;
   @NotNull private final ListSelectionListener myTableSelectionListener;
   @NotNull private final JScrollPane myEditorScrollPane;
   @NotNull private final EmptyEditorPanel myEmptyEditorPanel;
@@ -75,13 +75,13 @@ class EditableDependenciesPanel extends JPanel implements DependencySelection, D
 
   private List<AbstractPopupAction> myPopupActions;
 
-  EditableDependenciesPanel(@NotNull PsdAndroidModuleModel moduleModel, @NotNull PsdContext context) {
+  EditableDependenciesPanel(@NotNull PsAndroidModule moduleModel, @NotNull PsdContext context) {
     super(new BorderLayout());
     myModuleModel = moduleModel;
 
-    List<PsdAndroidDependencyModel> dependencies = myModuleModel.getDeclaredDependencies();
+    List<PsAndroidDependency> dependencies = myModuleModel.getDeclaredDependencies();
     myDependenciesTableModel = new EditableDependenciesTableModel(dependencies);
-    myDependenciesTable = new TableView<PsdAndroidDependencyModel>(myDependenciesTableModel);
+    myDependenciesTable = new TableView<PsAndroidDependency>(myDependenciesTableModel);
 
     initializeEditors(context);
     myEmptyEditorPanel = new EmptyEditorPanel();
@@ -98,7 +98,7 @@ class EditableDependenciesPanel extends JPanel implements DependencySelection, D
     myTableSelectionListener = new ListSelectionListener() {
       @Override
       public void valueChanged(ListSelectionEvent e) {
-        PsdAndroidDependencyModel selected = getSelection();
+        PsAndroidDependency selected = getSelection();
         if (selected != null) {
           for (SelectionListener listener : mySelectionListeners) {
             listener.dependencyModelSelected(selected);
@@ -133,9 +133,9 @@ class EditableDependenciesPanel extends JPanel implements DependencySelection, D
   }
 
   private void updateEditor() {
-    Collection<PsdAndroidDependencyModel> selection = myDependenciesTable.getSelection();
+    Collection<PsAndroidDependency> selection = myDependenciesTable.getSelection();
     if (selection.size() == 1) {
-      PsdAndroidDependencyModel selected = getFirstItem(selection);
+      PsAndroidDependency selected = getFirstItem(selection);
       assert selected != null;
       DependencyEditor editor = myEditors.get(selected.getClass());
       if (editor != null) {
@@ -225,7 +225,7 @@ class EditableDependenciesPanel extends JPanel implements DependencySelection, D
   }
 
   void add(@NotNull SelectionListener listener) {
-    PsdAndroidDependencyModel selected = getSelection();
+    PsAndroidDependency selected = getSelection();
     if (selected != null) {
       listener.dependencyModelSelected(selected);
     }
@@ -234,10 +234,10 @@ class EditableDependenciesPanel extends JPanel implements DependencySelection, D
 
   @Override
   @Nullable
-  public PsdAndroidDependencyModel getSelection() {
-    Collection<PsdAndroidDependencyModel> selection = myDependenciesTable.getSelection();
+  public PsAndroidDependency getSelection() {
+    Collection<PsAndroidDependency> selection = myDependenciesTable.getSelection();
     if (selection.size() == 1) {
-      PsdAndroidDependencyModel selected = getFirstItem(selection);
+      PsAndroidDependency selected = getFirstItem(selection);
       assert selected != null;
       return selected;
     }
@@ -245,7 +245,7 @@ class EditableDependenciesPanel extends JPanel implements DependencySelection, D
   }
 
   @Override
-  public void setSelection(@Nullable PsdAndroidDependencyModel selection) {
+  public void setSelection(@Nullable PsAndroidDependency selection) {
     ListSelectionModel tableSelectionModel = myDependenciesTable.getSelectionModel();
     // Remove ListSelectionListener. We only want the selection event when the user selects a table cell directly. If we got here is
     // because the user selected a dependency in the "Variants" tree view, and we are simply syncing the table.
@@ -264,7 +264,7 @@ class EditableDependenciesPanel extends JPanel implements DependencySelection, D
   }
 
   public interface SelectionListener {
-    void dependencyModelSelected(@NotNull PsdAndroidDependencyModel model);
+    void dependencyModelSelected(@NotNull PsAndroidDependency dependency);
   }
 
   private class AddDependencyAction extends AbstractPopupAction {

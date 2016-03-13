@@ -23,11 +23,11 @@ import java.awt.*;
 import static com.intellij.ui.JBColor.GRAY;
 import static com.intellij.ui.JBColor.RED;
 
-public class PsdIssue {
+public class PsIssue {
   @NotNull private final String myText;
   @NotNull private final Type myType;
 
-  public PsdIssue(@NotNull String text, @NotNull Type type) {
+  public PsIssue(@NotNull String text, @NotNull Type type) {
     myText = text;
     myType = type;
   }
@@ -50,9 +50,9 @@ public class PsdIssue {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    PsdIssue psdIssue = (PsdIssue)o;
-    return Objects.equal(myText, psdIssue.myText) &&
-           myType == psdIssue.myType;
+    PsIssue that = (PsIssue)o;
+    return Objects.equal(myText, that.myText) &&
+           myType == that.myType;
   }
 
   @Override

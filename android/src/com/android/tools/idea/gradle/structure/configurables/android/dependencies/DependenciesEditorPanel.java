@@ -20,8 +20,8 @@ import com.android.tools.idea.gradle.structure.configurables.ui.ModulesComboBoxA
 import com.android.tools.idea.gradle.structure.configurables.ui.PsdUISettings;
 import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowHeader;
 import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowPanel;
-import com.android.tools.idea.gradle.structure.model.android.PsdAndroidDependencyModel;
-import com.android.tools.idea.gradle.structure.model.android.PsdAndroidModuleModel;
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
@@ -38,7 +38,7 @@ import javax.swing.*;
 import java.awt.*;
 
 class DependenciesEditorPanel extends JPanel implements Disposable {
-  @NotNull private final PsdAndroidModuleModel myModuleModel;
+  @NotNull private final PsAndroidModule myModuleModel;
   @NotNull private final PsdContext myContext;
 
   @NotNull private final JBSplitter myVerticalSplitter;
@@ -49,7 +49,7 @@ class DependenciesEditorPanel extends JPanel implements Disposable {
   private boolean myShowModulesDropDown;
   private JComponent myModulesToolbar;
 
-  DependenciesEditorPanel(@NotNull PsdAndroidModuleModel moduleModel, @NotNull PsdContext context) {
+  DependenciesEditorPanel(@NotNull PsAndroidModule moduleModel, @NotNull PsdContext context) {
     super(new BorderLayout());
     myModuleModel = moduleModel;
     myContext = context;
@@ -86,15 +86,15 @@ class DependenciesEditorPanel extends JPanel implements Disposable {
     myEditableDependenciesPanel.updateTableColumnSizes();
     myEditableDependenciesPanel.add(new EditableDependenciesPanel.SelectionListener() {
       @Override
-      public void dependencyModelSelected(@NotNull PsdAndroidDependencyModel model) {
-        myResolvedDependenciesPanel.setSelection(model);
+      public void dependencyModelSelected(@NotNull PsAndroidDependency dependency) {
+        myResolvedDependenciesPanel.setSelection(dependency);
       }
     });
 
     myResolvedDependenciesPanel.add(new ResolvedDependenciesPanel.SelectionListener() {
       @Override
-      public void dependencyModelSelected(@Nullable PsdAndroidDependencyModel model) {
-        myEditableDependenciesPanel.setSelection(model);
+      public void dependencySelected(@Nullable PsAndroidDependency dependency) {
+        myEditableDependenciesPanel.setSelection(dependency);
       }
     });
 

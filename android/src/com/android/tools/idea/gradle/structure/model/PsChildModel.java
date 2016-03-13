@@ -17,15 +17,15 @@ package com.android.tools.idea.gradle.structure.model;
 
 import org.jetbrains.annotations.NotNull;
 
-public abstract class PsdChildModel extends PsdModel {
-  protected PsdChildModel(@NotNull PsdModel parent) {
+public abstract class PsChildModel extends PsModel {
+  protected PsChildModel(@NotNull PsModel parent) {
     super(parent);
   }
 
   @Override
   @NotNull
-  public PsdModel getParent() {
-    PsdModel parent = super.getParent();
+  public PsModel getParent() {
+    PsModel parent = super.getParent();
     assert parent != null;
     return parent;
   }

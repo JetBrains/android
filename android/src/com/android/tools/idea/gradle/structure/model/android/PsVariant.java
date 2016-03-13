@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.structure.model.android;
 
 import com.android.builder.model.Variant;
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.structure.model.PsdChildModel;
+import com.android.tools.idea.gradle.structure.model.PsChildModel;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import icons.AndroidIcons;
@@ -27,18 +27,18 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.util.List;
 
-public class PsdVariantModel extends PsdChildModel implements PsdAndroidModel {
+public class PsVariant extends PsChildModel implements PsAndroidModel {
   @NotNull private final String myName;
   @NotNull private final List<String> myProductFlavors;
 
   @Nullable private final Variant myResolvedModel;
 
-  private PsdAndroidArtifactModelCollection myArtifactModelCollection;
+  private PsAndroidArtifactCollection myArtifactCollection;
 
-  PsdVariantModel(@NotNull PsdAndroidModuleModel parent,
-                  @NotNull String name,
-                  @NotNull List<String> productFlavors,
-                  @Nullable Variant resolvedModel) {
+  PsVariant(@NotNull PsAndroidModule parent,
+            @NotNull String name,
+            @NotNull List<String> productFlavors,
+            @Nullable Variant resolvedModel) {
     super(parent);
     myName = name;
     myProductFlavors = productFlavors;
@@ -59,8 +59,8 @@ public class PsdVariantModel extends PsdChildModel implements PsdAndroidModel {
 
   @Override
   @NotNull
-  public PsdAndroidModuleModel getParent() {
-    return (PsdAndroidModuleModel)super.getParent();
+  public PsAndroidModule getParent() {
+    return (PsAndroidModule)super.getParent();
   }
 
   @Override
@@ -70,21 +70,21 @@ public class PsdVariantModel extends PsdChildModel implements PsdAndroidModel {
   }
 
   @Nullable
-  public PsdAndroidArtifactModel findArtifact(@NotNull String name) {
-    return getOrCreateArtifactModelCollection().findElement(name, PsdAndroidArtifactModel.class);
+  public PsAndroidArtifact findArtifact(@NotNull String name) {
+    return getOrCreateArtifactCollection().findElement(name, PsAndroidArtifact.class);
   }
 
   @NotNull
-  public List<PsdAndroidArtifactModel> getArtifacts() {
-    return getOrCreateArtifactModelCollection().getElements();
+  public List<PsAndroidArtifact> getArtifacts() {
+    return getOrCreateArtifactCollection().getElements();
   }
 
   @NotNull
-  private PsdAndroidArtifactModelCollection getOrCreateArtifactModelCollection() {
-    if (myArtifactModelCollection == null) {
-      myArtifactModelCollection = new PsdAndroidArtifactModelCollection(this);
+  private PsAndroidArtifactCollection getOrCreateArtifactCollection() {
+    if (myArtifactCollection == null) {
+      myArtifactCollection = new PsAndroidArtifactCollection(this);
     }
-    return myArtifactModelCollection;
+    return myArtifactCollection;
   }
 
   @NotNull
@@ -111,7 +111,7 @@ public class PsdVariantModel extends PsdChildModel implements PsdAndroidModel {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    PsdVariantModel that = (PsdVariantModel)o;
+    PsVariant that = (PsVariant)o;
     return Objects.equal(myName, that.myName);
   }
 

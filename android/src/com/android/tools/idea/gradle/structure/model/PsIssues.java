@@ -23,15 +23,15 @@ import java.util.List;
 
 import static com.intellij.xml.util.XmlStringUtil.escapeString;
 
-public class PsdIssues {
-  @NotNull private final List<PsdIssue> myIssues = Lists.newArrayList();
+public class PsIssues {
+  @NotNull private final List<PsIssue> myIssues = Lists.newArrayList();
 
-  public void addIssue(@NotNull PsdIssue issue) {
+  public void addIssue(@NotNull PsIssue issue) {
     myIssues.add(issue);
   }
 
   @NotNull
-  public List<PsdIssue> getIssues() {
+  public List<PsIssue> getIssues() {
     return ImmutableList.copyOf(myIssues);
   }
 
@@ -46,7 +46,7 @@ public class PsdIssues {
     int issueCount = myIssues.size();
     int problems = 0;
     for (int i = 0; i < issueCount; i++) {
-      PsdIssue issue = myIssues.get(i);
+      PsIssue issue = myIssues.get(i);
       buffer.append(escapeString(issue.getText())).append("<br>");
       problems++;
 

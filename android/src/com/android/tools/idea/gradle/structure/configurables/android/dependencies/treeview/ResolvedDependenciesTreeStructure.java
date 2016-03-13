@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview;
 
-import com.android.tools.idea.gradle.structure.model.android.PsdAndroidModuleModel;
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.intellij.ide.util.treeView.AbstractTreeStructure;
 import com.intellij.ide.util.treeView.NodeDescriptor;
 import com.intellij.ui.treeStructure.SimpleNode;
@@ -27,7 +27,7 @@ import static com.intellij.util.ArrayUtil.EMPTY_OBJECT_ARRAY;
 public class ResolvedDependenciesTreeStructure extends AbstractTreeStructure {
   @NotNull private final RootNode myRootNode;
 
-  ResolvedDependenciesTreeStructure(@NotNull PsdAndroidModuleModel moduleModel) {
+  ResolvedDependenciesTreeStructure(@NotNull PsAndroidModule moduleModel) {
     myRootNode = new RootNode(moduleModel);
   }
 

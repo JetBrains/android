@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview;
 
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.PsdAndroidDependencyModelComparator;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.PsAndroidDependencyComparator;
 import com.android.tools.idea.gradle.structure.configurables.android.treeview.AbstractRootNode;
 import com.android.tools.idea.gradle.structure.configurables.ui.PsdUISettings;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsdNode;
@@ -35,7 +35,7 @@ import static com.android.tools.idea.gradle.structure.configurables.android.depe
 class RootNode extends AbstractRootNode {
   private boolean myGroupVariants = PsdUISettings.getInstance().VARIANTS_DEPENDENCIES_GROUP_VARIANTS;
 
-  RootNode(@NotNull PsdAndroidModuleModel moduleModel) {
+  RootNode(@NotNull PsAndroidModule moduleModel) {
     super(moduleModel);
   }
 
@@ -51,13 +51,13 @@ class RootNode extends AbstractRootNode {
 
   @Override
   @NotNull
-  protected List<? extends AbstractPsdNode> createChildren(@NotNull Collection<PsdVariantModel> variantModels) {
-    Map<String, PsdVariantModel> variantsByName = Maps.newHashMap();
-    for (PsdVariantModel variantModel : variantModels) {
+  protected List<? extends AbstractPsdNode> createChildren(@NotNull Collection<PsVariant> variants) {
+    Map<String, PsVariant> variantsByName = Maps.newHashMap();
+    for (PsVariant variantModel : variants) {
       variantsByName.put(variantModel.getName(), variantModel);
     }
 
-    List<PsdAndroidDependencyModel> dependencies = getModels().get(0).getDependencies();
+    List<PsAndroidDependency> dependencies = getModels().get(0).getDependencies();
 
     if (myGroupVariants) {
       return createGroupedChildren(dependencies, variantsByName);
@@ -67,13 +67,13 @@ class RootNode extends AbstractRootNode {
   }
 
   @NotNull
-  private List<? extends AbstractPsdNode> createGroupedChildren(@NotNull List<PsdAndroidDependencyModel> dependencies,
-                                                                @NotNull Map<String, PsdVariantModel> variantsByName) {
-    Map<String, List<PsdDependencyContainer>> containersWithMainArtifactByVariant = Maps.newHashMap();
+  private List<? extends AbstractPsdNode> createGroupedChildren(@NotNull List<PsAndroidDependency> dependencies,
+                                                                @NotNull Map<String, PsVariant> variantsByName) {
+    Map<String, List<PsDependencyContainer>> containersWithMainArtifactByVariant = Maps.newHashMap();
 
-    Map<List<PsdDependencyContainer>, List<PsdAndroidDependencyModel>> groupedDependencies = group(dependencies);
-    for (List<PsdDependencyContainer> containers : groupedDependencies.keySet()) {
-      for (PsdDependencyContainer container : containers) {
+    Map<List<PsDependencyContainer>, List<PsAndroidDependency>> groupedDependencies = group(dependencies);
+    for (List<PsDependencyContainer> containers : groupedDependencies.keySet()) {
+      for (PsDependencyContainer container : containers) {
         if (container.getArtifact().endsWith(ARTIFACT_MAIN)) {
           containersWithMainArtifactByVariant.put(container.getVariant(), containers);
           break;
@@ -83,33 +83,33 @@ class RootNode extends AbstractRootNode {
 
     List<ArtifactNode> children = Lists.newArrayList();
 
-    for (List<PsdDependencyContainer> containers : groupedDependencies.keySet()) {
-      List<PsdAndroidArtifactModel> groupArtifacts = extractArtifactModels(containers, variantsByName);
+    for (List<PsDependencyContainer> containers : groupedDependencies.keySet()) {
+      List<PsAndroidArtifact> groupArtifacts = extractArtifacts(containers, variantsByName);
 
       ArtifactNode mainArtifactNode = null;
       if (!containersWithMainArtifactByVariant.values().contains(containers)) {
         // This is a node for "Unit Test" or "Android Test"
         if (containers.size() == 1) {
           // This is not a group. Create the "main" artifact node for the same variant
-          PsdDependencyContainer container = containers.get(0);
+          PsDependencyContainer container = containers.get(0);
           String variantName = container.getVariant();
-          PsdVariantModel variant = variantsByName.get(variantName);
+          PsVariant variant = variantsByName.get(variantName);
           assert variant != null;
-          PsdAndroidArtifactModel mainArtifact = variant.findArtifact(ARTIFACT_MAIN);
+          PsAndroidArtifact mainArtifact = variant.findArtifact(ARTIFACT_MAIN);
           if (mainArtifact != null) {
-            List<PsdDependencyContainer> mainArtifactContainers = containersWithMainArtifactByVariant.get(variantName);
+            List<PsDependencyContainer> mainArtifactContainers = containersWithMainArtifactByVariant.get(variantName);
             if (mainArtifactContainers != null) {
-              List<PsdAndroidDependencyModel> mainArtifactDependencies = groupedDependencies.get(mainArtifactContainers);
+              List<PsAndroidDependency> mainArtifactDependencies = groupedDependencies.get(mainArtifactContainers);
               mainArtifactNode = createArtifactNode(mainArtifact, mainArtifactDependencies, null);
             }
           }
         }
         else {
           // Create the node that contains all the containers with "main" artifacts
-          for (PsdDependencyContainer container : containers) {
-            List<PsdDependencyContainer> mainArtifactContainers = containersWithMainArtifactByVariant.get(container.getVariant());
+          for (PsDependencyContainer container : containers) {
+            List<PsDependencyContainer> mainArtifactContainers = containersWithMainArtifactByVariant.get(container.getVariant());
             if (mainArtifactContainers != null) {
-              List<PsdAndroidArtifactModel> mainArtifacts = extractArtifactModels(mainArtifactContainers, variantsByName);
+              List<PsAndroidArtifact> mainArtifacts = extractArtifacts(mainArtifactContainers, variantsByName);
               mainArtifactNode = createArtifactNode(mainArtifacts, groupedDependencies.get(mainArtifactContainers), null);
               break;
             }
@@ -135,38 +135,38 @@ class RootNode extends AbstractRootNode {
 
   @VisibleForTesting
   @NotNull
-  static Map<List<PsdDependencyContainer>, List<PsdAndroidDependencyModel>> group(@NotNull List<PsdAndroidDependencyModel> dependencies) {
-    Map<PsdDependencyContainer, List<PsdAndroidDependencyModel>> dependenciesByContainer = Maps.newHashMap();
+  static Map<List<PsDependencyContainer>, List<PsAndroidDependency>> group(@NotNull List<PsAndroidDependency> dependencies) {
+    Map<PsDependencyContainer, List<PsAndroidDependency>> dependenciesByContainer = Maps.newHashMap();
 
     // Key: variant name
-    Map<String, PsdDependencyContainer> containerWithMainArtifact = Maps.newHashMap();
+    Map<String, PsDependencyContainer> containerWithMainArtifact = Maps.newHashMap();
 
-    for (PsdAndroidDependencyModel dependency : dependencies) {
-      Set<PsdDependencyContainer> containers = dependency.getContainers();
-      for (PsdDependencyContainer container : containers) {
+    for (PsAndroidDependency dependency : dependencies) {
+      Set<PsDependencyContainer> containers = dependency.getContainers();
+      for (PsDependencyContainer container : containers) {
         if (container.getArtifact().equals(ARTIFACT_MAIN)) {
           containerWithMainArtifact.put(container.getVariant(), container);
         }
-        List<PsdAndroidDependencyModel> containerDependencies = dependenciesByContainer.get(container);
+        List<PsAndroidDependency> containerDependencies = dependenciesByContainer.get(container);
         if (containerDependencies == null) {
-          containerDependencies = new SortedList<PsdAndroidDependencyModel>(PsdAndroidDependencyModelComparator.INSTANCE);
+          containerDependencies = new SortedList<PsAndroidDependency>(PsAndroidDependencyComparator.INSTANCE);
           dependenciesByContainer.put(container, containerDependencies);
         }
         containerDependencies.add(dependency);
       }
     }
 
-    List<List<PsdDependencyContainer>> containerGroups = Lists.newArrayList();
-    List<PsdDependencyContainer> containers = Lists.newArrayList(dependenciesByContainer.keySet());
+    List<List<PsDependencyContainer>> containerGroups = Lists.newArrayList();
+    List<PsDependencyContainer> containers = Lists.newArrayList(dependenciesByContainer.keySet());
 
-    List<PsdDependencyContainer> currentGroup = Lists.newArrayList();
+    List<PsDependencyContainer> currentGroup = Lists.newArrayList();
     while (!containers.isEmpty()) {
-      PsdDependencyContainer container1 = containers.get(0);
+      PsDependencyContainer container1 = containers.get(0);
       currentGroup.add(container1);
 
       if (containers.size() > 1) {
         for (int i =  1; i < containers.size(); i++) {
-          PsdDependencyContainer container2 = containers.get(i);
+          PsDependencyContainer container2 = containers.get(i);
           if (haveSameDependencies(container1, container2, dependenciesByContainer)) {
             if (containerWithMainArtifact.values().contains(container1)) {
               // This is "main" artifact, no need to check any further
@@ -174,8 +174,8 @@ class RootNode extends AbstractRootNode {
             }
             else {
               // Check that the "main" artifacts in these variants are also similar.
-              PsdDependencyContainer mainArtifactContainer1 = containerWithMainArtifact.get(container1.getVariant());
-              PsdDependencyContainer mainArtifactContainer2 = containerWithMainArtifact.get(container2.getVariant());
+              PsDependencyContainer mainArtifactContainer1 = containerWithMainArtifact.get(container1.getVariant());
+              PsDependencyContainer mainArtifactContainer2 = containerWithMainArtifact.get(container2.getVariant());
 
               if (mainArtifactContainer1 == null && mainArtifactContainer2 == null) {
                 currentGroup.add(container2);
@@ -195,72 +195,72 @@ class RootNode extends AbstractRootNode {
       currentGroup = Lists.newArrayList();
     }
 
-    Map<List<PsdDependencyContainer>, List<PsdAndroidDependencyModel>> dependenciesByContainers = Maps.newHashMap();
-    for (List<PsdDependencyContainer> group : containerGroups) {
-      PsdDependencyContainer container = group.get(0);
+    Map<List<PsDependencyContainer>, List<PsAndroidDependency>> dependenciesByContainers = Maps.newHashMap();
+    for (List<PsDependencyContainer> group : containerGroups) {
+      PsDependencyContainer container = group.get(0);
       dependenciesByContainers.put(group, dependenciesByContainer.get(container));
     }
     return dependenciesByContainers;
   }
 
-  private static boolean haveSameDependencies(@NotNull PsdDependencyContainer c1,
-                                              @NotNull PsdDependencyContainer c2,
-                                              @NotNull Map<PsdDependencyContainer, List<PsdAndroidDependencyModel>> dependenciesByContainer) {
+  private static boolean haveSameDependencies(@NotNull PsDependencyContainer c1,
+                                              @NotNull PsDependencyContainer c2,
+                                              @NotNull Map<PsDependencyContainer, List<PsAndroidDependency>> dependenciesByContainer) {
     if (c1.getArtifact().equals(c2.getArtifact())) {
-      List<PsdAndroidDependencyModel> d1 = dependenciesByContainer.get(c1);
-      List<PsdAndroidDependencyModel> d2 = dependenciesByContainer.get(c2);
+      List<PsAndroidDependency> d1 = dependenciesByContainer.get(c1);
+      List<PsAndroidDependency> d2 = dependenciesByContainer.get(c2);
       return d1.equals(d2);
     }
     return false;
   }
 
   @NotNull
-  private static List<PsdAndroidArtifactModel> extractArtifactModels(@NotNull List<PsdDependencyContainer> containers,
-                                                                     @NotNull Map<String, PsdVariantModel> variantsByName) {
-    List<PsdAndroidArtifactModel> groupArtifacts = Lists.newArrayList();
-    for (PsdDependencyContainer container : containers) {
-      PsdAndroidArtifactModel foundArtifact = extractArtifactModel(container, variantsByName);
+  private static List<PsAndroidArtifact> extractArtifacts(@NotNull List<PsDependencyContainer> containers,
+                                                          @NotNull Map<String, PsVariant> variantsByName) {
+    List<PsAndroidArtifact> groupArtifacts = Lists.newArrayList();
+    for (PsDependencyContainer container : containers) {
+      PsAndroidArtifact foundArtifact = extractArtifact(container, variantsByName);
       groupArtifacts.add(foundArtifact);
     }
     return groupArtifacts;
   }
 
   @Nullable
-  private static PsdAndroidArtifactModel extractArtifactModel(@NotNull PsdDependencyContainer container,
-                                                              @NotNull Map<String, PsdVariantModel> variantsByName) {
-    PsdVariantModel variant = variantsByName.get(container.getVariant());
+  private static PsAndroidArtifact extractArtifact(@NotNull PsDependencyContainer container,
+                                                   @NotNull Map<String, PsVariant> variantsByName) {
+    PsVariant variant = variantsByName.get(container.getVariant());
     assert variant != null;
-    PsdAndroidArtifactModel artifact = variant.findArtifact(container.getArtifact());
+    PsAndroidArtifact artifact = variant.findArtifact(container.getArtifact());
     assert artifact != null;
     return artifact;
   }
 
   @Nullable
-  private ArtifactNode createArtifactNode(@NotNull List<PsdAndroidArtifactModel> artifactModels,
-                                          @NotNull List<PsdAndroidDependencyModel> artifactDependencies,
+  private ArtifactNode createArtifactNode(@NotNull List<PsAndroidArtifact> artifacts,
+                                          @NotNull List<PsAndroidDependency> dependencies,
                                           @Nullable ArtifactNode mainArtifactNode) {
-    if (!artifactDependencies.isEmpty() || mainArtifactNode != null) {
-      ArtifactNode artifactNode = new ArtifactNode(this, artifactModels);
-      populate(artifactNode, artifactDependencies, mainArtifactNode);
+    if (!dependencies.isEmpty() || mainArtifactNode != null) {
+      ArtifactNode artifactNode = new ArtifactNode(this, artifacts);
+      populate(artifactNode, dependencies, mainArtifactNode);
       return artifactNode;
     }
     return null;
   }
 
   @NotNull
-  private List<? extends ArtifactNode> createChildren(@NotNull List<PsdAndroidDependencyModel> dependencies,
-                                                      @NotNull Map<String, PsdVariantModel> variantsByName) {
+  private List<? extends ArtifactNode> createChildren(@NotNull List<PsAndroidDependency> dependencies,
+                                                      @NotNull Map<String, PsVariant> variantsByName) {
     List<ArtifactNode> childrenNodes = Lists.newArrayList();
 
     // [Outer map] key: variant name, value: dependencies by artifact
     // [Inner map] key: artifact name, value: dependencies
-    Map<String, Map<String, List<PsdAndroidDependencyModel>>> dependenciesByVariantAndArtifact = Maps.newHashMap();
-    for (PsdAndroidDependencyModel dependency : dependencies) {
+    Map<String, Map<String, List<PsAndroidDependency>>> dependenciesByVariantAndArtifact = Maps.newHashMap();
+    for (PsAndroidDependency dependency : dependencies) {
       if (!dependency.isEditable()) {
         continue; // Only show "declared" dependencies as top-level dependencies.
       }
-      for (PsdDependencyContainer container : dependency.getContainers()) {
-        Map<String, List<PsdAndroidDependencyModel>> dependenciesByArtifact =
+      for (PsDependencyContainer container : dependency.getContainers()) {
+        Map<String, List<PsAndroidDependency>> dependenciesByArtifact =
           dependenciesByVariantAndArtifact.get(container.getVariant());
 
         if (dependenciesByArtifact == null) {
@@ -268,13 +268,13 @@ class RootNode extends AbstractRootNode {
           dependenciesByVariantAndArtifact.put(container.getVariant(), dependenciesByArtifact);
         }
 
-        List<PsdAndroidDependencyModel> dependencyModels = dependenciesByArtifact.get(container.getArtifact());
-        if (dependencyModels == null) {
-          dependencyModels = Lists.newArrayList();
-          dependenciesByArtifact.put(container.getArtifact(), dependencyModels);
+        List<PsAndroidDependency> artifactDependencies = dependenciesByArtifact.get(container.getArtifact());
+        if (artifactDependencies == null) {
+          artifactDependencies = Lists.newArrayList();
+          dependenciesByArtifact.put(container.getArtifact(), artifactDependencies);
         }
 
-        dependencyModels.add(dependency);
+        artifactDependencies.add(dependency);
       }
     }
 
@@ -282,9 +282,9 @@ class RootNode extends AbstractRootNode {
     Collections.sort(variantNames);
 
     for (String variantName : variantNames) {
-      PsdVariantModel variantModel = variantsByName.get(variantName);
+      PsVariant variant = variantsByName.get(variantName);
 
-      Map<String, List<PsdAndroidDependencyModel>> dependenciesByArtifact = dependenciesByVariantAndArtifact.get(variantName);
+      Map<String, List<PsAndroidDependency>> dependenciesByArtifact = dependenciesByVariantAndArtifact.get(variantName);
 
       if (dependenciesByArtifact != null) {
         List<String> artifactNames = Lists.newArrayList(dependenciesByArtifact.keySet());
@@ -292,24 +292,24 @@ class RootNode extends AbstractRootNode {
         Collections.sort(artifactNames, ArtifactNameComparator.INSTANCE);
 
         for (String artifactName : artifactNames) {
-          PsdAndroidArtifactModel artifactModel = variantModel.findArtifact(artifactName);
-          assert artifactModel != null;
+          PsAndroidArtifact artifact = variant.findArtifact(artifactName);
+          assert artifact != null;
 
           ArtifactNode mainArtifactNode = null;
           String mainArtifactName = ARTIFACT_MAIN;
           if (!mainArtifactName.equals(artifactName)) {
             // Add "main" artifact as a dependency of "unit test" or "android test" artifact.
-            PsdAndroidArtifactModel mainArtifactModel = variantModel.findArtifact(mainArtifactName);
-            if (mainArtifactModel != null) {
-              List<PsdAndroidDependencyModel> artifactDependencies = dependenciesByArtifact.get(mainArtifactName);
+            PsAndroidArtifact mainArtifact = variant.findArtifact(mainArtifactName);
+            if (mainArtifact != null) {
+              List<PsAndroidDependency> artifactDependencies = dependenciesByArtifact.get(mainArtifactName);
               if (artifactDependencies == null) {
                 artifactDependencies = Collections.emptyList();
               }
-              mainArtifactNode = createArtifactNode(mainArtifactModel, artifactDependencies, null);
+              mainArtifactNode = createArtifactNode(mainArtifact, artifactDependencies, null);
             }
           }
 
-          ArtifactNode artifactNode = createArtifactNode(artifactModel, dependenciesByArtifact.get(artifactName), mainArtifactNode);
+          ArtifactNode artifactNode = createArtifactNode(artifact, dependenciesByArtifact.get(artifactName), mainArtifactNode);
           if (artifactNode != null) {
             childrenNodes.add(artifactNode);
           }
@@ -321,11 +321,11 @@ class RootNode extends AbstractRootNode {
   }
 
   @Nullable
-  private ArtifactNode createArtifactNode(@NotNull PsdAndroidArtifactModel artifactModel,
-                                          @NotNull List<PsdAndroidDependencyModel> artifactDependencies,
+  private ArtifactNode createArtifactNode(@NotNull PsAndroidArtifact artifact,
+                                          @NotNull List<PsAndroidDependency> artifactDependencies,
                                           @Nullable ArtifactNode mainArtifactNode) {
     if (!artifactDependencies.isEmpty() || mainArtifactNode != null) {
-      ArtifactNode artifactNode = new ArtifactNode(this, artifactModel);
+      ArtifactNode artifactNode = new ArtifactNode(this, artifact);
       populate(artifactNode, artifactDependencies, mainArtifactNode);
       return artifactNode;
     }
@@ -333,7 +333,7 @@ class RootNode extends AbstractRootNode {
   }
 
   private static void populate(@NotNull ArtifactNode artifactNode,
-                               @NotNull List<PsdAndroidDependencyModel> dependencies,
+                               @NotNull List<PsAndroidDependency> dependencies,
                                @Nullable ArtifactNode mainArtifactNode) {
     List<AbstractPsdNode<?>> children = createNodesFor(artifactNode, dependencies);
     if (mainArtifactNode != null) {
@@ -342,13 +342,13 @@ class RootNode extends AbstractRootNode {
     artifactNode.setChildren(children);
   }
 
-  private static class ArtifactComparator implements Comparator<PsdAndroidArtifactModel> {
+  private static class ArtifactComparator implements Comparator<PsAndroidArtifact> {
     static final ArtifactComparator INSTANCE = new ArtifactComparator();
 
     @Override
-    public int compare(PsdAndroidArtifactModel a1, PsdAndroidArtifactModel a2) {
-      PsdVariantModel v1 = a1.getParent();
-      PsdVariantModel v2 = a2.getParent();
+    public int compare(PsAndroidArtifact a1, PsAndroidArtifact a2) {
+      PsVariant v1 = a1.getParent();
+      PsVariant v2 = a2.getParent();
       int compareVariantName = v1.getName().compareTo(v2.getName());
       if (compareVariantName == 0) {
         //noinspection TestOnlyProblems

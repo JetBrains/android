@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.structure.model.android;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import org.jetbrains.annotations.NotNull;
 
-public interface PsdAndroidModel {
+public interface PsAndroidModel {
   @NotNull
   AndroidGradleModel getAndroidGradleModel();
 }

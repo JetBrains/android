@@ -16,12 +16,12 @@
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview;
 
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependencyModel;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.PsdAndroidDependencyModelComparator;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.PsAndroidDependencyComparator;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsdNode;
-import com.android.tools.idea.gradle.structure.model.android.PsdAndroidArtifactModel;
-import com.android.tools.idea.gradle.structure.model.android.PsdAndroidDependencyModel;
-import com.android.tools.idea.gradle.structure.model.android.PsdLibraryDependencyModel;
-import com.android.tools.idea.gradle.structure.model.android.PsdModuleDependencyModel;
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidArtifact;
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
+import com.android.tools.idea.gradle.structure.model.android.PsLibraryDependency;
+import com.android.tools.idea.gradle.structure.model.android.PsModuleDependency;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
@@ -31,7 +31,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Collection;
 import java.util.List;
 
-import static com.android.tools.idea.gradle.structure.model.PsdParsedDependencyModels.isDependencyInArtifact;
+import static com.android.tools.idea.gradle.structure.model.PsParsedDependencies.isDependencyInArtifact;
 
 final class DependencyNodes {
   private DependencyNodes() {
@@ -39,14 +39,14 @@ final class DependencyNodes {
 
   @NotNull
   static List<AbstractPsdNode<?>> createNodesFor(@NotNull ArtifactNode parent,
-                                                 @NotNull Collection<PsdAndroidDependencyModel> dependencies) {
+                                                 @NotNull Collection<PsAndroidDependency> dependencies) {
     List<AbstractPsdNode<?>> children = Lists.newArrayList();
 
-    List<PsdAndroidDependencyModel> declared = new SortedList<PsdAndroidDependencyModel>(PsdAndroidDependencyModelComparator.INSTANCE);
-    Multimap<PsdAndroidDependencyModel, PsdAndroidDependencyModel> allTransitive = HashMultimap.create();
-    List<PsdAndroidDependencyModel> mayBeTransitive = Lists.newArrayList();
+    List<PsAndroidDependency> declared = new SortedList<PsAndroidDependency>(PsAndroidDependencyComparator.INSTANCE);
+    Multimap<PsAndroidDependency, PsAndroidDependency> allTransitive = HashMultimap.create();
+    List<PsAndroidDependency> mayBeTransitive = Lists.newArrayList();
 
-    for (PsdAndroidDependencyModel dependency : dependencies) {
+    for (PsAndroidDependency dependency : dependencies) {
       DependencyModel parsedModel = dependency.getParsedModel();
       if (parsedModel != null) {
         // In Android Libraries, the model will include artifacts declared in the "main" artifact in other artifacts as well. For example:
@@ -54,8 +54,8 @@ final class DependencyNodes {
         // will be include as a dependency in "main", "android test" and "unit test" artifacts. Even though this is correct, it is
         // inconsistent with what Android App models return. In the case of Android Apps, 'appcompat' will be included only in the
         // "main" artifact.
-        for (PsdAndroidArtifactModel model : parent.getModels()) {
-          if (isDependencyInArtifact(parsedModel, model)) {
+        for (PsAndroidArtifact artifact : parent.getModels()) {
+          if (isDependencyInArtifact(parsedModel, artifact)) {
             declared.add(dependency);
             break;
           }
@@ -67,36 +67,36 @@ final class DependencyNodes {
       }
     }
 
-    Collection<PsdAndroidDependencyModel> uniqueTransitives = allTransitive.values();
-    for (PsdAndroidDependencyModel dependency : mayBeTransitive) {
+    Collection<PsAndroidDependency> uniqueTransitives = allTransitive.values();
+    for (PsAndroidDependency dependency : mayBeTransitive) {
       if (!uniqueTransitives.contains(dependency)) {
         declared.add(dependency);
       }
     }
 
-    for (PsdAndroidDependencyModel dependency : declared) {
-      if (dependency instanceof PsdLibraryDependencyModel) {
-        children.add(new LibraryDependencyNode(parent, (PsdLibraryDependencyModel)dependency));
+    for (PsAndroidDependency dependency : declared) {
+      if (dependency instanceof PsLibraryDependency) {
+        children.add(new LibraryDependencyNode(parent, (PsLibraryDependency)dependency));
       }
-      else if (dependency instanceof PsdModuleDependencyModel) {
-        children.add(new ModuleDependencyNode(parent, (PsdModuleDependencyModel)dependency));
+      else if (dependency instanceof PsModuleDependency) {
+        children.add(new ModuleDependencyNode(parent, (PsModuleDependency)dependency));
       }
     }
 
     return children;
   }
 
-  private static void addTransitive(@NotNull PsdAndroidDependencyModel dependency,
-                                    @NotNull Multimap<PsdAndroidDependencyModel, PsdAndroidDependencyModel> allTransitive) {
+  private static void addTransitive(@NotNull PsAndroidDependency dependency,
+                                    @NotNull Multimap<PsAndroidDependency, PsAndroidDependency> allTransitive) {
     if (allTransitive.containsKey(dependency)) {
       return;
     }
 
-    if (dependency instanceof PsdLibraryDependencyModel) {
-      Collection<PsdAndroidDependencyModel> transitives = ((PsdLibraryDependencyModel)dependency).getTransitiveDependencies();
+    if (dependency instanceof PsLibraryDependency) {
+      Collection<PsAndroidDependency> transitives = ((PsLibraryDependency)dependency).getTransitiveDependencies();
       allTransitive.putAll(dependency, transitives);
 
-      for (PsdAndroidDependencyModel transitive : transitives) {
+      for (PsAndroidDependency transitive : transitives) {
         addTransitive(transitive, allTransitive);
       }
     }

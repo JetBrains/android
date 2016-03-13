@@ -16,30 +16,30 @@
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview;
 
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsdNode;
-import com.android.tools.idea.gradle.structure.model.android.PsdAndroidArtifactModel;
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidArtifact;
 import com.google.common.collect.Lists;
 import com.intellij.ui.treeStructure.SimpleNode;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-class ArtifactNode extends AbstractPsdNode<PsdAndroidArtifactModel> {
+class ArtifactNode extends AbstractPsdNode<PsAndroidArtifact> {
   @NotNull private List<AbstractPsdNode<?>> myChildren = Lists.newArrayList();
 
-  ArtifactNode(@NotNull AbstractPsdNode<?> parent, @NotNull PsdAndroidArtifactModel model) {
-    super(parent, model);
+  ArtifactNode(@NotNull AbstractPsdNode<?> parent, @NotNull PsAndroidArtifact artifact) {
+    super(parent, artifact);
     setAutoExpandNode(true);
   }
 
-  ArtifactNode(@NotNull AbstractPsdNode<?> parent, @NotNull List<PsdAndroidArtifactModel> models) {
-    super(parent, models);
+  ArtifactNode(@NotNull AbstractPsdNode<?> parent, @NotNull List<PsAndroidArtifact> artifacts) {
+    super(parent, artifacts);
     setAutoExpandNode(true);
   }
 
   @Override
   @NotNull
-  protected String nameOf(PsdAndroidArtifactModel model) {
-    return model.getParent().getName() + model.getName();
+  protected String nameOf(PsAndroidArtifact artifact) {
+    return artifact.getParent().getName() + artifact.getName();
   }
 
   @Override

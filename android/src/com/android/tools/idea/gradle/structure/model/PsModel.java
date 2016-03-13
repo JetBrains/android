@@ -18,14 +18,48 @@ package com.android.tools.idea.gradle.structure.model;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
+import javax.swing.*;
 
-public interface PsdModelCollection<T extends PsdModel> {
+public abstract class PsModel {
+  @Nullable private final PsModel myParent;
+
+  private boolean myModified;
+
+  protected PsModel(@Nullable PsModel parent) {
+    myParent = parent;
+  }
+
   @NotNull
-  List<T> getElements();
+  public abstract String getName();
+
+  public abstract boolean isEditable();
 
   @Nullable
-  <S extends T> S findElement(@NotNull String name, @NotNull Class<S> type);
+  public abstract Object getResolvedModel();
 
-  // TODO implement: void forEach(@NotNull Predicate<T> function);
+  @Nullable
+  public PsModel getParent() {
+    return myParent;
+  }
+
+  public boolean isModified() {
+    return myModified;
+  }
+
+  public void setModified(boolean value) {
+    myModified = value;
+    if (myModified && myParent != null) {
+      myParent.setModified(true);
+    }
+  }
+
+  @Nullable
+  public Icon getIcon() {
+    return null;
+  }
+
+  @Override
+  public String toString() {
+    return getName();
+  }
 }

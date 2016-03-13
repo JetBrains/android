@@ -16,9 +16,9 @@
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies;
 
 import com.android.tools.idea.gradle.structure.configurables.ui.BaseTableCellRenderer;
-import com.android.tools.idea.gradle.structure.model.PsdArtifactDependencySpec;
-import com.android.tools.idea.gradle.structure.model.android.PsdAndroidDependencyModel;
-import com.android.tools.idea.gradle.structure.model.android.PsdLibraryDependencyModel;
+import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
+import com.android.tools.idea.gradle.structure.model.android.PsLibraryDependency;
 import com.intellij.util.ui.ColumnInfo;
 import com.intellij.util.ui.ListTableModel;
 import org.jetbrains.annotations.NotNull;
@@ -31,25 +31,25 @@ import java.util.List;
 /**
  * Model for the table displaying the "editable" dependencies of a module.
  */
-class EditableDependenciesTableModel extends ListTableModel<PsdAndroidDependencyModel> {
-  EditableDependenciesTableModel(@NotNull List<PsdAndroidDependencyModel> dependencies) {
+class EditableDependenciesTableModel extends ListTableModel<PsAndroidDependency> {
+  EditableDependenciesTableModel(@NotNull List<PsAndroidDependency> dependencies) {
     createAndSetColumnInfos();
-    Collections.sort(dependencies, PsdAndroidDependencyModelComparator.INSTANCE);
+    Collections.sort(dependencies, PsAndroidDependencyComparator.INSTANCE);
     setItems(dependencies);
   }
 
   private void createAndSetColumnInfos() {
-    ColumnInfo<PsdAndroidDependencyModel, String> specColumnInfo = new ColumnInfo<PsdAndroidDependencyModel, String>("Dependency") {
+    ColumnInfo<PsAndroidDependency, String> specColumnInfo = new ColumnInfo<PsAndroidDependency, String>("Dependency") {
       @Override
       @NotNull
-      public String valueOf(PsdAndroidDependencyModel model) {
-        return model.getValueAsText();
+      public String valueOf(PsAndroidDependency dependency) {
+        return dependency.getValueAsText();
       }
 
       @Override
       @NotNull
-      public TableCellRenderer getRenderer(PsdAndroidDependencyModel model) {
-        return new DependencyCellRenderer(model);
+      public TableCellRenderer getRenderer(PsAndroidDependency dependency) {
+        return new DependencyCellRenderer(dependency);
       }
 
       @Override
@@ -60,11 +60,11 @@ class EditableDependenciesTableModel extends ListTableModel<PsdAndroidDependency
       }
     };
 
-    ColumnInfo<PsdAndroidDependencyModel, String> scopeColumnInfo = new ColumnInfo<PsdAndroidDependencyModel, String>("Scope") {
+    ColumnInfo<PsAndroidDependency, String> scopeColumnInfo = new ColumnInfo<PsAndroidDependency, String>("Scope") {
       @Override
       @Nullable
-      public String valueOf(PsdAndroidDependencyModel model) {
-        return model.getConfigurationName();
+      public String valueOf(PsAndroidDependency dependency) {
+        return dependency.getConfigurationName();
       }
 
       @Override
@@ -78,20 +78,20 @@ class EditableDependenciesTableModel extends ListTableModel<PsdAndroidDependency
     setColumnInfos(new ColumnInfo[]{specColumnInfo, scopeColumnInfo});
   }
 
-  static class DependencyCellRenderer extends BaseTableCellRenderer<PsdAndroidDependencyModel> {
-    DependencyCellRenderer(@NotNull PsdAndroidDependencyModel model) {
-      super(model);
+  static class DependencyCellRenderer extends BaseTableCellRenderer<PsAndroidDependency> {
+    DependencyCellRenderer(@NotNull PsAndroidDependency dependency) {
+      super(dependency);
     }
 
     @Override
     @NotNull
     protected String getText() {
-      PsdAndroidDependencyModel model = getModel();
-      String text = model.getValueAsText();
+      PsAndroidDependency dependency = getModel();
+      String text = dependency.getValueAsText();
 
-      if (model instanceof PsdLibraryDependencyModel) {
-        PsdLibraryDependencyModel library = (PsdLibraryDependencyModel)model;
-        PsdArtifactDependencySpec spec = library.getDeclaredSpec();
+      if (dependency instanceof PsLibraryDependency) {
+        PsLibraryDependency library = (PsLibraryDependency)dependency;
+        PsArtifactDependencySpec spec = library.getDeclaredSpec();
         assert spec != null;
         text = spec.getDisplayText();
       }

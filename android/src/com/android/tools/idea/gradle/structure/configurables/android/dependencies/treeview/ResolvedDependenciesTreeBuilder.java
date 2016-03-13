@@ -17,9 +17,9 @@ package com.android.tools.idea.gradle.structure.configurables.android.dependenci
 
 import com.android.tools.idea.gradle.structure.configurables.ui.PsdUISettings;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsdNode;
-import com.android.tools.idea.gradle.structure.model.PsdModel;
-import com.android.tools.idea.gradle.structure.model.android.PsdAndroidDependencyModel;
-import com.android.tools.idea.gradle.structure.model.android.PsdAndroidModuleModel;
+import com.android.tools.idea.gradle.structure.model.PsModel;
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.google.common.collect.Lists;
 import com.intellij.ide.util.treeView.*;
 import com.intellij.openapi.util.ActionCallback;
@@ -43,7 +43,7 @@ public class ResolvedDependenciesTreeBuilder extends AbstractTreeBuilder {
   @NotNull private final DependencySelection myDependencySelectionSource;
   @NotNull private final DependencySelection myDependencySelectionDestination;
 
-  public ResolvedDependenciesTreeBuilder(@NotNull PsdAndroidModuleModel moduleModel,
+  public ResolvedDependenciesTreeBuilder(@NotNull PsAndroidModule moduleModel,
                                          @NotNull JTree tree,
                                          @NotNull DefaultTreeModel treeModel,
                                          @NotNull DependencySelection dependencySelectionSource,
@@ -58,7 +58,7 @@ public class ResolvedDependenciesTreeBuilder extends AbstractTreeBuilder {
         AbstractTreeStructure treeStructure = getTreeStructure();
 
         if (treeStructure instanceof ResolvedDependenciesTreeStructure) {
-          final PsdAndroidDependencyModel selected = myDependencySelectionSource.getSelection();
+          final PsAndroidDependency selected = myDependencySelectionSource.getSelection();
 
           boolean needsUpdate = ((ResolvedDependenciesTreeStructure)treeStructure).settingsChanged();
 
@@ -97,7 +97,7 @@ public class ResolvedDependenciesTreeBuilder extends AbstractTreeBuilder {
       getReady(this).doWhenDone(new Runnable() {
         @Override
         public void run() {
-          PsdAndroidDependencyModel selection = myDependencySelectionSource.getSelection();
+          PsAndroidDependency selection = myDependencySelectionSource.getSelection();
           myDependencySelectionDestination.setSelection(selection);
         }
       });
@@ -121,8 +121,8 @@ public class ResolvedDependenciesTreeBuilder extends AbstractTreeBuilder {
         List<?> models = node.getModels();
         if (models.size() == 1) {
           Object model = models.get(0);
-          if (model instanceof PsdModel) {
-            setSelection((PsdModel)model, false);
+          if (model instanceof PsModel) {
+            setSelection((PsModel)model, false);
           }
         }
       }
@@ -136,7 +136,7 @@ public class ResolvedDependenciesTreeBuilder extends AbstractTreeBuilder {
     }
   }
 
-  public void setSelection(@NotNull final PsdModel model, final boolean scroll) {
+  public void setSelection(@NotNull final PsModel model, final boolean scroll) {
     getInitialized().doWhenDone(new Runnable() {
       @Override
       public void run() {

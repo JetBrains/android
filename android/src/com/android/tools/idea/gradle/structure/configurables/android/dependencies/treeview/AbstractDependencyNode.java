@@ -16,11 +16,11 @@
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview;
 
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsdNode;
-import com.android.tools.idea.gradle.structure.model.android.PsdAndroidDependencyModel;
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
 import org.jetbrains.annotations.NotNull;
 
-public abstract class AbstractDependencyNode<T extends PsdAndroidDependencyModel> extends AbstractPsdNode<T> {
-  protected AbstractDependencyNode(@NotNull AbstractPsdNode parent, @NotNull T model) {
-    super(parent, model);
+public abstract class AbstractDependencyNode<T extends PsAndroidDependency> extends AbstractPsdNode<T> {
+  protected AbstractDependencyNode(@NotNull AbstractPsdNode parent, @NotNull T dependency) {
+    super(parent, dependency);
   }
 }

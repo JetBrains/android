@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.structure.model;
 
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.structure.model.android.PsdAndroidModuleModel;
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -29,37 +29,37 @@ import java.util.List;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
 
-public class PsdProjectModel extends PsdModel {
+public class PsProject extends PsModel {
   @NotNull private final Project myProject;
 
-  @NotNull private final List<PsdModuleModel> myModuleModels = Lists.newArrayList();
+  @NotNull private final List<PsModule> myModules = Lists.newArrayList();
 
   private boolean myModified;
 
-  public PsdProjectModel(@NotNull Project project) {
+  public PsProject(@NotNull Project project) {
     super(null);
     myProject = project;
 
-    for (Module module : ModuleManager.getInstance(myProject).getModules()) {
-      String gradlePath = getGradlePath(module);
+    for (Module resolvedModel : ModuleManager.getInstance(myProject).getModules()) {
+      String gradlePath = getGradlePath(resolvedModel);
       if (gradlePath != null) {
         // Only Gradle-based modules are displayed in the PSD.
-        PsdModuleModel moduleModel = null;
+        PsModule module = null;
 
-        AndroidGradleModel gradleModel = AndroidGradleModel.get(module);
+        AndroidGradleModel gradleModel = AndroidGradleModel.get(resolvedModel);
         if (gradleModel != null) {
-          moduleModel = new PsdAndroidModuleModel(this, module, gradlePath, gradleModel);
+          module = new PsAndroidModule(this, resolvedModel, gradlePath, gradleModel);
         }
-        if (moduleModel != null) {
-          myModuleModels.add(moduleModel);
+        if (module != null) {
+          myModules.add(module);
         }
       }
     }
   }
 
   @Nullable
-  public PsdModuleModel findModelForModule(@NotNull String moduleName) {
-    for (PsdModuleModel model : myModuleModels) {
+  public PsModule findModuleByName(@NotNull String moduleName) {
+    for (PsModule model : myModules) {
       if (moduleName.equals(model.getName())) {
         return model;
       }
@@ -68,8 +68,8 @@ public class PsdProjectModel extends PsdModel {
   }
 
   @Nullable
-  public PsdModuleModel findModelByGradlePath(@NotNull String gradlePath) {
-    for (PsdModuleModel model : myModuleModels) {
+  public PsModule findModuleByGradlePath(@NotNull String gradlePath) {
+    for (PsModule model : myModules) {
       if (gradlePath.equals(model.getGradlePath())) {
         return model;
       }
@@ -90,13 +90,13 @@ public class PsdProjectModel extends PsdModel {
   }
 
   @NotNull
-  public List<PsdModuleModel> getModuleModels() {
-    return myModuleModels;
+  public List<PsModule> getModules() {
+    return myModules;
   }
 
   @Override
   @Nullable
-  public PsdModel getParent() {
+  public PsModel getParent() {
     return null;
   }
 

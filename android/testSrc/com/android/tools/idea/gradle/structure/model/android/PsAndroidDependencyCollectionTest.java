@@ -21,22 +21,22 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 /**
- * Tests for {@link PsdAndroidDependencyModelCollection}.
+ * Tests for {@link PsAndroidDependencyCollection}.
  */
-public class PsdAndroidDependencyModelCollectionTest {
+public class PsAndroidDependencyCollectionTest {
   @Test
   public void testCompareWithPerfectMatch() {
-    assertEquals(0, PsdAndroidDependencyModelCollection.compare(GradleVersion.parse("1.0.0"), GradleVersion.parse("1.0.0")));
+    assertEquals(0, PsAndroidDependencyCollection.compare(GradleVersion.parse("1.0.0"), GradleVersion.parse("1.0.0")));
   }
 
   @Test
   public void testCompareWithPlusSignInVersion() {
     GradleVersion versionFromGradle = GradleVersion.parse("1.0.0");
     GradleVersion parsedVersion = GradleVersion.parse("+");
-    assertEquals(0, PsdAndroidDependencyModelCollection.compare(parsedVersion, versionFromGradle));
+    assertEquals(0, PsAndroidDependencyCollection.compare(parsedVersion, versionFromGradle));
     parsedVersion = GradleVersion.parse("1.+");
-    assertEquals(0, PsdAndroidDependencyModelCollection.compare(parsedVersion, versionFromGradle));
+    assertEquals(0, PsAndroidDependencyCollection.compare(parsedVersion, versionFromGradle));
     parsedVersion = GradleVersion.parse("1.0.+");
-    assertEquals(0, PsdAndroidDependencyModelCollection.compare(parsedVersion, versionFromGradle));
+    assertEquals(0, PsAndroidDependencyCollection.compare(parsedVersion, versionFromGradle));
   }
 }

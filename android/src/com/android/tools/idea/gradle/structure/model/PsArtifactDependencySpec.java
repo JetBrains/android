@@ -37,14 +37,14 @@ import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
  * dependencies obtained from different models (e.g. Gradle model, 'parsed' model and POM model,) and those dependencies can be expressed
  * differently on each model.
  */
-public class PsdArtifactDependencySpec {
+public class PsArtifactDependencySpec {
   @NotNull public String name;
 
   @Nullable public String group;
   @Nullable public String version;
 
   @Nullable
-  public static PsdArtifactDependencySpec create(@NotNull String notation) {
+  public static PsArtifactDependencySpec create(@NotNull String notation) {
     // Example: org.gradle.test.classifiers:service:1.0 where
     //   group: org.gradle.test.classifiers
     //   name: service
@@ -86,23 +86,23 @@ public class PsdArtifactDependencySpec {
         version = segments.get(2);
       }
       if (isNotEmpty(name)) {
-        return new PsdArtifactDependencySpec(name, group, version);
+        return new PsArtifactDependencySpec(name, group, version);
       }
     }
     return null;
   }
 
   @NotNull
-  public static PsdArtifactDependencySpec create(@NotNull ArtifactDependencyModel dependency) {
-    return new PsdArtifactDependencySpec(dependency.name().value(), dependency.group().value(), dependency.version().value());
+  public static PsArtifactDependencySpec create(@NotNull ArtifactDependencyModel dependency) {
+    return new PsArtifactDependencySpec(dependency.name().value(), dependency.group().value(), dependency.version().value());
   }
 
   @NotNull
-  public static PsdArtifactDependencySpec create(@NotNull MavenCoordinates coordinates) {
-    return new PsdArtifactDependencySpec(coordinates.getArtifactId(), coordinates.getGroupId(), coordinates.getVersion());
+  public static PsArtifactDependencySpec create(@NotNull MavenCoordinates coordinates) {
+    return new PsArtifactDependencySpec(coordinates.getArtifactId(), coordinates.getGroupId(), coordinates.getVersion());
   }
 
-  public PsdArtifactDependencySpec(@NotNull String name, @Nullable String group, @Nullable String version) {
+  public PsArtifactDependencySpec(@NotNull String name, @Nullable String group, @Nullable String version) {
     this.name = name;
     this.group = emptyToNull(group);
     this.version = emptyToNull(version);
@@ -116,7 +116,7 @@ public class PsdArtifactDependencySpec {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    PsdArtifactDependencySpec that = (PsdArtifactDependencySpec)o;
+    PsArtifactDependencySpec that = (PsArtifactDependencySpec)o;
     return Objects.equal(name, that.name) &&
            Objects.equal(group, that.group) &&
            Objects.equal(version, that.version);

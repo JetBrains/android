@@ -19,9 +19,9 @@ import com.android.tools.idea.gradle.structure.configurables.ui.PsdUISettings;
 import com.intellij.testFramework.IdeaTestCase;
 
 /**
- * Tests for {@link PsdArtifactDependencySpec}.
+ * Tests for {@link PsArtifactDependencySpec}.
  */
-public class PsdArtifactDependencySpecTest extends IdeaTestCase {
+public class PsArtifactDependencySpecTest extends IdeaTestCase {
   private boolean myShowGroupId;
 
   @Override
@@ -41,7 +41,7 @@ public class PsdArtifactDependencySpecTest extends IdeaTestCase {
   }
 
   public void testGetDisplayText1() {
-    PsdArtifactDependencySpec spec = PsdArtifactDependencySpec.create("group:name:version");
+    PsArtifactDependencySpec spec = PsArtifactDependencySpec.create("group:name:version");
     assertNotNull(spec);
 
     PsdUISettings.getInstance().DECLARED_DEPENDENCIES_SHOW_GROUP_ID = true;
@@ -52,7 +52,7 @@ public class PsdArtifactDependencySpecTest extends IdeaTestCase {
   }
 
   public void testGetDisplayText2() {
-    PsdArtifactDependencySpec spec = PsdArtifactDependencySpec.create("group:name");
+    PsArtifactDependencySpec spec = PsArtifactDependencySpec.create("group:name");
     assertNotNull(spec);
 
     PsdUISettings.getInstance().DECLARED_DEPENDENCIES_SHOW_GROUP_ID = true;

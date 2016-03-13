@@ -23,9 +23,9 @@ import com.android.tools.idea.gradle.structure.configurables.android.dependencie
 import com.android.tools.idea.gradle.structure.configurables.ui.PsdUISettings;
 import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowPanel;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsdNode;
-import com.android.tools.idea.gradle.structure.model.android.PsdAndroidDependencyModel;
-import com.android.tools.idea.gradle.structure.model.android.PsdAndroidModuleModel;
-import com.android.tools.idea.gradle.structure.model.android.PsdModuleDependencyModel;
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
+import com.android.tools.idea.gradle.structure.model.android.PsModuleDependency;
 import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.treeView.NodeRenderer;
@@ -82,7 +82,7 @@ class ResolvedDependenciesPanel extends ToolWindowPanel implements DependencySel
   private ModuleDependencyNode myHoveredNode;
   private KeyEventDispatcher myKeyEventDispatcher;
 
-  ResolvedDependenciesPanel(@NotNull PsdAndroidModuleModel moduleModel,
+  ResolvedDependenciesPanel(@NotNull PsAndroidModule module,
                             @NotNull PsdContext context,
                             @NotNull DependencySelection dependencySelection) {
     super("Resolved Dependencies", AndroidIcons.Variant, ToolWindowAnchor.RIGHT);
@@ -98,8 +98,8 @@ class ResolvedDependenciesPanel extends ToolWindowPanel implements DependencySel
         if (id == MOUSE_PRESSED) {
           ModuleDependencyNode node = getIfHyperlink(e.getModifiers(), e.getX(), e.getY());
           if (node != null) {
-            PsdModuleDependencyModel moduleDependencyModel = node.getModels().get(0);
-            String name = moduleDependencyModel.getName();
+            PsModuleDependency moduleDependency = node.getModels().get(0);
+            String name = moduleDependency.getName();
             myContext.setSelectedModule(name, ResolvedDependenciesPanel.this);
             // Do not call super, to avoid selecting the 'module' node when clicking a hyperlink.
             return;
@@ -115,7 +115,7 @@ class ResolvedDependenciesPanel extends ToolWindowPanel implements DependencySel
     TreeSelectionModel selectionModel = myTree.getSelectionModel();
     selectionModel.setSelectionMode(DISCONTIGUOUS_TREE_SELECTION);
 
-    myTreeBuilder = new ResolvedDependenciesTreeBuilder(moduleModel, myTree, treeModel, dependencySelection, this);
+    myTreeBuilder = new ResolvedDependenciesTreeBuilder(module, myTree, treeModel, dependencySelection, this);
 
     JScrollPane scrollPane = createScrollPane(myTree);
     scrollPane.setBorder(IdeBorderFactory.createEmptyBorder());
@@ -125,7 +125,7 @@ class ResolvedDependenciesPanel extends ToolWindowPanel implements DependencySel
       @Override
       public void valueChanged(TreeSelectionEvent e) {
         myTreeBuilder.updateSelection();
-        PsdAndroidDependencyModel selected = getSelection();
+        PsAndroidDependency selected = getSelection();
         if (selected == null) {
           AbstractPsdNode selectedNode = getSelectionIfSingle();
           if (selectedNode != null && !(selectedNode instanceof AbstractDependencyNode)) {
@@ -149,9 +149,9 @@ class ResolvedDependenciesPanel extends ToolWindowPanel implements DependencySel
     addHyperlinkBehaviorToModuleNodes();
   }
 
-  private void notifySelectionChanged(@Nullable PsdAndroidDependencyModel selected) {
+  private void notifySelectionChanged(@Nullable PsAndroidDependency selected) {
     for (SelectionListener listener : mySelectionListeners) {
-      listener.dependencyModelSelected(selected);
+      listener.dependencySelected(selected);
     }
   }
 
@@ -228,8 +228,9 @@ class ResolvedDependenciesPanel extends ToolWindowPanel implements DependencySel
     ModuleDependencyNode node = getNodeForLocation(ModuleDependencyNode.class, x, y);
 
     if (node != null) {
-      PsdModuleDependencyModel moduleDependencyModel = node.getModels().get(0);
-      final String name = moduleDependencyModel.getName();
+      PsModuleDependency moduleDependency = node.getModels().get(0);
+
+      final String name = moduleDependency.getName();
       DefaultActionGroup group = new DefaultActionGroup();
 
       group.add(new DumbAwareAction(String.format("Display dependencies of module '%1$s'", name)) {
@@ -353,7 +354,7 @@ class ResolvedDependenciesPanel extends ToolWindowPanel implements DependencySel
   }
 
   @Override
-  public void setSelection(@Nullable PsdAndroidDependencyModel selection) {
+  public void setSelection(@Nullable PsAndroidDependency selection) {
     myTree.removeTreeSelectionListener(myTreeSelectionListener);
     if (selection == null) {
       myTreeBuilder.clearSelection();
@@ -365,22 +366,22 @@ class ResolvedDependenciesPanel extends ToolWindowPanel implements DependencySel
   }
 
   void add(@NotNull SelectionListener listener) {
-    PsdAndroidDependencyModel selected = getSelection();
+    PsAndroidDependency selected = getSelection();
     if (selected != null) {
-      listener.dependencyModelSelected(selected);
+      listener.dependencySelected(selected);
     }
     mySelectionListeners.add(listener);
   }
 
   @Override
   @Nullable
-  public PsdAndroidDependencyModel getSelection() {
+  public PsAndroidDependency getSelection() {
     AbstractPsdNode selection = getSelectionIfSingle();
     if (selection instanceof AbstractDependencyNode) {
       AbstractDependencyNode node = (AbstractDependencyNode)selection;
       List<?> models = node.getModels();
       if (!models.isEmpty()) {
-        return (PsdAndroidDependencyModel)models.get(0);
+        return (PsAndroidDependency)models.get(0);
       }
     }
     return null;
@@ -406,6 +407,6 @@ class ResolvedDependenciesPanel extends ToolWindowPanel implements DependencySel
   }
 
   public interface SelectionListener {
-    void dependencyModelSelected(@Nullable PsdAndroidDependencyModel model);
+    void dependencySelected(@Nullable PsAndroidDependency dependency);
   }
 }

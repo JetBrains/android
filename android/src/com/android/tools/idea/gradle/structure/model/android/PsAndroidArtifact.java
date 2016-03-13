@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.structure.model.android;
 
 import com.android.builder.model.BaseArtifact;
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.structure.model.PsdChildModel;
+import com.android.tools.idea.gradle.structure.model.PsChildModel;
 import com.intellij.icons.AllIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -29,14 +29,14 @@ import static com.intellij.icons.AllIcons.Modules.TestRoot;
 import static com.intellij.icons.AllIcons.Nodes.Artifact;
 import static icons.AndroidIcons.AndroidTestRoot;
 
-public class PsdAndroidArtifactModel extends PsdChildModel implements PsdAndroidModel {
+public class PsAndroidArtifact extends PsChildModel implements PsAndroidModel {
   @NotNull private final String myName;
   @NotNull private final String myResolvedName;
   @NotNull private final Icon myIcon;
 
   @Nullable private final BaseArtifact myResolvedModel;
 
-  PsdAndroidArtifactModel(@NotNull PsdVariantModel parent, @NotNull String resolvedName, @Nullable BaseArtifact resolvedModel) {
+  PsAndroidArtifact(@NotNull PsVariant parent, @NotNull String resolvedName, @Nullable BaseArtifact resolvedModel) {
     super(parent);
     myResolvedName = resolvedName;
     Icon icon = Artifact;
@@ -88,8 +88,8 @@ public class PsdAndroidArtifactModel extends PsdChildModel implements PsdAndroid
 
   @Override
   @NotNull
-  public PsdVariantModel getParent() {
-    return (PsdVariantModel)super.getParent();
+  public PsVariant getParent() {
+    return (PsVariant)super.getParent();
   }
 
   @Override
