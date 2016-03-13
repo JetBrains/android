@@ -16,8 +16,8 @@
 package com.android.tools.idea.gradle.structure.configurables.android.treeview;
 
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsdNode;
-import com.android.tools.idea.gradle.structure.model.android.PsdAndroidModuleModel;
-import com.android.tools.idea.gradle.structure.model.android.PsdVariantModel;
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
+import com.android.tools.idea.gradle.structure.model.android.PsVariant;
 import com.google.common.collect.Lists;
 import com.intellij.ui.treeStructure.SimpleNode;
 import org.jetbrains.annotations.NotNull;
@@ -25,10 +25,10 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Collection;
 import java.util.List;
 
-public abstract class AbstractRootNode extends AbstractPsdNode<PsdAndroidModuleModel> {
+public abstract class AbstractRootNode extends AbstractPsdNode<PsAndroidModule> {
   private List<SimpleNode> myChildren;
 
-  public AbstractRootNode(@NotNull PsdAndroidModuleModel model) {
+  public AbstractRootNode(@NotNull PsAndroidModule model) {
     super(model);
     setAutoExpandNode(true);
   }
@@ -37,7 +37,7 @@ public abstract class AbstractRootNode extends AbstractPsdNode<PsdAndroidModuleM
   public SimpleNode[] getChildren() {
     if (myChildren == null) {
       List<SimpleNode> children = Lists.newArrayList();
-      for (PsdAndroidModuleModel moduleModel : getModels()) {
+      for (PsAndroidModule moduleModel : getModels()) {
         List<? extends AbstractPsdNode> variantChildren = createChildren(moduleModel.getVariants());
         children.addAll(variantChildren);
       }
@@ -51,5 +51,5 @@ public abstract class AbstractRootNode extends AbstractPsdNode<PsdAndroidModuleM
   }
 
   @NotNull
-  protected abstract List<? extends AbstractPsdNode> createChildren(@NotNull Collection<PsdVariantModel> variantModels);
+  protected abstract List<? extends AbstractPsdNode> createChildren(@NotNull Collection<PsVariant> variants);
 }

@@ -17,8 +17,8 @@ package com.android.tools.idea.gradle.structure.configurables;
 
 import com.android.tools.idea.gradle.structure.configurables.ui.PsdUISettings;
 import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowHeader;
-import com.android.tools.idea.gradle.structure.model.PsdModuleModel;
-import com.android.tools.idea.gradle.structure.model.PsdProjectModel;
+import com.android.tools.idea.gradle.structure.model.PsModule;
+import com.android.tools.idea.gradle.structure.model.PsProject;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.options.SearchableConfigurable;
@@ -41,7 +41,7 @@ import java.awt.*;
 public abstract class BasePerspectiveConfigurable extends MasterDetailsComponent
   implements SearchableConfigurable, Disposable, Place.Navigator {
 
-  @NotNull private final PsdProjectModel myProjectModel;
+  @NotNull private final PsProject myProjectModel;
   @NotNull private final PsdContext myContext;
 
   protected boolean myUiDisposed = true;
@@ -52,7 +52,7 @@ public abstract class BasePerspectiveConfigurable extends MasterDetailsComponent
   private boolean myTreeInitialized;
   private boolean myTreeMinimized;
 
-  protected BasePerspectiveConfigurable(@NotNull PsdProjectModel projectModel, @NotNull PsdContext context) {
+  protected BasePerspectiveConfigurable(@NotNull PsProject projectModel, @NotNull PsdContext context) {
     myProjectModel = projectModel;
 
     myContext = context;
@@ -60,7 +60,7 @@ public abstract class BasePerspectiveConfigurable extends MasterDetailsComponent
       @Override
       public void moduleSelectionChanged(@NotNull String module, @NotNull Object source) {
         if (source != BasePerspectiveConfigurable.this) {
-          PsdModuleModel moduleModel = myProjectModel.findModelForModule(module);
+          PsModule moduleModel = myProjectModel.findModuleByName(module);
           if (moduleModel != null) {
             MyNode node = findNodeByObject(myRoot, moduleModel);
             if (node != null) {
@@ -95,7 +95,7 @@ public abstract class BasePerspectiveConfigurable extends MasterDetailsComponent
     super.updateSelection(configurable);
     if (configurable instanceof BaseNamedConfigurable) {
       BaseNamedConfigurable baseConfigurable = (BaseNamedConfigurable)configurable;
-      PsdModuleModel moduleModel = baseConfigurable.getEditableObject();
+      PsModule moduleModel = baseConfigurable.getEditableObject();
       myContext.setSelectedModule(moduleModel.getName(), this);
     }
   }
@@ -209,8 +209,8 @@ public abstract class BasePerspectiveConfigurable extends MasterDetailsComponent
   }
 
   private void createModuleNodes() {
-    for (PsdModuleModel moduleModel : myProjectModel.getModuleModels()) {
-      NamedConfigurable<? extends PsdModuleModel> configurable = getConfigurable(moduleModel);
+    for (PsModule moduleModel : myProjectModel.getModules()) {
+      NamedConfigurable<? extends PsModule> configurable = getConfigurable(moduleModel);
       if (configurable != null) {
         MyNode moduleNode = new MyNode(configurable);
         myRoot.add(moduleNode);
@@ -219,10 +219,10 @@ public abstract class BasePerspectiveConfigurable extends MasterDetailsComponent
   }
 
   @Nullable
-  protected abstract NamedConfigurable<? extends PsdModuleModel> getConfigurable(@NotNull PsdModuleModel moduleModel);
+  protected abstract NamedConfigurable<? extends PsModule> getConfigurable(@NotNull PsModule moduleModel);
 
   @NotNull
-  protected PsdProjectModel getProjectModel() {
+  protected PsProject getProjectModel() {
     return myProjectModel;
   }
 

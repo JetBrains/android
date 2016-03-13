@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.structure.model.android;
 
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependencyModel;
-import com.android.tools.idea.gradle.structure.model.PsdChildModel;
+import com.android.tools.idea.gradle.structure.model.PsChildModel;
 import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -25,14 +25,14 @@ import org.jetbrains.annotations.TestOnly;
 
 import java.util.Set;
 
-public abstract class PsdAndroidDependencyModel extends PsdChildModel implements PsdAndroidModel {
-  @NotNull private final Set<PsdDependencyContainer> myContainers = Sets.newHashSet();
+public abstract class PsAndroidDependency extends PsChildModel implements PsAndroidModel {
+  @NotNull private final Set<PsDependencyContainer> myContainers = Sets.newHashSet();
 
   @Nullable private DependencyModel myParsedModel;
 
-  PsdAndroidDependencyModel(@NotNull PsdAndroidModuleModel parent,
-                            @Nullable PsdAndroidArtifactModel container,
-                            @Nullable DependencyModel parsedModel) {
+  PsAndroidDependency(@NotNull PsAndroidModule parent,
+                      @Nullable PsAndroidArtifact container,
+                      @Nullable DependencyModel parsedModel) {
     super(parent);
     myParsedModel = parsedModel;
     if (container != null) {
@@ -48,26 +48,26 @@ public abstract class PsdAndroidDependencyModel extends PsdChildModel implements
 
   @Override
   @NotNull
-  public PsdAndroidModuleModel getParent() {
-    return (PsdAndroidModuleModel)super.getParent();
+  public PsAndroidModule getParent() {
+    return (PsAndroidModule)super.getParent();
   }
 
-  void addContainer(@NotNull PsdAndroidArtifactModel artifactModel) {
-    myContainers.add(new PsdDependencyContainer(artifactModel));
+  void addContainer(@NotNull PsAndroidArtifact artifact) {
+    myContainers.add(new PsDependencyContainer(artifact));
   }
 
   @TestOnly
   @NotNull
   public Set<String> getVariants() {
     Set<String> variants = Sets.newHashSet();
-    for (PsdDependencyContainer container : myContainers) {
+    for (PsDependencyContainer container : myContainers) {
       variants.add(container.getVariant());
     }
     return variants;
   }
 
   @NotNull
-  public Set<PsdDependencyContainer> getContainers() {
+  public Set<PsDependencyContainer> getContainers() {
     return myContainers;
   }
 
@@ -94,7 +94,7 @@ public abstract class PsdAndroidDependencyModel extends PsdChildModel implements
   public abstract String getValueAsText();
 
   public boolean isIn(@NotNull String artifactName, @Nullable String variantName) {
-    for (PsdDependencyContainer container : myContainers) {
+    for (PsDependencyContainer container : myContainers) {
       if (artifactName.equals(container.getArtifact())) {
         if (variantName == null) {
           return true;

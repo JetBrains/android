@@ -19,9 +19,9 @@ import com.android.builder.model.Library;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependencyModel;
-import com.android.tools.idea.gradle.structure.model.PsdArtifactDependencySpec;
-import com.android.tools.idea.gradle.structure.model.PsdModuleModel;
-import com.android.tools.idea.gradle.structure.model.PsdProjectModel;
+import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
+import com.android.tools.idea.gradle.structure.model.PsModule;
+import com.android.tools.idea.gradle.structure.model.PsProject;
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -36,19 +36,19 @@ import java.util.Set;
 
 import static com.intellij.util.PlatformIcons.LIBRARY_ICON;
 
-public class PsdLibraryDependencyModel extends PsdAndroidDependencyModel {
-  @NotNull private final PsdArtifactDependencySpec myResolvedSpec;
-  @NotNull private final List<PsdArtifactDependencySpec> myPomDependencies = Lists.newArrayList();
+public class PsLibraryDependency extends PsAndroidDependency {
+  @NotNull private final PsArtifactDependencySpec myResolvedSpec;
+  @NotNull private final List<PsArtifactDependencySpec> myPomDependencies = Lists.newArrayList();
   @NotNull private final Set<String> myTransitiveDependencies = Sets.newHashSet();
 
   @Nullable private final Library myResolvedModel;
-  @Nullable private PsdArtifactDependencySpec myDeclaredSpec;
+  @Nullable private PsArtifactDependencySpec myDeclaredSpec;
 
-  PsdLibraryDependencyModel(@NotNull PsdAndroidModuleModel parent,
-                            @NotNull PsdArtifactDependencySpec resolvedSpec,
-                            @Nullable Library resolvedModel,
-                            @Nullable PsdAndroidArtifactModel container,
-                            @Nullable ArtifactDependencyModel parsedModel) {
+  PsLibraryDependency(@NotNull PsAndroidModule parent,
+                      @NotNull PsArtifactDependencySpec resolvedSpec,
+                      @Nullable Library resolvedModel,
+                      @Nullable PsAndroidArtifact container,
+                      @Nullable ArtifactDependencyModel parsedModel) {
     super(parent, container, parsedModel);
     myResolvedSpec = resolvedSpec;
     myResolvedModel = resolvedModel;
@@ -65,7 +65,7 @@ public class PsdLibraryDependencyModel extends PsdAndroidDependencyModel {
     myTransitiveDependencies.add(dependency);
   }
 
-  public void setPomDependencies(@NotNull List<PsdArtifactDependencySpec> pomDependencies) {
+  public void setPomDependencies(@NotNull List<PsArtifactDependencySpec> pomDependencies) {
     myPomDependencies.clear();
     myPomDependencies.addAll(pomDependencies);
   }
@@ -78,27 +78,27 @@ public class PsdLibraryDependencyModel extends PsdAndroidDependencyModel {
   }
 
   private void setDeclaredSpec(@Nullable ArtifactDependencyModel parsedModel) {
-    PsdArtifactDependencySpec declaredSpec = null;
+    PsArtifactDependencySpec declaredSpec = null;
     if (parsedModel != null) {
       String compactNotation = parsedModel.compactNotation().value();
-      declaredSpec = PsdArtifactDependencySpec.create(compactNotation);
+      declaredSpec = PsArtifactDependencySpec.create(compactNotation);
     }
     myDeclaredSpec = declaredSpec;
   }
 
   @NotNull
-  public Collection<PsdAndroidDependencyModel> getTransitiveDependencies() {
-    PsdAndroidModuleModel moduleModel = getParent();
+  public Collection<PsAndroidDependency> getTransitiveDependencies() {
+    PsAndroidModule module = getParent();
 
-    Set<PsdAndroidDependencyModel> transitive = Sets.newHashSet();
+    Set<PsAndroidDependency> transitive = Sets.newHashSet();
     for (String dependency : myTransitiveDependencies) {
-      PsdAndroidDependencyModel found = moduleModel.findLibraryDependency(dependency);
+      PsAndroidDependency found = module.findLibraryDependency(dependency);
       if (found != null) {
         transitive.add(found);
       }
     }
-    for (PsdArtifactDependencySpec dependency : myPomDependencies) {
-      PsdLibraryDependencyModel found = moduleModel.findLibraryDependency(dependency);
+    for (PsArtifactDependencySpec dependency : myPomDependencies) {
+      PsLibraryDependency found = module.findLibraryDependency(dependency);
       if (found != null) {
         transitive.add(found);
       }
@@ -119,15 +119,15 @@ public class PsdLibraryDependencyModel extends PsdAndroidDependencyModel {
     return sorted;
   }
 
-  private void findRequestingModuleDependencies(@NotNull PsdAndroidModuleModel module, @NotNull Collection<String> found) {
-    PsdProjectModel project = module.getParent();
-    for (PsdModuleDependencyModel moduleDependency : module.getModuleDependencies()) {
+  private void findRequestingModuleDependencies(@NotNull PsAndroidModule module, @NotNull Collection<String> found) {
+    PsProject project = module.getParent();
+    for (PsModuleDependency moduleDependency : module.getModuleDependencies()) {
       String gradlePath = moduleDependency.getGradlePath();
-      PsdModuleModel foundModule = project.findModelByGradlePath(gradlePath);
-      if (foundModule instanceof PsdAndroidModuleModel) {
-        PsdAndroidModuleModel androidModule = (PsdAndroidModuleModel)foundModule;
+      PsModule foundModule = project.findModuleByGradlePath(gradlePath);
+      if (foundModule instanceof PsAndroidModule) {
+        PsAndroidModule androidModule = (PsAndroidModule)foundModule;
 
-        PsdLibraryDependencyModel libraryDependency = androidModule.findLibraryDependency(myResolvedSpec);
+        PsLibraryDependency libraryDependency = androidModule.findLibraryDependency(myResolvedSpec);
         if (libraryDependency != null && libraryDependency.isEditable()) {
           found.add(androidModule.getName());
         }
@@ -138,12 +138,12 @@ public class PsdLibraryDependencyModel extends PsdAndroidDependencyModel {
   }
 
   @Nullable
-  public PsdArtifactDependencySpec getDeclaredSpec() {
+  public PsArtifactDependencySpec getDeclaredSpec() {
     return myDeclaredSpec;
   }
 
   @NotNull
-  public PsdArtifactDependencySpec getResolvedSpec() {
+  public PsArtifactDependencySpec getResolvedSpec() {
     return myResolvedSpec;
   }
 
@@ -181,7 +181,7 @@ public class PsdLibraryDependencyModel extends PsdAndroidDependencyModel {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    PsdLibraryDependencyModel that = (PsdLibraryDependencyModel)o;
+    PsLibraryDependency that = (PsLibraryDependency)o;
     return Objects.equal(myResolvedSpec, that.myResolvedSpec);
   }
 

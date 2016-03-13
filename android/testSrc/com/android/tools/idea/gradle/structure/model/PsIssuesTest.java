@@ -18,29 +18,29 @@ package com.android.tools.idea.gradle.structure.model;
 import org.junit.Before;
 import org.junit.Test;
 
-import static com.android.tools.idea.gradle.structure.model.PsdIssue.Type.WARNING;
+import static com.android.tools.idea.gradle.structure.model.PsIssue.Type.WARNING;
 import static org.junit.Assert.assertEquals;
 
 /**
- * Tests for {@link PsdIssues}.
+ * Tests for {@link PsIssues}.
  */
-public class PsdIssuesTest {
-  private PsdIssues myIssues;
+public class PsIssuesTest {
+  private PsIssues myIssues;
 
   @Before
   public void setUp() {
-    myIssues = new PsdIssues();
+    myIssues = new PsIssues();
   }
 
   @Test
   public void testGetTooltipText() {
     for (int i = 0; i < 5; i++) {
-      myIssues.addIssue(new PsdIssue("Issue " + (i + 1), WARNING));
+      myIssues.addIssue(new PsIssue("Issue " + (i + 1), WARNING));
     }
     assertEquals("<html><body>Issue 1<br>Issue 2<br>Issue 3<br>Issue 4<br>Issue 5<br></body></html>", myIssues.getTooltipText());
 
     for (int i = 5; i < 20; i++) {
-      myIssues.addIssue(new PsdIssue("Issue " + (i + 1), WARNING));
+      myIssues.addIssue(new PsIssue("Issue " + (i + 1), WARNING));
     }
 
     assertEquals("<html><body>Issue 1<br>Issue 2<br>Issue 3<br>Issue 4<br>Issue 5<br>Issue 6<br>Issue 7<br>Issue 8<br>Issue 9<br>" +

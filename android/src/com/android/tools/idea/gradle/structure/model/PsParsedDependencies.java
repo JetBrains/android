@@ -21,7 +21,7 @@ import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependencyModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ModuleDependencyModel;
-import com.android.tools.idea.gradle.structure.model.android.PsdAndroidArtifactModel;
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidArtifact;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -34,14 +34,14 @@ import java.util.Map;
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
 import static com.android.builder.model.AndroidProject.*;
 
-public class PsdParsedDependencyModels {
+public class PsParsedDependencies {
   // Key: module's Gradle path
   @NotNull private final Map<String, ModuleDependencyModel> myParsedModuleDependencies = Maps.newHashMap();
 
   // Key: artifact group ID + ":" + artifact name (e.g. "com.google.guava:guava")
   @NotNull private final Map<String, ArtifactDependencyModel> myParsedArtifactDependencies = Maps.newHashMap();
 
-  public PsdParsedDependencyModels(@Nullable GradleBuildModel parsedModel) {
+  public PsParsedDependencies(@Nullable GradleBuildModel parsedModel) {
     if (parsedModel != null) {
       for (DependencyModel parsedDependency : parsedModel.dependencies().all()) {
         if (parsedDependency instanceof ArtifactDependencyModel) {
@@ -64,10 +64,10 @@ public class PsdParsedDependencyModels {
 
   @Nullable
   public ArtifactDependencyModel findMatchingArtifactDependency(@NotNull MavenCoordinates coordinates,
-                                                                @NotNull PsdAndroidArtifactModel artifactModel) {
+                                                                @NotNull PsAndroidArtifact artifact) {
     String identifier = getIdentifier(coordinates);
     ArtifactDependencyModel parsedDependency = myParsedArtifactDependencies.get(identifier);
-    if (parsedDependency != null && isDependencyInArtifact(parsedDependency, artifactModel)) {
+    if (parsedDependency != null && isDependencyInArtifact(parsedDependency, artifact)) {
       return parsedDependency;
     }
     return null;
@@ -99,18 +99,18 @@ public class PsdParsedDependencyModels {
   }
 
   @Nullable
-  public ModuleDependencyModel findMatchingModuleDependency(@NotNull String gradlePath, @NotNull PsdAndroidArtifactModel artifactModel) {
+  public ModuleDependencyModel findMatchingModuleDependency(@NotNull String gradlePath, @NotNull PsAndroidArtifact artifact) {
     ModuleDependencyModel parsedDependency = myParsedModuleDependencies.get(gradlePath);
-    if (parsedDependency != null && isDependencyInArtifact(parsedDependency, artifactModel)) {
+    if (parsedDependency != null && isDependencyInArtifact(parsedDependency, artifact)) {
       return parsedDependency;
     }
     return null;
   }
 
-  public static boolean isDependencyInArtifact(@NotNull DependencyModel parsedDependency, @NotNull PsdAndroidArtifactModel artifactModel) {
+  public static boolean isDependencyInArtifact(@NotNull DependencyModel parsedDependency, @NotNull PsAndroidArtifact artifact) {
     String configurationName = parsedDependency.configurationName();
     String guessedName = guessArtifactName(configurationName);
-    String artifactName = artifactModel.getResolvedName();
+    String artifactName = artifact.getResolvedName();
     return artifactName.equals(guessedName);
   }
 }

@@ -16,9 +16,9 @@
 package com.android.tools.idea.gradle.structure.configurables;
 
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.AndroidModuleDependenciesConfigurable;
-import com.android.tools.idea.gradle.structure.model.android.PsdAndroidModuleModel;
-import com.android.tools.idea.gradle.structure.model.PsdModuleModel;
-import com.android.tools.idea.gradle.structure.model.PsdProjectModel;
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
+import com.android.tools.idea.gradle.structure.model.PsModule;
+import com.android.tools.idea.gradle.structure.model.PsProject;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.ui.NamedConfigurable;
 import com.intellij.openapi.util.ActionCallback;
@@ -30,20 +30,20 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Map;
 
 public class DependenciesPerspectiveConfigurable extends BasePerspectiveConfigurable {
-  private Map<String, NamedConfigurable<? extends PsdModuleModel>> myConfigurablesByGradlePath = Maps.newHashMap();
+  private Map<String, NamedConfigurable<? extends PsModule>> myConfigurablesByGradlePath = Maps.newHashMap();
 
-  public DependenciesPerspectiveConfigurable(@NotNull PsdProjectModel projectModel, @NotNull PsdContext context) {
+  public DependenciesPerspectiveConfigurable(@NotNull PsProject projectModel, @NotNull PsdContext context) {
     super(projectModel, context);
   }
 
   @Override
   @Nullable
-  protected NamedConfigurable<? extends PsdModuleModel> getConfigurable(@NotNull PsdModuleModel moduleModel) {
+  protected NamedConfigurable<? extends PsModule> getConfigurable(@NotNull PsModule moduleModel) {
     String gradlePath = moduleModel.getGradlePath();
-    NamedConfigurable<? extends PsdModuleModel> configurable = myConfigurablesByGradlePath.get(gradlePath);
+    NamedConfigurable<? extends PsModule> configurable = myConfigurablesByGradlePath.get(gradlePath);
     if (configurable == null) {
-      if (moduleModel instanceof PsdAndroidModuleModel) {
-        PsdAndroidModuleModel androidModuleModel = (PsdAndroidModuleModel)moduleModel;
+      if (moduleModel instanceof PsAndroidModule) {
+        PsAndroidModule androidModuleModel = (PsAndroidModule)moduleModel;
         configurable = new AndroidModuleDependenciesConfigurable(androidModuleModel, getContext());
         myConfigurablesByGradlePath.put(gradlePath, configurable);
       }

@@ -17,9 +17,9 @@ package com.android.tools.idea.gradle.structure.configurables.android.dependenci
 
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.EditableDependenciesTableModel.DependencyCellRenderer;
 import com.android.tools.idea.gradle.structure.configurables.ui.PsdUISettings;
-import com.android.tools.idea.gradle.structure.model.PsdArtifactDependencySpec;
-import com.android.tools.idea.gradle.structure.model.android.PsdAndroidDependencyModel;
-import com.android.tools.idea.gradle.structure.model.android.PsdLibraryDependencyModel;
+import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
+import com.android.tools.idea.gradle.structure.model.android.PsLibraryDependency;
 import com.google.common.collect.Lists;
 import com.intellij.testFramework.IdeaTestCase;
 import com.intellij.util.ui.ColumnInfo;
@@ -34,7 +34,7 @@ import static org.mockito.Mockito.when;
  */
 public class EditableDependenciesTableModelTest extends IdeaTestCase {
   private boolean myOriginalShowGroupId;
-  private PsdLibraryDependencyModel myLibraryDependencyModel;
+  private PsLibraryDependency myLibraryDependencyModel;
 
   private EditableDependenciesTableModel myTableModel;
 
@@ -42,11 +42,11 @@ public class EditableDependenciesTableModelTest extends IdeaTestCase {
   public void setUp() throws Exception {
     super.setUp();
     myOriginalShowGroupId = PsdUISettings.getInstance().DECLARED_DEPENDENCIES_SHOW_GROUP_ID;
-    myLibraryDependencyModel = mock(PsdLibraryDependencyModel.class);
+    myLibraryDependencyModel = mock(PsLibraryDependency.class);
 
-    List<PsdAndroidDependencyModel> dependencyEditors = Lists.newArrayList();
-    dependencyEditors.add(myLibraryDependencyModel);
-    myTableModel = new EditableDependenciesTableModel(dependencyEditors);
+    List<PsAndroidDependency> dependencies = Lists.newArrayList();
+    dependencies.add(myLibraryDependencyModel);
+    myTableModel = new EditableDependenciesTableModel(dependencies);
   }
 
   @Override
@@ -60,7 +60,7 @@ public class EditableDependenciesTableModelTest extends IdeaTestCase {
   }
 
   public void testShowArtifactDependencySpec() {
-    PsdArtifactDependencySpec spec = new PsdArtifactDependencySpec("appcompat-v7", "com.android.support", "23.1.0");
+    PsArtifactDependencySpec spec = new PsArtifactDependencySpec("appcompat-v7", "com.android.support", "23.1.0");
     when(myLibraryDependencyModel.getResolvedSpec()).thenReturn(spec);
     when(myLibraryDependencyModel.getDeclaredSpec()).thenReturn(spec);
     when(myLibraryDependencyModel.getValueAsText()).thenReturn("com.android.support:appcompat-v7:23.1.0");
@@ -70,7 +70,7 @@ public class EditableDependenciesTableModelTest extends IdeaTestCase {
     PsdUISettings.getInstance().DECLARED_DEPENDENCIES_SHOW_GROUP_ID = true;
 
     //noinspection unchecked
-    ColumnInfo<PsdAndroidDependencyModel, String> specColumnInfo = columnInfos[0];
+    ColumnInfo<PsAndroidDependency, String> specColumnInfo = columnInfos[0];
     DependencyCellRenderer renderer = (DependencyCellRenderer)specColumnInfo.getRenderer(myLibraryDependencyModel);
     assertNotNull(renderer);
 
@@ -88,7 +88,7 @@ public class EditableDependenciesTableModelTest extends IdeaTestCase {
 
     ColumnInfo[] columnInfos = myTableModel.getColumnInfos();
     //noinspection unchecked
-    ColumnInfo<PsdAndroidDependencyModel, String> scopeColumnInfo = columnInfos[1];
+    ColumnInfo<PsAndroidDependency, String> scopeColumnInfo = columnInfos[1];
     String columnText = scopeColumnInfo.valueOf(myLibraryDependencyModel);
     assertEquals("compile", columnText);
   }

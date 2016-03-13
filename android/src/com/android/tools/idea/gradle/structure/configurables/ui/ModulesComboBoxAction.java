@@ -16,8 +16,8 @@
 package com.android.tools.idea.gradle.structure.configurables.ui;
 
 import com.android.tools.idea.gradle.structure.configurables.PsdContext;
-import com.android.tools.idea.gradle.structure.model.PsdModuleModel;
-import com.android.tools.idea.gradle.structure.model.PsdProjectModel;
+import com.android.tools.idea.gradle.structure.model.PsModule;
+import com.android.tools.idea.gradle.structure.model.PsProject;
 import com.android.tools.idea.gradle.util.ui.LabeledComboBoxAction;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -29,10 +29,10 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 
 public class ModulesComboBoxAction extends LabeledComboBoxAction {
-  @NotNull private final PsdProjectModel myProjectModel;
+  @NotNull private final PsProject myProjectModel;
   @NotNull private final PsdContext myContext;
 
-  public ModulesComboBoxAction(@NotNull PsdProjectModel projectModel, @NotNull PsdContext context) {
+  public ModulesComboBoxAction(@NotNull PsProject projectModel, @NotNull PsdContext context) {
     super("Module: ");
     myProjectModel = projectModel;
     myContext = context;
@@ -49,7 +49,7 @@ public class ModulesComboBoxAction extends LabeledComboBoxAction {
   @NotNull
   protected DefaultActionGroup createPopupActionGroup(JComponent button) {
     DefaultActionGroup group = new DefaultActionGroup();
-    for (PsdModuleModel moduleModel : myProjectModel.getModuleModels()) {
+    for (PsModule moduleModel : myProjectModel.getModules()) {
       group.add(new ModuleAction(moduleModel));
     }
     return group;
@@ -58,7 +58,7 @@ public class ModulesComboBoxAction extends LabeledComboBoxAction {
   private class ModuleAction extends DumbAwareAction {
     @NotNull private final String myModuleName;
 
-    ModuleAction(@NotNull PsdModuleModel moduleModel) {
+    ModuleAction(@NotNull PsModule moduleModel) {
       super(moduleModel.getName(), "", moduleModel.getIcon());
       myModuleName = moduleModel.getName();
     }

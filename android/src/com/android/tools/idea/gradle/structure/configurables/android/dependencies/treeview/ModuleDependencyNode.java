@@ -15,14 +15,14 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview;
 
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.PsdAndroidDependencyModelComparator;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.PsAndroidDependencyComparator;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsdNode;
-import com.android.tools.idea.gradle.structure.model.PsdModuleModel;
-import com.android.tools.idea.gradle.structure.model.PsdProjectModel;
-import com.android.tools.idea.gradle.structure.model.android.PsdAndroidDependencyModel;
-import com.android.tools.idea.gradle.structure.model.android.PsdAndroidModuleModel;
-import com.android.tools.idea.gradle.structure.model.android.PsdLibraryDependencyModel;
-import com.android.tools.idea.gradle.structure.model.android.PsdModuleDependencyModel;
+import com.android.tools.idea.gradle.structure.model.PsModule;
+import com.android.tools.idea.gradle.structure.model.PsProject;
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
+import com.android.tools.idea.gradle.structure.model.android.PsLibraryDependency;
+import com.android.tools.idea.gradle.structure.model.android.PsModuleDependency;
 import com.google.common.collect.Lists;
 import com.intellij.ui.treeStructure.SimpleNode;
 import org.jetbrains.annotations.NotNull;
@@ -32,37 +32,37 @@ import java.util.List;
 
 import static com.android.builder.model.AndroidProject.ARTIFACT_MAIN;
 
-public class ModuleDependencyNode extends AbstractDependencyNode<PsdModuleDependencyModel> {
+public class ModuleDependencyNode extends AbstractDependencyNode<PsModuleDependency> {
   private final List<AbstractPsdNode<?>> myChildren = Lists.newArrayList();
 
-  ModuleDependencyNode(@NotNull AbstractPsdNode parent, @NotNull PsdModuleDependencyModel model) {
-    super(parent, model);
-    myName = model.getValueAsText();
+  ModuleDependencyNode(@NotNull AbstractPsdNode parent, @NotNull PsModuleDependency moduleDependency) {
+    super(parent, moduleDependency);
+    myName = moduleDependency.getValueAsText();
 
-    PsdAndroidModuleModel dependentModule = model.getParent();
-    PsdProjectModel project = dependentModule.getParent();
+    PsAndroidModule dependentModule = moduleDependency.getParent();
+    PsProject project = dependentModule.getParent();
 
-    PsdModuleModel referred = project.findModelByGradlePath(model.getGradlePath());
-    if (referred instanceof PsdAndroidModuleModel) {
-      List<PsdAndroidDependencyModel> dependencies = ((PsdAndroidModuleModel)referred).getDependencies();
-      Collections.sort(dependencies, PsdAndroidDependencyModelComparator.INSTANCE);
+    PsModule referred = project.findModuleByGradlePath(moduleDependency.getGradlePath());
+    if (referred instanceof PsAndroidModule) {
+      List<PsAndroidDependency> dependencies = ((PsAndroidModule)referred).getDependencies();
+      Collections.sort(dependencies, PsAndroidDependencyComparator.INSTANCE);
 
-      for (PsdAndroidDependencyModel dependency : dependencies) {
+      for (PsAndroidDependency dependency : dependencies) {
         if (!dependency.isEditable()) {
           continue; // Only show "declared" dependencies as top-level dependencies.
         }
-        String moduleVariant = model.getModuleVariant();
+        String moduleVariant = moduleDependency.getModuleVariant();
         if (!dependency.isIn(ARTIFACT_MAIN, moduleVariant)) {
           continue; // Only show the dependencies in the main artifact.
         }
 
         AbstractPsdNode<?> child = null;
 
-        if (dependency instanceof PsdLibraryDependencyModel) {
-          child = new LibraryDependencyNode(this, (PsdLibraryDependencyModel)dependency);
+        if (dependency instanceof PsLibraryDependency) {
+          child = new LibraryDependencyNode(this, (PsLibraryDependency)dependency);
         }
-        else if (dependency instanceof PsdModuleDependencyModel) {
-          child = new ModuleDependencyNode(this, (PsdModuleDependencyModel)dependency);
+        else if (dependency instanceof PsModuleDependency) {
+          child = new ModuleDependencyNode(this, (PsModuleDependency)dependency);
         }
 
         if (child != null) {

@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.structure.configurables.android.dependenci
 import com.android.builder.model.AndroidProject;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.structure.configurables.ui.ArtifactRepositorySearchForm;
-import com.android.tools.idea.gradle.structure.model.android.PsdAndroidModuleModel;
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.android.tools.idea.gradle.structure.model.repositories.search.AndroidSdkRepository;
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepository;
 import com.android.tools.idea.gradle.structure.model.repositories.search.MavenCentralRepository;
@@ -32,12 +32,12 @@ import java.awt.*;
 import java.util.List;
 
 class AddArtifactDependencyDialog extends DialogWrapper {
-  @NotNull private final PsdAndroidModuleModel myModuleModel;
+  @NotNull private final PsAndroidModule myModuleModel;
 
   private JPanel myPanel;
   private ArtifactRepositorySearchForm mySearchForm;
 
-  AddArtifactDependencyDialog(@NotNull PsdAndroidModuleModel moduleModel) {
+  AddArtifactDependencyDialog(@NotNull PsAndroidModule moduleModel) {
     super(moduleModel.getParent().getResolvedModel());
     myModuleModel = moduleModel;
     setTitle("Add Artifact Dependency");

@@ -18,19 +18,19 @@ package com.android.tools.idea.gradle.structure.model.android;
 import com.android.builder.model.ProductFlavor;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModel;
-import com.android.tools.idea.gradle.structure.model.PsdChildModel;
+import com.android.tools.idea.gradle.structure.model.PsChildModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class PsdProductFlavorModel extends PsdChildModel implements PsdAndroidModel {
+public class PsProductFlavor extends PsChildModel implements PsAndroidModel {
   @Nullable private final ProductFlavor myResolvedModel;
   @Nullable private final ProductFlavorModel myParsedModel;
 
   private String myName = "";
 
-  PsdProductFlavorModel(@NotNull PsdAndroidModuleModel parent,
-                        @Nullable ProductFlavor resolvedModel,
-                        @Nullable ProductFlavorModel parsedModel) {
+  PsProductFlavor(@NotNull PsAndroidModule parent,
+                  @Nullable ProductFlavor resolvedModel,
+                  @Nullable ProductFlavorModel parsedModel) {
     super(parent);
     myResolvedModel = resolvedModel;
     myParsedModel = parsedModel;
@@ -50,8 +50,8 @@ public class PsdProductFlavorModel extends PsdChildModel implements PsdAndroidMo
 
   @Override
   @NotNull
-  public PsdAndroidModuleModel getParent() {
-    return (PsdAndroidModuleModel)super.getParent();
+  public PsAndroidModule getParent() {
+    return (PsAndroidModule)super.getParent();
   }
 
   @Override

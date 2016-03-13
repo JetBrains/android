@@ -20,7 +20,7 @@ import com.android.builder.model.ProductFlavor;
 import com.android.builder.model.ProductFlavorContainer;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModel;
-import com.android.tools.idea.gradle.structure.model.PsdModelCollection;
+import com.android.tools.idea.gradle.structure.model.PsModelCollection;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.jetbrains.annotations.NotNull;
@@ -30,10 +30,10 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-class PsdProductFlavorModelCollection implements PsdModelCollection<PsdProductFlavorModel> {
-  @NotNull private final Map<String, PsdProductFlavorModel> myProductFlavorModelsByName = Maps.newHashMap();
+class PsProductFlavorCollection implements PsModelCollection<PsProductFlavor> {
+  @NotNull private final Map<String, PsProductFlavor> myProductFlavorsByName = Maps.newHashMap();
 
-  PsdProductFlavorModelCollection(@NonNull PsdAndroidModuleModel parent) {
+  PsProductFlavorCollection(@NonNull PsAndroidModule parent) {
     Map<String, ProductFlavor> productFlavorsFromGradle = Maps.newHashMap();
     for (ProductFlavorContainer container : parent.getAndroidGradleModel().getAndroidProject().getProductFlavors()) {
       ProductFlavor productFlavor = container.getProductFlavor();
@@ -47,35 +47,30 @@ class PsdProductFlavorModelCollection implements PsdModelCollection<PsdProductFl
         String name = parsedProductFlavor.name();
         ProductFlavor fromGradle = productFlavorsFromGradle.remove(name);
 
-        PsdProductFlavorModel model = new PsdProductFlavorModel(parent, fromGradle, parsedProductFlavor);
-        myProductFlavorModelsByName.put(name, model);
+        PsProductFlavor model = new PsProductFlavor(parent, fromGradle, parsedProductFlavor);
+        myProductFlavorsByName.put(name, model);
       }
     }
 
     if (!productFlavorsFromGradle.isEmpty()) {
       for (ProductFlavor productFlavor : productFlavorsFromGradle.values()) {
-        PsdProductFlavorModel model = new PsdProductFlavorModel(parent, productFlavor, null);
-        myProductFlavorModelsByName.put(productFlavor.getName(), model);
+        PsProductFlavor model = new PsProductFlavor(parent, productFlavor, null);
+        myProductFlavorsByName.put(productFlavor.getName(), model);
       }
     }
   }
 
-  @Nullable
-  PsdProductFlavorModel findProductFlavorModel(@NotNull String productFlavorName) {
-    return myProductFlavorModelsByName.get(productFlavorName);
-  }
-
   @Override
   @NotNull
-  public List<PsdProductFlavorModel> getElements() {
-    return Lists.newArrayList(myProductFlavorModelsByName.values());
+  public List<PsProductFlavor> getElements() {
+    return Lists.newArrayList(myProductFlavorsByName.values());
   }
 
   @Nullable
   @Override
-  public <S extends PsdProductFlavorModel> S findElement(@NotNull String name, @NotNull Class<S> type) {
-    if (PsdProductFlavorModel.class.equals(type)) {
-      return type.cast(myProductFlavorModelsByName.get(name));
+  public <S extends PsProductFlavor> S findElement(@NotNull String name, @NotNull Class<S> type) {
+    if (PsProductFlavor.class.equals(type)) {
+      return type.cast(myProductFlavorsByName.get(name));
     }
     return null;
   }

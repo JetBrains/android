@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview;
 
-import com.android.tools.idea.gradle.structure.model.android.PsdAndroidDependencyModel;
-import com.android.tools.idea.gradle.structure.model.android.PsdDependencyContainer;
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
+import com.android.tools.idea.gradle.structure.model.android.PsDependencyContainer;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
@@ -36,19 +36,19 @@ import static org.mockito.Mockito.when;
  * Tests for {@link RootNode}.
  */
 public class RootNodeTest {
-  private PsdAndroidDependencyModel myD1;
-  private PsdAndroidDependencyModel myD2;
-  private PsdAndroidDependencyModel myD3;
+  private PsAndroidDependency myD1;
+  private PsAndroidDependency myD2;
+  private PsAndroidDependency myD3;
 
   @Before
   public void setUp() {
-    myD1 = mock(PsdAndroidDependencyModel.class);
+    myD1 = mock(PsAndroidDependency.class);
     when(myD1.toString()).thenReturn("d1");
 
-    myD2 = mock(PsdAndroidDependencyModel.class);
+    myD2 = mock(PsAndroidDependency.class);
     when(myD2.toString()).thenReturn("d2");
 
-    myD3 = mock(PsdAndroidDependencyModel.class);
+    myD3 = mock(PsAndroidDependency.class);
     when(myD3.toString()).thenReturn("d3");
   }
 
@@ -73,12 +73,12 @@ public class RootNodeTest {
                       container("v2", ARTIFACT_MAIN)
       ));
 
-    List<PsdAndroidDependencyModel> allDependencies = Lists.newArrayList(myD1, myD2);
-    Map<List<PsdDependencyContainer>, List<PsdAndroidDependencyModel>> groups = RootNode.group(allDependencies);
+    List<PsAndroidDependency> allDependencies = Lists.newArrayList(myD1, myD2);
+    Map<List<PsDependencyContainer>, List<PsAndroidDependency>> groups = RootNode.group(allDependencies);
     assertThat(groups).hasSize(2);
 
-    List<PsdDependencyContainer> group = Lists.newArrayList(container("v3", ARTIFACT_MAIN));
-    List<PsdAndroidDependencyModel> dependencies = groups.get(group);
+    List<PsDependencyContainer> group = Lists.newArrayList(container("v3", ARTIFACT_MAIN));
+    List<PsAndroidDependency> dependencies = groups.get(group);
     assertThat(dependencies).containsOnly(myD1);
 
     group = Lists.newArrayList(container("v1", ARTIFACT_MAIN),
@@ -111,12 +111,12 @@ public class RootNodeTest {
       Sets.newHashSet(container("v1", ARTIFACT_MAIN)
       ));
 
-    List<PsdAndroidDependencyModel> allDependencies = Lists.newArrayList(myD1, myD2, myD3);
-    Map<List<PsdDependencyContainer>, List<PsdAndroidDependencyModel>> groups = RootNode.group(allDependencies);
+    List<PsAndroidDependency> allDependencies = Lists.newArrayList(myD1, myD2, myD3);
+    Map<List<PsDependencyContainer>, List<PsAndroidDependency>> groups = RootNode.group(allDependencies);
     assertThat(groups).hasSize(4);
 
-    List<PsdDependencyContainer> group = Lists.newArrayList(container("v1", ARTIFACT_MAIN));
-    List<PsdAndroidDependencyModel> dependencies = groups.get(group);
+    List<PsDependencyContainer> group = Lists.newArrayList(container("v1", ARTIFACT_MAIN));
+    List<PsAndroidDependency> dependencies = groups.get(group);
     assertThat(dependencies).containsOnly(myD2, myD3);
 
     group = Lists.newArrayList(container("v1", ARTIFACT_UNIT_TEST));
@@ -152,13 +152,13 @@ public class RootNodeTest {
                       container("v2", ARTIFACT_MAIN)
       ));
 
-    List<PsdAndroidDependencyModel> allDependencies = Lists.newArrayList(myD1, myD2);
-    Map<List<PsdDependencyContainer>, List<PsdAndroidDependencyModel>> groups = RootNode.group(allDependencies);
+    List<PsAndroidDependency> allDependencies = Lists.newArrayList(myD1, myD2);
+    Map<List<PsDependencyContainer>, List<PsAndroidDependency>> groups = RootNode.group(allDependencies);
     assertThat(groups).hasSize(2);
 
-    List<PsdDependencyContainer> group = Lists.newArrayList(container("v1", ARTIFACT_MAIN),
-                                                            container("v2", ARTIFACT_MAIN));
-    List<PsdAndroidDependencyModel> dependencies = groups.get(group);
+    List<PsDependencyContainer> group = Lists.newArrayList(container("v1", ARTIFACT_MAIN),
+                                                           container("v2", ARTIFACT_MAIN));
+    List<PsAndroidDependency> dependencies = groups.get(group);
     assertThat(dependencies).containsOnly(myD2);
 
     group = Lists.newArrayList(container("v1", ARTIFACT_UNIT_TEST),
@@ -168,7 +168,7 @@ public class RootNodeTest {
   }
 
   @NotNull
-  private static PsdDependencyContainer container(@NotNull String variant, @NotNull String artifact) {
-    return new PsdDependencyContainer(variant, artifact);
+  private static PsDependencyContainer container(@NotNull String variant, @NotNull String artifact) {
+    return new PsDependencyContainer(variant, artifact);
   }
 }

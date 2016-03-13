@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables;
 
-import com.android.tools.idea.gradle.structure.model.PsdIssues;
+import com.android.tools.idea.gradle.structure.model.PsIssues;
 import com.intellij.openapi.Disposable;
 import com.intellij.util.EventDispatcher;
 import org.jetbrains.annotations.NotNull;
@@ -25,12 +25,12 @@ import java.util.EventListener;
 
 public class PsdContext {
   @NotNull private final EventDispatcher<ChangeListener> myEventDispatcher = EventDispatcher.create(ChangeListener.class);
-  @NotNull private final PsdIssues myIssues = new PsdIssues();
+  @NotNull private final PsIssues myIssues = new PsIssues();
 
   @Nullable private String mySelectedModule;
 
   @NotNull
-  public PsdIssues getIssues() {
+  public PsIssues getIssues() {
     return myIssues;
   }
 

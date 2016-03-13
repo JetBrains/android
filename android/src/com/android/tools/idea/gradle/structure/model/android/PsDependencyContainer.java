@@ -19,20 +19,20 @@ import com.google.common.base.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.TestOnly;
 
-public class PsdDependencyContainer {
+public class PsDependencyContainer {
   @NotNull private final String myVariant;
   @NotNull private final String myArtifact;
   @NotNull private final String myName;
 
-  PsdDependencyContainer(@NotNull PsdAndroidArtifactModel artifactModel) {
-    PsdVariantModel variant = artifactModel.getParent();
+  PsDependencyContainer(@NotNull PsAndroidArtifact artifact) {
+    PsVariant variant = artifact.getParent();
     myVariant = variant.getName();
-    myArtifact = artifactModel.getResolvedName();
+    myArtifact = artifact.getResolvedName();
     myName = createName(myVariant, myArtifact);
   }
 
   @TestOnly
-  public PsdDependencyContainer(@NotNull String variant, @NotNull String artifact) {
+  public PsDependencyContainer(@NotNull String variant, @NotNull String artifact) {
     myVariant = variant;
     myArtifact = artifact;
     myName = createName(myVariant, myArtifact);
@@ -66,7 +66,7 @@ public class PsdDependencyContainer {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    PsdDependencyContainer container = (PsdDependencyContainer)o;
+    PsDependencyContainer container = (PsDependencyContainer)o;
     return Objects.equal(myVariant, container.myVariant) &&
            Objects.equal(myArtifact, container.myArtifact);
   }

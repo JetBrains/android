@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.structure.configurables.android.dependenci
 
 import com.android.tools.idea.gradle.structure.configurables.BaseNamedConfigurable;
 import com.android.tools.idea.gradle.structure.configurables.PsdContext;
-import com.android.tools.idea.gradle.structure.model.android.PsdAndroidModuleModel;
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.util.ActionCallback;
 import com.intellij.openapi.util.Disposer;
@@ -28,12 +28,12 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
-public class AndroidModuleDependenciesConfigurable extends BaseNamedConfigurable<PsdAndroidModuleModel> {
+public class AndroidModuleDependenciesConfigurable extends BaseNamedConfigurable<PsAndroidModule> {
   @NotNull private final PsdContext myContext;
 
   private DependenciesEditorPanel myEditorPanel;
 
-  public AndroidModuleDependenciesConfigurable(@NotNull PsdAndroidModuleModel moduleModel, @NotNull PsdContext context) {
+  public AndroidModuleDependenciesConfigurable(@NotNull PsAndroidModule moduleModel, @NotNull PsdContext context) {
     super(moduleModel);
     myContext = context;
   }

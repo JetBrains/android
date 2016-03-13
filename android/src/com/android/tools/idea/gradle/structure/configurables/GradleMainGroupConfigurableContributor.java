@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables;
 
-import com.android.tools.idea.gradle.structure.model.PsdProjectModel;
+import com.android.tools.idea.gradle.structure.model.PsProject;
 import com.android.tools.idea.structure.dialog.MainGroupConfigurableContributor;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.options.Configurable;
@@ -28,7 +28,7 @@ public class GradleMainGroupConfigurableContributor extends MainGroupConfigurabl
   @Override
   @NotNull
   public List<Configurable> getConfigurables(@NotNull Project project) {
-    PsdProjectModel projectModel = new PsdProjectModel(project);
+    PsProject projectModel = new PsProject(project);
     PsdContext context = new PsdContext();
 
     List<Configurable> configurables = Lists.newArrayList();
