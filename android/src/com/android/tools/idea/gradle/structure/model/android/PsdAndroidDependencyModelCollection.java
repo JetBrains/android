@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ModuleDependencyModel;
 import com.android.tools.idea.gradle.structure.model.PsdArtifactDependencySpec;
+import com.android.tools.idea.gradle.structure.model.PsdModelCollection;
 import com.android.tools.idea.gradle.structure.model.PsdModuleModel;
 import com.android.tools.idea.gradle.structure.model.PsdParsedDependencyModels;
 import com.android.tools.idea.gradle.util.GradleUtil;
@@ -39,17 +40,17 @@ import java.util.Map;
 
 import static com.android.tools.idea.gradle.structure.model.pom.MavenPoms.findDependenciesInPomFile;
 
-class PsdAndroidDependencyModels {
+class PsdAndroidDependencyModelCollection implements PsdModelCollection<PsdAndroidDependencyModel> {
   @NotNull private final PsdAndroidModuleModel myParent;
 
   // Key: module's Gradle path
   @NotNull private final Map<String, PsdModuleDependencyModel> myModuleDependencies = Maps.newHashMap();
 
-  @NotNull private final Map<PsdArtifactDependencySpec, PsdLibraryDependencyModel> myLibraryDependencies = Maps.newHashMap();
+  @NotNull private final Map<String, PsdLibraryDependencyModel> myLibraryDependencies = Maps.newHashMap();
 
-  PsdAndroidDependencyModels(@NotNull PsdAndroidModuleModel parent) {
+  PsdAndroidDependencyModelCollection(@NotNull PsdAndroidModuleModel parent) {
     myParent = parent;
-    for (PsdVariantModel variantModel : parent.getVariantModels()) {
+    for (PsdVariantModel variantModel : parent.getVariants()) {
       addDependencies(variantModel);
     }
   }
@@ -61,9 +62,11 @@ class PsdAndroidDependencyModels {
   }
 
   private void collectDependencies(@NotNull PsdAndroidArtifactModel artifactModel) {
-    BaseArtifact artifact = artifactModel.getGradleModel();
-    AndroidGradleModel gradleModel = artifactModel.getParent().getParent().getGradleModel();
-
+    BaseArtifact artifact = artifactModel.getResolvedModel();
+    if (artifact == null) {
+      return;
+    }
+    AndroidGradleModel gradleModel = artifactModel.getAndroidGradleModel();
     Dependencies dependencies = GradleUtil.getDependencies(artifact, gradleModel.getModelVersion());
 
     for (AndroidLibrary androidLibrary : dependencies.getLibraries()) {
@@ -91,9 +94,9 @@ class PsdAndroidDependencyModels {
     Module module = null;
     PsdModuleModel moduleModel = myParent.getParent().findModelByGradlePath(gradlePath);
     if (moduleModel != null) {
-      module = moduleModel.getModule();
+      module = moduleModel.getResolvedModel();
     }
-    PsdModuleDependencyModel dependencyModel = findModuleDependency(gradlePath);
+    PsdModuleDependencyModel dependencyModel = findElement(gradlePath, PsdModuleDependencyModel.class);
     if (dependencyModel == null) {
       dependencyModel = new PsdModuleDependencyModel(myParent, gradlePath, projectVariant, module, artifactModel, parsedModel);
       myModuleDependencies.put(gradlePath, dependencyModel);
@@ -143,7 +146,7 @@ class PsdAndroidDependencyModels {
             //
             // Here 'espresso' brings junit 4.12, but there is no mismatch with junit 4.11, because they are in different artifacts.
             PsdLibraryDependencyModel potentialDuplicate = null;
-            for (PsdLibraryDependencyModel dependencyModel : myLibraryDependencies.values()) {
+            for (PsdLibraryDependencyModel dependencyModel : getLibraryDependencies()) {
               if (dependencyModel.getParsedModel() == matchingParsedDependency) {
                 potentialDuplicate = dependencyModel;
                 break;
@@ -192,11 +195,14 @@ class PsdAndroidDependencyModels {
                                                       @Nullable ArtifactDependencyModel parsedDependencyModel) {
     PsdAndroidDependencyModel dependencyModel = getOrCreateDependency(resolvedSpec, androidLibrary, artifactModel, parsedDependencyModel);
 
-    for (AndroidLibrary library : androidLibrary.getLibraryDependencies()) {
-      PsdAndroidDependencyModel transitive = addLibrary(library, artifactModel);
-      if (transitive != null && dependencyModel instanceof PsdLibraryDependencyModel) {
-        PsdLibraryDependencyModel libraryDependencyModel = (PsdLibraryDependencyModel)dependencyModel;
-        libraryDependencyModel.addTransitiveDependency(transitive.getValueAsText());
+    for (Library library : androidLibrary.getLibraryDependencies()) {
+      addTransitive(library, artifactModel, dependencyModel);
+    }
+
+    AndroidGradleModel gradleModel = artifactModel.getAndroidGradleModel();
+    if (gradleModel.supportsDependencyGraph()) {
+      for (Library library : androidLibrary.getJavaDependencies()) {
+        addTransitive(library, artifactModel, dependencyModel);
       }
     }
 
@@ -211,16 +217,22 @@ class PsdAndroidDependencyModels {
                                                    @Nullable ArtifactDependencyModel parsedDependencyModel) {
     PsdAndroidDependencyModel dependencyModel = getOrCreateDependency(resolvedSpec, javaLibrary, artifactModel, parsedDependencyModel);
 
-    for (JavaLibrary library : javaLibrary.getDependencies()) {
-      PsdAndroidDependencyModel transitive = addLibrary(library, artifactModel);
-      if (transitive != null && dependencyModel instanceof PsdLibraryDependencyModel) {
-        PsdLibraryDependencyModel libraryDependencyModel = (PsdLibraryDependencyModel)dependencyModel;
-        libraryDependencyModel.addTransitiveDependency(transitive.getValueAsText());
-      }
+    for (Library library : javaLibrary.getDependencies()) {
+      addTransitive(library, artifactModel, dependencyModel);
     }
 
     dependencyModel.addContainer(artifactModel);
     return dependencyModel;
+  }
+
+  private void addTransitive(@NotNull Library transitiveDependency,
+                             @NotNull PsdAndroidArtifactModel artifactModel,
+                             @NotNull PsdAndroidDependencyModel dependencyModel) {
+    PsdAndroidDependencyModel transitive = addLibrary(transitiveDependency, artifactModel);
+    if (transitive != null && dependencyModel instanceof PsdLibraryDependencyModel) {
+      PsdLibraryDependencyModel libraryDependencyModel = (PsdLibraryDependencyModel)dependencyModel;
+      libraryDependencyModel.addTransitiveDependency(transitive.getValueAsText());
+    }
   }
 
   @VisibleForTesting
@@ -253,10 +265,11 @@ class PsdAndroidDependencyModels {
                                                           @NotNull Library library,
                                                           @NotNull PsdAndroidArtifactModel artifactModel,
                                                           @Nullable ArtifactDependencyModel parsedModel) {
-    PsdLibraryDependencyModel dependencyModel = myLibraryDependencies.get(resolvedSpec);
+    String compactNotation = resolvedSpec.toString();
+    PsdLibraryDependencyModel dependencyModel = myLibraryDependencies.get(compactNotation);
     if (dependencyModel == null) {
       dependencyModel = new PsdLibraryDependencyModel(myParent, resolvedSpec, library, artifactModel, parsedModel);
-      myLibraryDependencies.put(resolvedSpec, dependencyModel);
+      myLibraryDependencies.put(compactNotation, dependencyModel);
 
       File libraryPath = null;
       if (library instanceof AndroidLibrary) {
@@ -265,11 +278,15 @@ class PsdAndroidDependencyModels {
       else if (library instanceof JavaLibrary) {
         libraryPath = ((JavaLibrary)library).getJarFile();
       }
-      List<PsdArtifactDependencySpec> pomDependencies = Collections.emptyList();
-      if (libraryPath != null) {
-        pomDependencies = findDependenciesInPomFile(libraryPath);
+      if (!artifactModel.getAndroidGradleModel().supportsDependencyGraph()) {
+        // If the Android model supports the full dependency graph (v. 2.2.0+), we don't need to look for transitive dependencies in POM
+        // files.
+        List<PsdArtifactDependencySpec> pomDependencies = Collections.emptyList();
+        if (libraryPath != null) {
+          pomDependencies = findDependenciesInPomFile(libraryPath);
+        }
+        dependencyModel.setPomDependencies(pomDependencies);
       }
-      dependencyModel.setPomDependencies(pomDependencies);
     }
     else {
       if (dependencyModel.getParsedModel() == null && parsedModel != null) {
@@ -282,7 +299,7 @@ class PsdAndroidDependencyModels {
   @NotNull
   List<PsdAndroidDependencyModel> getDeclaredDependencies() {
     List<PsdAndroidDependencyModel> models = Lists.newArrayList();
-    for (PsdLibraryDependencyModel model : myLibraryDependencies.values()) {
+    for (PsdLibraryDependencyModel model : getLibraryDependencies()) {
       if (model.isEditable()) {
         models.add(model);
       }
@@ -295,26 +312,34 @@ class PsdAndroidDependencyModels {
     return models;
   }
 
+  @Override
   @NotNull
-  public List<PsdAndroidDependencyModel> getDependencies() {
+  public List<PsdAndroidDependencyModel> getElements() {
     List<PsdAndroidDependencyModel> dependencies = Lists.newArrayList();
-    dependencies.addAll(myLibraryDependencies.values());
+    dependencies.addAll(getLibraryDependencies());
     dependencies.addAll(getModuleDependencies());
     return dependencies;
+  }
+
+  @Override
+  @Nullable
+  public <S extends PsdAndroidDependencyModel> S findElement(@NotNull String name, @Nullable Class<S> type) {
+    if (PsdModuleDependencyModel.class.equals(type)) {
+      return type.cast(myModuleDependencies.get(name));
+    }
+    if (PsdLibraryDependencyModel.class.equals(type)) {
+      return type.cast(myLibraryDependencies.get(name));
+    }
+    return null;
+  }
+
+  @NotNull
+  private Collection<PsdLibraryDependencyModel> getLibraryDependencies() {
+    return myLibraryDependencies.values();
   }
 
   @NotNull
   public Collection<PsdModuleDependencyModel> getModuleDependencies() {
     return myModuleDependencies.values();
-  }
-
-  @Nullable
-  public PsdModuleDependencyModel findModuleDependency(@NotNull String dependency) {
-    return myModuleDependencies.get(dependency);
-  }
-
-  @Nullable
-  public PsdLibraryDependencyModel findLibraryDependency(@NotNull PsdArtifactDependencySpec dependency) {
-    return myLibraryDependencies.get(dependency);
   }
 }

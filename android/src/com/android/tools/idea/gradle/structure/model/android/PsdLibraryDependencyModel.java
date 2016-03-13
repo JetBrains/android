@@ -41,18 +41,24 @@ public class PsdLibraryDependencyModel extends PsdAndroidDependencyModel {
   @NotNull private final List<PsdArtifactDependencySpec> myPomDependencies = Lists.newArrayList();
   @NotNull private final Set<String> myTransitiveDependencies = Sets.newHashSet();
 
-  @Nullable private final Library myGradleModel;
+  @Nullable private final Library myResolvedModel;
   @Nullable private PsdArtifactDependencySpec myDeclaredSpec;
 
   PsdLibraryDependencyModel(@NotNull PsdAndroidModuleModel parent,
                             @NotNull PsdArtifactDependencySpec resolvedSpec,
-                            @Nullable Library gradleModel,
-                            @Nullable PsdAndroidArtifactModel artifactModel,
+                            @Nullable Library resolvedModel,
+                            @Nullable PsdAndroidArtifactModel container,
                             @Nullable ArtifactDependencyModel parsedModel) {
-    super(parent, artifactModel, parsedModel);
+    super(parent, container, parsedModel);
     myResolvedSpec = resolvedSpec;
-    myGradleModel = gradleModel;
+    myResolvedModel = resolvedModel;
     setDeclaredSpec(parsedModel);
+  }
+
+  @Override
+  @Nullable
+  public Library getResolvedModel() {
+    return myResolvedModel;
   }
 
   void addTransitiveDependency(@NotNull String dependency) {
