@@ -28,19 +28,21 @@ public class PsdModuleDependencyModel extends PsdAndroidDependencyModel {
   @NotNull private final String myName;
 
   @Nullable private final String myVariant;
+  @Nullable private final Module myResolvedModel;
 
   PsdModuleDependencyModel(@NotNull PsdAndroidModuleModel parent,
                            @NotNull String gradlePath,
                            @Nullable String variant,
-                           @Nullable Module module,
+                           @Nullable Module resolvedModel,
                            @Nullable PsdAndroidArtifactModel artifactModel,
                            @Nullable ModuleDependencyModel parsedModel) {
     super(parent, artifactModel, parsedModel);
     myGradlePath = gradlePath;
     myVariant = variant;
+    myResolvedModel = resolvedModel;
     String name = null;
-    if (module != null) {
-      name = module.getName();
+    if (resolvedModel != null) {
+      name = resolvedModel.getName();
     }
     else if (parsedModel != null) {
       name = parsedModel.name();
@@ -75,5 +77,11 @@ public class PsdModuleDependencyModel extends PsdAndroidDependencyModel {
   @NotNull
   public String getValueAsText() {
     return myName;
+  }
+
+  @Override
+  @Nullable
+  public Module getResolvedModel() {
+    return myResolvedModel;
   }
 }

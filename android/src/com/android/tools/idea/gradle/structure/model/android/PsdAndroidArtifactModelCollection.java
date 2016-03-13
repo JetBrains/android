@@ -17,20 +17,23 @@ package com.android.tools.idea.gradle.structure.model.android;
 
 import com.android.builder.model.BaseArtifact;
 import com.android.builder.model.Variant;
+import com.android.tools.idea.gradle.structure.model.PsdModelCollection;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
-public class PsdAndroidArtifactModels  {
+public class PsdAndroidArtifactModelCollection implements PsdModelCollection<PsdAndroidArtifactModel> {
   @NotNull private final PsdVariantModel myParent;
   @NotNull private final Map<String, PsdAndroidArtifactModel> myArtifactsByName = Maps.newHashMap();
 
-  PsdAndroidArtifactModels(@NotNull PsdVariantModel parent) {
+  PsdAndroidArtifactModelCollection(@NotNull PsdVariantModel parent) {
     myParent = parent;
-    Variant variant = myParent.getGradleModel();
+    Variant variant = myParent.getResolvedModel();
     if (variant != null) {
       addArtifact(variant.getMainArtifact());
       addArtifacts(variant.getExtraAndroidArtifacts());
@@ -45,17 +48,20 @@ public class PsdAndroidArtifactModels  {
   }
 
   private void addArtifact(@NotNull BaseArtifact artifact) {
-    myArtifactsByName.put(artifact.getName(), new PsdAndroidArtifactModel(myParent, artifact));
+    myArtifactsByName.put(artifact.getName(), new PsdAndroidArtifactModel(myParent, artifact.getName(), artifact));
   }
 
-  @Nullable
-  public PsdAndroidArtifactModel findArtifact(@NotNull String name) {
-    return myArtifactsByName.get(name);
-  }
-
+  @Override
   @NotNull
-  public Collection<PsdAndroidArtifactModel> getArtifacts() {
-    return myArtifactsByName.values();
+  public List<PsdAndroidArtifactModel> getElements() {
+    return Lists.newArrayList(myArtifactsByName.values());
+  }
+
+  @Override
+  @Nullable
+  public <S extends PsdAndroidArtifactModel> S findElement(@NotNull String name, @NotNull Class<S> type) {
+    PsdAndroidArtifactModel found = myArtifactsByName.get(name);
+    return type.isInstance(found) ? type.cast(found) : null;
   }
 
   @NotNull
