@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.model;
 
-import com.android.tools.idea.gradle.structure.configurables.ui.PsdUISettings;
+import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
 import com.intellij.testFramework.IdeaTestCase;
 
 /**
@@ -27,13 +27,13 @@ public class PsArtifactDependencySpecTest extends IdeaTestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    myShowGroupId = PsdUISettings.getInstance().DECLARED_DEPENDENCIES_SHOW_GROUP_ID;
+    myShowGroupId = PsUISettings.getInstance().DECLARED_DEPENDENCIES_SHOW_GROUP_ID;
   }
 
   @Override
   public void tearDown() throws Exception {
     try {
-      PsdUISettings.getInstance().DECLARED_DEPENDENCIES_SHOW_GROUP_ID = myShowGroupId;
+      PsUISettings.getInstance().DECLARED_DEPENDENCIES_SHOW_GROUP_ID = myShowGroupId;
     }
     finally {
       super.tearDown();
@@ -44,10 +44,10 @@ public class PsArtifactDependencySpecTest extends IdeaTestCase {
     PsArtifactDependencySpec spec = PsArtifactDependencySpec.create("group:name:version");
     assertNotNull(spec);
 
-    PsdUISettings.getInstance().DECLARED_DEPENDENCIES_SHOW_GROUP_ID = true;
+    PsUISettings.getInstance().DECLARED_DEPENDENCIES_SHOW_GROUP_ID = true;
     assertEquals("group:name:version", spec.getDisplayText());
 
-    PsdUISettings.getInstance().DECLARED_DEPENDENCIES_SHOW_GROUP_ID = false;
+    PsUISettings.getInstance().DECLARED_DEPENDENCIES_SHOW_GROUP_ID = false;
     assertEquals("name:version", spec.getDisplayText());
   }
 
@@ -55,10 +55,10 @@ public class PsArtifactDependencySpecTest extends IdeaTestCase {
     PsArtifactDependencySpec spec = PsArtifactDependencySpec.create("group:name");
     assertNotNull(spec);
 
-    PsdUISettings.getInstance().DECLARED_DEPENDENCIES_SHOW_GROUP_ID = true;
+    PsUISettings.getInstance().DECLARED_DEPENDENCIES_SHOW_GROUP_ID = true;
     assertEquals("group:name", spec.getDisplayText());
 
-    PsdUISettings.getInstance().DECLARED_DEPENDENCIES_SHOW_GROUP_ID = false;
+    PsUISettings.getInstance().DECLARED_DEPENDENCIES_SHOW_GROUP_ID = false;
     assertEquals("name", spec.getDisplayText());
   }
 

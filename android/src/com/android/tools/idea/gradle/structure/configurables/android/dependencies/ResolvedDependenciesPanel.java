@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies;
 
-import com.android.tools.idea.gradle.structure.configurables.PsdContext;
+import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractDependencyNode;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.DependencySelection;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.ModuleDependencyNode;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.ResolvedDependenciesTreeBuilder;
-import com.android.tools.idea.gradle.structure.configurables.ui.PsdUISettings;
+import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
 import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowPanel;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsdNode;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
@@ -74,7 +74,7 @@ import static javax.swing.tree.TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION;
 class ResolvedDependenciesPanel extends ToolWindowPanel implements DependencySelection {
   @NotNull private final Tree myTree;
   @NotNull private final ResolvedDependenciesTreeBuilder myTreeBuilder;
-  @NotNull private final PsdContext myContext;
+  @NotNull private final PsContext myContext;
   @NotNull private final TreeSelectionListener myTreeSelectionListener;
 
   @NotNull private final List<SelectionListener> mySelectionListeners = Lists.newCopyOnWriteArrayList();
@@ -83,7 +83,7 @@ class ResolvedDependenciesPanel extends ToolWindowPanel implements DependencySel
   private KeyEventDispatcher myKeyEventDispatcher;
 
   ResolvedDependenciesPanel(@NotNull PsAndroidModule module,
-                            @NotNull PsdContext context,
+                            @NotNull PsContext context,
                             @NotNull DependencySelection dependencySelection) {
     super("Resolved Dependencies", AndroidIcons.Variant, ToolWindowAnchor.RIGHT);
     myContext = context;
@@ -161,12 +161,12 @@ class ResolvedDependenciesPanel extends ToolWindowPanel implements DependencySel
     settingsGroup.add(new ToggleAction("Group Similar") {
       @Override
       public boolean isSelected(AnActionEvent e) {
-        return PsdUISettings.getInstance().VARIANTS_DEPENDENCIES_GROUP_VARIANTS;
+        return PsUISettings.getInstance().VARIANTS_DEPENDENCIES_GROUP_VARIANTS;
       }
 
       @Override
       public void setSelected(AnActionEvent e, boolean state) {
-        PsdUISettings settings = PsdUISettings.getInstance();
+        PsUISettings settings = PsUISettings.getInstance();
         if (settings.VARIANTS_DEPENDENCIES_GROUP_VARIANTS != state) {
           settings.VARIANTS_DEPENDENCIES_GROUP_VARIANTS = state;
           settings.fireUISettingsChanged();

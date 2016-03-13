@@ -26,14 +26,13 @@ import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.PsParsedDependencies;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.module.Module;
+import com.intellij.util.containers.Predicate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -48,15 +47,29 @@ class PsAndroidDependencyCollection implements PsModelCollection<PsAndroidDepend
 
   PsAndroidDependencyCollection(@NotNull PsAndroidModule parent) {
     myParent = parent;
-    for (PsVariant variant : parent.getVariants()) {
-      addDependencies(variant);
-    }
+    parent.forEachVariant(new Predicate<PsVariant>() {
+      @Override
+      public boolean apply(@Nullable PsVariant variant) {
+        if (variant == null) {
+          return false;
+        }
+        addDependencies(variant);
+        return true;
+      }
+    });
   }
 
   private void addDependencies(@NotNull PsVariant variant) {
-    for (PsAndroidArtifact artifact : variant.getArtifacts()) {
-      collectDependencies(artifact);
-    }
+    variant.forEachArtifact(new Predicate<PsAndroidArtifact>() {
+      @Override
+      public boolean apply(@Nullable PsAndroidArtifact artifact) {
+        if (artifact == null) {
+          return false;
+        }
+        collectDependencies(artifact);
+        return true;
+      }
+    });
   }
 
   private void collectDependencies(@NotNull PsAndroidArtifact artifact) {
@@ -64,7 +77,7 @@ class PsAndroidDependencyCollection implements PsModelCollection<PsAndroidDepend
     if (resolvedArtifact == null) {
       return;
     }
-    AndroidGradleModel gradleModel = artifact.getAndroidGradleModel();
+    AndroidGradleModel gradleModel = artifact.getGradleModel();
     Dependencies dependencies = GradleUtil.getDependencies(resolvedArtifact, gradleModel.getModelVersion());
 
     for (AndroidLibrary androidLibrary : dependencies.getLibraries()) {
@@ -144,7 +157,7 @@ class PsAndroidDependencyCollection implements PsModelCollection<PsAndroidDepend
             //
             // Here 'espresso' brings junit 4.12, but there is no mismatch with junit 4.11, because they are in different artifacts.
             PsLibraryDependency potentialDuplicate = null;
-            for (PsLibraryDependency dependency : getLibraryDependencies()) {
+            for (PsLibraryDependency dependency : myLibraryDependenciesBySpec.values()) {
               if (dependency.getParsedModel() == matchingParsedDependency) {
                 potentialDuplicate = dependency;
                 break;
@@ -197,7 +210,7 @@ class PsAndroidDependencyCollection implements PsModelCollection<PsAndroidDepend
       addTransitive(library, artifact, dependency);
     }
 
-    AndroidGradleModel gradleModel = artifact.getAndroidGradleModel();
+    AndroidGradleModel gradleModel = artifact.getGradleModel();
     if (gradleModel.supportsDependencyGraph()) {
       for (Library library : androidLibrary.getJavaDependencies()) {
         addTransitive(library, artifact, dependency);
@@ -276,7 +289,7 @@ class PsAndroidDependencyCollection implements PsModelCollection<PsAndroidDepend
       else if (library instanceof JavaLibrary) {
         libraryPath = ((JavaLibrary)library).getJarFile();
       }
-      if (!artifact.getAndroidGradleModel().supportsDependencyGraph()) {
+      if (!artifact.getGradleModel().supportsDependencyGraph()) {
         // If the Android model supports the full dependency graph (v. 2.2.0+), we don't need to look for transitive dependencies in POM
         // files.
         List<PsArtifactDependencySpec> pomDependencies = Collections.emptyList();
@@ -294,31 +307,6 @@ class PsAndroidDependencyCollection implements PsModelCollection<PsAndroidDepend
     return dependency;
   }
 
-  @NotNull
-  List<PsAndroidDependency> getDeclaredDependencies() {
-    List<PsAndroidDependency> dependencies = Lists.newArrayList();
-    for (PsLibraryDependency dependency : getLibraryDependencies()) {
-      if (dependency.isEditable()) {
-        dependencies.add(dependency);
-      }
-    }
-    for (PsAndroidDependency dependency : getModuleDependencies()) {
-      if (dependency.isEditable()) {
-        dependencies.add(dependency);
-      }
-    }
-    return dependencies;
-  }
-
-  @Override
-  @NotNull
-  public List<PsAndroidDependency> getElements() {
-    List<PsAndroidDependency> dependencies = Lists.newArrayList();
-    dependencies.addAll(getLibraryDependencies());
-    dependencies.addAll(getModuleDependencies());
-    return dependencies;
-  }
-
   @Override
   @Nullable
   public <S extends PsAndroidDependency> S findElement(@NotNull String name, @Nullable Class<S> type) {
@@ -331,13 +319,32 @@ class PsAndroidDependencyCollection implements PsModelCollection<PsAndroidDepend
     return null;
   }
 
-  @NotNull
-  private Collection<PsLibraryDependency> getLibraryDependencies() {
-    return myLibraryDependenciesBySpec.values();
+  @Override
+  public void forEach(@NotNull Predicate<PsAndroidDependency> function) {
+    for (PsLibraryDependency dependency : myLibraryDependenciesBySpec.values()) {
+      function.apply(dependency);
+    }
+    for (PsModuleDependency dependency : myModuleDependenciesByGradlePath.values()) {
+      function.apply(dependency);
+    }
   }
 
-  @NotNull
-  public Collection<PsModuleDependency> getModuleDependencies() {
-    return myModuleDependenciesByGradlePath.values();
+  public void forEachDeclaredDependency(@NotNull Predicate<PsAndroidDependency> function) {
+    for (PsLibraryDependency dependency : myLibraryDependenciesBySpec.values()) {
+      if (dependency.isEditable()) {
+        function.apply(dependency);
+      }
+    }
+    for (PsModuleDependency dependency : myModuleDependenciesByGradlePath.values()) {
+      if (dependency.isEditable()) {
+        function.apply(dependency);
+      }
+    }
+  }
+
+  public void forEachModuleDependency(@NotNull Predicate<PsModuleDependency> function) {
+    for (PsModuleDependency dependency : myModuleDependenciesByGradlePath.values()) {
+      function.apply(dependency);
+    }
   }
 }

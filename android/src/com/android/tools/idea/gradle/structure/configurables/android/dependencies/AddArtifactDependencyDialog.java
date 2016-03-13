@@ -32,14 +32,14 @@ import java.awt.*;
 import java.util.List;
 
 class AddArtifactDependencyDialog extends DialogWrapper {
-  @NotNull private final PsAndroidModule myModuleModel;
+  @NotNull private final PsAndroidModule myModule;
 
   private JPanel myPanel;
   private ArtifactRepositorySearchForm mySearchForm;
 
-  AddArtifactDependencyDialog(@NotNull PsAndroidModule moduleModel) {
-    super(moduleModel.getParent().getResolvedModel());
-    myModuleModel = moduleModel;
+  AddArtifactDependencyDialog(@NotNull PsAndroidModule module) {
+    super(module.getParent().getResolvedModel());
+    myModule = module;
     setTitle("Add Artifact Dependency");
     init();
   }
@@ -64,7 +64,7 @@ class AddArtifactDependencyDialog extends DialogWrapper {
     List<ArtifactRepository> repositories = Lists.newArrayList();
     repositories.add(new MavenCentralRepository()); // TODO get the repository from the build.gradle file.
 
-    AndroidGradleModel gradleModel = myModuleModel.getAndroidGradleModel();
+    AndroidGradleModel gradleModel = myModule.getGradleModel();
     AndroidProject androidProject = gradleModel.getAndroidProject();
     repositories.add(new AndroidSdkRepository(androidProject));
 

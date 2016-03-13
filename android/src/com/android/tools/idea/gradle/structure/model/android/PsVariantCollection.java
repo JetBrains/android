@@ -19,6 +19,7 @@ import com.android.builder.model.Variant;
 import com.android.tools.idea.gradle.structure.model.PsModelCollection;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.intellij.util.containers.Predicate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -30,7 +31,7 @@ class PsVariantCollection implements PsModelCollection<PsVariant> {
   @NotNull private final Map<String, PsVariant> myVariantsByName = Maps.newHashMap();
 
   PsVariantCollection(@NotNull PsAndroidModule parent) {
-    Collection<Variant> resolvedVariants = parent.getAndroidGradleModel().getAndroidProject().getVariants();
+    Collection<Variant> resolvedVariants = parent.getGradleModel().getAndroidProject().getVariants();
 
     for (Variant resolvedVariant : resolvedVariants) {
       List<String> productFlavors = Lists.newArrayList();
@@ -49,25 +50,17 @@ class PsVariantCollection implements PsModelCollection<PsVariant> {
     }
   }
 
-  @Nullable
-  PsVariant find(@NotNull String variantName) {
-    return myVariantsByName.get(variantName);
-  }
-
-  @NotNull
-  Collection<PsVariant> getValues() {
-    return myVariantsByName.values();
-  }
-
-  @Override
-  @NotNull
-  public List<PsVariant> getElements() {
-    return Lists.newArrayList(myVariantsByName.values());
-  }
-
   @Override
   @Nullable
   public <S extends PsVariant> S findElement(@NotNull String name, @NotNull Class<S> type) {
-    return null;
+    PsVariant found = myVariantsByName.get(name);
+    return type.isInstance(found) ? type.cast(found) : null;
+  }
+
+  @Override
+  public void forEach(@NotNull Predicate<PsVariant> function) {
+    for (PsVariant variant : myVariantsByName.values()) {
+      function.apply(variant);
+    }
   }
 }

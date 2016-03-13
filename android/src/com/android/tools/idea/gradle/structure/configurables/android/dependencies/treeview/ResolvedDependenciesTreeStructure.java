@@ -27,8 +27,8 @@ import static com.intellij.util.ArrayUtil.EMPTY_OBJECT_ARRAY;
 public class ResolvedDependenciesTreeStructure extends AbstractTreeStructure {
   @NotNull private final RootNode myRootNode;
 
-  ResolvedDependenciesTreeStructure(@NotNull PsAndroidModule moduleModel) {
-    myRootNode = new RootNode(moduleModel);
+  ResolvedDependenciesTreeStructure(@NotNull PsAndroidModule module) {
+    myRootNode = new RootNode(module);
   }
 
   @Override

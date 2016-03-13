@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui;
 
-import com.android.tools.idea.gradle.structure.configurables.PsdContext;
+import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.PsProject;
 import com.android.tools.idea.gradle.util.ui.LabeledComboBoxAction;
@@ -29,12 +29,12 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 
 public class ModulesComboBoxAction extends LabeledComboBoxAction {
-  @NotNull private final PsProject myProjectModel;
-  @NotNull private final PsdContext myContext;
+  @NotNull private final PsProject myProject;
+  @NotNull private final PsContext myContext;
 
-  public ModulesComboBoxAction(@NotNull PsProject projectModel, @NotNull PsdContext context) {
+  public ModulesComboBoxAction(@NotNull PsProject project, @NotNull PsContext context) {
     super("Module: ");
-    myProjectModel = projectModel;
+    myProject = project;
     myContext = context;
   }
 
@@ -49,8 +49,8 @@ public class ModulesComboBoxAction extends LabeledComboBoxAction {
   @NotNull
   protected DefaultActionGroup createPopupActionGroup(JComponent button) {
     DefaultActionGroup group = new DefaultActionGroup();
-    for (PsModule moduleModel : myProjectModel.getModules()) {
-      group.add(new ModuleAction(moduleModel));
+    for (PsModule module : myProject.getModules()) {
+      group.add(new ModuleAction(module));
     }
     return group;
   }
@@ -58,9 +58,9 @@ public class ModulesComboBoxAction extends LabeledComboBoxAction {
   private class ModuleAction extends DumbAwareAction {
     @NotNull private final String myModuleName;
 
-    ModuleAction(@NotNull PsModule moduleModel) {
-      super(moduleModel.getName(), "", moduleModel.getIcon());
-      myModuleName = moduleModel.getName();
+    ModuleAction(@NotNull PsModule module) {
+      super(module.getName(), "", module.getIcon());
+      myModuleName = module.getName();
     }
 
     @Override

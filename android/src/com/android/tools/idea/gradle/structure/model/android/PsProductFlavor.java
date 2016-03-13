@@ -44,8 +44,8 @@ public class PsProductFlavor extends PsChildModel implements PsAndroidModel {
 
   @Override
   @NotNull
-  public AndroidGradleModel getAndroidGradleModel() {
-    return getParent().getAndroidGradleModel();
+  public AndroidGradleModel getGradleModel() {
+    return getParent().getGradleModel();
   }
 
   @Override

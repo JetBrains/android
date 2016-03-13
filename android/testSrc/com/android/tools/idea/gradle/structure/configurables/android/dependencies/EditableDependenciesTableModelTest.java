@@ -15,14 +15,20 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies;
 
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.EditableDependenciesTableModel.DependencyCellRenderer;
-import com.android.tools.idea.gradle.structure.configurables.ui.PsdUISettings;
+import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
+import com.android.tools.idea.gradle.structure.model.PsProject;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.android.tools.idea.gradle.structure.model.android.PsLibraryDependency;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.module.Module;
 import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.util.containers.Predicate;
 import com.intellij.util.ui.ColumnInfo;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
@@ -34,25 +40,25 @@ import static org.mockito.Mockito.when;
  */
 public class EditableDependenciesTableModelTest extends IdeaTestCase {
   private boolean myOriginalShowGroupId;
-  private PsLibraryDependency myLibraryDependencyModel;
+  private PsLibraryDependency myLibraryDependency;
 
   private EditableDependenciesTableModel myTableModel;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    myOriginalShowGroupId = PsdUISettings.getInstance().DECLARED_DEPENDENCIES_SHOW_GROUP_ID;
-    myLibraryDependencyModel = mock(PsLibraryDependency.class);
+    myOriginalShowGroupId = PsUISettings.getInstance().DECLARED_DEPENDENCIES_SHOW_GROUP_ID;
+    myLibraryDependency = mock(PsLibraryDependency.class);
 
     List<PsAndroidDependency> dependencies = Lists.newArrayList();
-    dependencies.add(myLibraryDependencyModel);
-    myTableModel = new EditableDependenciesTableModel(dependencies);
+    dependencies.add(myLibraryDependency);
+    myTableModel = new EditableDependenciesTableModel(new PsAndroidModuleStub(dependencies));
   }
 
   @Override
   protected void tearDown() throws Exception {
     try {
-      PsdUISettings.getInstance().DECLARED_DEPENDENCIES_SHOW_GROUP_ID = myOriginalShowGroupId;
+      PsUISettings.getInstance().DECLARED_DEPENDENCIES_SHOW_GROUP_ID = myOriginalShowGroupId;
     }
     finally {
       super.tearDown();
@@ -61,35 +67,51 @@ public class EditableDependenciesTableModelTest extends IdeaTestCase {
 
   public void testShowArtifactDependencySpec() {
     PsArtifactDependencySpec spec = new PsArtifactDependencySpec("appcompat-v7", "com.android.support", "23.1.0");
-    when(myLibraryDependencyModel.getResolvedSpec()).thenReturn(spec);
-    when(myLibraryDependencyModel.getDeclaredSpec()).thenReturn(spec);
-    when(myLibraryDependencyModel.getValueAsText()).thenReturn("com.android.support:appcompat-v7:23.1.0");
+    when(myLibraryDependency.getResolvedSpec()).thenReturn(spec);
+    when(myLibraryDependency.getDeclaredSpec()).thenReturn(spec);
+    when(myLibraryDependency.getValueAsText()).thenReturn("com.android.support:appcompat-v7:23.1.0");
 
     ColumnInfo[] columnInfos = myTableModel.getColumnInfos();
 
-    PsdUISettings.getInstance().DECLARED_DEPENDENCIES_SHOW_GROUP_ID = true;
+    PsUISettings.getInstance().DECLARED_DEPENDENCIES_SHOW_GROUP_ID = true;
 
     //noinspection unchecked
     ColumnInfo<PsAndroidDependency, String> specColumnInfo = columnInfos[0];
-    DependencyCellRenderer renderer = (DependencyCellRenderer)specColumnInfo.getRenderer(myLibraryDependencyModel);
+    DependencyCellRenderer renderer = (DependencyCellRenderer)specColumnInfo.getRenderer(myLibraryDependency);
     assertNotNull(renderer);
 
     String text = renderer.getText();
     assertEquals("com.android.support:appcompat-v7:23.1.0", text);
 
-    PsdUISettings.getInstance().DECLARED_DEPENDENCIES_SHOW_GROUP_ID = false;
+    PsUISettings.getInstance().DECLARED_DEPENDENCIES_SHOW_GROUP_ID = false;
 
     text = renderer.getText();
     assertEquals("appcompat-v7:23.1.0", text);
   }
 
   public void testShowConfigurationName() {
-    when(myLibraryDependencyModel.getConfigurationName()).thenReturn("compile");
+    when(myLibraryDependency.getConfigurationName()).thenReturn("compile");
 
     ColumnInfo[] columnInfos = myTableModel.getColumnInfos();
     //noinspection unchecked
     ColumnInfo<PsAndroidDependency, String> scopeColumnInfo = columnInfos[1];
-    String columnText = scopeColumnInfo.valueOf(myLibraryDependencyModel);
+    String columnText = scopeColumnInfo.valueOf(myLibraryDependency);
     assertEquals("compile", columnText);
+  }
+
+  private static class PsAndroidModuleStub extends PsAndroidModule {
+    @NotNull private final List<PsAndroidDependency> myDeclaredDependencies;
+
+    public PsAndroidModuleStub(@NotNull List<PsAndroidDependency> declaredDependencies) {
+      super(mock(PsProject.class), mock(Module.class), "", mock(AndroidGradleModel.class));
+      myDeclaredDependencies = declaredDependencies;
+    }
+
+    @Override
+    public void forEachDeclaredDependency(@NotNull Predicate<PsAndroidDependency> function) {
+      for (PsAndroidDependency dependency : myDeclaredDependencies) {
+        function.apply(dependency);
+      }
+    }
   }
 }

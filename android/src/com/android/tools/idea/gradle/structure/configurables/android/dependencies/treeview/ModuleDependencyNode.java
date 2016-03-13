@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview;
 
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.PsAndroidDependencyComparator;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsdNode;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.PsProject;
@@ -25,9 +24,10 @@ import com.android.tools.idea.gradle.structure.model.android.PsLibraryDependency
 import com.android.tools.idea.gradle.structure.model.android.PsModuleDependency;
 import com.google.common.collect.Lists;
 import com.intellij.ui.treeStructure.SimpleNode;
+import com.intellij.util.containers.Predicate;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
 import java.util.List;
 
 import static com.android.builder.model.AndroidProject.ARTIFACT_MAIN;
@@ -35,7 +35,7 @@ import static com.android.builder.model.AndroidProject.ARTIFACT_MAIN;
 public class ModuleDependencyNode extends AbstractDependencyNode<PsModuleDependency> {
   private final List<AbstractPsdNode<?>> myChildren = Lists.newArrayList();
 
-  ModuleDependencyNode(@NotNull AbstractPsdNode parent, @NotNull PsModuleDependency moduleDependency) {
+  ModuleDependencyNode(@NotNull AbstractPsdNode parent, @NotNull final PsModuleDependency moduleDependency) {
     super(parent, moduleDependency);
     myName = moduleDependency.getValueAsText();
 
@@ -44,35 +44,38 @@ public class ModuleDependencyNode extends AbstractDependencyNode<PsModuleDepende
 
     PsModule referred = project.findModuleByGradlePath(moduleDependency.getGradlePath());
     if (referred instanceof PsAndroidModule) {
-      List<PsAndroidDependency> dependencies = ((PsAndroidModule)referred).getDependencies();
-      Collections.sort(dependencies, PsAndroidDependencyComparator.INSTANCE);
+      PsAndroidModule androidModule = (PsAndroidModule)referred;
+      androidModule.forEachDependency(new Predicate<PsAndroidDependency>() {
+        @Override
+        public boolean apply(@Nullable PsAndroidDependency dependency) {
+          if (dependency == null || !dependency.isEditable()) {
+            return false; // Only show "declared" dependencies as top-level dependencies.
+          }
+          String moduleVariant = moduleDependency.getModuleVariant();
+          if (!dependency.isIn(ARTIFACT_MAIN, moduleVariant)) {
+            return false; // Only show the dependencies in the main artifact.
+          }
 
-      for (PsAndroidDependency dependency : dependencies) {
-        if (!dependency.isEditable()) {
-          continue; // Only show "declared" dependencies as top-level dependencies.
-        }
-        String moduleVariant = moduleDependency.getModuleVariant();
-        if (!dependency.isIn(ARTIFACT_MAIN, moduleVariant)) {
-          continue; // Only show the dependencies in the main artifact.
-        }
+          AbstractPsdNode<?> child = null;
+          if (dependency instanceof PsLibraryDependency) {
+            child = new LibraryDependencyNode(ModuleDependencyNode.this, (PsLibraryDependency)dependency);
+          }
+          else if (dependency instanceof PsModuleDependency) {
+            child = new ModuleDependencyNode(ModuleDependencyNode.this, (PsModuleDependency)dependency);
+          }
 
-        AbstractPsdNode<?> child = null;
-
-        if (dependency instanceof PsLibraryDependency) {
-          child = new LibraryDependencyNode(this, (PsLibraryDependency)dependency);
+          if (child != null) {
+            myChildren.add(child);
+            return true;
+          }
+          return false;
         }
-        else if (dependency instanceof PsModuleDependency) {
-          child = new ModuleDependencyNode(this, (PsModuleDependency)dependency);
-        }
-
-        if (child != null) {
-          myChildren.add(child);
-        }
-      }
+      });
     }
   }
 
   @Override
+  @NotNull
   public SimpleNode[] getChildren() {
     return myChildren.toArray(new SimpleNode[myChildren.size()]);
   }

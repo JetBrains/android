@@ -21,13 +21,12 @@ import com.android.builder.model.ProductFlavorContainer;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModel;
 import com.android.tools.idea.gradle.structure.model.PsModelCollection;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.intellij.util.containers.Predicate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 
 class PsProductFlavorCollection implements PsModelCollection<PsProductFlavor> {
@@ -35,7 +34,7 @@ class PsProductFlavorCollection implements PsModelCollection<PsProductFlavor> {
 
   PsProductFlavorCollection(@NonNull PsAndroidModule parent) {
     Map<String, ProductFlavor> productFlavorsFromGradle = Maps.newHashMap();
-    for (ProductFlavorContainer container : parent.getAndroidGradleModel().getAndroidProject().getProductFlavors()) {
+    for (ProductFlavorContainer container : parent.getGradleModel().getAndroidProject().getProductFlavors()) {
       ProductFlavor productFlavor = container.getProductFlavor();
       productFlavorsFromGradle.put(productFlavor.getName(), productFlavor);
     }
@@ -61,9 +60,10 @@ class PsProductFlavorCollection implements PsModelCollection<PsProductFlavor> {
   }
 
   @Override
-  @NotNull
-  public List<PsProductFlavor> getElements() {
-    return Lists.newArrayList(myProductFlavorsByName.values());
+  public void forEach(@NotNull Predicate<PsProductFlavor> function) {
+    for (PsProductFlavor productFlavor : myProductFlavorsByName.values()) {
+      function.apply(productFlavor);
+    }
   }
 
   @Nullable

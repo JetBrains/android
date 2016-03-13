@@ -18,13 +18,12 @@ package com.android.tools.idea.gradle.structure.model.android;
 import com.android.builder.model.BaseArtifact;
 import com.android.builder.model.Variant;
 import com.android.tools.idea.gradle.structure.model.PsModelCollection;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.intellij.util.containers.Predicate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 
 public class PsAndroidArtifactCollection implements PsModelCollection<PsAndroidArtifact> {
@@ -52,16 +51,17 @@ public class PsAndroidArtifactCollection implements PsModelCollection<PsAndroidA
   }
 
   @Override
-  @NotNull
-  public List<PsAndroidArtifact> getElements() {
-    return Lists.newArrayList(myArtifactsByName.values());
-  }
-
-  @Override
   @Nullable
   public <S extends PsAndroidArtifact> S findElement(@NotNull String name, @NotNull Class<S> type) {
     PsAndroidArtifact found = myArtifactsByName.get(name);
     return type.isInstance(found) ? type.cast(found) : null;
+  }
+
+  @Override
+  public void forEach(@NotNull Predicate<PsAndroidArtifact> function) {
+    for (PsAndroidArtifact artifact : myArtifactsByName.values()) {
+      function.apply(artifact);
+    }
   }
 
   @NotNull

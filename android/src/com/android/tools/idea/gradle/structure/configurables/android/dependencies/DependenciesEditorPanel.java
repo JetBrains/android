@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies;
 
-import com.android.tools.idea.gradle.structure.configurables.PsdContext;
+import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.ui.ModulesComboBoxAction;
-import com.android.tools.idea.gradle.structure.configurables.ui.PsdUISettings;
+import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
 import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowHeader;
 import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowPanel;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
@@ -38,8 +38,8 @@ import javax.swing.*;
 import java.awt.*;
 
 class DependenciesEditorPanel extends JPanel implements Disposable {
-  @NotNull private final PsAndroidModule myModuleModel;
-  @NotNull private final PsdContext myContext;
+  @NotNull private final PsAndroidModule myModule;
+  @NotNull private final PsContext myContext;
 
   @NotNull private final JBSplitter myVerticalSplitter;
   @NotNull private final EditableDependenciesPanel myEditableDependenciesPanel;
@@ -49,19 +49,19 @@ class DependenciesEditorPanel extends JPanel implements Disposable {
   private boolean myShowModulesDropDown;
   private JComponent myModulesToolbar;
 
-  DependenciesEditorPanel(@NotNull PsAndroidModule moduleModel, @NotNull PsdContext context) {
+  DependenciesEditorPanel(@NotNull PsAndroidModule module, @NotNull PsContext context) {
     super(new BorderLayout());
-    myModuleModel = moduleModel;
+    myModule = module;
     myContext = context;
 
-    PsdUISettings settings = PsdUISettings.getInstance();
+    PsUISettings settings = PsUISettings.getInstance();
     myShowModulesDropDown = settings.MODULES_LIST_MINIMIZE;
     if (myShowModulesDropDown) {
       createAndAddModulesAction();
     }
-    settings.addListener(new PsdUISettings.ChangeListener() {
+    settings.addListener(new PsUISettings.ChangeListener() {
       @Override
-      public void settingsChanged(@NotNull PsdUISettings settings) {
+      public void settingsChanged(@NotNull PsUISettings settings) {
         if (settings.MODULES_LIST_MINIMIZE != myShowModulesDropDown) {
           myShowModulesDropDown = settings.MODULES_LIST_MINIMIZE;
           if (myShowModulesDropDown) {
@@ -74,8 +74,8 @@ class DependenciesEditorPanel extends JPanel implements Disposable {
       }
     }, this);
 
-    myEditableDependenciesPanel = new EditableDependenciesPanel(moduleModel, context);
-    myResolvedDependenciesPanel = new ResolvedDependenciesPanel(moduleModel, context, myEditableDependenciesPanel);
+    myEditableDependenciesPanel = new EditableDependenciesPanel(module, context);
+    myResolvedDependenciesPanel = new ResolvedDependenciesPanel(module, context, myEditableDependenciesPanel);
 
     myVerticalSplitter = new OnePixelSplitter(false, "psd.dependencies.main.vertical.splitter.proportion", .75f);
     myVerticalSplitter.setFirstComponent(myEditableDependenciesPanel);
@@ -123,12 +123,12 @@ class DependenciesEditorPanel extends JPanel implements Disposable {
 
   private void createAndAddModulesAction() {
     DefaultActionGroup actions = new DefaultActionGroup();
-    actions.add(new ModulesComboBoxAction(myModuleModel.getParent(), myContext));
+    actions.add(new ModulesComboBoxAction(myModule.getParent(), myContext));
 
     AnAction restoreModuleListAction = new DumbAwareAction("Restore 'Modules' List", "", AllIcons.Actions.MoveTo2) {
       @Override
       public void actionPerformed(AnActionEvent e) {
-        PsdUISettings settings = PsdUISettings.getInstance();
+        PsUISettings settings = PsUISettings.getInstance();
         settings.MODULES_LIST_MINIMIZE = myShowModulesDropDown = false;
         settings.fireUISettingsChanged();
         removeModulesAction();
@@ -173,7 +173,7 @@ class DependenciesEditorPanel extends JPanel implements Disposable {
   }
 
   private static void saveMinimizedState(boolean minimize) {
-    PsdUISettings.getInstance().VARIANTS_DEPENDENCIES_MINIMIZE = minimize;
+    PsUISettings.getInstance().VARIANTS_DEPENDENCIES_MINIMIZE = minimize;
   }
 
   @Override
@@ -183,7 +183,7 @@ class DependenciesEditorPanel extends JPanel implements Disposable {
   }
 
   private void loadMinimizedState() {
-    boolean minimize = PsdUISettings.getInstance().VARIANTS_DEPENDENCIES_MINIMIZE;
+    boolean minimize = PsUISettings.getInstance().VARIANTS_DEPENDENCIES_MINIMIZE;
     if (minimize) {
       minimize();
     }

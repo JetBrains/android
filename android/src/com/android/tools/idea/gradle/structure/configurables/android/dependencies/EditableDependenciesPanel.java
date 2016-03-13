@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies;
 
-import com.android.tools.idea.gradle.structure.configurables.PsdContext;
+import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.editor.DependencyEditor;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.editor.LibraryDependencyEditor;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.DependencySelection;
@@ -63,7 +63,7 @@ import static javax.swing.ListSelectionModel.MULTIPLE_INTERVAL_SELECTION;
  * Panel that displays the table of "editable" dependencies.
  */
 class EditableDependenciesPanel extends JPanel implements DependencySelection, Disposable {
-  @NotNull private final PsAndroidModule myModuleModel;
+  @NotNull private final PsAndroidModule myModule;
   @NotNull private final EditableDependenciesTableModel myDependenciesTableModel;
   @NotNull private final TableView<PsAndroidDependency> myDependenciesTable;
   @NotNull private final ListSelectionListener myTableSelectionListener;
@@ -75,12 +75,11 @@ class EditableDependenciesPanel extends JPanel implements DependencySelection, D
 
   private List<AbstractPopupAction> myPopupActions;
 
-  EditableDependenciesPanel(@NotNull PsAndroidModule moduleModel, @NotNull PsdContext context) {
+  EditableDependenciesPanel(@NotNull PsAndroidModule module, @NotNull PsContext context) {
     super(new BorderLayout());
-    myModuleModel = moduleModel;
+    myModule = module;
 
-    List<PsAndroidDependency> dependencies = myModuleModel.getDeclaredDependencies();
-    myDependenciesTableModel = new EditableDependenciesTableModel(dependencies);
+    myDependenciesTableModel = new EditableDependenciesTableModel(myModule);
     myDependenciesTable = new TableView<PsAndroidDependency>(myDependenciesTableModel);
 
     initializeEditors(context);
@@ -207,7 +206,7 @@ class EditableDependenciesPanel extends JPanel implements DependencySelection, D
     }
   }
 
-  private void initializeEditors(@NotNull PsdContext context) {
+  private void initializeEditors(@NotNull PsContext context) {
     addEditor(new LibraryDependencyEditor(context));
   }
 
@@ -274,7 +273,7 @@ class EditableDependenciesPanel extends JPanel implements DependencySelection, D
 
     @Override
     void execute() {
-      AddArtifactDependencyDialog dialog = new AddArtifactDependencyDialog(myModuleModel);
+      AddArtifactDependencyDialog dialog = new AddArtifactDependencyDialog(myModule);
       dialog.showAndGet();
     }
   }

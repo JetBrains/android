@@ -29,7 +29,7 @@ public class GradleMainGroupConfigurableContributor extends MainGroupConfigurabl
   @NotNull
   public List<Configurable> getConfigurables(@NotNull Project project) {
     PsProject projectModel = new PsProject(project);
-    PsdContext context = new PsdContext();
+    PsContext context = new PsContext();
 
     List<Configurable> configurables = Lists.newArrayList();
     configurables.add(new DependenciesPerspectiveConfigurable(projectModel, context));
