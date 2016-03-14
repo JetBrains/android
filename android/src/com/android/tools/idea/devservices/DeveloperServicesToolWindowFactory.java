@@ -23,18 +23,15 @@ import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
 import com.intellij.ui.content.ContentManager;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public final class DeveloperServicesToolWindowFactory implements ToolWindowFactory {
   private DeveloperServicesSidePanel myDeveloperServicesSidePanel;
   private String myActionId;
-  private String myToolWindowTitle;
   private DeveloperServiceMap myServiceMap;
 
   public DeveloperServicesToolWindowFactory(
-    @NotNull String actionId, @Nullable String toolWindowTitle, @NotNull DeveloperServiceMap serviceMap) {
+    @NotNull String actionId, @NotNull DeveloperServiceMap serviceMap) {
     myActionId = actionId;
-    myToolWindowTitle = toolWindowTitle;
     myServiceMap = serviceMap;
   }
 
@@ -46,7 +43,7 @@ public final class DeveloperServicesToolWindowFactory implements ToolWindowFacto
 
     ContentFactory contentFactory = ContentFactory.SERVICE.getInstance();
     Content content = contentFactory.createContent(
-      myDeveloperServicesSidePanel, myToolWindowTitle, false);
+      myDeveloperServicesSidePanel, null, false);
     ContentManager contentManager = toolWindow.getContentManager();
     contentManager.removeAllContents(true);
     contentManager.addContent(content);
