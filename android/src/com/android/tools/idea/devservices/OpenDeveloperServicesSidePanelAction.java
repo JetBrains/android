@@ -45,8 +45,6 @@ public class OpenDeveloperServicesSidePanelAction extends AnAction {
   public final void actionPerformed(AnActionEvent event) {
     final Project thisProject = event.getProject();
     final String actionId = ActionManager.getInstance().getId(this);
-    // TODO: Find a cleaner way to manage content concatenation. This gets appended to TOOL_WINDOW_TITLE elsewhere.
-    final String bundleName = ": " + event.getPresentation().getText();
 
     ApplicationManager.getApplication().invokeLater(new Runnable() {
       @Override
@@ -75,7 +73,7 @@ public class OpenDeveloperServicesSidePanelAction extends AnAction {
           }
         }
 
-        DeveloperServicesToolWindowFactory factory = new DeveloperServicesToolWindowFactory(actionId, bundleName, serviceMap);
+        DeveloperServicesToolWindowFactory factory = new DeveloperServicesToolWindowFactory(actionId, serviceMap);
         ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(thisProject);
         ToolWindow toolWindow = toolWindowManager.getToolWindow(TOOL_WINDOW_TITLE);
 
