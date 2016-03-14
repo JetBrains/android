@@ -63,7 +63,7 @@ public class PluginVersionForcedUpdateDialog extends DialogWrapper {
   @NotNull
   protected Action getCancelAction() {
     Action action = super.getCancelAction();
-    action.putValue(NAME, "Cancel and close project");
+    action.putValue(NAME, "Cancel and update manually");
     return action;
   }
 }

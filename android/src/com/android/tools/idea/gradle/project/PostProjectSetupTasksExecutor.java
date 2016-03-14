@@ -33,10 +33,7 @@ import com.android.tools.idea.gradle.messages.Message;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider;
-import com.android.tools.idea.gradle.service.notification.hyperlink.InstallPlatformHyperlink;
-import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
-import com.android.tools.idea.gradle.service.notification.hyperlink.OpenAndroidSdkManagerHyperlink;
-import com.android.tools.idea.gradle.service.notification.hyperlink.OpenUrlHyperlink;
+import com.android.tools.idea.gradle.service.notification.hyperlink.*;
 import com.android.tools.idea.gradle.testing.TestArtifactSearchScopes;
 import com.android.tools.idea.gradle.variant.conflict.Conflict;
 import com.android.tools.idea.gradle.variant.conflict.ConflictSet;
@@ -96,6 +93,8 @@ import static com.android.SdkConstants.*;
 import static com.android.builder.model.AndroidProject.GENERATION_ORIGINAL;
 import static com.android.tools.idea.gradle.customizer.AbstractDependenciesModuleCustomizer.pathToUrl;
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.FAILED_TO_SET_UP_SDK;
+import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.UNHANDLED_SYNC_ISSUE_TYPE;
+import static com.android.tools.idea.gradle.messages.Message.Type.ERROR;
 import static com.android.tools.idea.gradle.project.LibraryAttachments.getStoredLibraryAttachments;
 import static com.android.tools.idea.gradle.project.ProjectDiagnostics.findAndReportStructureIssues;
 import static com.android.tools.idea.gradle.project.ProjectJdkChecks.hasCorrectJdkVersion;
@@ -107,13 +106,11 @@ import static com.android.tools.idea.gradle.variant.conflict.ConflictResolution.
 import static com.android.tools.idea.gradle.variant.conflict.ConflictSet.findConflicts;
 import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
 import static com.android.tools.idea.startup.ExternalAnnotationsSupport.attachJdkAnnotations;
-import static com.intellij.ide.impl.ProjectUtil.closeAndDispose;
 import static com.intellij.notification.NotificationType.INFORMATION;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static com.intellij.openapi.roots.OrderRootType.SOURCES;
 import static com.intellij.openapi.util.io.FileUtil.delete;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
-import static com.intellij.openapi.wm.impl.welcomeScreen.WelcomeFrame.showIfNoProjectOpened;
 import static com.intellij.util.ExceptionUtil.rethrowAllAsUnchecked;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.*;
 
@@ -258,9 +255,15 @@ public class PostProjectSetupTasksExecutor {
           return true;
         }
         else {
-          // Close project.
-          closeAndDispose(myProject);
-          showIfNoProjectOpened();
+          String[] text = {
+            "The project is using an incompatible version of the Android Gradle plugin.",
+            "Please update your project to use version " + GRADLE_PLUGIN_LATEST_VERSION + "."
+          };
+          Message msg = new Message(UNHANDLED_SYNC_ISSUE_TYPE, ERROR, text);
+          NotificationHyperlink quickFix = new SearchInBuildFilesHyperlink(GRADLE_PLUGIN_NAME);
+          ProjectSyncMessages.getInstance(myProject).add(msg, quickFix);
+          invalidateLastSync(myProject, "Failed");
+          return true;
         }
       }
     }
@@ -668,7 +671,7 @@ public class PostProjectSetupTasksExecutor {
     if (!versionsToInstall.isEmpty()) {
       String group = String.format(FAILED_TO_SYNC_GRADLE_PROJECT_ERROR_GROUP_FORMAT, myProject.getName());
       String text = "Missing Android platform(s) detected: " + Joiner.on(", ").join(missingPlatforms);
-      Message msg = new Message(group, Message.Type.ERROR, text);
+      Message msg = new Message(group, ERROR, text);
       messages.add(msg, new InstallPlatformHyperlink(versionsToInstall.toArray(new AndroidVersion[versionsToInstall.size()])));
     }
   }
