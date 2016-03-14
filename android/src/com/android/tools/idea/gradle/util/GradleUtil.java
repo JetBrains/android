@@ -1245,7 +1245,7 @@ public final class GradleUtil {
     return false;
   }
 
-  private static void invalidateLastSync(@NotNull Project project, @NotNull String error) {
+  public static void invalidateLastSync(@NotNull Project project, @NotNull String error) {
     GradleSyncState.getInstance(project).syncFailed(error);
     for (Module module : ModuleManager.getInstance(project).getModules()) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
