@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.configurables.android.dependencies;
+package com.android.tools.idea.gradle.structure.configurables.android.dependencies.module;
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.ui.ModulesComboBoxAction;
@@ -37,7 +37,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.*;
 
-class DependenciesEditorPanel extends JPanel implements Disposable {
+class ModuleDependenciesPanel extends JPanel implements Disposable {
   @NotNull private final PsAndroidModule myModule;
   @NotNull private final PsContext myContext;
 
@@ -49,7 +49,7 @@ class DependenciesEditorPanel extends JPanel implements Disposable {
   private boolean myShowModulesDropDown;
   private JComponent myModulesToolbar;
 
-  DependenciesEditorPanel(@NotNull PsAndroidModule module, @NotNull PsContext context) {
+  ModuleDependenciesPanel(@NotNull PsAndroidModule module, @NotNull PsContext context) {
     super(new BorderLayout());
     myModule = module;
     myContext = context;

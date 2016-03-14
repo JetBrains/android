@@ -13,26 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.configurables;
+package com.android.tools.idea.gradle.structure.configurables.android.dependencies.project.treeview;
 
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractBaseTreeBuilder;
 import com.android.tools.idea.gradle.structure.model.PsProject;
-import com.android.tools.idea.structure.dialog.MainGroupConfigurableContributor;
-import com.google.common.collect.Lists;
-import com.intellij.openapi.options.Configurable;
-import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
+import javax.swing.*;
+import javax.swing.tree.DefaultTreeModel;
 
-public class GradleMainGroupConfigurableContributor extends MainGroupConfigurableContributor {
+public class ProjectDependenciesTreeBuilder extends AbstractBaseTreeBuilder {
+  public ProjectDependenciesTreeBuilder(@NotNull PsProject project,
+                                        @NotNull JTree tree,
+                                        @NotNull DefaultTreeModel treeModel) {
+    super(tree, treeModel, new ProjectDependenciesTreeStructure(project));
+  }
+
   @Override
-  @NotNull
-  public List<Configurable> getConfigurables(@NotNull Project project) {
-    PsContext context = new PsContext();
-
-    List<Configurable> configurables = Lists.newArrayList();
-    configurables.add(new DependenciesPerspectiveConfigurable(new PsProject(project), context));
-
-    return configurables;
+  protected void onAllNodesExpanded() {
   }
 }

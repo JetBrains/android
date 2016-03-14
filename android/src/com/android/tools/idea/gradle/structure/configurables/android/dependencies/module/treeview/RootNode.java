@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview;
+package com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.treeview;
 
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.PsAndroidDependencyComparator;
 import com.android.tools.idea.gradle.structure.configurables.android.treeview.AbstractRootNode;
@@ -31,9 +31,9 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 import static com.android.builder.model.AndroidProject.ARTIFACT_MAIN;
-import static com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.DependencyNodes.createNodesFor;
+import static com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.treeview.DependencyNodes.createNodesFor;
 
-class RootNode extends AbstractRootNode {
+class RootNode extends AbstractRootNode<PsAndroidModule> {
   private boolean myGroupVariants = PsUISettings.getInstance().VARIANTS_DEPENDENCIES_GROUP_VARIANTS;
 
   RootNode(@NotNull PsAndroidModule module) {

@@ -21,6 +21,7 @@ import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.util.containers.Predicate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -89,9 +90,10 @@ public class PsProject extends PsModel {
     return myProject.getName();
   }
 
-  @NotNull
-  public List<PsModule> getModules() {
-    return myModules;
+  public void forEachModule(@NotNull Predicate<PsModule> function) {
+    for (PsModule module : myModules) {
+      function.apply(module);
+    }
   }
 
   @Override

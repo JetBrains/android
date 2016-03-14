@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.configurables.android.dependencies;
+package com.android.tools.idea.gradle.structure.configurables.android.dependencies.module;
 
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.PsAndroidDependencyComparator;
 import com.android.tools.idea.gradle.structure.configurables.ui.BaseTableCellRenderer;
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;

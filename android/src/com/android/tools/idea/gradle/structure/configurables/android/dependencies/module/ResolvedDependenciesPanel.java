@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.configurables.android.dependencies;
+package com.android.tools.idea.gradle.structure.configurables.android.dependencies.module;
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractDependencyNode;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.DependencySelection;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.treeview.DependencySelection;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.ModuleDependencyNode;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.ResolvedDependenciesTreeBuilder;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.treeview.ResolvedDependenciesTreeBuilder;
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
 import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowPanel;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsdNode;
