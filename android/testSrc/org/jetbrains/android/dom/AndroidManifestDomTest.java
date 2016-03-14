@@ -347,6 +347,20 @@ public class AndroidManifestDomTest extends AndroidDomTest {
     doTestCompletion();
   }
 
+  /**
+   * Test that "data" tag is completed as a subtag of "intent-filter"
+   */
+  public void testDataTagCompletion() throws Throwable {
+    doTestCompletion();
+  }
+
+  /**
+   * Test that "path" attribute prefix inside "data" tag leads to correct completion results
+   */
+  public void testDataAttributeCompletion() throws Throwable {
+    doTestCompletionVariants("dataAttributeCompletion.xml", "android:path", "android:pathPrefix", "android:pathPattern");
+  }
+
   public void testCompletionInManifestTag() throws Throwable {
     doTestCompletion();
   }
