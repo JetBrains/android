@@ -20,10 +20,11 @@ import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.UiCallback;
 import com.android.tools.idea.editors.gfxtrace.service.MemoryInfo;
 import com.android.tools.idea.editors.gfxtrace.service.memory.MemoryRange;
-import com.android.tools.idea.editors.gfxtrace.service.path.MemoryRangePath;
+import com.android.tools.idea.editors.gfxtrace.service.path.*;
 import com.android.tools.rpclib.rpccore.Rpc;
 import com.android.tools.rpclib.rpccore.RpcException;
 import com.google.common.base.Function;
+import com.google.common.base.Objects;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -80,12 +81,14 @@ public class MemoryController extends Controller {
   @NotNull private final EmptyPanel myEmptyPanel = new EmptyPanel();
   @NotNull private final JScrollPane myScrollPane = new JBScrollPane(myEmptyPanel);
   @NotNull private DataType myDataType = DataType.Bytes;
+  @NotNull private ComboBox myCombo;
+  private AtomPath myAtomPath;
   private MemoryDataModel myMemoryData;
 
   private MemoryController(@NotNull GfxTraceEditor editor) {
     super(editor);
     myLoading.add(myScrollPane, BorderLayout.CENTER);
-    myPanel.add(new ComboBox(DataType.values()) {{
+    myCombo = new ComboBox(DataType.values()) {{
       setSelectedIndex(1);
       addItemListener(new ItemListener() {
         @Override
@@ -93,7 +96,8 @@ public class MemoryController extends Controller {
           setDataType((DataType)e.getItem());
         }
       });
-    }}, BorderLayout.NORTH);
+    }};
+    myPanel.add(myCombo, BorderLayout.NORTH);
     myPanel.add(myLoading, BorderLayout.CENTER);
 
     myPanel.setBorder(BorderFactory.createTitledBorder(myScrollPane.getBorder(), "Memory"));
@@ -111,9 +115,47 @@ public class MemoryController extends Controller {
     }
   }
 
+  private DataType dataTypeFromMemoryType(MemoryType type) {
+    final long size = type.getByteSize();
+    // Note this happens before we have sent a request to a server, so we
+    // can only handle fixed size types at the moment.
+    if (size == 0) {
+      return myDataType;
+    }
+    final MemoryKind kind = type.getKind();
+    if (kind.equals(MemoryKind.Integer)) {
+      if (size == 1) {
+        return DataType.Bytes;
+      }
+      else if (size == 2) {
+        return DataType.Shorts;
+      }
+      else if (size == 4) {
+        return DataType.Ints;
+      }
+      // TODO (anton) I think we need DataType.Long;
+    }
+    else if (size == 1 && kind.equals(MemoryKind.Char)) {
+      return DataType.Text;
+    }
+    else if (size == 4 && kind.equals(MemoryKind.Address)) {
+      return DataType.Ints;
+    }
+    else if (kind.equals(MemoryKind.Float)) {
+      if (size == 4) {
+        return DataType.Floats;
+      } else if (size == 8) {
+        return DataType.Doubles;
+      }
+    }
+    return myDataType;
+  }
+
   @Override
   public void notifyPath(PathEvent event) {
-    final MemoryRangePath memoryPath = event.findMemoryPath();
+    final TypedMemoryPath typedMemoryPath = event.findTypedMemoryPath();
+    final MemoryRangePath memoryPath = typedMemoryPath != null ? typedMemoryPath.getRange() : event.findMemoryPath();
+    final DataType dataType = typedMemoryPath != null ? dataTypeFromMemoryType(typedMemoryPath.getType()) : myDataType;
     if (memoryPath != null) {
       if (memoryPath.getSize() == 0) {
         // Fetch a default amount of memory for memory pointers, as they point to a region of unknown size.
@@ -129,6 +171,8 @@ public class MemoryController extends Controller {
       };
       if (PagedMemoryDataModel.shouldUsePagedModel(memoryPath.getSize())) {
         myMemoryData = new PagedMemoryDataModel(fetcher, memoryPath.getAddress(), memoryPath.getSize());
+        myDataType = dataType;
+        myCombo.setSelectedItem(dataType);
         update();
       }
       else {
@@ -142,13 +186,22 @@ public class MemoryController extends Controller {
           @Override
           protected void onUiThread(MemoryDataModel result) {
             myMemoryData = result;
+            myDataType = dataType;
+            myCombo.setSelectedItem(dataType);
             update();
           }
         });
       }
+      myAtomPath = memoryPath.getAfter();
     }
     else {
-      myScrollPane.setViewportView(myEmptyPanel);
+      // As it is hard to select a memory path in the atom view without also selecting an atom we ignore any
+      // atom event for the current atom, otherwise you can get flicked back to the empty panel unexpectedly.
+      AtomPath atomPath = event.findAtomPath();
+      if (myAtomPath == null || atomPath == null || !myAtomPath.equals(atomPath)) {
+        myAtomPath = atomPath;
+        myScrollPane.setViewportView(myEmptyPanel);
+      }
     }
   }
 
