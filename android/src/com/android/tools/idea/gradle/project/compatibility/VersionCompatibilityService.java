@@ -28,6 +28,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
+import com.intellij.util.JdomKt;
 import com.intellij.util.SystemProperties;
 import org.intellij.lang.annotations.Language;
 import org.jdom.Document;
@@ -40,7 +41,6 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.StringReader;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -118,8 +118,7 @@ public class VersionCompatibilityService {
 
   @VisibleForTesting
   public void reloadMetadataForTesting(@NotNull @Language("XML") String metadata) throws JDOMException, IOException {
-    Element root = load(new StringReader(metadata));
-    myMetadata = loadMetadata(root);
+    myMetadata = loadMetadata(JdomKt.loadElement(metadata));
   }
 
   /**
@@ -158,8 +157,7 @@ public class VersionCompatibilityService {
     try {
       //noinspection IOResourceOpenedButNotSafelyClosed
       inputStream = getClass().getResourceAsStream(METADATA_FILE_NAME);
-      Element root = load(inputStream);
-      myMetadata = loadMetadata(root);
+      myMetadata = loadMetadata(JdomKt.loadElement(inputStream));
     }
     catch (Throwable e) {
       // Impossible to happen.
