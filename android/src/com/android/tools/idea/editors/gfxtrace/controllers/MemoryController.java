@@ -60,6 +60,7 @@ import java.awt.*;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.*;
+import java.nio.ByteOrder;
 import java.nio.charset.Charset;
 import java.util.*;
 import java.util.List;
@@ -864,17 +865,7 @@ public class MemoryController extends Controller {
     public int getByte(int off) {
       return myData[myOffset + off] & 0xFF;
     }
-
-    public boolean getShortKnown(int off) {
-      return getByteKnown(off, 2);
-    }
-
-    public int getShort(int off) {
-      off += myOffset;
-      // TODO: figure out BigEndian vs LittleEndian.
-      return (myData[off + 0] & 0xFF) | ((myData[off + 1] & 0xFF) << 8);
-    }
-
+    
     public boolean getIntKnown(int off) {
       return getByteKnown(off, 4);
     }
@@ -1129,140 +1120,83 @@ public class MemoryController extends Controller {
     }
   }
 
-  private static class ShortsMemoryModel extends CharBufferMemoryModel {
-    private static final int SHORTS_PER_ROW = BYTES_PER_ROW / 2;
-    private static final int CHARS_PER_SHORT = 4; // 4 hex chars per short
+  private static class IntegersMemoryModel extends CharBufferMemoryModel {
+    // Little endian assumption
+    private static final ByteOrder ENDIAN = ByteOrder.LITTLE_ENDIAN;
+    private static final int ITEM_SEPARATOR = 1;
+    private final int mySize;
 
-    private static final int SHORT_SEPARATOR = 1;
+    /**
+     * @returns the number of characters used to represent a single item
+     */
+    private static int charsPerItem(int size) {
+      return size * 2;
+    }
 
-    private static final int SHORTS_CHARS = (CHARS_PER_SHORT + SHORT_SEPARATOR) * SHORTS_PER_ROW;
-    private static final int CHARS_PER_ROW = ADDRESS_CHARS + SHORTS_CHARS;
+    /**
+     * @returns the number of characters per row needed for items including separators.
+     */
+    private static int itemChars(int size) {
+      int itemsPerRow = BYTES_PER_ROW / size;
+      int charsPerItem = charsPerItem(size); // hex chars per item
+      return (charsPerItem + ITEM_SEPARATOR) * itemsPerRow;
+    }
 
-    private static final Range<Integer> SHORTS_RANGE = new Range<Integer>(ADDRESS_CHARS + SHORT_SEPARATOR, ADDRESS_CHARS + SHORTS_CHARS);
+    /**
+     * @returns the number of characters per row including the address and items.
+     */
+    private static int charsPerRow(int size) {
+      return ADDRESS_CHARS + itemChars(size);
+    }
 
+    /**
+     * @returns the character column range where the items are present
+     */
+    private static Range<Integer> itemsRange(int size) {
+      return new Range<Integer>(ADDRESS_CHARS + ITEM_SEPARATOR, ADDRESS_CHARS + itemChars(size));
+    }
+
+    protected IntegersMemoryModel(MemoryDataModel data, int size) {
+      super(data.align(size), charsPerRow(size), itemsRange(size));
+      mySize = size;
+    }
+
+    @Override
+    protected void formatMemory(char[] buffer, MemorySegment memory) {
+      final int charsPerItem = charsPerItem(mySize);
+      for (int i = 0, j = ADDRESS_CHARS; i + mySize <= memory.myLength; i += mySize, j += charsPerItem + ITEM_SEPARATOR) {
+        if (memory.getByteKnown(i, mySize)) {
+          for (int k = 0; k < mySize; ++k) {
+            int val = memory.getByte(i + k);
+            int chOff = ENDIAN.equals(ByteOrder.LITTLE_ENDIAN) ? charsPerItem(mySize - 1 - k) : charsPerItem(k);
+            buffer[j + chOff + 1] = HEX_DIGITS[(val >> 4) & 0xF];
+            buffer[j + chOff + 2] = HEX_DIGITS[val & 0xF];
+          }
+        }
+        else {
+          for (int k = 0; k < charsPerItem; ++k) {
+            buffer[j + k + 1] = UNKNOWN_CHAR;
+          }
+        }
+      }
+    }
+  }
+
+  private static class ShortsMemoryModel extends IntegersMemoryModel {
     public ShortsMemoryModel(MemoryDataModel data) {
-      super(data.align(2), CHARS_PER_ROW, SHORTS_RANGE);
-    }
-
-    @Override
-    protected void formatMemory(char[] buffer, MemorySegment memory) {
-      for (int i = 0, j = ADDRESS_CHARS; i + 1 < memory.myLength; i += 2, j += CHARS_PER_SHORT + SHORT_SEPARATOR) {
-        if (memory.getShortKnown(i)) {
-          int s = memory.getShort(i);
-          buffer[j + 1] = HEX_DIGITS[(s >> 12) & 0xF];
-          buffer[j + 2] = HEX_DIGITS[(s >> 8) & 0xF];
-          buffer[j + 3] = HEX_DIGITS[(s >> 4) & 0xF];
-          buffer[j + 4] = HEX_DIGITS[(s >> 0) & 0xF];
-        }
-        else {
-          buffer[j + 1] = UNKNOWN_CHAR;
-          buffer[j + 2] = UNKNOWN_CHAR;
-          buffer[j + 3] = UNKNOWN_CHAR;
-          buffer[j + 4] = UNKNOWN_CHAR;
-        }
-      }
+      super(data, 2);
     }
   }
 
-  private static class IntsMemoryModel extends CharBufferMemoryModel {
-    private static final int INTS_PER_ROW = BYTES_PER_ROW / 4;
-    private static final int CHARS_PER_INT = 8; // 8 hex chars per int
-
-    private static final int INT_SEPARATOR = 1;
-
-    private static final int INTS_CHARS = (CHARS_PER_INT + INT_SEPARATOR) * INTS_PER_ROW;
-    private static final int CHARS_PER_ROW = ADDRESS_CHARS + INTS_CHARS;
-
-    private static final Range<Integer> INTS_RANGE = new Range<Integer>(ADDRESS_CHARS + INT_SEPARATOR, ADDRESS_CHARS + INTS_CHARS);
-
+  private static class IntsMemoryModel extends IntegersMemoryModel {
     public IntsMemoryModel(MemoryDataModel data) {
-      super(data.align(4), CHARS_PER_ROW, INTS_RANGE);
-    }
-
-    @Override
-    protected void formatMemory(char[] buffer, MemorySegment memory) {
-      for (int i = 0, j = ADDRESS_CHARS; i + 3 < memory.myLength; i += 4, j += CHARS_PER_INT + INT_SEPARATOR) {
-        if (memory.getIntKnown(i)) {
-          int v = memory.getInt(i);
-          buffer[j + 1] = HEX_DIGITS[(v >> 28) & 0xF];
-          buffer[j + 2] = HEX_DIGITS[(v >> 24) & 0xF];
-          buffer[j + 3] = HEX_DIGITS[(v >> 20) & 0xF];
-          buffer[j + 4] = HEX_DIGITS[(v >> 16) & 0xF];
-          buffer[j + 5] = HEX_DIGITS[(v >> 12) & 0xF];
-          buffer[j + 6] = HEX_DIGITS[(v >> 8) & 0xF];
-          buffer[j + 7] = HEX_DIGITS[(v >> 4) & 0xF];
-          buffer[j + 8] = HEX_DIGITS[(v >> 0) & 0xF];
-        }
-        else {
-          buffer[j + 1] = UNKNOWN_CHAR;
-          buffer[j + 2] = UNKNOWN_CHAR;
-          buffer[j + 3] = UNKNOWN_CHAR;
-          buffer[j + 4] = UNKNOWN_CHAR;
-          buffer[j + 5] = UNKNOWN_CHAR;
-          buffer[j + 6] = UNKNOWN_CHAR;
-          buffer[j + 7] = UNKNOWN_CHAR;
-          buffer[j + 8] = UNKNOWN_CHAR;
-        }
-      }
+      super(data, 4);
     }
   }
 
-  private static class LongsMemoryModel extends CharBufferMemoryModel {
-    private static final int LONGS_PER_ROW = BYTES_PER_ROW / 8;
-    private static final int CHARS_PER_LONG = 16; // 16 hex chars per int
-
-    private static final int LONG_SEPARATOR = 1;
-
-    private static final int LONG_CHARS = (CHARS_PER_LONG + LONG_SEPARATOR) * LONGS_PER_ROW;
-    private static final int CHARS_PER_ROW = ADDRESS_CHARS + LONG_CHARS;
-
-    private static final Range<Integer> LONGS_RANGE = new Range<Integer>(ADDRESS_CHARS + LONG_SEPARATOR, ADDRESS_CHARS + LONG_CHARS);
-
+  private static class LongsMemoryModel extends IntegersMemoryModel {
     public LongsMemoryModel(MemoryDataModel data) {
-      super(data.align(8), CHARS_PER_ROW, LONGS_RANGE);
-    }
-
-    @Override
-    protected void formatMemory(char[] buffer, MemorySegment memory) {
-      for (int i = 0, j = ADDRESS_CHARS; i + 7 < memory.myLength; i += 8, j += CHARS_PER_LONG + LONG_SEPARATOR) {
-        if (memory.getLongKnown(i)) {
-          long v = memory.getLong(i);
-          buffer[j + 1] = HEX_DIGITS[(int)((v >> 60) & 0xF)];
-          buffer[j + 2] = HEX_DIGITS[(int)((v >> 56) & 0xF)];
-          buffer[j + 3] = HEX_DIGITS[(int)((v >> 52) & 0xF)];
-          buffer[j + 4] = HEX_DIGITS[(int)((v >> 48) & 0xF)];
-          buffer[j + 5] = HEX_DIGITS[(int)((v >> 44) & 0xF)];
-          buffer[j + 6] = HEX_DIGITS[(int)((v >> 40) & 0xF)];
-          buffer[j + 7] = HEX_DIGITS[(int)((v >> 36) & 0xF)];
-          buffer[j + 8] = HEX_DIGITS[(int)((v >> 32) & 0xF)];
-          buffer[j + 9] = HEX_DIGITS[(int)((v >> 28) & 0xF)];
-          buffer[j +10] = HEX_DIGITS[(int)((v >> 24) & 0xF)];
-          buffer[j +11] = HEX_DIGITS[(int)((v >> 20) & 0xF)];
-          buffer[j +12] = HEX_DIGITS[(int)((v >> 16) & 0xF)];
-          buffer[j +13] = HEX_DIGITS[(int)((v >> 12) & 0xF)];
-          buffer[j +14] = HEX_DIGITS[(int)((v >> 8) & 0xF)];
-          buffer[j +15] = HEX_DIGITS[(int)((v >> 4) & 0xF)];
-          buffer[j +16] = HEX_DIGITS[(int)((v >> 0) & 0xF)];
-        }
-        else {
-          buffer[j + 1] = UNKNOWN_CHAR;
-          buffer[j + 2] = UNKNOWN_CHAR;
-          buffer[j + 3] = UNKNOWN_CHAR;
-          buffer[j + 4] = UNKNOWN_CHAR;
-          buffer[j + 5] = UNKNOWN_CHAR;
-          buffer[j + 6] = UNKNOWN_CHAR;
-          buffer[j + 7] = UNKNOWN_CHAR;
-          buffer[j + 8] = UNKNOWN_CHAR;
-          buffer[j + 9] = UNKNOWN_CHAR;
-          buffer[j +10] = UNKNOWN_CHAR;
-          buffer[j +11] = UNKNOWN_CHAR;
-          buffer[j +12] = UNKNOWN_CHAR;
-          buffer[j +13] = UNKNOWN_CHAR;
-          buffer[j +14] = UNKNOWN_CHAR;
-          buffer[j +15] = UNKNOWN_CHAR;
-          buffer[j +16] = UNKNOWN_CHAR;
-        }
-      }
+      super(data, 8);
     }
   }
 
