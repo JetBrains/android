@@ -18,9 +18,9 @@ package com.android.tools.sherpa.drawing.decorator;
 
 import com.android.tools.sherpa.drawing.SceneDraw;
 import com.android.tools.sherpa.drawing.ViewTransform;
-import com.android.tools.sherpa.drawing.WidgetDraw;
 import com.android.tools.sherpa.interaction.WidgetInteractionTargets;
 import com.android.tools.sherpa.structure.Selection;
+import com.android.tools.sherpa.drawing.WidgetDraw;
 import com.google.tnt.solver.widgets.ConstraintAnchor;
 import com.google.tnt.solver.widgets.ConstraintWidget;
 import com.google.tnt.solver.widgets.ConstraintWidgetContainer;
