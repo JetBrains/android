@@ -117,7 +117,7 @@ public class GradleRenameModuleTest {
   }
 
   @Test
-  public void testCannotRenameToExistedFile() throws IOException {
+  public void testCannotRenameToExistingFile() throws IOException {
     guiTest.importMultiModule();
 
     ProjectViewFixture.PaneFixture paneFixture = guiTest.ideFrame().getProjectView().selectProjectPane();
@@ -135,7 +135,7 @@ public class GradleRenameModuleTest {
     errorMessage.requireMessageContains("Module named 'library2' already exist");
 
     errorMessage.clickOk();
-    // In this case, the rename diaglog will let you choose another name, click cancel to close the diaglog
+    // In this case, the rename dialog will let you choose another name, click cancel to close the dialog
     renameModuleDialog.clickCancel();
   }
 
