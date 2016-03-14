@@ -155,8 +155,6 @@ public class GradleProjectImporter {
       return;
     }
 
-    // Set up Gradle settings. Otherwise we get an "already disposed project" error.
-    new GradleSettings(ProjectManager.getInstance().getDefaultProject());
     createProjectFileForGradleProject(selectedFile, null);
   }
 
