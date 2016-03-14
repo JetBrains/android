@@ -113,7 +113,7 @@ public class StateController extends TreeController implements GpuState.Listener
     // the expanded item will either be at the top of the window or child count rows
     // above the bottom or the selected item is at the bottom and the expanded item
     // is above the top of the window.
-    int row = myTree.getRowForPath(expandPath) + node.getChildCount();
+    int row = myTree.getRowForPath(expandPath) + (node == null ? 0 : node.getChildCount());
     if (row >= myTree.getRowCount()) {
       row = myTree.getRowCount() - 1;
     }
