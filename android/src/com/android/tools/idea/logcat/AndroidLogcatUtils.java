@@ -38,11 +38,6 @@ public final class AndroidLogcatUtils {
   private AndroidLogcatUtils() {
   }
 
-  private static void startLogging(IDevice device, AndroidOutputReceiver receiver)
-    throws IOException, ShellCommandUnresponsiveException, AdbCommandRejectedException, TimeoutException {
-    AndroidUtils.executeCommandOnDevice(device, "logcat -v long", receiver, true);
-  }
-
   static void clearLogcat(@Nullable final Project project, @NotNull IDevice device) {
     try {
       AndroidUtils.executeCommandOnDevice(device, "logcat -c", new LoggingReceiver(LOG), false);
@@ -58,38 +53,4 @@ public final class AndroidLogcatUtils {
     }
   }
 
-  /**
-   * Starts a thread which reads data from Android logging output and writes a processed view of
-   * the data out to a console.
-   */
-  @NotNull
-  public static AndroidLogcatReceiver startLoggingThread(final Project project,
-                                                        final IDevice device,
-                                                        final boolean clearLogcat,
-                                                        @NotNull final AndroidConsoleWriter writer) {
-    UIUtil.invokeAndWaitIfNeeded(new Runnable() {
-      @Override
-      public void run() {
-        writer.clear();
-      }
-    });
-    final AndroidLogcatReceiver receiver = new AndroidLogcatReceiver(device, writer);
-    Disposer.register(project, receiver);
-    ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
-      @Override
-      public void run() {
-        if (clearLogcat) {
-          clearLogcat(project, device);
-        }
-        try {
-          startLogging(device, receiver);
-        }
-        catch (final Exception e) {
-          LOG.info(e);
-          writer.addMessage(AndroidLogcatFormatter.formatMessage(Log.LogLevel.ERROR, e.getMessage()));
-        }
-      }
-    });
-    return receiver;
-  }
 }
