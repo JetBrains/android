@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2015 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -84,8 +84,8 @@ public class ConnectionDraw {
      * @param showPercentIndicator show the percent indicator if center constraints
      */
     public static void drawConnection(ViewTransform transform, Graphics2D g,
-                                      ConstraintHandle beginHandle, ConstraintHandle endHandle,
-                                      boolean isSelected, boolean showPercentIndicator) {
+            ConstraintHandle beginHandle, ConstraintHandle endHandle,
+            boolean isSelected, boolean showPercentIndicator) {
         ConstraintAnchor begin = beginHandle.getAnchor();
         ConstraintAnchor end = endHandle.getAnchor();
         if (end.getOwner() instanceof ConstraintTableLayout
@@ -127,10 +127,10 @@ public class ConnectionDraw {
      * Utility function to draw a connection between an anchor and a point (typically, the
      * current mouse position...)
      *
-     * @param transform view transform
-     * @param g         Graphics context
-     * @param beginHandle     the anchor source of the connection
-     * @param point     the point that is the end of the connection spline
+     * @param transform   view transform
+     * @param g           Graphics context
+     * @param beginHandle the anchor source of the connection
+     * @param point       the point that is the end of the connection spline
      */
     public static void drawConnection(ViewTransform transform, Graphics2D g,
             ConstraintHandle beginHandle,
@@ -211,7 +211,7 @@ public class ConnectionDraw {
                 new Ellipse2D.Float(x - radius, y - radius, 2 * radius + 1, 2 * radius + 1);
         g2.fill(circle);
         g2.setColor(Color.BLACK);
-        g2.drawString(text, (int) (x - tw / 2), (y + fm.getAscent()/ 2));
+        g2.drawString(text, (int) (x - tw / 2), (y + fm.getAscent() / 2));
         if (DEBUG) {
             g2.setColor(Color.RED);
             g2.drawLine(x - 50, y, x + 50, y);
@@ -338,11 +338,11 @@ public class ConnectionDraw {
      * is drawn in the middle of the line (or aside if the line is too small).
      * The color and style used for the drawing will be the current ones in the graphics context.
      *
-     * @param transform        view transform
-     * @param g                Graphics context
-     * @param isVertical       flag to pick between a vertical or horizontal margin
-     * @param beginHandle      the ConstraintHandle source of the constraint
-     * @param endHandle        the ConstraintHandle target of the constraint
+     * @param transform   view transform
+     * @param g           Graphics context
+     * @param isVertical  flag to pick between a vertical or horizontal margin
+     * @param beginHandle the ConstraintHandle source of the constraint
+     * @param endHandle   the ConstraintHandle target of the constraint
      */
     private static void drawMargin(ViewTransform transform, Graphics2D g, boolean isVertical,
             ConstraintHandle beginHandle, ConstraintHandle endHandle) {
@@ -578,10 +578,10 @@ public class ConnectionDraw {
      * to the target ConstraintAnchor.
      * The color and style used for the drawing will be the current ones in the graphics context.
      *
-     * @param transform view transform
-     * @param g         Graphics context
-     * @param beginHandle     the ConstraintHandle source of the constraint
-     * @param endHandle       the ConstraintHandle target of the constraint
+     * @param transform   view transform
+     * @param g           Graphics context
+     * @param beginHandle the ConstraintHandle source of the constraint
+     * @param endHandle   the ConstraintHandle target of the constraint
      */
     private static void drawVerticalConnection(ViewTransform transform, Graphics2D g,
             ConstraintHandle beginHandle, ConstraintHandle endHandle) {
@@ -675,10 +675,10 @@ public class ConnectionDraw {
      * to the target ConstraintAnchor.
      * The color and style used for the drawing will be the current ones in the graphics context.
      *
-     * @param transform       view transform
-     * @param g               Graphics context
-     * @param beginHandle     the ConstraintHandle source of the constraint
-     * @param endHandle       the ConstraintHandle target of the constraint
+     * @param transform   view transform
+     * @param g           Graphics context
+     * @param beginHandle the ConstraintHandle source of the constraint
+     * @param endHandle   the ConstraintHandle target of the constraint
      */
     private static void drawHorizontalConnection(ViewTransform transform, Graphics2D g,
             ConstraintHandle beginHandle, ConstraintHandle endHandle) {
