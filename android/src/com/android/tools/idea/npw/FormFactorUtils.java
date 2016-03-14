@@ -15,9 +15,13 @@
  */
 package com.android.tools.idea.npw;
 
+import com.android.SdkConstants;
 import com.android.repository.api.RepoPackage;
 import com.android.repository.impl.meta.TypeDetails;
+import com.android.sdklib.AndroidVersion;
+import com.android.sdklib.repositoryv2.IdDisplay;
 import com.android.sdklib.repositoryv2.meta.DetailsTypes;
+import com.android.sdklib.repositoryv2.targets.SystemImage;
 import com.android.tools.idea.configurations.DeviceMenuAction;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Maps;
@@ -44,6 +48,7 @@ import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.createKey;
  * dynamic wizard). Consider folding remaining methods into {@link FormFactor} at that time.
  */
 public class FormFactorUtils {
+  private static final IdDisplay NO_MATCH = IdDisplay.create("no_match", "No Match");
   public static final String INCLUDE_FORM_FACTOR = "included";
   public static final String ATTR_MODULE_NAME = "projectName";
 
@@ -131,9 +136,7 @@ public class FormFactorUtils {
         if (input == null) {
           return false;
         }
-
-        return doFilter(formFactor, minSdkLevel, input.target != null ? input.target.getName() : null, input.apiLevel) ||
-               (input.target != null && input.target.getVersion().isPreview());
+        return doFilter(formFactor, minSdkLevel, SystemImage.DEFAULT_TAG, input.getApiLevel());
       }
     };
   }
@@ -152,54 +155,25 @@ public class FormFactorUtils {
   }
 
   private static boolean filterPkgDesc(@NotNull RepoPackage p, @NotNull FormFactor formFactor, int minSdkLevel) {
-    TypeDetails details = p.getTypeDetails();
-    if (details instanceof DetailsTypes.AddonDetailsType) {
-      DetailsTypes.AddonDetailsType addonDetails = (DetailsTypes.AddonDetailsType)details;
-      return doFilter(formFactor, minSdkLevel, addonDetails.getTag().getId(),
-                      DetailsTypes.getAndroidVersion(addonDetails).getFeatureLevel());
-    }
-    // TODO: add other package types
-    return false;
+    return isApiType(p) && doFilter(formFactor, minSdkLevel, getTag(p), getFeatureLevel(p));
   }
 
-  private static boolean doFilter(@NotNull FormFactor formFactor, int minSdkLevel, @Nullable String inputName, int targetSdkLevel) {
-    if (!formFactor.getApiWhitelist().isEmpty()) {
+  private static boolean doFilter(@NotNull FormFactor formFactor, int minSdkLevel, @Nullable IdDisplay tag, int targetSdkLevel) {
+    if (!formFactor.getTags().isEmpty()) {
       // If a whitelist is present, only allow things on the whitelist
-      boolean found = false;
-      for (String filterItem : formFactor.getApiWhitelist()) {
-        if (matches(filterItem, inputName, targetSdkLevel)) {
-          found = true;
-          break;
-        }
-      }
-      if (!found) {
+      if (!formFactor.getTags().contains(tag)) {
         return false;
       }
     }
 
-    // Now check the blacklist
-    for (String filterItem : formFactor.getApiBlacklist()) {
-      if (matches(filterItem, inputName, targetSdkLevel)) {
+    if (!formFactor.getApiBlacklist().isEmpty()) {
+      if (formFactor.getApiBlacklist().contains(targetSdkLevel)) {
         return false;
       }
     }
 
     // Finally, we'll check that the minSDK is honored
     return targetSdkLevel >= minSdkLevel;
-  }
-
-
-  /**
-   * @return true iff inputVersion is parsable as an int that matches filterItem, or if inputName contains filterItem.
-   */
-  private static boolean matches(@NotNull String filterItem, @Nullable String inputName, int inputVersion) {
-    if (Integer.toString(inputVersion).equals(filterItem)) {
-      return true;
-    }
-    if (inputName != null && inputName.contains(filterItem)) {
-      return true;
-    }
-    return false;
   }
 
   /**
@@ -238,5 +212,42 @@ public class FormFactorUtils {
     else {
       return null;
     }
+  }
+
+  public static boolean isApiType(@NotNull RepoPackage repoPackage) {
+    return repoPackage.getTypeDetails() instanceof DetailsTypes.ApiDetailsType;
+  }
+
+  public static int getFeatureLevel(@NotNull RepoPackage repoPackage) {
+    return getAndroidVersion(repoPackage).getFeatureLevel();
+  }
+
+  @NotNull
+  public static AndroidVersion getAndroidVersion(@NotNull RepoPackage repoPackage) {
+    TypeDetails details = repoPackage.getTypeDetails();
+    if (details instanceof DetailsTypes.ApiDetailsType) {
+      return DetailsTypes.getAndroidVersion((DetailsTypes.ApiDetailsType)details);
+    }
+    throw new RuntimeException("Could not determine version");
+  }
+
+  /**
+   * Return the tag for the specified repository package.
+   * We are only interested in 2 package types.
+   */
+  @Nullable
+  public static IdDisplay getTag(@NotNull RepoPackage repoPackage) {
+    TypeDetails details = repoPackage.getTypeDetails();
+    IdDisplay tag = NO_MATCH;
+    if (details instanceof DetailsTypes.AddonDetailsType) {
+      tag = ((DetailsTypes.AddonDetailsType)details).getTag();
+    }
+    if (details instanceof DetailsTypes.SysImgDetailsType) {
+      DetailsTypes.SysImgDetailsType imgDetailsType = (DetailsTypes.SysImgDetailsType)details;
+      if (imgDetailsType.getAbi().equals(SdkConstants.CPU_ARCH_INTEL_ATOM)) {
+        tag = imgDetailsType.getTag();
+      }
+    }
+    return tag;
   }
 }
