@@ -16,13 +16,17 @@
 
 package com.android.tools.sherpa.structure;
 
+import com.android.tools.sherpa.drawing.ConnectionDraw;
+import com.android.tools.sherpa.drawing.decorator.WidgetDecorator;
 import com.android.tools.sherpa.interaction.ResizeHandle;
 import com.android.tools.sherpa.interaction.WidgetInteractionTargets;
-import com.android.tools.sherpa.drawing.decorator.WidgetDecorator;
-import com.android.tools.sherpa.drawing.ConnectionDraw;
 import com.google.tnt.solver.widgets.*;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
 
 /**
  * Represent a list of widgets and the associated operations
@@ -267,7 +271,7 @@ public class WidgetsScene {
      * @param oldContainer
      * @param newContainer
      */
-    private void transformContainerToContainer(ConstraintWidgetContainer oldContainer,
+    public void transformContainerToContainer(ConstraintWidgetContainer oldContainer,
             ConstraintWidgetContainer newContainer) {
         ConstraintWidgetContainer parent = (ConstraintWidgetContainer) oldContainer.getParent();
         newContainer.setOrigin(oldContainer.getX(), oldContainer.getY());
@@ -307,7 +311,7 @@ public class WidgetsScene {
      * @param widgets           widgets we want to group into the container
      * @param containerInstance the container that will be the parent of the widget
      */
-    private void createContainerFromWidgets(ArrayList<ConstraintWidget> widgets,
+    public void createContainerFromWidgets(ArrayList<ConstraintWidget> widgets,
             ConstraintWidgetContainer containerInstance, String name) {
         Collections.sort(widgets, new Comparator<ConstraintWidget>() {
             @Override

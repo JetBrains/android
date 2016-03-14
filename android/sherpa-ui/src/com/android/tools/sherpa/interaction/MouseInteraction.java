@@ -16,13 +16,13 @@
 
 package com.android.tools.sherpa.interaction;
 
+import com.android.tools.sherpa.animation.AnimatedDestroyCircle;
 import com.android.tools.sherpa.animation.AnimatedDestroyLine;
+import com.android.tools.sherpa.drawing.SceneDraw;
 import com.android.tools.sherpa.drawing.ViewTransform;
+import com.android.tools.sherpa.drawing.decorator.WidgetDecorator;
 import com.android.tools.sherpa.structure.Selection;
 import com.android.tools.sherpa.structure.WidgetsScene;
-import com.android.tools.sherpa.drawing.decorator.WidgetDecorator;
-import com.android.tools.sherpa.animation.AnimatedDestroyCircle;
-import com.android.tools.sherpa.drawing.SceneDraw;
 import com.google.tnt.solver.widgets.ConstraintAnchor;
 import com.google.tnt.solver.widgets.ConstraintWidget;
 import com.google.tnt.solver.widgets.Guideline;

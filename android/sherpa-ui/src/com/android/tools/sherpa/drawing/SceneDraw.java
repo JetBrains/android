@@ -16,22 +16,22 @@
 
 package com.android.tools.sherpa.drawing;
 
+import com.android.tools.sherpa.animation.AnimatedCircle;
 import com.android.tools.sherpa.animation.AnimatedColor;
 import com.android.tools.sherpa.animation.AnimatedLine;
+import com.android.tools.sherpa.animation.AnimationSet;
 import com.android.tools.sherpa.animation.Choreographer;
 import com.android.tools.sherpa.drawing.decorator.ColorTheme;
-import com.android.tools.sherpa.structure.Selection;
-import com.android.tools.sherpa.structure.WidgetsScene;
-import com.android.tools.sherpa.animation.AnimatedCircle;
-import com.android.tools.sherpa.animation.AnimationSet;
 import com.android.tools.sherpa.drawing.decorator.WidgetDecorator;
 import com.android.tools.sherpa.interaction.ConstraintHandle;
-import com.android.tools.sherpa.interaction.ResizeHandle;
-import com.android.tools.sherpa.interaction.WidgetInteractionTargets;
 import com.android.tools.sherpa.interaction.MouseInteraction;
+import com.android.tools.sherpa.interaction.ResizeHandle;
 import com.android.tools.sherpa.interaction.SnapCandidate;
+import com.android.tools.sherpa.interaction.WidgetInteractionTargets;
 import com.android.tools.sherpa.interaction.WidgetMotion;
 import com.android.tools.sherpa.interaction.WidgetResize;
+import com.android.tools.sherpa.structure.WidgetsScene;
+import com.android.tools.sherpa.structure.Selection;
 import com.google.tnt.solver.widgets.*;
 
 import java.awt.Color;

@@ -46,7 +46,7 @@ public class CheckboxWidget extends TextWidget {
             return;
         }
         if (mImage == null) {
-            mImage = loadImage(getImagePath());
+            mImage = WidgetDecorator.loadImage(getImagePath());
         }
         int extra = mImage.getWidth() + 2 * padding;
         mWidget.setMinWidth(mWidget.getMinWidth() + extra);
@@ -59,7 +59,7 @@ public class CheckboxWidget extends TextWidget {
     @Override
     public void onPaintBackground(ViewTransform transform, Graphics2D g) {
         super.onPaintBackground(transform, g);
-        if (isShowFakeUI()) {
+        if (WidgetDecorator.isShowFakeUI()) {
             int x = transform.getSwingX(mWidget.getDrawX());
             int y = transform.getSwingX(mWidget.getDrawY());
             int h = transform.getSwingDimension(mWidget.getDrawHeight());

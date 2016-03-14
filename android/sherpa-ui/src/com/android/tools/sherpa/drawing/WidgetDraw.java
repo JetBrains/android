@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2015 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,10 @@
 
 package com.android.tools.sherpa.drawing;
 
-import com.android.tools.sherpa.interaction.ResizeHandle;
-import com.android.tools.sherpa.interaction.WidgetInteractionTargets;
 import com.android.tools.sherpa.drawing.decorator.WidgetDecorator;
 import com.android.tools.sherpa.interaction.ConstraintHandle;
+import com.android.tools.sherpa.interaction.ResizeHandle;
+import com.android.tools.sherpa.interaction.WidgetInteractionTargets;
 import com.google.tnt.solver.widgets.ConstraintAnchor;
 import com.google.tnt.solver.widgets.ConstraintTableLayout;
 import com.google.tnt.solver.widgets.ConstraintWidget;
@@ -176,7 +176,7 @@ public class WidgetDraw {
         if (!(widget instanceof ConstraintWidgetContainer) && widget.getBaselineDistance() > 0) {
             int baselineY = transform
                     .getSwingY(
-                      WidgetInteractionTargets.constraintHandle(
+                            WidgetInteractionTargets.constraintHandle(
                                     widget.getAnchor(ConstraintAnchor.Type.BASELINE)).getDrawY());
             Graphics2D g2 = (Graphics2D) g.create();
             g2.setStroke(ConnectionDraw.sDashedStroke);
