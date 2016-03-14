@@ -116,6 +116,7 @@ public class AvdWizardUtils {
   // Tags
   public static final IdDisplay WEAR_TAG = IdDisplay.create("android-wear", "Android Wear");
   public static final IdDisplay TV_TAG = IdDisplay.create("android-tv", "Android TV");
+  public static final IdDisplay GLASS_TAG = IdDisplay.create("google_gdk", "Android Glass");
   public static final IdDisplay GOOGLE_APIS_TAG = IdDisplay.create("google_apis", "Google APIs");
   public static final IdDisplay GOOGLE_APIS_X86_TAG = IdDisplay.create("google_apis_x86", "Google APIs x86");
 
