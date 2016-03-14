@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.gradle.structure.configurables;
 
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.AndroidModuleDependenciesConfigurable;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.project.ProjectDependenciesConfigurable;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.AndroidModuleDependenciesConfigurable;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.PsProject;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.ui.NamedConfigurable;
 import com.intellij.openapi.util.ActionCallback;
@@ -27,13 +29,24 @@ import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
 import java.util.Map;
 
 public class DependenciesPerspectiveConfigurable extends BasePerspectiveConfigurable {
-  private Map<String, NamedConfigurable<? extends PsModule>> myConfigurablesByGradlePath = Maps.newHashMap();
+  private final Map<String, NamedConfigurable<? extends PsModule>> myConfigurablesByGradlePath = Maps.newHashMap();
+  private final List<NamedConfigurable<?>> myTopExtraConfigurables = Lists.newArrayListWithExpectedSize(2);
 
-  public DependenciesPerspectiveConfigurable(@NotNull PsProject projectModel, @NotNull PsContext context) {
-    super(projectModel, context);
+  public DependenciesPerspectiveConfigurable(@NotNull PsProject project, @NotNull PsContext context) {
+    super(project, context);
+  }
+
+  @Override
+  @NotNull
+  protected List<NamedConfigurable<?>> getExtraTopConfigurables() {
+    if (myTopExtraConfigurables.isEmpty()) {
+      myTopExtraConfigurables.add(new ProjectDependenciesConfigurable(getProject()));
+    }
+    return myTopExtraConfigurables;
   }
 
   @Override

@@ -30,6 +30,7 @@ import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.ui.TreeSpeedSearch;
 import com.intellij.ui.navigation.Place;
 import com.intellij.util.containers.Convertor;
+import com.intellij.util.containers.Predicate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -37,6 +38,8 @@ import javax.swing.*;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import java.awt.*;
+import java.util.*;
+import java.util.List;
 
 public abstract class BasePerspectiveConfigurable extends MasterDetailsComponent
   implements SearchableConfigurable, Disposable, Place.Navigator {
@@ -203,19 +206,41 @@ public abstract class BasePerspectiveConfigurable extends MasterDetailsComponent
   }
 
   protected void loadTree() {
+    List<NamedConfigurable<?>> extraTopConfigurables = getExtraTopConfigurables();
+    if (!extraTopConfigurables.isEmpty()) {
+      for (NamedConfigurable<?> configurable : extraTopConfigurables) {
+        if (configurable != null) {
+          MyNode node = new MyNode(configurable);
+          myRoot.add(node);
+        }
+      }
+    }
+
     createModuleNodes();
     ((DefaultTreeModel)myTree.getModel()).reload();
     myUiDisposed = false;
   }
 
+  @NotNull
+  protected List<NamedConfigurable<?>> getExtraTopConfigurables() {
+    return Collections.emptyList();
+  }
+
   private void createModuleNodes() {
-    for (PsModule module : myProject.getModules()) {
-      NamedConfigurable<? extends PsModule> configurable = getConfigurable(module);
-      if (configurable != null) {
-        MyNode moduleNode = new MyNode(configurable);
-        myRoot.add(moduleNode);
+    myProject.forEachModule(new Predicate<PsModule>() {
+      @Override
+      public boolean apply(@Nullable PsModule module) {
+        if (module == null) {
+          return false;
+        }
+        NamedConfigurable<? extends PsModule> configurable = getConfigurable(module);
+        if (configurable != null) {
+          MyNode node = new MyNode(configurable);
+          myRoot.add(node);
+        }
+        return true;
       }
-    }
+    });
   }
 
   @Nullable

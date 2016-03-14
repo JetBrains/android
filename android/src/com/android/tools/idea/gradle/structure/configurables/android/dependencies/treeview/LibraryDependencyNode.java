@@ -33,17 +33,27 @@ import java.util.List;
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
-class LibraryDependencyNode extends AbstractDependencyNode<PsLibraryDependency> {
+public class LibraryDependencyNode extends AbstractDependencyNode<PsLibraryDependency> {
   @NotNull private final List<SimpleNode> myChildren = Lists.newArrayList();
 
-  LibraryDependencyNode(@NotNull AbstractPsdNode parent, @NotNull PsLibraryDependency dependency) {
+  public LibraryDependencyNode(@NotNull AbstractPsdNode parent, @NotNull PsLibraryDependency dependency) {
     super(parent, dependency);
+    setUp(dependency);
+  }
+
+  public LibraryDependencyNode(@NotNull AbstractPsdNode parent, @NotNull List<PsLibraryDependency> dependencies) {
+    super(parent, dependencies);
+    assert !dependencies.isEmpty();
+    setUp(dependencies.get(0));
+  }
+
+  private void setUp(@NotNull PsLibraryDependency dependency) {
     myName = getText(dependency);
 
     List<PsAndroidDependency> transitiveDependencies = Lists.newArrayList(dependency.getTransitiveDependencies());
     Collections.sort(transitiveDependencies, PsAndroidDependencyComparator.INSTANCE);
 
-    for (PsAndroidDependency transitive : dependency.getTransitiveDependencies()) {
+    for (PsAndroidDependency transitive : transitiveDependencies) {
       if (transitive instanceof PsLibraryDependency) {
         PsLibraryDependency transitiveLibrary = (PsLibraryDependency)transitive;
         LibraryDependencyNode child = new LibraryDependencyNode(this, transitiveLibrary);

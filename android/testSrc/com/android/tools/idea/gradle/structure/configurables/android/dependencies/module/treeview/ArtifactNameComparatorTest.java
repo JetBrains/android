@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview;
+package com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.treeview;
 
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.RootNode.ArtifactNameComparator;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.treeview.RootNode.ArtifactNameComparator;
 import com.google.common.collect.Lists;
 import org.junit.Test;
 

@@ -24,7 +24,9 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.project.DumbAwareAction;
+import com.intellij.util.containers.Predicate;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
@@ -48,10 +50,17 @@ public class ModulesComboBoxAction extends LabeledComboBoxAction {
   @Override
   @NotNull
   protected DefaultActionGroup createPopupActionGroup(JComponent button) {
-    DefaultActionGroup group = new DefaultActionGroup();
-    for (PsModule module : myProject.getModules()) {
-      group.add(new ModuleAction(module));
-    }
+    final DefaultActionGroup group = new DefaultActionGroup();
+    myProject.forEachModule(new Predicate<PsModule>() {
+      @Override
+      public boolean apply(@Nullable PsModule module) {
+        if (module == null) {
+          return false;
+        }
+        group.add(new ModuleAction(module));
+        return true;
+      }
+    });
     return group;
   }
 

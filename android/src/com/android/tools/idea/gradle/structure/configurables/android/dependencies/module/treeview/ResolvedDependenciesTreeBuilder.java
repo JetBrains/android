@@ -13,33 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview;
+package com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.treeview;
 
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractBaseTreeBuilder;
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsdNode;
 import com.android.tools.idea.gradle.structure.model.PsModel;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.google.common.collect.Lists;
-import com.intellij.ide.util.treeView.*;
+import com.intellij.ide.util.treeView.AbstractTreeStructure;
+import com.intellij.ide.util.treeView.NodeDescriptor;
+import com.intellij.ide.util.treeView.TreeVisitor;
 import com.intellij.openapi.util.ActionCallback;
 import com.intellij.ui.treeStructure.SimpleNode;
-import com.intellij.util.ui.tree.TreeUtil;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.TreePath;
 import java.util.List;
 import java.util.Set;
 
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
-import static com.intellij.util.ui.tree.TreeUtil.collapseAll;
 
-public class ResolvedDependenciesTreeBuilder extends AbstractTreeBuilder {
-  private static final TreePath[] EMPTY_TREE_PATH = new TreePath[0];
-
+public class ResolvedDependenciesTreeBuilder extends AbstractBaseTreeBuilder {
   @NotNull private final DependencySelection myDependencySelectionSource;
   @NotNull private final DependencySelection myDependencySelectionDestination;
 
@@ -48,7 +45,7 @@ public class ResolvedDependenciesTreeBuilder extends AbstractTreeBuilder {
                                          @NotNull DefaultTreeModel treeModel,
                                          @NotNull DependencySelection dependencySelectionSource,
                                          @NotNull DependencySelection dependencySelectionDestination) {
-    super(tree, treeModel, new ResolvedDependenciesTreeStructure(module), IndexComparator.INSTANCE);
+    super(tree, treeModel, new ResolvedDependenciesTreeStructure(module));
     myDependencySelectionSource = dependencySelectionSource;
     myDependencySelectionDestination = dependencySelectionDestination;
 
@@ -90,26 +87,15 @@ public class ResolvedDependenciesTreeBuilder extends AbstractTreeBuilder {
     return true;
   }
 
-  public void expandAllNodes() {
-    JTree tree = getTree();
-    if (tree != null) {
-      TreeUtil.expandAll(tree);
-      getReady(this).doWhenDone(new Runnable() {
-        @Override
-        public void run() {
-          PsAndroidDependency selection = myDependencySelectionSource.getSelection();
-          myDependencySelectionDestination.setSelection(selection);
-        }
-      });
-    }
-  }
-
-  public void collapseAllNodes() {
-    JTree tree = getTree();
-    if (tree != null) {
-      collapseAll(tree, 1);
-      tree.setSelectionPaths(EMPTY_TREE_PATH);
-    }
+  @Override
+  protected void onAllNodesExpanded() {
+    getReady(this).doWhenDone(new Runnable() {
+      @Override
+      public void run() {
+        PsAndroidDependency selection = myDependencySelectionSource.getSelection();
+        myDependencySelectionDestination.setSelection(selection);
+      }
+    });
   }
 
   public void updateSelection() {
@@ -126,13 +112,6 @@ public class ResolvedDependenciesTreeBuilder extends AbstractTreeBuilder {
           }
         }
       }
-    }
-  }
-
-  public void clearSelection() {
-    JTree tree = getTree();
-    if (tree != null) {
-      tree.setSelectionPaths(EMPTY_TREE_PATH);
     }
   }
 
@@ -170,26 +149,5 @@ public class ResolvedDependenciesTreeBuilder extends AbstractTreeBuilder {
         getUi().userSelect(toSelect.toArray(), new UserRunnable(onDone), false, scroll);
       }
     });
-  }
-
-  private class UserRunnable implements Runnable {
-    @Nullable private final Runnable myRunnable;
-
-    UserRunnable(@Nullable Runnable runnable) {
-      myRunnable = runnable;
-    }
-
-    @Override
-    public void run() {
-      if (myRunnable != null) {
-        AbstractTreeUi treeUi = getUi();
-        if (treeUi != null) {
-          treeUi.executeUserRunnable(myRunnable);
-        }
-        else {
-          myRunnable.run();
-        }
-      }
-    }
   }
 }

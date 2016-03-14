@@ -13,26 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.configurables;
+package com.android.tools.idea.gradle.structure.configurables.android.dependencies.project;
 
 import com.android.tools.idea.gradle.structure.model.PsProject;
-import com.android.tools.idea.structure.dialog.MainGroupConfigurableContributor;
-import com.google.common.collect.Lists;
-import com.intellij.openapi.options.Configurable;
-import com.intellij.openapi.project.Project;
+import com.intellij.openapi.Disposable;
+import com.intellij.openapi.util.Disposer;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
+import javax.swing.*;
+import java.awt.*;
 
-public class GradleMainGroupConfigurableContributor extends MainGroupConfigurableContributor {
+class ProjectDependenciesPanel extends JPanel implements Disposable {
+  private final DeclaredDependenciesPanel myDeclaredDependenciesPanel;
+
+  ProjectDependenciesPanel(@NotNull PsProject project) {
+    super(new BorderLayout());
+    myDeclaredDependenciesPanel = new DeclaredDependenciesPanel(project);
+    add(myDeclaredDependenciesPanel, BorderLayout.CENTER);
+  }
+
   @Override
-  @NotNull
-  public List<Configurable> getConfigurables(@NotNull Project project) {
-    PsContext context = new PsContext();
-
-    List<Configurable> configurables = Lists.newArrayList();
-    configurables.add(new DependenciesPerspectiveConfigurable(new PsProject(project), context));
-
-    return configurables;
+  public void dispose() {
+    Disposer.dispose(myDeclaredDependenciesPanel);
   }
 }

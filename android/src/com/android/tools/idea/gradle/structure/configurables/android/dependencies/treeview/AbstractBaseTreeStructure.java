@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview;
 
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.intellij.ide.util.treeView.AbstractTreeStructure;
 import com.intellij.ide.util.treeView.NodeDescriptor;
 import com.intellij.ui.treeStructure.SimpleNode;
@@ -24,22 +23,7 @@ import org.jetbrains.annotations.Nullable;
 
 import static com.intellij.util.ArrayUtil.EMPTY_OBJECT_ARRAY;
 
-public class ResolvedDependenciesTreeStructure extends AbstractTreeStructure {
-  @NotNull private final RootNode myRootNode;
-
-  ResolvedDependenciesTreeStructure(@NotNull PsAndroidModule module) {
-    myRootNode = new RootNode(module);
-  }
-
-  @Override
-  public Object getRootElement() {
-    return myRootNode;
-  }
-
-  boolean settingsChanged() {
-    return myRootNode.settingsChanged();
-  }
-
+public abstract class AbstractBaseTreeStructure extends AbstractTreeStructure {
   @Override
   public Object[] getChildElements(Object element) {
     if (element instanceof SimpleNode) {
@@ -67,14 +51,5 @@ public class ResolvedDependenciesTreeStructure extends AbstractTreeStructure {
       return (NodeDescriptor)element;
     }
     throw new IllegalArgumentException("Failed to find a node descriptor for " + element);
-  }
-
-  @Override
-  public void commit() {
-  }
-
-  @Override
-  public boolean hasSomethingToCommit() {
-    return false;
   }
 }

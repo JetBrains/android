@@ -31,13 +31,13 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.List;
 
-class AddArtifactDependencyDialog extends DialogWrapper {
+public class AddArtifactDependencyDialog extends DialogWrapper {
   @NotNull private final PsAndroidModule myModule;
 
   private JPanel myPanel;
   private ArtifactRepositorySearchForm mySearchForm;
 
-  AddArtifactDependencyDialog(@NotNull PsAndroidModule module) {
+  public AddArtifactDependencyDialog(@NotNull PsAndroidModule module) {
     super(module.getParent().getResolvedModel());
     myModule = module;
     setTitle("Add Artifact Dependency");

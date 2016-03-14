@@ -13,10 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview;
+package com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.treeview;
 
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependencyModel;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.PsAndroidDependencyComparator;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractDependencyNode;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.LibraryDependencyNode;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.ModuleDependencyNode;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsdNode;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidArtifact;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
@@ -75,11 +78,9 @@ final class DependencyNodes {
     }
 
     for (PsAndroidDependency dependency : declared) {
-      if (dependency instanceof PsLibraryDependency) {
-        children.add(new LibraryDependencyNode(parent, (PsLibraryDependency)dependency));
-      }
-      else if (dependency instanceof PsModuleDependency) {
-        children.add(new ModuleDependencyNode(parent, (PsModuleDependency)dependency));
+      AbstractDependencyNode<?> child = AbstractDependencyNode.createNode(parent, dependency);
+      if (child != null) {
+        children.add(child);
       }
     }
 

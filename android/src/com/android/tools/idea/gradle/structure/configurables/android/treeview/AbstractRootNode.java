@@ -16,17 +16,17 @@
 package com.android.tools.idea.gradle.structure.configurables.android.treeview;
 
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsdNode;
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
+import com.android.tools.idea.gradle.structure.model.PsModel;
 import com.google.common.collect.Lists;
 import com.intellij.ui.treeStructure.SimpleNode;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-public abstract class AbstractRootNode extends AbstractPsdNode<PsAndroidModule> {
+public abstract class AbstractRootNode<T extends PsModel> extends AbstractPsdNode<T> {
   private List<SimpleNode> myChildren;
 
-  public AbstractRootNode(@NotNull PsAndroidModule model) {
+  public AbstractRootNode(@NotNull T model) {
     super(model);
     setAutoExpandNode(true);
   }
