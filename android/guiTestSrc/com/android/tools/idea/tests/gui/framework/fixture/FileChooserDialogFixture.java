@@ -71,6 +71,8 @@ public class FileChooserDialogFixture extends IdeaDialogFixture<FileChooserDialo
                                                                        .in(getDialogWrapper())
                                                                        .get();
     assertNotNull(fileSystemTree);
+    fileSystemTree.showHiddens(true); // Windows: Default temporary folder (../AppData/..) is hidden.
+
     final AtomicBoolean fileSelected = new AtomicBoolean();
     execute(new GuiTask() {
       @Override
