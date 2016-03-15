@@ -23,6 +23,7 @@ import com.android.tools.idea.editors.hierarchyview.WindowPickerDialog;
 import com.android.tools.idea.editors.hierarchyview.model.ClientWindow;
 import com.android.tools.idea.profiling.capture.CaptureHandle;
 import com.android.tools.idea.profiling.capture.CaptureService;
+import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
@@ -34,8 +35,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 
 public class HierarchyViewAction extends AbstractClientAction {
-
-  public static final boolean ENABLED = Boolean.getBoolean("enable.hv");
+  private static final boolean ENABLED = Boolean.getBoolean("enable.hv") || Boolean.parseBoolean(System.getenv("enable.hv"));
 
   private final Project myProject;
 
@@ -45,6 +45,12 @@ public class HierarchyViewAction extends AbstractClientAction {
           AndroidBundle.message("android.ddms.actions.hierarchyview.description"),
           AndroidIcons.Ddms.HierarchyView);
     myProject = project;
+  }
+
+  @Override
+  public void update(AnActionEvent e) {
+    e.getPresentation().setVisible(isEnabled() && ENABLED);
+    super.update(e);
   }
 
   @Override
