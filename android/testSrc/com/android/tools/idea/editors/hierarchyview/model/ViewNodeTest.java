@@ -15,12 +15,7 @@
  */
 package com.android.tools.idea.editors.hierarchyview.model;
 
-import com.google.common.base.Charsets;
 import org.junit.Test;
-
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.InputStreamReader;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -45,13 +40,13 @@ public class ViewNodeTest {
     assertEquals(node.getProperty("cat:foo").getValue(), "this is a long text");
   }
 
-  private static BufferedReader getViewNodeFlatString() {
+  private static byte[] getViewNodeFlatString() {
     String text =
       "myroot@191 cat:foo=4,4394 cat2:foo2=5,hello mID=3,god \n" +
       "  node1@3232 cat:foo=8,\uD83D\uDE00 happy cow:child=4,calf mID=9,not-a-god \n" +
       "  node2@222 noun:eg=10,alpha beta mID=11,maybe-a-god \n" +
       "    node3@3333 mID=11,another-god cat:foo=19,this is a long text \n" +
       "DONE.\n";
-    return new BufferedReader(new InputStreamReader(new ByteArrayInputStream(text.getBytes()), Charsets.UTF_8));
+    return text.getBytes();
   }
 }

@@ -15,15 +15,20 @@
  */
 package com.android.tools.idea.editors.hierarchyview.model;
 
+import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.tree.TreeNode;
+import java.awt.*;
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.*;
+import java.util.List;
 
 public class ViewNode implements TreeNode {
 
@@ -45,10 +50,12 @@ public class ViewNode implements TreeNode {
   @NotNull public final String hashCode;
   @NotNull public final String id;
 
-  @NotNull private final DisplayInfo myDisplayInfo;
+  @NotNull public final DisplayInfo displayInfo;
+  @NotNull public final Rectangle previewBox = new Rectangle();
 
   private boolean myParentVisible;
   private boolean myNodeDrawn;
+
   private ForcedState myForcedState = ForcedState.NONE;
 
   public ViewNode(@Nullable ViewNode parent, @NotNull String data) {
@@ -75,7 +82,7 @@ public class ViewNode implements TreeNode {
       id = "unknown";
     }
 
-    myDisplayInfo = new DisplayInfo(this);
+    displayInfo = new DisplayInfo(this);
   }
 
   private void loadProperties(@NotNull String data) {
@@ -122,16 +129,24 @@ public class ViewNode implements TreeNode {
   private void updateNodeDrawn(boolean parentVisible) {
     myParentVisible = parentVisible;
     if (myForcedState == ForcedState.NONE) {
-      myNodeDrawn =  !myDisplayInfo.willNotDraw && parentVisible && myDisplayInfo.isVisible;
-      parentVisible = parentVisible & myDisplayInfo.isVisible;
+      myNodeDrawn =  !displayInfo.willNotDraw && parentVisible && displayInfo.isVisible;
+      parentVisible = parentVisible & displayInfo.isVisible;
     } else {
       myNodeDrawn = (myForcedState == ForcedState.VISIBLE) && parentVisible;
       parentVisible = myNodeDrawn;
     }
     for (ViewNode child : children) {
       child.updateNodeDrawn(parentVisible);
-      myNodeDrawn |= (child.myNodeDrawn && child.myDisplayInfo.isVisible);
+      myNodeDrawn |= (child.myNodeDrawn && child.displayInfo.isVisible);
     }
+  }
+
+  public boolean isDrawn() {
+    return myNodeDrawn;
+  }
+
+  public boolean isParentVisible() {
+    return myParentVisible;
   }
 
   @Override
@@ -174,16 +189,26 @@ public class ViewNode implements TreeNode {
     return Collections.enumeration(children);
   }
 
+
+  public ForcedState getForcedState() {
+    return myForcedState;
+  }
+
+  public void setForcedState(ForcedState forcedState) {
+    myForcedState = forcedState;
+  }
+
   /**
    * Parses the flat string representation of a view node and returns the root node.
    */
-  public static ViewNode parseFlatString(@NotNull BufferedReader in) {
+  public static ViewNode parseFlatString(@NotNull byte[] bytes) {
     String line;
     ViewNode root = null;
     ViewNode lastNode = null;
     int lastWhitespaceCount = Integer.MIN_VALUE;
     Stack<ViewNode> stack = new Stack<ViewNode>();
 
+    final BufferedReader in = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(bytes), Charsets.UTF_8));
     try {
       while ((line = in.readLine()) != null) {
         if ("DONE.".equalsIgnoreCase(line)) {
@@ -218,7 +243,7 @@ public class ViewNode implements TreeNode {
     }
 
     if (root != null) {
-      root.updateNodeDrawn();
+      root.updateNodeDrawn(true);
     }
     return root;
   }

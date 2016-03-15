@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Represents a root window.
@@ -57,6 +58,40 @@ public class ClientWindow {
       return appName;
     }
     return parts.get(parts.size() > 2 ? 1 : 0);
+  }
+
+  /**
+   * Byte array representing the view hierachy dump of the window.
+   */
+  @Nullable
+  public byte[] loadWindowData(long timeout, TimeUnit unit) {
+    CaptureByteArrayHandler handler = new CaptureByteArrayHandler(HandleViewDebug.CHUNK_VURT);
+    try {
+      HandleViewDebug.dumpViewHierarchy(
+        client, title,
+        false /* skipChildren */,
+        true  /* includeProperties */,
+        handler);
+    } catch (IOException e) {
+      return null;
+    }
+
+    return handler.getData(timeout, unit);
+  }
+
+  /**
+   * Byte array representing image preview of the provided node.
+   */
+  @Nullable
+  public byte[] loadViewImage(@NotNull ViewNode node, long timeout, TimeUnit unit) {
+    CaptureByteArrayHandler handler = new CaptureByteArrayHandler(HandleViewDebug.CHUNK_VUOP);
+    try {
+      HandleViewDebug.captureView(client, title, node.toString(), handler);
+    } catch (IOException e) {
+      return null;
+    }
+
+    return handler.getData(timeout, unit);
   }
 
   /**
@@ -100,6 +135,27 @@ public class ClientWindow {
         windows.add(new ClientWindow(root, c));
       }
       return windows;
+    }
+  }
+
+  private static class CaptureByteArrayHandler extends HandleViewDebug.ViewDumpHandler {
+    public CaptureByteArrayHandler(int type) {
+      super(type);
+    }
+
+    private AtomicReference<byte[]> mData = new AtomicReference<byte[]>();
+
+    @Override
+    protected void handleViewDebugResult(ByteBuffer data) {
+      byte[] b = new byte[data.remaining()];
+      data.get(b);
+      mData.set(b);
+
+    }
+
+    public byte[] getData(long timeout, TimeUnit unit) {
+      waitForResult(timeout, unit);
+      return mData.get();
     }
   }
 }
