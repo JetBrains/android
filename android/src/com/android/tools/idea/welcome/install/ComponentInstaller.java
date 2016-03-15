@@ -19,6 +19,7 @@ import com.android.repository.api.ProgressIndicator;
 import com.android.repository.api.RemotePackage;
 import com.android.repository.api.RepoManager;
 import com.android.repository.api.UpdatablePackage;
+import com.android.repository.impl.installer.BasicInstaller;
 import com.android.repository.impl.installer.PackageInstaller;
 import com.android.repository.io.FileOp;
 import com.android.repository.io.FileOpUtils;
@@ -68,11 +69,12 @@ public final class ComponentInstaller {
   public void installPackages(@NotNull List<RemotePackage> packages, ProgressIndicator progress) throws WizardException {
     RepoManager sdkManager = mySdkHandler.getSdkManager(progress);
     for (RemotePackage request : packages) {
-      PackageInstaller bestInstaller = AndroidSdkHandler.findBestInstaller(request);
+      // Intentionally don't register any listeners on the installer, so we don't recurse on haxm
+      PackageInstaller installer = new BasicInstaller();
       FileOp fop = FileOpUtils.create();
-      if (bestInstaller.prepareInstall(request, new StudioDownloader(), StudioSettingsController.getInstance(),
+      if (installer.prepareInstall(request, new StudioDownloader(), StudioSettingsController.getInstance(),
                                        progress, sdkManager, fop)) {
-        bestInstaller.completeInstall(request, progress, sdkManager, fop);
+        installer.completeInstall(request, progress, sdkManager, fop);
       }
     }
     sdkManager.loadSynchronously(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, progress, null, null);
