@@ -180,8 +180,7 @@ class BuildVariantUpdater {
     androidModel.syncSelectedVariantAndTestArtifact(androidFacet);
     Module module = invokeCustomizers(androidFacet.getModule(), androidModel);
 
-    selectedVariant = androidModel.getSelectedVariant();
-    for (AndroidLibrary library : selectedVariant.getMainArtifact().getDependencies().getLibraries()) {
+    for (AndroidLibrary library : androidModel.getSelectedMainCompileDependencies().getLibraries()) {
       String gradlePath = library.getProject();
       if (StringUtil.isEmpty(gradlePath)) {
         continue;
