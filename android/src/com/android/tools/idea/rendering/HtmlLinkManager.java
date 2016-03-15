@@ -409,7 +409,7 @@ public class HtmlLinkManager {
     int index = s.lastIndexOf('.');
     if (index == -1) {
       className = s;
-      packageName = ManifestInfo.get(module, false).getPackage();
+      packageName = ManifestInfo.get(module).getPackage();
       if (packageName == null) {
         return;
       }
