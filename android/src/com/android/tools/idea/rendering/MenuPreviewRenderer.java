@@ -22,6 +22,7 @@ import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.model.ManifestInfo;
+import com.android.tools.idea.model.MergedManifest;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.module.Module;
@@ -164,7 +165,7 @@ public class MenuPreviewRenderer extends LayoutPullParserFactory {
       setAndroidAttr(layout, ATTR_LAYOUT_HEIGHT, "48dp");
     }
 
-    ManifestInfo manifestInfo = ManifestInfo.get(myModule);
+    MergedManifest manifestInfo = ManifestInfo.get(myModule);
     String applicationIcon = manifestInfo.getApplicationIcon();
     if (applicationIcon != null) {
       Element imageView = myDocument.createElement(IMAGE_VIEW);

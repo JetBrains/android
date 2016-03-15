@@ -235,7 +235,7 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
     File testOut = new File(testDir, relativePackageDir);
     paths.put(ATTR_TEST_DIR, FileUtil.toSystemIndependentName(testDir.getAbsolutePath()));
     paths.put(ATTR_TEST_OUT, FileUtil.toSystemIndependentName(testOut.getAbsolutePath()));
-    paths.put(ATTR_APPLICATION_PACKAGE, ManifestInfo.get(module, false).getPackage());
+    paths.put(ATTR_APPLICATION_PACKAGE, ManifestInfo.get(module).getPackage());
     paths.put(ATTR_SRC_OUT, FileUtil.toSystemIndependentName(srcOut.getAbsolutePath()));
     return paths;
   }

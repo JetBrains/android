@@ -205,7 +205,7 @@ public class TemplateWizardState implements Function<String, Object> {
     String pkg = (String)myParameters.get(ATTR_PACKAGE_NAME);
     if (pkg != null) {
       if (module != null) {
-        String applicationId = ManifestInfo.get(module, false).getPackage();
+        String applicationId = ManifestInfo.get(module).getPackage();
         if (applicationId != null) {
           if (pkg.startsWith(applicationId) && pkg.length() > applicationId.length() &&
               pkg.charAt(applicationId.length()) == '.') {

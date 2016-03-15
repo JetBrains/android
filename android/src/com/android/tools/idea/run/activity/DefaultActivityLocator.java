@@ -18,6 +18,7 @@ package com.android.tools.idea.run.activity;
 import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.model.ManifestInfo;
+import com.android.tools.idea.model.MergedManifest;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
@@ -65,7 +66,7 @@ public class DefaultActivityLocator extends ActivityLocator {
   @VisibleForTesting
   static String computeDefaultActivity(@NotNull final AndroidFacet facet, @Nullable final IDevice device) {
     assert !facet.getProperties().USE_CUSTOM_COMPILER_MANIFEST;
-    final ManifestInfo manifestInfo = ManifestInfo.get(facet.getModule(), ActivityLocatorUtils.shouldUseMergedManifest(facet));
+    final MergedManifest manifestInfo = ManifestInfo.get(facet);
 
     return DumbService.getInstance(facet.getModule().getProject()).runReadActionInSmartMode(new Computable<String>() {
       @Override

@@ -94,7 +94,7 @@ public abstract class DeveloperServiceCreator {
     String buildSystemId = getBuildSystemOperations(module.getProject()).getBuildSystemId();
     ServiceContext context = new ServiceContext(buildSystemId);
 
-    String packageName = ManifestInfo.get(module, false).getPackage();
+    String packageName = ManifestInfo.get(module).getPackage();
 
     if (packageName != null) {
       context.putValue("packageName", new StringValueProperty(packageName));
