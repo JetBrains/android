@@ -283,6 +283,9 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     args.add(createProjectProperty(PROPERTY_BUILD_MODEL_ONLY_ADVANCED, true));
     args.add(createProjectProperty(PROPERTY_INVOKED_FROM_IDE, true));
 
+    // This property tells Gradle to compute the full dependency graph for projects using the Android plugin 2.2.0 or newer.
+    args.add(createProjectProperty(PROPERTY_BUILD_MODEL_ONLY_VERSIONED, MODEL_LEVEL_2_DEP_GRAPH));
+
     if (isGuiTestingMode()) {
       // We store the command line args, the GUI test will later on verify that the correct values were passed to the sync process.
       ApplicationManager.getApplication().putUserData(AndroidPlugin.GRADLE_SYNC_COMMAND_LINE_OPTIONS_KEY, toStringArray(args));
