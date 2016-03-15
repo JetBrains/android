@@ -18,21 +18,20 @@ package com.android.tools.idea.ddms.actions;
 import com.android.ddmlib.Client;
 import com.android.tools.idea.ddms.DeviceContext;
 import com.android.tools.idea.editors.hierarchyview.HierarchyViewCaptureTask;
-import com.android.tools.idea.editors.hierarchyview.HierarchyViewCaptureType;
 import com.android.tools.idea.editors.hierarchyview.WindowPickerDialog;
 import com.android.tools.idea.editors.hierarchyview.model.ClientWindow;
-import com.android.tools.idea.profiling.capture.CaptureHandle;
-import com.android.tools.idea.profiling.capture.CaptureService;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.progress.ProgressManager;
+import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import icons.AndroidIcons;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.io.IOException;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class HierarchyViewAction extends AbstractClientAction {
   private static final boolean ENABLED = Boolean.getBoolean("enable.hv") || Boolean.parseBoolean(System.getenv("enable.hv"));
@@ -55,16 +54,55 @@ public class HierarchyViewAction extends AbstractClientAction {
 
   @Override
   protected void performAction(@NotNull final Client client) {
-    WindowPickerDialog pickerDialog = new WindowPickerDialog(myProject, client);
-    if (!pickerDialog.showAndGet()) {
-      return;
-    }
-    final ClientWindow window = pickerDialog.getSelectedWindow();
-    if (window == null) {
-      return;
+    new GetClientWindowsTask(myProject, client).queue();
+  }
+
+  private static final class GetClientWindowsTask extends Task.Backgroundable {
+    private final Client myClient;
+    private List<ClientWindow> myWindows;
+
+    public GetClientWindowsTask(@Nullable Project project, @NotNull Client client) {
+      super(project, "Obtaining Windows");
+      myClient = client;
     }
 
-    HierarchyViewCaptureTask captureTask = new HierarchyViewCaptureTask(myProject, client, window);
-    captureTask.queue();
+    @Override
+    public void run(@NotNull ProgressIndicator indicator) {
+      indicator.setIndeterminate(true);
+      myWindows = ClientWindow.getAll(myClient, 5, TimeUnit.SECONDS);
+    }
+
+    @Override
+    public void onSuccess() {
+      String title = "Capture View Hierarchy";
+
+      if (myWindows == null) {
+        Messages.showErrorDialog("Unable to obtain list of windows used by " + myClient.getClientData().getPackageName(), title);
+        return;
+      }
+
+      if (myWindows.isEmpty()) {
+        Messages.showErrorDialog("No active windows displayed by " + myClient.getClientData().getPackageName(), title);
+        return;
+      }
+
+      ClientWindow window;
+      if (myWindows.size() == 1) {
+        window = myWindows.get(0);
+      } else { // prompt user if there are more than 1 windows displayed by this application
+        WindowPickerDialog pickerDialog = new WindowPickerDialog(myProject, myClient, myWindows);
+        if (!pickerDialog.showAndGet()) {
+          return;
+        }
+
+        window = pickerDialog.getSelectedWindow();
+        if (window == null) {
+          return;
+        }
+      }
+
+      HierarchyViewCaptureTask captureTask = new HierarchyViewCaptureTask(myProject, myClient, window);
+      captureTask.queue();
+    }
   }
 }
