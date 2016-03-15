@@ -20,6 +20,8 @@ import com.android.ide.common.rendering.api.*;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.AndroidPsiUtils;
+import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.LocalResourceRepository;
@@ -83,6 +85,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   @NotNull private final AppResourceRepository myProjectRes;
   @NotNull final private LayoutLibrary myLayoutLib;
   @Nullable private final Object myCredential;
+  private final boolean myHasAppCompat;
   @Nullable private String myNamespace;
   @Nullable private RenderLogger myLogger;
   @NotNull private final ViewLoader myClassLoader;
@@ -123,6 +126,9 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     myCredential = credential;
     myClassLoader = new ViewLoader(myLayoutLib, facet, logger, credential);
     myActionBarHandler = actionBarHandler;
+
+    AndroidGradleModel androidModel = AndroidGradleModel.get(facet);
+    myHasAppCompat = androidModel != null && GradleUtil.dependsOn(androidModel, APPCOMPAT_LIB_ARTIFACT);
   }
 
   /** Resets the callback state for another render */
@@ -352,6 +358,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
             if (psiFile instanceof XmlFile) {
               assert myLogger != null;
               LayoutPsiPullParser parser = LayoutPsiPullParser.create((XmlFile)psiFile, myLogger);
+              parser.setUseSrcCompat(myHasAppCompat);
               if (parentName.startsWith(FD_RES_LAYOUT)) {
                 // For included layouts, we don't normally see view cookies; we want the leaf to point back to the include tag
                 parser.setProvideViewCookies(myRenderTask != null && myRenderTask.getProvideCookiesForIncludedViews());
