@@ -49,7 +49,7 @@ public class ThemeHelper {
 
   @Nullable
   public String getAppThemeName() {
-    String manifestTheme = ManifestInfo.get(myModule, false).getManifestTheme();
+    String manifestTheme = ManifestInfo.get(myModule).getManifestTheme();
     if (manifestTheme != null) {
       if (manifestTheme.startsWith(SdkConstants.STYLE_RESOURCE_PREFIX)) {
         manifestTheme = manifestTheme.substring(SdkConstants.STYLE_RESOURCE_PREFIX.length());

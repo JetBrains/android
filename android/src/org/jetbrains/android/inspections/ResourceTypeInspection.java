@@ -876,7 +876,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
         return;
       }
 
-      final Manifest manifest = AndroidUtils.loadDomElement(myFacet.getModule(), manifestFile, Manifest.class);
+      final Manifest manifest = myFacet.getManifest();
       if (manifest == null) {
         return;
       }

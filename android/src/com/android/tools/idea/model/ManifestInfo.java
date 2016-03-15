@@ -15,30 +15,51 @@
  */
 package com.android.tools.idea.model;
 
+import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
-import com.android.resources.ScreenSize;
+import com.android.builder.model.BuildType;
+import com.android.builder.model.BuildTypeContainer;
+import com.android.manifmerger.Actions;
+import com.android.manifmerger.ManifestMerger2;
+import com.android.manifmerger.MergingReport;
 import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.IAndroidTarget;
-import com.android.sdklib.devices.Device;
+import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.GradleSyncState;
+import com.android.utils.ILogger;
+import com.android.utils.NullLogger;
+import com.android.utils.Pair;
+import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
+import com.google.common.collect.ImmutableList;
+import com.intellij.lang.xml.XMLLanguage;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
+import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VfsUtilCore;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiFileFactory;
+import com.intellij.psi.PsiManager;
+import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.util.Function;
 import org.jetbrains.android.dom.manifest.*;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.AndroidRootUtil;
+import org.jetbrains.android.facet.IdeaSourceProvider;
+import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
-import java.util.Map;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.util.*;
 
 import static com.android.SdkConstants.ANDROID_URI;
-import static com.android.xml.AndroidManifest.*;
 
 /**
  * Retrieves and caches manifest information such as the themes to be used for
@@ -46,134 +67,20 @@ import static com.android.xml.AndroidManifest.*;
  *
  * @see com.android.xml.AndroidManifest
  */
-public abstract class ManifestInfo {
-  public class ActivityAttributes {
-    @Nullable private final String myIcon;
-    @Nullable private final String myLabel;
-    @NotNull private final String myName;
-    @Nullable private final String myParentActivity;
-    @Nullable private final String myTheme;
-    @Nullable private final String myUiOptions;
-
-    public ActivityAttributes(@NotNull XmlTag activity, @Nullable String packageName) {
-      // Get activity name.
-      String name = getAttributeValue(activity, ATTRIBUTE_NAME);
-      if (name == null || name.length() == 0) {
-        throw new RuntimeException("Activity name cannot be empty.");
-      }
-      int index = name.indexOf('.');
-      if (index <= 0 && packageName != null && !packageName.isEmpty()) {
-        name = packageName + (index == -1 ? "." : "") + name;
-      }
-      myName = name;
-
-      // Get activity icon.
-      String value = getAttributeValue(activity, ATTRIBUTE_ICON);
-      if (value != null && value.length() > 0) {
-        myIcon = value;
-      }
-      else {
-        myIcon = null;
-      }
-
-      // Get activity label.
-      value = getAttributeValue(activity, ATTRIBUTE_LABEL);
-      if (value != null && value.length() > 0) {
-        myLabel = value;
-      }
-      else {
-        myLabel = null;
-      }
-
-      // Get activity parent. Also search the meta-data for parent info.
-      value = getAttributeValue(activity, ATTRIBUTE_PARENT_ACTIVITY_NAME);
-      if (value == null || value.length() == 0) {
-        // TODO: Not sure if meta data can be used for API Level > 16
-        XmlTag[] metaData = activity.findSubTags(NODE_METADATA);
-        for (XmlTag data : metaData) {
-          String metaDataName = getAttributeValue(data, ATTRIBUTE_NAME);
-          if (VALUE_PARENT_ACTIVITY.equals(metaDataName)) {
-            value = getAttributeValue(activity, ATTRIBUTE_VALUE);
-            if (value != null) {
-              index = value.indexOf('.');
-              if (index <= 0 && packageName != null && !packageName.isEmpty()) {
-                value = packageName + (index == -1 ? "." : "") + value;
-                break;
-              }
-            }
-          }
-        }
-      }
-      if (value != null && value.length() > 0) {
-        myParentActivity = value;
-      }
-      else {
-        myParentActivity = null;
-      }
-
-      // Get activity theme.
-      value = getAttributeValue(activity, ATTRIBUTE_THEME);
-      if (value != null && value.length() > 0) {
-        myTheme = value;
-      }
-      else {
-        myTheme = null;
-      }
-
-      // Get UI options.
-      value = getAttributeValue(activity, ATTRIBUTE_UI_OPTIONS);
-      if (value != null && value.length() > 0) {
-        myUiOptions = value;
-      }
-      else {
-        myUiOptions = null;
-      }
-    }
-
-    @Nullable
-    public String getIcon() {
-      return myIcon;
-    }
-
-    @Nullable
-    public String getLabel() {
-      return myLabel;
-    }
-
-    @NotNull
-    public String getName() {
-      return myName;
-    }
-
-    @Nullable
-    public String getParentActivity() {
-      return myParentActivity;
-    }
-
-    @Nullable
-    public String getTheme() {
-      return myTheme;
-    }
-
-    @Nullable
-    public String getUiOptions() {
-      return myUiOptions;
-    }
-  }
-
-  /** Key for the per-module non-persistent property storing the {@link ManifestInfo} for this module. */
-  @VisibleForTesting
-  final static Key<ManifestInfo> MANIFEST_FINDER = new Key<ManifestInfo>("adt-manifest-info"); //$NON-NLS-1$
+public final class ManifestInfo {
 
   /** Key for the per-module non-persistent property storing the merged {@link ManifestInfo} for this module. */
   @VisibleForTesting
-  final static Key<ManifestInfo> MERGED_MANIFEST_FINDER = new Key<ManifestInfo>("adt-merged-manifest-info");
+  final static Key<MergedManifest> MERGED_MANIFEST_FINDER = new Key<MergedManifest>("adt-merged-manifest-info");
+
+  private ManifestInfo() {
+  }
 
   /**
    * Returns the value of the given attribute from the android namespace
    */
   @Nullable("if the attribute value is null or empty")
-  protected final String getAttributeValue(@NotNull XmlTag xmlTag, @NotNull String attributeName) {
+  static String getAttributeValue(@NotNull XmlTag xmlTag, @NotNull String attributeName) {
     return getAttributeValue(xmlTag, attributeName, ANDROID_URI);
   }
 
@@ -181,8 +88,16 @@ public abstract class ManifestInfo {
    * Returns the value of the given attribute
    */
   @Nullable("if the attribute value is null or empty")
-  protected String getAttributeValue(@NotNull XmlTag xmlTag, @NotNull String attributeName, @Nullable String attributeNamespace) {
+  static String getAttributeValue(@NotNull XmlTag xmlTag, @NotNull String attributeName, @Nullable String attributeNamespace) {
     return Strings.emptyToNull(xmlTag.getAttributeValue(attributeName, attributeNamespace));
+  }
+
+  /**
+   * @deprecated use {@link #get(Module)} instead
+   */
+  @Deprecated
+  public static MergedManifest get(Module module, boolean ignored) {
+    return get(module);
   }
 
   /**
@@ -190,34 +105,17 @@ public abstract class ManifestInfo {
    *
    * @param module the module the finder is associated with
    * @return a {@ManifestInfo} for the given module, never null
-   * @deprecated Use {@link #get(Module, boolean)} which is explicit about
-   * whether a merged manifest should be used.
    */
   @NotNull
-  public static ManifestInfo get(@NotNull Module module) {
-    return get(module, false);
-  }
-
-  /**
-   * Returns the {@link ManifestInfo} for the given module.
-   *
-   * @param module            the module the finder is associated with
-   * @param useMergedManifest if {@code true}, the merged manifest is used if available, otherwise the main source set's manifest
-   *                          is used
-   * @return a {@ManifestInfo} for the given module
-   */
-  public static ManifestInfo get(@NotNull Module module, boolean useMergedManifest) {
-    Key<ManifestInfo> key = useMergedManifest ? MERGED_MANIFEST_FINDER : MANIFEST_FINDER;
-
-    ManifestInfo finder = module.getUserData(key);
+  public static MergedManifest get(@NotNull Module module) {
+    MergedManifest finder = module.getUserData(MERGED_MANIFEST_FINDER);
     if (finder == null) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
       if (facet == null) {
         throw new IllegalArgumentException("Manifest information can only be obtained on modules with the Android facet.");
       }
-      finder = get(facet, useMergedManifest);
+      finder = get(facet);
     }
-
     return finder;
   }
 
@@ -225,199 +123,233 @@ public abstract class ManifestInfo {
    * Returns the {@link ManifestInfo} for the given {@link AndroidFacet}.
    *
    * @param facet             the Android facet associated with a module.
-   * @param useMergedManifest if {@code true}, the merged manifest is used if available, otherwise the main source set's manifest
-   *                          is used
    * @return a {@ManifestInfo} for the given module
    */
-  public static ManifestInfo get(@NotNull AndroidFacet facet, boolean useMergedManifest) {
-    Key<ManifestInfo> key = useMergedManifest ? MERGED_MANIFEST_FINDER : MANIFEST_FINDER;
+  @NotNull
+  public static MergedManifest get(@NotNull AndroidFacet facet) {
     Module module = facet.getModule();
-    ManifestInfo finder = module.getUserData(key);
+    MergedManifest finder = module.getUserData(MERGED_MANIFEST_FINDER);
     if (finder == null) {
-      finder = useMergedManifest ? new MergedManifestInfo(facet) : new PrimaryManifestInfo(module, true);
-      module.putUserData(key, finder);
+      finder = new MergedManifest(facet);
+      module.putUserData(MERGED_MANIFEST_FINDER, finder);
     }
     return finder;
   }
 
-  /**
-   * Clears the cached manifest information. The next get call on one of the
-   * properties will cause the information to be refreshed.
-   */
-  public abstract void clear();
-
-  /**
-   * Returns the default package registered in the Android manifest
-   *
-   * @return the default package registered in the manifest
-   */
-  @Nullable
-  public abstract String getPackage();
-
-  /**
-   * Returns a map from activity full class names to the corresponding {@link ActivityAttributes}
-   *
-   * @return a map from activity fqcn to ActivityAttributes
-   */
   @NotNull
-  public abstract Map<String, ActivityAttributes> getActivityAttributesMap();
+  static MergingReport getMergedManifest(final @NotNull AndroidFacet facet, @NotNull final VirtualFile primaryManifestFile, @NotNull List<VirtualFile> flavorAndBuildTypeManifests, @NotNull List<VirtualFile> libManifests) throws ManifestMerger2.MergeFailureException {
+    ApplicationManager.getApplication().assertReadAccessAllowed();
 
-  /**
-   * Returns the attributes of an activity.
-   */
-  @Nullable
-  public abstract ActivityAttributes getActivityAttributes(@NotNull String activity);
+    final File mainManifestFile = VfsUtilCore.virtualToIoFile(primaryManifestFile);
 
-  /**
-   * Returns the manifest theme registered on the application, if any
-   *
-   * @return a manifest theme, or null if none was registered
-   */
-  @Nullable
-  public abstract String getManifestTheme();
+    ILogger logger = NullLogger.getLogger();
+    ManifestMerger2.MergeType mergeType = facet.isLibraryProject() ? ManifestMerger2.MergeType.LIBRARY : ManifestMerger2.MergeType.APPLICATION;
 
-  /**
-   * Returns the default theme for this project, by looking at the manifest default
-   * theme registration, target SDK, rendering target, etc.
-   *
-   * @param renderingTarget the rendering target use to render the theme, or null
-   * @param screenSize      the screen size to obtain a default theme for, or null if unknown
-   * @param device          the device to obtain a default theme for, or null if unknown
-   * @return the theme to use for this project, never null
-   */
-  @NotNull
-  public abstract String getDefaultTheme(@Nullable IAndroidTarget renderingTarget,
-                                         @Nullable ScreenSize screenSize,
-                                         @Nullable Device device);
+    AndroidModel androidModel = facet.getAndroidModel();
+    AndroidGradleModel gradleModel = AndroidGradleModel.get(facet);
 
-  /**
-   * Returns the application icon, or null
-   *
-   * @return the application icon, or null
-   */
-  @Nullable
-  public abstract String getApplicationIcon();
+    ManifestMerger2.Invoker manifestMergerInvoker = ManifestMerger2.newMerger(mainManifestFile, logger, mergeType);
+    manifestMergerInvoker.addFlavorAndBuildTypeManifests(VfsUtilCore.virtualToIoFiles(flavorAndBuildTypeManifests).toArray(new File[flavorAndBuildTypeManifests.size()]));
 
-  /**
-   * Returns the application label, or null
-   *
-   * @return the application label, or null
-   */
-  @Nullable
-  public abstract String getApplicationLabel();
+    List<Pair<String, File>> libraryManifests = new ArrayList<Pair<String, File>>();
+    for (VirtualFile file : libManifests) {
+      libraryManifests.add(Pair.of(file.getName(), VfsUtilCore.virtualToIoFile(file)));
+    }
+    manifestMergerInvoker.addLibraryManifests(libraryManifests);
 
-  /**
-   * Returns true if the application has RTL support.
-   *
-   * @return true if the application has RTL support.
-   */
-  public abstract boolean isRtlSupported();
-
-  /**
-   * Returns the value for the debuggable flag set in the manifest. Returns null if not set.
-   */
-  @Nullable
-  public abstract Boolean getApplicationDebuggable();
-
-  /**
-   * Returns the target SDK version
-   *
-   * @return the target SDK version
-   */
-  @NotNull
-  public abstract AndroidVersion getTargetSdkVersion();
-
-  /**
-   * Returns the minimum SDK version
-   *
-   * @return the minimum SDK version
-   */
-  @NotNull
-  public abstract AndroidVersion getMinSdkVersion();
-
-  /**
-   * @return the list of activities defined in the manifest.
-   */
-  @NotNull
-  public List<Activity> getActivities() {
-    return getApplicationComponents(new Function<Application, List<Activity>>() {
-      @Override
-      public List<Activity> fun(Application application) {
-        return application.getActivities();
+    if (androidModel != null) {
+      AndroidVersion minSdkVersion = androidModel.getMinSdkVersion();
+      if (minSdkVersion != null) {
+        manifestMergerInvoker.setOverride(ManifestMerger2.SystemProperty.MIN_SDK_VERSION, minSdkVersion.getApiString());
       }
-    });
-  }
-
-  /**
-   * @return the list of activity aliases defined in the manifest.
-   */
-  @NotNull
-  public List<ActivityAlias> getActivityAliases() {
-    return getApplicationComponents(new Function<Application, List<ActivityAlias>>() {
-      @Override
-      public List<ActivityAlias> fun(Application application) {
-        return application.getActivityAliass();
+      AndroidVersion targetSdkVersion = androidModel.getTargetSdkVersion();
+      if (targetSdkVersion != null) {
+        manifestMergerInvoker.setOverride(ManifestMerger2.SystemProperty.TARGET_SDK_VERSION, targetSdkVersion.getApiString());
       }
-    });
-  }
-
-  /**
-   * @return the list of services defined in the manifest.
-   */
-  @NotNull
-  public List<Service> getServices() {
-    return getApplicationComponents(new Function<Application, List<Service>>() {
-      @Override
-      public List<Service> fun(Application application) {
-        return application.getServices();
+      Integer versionCode = androidModel.getVersionCode();
+      if (versionCode != null && versionCode > 0) {
+        manifestMergerInvoker.setOverride(ManifestMerger2.SystemProperty.VERSION_CODE, String.valueOf(versionCode));
       }
-    });
-  }
-
-  private <T> List<T> getApplicationComponents(final Function<Application, List<T>> accessor) {
-    final List<Manifest> manifests = getManifests();
-    if (manifests.isEmpty()) {
-      Logger.getInstance(ManifestInfo.class).warn("List of manifests is empty, possibly needs a gradle sync.");
+      String packageOverride = androidModel.getApplicationId();
+      if (!Strings.isNullOrEmpty(packageOverride)) {
+        manifestMergerInvoker.setOverride(ManifestMerger2.SystemProperty.PACKAGE, packageOverride);
+      }
     }
 
-    return ApplicationManager.getApplication().runReadAction(new Computable<List<T>>() {
-      @Override
-      public List<T> compute() {
-        List<T> components = Lists.newArrayList();
+    if (gradleModel != null) {
+      BuildTypeContainer buildTypeContainer = gradleModel.findBuildType(gradleModel.getSelectedVariant().getBuildType());
+      assert buildTypeContainer != null;
+      BuildType buildType = buildTypeContainer.getBuildType();
 
-        for (Manifest m : manifests) {
-          Application application = m.getApplication();
-          if (application != null) {
-            components.addAll(accessor.fun(application));
+      // copy-paste from {@link VariantConfiguration#getManifestPlaceholders()}
+      Map<String, Object> placeHolders = new HashMap<String, Object>(gradleModel.getSelectedVariant().getMergedFlavor().getManifestPlaceholders());
+      placeHolders.putAll(buildType.getManifestPlaceholders());
+      manifestMergerInvoker.setPlaceHolderValues(placeHolders);
+
+      // @deprecated maxSdkVersion has been ignored since Android 2.1 (API level 7)
+      Integer maxSdkVersion = gradleModel.getSelectedVariant().getMergedFlavor().getMaxSdkVersion();
+      if (maxSdkVersion != null) {
+        manifestMergerInvoker.setOverride(ManifestMerger2.SystemProperty.MAX_SDK_VERSION, maxSdkVersion.toString());
+      }
+
+      // TODO we should have version Name for non-gradle projects
+      // copy-paste from {@link VariantConfiguration#getVersionName()}
+      String versionName = gradleModel.getSelectedVariant().getMergedFlavor().getVersionName();
+      String versionNameSuffix = buildType.getVersionNameSuffix();
+      if (!Strings.isNullOrEmpty(versionName) || !Strings.isNullOrEmpty(versionNameSuffix)) {
+        if (Strings.isNullOrEmpty(versionName)) {
+          Manifest manifest = facet.getManifest();
+          if (manifest != null) {
+            versionName = manifest.getXmlTag().getAttributeValue(SdkConstants.ATTR_VERSION_NAME, ANDROID_URI);
           }
         }
-
-        return components;
+        if (!Strings.isNullOrEmpty(versionNameSuffix)) {
+          versionName = Strings.nullToEmpty(versionName) + versionNameSuffix;
+        }
+        manifestMergerInvoker.setOverride(ManifestMerger2.SystemProperty.VERSION_NAME, versionName);
       }
-    });
-  }
-
-  @NotNull
-  public List<UsesFeature> getUsedFeatures() {
-    final List<Manifest> manifests = getManifests();
-    if (manifests.isEmpty()) {
-      Logger.getInstance(ManifestInfo.class).warn("List of manifests is empty, possibly needs a gradle sync.");
     }
 
-    return ApplicationManager.getApplication().runReadAction(new Computable<List<UsesFeature>>() {
+    if (mergeType == ManifestMerger2.MergeType.APPLICATION) {
+      manifestMergerInvoker.withFeatures(ManifestMerger2.Invoker.Feature.REMOVE_TOOLS_DECLARATIONS);
+    }
+
+    manifestMergerInvoker.withFileStreamProvider(new ManifestMerger2.FileStreamProvider() {
       @Override
-      public List<UsesFeature> compute() {
-        List<UsesFeature> usesFeatures = Lists.newArrayList();
-
-        for (Manifest m : manifests) {
-          usesFeatures.addAll(m.getUsesFeatures());
+      protected InputStream getInputStream(@NotNull File file) throws FileNotFoundException {
+        VirtualFile vFile;
+        if (file == mainManifestFile) {
+          // some tests use VirtualFile files (e.g. temp:///src/AndroidManifest.xml) for the main manifest
+          vFile = primaryManifestFile;
         }
-
-        return usesFeatures;
+        else {
+          vFile = VfsUtil.findFileByIoFile(file, false);
+        }
+        assert vFile != null : file;
+        PsiFile psiFile = PsiManager.getInstance(facet.getModule().getProject()).findFile(vFile);
+        if (psiFile != null) {
+          String text = psiFile.getText();
+          return new ByteArrayInputStream(text.getBytes(Charsets.UTF_8));
+        }
+        Logger.getInstance(ManifestInfo.class).warn("can not find PSI FIle for " + file);
+        return super.getInputStream(file);
       }
     });
+
+    return manifestMergerInvoker.merge();
   }
 
-  @NotNull
-  protected abstract List<Manifest> getManifests();
+  static class ManifestFile {
+    private final @NotNull AndroidFacet myFacet;
+    private @Nullable XmlFile myXmlFile;
+    private @Nullable Map<Object, Long> myLastModifiedMap;
+
+    private @Nullable ImmutableList<MergingReport.Record> myLoggingRecords;
+    private @Nullable Actions myActions;
+
+    private ManifestFile(@NotNull AndroidFacet facet) {
+      myFacet = facet;
+    }
+
+    @NotNull
+    public static synchronized ManifestFile create(@NotNull AndroidFacet facet) {
+      return new ManifestFile(facet);
+    }
+
+    @Nullable
+    private XmlFile parseManifest(@NotNull final VirtualFile primaryManifestFile, @NotNull List<VirtualFile> flavorAndBuildTypeManifests, @NotNull List<VirtualFile> libManifests) {
+      ApplicationManager.getApplication().assertReadAccessAllowed();
+
+      Project project = myFacet.getModule().getProject();
+      if (project.isDisposed()) {
+        return null;
+      }
+
+      try {
+        MergingReport mergingReport = getMergedManifest(myFacet, primaryManifestFile, flavorAndBuildTypeManifests, libManifests);
+        myLoggingRecords = mergingReport.getLoggingRecords();
+        myActions = mergingReport.getActions();
+
+        String doc = mergingReport.getMergedDocument(MergingReport.MergedManifestKind.MERGED);
+        if (!Strings.isNullOrEmpty(doc)) {
+          return (XmlFile)PsiFileFactory.getInstance(project).createFileFromText(SdkConstants.FN_ANDROID_MANIFEST_XML, XMLLanguage.INSTANCE, doc);
+        }
+        else {
+          Logger.getInstance(ManifestInfo.class).warn("getMergedManifest failed " + mergingReport.getReportString());
+        }
+      }
+      catch (ManifestMerger2.MergeFailureException ex) {
+        Logger.getInstance(ManifestInfo.class).warn("getMergedManifest exception", ex);
+      }
+
+      PsiFile psiFile = PsiManager.getInstance(project).findFile(primaryManifestFile);
+      return (psiFile instanceof XmlFile) ? (XmlFile)psiFile : null;
+    }
+
+    public synchronized boolean refresh() {
+      Map<Object, Long> lastModifiedMap = new HashMap<Object, Long>();
+
+      VirtualFile primaryManifestFile = AndroidRootUtil.getPrimaryManifestFile(myFacet);
+      if (primaryManifestFile == null) {
+        return false;
+      }
+      lastModifiedMap.put(primaryManifestFile, getFileModificationStamp(primaryManifestFile));
+
+      long lastGradleSyncTimestamp = GradleSyncState.getInstance(myFacet.getModule().getProject()).getLastGradleSyncTimestamp();
+      lastModifiedMap.put("gradle-sync", lastGradleSyncTimestamp);
+
+      // get all other manifests for this module, (NOT including the default one)
+      List<VirtualFile> flavorAndBuildTypeManifests = new ArrayList<VirtualFile>();
+      IdeaSourceProvider defaultSourceProvider = myFacet.getMainIdeaSourceProvider();
+      for (IdeaSourceProvider provider : IdeaSourceProvider.getCurrentSourceProviders(myFacet)) {
+        if (!defaultSourceProvider.equals(provider)) {
+          VirtualFile flavorOrBuildTypeManifest = provider.getManifestFile();
+          if (flavorOrBuildTypeManifest != null) {
+            flavorAndBuildTypeManifests.add(flavorOrBuildTypeManifest);
+            lastModifiedMap.put(flavorOrBuildTypeManifest, getFileModificationStamp(flavorOrBuildTypeManifest));
+          }
+        }
+      }
+
+      List<VirtualFile> libraryManifests = new ArrayList<VirtualFile>();
+      for (AndroidFacet dependency : AndroidUtils.getAllAndroidDependencies(myFacet.getModule(), true)) {
+        // a bit overkill here, as there will only ever be 1 per lib module
+        for (VirtualFile libraryManifest : IdeaSourceProvider.getManifestFiles(dependency)) {
+          libraryManifests.add(libraryManifest);
+          lastModifiedMap.put(libraryManifest, getFileModificationStamp(libraryManifest));
+        }
+      }
+
+      if (myXmlFile == null || !lastModifiedMap.equals(myLastModifiedMap)) {
+        myXmlFile = parseManifest(primaryManifestFile, flavorAndBuildTypeManifests, libraryManifests);
+        if (myXmlFile == null) {
+          return false;
+        }
+        myLastModifiedMap = lastModifiedMap;
+        return true;
+      } else {
+        return false;
+      }
+    }
+
+    private long getFileModificationStamp(@NotNull VirtualFile file) {
+      PsiFile psiFile = PsiManager.getInstance(myFacet.getModule().getProject()).findFile(file);
+      return psiFile == null ? file.getModificationStamp() : psiFile.getModificationStamp();
+    }
+
+    @Nullable
+    public synchronized XmlFile getXmlFile() {
+      return myXmlFile;
+    }
+
+    @NotNull
+    public ImmutableList<MergingReport.Record> getLoggingRecords() {
+      return myLoggingRecords == null ? ImmutableList.<MergingReport.Record>of() : myLoggingRecords;
+    }
+
+    @Nullable
+    public Actions getActions() {
+      return myActions;
+    }
+  }
 }

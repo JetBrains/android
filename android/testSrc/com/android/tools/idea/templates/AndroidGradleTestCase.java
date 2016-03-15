@@ -284,10 +284,22 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     assertFalse(isLegacyIdeaAndroidProject(project));
 
     ModuleManager moduleManager = ModuleManager.getInstance(project);
-    for (Module module : moduleManager.getModules()) {
-      myAndroidFacet = AndroidFacet.getInstance(module);
-      if (myAndroidFacet != null) {
+    Module[] modules = moduleManager.getModules();
+    // first try and find a non-lib facet
+    for (Module module : modules) {
+      AndroidFacet androidFacet = AndroidFacet.getInstance(module);
+      if (androidFacet != null && !androidFacet.isLibraryProject()) {
+        myAndroidFacet = androidFacet;
         break;
+      }
+    }
+    // then try and find ANY android facet
+    if (myAndroidFacet == null) {
+      for (Module module : modules) {
+        myAndroidFacet = AndroidFacet.getInstance(module);
+        if (myAndroidFacet != null) {
+          break;
+        }
       }
     }
 

@@ -732,18 +732,14 @@ public abstract class IdeaSourceProvider {
     if (!facet.requiresAndroidModel()) {
       return main != null ? Collections.singletonList(main) : Collections.<VirtualFile>emptyList();
     }
-    List<VirtualFile> files = Lists.newArrayList();
-    if (main != null) {
-      files.add(main);
-    }
 
+    List<VirtualFile> files = Lists.newArrayList();
     for (IdeaSourceProvider provider : getCurrentSourceProviders(facet)) {
       VirtualFile manifest = provider.getManifestFile();
       if (manifest != null) {
         files.add(manifest);
       }
     }
-
     return files;
   }
 

@@ -592,7 +592,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
     XmlTag dataTag = getDataTag(layout);
     String className;
     String classPackage;
-    String modulePackage = ManifestInfo.get(myFacet.getModule(), false).getPackage();
+    String modulePackage = ManifestInfo.get(myFacet).getPackage();
     String classAttrValue = null;
     if (dataTag != null) {
       classAttrValue = dataTag.getAttributeValue(ATTR_CLASS);
