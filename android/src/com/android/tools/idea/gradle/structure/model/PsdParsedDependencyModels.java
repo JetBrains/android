@@ -73,13 +73,6 @@ public class PsdParsedDependencyModels {
     return null;
   }
 
-  public static boolean isDependencyInArtifact(@NotNull DependencyModel dependencyModel, @NotNull PsdAndroidArtifactModel artifactModel) {
-    String configurationName = dependencyModel.configurationName();
-    String guessedName = guessArtifactName(configurationName);
-    String artifactName = artifactModel.getGradleModel().getName();
-    return artifactName.equals(guessedName);
-  }
-
   @Nullable
   private static String guessArtifactName(@NotNull String configurationName) {
     if (configurationName.endsWith("androidTestCompile") || configurationName.endsWith("AndroidTestCompile")) {
@@ -112,5 +105,12 @@ public class PsdParsedDependencyModels {
       return parsedDependency;
     }
     return null;
+  }
+
+  public static boolean isDependencyInArtifact(@NotNull DependencyModel parsedDependency, @NotNull PsdAndroidArtifactModel artifactModel) {
+    String configurationName = parsedDependency.configurationName();
+    String guessedName = guessArtifactName(configurationName);
+    String artifactName = artifactModel.getResolvedName();
+    return artifactName.equals(guessedName);
   }
 }

@@ -38,7 +38,7 @@ public abstract class AbstractRootNode extends AbstractPsdNode<PsdAndroidModuleM
     if (myChildren == null) {
       List<SimpleNode> children = Lists.newArrayList();
       for (PsdAndroidModuleModel moduleModel : getModels()) {
-        List<? extends AbstractPsdNode> variantChildren = createChildren(moduleModel.getVariantModels());
+        List<? extends AbstractPsdNode> variantChildren = createChildren(moduleModel.getVariants());
         children.addAll(variantChildren);
       }
       myChildren = children;

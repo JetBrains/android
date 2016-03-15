@@ -16,9 +16,11 @@
 package com.android.tools.idea.gradle.structure.model.android;
 
 import com.android.builder.model.BaseArtifact;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.structure.model.PsdChildModel;
 import com.intellij.icons.AllIcons;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
@@ -27,30 +29,32 @@ import static com.intellij.icons.AllIcons.Modules.TestRoot;
 import static com.intellij.icons.AllIcons.Nodes.Artifact;
 import static icons.AndroidIcons.AndroidTestRoot;
 
-public class PsdAndroidArtifactModel extends PsdChildModel {
+public class PsdAndroidArtifactModel extends PsdChildModel implements PsdAndroidModel {
   @NotNull private final String myName;
+  @NotNull private final String myResolvedName;
   @NotNull private final Icon myIcon;
-  @NotNull private final BaseArtifact myGradleModel;
 
-  PsdAndroidArtifactModel(@NotNull PsdVariantModel parent, @NotNull BaseArtifact gradleModel) {
+  @Nullable private final BaseArtifact myResolvedModel;
+
+  PsdAndroidArtifactModel(@NotNull PsdVariantModel parent, @NotNull String resolvedName, @Nullable BaseArtifact resolvedModel) {
     super(parent);
+    myResolvedName = resolvedName;
     Icon icon = Artifact;
-    String name = gradleModel.getName();
-    if (ARTIFACT_MAIN.equals(name)) {
-      name = "";
+    String name = "";
+    if (ARTIFACT_MAIN.equals(resolvedName)) {
       icon = AllIcons.Modules.SourceRoot;
     }
-    if (ARTIFACT_ANDROID_TEST.equals(name)) {
+    if (ARTIFACT_ANDROID_TEST.equals(resolvedName)) {
       name = "AndroidTest";
       icon = AndroidTestRoot;
     }
-    else if (ARTIFACT_UNIT_TEST.equals(name)) {
+    else if (ARTIFACT_UNIT_TEST.equals(resolvedName)) {
       name = "Test";
       icon = TestRoot;
     }
     myName = name;
     myIcon = icon;
-    myGradleModel = gradleModel;
+    myResolvedModel = resolvedModel;
   }
 
   @Override
@@ -60,14 +64,26 @@ public class PsdAndroidArtifactModel extends PsdChildModel {
   }
 
   @NotNull
-  public BaseArtifact getGradleModel() {
-    return myGradleModel;
+  public String getResolvedName() {
+    return myResolvedName;
+  }
+
+  @Override
+  @Nullable
+  public BaseArtifact getResolvedModel() {
+    return myResolvedModel;
   }
 
   @Override
   @NotNull
   public Icon getIcon() {
     return myIcon;
+  }
+
+  @Override
+  @NotNull
+  public AndroidGradleModel getAndroidGradleModel() {
+    return getParent().getAndroidGradleModel();
   }
 
   @Override
