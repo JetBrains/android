@@ -183,7 +183,7 @@ public class IntellijLintClient extends LintClient implements Disposable {
   public void report(@NonNull Context context,
                      @NonNull Issue issue,
                      @NonNull Severity severity,
-                     @Nullable Location location,
+                     @NonNull Location location,
                      @NonNull String message,
                      @NonNull TextFormat format) {
     assert false : message;
@@ -297,7 +297,7 @@ public class IntellijLintClient extends LintClient implements Disposable {
     Module module = getModule();
     if (module != null) {
       Sdk moduleSdk = ModuleRootManager.getInstance(module).getSdk();
-      if (moduleSdk != null) {
+      if (moduleSdk != null && moduleSdk.getSdkType() instanceof AndroidSdkType) {
         String path = moduleSdk.getHomePath();
         if (path != null) {
           File home = new File(path);
@@ -477,7 +477,7 @@ public class IntellijLintClient extends LintClient implements Disposable {
     public void report(@NonNull Context context,
                        @NonNull Issue issue,
                        @NonNull Severity severity,
-                       @Nullable Location location,
+                       @NonNull Location location,
                        @NonNull String message,
                        @NonNull TextFormat format) {
       if (location != null) {
@@ -627,7 +627,7 @@ public class IntellijLintClient extends LintClient implements Disposable {
     public void report(@NonNull Context context,
                        @NonNull Issue issue,
                        @NonNull Severity severity,
-                       @Nullable Location location,
+                       @NonNull Location location,
                        @NonNull String message,
                        @NonNull TextFormat format) {
       VirtualFile vFile = null;
