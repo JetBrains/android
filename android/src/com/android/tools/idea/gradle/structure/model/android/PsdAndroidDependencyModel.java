@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.model.android;
 
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependencyModel;
 import com.android.tools.idea.gradle.structure.model.PsdChildModel;
 import com.google.common.collect.Sets;
@@ -24,19 +25,25 @@ import org.jetbrains.annotations.TestOnly;
 
 import java.util.Set;
 
-public abstract class PsdAndroidDependencyModel extends PsdChildModel {
+public abstract class PsdAndroidDependencyModel extends PsdChildModel implements PsdAndroidModel {
   @NotNull private final Set<PsdDependencyContainer> myContainers = Sets.newHashSet();
 
   @Nullable private DependencyModel myParsedModel;
 
   PsdAndroidDependencyModel(@NotNull PsdAndroidModuleModel parent,
-                            @Nullable PsdAndroidArtifactModel artifactModel,
+                            @Nullable PsdAndroidArtifactModel container,
                             @Nullable DependencyModel parsedModel) {
     super(parent);
     myParsedModel = parsedModel;
-    if (artifactModel != null) {
-      addContainer(artifactModel);
+    if (container != null) {
+      addContainer(container);
     }
+  }
+
+  @Override
+  @NotNull
+  public AndroidGradleModel getAndroidGradleModel() {
+    return getParent().getAndroidGradleModel();
   }
 
   @Override

@@ -27,19 +27,19 @@ public abstract class PsdModuleModel extends PsdChildModel {
   @NotNull private final String myGradlePath;
 
   // Module can be null in the case of new modules created in the PSD.
-  @Nullable private final Module myModule;
+  @NotNull private final Module myResolvedModel;
 
   private boolean myInitParsedModel;
   private GradleBuildModel myParsedModel;
   private String myModuleName;
 
   protected PsdModuleModel(@NotNull PsdProjectModel parent,
-                           @NotNull Module module,
-                           @NotNull String gradlePath) {
+                           @NotNull Module resolvedModel,
+                           @NotNull String moduleGradlePath) {
     super(parent);
-    myModule = module;
-    myGradlePath = gradlePath;
-    myModuleName = module.getName();
+    myResolvedModel = resolvedModel;
+    myGradlePath = moduleGradlePath;
+    myModuleName = resolvedModel.getName();
   }
 
   @Override
@@ -68,16 +68,15 @@ public abstract class PsdModuleModel extends PsdChildModel {
   public GradleBuildModel getParsedModel() {
     if (!myInitParsedModel) {
       myInitParsedModel = true;
-      if (myModule != null) {
-        myParsedModel = GradleBuildModel.get(myModule);
-      }
+      myParsedModel = GradleBuildModel.get(myResolvedModel);
     }
     return myParsedModel;
   }
 
-  @Nullable
-  public Module getModule() {
-    return myModule;
+  @Override
+  @NotNull
+  public Module getResolvedModel() {
+    return myResolvedModel;
   }
 
   public Icon getModuleIcon() {
