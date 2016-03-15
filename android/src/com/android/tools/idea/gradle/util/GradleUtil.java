@@ -146,6 +146,23 @@ public final class GradleUtil {
   private GradleUtil() {
   }
 
+  @NotNull
+  public static Dependencies getDependencies(@NotNull BaseArtifact artifact, @Nullable GradleVersion modelVersion) {
+    if (modelVersion != null && androidModelSupportsDependencyGraph(modelVersion)) {
+      return artifact.getCompileDependencies();
+    }
+    return artifact.getDependencies();
+  }
+
+  public static boolean androidModelSupportsDependencyGraph(@NotNull String modelVersion) {
+    GradleVersion parsedVersion = GradleVersion.tryParse(modelVersion);
+    return parsedVersion != null && androidModelSupportsDependencyGraph(parsedVersion);
+  }
+
+  public static boolean androidModelSupportsDependencyGraph(@NotNull GradleVersion modelVersion) {
+    return modelVersion.compareIgnoringQualifiers("2.2.0") >= 0;
+  }
+
   public static void clearStoredGradleJvmArgs(@NotNull final Project project) {
     GradleSettings settings = GradleSettings.getInstance(project);
     final String existingJvmArgs = settings.getGradleVmOptions();
@@ -266,10 +283,17 @@ public final class GradleUtil {
   @NotNull
   public static List<AndroidLibrary> getDirectLibraryDependencies(@NotNull Variant variant, @NotNull AndroidGradleModel androidModel) {
     List<AndroidLibrary> libraries = Lists.newArrayList();
-    libraries.addAll(variant.getMainArtifact().getDependencies().getLibraries());
+
+    GradleVersion modelVersion = androidModel.getModelVersion();
+
+    AndroidArtifact mainArtifact = variant.getMainArtifact();
+    Dependencies dependencies = getDependencies(mainArtifact, modelVersion);
+    libraries.addAll(dependencies.getLibraries());
+
     BaseArtifact testArtifact = androidModel.findSelectedTestArtifact(variant);
     if (testArtifact != null) {
-      libraries.addAll(testArtifact.getDependencies().getLibraries());
+      dependencies = getDependencies(testArtifact, modelVersion);
+      libraries.addAll(dependencies.getLibraries());
     }
     return libraries;
   }
@@ -1069,7 +1093,7 @@ public final class GradleUtil {
    * @return {@code true} if the project depends on the given artifact (including transitively)
    */
   public static boolean dependsOn(@NonNull AndroidGradleModel androidModel, @NonNull String artifact) {
-    Dependencies dependencies = androidModel.getMainArtifact().getDependencies();
+    Dependencies dependencies = androidModel.getSelectedMainCompileDependencies();
     return dependsOn(dependencies, artifact);
   }
 

@@ -187,6 +187,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   private void createJavaProject(@NotNull IdeaModule gradleModule,
                                  @NotNull DataNode<ModuleData> ideModule,
                                  boolean androidProjectWithoutVariants) {
+    //noinspection deprecation
     ModuleExtendedModel model = resolverCtx.getExtraProject(gradleModule, ModuleExtendedModel.class);
     JavaProject javaProject = JavaProject.create(gradleModule, model, androidProjectWithoutVariants);
     ideModule.createChild(JAVA_PROJECT, javaProject);

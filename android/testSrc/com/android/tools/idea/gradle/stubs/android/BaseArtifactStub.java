@@ -84,12 +84,12 @@ public class BaseArtifactStub implements BaseArtifact {
   @Override
   @NotNull
   public DependenciesStub getDependencies() {
-    return myDependencies;
+    return getCompileDependencies();
   }
 
   @Override
   @NotNull
-  public Dependencies getCompileDependencies() {
+  public DependenciesStub getCompileDependencies() {
     return myDependencies;
   }
 
