@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.editor;
 
-import com.android.tools.idea.gradle.structure.model.android.PsdAndroidDependencyModel;
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
-public interface DependencyEditor<T extends PsdAndroidDependencyModel> {
+public interface DependencyEditor<T extends PsAndroidDependency> {
   @NotNull
   JPanel getPanel();
 
