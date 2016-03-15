@@ -52,6 +52,7 @@ import java.util.concurrent.CountDownLatch;
 
 import static com.android.builder.model.AndroidProject.*;
 import static com.android.tools.idea.gradle.AndroidProjectKeys.ANDROID_MODEL;
+import static com.android.tools.idea.gradle.util.GradleUtil.androidModelSupportsDependencyGraph;
 import static com.android.tools.idea.gradle.util.GradleUtil.getDependencies;
 import static com.android.tools.idea.gradle.util.ProxyUtil.reproxy;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.find;
@@ -164,6 +165,10 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
   public Dependencies getSelectedMainCompileDependencies() {
     AndroidArtifact mainArtifact = getSelectedVariant().getMainArtifact();
     return getDependencies(mainArtifact, getModelVersion());
+  }
+
+  public boolean supportsDependencyGraph() {
+    return myModelVersion != null && androidModelSupportsDependencyGraph(myModelVersion);
   }
 
   @Nullable
