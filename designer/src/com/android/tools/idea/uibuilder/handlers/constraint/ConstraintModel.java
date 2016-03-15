@@ -206,16 +206,22 @@ public class ConstraintModel {
   private void updateNlModel(@NonNull List<NlComponent> components) {
     // Initialize a list of widgets to potentially removed from the current list of widgets
     ArrayList<ConstraintWidget> widgets = new ArrayList(myWidgetsScene.getWidgets());
+    if (widgets.size() > 0) {
+      // Let's check for widgets to remove
+      for (NlComponent component : components) {
+        findComponent(component, widgets);
+      }
 
-    // Let's check for widgets to remove
-    for (NlComponent component : components) {
-      findComponent(component, widgets);
+      // After the above loop, the widgets array will only contains widget that
+      // are not in the list of components, so we should remove them
+      for (ConstraintWidget widget : widgets) {
+        myWidgetsScene.removeWidget(widget);
+      }
     }
 
-    // After the above loop, the widgets array will only contains widget that
-    // are not in the list of components, so we should remove them
-    for (ConstraintWidget widget : widgets) {
-      myWidgetsScene.removeWidget(widget);
+    // Make sure the components exist
+    for (NlComponent component : components) {
+      createSolverWidgetFromComponent(component);
     }
 
     // Now update our widget from the list of components...
@@ -241,7 +247,7 @@ public class ConstraintModel {
    * @param widgets   a list of widgets to remove from the scene
    */
   private void findComponent(@NonNull NlComponent component, @NonNull ArrayList<ConstraintWidget> widgets) {
-    ConstraintWidget widget = myWidgetsScene.getWidget(component.getId());
+    ConstraintWidget widget = myWidgetsScene.getWidget(component.getTag());
     if (widget != null) {
       widgets.remove(widget);
     }
@@ -252,17 +258,15 @@ public class ConstraintModel {
     }
   }
 
-
   /**
-   * Update the widget associated to a component with the current component attributes.
-   * Will create the associated widget if necessary.
+   * Create the widget associated to a component if necessary.
    *
-   * @param component the component we want to update from
+   * @param component the component we want to represent
    */
-  private void updateSolverWidgetFromComponent(@NonNull NlComponent component) {
+  private void createSolverWidgetFromComponent(@NonNull NlComponent component) {
     ConstraintWidget widget = null;
-    if (component.getId() != null) {
-      widget = myWidgetsScene.getWidget(component.getId());
+    if (component.getTag() != null) {
+      widget = myWidgetsScene.getWidget(component.getTag());
     } else {
       for (ConstraintWidget w : myWidgetsScene.getWidgets()) {
         WidgetDecorator decorator = (WidgetDecorator)w.getCompanionWidget();
@@ -292,10 +296,22 @@ public class ConstraintModel {
       decorator.setCompanionObject(component);
       widget.setCompanionWidget(decorator);
       widget.setDebugName(component.getId());
-      myWidgetsScene.addWidget(widget);
+      myWidgetsScene.setWidget(component.getTag(), widget);
     }
-    ConstraintUtilities.updateWidget(this, widget, component);
 
+    for (NlComponent child : component.getChildren()) {
+      createSolverWidgetFromComponent(child);
+    }
+  }
+
+  /**
+   * Update the widget associated to a component with the current component attributes.
+   *
+   * @param component the component we want to update from
+   */
+  private void updateSolverWidgetFromComponent(@NonNull NlComponent component) {
+    ConstraintWidget widget = myWidgetsScene.getWidget(component.getTag());
+    ConstraintUtilities.updateWidget(this, widget, component);
     for (NlComponent child : component.getChildren()) {
       updateSolverWidgetFromComponent(child);
     }
@@ -405,7 +421,7 @@ public class ConstraintModel {
    */
   public void selectComponent(@NonNull NlComponent component) {
     // TODO: move to NlModel's selection system
-    ConstraintWidget widget = myWidgetsScene.getWidget(component.getId());
+    ConstraintWidget widget = myWidgetsScene.getWidget(component.getTag());
     if (widget != null && !widget.isRoot()) {
       mySelection.add(widget);
     }

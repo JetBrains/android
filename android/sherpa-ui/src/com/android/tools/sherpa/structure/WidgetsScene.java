@@ -33,7 +33,7 @@ import java.util.HashMap;
  */
 public class WidgetsScene {
 
-    private HashMap<String, ConstraintWidget> mWidgets = new HashMap<String, ConstraintWidget>();
+    private HashMap<Object, ConstraintWidget> mWidgets = new HashMap<Object, ConstraintWidget>();
     private ConstraintWidgetContainer mRoot;
     private Selection mSelection;
 
@@ -61,7 +61,7 @@ public class WidgetsScene {
      *
      * @param widgets
      */
-    public void setWidgets(HashMap<String, ConstraintWidget> widgets) {
+    public void setWidgets(HashMap<Object, ConstraintWidget> widgets) {
         mWidgets = widgets;
         for (ConstraintWidget widget : mWidgets.values()) {
             if (widget.isRoot()) {
@@ -387,8 +387,8 @@ public class WidgetsScene {
         table.layout();
     }
 
-    public ConstraintWidget getWidget(String name) {
-        return mWidgets.get(name);
+    public ConstraintWidget getWidget(Object key) {
+        return mWidgets.get(key);
     }
 
     public void setRoot(ConstraintWidgetContainer root) {
@@ -413,6 +413,10 @@ public class WidgetsScene {
             }
         }
         return mRoot;
+    }
+
+    public void setWidget(Object key, ConstraintWidget widget) {
+        mWidgets.put(key, widget);
     }
 
     public void addWidget(ConstraintWidget widget) {

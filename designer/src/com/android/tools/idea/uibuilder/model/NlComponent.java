@@ -529,7 +529,10 @@ public class NlComponent {
 
   @Nullable
   public ViewGroupHandler getViewGroupHandler() {
-    return ViewHandlerManager.get(myTag.getProject()).findLayoutHandler(this, false);
+    if (myTag.getProject() != null) {
+      return ViewHandlerManager.get(myTag.getProject()).findLayoutHandler(this, false);
+    }
+    return null;
   }
 
   /**
