@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.customizer.dependency;
 
 import com.android.builder.model.*;
+import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.google.common.collect.Lists;
@@ -23,6 +24,7 @@ import com.google.common.collect.Sets;
 import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.Collection;
@@ -32,6 +34,7 @@ import java.util.Set;
 import static com.android.tools.idea.gradle.customizer.dependency.LibraryDependency.PathType.BINARY;
 import static com.android.tools.idea.gradle.customizer.dependency.LibraryDependency.PathType.SOURCE;
 import static com.android.tools.idea.gradle.util.GradleUtil.findSourceJarForLibrary;
+import static com.android.tools.idea.gradle.util.GradleUtil.getDependencies;
 import static com.intellij.openapi.roots.DependencyScope.COMPILE;
 import static com.intellij.openapi.roots.DependencyScope.TEST;
 import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
@@ -93,36 +96,43 @@ public abstract class Dependency {
   @NotNull
   public static DependencySet extractFrom(@NotNull AndroidGradleModel androidModel) {
     DependencySet dependencies = new DependencySet();
+    GradleVersion modelVersion = androidModel.getModelVersion();
 
     if (GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS) {
       for (BaseArtifact testArtifact : androidModel.getTestArtifactsInSelectedVariant()) {
-        populate(dependencies, testArtifact, TEST);
+        populate(dependencies, testArtifact, TEST, modelVersion);
       }
     } else {
       BaseArtifact testArtifact = androidModel.findSelectedTestArtifactInSelectedVariant();
       if (testArtifact != null) {
-        populate(dependencies, testArtifact, TEST);
+        populate(dependencies, testArtifact, TEST, modelVersion);
       }
     }
 
     AndroidArtifact mainArtifact = androidModel.getMainArtifact();
-    populate(dependencies, mainArtifact, COMPILE);
+    populate(dependencies, mainArtifact, COMPILE, modelVersion);
 
     return dependencies;
   }
 
   @NotNull
-  public static DependencySet extractFrom(@NotNull BaseArtifact artifact, @NotNull DependencyScope scope) {
+  public static DependencySet extractFrom(@NotNull BaseArtifact artifact,
+                                          @NotNull DependencyScope scope,
+                                          @Nullable GradleVersion modelVersion) {
     DependencySet dependencies = new DependencySet();
-    populate(dependencies, artifact, scope);
+    populate(dependencies, artifact, scope, modelVersion);
     return dependencies;
   }
 
-  private static void populate(@NotNull DependencySet dependencies, @NotNull BaseArtifact artifact, @NotNull DependencyScope scope) {
-    addJavaLibraries(dependencies, artifact.getDependencies().getJavaLibraries(), scope);
+  private static void populate(@NotNull DependencySet dependencies,
+                               @NotNull BaseArtifact artifact,
+                               @NotNull DependencyScope scope,
+                               @Nullable GradleVersion modelVersion) {
+    Dependencies artifactDependencies = getDependencies(artifact, modelVersion);
+    addJavaLibraries(dependencies, artifactDependencies.getJavaLibraries(), scope);
 
     Set<File> unique = Sets.newHashSet();
-    for (AndroidLibrary lib : artifact.getDependencies().getLibraries()) {
+    for (AndroidLibrary lib : artifactDependencies.getLibraries()) {
       ModuleDependency mainDependency = null;
       String gradleProjectPath = lib.getProject();
       if (isNotEmpty(gradleProjectPath)) {
@@ -140,7 +150,7 @@ public abstract class Dependency {
       }
     }
 
-    for (String gradleProjectPath : artifact.getDependencies().getProjects()) {
+    for (String gradleProjectPath : artifactDependencies.getProjects()) {
       if (gradleProjectPath != null && !gradleProjectPath.isEmpty()) {
         ModuleDependency dependency = new ModuleDependency(gradleProjectPath, scope);
         dependencies.add(dependency);

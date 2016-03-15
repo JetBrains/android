@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.testing;
 
 import com.android.builder.model.BaseArtifact;
 import com.android.builder.model.SourceProvider;
+import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.customizer.dependency.Dependency;
 import com.android.tools.idea.gradle.customizer.dependency.DependencySet;
@@ -199,14 +200,16 @@ public final class TestArtifactSearchScopes {
     DependencySet androidTestDependencies = null;
     DependencySet unitTestDependencies = null;
 
+    GradleVersion modelVersion = myAndroidModel.getModelVersion();
+
     DependencyScope scope = TEST;
     if (unitTestArtifact != null) {
-      unitTestDependencies = Dependency.extractFrom(unitTestArtifact, scope);
+      unitTestDependencies = Dependency.extractFrom(unitTestArtifact, scope, modelVersion);
     }
     if (androidTestArtifact != null) {
-      androidTestDependencies = Dependency.extractFrom(androidTestArtifact, scope);
+      androidTestDependencies = Dependency.extractFrom(androidTestArtifact, scope, modelVersion);
     }
-    DependencySet mainDependencies = Dependency.extractFrom(myAndroidModel.getMainArtifact(), COMPILE);
+    DependencySet mainDependencies = Dependency.extractFrom(myAndroidModel.getMainArtifact(), COMPILE, modelVersion);
 
     DependencySet dependenciesToInclude = isAndroidTestArtifact ? androidTestDependencies : unitTestDependencies;
     DependencySet dependenciesToExclude = isAndroidTestArtifact ? unitTestDependencies : androidTestDependencies;
