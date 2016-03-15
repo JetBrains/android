@@ -261,13 +261,13 @@ public class LegacyRemoteRepoLoader implements FallbackRemoteRepoLoader {
           arch.setComplete(complete);
           ArchFilter filter = archive.getArchFilter();
           if (filter.getHostBits() != null) {
-            arch.setHostBits(filter.getHostBits().ordinal());
+            arch.setHostBits(filter.getHostBits().getSize());
           }
           if (filter.getHostOS() != null) {
             arch.setHostOs(filter.getHostOS().getXmlName());
           }
           if (filter.getJvmBits() != null) {
-            arch.setJvmBits(filter.getJvmBits().ordinal());
+            arch.setJvmBits(filter.getJvmBits().getSize());
           }
           if (filter.getMinJvmVersion() != null) {
             arch.setMinJvmVersion(f.createRevisionType(filter.getMinJvmVersion()));
