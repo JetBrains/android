@@ -18,42 +18,31 @@ package com.android.tools.idea.sdkv2;
 import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
-import com.android.repository.api.*;
-import com.android.repository.impl.installer.BasicInstaller;
-import com.android.repository.io.FileOp;
+import com.android.repository.api.LocalPackage;
+import com.android.repository.api.ProgressIndicator;
+import com.android.repository.api.RemotePackage;
+import com.android.repository.api.RepoPackage;
+import com.android.repository.impl.installer.PackageInstaller;
+import com.android.sdklib.repositoryv2.AndroidSdkHandler;
 import com.android.tools.idea.ddms.adb.AdbService;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.util.Map;
 
 /**
  * Installer for platform-tools that stops ADB before installing or uninstalling.
  */
-public class PlatformToolsInstaller extends BasicInstaller {
-  @Override
-  public boolean uninstall(@NonNull LocalPackage p,
-                           @NonNull ProgressIndicator progress,
-                           @NonNull RepoManager manager,
-                           @NonNull FileOp fop) {
-    stopAdb(progress, manager);
-    return super.uninstall(p, progress, manager, fop);
+public class PlatformToolsInstallListener implements PackageInstaller.StatusChangeListener {
+  private final AndroidSdkHandler mySdkHandler;
+
+  public PlatformToolsInstallListener(AndroidSdkHandler sdkHandler) {
+    mySdkHandler = sdkHandler;
   }
 
-  @Override
-  protected boolean doCompleteInstall(@NonNull RemotePackage p,
-                                      @NonNull File installTempPath,
-                                      @NonNull File destination,
-                                      @NonNull ProgressIndicator progress,
-                                      @NonNull RepoManager manager,
-                                      @NonNull FileOp fop) {
-    stopAdb(progress, manager);
-    return super.doCompleteInstall(p, installTempPath, destination, progress, manager, fop);
-  }
-
-  private static void stopAdb(@NonNull ProgressIndicator progress, @NonNull RepoManager manager) {
+  private void stopAdb(@NonNull ProgressIndicator progress) {
     AdbService adbService = AdbService.getInstance();
     progress.logInfo("Stopping ADB...");
-    File adb = getAdb(manager);
+    File adb = getAdb(progress);
     if (adb != null) {
       try {
         // We have to actually initialize the service, since there might be adb processes left over from before this run of studio.
@@ -67,13 +56,19 @@ public class PlatformToolsInstaller extends BasicInstaller {
   }
 
   @Nullable
-  private static File getAdb(@NonNull RepoManager manager) {
-    Map<String, ? extends LocalPackage> localPackages = manager.getPackages().getLocalPackages();
-    LocalPackage localPackage = localPackages.get(SdkConstants.FD_PLATFORM_TOOLS);
+  private File getAdb(@NotNull ProgressIndicator progress) {
+    LocalPackage localPackage = mySdkHandler.getLocalPackage(SdkConstants.FD_PLATFORM_TOOLS, progress);
     if (localPackage != null) {
       return new File(localPackage.getLocation().getPath(), SdkConstants.FN_ADB);
     }
     return null;
   }
 
+  @Override
+  public void statusChanged(@NonNull PackageInstaller installer, @NonNull RepoPackage p, @NonNull final ProgressIndicator progress) {
+    if (installer.getInstallStatus() == PackageInstaller.InstallStatus.INSTALLING ||
+        installer.getInstallStatus() == PackageInstaller.InstallStatus.UNINSTALL_STARTING) {
+      stopAdb(progress);
+    }
+  }
 }
