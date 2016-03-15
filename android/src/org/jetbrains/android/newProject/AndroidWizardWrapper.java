@@ -145,7 +145,7 @@ public class AndroidWizardWrapper extends ModuleBuilder implements WizardDelegat
     @Override
     public void shakeWindow() {
       if (!ApplicationManager.getApplication().isUnitTestMode()) {
-        DialogEarthquakeShaker.shake((JDialog)myWizard.getPeer().getWindow());
+        DialogEarthquakeShaker.shake(myWizard.getPeer().getWindow());
       }
     }
 
