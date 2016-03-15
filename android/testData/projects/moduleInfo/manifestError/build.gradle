@@ -1,0 +1,32 @@
+buildscript {
+  repositories {
+    jcenter()
+    if (System.getenv("MAVEN_URL") != null) {
+      maven {url System.getenv("MAVEN_URL")}
+    }
+  }
+  dependencies {
+    classpath 'com.android.tools.build:gradle:0.12.+'
+  }
+}
+apply plugin: 'com.android.application'
+
+repositories {
+  jcenter()
+}
+
+android {
+  compileSdkVersion 18
+  buildToolsVersion "19.1.0"
+
+  defaultConfig {
+    minSdkVersion 9
+    targetSdkVersion 17
+    applicationId "from.gradle"
+  }
+  sourceSets {
+    main {
+      manifest.srcFile 'AndroidManifest.xml'
+    }
+  }
+}

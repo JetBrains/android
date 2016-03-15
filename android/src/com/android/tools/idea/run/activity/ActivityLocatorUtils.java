@@ -21,7 +21,6 @@ import com.intellij.util.xml.DomElement;
 import org.jetbrains.android.dom.AndroidDomUtil;
 import org.jetbrains.android.dom.converters.PackageClassConverter;
 import org.jetbrains.android.dom.manifest.*;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -29,9 +28,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 public class ActivityLocatorUtils {
-  public static boolean shouldUseMergedManifest(@NotNull AndroidFacet facet) {
-    return facet.requiresAndroidModel() || facet.getProperties().ENABLE_MANIFEST_MERGING;
-  }
 
   public static boolean containsLauncherIntent(@NotNull List<IntentFilter> intentFilters) {
     for (IntentFilter filter : intentFilters) {

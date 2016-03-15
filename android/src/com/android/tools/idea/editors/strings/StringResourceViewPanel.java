@@ -23,6 +23,8 @@ import com.android.tools.idea.configurations.LocaleMenuAction;
 import com.android.tools.idea.editors.strings.table.*;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.ManifestInfo;
+import com.android.tools.idea.model.MergedManifest;
+import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.google.common.annotations.VisibleForTesting;
@@ -383,7 +385,8 @@ public class StringResourceViewPanel implements HyperlinkListener {
     // @formatter:on
 
     // Package name
-    String pkg = ManifestInfo.get(myFacet.getModule(), false).getPackage();
+    MergedManifest manifest = ManifestInfo.get(myFacet);
+    String pkg = manifest.getPackage();
     if (pkg != null) {
       sb.append("&pkgName=");
       sb.append(pkg.replace('.', '_'));
@@ -398,30 +401,10 @@ public class StringResourceViewPanel implements HyperlinkListener {
     }
 
     // Version code
-    String versionCode = null;
-    if (myFacet.requiresAndroidModel() && myFacet.getAndroidModel() != null) {
-      Integer code = myFacet.getAndroidModel().getVersionCode();
-      if (code != null) {
-        versionCode = code.toString();
-      }
-    }
-    if (versionCode == null) {
-      VirtualFile manifestFile = AndroidRootUtil.getPrimaryManifestFile(myFacet);
-      if (manifestFile != null) {
-        File file = VfsUtilCore.virtualToIoFile(manifestFile);
-        try {
-          ManifestData manifest = AndroidManifestParser.parse(new FileWrapper(file));
-          if (manifest.getVersionCode() != null) {
-            versionCode = manifest.getVersionCode().toString();
-          }
-        }
-        catch (Exception ignore) {
-        }
-      }
-    }
+    Integer versionCode = manifest.getVersionCode();
     if (versionCode != null) {
       sb.append("&apkVer=");
-      sb.append(versionCode);
+      sb.append(versionCode.toString());
     }
 
     // If we support additional IDE languages, we can send the language used in the IDE here
