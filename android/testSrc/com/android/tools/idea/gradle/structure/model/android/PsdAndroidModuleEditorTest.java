@@ -45,7 +45,7 @@ public class PsdAndroidModuleEditorTest extends AndroidGradleTestCase {
     PsdAndroidModuleModel appModuleEditor = (PsdAndroidModuleModel)projectEditor.findModelForModule("app");
     assertNotNull(appModuleEditor);
 
-    Collection<PsdProductFlavorModel> flavorEditors = appModuleEditor.getProductFlavorModels();
+    List<PsdProductFlavorModel> flavorEditors = appModuleEditor.getProductFlavors();
     assertThat(flavorEditors).hasSize(2);
 
     PsdProductFlavorModel basic = appModuleEditor.findProductFlavorModel("basic");
@@ -66,7 +66,7 @@ public class PsdAndroidModuleEditorTest extends AndroidGradleTestCase {
     PsdAndroidModuleModel appModuleEditor = (PsdAndroidModuleModel)projectEditor.findModelForModule("app");
     assertNotNull(appModuleEditor);
 
-    Collection<PsdVariantModel> variantEditors = appModuleEditor.getVariantModels();
+    Collection<PsdVariantModel> variantEditors = appModuleEditor.getVariants();
     assertThat(variantEditors).hasSize(4);
 
     PsdVariantModel paidDebug = appModuleEditor.findVariantModel("paidDebug");

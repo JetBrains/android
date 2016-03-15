@@ -77,8 +77,9 @@ public class PsdProjectModel extends PsdModel {
     return null;
   }
 
+  @Override
   @NotNull
-  public Project getProject() {
+  public Project getResolvedModel() {
     return myProject;
   }
 

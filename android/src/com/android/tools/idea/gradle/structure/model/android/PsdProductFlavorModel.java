@@ -16,25 +16,26 @@
 package com.android.tools.idea.gradle.structure.model.android;
 
 import com.android.builder.model.ProductFlavor;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModel;
 import com.android.tools.idea.gradle.structure.model.PsdChildModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class PsdProductFlavorModel extends PsdChildModel {
-  @Nullable private final ProductFlavor myGradleModel;
+public class PsdProductFlavorModel extends PsdChildModel implements PsdAndroidModel {
+  @Nullable private final ProductFlavor myResolvedModel;
   @Nullable private final ProductFlavorModel myParsedModel;
 
   private String myName = "";
 
   PsdProductFlavorModel(@NotNull PsdAndroidModuleModel parent,
-                        @Nullable ProductFlavor gradleModel,
+                        @Nullable ProductFlavor resolvedModel,
                         @Nullable ProductFlavorModel parsedModel) {
     super(parent);
-    myGradleModel = gradleModel;
+    myResolvedModel = resolvedModel;
     myParsedModel = parsedModel;
-    if (gradleModel != null) {
-      myName = gradleModel.getName();
+    if (resolvedModel != null) {
+      myName = resolvedModel.getName();
     }
     else if (parsedModel != null) {
       myName = parsedModel.name();
@@ -43,8 +44,20 @@ public class PsdProductFlavorModel extends PsdChildModel {
 
   @Override
   @NotNull
+  public AndroidGradleModel getAndroidGradleModel() {
+    return getParent().getAndroidGradleModel();
+  }
+
+  @Override
+  @NotNull
   public PsdAndroidModuleModel getParent() {
     return (PsdAndroidModuleModel)super.getParent();
+  }
+
+  @Override
+  @Nullable
+  public ProductFlavor getResolvedModel() {
+    return myResolvedModel;
   }
 
   @Override
