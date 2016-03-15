@@ -15,10 +15,8 @@
  */
 package com.android.tools.idea.gradle;
 
-import com.android.builder.model.BaseArtifact;
-import com.android.builder.model.JavaLibrary;
-import com.android.builder.model.MavenCoordinates;
-import com.android.builder.model.Variant;
+import com.android.builder.model.*;
+import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.android.CompileOptionsModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpec;
@@ -62,6 +60,7 @@ import java.util.Map;
 
 import static com.android.builder.model.AndroidProject.ARTIFACT_ANDROID_TEST;
 import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.*;
+import static com.android.tools.idea.gradle.util.GradleUtil.getDependencies;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
 import static com.android.tools.idea.gradle.util.Projects.getAndroidModel;
 import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
@@ -300,15 +299,17 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
 
   @Nullable
   private static ArtifactDependencySpec findNewExternalDependency(@NotNull Library library, @NotNull AndroidGradleModel androidModel) {
+    GradleVersion modelVersion = androidModel.getModelVersion();
+
     BaseArtifact testArtifact = androidModel.findSelectedTestArtifactInSelectedVariant();
 
-    com.android.builder.model.Library matchedLibrary = null;
+    JavaLibrary matchedLibrary = null;
     if (testArtifact != null) {
-      matchedLibrary = findMatchedLibrary(library, testArtifact);
+      matchedLibrary = findMatchedLibrary(library, testArtifact, modelVersion);
     }
     if (matchedLibrary == null) {
       Variant selectedVariant = androidModel.getSelectedVariant();
-      matchedLibrary = findMatchedLibrary(library, selectedVariant.getMainArtifact());
+      matchedLibrary = findMatchedLibrary(library, selectedVariant.getMainArtifact(), modelVersion);
     }
     if (matchedLibrary == null) {
       return null;
@@ -323,8 +324,11 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
   }
 
   @Nullable
-  private static com.android.builder.model.Library findMatchedLibrary(@NotNull Library library, @NotNull BaseArtifact artifact) {
-    for (JavaLibrary gradleLibrary : artifact.getDependencies().getJavaLibraries()) {
+  private static JavaLibrary findMatchedLibrary(@NotNull Library library,
+                                                @NotNull BaseArtifact artifact,
+                                                @Nullable GradleVersion modelVersion) {
+    Dependencies dependencies = getDependencies(artifact, modelVersion);
+    for (JavaLibrary gradleLibrary : dependencies.getJavaLibraries()) {
       String libraryName = getNameWithoutExtension(gradleLibrary.getJarFile());
       if (libraryName.equals(library.getName())) {
         return gradleLibrary;

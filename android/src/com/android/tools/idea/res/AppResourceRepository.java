@@ -268,7 +268,7 @@ public class AppResourceRepository extends MultiResourceRepository {
 
   // TODO: b/23032391
   private static void addGradleLibraries(List<AndroidLibrary> list, AndroidGradleModel androidGradleModel) {
-    Collection<AndroidLibrary> libraries = androidGradleModel.getMainArtifact().getDependencies().getLibraries();
+    Collection<AndroidLibrary> libraries = androidGradleModel.getSelectedMainCompileDependencies().getLibraries();
     Set<File> unique = Sets.newHashSet();
     for (AndroidLibrary library : libraries) {
       addGradleLibrary(list, library, unique);
