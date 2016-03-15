@@ -19,11 +19,13 @@ import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.sherpa.drawing.decorator.WidgetDecorator;
 import com.android.tools.sherpa.structure.WidgetsScene;
 import com.google.tnt.solver.widgets.ConstraintAnchor;
 import com.google.tnt.solver.widgets.ConstraintWidget;
 import com.google.tnt.solver.widgets.WidgetContainer;
+import com.intellij.openapi.projectRoots.Sdk;
 
 /**
  * Utility functions managing translation of constants from the solver to the NlModel attributes
@@ -96,6 +98,12 @@ public class ConstraintUtilities {
     String attribute = null;
     if (origin != null && target != null) {
       switch (origin.getType()) {
+        case BASELINE: {
+          if (target.getType() == ConstraintAnchor.Type.BASELINE) {
+            attribute = SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF;
+          }
+          break;
+        }
         case LEFT: {
           switch (target.getType()) {
             case LEFT: {
@@ -264,7 +272,7 @@ public class ConstraintUtilities {
    * @param component the component we work on
    * @param anchor    the anchor we want to update from
    */
-  static void updateConnection(@NonNull NlComponent component, @NonNull ConstraintAnchor anchor) {
+  static void setConnection(@NonNull NlComponent component, @NonNull ConstraintAnchor anchor) {
     resetAnchor(component, anchor.getType());
     String attribute = getConnectionAttribute(anchor, anchor.getTarget());
     String marginAttribute = getConnectionAttributeMargin(anchor);
@@ -272,11 +280,52 @@ public class ConstraintUtilities {
       ConstraintWidget target = anchor.getTarget().getOwner();
       WidgetDecorator decorator = (WidgetDecorator)target.getCompanionWidget();
       NlComponent targetComponent = (NlComponent)decorator.getCompanionObject();
-      String targetId = "@+id/" + targetComponent.getId();
-      component.setAttribute(SdkConstants.SHERPA_URI, attribute, targetId);
-      String margin = anchor.getMargin() + "dp";
-      component.setAttribute(SdkConstants.SHERPA_URI, marginAttribute, margin);
+      if (targetComponent.getId() != null) {
+        String targetId = "@+id/" + targetComponent.getId();
+        component.setAttribute(SdkConstants.SHERPA_URI, attribute, targetId);
+        if (marginAttribute != null && anchor.getMargin() > 0) {
+          String margin = anchor.getMargin() + "dp";
+          component.setAttribute(SdkConstants.SHERPA_URI, marginAttribute, margin);
+        }
+      }
     }
+  }
+
+  /**
+   * Update the component given a new dimension
+   *
+   * @param component the component we work on
+   * @param widget    the widget we use as a model
+   */
+  public static void setDimension(@NonNull NlComponent component, @NonNull ConstraintWidget widget) {
+    String width;
+    switch (widget.getHorizontalDimensionBehaviour()) {
+      case ANY: {
+        width = "0dp";
+      } break;
+      case WRAP_CONTENT: {
+        width = SdkConstants.VALUE_WRAP_CONTENT;
+      } break;
+      default:
+        width = widget.getWidth() + "dp";
+    }
+    component.setAttribute(SdkConstants.ANDROID_URI,
+                           SdkConstants.ATTR_LAYOUT_WIDTH,
+                           width);
+    String height;
+    switch (widget.getVerticalDimensionBehaviour()) {
+      case ANY: {
+        height = "0dp";
+      } break;
+      case WRAP_CONTENT: {
+        height = SdkConstants.VALUE_WRAP_CONTENT;
+      } break;
+      default:
+        height = widget.getHeight() + "dp";
+    }
+    component.setAttribute(SdkConstants.ANDROID_URI,
+                           SdkConstants.ATTR_LAYOUT_HEIGHT,
+                           height);
   }
 
   /**
@@ -369,21 +418,58 @@ public class ConstraintUtilities {
   /**
    * Create a new connection on the widget
    *
+   * @param model        the current NlModel
    * @param widgetsScene the current widgets scene
    * @param targetID     ID of our target
    * @param widgetSrc    our source widget
    * @param constraintA  the source anchor type
    * @param constraintB  the target anchor type
    */
-  static void setTarget(@NonNull WidgetsScene widgetsScene, @Nullable String targetID, @Nullable ConstraintWidget widgetSrc,
+  static void setTarget(@NonNull NlModel model, @NonNull WidgetsScene widgetsScene, @Nullable String targetID, @Nullable ConstraintWidget widgetSrc,
                         @NonNull ConstraintAnchor.Type constraintA, @NonNull ConstraintAnchor.Type constraintB) {
     if (targetID == null) {
       return;
     }
-    ConstraintWidget widget = widgetsScene.getWidget(NlComponent.extractId(targetID));
-    if (widgetSrc != null && widget != null) {
-      widgetSrc.connect(constraintA, widget, constraintB);
+    String id = NlComponent.extractId(targetID);
+    if (id == null) {
+      return;
     }
+    NlComponent componentFound = null;
+    for (NlComponent component : model.getComponents()) {
+      NlComponent found = getComponentFromId(component, id);
+      if (found != null) {
+        componentFound = found;
+        break;
+      }
+    }
+    if (componentFound != null) {
+      ConstraintWidget widget = widgetsScene.getWidget(componentFound.getTag());
+      if (widgetSrc != null && widget != null) {
+        widgetSrc.connect(constraintA, widget, constraintB);
+      }
+    }
+  }
+
+  /**
+   * Utility method looking up a component from its ID
+   *
+   * @param component component to look in
+   * @param id the id to find
+   * @return the component if found, null otherwise
+   */
+  @Nullable
+  static NlComponent getComponentFromId(@NonNull NlComponent component, @NonNull String id) {
+    // TODO: move this method to NlModel
+    if (component.getId() != null && component.getId().equalsIgnoreCase(id)) {
+      return component;
+    }
+    for (NlComponent child : component.getChildren()) {
+      NlComponent found = getComponentFromId(child, id);
+      if (found != null) {
+        return found;
+      }
+    }
+    return null;
   }
 
   /**
@@ -413,21 +499,9 @@ public class ConstraintUtilities {
     WidgetsScene scene = constraintModel.getScene();
     widget.setDimension(constraintModel.pxToDp(component.w), constraintModel.pxToDp(component.h));
     NlComponent parent = component.getParent();
+    NlModel model = component.getModel();
     if (parent != null) {
-      ConstraintWidget parentWidget = null;
-      if (parent.getId() == null) {
-        for (ConstraintWidget w : scene.getWidgets()) {
-          WidgetDecorator decorator = (WidgetDecorator)w.getCompanionWidget();
-          NlComponent c = (NlComponent)decorator.getCompanionObject();
-          if (parent == c) {
-            parentWidget = w;
-            break;
-          }
-        }
-      }
-      else {
-        parentWidget = scene.getWidget(parent.getId());
-      }
+      ConstraintWidget parentWidget = scene.getWidget(parent.getTag());
       if (parentWidget instanceof WidgetContainer) {
         WidgetContainer parentContainerWidget = (WidgetContainer)parentWidget;
         if (widget.getParent() != parentContainerWidget) {
@@ -435,18 +509,25 @@ public class ConstraintUtilities {
         }
       }
     }
-
     // FIXME: need to agree on the correct magic value for this rather than simply using zero.
-    String layout_width = component.getAttribute(SdkConstants.ANDROID_URI, "layout_width");
+    String layout_width = component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_WIDTH);
     if ((component.w == 0) || (layout_width != null && (layout_width.equalsIgnoreCase("0") || layout_width.equalsIgnoreCase("0dp")))) {
       widget.setHorizontalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.ANY);
+    }
+    else if (layout_width != null && layout_width.equalsIgnoreCase(SdkConstants.VALUE_WRAP_CONTENT)) {
+      widget.setHorizontalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.WRAP_CONTENT);
+      widget.setMinWidth(widget.getWidth());
     }
     else {
       widget.setHorizontalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.FIXED);
     }
-    String layout_height = component.getAttribute(SdkConstants.ANDROID_URI, "layout_height");
+    String layout_height = component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_HEIGHT);
     if ((component.h == 0) || (layout_height != null && (layout_height.equalsIgnoreCase("0") || layout_height.equalsIgnoreCase("0dp")))) {
       widget.setVerticalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.ANY);
+    }
+    else if (layout_height != null && layout_height.equalsIgnoreCase(SdkConstants.VALUE_WRAP_CONTENT)) {
+      widget.setVerticalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.WRAP_CONTENT);
+      widget.setMinHeight(widget.getHeight());
     }
     else {
       widget.setVerticalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.FIXED);
@@ -477,28 +558,28 @@ public class ConstraintUtilities {
     String baseline = component.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF);
     String centerY = component.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_CENTER_Y_TO_CENTER_Y_OF);
 
-    setTarget(scene, left1, widget, ConstraintAnchor.Type.LEFT, ConstraintAnchor.Type.LEFT);
+    setTarget(model, scene, left1, widget, ConstraintAnchor.Type.LEFT, ConstraintAnchor.Type.LEFT);
     setLeftMargin(left1, component, widget);
-    setTarget(scene, left2, widget, ConstraintAnchor.Type.LEFT, ConstraintAnchor.Type.RIGHT);
+    setTarget(model, scene, left2, widget, ConstraintAnchor.Type.LEFT, ConstraintAnchor.Type.RIGHT);
     setLeftMargin(left2, component, widget);
-    setTarget(scene, right1, widget, ConstraintAnchor.Type.RIGHT, ConstraintAnchor.Type.LEFT);
+    setTarget(model, scene, right1, widget, ConstraintAnchor.Type.RIGHT, ConstraintAnchor.Type.LEFT);
     setRightMargin(right1, component, widget);
-    setTarget(scene, right2, widget, ConstraintAnchor.Type.RIGHT, ConstraintAnchor.Type.RIGHT);
+    setTarget(model, scene, right2, widget, ConstraintAnchor.Type.RIGHT, ConstraintAnchor.Type.RIGHT);
     setRightMargin(right2, component, widget);
-    setTarget(scene, centerX, widget, ConstraintAnchor.Type.CENTER_X, ConstraintAnchor.Type.CENTER_X);
+    setTarget(model, scene, centerX, widget, ConstraintAnchor.Type.CENTER_X, ConstraintAnchor.Type.CENTER_X);
     setLeftMargin(centerX, component, widget);
     setRightMargin(centerX, component, widget);
 
-    setTarget(scene, top1, widget, ConstraintAnchor.Type.TOP, ConstraintAnchor.Type.TOP);
+    setTarget(model, scene, top1, widget, ConstraintAnchor.Type.TOP, ConstraintAnchor.Type.TOP);
     setTopMargin(top1, component, widget);
-    setTarget(scene, top2, widget, ConstraintAnchor.Type.TOP, ConstraintAnchor.Type.BOTTOM);
+    setTarget(model, scene, top2, widget, ConstraintAnchor.Type.TOP, ConstraintAnchor.Type.BOTTOM);
     setTopMargin(top2, component, widget);
-    setTarget(scene, bottom1, widget, ConstraintAnchor.Type.BOTTOM, ConstraintAnchor.Type.TOP);
+    setTarget(model, scene, bottom1, widget, ConstraintAnchor.Type.BOTTOM, ConstraintAnchor.Type.TOP);
     setBottomMargin(bottom1, component, widget);
-    setTarget(scene, bottom2, widget, ConstraintAnchor.Type.BOTTOM, ConstraintAnchor.Type.BOTTOM);
+    setTarget(model, scene, bottom2, widget, ConstraintAnchor.Type.BOTTOM, ConstraintAnchor.Type.BOTTOM);
     setBottomMargin(bottom2, component, widget);
-    setTarget(scene, baseline, widget, ConstraintAnchor.Type.BASELINE, ConstraintAnchor.Type.BASELINE);
-    setTarget(scene, centerY, widget, ConstraintAnchor.Type.CENTER_Y, ConstraintAnchor.Type.CENTER_Y);
+    setTarget(model, scene, baseline, widget, ConstraintAnchor.Type.BASELINE, ConstraintAnchor.Type.BASELINE);
+    setTarget(model, scene, centerY, widget, ConstraintAnchor.Type.CENTER_Y, ConstraintAnchor.Type.CENTER_Y);
     setLeftMargin(centerY, component, widget);
     setRightMargin(centerY, component, widget);
 
@@ -507,4 +588,5 @@ public class ConstraintUtilities {
     setStrength(SdkConstants.ATTR_LAYOUT_TOP_STRENGTH, ConstraintAnchor.Type.TOP, component, widget);
     setStrength(SdkConstants.ATTR_LAYOUT_BOTTOM_STRENGTH, ConstraintAnchor.Type.BOTTOM, component, widget);
   }
+
 }

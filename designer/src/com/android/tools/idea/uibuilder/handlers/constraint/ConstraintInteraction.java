@@ -158,8 +158,9 @@ public class ConstraintInteraction extends Interaction {
       }
     }
     ConstraintUtilities.setEditorPosition(component, widget.getX(), widget.getY());
+    ConstraintUtilities.setDimension(component, widget);
     for (ConstraintAnchor anchor : widget.getAnchors()) {
-      ConstraintUtilities.updateConnection(component, anchor);
+      ConstraintUtilities.setConnection(component, anchor);
     }
   }
 }
