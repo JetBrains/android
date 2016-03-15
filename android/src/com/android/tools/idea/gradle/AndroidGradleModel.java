@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle;
 
 import com.android.SdkConstants;
-import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.*;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.sdklib.AndroidVersion;
@@ -26,6 +25,7 @@ import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.ClassJarProvider;
 import com.android.tools.lint.detector.api.LintUtils;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -52,6 +52,7 @@ import java.util.concurrent.CountDownLatch;
 
 import static com.android.builder.model.AndroidProject.*;
 import static com.android.tools.idea.gradle.AndroidProjectKeys.ANDROID_MODEL;
+import static com.android.tools.idea.gradle.util.GradleUtil.getDependencies;
 import static com.android.tools.idea.gradle.util.ProxyUtil.reproxy;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.find;
 import static com.intellij.openapi.util.io.FileUtil.notNullize;
@@ -157,6 +158,12 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
     for (Variant variant : myAndroidProject.getVariants()) {
       myVariantsByName.put(variant.getName(), variant);
     }
+  }
+
+  @NotNull
+  public Dependencies getSelectedMainCompileDependencies() {
+    AndroidArtifact mainArtifact = getSelectedVariant().getMainArtifact();
+    return getDependencies(mainArtifact, getModelVersion());
   }
 
   @Nullable
@@ -1057,7 +1064,7 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
    */
   @Nullable
   public SourceProvider getMultiFlavorSourceProvider() {
-    AndroidArtifact mainArtifact = getMainArtifact();
+    AndroidArtifact mainArtifact = getSelectedVariant().getMainArtifact();
     return mainArtifact.getMultiFlavorSourceProvider();
   }
 
@@ -1068,7 +1075,7 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
    */
   @Nullable
   public SourceProvider getVariantSourceProvider() {
-    AndroidArtifact mainArtifact = getMainArtifact();
+    AndroidArtifact mainArtifact = getSelectedVariant().getMainArtifact();
     return mainArtifact.getVariantSourceProvider();
   }
 

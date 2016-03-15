@@ -14,7 +14,10 @@
  * limitations under the License.
  */package com.android.tools.idea.gradle;
 
-import com.android.builder.model.*;
+import com.android.builder.model.BaseArtifact;
+import com.android.builder.model.BuildTypeContainer;
+import com.android.builder.model.ProductFlavorContainer;
+import com.android.builder.model.Variant;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.gradle.stubs.android.VariantStub;
 import com.android.tools.idea.templates.AndroidGradleTestCase;
@@ -22,6 +25,7 @@ import com.android.tools.idea.templates.AndroidGradleTestCase;
 import java.io.*;
 
 import static com.android.builder.model.AndroidProject.ARTIFACT_ANDROID_TEST;
+import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
 import static org.jetbrains.plugins.gradle.util.GradleConstants.SYSTEM_ID;
 
 /**
@@ -34,7 +38,7 @@ public class AndroidGradleModelTest extends AndroidGradleTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    File rootDirPath = new File(getProject().getBasePath());
+    File rootDirPath = getBaseDirPath(getProject());
     myAndroidProject = TestProjects.createFlavorsProject();
     myAndroidModel = new AndroidGradleModel(SYSTEM_ID, myAndroidProject.getName(), rootDirPath, myAndroidProject, "f1fa-debug",
                                             ARTIFACT_ANDROID_TEST);
@@ -74,15 +78,18 @@ public class AndroidGradleModelTest extends AndroidGradleTestCase {
 
     ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
     ObjectOutputStream oos;
+    //noinspection IOResourceOpenedButNotSafelyClosed
     oos = new ObjectOutputStream(outputStream);
     oos.writeObject(androidModel);
     oos.close();
 
     ByteArrayInputStream inputStream = new ByteArrayInputStream(outputStream.toByteArray());
+    //noinspection IOResourceOpenedButNotSafelyClosed
     ObjectInputStream ois = new ObjectInputStream(inputStream);
     AndroidGradleModel newAndroidModel = (AndroidGradleModel)ois.readObject();
     ois.close();
 
+    assert androidModel != null;
     assertEquals(androidModel.getProjectSystemId(), newAndroidModel.getProjectSystemId());
     assertEquals(androidModel.getModuleName(), newAndroidModel.getModuleName());
     assertEquals(androidModel.getRootDirPath(), newAndroidModel.getRootDirPath());

@@ -108,7 +108,12 @@ public final class AndroidGradleSettings {
   }
 
   @NotNull
-  public static String createProjectProperty(@NotNull String name, @NotNull boolean value) {
+  public static String createProjectProperty(@NotNull String name, boolean value) {
+    return createProjectProperty(name, String.valueOf(value));
+  }
+
+  @NotNull
+  public static String createProjectProperty(@NotNull String name, int value) {
     return createProjectProperty(name, String.valueOf(value));
   }
 

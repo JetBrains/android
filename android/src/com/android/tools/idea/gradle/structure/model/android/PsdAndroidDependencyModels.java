@@ -17,11 +17,13 @@ package com.android.tools.idea.gradle.structure.model.android;
 
 import com.android.builder.model.*;
 import com.android.ide.common.repository.GradleVersion;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ModuleDependencyModel;
 import com.android.tools.idea.gradle.structure.model.PsdArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsdModuleModel;
 import com.android.tools.idea.gradle.structure.model.PsdParsedDependencyModels;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -60,7 +62,9 @@ class PsdAndroidDependencyModels {
 
   private void collectDependencies(@NotNull PsdAndroidArtifactModel artifactModel) {
     BaseArtifact artifact = artifactModel.getGradleModel();
-    Dependencies dependencies = artifact.getDependencies();
+    AndroidGradleModel gradleModel = artifactModel.getParent().getParent().getGradleModel();
+
+    Dependencies dependencies = GradleUtil.getDependencies(artifact, gradleModel.getModelVersion());
 
     for (AndroidLibrary androidLibrary : dependencies.getLibraries()) {
       String gradlePath = androidLibrary.getProject();
