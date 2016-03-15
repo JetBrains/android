@@ -20,13 +20,11 @@ import com.android.repository.api.LocalPackage;
 import com.android.repository.api.ProgressIndicator;
 import com.android.repository.api.RemotePackage;
 import com.android.repository.api.RepoPackage;
+import com.android.repository.impl.installer.BasicInstaller;
 import com.android.repository.impl.installer.PackageInstaller;
-import com.android.repository.impl.meta.Archive;
 import com.android.sdklib.repositoryv2.AndroidSdkHandler;
 import com.android.tools.idea.welcome.install.Haxm;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
 
 /**
  * Studio-specific SDK-related utilities
@@ -39,32 +37,28 @@ public final class StudioSdkUtil {
    * Find the best {@link PackageInstaller} for the given {@link RepoPackage}.
    */
   @NotNull
-  public static PackageInstaller findBestInstaller(@NotNull LocalPackage p) {
-    if (p.getPath().equals(Haxm.REPO_PACKAGE_PATH)) {
-      return new HaxmInstaller();
-    }
-    if (p.getPath().equals(SdkConstants.FD_PLATFORM_TOOLS)) {
-      return new PlatformToolsInstaller();
-    }
-    return AndroidSdkHandler.findBestInstaller(p);
-  }
-
-  @NotNull
-  public static PackageInstaller findBestInstaller(@NotNull RemotePackage p, @NotNull AndroidSdkHandler sdkHandler) {
-    if (p.getPath().equals(Haxm.REPO_PACKAGE_PATH)) {
-      return new HaxmInstaller();
-    }
-    if (p.getPath().equals(SdkConstants.FD_PLATFORM_TOOLS)) {
-      return new PlatformToolsInstaller();
-    }
-    LocalPackage local = sdkHandler.getLocalPackage(p.getPath(), LOGGER);
-    if (local != null) {
-      Archive.PatchType patch = p.getArchive().getPatch(local.getVersion());
-      if (patch != null) {
-        return new PatchInstaller();
+  public static PackageInstaller findBestInstaller(@NotNull RepoPackage p, @NotNull AndroidSdkHandler sdkHandler) {
+    PackageInstaller installer = null;
+    if (p instanceof RemotePackage) {
+      LocalPackage local = sdkHandler.getLocalPackage(p.getPath(), LOGGER);
+      if (local != null && ((RemotePackage)p).getArchive().getPatch(local.getVersion()) != null) {
+        installer = new PatchInstaller();
       }
     }
-    return AndroidSdkHandler.findBestInstaller(p);
+    if (installer == null) {
+      installer = new BasicInstaller();
+    }
+
+    if (p.getPath().equals(Haxm.REPO_PACKAGE_PATH)) {
+      installer.registerStateChangeListener(new HaxmInstallListener());
+    }
+    if (p.getPath().equals(SdkConstants.FD_PLATFORM_TOOLS)) {
+      installer.registerStateChangeListener(new PlatformToolsInstallListener(sdkHandler));
+    }
+
+    sdkHandler.registerInstallerListeners(installer, p);
+
+    return installer;
   }
 
   private StudioSdkUtil() {}
