@@ -15,14 +15,14 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui;
 
-import com.android.tools.idea.gradle.structure.model.PsdModel;
+import com.android.tools.idea.gradle.structure.model.PsModel;
 import com.intellij.ui.ColoredTableCellRenderer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
-public abstract class BaseTableCellRenderer<T extends PsdModel> extends ColoredTableCellRenderer {
+public abstract class BaseTableCellRenderer<T extends PsModel> extends ColoredTableCellRenderer {
   @NotNull private final T myModel;
 
   protected BaseTableCellRenderer(@NotNull T model) {
