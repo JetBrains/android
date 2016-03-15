@@ -25,8 +25,9 @@ public class PsdDependencyContainer {
   @NotNull private final String myName;
 
   PsdDependencyContainer(@NotNull PsdAndroidArtifactModel artifactModel) {
-    myVariant = artifactModel.getParent().getName();
-    myArtifact = artifactModel.getGradleModel().getName();
+    PsdVariantModel variant = artifactModel.getParent();
+    myVariant = variant.getName();
+    myArtifact = artifactModel.getResolvedName();
     myName = createName(myVariant, myArtifact);
   }
 

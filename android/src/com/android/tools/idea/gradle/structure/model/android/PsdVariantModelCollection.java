@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.structure.model.android;
 
 import com.android.builder.model.Variant;
+import com.android.tools.idea.gradle.structure.model.PsdModelCollection;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.jetbrains.annotations.NotNull;
@@ -25,11 +26,11 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-class PsdVariantModels {
+class PsdVariantModelCollection implements PsdModelCollection<PsdVariantModel> {
   @NotNull private final Map<String, PsdVariantModel> myVariantModelsByName = Maps.newHashMap();
 
-  PsdVariantModels(@NotNull PsdAndroidModuleModel parent) {
-    for (Variant variant : parent.getGradleModel().getAndroidProject().getVariants()) {
+  PsdVariantModelCollection(@NotNull PsdAndroidModuleModel parent) {
+    for (Variant variant : parent.getAndroidGradleModel().getAndroidProject().getVariants()) {
       List<String> productFlavorModels = Lists.newArrayList();
       for (String productFlavor : variant.getProductFlavors()) {
         PsdProductFlavorModel productFlavorModel = parent.findProductFlavorModel(productFlavor);
@@ -54,5 +55,17 @@ class PsdVariantModels {
   @NotNull
   Collection<PsdVariantModel> getValues() {
     return myVariantModelsByName.values();
+  }
+
+  @Override
+  @NotNull
+  public List<PsdVariantModel> getElements() {
+    return Lists.newArrayList(myVariantModelsByName.values());
+  }
+
+  @Override
+  @Nullable
+  public <S extends PsdVariantModel> S findElement(@NotNull String name, @NotNull Class<S> type) {
+    return null;
   }
 }

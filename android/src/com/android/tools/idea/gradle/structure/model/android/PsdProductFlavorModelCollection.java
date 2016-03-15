@@ -20,19 +20,22 @@ import com.android.builder.model.ProductFlavor;
 import com.android.builder.model.ProductFlavorContainer;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModel;
+import com.android.tools.idea.gradle.structure.model.PsdModelCollection;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
-class PsdProductFlavorModels {
+class PsdProductFlavorModelCollection implements PsdModelCollection<PsdProductFlavorModel> {
   @NotNull private final Map<String, PsdProductFlavorModel> myProductFlavorModelsByName = Maps.newHashMap();
 
-  PsdProductFlavorModels(@NonNull PsdAndroidModuleModel parent) {
+  PsdProductFlavorModelCollection(@NonNull PsdAndroidModuleModel parent) {
     Map<String, ProductFlavor> productFlavorsFromGradle = Maps.newHashMap();
-    for (ProductFlavorContainer container : parent.getGradleModel().getAndroidProject().getProductFlavors()) {
+    for (ProductFlavorContainer container : parent.getAndroidGradleModel().getAndroidProject().getProductFlavors()) {
       ProductFlavor productFlavor = container.getProductFlavor();
       productFlavorsFromGradle.put(productFlavor.getName(), productFlavor);
     }
@@ -57,13 +60,23 @@ class PsdProductFlavorModels {
     }
   }
 
-  @NotNull
-  Collection<PsdProductFlavorModel> getValues() {
-    return myProductFlavorModelsByName.values();
-  }
-
   @Nullable
   PsdProductFlavorModel findProductFlavorModel(@NotNull String productFlavorName) {
     return myProductFlavorModelsByName.get(productFlavorName);
+  }
+
+  @Override
+  @NotNull
+  public List<PsdProductFlavorModel> getElements() {
+    return Lists.newArrayList(myProductFlavorModelsByName.values());
+  }
+
+  @Nullable
+  @Override
+  public <S extends PsdProductFlavorModel> S findElement(@NotNull String name, @NotNull Class<S> type) {
+    if (PsdProductFlavorModel.class.equals(type)) {
+      return type.cast(myProductFlavorModelsByName.get(name));
+    }
+    return null;
   }
 }

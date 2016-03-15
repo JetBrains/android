@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.structure.model.PsdModuleModel;
 import com.android.tools.idea.gradle.structure.model.PsdParsedDependencyModels;
 import com.android.tools.idea.gradle.structure.model.PsdProjectModel;
 import com.intellij.openapi.module.Module;
+import com.intellij.util.containers.Predicate;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -29,13 +30,13 @@ import javax.swing.*;
 import java.util.Collection;
 import java.util.List;
 
-public class PsdAndroidModuleModel extends PsdModuleModel {
+public class PsdAndroidModuleModel extends PsdModuleModel implements PsdAndroidModel {
   @NotNull private final AndroidGradleModel myGradleModel;
 
-  private PsdProductFlavorModels myProductFlavorModels;
-  private PsdVariantModels myVariantModels;
   private PsdParsedDependencyModels myParsedDependencyModels;
-  private PsdAndroidDependencyModels myDependencyModels;
+  private PsdProductFlavorModelCollection myProductFlavorModelCollection;
+  private PsdVariantModelCollection myVariantModelCollection;
+  private PsdAndroidDependencyModelCollection myDependencyModelCollection;
 
   public PsdAndroidModuleModel(@NotNull PsdProjectModel parent,
                                @NotNull Module module,
@@ -46,71 +47,64 @@ public class PsdAndroidModuleModel extends PsdModuleModel {
   }
 
   @NotNull
-  public Collection<PsdProductFlavorModel> getProductFlavorModels() {
-    return getOrCreateProductFlavorModels().getValues();
+  public List<PsdProductFlavorModel> getProductFlavors() {
+    return getOrCreateProductFlavorModelCollection().getElements();
   }
 
   @Nullable
-  public PsdProductFlavorModel findProductFlavorModel(@NotNull String productFlavorName) {
-    return getOrCreateProductFlavorModels().findProductFlavorModel(productFlavorName);
+  public PsdProductFlavorModel findProductFlavorModel(@NotNull String name) {
+    return getOrCreateProductFlavorModelCollection().findElement(name, PsdProductFlavorModel.class);
   }
 
   @NotNull
-  private PsdProductFlavorModels getOrCreateProductFlavorModels() {
-    if (myProductFlavorModels == null) {
-      myProductFlavorModels = new PsdProductFlavorModels(this);
+  private PsdProductFlavorModelCollection getOrCreateProductFlavorModelCollection() {
+    if (myProductFlavorModelCollection == null) {
+      myProductFlavorModelCollection = new PsdProductFlavorModelCollection(this);
     }
-    return myProductFlavorModels;
+    return myProductFlavorModelCollection;
   }
 
   @NotNull
-  public Collection<PsdVariantModel> getVariantModels() {
-    return getOrCreateVariantModels().getValues();
+  public List<PsdVariantModel> getVariants() {
+    return getOrCreateVariantModelCollection().getElements();
   }
 
   @Nullable
   public PsdVariantModel findVariantModel(@NotNull String variantName) {
-    return getOrCreateVariantModels().find(variantName);
+    return getOrCreateVariantModelCollection().find(variantName);
   }
 
   @NotNull
   public List<PsdAndroidDependencyModel> getDeclaredDependencies() {
-    return getOrCreateDependencyModels().getDeclaredDependencies();
+    return getOrCreateDependencyModelCollection().getDeclaredDependencies();
   }
 
   @NotNull
   public List<PsdAndroidDependencyModel> getDependencies() {
-    return getOrCreateDependencyModels().getDependencies();
+    return getOrCreateDependencyModelCollection().getElements();
   }
 
   @NotNull
   public Collection<PsdModuleDependencyModel> getModuleDependencies() {
-    return getOrCreateDependencyModels().getModuleDependencies();
-  }
-
-  @Nullable
-  public PsdModuleDependencyModel findModuleDependency(@NotNull String dependency) {
-    return getOrCreateDependencyModels().findModuleDependency(dependency);
+    return getOrCreateDependencyModelCollection().getModuleDependencies();
   }
 
   @Nullable
   public PsdLibraryDependencyModel findLibraryDependency(@NotNull String compactNotation) {
-    PsdArtifactDependencySpec spec = PsdArtifactDependencySpec.create(compactNotation);
-    assert spec != null;
-    return findLibraryDependency(spec);
+    return getOrCreateDependencyModelCollection().findElement(compactNotation, PsdLibraryDependencyModel.class);
   }
 
   @Nullable
   public PsdLibraryDependencyModel findLibraryDependency(@NotNull PsdArtifactDependencySpec dependency) {
-    return getOrCreateDependencyModels().findLibraryDependency(dependency);
+    return getOrCreateDependencyModelCollection().findElement(dependency.toString(), PsdLibraryDependencyModel.class);
   }
 
   @NotNull
-  private PsdAndroidDependencyModels getOrCreateDependencyModels() {
-    if (myDependencyModels == null) {
-      myDependencyModels = new PsdAndroidDependencyModels(this);
+  private PsdAndroidDependencyModelCollection getOrCreateDependencyModelCollection() {
+    if (myDependencyModelCollection == null) {
+      myDependencyModelCollection = new PsdAndroidDependencyModelCollection(this);
     }
-    return myDependencyModels;
+    return myDependencyModelCollection;
   }
 
   @NotNull
@@ -122,15 +116,16 @@ public class PsdAndroidModuleModel extends PsdModuleModel {
   }
 
   @NotNull
-  private PsdVariantModels getOrCreateVariantModels() {
-    if (myVariantModels == null) {
-      myVariantModels = new PsdVariantModels(this);
+  private PsdVariantModelCollection getOrCreateVariantModelCollection() {
+    if (myVariantModelCollection == null) {
+      myVariantModelCollection = new PsdVariantModelCollection(this);
     }
-    return myVariantModels;
+    return myVariantModelCollection;
   }
 
+  @Override
   @NotNull
-  public AndroidGradleModel getGradleModel() {
+  public AndroidGradleModel getAndroidGradleModel() {
     return myGradleModel;
   }
 
