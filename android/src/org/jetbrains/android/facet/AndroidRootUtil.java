@@ -19,11 +19,8 @@ package org.jetbrains.android.facet;
 import com.android.SdkConstants;
 import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.AndroidArtifactOutput;
-import com.android.builder.model.AndroidLibrary;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Sets;
 import com.intellij.ide.highlighter.ArchiveFileType;
 import com.intellij.lang.properties.psi.PropertiesFile;
 import com.intellij.openapi.application.ApplicationManager;
@@ -36,7 +33,6 @@ import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.JarFileSystem;
 import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.util.containers.OrderedSet;
@@ -358,37 +354,6 @@ public class AndroidRootUtil {
       if (annotationsJar != null) {
         libs.add(annotationsJar);
       }
-    }
-  }
-
-  /**
-   * Returns the assets directories of the given module dependencies.
-   *
-   * <p>It works only for the Android Gradle modules and returns an empty list for the non-Gradle Android modules.
-   */
-  @NotNull
-  public static List<VirtualFile> getExternalAssetsDirs(@NotNull Module module) {
-    AndroidGradleModel androidGradleModel = AndroidGradleModel.get(module);
-    if (androidGradleModel != null) {
-      LinkedHashSet<VirtualFile> assetsDirs = Sets.newLinkedHashSet();
-      Collection<AndroidLibrary> libraries = androidGradleModel.getSelectedVariant().getMainArtifact().getDependencies().getLibraries();
-      for (AndroidLibrary library : libraries) {
-        fillAssetsDirs(library, assetsDirs);
-      }
-      return ImmutableList.copyOf(assetsDirs);
-    }
-    return ImmutableList.of();
-  }
-
-  private static void fillAssetsDirs(@NotNull AndroidLibrary library, @NotNull LinkedHashSet<VirtualFile> assetsDirs) {
-    File assetsFolder = library.getAssetsFolder();
-    VirtualFile virtualAssetsFolder = VfsUtil.findFileByIoFile(assetsFolder, true);
-    if (virtualAssetsFolder != null) {
-      assetsDirs.add(virtualAssetsFolder);
-    }
-    List<? extends AndroidLibrary> libraryDependencies = library.getLibraryDependencies();
-    for (AndroidLibrary depLibrary : libraryDependencies) {
-      fillAssetsDirs(depLibrary, assetsDirs);
     }
   }
 

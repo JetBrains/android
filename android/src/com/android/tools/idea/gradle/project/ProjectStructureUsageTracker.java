@@ -34,6 +34,7 @@ import java.io.File;
 import java.util.Collection;
 import java.util.Set;
 
+import static com.android.tools.idea.gradle.util.GradleUtil.getDependencies;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleVersion;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
@@ -84,7 +85,7 @@ class ProjectStructureUsageTracker {
         }
         appModel = androidModel;
         appCount++;
-        trackExternalDependenciesInAndroidApp(androidProject);
+        trackExternalDependenciesInAndroidApp(androidModel);
       }
     }
 
@@ -122,8 +123,8 @@ class ProjectStructureUsageTracker {
     }
   }
 
-  private static void trackExternalDependenciesInAndroidApp(@NotNull AndroidProject model) {
-    Collection<Variant> variants = model.getVariants();
+  private static void trackExternalDependenciesInAndroidApp(@NotNull AndroidGradleModel model) {
+    Collection<Variant> variants = model.getAndroidProject().getVariants();
     if (variants.isEmpty()) {
       return;
     }
@@ -143,17 +144,17 @@ class ProjectStructureUsageTracker {
     }
 
     if (chosen != null) {
-      trackLibraryCount(chosen);
+      trackLibraryCount(chosen, model);
     }
   }
 
-  private static void trackLibraryCount(@NotNull Variant variant) {
+  private static void trackLibraryCount(@NotNull Variant variant, @NotNull AndroidGradleModel model) {
     DependencyFiles files = new DependencyFiles();
 
     AndroidArtifact artifact = variant.getMainArtifact();
     String applicationId = artifact.getApplicationId();
 
-    Dependencies dependencies = artifact.getDependencies();
+    Dependencies dependencies = getDependencies(artifact, model.getModelVersion());
     for (JavaLibrary javaLibrary : dependencies.getJavaLibraries()) {
       addJarLibraryAndDependencies(javaLibrary, files);
     }

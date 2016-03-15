@@ -334,7 +334,7 @@ public class DeclaredPermissionsLookup implements ProjectComponent {
         }
         AndroidGradleModel androidGradleModel = AndroidGradleModel.get(myFacet);
         if (androidGradleModel != null) {
-          Collection<AndroidLibrary> libraries = androidGradleModel.getMainArtifact().getDependencies().getLibraries();
+          Collection<AndroidLibrary> libraries = androidGradleModel.getSelectedMainCompileDependencies().getLibraries();
           myLibraries = Lists.newArrayList();
           for (AndroidLibrary library : libraries) {
             myLibraries.add(getLibraryPermissions(library));
