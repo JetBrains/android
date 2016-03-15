@@ -37,6 +37,7 @@ import org.junit.runner.RunWith;
 import javax.annotation.Nonnull;
 import java.awt.*;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 
 import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPORT;
@@ -80,6 +81,7 @@ public class GradleTestArtifactSyncTest {
     Module appModule = guiTest.ideFrame().getModule("app");
     List<String> sourceRootNames = Lists.newArrayList();
     VirtualFile[] sourceRoots = ModuleRootManager.getInstance(appModule).getSourceRoots();
+    System.out.println("sourceRoots = " + Arrays.toString(sourceRoots));
     for (VirtualFile sourceRoot : sourceRoots) {
       // Get the last 2 segments of the path for each source folder (e.g. 'testFree/java')
       String path = sourceRoot.getPath();
