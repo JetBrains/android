@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview;
 
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.PsAndroidDependencyComparator;
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsdNode;
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsModel;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsLibraryDependency;
+import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.Lists;
 import com.intellij.ui.treeStructure.SimpleNode;
 import org.jetbrains.annotations.NotNull;
@@ -34,7 +34,7 @@ import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 public class LibraryDependencyNode extends AbstractDependencyNode<PsLibraryDependency> {
-  @NotNull private final List<SimpleNode> myChildren = Lists.newArrayList();
+  @NotNull private final List<AbstractDependencyNode> myChildren = Lists.newArrayList();
 
   public LibraryDependencyNode(@NotNull AbstractPsdNode parent, @NotNull PsLibraryDependency dependency) {
     super(parent, dependency);
@@ -50,8 +50,7 @@ public class LibraryDependencyNode extends AbstractDependencyNode<PsLibraryDepen
   private void setUp(@NotNull PsLibraryDependency dependency) {
     myName = getText(dependency);
 
-    List<PsAndroidDependency> transitiveDependencies = Lists.newArrayList(dependency.getTransitiveDependencies());
-    Collections.sort(transitiveDependencies, PsAndroidDependencyComparator.INSTANCE);
+    ImmutableCollection<PsAndroidDependency> transitiveDependencies = dependency.getTransitiveDependencies();
 
     for (PsAndroidDependency transitive : transitiveDependencies) {
       if (transitive instanceof PsLibraryDependency) {
@@ -60,6 +59,8 @@ public class LibraryDependencyNode extends AbstractDependencyNode<PsLibraryDepen
         myChildren.add(child);
       }
     }
+
+    Collections.sort(myChildren, DependencyNodeComparator.INSTANCE);
   }
 
   @NotNull

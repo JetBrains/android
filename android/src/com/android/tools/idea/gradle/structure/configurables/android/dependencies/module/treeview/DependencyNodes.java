@@ -18,14 +18,12 @@ package com.android.tools.idea.gradle.structure.configurables.android.dependenci
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependencyModel;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.PsAndroidDependencyComparator;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractDependencyNode;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.LibraryDependencyNode;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.ModuleDependencyNode;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsdNode;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidArtifact;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsLibraryDependency;
-import com.android.tools.idea.gradle.structure.model.android.PsModuleDependency;
 import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.intellij.util.containers.SortedList;
@@ -94,7 +92,8 @@ final class DependencyNodes {
     }
 
     if (dependency instanceof PsLibraryDependency) {
-      Collection<PsAndroidDependency> transitives = ((PsLibraryDependency)dependency).getTransitiveDependencies();
+      PsLibraryDependency libraryDependency = (PsLibraryDependency)dependency;
+      ImmutableCollection<PsAndroidDependency> transitives = libraryDependency.getTransitiveDependencies();
       allTransitive.putAll(dependency, transitives);
 
       for (PsAndroidDependency transitive : transitives) {

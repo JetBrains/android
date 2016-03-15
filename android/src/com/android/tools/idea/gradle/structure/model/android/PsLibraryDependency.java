@@ -23,6 +23,8 @@ import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.PsProject;
 import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableCollection;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.util.containers.Predicate;
@@ -88,10 +90,10 @@ public class PsLibraryDependency extends PsAndroidDependency {
   }
 
   @NotNull
-  public Collection<PsAndroidDependency> getTransitiveDependencies() {
+  public ImmutableCollection<PsAndroidDependency> getTransitiveDependencies() {
     PsAndroidModule module = getParent();
 
-    Set<PsAndroidDependency> transitive = Sets.newHashSet();
+    ImmutableSet.Builder<PsAndroidDependency> transitive = ImmutableSet.builder();
     for (String dependency : myTransitiveDependencies) {
       PsAndroidDependency found = module.findLibraryDependency(dependency);
       if (found != null) {
@@ -105,7 +107,7 @@ public class PsLibraryDependency extends PsAndroidDependency {
       }
     }
 
-    return transitive;
+    return transitive.build();
   }
 
   @NotNull
