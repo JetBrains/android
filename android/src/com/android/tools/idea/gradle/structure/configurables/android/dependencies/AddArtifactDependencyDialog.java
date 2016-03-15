@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.structure.configurables.android.dependenci
 import com.android.builder.model.AndroidProject;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.structure.configurables.ui.ArtifactRepositorySearchForm;
-import com.android.tools.idea.gradle.structure.model.android.PsdAndroidModuleModel;
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.android.tools.idea.gradle.structure.model.repositories.search.AndroidSdkRepository;
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepository;
 import com.android.tools.idea.gradle.structure.model.repositories.search.MavenCentralRepository;
@@ -31,15 +31,15 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.List;
 
-class AddArtifactDependencyDialog extends DialogWrapper {
-  @NotNull private final PsdAndroidModuleModel myModuleModel;
+public class AddArtifactDependencyDialog extends DialogWrapper {
+  @NotNull private final PsAndroidModule myModule;
 
   private JPanel myPanel;
   private ArtifactRepositorySearchForm mySearchForm;
 
-  AddArtifactDependencyDialog(@NotNull PsdAndroidModuleModel moduleModel) {
-    super(moduleModel.getParent().getResolvedModel());
-    myModuleModel = moduleModel;
+  public AddArtifactDependencyDialog(@NotNull PsAndroidModule module) {
+    super(module.getParent().getResolvedModel());
+    myModule = module;
     setTitle("Add Artifact Dependency");
     init();
   }
@@ -64,7 +64,7 @@ class AddArtifactDependencyDialog extends DialogWrapper {
     List<ArtifactRepository> repositories = Lists.newArrayList();
     repositories.add(new MavenCentralRepository()); // TODO get the repository from the build.gradle file.
 
-    AndroidGradleModel gradleModel = myModuleModel.getAndroidGradleModel();
+    AndroidGradleModel gradleModel = myModule.getGradleModel();
     AndroidProject androidProject = gradleModel.getAndroidProject();
     repositories.add(new AndroidSdkRepository(androidProject));
 
