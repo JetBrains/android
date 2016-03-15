@@ -64,20 +64,7 @@ public class HierarchyViewAction extends AbstractClientAction {
       return;
     }
 
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
-      @Override
-      public void run() {
-        try {
-          final CaptureService service = CaptureService.getInstance(myProject);
-          String name = service.getSuggestedName(client);
-          CaptureHandle handle = service.startCaptureFile(HierarchyViewCaptureType.class, name);
-
-          HierarchyViewCaptureTask captureTask = new HierarchyViewCaptureTask(myProject, window, service, handle);
-          ProgressManager.getInstance().run(captureTask);
-        } catch (IOException e) {
-          Messages.showErrorDialog("Error create hierarchy view file", "Capture Hierarchy View");
-        }
-      }
-    });
+    HierarchyViewCaptureTask captureTask = new HierarchyViewCaptureTask(myProject, client, window);
+    captureTask.queue();
   }
 }
