@@ -16,6 +16,7 @@
 package com.android.tools.idea.updater.configure;
 
 import com.android.repository.api.*;
+import com.android.repository.api.ProgressIndicator;
 import com.android.repository.impl.installer.PackageInstaller;
 import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.repository.io.FileOp;
@@ -36,8 +37,7 @@ import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.SearchableConfigurable;
 import com.intellij.openapi.options.ex.Settings;
-import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.progress.ProgressManager;
+import com.intellij.openapi.progress.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.ui.AncestorListenerAdapter;
@@ -185,7 +185,7 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
       message.add("The following components will be installed: \n");
       message.beginList();
       Multimap<RemotePackage, RemotePackage> dependencies = HashMultimap.create();
-      com.android.repository.api.ProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
+      ProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
       RepositoryPackages packages = getRepoManager().getPackages();
       for (RemotePackage item : requestedPackages.keySet()) {
         List<RemotePackage> packageDependencies = InstallerUtil.computeRequiredPackages(ImmutableList.of(item), packages, progress);
@@ -225,11 +225,11 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
         ProgressManager.getInstance().runProcessWithProgressSynchronously(new Runnable() {
           @Override
           public void run() {
-            ProgressIndicator progress = ProgressManager.getInstance().getProgressIndicator();
+            com.intellij.openapi.progress.ProgressIndicator progress = ProgressManager.getInstance().getProgressIndicator();
             com.android.repository.api.ProgressIndicator repoProgress = new RepoProgressIndicatorAdapter(progress);
             FileOp fop = FileOpUtils.create();
             for (LocalPackage item : toDelete) {
-              StudioSdkUtil.findBestInstaller(item).uninstall(item, repoProgress, getRepoManager(), fop);
+              StudioSdkUtil.findBestInstaller(item, getSdkHandler()).uninstall(item, repoProgress, getRepoManager(), fop);
             }
           }
         }, "Uninstalling", false, null, myPanel.getComponent());
@@ -242,7 +242,9 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
               if (installer != null) {
                 installer.registerStateChangeListener(new PackageInstaller.StatusChangeListener() {
                   @Override
-                  public void statusChanged(PackageInstaller installer) {
+                  public void statusChanged(@NotNull PackageInstaller installer,
+                                            @NotNull RepoPackage p,
+                                            @NotNull ProgressIndicator progress) {
                     myPanel.getComponent().repaint();
                   }
                 });

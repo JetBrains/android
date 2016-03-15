@@ -36,7 +36,7 @@ import java.util.Collection;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * Wizard that downloads, configures, and installs HAXM.
+ * Wizard that downloads (if necessary), configures, and installs HAXM.
  */
 public class HaxmWizard extends DynamicWizard {
 
