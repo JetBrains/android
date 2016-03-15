@@ -972,6 +972,7 @@
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.android">
+    <captureType implementation="com.android.tools.idea.editors.hierarchyview.HierarchyViewCaptureType"/>
     <captureType implementation="com.android.tools.idea.editors.hprof.HprofCaptureType"/>
     <captureType implementation="com.android.tools.idea.editors.allocations.AllocationCaptureType"/>
     <captureType implementation="com.android.tools.idea.editors.gfxtrace.GfxTraceCaptureType"/>
