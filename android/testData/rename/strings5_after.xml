@@ -1,4 +1,4 @@
 <resources>
-  <string name="hello">Hello!</string>
-  <string name="other">@string/hello</string>
+  <string name="str1">Hello!</string>
+  <string name="other">@string/str1</string>
 </resources>
