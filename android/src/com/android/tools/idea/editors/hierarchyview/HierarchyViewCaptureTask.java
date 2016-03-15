@@ -15,21 +15,21 @@
  */
 package com.android.tools.idea.editors.hierarchyview;
 
-import com.android.tools.idea.ddms.EdtExecutor;
+import com.android.ddmlib.Client;
 import com.android.tools.idea.editors.hierarchyview.model.ClientWindow;
 import com.android.tools.idea.editors.hierarchyview.model.ViewNode;
 import com.android.tools.idea.profiling.capture.Capture;
-import com.android.tools.idea.profiling.capture.CaptureHandle;
 import com.android.tools.idea.profiling.capture.CaptureService;
-import com.google.common.util.concurrent.FutureCallback;
-import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -37,91 +37,105 @@ import java.io.ObjectOutputStream;
 import java.util.concurrent.TimeUnit;
 
 public class HierarchyViewCaptureTask extends Task.Backgroundable {
+  private static final String TITLE = "Capture View Hierarchy";
 
-  @NotNull private CaptureService myService;
-  @NotNull private CaptureHandle myHandle;
-  @NotNull private ClientWindow myWindow;
+  @NotNull private final Client myClient;
+  @NotNull private final ClientWindow myWindow;
 
-  public HierarchyViewCaptureTask(
-    @NotNull Project project, @NotNull ClientWindow window,
-    @NotNull CaptureService service, @NotNull CaptureHandle handle) {
-    super(project, "Capturing view hierarchy");
+  private String myError;
+  private byte[] myData;
 
+  public HierarchyViewCaptureTask(@NotNull Project project, @NotNull Client client, @NotNull ClientWindow window) {
+    super(project, "Capturing View Hierarchy");
+    myClient = client;
     myWindow = window;
-    myService = service;
-    myHandle = handle;
   }
 
   @Override
   public void run(@NotNull ProgressIndicator indicator) {
-    try {
-      ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-      ObjectOutputStream output = new ObjectOutputStream(bytes);
+    HierarchyViewCaptureOptions options = new HierarchyViewCaptureOptions();
+    options.setTitle(myWindow.getDisplayName());
 
-      // Write meta data
-      HierarchyViewCaptureOptions options = new HierarchyViewCaptureOptions();
-      options.setTitle(myWindow.getDisplayName());
+    // Capture view hierarchy
+    indicator.setText("Capturing View Hierarchy");
+    indicator.setIndeterminate(false);
+    byte[] hierarchy = myWindow.loadWindowData(20, TimeUnit.SECONDS);
+    if (hierarchy == null) {
+      myError = "Unexpected error: empty view hierarchy";
+      return;
+    }
+
+    // Parse the root node
+    indicator.setText("Capturing preview");
+    indicator.setFraction(0.5);
+    ViewNode root = ViewNode.parseFlatString(hierarchy);
+    if (root == null) {
+      myError = "Unable to parse view hierarchy";
+      return;
+    }
+
+    //  Get the preview of the root node
+    byte[] preview = myWindow.loadViewImage(root, 10, TimeUnit.SECONDS);
+    if (preview == null) {
+      myError = "Unable to obtain preview image";
+      return;
+    }
+
+    ByteArrayOutputStream bytes = new ByteArrayOutputStream(4096);
+    ObjectOutputStream output = null;
+
+    try {
+      output = new ObjectOutputStream(bytes);
       output.writeUTF(options.toString());
 
-      // Capture view hierarchy
-      indicator.setText("Capturing hierarchy");
-      byte[] hierarchy = verifyNotNull(myWindow.loadWindowData(20, TimeUnit.SECONDS));
       output.writeInt(hierarchy.length);
       output.write(hierarchy);
 
-      // Parse the root node and get the preview of the root node
-      indicator.setText("Capturing preview");
-      indicator.setIndeterminate(false);
-      indicator.setFraction(0.5);
-      ViewNode root = verifyNotNull(ViewNode.parseFlatString(hierarchy));
-      byte[] preview = verifyNotNull(myWindow.loadViewImage(root, 10, TimeUnit.SECONDS));
       output.writeInt(preview.length);
       output.write(preview);
+    } catch (IOException e) {
+      myError = "Unexpected error while saving hierarchy snapshot: " + e;
+      return;
+    } finally {
+      try {
+        if (output != null) {
+          output.close();
+        }
+      }
+      catch (IOException e) {
+        myError = "Unexpected error while closing hierarchy snapshot: " + e;
+      }
+    }
 
-      // Write data
-      indicator.setText("Writing data");
-      indicator.setFraction(1);
+    myData = bytes.toByteArray();
+  }
 
-      output.flush();
-      myService.appendData(myHandle, bytes.toByteArray());
-      ApplicationManager.getApplication().invokeLater(new Runnable() {
+  @Override
+  public void onSuccess() {
+    if (myError != null) {
+      Messages.showErrorDialog("Error obtaining view hierarchy: " + StringUtil.notNullize(myError), TITLE);
+      return;
+    }
 
+    CaptureService service = CaptureService.getInstance(myProject);
+    try {
+      Capture capture = service.createCapture(HierarchyViewCaptureType.class, myData, service.getSuggestedName(myClient));
+      final VirtualFile file = capture.getFile();
+      file.refresh(true, false, new Runnable() {
         @Override
         public void run() {
-          myService.finalizeCaptureFileAsynchronous(myHandle, new FutureCallback<Capture>() {
+          UIUtil.invokeLaterIfNeeded(new Runnable() {
             @Override
-            public void onSuccess(Capture result) {
-              myService.notifyCaptureReady(result);
+            public void run() {
+              OpenFileDescriptor descriptor = new OpenFileDescriptor(myProject, file);
+              FileEditorManager.getInstance(myProject).openEditor(descriptor, true);
             }
-
-            @Override
-            public void onFailure(Throwable t) {
-              showErrorDialog();
-            }
-          }, EdtExecutor.INSTANCE);
+          });
         }
       });
-    } catch (IOException e) {
-      indicator.cancel();
-      myService.cancelCaptureFile(myHandle);
-      showErrorDialog();
     }
-  }
-
-  @NotNull
-  private static <T> T verifyNotNull(@Nullable T object) throws IOException {
-    if (object == null) {
-      throw new IOException();
+    catch (IOException e) {
+      Messages.showErrorDialog("Error creating hierarchy view capture: " + e, TITLE);
     }
-    return object;
-  }
-
-  private void showErrorDialog() {
-    UIUtil.invokeLaterIfNeeded(new Runnable() {
-      @Override
-      public void run() {
-        Messages.showErrorDialog("Error create hierarchy view file", "Capture Hierarchy View");
-      }
-    });
   }
 }

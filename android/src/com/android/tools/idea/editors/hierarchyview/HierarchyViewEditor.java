@@ -48,8 +48,6 @@ public class HierarchyViewEditor extends UserDataHolderBase implements FileEdito
     myOptions = new HierarchyViewCaptureOptions();
 
     // Parse file
-    // TODO: Read the file properly.
-    file.refresh(false, false);
     ObjectInputStream input = new ObjectInputStream(new ByteArrayInputStream(file.contentsToByteArray()));
 
     // Parse options
