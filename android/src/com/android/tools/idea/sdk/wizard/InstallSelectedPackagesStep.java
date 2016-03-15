@@ -15,18 +15,14 @@
  */
 package com.android.tools.idea.sdk.wizard;
 
-import com.android.repository.api.RemotePackage;
-import com.android.repository.api.RepoManager;
-import com.android.repository.api.RepoPackage;
-import com.android.repository.api.SettingsController;
-import com.android.repository.impl.installer.PackageInstaller;
+import com.android.repository.api.*;
 import com.android.repository.impl.meta.TypeDetails;
 import com.android.sdklib.repositoryv2.AndroidSdkHandler;
 import com.android.sdklib.repositoryv2.meta.DetailsTypes;
 import com.android.tools.idea.sdk.StudioDownloader;
-import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
-import com.android.tools.idea.sdk.StudioSdkUtil;
 import com.android.tools.idea.sdk.StudioSettingsController;
+import com.android.tools.idea.sdk.install.StudioSdkInstallerUtil;
+import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.ui.properties.core.BoolProperty;
 import com.android.tools.idea.ui.properties.core.BoolValueProperty;
 import com.android.tools.idea.ui.properties.core.ObservableBool;
@@ -47,6 +43,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.*;
+import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
@@ -235,14 +232,19 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
     @Override
     public void run(@NotNull ProgressIndicator indicator) {
       final List<RemotePackage> failures = Lists.newArrayList();
-      Map<RemotePackage, PackageInstaller> preparedPackages = Maps.newLinkedHashMap();
+      Map<RemotePackage, Installer> preparedPackages = Maps.newLinkedHashMap();
       try {
         for (RemotePackage remote : myRequestedPackages) {
           boolean success = false;
           // If there's already an installer in progress for this package, reuse it.
-          PackageInstaller installer = myRepoManager.getInProgressInstaller(remote);
-          if (installer == null) {
-            installer = StudioSdkUtil.createInstaller(remote, mySdkHandler);
+          PackageOperation op = myRepoManager.getInProgressInstallOperation(remote);
+          Installer installer;
+          if (op == null || !(op instanceof Installer)) {
+            installer = StudioSdkInstallerUtil.createInstallerFactory(remote, mySdkHandler)
+              .createInstaller(remote, myRepoManager, mySdkHandler.getFileOp());
+          }
+          else {
+            installer = (Installer)op;
           }
           myCustomLogger.logInfo(String.format("Installing %1$s", remote.getDisplayName()));
           try {
@@ -264,11 +266,11 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
         // Disable the background action so the final part can't be backgrounded.
         myBackgroundAction.setEnabled(false);
         for (RemotePackage remote : preparedPackages.keySet()) {
-          PackageInstaller installer = preparedPackages.get(remote);
+          Installer installer = preparedPackages.get(remote);
           if (!myBackgroundAction.isBackgrounded()) {
             // If we're not backgrounded, go on to the final part immediately.
             myCustomLogger.logInfo(String.format("Finishing installation of %1$s.", remote.getDisplayName()));
-            installer.completeInstall(remote, myProgress, myRepoManager, mySdkHandler.getFileOp());
+            installer.completeInstall(myProgress);
             myCustomLogger.logInfo(String.format("Installation of %1$s complete.", remote.getDisplayName()));
           }
           else {
@@ -355,8 +357,8 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
           @Override
           public boolean value(Object o) {
             // We don't show the bubble until we're out of a modal context. If the install has already completed, don't show it at all.
-            PackageInstaller installer = myRepoManager.getInProgressInstaller(remotePackage);
-            return installer == null || installer.getInstallStatus() != PackageInstaller.InstallStatus.PREPARED;
+            PackageOperation installer = myRepoManager.getInProgressInstallOperation(remotePackage);
+            return installer == null || installer.getInstallStatus() != PackageOperation.InstallStatus.PREPARED;
           }
         });
     }
