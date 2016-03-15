@@ -24,8 +24,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
@@ -98,12 +96,14 @@ public class ClientWindow {
    * Lists all the active window for the current client.
    */
   @Nullable
-  public static List<ClientWindow> getAll(@NotNull Client client, long timeout, TimeUnit unit) {
+  public static List<ClientWindow> getAll(@NotNull Client client, long timeout, @NotNull TimeUnit unit) {
     ClientData cd = client.getClientData();
-    if (cd != null && cd.hasFeature(ClientData.FEATURE_VIEW_HIERARCHY)) {
+    if (cd.hasFeature(ClientData.FEATURE_VIEW_HIERARCHY)) {
       try {
         return new ListViewRootsHandler().getWindows(client, timeout, unit);
-      } catch (IOException e) { }
+      }
+      catch (IOException ignored) {
+      }
     }
     return null;
   }
