@@ -44,6 +44,7 @@ public class Recipe implements RecipeInstruction {
     @XmlElement(name = "copy", type = CopyInstruction.class),
     @XmlElement(name = "instantiate", type = InstantiateInstruction.class),
     @XmlElement(name = "merge", type = MergeInstruction.class),
+    @XmlElement(name = "append", type = AppendInstruction.class),
     @XmlElement(name = "mkdir", type = MkDirInstruction.class),
     @XmlElement(name = "dependency", type = DependencyInstruction.class),
     @XmlElement(name = "open", type = OpenInstruction.class),
@@ -163,6 +164,24 @@ public class Recipe implements RecipeInstruction {
       if (to == null || to.getPath().isEmpty()) {
         to = cloneWithoutFreemarkerSuffix(from);
       }
+    }
+  }
+
+  @SuppressWarnings({"NullableProblems", "unused"})
+  private static final class AppendInstruction implements RecipeInstruction {
+    @XmlJavaTypeAdapter(StringFileAdapter.class)
+    @XmlAttribute(required = true)
+    @NotNull
+    private File from;
+
+    @XmlJavaTypeAdapter(StringFileAdapter.class)
+    @XmlAttribute
+    @NotNull
+    private File to;
+
+    @Override
+    public void execute(@NotNull RecipeExecutor executor) throws TemplateProcessingException {
+      executor.append(from, to);
     }
   }
 
