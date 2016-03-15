@@ -15,26 +15,28 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui;
 
-import com.android.tools.idea.gradle.structure.configurables.PsdContext;
-import com.android.tools.idea.gradle.structure.model.PsdModuleModel;
-import com.android.tools.idea.gradle.structure.model.PsdProjectModel;
+import com.android.tools.idea.gradle.structure.configurables.PsContext;
+import com.android.tools.idea.gradle.structure.model.PsModule;
+import com.android.tools.idea.gradle.structure.model.PsProject;
 import com.android.tools.idea.gradle.util.ui.LabeledComboBoxAction;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.project.DumbAwareAction;
+import com.intellij.util.containers.Predicate;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
 public class ModulesComboBoxAction extends LabeledComboBoxAction {
-  @NotNull private final PsdProjectModel myProjectModel;
-  @NotNull private final PsdContext myContext;
+  @NotNull private final PsProject myProject;
+  @NotNull private final PsContext myContext;
 
-  public ModulesComboBoxAction(@NotNull PsdProjectModel projectModel, @NotNull PsdContext context) {
+  public ModulesComboBoxAction(@NotNull PsProject project, @NotNull PsContext context) {
     super("Module: ");
-    myProjectModel = projectModel;
+    myProject = project;
     myContext = context;
   }
 
@@ -48,19 +50,26 @@ public class ModulesComboBoxAction extends LabeledComboBoxAction {
   @Override
   @NotNull
   protected DefaultActionGroup createPopupActionGroup(JComponent button) {
-    DefaultActionGroup group = new DefaultActionGroup();
-    for (PsdModuleModel moduleModel : myProjectModel.getModuleModels()) {
-      group.add(new ModuleAction(moduleModel));
-    }
+    final DefaultActionGroup group = new DefaultActionGroup();
+    myProject.forEachModule(new Predicate<PsModule>() {
+      @Override
+      public boolean apply(@Nullable PsModule module) {
+        if (module == null) {
+          return false;
+        }
+        group.add(new ModuleAction(module));
+        return true;
+      }
+    });
     return group;
   }
 
   private class ModuleAction extends DumbAwareAction {
     @NotNull private final String myModuleName;
 
-    ModuleAction(@NotNull PsdModuleModel moduleModel) {
-      super(moduleModel.getName(), "", moduleModel.getIcon());
-      myModuleName = moduleModel.getName();
+    ModuleAction(@NotNull PsModule module) {
+      super(module.getName(), "", module.getIcon());
+      myModuleName = module.getName();
     }
 
     @Override

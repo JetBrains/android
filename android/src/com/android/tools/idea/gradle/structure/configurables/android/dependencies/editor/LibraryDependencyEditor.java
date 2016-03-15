@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.editor;
 
-import com.android.tools.idea.gradle.structure.configurables.PsdContext;
-import com.android.tools.idea.gradle.structure.model.PsdArtifactDependencySpec;
-import com.android.tools.idea.gradle.structure.model.android.PsdLibraryDependencyModel;
+import com.android.tools.idea.gradle.structure.configurables.PsContext;
+import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
+import com.android.tools.idea.gradle.structure.model.android.PsLibraryDependency;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.ui.popup.Balloon;
@@ -39,8 +39,8 @@ import static com.intellij.ui.IdeBorderFactory.createEmptyBorder;
 import static com.intellij.util.ui.UIUtil.getLabelBackground;
 import static org.jetbrains.android.util.AndroidUiUtil.setUpAsHtmlLabel;
 
-public class LibraryDependencyEditor implements DependencyEditor<PsdLibraryDependencyModel> {
-  @NotNull private final PsdContext myContext;
+public class LibraryDependencyEditor implements DependencyEditor<PsLibraryDependency> {
+  @NotNull private final PsContext myContext;
 
   private JPanel myPanel;
   private JTextField myGroupIdTextField;
@@ -53,9 +53,9 @@ public class LibraryDependencyEditor implements DependencyEditor<PsdLibraryDepen
   private JButton myCheckForUpdatesButton;
 
   private LightweightHint mySourceInfoHint;
-  private PsdLibraryDependencyModel myModel;
+  private PsLibraryDependency myModel;
 
-  public LibraryDependencyEditor(@NotNull PsdContext context) {
+  public LibraryDependencyEditor(@NotNull PsContext context) {
     myContext = context;
     myScopeLabel.setLabelFor(myScopeField.getTextField());
     showAsLabel(myGroupIdTextField, myArtifactNameTextField);
@@ -131,10 +131,10 @@ public class LibraryDependencyEditor implements DependencyEditor<PsdLibraryDepen
   }
 
   @Override
-  public void display(@NotNull PsdLibraryDependencyModel model) {
+  public void display(@NotNull PsLibraryDependency model) {
     myModel = model;
 
-    PsdArtifactDependencySpec declaredSpec = myModel.getDeclaredSpec();
+    PsArtifactDependencySpec declaredSpec = myModel.getDeclaredSpec();
     assert declaredSpec != null;
     myGroupIdTextField.setText(declaredSpec.group);
     myArtifactNameTextField.setText(declaredSpec.name);
@@ -149,7 +149,7 @@ public class LibraryDependencyEditor implements DependencyEditor<PsdLibraryDepen
 
   @Override
   @NotNull
-  public Class<PsdLibraryDependencyModel> getSupportedModelType() {
-    return PsdLibraryDependencyModel.class;
+  public Class<PsLibraryDependency> getSupportedModelType() {
+    return PsLibraryDependency.class;
   }
 }
