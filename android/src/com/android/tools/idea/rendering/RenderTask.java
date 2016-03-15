@@ -31,6 +31,8 @@ import com.android.sdklib.devices.Device;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.RenderContext;
+import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.ManifestInfo;
 import com.android.tools.idea.model.ManifestInfo.ActivityAttributes;
@@ -64,6 +66,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
+import static com.android.SdkConstants.APPCOMPAT_LIB_ARTIFACT;
 import static com.android.SdkConstants.HORIZONTAL_SCROLL_VIEW;
 import static com.android.SdkConstants.SCROLL_VIEW;
 import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
@@ -408,6 +411,13 @@ public class RenderTask implements IImageFactory {
     ILayoutPullParser modelParser = LayoutPullParserFactory.create(this);
     if (modelParser == null) {
       return null;
+    }
+
+    if (modelParser instanceof LayoutPsiPullParser) {
+      // For regular layouts, if we use appcompat, we have to emulat the app:srcCompat attribute behaviour
+      AndroidGradleModel androidModel = AndroidGradleModel.get(myRenderService.getFacet());
+      boolean useSrcCompat = androidModel != null && GradleUtil.dependsOn(androidModel, APPCOMPAT_LIB_ARTIFACT);
+      ((LayoutPsiPullParser)modelParser).setUseSrcCompat(useSrcCompat);
     }
 
     myLayoutlibCallback.reset();

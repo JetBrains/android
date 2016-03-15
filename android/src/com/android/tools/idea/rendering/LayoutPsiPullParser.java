@@ -24,6 +24,7 @@ import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.res.ResourceHelper;
 import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.application.ApplicationManager;
@@ -52,6 +53,12 @@ import static com.android.tools.idea.rendering.RenderTask.AttributeFilter;
  * are of type {@link XmlTag}.
  */
 public class LayoutPsiPullParser extends LayoutPullParser {
+  /**
+   * Set of views that support the use of the app:srcCompat attribute when the support library is being used. This list must contain
+   * ImageView and all the framework views that inherit from ImageView and support srcCompat.
+   */
+  private static final ImmutableSet<String> TAGS_SUPPORTING_SRC_COMPAT = ImmutableSet.of(IMAGE_BUTTON, IMAGE_VIEW);
+
   @NotNull
   private final LayoutLog myLogger;
 
@@ -68,6 +75,9 @@ public class LayoutPsiPullParser extends LayoutPullParser {
   protected String myAndroidPrefix;
 
   protected boolean myProvideViewCookies = true;
+
+  /** If true, the parser will use app:srcCompat instead of android:src for the tags specified in {@link #TAGS_SUPPORTING_SRC_COMPAT} */
+  private boolean myUseSrcCompat;
 
   /**
    * Constructs a new {@link LayoutPsiPullParser}, a parser dedicated to the special case of
@@ -329,6 +339,11 @@ public class LayoutPsiPullParser extends LayoutPullParser {
         String layout = tag.getAttribute(LayoutMetadata.KEY_FRAGMENT_LAYOUT, TOOLS_URI);
         if (layout != null) {
           return layout;
+        }
+      } else if (myUseSrcCompat && ATTR_SRC.equals(localName) && TAGS_SUPPORTING_SRC_COMPAT.contains(tag.tagName)) {
+        String srcCompatValue = tag.getAttribute("srcCompat", AUTO_URI);
+        if (srcCompatValue != null) {
+          return srcCompatValue;
         }
       }
 
@@ -659,6 +674,10 @@ public class LayoutPsiPullParser extends LayoutPullParser {
       return null;
     }
     return tag;
+  }
+
+  public void setUseSrcCompat(boolean useSrcCompat) {
+    myUseSrcCompat = useSrcCompat;
   }
 
   static class AttributeFilteredLayoutParser extends LayoutPsiPullParser {
