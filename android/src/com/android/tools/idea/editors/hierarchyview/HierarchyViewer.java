@@ -21,39 +21,43 @@ import com.android.tools.idea.editors.hierarchyview.ui.ViewNodeActiveDisplay;
 import com.android.tools.idea.editors.hierarchyview.ui.ViewNodeTableModel;
 import com.android.tools.idea.editors.hierarchyview.ui.ViewNodeTreeRenderer;
 import com.google.common.collect.Lists;
+import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.ui.JBCheckboxMenuItem;
 import com.intellij.openapi.ui.JBPopupMenu;
+import com.intellij.openapi.ui.ThreeComponentsSplitter;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
-import com.intellij.ui.JBSplitter;
-import com.intellij.ui.components.JBScrollPane;
+import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.table.JBTable;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.TreePath;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.util.List;
 
 public class HierarchyViewer
   implements TreeSelectionListener, RollOverTree.TreeHoverListener,
              ViewNodeActiveDisplay.ViewNodeActiveDisplayListener {
+  private static final String FIRST_COMPONENT_WIDTH = "com.android.hv.first.comp.width";
+  private static final String LAST_COMPONENT_WIDTH = "com.android.hv.last.comp.width";
+  private static final int DEFAULT_WIDTH = 200;
 
   private static final Key<ViewNode> KEY_VIEWNODE = Key.create(ViewNode.class.getName());
 
   private final ViewNode myRoot;
 
+  private final ThreeComponentsSplitter myContentSplitter;
+
   // Preview
-  private final JBSplitter myPreviewSplitter;
   private final ViewNodeActiveDisplay myPreview;
 
   // Node tree
-  private final JBScrollPane myNodeScrollPanel;
   private final RollOverTree myNodeTree;
 
   // Properties
@@ -64,7 +68,10 @@ public class HierarchyViewer
   private final JBPopupMenu myNodePopup;
   private final JBCheckboxMenuItem myNodeVisibleMenuItem;
 
-  public HierarchyViewer(ViewNode node, BufferedImage preview) {
+  public HierarchyViewer(@NotNull ViewNode node,
+                         @NotNull BufferedImage preview,
+                         @NotNull final PropertiesComponent propertiesComponent,
+                         @NotNull Disposable parent) {
     myRoot = node;
 
     // Create UI
@@ -74,7 +81,6 @@ public class HierarchyViewer
     // Node tree
     myNodeTree = new RollOverTree(node);
     myNodeTree.setCellRenderer(new ViewNodeTreeRenderer());
-    myNodeScrollPanel = new JBScrollPane(myNodeTree);
 
     // Properties table
     myTableModel = new ViewNodeTableModel();
@@ -82,13 +88,29 @@ public class HierarchyViewer
     myPropertiesPanel.setFillsViewportHeight(true);
     myPropertiesPanel.getTableHeader().setReorderingAllowed(false);
 
-    JBSplitter leftVerticalSplitter = new JBSplitter(true);
-    leftVerticalSplitter.setFirstComponent(myNodeScrollPanel);
-    leftVerticalSplitter.setSecondComponent(new JBScrollPane(myPropertiesPanel));
+    myContentSplitter = new ThreeComponentsSplitter(false, true);
+    Disposer.register(parent, myContentSplitter);
 
-    myPreviewSplitter = new JBSplitter(false);
-    myPreviewSplitter.setFirstComponent(myPreview);
-    myPreviewSplitter.setSecondComponent(leftVerticalSplitter);
+    final JScrollPane firstComponent = ScrollPaneFactory.createScrollPane(myNodeTree);
+    final JScrollPane lastComponent = ScrollPaneFactory.createScrollPane(myPropertiesPanel);
+
+    myContentSplitter.setFirstComponent(firstComponent);
+    myContentSplitter.setInnerComponent(myPreview);
+    myContentSplitter.setLastComponent(lastComponent);
+
+    myContentSplitter.setFirstSize(propertiesComponent.getInt(FIRST_COMPONENT_WIDTH, DEFAULT_WIDTH));
+    myContentSplitter.setLastSize(propertiesComponent.getInt(LAST_COMPONENT_WIDTH, DEFAULT_WIDTH));
+
+    // listen to size changes and update the saved sizes
+    ComponentAdapter resizeListener = new ComponentAdapter() {
+      @Override
+      public void componentResized(ComponentEvent componentEvent) {
+        propertiesComponent.setValue(FIRST_COMPONENT_WIDTH, firstComponent.getSize().width, DEFAULT_WIDTH);
+        propertiesComponent.setValue(LAST_COMPONENT_WIDTH, lastComponent.getSize().width, DEFAULT_WIDTH);
+      }
+    };
+    firstComponent.addComponentListener(resizeListener);
+    lastComponent.addComponentListener(resizeListener);
 
     myPreview.addViewNodeActiveDisplayListener(this);
     myNodeTree.addTreeSelectionListener(this);
@@ -97,7 +119,7 @@ public class HierarchyViewer
     // Expand visible nodes
     for (int i = 0; i < myNodeTree.getRowCount(); i++) {
       TreePath path = myNodeTree.getPathForRow(i);
-      ViewNode n = (ViewNode) path.getLastPathComponent();
+      ViewNode n = (ViewNode)path.getLastPathComponent();
       if (n.isDrawn()) {
         myNodeTree.expandPath(path);
       }
@@ -115,26 +137,27 @@ public class HierarchyViewer
   }
 
   public JComponent getRootComponent() {
-    return myPreviewSplitter;
+    return myContentSplitter;
   }
 
   @Override
   public void valueChanged(TreeSelectionEvent e) {
-    ViewNode selection = (ViewNode) myNodeTree.getLastSelectedPathComponent();
+    ViewNode selection = (ViewNode)myNodeTree.getLastSelectedPathComponent();
     myTableModel.setNode(selection);
     myPreview.setSelectedNode(selection);
   }
 
   @Override
   public void onTreeCellHover(@Nullable TreePath path) {
-    myPreview.setHoverNode(path == null ? null : (ViewNode) path.getLastPathComponent());
+    myPreview.setHoverNode(path == null ? null : (ViewNode)path.getLastPathComponent());
   }
 
   @Override
   public void onViewNodeOver(ViewNode node) {
     if (node == null) {
       myNodeTree.updateHoverPath(null);
-    } else {
+    }
+    else {
       TreePath path = getPath(node);
       myNodeTree.scrollPathToVisible(path);
       myNodeTree.updateHoverPath(path);
@@ -155,7 +178,8 @@ public class HierarchyViewer
     do {
       nodes.add(0, node);
       node = node.parent;
-    } while (node != null);
+    }
+    while (node != null);
     return new TreePath(nodes.toArray());
   }
 
@@ -169,15 +193,17 @@ public class HierarchyViewer
           return;
         }
 
-        ViewNode node = (ViewNode) path.getLastPathComponent();
+        ViewNode node = (ViewNode)path.getLastPathComponent();
         if (node.isParentVisible()) {
           myNodeVisibleMenuItem.setEnabled(true);
           if (node.getForcedState() == ViewNode.ForcedState.NONE) {
             myNodeVisibleMenuItem.setState(node.isDrawn());
-          } else {
+          }
+          else {
             myNodeVisibleMenuItem.setState(node.getForcedState() == ViewNode.ForcedState.VISIBLE);
           }
-        } else {
+        }
+        else {
           // The parent itself is invisible.
           myNodeVisibleMenuItem.setEnabled(false);
           myNodeVisibleMenuItem.setState(false);
@@ -195,7 +221,7 @@ public class HierarchyViewer
 
     @Override
     public void actionPerformed(ActionEvent e) {
-      ViewNode node = (ViewNode) myNodePopup.getClientProperty(KEY_VIEWNODE);
+      ViewNode node = (ViewNode)myNodePopup.getClientProperty(KEY_VIEWNODE);
       if (node == null) {
         return;
       }
