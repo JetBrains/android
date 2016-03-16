@@ -312,11 +312,13 @@ public final class ManifestInfo {
       }
 
       List<VirtualFile> libraryManifests = new ArrayList<VirtualFile>();
-      for (AndroidFacet dependency : AndroidUtils.getAllAndroidDependencies(myFacet.getModule(), true)) {
-        // a bit overkill here, as there will only ever be 1 per lib module
-        for (VirtualFile libraryManifest : IdeaSourceProvider.getManifestFiles(dependency)) {
-          libraryManifests.add(libraryManifest);
-          lastModifiedMap.put(libraryManifest, getFileModificationStamp(libraryManifest));
+      if (!myFacet.isLibraryProject()) {
+        for (AndroidFacet dependency : AndroidUtils.getAllAndroidDependencies(myFacet.getModule(), true)) {
+          // a bit overkill here, as there will only ever be 1 per lib module
+          for (VirtualFile libraryManifest : IdeaSourceProvider.getManifestFiles(dependency)) {
+            libraryManifests.add(libraryManifest);
+            lastModifiedMap.put(libraryManifest, getFileModificationStamp(libraryManifest));
+          }
         }
       }
 
