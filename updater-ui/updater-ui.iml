@@ -10,5 +10,6 @@
     <orderEntry type="module" module-name="updater" />
     <orderEntry type="module" module-name="repository" />
     <orderEntry type="module" module-name="android-annotations" />
+    <orderEntry type="module" module-name="core-api" />
   </component>
 </module>
