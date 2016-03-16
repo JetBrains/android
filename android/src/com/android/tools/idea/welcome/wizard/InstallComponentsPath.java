@@ -26,10 +26,10 @@ import com.android.sdklib.repositoryv2.AndroidSdkHandler;
 import com.android.sdklib.repositoryv2.meta.DetailsTypes;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.SdkMerger;
-import com.android.tools.idea.sdkv2.RepoProgressIndicatorAdapter;
-import com.android.tools.idea.sdkv2.StudioDownloader;
-import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
-import com.android.tools.idea.sdkv2.StudioSettingsController;
+import com.android.tools.idea.sdk.progress.RepoProgressIndicatorAdapter;
+import com.android.tools.idea.sdk.StudioDownloader;
+import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
+import com.android.tools.idea.sdk.StudioSettingsController;
 import com.android.tools.idea.ui.ApplicationUtils;
 import com.android.tools.idea.welcome.SdkLocationUtils;
 import com.android.tools.idea.welcome.config.AndroidFirstRunPersistentData;
@@ -91,7 +91,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     myLocalHandler = AndroidSdkHandler.getInstance(sdkLocation);
 
     myProgressStep = progressStep;
-    myComponentInstaller = new ComponentInstaller(installUpdates, myLocalHandler);
+    myComponentInstaller = new ComponentInstaller(myLocalHandler);
     myInstallUpdates = installUpdates;
   }
 
@@ -279,7 +279,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
         File sdkLocation = new File(sdkPath);
         if (!FileUtil.filesEqual(myLocalHandler.getLocation(), sdkLocation)) {
           myLocalHandler = AndroidSdkHandler.getInstance(sdkLocation);
-          myComponentInstaller = new ComponentInstaller(myInstallUpdates, myLocalHandler);
+          myComponentInstaller = new ComponentInstaller(myLocalHandler);
 
           myComponentTree.updateState(myLocalHandler);
         }
