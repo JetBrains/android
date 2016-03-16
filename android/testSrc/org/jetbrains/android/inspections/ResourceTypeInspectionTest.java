@@ -1247,6 +1247,52 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
             "}\n");
   }
 
+  public void testObtainStyleablesFromArray() throws Exception {
+    // Regression test for https://code.google.com/p/android/issues/detail?id=201882
+    // obtainStyledAttributes normally expects a styleable but you can also supply a
+    // custom int array
+    doCheck("package test.pkg;\n" +
+            "\n" +
+            "import android.app.Activity;\n" +
+            "import android.content.Context;\n" +
+            "import android.content.res.TypedArray;\n" +
+            "import android.graphics.Color;\n" +
+            "import android.util.AttributeSet;\n" +
+            "\n" +
+            "@SuppressWarnings(\"unused\")\n" +
+            "public class X {\n" +
+            "    public void test1(Activity activity, float[] foregroundHsv, float[] backgroundHsv) {\n" +
+            "        TypedArray attributes = activity.obtainStyledAttributes(\n" +
+            "                new int[] {\n" +
+            "                        R.attr.setup_wizard_navbar_theme,\n" +
+            "                        android.R.attr.colorForeground,\n" +
+            "                        android.R.attr.colorBackground });\n" +
+            "        Color.colorToHSV(attributes.getColor(1, 0), foregroundHsv);\n" +
+            "        Color.colorToHSV(attributes.getColor(2, 0), backgroundHsv);\n" +
+            "        attributes.recycle();\n" +
+            "    }\n" +
+            "\n" +
+            "    public void test2(Context context, AttributeSet attrs, int defStyle) {\n" +
+            "        final TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.BezelImageView,\n" +
+            "                defStyle, 0);\n" +
+            "        a.getDrawable(R.styleable.BezelImageView_maskDrawable);\n" +
+            "        a.recycle();\n" +
+            "    }\n" +
+            "\n" +
+            "    public static class R {\n" +
+            "        public static class attr {\n" +
+            "            public static final int setup_wizard_navbar_theme = 0x7f01003b;\n" +
+            "        }\n" +
+            "        public static class styleable {\n" +
+            "            public static final int[] BezelImageView = {\n" +
+            "                    0x7f01005d, 0x7f01005e, 0x7f01005f\n" +
+            "            };\n" +
+            "            public static final int BezelImageView_maskDrawable = 0;\n" +
+            "        }\n" +
+            "    }\n" +
+            "}\n");
+  }
+
   public void testSuppressNames() throws Exception {
     doCheck("package test.pkg;\n" +
             "\n" +
