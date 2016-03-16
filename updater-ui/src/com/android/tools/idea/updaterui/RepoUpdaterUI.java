@@ -18,13 +18,11 @@ package com.android.tools.idea.updaterui;
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.repository.api.ProgressIndicator;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.updater.OperationCancelledException;
-import com.intellij.updater.UpdaterUI;
-import com.intellij.updater.ValidationResult;
+import com.intellij.updater.SwingUpdaterUI;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.awt.*;
 
 /**
  * Bridge between the Studio/IJ updater and Studio itself.
@@ -32,16 +30,19 @@ import java.util.Map;
  * As such it will be invoked via reflection rather than directly.
  */
 @SuppressWarnings("unused")
-public class RepoUpdaterUI implements UpdaterUI {
+public class RepoUpdaterUI extends SwingUpdaterUI {
   ProgressIndicator myProgress;
+  Component myParentComponent;
 
-  public RepoUpdaterUI(@NonNull ProgressIndicator progress) {
+  public RepoUpdaterUI(@Nullable Component parentComponent, @NonNull ProgressIndicator progress) {
+    super();
     myProgress = progress;
+    myParentComponent = parentComponent;
   }
 
   @Override
-  public void startProcess(@Nullable String title) {
-    // We don't have UI to set up, so nothing here.
+  public void startProcess(String title) {
+    // nothing
   }
 
   @Override
@@ -83,35 +84,18 @@ public class RepoUpdaterUI implements UpdaterUI {
     return false;
   }
 
-  /**
-   * We don't have a mechanism to get user feedback, so just die (with a special exception type depending on the type of error).
-   */
   @Override
-  @NonNull
-  public Map<String, ValidationResult.Option> askUser(@NonNull List<ValidationResult> validationResults)
-    throws OperationCancelledException {
-    for (ValidationResult v : validationResults) {
-      if (v.kind == ValidationResult.Kind.CONFLICT) {
-        throw new InstallCompleteException();
-      }
-      if (v.kind == ValidationResult.Kind.ERROR) {
-        if (v.options.contains(ValidationResult.Option.KILL_PROCESS)) {
-          throw new NeedsRestartException();
-        }
-        throw new InstallCompleteException();
-      }
-    }
-    return new HashMap<String, ValidationResult.Option>();
+  protected Component getParentComponent() {
+    return myParentComponent;
   }
 
-  /**
-   * Exception indicating that the installation was stopped because files are in use. Studio should exit and use the standalone patcher.
-   */
-  public static class NeedsRestartException extends OperationCancelledException {}
+  @Override
+  protected void notifyCancelled() {
+    // nothing
+  }
 
-  /**
-   * Exception indicating that the installation was stopped due to a failure to apply the patch. The complete version of the package
-   * should be installed instead.
-   */
-  public static class InstallCompleteException extends OperationCancelledException {}
+  @Override
+  public void exit() {
+    // nothing?
+  }
 }
