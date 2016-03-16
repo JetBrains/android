@@ -25,8 +25,8 @@ import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
-import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.components.AbstractProjectComponent;
 import com.intellij.openapi.module.Module;
@@ -37,7 +37,6 @@ import com.intellij.openapi.roots.ModuleRootEvent;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.util.Comparing;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
@@ -47,6 +46,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.util.Processor;
+import com.intellij.util.SingleAlarm;
 import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
@@ -67,9 +67,11 @@ public class AndroidPropertyFilesUpdater extends AbstractProjectComponent {
     NotificationGroup.balloonGroup("Android Property Files Updating");
   private static final Key<List<Object>> ANDROID_PROPERTIES_STATE_KEY = Key.create("ANDROID_PROPERTIES_STATE");
   private Notification myNotification;
+  private final SingleAlarm myAlarm;
 
   protected AndroidPropertyFilesUpdater(Project project) {
     super(project);
+    myAlarm = new SingleAlarm(() -> TransactionGuard.submitTransaction(this::updatePropertyFilesIfNecessary), 50, project);
   }
 
   @Override
@@ -91,22 +93,13 @@ public class AndroidPropertyFilesUpdater extends AbstractProjectComponent {
     myProject.getMessageBus().connect(myProject).subscribe(ProjectTopics.PROJECT_ROOTS, new ModuleRootAdapter() {
       @Override
       public void rootsChanged(final ModuleRootEvent event) {
-        ApplicationManager.getApplication().invokeLater(new Runnable() {
-          @Override
-          public void run() {
-            StartupManager.getInstance(myProject).runWhenProjectIsInitialized(new Runnable() {
-              @Override
-              public void run() {
-                updatePropertyFilesIfNecessary();
-              }
-            });
-          }
-        }, myProject.getDisposed());
+        StartupManager.getInstance(myProject).runWhenProjectIsInitialized(myAlarm::cancelAndRequest);
       }
     });
   }
 
   private void updatePropertyFilesIfNecessary() {
+    if (myProject.isDisposed()) return;
     PsiDocumentManager.getInstance(myProject).commitAllDocuments();
 
     final List<VirtualFile> toAskFiles = new ArrayList<VirtualFile>();
