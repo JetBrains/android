@@ -201,6 +201,27 @@ public class AndroidFindUsagesTest extends AndroidTestCase {
                  describeUsages(references));
   }
 
+  /**
+   * Test that usages are found if searching for a reference value in an resource file.
+   */
+  public void testValueResource9() throws Throwable {
+    myFixture.copyFileToProject(BASE_PATH + "Class.java", "src/p1/p2/Class.java");
+    myFixture.copyFileToProject(BASE_PATH + "layout.xml", "res/layout/layout.xml");
+    Collection<UsageInfo> references = findCodeUsages("fu13_values.xml", "res/values/f13_values.xml");
+    assertEquals(3, references.size());
+    assertEquals("Class.java:6:\n" +
+                 "  int id2 = R.string.hello;\n" +
+                 "                     |~~~~~\n" +
+                 "values/f13_values.xml:9:\n" +
+                 "  <item>@string/hello</item>\n" +
+                 "        |~~~~~~~~~~~~~      \n" +
+                 "layout/layout.xml:5:\n" +
+                 "  <TextView android:text=\"@string/hello\"/>\n" +
+                 "                          |~~~~~~~~~~~~~  \n",
+                 describeUsages(references));
+  }
+
+
   public void testStyleInheritance() throws Throwable {
     Collection<UsageInfo> references = findCodeUsages("fu10_values.xml", "res/values/f10_values.xml");
     assertEquals(3, references.size());

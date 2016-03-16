@@ -202,7 +202,7 @@ public class AndroidRenameTest extends AndroidTestCase {
     createManifest();
     VirtualFile file = myFixture.copyFileToProject(BASE_PATH + before, "res/values/strings.xml");
     myFixture.configureFromExistingVirtualFile(file);
-    myFixture.renameElementAtCaretUsingHandler("str1");
+    checkAndRename("str1");
     myFixture.checkResultByFile(BASE_PATH + after);
   }
 
