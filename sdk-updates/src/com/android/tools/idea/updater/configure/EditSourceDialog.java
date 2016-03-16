@@ -17,9 +17,8 @@ package com.android.tools.idea.updater.configure;
 
 import com.android.repository.api.RepositorySource;
 import com.android.repository.api.RepositorySourceProvider;
-import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
+import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.intellij.openapi.ui.DialogWrapper;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.components.JBLabel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

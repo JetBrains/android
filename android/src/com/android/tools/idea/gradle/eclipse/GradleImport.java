@@ -28,7 +28,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.repositoryv2.AndroidSdkHandler;
 import com.android.tools.idea.gradle.util.PropertiesUtil;
-import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
+import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.utils.PositionXmlParser;
 import com.android.utils.SdkUtils;
 import com.android.utils.XmlUtils;

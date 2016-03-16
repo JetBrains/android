@@ -293,7 +293,7 @@
                          id ="gradle.experimental" displayName="Experimental" parentId="reference.settingsdialog.project.gradle"/>
     <applicationService serviceInterface="com.android.tools.idea.gradle.project.GradleExperimentalSettings"
                         serviceImplementation="com.android.tools.idea.gradle.project.GradleExperimentalSettings"/>
-    <applicationService serviceImplementation="com.android.tools.idea.sdkv2.StudioSettingsController"/>
+    <applicationService serviceImplementation="com.android.tools.idea.sdk.StudioSettingsController"/>
     <applicationService serviceImplementation="com.android.tools.idea.fd.InstantRunConfiguration"/>
     <applicationService serviceInterface="com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings"
                         serviceImplementation="com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings"/>

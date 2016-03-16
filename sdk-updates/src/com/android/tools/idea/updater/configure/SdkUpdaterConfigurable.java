@@ -24,8 +24,12 @@ import com.android.repository.io.FileOpUtils;
 import com.android.repository.util.InstallerUtil;
 import com.android.sdklib.repositoryv2.AndroidSdkHandler;
 import com.android.sdklib.repositoryv2.meta.DetailsTypes;
+import com.android.tools.idea.sdk.StudioDownloader;
+import com.android.tools.idea.sdk.StudioSdkUtil;
+import com.android.tools.idea.sdk.StudioSettingsController;
+import com.android.tools.idea.sdk.progress.RepoProgressIndicatorAdapter;
+import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
-import com.android.tools.idea.sdkv2.*;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.android.utils.HtmlBuilder;
 import com.google.common.base.Objects;
@@ -229,7 +233,7 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
             com.android.repository.api.ProgressIndicator repoProgress = new RepoProgressIndicatorAdapter(progress);
             FileOp fop = FileOpUtils.create();
             for (LocalPackage item : toDelete) {
-              StudioSdkUtil.findBestInstaller(item, getSdkHandler()).uninstall(item, repoProgress, getRepoManager(), fop);
+              StudioSdkUtil.createInstaller(item, getSdkHandler()).uninstall(repoProgress);
             }
           }
         }, "Uninstalling", false, null, myPanel.getComponent());
@@ -243,7 +247,6 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
                 installer.registerStateChangeListener(new PackageInstaller.StatusChangeListener() {
                   @Override
                   public void statusChanged(@NotNull PackageInstaller installer,
-                                            @NotNull RepoPackage p,
                                             @NotNull ProgressIndicator progress) {
                     myPanel.getComponent().repaint();
                   }
