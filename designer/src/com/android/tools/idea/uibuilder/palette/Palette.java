@@ -17,10 +17,12 @@ package com.android.tools.idea.uibuilder.palette;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
+import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.uibuilder.api.PaletteComponentHandler;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.google.common.base.Splitter;
+import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.util.IconLoader;
 import org.intellij.lang.annotations.Language;
@@ -30,7 +32,10 @@ import javax.swing.*;
 import javax.xml.bind.*;
 import javax.xml.bind.annotation.*;
 import java.io.Reader;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * A {@link Palette} contains a list of palette groups and items.
@@ -43,16 +48,45 @@ public class Palette {
     @XmlElement(name = "group", type = Group.class),
     @XmlElement(name = "item", type = Item.class)
   })
-  private List<BaseItem> myItems = Lists.newArrayList();
+  private final List<BaseItem> myItems;
   // @formatter:on
+
+  private final Set<GradleCoordinate> myGradleCoordinates;
+
+  private Palette() {
+    myItems = new ArrayList<BaseItem>();
+    myGradleCoordinates = new HashSet<GradleCoordinate>();
+  }
 
   /**
    * Handles parsing a palette.xml file. A palette file specifies the layout of the palette.
    */
   public static Palette parse(@NotNull Reader xmlReader, @NonNull ViewHandlerManager manager) throws JAXBException {
     Palette palette = unMarshal(xmlReader);
+
     palette.resolve(manager);
+    palette.addGradleCoordinates(palette.myItems);
+
     return palette;
+  }
+
+  private void addGradleCoordinates(@NonNull Iterable<BaseItem> items) {
+    for (Object item : items) {
+      if (item instanceof Item) {
+        String coordinateAsString = ((Item)item).getGradleCoordinate();
+
+        if (!Strings.isNullOrEmpty(coordinateAsString)) {
+          GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString(coordinateAsString + ":+");
+
+          if (coordinate != null) {
+            myGradleCoordinates.add(coordinate);
+          }
+        }
+      }
+      else if (item instanceof Group) {
+        addGradleCoordinates(((Group)item).getItems());
+      }
+    }
   }
 
   @NonNull
@@ -61,8 +95,8 @@ public class Palette {
   }
 
   @NonNull
-  public BaseItem getItem(int index) {
-    return myItems.get(index);
+  Set<GradleCoordinate> getGradleCoordinates() {
+    return myGradleCoordinates;
   }
 
   private static Palette unMarshal(@NotNull Reader xmlReader) throws JAXBException {
@@ -94,7 +128,7 @@ public class Palette {
 
   @SuppressWarnings("unused")
   public static class Group implements BaseItem {
-    @XmlAttribute(required = true, name="name")
+    @XmlAttribute(required = true, name = "name")
     @NonNull
     @SuppressWarnings("NullableProblems")
     private String myName;
@@ -127,6 +161,12 @@ public class Palette {
       for (BaseItem item : myItems) {
         item.resolve(manager);
       }
+    }
+
+    @NonNull
+    @Override
+    public String toString() {
+      return myName;
     }
   }
 
@@ -285,6 +325,12 @@ public class Palette {
       }
       index += 1 + myTagName.length();
       return xml.substring(0, index) + "\n  android:id=\"@+id/" + getId() + "\"\n" + xml.substring(index);
+    }
+
+    @NonNull
+    @Override
+    public String toString() {
+      return myTagName;
     }
   }
 
