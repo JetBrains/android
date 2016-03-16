@@ -1889,6 +1889,22 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     else if (constraint instanceof ResourceTypeAllowedValues) {
       Issue issue = RESOURCE_TYPE;
       List<ResourceType> types = ((ResourceTypeAllowedValues)constraint).types;
+
+      if (types.contains(ResourceType.STYLEABLE) && (types.size() == 1)) {
+        PsiExpressionList argumentList = PsiTreeUtil.getParentOfType(argument, PsiExpressionList.class, true);
+        if (argumentList != null && argumentList.getParent() instanceof PsiMethodCallExpression) {
+          PsiExpression qualifier = ((PsiMethodCallExpression)argumentList.getParent()).getMethodExpression().getQualifierExpression();
+          if (qualifier != null && qualifier.getType() != null &&
+              "android.content.res.TypedArray".equals(qualifier.getType().getCanonicalText())) {
+            if (typeArrayFromArrayLiteral(qualifier)) {
+              // You're generally supposed to provide a styleable to the TypedArray methods,
+              // but you're also allowed to supply an integer array
+              return;
+            }
+          }
+        }
+      }
+
       String message;
       if (types.isEmpty()) {
         // Keep in sync with guessLintIssue
