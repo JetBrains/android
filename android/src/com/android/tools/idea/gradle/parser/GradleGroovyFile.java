@@ -22,6 +22,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.codeInsight.actions.ReformatCodeProcessor;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.project.Project;
@@ -167,7 +168,7 @@ class GradleGroovyFile {
       }
     };
     if (myProject.isInitialized()) {
-      runnable.run();
+      ApplicationManager.getApplication().runReadAction(runnable);
     }
     else {
       StartupManager.getInstance(myProject).runWhenProjectIsInitialized(runnable);
