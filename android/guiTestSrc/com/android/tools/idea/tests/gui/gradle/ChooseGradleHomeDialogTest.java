@@ -18,7 +18,8 @@ package com.android.tools.idea.tests.gui.gradle;
 import com.android.tools.idea.gradle.project.ChooseGradleHomeDialog;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
-import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.ChooseGradleHomeDialogFixture;
 import com.intellij.openapi.application.ApplicationManager;
 import org.fest.swing.edt.GuiQuery;
@@ -30,7 +31,6 @@ import org.junit.runner.RunWith;
 import java.io.File;
 
 import static com.android.SdkConstants.GRADLE_MINIMUM_VERSION;
-import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPORT;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
 import static com.google.common.truth.TruthJUnit.assume;
 import static org.fest.swing.edt.GuiActionRunner.execute;
@@ -39,7 +39,7 @@ import static org.junit.Assert.assertNotNull;
 /**
  * UI Test for {@link com.android.tools.idea.gradle.project.ChooseGradleHomeDialog}.
  */
-@BelongsToTestGroups({PROJECT_SUPPORT})
+@RunIn(TestGroup.PROJECT_SUPPORT)
 @RunWith(GuiTestRunner.class)
 public class ChooseGradleHomeDialogTest {
 

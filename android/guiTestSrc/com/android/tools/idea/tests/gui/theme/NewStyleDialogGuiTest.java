@@ -15,9 +15,10 @@
  */
 package com.android.tools.idea.tests.gui.theme;
 
-import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.NewStyleDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorFixture;
 import org.fest.swing.fixture.JComboBoxFixture;
@@ -27,10 +28,9 @@ import org.junit.runner.RunWith;
 
 import java.io.IOException;
 
-import static com.android.tools.idea.tests.gui.framework.TestGroup.THEME;
 import static junit.framework.Assert.assertEquals;
 
-@BelongsToTestGroups({THEME})
+@RunIn(TestGroup.THEME)
 @RunWith(GuiTestRunner.class)
 public class NewStyleDialogGuiTest {
 
