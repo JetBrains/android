@@ -25,10 +25,12 @@ import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
 import com.android.tools.idea.rendering.ImageUtils;
 import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.uibuilder.editor.NlEditorPanel;
 import com.android.tools.idea.uibuilder.editor.NlPreviewForm;
 import com.android.tools.idea.uibuilder.model.DnDTransferComponent;
 import com.android.tools.idea.uibuilder.model.DnDTransferItem;
 import com.android.tools.idea.uibuilder.model.ItemTransferable;
+import com.android.tools.idea.uibuilder.palette.NlPaletteModel.ResourceType;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.Lists;
 import com.intellij.designer.DesignerEditorPanelFacade;
@@ -59,6 +61,7 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.wm.impl.content.ToolWindowContentUi;
+import com.intellij.psi.xml.XmlFile;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.ScrollPaneFactory;
@@ -67,6 +70,8 @@ import com.intellij.util.IJSwingUtilities;
 import com.intellij.util.ui.JBImageIcon;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.tree.TreeUtil;
+import org.jetbrains.android.dom.layout.LayoutDomFileDescription;
+import org.jetbrains.android.dom.menu.MenuDomFileDescription;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
@@ -90,27 +95,59 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent, Co
   private static final int ICON_SPACER = 4;
 
   @NonNull private final JTree myTree;
-  @NonNull private final NlPaletteModel myModel;
   @NonNull private final IconPreviewFactory myIconFactory;
-  @NonNull private final DesignerEditorPanelFacade myDesigner;
+  @NonNull private final NlPaletteModel myModel;
   @NonNull private final Set<String> myMissingLibraries;
   @NonNull private final Disposable myDisposable;
-  @NonNull private Mode myMode;
+  @NonNull private final DesignerEditorPanelFacade myDesigner;
+  @NonNull private final ResourceType myResourceType;
+
   @Nullable private ScalableDesignSurface myDesignSurface;
+  @NonNull private Mode myMode;
   @Nullable private BufferedImage myLastDragImage;
 
   public NlPalettePanel(@NonNull Project project, @NonNull DesignerEditorPanelFacade designer) {
-    myDesigner = designer;
-    myModel = NlPaletteModel.get(project);
     myTree = new DnDAwareTree();
     myIconFactory = IconPreviewFactory.get();
+    myModel = NlPaletteModel.get(project);
     myMissingLibraries = new HashSet<String>();
     myDisposable = Disposer.newDisposable();
+    myDesigner = designer;
+    myResourceType = initResourceType();
+
     myMode = Mode.ICON_AND_TEXT;
+
     initTree(project);
     JScrollPane pane = ScrollPaneFactory.createScrollPane(myTree, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER);
     setLayout(new BorderLayout());
     add(pane, BorderLayout.CENTER);
+  }
+
+  @NonNull
+  private ResourceType initResourceType() {
+    XmlFile file;
+
+    if (myDesigner instanceof NlEditorPanel) {
+      file = ((NlEditorPanel)myDesigner).getFile();
+    }
+    else if (myDesigner instanceof NlPreviewForm) {
+      // TODO Will this ever happen?
+      file = ((NlPreviewForm)myDesigner).getFile();
+      assert file != null;
+    }
+    else {
+      throw new IllegalStateException(myDesigner.toString());
+    }
+
+    if (LayoutDomFileDescription.isLayoutFile(file)) {
+      return ResourceType.LAYOUT;
+    }
+    else if (MenuDomFileDescription.isMenuFile(file)) {
+      return ResourceType.MENU;
+    }
+    else {
+      throw new AssertionError(file);
+    }
   }
 
   @NonNull
@@ -274,7 +311,7 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent, Co
     if (mode == Mode.PREVIEW && myDesignSurface != null) {
       Configuration configuration = myDesignSurface.getConfiguration();
       if (configuration != null) {
-        myIconFactory.load(configuration, myModel.getPalette(), false);
+        myIconFactory.load(configuration, myModel.getPalette(myResourceType), false);
       }
     }
     setColors();
@@ -307,8 +344,8 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent, Co
     DumbService.getInstance(project).smartInvokeLater(new Runnable() {
       @Override
       public void run() {
-        DefaultMutableTreeNode root = (DefaultMutableTreeNode) myTree.getModel().getRoot();
-        addItems(myModel.getPalette().getItems(), root);
+        DefaultMutableTreeNode root = (DefaultMutableTreeNode)myTree.getModel().getRoot();
+        addItems(myModel.getPalette(myResourceType).getItems(), root);
         checkForNewMissingDependencies();
         expandAll(myTree, root);
       }
@@ -338,7 +375,7 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent, Co
         DefaultMutableTreeNode node = (DefaultMutableTreeNode)value;
         Object content = node.getUserObject();
         if (content instanceof Palette.Item) {
-          Palette.Item item = (Palette.Item) content;
+          Palette.Item item = (Palette.Item)content;
           BufferedImage image = null;
           if (!needsLibraryLoad(item) && myMode == Mode.PREVIEW && myDesignSurface != null && myDesignSurface.getConfiguration() != null) {
             image = myIconFactory.getImage(item, myDesignSurface.getConfiguration(), getScale(item));
@@ -373,7 +410,7 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent, Co
           }
         }
         else if (content instanceof Palette.Group) {
-          Palette.Group group = (Palette.Group) content;
+          Palette.Group group = (Palette.Group)content;
           append(group.getName());
           setIcon(AllIcons.Nodes.Folder);
         }
@@ -396,7 +433,7 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent, Co
     if (!(item instanceof Palette.Item)) {
       return false;
     }
-    Palette.Item paletteItem = (Palette.Item) item;
+    Palette.Item paletteItem = (Palette.Item)item;
     return myMissingLibraries.contains(paletteItem.getGradleCoordinate());
   }
 
@@ -404,7 +441,7 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent, Co
     for (Palette.BaseItem item : items) {
       DefaultMutableTreeNode node = new DefaultMutableTreeNode(item);
       if (item instanceof Palette.Group) {
-        Palette.Group group = (Palette.Group) item;
+        Palette.Group group = (Palette.Group)item;
         addItems(group.getItems(), node);
       }
       rootNode.add(node);
@@ -422,7 +459,7 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent, Co
       public void mousePressed(MouseEvent event) {
         Palette.BaseItem object = getItemForPath(myTree.getPathForLocation(event.getX(), event.getY()));
         if (needsLibraryLoad(object)) {
-          Palette.Item item = (Palette.Item) object;
+          Palette.Item item = (Palette.Item)object;
           String coordinate = item.getGradleCoordinate();
           assert coordinate != null;
           Module module = getModule();
@@ -451,7 +488,7 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent, Co
     List<String> missing = Collections.emptyList();
     if (module != null) {
       GradleDependencyManager manager = GradleDependencyManager.getInstance(module.getProject());
-      missing = fromGradleCoordinates(manager.findMissingDependencies(module, toGradleCoordinates(myModel.getLibrariesUsed())));
+      missing = fromGradleCoordinates(manager.findMissingDependencies(module, myModel.getPalette(myResourceType).getGradleCoordinates()));
       if (missing.size() == myMissingLibraries.size() && myMissingLibraries.containsAll(missing)) {
         return false;
       }
@@ -504,7 +541,7 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent, Co
       return null;
     }
     DefaultMutableTreeNode node = (DefaultMutableTreeNode)path.getLastPathComponent();
-    return (Palette.BaseItem) node.getUserObject();
+    return (Palette.BaseItem)node.getUserObject();
   }
 
   @Override
@@ -532,7 +569,7 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent, Co
       TreePath path = myTree.getClosestPathForLocation(dragOrigin.x, dragOrigin.y);
       Palette.BaseItem content = getItemForPath(path);
       assert content instanceof Palette.Item;
-      Palette.Item item = (Palette.Item) content;
+      Palette.Item item = (Palette.Item)content;
       Dimension size = null;
       if (myDesignSurface != null) {
         ScreenView screenView = myDesignSurface.getCurrentScreenView();
@@ -625,7 +662,7 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent, Co
       TreePath path = myTree.getSelectionPath();
       Palette.BaseItem content = getItemForPath(path);
       if (content instanceof Palette.Item && !needsLibraryLoad(content)) {
-        Palette.Item item = (Palette.Item) content;
+        Palette.Item item = (Palette.Item)content;
         DnDTransferComponent component = new DnDTransferComponent(item.getTagName(), item.getXml(), 0, 0);
         CopyPasteManager.getInstance().setContents(new ItemTransferable(new DnDTransferItem(component)));
       }

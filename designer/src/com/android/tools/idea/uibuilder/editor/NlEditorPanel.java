@@ -59,6 +59,7 @@ import java.util.List;
  * Assembles a designer editor from various components
  */
 public class NlEditorPanel extends JPanel implements DesignerEditorPanelFacade, DataProvider {
+  private final XmlFile myFile;
   private final DesignSurface mySurface;
   private final ThreeComponentsSplitter myContentSplitter;
 
@@ -67,11 +68,11 @@ public class NlEditorPanel extends JPanel implements DesignerEditorPanelFacade, 
     setOpaque(true);
 
     final Project project = facet.getModule().getProject();
-    XmlFile xmlFile = (XmlFile)AndroidPsiUtils.getPsiFileSafely(project, file);
-    assert xmlFile != null : file;
+    myFile = (XmlFile)AndroidPsiUtils.getPsiFileSafely(project, file);
+    assert myFile != null : file;
 
     mySurface = new DesignSurface(project);
-    NlModel model = NlModel.create(mySurface, editor, facet, xmlFile);
+    NlModel model = NlModel.create(mySurface, editor, facet, myFile);
     mySurface.setModel(model);
 
     myContentSplitter = new ThreeComponentsSplitter();
@@ -151,6 +152,11 @@ public class NlEditorPanel extends JPanel implements DesignerEditorPanelFacade, 
 
   public void deactivate() {
     mySurface.deactivate();
+  }
+
+  @NonNull
+  public XmlFile getFile() {
+    return myFile;
   }
 
   public DesignSurface getSurface() {
@@ -269,7 +275,8 @@ public class NlEditorPanel extends JPanel implements DesignerEditorPanelFacade, 
       ViewHandler handler = handlerManager.getHandler(receiver);
       if (handler instanceof ViewGroupHandler) {
         before = receiver.getChild(0);
-      } else {
+      }
+      else {
         before = receiver.getNextSibling();
         receiver = receiver.getParent();
         if (receiver == null) {
@@ -308,12 +315,13 @@ public class NlEditorPanel extends JPanel implements DesignerEditorPanelFacade, 
     }
   }
 
-  /** <b>Temporary</b> bridge to older Configuration actions. When we can ditch the old layout preview
+  /**
+   * <b>Temporary</b> bridge to older Configuration actions. When we can ditch the old layout preview
    * and old layout editors, we no longer needs this level of indirection to let the configuration actions
    * talk to multiple different editor implementations, and the render actions can directly address DesignSurface.
    */
   private static class NlRenderContext implements RenderContext {
-    @NonNull private DesignSurface mySurface;
+    @NonNull private final DesignSurface mySurface;
 
     public NlRenderContext(@NonNull DesignSurface surface) {
       mySurface = surface;

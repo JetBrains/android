@@ -21,54 +21,64 @@ import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.util.PathUtil;
-import com.intellij.util.containers.HashSet;
 
 import javax.xml.bind.JAXBException;
 import java.io.*;
-import java.util.List;
-import java.util.Set;
+import java.util.EnumMap;
+import java.util.Locale;
+import java.util.Map;
 
 public class NlPaletteModel {
+  enum ResourceType {
+    LAYOUT,
+    MENU;
+
+    @NonNull
+    final String getPaletteFileName() {
+      return toString().toLowerCase(Locale.ROOT) + "_palette.xml";
+    }
+  }
+
   public static final String ANDROID_PALETTE = "android-palette";
   public static final String PALETTE_VERSION = "v1";
-  public static final String METADATA = "palette.xml";
 
+  private final Map<ResourceType, Palette> resourceTypeToPalette;
   private final Project myProject;
-  private final Set<String> myLibrariesUsed;
-
-  private Palette myPalette;
 
   public static NlPaletteModel get(@NonNull Project project) {
     return project.getComponent(NlPaletteModel.class);
   }
 
-  /**
-   * Use the {@link #get} method for getting a {@link NlPaletteModel} instance.<br>
-   * This constructor is meant to be used by Intellij's plugin injector. It is not meant for normal use of this class.
-   */
-  public NlPaletteModel(@NonNull Project project) {
+  private NlPaletteModel(@NonNull Project project) {
+    resourceTypeToPalette = new EnumMap<ResourceType, Palette>(ResourceType.class);
     myProject = project;
-    myLibrariesUsed = new HashSet<String>();
   }
 
-  public Palette getPalette() {
-    if (myPalette == null) {
-      loadPalette();
+  @NonNull
+  Palette getPalette(@NonNull ResourceType type) {
+    Palette palette = resourceTypeToPalette.get(type);
+
+    if (palette == null) {
+      loadPalette(type);
+      return resourceTypeToPalette.get(type);
     }
-    return myPalette;
+    else {
+      return palette;
+    }
   }
 
-  public Set<String> getLibrariesUsed() {
-    return myLibrariesUsed;
-  }
-
-  private void loadPalette() {
+  private void loadPalette(@NonNull ResourceType type) {
     try {
-      File file = getPaletteFile(METADATA);
+      String name = type.getPaletteFileName();
+      File file = new File(PathManager.getSystemPath(), ANDROID_PALETTE + File.separatorChar + PALETTE_VERSION + File.separatorChar + name);
+
+      if (!file.exists()) {
+        copyPredefinedPalette(file, name);
+      }
+
       Reader reader = new InputStreamReader(new FileInputStream(file));
       try {
-        loadPalette(reader);
+        loadPalette(reader, type);
       }
       finally {
         reader.close();
@@ -83,27 +93,9 @@ public class NlPaletteModel {
   }
 
   @VisibleForTesting
-  void loadPalette(@NonNull Reader reader) throws IOException, JAXBException {
-    ViewHandlerManager manager = ViewHandlerManager.get(myProject);
-    myLibrariesUsed.clear();
-    myPalette = Palette.parse(reader, manager);
-    findLibrariesUsed(myPalette.getItems());
-  }
-
-  private static File getPaletteFile(@NonNull String metadata) throws IOException {
-    String path = FileUtil.toCanonicalPath(PathManager.getSystemPath());
-    // @formatter:off
-    //noinspection StringBufferReplaceableByString
-    File paletteFile = new File(new StringBuilder()
-                                    .append(path).append(File.separator)
-                                    .append(ANDROID_PALETTE).append(File.separator)
-                                    .append(PALETTE_VERSION).append(File.separator)
-                                    .append(METADATA).toString());
-    // @formatter:on
-    if (!paletteFile.exists()) {
-      copyPredefinedPalette(paletteFile, metadata);
-    }
-    return paletteFile;
+  void loadPalette(@NonNull Reader reader, @NonNull ResourceType type) throws JAXBException {
+    Palette palette = Palette.parse(reader, ViewHandlerManager.get(myProject));
+    resourceTypeToPalette.put(type, palette);
   }
 
   private static void copyPredefinedPalette(@NonNull File paletteFile, @NonNull String metadata) throws IOException {
@@ -119,21 +111,6 @@ public class NlPaletteModel {
     finally {
       stream.close();
       output.close();
-    }
-  }
-
-  private void findLibrariesUsed(@NonNull List<Palette.BaseItem> items) {
-    for (Palette.BaseItem item : items) {
-      if (item instanceof Palette.Group) {
-        Palette.Group group = (Palette.Group) item;
-        findLibrariesUsed(group.getItems());
-      }
-      else if (item instanceof Palette.Item) {
-        Palette.Item paletteItem = (Palette.Item) item;
-        if (paletteItem.getGradleCoordinate() != null) {
-          myLibrariesUsed.add(paletteItem.getGradleCoordinate());
-        }
-      }
     }
   }
 }
