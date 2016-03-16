@@ -117,13 +117,13 @@ public class ConfigurationToolbarFixture {
    * Toggles orientation between landscape and portrait
    */
   public void toggleOrientation() {
-    State currentState = getNonNullConfiguration().getDeviceState();
-    assertNotNull(currentState);
-
-    State flipState = getNonNullConfiguration().getNextDeviceState(currentState);
-    assertNotNull(flipState);
-
-    JButton button = findToolbarButton("Switch to " + flipState.getName());
+    JButton button = waitUntilFound(myRobot, new GenericTypeMatcher<JButton>(JButton.class) {
+      @Override
+      protected boolean isMatching(@NotNull JButton button) {
+        String toolTipText = button.getToolTipText();
+        return toolTipText != null && toolTipText.startsWith("Switch to");
+      }
+    });
     myRobot.click(button);
   }
 
