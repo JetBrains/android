@@ -18,7 +18,6 @@ package com.android.tools.idea.updaterui;
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.repository.api.ProgressIndicator;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.updater.OperationCancelledException;
 import com.intellij.updater.SwingUpdaterUI;
 
