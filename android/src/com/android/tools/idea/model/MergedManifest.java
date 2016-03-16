@@ -56,6 +56,7 @@ import static com.android.xml.AndroidManifest.*;
 public class MergedManifest {
 
   private final AndroidFacet myFacet;
+  private String myPackage;
   private String myApplicationId;
   private Integer myVersionCode;
   private String myManifestTheme;
@@ -96,11 +97,8 @@ public class MergedManifest {
    */
   @Nullable
   public String getPackage() {
-    Manifest manifest = myFacet.getManifest();
-    if (manifest != null) {
-      return manifest.getPackage().getValue();
-    }
-    return getApplicationId();
+    sync();
+    return myPackage;
   }
 
   /**
@@ -308,6 +306,7 @@ public class MergedManifest {
     myManifestTheme = null;
     myTargetSdk = AndroidVersion.DEFAULT;
     myMinSdk = AndroidVersion.DEFAULT;
+    myPackage = ""; //$NON-NLS-1$
     myApplicationId = ""; //$NON-NLS-1$
     myVersionCode = null;
     myApplicationIcon = null;
@@ -326,6 +325,11 @@ public class MergedManifest {
       }
 
       myApplicationId = ManifestInfo.getAttributeValue(root, ATTRIBUTE_PACKAGE, null);
+
+      // The package comes from the main manifest, NOT from the merged manifest.
+      Manifest manifest = myFacet.getManifest();
+      myPackage = manifest == null ? myApplicationId : manifest.getPackage().getValue();
+
       String versionCode = ManifestInfo.getAttributeValue(root, SdkConstants.ATTR_VERSION_CODE);
       try {
         myVersionCode = Integer.valueOf(versionCode);
