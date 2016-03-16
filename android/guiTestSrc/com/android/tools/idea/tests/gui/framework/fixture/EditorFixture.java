@@ -29,6 +29,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemePreviewFixt
 import com.google.common.collect.Lists;
 import com.intellij.android.designer.AndroidDesignerEditor;
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
+import com.intellij.icons.AllIcons;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -46,6 +47,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
+import com.intellij.ui.RowIcon;
 import com.intellij.ui.components.JBList;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
@@ -919,6 +921,21 @@ public class EditorFixture {
     FileFixture file = getCurrentFileFixture();
     file.waitUntilErrorAnalysisFinishes();
     robot.waitForIdle();
+    return this;
+  }
+
+  @NotNull
+  public EditorFixture waitForQuickfix() {
+    waitUntilFound(robot, new GenericTypeMatcher<JLabel>(JLabel.class) {
+      @Override
+      protected boolean isMatching(@Nonnull JLabel component) {
+        Icon icon = component.getIcon();
+        if (icon instanceof RowIcon) {
+          return AllIcons.Actions.QuickfixBulb.equals(((RowIcon)icon).getIcon(0));
+        }
+        return false;
+      }
+    });
     return this;
   }
 
