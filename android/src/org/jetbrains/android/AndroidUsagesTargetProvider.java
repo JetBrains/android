@@ -6,10 +6,7 @@ import com.intellij.openapi.editor.Editor;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.psi.xml.XmlFile;
-import com.intellij.psi.xml.XmlTag;
-import com.intellij.psi.xml.XmlToken;
-import com.intellij.psi.xml.XmlTokenType;
+import com.intellij.psi.xml.*;
 import com.intellij.usages.UsageTarget;
 import com.intellij.usages.UsageTargetProvider;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -47,6 +44,7 @@ public class AndroidUsagesTargetProvider implements UsageTargetProvider {
    *   <li>Check if file is XML resource file in values/ resource folder, returns null if false</li>
    *   <li>Check whether root tag is &lt;resources&gt;, returns null if false</li>
    *   <li>Check whether element at caret is an XMLToken with type XML_DATA_CHARACTERS, returns null if true</li>
+   *   <li>Check whether token at caret is a reference to the parent of the current element, returns null if true</li>
    *   <li>Return XmlTag parent for element at the cursor if exists</li>
    * </ul>
    */
@@ -74,6 +72,15 @@ public class AndroidUsagesTargetProvider implements UsageTargetProvider {
     }
 
     final XmlTag tag = PsiTreeUtil.getParentOfType(element, XmlTag.class);
+    // If searching for the parent of a resource, the target shouldn't be the resource tag, but the resource parent instead
+    if (element instanceof XmlToken && XmlTokenType.XML_ATTRIBUTE_VALUE_TOKEN.equals(((XmlToken)element).getTokenType()) && tag != null) {
+      XmlAttribute parentAttribute = tag.getAttribute("parent");
+      final String parentValue = parentAttribute != null ? parentAttribute.getValue() : null;
+      if (parentValue != null && parentValue.equals(element.getText())) {
+        return null;
+      }
+    }
+
     final XmlTag rootTag = ((XmlFile)file).getRootTag();
     if (rootTag == null || !TAG_RESOURCES.equals(rootTag.getName())) {
       return null;
