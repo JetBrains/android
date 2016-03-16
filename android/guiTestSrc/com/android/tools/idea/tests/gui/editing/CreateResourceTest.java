@@ -48,6 +48,7 @@ public class CreateResourceTest {
 
     // Wait for symbol to be marked as unrecognized
     editor.waitForCodeAnalysisHighlightCount(HighlightSeverity.ERROR, 1);
+    editor.waitForQuickfix();
 
     editor.invokeIntentionAction("Create layout resource file");
 
@@ -62,6 +63,7 @@ public class CreateResourceTest {
 
     // Wait for symbol to be marked as unrecognized
     editor.waitForCodeAnalysisHighlightCount(HighlightSeverity.ERROR, 1);
+    editor.waitForQuickfix();
 
     editor.invokeIntentionAction("Create layout resource file");
 
