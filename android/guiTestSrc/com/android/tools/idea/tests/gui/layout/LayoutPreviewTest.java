@@ -18,9 +18,10 @@ package com.android.tools.idea.tests.gui.layout;
 import com.android.repository.Revision;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
-import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.FileFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.ConfigurationToolbarFixture;
@@ -42,7 +43,6 @@ import java.util.List;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.getProjectCreationDirPath;
-import static com.android.tools.idea.tests.gui.framework.TestGroup.LAYOUT;
 import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
 import static junit.framework.Assert.*;
 import static org.junit.Assert.assertTrue;
@@ -62,7 +62,7 @@ import static org.junit.Assume.assumeTrue;
  *   <li>Render thumbnails</li>
  * </ul>
  */
-@BelongsToTestGroups({LAYOUT})
+@RunIn(TestGroup.LAYOUT)
 @RunWith(GuiTestRunner.class)
 public class LayoutPreviewTest {
 

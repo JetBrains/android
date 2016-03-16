@@ -18,9 +18,10 @@ package com.android.tools.idea.tests.gui.gradle;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.util.GradleProperties;
 import com.android.tools.idea.gradle.util.ProxySettings;
-import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.ProxySettingsDialogFixture;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.util.net.HttpConfigurable;
@@ -32,11 +33,10 @@ import org.junit.runner.RunWith;
 import java.io.File;
 import java.io.IOException;
 
-import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPORT;
 import static com.intellij.openapi.util.io.FileUtilRt.createIfNotExists;
 import static org.junit.Assert.*;
 
-@BelongsToTestGroups({PROJECT_SUPPORT})
+@RunIn(TestGroup.PROJECT_SUPPORT)
 @RunWith(GuiTestRunner.class)
 public class GradlePreSyncTest {
 
