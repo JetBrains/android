@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.fd;
 
-import com.android.repository.api.SettingsController;
 import com.intellij.openapi.components.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.xmlb.XmlSerializerUtil;
