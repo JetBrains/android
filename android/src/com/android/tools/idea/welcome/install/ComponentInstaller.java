@@ -19,7 +19,6 @@ import com.android.repository.api.*;
 import com.android.repository.impl.installer.BasicInstallerFactory;
 import com.android.sdklib.repositoryv2.AndroidSdkHandler;
 import com.android.tools.idea.sdk.StudioDownloader;
-import com.android.tools.idea.sdk.StudioSettingsController;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.google.common.collect.Lists;
@@ -64,7 +63,7 @@ public final class ComponentInstaller {
       // TODO: This is a hack. Any future rewrite of this shouldn't require this behavior.
       InstallerFactory factory = new BasicInstallerFactory();
       Installer installer = factory.createInstaller(request, sdkManager, mySdkHandler.getFileOp());
-      if (installer.prepareInstall(new StudioDownloader(), StudioSettingsController.getInstance(), progress)) {
+      if (installer.prepareInstall(new StudioDownloader(), progress)) {
         installer.completeInstall(progress);
       }
     }

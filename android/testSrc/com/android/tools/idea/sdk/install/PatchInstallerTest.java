@@ -132,7 +132,7 @@ public class PatchInstallerTest extends TestCase {
       .unmarshal(remoteInput, modules, repoManager.getResourceResolver(progress), true, progress);
     RemotePackage p = r.getRemotePackage().get(0);
     ConstantSourceProvider provider = new ConstantSourceProvider("http://example.com", "dummy", modules);
-    p.setSource(provider.getSources(null, null, progress, false).get(0));
+    p.setSource(provider.getSources(null, progress, false).get(0));
     return p;
   }
 
