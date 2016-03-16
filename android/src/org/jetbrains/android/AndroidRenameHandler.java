@@ -45,7 +45,7 @@ public class AndroidRenameHandler implements RenameHandler, TitledHandler {
       return false;
     }
 
-    if (AndroidUsagesTargetProvider.findValueResourceTagInContext(editor, file) != null) {
+    if (AndroidUsagesTargetProvider.findValueResourceTagInContext(editor, file, true) != null) {
       return true;
     }
     final Project project = CommonDataKeys.PROJECT.getData(dataContext);
@@ -67,7 +67,7 @@ public class AndroidRenameHandler implements RenameHandler, TitledHandler {
     if (file == null || editor == null) {
       return;
     }
-    final XmlTag tag = AndroidUsagesTargetProvider.findValueResourceTagInContext(editor, file);
+    final XmlTag tag = AndroidUsagesTargetProvider.findValueResourceTagInContext(editor, file, true);
 
     if (tag != null) {
       // See if you've actually pointed at an XML value inside the value definition, e.g.
