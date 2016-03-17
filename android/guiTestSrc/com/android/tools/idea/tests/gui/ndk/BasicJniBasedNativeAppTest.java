@@ -15,9 +15,10 @@
  */
 package com.android.tools.idea.tests.gui.ndk;
 
-import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.Wait;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
 import com.intellij.util.containers.HashMap;
@@ -31,10 +32,9 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.regex.Pattern;
 
-import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPORT;
 import static org.junit.Assert.assertNotNull;
 
-@BelongsToTestGroups({PROJECT_SUPPORT})
+@RunIn(TestGroup.PROJECT_SUPPORT)
 @RunWith(GuiTestRunner.class)
 public class BasicJniBasedNativeAppTest {
 

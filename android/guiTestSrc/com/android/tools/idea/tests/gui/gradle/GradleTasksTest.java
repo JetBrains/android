@@ -15,9 +15,10 @@
  */
 package com.android.tools.idea.tests.gui.gradle;
 
-import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.Wait;
 import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleToolWindowFixture;
@@ -36,7 +37,6 @@ import java.io.IOException;
 import java.util.regex.Pattern;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
-import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPORT;
 import static com.android.tools.idea.tests.gui.framework.fixture.FileFixture.getDocument;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static java.util.regex.Pattern.DOTALL;
@@ -44,7 +44,7 @@ import static org.fest.swing.util.Strings.match;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-@BelongsToTestGroups({PROJECT_SUPPORT})
+@RunIn(TestGroup.PROJECT_SUPPORT)
 @RunWith(GuiTestRunner.class)
 public class GradleTasksTest {
 

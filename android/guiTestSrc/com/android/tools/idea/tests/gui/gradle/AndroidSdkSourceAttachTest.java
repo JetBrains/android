@@ -17,9 +17,10 @@ package com.android.tools.idea.tests.gui.gradle;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
-import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.Wait;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorNotificationPanelFixture;
@@ -41,7 +42,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
-import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPORT;
 import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.util.io.FileUtil.rename;
 import static com.intellij.openapi.util.io.FileUtilRt.delete;
@@ -53,7 +53,7 @@ import static org.jetbrains.android.sdk.AndroidSdkUtils.*;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assume.assumeTrue;
 
-@BelongsToTestGroups({PROJECT_SUPPORT})
+@RunIn(TestGroup.PROJECT_SUPPORT)
 @RunWith(GuiTestRunner.class)
 public class AndroidSdkSourceAttachTest {
 
