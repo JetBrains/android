@@ -53,6 +53,12 @@ final class FindReferencesRecipeExecutor implements RecipeExecutor {
   }
 
   @Override
+  public void append(@NotNull File from, @NotNull File to) {
+    addSourceFile(from);
+    addTargetFile(to);
+  }
+
+  @Override
   public void mkDir(@NotNull File at) {
   }
 
