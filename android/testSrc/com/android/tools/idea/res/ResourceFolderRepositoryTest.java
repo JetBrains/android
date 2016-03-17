@@ -3762,7 +3762,8 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     final ResourceFolderRepository resources = createRepository();
     assertNotNull(resources);
     assertFalse(resources.hasFreshFileCache());
-    assertEquals(7, resources.getInitialInitialScanState().numXml);
+    // We don't count items that are never cached (so 7 total XML minus 1 data binding file)
+    assertEquals(6, resources.getInitialInitialScanState().numXml);
     assertEquals(resources.getInitialInitialScanState().numXml, resources.getInitialInitialScanState().numXmlReparsed);
     resources.saveStateToFile();
 
@@ -3771,8 +3772,8 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertNotNull(fromBlob);
     // Check that fromBlob really avoided reparsing some XML files, before checking equivalence of items.
     assertTrue(fromBlob.hasFreshFileCache());
-    assertEquals(7, fromBlob.getInitialInitialScanState().numXml);
-    assertTrue(fromBlob.getInitialInitialScanState().numXml > fromBlob.getInitialInitialScanState().numXmlReparsed);
+    assertEquals(6, fromBlob.getInitialInitialScanState().numXml);
+    assertEquals(0, fromBlob.getInitialInitialScanState().numXmlReparsed);
 
     assertNotSame(resources, fromBlob);
     assertTrue(fromBlob.equalFilesItems(resources));
@@ -3825,6 +3826,8 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ResourceFolderRegistry.reset();
     final ResourceFolderRepository fromBlob = createRepository();
     assertNotNull(fromBlob);
+    // Non-value files aren't counted in the cache, so deleting doesn't affect freshness.
+    assertTrue(fromBlob.hasFreshFileCache());
 
     assertFalse(fromBlob.hasResourceItem(ResourceType.LAYOUT, "layout"));
     assertFalse(fromBlob.hasResourceItem(ResourceType.ID, "noteArea"));
@@ -3845,6 +3848,9 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ResourceFolderRegistry.reset();
     final ResourceFolderRepository fromBlob2 = createRepository();
     assertNotNull(fromBlob2);
+    // Value files are counted in the cache, but we only count the percentage re-parsed for freshness.
+    // We don't count extraneous cache entries (but perhaps we should).
+    assertTrue(fromBlob2.hasFreshFileCache());
 
     assertFalse(fromBlob2.hasResourceItem(ResourceType.LAYOUT, "layout"));
     assertFalse(fromBlob2.hasResourceItem(ResourceType.ID, "noteArea"));
@@ -3908,6 +3914,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ResourceFolderRegistry.reset();
     final ResourceFolderRepository fromBlob = createRepository();
     assertNotNull(fromBlob);
+    assertFalse(fromBlob.hasFreshFileCache());
 
     assertTrue(fromBlob.hasResourceItem(ResourceType.STRING, "hello_there"));
   }
@@ -3927,6 +3934,8 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ResourceFolderRegistry.reset();
     final ResourceFolderRepository fromBlob = createRepository();
     assertNotNull(fromBlob);
+    // Freshness depends on a heurisitic, but now half the XML files are parsed.
+    assertFalse(fromBlob.hasFreshFileCache());
 
     assertTrue(fromBlob.hasResourceItem(ResourceType.STRING, "hello_world"));
     assertTrue(resources.hasResourceItem(ResourceType.LAYOUT, "layout"));
@@ -3947,6 +3956,9 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ResourceFolderRegistry.reset();
     final ResourceFolderRepository fromBlob = createRepository();
     assertNotNull(fromBlob);
+    // Freshness depends on a heurisitic, but we don't count PNG in the blob.
+    assertTrue(fromBlob.hasFreshFileCache());
+
     assertTrue(fromBlob.hasResourceItem(ResourceType.STRING, "hello_world"));
     assertTrue(resources.hasResourceItem(ResourceType.DRAWABLE, "logo"));
   }
@@ -3971,6 +3983,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ResourceFolderRegistry.reset();
     final ResourceFolderRepository fromBlob = createRepository();
     assertNotNull(fromBlob);
+    assertTrue(fromBlob.hasFreshFileCache());
 
     assertNotSame(resources, fromBlob);
     assertTrue(fromBlob.equalFilesItems(resources));
@@ -4005,6 +4018,8 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ResourceFolderRegistry.reset();
     final ResourceFolderRepository fromBlob = createRepository();
     assertNotNull(fromBlob);
+    // We don't count files that we explicitly skip against freshness.
+    assertTrue(fromBlob.hasFreshFileCache());
 
     assertNotSame(resources, fromBlob);
     assertTrue(fromBlob.equalFilesItems(resources));
