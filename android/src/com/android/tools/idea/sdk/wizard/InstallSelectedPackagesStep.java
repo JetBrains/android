@@ -91,8 +91,6 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
   private final BackgroundAction myBackgroundAction = new BackgroundAction();
   private final boolean myBackgroundable;
 
-  @NotNull private final SettingsController mySettings = StudioSettingsController.getInstance();
-
   public InstallSelectedPackagesStep(@NotNull List<RemotePackage> installRequests,
                                      @NotNull RepoManager mgr,
                                      @NotNull AndroidSdkHandler sdkHandler,
@@ -248,7 +246,7 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
           }
           myCustomLogger.logInfo(String.format("Installing %1$s", remote.getDisplayName()));
           try {
-            success = installer.prepareInstall(new StudioDownloader(indicator), mySettings, myProgress);
+            success = installer.prepareInstall(new StudioDownloader(indicator), myProgress);
           }
           catch (Exception e) {
             Logger.getInstance(getClass()).warn(e);

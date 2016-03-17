@@ -20,10 +20,9 @@ import com.android.repository.api.RepositorySourceProvider;
 import com.android.repository.api.SimpleRepositorySource;
 import com.android.repository.impl.sources.LocalSourceProvider;
 import com.android.sdklib.repositoryv2.AndroidSdkHandler;
-import com.android.tools.idea.sdk.progress.RepoProgressIndicatorAdapter;
 import com.android.tools.idea.sdk.StudioDownloader;
+import com.android.tools.idea.sdk.progress.RepoProgressIndicatorAdapter;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
-import com.android.tools.idea.sdk.StudioSettingsController;
 import com.google.common.base.Objects;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
@@ -188,8 +187,7 @@ class SourcesTableModel extends ListTableModel<SourcesTableModel.Row> implements
       public void run() {
         final ArrayList<Row> items = Lists.newArrayList();
         final Set<RepositorySource> initial = Sets.newHashSet();
-        for (RepositorySource source : myConfigurable.getRepoManager()
-          .getSources(new StudioDownloader(), StudioSettingsController.getInstance(), myLogger, false)) {
+        for (RepositorySource source : myConfigurable.getRepoManager().getSources(new StudioDownloader(), myLogger, false)) {
           items.add(new Row(source));
           initial.add(source);
         }
@@ -307,8 +305,7 @@ class SourcesTableModel extends ListTableModel<SourcesTableModel.Row> implements
       return;
     }
     // Force refresh so the file is reloaded.
-    myConfigurable.getRepoManager()
-      .getSources(new StudioDownloader(), StudioSettingsController.getInstance(), myLogger, true);
+    myConfigurable.getRepoManager().getSources(new StudioDownloader(), myLogger, true);
     myInitialItems = null;
     refreshUi();
   }
