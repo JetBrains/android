@@ -77,4 +77,9 @@ public interface RecipeExecutor {
    * Restore the previous folder that relative paths will be resolved against.
    */
   void popFolder();
+
+  /**
+   * Append contents of the first file to the second one.
+   */
+  void append(@NotNull File from, @NotNull File to);
 }
