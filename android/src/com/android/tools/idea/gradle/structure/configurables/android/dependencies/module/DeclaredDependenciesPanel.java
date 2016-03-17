@@ -63,9 +63,9 @@ import static javax.swing.ListSelectionModel.MULTIPLE_INTERVAL_SELECTION;
 /**
  * Panel that displays the table of "editable" dependencies.
  */
-class EditableDependenciesPanel extends JPanel implements DependencySelection, Disposable {
+class DeclaredDependenciesPanel extends JPanel implements DependencySelection, Disposable {
   @NotNull private final PsAndroidModule myModule;
-  @NotNull private final EditableDependenciesTableModel myDependenciesTableModel;
+  @NotNull private final DeclaredDependenciesTableModel myDependenciesTableModel;
   @NotNull private final TableView<PsAndroidDependency> myDependenciesTable;
   @NotNull private final ListSelectionListener myTableSelectionListener;
   @NotNull private final JScrollPane myEditorScrollPane;
@@ -76,11 +76,11 @@ class EditableDependenciesPanel extends JPanel implements DependencySelection, D
 
   private List<AbstractPopupAction> myPopupActions;
 
-  EditableDependenciesPanel(@NotNull PsAndroidModule module, @NotNull PsContext context) {
+  DeclaredDependenciesPanel(@NotNull PsAndroidModule module, @NotNull PsContext context) {
     super(new BorderLayout());
     myModule = module;
 
-    myDependenciesTableModel = new EditableDependenciesTableModel(myModule);
+    myDependenciesTableModel = new DeclaredDependenciesTableModel(myModule);
     myDependenciesTable = new TableView<PsAndroidDependency>(myDependenciesTableModel);
 
     initializeEditors(context);

@@ -38,8 +38,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-public class RootNode extends AbstractRootNode<PsProject> {
-  public RootNode(@NotNull PsProject project) {
+class DeclaredDependenciesTreeRootNode extends AbstractRootNode<PsProject> {
+  DeclaredDependenciesTreeRootNode(@NotNull PsProject project) {
     super(project);
   }
 

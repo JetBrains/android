@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.structure.configurables;
 
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.project.ProjectDependenciesConfigurable;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.AndroidModuleDependenciesConfigurable;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.ModuleDependenciesConfigurable;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.PsProject;
@@ -57,7 +57,7 @@ public class DependenciesPerspectiveConfigurable extends BasePerspectiveConfigur
     if (configurable == null) {
       if (module instanceof PsAndroidModule) {
         PsAndroidModule androidModule = (PsAndroidModule)module;
-        configurable = new AndroidModuleDependenciesConfigurable(androidModule, getContext());
+        configurable = new ModuleDependenciesConfigurable(androidModule, getContext());
         myConfigurablesByGradlePath.put(gradlePath, configurable);
       }
     }

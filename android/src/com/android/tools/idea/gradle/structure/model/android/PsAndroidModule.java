@@ -123,7 +123,7 @@ public class PsAndroidModule extends PsModule implements PsAndroidModel {
   }
 
   @Override
-  public Icon getModuleIcon() {
+  public Icon getIcon() {
     if (myGradleModel.getAndroidProject().isLibrary()) {
       return AndroidIcons.LibraryModule;
     }

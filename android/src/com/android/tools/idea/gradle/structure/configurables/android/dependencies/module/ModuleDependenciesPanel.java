@@ -29,7 +29,6 @@ import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.JBSplitter;
-import com.intellij.ui.OnePixelSplitter;
 import com.intellij.ui.SideBorder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -37,12 +36,14 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.*;
 
+import static com.android.tools.idea.gradle.structure.configurables.android.dependencies.UiUtil.createMainVerticalSplitter;
+
 class ModuleDependenciesPanel extends JPanel implements Disposable {
   @NotNull private final PsAndroidModule myModule;
   @NotNull private final PsContext myContext;
 
   @NotNull private final JBSplitter myVerticalSplitter;
-  @NotNull private final EditableDependenciesPanel myEditableDependenciesPanel;
+  @NotNull private final DeclaredDependenciesPanel myDeclaredDependenciesPanel;
   @NotNull private final ResolvedDependenciesPanel myResolvedDependenciesPanel;
   @NotNull private final JPanel myAltPanel;
 
@@ -74,17 +75,17 @@ class ModuleDependenciesPanel extends JPanel implements Disposable {
       }
     }, this);
 
-    myEditableDependenciesPanel = new EditableDependenciesPanel(module, context);
-    myResolvedDependenciesPanel = new ResolvedDependenciesPanel(module, context, myEditableDependenciesPanel);
+    myDeclaredDependenciesPanel = new DeclaredDependenciesPanel(module, context);
+    myResolvedDependenciesPanel = new ResolvedDependenciesPanel(module, context, myDeclaredDependenciesPanel);
 
-    myVerticalSplitter = new OnePixelSplitter(false, "psd.dependencies.main.vertical.splitter.proportion", .75f);
-    myVerticalSplitter.setFirstComponent(myEditableDependenciesPanel);
+    myVerticalSplitter = createMainVerticalSplitter();
+    myVerticalSplitter.setFirstComponent(myDeclaredDependenciesPanel);
     myVerticalSplitter.setSecondComponent(myResolvedDependenciesPanel);
 
     add(myVerticalSplitter, BorderLayout.CENTER);
 
-    myEditableDependenciesPanel.updateTableColumnSizes();
-    myEditableDependenciesPanel.add(new EditableDependenciesPanel.SelectionListener() {
+    myDeclaredDependenciesPanel.updateTableColumnSizes();
+    myDeclaredDependenciesPanel.add(new DeclaredDependenciesPanel.SelectionListener() {
       @Override
       public void dependencyModelSelected(@NotNull PsAndroidDependency dependency) {
         myResolvedDependenciesPanel.setSelection(dependency);
@@ -94,7 +95,7 @@ class ModuleDependenciesPanel extends JPanel implements Disposable {
     myResolvedDependenciesPanel.add(new ResolvedDependenciesPanel.SelectionListener() {
       @Override
       public void dependencySelected(@Nullable PsAndroidDependency dependency) {
-        myEditableDependenciesPanel.setSelection(dependency);
+        myDeclaredDependenciesPanel.setSelection(dependency);
       }
     });
 
@@ -154,8 +155,8 @@ class ModuleDependenciesPanel extends JPanel implements Disposable {
 
   private void restore() {
     remove(myAltPanel);
-    myAltPanel.remove(myEditableDependenciesPanel);
-    myVerticalSplitter.setFirstComponent(myEditableDependenciesPanel);
+    myAltPanel.remove(myDeclaredDependenciesPanel);
+    myVerticalSplitter.setFirstComponent(myDeclaredDependenciesPanel);
     add(myVerticalSplitter, BorderLayout.CENTER);
     revalidate();
     repaint();
@@ -165,7 +166,7 @@ class ModuleDependenciesPanel extends JPanel implements Disposable {
   private void minimize() {
     remove(myVerticalSplitter);
     myVerticalSplitter.setFirstComponent(null);
-    myAltPanel.add(myEditableDependenciesPanel, BorderLayout.CENTER);
+    myAltPanel.add(myDeclaredDependenciesPanel, BorderLayout.CENTER);
     add(myAltPanel, BorderLayout.CENTER);
     revalidate();
     repaint();
@@ -194,7 +195,7 @@ class ModuleDependenciesPanel extends JPanel implements Disposable {
 
   @Override
   public void dispose() {
-    Disposer.dispose(myEditableDependenciesPanel);
+    Disposer.dispose(myDeclaredDependenciesPanel);
     Disposer.dispose(myResolvedDependenciesPanel);
   }
 }

@@ -79,7 +79,8 @@ public abstract class PsModule extends PsChildModel {
     return myResolvedModel;
   }
 
-  public Icon getModuleIcon() {
+  @Override
+  public Icon getIcon() {
     return AllIcons.Nodes.Module;
   }
 }

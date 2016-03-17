@@ -15,25 +15,70 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.project;
 
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractDependencyNode;
 import com.android.tools.idea.gradle.structure.model.PsProject;
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.ui.JBSplitter;
+import com.intellij.ui.treeStructure.SimpleNode;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.List;
+
+import static com.android.tools.idea.gradle.structure.configurables.android.dependencies.UiUtil.createMainVerticalSplitter;
 
 class ProjectDependenciesPanel extends JPanel implements Disposable {
-  private final DeclaredDependenciesPanel myDeclaredDependenciesPanel;
+  @NotNull private final JBSplitter myVerticalSplitter;
+  @NotNull private final DeclaredDependenciesPanel myDeclaredDependenciesPanel;
+  @NotNull private final TargetModulesPanel myTargetModulesPanel;
 
   ProjectDependenciesPanel(@NotNull PsProject project) {
     super(new BorderLayout());
     myDeclaredDependenciesPanel = new DeclaredDependenciesPanel(project);
-    add(myDeclaredDependenciesPanel, BorderLayout.CENTER);
+    myTargetModulesPanel = new TargetModulesPanel(project);
+
+    myDeclaredDependenciesPanel.add(new DeclaredDependenciesPanel.SelectionListener() {
+      @Override
+      public void dependencySelected(@NotNull List<AbstractDependencyNode<? extends PsAndroidDependency>> selectedNodes) {
+        List<PsAndroidDependency> dependencies = Lists.newArrayList();
+        for (AbstractDependencyNode<?> node : selectedNodes) {
+          // Only the dependencies node under the root contain all the modules that contain such dependencies. The given nodes may be
+          // transitive dependencies, which do not have that information.
+          // To ensure we get all the target modules, we get the "top parent" of each of the selected nodes.
+          AbstractDependencyNode<? extends PsAndroidDependency> topParent = getTopParent(node);
+          dependencies.addAll(topParent.getModels());
+        }
+        myTargetModulesPanel.displayTargetModules(dependencies);
+      }
+    });
+
+    myVerticalSplitter = createMainVerticalSplitter();
+    myVerticalSplitter.setFirstComponent(myDeclaredDependenciesPanel);
+    myVerticalSplitter.setSecondComponent(myTargetModulesPanel);
+
+    add(myVerticalSplitter, BorderLayout.CENTER);
+  }
+
+  @NotNull
+  private static AbstractDependencyNode<?> getTopParent(AbstractDependencyNode<?> node) {
+    SimpleNode current = node;
+    while (true) {
+      SimpleNode parent = current.getParent();
+      if (parent instanceof AbstractDependencyNode) {
+        current = parent;
+        continue;
+      }
+      return (AbstractDependencyNode<?>)current;
+    }
   }
 
   @Override
   public void dispose() {
     Disposer.dispose(myDeclaredDependenciesPanel);
+    Disposer.dispose(myTargetModulesPanel);
   }
 }
