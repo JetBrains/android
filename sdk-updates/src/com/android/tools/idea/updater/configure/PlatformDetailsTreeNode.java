@@ -15,7 +15,11 @@
  */
 package com.android.tools.idea.updater.configure;
 
-import com.android.repository.api.*;
+import com.android.repository.api.RemotePackage;
+import com.android.repository.api.RepoManager;
+import com.android.repository.api.RepoPackage;
+import com.android.repository.api.UpdatablePackage;
+import com.android.repository.impl.installer.PackageInstaller;
 import com.android.sdklib.repositoryv2.meta.DetailsTypes;
 import com.intellij.ui.SimpleTextAttributes;
 import org.jetbrains.annotations.NotNull;
@@ -129,13 +133,13 @@ class PlatformDetailsTreeNode extends UpdaterTreeNode {
       RemotePackage remote = getItem().getRemote();
       // We know it has a remote since it's not installed.
       assert remote != null;
-      PackageOperation installer = mgr.getInProgressInstallOperation(remote);
+      PackageInstaller installer = mgr.getInProgressInstaller(remote);
       if (installer != null) {
-        PackageOperation.InstallStatus status = installer.getInstallStatus();
-        if (status == PackageOperation.InstallStatus.PREPARING) {
+        PackageInstaller.InstallStatus status = installer.getInstallStatus();
+        if (status == PackageInstaller.InstallStatus.PREPARING) {
           return "Preparing install...";
         }
-        if (status == PackageOperation.InstallStatus.PREPARED) {
+        if (status == PackageInstaller.InstallStatus.PREPARED) {
           return "Install ready";
         }
       }
