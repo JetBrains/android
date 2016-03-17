@@ -16,9 +16,9 @@
 package com.android.tools.idea.tests.gui.gradle;
 
 import com.android.tools.idea.npw.ModuleTemplate;
-import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.ui.ASGallery;
@@ -42,7 +42,7 @@ import static org.junit.Assert.*;
 /**
  * Tests, that newly generated modules work, even with older gradle plugin versions.
  */
-@BelongsToTestGroups({TestGroup.TEST_SUPPORT})
+@RunIn(TestGroup.TEST_SUPPORT)
 @RunWith(GuiTestRunner.class)
 public class NewModuleTest {
 

@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.tests.gui.editing;
 
-import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.CreateFileFromTemplateDialogFixture;
@@ -38,7 +38,7 @@ import java.io.IOException;
 import static org.junit.Assert.*;
 
 @RunWith(GuiTestRunner.class)
-@BelongsToTestGroups(TestGroup.LAYOUT)
+@RunIn(TestGroup.LAYOUT)
 public class CreateNewClassDialogGuiTest {
   private static final String PROVIDED_ACTIVITY = "app/src/main/java/google/simpleapplication/MyActivity.java";
   private static final String THING_NAME = "TestThing";

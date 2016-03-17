@@ -16,9 +16,10 @@
 package com.android.tools.idea.tests.gui.layout;
 
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
-import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.LayoutPreviewFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.RenderErrorPanelFixture;
@@ -27,7 +28,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import static com.android.tools.idea.tests.gui.framework.TestGroup.LAYOUT;
 import static junit.framework.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -36,7 +36,7 @@ import static org.junit.Assert.assertTrue;
  * <p/>
  * This tests layoutlib interaction with custom components and the error handling.
  */
-@BelongsToTestGroups({LAYOUT})
+@RunIn(TestGroup.LAYOUT)
 @RunWith(GuiTestRunner.class)
 public class CustomComponentsTest {
 

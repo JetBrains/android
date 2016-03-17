@@ -15,10 +15,11 @@
  */
 package com.android.tools.idea.tests.gui.theme;
 
-import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.RenameRefactoringDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ThemeSelectionDialogFixture;
@@ -39,7 +40,6 @@ import java.awt.*;
 import java.io.IOException;
 import java.util.List;
 
-import static com.android.tools.idea.tests.gui.framework.TestGroup.THEME;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.assertions.Index.atIndex;
 import static org.fest.swing.data.TableCell.row;
@@ -48,7 +48,7 @@ import static org.junit.Assert.*;
 /**
  * UI tests for the theme selector in the Theme Editor
  */
-@BelongsToTestGroups({THEME})
+@RunIn(TestGroup.THEME)
 @RunWith(GuiTestRunner.class)
 public class ThemeSelectorTest {
 

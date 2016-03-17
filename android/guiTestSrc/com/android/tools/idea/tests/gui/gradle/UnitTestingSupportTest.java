@@ -30,7 +30,7 @@ import static org.fest.assertions.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-@BelongsToTestGroups(TestGroup.TEST_SUPPORT)
+@RunIn(TestGroup.TEST_SUPPORT)
 @RunWith(GuiTestRunner.class)
 public class UnitTestingSupportTest {
 
