@@ -15,10 +15,8 @@
  */
 package com.android.tools.idea.sdk.install;
 
-import com.android.annotations.NonNull;
 import com.android.repository.api.*;
-import com.android.repository.impl.installer.AbstractInstallerFactory;
-import com.android.repository.impl.installer.AbstractPackageOperation;
+import com.android.repository.impl.installer.BasicInstaller;
 import com.android.repository.impl.manager.LocalRepoLoader;
 import com.android.repository.impl.meta.Archive;
 import com.android.repository.io.FileOp;
@@ -39,15 +37,14 @@ import java.net.URL;
 import java.util.Map;
 
 /**
- * Factory for installers/uninstallers that use the IntelliJ Updater mechanism to update the SDK.
- *
+ * Installer that applies binary diffs.
  * The actual logic for applying the diffs is not here; rather, it is contained in a separate SDK component. This is to allow
  * changes in the diff algorithm or patch format without backward compatibility concerns.
  * Each SDK package that includes diff-type archives must also include a dependency on a patcher component. That component contains
  * the necessary code to apply the diff (this is the same as the code used to update studio itself), as well as UI integration between
  * the patcher and this installer.
  */
-public class PatchInstallerFactory extends AbstractInstallerFactory {
+public class PatchInstaller extends BasicInstaller {
 
   /**
    * Repo-style path prefix (including separator) for patcher packages.
@@ -79,137 +76,90 @@ public class PatchInstallerFactory extends AbstractInstallerFactory {
    */
   private static Map<File, Map<String, Class<?>>> ourPatcherCache = new WeakHashMap<File, Map<String, Class<?>>>();
 
-  @NotNull
-  @Override
-  protected Installer doCreateInstaller(@NonNull RemotePackage p, @NonNull RepoManager mgr, @NonNull FileOp fop) {
-    return new PatchInstaller(p, mgr, fop);
-  }
-
-  @NotNull
-  @Override
-  protected Uninstaller doCreateUninstaller(@NonNull LocalPackage p, @NonNull RepoManager mgr, @NonNull FileOp fop) {
-    return new PatchUninstaller(p, mgr, fop);
+  public PatchInstaller(RepoPackage p, RepoManager repoManager, FileOp fop) {
+    super(p, repoManager, fop);
   }
 
   /**
-   * Installer for binary diff packages, as built by {@code com.intellij.updater.Runner}.
+   * {@inheritDoc}
+   *
+   * If the patch fails, fall back to trying a complete install.
    */
-  public static class PatchInstaller extends AbstractPackageOperation.AbstractInstaller {
-    public PatchInstaller(@NotNull RemotePackage p, @NotNull RepoManager mgr, @NotNull FileOp fop) {
-      super(p, mgr, fop);
+  @Override
+  protected boolean doPrepareInstall(@NotNull File installTempPath,
+                                     @NotNull Downloader downloader,
+                                     @Nullable SettingsController settings,
+                                     @NotNull ProgressIndicator progress) {
+    if (!doPrepareInstallInternal(installTempPath, downloader, settings, progress)) {
+      progress.logWarning("Failed to install patch, attempting fresh install...");
+      return super.doPrepareInstall(installTempPath, downloader, settings, progress);
     }
-
-    @Override
-    protected boolean doPrepareInstall(@NotNull File tempDir,
-                                       @NotNull Downloader downloader,
-                                       @Nullable SettingsController settings,
-                                       @NotNull ProgressIndicator progress) {
-      Map<String, ? extends LocalPackage> localPackages = getRepoManager().getPackages().getLocalPackages();
-      LocalPackage local = localPackages.get(getPackage().getPath());
-      assert local != null;
-      RemotePackage p = getPackage();
-      Archive archive = p.getArchive();
-      assert archive != null;
-      Archive.PatchType patch = archive.getPatch(local.getVersion());
-      assert patch != null;
-
-      File patchFile = getPatchFile(patch, p, tempDir, downloader, settings, progress);
-      if (patchFile == null) {
-        progress.logWarning("Patch failed to download.");
-        return false;
-      }
-      return true;
-    }
-
-    @Override
-    protected boolean doCompleteInstall(@NotNull File installTempPath,
-                                        @NotNull File destination,
-                                        @NotNull ProgressIndicator progress) {
-      Map<String, ? extends LocalPackage> localPackages = getRepoManager().getPackages().getLocalPackages();
-      File patcherJar = getPatcherFile(localPackages, progress);
-      if (patcherJar == null) {
-        progress.logWarning("Couldn't find patcher jar!");
-        return false;
-      }
-
-      Map<String, Class<?>> classMap = loadClasses(patcherJar, progress);
-      if (classMap == null) {
-        return false;
-      }
-
-      // TODO: move away? Or somehow ignore in UI?
-      mFop.deleteFileOrFolder(new File(destination, InstallerUtil.INSTALLER_DIR_FN));
-      mFop.delete(new File(destination, LocalRepoLoader.PACKAGE_XML_FN));
-
-      boolean result = runPatcher(progress, destination, new File(installTempPath, "patch.jar"), classMap.get(RUNNER_CLASS_NAME),
-                                  classMap.get(UPDATER_UI_CLASS_NAME), classMap.get(REPO_UI_CLASS_NAME));
-      if (!result) {
-        return false;
-      }
-      try {
-        InstallerUtil.writePackageXml(getPackage(), destination, getRepoManager(), mFop, progress);
-      }
-      catch (IOException e) {
-        progress.logWarning("Failed to write new package.xml");
-        return false;
-      }
-
-      progress.logInfo("Done");
-      progress.setFraction(1);
-      progress.setIndeterminate(false);
-
-      getRepoManager().markInvalid();
-      return true;
-
-    }
-
-    /**
-     * Gets the patcher jar required by our package.
-     *
-     * @return The location of the patcher.jar, or null if it was not found.
-     */
-    @Nullable
-    @VisibleForTesting
-    File getPatcherFile(@NotNull Map<String, ? extends LocalPackage> localPackages,
-                        @NotNull ProgressIndicator progress) {
-      File patcherJar = null;
-      for (Dependency d : getPackage().getAllDependencies()) {
-        if (d.getPath().startsWith(PATCHER_PATH_PREFIX)) {
-          LocalPackage patcher = localPackages.get(d.getPath());
-          if (patcher != null) {
-            patcherJar = new File(patcher.getLocation(), PATCHER_JAR_FN);
-            break;
-          }
-        }
-      }
-      if (patcherJar == null || !mFop.isFile(patcherJar)) {
-        progress.logWarning("Failed to find patcher!");
-        return null;
-      }
-      return patcherJar;
-    }
+    return true;
   }
 
   /**
-   * TODO: right now this just deletes the package, but it should construct a diff package on the fly that removes all the files in the
-   * component and then runs it (to deal with e.g. in-use files).
+   * Actually do the patch install.
    */
-  public static class PatchUninstaller extends AbstractPackageOperation.AbstractUninstaller {
-    public PatchUninstaller(@NotNull LocalPackage p, @NotNull RepoManager mgr, @NotNull FileOp fop) {
-      super(p, mgr, fop);
+  private boolean doPrepareInstallInternal(@NotNull File tempDir,
+                                           @NotNull Downloader downloader,
+                                           @Nullable SettingsController settings,
+                                           @NotNull ProgressIndicator progress) {
+    Map<String, ? extends LocalPackage> localPackages = getRepoManager().getPackages().getLocalPackages();
+    LocalPackage local = localPackages.get(getPackage().getPath());
+    assert local != null;
+    RemotePackage p = (RemotePackage)getPackage();
+    Archive archive = p.getArchive();
+    assert archive != null;
+    Archive.PatchType patch = archive.getPatch(local.getVersion());
+    assert patch != null;
+
+    File patchFile = getPatchFile(patch, p, tempDir, downloader, settings, progress);
+    if (patchFile == null) {
+      progress.logWarning("Patch failed to download.");
+      return false;
     }
 
-    @Override
-    protected boolean doUninstall(@NonNull ProgressIndicator progress) {
-      // TODO: use patch mechanism
-      try {
-        mFop.deleteFileOrFolder(getPackage().getLocation());
-      }
-      catch (Exception e) {
-        return false;
-      }
-      return true;
+    return true;
+  }
+
+  @Override
+  protected boolean doCompleteInstall(@NotNull File tempDir,
+                                      @NotNull File dest,
+                                      @NotNull ProgressIndicator progress) {
+    Map<String, ? extends LocalPackage> localPackages = getRepoManager().getPackages().getLocalPackages();
+    File patcherJar = getPatcherFile(localPackages, progress);
+    if (patcherJar == null) {
+      progress.logWarning("Couldn't find patcher jar!");
+      return false;
     }
+
+    Map<String, Class<?>> classMap = loadClasses(patcherJar, progress);
+    if (classMap == null) {
+      return false;
+    }
+
+    // TODO: move away? Or somehow ignore in UI?
+    mFop.deleteFileOrFolder(new File(dest, InstallerUtil.INSTALLER_DIR_FN));
+    mFop.delete(new File(dest, LocalRepoLoader.PACKAGE_XML_FN));
+
+    boolean result = runPatcher(progress, dest, new File(tempDir, "patch.jar"), classMap.get(RUNNER_CLASS_NAME),
+                                classMap.get(UPDATER_UI_CLASS_NAME), classMap.get(REPO_UI_CLASS_NAME));
+    if (!result) {
+      return false;
+    }
+    try {
+      InstallerUtil.writePackageXml((RemotePackage)getPackage(), tempDir, getRepoManager(), mFop, progress);
+    }
+    catch (IOException e) {
+      progress.logWarning("Failed to write new package.xml");
+      return false;
+    }
+
+    progress.logInfo("Done");
+    progress.setFraction(1);
+    progress.setIndeterminate(false);
+
+    return true;
   }
 
   /**
@@ -302,8 +252,8 @@ public class PatchInstallerFactory extends AbstractInstallerFactory {
    * @return Map of class names to {@link Class} objects for the classes need to run the patcher.
    */
   @Nullable
-  private static Map<String, Class<?>> loadClasses(@NotNull File patcherJar,
-                                                   @NotNull ProgressIndicator progress) {
+  private Map<String, Class<?>> loadClasses(@NotNull File patcherJar,
+                                            @NotNull ProgressIndicator progress) {
     Map<String, Class<?>> result = ourPatcherCache.get(patcherJar);
     if (result != null) {
       return result;
@@ -347,10 +297,10 @@ public class PatchInstallerFactory extends AbstractInstallerFactory {
    * Gets a class loader for the given jar.
    */
   @Nullable
-  private static ClassLoader getClassLoader(@NotNull ProgressIndicator progress, @NotNull File patcherJar) {
+  private ClassLoader getClassLoader(@NotNull ProgressIndicator progress, @NotNull File patcherJar) {
     ClassLoader loader;
     try {
-      loader = UrlClassLoader.build().urls(patcherJar.toURI().toURL()).parent(PatchInstaller.class.getClassLoader()).get();
+      loader = UrlClassLoader.build().urls(patcherJar.toURI().toURL()).parent(getClass().getClassLoader()).get();
     }
     catch (MalformedURLException e) {
       // Shouldn't happen
@@ -358,5 +308,31 @@ public class PatchInstallerFactory extends AbstractInstallerFactory {
       return null;
     }
     return loader;
+  }
+
+  /**
+   * Gets the patcher jar required by our package.
+   *
+   * @return The location of the patcher.jar, or null if it was not found.
+   */
+  @Nullable
+  @VisibleForTesting
+  File getPatcherFile(@NotNull Map<String, ? extends LocalPackage> localPackages,
+                      @NotNull ProgressIndicator progress) {
+    File patcherJar = null;
+    for (Dependency d : getPackage().getAllDependencies()) {
+      if (d.getPath().startsWith(PATCHER_PATH_PREFIX)) {
+        LocalPackage patcher = localPackages.get(d.getPath());
+        if (patcher != null) {
+          patcherJar = new File(patcher.getLocation(), PATCHER_JAR_FN);
+          break;
+        }
+      }
+    }
+    if (patcherJar == null || !mFop.isFile(patcherJar)) {
+      progress.logWarning("Failed to find patcher!");
+      return null;
+    }
+    return patcherJar;
   }
 }
