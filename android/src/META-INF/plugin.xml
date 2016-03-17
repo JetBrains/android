@@ -111,6 +111,7 @@
       <separator/>
     </group>
 
+    <!-- Instant Run Actions, also see androidstudio.xml for Studio specific action registrations -->
     <action id="Android.InstantRunNoRestart" class="com.android.tools.idea.fd.actions.InstantRunWithoutRestart"/>
     <action id="Android.InstantRunRestart" class="com.android.tools.idea.fd.actions.InstantRunWithRestart"/>
     <action id="Android.RestartActivity" class="com.android.tools.idea.fd.actions.RestartActivityAction">
