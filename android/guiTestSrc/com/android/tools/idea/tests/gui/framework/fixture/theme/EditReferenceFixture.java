@@ -19,22 +19,22 @@ import com.android.tools.swing.ui.SwatchComponent;
 import org.fest.swing.core.Robot;
 import org.fest.swing.driver.JComponentDriver;
 import org.fest.swing.fixture.AbstractContainerFixture;
+import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nonnull;
 import javax.swing.*;
 
 public class EditReferenceFixture extends AbstractContainerFixture<EditReferenceFixture, Box, JComponentDriver> {
 
-  public EditReferenceFixture(@Nonnull Robot robot, @Nonnull Box target) {
+  public EditReferenceFixture(@NotNull Robot robot, @NotNull Box target) {
     super(EditReferenceFixture.class, robot, target);
   }
 
   @Override
-  protected @Nonnull JComponentDriver createDriver(@Nonnull Robot robot) {
+  protected @NotNull JComponentDriver createDriver(@NotNull Robot robot) {
     return new JComponentDriver(robot);
   }
 
-  public @Nonnull SwatchComponentFixture getSwatchComponent() {
+  public @NotNull SwatchComponentFixture getSwatchComponent() {
     return new SwatchComponentFixture(robot(), robot().finder().findByType(target(), SwatchComponent.class, true));
   }
 }

@@ -61,7 +61,6 @@ import org.jetbrains.android.uipreview.AndroidLayoutPreviewToolWindowManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nonnull;
 import javax.swing.FocusManager;
 import javax.swing.*;
 import java.awt.*;
@@ -787,7 +786,7 @@ public class EditorFixture {
         // because that searches by button name (which is null for the Run button), not the button *title*.
         dialogFixture.button(new GenericTypeMatcher<JButton>(JButton.class) {
           @Override
-          protected boolean isMatching(@Nonnull JButton component) {
+          protected boolean isMatching(@NotNull JButton component) {
             return component.getText().equals("Run");
           }
         }).click();
@@ -928,7 +927,7 @@ public class EditorFixture {
   public EditorFixture waitForQuickfix() {
     waitUntilFound(robot, new GenericTypeMatcher<JLabel>(JLabel.class) {
       @Override
-      protected boolean isMatching(@Nonnull JLabel component) {
+      protected boolean isMatching(@NotNull JLabel component) {
         Icon icon = component.getIcon();
         if (icon instanceof RowIcon) {
           return AllIcons.Actions.QuickfixBulb.equals(((RowIcon)icon).getIcon(0));
