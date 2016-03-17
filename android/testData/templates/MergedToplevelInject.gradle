@@ -1,0 +1,13 @@
+buildscript {
+  dependencies {
+    classpath 'com.android.tools.build:gradle:2.0.0-beta6'
+    classpath 'com.example:another-plugin:1.0'
+  }
+}
+
+allprojects {
+  repositories {
+    jcenter()
+  }
+}
+

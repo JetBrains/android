@@ -1,0 +1,5 @@
+buildscript {
+  dependencies {
+    classpath 'com.example:another-plugin:1.0'
+  }
+}
