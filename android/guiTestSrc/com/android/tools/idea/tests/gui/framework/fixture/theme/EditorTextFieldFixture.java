@@ -19,8 +19,8 @@ import com.intellij.ui.EditorTextField;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.AbstractJComponentFixture;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.awt.*;
 
 public class EditorTextFieldFixture extends AbstractJComponentFixture<EditorTextFieldFixture, EditorTextField, EditorTextFieldDriver> {
