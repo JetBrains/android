@@ -16,9 +16,10 @@
 package com.android.tools.idea.tests.gui.gradle;
 
 import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.SelectSdkDialogFixture;
 import org.junit.Rule;
 import org.junit.Test;
@@ -27,13 +28,12 @@ import org.junit.runner.RunWith;
 import java.io.File;
 import java.io.IOException;
 
-import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPORT;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
 import static org.junit.Assume.assumeTrue;
 
-@BelongsToTestGroups({PROJECT_SUPPORT})
+@RunIn(TestGroup.PROJECT_SUPPORT)
 @RunWith(GuiTestRunner.class)
 public class GradleBuildTest {
 

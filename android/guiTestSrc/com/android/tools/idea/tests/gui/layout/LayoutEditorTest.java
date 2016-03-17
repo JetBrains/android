@@ -15,9 +15,10 @@
  */
 package com.android.tools.idea.tests.gui.layout;
 
-import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.*;
 import org.junit.Ignore;
@@ -28,7 +29,6 @@ import org.junit.runner.RunWith;
 import java.awt.*;
 import java.util.Collections;
 
-import static com.android.tools.idea.tests.gui.framework.TestGroup.LAYOUT;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -48,7 +48,7 @@ import static org.junit.Assert.assertNotNull;
  *   <li>Component Tree</li>
  * </ul>
  */
-@BelongsToTestGroups({LAYOUT})
+@RunIn(TestGroup.LAYOUT)
 @RunWith(GuiTestRunner.class)
 public class LayoutEditorTest {
 

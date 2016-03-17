@@ -15,9 +15,10 @@
  */
 package com.android.tools.idea.tests.gui.theme;
 
-import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.LayoutPreviewFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemePreviewFixture;
@@ -27,13 +28,12 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import static com.android.tools.idea.tests.gui.framework.TestGroup.THEME;
 import static junit.framework.Assert.*;
 
 /**
  * Unit test for the theme preview
  */
-@BelongsToTestGroups({THEME})
+@RunIn(TestGroup.THEME)
 @RunWith(GuiTestRunner.class)
 public class ThemePreviewTest {
 

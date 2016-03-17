@@ -16,9 +16,10 @@
 package com.android.tools.idea.tests.gui.gradle;
 
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
-import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
@@ -28,11 +29,10 @@ import org.junit.runner.RunWith;
 
 import java.io.IOException;
 
-import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPORT;
 import static com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.EditorAction.UNDO;
 import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
 
-@BelongsToTestGroups({PROJECT_SUPPORT})
+@RunIn(TestGroup.PROJECT_SUPPORT)
 @RunWith(GuiTestRunner.class)
 public class GradleIncreaseLanguageLevelTest {
 

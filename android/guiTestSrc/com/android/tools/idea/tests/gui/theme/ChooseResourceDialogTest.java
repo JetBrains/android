@@ -16,9 +16,10 @@
 package com.android.tools.idea.tests.gui.theme;
 
 import com.android.tools.idea.editors.theme.ui.ResourceComponent;
-import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.Wait;
 import com.android.tools.idea.tests.gui.framework.fixture.ChooseResourceDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ColorPickerFixture;
@@ -35,7 +36,6 @@ import org.junit.runner.RunWith;
 import java.awt.*;
 import java.io.IOException;
 
-import static com.android.tools.idea.tests.gui.framework.TestGroup.THEME;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.swing.data.TableCell.row;
 import static org.junit.Assert.*;
@@ -43,7 +43,7 @@ import static org.junit.Assert.*;
 /**
  * UI tests regarding the ChooseResourceDialog
  */
-@BelongsToTestGroups({THEME})
+@RunIn(TestGroup.THEME)
 @RunWith(GuiTestRunner.class)
 public class ChooseResourceDialogTest {
 
