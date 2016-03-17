@@ -16,9 +16,10 @@
 package com.android.tools.idea.sdk.wizard.legacy;
 
 import com.android.annotations.NonNull;
+import com.android.repository.api.Installer;
+import com.android.repository.api.InstallerFactory;
 import com.android.repository.api.RemotePackage;
 import com.android.repository.api.RepoManager;
-import com.android.repository.impl.installer.PackageInstaller;
 import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.repository.io.FileOp;
 import com.android.repository.io.FileOpUtils;
@@ -27,10 +28,14 @@ import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.sdklib.repositoryv2.AndroidSdkHandler;
 import com.android.sdklib.repositoryv2.LoggerProgressIndicatorWrapper;
-import com.android.tools.idea.sdk.*;
+import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.sdk.SdkLoggerIntegration;
+import com.android.tools.idea.sdk.StudioDownloader;
+import com.android.tools.idea.sdk.StudioSettingsController;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.progress.StudioProgressRunner;
 import com.android.tools.idea.sdk.wizard.InstallSelectedPackagesStep;
+import com.android.tools.idea.sdk.install.StudioSdkInstallerUtil;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStepWithDescription;
 import com.android.utils.ILogger;
 import com.google.common.collect.ImmutableList;
@@ -201,9 +206,10 @@ public class SmwOldApiDirectInstall extends DynamicWizardStepWithDescription {
       final RepoManager sdkManager = mySdkHandler.getSdkManager(repoProgress);
       for (RemotePackage p : myRequestedPackages) {
         FileOp fop = FileOpUtils.create();
-        PackageInstaller installer = StudioSdkUtil.createInstaller(p, mySdkHandler);
+        InstallerFactory factory = StudioSdkInstallerUtil.createInstallerFactory(p, mySdkHandler);
+        Installer installer = factory.createInstaller(p, sdkManager, fop);
         if (installer.prepareInstall(new StudioDownloader(indicator), StudioSettingsController.getInstance(), repoProgress)) {
-          installer.completeInstall(p, repoProgress, sdkManager, fop);
+          installer.completeInstall(repoProgress);
         }
       }
       sdkManager.loadSynchronously(0, repoProgress, null, null);

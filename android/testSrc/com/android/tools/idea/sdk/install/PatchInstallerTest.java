@@ -31,7 +31,7 @@ import java.io.File;
 import java.io.InputStream;
 
 /**
- * Tests for {@link PatchInstaller}.
+ * Tests for {@link PatchInstallerFactory}.
  */
 public class PatchInstallerTest extends TestCase {
   private static MockFileOp ourFileOp;
@@ -104,7 +104,7 @@ public class PatchInstallerTest extends TestCase {
     repoManager.loadSynchronously(0, progress, null, null);
     RemotePackage p = getRemotePackage(repoManager, progress);
 
-    File result = new PatchInstaller(p, repoManager, ourFileOp).getPatcherFile(repoManager.getPackages().getLocalPackages(), progress);
+    File result = ((PatchInstallerFactory.PatchInstaller)new PatchInstallerFactory().createInstaller(p, repoManager, ourFileOp)).getPatcherFile(repoManager.getPackages().getLocalPackages(), progress);
     progress.assertNoErrorsOrWarnings();
     assertEquals("/sdk/patcher/v1/patcher.jar", result.getPath());
   }
@@ -116,7 +116,7 @@ public class PatchInstallerTest extends TestCase {
                            "the source to which the diff will be applied");
     File patchFile = new File("/patchfile");
     ourFileOp.recordExistingFile(patchFile.getPath(), "the patch contents");
-    boolean result = PatchInstaller.runPatcher(
+    boolean result = PatchInstallerFactory.runPatcher(
       progress, localPackageLocation, patchFile, FakeRunner.class, FakeUIBase.class, FakeUI.class);
 
     progress.assertNoErrorsOrWarnings();
@@ -158,6 +158,6 @@ public class PatchInstallerTest extends TestCase {
   }
 
   private static class FakeUI extends FakeUIBase {
-    public FakeUI(Component parent, ProgressIndicator progress) {}
+    public FakeUI(Component c, ProgressIndicator progress) {}
   }
 }
