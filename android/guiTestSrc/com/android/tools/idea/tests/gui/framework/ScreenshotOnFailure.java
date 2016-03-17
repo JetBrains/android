@@ -26,7 +26,7 @@ import java.util.GregorianCalendar;
 /** Rule that takes a screenshot when the test fails. */
 class ScreenshotOnFailure extends TestWatcher {
 
-  private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+  private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH_mm_ss");
   private static final GregorianCalendar CALENDAR = new GregorianCalendar();
 
   private final ScreenshotTaker myScreenshotTaker = new ScreenshotTaker();
