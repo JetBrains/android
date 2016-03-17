@@ -85,14 +85,17 @@ public final class DeveloperServicePanel extends EditorPanel {
 
     // This definition might be modified from the user interacting with the service earlier but not
     // yet committing to install it.
-    myBindings.bind(new SelectedProperty(myEnabledCheckbox), context.installed().or(context.modified()));
+    myBindings.bind(enabledCheckboxSelected, context.installed().or(context.modified()));
 
     enabledCheckboxSelected.addListener(new InvalidationListener() {
       @Override
       public void onInvalidated(@NotNull ObservableValue<?> sender) {
         if (enabledCheckboxSelected.get()) {
-          // User just selected a service which was previous uninstalled
-          myService.getContext().beginEditing();
+          if (!myService.getContext().installed().get()) {
+            // User just selected a service which was previously uninstalled. This means we are
+            // ready to edit it.
+            myService.getContext().beginEditing();
+          }
         }
         else {
           if (myService.getContext().installed().get()) {
