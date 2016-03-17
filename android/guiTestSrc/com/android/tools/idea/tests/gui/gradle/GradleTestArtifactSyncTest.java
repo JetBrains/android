@@ -34,7 +34,6 @@ import org.jetbrains.annotations.Nullable;
 import org.junit.*;
 import org.junit.runner.RunWith;
 
-import javax.annotation.Nonnull;
 import java.awt.*;
 import java.io.IOException;
 import java.util.List;
@@ -139,7 +138,7 @@ public class GradleTestArtifactSyncTest {
     assert file != null;
     return guiTest.robot().finder().find(new GenericTypeMatcher<TabLabel>(TabLabel.class) {
       @Override
-      protected boolean isMatching(@Nonnull TabLabel tabLabel) {
+      protected boolean isMatching(@NotNull TabLabel tabLabel) {
         return tabLabel.getInfo().getText().equals(file.getName());
       }
     });

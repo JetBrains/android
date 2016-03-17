@@ -27,6 +27,7 @@ import org.fest.swing.edt.GuiTask;
 import org.fest.swing.exception.ComponentLookupException;
 import org.fest.swing.fixture.JButtonFixture;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -81,7 +82,7 @@ public class ComboBoxActionFixture {
 
   public String getSelectedItemText() {
     return execute(new GuiQuery<String>() {
-      @javax.annotation.Nullable
+      @Nullable
       @Override
       protected String executeInEDT() throws Throwable {
         return myTarget.getText();
