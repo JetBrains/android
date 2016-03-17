@@ -108,7 +108,7 @@ public class EditSourceDialog extends DialogWrapper {
       // URLs are generally case-insensitive (except for file:// where it all depends
       // on the current OS so we'll ignore this case.)
       // If we're editing a source, skip this.
-      for (RepositorySource s : myProvider.getSources(null, null, new StudioLoggerProgressIndicator(getClass()), false)) {
+      for (RepositorySource s : myProvider.getSources(null, new StudioLoggerProgressIndicator(getClass()), false)) {
         if (urlString.equalsIgnoreCase(s.getUrl())) {
           return "An update site with this URL already exists";
         }
