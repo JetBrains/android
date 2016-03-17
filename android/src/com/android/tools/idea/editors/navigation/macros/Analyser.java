@@ -22,7 +22,6 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.navigation.NavigationView;
 import com.android.tools.idea.editors.navigation.NavigationEditorUtils;
 import com.android.tools.idea.editors.navigation.model.*;
-import com.android.tools.idea.model.ManifestInfo;
 import com.android.tools.idea.model.MergedManifest;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -94,7 +93,7 @@ public class Analyser {
 
   private static Set<String> getActivitiesFromManifestFile(Module module) {
     Set<String> result = new HashSet<String>();
-    MergedManifest manifestInfo = ManifestInfo.get(module);
+    MergedManifest manifestInfo = MergedManifest.get(module);
     String packageName = manifestInfo.getPackage();
     List<Activity> activities = manifestInfo.getActivities();
     for (Activity activity : activities) {

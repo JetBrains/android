@@ -29,7 +29,7 @@ import org.jetbrains.annotations.Nullable;
  *
  * Note that in some cases you may need to obtain information from the merged manifest file. In such a case,
  * either obtain it from {@link AndroidModuleInfo} if the information is also available in the gradle model
- * (e.g. minSdk, targetSdk, packageName, etc), or use {@link ManifestInfo#get(Module)}.
+ * (e.g. minSdk, targetSdk, packageName, etc), or use {@link MergedManifest#get(Module)}.
  */
 public class AndroidModuleInfo {
   private final @NotNull AndroidFacet myFacet;
@@ -66,7 +66,7 @@ public class AndroidModuleInfo {
     }
 
     // Read from the manifest: Not overridden in the configuration
-    return ManifestInfo.get(myFacet).getApplicationId();
+    return MergedManifest.get(myFacet).getApplicationId();
   }
 
   /**
@@ -86,7 +86,7 @@ public class AndroidModuleInfo {
       // Else: not specified in gradle files; fall back to manifest
     }
 
-    return ManifestInfo.get(myFacet).getMinSdkVersion();
+    return MergedManifest.get(myFacet).getMinSdkVersion();
   }
 
   @NotNull
@@ -100,7 +100,7 @@ public class AndroidModuleInfo {
       // Else: not specified in gradle files; fall back to manifest
     }
 
-    return ManifestInfo.get(myFacet).getMinSdkVersion();
+    return MergedManifest.get(myFacet).getMinSdkVersion();
   }
 
   @NotNull
@@ -114,7 +114,7 @@ public class AndroidModuleInfo {
       // Else: not specified in gradle files; fall back to manifest
     }
 
-    return ManifestInfo.get(myFacet).getTargetSdkVersion();
+    return MergedManifest.get(myFacet).getTargetSdkVersion();
   }
 
   @Nullable
@@ -143,7 +143,7 @@ public class AndroidModuleInfo {
       }
     }
 
-    return ManifestInfo.get(myFacet).getApplicationDebuggable();
+    return MergedManifest.get(myFacet).getApplicationDebuggable();
   }
 
   @Nullable

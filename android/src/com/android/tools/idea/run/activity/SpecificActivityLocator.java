@@ -16,7 +16,7 @@
 package com.android.tools.idea.run.activity;
 
 import com.android.ddmlib.IDevice;
-import com.android.tools.idea.model.ManifestInfo;
+import com.android.tools.idea.model.MergedManifest;
 import com.intellij.execution.JavaExecutionUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
@@ -91,7 +91,7 @@ public class SpecificActivityLocator extends ActivityLocator {
     }
 
     // check whether activity is declared in the manifest
-    List<Activity> activities = ManifestInfo.get(module).getActivities();
+    List<Activity> activities = MergedManifest.get(module).getActivities();
     Activity activity = AndroidDomUtil.getActivityDomElementByClass(activities, c);
     if (activity == null) {
       throw new ActivityLocatorException(AndroidBundle.message("activity.not.declared.in.manifest", c.getName()));
@@ -100,7 +100,7 @@ public class SpecificActivityLocator extends ActivityLocator {
 
   @Nullable
   private static ActivityAlias findActivityAlias(@NotNull AndroidFacet facet, @NotNull final String qualifiedName) {
-    final List<ActivityAlias> aliases = ManifestInfo.get(facet).getActivityAliases();
+    final List<ActivityAlias> aliases = MergedManifest.get(facet).getActivityAliases();
 
     return ApplicationManager.getApplication().runReadAction(new Computable<ActivityAlias>() {
       @Override

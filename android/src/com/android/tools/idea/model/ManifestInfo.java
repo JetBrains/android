@@ -16,7 +16,6 @@
 package com.android.tools.idea.model;
 
 import com.android.SdkConstants;
-import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.BuildType;
 import com.android.builder.model.BuildTypeContainer;
 import com.android.manifmerger.Actions;
@@ -35,8 +34,8 @@ import com.intellij.lang.xml.XMLLanguage;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -69,10 +68,6 @@ import static com.android.SdkConstants.ANDROID_URI;
  */
 public final class ManifestInfo {
 
-  /** Key for the per-module non-persistent property storing the merged {@link ManifestInfo} for this module. */
-  @VisibleForTesting
-  final static Key<MergedManifest> MERGED_MANIFEST_FINDER = new Key<MergedManifest>("adt-merged-manifest-info");
-
   private ManifestInfo() {
   }
 
@@ -93,47 +88,11 @@ public final class ManifestInfo {
   }
 
   /**
-   * @deprecated use {@link #get(Module)} instead
+   * @deprecated use {@link MergedManifest#get(Module)} instead
    */
   @Deprecated
   public static MergedManifest get(Module module, boolean ignored) {
-    return get(module);
-  }
-
-  /**
-   * Returns the {@link ManifestInfo} for the given module.
-   *
-   * @param module the module the finder is associated with
-   * @return a {@ManifestInfo} for the given module, never null
-   */
-  @NotNull
-  public static MergedManifest get(@NotNull Module module) {
-    MergedManifest finder = module.getUserData(MERGED_MANIFEST_FINDER);
-    if (finder == null) {
-      AndroidFacet facet = AndroidFacet.getInstance(module);
-      if (facet == null) {
-        throw new IllegalArgumentException("Manifest information can only be obtained on modules with the Android facet.");
-      }
-      finder = get(facet);
-    }
-    return finder;
-  }
-
-  /**
-   * Returns the {@link ManifestInfo} for the given {@link AndroidFacet}.
-   *
-   * @param facet             the Android facet associated with a module.
-   * @return a {@ManifestInfo} for the given module
-   */
-  @NotNull
-  public static MergedManifest get(@NotNull AndroidFacet facet) {
-    Module module = facet.getModule();
-    MergedManifest finder = module.getUserData(MERGED_MANIFEST_FINDER);
-    if (finder == null) {
-      finder = new MergedManifest(facet);
-      module.putUserData(MERGED_MANIFEST_FINDER, finder);
-    }
-    return finder;
+    return MergedManifest.get(module);
   }
 
   @NotNull
@@ -279,6 +238,9 @@ public final class ManifestInfo {
         }
       }
       catch (ManifestMerger2.MergeFailureException ex) {
+        if (ex.getCause() instanceof ProcessCanceledException) {
+          return null;
+        }
         Logger.getInstance(ManifestInfo.class).warn("getMergedManifest exception", ex);
       }
 
