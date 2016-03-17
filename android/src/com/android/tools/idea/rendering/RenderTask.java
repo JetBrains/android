@@ -34,7 +34,6 @@ import com.android.tools.idea.configurations.RenderContext;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.model.ManifestInfo;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.model.MergedManifest.ActivityAttributes;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
@@ -449,7 +448,7 @@ public class RenderTask implements IImageFactory {
     // same session
     params.setExtendedViewInfoMode(true);
 
-    MergedManifest manifestInfo = ManifestInfo.get(module);
+    MergedManifest manifestInfo = MergedManifest.get(module);
 
     LayoutDirectionQualifier qualifier = myConfiguration.getFullConfig().getLayoutDirectionQualifier();
     if (qualifier != null && qualifier.getValue() == LayoutDirection.RTL && !getLayoutLib().isRtl(myLocale.toLocaleId())) {
@@ -970,7 +969,7 @@ public class RenderTask implements IImageFactory {
     params.setLocale(myLocale.toLocaleId());
     params.setAssetRepository(myAssetRepository);
     params.setFlag(RenderParamsFlags.FLAG_KEY_RECYCLER_VIEW_SUPPORT, true);
-    MergedManifest manifestInfo = ManifestInfo.get(module);
+    MergedManifest manifestInfo = MergedManifest.get(module);
     try {
       params.setRtlSupport(manifestInfo.isRtlSupported());
     } catch (Exception e) {

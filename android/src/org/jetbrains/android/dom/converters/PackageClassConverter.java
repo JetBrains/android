@@ -15,7 +15,7 @@
  */
 package org.jetbrains.android.dom.converters;
 
-import com.android.tools.idea.model.ManifestInfo;
+import com.android.tools.idea.model.MergedManifest;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 import com.intellij.codeInsight.completion.JavaLookupElementBuilder;
@@ -87,7 +87,7 @@ public class PackageClassConverter extends ResolvingConverter<PsiClass> implemen
     String manifestPackage = manifest != null ? manifest.getPackage().getValue() : null;
 
     if (manifestPackage == null && myUseManifestBasePackage) {
-      manifestPackage = ManifestInfo.get(context.getModule()).getPackage();
+      manifestPackage = MergedManifest.get(context.getModule()).getPackage();
     }
     return manifestPackage;
   }

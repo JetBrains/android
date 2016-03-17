@@ -20,7 +20,7 @@ import com.android.builder.model.SourceProvider;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.model.ManifestInfo;
+import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.templates.*;
 import com.android.tools.idea.templates.recipe.RenderingContext;
 import com.android.tools.idea.wizard.dynamic.DynamicWizard;
@@ -251,7 +251,7 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateW
     }
 
     // Calculate package name
-    String applicationPackageName = ManifestInfo.get(myModule).getPackage();
+    String applicationPackageName = MergedManifest.get(myModule).getPackage();
     String packageName = null;
     if (myTargetFolder != null && IdeaSourceProvider.containsFile(sourceProvider, VfsUtilCore.virtualToIoFile(myTargetFolder))) {
       packageName = getPackageFromDirectory(VfsUtilCore.virtualToIoFile(myTargetFolder), sourceProvider, myModule, myWizardState);

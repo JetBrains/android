@@ -19,7 +19,6 @@ import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.editors.theme.ThemeResolver;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.model.ManifestInfo;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.model.MergedManifest.ActivityAttributes;
 import com.google.common.collect.Lists;
@@ -315,7 +314,7 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
         }
         break;
       case MANIFEST: {
-        MergedManifest manifest = ManifestInfo.get(myConfiguration.getModule());
+        MergedManifest manifest = MergedManifest.get(myConfiguration.getModule());
         Map<String, ActivityAttributes> activityAttributesMap = manifest.getActivityAttributesMap();
         /*
         TODO: Until we don't sort the theme lists automatically, no need to call out the preferred one first
