@@ -333,6 +333,17 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     }
     else if (info != null && supportsInstantRun()) { // if there is an existing previous session, then see if we can detect devices to fast deploy to
       deviceFutures = getFastDeployDevices(executor, facet, info);
+
+      // HACK: We also need to support re-run
+      // In the case of re-run, we need to pick the devices from the previous run, but then terminate the app.
+      // This call to destroyProcess doesn't really belong here in the overall flow, but everything else in the flow just fits
+      // without any changes if we can recover the device first and then terminate the process. The alternative would be for
+      // the ReRun action itself to pass in the device just like it happens for the restart device, but that has the complication
+      // that the ReRun is now a global action and doesn't really know much details about each run (and doing that seems like a hack too.)
+      if (InstantRunUtils.isReRun(env)) {
+        info.getProcessHandler().destroyProcess();
+        info = null;
+      }
     }
 
     // If we should not be fast deploying, but there is an existing session, then terminate those sessions. Otherwise, we might end up with
@@ -478,7 +489,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       InstantRunManager.LOG.info("Instant run: app is not running on the selected device.");
     }
 
-    boolean needsCleanBuild = needsCleanBuild(isRestartedSession, buildsMatch);
+    boolean needsCleanBuild = needsCleanBuild(isRestartedSession, InstantRunUtils.isCleanReRun(env), buildsMatch);
     InstantRunUtils.setNeedsCleanBuild(env, needsCleanBuild);
     if (needsCleanBuild) {
       // implied that a clean build requires a full build
@@ -507,12 +518,20 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     }
   }
 
-  private static boolean needsCleanBuild(boolean isRestartedSession, boolean buildsMatch) {
+  private static boolean needsCleanBuild(boolean isRestartedSession, boolean isCleanRerun, boolean buildsMatch) {
     // restarted sessions don't need a clean build
+    if (isRestartedSession) {
+      return false;
+    }
+
+    if (isCleanRerun) {
+      return true;
+    }
+
     // Otherwise, we only need a clean build if the build ids don't match
     // Note: build id's not matching takes care of all device specific settings in the build (i.e. if any of api level, abi, etc,
     // change, then the build id will also have changed)
-    return !isRestartedSession && !buildsMatch;
+    return !buildsMatch;
   }
 
   private static BooleanStatus canBuildIncrementally(@NotNull ExecutionEnvironment env,
