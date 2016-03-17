@@ -94,10 +94,12 @@ public abstract class AbstractPsdNode<T extends PsModel> extends SimpleNode {
   }
 
   public boolean matches(@NotNull PsModel model) {
-    int modelCount = myModels.size();
-    if (modelCount == 1) {
-      return myModels.get(0).equals(model);
+    for (T m : myModels) {
+      if (m.equals(model)) {
+        return true;
+      }
     }
+
     return false;
   }
 

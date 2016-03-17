@@ -28,12 +28,12 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
-public class AndroidModuleDependenciesConfigurable extends BaseNamedConfigurable<PsAndroidModule> {
+public class ModuleDependenciesConfigurable extends BaseNamedConfigurable<PsAndroidModule> {
   @NotNull private final PsContext myContext;
 
   private ModuleDependenciesPanel myDependenciesPanel;
 
-  public AndroidModuleDependenciesConfigurable(@NotNull PsAndroidModule module, @NotNull PsContext context) {
+  public ModuleDependenciesConfigurable(@NotNull PsAndroidModule module, @NotNull PsContext context) {
     super(module);
     myContext = context;
   }

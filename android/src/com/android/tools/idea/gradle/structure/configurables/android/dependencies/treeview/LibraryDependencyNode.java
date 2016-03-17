@@ -97,10 +97,10 @@ public class LibraryDependencyNode extends AbstractDependencyNode<PsLibraryDepen
       PsLibraryDependency other = (PsLibraryDependency)model;
 
       List<PsLibraryDependency> models = getModels();
-      int modelCount = models.size();
-      if (modelCount == 1) {
-        PsLibraryDependency myModel = models.get(0);
-        return myModel.getResolvedSpec().equals(other.getResolvedSpec());
+      for (PsLibraryDependency dependency : models) {
+        if (dependency.getResolvedSpec().equals(other.getResolvedSpec())) {
+          return true;
+        }
       }
     }
     return false;

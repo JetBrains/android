@@ -33,10 +33,10 @@ import java.util.*;
 import static com.android.builder.model.AndroidProject.ARTIFACT_MAIN;
 import static com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.treeview.DependencyNodes.createNodesFor;
 
-class RootNode extends AbstractRootNode<PsAndroidModule> {
+class ResolvedDependenciesTreeRootNode extends AbstractRootNode<PsAndroidModule> {
   private boolean myGroupVariants = PsUISettings.getInstance().VARIANTS_DEPENDENCIES_GROUP_VARIANTS;
 
-  RootNode(@NotNull PsAndroidModule module) {
+  ResolvedDependenciesTreeRootNode(@NotNull PsAndroidModule module) {
     super(module);
   }
 
