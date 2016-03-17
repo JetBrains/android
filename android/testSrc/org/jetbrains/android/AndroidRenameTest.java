@@ -254,10 +254,24 @@ public class AndroidRenameTest extends AndroidTestCase {
     doTestStyleInheritance("styles11.xml", "styles11_after.xml", "myStyle.s1");
   }
 
+  /**
+   * Test the renaming of the parent of a style
+   */
+  public void testStyleParentRename() throws Throwable {
+    doTestStyleInheritance("styles13.xml", "styles13_after.xml", "myStyle42");
+  }
+
   private void doTestStyleInheritance(String before, String after) throws IOException {
     doTestStyleInheritance(before, after, "newStyle");
   }
 
+  /**
+   * Rename a style resource on the caret position (set in the {@code before} file). Compare the output with a result ({@code after}) file.
+   *
+   * @param before Path of the file that represents the resource file before renaming. It includes the caret position.
+   * @param after Path of the file that represents the resource file after renaming.
+   * @param newName The new name of the style being renamed
+   */
   private void doTestStyleInheritance(String before, String after, String newName) throws IOException {
     createManifest();
     final VirtualFile file = myFixture.copyFileToProject(BASE_PATH + before, "res/values/" + before);

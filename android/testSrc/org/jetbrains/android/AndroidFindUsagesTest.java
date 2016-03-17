@@ -252,6 +252,21 @@ public class AndroidFindUsagesTest extends AndroidTestCase {
                  describeUsages(references));
   }
 
+  public void testStyleInheritance2() throws Throwable {
+    Collection<UsageInfo> references = findCodeUsages("fu14_values.xml", "res/values/f14_values.xml");
+    assertEquals(3, references.size());
+    assertEquals("values/f14_values.xml:6:\n" +
+                 "  <style name=\"myStyle.s\">\n" +
+                 "               |~~~~~~~   \n" +
+                 "values/f14_values.xml:10:\n" +
+                 "  <style name=\"style1\" parent=\"myStyle\">\n" +
+                 "                               |~~~~~~~ \n" +
+                 "values/f14_values.xml:14:\n" +
+                 "  <style name=\"myStyle.s.a\">\n" +
+                 "               |~~~~~~~     \n",
+                 describeUsages(references));
+  }
+
   public void testValueItemResource() throws Throwable {
     myFixture.copyFileToProject(BASE_PATH + "strings.xml", "res/values/strings.xml");
     myFixture.copyFileToProject(BASE_PATH + "Class.java", "src/p1/p2/Class.java");
