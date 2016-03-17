@@ -17,6 +17,7 @@ package com.android.tools.idea.tests.gui.framework;
 
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.junit.runner.RunWith;
 import org.junit.runner.Runner;
 import org.junit.runner.notification.RunNotifier;
@@ -128,26 +129,20 @@ public class GuiTestSuiteRunner extends Suite {
     if (suiteGroups.isEmpty()) {
       return true;
     }
-    for (TestGroup testGroup : getGroups(testClass)) {
-      if (suiteGroups.contains(testGroup)) {
-        return true;
-      }
+    if (suiteGroups.contains(getTestGroup(testClass))) {
+      return true;
     }
     return false;
   }
 
-  @NotNull
-  public static List<TestGroup> getGroups(@NotNull Class<?> suiteClass) {
+  @Nullable
+  public static TestGroup getTestGroup(@NotNull Class<?> suiteClass) {
     for (Annotation annotation : suiteClass.getAnnotations()) {
-      if (annotation instanceof BelongsToTestGroups) {
-        TestGroup[] values = ((BelongsToTestGroups)annotation).value();
-        if (values != null) {
-          return Lists.newArrayList(values);
-        }
-        break;
+      if (annotation instanceof RunIn) {
+        return ((RunIn)annotation).value();
       }
     }
-    return Collections.emptyList();
+    return null;
   }
 
   @Override
