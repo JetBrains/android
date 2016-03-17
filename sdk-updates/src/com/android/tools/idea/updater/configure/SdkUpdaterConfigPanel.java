@@ -43,6 +43,7 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
@@ -185,11 +186,11 @@ public class SdkUpdaterConfigPanel {
   /**
    * Construct a new SdkUpdaterConfigPanel.
    *
-   * @param handler                The AndroidSdkHandler from which to get our package information.
    * @param channelChangedCallback Callback to allow us to notify the channel picker panel if we change the selected channel.
    * @param downloader             {@link Downloader} to download remote site lists and for installing packages. If {@code null} we will
    *                               only show local packages.
    * @param settings               {@link SettingsController} for e.g. proxy settings.
+   * @param configurable           The {@link SdkUpdaterConfigurable} that created this.
    */
   public SdkUpdaterConfigPanel(@NotNull final Runnable channelChangedCallback,
                                @Nullable Downloader downloader,
