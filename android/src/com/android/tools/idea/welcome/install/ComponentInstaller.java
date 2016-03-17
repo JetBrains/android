@@ -15,13 +15,19 @@
  */
 package com.android.tools.idea.welcome.install;
 
-import com.android.repository.api.*;
-import com.android.repository.impl.installer.BasicInstallerFactory;
+import com.android.repository.api.ProgressIndicator;
+import com.android.repository.api.RemotePackage;
+import com.android.repository.api.RepoManager;
+import com.android.repository.api.UpdatablePackage;
+import com.android.repository.impl.installer.BasicInstaller;
+import com.android.repository.impl.installer.PackageInstaller;
+import com.android.repository.io.FileOp;
+import com.android.repository.io.FileOpUtils;
 import com.android.sdklib.repositoryv2.AndroidSdkHandler;
-import com.android.tools.idea.sdk.StudioDownloader;
-import com.android.tools.idea.sdk.StudioSettingsController;
-import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
+import com.android.tools.idea.sdk.StudioDownloader;
+import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
+import com.android.tools.idea.sdk.StudioSettingsController;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
@@ -61,11 +67,10 @@ public final class ComponentInstaller {
     RepoManager sdkManager = mySdkHandler.getSdkManager(progress);
     for (RemotePackage request : packages) {
       // Intentionally don't register any listeners on the installer, so we don't recurse on haxm
-      // TODO: This is a hack. Any future rewrite of this shouldn't require this behavior.
-      InstallerFactory factory = new BasicInstallerFactory();
-      Installer installer = factory.createInstaller(request, sdkManager, mySdkHandler.getFileOp());
+      PackageInstaller installer = new BasicInstaller(request, sdkManager, mySdkHandler.getFileOp());
+      FileOp fop = FileOpUtils.create();
       if (installer.prepareInstall(new StudioDownloader(), StudioSettingsController.getInstance(), progress)) {
-        installer.completeInstall(progress);
+        installer.completeInstall(request, progress, sdkManager, fop);
       }
     }
     sdkManager.loadSynchronously(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, progress, null, null);
