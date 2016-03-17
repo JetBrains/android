@@ -17,7 +17,6 @@ package com.android.tools.idea.templates;
 
 import com.android.SdkConstants;
 import com.android.ide.common.repository.GradleCoordinate;
-import com.android.tools.idea.gradle.eclipse.ImportModule;
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
@@ -45,19 +44,15 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrRefere
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrCallExpression;
 
-import java.io.File;
 import java.util.*;
-
-import static com.android.ide.common.repository.GradleCoordinate.COMPARE_PLUS_LOWER;
 
 /**
  * Utility class to help with merging Gradle files into one another
  */
-public class GradleFileMerger {
+public class GradleFilePsiMerger {
   private static final String DEPENDENCIES = "dependencies";
   private static final String COMPILE = "compile";
   public static final String COMPILE_FORMAT = "compile '%s'\n";
-  private static String mSupportLibVersionFilter;
 
   /**
    * Merges the given source build.gradle content into the given destination build.gradle content,
@@ -67,8 +62,7 @@ public class GradleFileMerger {
    * compileSdkVersions and support libraries from different versions, which is not supported.
    */
   public static String mergeGradleFiles(@NotNull String source, @NotNull String dest, @Nullable Project project,
-                                        @Nullable String supportLibVersionFilter) {
-    mSupportLibVersionFilter = supportLibVersionFilter;
+                                        @Nullable final String supportLibVersionFilter) {
     source = source.replace("\r", "");
     dest = dest.replace("\r", "");
     final Project project2;
@@ -92,7 +86,7 @@ public class GradleFileMerger {
     String result = (new WriteCommandAction<String>(project2, "Merge Gradle Files", existingBuildFile) {
       @Override
       protected void run(@NotNull Result<String> result) throws Throwable {
-        mergePsi(templateBuildFile, existingBuildFile, project2);
+        mergePsi(templateBuildFile, existingBuildFile, project2, supportLibVersionFilter);
         PsiElement formatted = CodeStyleManager.getInstance(project2).reformat(existingBuildFile);
         result.setResult(formatted.getText());
       }
@@ -109,7 +103,10 @@ public class GradleFileMerger {
     return result;
   }
 
-  private static void mergePsi(@NotNull PsiElement fromRoot, @NotNull PsiElement toRoot, @NotNull Project project) {
+  private static void mergePsi(@NotNull PsiElement fromRoot,
+                               @NotNull PsiElement toRoot,
+                               @NotNull Project project,
+                               @Nullable String supportLibVersionFilter) {
     Set<PsiElement> destinationChildren = new HashSet<PsiElement>();
     destinationChildren.addAll(Arrays.asList(toRoot.getChildren()));
 
@@ -141,14 +138,17 @@ public class GradleFileMerger {
                  destination.getFirstChild() != null && destination.getFirstChild().getText().equalsIgnoreCase(DEPENDENCIES)) {
         // Special case dependencies
         // The last child of the dependencies method call is the closable block
-        mergeDependencies(child.getLastChild(), destination.getLastChild(), project);
+        mergeDependencies(child.getLastChild(), destination.getLastChild(), project, supportLibVersionFilter);
       } else {
-        mergePsi(child, destination, project);
+        mergePsi(child, destination, project, supportLibVersionFilter);
       }
     }
   }
 
-  private static void mergeDependencies(@NotNull PsiElement fromRoot, @NotNull PsiElement toRoot, @NotNull Project project) {
+  private static void mergeDependencies(@NotNull PsiElement fromRoot,
+                                        @NotNull PsiElement toRoot,
+                                        @NotNull Project project,
+                                        @Nullable String supportLibVersionFilter) {
     Multimap<String, GradleCoordinate> dependencies = LinkedListMultimap.create();
     List<String> unparseableDependencies = new ArrayList<String>();
 
@@ -161,34 +161,10 @@ public class GradleFileMerger {
     GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(project);
 
     RepositoryUrlManager urlManager = RepositoryUrlManager.get();
+    List<GradleCoordinate> resolvedDependencies = urlManager.resolveDynamicDependencies(dependencies, supportLibVersionFilter);
 
-    for (String key : dependencies.keySet()) {
-      GradleCoordinate highest = Collections.max(dependencies.get(key), COMPARE_PLUS_LOWER);
-
-      // For test consistency, don't depend on installed SDK state while testing
-      if (!ApplicationManager.getApplication().isUnitTestMode() || Boolean.getBoolean("force.gradlemerger.repository.check")) {
-        // If this coordinate points to an artifact in one of our repositories, check to see if there is a static version
-        // that we can add instead of a plus revision.
-        if (RepositoryUrlManager.supports(highest.getArtifactId())) {
-          String filter = highest.getGroupId() != null && ImportModule.SUPPORT_GROUP_ID.equals(highest.getGroupId())
-                          ? mSupportLibVersionFilter : null;
-          String libraryCoordinate = urlManager.getLibraryCoordinate(highest.getArtifactId(), filter, true /* Accept previews */);
-          if (libraryCoordinate == null && filter != null) {
-            // No library found at the support lib version filter level, so look for any match
-            libraryCoordinate = urlManager.getLibraryCoordinate(highest.getArtifactId(), null, true /* Accept previews */);
-          }
-          if (libraryCoordinate != null) {
-            GradleCoordinate available = GradleCoordinate.parseCoordinateString(libraryCoordinate);
-            if (available != null) {
-              File archiveFile = urlManager.getArchiveForCoordinate(available);
-              if (archiveFile != null && archiveFile.exists() && COMPARE_PLUS_LOWER.compare(available, highest) >= 0) {
-                highest = available;
-              }
-            }
-          }
-        }
-      }
-      PsiElement dependencyElement = factory.createStatementFromText(String.format(COMPILE_FORMAT, highest.toString()));
+    for (GradleCoordinate dependency : resolvedDependencies) {
+      PsiElement dependencyElement = factory.createStatementFromText(String.format(COMPILE_FORMAT, dependency.toString()));
       toRoot.addBefore(dependencyElement, toRoot.getLastChild());
     }
     for (String unparseableDependency : unparseableDependencies) {
