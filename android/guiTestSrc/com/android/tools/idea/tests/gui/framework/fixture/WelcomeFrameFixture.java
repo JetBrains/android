@@ -21,14 +21,12 @@ import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nonnull;
-
 public class WelcomeFrameFixture extends ComponentFixture<WelcomeFrameFixture, FlatWelcomeFrame> {
 
   private static final GenericTypeMatcher<FlatWelcomeFrame> WELCOME_FRAME_SHOWING =
     new GenericTypeMatcher<FlatWelcomeFrame>(FlatWelcomeFrame.class) {
       @Override
-      protected boolean isMatching(@Nonnull FlatWelcomeFrame frame) {
+      protected boolean isMatching(@NotNull FlatWelcomeFrame frame) {
         return frame.isShowing();
       }
     };

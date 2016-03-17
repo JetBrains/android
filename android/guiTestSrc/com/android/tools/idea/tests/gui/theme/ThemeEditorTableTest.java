@@ -35,7 +35,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import javax.annotation.Nonnull;
 import javax.swing.*;
 import java.awt.*;
 import java.io.IOException;
@@ -419,7 +418,7 @@ public class ThemeEditorTableTest {
 
     JWindow docWindow = GuiTests.waitUntilFound(guiTest.robot(), new GenericTypeMatcher<JWindow>(JWindow.class) {
       @Override
-      protected boolean isMatching(@Nonnull JWindow component) {
+      protected boolean isMatching(@NotNull JWindow component) {
         return component.isShowing();
       }
     });

@@ -25,14 +25,12 @@ import org.fest.swing.fixture.JPanelFixture;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 public class ThemePreviewComponentFixture extends JPanelFixture {
-  public ThemePreviewComponentFixture(@Nonnull Robot robot,
-                                      @Nonnull ThemePreviewComponent target) {
+  public ThemePreviewComponentFixture(@NotNull Robot robot,
+                                      @NotNull ThemePreviewComponent target) {
     super(robot, target);
   }
 
