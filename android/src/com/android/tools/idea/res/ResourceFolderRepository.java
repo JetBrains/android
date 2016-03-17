@@ -237,12 +237,12 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
 
   /**
    * Determine if it's unnecessary to write or update the file-backed cache.
-   * If a majority of items loaded are from the file cache, then the cache is fresh enough.
+   * If only a few items are reparsed, then the cache is fresh enough.
    *
    * @return true if this repo is backed by a fresh file cache
    */
   boolean hasFreshFileCache() {
-    return !myInitialInitialScanState.reparsedMany();
+    return myInitialInitialScanState.numXmlReparsed * 4 <= myInitialInitialScanState.numXml;
   }
 
   @VisibleForTesting
@@ -255,7 +255,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
    * The file cache omits non-XML single-file items, since those are easily derived from the file path.
    */
   static class InitialScanState {
-    int numXml;
+    int numXml; // Doesn't count files that are explicitly skipped
     int numXmlReparsed;
 
     ResourceMerger myResourceMerger;
@@ -281,6 +281,15 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
       myResourceDir = null;
     }
 
+    public void countCacheHit() {
+      ++numXml;
+    }
+
+    public void countCacheMiss() {
+      ++numXml;
+      ++numXmlReparsed;
+    }
+
     /**
      * Load a ResourceFile into the resource merger's resource set and return it.
      *
@@ -291,21 +300,6 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
     @Nullable
     ResourceFile loadFile(File file) throws MergingException {
       return myResourceSet.loadFile(myResourceDir, file, myILogger);
-    }
-
-    public void incXmlCount() {
-      ++numXml;
-    }
-
-    public void incReparsedXmlCount() {
-      ++numXmlReparsed;
-    }
-
-    public boolean reparsedMany() {
-      if (numXml == 0) {
-        return false;
-      }
-      return ((float)numXmlReparsed / numXml) > 0.75;
     }
   }
 
@@ -421,21 +415,25 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                                     VirtualFile file) {
     ResourceFile resourceFile;
     if (idGenerating) {
-      myInitialInitialScanState.incXmlCount();
       if (myResourceFiles.containsKey(file)) {
+        myInitialInitialScanState.countCacheHit();
         return;
       }
-      myInitialInitialScanState.incReparsedXmlCount();
       try {
         resourceFile = myInitialInitialScanState.loadFile(VfsUtilCore.virtualToIoFile(file));
         if (resourceFile == null) {
           // The file-based parser failed for some reason. Fall back to Psi in case it is more lax.
+          // Don't count Psi items in myInitialInitialScanState.numXml, because they are never cached.
           scanFileResourceFileAsPsi(qualifiers, folderType, folderConfiguration, type, idGenerating,
                                     map, PsiManager.getInstance(myModule.getProject()).findFile(file));
           return;
         }
         ListMultimap<String, ResourceItem> idMap = getMap(ResourceType.ID, true);
         boolean isDensityBasedResource = folderType == DRAWABLE || folderType == MIPMAP;
+        // We skip caching density-based resources, so don't count those against cache statistics.
+        if (!isDensityBasedResource) {
+          myInitialInitialScanState.countCacheMiss();
+        }
         for (ResourceItem item : resourceFile.getItems()) {
           ListMultimap<String, ResourceItem> itemMap;
           if (item.getType() == ResourceType.ID) {
@@ -790,11 +788,10 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
   private void scanValueFile(String qualifiers, VirtualFile virtualFile) {
     FileType fileType = virtualFile.getFileType();
     if (fileType == StdFileTypes.XML) {
-      myInitialInitialScanState.incXmlCount();
       if (myResourceFiles.containsKey(virtualFile)) {
+        myInitialInitialScanState.countCacheHit();
         return;
       }
-      myInitialInitialScanState.incReparsedXmlCount();
       File file = VfsUtilCore.virtualToIoFile(virtualFile);
       try {
         ResourceFile resourceFile = myInitialInitialScanState.loadFile(file);
@@ -808,6 +805,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
           ListMultimap<String, ResourceItem> map = getMap(item.getType(), true);
           map.put(item.getName(), item);
         }
+        myInitialInitialScanState.countCacheMiss();
         myResourceFiles.put(virtualFile, resourceFile);
       }
       catch (MergingException e) {
