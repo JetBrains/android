@@ -142,7 +142,7 @@ public class LayoutPreviewTest {
   }
 
   @Test
-  @Ignore("b.android.com/76009")
+  @Ignore("http://b.android.com/76009")
   public void testPreviewConfigurationTweaks() throws Exception {
     guiTest.importSimpleApplication();
 
@@ -174,6 +174,7 @@ public class LayoutPreviewTest {
   }
 
   @Test
+  @Ignore("http://b.android.com/203392")
   public void testEdits() throws Exception {
     guiTest.importSimpleApplication();
 
@@ -276,6 +277,7 @@ public class LayoutPreviewTest {
   }
 
   @Test
+  @Ignore("http://b.android.com/203392")
   public void testRendering() throws Exception {
     // Opens a number of layouts in the layout test project and checks that the rendering looks roughly
     // correct.
