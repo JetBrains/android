@@ -15,23 +15,23 @@
  */
 package com.android.tools.idea.sdk.install;
 
-import com.android.annotations.NonNull;
-import com.android.repository.api.PackageOperation;
 import com.android.repository.api.ProgressIndicator;
+import com.android.repository.impl.installer.PackageInstaller;
 import com.android.tools.idea.sdk.wizard.HaxmWizard;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * {@link PackageInstaller} for installing HAXM. Runs the {@link HaxmWizard} instead of the normal quickfix wizard.
  */
-public class HaxmInstallListener implements PackageOperation.StatusChangeListener {
+public class HaxmInstallListener implements PackageInstaller.StatusChangeListener {
   @Override
-  public void statusChanged(@NonNull PackageOperation op, @NonNull ProgressIndicator progress)
-    throws PackageOperation.StatusChangeListenerException {
-    if (op.getInstallStatus() == PackageOperation.InstallStatus.COMPLETE) {
+  public void statusChanged(@NotNull PackageInstaller installer,
+                            @NotNull ProgressIndicator progress) throws PackageInstaller.StatusChangeListenerException {
+    if (installer.getInstallStatus() == PackageInstaller.InstallStatus.COMPLETE) {
       final AtomicBoolean result = new AtomicBoolean(false);
       ApplicationManager.getApplication().invokeAndWait(new Runnable() {
         @Override
@@ -42,7 +42,7 @@ public class HaxmInstallListener implements PackageOperation.StatusChangeListene
         }
       }, ModalityState.any());
       if (!result.get()) {
-        throw new PackageOperation.StatusChangeListenerException("HAXM setup failed!");
+        throw new PackageInstaller.StatusChangeListenerException("HAXM setup failed!");
       }
     }
   }
