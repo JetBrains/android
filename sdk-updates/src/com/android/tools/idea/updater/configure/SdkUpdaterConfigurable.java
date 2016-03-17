@@ -17,6 +17,7 @@ package com.android.tools.idea.updater.configure;
 
 import com.android.repository.api.*;
 import com.android.repository.api.ProgressIndicator;
+import com.android.repository.impl.installer.PackageInstaller;
 import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.repository.io.FileOp;
 import com.android.repository.io.FileOpUtils;
@@ -24,11 +25,11 @@ import com.android.repository.util.InstallerUtil;
 import com.android.sdklib.repositoryv2.AndroidSdkHandler;
 import com.android.sdklib.repositoryv2.meta.DetailsTypes;
 import com.android.tools.idea.sdk.StudioDownloader;
+import com.android.tools.idea.sdk.StudioSdkUtil;
 import com.android.tools.idea.sdk.StudioSettingsController;
 import com.android.tools.idea.sdk.progress.RepoProgressIndicatorAdapter;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
-import com.android.tools.idea.sdk.install.StudioSdkInstallerUtil;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.android.utils.HtmlBuilder;
 import com.google.common.base.Objects;
@@ -65,7 +66,6 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
   private SdkUpdaterConfigPanel myPanel;
   private Channel myCurrentChannel;
   private Runnable myChannelChangedCallback;
-  private List<PackageOperation.StatusChangeListener> myListeners = Lists.newArrayList();
 
   @NotNull
   @Override
@@ -233,8 +233,7 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
             com.android.repository.api.ProgressIndicator repoProgress = new RepoProgressIndicatorAdapter(progress);
             FileOp fop = FileOpUtils.create();
             for (LocalPackage item : toDelete) {
-              InstallerFactory factory = StudioSdkInstallerUtil.createInstallerFactory(item, getSdkHandler());
-              factory.createUninstaller(item, getRepoManager(), fop).uninstall(repoProgress);
+              StudioSdkUtil.createInstaller(item, getSdkHandler()).uninstall(repoProgress);
             }
           }
         }, "Uninstalling", false, null, myPanel.getComponent());
@@ -243,17 +242,15 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
           if (dialog != null) {
             dialog.show();
             for (RemotePackage remotePackage : requestedPackages.keySet()) {
-              PackageOperation installer = getRepoManager().getInProgressInstallOperation(remotePackage);
+              PackageInstaller installer = getRepoManager().getInProgressInstaller(remotePackage);
               if (installer != null) {
-                PackageOperation.StatusChangeListener listener = new PackageOperation.StatusChangeListener() {
+                installer.registerStateChangeListener(new PackageInstaller.StatusChangeListener() {
                   @Override
-                  public void statusChanged(@NotNull PackageOperation installer,
+                  public void statusChanged(@NotNull PackageInstaller installer,
                                             @NotNull ProgressIndicator progress) {
                     myPanel.getComponent().repaint();
                   }
-                };
-                myListeners.add(listener);
-                installer.registerStateChangeListener(listener);
+                });
               }
             }
           }
