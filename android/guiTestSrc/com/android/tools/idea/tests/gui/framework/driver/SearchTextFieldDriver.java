@@ -22,16 +22,15 @@ import org.fest.swing.driver.JComponentDriver;
 import org.fest.swing.driver.TextDisplayDriver;
 import org.fest.swing.edt.GuiQuery;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.regex.Pattern;
 
 import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.swing.edt.GuiActionRunner.execute;
 
 public class SearchTextFieldDriver extends JComponentDriver implements TextDisplayDriver<SearchTextField> {
-  public SearchTextFieldDriver(@Nonnull Robot robot) {
+  public SearchTextFieldDriver(@NotNull Robot robot) {
     super(robot);
   }
 
@@ -50,7 +49,7 @@ public class SearchTextFieldDriver extends JComponentDriver implements TextDispl
   @Override
   @RunsInEDT
   @Nullable
-  public String textOf(final @Nonnull SearchTextField component) {
+  public String textOf(final @NotNull SearchTextField component) {
     return execute(new GuiQuery<String>() {
       @Override
       protected
@@ -62,7 +61,7 @@ public class SearchTextFieldDriver extends JComponentDriver implements TextDispl
   }
 
   @RunsInEDT
-  public void enterText(@Nonnull SearchTextField textBox, @Nonnull String text) {
+  public void enterText(@NotNull SearchTextField textBox, @NotNull String text) {
     focusAndWaitForFocusGain(textBox);
     robot.enterText(text);
   }

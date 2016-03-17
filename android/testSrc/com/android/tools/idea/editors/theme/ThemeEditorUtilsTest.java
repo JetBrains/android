@@ -34,6 +34,7 @@ import org.apache.commons.io.FileUtils;
 import org.fest.assertions.Index;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
@@ -195,7 +196,7 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
   private static EditedStyleItem findAttribute(@NotNull final String name, @NotNull Collection<EditedStyleItem> attributes) {
     EditedStyleItem item = Iterables.find(attributes, new Predicate<EditedStyleItem>() {
       @Override
-      public boolean apply(@javax.annotation.Nullable EditedStyleItem input) {
+      public boolean apply(@Nullable EditedStyleItem input) {
         assert input != null;
         return name.equals(input.getQualifiedName());
       }

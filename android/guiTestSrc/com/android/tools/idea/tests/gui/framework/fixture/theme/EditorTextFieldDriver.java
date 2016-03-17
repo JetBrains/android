@@ -25,8 +25,8 @@ import org.fest.swing.driver.TextDisplayDriver;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.util.Strings;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.awt.event.KeyEvent;
 import java.util.regex.Pattern;
 
