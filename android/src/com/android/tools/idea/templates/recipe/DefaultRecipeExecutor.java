@@ -28,6 +28,7 @@ import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.*;
+import com.intellij.util.LineSeparator;
 import freemarker.template.Configuration;
 import freemarker.template.TemplateException;
 import org.jetbrains.annotations.NotNull;
@@ -225,6 +226,35 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
       throw new RuntimeException(e);
     }
     catch (TemplateException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  @Override
+  public void append(@NotNull File from, @NotNull File to) {
+    try {
+      File sourceFile = myContext.getLoader().getSourceFile(from);
+      File targetFile = getTargetFile(to);
+
+      final String sourceText = readTextFromDisk(sourceFile);
+      if (sourceText == null) {
+        return;
+      }
+
+      if (targetFile.exists()) {
+        final String targetContents = readTextFromDisk(targetFile);
+        final String lineSeparator = LineSeparator.getSystemLineSeparator().getSeparatorString();
+        final String resultContents = (targetContents == null ? "" : targetContents + lineSeparator) + sourceText;
+
+        myIO.writeFile(this, resultContents, targetFile);
+      }
+      else {
+        myIO.writeFile(this, sourceText, targetFile);
+      }
+      myReferences.addSourceFile(sourceFile);
+      myReferences.addTargetFile(targetFile);
+    }
+    catch (IOException e) {
       throw new RuntimeException(e);
     }
   }
