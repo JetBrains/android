@@ -476,6 +476,7 @@ public class GradleSyncTest {
   }
 
   @Test
+  @Ignore("http://b.android.com/203384")
   // See https://code.google.com/p/android/issues/detail?id=72294
   public void testSyncWithEmptyGradleSettingsFileInMultiModuleProject() throws IOException {
     guiTest.importSimpleApplication();
