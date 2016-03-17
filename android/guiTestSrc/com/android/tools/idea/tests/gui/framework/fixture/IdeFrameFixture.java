@@ -534,6 +534,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     // TODO figure out why in IDEA 15 even though an action is enabled, visible and showing, clicking it (via UI testing infrastructure)
     // does not work consistently
     GradleProjectImporter.getInstance().requestProjectSync(getProject(), null);
+    waitForBackgroundTasks(robot());
 
     return this;
   }
