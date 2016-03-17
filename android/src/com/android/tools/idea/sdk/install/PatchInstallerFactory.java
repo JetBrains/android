@@ -102,7 +102,6 @@ public class PatchInstallerFactory extends AbstractInstallerFactory {
     @Override
     protected boolean doPrepareInstall(@NotNull File tempDir,
                                        @NotNull Downloader downloader,
-                                       @Nullable SettingsController settings,
                                        @NotNull ProgressIndicator progress) {
       Map<String, ? extends LocalPackage> localPackages = getRepoManager().getPackages().getLocalPackages();
       LocalPackage local = localPackages.get(getPackage().getPath());
@@ -113,7 +112,7 @@ public class PatchInstallerFactory extends AbstractInstallerFactory {
       Archive.PatchType patch = archive.getPatch(local.getVersion());
       assert patch != null;
 
-      File patchFile = getPatchFile(patch, p, tempDir, downloader, settings, progress);
+      File patchFile = getPatchFile(patch, p, tempDir, downloader, progress);
       if (patchFile == null) {
         progress.logWarning("Patch failed to download.");
         return false;
@@ -278,7 +277,6 @@ public class PatchInstallerFactory extends AbstractInstallerFactory {
                            @NotNull RemotePackage p,
                            @NotNull File tempDir,
                            @NotNull Downloader downloader,
-                           @Nullable SettingsController settings,
                            @NotNull ProgressIndicator progress) {
     URL url = InstallerUtil.resolveUrl(patch.getUrl(), p, progress);
     if (url == null) {
@@ -287,7 +285,7 @@ public class PatchInstallerFactory extends AbstractInstallerFactory {
     }
     try {
       File patchFile = new File(tempDir, "patch.jar");
-      downloader.downloadFully(url, settings, patchFile, progress);
+      downloader.downloadFully(url, patchFile, progress);
       return patchFile;
     }
     catch (IOException e) {

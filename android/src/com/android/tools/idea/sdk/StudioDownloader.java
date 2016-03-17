@@ -19,7 +19,6 @@ import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.repository.api.Downloader;
 import com.android.repository.api.ProgressIndicator;
-import com.android.repository.api.SettingsController;
 import com.android.tools.idea.sdk.progress.StudioProgressIndicatorAdapter;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.util.io.FileUtil;
@@ -43,7 +42,7 @@ public class StudioDownloader implements Downloader {
    * Creates a new {@code StudioDownloader}. The current {@link com.intellij.openapi.progress.ProgressIndicator} will be picked up
    * when downloads are run.
    */
-  public StudioDownloader() {};
+  public StudioDownloader() {}
 
   /**
    * Like {@link #StudioDownloader()}}, but will run downloads using the given {@link com.intellij.openapi.progress.ProgressIndicator}.
@@ -54,9 +53,9 @@ public class StudioDownloader implements Downloader {
   }
 
   @Override
-  public InputStream downloadAndStream(@NotNull URL url, @Nullable SettingsController settings, @NotNull ProgressIndicator indicator)
+  public InputStream downloadAndStream(@NotNull URL url, @NotNull ProgressIndicator indicator)
     throws IOException {
-    File file = downloadFully(url, settings, indicator);
+    File file = downloadFully(url, indicator);
     if (file == null) {
       return null;
     }
@@ -65,7 +64,6 @@ public class StudioDownloader implements Downloader {
 
   @Override
   public void downloadFully(@NonNull URL url,
-                            @Nullable SettingsController settings,
                             @NonNull File target,
                             @NonNull ProgressIndicator indicator)
     throws IOException {
@@ -84,14 +82,13 @@ public class StudioDownloader implements Downloader {
   @Nullable
   @Override
   public File downloadFully(@NonNull URL url,
-                            @Nullable SettingsController settings,
                             @NonNull ProgressIndicator indicator) throws IOException {
     // TODO: caching
     String suffix = url.getPath();
     suffix = suffix.substring(suffix.lastIndexOf("/") + 1);
     File tempFile = FileUtil.createTempFile("StudioDownloader", suffix, true);
     tempFile.deleteOnExit();
-    downloadFully(url, settings, tempFile, indicator);
+    downloadFully(url, tempFile, indicator);
     return tempFile;
   }
 }
