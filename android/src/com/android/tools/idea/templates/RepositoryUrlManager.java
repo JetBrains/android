@@ -20,11 +20,13 @@ import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.SdkMavenRepository;
 import com.android.repository.Revision;
+import com.android.tools.idea.gradle.eclipse.ImportModule;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.lint.checks.GradleDetector;
 import com.android.tools.lint.client.api.LintClient;
 import com.google.common.base.Predicate;
 import com.google.common.collect.*;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.android.inspections.lint.IntellijLintClient;
@@ -40,6 +42,8 @@ import javax.xml.parsers.SAXParserFactory;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.util.*;
+
+import static com.android.ide.common.repository.GradleCoordinate.COMPARE_PLUS_LOWER;
 
 /**
  * Helper class to aid in generating Maven URLs for various internal repository files (Support Library, AppCompat, etc).
@@ -431,6 +435,44 @@ public class RepositoryUrlManager {
     }
 
     return null;
+  }
+
+  /**
+   * Resolve multiple dynamic dependencies.
+   * TODO: Investigate why this method is using {@link #getLibraryCoordinate} instead of {@link #resolveDynamicCoordinate}
+   */
+  public List<GradleCoordinate> resolveDynamicDependencies(@NotNull Multimap<String, GradleCoordinate> dependencies,
+                                                           @Nullable String supportLibVersionFilter) {
+    List<GradleCoordinate> result = Lists.newArrayListWithCapacity(dependencies.size());
+
+    for (String key : dependencies.keySet()) {
+      GradleCoordinate highest = Collections.max(dependencies.get(key), COMPARE_PLUS_LOWER);
+
+      // For test consistency, don't depend on installed SDK state while testing
+      if (!ApplicationManager.getApplication().isUnitTestMode() || Boolean.getBoolean("force.gradlemerger.repository.check")) {
+        // If this coordinate points to an artifact in one of our repositories, check to see if there is a static version
+        // that we can add instead of a plus revision.
+        String filter = highest.getGroupId() != null && ImportModule.SUPPORT_GROUP_ID.equals(highest.getGroupId())
+                        ? supportLibVersionFilter : null;
+        String version = getLibraryCoordinate(highest.getGroupId(), highest.getArtifactId(), filter, true /* Accept previews */);
+        if (version == null && filter != null) {
+          // No library found at the support lib version filter level, so look for any match
+          version = getLibraryCoordinate(highest.getGroupId(), highest.getArtifactId(), null, true /* Accept previews */);
+        }
+        if (version != null) {
+          String libraryCoordinate = highest.getId() + ":" + version;
+          GradleCoordinate available = GradleCoordinate.parseCoordinateString(libraryCoordinate);
+          if (available != null) {
+            File archiveFile = getArchiveForCoordinate(available);
+            if (archiveFile != null && archiveFile.exists() && COMPARE_PLUS_LOWER.compare(available, highest) >= 0) {
+              highest = available;
+            }
+          }
+        }
+      }
+      result.add(highest);
+    }
+    return result;
   }
 
   /**
