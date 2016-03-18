@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.npw;
 
+import com.android.sdklib.SdkVersionInfo;
+import com.android.sdklib.repositoryv2.IdDisplay;
+import com.android.sdklib.repositoryv2.targets.SystemImage;
+import com.android.tools.idea.avdmanager.AvdWizardUtils;
 import com.android.tools.idea.configurations.DeviceMenuAction;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -33,18 +37,19 @@ import java.util.Map;
  * TODO: Turn into an enum and combine with {@link DeviceMenuAction.FormFactor}
  */
 public final class FormFactor implements Comparable<FormFactor> {
-  public static final FormFactor MOBILE = new FormFactor("Mobile", DeviceMenuAction.FormFactor.MOBILE, "Phone and Tablet", 15, Lists
-    .newArrayList("20", "google_gdk", "google_apis", "google_tv_addon", "Glass", "Google APIs"), null, 0, null);
-  // TODO: in the future instead of whitelisting maybe we could determine this by availability of system images.
-  public static final FormFactor WEAR = new FormFactor("Wear", DeviceMenuAction.FormFactor.WEAR, "Wear", 21,
-                                                       Lists.newArrayList("google_apis"), Lists.newArrayList("20", "21", "22"), 1, null);
-  public static final FormFactor TV = new FormFactor("TV", DeviceMenuAction.FormFactor.TV, "TV", 21,
-                                                     Lists.newArrayList("20", "google_apis", "google_gdk"), null, 2, null);
-  public static final FormFactor CAR = new FormFactor("Car", DeviceMenuAction.FormFactor.CAR, "Android Auto", 21,
-                                                      null, null, 3, MOBILE);
-
-  public static final FormFactor GLASS = new FormFactor("Glass", DeviceMenuAction.FormFactor.GLASS, "Glass", 19,
-                                                        null, Lists.newArrayList("Glass", "google_gdk"), 4, null);
+  public static final FormFactor MOBILE = new FormFactor(
+    "Mobile", DeviceMenuAction.FormFactor.MOBILE, "Phone and Tablet", 15, 1, SdkVersionInfo.HIGHEST_KNOWN_API, Lists.newArrayList(20),
+    Lists.newArrayList(SystemImage.DEFAULT_TAG, AvdWizardUtils.GOOGLE_APIS_TAG, AvdWizardUtils.GOOGLE_APIS_X86_TAG), 0, null);
+  public static final FormFactor WEAR = new FormFactor(
+    "Wear", DeviceMenuAction.FormFactor.WEAR, "Wear", 21, SdkVersionInfo.LOWEST_ACTIVE_API_WEAR, SdkVersionInfo.HIGHEST_KNOWN_API_WEAR,
+    null, Lists.newArrayList(AvdWizardUtils.WEAR_TAG), 1, null);
+  public static final FormFactor TV = new FormFactor(
+    "TV", DeviceMenuAction.FormFactor.TV, "TV", 21, SdkVersionInfo.LOWEST_ACTIVE_API_TV, SdkVersionInfo.HIGHEST_KNOWN_API_TV,
+    null, Lists.newArrayList(AvdWizardUtils.TV_TAG), 2, null);
+  public static final FormFactor CAR = new FormFactor(
+    "Car", DeviceMenuAction.FormFactor.CAR, "Android Auto", 21, 21, 21, null, null, 3, MOBILE);
+  public static final FormFactor GLASS = new FormFactor(
+    "Glass", DeviceMenuAction.FormFactor.GLASS, "Glass", 19, -1, -1, null, Lists.newArrayList(AvdWizardUtils.GLASS_TAG), 4, null);
 
   private static final Map<String, FormFactor> myFormFactors = new ImmutableMap.Builder<String, FormFactor>()
       .put(MOBILE.id, MOBILE)
@@ -56,22 +61,26 @@ public final class FormFactor implements Comparable<FormFactor> {
   public final String id;
   @Nullable private String myDisplayName;
   public final int defaultApi;
-  @NotNull private final List<String> myApiBlacklist;
-  @NotNull private final List<String> myApiWhitelist;
+  @NotNull private final List<Integer> myApiBlacklist;
+  @NotNull private final List<IdDisplay> myTags;
   @NotNull private final DeviceMenuAction.FormFactor myEnumValue;
-  private final int relativeOrder;
+  private final int myRelativeOrder;
+  private final int myMinOfflineApiLevel;
+  private final int myMaxOfflineApiLevel;
   @Nullable public final FormFactor baseFormFactor;
 
   FormFactor(@NotNull String id, @NotNull DeviceMenuAction.FormFactor enumValue, @Nullable String displayName,
-             int defaultApi, @Nullable List<String> apiBlacklist, @Nullable List<String> apiWhitelist,
-             int relativeOrder, @Nullable FormFactor baseFormFactor) {
+             int defaultApi, int minOfflineApiLevel, int maxOfflineApiLevel, @Nullable List<Integer> apiBlacklist,
+             @Nullable List<IdDisplay> apiTags, int relativeOrder, @Nullable FormFactor baseFormFactor) {
     this.id = id;
     myEnumValue = enumValue;
     myDisplayName = displayName;
     this.defaultApi = defaultApi;
-    this.relativeOrder = relativeOrder;
-    myApiBlacklist = apiBlacklist != null ? apiBlacklist : Collections.<String>emptyList();
-    myApiWhitelist = apiWhitelist != null ? apiWhitelist : Collections.<String>emptyList();
+    myMinOfflineApiLevel = minOfflineApiLevel;
+    myMaxOfflineApiLevel = Math.min(maxOfflineApiLevel, SdkVersionInfo.HIGHEST_KNOWN_STABLE_API);
+    myRelativeOrder = relativeOrder;
+    myApiBlacklist = apiBlacklist != null ? apiBlacklist : Collections.<Integer>emptyList();
+    myTags = apiTags != null ? apiTags : Collections.<IdDisplay>emptyList();
     this.baseFormFactor = baseFormFactor;
   }
 
@@ -81,7 +90,7 @@ public final class FormFactor implements Comparable<FormFactor> {
       return myFormFactors.get(id);
 
     }
-    return new FormFactor(id, DeviceMenuAction.FormFactor.MOBILE, id, 1, null, null, myFormFactors.size(), null);
+    return new FormFactor(id, DeviceMenuAction.FormFactor.MOBILE, id, 1, -1, -1, null, null, myFormFactors.size(), null);
   }
 
   @NotNull
@@ -100,13 +109,21 @@ public final class FormFactor implements Comparable<FormFactor> {
   }
 
   @NotNull
-  List<String> getApiBlacklist() {
+  List<Integer> getApiBlacklist() {
     return myApiBlacklist;
   }
 
   @NotNull
-  List<String> getApiWhitelist() {
-    return myApiWhitelist;
+  List<IdDisplay> getTags() {
+    return myTags;
+  }
+
+  public int getMinOfflineApiLevel() {
+    return myMinOfflineApiLevel;
+  }
+
+  public int getMaxOfflineApiLevel() {
+    return myMaxOfflineApiLevel;
   }
 
   public static Iterator<FormFactor> iterator() {
@@ -120,6 +137,6 @@ public final class FormFactor implements Comparable<FormFactor> {
 
   @Override
   public int compareTo(FormFactor formFactor) {
-    return relativeOrder - formFactor.relativeOrder;
+    return myRelativeOrder - formFactor.myRelativeOrder;
   }
 }
