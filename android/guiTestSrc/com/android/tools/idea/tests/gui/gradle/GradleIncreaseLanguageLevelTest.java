@@ -67,7 +67,7 @@ public class GradleIncreaseLanguageLevelTest {
     editor.enterText("\nfloat x = 1_000;");
     editor.moveTo(editor.findOffset("1_0^00;"));
     editor.waitForCodeAnalysisHighlightCount(ERROR, 1);
-    editor.invokeIntentionAction("Set language level to 7");
+    editor.invokeQuickfixAction("Set language level to 7");
     editor.waitForCodeAnalysisHighlightCount(ERROR, 0);
 
     guiTest.ideFrame().getEditor().invokeAction(UNDO);
