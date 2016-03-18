@@ -329,7 +329,7 @@
                     </constraints>
                     <properties>
                       <labelFor value="50a2c"/>
-                      <text value="Screensize:"/>
+                      <text value="Screen size:"/>
                     </properties>
                   </component>
                 </children>
