@@ -48,9 +48,8 @@ public class CreateResourceTest {
 
     // Wait for symbol to be marked as unrecognized
     editor.waitForCodeAnalysisHighlightCount(HighlightSeverity.ERROR, 1);
-    editor.waitForQuickfix();
 
-    editor.invokeIntentionAction("Create layout resource file");
+    editor.invokeQuickfixAction("Create layout resource file");
 
     CreateResourceFileDialogFixture dialog = CreateResourceFileDialogFixture.find(guiTest.robot());
     // Should automatically prepend library prefix lib1:
@@ -63,9 +62,8 @@ public class CreateResourceTest {
 
     // Wait for symbol to be marked as unrecognized
     editor.waitForCodeAnalysisHighlightCount(HighlightSeverity.ERROR, 1);
-    editor.waitForQuickfix();
 
-    editor.invokeIntentionAction("Create layout resource file");
+    editor.invokeQuickfixAction("Create layout resource file");
 
     dialog = CreateResourceFileDialogFixture.find(guiTest.robot());
     // Should automatically prepend library prefix lib1:
