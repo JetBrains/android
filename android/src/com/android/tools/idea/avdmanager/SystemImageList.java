@@ -19,9 +19,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.devices.Abi;
 import com.android.sdklib.repositoryv2.meta.DetailsTypes;
-import com.android.sdklib.repositoryv2.targets.SystemImage;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
-import com.android.tools.idea.ui.properties.core.OptionalProperty;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.ImmutableSet;
@@ -49,9 +47,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static com.android.tools.idea.avdmanager.AvdManagerConnection.GOOGLE_APIS_TAG;
-import static com.android.tools.idea.avdmanager.AvdWizardUtils.TV_TAG;
-import static com.android.tools.idea.avdmanager.AvdWizardUtils.WEAR_TAG;
+import static com.android.sdklib.repositoryv2.targets.SystemImage.*;
 
 /**
  * Displays a list of system images currently installed and allows selection of one
@@ -231,8 +227,7 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
   private void installForDevice() {
     int apiLevel = SdkVersionInfo.HIGHEST_KNOWN_STABLE_API;
     List<String> requestedPackages = Lists.newArrayListWithCapacity(3);
-    requestedPackages.add(DetailsTypes.getSysImgPath(null, new AndroidVersion(apiLevel, null),
-                                                     SystemImage.DEFAULT_TAG, Abi.X86.toString()));
+    requestedPackages.add(DetailsTypes.getSysImgPath(null, new AndroidVersion(apiLevel, null), DEFAULT_TAG, Abi.X86.toString()));
     requestedPackages.add(DetailsTypes.getSysImgPath(null, new AndroidVersion(apiLevel, null), WEAR_TAG, Abi.X86.toString()));
     requestedPackages.add(DetailsTypes.getSysImgPath(null, new AndroidVersion(apiLevel, null), TV_TAG, Abi.X86.toString()));
     ModelWizardDialog dialog = SdkQuickfixUtils.createDialogForPaths(this, requestedPackages);

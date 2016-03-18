@@ -22,8 +22,8 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Abi;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.HardwareProperties;
+import com.android.sdklib.repositoryv2.targets.SystemImage;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
-import com.android.tools.idea.avdmanager.AvdWizardUtils;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.ide.ui.search.SearchUtil;
 import com.intellij.openapi.project.Project;
@@ -97,9 +97,9 @@ public class LaunchableAndroidDevice implements AndroidDevice {
   public boolean supportsFeature(@NotNull IDevice.HardwareFeature feature) {
     switch (feature) {
       case WATCH:
-        return AvdWizardUtils.WEAR_TAG.equals(myAvdInfo.getTag());
+        return SystemImage.WEAR_TAG.equals(myAvdInfo.getTag());
       case TV:
-        return AvdWizardUtils.TV_TAG.equals(myAvdInfo.getTag());
+        return SystemImage.TV_TAG.equals(myAvdInfo.getTag());
       default:
         return true;
     }
