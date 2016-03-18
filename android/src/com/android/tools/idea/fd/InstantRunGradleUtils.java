@@ -190,13 +190,6 @@ public class InstantRunGradleUtils {
   @NotNull
   private static File getLocalBuildInfoFile(@NotNull AndroidGradleModel model) {
     InstantRun instantRun = model.getSelectedVariant().getMainArtifact().getInstantRun();
-
-    File file = instantRun.getInfoFile();
-    if (!file.exists()) {
-      // Temporary hack workaround; model is passing the wrong value! See InstantRunAnchorTask.java
-      file = new File(instantRun.getRestartDexFile().getParentFile(), "build-info.xml");
-    }
-
-    return file;
+    return instantRun.getInfoFile();
   }
 }
