@@ -19,7 +19,6 @@ package com.android.tools.idea.rendering;
 import com.android.annotations.NonNull;
 import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.AndroidProject;
-import com.android.ide.common.rendering.RenderSecurityManager;
 import com.android.ide.common.rendering.api.LayoutLog;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.Density;
