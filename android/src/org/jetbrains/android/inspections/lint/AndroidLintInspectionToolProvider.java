@@ -795,6 +795,12 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
+  public static class AndroidLintVectorDrawableCompatInspection extends AndroidLintInspectionBase {
+    public AndroidLintVectorDrawableCompatInspection() {
+      super(AndroidBundle.message("android.lint.inspections.vector.drawable.compat"), com.android.tools.lint.checks.VectorDrawableCompatDetector.ISSUE);
+    }
+  }
+
   public static class AndroidLintVectorRasterInspection extends AndroidLintInspectionBase {
     public AndroidLintVectorRasterInspection() {
       super(AndroidBundle.message("android.lint.inspections.vector.raster"), VectorDetector.ISSUE);
