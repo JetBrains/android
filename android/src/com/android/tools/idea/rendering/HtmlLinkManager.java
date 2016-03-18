@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.rendering;
 
-import com.android.ide.common.rendering.RenderSecurityManager;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.RenderContext;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;

@@ -17,7 +17,7 @@
 package org.jetbrains.android.uipreview;
 
 import com.android.ide.common.rendering.LayoutLibrary;
-import com.android.ide.common.rendering.RenderSecurityManager;
+import com.android.tools.idea.rendering.RenderSecurityManager;
 import com.android.ide.common.rendering.api.LayoutLog;
 import com.android.ide.common.resources.IntArrayWrapper;
 import com.android.resources.ResourceType;
