@@ -598,6 +598,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
       }
     });
 
+    waitForBackgroundTasks(robot());
     findGradleSyncAction().waitUntilEnabledAndShowing();
 
     if (myGradleProjectEventListener.hasSyncError()) {
