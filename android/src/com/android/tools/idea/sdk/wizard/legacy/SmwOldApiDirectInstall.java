@@ -40,6 +40,7 @@ import com.android.tools.idea.wizard.dynamic.DynamicWizardStepWithDescription;
 import com.android.utils.ILogger;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.PerformInBackgroundOption;
@@ -110,14 +111,14 @@ public class SmwOldApiDirectInstall extends DynamicWizardStepWithDescription {
     final AndroidSdkHandler sdkHandler = AndroidSdkUtils.tryToChooseSdkHandler();
     if (sdkHandler.getLocation() == null) {
       myErrorLabel.setText("Error: can't get SDK instance.");
-      myErrorLabel.setForeground(JBColor.RED);
+      myErrorLabel.setIcon(AllIcons.General.BalloonError);
       return;
     }
 
     File androidSdkPath = IdeSdks.getAndroidSdkPath();
     if (androidSdkPath != null && androidSdkPath.exists() && !androidSdkPath.canWrite()) {
       myErrorLabel.setText(String.format("SDK folder is read-only: '%1$s'", androidSdkPath.getPath()));
-      myErrorLabel.setForeground(JBColor.RED);
+      myErrorLabel.setIcon(AllIcons.General.BalloonError);
       return;
     }
 
@@ -142,13 +143,30 @@ public class SmwOldApiDirectInstall extends DynamicWizardStepWithDescription {
 
             Map<String, RemotePackage> remotes = packages.getRemotePackages();
             List<RemotePackage> requestedPackages = Lists.newArrayList();
+            boolean notFound = false;
             for (String path : requestedChanges) {
-              requestedPackages.add(remotes.get(path));
+              RemotePackage remotePackage = remotes.get(path);
+              if (remotePackage != null) {
+                requestedPackages.add(remotePackage);
+              }
+              else {
+                notFound = true;
+              }
             }
-            InstallTask task = new InstallTask(sdkHandler, requestedPackages, logger);
-            BackgroundableProcessIndicator indicator = new BackgroundableProcessIndicator(task);
-            logger.setIndicator(indicator);
-            ProgressManager.getInstance().runProcessWithProgressAsynchronously(task, indicator);
+            if (requestedPackages.isEmpty()) {
+              myInstallFinished = true;
+              invokeUpdate(null);
+            }
+            else {
+              InstallTask task = new InstallTask(sdkHandler, requestedPackages, logger);
+              BackgroundableProcessIndicator indicator = new BackgroundableProcessIndicator(task);
+              logger.setIndicator(indicator);
+              ProgressManager.getInstance().runProcessWithProgressAsynchronously(task, indicator);
+            }
+            if (notFound) {
+              myErrorLabel.setText("Problem: Some required packages could not be installed. Check internet connection.");
+              myErrorLabel.setIcon(AllIcons.General.BalloonError);
+            }
           }
         });
       }
