@@ -15,29 +15,31 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.project;
 
+import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractDependencyNode;
+import com.android.tools.idea.gradle.structure.configurables.ui.AbstractMainPanel;
+import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.PsProject;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
 import com.google.common.collect.Lists;
-import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.treeStructure.SimpleNode;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
 import java.awt.*;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.structure.configurables.android.dependencies.UiUtil.createMainVerticalSplitter;
 
-class ProjectDependenciesPanel extends JPanel implements Disposable {
+class ProjectDependenciesPanel extends AbstractMainPanel {
   @NotNull private final JBSplitter myVerticalSplitter;
   @NotNull private final DeclaredDependenciesPanel myDeclaredDependenciesPanel;
   @NotNull private final TargetModulesPanel myTargetModulesPanel;
 
-  ProjectDependenciesPanel(@NotNull PsProject project) {
-    super(new BorderLayout());
+  ProjectDependenciesPanel(@NotNull PsProject project, @NotNull PsContext context, @NotNull List<PsModule> extraTopModules) {
+    super(project, context, extraTopModules);
+
     myDeclaredDependenciesPanel = new DeclaredDependenciesPanel(project);
     myTargetModulesPanel = new TargetModulesPanel(project);
 
