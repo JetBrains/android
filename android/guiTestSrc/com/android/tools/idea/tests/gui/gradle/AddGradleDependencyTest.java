@@ -183,7 +183,7 @@ public class AddGradleDependencyTest {
     assertThat(intentions).excludes(intention);
   }
 
-  @Ignore("http://b.android.com/202480")
+  // http://b.android.com/202480
   @Test
   public void testAddJUnitDependency() throws IOException {
     guiTest.importSimpleApplication();
