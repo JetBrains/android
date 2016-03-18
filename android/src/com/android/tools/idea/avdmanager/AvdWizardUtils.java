@@ -24,7 +24,6 @@ import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.internal.avd.HardwareProperties;
 import com.android.sdklib.repositoryv2.IdDisplay;
-import com.android.sdklib.repositoryv2.targets.SystemImage;
 import com.android.tools.idea.ddms.screenshot.DeviceArtDescriptor;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder;
@@ -45,6 +44,8 @@ import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+
+import static com.android.sdklib.repositoryv2.targets.SystemImage.*;
 
 /**
  * State store keys for the AVD Manager wizards
@@ -114,13 +115,7 @@ public class AvdWizardUtils {
   public static final Font TITLE_FONT = JBFont.create(new Font("Sans", Font.BOLD, 16));
 
   // Tags
-  public static final IdDisplay WEAR_TAG = IdDisplay.create("android-wear", "Android Wear");
-  public static final IdDisplay TV_TAG = IdDisplay.create("android-tv", "Android TV");
-  public static final IdDisplay GLASS_TAG = IdDisplay.create("google_gdk", "Android Glass");
-  public static final IdDisplay GOOGLE_APIS_TAG = IdDisplay.create("google_apis", "Google APIs");
-  public static final IdDisplay GOOGLE_APIS_X86_TAG = IdDisplay.create("google_apis_x86", "Google APIs x86");
-
-  public static final List<IdDisplay> ALL_DEVICE_TAGS = ImmutableList.of(SystemImage.DEFAULT_TAG, WEAR_TAG, TV_TAG);
+  public static final List<IdDisplay> ALL_DEVICE_TAGS = ImmutableList.of(DEFAULT_TAG, WEAR_TAG, TV_TAG);
   public static final List<IdDisplay> TAGS_WITH_GOOGLE_API = ImmutableList.of(GOOGLE_APIS_TAG, GOOGLE_APIS_X86_TAG, WEAR_TAG, TV_TAG);
 
   public static final String CREATE_SKIN_HELP_LINK = "http://developer.android.com/tools/devices/managing-avds.html#skins";
