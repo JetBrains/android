@@ -1,10 +1,7 @@
 package org.jetbrains.android;
 
-import static com.android.SdkConstants.NEW_ID_PREFIX;
-
 import com.android.ide.common.resources.ResourceUrl;
 import com.android.resources.ResourceFolderType;
-import com.android.resources.ResourceType;
 import com.intellij.ide.TitledHandler;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -17,7 +14,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.*;
 import com.intellij.refactoring.rename.RenameDialog;
@@ -140,32 +136,10 @@ public class AndroidRenameHandler implements RenameHandler, TitledHandler {
       return null;
     }
 
-    if (element instanceof XmlToken) {
-      final IElementType tokenType = ((XmlToken)element).getTokenType();
-      if (tokenType == XmlTokenType.XML_DATA_CHARACTERS) {
-        final XmlText text = PsiTreeUtil.getParentOfType(element, XmlText.class);
-        if (text != null) {
-          return ResourceUrl.parse(text.getText().trim());
-        }
-      }
-      else if (tokenType == XmlTokenType.XML_ATTRIBUTE_VALUE_TOKEN) {
-        // If parent attribute doesn't contain a valid ResourceUrl, create one
-        final XmlTag tag = PsiTreeUtil.getParentOfType(element, XmlTag.class);
-        if (tag != null && tag.getAttribute("parent") != null) {
-          final String parent = tag.getAttribute("parent").getValue();
-          if (parent != null && parent.equals(element.getText())) {
-            // First, check if the parent already contains a valid Resource URL
-            ResourceUrl resourceUrl = ResourceUrl.parse(parent);
-            if (resourceUrl == null) {
-              // Create a resource URL using parent name and tag type otherwise
-              ResourceType resourceType = ResourceType.getEnum(tag.getName());
-              if (resourceType != null) {
-                resourceUrl = ResourceUrl.create(resourceType, parent, false, parent.startsWith(NEW_ID_PREFIX));
-              }
-            }
-            return resourceUrl;
-          }
-        }
+    if (element instanceof XmlToken && ((XmlToken)element).getTokenType() == XmlTokenType.XML_DATA_CHARACTERS) {
+      final XmlText text = PsiTreeUtil.getParentOfType(element, XmlText.class);
+      if (text != null) {
+        return ResourceUrl.parse(text.getText().trim());
       }
     }
     return null;
