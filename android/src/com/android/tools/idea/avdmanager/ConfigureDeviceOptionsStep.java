@@ -174,9 +174,9 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
            *    remove listener
            * }
            */
-          getModel().getDeviceData().isWear().set(selectedType.equals(AvdWizardUtils.WEAR_TAG));
-          getModel().getDeviceData().isTv().set(selectedType.equals(AvdWizardUtils.TV_TAG));
-          myIsScreenRound.setEnabled(selectedType.equals(AvdWizardUtils.WEAR_TAG));
+          getModel().getDeviceData().isWear().set(selectedType.equals(SystemImage.WEAR_TAG));
+          getModel().getDeviceData().isTv().set(selectedType.equals(SystemImage.TV_TAG));
+          myIsScreenRound.setEnabled(selectedType.equals(SystemImage.WEAR_TAG));
           myIsScreenRound.setSelected(getModel().getDeviceData().isScreenRound().get());
         }
       }

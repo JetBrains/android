@@ -29,7 +29,6 @@ import com.android.sdklib.repositoryv2.IdDisplay;
 import com.android.sdklib.repositoryv2.meta.DetailsTypes;
 import com.android.sdklib.repositoryv2.targets.AndroidTargetManager;
 import com.android.sdklib.repositoryv2.targets.SystemImage;
-import com.android.tools.idea.avdmanager.AvdWizardUtils;
 import com.android.tools.idea.sdk.StudioDownloader;
 import com.android.tools.idea.sdk.StudioSettingsController;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
@@ -362,7 +361,7 @@ public final class FormFactorApiComboBox extends JComboBox {
 
     public AndroidTargetComboBoxItem(@NotNull RepoPackage info) {
       this(FormFactorUtils.getAndroidVersion(info), FormFactorUtils.getTag(info));
-      if (info instanceof RemotePackage && AvdWizardUtils.GLASS_TAG.equals(FormFactorUtils.getTag(info))) {
+      if (info instanceof RemotePackage && SystemImage.GLASS_TAG.equals(FormFactorUtils.getTag(info))) {
         // If this is Glass then prepare to install this add-on package.
         // All platform are installed by a different mechanism.
         myAddon = (RemotePackage) info;
@@ -375,7 +374,7 @@ public final class FormFactorApiComboBox extends JComboBox {
 
     private static String getLabel(@NotNull AndroidVersion version, @Nullable IdDisplay tag) {
       int featureLevel = version.getFeatureLevel();
-      if (AvdWizardUtils.GLASS_TAG.equals(tag)) {
+      if (SystemImage.GLASS_TAG.equals(tag)) {
         return String.format("Glass Development Kit Preview (API %1$d)", featureLevel);
       }
       if (featureLevel <= SdkVersionInfo.HIGHEST_KNOWN_API) {

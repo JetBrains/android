@@ -24,6 +24,7 @@ import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.devices.*;
 import com.android.sdklib.internal.avd.GpuMode;
 import com.android.sdklib.repositoryv2.IdDisplay;
+import com.android.sdklib.repositoryv2.targets.SystemImage;
 import com.android.tools.idea.ui.ASGallery;
 import com.android.tools.idea.ui.properties.*;
 import com.android.tools.idea.ui.properties.adapters.OptionalToValuePropertyAdapter;
@@ -263,7 +264,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     assert getModel().systemImage().get().isPresent();
     SystemImageDescription systemImage = getModel().systemImage().getValue();
     IdDisplay tag = systemImage.getTag();
-    return AvdWizardUtils.WEAR_TAG.equals(tag) || AvdWizardUtils.TV_TAG.equals(tag) || AvdWizardUtils.GOOGLE_APIS_TAG.equals(tag);
+    return SystemImage.WEAR_TAG.equals(tag) || SystemImage.TV_TAG.equals(tag) || SystemImage.GOOGLE_APIS_TAG.equals(tag);
   }
 
   private boolean isIntel() {

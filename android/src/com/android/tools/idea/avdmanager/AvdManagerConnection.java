@@ -75,10 +75,12 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import static com.android.sdklib.repositoryv2.targets.SystemImage.DEFAULT_TAG;
+import static com.android.sdklib.repositoryv2.targets.SystemImage.GOOGLE_APIS_TAG;
 
 /**
  * A wrapper class for communicating with {@link AvdManager} and exposing helper functions
@@ -94,7 +96,6 @@ public class AvdManagerConnection {
 
   public static final String AVD_INI_HW_LCD_DENSITY = "hw.lcd.density";
   public static final String AVD_INI_DISPLAY_NAME = "avd.ini.displayname";
-  public static final IdDisplay GOOGLE_APIS_TAG = IdDisplay.create("google_apis", "");
   public static final Revision TOOLS_REVISION_WITH_FIRST_QEMU2 = Revision.parseRevision("25.0.0 rc1");
   public static final Revision TOOLS_REVISION_25_0_2_RC3 = Revision.parseRevision("25.0.2 rc3");
   public static final Revision PLATFORM_TOOLS_REVISION_WITH_FIRST_QEMU2 = Revision.parseRevision("23.1.0");
@@ -414,7 +415,7 @@ public class AvdManagerConnection {
         processHandler.removeProcessListener(collector);
         final String message = collector.getText();
 
-        if (message.toLowerCase().contains("error") || processHandler.isProcessTerminated() && !message.trim().isEmpty()) {
+        if (message.toLowerCase(Locale.ROOT).contains("error") || processHandler.isProcessTerminated() && !message.trim().isEmpty()) {
           ApplicationManager.getApplication().invokeLater(new Runnable() {
             @Override
             public void run() {
@@ -583,7 +584,8 @@ public class AvdManagerConnection {
       skinName = String.format("%dx%d", Math.round(resolution.getWidth()), Math.round(resolution.getHeight()));
     }
     if (orientation == ScreenOrientation.LANDSCAPE) {
-      hardwareProperties.put(HardwareProperties.HW_INITIAL_ORIENTATION, ScreenOrientation.LANDSCAPE.getShortDisplayValue().toLowerCase());
+      hardwareProperties.put(HardwareProperties.HW_INITIAL_ORIENTATION,
+                             ScreenOrientation.LANDSCAPE.getShortDisplayValue().toLowerCase(Locale.ROOT));
     }
     if (currentInfo != null && !avdName.equals(currentInfo.getName())) {
       boolean success = myAvdManager.moveAvd(currentInfo, avdName, currentInfo.getDataFolderPath(), SDK_LOG);
