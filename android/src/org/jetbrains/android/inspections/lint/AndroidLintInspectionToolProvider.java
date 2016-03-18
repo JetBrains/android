@@ -1593,6 +1593,12 @@ public class AndroidLintInspectionToolProvider {
       super(AndroidBundle.message("android.lint.inspections.implied.quantity"), IMPLIED_QUANTITY);
     }
   }
+  public static class AndroidLintAuthLeakInspection extends AndroidLintInspectionBase {
+    public AndroidLintAuthLeakInspection() {
+      super(AndroidBundle.message("android.lint.inspections.credential.leak"), StringAuthLeakDetector.AUTH_LEAK);
+    }
+  }
+
 
   public static class AndroidLintIncludeLayoutParamInspection extends AndroidLintInspectionBase {
     public AndroidLintIncludeLayoutParamInspection() {
