@@ -18,6 +18,7 @@ package com.android.tools.sherpa.drawing;
 
 import com.android.tools.sherpa.animation.AnimatedCircle;
 import com.android.tools.sherpa.animation.AnimatedColor;
+import com.android.tools.sherpa.animation.AnimatedConnection;
 import com.android.tools.sherpa.animation.AnimatedLine;
 import com.android.tools.sherpa.animation.AnimationSet;
 import com.android.tools.sherpa.animation.Choreographer;
@@ -68,6 +69,7 @@ public class SceneDraw {
     private Choreographer mChoreographer = new Choreographer();
 
     private AnimationSet mAnimationCandidateAnchors = new AnimationSet();
+    private AnimationSet mAnimationCreatedConstraints = new AnimationSet();
 
     private AnimatedColor mCurrentAnimation = null;
 
@@ -102,6 +104,7 @@ public class SceneDraw {
         mWidgetResize = resize;
         mAnimationCandidateAnchors.setLoop(true);
         mAnimationCandidateAnchors.setDuration(1000);
+        mAnimationCreatedConstraints.setDuration(600);
         generateColors();
     }
 
@@ -183,6 +186,25 @@ public class SceneDraw {
         }
 
         mChoreographer.addAnimation(mAnimationCandidateAnchors);
+    }
+
+    /**
+     * Animate in constraints created by the given type
+     */
+    public void animateConstraints(int type) {
+        mAnimationCreatedConstraints.clear();
+        for (ConstraintWidget widget : mWidgetsScene.getWidgets()) {
+            WidgetInteractionTargets widgetInteraction =
+                    (WidgetInteractionTargets) widget.getCompanionWidget();
+            widgetInteraction.updatePosition();
+            for (ConstraintAnchor a : widget.getAnchors()) {
+                if (!a.isConnected()) {
+                    continue;
+                }
+                mAnimationCreatedConstraints.add(new AnimatedConnection(a));
+            }
+        }
+        mChoreographer.addAnimation(mAnimationCreatedConstraints);
     }
 
     /**
@@ -462,4 +484,5 @@ public class SceneDraw {
         }
         return needsRepaint;
     }
+
 }
