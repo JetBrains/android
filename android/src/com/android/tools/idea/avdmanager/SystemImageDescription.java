@@ -165,7 +165,7 @@ public final class SystemImageDescription {
       if (details instanceof DetailsTypes.AddonDetailsType) {
         tag = ((DetailsTypes.AddonDetailsType)details).getTag();
         vendor = ((DetailsTypes.AddonDetailsType)details).getVendor();
-        if (AvdWizardUtils.GOOGLE_APIS_X86_TAG.equals(tag)) {
+        if (SystemImage.GOOGLE_APIS_X86_TAG.equals(tag)) {
           abi = "x86";
         }
       }
