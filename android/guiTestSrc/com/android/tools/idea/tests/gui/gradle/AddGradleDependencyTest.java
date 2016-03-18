@@ -57,7 +57,7 @@ public class AddGradleDependencyTest {
     editor.waitForCodeAnalysisHighlightCount(ERROR, 1);
     moveCaretToClassName(editor, classToImport);
 
-    editor.invokeIntentionAction("Add dependency on module 'library3'");
+    editor.invokeQuickfixAction("Add dependency on module 'library3'");
     guiTest.ideFrame().waitForGradleProjectSyncToFinish();
     editor.waitForCodeAnalysisHighlightCount(ERROR, 0);
 
@@ -82,7 +82,7 @@ public class AddGradleDependencyTest {
     editor.waitForCodeAnalysisHighlightCount(ERROR, 1);
     moveCaretToClassName(editor, classToImport);
 
-    editor.invokeIntentionAction("Add dependency on module 'library3'");
+    editor.invokeQuickfixAction("Add dependency on module 'library3'");
     guiTest.ideFrame().waitForGradleProjectSyncToFinish();
     editor.waitForCodeAnalysisHighlightCount(ERROR, 0);
 
@@ -113,7 +113,7 @@ public class AddGradleDependencyTest {
     editor.waitForCodeAnalysisHighlightCount(ERROR, 1);
     moveCaretToClassName(editor, classToImport);
 
-    editor.invokeIntentionAction("Add library 'gson-2.4' to classpath");
+    editor.invokeQuickfixAction("Add library 'gson-2.4' to classpath");
     guiTest.ideFrame().waitForGradleProjectSyncToFinish();
     editor.waitForCodeAnalysisHighlightCount(ERROR, 0);
 
@@ -140,7 +140,7 @@ public class AddGradleDependencyTest {
     editor.waitForCodeAnalysisHighlightCount(ERROR, 1);
     moveCaretToClassName(editor, classToImport);
 
-    editor.invokeIntentionAction("Add library 'gson-2.4' to classpath");
+    editor.invokeQuickfixAction("Add library 'gson-2.4' to classpath");
     guiTest.ideFrame().waitForGradleProjectSyncToFinish();
     editor.waitForCodeAnalysisHighlightCount(ERROR, 0);
 
@@ -156,6 +156,7 @@ public class AddGradleDependencyTest {
     addImport(editor, classToImport);
     editor.waitForCodeAnalysisHighlightCount(ERROR, 1);
     moveCaretToClassName(editor, classToImport);
+    editor.waitForQuickfix();
 
     assertIntentionNotIncluded(editor, "Add dependency on module");
   }
@@ -169,6 +170,7 @@ public class AddGradleDependencyTest {
     addImport(editor, classToImport);
     editor.waitForCodeAnalysisHighlightCount(ERROR, 1);
     moveCaretToClassName(editor, classToImport);
+    editor.waitForQuickfix();
 
     assertIntentionNotIncluded(editor, "Add dependency on module");
   }
@@ -190,7 +192,7 @@ public class AddGradleDependencyTest {
 
     editor.waitForCodeAnalysisHighlightCount(ERROR, 6);
     editor.moveTo(editor.findOffset("@^Test"));
-    editor.invokeIntentionAction("Add 'JUnit4' to classpath");
+    editor.invokeQuickfixAction("Add 'JUnit4' to classpath");
 
     guiTest.ideFrame().waitForGradleProjectSyncToFinish();
     editor.waitForCodeAnalysisHighlightCount(ERROR, 0);
@@ -213,7 +215,7 @@ public class AddGradleDependencyTest {
     editor.waitForCodeAnalysisHighlightCount(ERROR, 1);
 
     editor.moveTo(editor.findOffset("@Not^Null "));
-    editor.invokeIntentionAction("Add 'annotations-java5' to classpath");
+    editor.invokeQuickfixAction("Add 'annotations-java5' to classpath");
 
     guiTest.ideFrame().waitForGradleProjectSyncToFinish();
     editor.waitForCodeAnalysisHighlightCount(ERROR, 0);
