@@ -201,7 +201,8 @@ public class SystemImageListModel extends ListTableModel<SystemImageDescription>
         AndroidVersion version = systemImage.getVersion();
         String codeName = version.isPreview() ? version.getCodename()
                                               : SdkVersionInfo.getCodeName(version.getApiLevel());
-        String maybeDeprecated = version.getApiLevel() < SdkVersionInfo.LOWEST_ACTIVE_API ? " (Deprecated)" : "";
+        String maybeDeprecated = systemImage.obsolete() ||
+                                 version.getApiLevel() < SdkVersionInfo.LOWEST_ACTIVE_API ? " (Deprecated)" : "";
         return codeName + maybeDeprecated;
       }
     },
