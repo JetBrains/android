@@ -18,7 +18,6 @@ package com.android.tools.idea.npw;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.repositoryv2.IdDisplay;
 import com.android.sdklib.repositoryv2.targets.SystemImage;
-import com.android.tools.idea.avdmanager.AvdWizardUtils;
 import com.android.tools.idea.configurations.DeviceMenuAction;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -39,17 +38,17 @@ import java.util.Map;
 public final class FormFactor implements Comparable<FormFactor> {
   public static final FormFactor MOBILE = new FormFactor(
     "Mobile", DeviceMenuAction.FormFactor.MOBILE, "Phone and Tablet", 15, 1, SdkVersionInfo.HIGHEST_KNOWN_API, Lists.newArrayList(20),
-    Lists.newArrayList(SystemImage.DEFAULT_TAG, AvdWizardUtils.GOOGLE_APIS_TAG, AvdWizardUtils.GOOGLE_APIS_X86_TAG), 0, null);
+    Lists.newArrayList(SystemImage.DEFAULT_TAG, SystemImage.GOOGLE_APIS_TAG, SystemImage.GOOGLE_APIS_X86_TAG), 0, null);
   public static final FormFactor WEAR = new FormFactor(
     "Wear", DeviceMenuAction.FormFactor.WEAR, "Wear", 21, SdkVersionInfo.LOWEST_ACTIVE_API_WEAR, SdkVersionInfo.HIGHEST_KNOWN_API_WEAR,
-    null, Lists.newArrayList(AvdWizardUtils.WEAR_TAG), 1, null);
+    null, Lists.newArrayList(SystemImage.WEAR_TAG), 1, null);
   public static final FormFactor TV = new FormFactor(
     "TV", DeviceMenuAction.FormFactor.TV, "TV", 21, SdkVersionInfo.LOWEST_ACTIVE_API_TV, SdkVersionInfo.HIGHEST_KNOWN_API_TV,
-    null, Lists.newArrayList(AvdWizardUtils.TV_TAG), 2, null);
+    null, Lists.newArrayList(SystemImage.TV_TAG), 2, null);
   public static final FormFactor CAR = new FormFactor(
     "Car", DeviceMenuAction.FormFactor.CAR, "Android Auto", 21, 21, 21, null, null, 3, MOBILE);
   public static final FormFactor GLASS = new FormFactor(
-    "Glass", DeviceMenuAction.FormFactor.GLASS, "Glass", 19, -1, -1, null, Lists.newArrayList(AvdWizardUtils.GLASS_TAG), 4, null);
+    "Glass", DeviceMenuAction.FormFactor.GLASS, "Glass", 19, -1, -1, null, Lists.newArrayList(SystemImage.GLASS_TAG), 4, null);
 
   private static final Map<String, FormFactor> myFormFactors = new ImmutableMap.Builder<String, FormFactor>()
       .put(MOBILE.id, MOBILE)
