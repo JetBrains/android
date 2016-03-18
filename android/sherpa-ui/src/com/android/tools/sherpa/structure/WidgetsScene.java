@@ -566,4 +566,5 @@ public class WidgetsScene {
             widgetInteraction.updatePosition();
         }
     }
+
 }
