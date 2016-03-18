@@ -93,12 +93,17 @@ public final class SystemImageDescription {
     return mySystemImage.getAndroidVersion();
   }
 
+  @Nullable
   public RepoPackage getRemotePackage() {
     return myRemotePackage;
   }
 
   public boolean isRemote() {
     return myRemotePackage != null;
+  }
+
+  public boolean obsolete() {
+    return mySystemImage.obsolete();
   }
 
   @NotNull
@@ -215,6 +220,11 @@ public final class SystemImageDescription {
     @Override
     public AndroidVersion getAndroidVersion() {
       return myAndroidVersion;
+    }
+
+    @Override
+    public boolean obsolete() {
+      return myRemotePackage.obsolete();
     }
 
     @Override

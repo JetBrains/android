@@ -272,12 +272,17 @@ public class ChooseSystemImagePanel extends JPanel
       SystemImageDescription image = myListModel.getRowValue(entry.getIdentifier());
       return getClassification(image) == myClassification &&
              systemImageMatchesDevice(image, myDevice) &&
-             versionSupported(image);
+             versionSupported(image) &&
+             !versionTemporaryDisabled(image);
     }
 
     private boolean versionSupported(@NotNull SystemImageDescription image) {
+      return image.getVersion().getApiLevel() > 2;
+    }
+
+    private boolean versionTemporaryDisabled(@NotNull SystemImageDescription image) {
       // https://code.google.com/p/android/issues/detail?id=187938
-      return image.getVersion().getApiLevel() != 15;
+      return image.getVersion().getApiLevel() == 15;
     }
   }
 }
