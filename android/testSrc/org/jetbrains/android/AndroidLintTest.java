@@ -147,6 +147,11 @@ public class AndroidLintTest extends AndroidTestCase {
                 "/src/test/pkg/ParcelableDemo.java", "java");
   }
 
+  public void testAuthString() throws Exception {
+    doTestNoFix(new AndroidLintInspectionToolProvider.AndroidLintAuthLeakInspection(),
+                "/src/test/pkg/AuthDemo.java", "java");
+  }
+
   public void testInefficientWeight() throws Exception {
     doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintInefficientWeightInspection(),
                   AndroidBundle.message("android.lint.fix.replace.with.zero.dp"),
