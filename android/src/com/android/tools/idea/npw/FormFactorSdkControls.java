@@ -152,11 +152,11 @@ final class FormFactorSdkControls {
       @Override
       public String deriveValue(@NotNull ScopedStateStore state, ScopedStateStore.Key changedKey, @Nullable String currentValue) {
         FormFactorApiComboBox.AndroidTargetComboBoxItem selectedItem = state.get(getTargetComboBoxKey(MOBILE));
-        String name = Integer.toString(selectedItem == null ? 0 : selectedItem.apiLevel);
+        String name = Integer.toString(selectedItem == null ? 0 : selectedItem.getApiLevel());
         if (selectedItem != null && selectedItem.target != null) {
           name = selectedItem.target.getVersion().getApiString();
         }
-        return getApiHelpText(selectedItem == null || !myStatsPanel.isVisible() ? 0 : selectedItem.apiLevel, name);
+        return getApiHelpText(selectedItem == null || !myStatsPanel.isVisible() ? 0 : selectedItem.getApiLevel(), name);
       }
     });
 
