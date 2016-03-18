@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="color">#FFFFFFFF</color>
+    <string name="basic_string">overlay_string</string>
+    <item type="layout" name="file_replaced_by_alias">@layout/ref</item>
+</resources>
