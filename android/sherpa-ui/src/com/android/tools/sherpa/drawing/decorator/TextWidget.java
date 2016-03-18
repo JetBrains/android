@@ -29,19 +29,44 @@ import java.awt.Graphics2D;
  * Decorator for text widgets
  */
 public class TextWidget extends WidgetDecorator {
-
+    protected int mPadding = 2;
     private String mText;
-    private static Font sFont = new Font("Helvetica", Font.PLAIN, 12);
+    private Font mFont = new Font("Helvetica", Font.PLAIN, 12);
+    private float mFontSize = 18;
 
     /**
      * Base constructor
      *
      * @param widget the widget we are decorating
-     * @param text the text content
+     * @param text   the text content
      */
     public TextWidget(ConstraintWidget widget, String text) {
         super(widget);
         setText(text);
+    }
+
+    /**
+     * Accessor for the font Size
+     *
+     * @return text content
+     */
+    public float getTextSize() {
+        return mFontSize;
+    }
+
+    /**
+     * Setter for the font Size
+     *
+     * @param fontSize
+     */
+    public void setTextSize(float fontSize) {
+        mFontSize = fontSize;
+        // regression derived approximation of Android to Java font size
+        int size = (int) Math.round((mFontSize * 1.333f + 4.5f) / 2.41f);
+        System.out.println("size = " + size);
+        mFont = new Font("Helvetica", Font.PLAIN, size);
+
+        wrapContent();
     }
 
     /**
@@ -80,11 +105,11 @@ public class TextWidget extends WidgetDecorator {
             return;
         }
         Canvas c = new Canvas();
-        c.setFont(sFont);
-        FontMetrics fm = c.getFontMetrics(sFont);
-        int padding = 8;
-        int tw = fm.stringWidth(mText) + 2 * padding;
-        int th = fm.getMaxAscent() + fm.getMaxDescent() + 2 * padding;
+        c.setFont(mFont);
+        FontMetrics fm = c.getFontMetrics(mFont);
+
+        int tw = fm.stringWidth(mText) + 2 * mPadding;
+        int th = fm.getMaxAscent() + fm.getMaxDescent() + 2 * mPadding;
         mWidget.setMinWidth(tw);
         mWidget.setMinHeight(th);
         if (mWidget.getHorizontalDimensionBehaviour()
@@ -95,7 +120,8 @@ public class TextWidget extends WidgetDecorator {
                 == ConstraintWidget.DimensionBehaviour.WRAP_CONTENT) {
             mWidget.setHeight(th);
         }
-        if (mWidget.getHorizontalDimensionBehaviour() == ConstraintWidget.DimensionBehaviour.FIXED) {
+        if (mWidget.getHorizontalDimensionBehaviour() ==
+                ConstraintWidget.DimensionBehaviour.FIXED) {
             if (mWidget.getWidth() <= mWidget.getMinWidth()) {
                 mWidget.setHorizontalDimensionBehaviour(
                         ConstraintWidget.DimensionBehaviour.WRAP_CONTENT);
@@ -107,7 +133,7 @@ public class TextWidget extends WidgetDecorator {
                         ConstraintWidget.DimensionBehaviour.WRAP_CONTENT);
             }
         }
-        int baseline = mWidget.getHeight() / 2;
+        int baseline = fm.getAscent() + mPadding;
         mWidget.setBaselineDistance(baseline);
     }
 
@@ -124,10 +150,14 @@ public class TextWidget extends WidgetDecorator {
         int tx = transform.getSwingX(x);
         int ty = transform.getSwingY(y);
         int h = transform.getSwingDimension(mWidget.getDrawHeight());
-        g.setFont(sFont);
-        int padding = transform.getSwingDimension(8);
+
+        int padding = transform.getSwingDimension(mPadding);
+        int originalSize = mFont.getSize();
+        int scaleSize = transform.getSwingDimension(originalSize);
+        g.setFont(mFont.deriveFont((float) scaleSize));
         FontMetrics fontMetrics = g.getFontMetrics();
         g.setColor(new Color(200, 200, 250, 160));
-        g.drawString(getText(), tx + padding, ty + h / 2);
+
+        g.drawString(getText(), tx + padding, ty + fontMetrics.getAscent() + padding);
     }
 }
