@@ -36,24 +36,23 @@ public class CheckboxWidget extends TextWidget {
         super(widget, text);
     }
 
-    public String getImagePath() { return "/blueprint_checkbox_on.png"; }
+    public String getImagePath() {
+        return "/blueprint_checkbox_on.png";
+    }
 
     @Override
     protected void wrapContent() {
         super.wrapContent();
-        int padding = 8;
         if (mWidget == null) {
             return;
         }
         if (mImage == null) {
             mImage = WidgetDecorator.loadImage(getImagePath());
         }
-        int extra = mImage.getWidth() + 2 * padding;
+        int extra = mImage.getWidth() + 2 * mPadding;
         mWidget.setMinWidth(mWidget.getMinWidth() + extra);
-        mWidget.setMinHeight(mWidget.getMinHeight() + 2 * padding);
+        mWidget.setMinHeight(mWidget.getMinHeight());
         mWidget.setDimension(0, 0);
-        int baseline = mWidget.getHeight() / 2;
-        mWidget.setBaselineDistance(baseline);
     }
 
     @Override
@@ -63,14 +62,12 @@ public class CheckboxWidget extends TextWidget {
             int x = transform.getSwingX(mWidget.getDrawX());
             int y = transform.getSwingX(mWidget.getDrawY());
             int h = transform.getSwingDimension(mWidget.getDrawHeight());
-            int ih = transform.getSwingDimension(24);
+            int ih = transform.getSwingDimension(mImage.getHeight());
             g.drawImage(mImage, x, y + (h - ih) / 2, ih, ih, null);
         }
     }
 
     protected void drawText(ViewTransform transform, Graphics2D g, int x, int y) {
-        int ih = transform.getSwingDimension(24);
-        int padding = transform.getSwingDimension(8);
-        super.drawText(transform, g, x + ih, y);
+        super.drawText(transform, g, x + mImage.getWidth(), y);
     }
 }

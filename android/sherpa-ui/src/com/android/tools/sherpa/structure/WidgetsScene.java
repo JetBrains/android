@@ -274,6 +274,9 @@ public class WidgetsScene {
     public void transformContainerToContainer(ConstraintWidgetContainer oldContainer,
             ConstraintWidgetContainer newContainer) {
         ConstraintWidgetContainer parent = (ConstraintWidgetContainer) oldContainer.getParent();
+        if (newContainer.getCompanionWidget() == null) {
+            newContainer.setCompanionWidget(new WidgetDecorator(newContainer));
+        }
         newContainer.setOrigin(oldContainer.getX(), oldContainer.getY());
         newContainer.setDimension(oldContainer.getWidth(), oldContainer.getHeight());
         newContainer
