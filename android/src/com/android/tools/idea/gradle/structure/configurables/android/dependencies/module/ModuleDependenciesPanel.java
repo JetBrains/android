@@ -16,64 +16,29 @@
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.module;
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
-import com.android.tools.idea.gradle.structure.configurables.ui.ModulesComboBoxAction;
-import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
-import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowHeader;
-import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowPanel;
+import com.android.tools.idea.gradle.structure.configurables.ui.*;
+import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
-import com.intellij.icons.AllIcons;
-import com.intellij.openapi.Disposable;
-import com.intellij.openapi.actionSystem.*;
-import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.JBSplitter;
-import com.intellij.ui.SideBorder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.List;
 
 import static com.android.tools.idea.gradle.structure.configurables.android.dependencies.UiUtil.createMainVerticalSplitter;
 
-class ModuleDependenciesPanel extends JPanel implements Disposable {
-  @NotNull private final PsAndroidModule myModule;
-  @NotNull private final PsContext myContext;
-
+class ModuleDependenciesPanel extends AbstractMainPanel {
   @NotNull private final JBSplitter myVerticalSplitter;
   @NotNull private final DeclaredDependenciesPanel myDeclaredDependenciesPanel;
   @NotNull private final ResolvedDependenciesPanel myResolvedDependenciesPanel;
   @NotNull private final JPanel myAltPanel;
 
-  private boolean myShowModulesDropDown;
-  private JComponent myModulesToolbar;
-
-  ModuleDependenciesPanel(@NotNull PsAndroidModule module, @NotNull PsContext context) {
-    super(new BorderLayout());
-    myModule = module;
-    myContext = context;
-
-    PsUISettings settings = PsUISettings.getInstance();
-    myShowModulesDropDown = settings.MODULES_LIST_MINIMIZE;
-    if (myShowModulesDropDown) {
-      createAndAddModulesAction();
-    }
-    settings.addListener(new PsUISettings.ChangeListener() {
-      @Override
-      public void settingsChanged(@NotNull PsUISettings settings) {
-        if (settings.MODULES_LIST_MINIMIZE != myShowModulesDropDown) {
-          myShowModulesDropDown = settings.MODULES_LIST_MINIMIZE;
-          if (myShowModulesDropDown) {
-            createAndAddModulesAction();
-          }
-          else {
-            removeModulesAction();
-          }
-        }
-      }
-    }, this);
+  ModuleDependenciesPanel(@NotNull PsAndroidModule module, @NotNull PsContext context, @NotNull List<PsModule> extraTopModules) {
+    super(module.getParent(), context, extraTopModules);
 
     myDeclaredDependenciesPanel = new DeclaredDependenciesPanel(module, context);
     myResolvedDependenciesPanel = new ResolvedDependenciesPanel(module, context, myDeclaredDependenciesPanel);
@@ -110,50 +75,19 @@ class ModuleDependenciesPanel extends JPanel implements Disposable {
     header.addMinimizeListener(new ToolWindowHeader.MinimizeListener() {
       @Override
       public void minimized() {
-        minimize();
+        minimizeResolvedDependenciesPanel();
       }
     });
 
     myResolvedDependenciesPanel.addRestoreListener(new ToolWindowPanel.RestoreListener() {
       @Override
       public void restored() {
-        restore();
+        restoreResolvedDependenciesPanel();
       }
     });
   }
 
-  private void createAndAddModulesAction() {
-    DefaultActionGroup actions = new DefaultActionGroup();
-    actions.add(new ModulesComboBoxAction(myModule.getParent(), myContext));
-
-    AnAction restoreModuleListAction = new DumbAwareAction("Restore 'Modules' List", "", AllIcons.Actions.MoveTo2) {
-      @Override
-      public void actionPerformed(AnActionEvent e) {
-        PsUISettings settings = PsUISettings.getInstance();
-        settings.MODULES_LIST_MINIMIZE = myShowModulesDropDown = false;
-        settings.fireUISettingsChanged();
-        removeModulesAction();
-      }
-    };
-    actions.add(restoreModuleListAction);
-
-    ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar("TOP", actions, true);
-    myModulesToolbar = toolbar.getComponent();
-    myModulesToolbar.setBorder(IdeBorderFactory.createBorder(SideBorder.BOTTOM));
-
-    add(myModulesToolbar, BorderLayout.NORTH);
-  }
-
-  private void removeModulesAction() {
-    if (myModulesToolbar != null) {
-      remove(myModulesToolbar);
-      myModulesToolbar = null;
-      revalidate();
-      repaint();
-    }
-  }
-
-  private void restore() {
+  private void restoreResolvedDependenciesPanel() {
     remove(myAltPanel);
     myAltPanel.remove(myDeclaredDependenciesPanel);
     myVerticalSplitter.setFirstComponent(myDeclaredDependenciesPanel);
@@ -163,7 +97,7 @@ class ModuleDependenciesPanel extends JPanel implements Disposable {
     saveMinimizedState(false);
   }
 
-  private void minimize() {
+  private void minimizeResolvedDependenciesPanel() {
     remove(myVerticalSplitter);
     myVerticalSplitter.setFirstComponent(null);
     myAltPanel.add(myDeclaredDependenciesPanel, BorderLayout.CENTER);
@@ -180,16 +114,12 @@ class ModuleDependenciesPanel extends JPanel implements Disposable {
   @Override
   public void addNotify() {
     super.addNotify();
-    loadMinimizedState();
-  }
-
-  private void loadMinimizedState() {
     boolean minimize = PsUISettings.getInstance().VARIANTS_DEPENDENCIES_MINIMIZE;
     if (minimize) {
-      minimize();
+      minimizeResolvedDependenciesPanel();
     }
     else {
-      restore();
+      restoreResolvedDependenciesPanel();
     }
   }
 

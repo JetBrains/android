@@ -63,7 +63,7 @@ public abstract class BasePerspectiveConfigurable extends MasterDetailsComponent
       @Override
       public void moduleSelectionChanged(@NotNull String moduleName, @NotNull Object source) {
         if (source != BasePerspectiveConfigurable.this) {
-          PsModule module = myProject.findModuleByName(moduleName);
+          PsModule module = findModule(moduleName);
           if (module != null) {
             MyNode node = findNodeByObject(myRoot, module);
             if (node != null) {
@@ -91,6 +91,20 @@ public abstract class BasePerspectiveConfigurable extends MasterDetailsComponent
         }
       }
     }, this);
+  }
+
+  @Nullable
+  protected PsModule findModule(@NotNull String moduleName) {
+    PsModule module = myProject.findModuleByName(moduleName);
+    if (module == null) {
+      for (PsModule extraModule : getExtraTopModules()) {
+        if (moduleName.equals(extraModule.getName())) {
+          module = extraModule;
+          break;
+        }
+      }
+    }
+    return module;
   }
 
   @Override
@@ -206,41 +220,40 @@ public abstract class BasePerspectiveConfigurable extends MasterDetailsComponent
   }
 
   protected void loadTree() {
-    List<NamedConfigurable<?>> extraTopConfigurables = getExtraTopConfigurables();
-    if (!extraTopConfigurables.isEmpty()) {
-      for (NamedConfigurable<?> configurable : extraTopConfigurables) {
-        if (configurable != null) {
-          MyNode node = new MyNode(configurable);
-          myRoot.add(node);
-        }
-      }
-    }
-
-    createModuleNodes();
+    List<PsModule> extraTopModules = getExtraTopModules();
+    createModuleNodes(extraTopModules);
     ((DefaultTreeModel)myTree.getModel()).reload();
     myUiDisposed = false;
   }
 
   @NotNull
-  protected List<NamedConfigurable<?>> getExtraTopConfigurables() {
+  protected List<PsModule> getExtraTopModules() {
     return Collections.emptyList();
   }
 
-  private void createModuleNodes() {
+  private void createModuleNodes(@NotNull List<PsModule> extraTopModules) {
+    for (PsModule module : extraTopModules) {
+      addConfigurableFor(module);
+    }
+
     myProject.forEachModule(new Predicate<PsModule>() {
       @Override
       public boolean apply(@Nullable PsModule module) {
         if (module == null) {
           return false;
         }
-        NamedConfigurable<? extends PsModule> configurable = getConfigurable(module);
-        if (configurable != null) {
-          MyNode node = new MyNode(configurable);
-          myRoot.add(node);
-        }
+        addConfigurableFor(module);
         return true;
       }
     });
+  }
+
+  private void addConfigurableFor(@NotNull PsModule module) {
+    NamedConfigurable<? extends PsModule> configurable = getConfigurable(module);
+    if (configurable != null) {
+      MyNode node = new MyNode(configurable);
+      myRoot.add(node);
+    }
   }
 
   @Nullable

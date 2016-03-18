@@ -24,10 +24,10 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 
 public abstract class PsModule extends PsChildModel {
-  @NotNull private final String myGradlePath;
+  @Nullable private String myGradlePath;
 
   // Module can be null in the case of new modules created in the PSD.
-  @NotNull private final Module myResolvedModel;
+  @Nullable private final Module myResolvedModel;
 
   private boolean myInitParsedModel;
   private GradleBuildModel myParsedModel;
@@ -42,6 +42,12 @@ public abstract class PsModule extends PsChildModel {
     myModuleName = resolvedModel.getName();
   }
 
+  protected PsModule(@NotNull PsProject parent, @NotNull String name) {
+    super(parent);
+    myResolvedModel = null;
+    myModuleName = name;
+  }
+
   @Override
   @NotNull
   public PsProject getParent() {
@@ -54,11 +60,6 @@ public abstract class PsModule extends PsChildModel {
     return myModuleName;
   }
 
-  @NotNull
-  public String getGradlePath() {
-    return myGradlePath;
-  }
-
   @Override
   public boolean isEditable() {
     return myParsedModel != null;
@@ -68,13 +69,20 @@ public abstract class PsModule extends PsChildModel {
   public GradleBuildModel getParsedModel() {
     if (!myInitParsedModel) {
       myInitParsedModel = true;
-      myParsedModel = GradleBuildModel.get(myResolvedModel);
+      if (myResolvedModel != null) {
+        myParsedModel = GradleBuildModel.get(myResolvedModel);
+      }
     }
     return myParsedModel;
   }
 
+  @Nullable
+  public String getGradlePath() {
+    return myGradlePath;
+  }
+
   @Override
-  @NotNull
+  @Nullable
   public Module getResolvedModel() {
     return myResolvedModel;
   }

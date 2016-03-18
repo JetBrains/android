@@ -15,11 +15,12 @@
  */
 package com.android.tools.idea.gradle.structure.configurables;
 
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.project.ProjectDependenciesConfigurable;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.PsAllModulesFakeModule;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.ModuleDependenciesConfigurable;
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.project.ProjectDependenciesConfigurable;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.PsProject;
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.ui.NamedConfigurable;
@@ -34,34 +35,46 @@ import java.util.Map;
 
 public class DependenciesPerspectiveConfigurable extends BasePerspectiveConfigurable {
   private final Map<String, NamedConfigurable<? extends PsModule>> myConfigurablesByGradlePath = Maps.newHashMap();
-  private final List<NamedConfigurable<?>> myTopExtraConfigurables = Lists.newArrayListWithExpectedSize(2);
+
+  private final List<PsModule> myExtraTopModules = Lists.newArrayListWithExpectedSize(2);
+  private final Map<PsModule, NamedConfigurable<? extends PsModule>> myExtraTopConfigurables = Maps.newHashMapWithExpectedSize(2);
 
   public DependenciesPerspectiveConfigurable(@NotNull PsProject project, @NotNull PsContext context) {
     super(project, context);
   }
 
   @Override
-  @NotNull
-  protected List<NamedConfigurable<?>> getExtraTopConfigurables() {
-    if (myTopExtraConfigurables.isEmpty()) {
-      myTopExtraConfigurables.add(new ProjectDependenciesConfigurable(getProject()));
-    }
-    return myTopExtraConfigurables;
-  }
-
-  @Override
   @Nullable
   protected NamedConfigurable<? extends PsModule> getConfigurable(@NotNull PsModule module) {
-    String gradlePath = module.getGradlePath();
-    NamedConfigurable<? extends PsModule> configurable = myConfigurablesByGradlePath.get(gradlePath);
-    if (configurable == null) {
-      if (module instanceof PsAndroidModule) {
-        PsAndroidModule androidModule = (PsAndroidModule)module;
-        configurable = new ModuleDependenciesConfigurable(androidModule, getContext());
-        myConfigurablesByGradlePath.put(gradlePath, configurable);
+    NamedConfigurable<? extends PsModule> configurable;
+    if (module instanceof PsAllModulesFakeModule) {
+      configurable = myExtraTopConfigurables.get(module);
+      if (configurable == null) {
+        configurable = new ProjectDependenciesConfigurable(module, getContext(), getExtraTopModules());
+        myExtraTopConfigurables.put(module, configurable);
+      }
+    }
+    else {
+      String gradlePath = module.getGradlePath();
+      configurable = myConfigurablesByGradlePath.get(gradlePath);
+      if (configurable == null) {
+        if (module instanceof PsAndroidModule) {
+          PsAndroidModule androidModule = (PsAndroidModule)module;
+          configurable = new ModuleDependenciesConfigurable(androidModule, getContext(), getExtraTopModules());
+          myConfigurablesByGradlePath.put(gradlePath, configurable);
+        }
       }
     }
     return configurable;
+  }
+
+  @Override
+  @NotNull
+  protected List<PsModule> getExtraTopModules() {
+    if (myExtraTopModules.isEmpty()) {
+      myExtraTopModules.add(new PsAllModulesFakeModule(getProject()));
+    }
+    return myExtraTopModules;
   }
 
   @Override

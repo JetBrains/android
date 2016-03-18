@@ -27,7 +27,7 @@ public class PsContext {
   @NotNull private final EventDispatcher<ChangeListener> myEventDispatcher = EventDispatcher.create(ChangeListener.class);
   @NotNull private final PsIssues myIssues = new PsIssues();
 
-  @Nullable private String mySelectedModule;
+  @Nullable private String mySelectedModuleName;
 
   @NotNull
   public PsIssues getIssues() {
@@ -36,12 +36,12 @@ public class PsContext {
 
   @Nullable
   public String getSelectedModule() {
-    return mySelectedModule;
+    return mySelectedModuleName;
   }
 
   public void setSelectedModule(@NotNull String moduleName, @NotNull Object source) {
-    mySelectedModule = moduleName;
-    myEventDispatcher.getMulticaster().moduleSelectionChanged(mySelectedModule, source);
+    mySelectedModuleName = moduleName;
+    myEventDispatcher.getMulticaster().moduleSelectionChanged(mySelectedModuleName, source);
   }
 
   public void addListener(@NotNull ChangeListener listener, @NotNull Disposable parentDisposable) {
@@ -49,6 +49,6 @@ public class PsContext {
   }
 
   public interface ChangeListener extends EventListener {
-    void moduleSelectionChanged(@NotNull String module, @NotNull Object source);
+    void moduleSelectionChanged(@NotNull String moduleName, @NotNull Object source);
   }
 }
