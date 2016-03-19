@@ -28,6 +28,7 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.util.PathUtil;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -370,7 +371,7 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
       }
     }
     sb.append("Manifest File: ");
-    sb.append(manifestPath);
+    sb.append(PathUtil.toSystemIndependentName(manifestPath));
     sb.append('\n');
 
     sb.append("Java Directories: ");
@@ -412,7 +413,7 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
       }
     }
     sb.append("Manifest File: ");
-    sb.append(manifestPath);
+    sb.append(PathUtil.toSystemIndependentName(manifestPath));
     sb.append('\n');
 
     sb.append("Java Directories: ");
@@ -451,7 +452,7 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
       } else {
         isFirst = false;
       }
-      sb.append(path);
+      sb.append(PathUtil.toSystemIndependentName(path));
     }
     sb.append("]");
     return sb.toString();
@@ -469,7 +470,7 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
       } else {
         isFirst = false;
       }
-      sb.append(path);
+      sb.append(PathUtil.toSystemIndependentName(path));
     }
     sb.append("]");
     return sb.toString();
