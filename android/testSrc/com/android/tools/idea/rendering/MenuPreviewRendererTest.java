@@ -19,6 +19,7 @@ import com.android.ide.common.rendering.api.Features;
 import com.android.ide.common.rendering.api.ILayoutPullParser;
 import com.android.ide.common.xml.XmlPrettyPrinter;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.utils.SdkUtils;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.w3c.dom.Element;
 
@@ -401,6 +402,9 @@ public class MenuPreviewRendererTest extends RenderTestBase {
                "xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
                "android:layout_width=\"match_parent\"\n" +
                "android:layout_height=\"match_parent\" />\n";
+
+    oldXml = oldXml.replace("\n", SdkUtils.getLineSeparator());
+    newXml = newXml.replace("\n", SdkUtils.getLineSeparator());
 
     if (task.getLayoutLib().supports(Features.ACTION_BAR)) {
       checkRendering(task, "menu/menu1.png");
