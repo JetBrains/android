@@ -36,7 +36,7 @@ public class ConfigureDeviceOptionsStepFixture extends AbstractWizardStepFixture
 
   @NotNull
   public ConfigureDeviceOptionsStepFixture setScreenSize(double screenSize) {
-    replaceText(findTextFieldWithLabel("Screensize:"), String.valueOf(screenSize));
+    replaceText(findTextFieldWithLabel("Screen size:"), String.valueOf(screenSize));
     return this;
   }
 
