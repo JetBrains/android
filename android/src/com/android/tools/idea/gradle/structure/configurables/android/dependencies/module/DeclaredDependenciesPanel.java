@@ -16,29 +16,12 @@
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.module;
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.AddArtifactDependencyDialog;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.editor.DependencyEditor;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.editor.LibraryDependencyEditor;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.AbstractDeclaredDependenciesPanel;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.treeview.DependencySelection;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
-import com.android.tools.idea.structure.dialog.Header;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.intellij.openapi.Disposable;
-import com.intellij.openapi.actionSystem.*;
-import com.intellij.openapi.project.DumbAwareAction;
-import com.intellij.openapi.ui.popup.JBPopup;
-import com.intellij.openapi.ui.popup.JBPopupFactory;
-import com.intellij.openapi.ui.popup.PopupStep;
-import com.intellij.openapi.ui.popup.util.BaseListPopupStep;
-import com.intellij.ui.IdeBorderFactory;
-import com.intellij.ui.OnePixelSplitter;
-import com.intellij.ui.SideBorder;
-import com.intellij.ui.awt.RelativePoint;
-import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.table.TableView;
-import com.intellij.util.IconUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,47 +29,30 @@ import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 import static com.intellij.ui.IdeBorderFactory.createEmptyBorder;
 import static com.intellij.ui.ScrollPaneFactory.createScrollPane;
-import static com.intellij.util.PlatformIcons.LIBRARY_ICON;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
-import static com.intellij.util.ui.UIUtil.getInactiveTextColor;
 import static javax.swing.ListSelectionModel.MULTIPLE_INTERVAL_SELECTION;
 
 /**
  * Panel that displays the table of "editable" dependencies.
  */
-class DeclaredDependenciesPanel extends JPanel implements DependencySelection, Disposable {
-  @NotNull private final PsAndroidModule myModule;
+class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel implements DependencySelection {
   @NotNull private final DeclaredDependenciesTableModel myDependenciesTableModel;
   @NotNull private final TableView<PsAndroidDependency> myDependenciesTable;
   @NotNull private final ListSelectionListener myTableSelectionListener;
-  @NotNull private final JScrollPane myEditorScrollPane;
-  @NotNull private final EmptyEditorPanel myEmptyEditorPanel;
 
   @NotNull private final List<SelectionListener> mySelectionListeners = Lists.newCopyOnWriteArrayList();
-  @NotNull private final Map<Class<?>, DependencyEditor> myEditors = Maps.newHashMap();
-
-  private List<AbstractPopupAction> myPopupActions;
 
   DeclaredDependenciesPanel(@NotNull PsAndroidModule module, @NotNull PsContext context) {
-    super(new BorderLayout());
-    myModule = module;
+    super("Declared Dependencies", context, module.getParent(), module);
 
-    myDependenciesTableModel = new DeclaredDependenciesTableModel(myModule);
+    myDependenciesTableModel = new DeclaredDependenciesTableModel(module);
     myDependenciesTable = new TableView<PsAndroidDependency>(myDependenciesTableModel);
-
-    initializeEditors(context);
-    myEmptyEditorPanel = new EmptyEditorPanel();
-    myEditorScrollPane = createScrollPane(myEmptyEditorPanel);
-    myEditorScrollPane.setBorder(createEmptyBorder());
 
     ListSelectionModel tableSelectionModel = myDependenciesTable.getSelectionModel();
     tableSelectionModel.setSelectionMode(MULTIPLE_INTERVAL_SELECTION);
@@ -101,7 +67,7 @@ class DeclaredDependenciesPanel extends JPanel implements DependencySelection, D
         PsAndroidDependency selected = getSelection();
         if (selected != null) {
           for (SelectionListener listener : mySelectionListeners) {
-            listener.dependencyModelSelected(selected);
+            listener.dependencySelected(selected);
           }
         }
         updateEditor();
@@ -113,106 +79,20 @@ class DeclaredDependenciesPanel extends JPanel implements DependencySelection, D
     myDependenciesTable.setIntercellSpacing(new Dimension(0, 0));
     myDependenciesTable.setShowGrid(false);
 
-    Header header = new Header("Declared Dependencies");
-    add(header, BorderLayout.NORTH);
-
-    OnePixelSplitter splitter = new OnePixelSplitter(true, "psd.editable.dependencies.main.horizontal.splitter.proportion", 0.75f);
-
-    JPanel contents = new JPanel(new BorderLayout());
-    contents.add(createActionsPanel(), BorderLayout.NORTH);
     JScrollPane scrollPane = createScrollPane(myDependenciesTable);
     scrollPane.setBorder(createEmptyBorder());
-    contents.add(scrollPane, BorderLayout.CENTER);
-
-    splitter.setFirstComponent(contents);
-    splitter.setSecondComponent(myEditorScrollPane);
-
-    add(splitter, BorderLayout.CENTER);
+    getContentsPanel().add(scrollPane, BorderLayout.CENTER);
 
     updateTableColumnSizes();
   }
 
   private void updateEditor() {
     Collection<PsAndroidDependency> selection = myDependenciesTable.getSelection();
+    PsAndroidDependency selected = null;
     if (selection.size() == 1) {
-      PsAndroidDependency selected = getFirstItem(selection);
-      assert selected != null;
-      DependencyEditor editor = myEditors.get(selected.getClass());
-      if (editor != null) {
-        myEditorScrollPane.setViewportView(editor.getPanel());
-        //noinspection unchecked
-        editor.display(selected);
-        return;
-      }
+      selected = getFirstItem(selection);
     }
-    myEditorScrollPane.setViewportView(myEmptyEditorPanel);
-  }
-
-  @NotNull
-  private JPanel createActionsPanel() {
-    final JPanel actionsPanel = new JPanel(new BorderLayout());
-
-    DefaultActionGroup actions = new DefaultActionGroup();
-
-    AnAction addDependencyAction = new DumbAwareAction("Add Dependency", "", IconUtil.getAddIcon()) {
-      @Override
-      public void actionPerformed(AnActionEvent e) {
-        initPopupActions();
-        JBPopup popup = JBPopupFactory.getInstance().createListPopup(new BaseListPopupStep<AbstractPopupAction>(null, myPopupActions) {
-          @Override
-          public Icon getIconFor(AbstractPopupAction action) {
-            return action.icon;
-          }
-
-          @Override
-          public boolean isMnemonicsNavigationEnabled() {
-            return true;
-          }
-
-          @Override
-          public PopupStep onChosen(final AbstractPopupAction action, boolean finalChoice) {
-            return doFinalStep(new Runnable() {
-              @Override
-              public void run() {
-                action.execute();
-              }
-            });
-          }
-
-          @Override
-          @NotNull
-          public String getTextFor(AbstractPopupAction action) {
-            return "&" + action.index + "  " + action.text;
-          }
-        });
-        popup.show(new RelativePoint(actionsPanel, new Point(0, actionsPanel.getHeight() - 1)));
-      }
-    };
-
-    actions.add(addDependencyAction);
-
-    ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar("TOP", actions, true);
-    JComponent toolbarComponent = toolbar.getComponent();
-    toolbarComponent.setBorder(IdeBorderFactory.createBorder(SideBorder.BOTTOM));
-    actionsPanel.add(toolbarComponent, BorderLayout.CENTER);
-
-    return actionsPanel;
-  }
-
-  private void initPopupActions() {
-    if (myPopupActions == null) {
-      List<AbstractPopupAction> actions = Lists.newArrayList();
-      actions.add(new AddDependencyAction());
-      myPopupActions = actions;
-    }
-  }
-
-  private void initializeEditors(@NotNull PsContext context) {
-    addEditor(new LibraryDependencyEditor(context));
-  }
-
-  private void addEditor(@NotNull DependencyEditor<?> editor) {
-    myEditors.put(editor.getSupportedModelType(), editor);
+    updateEditor(selected);
   }
 
   void updateTableColumnSizes() {
@@ -227,7 +107,7 @@ class DeclaredDependenciesPanel extends JPanel implements DependencySelection, D
   void add(@NotNull SelectionListener listener) {
     PsAndroidDependency selected = getSelection();
     if (selected != null) {
-      listener.dependencyModelSelected(selected);
+      listener.dependencySelected(selected);
     }
     mySelectionListeners.add(listener);
   }
@@ -263,49 +143,8 @@ class DeclaredDependenciesPanel extends JPanel implements DependencySelection, D
     tableSelectionModel.addListSelectionListener(myTableSelectionListener);
   }
 
+
   public interface SelectionListener {
-    void dependencyModelSelected(@NotNull PsAndroidDependency dependency);
-  }
-
-  private class AddDependencyAction extends AbstractPopupAction {
-    AddDependencyAction() {
-      super("Artifact Dependency", LIBRARY_ICON, 1);
-    }
-
-    @Override
-    void execute() {
-      AddArtifactDependencyDialog dialog = new AddArtifactDependencyDialog(myModule);
-      dialog.showAndGet();
-    }
-  }
-
-  private static abstract class AbstractPopupAction implements ActionListener {
-    @NotNull final String text;
-    @NotNull final Icon icon;
-
-    final int index;
-
-    AbstractPopupAction(@NotNull String text, @NotNull Icon icon, int index) {
-      this.text = text;
-      this.icon = icon;
-      this.index = index;
-    }
-
-    @Override
-    public void actionPerformed(ActionEvent e) {
-      execute();
-    }
-
-    abstract void execute();
-  }
-
-  private static class EmptyEditorPanel extends JPanel {
-    EmptyEditorPanel() {
-      super(new BorderLayout());
-      JBLabel emptyText = new JBLabel("Please select a declared dependency");
-      emptyText.setForeground(getInactiveTextColor());
-      emptyText.setHorizontalAlignment(SwingConstants.CENTER);
-      add(emptyText, BorderLayout.CENTER);
-    }
+    void dependencySelected(@NotNull PsAndroidDependency dependency);
   }
 }
