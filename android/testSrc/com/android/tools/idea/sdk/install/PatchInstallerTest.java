@@ -22,6 +22,7 @@ import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.testframework.MockFileOp;
 import com.google.common.collect.ImmutableList;
 import junit.framework.TestCase;
+import com.intellij.util.PathUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.bind.JAXBException;
@@ -106,7 +107,7 @@ public class PatchInstallerTest extends TestCase {
 
     File result = ((PatchInstallerFactory.PatchInstaller)new PatchInstallerFactory().createInstaller(p, repoManager, ourFileOp)).getPatcherFile(repoManager.getPackages().getLocalPackages(), progress);
     progress.assertNoErrorsOrWarnings();
-    assertEquals("/sdk/patcher/v1/patcher.jar", result.getPath());
+    assertEquals("/sdk/patcher/v1/patcher.jar", PathUtil.toSystemIndependentName(result.getPath()));
   }
 
   public void testRunInstaller() throws Exception {
@@ -145,7 +146,7 @@ public class PatchInstallerTest extends TestCase {
     }
 
     public static boolean doInstall(String patchPath, FakeUIBase ui, String sourcePath) {
-      assertEquals("/patchfile", patchPath);
+      assertEquals("/patchfile", PathUtil.toSystemIndependentName(patchPath));
       assertTrue(ourFileOp.exists(new File(sourcePath, "sourceFile")));
       assertTrue(ui instanceof FakeUI);
       ourDidRun = true;
