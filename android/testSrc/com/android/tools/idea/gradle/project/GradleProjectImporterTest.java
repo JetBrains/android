@@ -35,6 +35,7 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.util.PathUtil;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -195,7 +196,7 @@ public class GradleProjectImporterTest extends IdeaTestCase {
       disposeOnTearDown(project);
       // Verify that project was imported correctly.
       assertEquals(myProjectName, project.getName());
-      assertEquals(myProjectRootDir.getPath(), project.getBasePath());
+      assertEquals(PathUtil.toSystemIndependentName(myProjectRootDir.getPath()), project.getBasePath());
 
       // Verify that '.idea' directory was created.
       File ideaProjectDir = new File(myProjectRootDir, Project.DIRECTORY_STORE_FOLDER);
