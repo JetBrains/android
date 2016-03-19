@@ -52,7 +52,7 @@ class ModuleDependenciesPanel extends AbstractMainPanel {
     myDeclaredDependenciesPanel.updateTableColumnSizes();
     myDeclaredDependenciesPanel.add(new DeclaredDependenciesPanel.SelectionListener() {
       @Override
-      public void dependencyModelSelected(@NotNull PsAndroidDependency dependency) {
+      public void dependencySelected(@NotNull PsAndroidDependency dependency) {
         myResolvedDependenciesPanel.setSelection(dependency);
       }
     });

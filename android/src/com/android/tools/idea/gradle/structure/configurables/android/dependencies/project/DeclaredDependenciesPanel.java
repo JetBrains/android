@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.project;
 
+import com.android.tools.idea.gradle.structure.configurables.PsContext;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.AbstractDeclaredDependenciesPanel;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.project.treeview.DeclaredDependenciesTreeBuilder;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractBaseTreeBuilder.MatchingNodeCollector;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractDependencyNode;
@@ -23,7 +25,6 @@ import com.android.tools.idea.gradle.structure.configurables.ui.treeview.Abstrac
 import com.android.tools.idea.gradle.structure.model.PsProject;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
 import com.google.common.collect.Lists;
-import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.EventDispatcher;
@@ -43,21 +44,21 @@ import java.util.Set;
 import static com.android.tools.idea.gradle.structure.configurables.android.dependencies.UiUtil.setUp;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 
-class DeclaredDependenciesPanel extends JPanel implements Disposable {
+class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel {
   @NotNull private final Tree myTree;
   @NotNull private final DeclaredDependenciesTreeBuilder myTreeBuilder;
   @NotNull private final TreeSelectionListener myTreeSelectionListener;
 
   @NotNull private final EventDispatcher<SelectionListener> myEventDispatcher = EventDispatcher.create(SelectionListener.class);
 
-  DeclaredDependenciesPanel(@NotNull PsProject project) {
-    super(new BorderLayout());
+  DeclaredDependenciesPanel(@NotNull PsProject project, @NotNull PsContext context) {
+    super("All Dependencies", context, project, null);
 
     DefaultTreeModel treeModel = new DefaultTreeModel(new DefaultMutableTreeNode());
     myTree = new Tree(treeModel);
 
     JScrollPane scrollPane = setUp(myTree);
-    add(scrollPane, BorderLayout.CENTER);
+    getContentsPanel().add(scrollPane, BorderLayout.CENTER);
 
     myTreeBuilder = new DeclaredDependenciesTreeBuilder(project, myTree, treeModel);
 

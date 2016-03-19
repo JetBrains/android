@@ -40,7 +40,7 @@ class ProjectDependenciesPanel extends AbstractMainPanel {
   ProjectDependenciesPanel(@NotNull PsProject project, @NotNull PsContext context, @NotNull List<PsModule> extraTopModules) {
     super(project, context, extraTopModules);
 
-    myDeclaredDependenciesPanel = new DeclaredDependenciesPanel(project);
+    myDeclaredDependenciesPanel = new DeclaredDependenciesPanel(project, context);
     myTargetModulesPanel = new TargetModulesPanel(project);
 
     myDeclaredDependenciesPanel.add(new DeclaredDependenciesPanel.SelectionListener() {
