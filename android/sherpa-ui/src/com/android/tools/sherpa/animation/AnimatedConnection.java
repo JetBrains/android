@@ -19,6 +19,9 @@ public class AnimatedConnection extends Animation {
     public AnimatedConnection(ConstraintAnchor anchor) {
         super();
         mAnchor = anchor;
+        if (mAnchor.getConnectionCreator() == ConstraintAnchor.SCOUT_CREATOR) {
+            mColor = new Color(250, 135, 52);
+        }
     }
 
     @Override
@@ -29,7 +32,9 @@ public class AnimatedConnection extends Animation {
         g.setColor(highlight);
         ConstraintHandle sourceHandle = WidgetInteractionTargets.constraintHandle(mAnchor);
         ConstraintHandle targetHandle = WidgetInteractionTargets.constraintHandle(mAnchor.getTarget());
-        ConnectionDraw
-                .drawConnection(transform, g, sourceHandle, targetHandle, true, false);
+        if (sourceHandle != null && targetHandle != null) {
+            ConnectionDraw
+                    .drawConnection(transform, g, sourceHandle, targetHandle, true, false);
+        }
     }
 }
