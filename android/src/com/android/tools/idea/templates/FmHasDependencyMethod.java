@@ -36,6 +36,9 @@ import java.util.Map;
  * is available in this module
  */
 public class FmHasDependencyMethod implements TemplateMethodModelEx {
+  public static final String MAIN_CONFIGURATION = "compile";
+  public static final String ANDROID_TEST_CONFIGURATION = "androidTestCompile";
+
   private final Map<String, Object> myParamMap;
 
   public FmHasDependencyMethod(Map<String, Object> paramMap) {
@@ -44,7 +47,7 @@ public class FmHasDependencyMethod implements TemplateMethodModelEx {
 
   @Override
   public TemplateModel exec(List args) throws TemplateModelException {
-    if (args.size() != 1) {
+    if (args.size() < 1 || args.size() > 2) {
       throw new TemplateModelException("Wrong arguments");
     }
     String artifact = ((TemplateScalarModel)args.get(0)).getAsString();
@@ -79,7 +82,22 @@ public class FmHasDependencyMethod implements TemplateMethodModelEx {
               // TODO: b/23032990
               AndroidGradleModel androidModel = AndroidGradleModel.get(facet);
               if (androidModel != null) {
-                return GradleUtil.dependsOn(androidModel, artifact) ? TemplateBooleanModel.TRUE : TemplateBooleanModel.FALSE;
+                String configuration = MAIN_CONFIGURATION;
+                if (args.size() > 1) {
+                  configuration = ((TemplateScalarModel)args.get(1)).getAsString();
+                }
+
+                boolean dependsOn;
+                if (configuration.equals(MAIN_CONFIGURATION)) {
+                  dependsOn = GradleUtil.dependsOn(androidModel, artifact);
+                }
+                else if (configuration.equals(ANDROID_TEST_CONFIGURATION)) {
+                  dependsOn = GradleUtil.dependsOnAndroidTest(androidModel, artifact);
+                } else {
+                  throw new TemplateModelException("Unknown dependency configuration " + configuration);
+                }
+
+                return dependsOn ? TemplateBooleanModel.TRUE : TemplateBooleanModel.FALSE;
               }
             }
           }
