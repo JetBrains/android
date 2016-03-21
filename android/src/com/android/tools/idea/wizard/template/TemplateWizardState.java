@@ -17,7 +17,7 @@
 package com.android.tools.idea.wizard.template;
 
 import com.android.builder.model.SourceProvider;
-import com.android.tools.idea.model.ManifestInfo;
+import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.npw.FormFactorUtils;
 import com.android.tools.idea.npw.NewModuleWizardState;
 import com.android.tools.idea.templates.Parameter;
@@ -205,7 +205,7 @@ public class TemplateWizardState implements Function<String, Object> {
     String pkg = (String)myParameters.get(ATTR_PACKAGE_NAME);
     if (pkg != null) {
       if (module != null) {
-        String applicationId = ManifestInfo.get(module).getPackage();
+        String applicationId = MergedManifest.get(module).getPackage();
         if (applicationId != null) {
           if (pkg.startsWith(applicationId) && pkg.length() > applicationId.length() &&
               pkg.charAt(applicationId.length()) == '.') {

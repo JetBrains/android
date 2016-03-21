@@ -20,7 +20,7 @@ import com.android.tools.idea.configurations.RenderContext;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
-import com.android.tools.idea.model.ManifestInfo;
+import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.android.utils.SdkUtils;
 import com.android.utils.SparseArray;
@@ -408,7 +408,7 @@ public class HtmlLinkManager {
     int index = s.lastIndexOf('.');
     if (index == -1) {
       className = s;
-      packageName = ManifestInfo.get(module).getPackage();
+      packageName = MergedManifest.get(module).getPackage();
       if (packageName == null) {
         return;
       }

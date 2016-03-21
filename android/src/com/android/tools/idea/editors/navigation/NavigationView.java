@@ -24,7 +24,6 @@ import com.android.tools.idea.editors.navigation.macros.Analyser;
 import com.android.tools.idea.editors.navigation.macros.CodeGenerator;
 import com.android.tools.idea.editors.navigation.macros.FragmentEntry;
 import com.android.tools.idea.editors.navigation.model.*;
-import com.android.tools.idea.model.ManifestInfo;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.rendering.*;
 import com.android.tools.idea.npw.NewAndroidActivityWizard;
@@ -758,7 +757,7 @@ public class NavigationView extends JComponent {
   }
 
   private RenderingParameters getActivityRenderingParameters(Module module, String className) {
-    MergedManifest manifestInfo = ManifestInfo.get(module);
+    MergedManifest manifestInfo = MergedManifest.get(module);
     Configuration newConfiguration = myRenderingParams.configuration.clone();
     String theme = manifestInfo.getManifestTheme();
     MergedManifest.ActivityAttributes activityAttributes = manifestInfo.getActivityAttributes(className);

@@ -1105,4 +1105,10 @@
     </component>
   </project-components>
 
+  <module-components>
+    <component>
+      <implementation-class>com.android.tools.idea.model.MergedManifest</implementation-class>
+    </component>
+  </module-components>
+
 </idea-plugin>

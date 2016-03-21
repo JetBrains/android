@@ -23,7 +23,6 @@ import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.model.ManifestInfo;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.lint.client.api.LintClient;
 import com.android.tools.lint.detector.api.Project;
@@ -636,7 +635,7 @@ class IntellijLintProject extends Project {
               if (facet == null) {
                 continue;
               }
-              MergedManifest manifestInfo = ManifestInfo.get(module);
+              MergedManifest manifestInfo = MergedManifest.get(module);
               if ("android.support.v7.appcompat".equals(manifestInfo.getPackage())) {
                 mAppCompat = true;
                 break;
