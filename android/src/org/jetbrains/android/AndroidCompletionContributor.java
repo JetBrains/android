@@ -51,6 +51,7 @@ import org.jetbrains.android.dom.layout.Data;
 import org.jetbrains.android.dom.layout.LayoutDomFileDescription;
 import org.jetbrains.android.dom.layout.LayoutElement;
 import org.jetbrains.android.dom.manifest.ManifestDomFileDescription;
+import org.jetbrains.android.dom.raw.RawDomFileDescription;
 import org.jetbrains.android.dom.transition.TransitionDomFileDescription;
 import org.jetbrains.android.dom.transition.TransitionDomUtil;
 import org.jetbrains.android.dom.xml.AndroidXmlResourcesUtil;
@@ -130,6 +131,10 @@ public class AndroidCompletionContributor extends CompletionContributor {
     }
     else if (ColorDomFileDescription.isColorResourceFile(xmlFile)) {
       resultSet.addElement(LookupElementBuilder.create(DrawableStateListDomFileDescription.TAG_NAME));
+      return false;
+    }
+    else if (RawDomFileDescription.isRawFile(xmlFile)) {
+      resultSet.addElement(LookupElementBuilder.create(SdkConstants.TAG_RESOURCES));
       return false;
     }
     return true;
