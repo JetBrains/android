@@ -43,7 +43,7 @@ public class GfxTracer {
 
   @NotNull private static final Logger LOG = Logger.getInstance(GfxTracer.class);
   @NotNull private static final String PRELOAD_LIB = "/data/local/tmp/libgapii.so";
-  @NotNull private static final int GAPII_PORT = 9286;
+  private static final int GAPII_PORT = 9286;
   @NotNull private static final String GAPII_ABSTRACT_PORT = "gapii";
   private static final int GAPII_PROTOCOL_VERSION = 3;
   private static final int GAPII_FLAG_DISABLE_PRECOMPILED_SHADERS = 0x00000001;
@@ -131,7 +131,7 @@ public class GfxTracer {
     myDevice = device;
     myListener = listener;
     try {
-      myCapture = myCaptureService.startCaptureFile(GfxTraceCaptureType.class, options.myTraceName);
+      myCapture = myCaptureService.startCaptureFile(GfxTraceCaptureType.class, options.myTraceName, true);
     }
     catch (IOException e) {
       throw new RuntimeException(e);
