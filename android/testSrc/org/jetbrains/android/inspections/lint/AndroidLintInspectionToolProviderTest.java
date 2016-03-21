@@ -39,7 +39,9 @@ import static com.android.utils.SdkUtils.escapePropertyValue;
 public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
   private static final boolean LIST_ISSUES_WITH_QUICK_FIXES = false;
   public void testAllLintChecksRegistered() throws Exception {
-    assertTrue(checkAllLintChecksRegistered(getProject()));
+    assertTrue(
+      "Not all lint checks have been registered. See the standard output for instructions on how to register the missing checks.",
+      checkAllLintChecksRegistered(getProject()));
   }
 
   private static boolean sDone;
