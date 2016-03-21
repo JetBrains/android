@@ -16,10 +16,10 @@
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.module;
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractDependencyNode;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.treeview.DependencySelection;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.ModuleDependencyNode;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.treeview.ResolvedDependenciesTreeBuilder;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractDependencyNode;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.ModuleDependencyNode;
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
 import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowPanel;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsdNode;
@@ -36,11 +36,11 @@ import com.intellij.openapi.actionSystem.impl.MenuItemPresentationFactory;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.ToolWindowAnchor;
-import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.PopupHandler;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.TreeUIHelper;
 import com.intellij.ui.treeStructure.Tree;
+import com.intellij.util.EventDispatcher;
 import com.intellij.util.containers.Convertor;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
@@ -49,17 +49,20 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
-import javax.swing.tree.*;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.EventListener;
 import java.util.List;
 import java.util.Set;
 
+import static com.android.tools.idea.gradle.structure.configurables.android.dependencies.UiUtil.setUp;
 import static com.intellij.openapi.wm.impl.content.ToolWindowContentUi.POPUP_PLACE;
-import static com.intellij.ui.ScrollPaneFactory.createScrollPane;
 import static com.intellij.ui.SimpleTextAttributes.LINK_ATTRIBUTES;
 import static com.intellij.util.BitUtil.isSet;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
@@ -69,7 +72,6 @@ import static java.awt.Event.META_MASK;
 import static java.awt.event.KeyEvent.*;
 import static java.awt.event.MouseEvent.MOUSE_PRESSED;
 import static javax.swing.SwingUtilities.convertPointFromScreen;
-import static javax.swing.tree.TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION;
 
 class ResolvedDependenciesPanel extends ToolWindowPanel implements DependencySelection {
   @NotNull private final Tree myTree;
@@ -77,7 +79,7 @@ class ResolvedDependenciesPanel extends ToolWindowPanel implements DependencySel
   @NotNull private final PsContext myContext;
   @NotNull private final TreeSelectionListener myTreeSelectionListener;
 
-  @NotNull private final List<SelectionListener> mySelectionListeners = Lists.newCopyOnWriteArrayList();
+  @NotNull private final EventDispatcher<SelectionListener> myEventDispatcher = EventDispatcher.create(SelectionListener.class);
 
   private ModuleDependencyNode myHoveredNode;
   private KeyEventDispatcher myKeyEventDispatcher;
@@ -89,8 +91,7 @@ class ResolvedDependenciesPanel extends ToolWindowPanel implements DependencySel
     myContext = context;
     setHeaderActions();
 
-    DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode();
-    DefaultTreeModel treeModel = new DefaultTreeModel(rootNode);
+    DefaultTreeModel treeModel = new DefaultTreeModel(new DefaultMutableTreeNode());
     myTree = new Tree(treeModel) {
       @Override
       protected void processMouseEvent(MouseEvent e) {
@@ -108,17 +109,12 @@ class ResolvedDependenciesPanel extends ToolWindowPanel implements DependencySel
         super.processMouseEvent(e);
       }
     };
-    myTree.setExpandsSelectedPaths(true);
-    myTree.setRootVisible(false);
-    getHeader().setPreferredFocusedComponent(myTree);
 
-    TreeSelectionModel selectionModel = myTree.getSelectionModel();
-    selectionModel.setSelectionMode(DISCONTIGUOUS_TREE_SELECTION);
+    getHeader().setPreferredFocusedComponent(myTree);
 
     myTreeBuilder = new ResolvedDependenciesTreeBuilder(module, myTree, treeModel, dependencySelection, this);
 
-    JScrollPane scrollPane = createScrollPane(myTree);
-    scrollPane.setBorder(IdeBorderFactory.createEmptyBorder());
+    JScrollPane scrollPane = setUp(myTree);
     add(scrollPane, BorderLayout.CENTER);
 
     myTreeSelectionListener = new TreeSelectionListener() {
@@ -146,13 +142,19 @@ class ResolvedDependenciesPanel extends ToolWindowPanel implements DependencySel
       }
     });
 
+    TreeUIHelper.getInstance().installTreeSpeedSearch(myTree, new Convertor<TreePath, String>() {
+      @Override
+      public String convert(TreePath path) {
+        Object last = path.getLastPathComponent();
+        return last != null ? last.toString() : "";
+      }
+    }, true);
+
     addHyperlinkBehaviorToModuleNodes();
   }
 
   private void notifySelectionChanged(@Nullable PsAndroidDependency selected) {
-    for (SelectionListener listener : mySelectionListeners) {
-      listener.dependencySelected(selected);
-    }
+    myEventDispatcher.getMulticaster().dependencySelected(selected);
   }
 
   private void setHeaderActions() {
@@ -270,14 +272,6 @@ class ResolvedDependenciesPanel extends ToolWindowPanel implements DependencySel
     };
     myTree.addMouseMotionListener(mouseListener);
 
-    TreeUIHelper.getInstance().installTreeSpeedSearch(myTree, new Convertor<TreePath, String>() {
-      @Override
-      public String convert(TreePath path) {
-        Object last = path.getLastPathComponent();
-        return last != null ? last.toString() : "";
-      }
-    }, true);
-
     // Make the cursor change to 'hand' if the mouse pointer is over a 'module' node and the user presses Ctrl or Cmd.
     myKeyEventDispatcher = new KeyEventDispatcher() {
       @Override
@@ -360,17 +354,13 @@ class ResolvedDependenciesPanel extends ToolWindowPanel implements DependencySel
       myTreeBuilder.clearSelection();
     }
     else {
-      myTreeBuilder.setSelection(selection, true);
+      myTreeBuilder.selectMatchingNodes(selection, true);
     }
     myTree.addTreeSelectionListener(myTreeSelectionListener);
   }
 
   void add(@NotNull SelectionListener listener) {
-    PsAndroidDependency selected = getSelection();
-    if (selected != null) {
-      listener.dependencySelected(selected);
-    }
-    mySelectionListeners.add(listener);
+    myEventDispatcher.addListener(listener);
   }
 
   @Override
@@ -400,13 +390,12 @@ class ResolvedDependenciesPanel extends ToolWindowPanel implements DependencySel
   public void dispose() {
     super.dispose();
     Disposer.dispose(myTreeBuilder);
-    mySelectionListeners.clear();
     if (myKeyEventDispatcher != null) {
       KeyboardFocusManager.getCurrentKeyboardFocusManager().removeKeyEventDispatcher(myKeyEventDispatcher);
     }
   }
 
-  public interface SelectionListener {
+  public interface SelectionListener extends EventListener {
     void dependencySelected(@Nullable PsAndroidDependency dependency);
   }
 }

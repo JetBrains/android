@@ -29,15 +29,18 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.util.List;
 
 public class ModulesComboBoxAction extends LabeledComboBoxAction {
   @NotNull private final PsProject myProject;
   @NotNull private final PsContext myContext;
+  @NotNull private final List<PsModule> myExtraTopModules;
 
-  public ModulesComboBoxAction(@NotNull PsProject project, @NotNull PsContext context) {
+  public ModulesComboBoxAction(@NotNull PsProject project, @NotNull PsContext context, @NotNull List<PsModule> extraTopModules) {
     super("Module: ");
     myProject = project;
     myContext = context;
+    myExtraTopModules = extraTopModules;
   }
 
   @Override
@@ -51,6 +54,11 @@ public class ModulesComboBoxAction extends LabeledComboBoxAction {
   @NotNull
   protected DefaultActionGroup createPopupActionGroup(JComponent button) {
     final DefaultActionGroup group = new DefaultActionGroup();
+
+    for (PsModule module : myExtraTopModules) {
+      group.add(new ModuleAction(module));
+    }
+
     myProject.forEachModule(new Predicate<PsModule>() {
       @Override
       public boolean apply(@Nullable PsModule module) {

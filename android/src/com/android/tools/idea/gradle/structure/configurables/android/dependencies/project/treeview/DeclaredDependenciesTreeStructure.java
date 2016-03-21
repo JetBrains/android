@@ -13,26 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.treeview;
+package com.android.tools.idea.gradle.structure.configurables.android.dependencies.project.treeview;
 
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractBaseTreeStructure;
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
+import com.android.tools.idea.gradle.structure.model.PsProject;
 import org.jetbrains.annotations.NotNull;
 
-class ResolvedDependenciesTreeStructure extends AbstractBaseTreeStructure {
-  @NotNull private final ResolvedDependenciesTreeRootNode myRootNode;
+class DeclaredDependenciesTreeStructure extends AbstractBaseTreeStructure {
+  @NotNull private final DeclaredDependenciesTreeRootNode myRootNode;
 
-  ResolvedDependenciesTreeStructure(@NotNull PsAndroidModule module) {
-    myRootNode = new ResolvedDependenciesTreeRootNode(module);
+  DeclaredDependenciesTreeStructure(@NotNull PsProject project) {
+    myRootNode = new DeclaredDependenciesTreeRootNode(project);
   }
 
   @Override
+  @NotNull
   public Object getRootElement() {
     return myRootNode;
-  }
-
-  boolean settingsChanged() {
-    return myRootNode.settingsChanged();
   }
 
   @Override

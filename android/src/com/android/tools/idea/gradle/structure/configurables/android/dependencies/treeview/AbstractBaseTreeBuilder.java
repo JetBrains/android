@@ -16,10 +16,10 @@
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview;
 
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsdNode;
-import com.intellij.ide.util.treeView.AbstractTreeBuilder;
-import com.intellij.ide.util.treeView.AbstractTreeUi;
-import com.intellij.ide.util.treeView.IndexComparator;
-import com.intellij.ide.util.treeView.NodeDescriptor;
+import com.android.tools.idea.gradle.structure.model.PsModel;
+import com.google.common.collect.Lists;
+import com.intellij.ide.util.treeView.*;
+import com.intellij.ui.treeStructure.SimpleNode;
 import com.intellij.util.ui.tree.TreeUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -28,6 +28,10 @@ import javax.swing.*;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 
+import java.util.List;
+import java.util.Set;
+
+import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static com.intellij.util.ui.tree.TreeUtil.collapseAll;
 
 public abstract class AbstractBaseTreeBuilder extends AbstractTreeBuilder {
@@ -77,6 +81,73 @@ public abstract class AbstractBaseTreeBuilder extends AbstractTreeBuilder {
     }
   }
 
+  public void updateSelection() {
+    updateSelection(null);
+  }
+
+  public void updateSelection(@Nullable final MatchingNodeCollector collector) {
+    Set<Object> selectedElements = getSelectedElements();
+    if (selectedElements.size() == 1) {
+      Object selection = getFirstItem(selectedElements);
+      if (selection instanceof AbstractPsdNode) {
+        AbstractPsdNode<?> node = (AbstractPsdNode)selection;
+        List<?> models = node.getModels();
+        Object model = models.get(0);
+        if (model instanceof PsModel) {
+          selectMatchingNodes((PsModel)model, collector, false);
+        }
+      }
+    }
+  }
+
+  public void selectMatchingNodes(@NotNull final PsModel model, final boolean scroll) {
+    selectMatchingNodes(model, null, scroll);
+  }
+
+  private void selectMatchingNodes(@NotNull final PsModel model, @Nullable final MatchingNodeCollector collector, final boolean scroll) {
+    getInitialized().doWhenDone(new Runnable() {
+      @Override
+      public void run() {
+        final List<AbstractPsdNode> toSelect = Lists.newArrayList();
+        accept(AbstractPsdNode.class, new TreeVisitor<AbstractPsdNode>() {
+          @Override
+          public boolean visit(@NotNull AbstractPsdNode node) {
+            if (node.matches(model)) {
+              toSelect.add(node);
+              if (collector != null) {
+                collector.onMatchingNodeFound(node);
+              }
+            }
+            return false;
+          }
+        });
+
+        if (collector != null) {
+          collector.done(collector.matchingNodes);
+        }
+
+        if (isDisposed()) {
+          return;
+        }
+        // Expand the parents of all selected nodes, so they can be visible to the user.
+        Runnable onDone = new Runnable() {
+          @Override
+          public void run() {
+            List<SimpleNode> toExpand = Lists.newArrayList();
+            for (AbstractPsdNode node : toSelect) {
+              SimpleNode parent = node.getParent();
+              if (parent != null) {
+                toExpand.add(parent);
+              }
+            }
+            expand(toExpand.toArray(), null);
+          }
+        };
+        getUi().userSelect(toSelect.toArray(), new UserRunnable(onDone), false, scroll);
+      }
+    });
+  }
+
   protected class UserRunnable implements Runnable {
     @Nullable private final Runnable myRunnable;
 
@@ -96,5 +167,15 @@ public abstract class AbstractBaseTreeBuilder extends AbstractTreeBuilder {
         }
       }
     }
+  }
+
+  public static abstract class MatchingNodeCollector {
+    @NotNull final List<AbstractPsdNode> matchingNodes = Lists.newArrayList();
+
+    void onMatchingNodeFound(@NotNull AbstractPsdNode node) {
+      matchingNodes.add(node);
+    }
+
+    protected abstract void done(@NotNull List<AbstractPsdNode> matchingNodes);
   }
 }

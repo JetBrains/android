@@ -123,10 +123,26 @@ public class PsAndroidModule extends PsModule implements PsAndroidModel {
   }
 
   @Override
-  public Icon getModuleIcon() {
+  public Icon getIcon() {
     if (myGradleModel.getAndroidProject().isLibrary()) {
       return AndroidIcons.LibraryModule;
     }
     return AndroidIcons.AppModule;
+  }
+
+  @Override
+  @NotNull
+  public String getGradlePath() {
+    String gradlePath = super.getGradlePath();
+    assert gradlePath != null;
+    return gradlePath;
+  }
+
+  @Override
+  @NotNull
+  public Module getResolvedModel() {
+    Module model = super.getResolvedModel();
+    assert model != null;
+    return model;
   }
 }
