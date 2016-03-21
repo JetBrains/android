@@ -67,15 +67,13 @@ public class GuiTestRule implements TestRule {
   private final Timeout myTimeout;
   private final RobotTestRule myRobotTestRule = new RobotTestRule();
   private final LeakCheck myLeakCheck = new LeakCheck();
-  private final ScreenshotsDuringTest myScreenshotsDuringTest = new ScreenshotsDuringTest();
   private final RuleChain myRuleChain = RuleChain.emptyRuleChain()
     .around(new BlockReloading())
     .around(myRobotTestRule)
     .around(myLeakCheck)
     .around(new IdeHandling())
     .around(new TestPerformance())
-    .around(new ScreenshotOnFailure())
-    .around(myScreenshotsDuringTest);
+    .around(new ScreenshotOnFailure());
 
   public GuiTestRule() {
     myTimeout = DEFAULT_TIMEOUT;
@@ -87,11 +85,6 @@ public class GuiTestRule implements TestRule {
 
   public GuiTestRule withLeakCheck() {
     myLeakCheck.setEnabled(true);
-    return this;
-  }
-
-  public GuiTestRule withScreenshots() {
-    myScreenshotsDuringTest.setEnabled(true);
     return this;
   }
 
