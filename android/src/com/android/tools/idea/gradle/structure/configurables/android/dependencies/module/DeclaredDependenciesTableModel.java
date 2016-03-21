@@ -35,8 +35,8 @@ import java.util.List;
 /**
  * Model for the table displaying the "editable" dependencies of a module.
  */
-class EditableDependenciesTableModel extends ListTableModel<PsAndroidDependency> {
-  EditableDependenciesTableModel(@NotNull PsAndroidModule module) {
+class DeclaredDependenciesTableModel extends ListTableModel<PsAndroidDependency> {
+  DeclaredDependenciesTableModel(@NotNull PsAndroidModule module) {
     createAndSetColumnInfos();
     final List<PsAndroidDependency> dependencies = Lists.newArrayList();
     module.forEachDeclaredDependency(new Predicate<PsAndroidDependency>() {

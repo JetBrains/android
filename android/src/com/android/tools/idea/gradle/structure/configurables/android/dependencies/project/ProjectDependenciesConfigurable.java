@@ -15,67 +15,59 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.project;
 
-import com.android.tools.idea.gradle.structure.model.PsProject;
+import com.android.tools.idea.gradle.structure.configurables.PsContext;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.AbstractDependenciesConfigurable;
+import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.options.ConfigurationException;
-import com.intellij.openapi.ui.NamedConfigurable;
+import com.intellij.openapi.util.ActionCallback;
 import com.intellij.openapi.util.Disposer;
-import org.jetbrains.annotations.Nls;
+import com.intellij.ui.navigation.History;
+import com.intellij.ui.navigation.Place;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.util.List;
 
-public class ProjectDependenciesConfigurable extends NamedConfigurable<PsProject> {
-  @NotNull private final PsProject myProject;
-
-  private String myDisplayName;
+public class ProjectDependenciesConfigurable extends AbstractDependenciesConfigurable<PsModule> {
   private ProjectDependenciesPanel myDependenciesPanel;
 
-  public ProjectDependenciesConfigurable(@NotNull PsProject project) {
-    myProject = project;
+  public ProjectDependenciesConfigurable(@NotNull PsModule module, @NotNull PsContext context, @NotNull List<PsModule> extraTopModules) {
+    super(module, context, extraTopModules);
     setDisplayName("<All Modules>");
   }
 
   @Override
-  public PsProject getEditableObject() {
-    return myProject;
-  }
-
-  @Override
   public String getBannerSlogan() {
-    return myDisplayName;
+    return getDisplayName();
   }
 
   @Override
   public JComponent createOptionsPanel() {
     if (myDependenciesPanel == null) {
-      myDependenciesPanel = new ProjectDependenciesPanel(myProject);
+      myDependenciesPanel = new ProjectDependenciesPanel(getEditableObject().getParent(), getContext(), getExtraTopModules());
     }
     return myDependenciesPanel;
   }
 
   @Override
-  @Nls
-  public String getDisplayName() {
-    return myDisplayName;
+  public void setHistory(History history) {
   }
 
   @Override
-  public void setDisplayName(String name) {
-    myDisplayName = name;
+  public ActionCallback navigateTo(@Nullable Place place, boolean requestFocus) {
+    return null;
+  }
+
+  @Override
+  public void queryPlace(@NotNull Place place) {
   }
 
   @Override
   @NotNull
-  public Icon getIcon(boolean expanded) {
-    return AllIcons.Nodes.ModuleGroup;
-  }
-
-  @Nullable
-  @Override
-  public String getHelpTopic() {
-    return null;
+  public String getId() {
+    return "all.modules.dependencies";
   }
 
   @Override
@@ -85,12 +77,16 @@ public class ProjectDependenciesConfigurable extends NamedConfigurable<PsProject
 
   @Override
   public void apply() throws ConfigurationException {
-
   }
 
   @Override
   public void reset() {
+  }
 
+  @Override
+  @NotNull
+  public Icon getIcon(boolean expanded) {
+    return AllIcons.Nodes.ModuleGroup;
   }
 
   @Override

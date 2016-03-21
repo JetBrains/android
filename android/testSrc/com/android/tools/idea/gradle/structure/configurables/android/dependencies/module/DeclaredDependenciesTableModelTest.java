@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.module;
 
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.EditableDependenciesTableModel.DependencyCellRenderer;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.DeclaredDependenciesTableModel.DependencyCellRenderer;
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsProject;
@@ -36,13 +36,13 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
- * Tests for {@link EditableDependenciesTableModel}.
+ * Tests for {@link DeclaredDependenciesTableModel}.
  */
-public class EditableDependenciesTableModelTest extends IdeaTestCase {
+public class DeclaredDependenciesTableModelTest extends IdeaTestCase {
   private boolean myOriginalShowGroupId;
   private PsLibraryDependency myLibraryDependency;
 
-  private EditableDependenciesTableModel myTableModel;
+  private DeclaredDependenciesTableModel myTableModel;
 
   @Override
   public void setUp() throws Exception {
@@ -52,7 +52,7 @@ public class EditableDependenciesTableModelTest extends IdeaTestCase {
 
     List<PsAndroidDependency> dependencies = Lists.newArrayList();
     dependencies.add(myLibraryDependency);
-    myTableModel = new EditableDependenciesTableModel(new PsAndroidModuleStub(dependencies));
+    myTableModel = new DeclaredDependenciesTableModel(new PsAndroidModuleStub(dependencies));
   }
 
   @Override

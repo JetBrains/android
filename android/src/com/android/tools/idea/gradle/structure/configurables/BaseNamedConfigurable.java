@@ -40,7 +40,7 @@ public abstract class BaseNamedConfigurable<T extends PsModule> extends NamedCon
   @Override
   @Nullable
   public Icon getIcon(boolean expanded) {
-    return myModule.getModuleIcon();
+    return myModule.getIcon();
   }
 
   @Override
