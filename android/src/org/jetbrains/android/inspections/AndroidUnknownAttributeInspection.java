@@ -93,7 +93,8 @@ public class AndroidUnknownAttributeInspection extends LocalInspectionTool {
           }
         }
       }
-      if (!ourSupportedResourceTypes.contains(resourceType)) {
+      // Raw resource files should accept any tag values
+      if (!ourSupportedResourceTypes.contains(resourceType) || ResourceFolderType.RAW == resourceType) {
         return false;
       }
       if (ResourceFolderType.XML == resourceType) {

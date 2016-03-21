@@ -318,6 +318,7 @@
     <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.fileDescriptions.AnimatedRotateDomFileDescription"/>
     <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.fileDescriptions.RotateDomFileDescription"/>
     <dom.fileDescription implementation="org.jetbrains.android.dom.color.ColorDomFileDescription"/>
+    <dom.fileDescription implementation="org.jetbrains.android.dom.raw.RawDomFileDescription"/>
 
     <dom.fileDescription implementation="org.jetbrains.android.dom.manifest.ManifestDomFileDescription"/>
     <dom.fileDescription implementation="org.jetbrains.android.dom.layout.ViewLayoutDomFileDescription"/>
