@@ -20,6 +20,7 @@ import com.android.repository.api.*;
 import com.android.repository.impl.installer.AbstractInstallerFactory;
 import com.android.repository.impl.installer.AbstractPackageOperation;
 import com.android.repository.impl.manager.LocalRepoLoader;
+import com.android.repository.impl.manager.LocalRepoLoaderImpl;
 import com.android.repository.impl.meta.Archive;
 import com.android.repository.io.FileOp;
 import com.android.repository.util.InstallerUtil;
@@ -138,7 +139,7 @@ public class PatchInstallerFactory extends AbstractInstallerFactory {
 
       // TODO: move away? Or somehow ignore in UI?
       mFop.deleteFileOrFolder(new File(destination, InstallerUtil.INSTALLER_DIR_FN));
-      mFop.delete(new File(destination, LocalRepoLoader.PACKAGE_XML_FN));
+      mFop.delete(new File(destination, LocalRepoLoaderImpl.PACKAGE_XML_FN));
 
       boolean result = runPatcher(progress, destination, new File(installTempPath, "patch.jar"), classMap.get(RUNNER_CLASS_NAME),
                                   classMap.get(UPDATER_UI_CLASS_NAME), classMap.get(REPO_UI_CLASS_NAME));
