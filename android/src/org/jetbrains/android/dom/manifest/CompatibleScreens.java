@@ -1,10 +1,10 @@
 package org.jetbrains.android.dom.manifest;
 
+import com.intellij.util.xml.SubTagList;
+
 import java.util.List;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public interface CompatibleScreens extends ManifestElement {
+  @SubTagList("screen")
   List<CompatibleScreensScreen> getScreens();
 }

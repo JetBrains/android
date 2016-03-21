@@ -21,10 +21,12 @@ import com.intellij.util.xml.Convert;
 import org.jetbrains.android.dom.AndroidAttributeValue;
 import org.jetbrains.android.dom.LookupClass;
 import org.jetbrains.android.dom.LookupPrefix;
+import org.jetbrains.android.dom.Styleable;
 import org.jetbrains.android.dom.converters.ConstantFieldConverter;
 import org.jetbrains.android.dom.structure.manifest.GenericNamedPresentationProvider;
 
 @Presentation(provider = GenericNamedPresentationProvider.class)
+@Styleable("AndroidManifestAction")
 public interface Action extends ManifestElementWithName {
     @Attribute("name")
     @Convert(ConstantFieldConverter.class)
