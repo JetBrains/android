@@ -607,16 +607,18 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
      */
     templateValues.put(ATTR_PROJECT_OUT, FileUtil.toSystemIndependentName(moduleRoot.getAbsolutePath()));
 
+    String packageAsDir = myPackageName.get().replace('.', File.separatorChar);
     File srcDir = paths.getSrcDirectory();
-    File testDir = paths.getTestDirectory();
-    if (srcDir != null && testDir != null) {
-      String packageAsDir = myPackageName.get().replace('.', File.separatorChar);
-
+    if (srcDir != null) {
       srcDir = new File(srcDir, packageAsDir);
-      testDir = new File(testDir, packageAsDir);
 
       templateValues.put(ATTR_SRC_DIR, getRelativePath(moduleRoot, srcDir));
       templateValues.put(ATTR_SRC_OUT, FileUtil.toSystemIndependentName(srcDir.getAbsolutePath()));
+    }
+
+    File testDir = paths.getTestDirectory();
+    if (testDir != null) {
+      testDir = new File(testDir, packageAsDir);
 
       templateValues.put(ATTR_TEST_DIR, getRelativePath(moduleRoot, testDir));
       templateValues.put(ATTR_TEST_OUT, FileUtil.toSystemIndependentName(testDir.getAbsolutePath()));
