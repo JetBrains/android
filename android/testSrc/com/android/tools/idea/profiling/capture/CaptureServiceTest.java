@@ -99,7 +99,7 @@ public class CaptureServiceTest extends IdeaTestCase {
     File testHprofFile = new File(testDataPath, toSystemDependentName("guiTests/CapturesApplication/captures/snapshot.hprof"));
     byte[] testFileBytes = readFully(testHprofFile);
 
-    CaptureHandle handle = service.startCaptureFile(HprofCaptureType.class, "snapshot");
+    CaptureHandle handle = service.startCaptureFile(HprofCaptureType.class, "snapshot", true);
     for (int i = 0; i < testFileBytes.length; i += 1024 * 1024) {
       service.appendData(handle, Arrays.copyOfRange(testFileBytes, i, i + Math.min(1024 * 1024, testFileBytes.length - i)));
     }
@@ -114,6 +114,24 @@ public class CaptureServiceTest extends IdeaTestCase {
 
     byte[] captureFileBytes = readFully(captureFile);
     assertTrue(Arrays.equals(captureFileBytes, testFileBytes));
+  }
+
+  public void testFileRemoval() throws Exception {
+    CaptureService service = CaptureService.getInstance(myProject);
+    String testDataPath = toCanonicalPath(toSystemDependentName(AndroidTestBase.getTestDataPath()));
+
+    File testHprofFile = new File(testDataPath, toSystemDependentName("guiTests/CapturesApplication/captures/snapshot.hprof"));
+    byte[] testFileBytes = readFully(testHprofFile);
+
+    CaptureHandle handle = service.startCaptureFile(HprofCaptureType.class, "snapshot", false);
+    for (int i = 0; i < testFileBytes.length; i += 1024 * 1024) {
+      service.appendData(handle, Arrays.copyOfRange(testFileBytes, i, i + Math.min(1024 * 1024, testFileBytes.length - i)));
+    }
+    service.cancelCaptureFileSynchronous(handle);
+
+    String capturePath = handle.getFile().getCanonicalPath();
+    assertNotNull(capturePath);
+    assertFalse(handle.getFile().exists());
   }
 
   private static byte[] readFully(@NotNull File file) throws IOException {
