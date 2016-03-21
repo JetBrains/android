@@ -64,6 +64,7 @@ import java.util.*;
 import static com.android.SdkConstants.*;
 import static com.android.ide.common.rendering.RenderParamsFlags.FLAG_KEY_APPLICATION_PACKAGE;
 import static com.android.ide.common.rendering.RenderParamsFlags.FLAG_KEY_RECYCLER_VIEW_SUPPORT;
+import static com.android.ide.common.rendering.RenderParamsFlags.FLAG_KEY_XML_FILE_PARSER_SUPPORT;
 import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
 
 /**
@@ -694,6 +695,9 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
       return (T)getPackage();
     }
     if (key.equals(FLAG_KEY_RECYCLER_VIEW_SUPPORT)) {
+      return (T)Boolean.TRUE;
+    }
+    if (key.equals(FLAG_KEY_XML_FILE_PARSER_SUPPORT)) {
       return (T)Boolean.TRUE;
     }
     return null;
