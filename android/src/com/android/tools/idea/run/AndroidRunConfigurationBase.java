@@ -325,7 +325,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     }
 
     DeviceFutures deviceFutures = null;
-    AndroidSessionInfo info = AndroidSessionInfo.findOldSession(project, executor, getUniqueID());
+    AndroidSessionInfo info = AndroidSessionInfo.findOldSession(project, null, getUniqueID()); // note: we look for this run config with any executor
 
     IDevice rerunDevice = InstantRunUtils.getRestartDevice(env);
     if (rerunDevice != null) { // first check if this is a session that has been restarted with some info pre-filled in the env
@@ -482,8 +482,9 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     boolean isRestartedSession = InstantRunUtils.getRestartDevice(env) != null;
     boolean buildsMatch = device != null && InstantRunManager.buildTimestampsMatch(device, module);
 
-    boolean appRunning = existingSession != null && // handles the scenario where app could still be running, but with the wrong executor (run vs debug)
-                         isAppRunning(module, devices);
+    // handles the scenario where app could still be running, but with the wrong executor (run vs debug)
+    boolean existingSessionOfSameExecutor = existingSession != null && existingSession.getExecutorId().equals(env.getExecutor().getId());
+    boolean appRunning = existingSessionOfSameExecutor && isAppRunning(module, devices);
     InstantRunUtils.setAppRunning(env, appRunning);
     if (!appRunning) {
       InstantRunManager.LOG.info("Instant run: app is not running on the selected device.");
