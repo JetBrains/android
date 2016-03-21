@@ -105,7 +105,7 @@ public class ToggleAllocationTrackingAction extends AbstractClientToggleAction {
 
                 final CaptureService service = CaptureService.getInstance(myProject);
                 String name = service.getSuggestedName(listeningClient);
-                CaptureHandle handle = service.startCaptureFile(AllocationCaptureType.class, name);
+                CaptureHandle handle = service.startCaptureFile(AllocationCaptureType.class, name, true);
                 service.appendDataCopy(handle, data);
                 service.finalizeCaptureFileAsynchronous(handle, new FutureCallback<Capture>() {
                   @Override
