@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.module;
 
-import com.android.tools.idea.gradle.structure.configurables.BaseNamedConfigurable;
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.AbstractDependenciesConfigurable;
+import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.util.ActionCallback;
@@ -27,28 +28,27 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.util.List;
 
-public class AndroidModuleDependenciesConfigurable extends BaseNamedConfigurable<PsAndroidModule> {
-  @NotNull private final PsContext myContext;
-
+public class ModuleDependenciesConfigurable extends AbstractDependenciesConfigurable<PsAndroidModule> {
   private ModuleDependenciesPanel myDependenciesPanel;
 
-  public AndroidModuleDependenciesConfigurable(@NotNull PsAndroidModule module, @NotNull PsContext context) {
-    super(module);
-    myContext = context;
+  public ModuleDependenciesConfigurable(@NotNull PsAndroidModule module,
+                                        @NotNull PsContext context,
+                                        @NotNull List<PsModule> extraTopModules) {
+    super(module, context, extraTopModules);
   }
 
   @Override
   public JComponent createOptionsPanel() {
     if (myDependenciesPanel == null) {
-      myDependenciesPanel = new ModuleDependenciesPanel(getEditableObject(), myContext);
+      myDependenciesPanel = new ModuleDependenciesPanel(getEditableObject(), getContext(), getExtraTopModules());
     }
     return myDependenciesPanel;
   }
 
   @Override
   public void setHistory(History history) {
-
   }
 
   @Override
@@ -59,13 +59,12 @@ public class AndroidModuleDependenciesConfigurable extends BaseNamedConfigurable
 
   @Override
   public void queryPlace(@NotNull Place place) {
-
   }
 
   @Override
   @NotNull
   public String getId() {
-    return "module.dependencies" + getDisplayName();
+    return "module.dependencies." + getDisplayName();
   }
 
   @Override
@@ -75,12 +74,10 @@ public class AndroidModuleDependenciesConfigurable extends BaseNamedConfigurable
 
   @Override
   public void apply() throws ConfigurationException {
-
   }
 
   @Override
   public void reset() {
-
   }
 
   @Override

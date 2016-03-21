@@ -15,29 +15,21 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.project.treeview;
 
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractBaseTreeStructure;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractBaseTreeBuilder;
 import com.android.tools.idea.gradle.structure.model.PsProject;
 import org.jetbrains.annotations.NotNull;
 
-public class ProjectDependenciesTreeStructure extends AbstractBaseTreeStructure {
-  @NotNull private final RootNode myRootNode;
+import javax.swing.*;
+import javax.swing.tree.DefaultTreeModel;
 
-  ProjectDependenciesTreeStructure(@NotNull PsProject project) {
-    myRootNode = new RootNode(project);
+public class DeclaredDependenciesTreeBuilder extends AbstractBaseTreeBuilder {
+  public DeclaredDependenciesTreeBuilder(@NotNull PsProject project,
+                                         @NotNull JTree tree,
+                                         @NotNull DefaultTreeModel treeModel) {
+    super(tree, treeModel, new DeclaredDependenciesTreeStructure(project));
   }
 
   @Override
-  public Object getRootElement() {
-    return myRootNode;
-  }
-
-  @Override
-  public void commit() {
-
-  }
-
-  @Override
-  public boolean hasSomethingToCommit() {
-    return false;
+  protected void onAllNodesExpanded() {
   }
 }
