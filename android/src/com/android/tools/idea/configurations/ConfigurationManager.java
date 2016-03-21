@@ -25,8 +25,6 @@ import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.DeviceManager;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.repositoryv2.targets.PlatformTarget;
-import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.model.ManifestInfo;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.model.MergedManifest.ActivityAttributes;
 import com.android.tools.idea.rendering.Locale;
@@ -305,7 +303,7 @@ public class ConfigurationManager implements Disposable {
    */
   @NotNull
   public String computePreferredTheme(@NotNull Configuration configuration) {
-    MergedManifest manifest = ManifestInfo.get(myModule);
+    MergedManifest manifest = MergedManifest.get(myModule);
 
     // TODO: If we are rendering a layout in included context, pick the theme
     // from the outer layout instead

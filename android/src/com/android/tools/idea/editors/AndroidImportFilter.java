@@ -16,7 +16,7 @@
 package com.android.tools.idea.editors;
 
 import com.android.resources.ResourceType;
-import com.android.tools.idea.model.ManifestInfo;
+import com.android.tools.idea.model.MergedManifest;
 import com.intellij.codeInsight.ImportFilter;
 import com.intellij.psi.PsiFile;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -57,7 +57,7 @@ public class AndroidImportFilter extends ImportFilter {
     AndroidFacet facet = AndroidFacet.getInstance(targetFile);
     if (facet != null) {
       // We need the manifest package here, not the Gradle effective package (which can vary by flavor and build type)
-      return ManifestInfo.get(facet).getPackage();
+      return MergedManifest.get(facet).getPackage();
     }
 
     return null;
