@@ -19,12 +19,16 @@ import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.tools.idea.uibuilder.lint.NlBackgroundEditorHighlighter;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
+import com.intellij.designer.LightToolWindowManager;
 import com.intellij.ide.structureView.StructureViewBuilder;
-import com.intellij.openapi.fileEditor.*;
+import com.intellij.openapi.fileEditor.FileEditor;
+import com.intellij.openapi.fileEditor.FileEditorLocation;
+import com.intellij.openapi.fileEditor.FileEditorState;
+import com.intellij.openapi.fileEditor.FileEditorStateLevel;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 
 import javax.swing.*;
@@ -33,14 +37,19 @@ import java.beans.PropertyChangeListener;
 public class NlEditor extends UserDataHolderBase implements FileEditor {
   private final AndroidFacet myFacet;
   private final VirtualFile myFile;
-  private final Project myProject;
+  private final DumbService myDumbService;
+  private final LightToolWindowManager myPaletteManager;
+  private final LightToolWindowManager myStructureManager;
+
   private NlEditorPanel myEditorPanel;
   private BackgroundEditorHighlighter myBackgroundHighlighter;
 
   public NlEditor(AndroidFacet facet, VirtualFile file, Project project) {
     myFacet = facet;
     myFile = file;
-    myProject = project;
+    myDumbService = DumbService.getInstance(project);
+    myPaletteManager = NlPaletteManager.get(project);
+    myStructureManager = NlStructureManager.get(project);
   }
 
   @NonNull
@@ -49,11 +58,11 @@ public class NlEditor extends UserDataHolderBase implements FileEditor {
     if (myEditorPanel == null) {
       myEditorPanel = new NlEditorPanel(this, myFacet, myFile);
 
-      UIUtil.invokeLaterIfNeeded(new Runnable() {
+      myDumbService.smartInvokeLater(new Runnable() {
         @Override
         public void run() {
-          NlPaletteManager.get(myProject).bind(myEditorPanel);
-          NlStructureManager.get(myProject).bind(myEditorPanel);
+          myPaletteManager.bind(myEditorPanel);
+          myStructureManager.bind(myEditorPanel);
         }
       });
     }
