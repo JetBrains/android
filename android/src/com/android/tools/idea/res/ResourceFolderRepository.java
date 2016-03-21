@@ -26,7 +26,7 @@ import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.databinding.DataBindingUtil;
-import com.android.tools.idea.model.ManifestInfo;
+import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.rendering.LogWrapper;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.android.utils.ILogger;
@@ -590,7 +590,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
     XmlTag dataTag = getDataTag(layout);
     String className;
     String classPackage;
-    String modulePackage = ManifestInfo.get(myFacet).getPackage();
+    String modulePackage = MergedManifest.get(myFacet).getPackage();
     String classAttrValue = null;
     if (dataTag != null) {
       classAttrValue = dataTag.getAttributeValue(ATTR_CLASS);

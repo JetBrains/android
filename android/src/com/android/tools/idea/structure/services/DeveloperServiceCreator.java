@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.structure.services;
 
-import com.android.tools.idea.model.ManifestInfo;
+import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.ui.properties.core.StringValueProperty;
 import com.google.common.io.Files;
 import com.google.common.io.Resources;
@@ -94,7 +94,7 @@ public abstract class DeveloperServiceCreator {
     String buildSystemId = getBuildSystemOperations(module.getProject()).getBuildSystemId();
     ServiceContext context = new ServiceContext(buildSystemId);
 
-    String packageName = ManifestInfo.get(module).getPackage();
+    String packageName = MergedManifest.get(module).getPackage();
 
     if (packageName != null) {
       context.putValue("packageName", new StringValueProperty(packageName));
