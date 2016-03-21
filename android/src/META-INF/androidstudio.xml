@@ -34,6 +34,10 @@
   </extensions>
 
   <actions>
+    <action id="Android.CleanRun" class="com.android.tools.idea.run.ReRunAction">
+      <add-to-group group-id="RunMenu" anchor="before" relative-to-action="Stop" />
+      <add-to-group group-id="ToolbarRunGroup" anchor="before" relative-to-action="Stop" />
+    </action>
 
     <action id="AndroidAddRTLSupport" class="com.android.tools.idea.actions.AndroidAddRtlSupportAction"
             text="Add RTL Support Where Possible..." description="Add right-to-left (RTL) support where possible">
