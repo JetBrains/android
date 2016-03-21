@@ -165,7 +165,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
             InstantRunManager.LOG.info("Using split APK deploy task");
             return new SplitApkDeployTask(pkgName, myFacet, buildInfo);
           }
-          if (buildInfo.hasOneOf(RESTART_DEX, DEX, RESOURCES)) {
+          if (buildInfo.hasOneOf(DEX, RESOURCES)) {
             InstantRunManager.LOG.info("Using Dex Deploy task");
             return new DexDeployTask(myEnv, myFacet, buildInfo);
           }
