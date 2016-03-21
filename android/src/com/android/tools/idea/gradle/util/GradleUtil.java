@@ -1087,8 +1087,8 @@ public final class GradleUtil {
   }
 
   /**
-   * Returns {@code true} if the given Android model depends on the given artifact, which consists of a group id and an artifact id, such as
-   * {@link SdkConstants#APPCOMPAT_LIB_ARTIFACT}.
+   * Returns {@code true} if the main artifact of the given Android model depends on the given artifact, which consists of a group id and an
+   * artifact id, such as {@link SdkConstants#APPCOMPAT_LIB_ARTIFACT}.
    *
    * @param androidModel the Android model to check
    * @param artifact     the artifact
@@ -1096,6 +1096,19 @@ public final class GradleUtil {
    */
   public static boolean dependsOn(@NonNull AndroidGradleModel androidModel, @NonNull String artifact) {
     Dependencies dependencies = androidModel.getSelectedMainCompileDependencies();
+    return dependsOn(dependencies, artifact);
+  }
+
+  /**
+   * Returns {@code true} if the androidTest artifact of the given Android model depends on the given artifact, which consists of a group id
+   * and an artifact id, such as {@link SdkConstants#APPCOMPAT_LIB_ARTIFACT}.
+   *
+   * @param androidModel the Android model to check
+   * @param artifact     the artifact
+   * @return {@code true} if the project depends on the given artifact (including transitively)
+   */
+  public static boolean dependsOnAndroidTest(@NonNull AndroidGradleModel androidModel, @NonNull String artifact) {
+    Dependencies dependencies = androidModel.getSelectedAndroidTestCompileDependencies();
     return dependsOn(dependencies, artifact);
   }
 
