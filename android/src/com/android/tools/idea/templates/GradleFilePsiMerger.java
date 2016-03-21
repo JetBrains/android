@@ -19,6 +19,7 @@ import com.android.SdkConstants;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.intellij.ide.startup.impl.StartupManagerImpl;
 import com.intellij.openapi.application.ApplicationManager;
@@ -51,8 +52,6 @@ import java.util.*;
  */
 public class GradleFilePsiMerger {
   private static final String DEPENDENCIES = "dependencies";
-  private static final String COMPILE = "compile";
-  public static final String COMPILE_FORMAT = "compile '%s'\n";
 
   /**
    * Merges the given source build.gradle content into the given destination build.gradle content,
@@ -69,7 +68,8 @@ public class GradleFilePsiMerger {
     boolean projectNeedsCleanup = false;
     if (project != null && !project.isDefault()) {
       project2 = project;
-    } else {
+    }
+    else {
       project2 = ((ProjectManagerImpl)ProjectManager.getInstance()).newProject("MergingOnly", "", false, true);
       assert project2 != null;
       ((StartupManagerImpl)StartupManager.getInstance(project2)).runStartupActivities();
@@ -78,11 +78,11 @@ public class GradleFilePsiMerger {
 
 
     final GroovyFile templateBuildFile = (GroovyFile)PsiFileFactory.getInstance(project2).createFileFromText(SdkConstants.FN_BUILD_GRADLE,
-                                                                                                      GroovyFileType.GROOVY_FILE_TYPE,
-                                                                                                      source);
+                                                                                                             GroovyFileType.GROOVY_FILE_TYPE,
+                                                                                                             source);
     final GroovyFile existingBuildFile = (GroovyFile)PsiFileFactory.getInstance(project2).createFileFromText(SdkConstants.FN_BUILD_GRADLE,
-                                                                                                      GroovyFileType.GROOVY_FILE_TYPE,
-                                                                                                      dest);
+                                                                                                             GroovyFileType.GROOVY_FILE_TYPE,
+                                                                                                             dest);
     String result = (new WriteCommandAction<String>(project2, "Merge Gradle Files", existingBuildFile) {
       @Override
       protected void run(@NotNull Result<String> result) throws Throwable {
@@ -130,16 +130,19 @@ public class GradleFilePsiMerger {
       if (destination == null) {
         if (destinationChildren.isEmpty()) {
           toRoot.add(child);
-        } else {
+        }
+        else {
           toRoot.addBefore(child, toRoot.getLastChild());
         }
         // And we're done for this branch
-      } else if (child.getFirstChild() != null && child.getFirstChild().getText().equalsIgnoreCase(DEPENDENCIES) &&
-                 destination.getFirstChild() != null && destination.getFirstChild().getText().equalsIgnoreCase(DEPENDENCIES)) {
+      }
+      else if (child.getFirstChild() != null && child.getFirstChild().getText().equalsIgnoreCase(DEPENDENCIES) &&
+               destination.getFirstChild() != null && destination.getFirstChild().getText().equalsIgnoreCase(DEPENDENCIES)) {
         // Special case dependencies
         // The last child of the dependencies method call is the closable block
         mergeDependencies(child.getLastChild(), destination.getLastChild(), project, supportLibVersionFilter);
-      } else {
+      }
+      else {
         mergePsi(child, destination, project, supportLibVersionFilter);
       }
     }
@@ -149,42 +152,48 @@ public class GradleFilePsiMerger {
                                         @NotNull PsiElement toRoot,
                                         @NotNull Project project,
                                         @Nullable String supportLibVersionFilter) {
-    Multimap<String, GradleCoordinate> dependencies = LinkedListMultimap.create();
-    List<String> unparseableDependencies = new ArrayList<String>();
+    Map<String, Multimap<String, GradleCoordinate>> dependencies = Maps.newHashMap();
+    final List<String> unparsedDependencies = Lists.newArrayList();
 
     // Load existing dependencies into the map for the existing build.gradle
     pullDependenciesIntoMap(toRoot, dependencies, null);
 
     // Load dependencies into the map for the new build.gradle
-    pullDependenciesIntoMap(fromRoot, dependencies, unparseableDependencies);
+    pullDependenciesIntoMap(fromRoot, dependencies, unparsedDependencies);
 
     GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(project);
 
     RepositoryUrlManager urlManager = RepositoryUrlManager.get();
-    List<GradleCoordinate> resolvedDependencies = urlManager.resolveDynamicDependencies(dependencies, supportLibVersionFilter);
-
-    for (GradleCoordinate dependency : resolvedDependencies) {
-      PsiElement dependencyElement = factory.createStatementFromText(String.format(COMPILE_FORMAT, dependency.toString()));
-      toRoot.addBefore(dependencyElement, toRoot.getLastChild());
+    for (Map.Entry<String, Multimap<String, GradleCoordinate>> entry : dependencies.entrySet()) {
+      final String configurationName = entry.getKey();
+      for (GradleCoordinate dependency : urlManager.resolveDynamicDependencies(entry.getValue(), supportLibVersionFilter)) {
+        PsiElement dependencyElement = factory.createStatementFromText(String.format("%s '%s'\n", configurationName, dependency.toString()));
+        toRoot.addBefore(dependencyElement, toRoot.getLastChild());
+      }
     }
-    for (String unparseableDependency : unparseableDependencies) {
-      PsiElement dependencyElement = factory.createStatementFromText(unparseableDependency);
+
+    for (String dependency : unparsedDependencies) {
+      PsiElement dependencyElement = factory.createStatementFromText(dependency);
       toRoot.addBefore(dependencyElement, toRoot.getLastChild());
     }
   }
 
   /**
-   * Looks for 'compile "*"' statements and tries to parse them into Gradle coordinates. If successful,
-   * adds the new coordinate to the map and removes the corresponding PsiElement from the tree.
+   * Looks for statements adding dependencies to different configurations (which look like 'configurationName "dependencyCoordinate"')
+   * and tries to parse them into Gradle coordinates. If successful, adds the new coordinate to the map and removes the corresponding
+   * PsiElement from the tree.
+   *
    * @return true if new items were added to the map
    */
-  private static boolean pullDependenciesIntoMap(@NotNull PsiElement root, Multimap<String, GradleCoordinate> map,
-                                                 @Nullable List<String> unparseableDependencies) {
+  private static boolean pullDependenciesIntoMap(@NotNull PsiElement root,
+                                                 @NotNull Map<String, Multimap<String, GradleCoordinate>> allConfigurations,
+                                                 @Nullable List<String> unparsedDependencies) {
     boolean wasMapUpdated = false;
     for (PsiElement existingElem : root.getChildren()) {
       if (existingElem instanceof GrCall) {
         PsiElement reference = existingElem.getFirstChild();
-        if (reference instanceof GrReferenceExpression && reference.getText().equalsIgnoreCase(COMPILE)) {
+        if (reference instanceof GrReferenceExpression) {
+          final String configurationName = reference.getText();
           boolean parsed = false;
           GrCall call = (GrCall)existingElem;
           GrArgumentList arguments = call.getArgumentList();
@@ -198,6 +207,11 @@ public class GradleFilePsiMerger {
                 GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString(coordinateText);
                 if (coordinate != null) {
                   parsed = true;
+                  Multimap<String, GradleCoordinate> map = allConfigurations.get(configurationName);
+                  if (map == null) {
+                    map = LinkedListMultimap.create();
+                    allConfigurations.put(configurationName, map);
+                  }
                   if (!map.get(coordinate.getId()).contains(coordinate)) {
                     map.put(coordinate.getId(), coordinate);
                     existingElem.delete();
@@ -206,12 +220,13 @@ public class GradleFilePsiMerger {
                 }
               }
             }
-          }
-          if (!parsed && unparseableDependencies != null) {
-            unparseableDependencies.add(existingElem.getText());
+            if (!parsed && unparsedDependencies != null) {
+              unparsedDependencies.add(existingElem.getText());
+            }
           }
         }
       }
+
     }
     return wasMapUpdated;
   }
@@ -226,7 +241,8 @@ public class GradleFilePsiMerger {
     for (PsiElement item : collection) {
       if (item.getText() != null && item.getText().equals(element.getText())) {
         return item;
-      } else if (item.getFirstChild() != null && element.getFirstChild() != null) {
+      }
+      else if (item.getFirstChild() != null && element.getFirstChild() != null) {
         if (item.getFirstChild().getText().equals(element.getFirstChild().getText())) {
           matchingItems.add(item);
         }
@@ -234,7 +250,8 @@ public class GradleFilePsiMerger {
     }
     if (matchingItems.size() == 1) {
       return matchingItems.get(0);
-    } else {
+    }
+    else {
       return null;
     }
   }
