@@ -708,12 +708,15 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
 
     public RowEntry(@NotNull String headerText, @NotNull ComponentProvider<T> componentProvider) {
       myHeader = new JPanel(new FlowLayout(FlowLayout.LEFT));
-      myHeader.add(new JBLabel(headerText + ":"));
+      JBLabel headerLabel = new JBLabel(headerText + ":");
+      myHeader.add(headerLabel);
       myHeader.add(Box.createHorizontalStrut(20));
       myWantGrow = WantGrow.NO;
       myComponentProvider = componentProvider;
       myComponent = componentProvider.createComponent();
       myProperty = componentProvider.createProperty(myComponent);
+
+      headerLabel.setLabelFor(myComponent);
     }
 
     public RowEntry(@NotNull ParameterComponentProvider<T> componentProvider, @NotNull WantGrow stretch) {

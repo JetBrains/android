@@ -21,7 +21,6 @@ import com.android.tools.idea.tests.gui.framework.Wait;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewXmlValueWizardFixture;
 import org.fest.swing.fixture.JButtonFixture;
 import org.fest.swing.fixture.JLabelFixture;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -33,7 +32,6 @@ public class NewComponentTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
-  @Ignore("failed in http://go/aj/job/studio-ui-test/389 and from IDEA")
   @Test
   public void testNewValueWizard() throws IOException {
     guiTest.importSimpleApplication();
@@ -69,6 +67,9 @@ public class NewComponentTest {
         return !finishFixture.isEnabled();
       }
     });
-    errorLabel.requireText("<html>Values File Name is not a valid resource name. ' ' is not a valid resource name character</html>");
+    errorLabel.requireText("Values File Name is not set to a valid resource name. ' ' is not a valid resource name character");
+
+    // UI tests should close all dialogs before finishing
+    wizardFixture.findWizardButton("Cancel").click();
   }
 }
