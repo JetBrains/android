@@ -15,48 +15,101 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.project;
 
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.project.treeview.ProjectDependenciesTreeBuilder;
+import com.android.tools.idea.gradle.structure.configurables.PsContext;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.AbstractDeclaredDependenciesPanel;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.project.treeview.DeclaredDependenciesTreeBuilder;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractBaseTreeBuilder.MatchingNodeCollector;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractDependencyNode;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.LibraryDependencyNode;
+import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsdNode;
 import com.android.tools.idea.gradle.structure.model.PsProject;
-import com.intellij.openapi.Disposable;
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.treeStructure.Tree;
+import com.intellij.util.EventDispatcher;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.TreeSelectionModel;
 import java.awt.*;
+import java.util.EventListener;
+import java.util.List;
+import java.util.Set;
 
-import static com.intellij.ui.ScrollPaneFactory.createScrollPane;
-import static javax.swing.tree.TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION;
+import static com.android.tools.idea.gradle.structure.configurables.android.dependencies.UiUtil.setUp;
+import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 
-class DeclaredDependenciesPanel extends JPanel implements Disposable {
+class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel {
   @NotNull private final Tree myTree;
-  @NotNull private final ProjectDependenciesTreeBuilder myTreeBuilder;
+  @NotNull private final DeclaredDependenciesTreeBuilder myTreeBuilder;
+  @NotNull private final TreeSelectionListener myTreeSelectionListener;
 
-  DeclaredDependenciesPanel(@NotNull PsProject project) {
-    super(new BorderLayout());
+  @NotNull private final EventDispatcher<SelectionListener> myEventDispatcher = EventDispatcher.create(SelectionListener.class);
 
-    DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode();
-    DefaultTreeModel treeModel = new DefaultTreeModel(rootNode);
+  DeclaredDependenciesPanel(@NotNull PsProject project, @NotNull PsContext context) {
+    super("All Dependencies", context, project, null);
+
+    DefaultTreeModel treeModel = new DefaultTreeModel(new DefaultMutableTreeNode());
     myTree = new Tree(treeModel);
-    myTree.setExpandsSelectedPaths(true);
-    myTree.setRootVisible(false);
 
-    myTreeBuilder = new ProjectDependenciesTreeBuilder(project, myTree, treeModel);
+    JScrollPane scrollPane = setUp(myTree);
+    getContentsPanel().add(scrollPane, BorderLayout.CENTER);
 
-    TreeSelectionModel selectionModel = myTree.getSelectionModel();
-    selectionModel.setSelectionMode(DISCONTIGUOUS_TREE_SELECTION);
+    myTreeBuilder = new DeclaredDependenciesTreeBuilder(project, myTree, treeModel);
 
-    JScrollPane scrollPane = createScrollPane(myTree);
-    scrollPane.setBorder(IdeBorderFactory.createEmptyBorder());
-    add(scrollPane, BorderLayout.CENTER);
+    myTreeSelectionListener = new TreeSelectionListener() {
+      @Override
+      public void valueChanged(TreeSelectionEvent e) {
+        final List<AbstractDependencyNode<? extends PsAndroidDependency>> selectedNodes = Lists.newArrayList();
+
+        myTreeBuilder.updateSelection(new MatchingNodeCollector() {
+          @Override
+          protected void done(@NotNull List<AbstractPsdNode> matchingNodes) {
+            for (AbstractPsdNode node : matchingNodes) {
+              if (node instanceof LibraryDependencyNode) {
+                selectedNodes.add(((LibraryDependencyNode)node));
+              }
+            }
+          }
+        });
+
+        if (getSelection() != null) {
+          notifySelectionChanged(selectedNodes);
+        }
+      }
+    };
+    myTree.addTreeSelectionListener(myTreeSelectionListener);
+  }
+
+  @Nullable
+  private AbstractDependencyNode<? extends PsAndroidDependency> getSelection() {
+    Set<AbstractDependencyNode> selectedElements = myTreeBuilder.getSelectedElements(AbstractDependencyNode.class);
+    if (selectedElements.size() == 1) {
+      //noinspection unchecked
+      return getFirstItem(selectedElements);
+    }
+    return null;
+  }
+
+  private void notifySelectionChanged(@NotNull List<AbstractDependencyNode<? extends PsAndroidDependency>> selected) {
+    myEventDispatcher.getMulticaster().dependencySelected(selected);
+  }
+
+  void add(@NotNull SelectionListener listener) {
+    myEventDispatcher.addListener(listener);
   }
 
   @Override
   public void dispose() {
     Disposer.dispose(myTreeBuilder);
+  }
+
+  public interface SelectionListener extends EventListener {
+    void dependencySelected(@NotNull List<AbstractDependencyNode<? extends PsAndroidDependency>> selectedNodes);
   }
 }

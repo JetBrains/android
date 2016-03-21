@@ -38,9 +38,9 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
- * Tests for {@link RootNode}.
+ * Tests for {@link ResolvedDependenciesTreeRootNode}.
  */
-public class RootNodeTest {
+public class ResolvedDependenciesTreeRootNodeTest {
   private PsAndroidDependency myD1;
   private PsAndroidDependency myD2;
   private PsAndroidDependency myD3;
@@ -79,7 +79,7 @@ public class RootNodeTest {
       ));
 
     PsAndroidModule module = new PsAndroidModuleStub(Lists.newArrayList(myD1, myD2));
-    Map<List<PsDependencyContainer>, List<PsAndroidDependency>> groups = RootNode.groupDependencies(module);
+    Map<List<PsDependencyContainer>, List<PsAndroidDependency>> groups = ResolvedDependenciesTreeRootNode.groupDependencies(module);
     assertThat(groups).hasSize(2);
 
     List<PsDependencyContainer> group = Lists.newArrayList(container("v3", ARTIFACT_MAIN));
@@ -117,7 +117,7 @@ public class RootNodeTest {
       ));
 
     PsAndroidModule module = new PsAndroidModuleStub(Lists.newArrayList(myD1, myD2, myD3));
-    Map<List<PsDependencyContainer>, List<PsAndroidDependency>> groups = RootNode.groupDependencies(module);
+    Map<List<PsDependencyContainer>, List<PsAndroidDependency>> groups = ResolvedDependenciesTreeRootNode.groupDependencies(module);
     assertThat(groups).hasSize(4);
 
     List<PsDependencyContainer> group = Lists.newArrayList(container("v1", ARTIFACT_MAIN));
@@ -158,7 +158,7 @@ public class RootNodeTest {
       ));
 
     PsAndroidModule module = new PsAndroidModuleStub(Lists.newArrayList(myD1, myD2));
-    Map<List<PsDependencyContainer>, List<PsAndroidDependency>> groups = RootNode.groupDependencies(module);
+    Map<List<PsDependencyContainer>, List<PsAndroidDependency>> groups = ResolvedDependenciesTreeRootNode.groupDependencies(module);
     assertThat(groups).hasSize(2);
 
     List<PsDependencyContainer> group = Lists.newArrayList(container("v1", ARTIFACT_MAIN),

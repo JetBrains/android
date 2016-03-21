@@ -15,21 +15,19 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.project.treeview;
 
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractBaseTreeBuilder;
-import com.android.tools.idea.gradle.structure.model.PsProject;
+import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsdNode;
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
+import com.intellij.ui.treeStructure.SimpleNode;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
-import javax.swing.tree.DefaultTreeModel;
-
-public class ProjectDependenciesTreeBuilder extends AbstractBaseTreeBuilder {
-  public ProjectDependenciesTreeBuilder(@NotNull PsProject project,
-                                        @NotNull JTree tree,
-                                        @NotNull DefaultTreeModel treeModel) {
-    super(tree, treeModel, new ProjectDependenciesTreeStructure(project));
+class TargetAndroidModuleNode extends AbstractPsdNode<PsAndroidModule> {
+  public TargetAndroidModuleNode(@NotNull AbstractPsdNode<?> parent, @NotNull PsAndroidModule module) {
+    super(parent, module);
+    setAutoExpandNode(true);
   }
 
   @Override
-  protected void onAllNodesExpanded() {
+  public SimpleNode[] getChildren() {
+    return NO_CHILDREN;
   }
 }

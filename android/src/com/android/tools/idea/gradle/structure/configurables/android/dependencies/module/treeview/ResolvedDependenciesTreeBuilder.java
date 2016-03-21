@@ -17,24 +17,14 @@ package com.android.tools.idea.gradle.structure.configurables.android.dependenci
 
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractBaseTreeBuilder;
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
-import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsdNode;
-import com.android.tools.idea.gradle.structure.model.PsModel;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
-import com.google.common.collect.Lists;
 import com.intellij.ide.util.treeView.AbstractTreeStructure;
-import com.intellij.ide.util.treeView.NodeDescriptor;
-import com.intellij.ide.util.treeView.TreeVisitor;
 import com.intellij.openapi.util.ActionCallback;
-import com.intellij.ui.treeStructure.SimpleNode;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultTreeModel;
-import java.util.List;
-import java.util.Set;
-
-import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 
 public class ResolvedDependenciesTreeBuilder extends AbstractBaseTreeBuilder {
   @NotNull private final DependencySelection myDependencySelectionSource;
@@ -75,78 +65,12 @@ public class ResolvedDependenciesTreeBuilder extends AbstractBaseTreeBuilder {
   }
 
   @Override
-  protected boolean isAutoExpandNode(NodeDescriptor nodeDescriptor) {
-    if (nodeDescriptor instanceof AbstractPsdNode) {
-      return ((AbstractPsdNode)nodeDescriptor).isAutoExpandNode();
-    }
-    return super.isAutoExpandNode(nodeDescriptor);
-  }
-
-  @Override
-  protected boolean isSmartExpand() {
-    return true;
-  }
-
-  @Override
   protected void onAllNodesExpanded() {
     getReady(this).doWhenDone(new Runnable() {
       @Override
       public void run() {
         PsAndroidDependency selection = myDependencySelectionSource.getSelection();
         myDependencySelectionDestination.setSelection(selection);
-      }
-    });
-  }
-
-  public void updateSelection() {
-    Set<Object> selectedElements = getSelectedElements();
-    if (selectedElements.size() == 1) {
-      Object selection = getFirstItem(selectedElements);
-      if (selection instanceof AbstractPsdNode) {
-        AbstractPsdNode<?> node = (AbstractPsdNode)selection;
-        List<?> models = node.getModels();
-        if (models.size() == 1) {
-          Object model = models.get(0);
-          if (model instanceof PsModel) {
-            setSelection((PsModel)model, false);
-          }
-        }
-      }
-    }
-  }
-
-  public void setSelection(@NotNull final PsModel model, final boolean scroll) {
-    getInitialized().doWhenDone(new Runnable() {
-      @Override
-      public void run() {
-        final List<AbstractPsdNode> toSelect = Lists.newArrayList();
-        accept(AbstractPsdNode.class, new TreeVisitor<AbstractPsdNode>() {
-          @Override
-          public boolean visit(@NotNull AbstractPsdNode node) {
-            if (node.matches(model)) {
-              toSelect.add(node);
-            }
-            return false;
-          }
-        });
-        if (isDisposed()) {
-          return;
-        }
-        // Expand the parents of all selected nodes, so they can be visible to the user.
-        Runnable onDone = new Runnable() {
-          @Override
-          public void run() {
-            List<SimpleNode> toExpand = Lists.newArrayList();
-            for (AbstractPsdNode node : toSelect) {
-              SimpleNode parent = node.getParent();
-              if (parent != null) {
-                toExpand.add(parent);
-              }
-            }
-            expand(toExpand.toArray(), null);
-          }
-        };
-        getUi().userSelect(toSelect.toArray(), new UserRunnable(onDone), false, scroll);
       }
     });
   }
