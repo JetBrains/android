@@ -721,8 +721,14 @@ public class RenderSecurityManagerTest {
     }
   }
 
-  // FIXME b.android.com/204441
-  @Ignore("The classLoader for the test and class is same, resulting in the test failing")
+  /**
+   * FIXME b.android.com/204441
+   *
+   * Java 8 broke {@link SecurityManager#checkMemberAccess(Class, int)} by deprecating it and not calling it. As a result, it is possible to
+   * access sCredential via reflection on Java 8 and above. The alternative to {@code checkMemberAccess} is
+   * {@link SecurityManager#checkPermission(Permission)}, which doesn't allow selectively allowing reflection.
+   */
+  @Ignore
   @Test
   public void testMemberAccess() {
     RenderSecurityManager manager = new RenderSecurityManager(null, null);
