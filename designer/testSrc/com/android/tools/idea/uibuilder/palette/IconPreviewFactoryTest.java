@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.palette;
 
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.uibuilder.palette.NlPaletteModel.ResourceType;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -25,7 +26,6 @@ import org.jetbrains.android.AndroidTestCase;
 
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -81,13 +81,13 @@ public class IconPreviewFactoryTest extends AndroidTestCase {
 
   private Palette loadPalette() throws Exception {
     NlPaletteModel model = NlPaletteModel.get(getProject());
-    Reader reader = new InputStreamReader(NlPaletteModel.class.getResourceAsStream(NlPaletteModel.METADATA));
+    Reader reader = new InputStreamReader(NlPaletteModel.class.getResourceAsStream(ResourceType.LAYOUT.getPaletteFileName()));
     try {
-      model.loadPalette(reader);
+      model.loadPalette(reader, ResourceType.LAYOUT);
     }
     finally {
       reader.close();
     }
-    return model.getPalette();
+    return model.getPalette(ResourceType.LAYOUT);
   }
 }

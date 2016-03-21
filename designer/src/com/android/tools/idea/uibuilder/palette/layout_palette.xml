@@ -235,7 +235,7 @@
             <EditText
               android:id="@+id/MultilineText"
               android:inputType="textMultiLine"
-              android:text="Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor"
+              android:text="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor"
               android:layout_width="200dip"
               android:layout_height="100dip">
             </EditText>
