@@ -20,7 +20,9 @@ import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.SdkMavenRepository;
 import com.android.repository.Revision;
+import com.android.repository.io.FileOpUtils;
 import com.android.tools.idea.gradle.eclipse.ImportModule;
+import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.lint.checks.GradleDetector;
 import com.android.tools.lint.client.api.LintClient;
@@ -188,6 +190,18 @@ public class RepositoryUrlManager {
   public String getLibraryCoordinate(String groupId, String artifactId, @Nullable String filterPrefix, boolean includePreviews) {
     SdkMavenRepository repository = SdkMavenRepository.getByGroupId(groupId);
     if (repository == null) {
+      // Could it perhaps be in the offline repo? We distribute for example the constraint layout there for now
+      File path = EmbeddedDistributionPaths.findAndroidStudioLocalMavenRepoPath();
+      if (path != null && path.isDirectory()) {
+        GradleCoordinate max = SdkMavenRepository.getHighestInstalledVersion(groupId, artifactId, path, filterPrefix, includePreviews,
+                                                                             FileOpUtils.create());
+        if (max == null) {
+          return null;
+        }
+
+        return max.getRevision();
+      }
+
       return null;
     }
     AndroidSdkData sdk = tryToChooseAndroidSdk();
@@ -266,6 +280,9 @@ public class RepositoryUrlManager {
     String artifactId = gradleCoordinate.getArtifactId();
     String revision = gradleCoordinate.getRevision();
     RepositoryLibrary library = EXTRAS_REPOSITORY.get(artifactId);
+    if (library == null) {
+      return null;
+    }
 
     File path = new File(String.format(library.basePath, sdkLocation, library.id));
     String revisionPath = String.format(MAVEN_REVISION_PATH, library.id, revision) +
@@ -464,7 +481,10 @@ public class RepositoryUrlManager {
           GradleCoordinate available = GradleCoordinate.parseCoordinateString(libraryCoordinate);
           if (available != null) {
             File archiveFile = getArchiveForCoordinate(available);
-            if (archiveFile != null && archiveFile.exists() && COMPARE_PLUS_LOWER.compare(available, highest) >= 0) {
+            if (((archiveFile != null && archiveFile.exists())
+                 // Not a known library hardcoded in RepositoryUrlManager?
+                 || EXTRAS_REPOSITORY.get(available.getArtifactId()) == null)
+                && COMPARE_PLUS_LOWER.compare(available, highest) >= 0) {
               highest = available;
             }
           }
