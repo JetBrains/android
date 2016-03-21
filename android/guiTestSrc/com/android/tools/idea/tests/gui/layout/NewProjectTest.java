@@ -52,7 +52,7 @@ import static org.junit.Assert.assertTrue;
 @RunWith(GuiTestRunner.class)
 public class NewProjectTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule();
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withScreenshots();
 
   @Test
   public void testCreateNewMobileProject() {
