@@ -82,7 +82,7 @@ public class AndroidModuleInfoTest extends AndroidGradleTestCase {
     loadProject("projects/moduleInfo/merge");
     assertNotNull(myAndroidFacet);
 
-    MergedManifest manifestInfo = ManifestInfo.get(myAndroidFacet);
+    MergedManifest manifestInfo = MergedManifest.get(myAndroidFacet);
     List<Activity> mergedActivities = manifestInfo.getActivities();
     assertEquals(2, mergedActivities.size());
     Set<String> activities = Sets.newHashSet(mergedActivities.get(0).getActivityClass().getRawText(),
@@ -138,7 +138,7 @@ public class AndroidModuleInfoTest extends AndroidGradleTestCase {
     assertNotNull(myAndroidFacet);
     assertEquals(1, AndroidUtils.getAllAndroidDependencies(myAndroidFacet.getModule(), true).size());
 
-    MergedManifest manifestInfo = ManifestInfo.get(myAndroidFacet);
+    MergedManifest manifestInfo = MergedManifest.get(myAndroidFacet);
     List<Activity> mergedActivities = manifestInfo.getActivities();
     assertEquals(3, mergedActivities.size());
     Set<String> activities = Sets.newHashSet(mergedActivities.get(0).getActivityClass().getRawText(),
@@ -176,7 +176,7 @@ public class AndroidModuleInfoTest extends AndroidGradleTestCase {
     UIUtil.dispatchAllInvocationEvents();
 
     // reload data and check it is correct
-    manifestInfo.myLastChecked = 0L;
+    manifestInfo.clear();
     mergedActivities = manifestInfo.getActivities();
     assertEquals(4, mergedActivities.size());
     activities = Sets.newHashSet(mergedActivities.get(0).getActivityClass().getRawText(),
@@ -203,7 +203,7 @@ public class AndroidModuleInfoTest extends AndroidGradleTestCase {
     UIUtil.dispatchAllInvocationEvents();
 
     // reload data and check it is correct
-    manifestInfo.myLastChecked = 0L;
+    manifestInfo.clear();
     mergedActivities = manifestInfo.getActivities();
     assertEquals(5, mergedActivities.size());
     activities = Sets.newHashSet(mergedActivities.get(0).getActivityClass().getRawText(),
@@ -220,7 +220,7 @@ public class AndroidModuleInfoTest extends AndroidGradleTestCase {
 
   public void testManifestError() throws Exception {
     loadProject("projects/moduleInfo/manifestError");
-    MergedManifest manifestInfo = ManifestInfo.get(myAndroidFacet);
+    MergedManifest manifestInfo = MergedManifest.get(myAndroidFacet);
     assertEquals(0, manifestInfo.getActivities().size());
   }
 }
