@@ -35,21 +35,18 @@ public class ScreenshotsDuringTest extends TestWatcher implements ActionListener
   private final ScreenshotTaker myScreenshotTaker = new ScreenshotTaker();
   private final Timer myTimer = new Timer(1000, this);
   private File myFolder;
-  private boolean myEnabled;
 
   @Override
   protected void starting(Description description) {
-    if (myEnabled) {
-      String folderName = description.getTestClass().getSimpleName() + "-" + description.getMethodName();
-      try {
-        myFolder = new File(IdeTestApplication.getFailedTestScreenshotDirPath(), folderName);
-        ensureExists(myFolder);
-      }
-      catch (IOException e) {
-        System.out.println("Could not create folder " + folderName);
-      }
-      myTimer.start();
+    String folderName = description.getTestClass().getSimpleName() + "-" + description.getMethodName();
+    try {
+      myFolder = new File(IdeTestApplication.getFailedTestScreenshotDirPath(), folderName);
+      ensureExists(myFolder);
     }
+    catch (IOException e) {
+      System.out.println("Could not create folder " + folderName);
+    }
+    myTimer.start();
   }
 
   @Override
@@ -75,9 +72,5 @@ public class ScreenshotsDuringTest extends TestWatcher implements ActionListener
       }
     };
     worker.execute();
-  }
-
-  public void setEnabled(boolean enabled) {
-    myEnabled = enabled;
   }
 }
