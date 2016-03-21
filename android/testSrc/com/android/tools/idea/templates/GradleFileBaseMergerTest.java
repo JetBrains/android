@@ -78,6 +78,10 @@ public abstract class GradleFileBaseMergerTest extends AndroidTestCase {
     checkFileMerge("templates/BaseExclude.gradle", "templates/CloudDependencies.gradle", "templates/MergedCloudDependenciesExclude.gradle");
   }
 
+  public void testDifferentConfigurationDependencies() throws Exception {
+    checkFileMerge("templates/Base.gradle", "templates/TestDependencies.gradle", "templates/MergedTestDependencies.gradle");
+  }
+
   public void testRemapFlavorAssetDir() throws Exception {
     checkFileMerge("templates/Base.gradle",
                    "templates/RemapFlavorAssetDir.gradle",
@@ -88,6 +92,12 @@ public abstract class GradleFileBaseMergerTest extends AndroidTestCase {
     checkFileMerge("templates/Base.gradle",
                    "templates/RenameManifest.gradle",
                    "templates/MergedRenameManifest.gradle");
+  }
+
+  public void testBuildscriptMerge() throws Exception {
+    checkFileMerge("templates/BaseToplevel.gradle",
+                   "templates/ToplevelInject.gradle",
+                   "templates/MergedToplevelInject.gradle");
   }
 
   private void checkFileMerge(@Nullable String destPath, @Nullable String srcPath, @Nullable String goldenPath) throws Exception {

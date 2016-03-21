@@ -16,10 +16,7 @@
 package com.android.tools.idea.templates;
 
 import com.android.ide.common.repository.GradleCoordinate;
-import com.google.common.collect.LinkedListMultimap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Sets;
+import com.google.common.collect.*;
 import com.intellij.lexer.LexerPosition;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -32,6 +29,7 @@ import org.jetbrains.plugins.groovy.lang.lexer.GroovyLexer;
 import org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -415,25 +413,29 @@ public class GradleFileSimpleMerger {
     }
 
     private void mergeDependencies(@NotNull MergeContext context, @NotNull AstNode other) {
-      Multimap<String, GradleCoordinate> dependencies = LinkedListMultimap.create();
+      Map<String, Multimap<String, GradleCoordinate>> dependencies = Maps.newHashMap();
       List<Ast> unparseableDependencies = Lists.newArrayListWithCapacity(10);
       pullDependenciesIntoMap(dependencies, null);
       other.pullDependenciesIntoMap(dependencies, unparseableDependencies);
       RepositoryUrlManager urlManager = RepositoryUrlManager.get();
-      List<GradleCoordinate> resolved = urlManager.resolveDynamicDependencies(dependencies, context.getFilter());
 
-      // Add the resolved dependencies:
-      Ast prev = myParam != null ? myParam.findLast() : null;
-      for (GradleCoordinate coordinate : resolved) {
-        AstNode compile = new AstNode(COMPILE);
-        compile.myParam = new ValueAst("'" + coordinate + "'");
-        if (prev == null) {
-          myParam = compile;
+      Ast prev = null;
+      for (Map.Entry<String, Multimap<String, GradleCoordinate>> entry : dependencies.entrySet()) {
+        List<GradleCoordinate> resolved = urlManager.resolveDynamicDependencies(entry.getValue(), context.getFilter());
+
+        // Add the resolved dependencies:
+        prev = myParam != null ? myParam.findLast() : null;
+        for (GradleCoordinate coordinate : resolved) {
+          AstNode compile = new AstNode(entry.getKey());
+          compile.myParam = new ValueAst("'" + coordinate + "'");
+          if (prev == null) {
+            myParam = compile;
+          }
+          else {
+            prev.myNext = compile;
+          }
+          prev = compile;
         }
-        else {
-          prev.myNext = compile;
-        }
-        prev = compile;
       }
 
       // Add the dependencies we could not parse (steal the AST nodes from the other parse tree):
@@ -449,14 +451,15 @@ public class GradleFileSimpleMerger {
       }
     }
 
-    private void pullDependenciesIntoMap(@NotNull Multimap<String, GradleCoordinate> dependencies,
+    private void pullDependenciesIntoMap(@NotNull Map<String, Multimap<String, GradleCoordinate>> dependencies,
                                          @Nullable List<Ast> unparseableDependencies) {
       Ast node = myParam;
       Ast prev = null;
       while (node != null) {
         assert myParam != null;
         boolean parsed = false;
-        if (node instanceof AstNode && COMPILE.equals(node.myId)) {
+        if (node instanceof AstNode) {
+          final String configuration = node.myId;
           AstNode compile = (AstNode) node;
           if (compile.myParam instanceof ValueAst) {
             ValueAst value = (ValueAst)compile.myParam;
@@ -464,8 +467,14 @@ public class GradleFileSimpleMerger {
             GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString(coordinateText);
             if (coordinate != null) {
               parsed = true;
-              if (!dependencies.get(coordinate.getId()).contains(coordinate)) {
-                dependencies.put(coordinate.getId(), coordinate);
+              Multimap<String, GradleCoordinate> map = dependencies.get(configuration);
+              if (map == null) {
+                map = LinkedHashMultimap.create();
+                dependencies.put(configuration, map);
+              }
+
+              if (!map.get(coordinate.getId()).contains(coordinate)) {
+                map.put(coordinate.getId(), coordinate);
 
                 // Delete the current node:
                 Ast toDelete = node;
