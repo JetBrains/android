@@ -125,7 +125,7 @@ public class DumpHprofAction extends AbstractClientAction {
                   try {
                     final CaptureService service = CaptureService.getInstance(myProject);
                     String name = service.getSuggestedName(client);
-                    CaptureHandle handle = service.startCaptureFile(HprofCaptureType.class, name);
+                    CaptureHandle handle = service.startCaptureFile(HprofCaptureType.class, name, true);
                     service.appendDataCopy(handle, data.data);
                     service.finalizeCaptureFileAsynchronous(handle, new FutureCallback<Capture>() {
                       @Override
