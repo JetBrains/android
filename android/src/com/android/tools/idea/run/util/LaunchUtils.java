@@ -19,7 +19,6 @@ import com.android.ddmlib.IDevice;
 import com.android.ddmlib.NullOutputReceiver;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.model.ManifestInfo;
 import com.android.tools.idea.model.MergedManifest;
 import com.intellij.execution.ExecutionManager;
 import com.intellij.execution.Executor;
@@ -79,7 +78,12 @@ public class LaunchUtils {
    * interested in matching the watch face template application.
    */
   public static boolean isWatchFaceApp(@NotNull AndroidFacet facet) {
-    MergedManifest info = ManifestInfo.get(facet);
+    if (AndroidFacet.getInstance(facet.getModule()) == null) {
+      Logger.getInstance(LaunchUtils.class).warn("calling isWatchFaceApp when facet is not ready yet");
+      return false;
+    }
+
+    MergedManifest info = MergedManifest.get(facet);
     if (!info.getActivities().isEmpty()) {
       return false;
     }
@@ -102,7 +106,7 @@ public class LaunchUtils {
 
   /** Returns whether the watch hardware feature is required for the given facet. */
   public static boolean isWatchFeatureRequired(@NotNull AndroidFacet facet) {
-    List<UsesFeature> usedFeatures = ManifestInfo.get(facet).getUsedFeatures();
+    List<UsesFeature> usedFeatures = MergedManifest.get(facet).getUsedFeatures();
 
     for (UsesFeature feature : usedFeatures) {
       AndroidAttributeValue<String> name = feature.getName();

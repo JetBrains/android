@@ -51,18 +51,18 @@ import static com.android.SdkConstants.VALUE_TRUE;
 import static com.android.xml.AndroidManifest.*;
 
 /**
- * To get a MergedManifest use {@link ManifestInfo#get(AndroidFacet)} or {@link ManifestInfo#get(Module)}
+ * To get a MergedManifest use {@link MergedManifest#get(AndroidFacet)} or {@link MergedManifest#get(Module)}
  */
 public class MergedManifest {
 
-  private final AndroidFacet myFacet;
+  private final Module myModule;
   private String myPackage;
   private String myApplicationId;
   private Integer myVersionCode;
   private String myManifestTheme;
   private Map<String, ActivityAttributes> myActivityAttributesMap;
   private ManifestInfo.ManifestFile myManifestFile;
-  long myLastChecked;
+  private long myLastChecked;
   private AndroidVersion myMinSdk;
   private AndroidVersion myTargetSdk;
   private String myApplicationIcon;
@@ -72,13 +72,35 @@ public class MergedManifest {
   private @Nullable("user error, no manifest file") Manifest myManifest;
 
   /**
-   * Constructs a new PrimaryManifestInfo
+   * Constructs a new MergedManifest
    * @param module the module containing the manifest
-   * @param resolvePlaceholders even though this is not a merged manifest, when set to true, the manifest will compute the placeholders and
-   *                            replace them with their values. This only applies if the module is a gradle project.
    */
-  MergedManifest(@NotNull AndroidFacet facet) {
-    myFacet = facet;
+  MergedManifest(@NotNull Module module) {
+    myModule = module;
+  }
+
+  /**
+   * Returns the {@link MergedManifest} for the given {@link Module}.
+   *
+   * @param module the android module
+   * @return a {@link MergedManifest} for the given module, never null
+   */
+  @NotNull
+  public static MergedManifest get(@NotNull Module module) {
+    MergedManifest manifest = module.getComponent(MergedManifest.class);
+    assert manifest != null;
+    return manifest;
+  }
+
+  /**
+   * Returns the {@link MergedManifest} for the given {@link AndroidFacet}.
+   *
+   * @param facet the Android facet associated with a module.
+   * @return a {@link MergedManifest} for the given module
+   */
+  @NotNull
+  public static MergedManifest get(@NotNull AndroidFacet facet) {
+    return get(facet.getModule());
   }
 
   /**
@@ -183,7 +205,9 @@ public class MergedManifest {
     // From manifest theme documentation:
     // "If that attribute is also not set, the default system theme is used."
     int targetSdk;
-    AndroidModuleInfo info = myFacet.getAndroidModuleInfo();
+    AndroidFacet facet = AndroidFacet.getInstance(myModule);
+    assert facet != null;
+    AndroidModuleInfo info = facet.getAndroidModuleInfo();
     targetSdk = info.getTargetSdkVersion().getApiLevel();
 
     int renderingTargetSdk = targetSdk;
@@ -291,8 +315,11 @@ public class MergedManifest {
   }
 
   private void syncWithReadPermission() {
+    AndroidFacet facet = AndroidFacet.getInstance(myModule);
+    assert facet != null;
+
     if (myManifestFile == null) {
-      myManifestFile = ManifestInfo.ManifestFile.create(myFacet);
+      myManifestFile = ManifestInfo.ManifestFile.create(facet);
     }
 
     // Check to see if our data is up to date
@@ -327,7 +354,7 @@ public class MergedManifest {
       myApplicationId = ManifestInfo.getAttributeValue(root, ATTRIBUTE_PACKAGE, null);
 
       // The package comes from the main manifest, NOT from the merged manifest.
-      Manifest manifest = myFacet.getManifest();
+      Manifest manifest = facet.getManifest();
       myPackage = manifest == null ? myApplicationId : manifest.getPackage().getValue();
 
       String versionCode = ManifestInfo.getAttributeValue(root, SdkConstants.ATTR_VERSION_CODE);
@@ -363,7 +390,7 @@ public class MergedManifest {
         myTargetSdk = getApiVersion(usesSdk, ATTRIBUTE_TARGET_SDK_VERSION, myMinSdk);
       }
 
-      myManifest = AndroidUtils.loadDomElementWithReadPermission(myFacet.getModule().getProject(), xmlFile, Manifest.class);
+      myManifest = AndroidUtils.loadDomElementWithReadPermission(facet.getModule().getProject(), xmlFile, Manifest.class);
     }
     catch (ProcessCanceledException e) {
       myManifestFile = null; // clear the file, to make sure we reload everything on next call to this method
@@ -374,7 +401,7 @@ public class MergedManifest {
     }
   }
 
-  private AndroidVersion getApiVersion(XmlTag usesSdk, String attribute, AndroidVersion defaultApiLevel) {
+  private static AndroidVersion getApiVersion(XmlTag usesSdk, String attribute, AndroidVersion defaultApiLevel) {
     String valueString = ManifestInfo.getAttributeValue(usesSdk, attribute);
     if (valueString != null) {
       // TODO: Pass in platforms if we have them

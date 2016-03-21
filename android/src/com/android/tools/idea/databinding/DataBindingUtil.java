@@ -25,7 +25,7 @@ import com.android.tools.idea.lang.databinding.psi.DbTokenTypes;
 import com.android.tools.idea.lang.databinding.psi.PsiDbConstantValue;
 import com.android.tools.idea.lang.databinding.psi.PsiDbDefaults;
 import com.android.tools.idea.model.AndroidModel;
-import com.android.tools.idea.model.ManifestInfo;
+import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.res.DataBindingInfo;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.PsiDataBindingResourceItem;
@@ -273,7 +273,7 @@ public class DataBindingUtil {
    * @return The package name that can be used to generate R and BR classes.
    */
   public static String getGeneratedPackageName(AndroidFacet facet) {
-    return ManifestInfo.get(facet).getPackage();
+    return MergedManifest.get(facet).getPackage();
   }
 
   /**

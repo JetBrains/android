@@ -16,17 +16,12 @@
 package com.android.tools.idea.editors.strings;
 
 import com.android.ide.common.res2.ResourceItem;
-import com.android.ide.common.xml.AndroidManifestParser;
-import com.android.ide.common.xml.ManifestData;
-import com.android.io.FileWrapper;
 import com.android.tools.idea.configurations.LocaleMenuAction;
 import com.android.tools.idea.editors.strings.table.*;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.model.ManifestInfo;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.rendering.Locale;
-import com.android.tools.idea.res.LocalResourceRepository;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.icons.AllIcons;
@@ -41,7 +36,6 @@ import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.*;
 import com.intellij.ui.components.JBList;
@@ -49,7 +43,6 @@ import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.table.JBTable;
 import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -60,7 +53,6 @@ import javax.swing.table.TableRowSorter;
 import javax.swing.text.JTextComponent;
 import java.awt.*;
 import java.awt.event.*;
-import java.io.File;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -385,7 +377,7 @@ public class StringResourceViewPanel implements HyperlinkListener {
     // @formatter:on
 
     // Package name
-    MergedManifest manifest = ManifestInfo.get(myFacet);
+    MergedManifest manifest = MergedManifest.get(myFacet);
     String pkg = manifest.getPackage();
     if (pkg != null) {
       sb.append("&pkgName=");
