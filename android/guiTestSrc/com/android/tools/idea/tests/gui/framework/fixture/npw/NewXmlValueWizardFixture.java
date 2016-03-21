@@ -28,7 +28,7 @@ public class NewXmlValueWizardFixture extends NewAndroidComponentWizardFixture {
     JDialog dialog = robot.finder().find(new GenericTypeMatcher<JDialog>(JDialog.class) {
       @Override
       protected boolean isMatching(@NotNull JDialog dialog) {
-        return "New Android Activity".equals(dialog.getTitle()) && dialog.isShowing();
+        return "New Android Component".equals(dialog.getTitle()) && dialog.isShowing();
       }
     });
     return new NewXmlValueWizardFixture(robot, dialog);
