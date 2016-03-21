@@ -31,7 +31,7 @@ public enum AvdScaleFactor {
   ONE_TO_ONE(1, 1, "1"),
   ONE_TO_TWO(1, 2, "2"),
   ONE_TO_THREE(1, 3, "3"),
-  AUTO("Auto", "auto");
+  AUTO("Automatic", "auto");
 
   @NotNull private final String myHumanReadableName;
   @NotNull private final String myValue;
