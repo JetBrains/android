@@ -163,8 +163,14 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
 
   @NotNull
   public Dependencies getSelectedMainCompileDependencies() {
-    AndroidArtifact mainArtifact = getSelectedVariant().getMainArtifact();
+    AndroidArtifact mainArtifact = getMainArtifact();
     return getDependencies(mainArtifact, getModelVersion());
+  }
+
+  @NotNull
+  public Dependencies getSelectedAndroidTestCompileDependencies() {
+    AndroidArtifact androidTestArtifact = getAndroidTestArtifactInSelectedVariant();
+    return getDependencies(androidTestArtifact, getModelVersion());
   }
 
   public boolean supportsDependencyGraph() {
