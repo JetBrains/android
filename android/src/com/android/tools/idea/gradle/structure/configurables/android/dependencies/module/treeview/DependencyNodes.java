@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.structure.configurables.android.dependenci
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependencyModel;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.PsAndroidDependencyComparator;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractDependencyNode;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AndroidArtifactNode;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsdNode;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidArtifact;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
@@ -39,7 +40,7 @@ final class DependencyNodes {
   }
 
   @NotNull
-  static List<AbstractPsdNode<?>> createNodesFor(@NotNull ArtifactNode parent,
+  static List<AbstractPsdNode<?>> createNodesFor(@NotNull AndroidArtifactNode parent,
                                                  @NotNull Collection<PsAndroidDependency> dependencies) {
     List<AbstractPsdNode<?>> children = Lists.newArrayList();
 

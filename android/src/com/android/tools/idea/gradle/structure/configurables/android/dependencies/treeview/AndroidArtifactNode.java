@@ -13,25 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.treeview;
+package com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview;
 
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsdNode;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidArtifact;
+import com.android.tools.idea.gradle.structure.model.android.PsVariant;
 import com.google.common.collect.Lists;
 import com.intellij.ui.treeStructure.SimpleNode;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-class ArtifactNode extends AbstractPsdNode<PsAndroidArtifact> {
+public class AndroidArtifactNode extends AbstractPsdNode<PsAndroidArtifact> {
   @NotNull private List<AbstractPsdNode<?>> myChildren = Lists.newArrayList();
 
-  ArtifactNode(@NotNull AbstractPsdNode<?> parent, @NotNull PsAndroidArtifact artifact) {
+  public AndroidArtifactNode(@NotNull AbstractPsdNode<?> parent, @NotNull PsAndroidArtifact artifact) {
     super(parent, artifact);
     setAutoExpandNode(true);
   }
 
-  ArtifactNode(@NotNull AbstractPsdNode<?> parent, @NotNull List<PsAndroidArtifact> artifacts) {
+  public AndroidArtifactNode(@NotNull AbstractPsdNode<?> parent, @NotNull List<PsAndroidArtifact> artifacts) {
     super(parent, artifacts);
     setAutoExpandNode(true);
   }
@@ -39,7 +40,8 @@ class ArtifactNode extends AbstractPsdNode<PsAndroidArtifact> {
   @Override
   @NotNull
   protected String nameOf(PsAndroidArtifact artifact) {
-    return artifact.getParent().getName() + artifact.getName();
+    PsVariant variant = artifact.getParent();
+    return variant.getName() + artifact.getName();
   }
 
   @Override
