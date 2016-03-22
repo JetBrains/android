@@ -154,6 +154,11 @@ public abstract class AbstractDeclaredDependenciesPanel extends JPanel implement
     };
 
     actions.add(addDependencyAction);
+    List<AnAction> extraToolbarActions = getExtraToolbarActions();
+    if (!extraToolbarActions.isEmpty()) {
+      actions.addSeparator();
+      actions.addAll(extraToolbarActions);
+    }
 
     ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar("TOP", actions, true);
     JComponent toolbarComponent = toolbar.getComponent();
@@ -161,6 +166,11 @@ public abstract class AbstractDeclaredDependenciesPanel extends JPanel implement
     actionsPanel.add(toolbarComponent, BorderLayout.CENTER);
 
     return actionsPanel;
+  }
+
+  @NotNull
+  protected List<AnAction> getExtraToolbarActions() {
+    return Lists.newArrayList();
   }
 
   private void initPopupActions() {
