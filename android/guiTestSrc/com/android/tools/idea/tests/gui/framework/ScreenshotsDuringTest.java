@@ -16,6 +16,8 @@
 package com.android.tools.idea.tests.gui.framework;
 
 import com.intellij.openapi.util.io.FileUtilRt;
+import org.fest.swing.edt.GuiActionRunner;
+import org.fest.swing.edt.GuiTask;
 import org.fest.swing.image.ScreenshotTaker;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
@@ -63,14 +65,12 @@ public class ScreenshotsDuringTest extends TestWatcher implements ActionListener
 
   @Override
   public void actionPerformed(ActionEvent e) {
-    SwingWorker worker = new SwingWorker<Void, Object>() {
+    GuiActionRunner.execute(new GuiTask() {
       @Override
-      protected Void doInBackground() throws Exception {
+      protected void executeInEDT() throws Throwable {
         String filePath = new File(myFolder, System.currentTimeMillis() + ".png").getPath();
         myScreenshotTaker.saveDesktopAsPng(filePath);
-        return null;
       }
-    };
-    worker.execute();
+    });
   }
 }
