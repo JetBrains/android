@@ -495,16 +495,13 @@ public final class InstantRunManager implements ProjectComponent {
           String name = file.getParentFile().getName() + "-" + file.getName();
           files.add(FileTransfer.createSliceDex(file, name));
           break;
-        case RESTART_DEX:
-          files.add(FileTransfer.createRestartDex(file));
-          break;
         case RELOAD_DEX:
           if (appInForeground) {
             files.add(FileTransfer.createHotswapPatch(file));
           } else {
             // Gradle created a reload dex, but the app is no longer running.
             // If it created a cold swap artifact, we can use it; otherwise we're out of luck.
-            if (!buildInfo.hasOneOf(DEX, RESTART_DEX, SPLIT)) {
+            if (!buildInfo.hasOneOf(DEX, SPLIT)) {
               throw new InstantRunPushFailedException("Can't apply hot swap patch: app is no longer running");
             }
           }
