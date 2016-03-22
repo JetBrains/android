@@ -33,8 +33,9 @@ import static com.intellij.openapi.util.io.FileUtil.ensureExists;
  */
 public class ScreenshotsDuringTest extends TestWatcher implements ActionListener {
   private final ScreenshotTaker myScreenshotTaker = new ScreenshotTaker();
-  private final Timer myTimer = new Timer(1000, this);
+  private final Timer myTimer = new Timer(100, this);
   private File myFolder;
+  private boolean myCurrentlyTakingScreenshot;
 
   @Override
   protected void starting(Description description) {
@@ -63,6 +64,19 @@ public class ScreenshotsDuringTest extends TestWatcher implements ActionListener
 
   @Override
   public void actionPerformed(ActionEvent e) {
-    myScreenshotTaker.saveDesktopAsPng(new File(myFolder, System.currentTimeMillis() + ".png").getPath());
+    if (myCurrentlyTakingScreenshot) {
+      // Do not start taking a screenshot if one is in progress, that can cause a deadlock
+      return;
+    }
+    SwingWorker worker = new SwingWorker<Void, Object>() {
+      @Override
+      protected Void doInBackground() throws Exception {
+        myCurrentlyTakingScreenshot = true;
+        myScreenshotTaker.saveDesktopAsPng(new File(myFolder, System.currentTimeMillis() + ".png").getPath());
+        myCurrentlyTakingScreenshot = false;
+        return null;
+      }
+    };
+    worker.execute();
   }
 }
