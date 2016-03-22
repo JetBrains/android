@@ -1887,7 +1887,7 @@ public class AndroidLintInspectionToolProvider {
 
   public static class AndroidLintRecyclerViewInspection extends AndroidLintInspectionBase {
     public AndroidLintRecyclerViewInspection() {
-      super(AndroidBundle.message("android.lint.inspections.recycler.view"), RecyclerViewDetector.ISSUE);
+      super(AndroidBundle.message("android.lint.inspections.recycler.view"), RecyclerViewDetector.FIXED_POSITION);
     }
   }
 
@@ -2216,6 +2216,12 @@ public class AndroidLintInspectionToolProvider {
     @Override
     public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
       return new AndroidLintQuickFix[] { new SetAttributeQuickFix("Set banner attribute", "banner", null) };
+    }
+  }
+
+  public static class AndroidLintPendingBindingsInspection extends AndroidLintInspectionBase {
+    public AndroidLintPendingBindingsInspection() {
+      super(AndroidBundle.message("android.lint.inspections.pending.bindings"), RecyclerViewDetector.DATA_BINDER);
     }
   }
 
