@@ -67,7 +67,7 @@ public class NewComponentTest {
         return !finishFixture.isEnabled();
       }
     });
-    errorLabel.requireText("Values File Name is not set to a valid resource name. ' ' is not a valid resource name character");
+    errorLabel.requireText("Values File Name is not set to a valid resource name: ' ' is not a valid resource name character");
 
     // UI tests should close all dialogs before finishing
     wizardFixture.findWizardButton("Cancel").click();
