@@ -372,6 +372,7 @@
     <!--<fileEditorProvider implementation="com.android.tools.idea.editors.navigation.NavigationEditorProvider" />-->
     <fileEditorProvider implementation="com.android.tools.idea.editors.strings.StringResourceEditorProvider" />
     <fileEditorProvider implementation="com.android.tools.idea.editors.theme.ThemeEditorProvider"/>
+    <fileEditorProvider implementation="com.android.tools.idea.editors.manifest.ManifestEditorProvider"/>
 
     <runConfigurationProducer implementation="com.android.tools.idea.run.AndroidConfigurationProducer"/>
     <runConfigurationProducer implementation="com.android.tools.idea.run.testing.AndroidTestConfigurationProducer" order="first"/>
