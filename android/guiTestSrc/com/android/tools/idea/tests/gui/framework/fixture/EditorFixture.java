@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.resources.ResourceFolderType;
+import com.android.tools.idea.editors.manifest.ManifestPanel;
 import com.android.tools.idea.editors.strings.StringResourceEditor;
 import com.android.tools.idea.editors.strings.StringsVirtualFile;
 import com.android.tools.idea.editors.theme.ThemeEditorComponent;
@@ -1087,6 +1088,19 @@ public class EditorFixture {
       });
 
     return new ThemeEditorFixture(robot, themeEditorComponent);
+  }
+
+  @NotNull
+  public MergedManifestFixture getMergedManifestEditor() {
+    final ManifestPanel manifestComponent =
+      GuiTests.waitUntilFound(robot, new GenericTypeMatcher<ManifestPanel>(ManifestPanel.class) {
+        @Override
+        protected boolean isMatching(@NotNull ManifestPanel component) {
+          return true;
+        }
+      });
+
+    return new MergedManifestFixture(robot, manifestComponent);
   }
 
   /**

@@ -497,6 +497,12 @@ public class MergedManifest {
     return myManifestFile == null ? null : myManifestFile.getActions();
   }
 
+  @Nullable
+  public XmlTag getXmlTag() {
+    sync();
+    return myManifest == null ? null : myManifest.getXmlTag();
+  }
+
   public static class ActivityAttributes {
     @Nullable private final String myIcon;
     @Nullable private final String myLabel;
