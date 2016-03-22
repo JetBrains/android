@@ -47,21 +47,33 @@ public class ReRunAction extends DumbAwareAction implements AnAction.Transparent
     Presentation presentation = e.getPresentation();
     boolean cleanBuild = isCleanBuild(e);
 
-    RunContentDescriptor selectedContent = getSelectedRunContentDescriptor(e.getDataContext());
-    if (selectedContent == null) {
+    final Project project = e.getProject();
+    if (project == null) {
       disable(cleanBuild, presentation);
       return;
     }
 
-    ProcessHandler processHandler = selectedContent.getProcessHandler();
-    if (processHandler == null || processHandler.isProcessTerminated() || processHandler.isProcessTerminating()) {
+    RunnerAndConfigurationSettings settings = RunManagerEx.getInstanceEx(project).getSelectedConfiguration();
+    if (settings == null) {
+      disable(cleanBuild, presentation);
+      return;
+    }
+
+    AndroidSessionInfo session = getAndroidSessionInfo(project, settings);
+    if (session == null) {
+      disable(cleanBuild, presentation);
+      return;
+    }
+
+    ProcessHandler processHandler = session.getProcessHandler();
+    if (processHandler.isProcessTerminated() || processHandler.isProcessTerminating()) {
       disable(cleanBuild, presentation);
       return;
     }
 
     presentation.setEnabled(true);
     String prefix = cleanBuild ? "Clean and " : "";
-    presentation.setText(prefix + "Rerun '" + selectedContent.getDisplayName() + "'");
+    presentation.setText(prefix + "Rerun '" + settings.getName() + "'");
   }
 
   private static void disable(boolean cleanBuild, @NotNull Presentation presentation) {
@@ -73,7 +85,7 @@ public class ReRunAction extends DumbAwareAction implements AnAction.Transparent
 
   @Override
   public void actionPerformed(AnActionEvent e) {
-    final Project project = CommonDataKeys.PROJECT.getData(e.getDataContext());
+    final Project project = e.getProject();
     if (project == null) {
       return;
     }
@@ -84,15 +96,9 @@ public class ReRunAction extends DumbAwareAction implements AnAction.Transparent
       return;
     }
 
-    RunConfiguration configuration = settings.getConfiguration();
-    if (configuration == null) {
-      InstantRunManager.LOG.warn("Rerun could not locate current run config");
-      return;
-    }
-
-    AndroidSessionInfo session = AndroidSessionInfo.findOldSession(project, null, configuration.getUniqueID());
+    AndroidSessionInfo session = getAndroidSessionInfo(project, settings);
     if (session == null) {
-      InstantRunManager.LOG.warn("Rerun could not locate existing session of this configuration");
+      InstantRunManager.LOG.warn("Rerun could not locate an existing session for selected run config.");
       return;
     }
 
@@ -116,6 +122,21 @@ public class ReRunAction extends DumbAwareAction implements AnAction.Transparent
 
     InstantRunManager.LOG.info("Rerun: clean? " + cleanBuild);
     ProgramRunnerUtil.executeConfiguration(env, false, true);
+  }
+
+  @Nullable
+  private static AndroidSessionInfo getAndroidSessionInfo(Project project, RunnerAndConfigurationSettings settings) {
+    RunConfiguration configuration = settings.getConfiguration();
+    if (configuration == null) {
+      return null;
+    }
+
+    AndroidSessionInfo session = AndroidSessionInfo.findOldSession(project, null, configuration.getUniqueID());
+    if (session == null) {
+      return null;
+    }
+
+    return session;
   }
 
   @Nullable
