@@ -627,7 +627,8 @@ public final class GuiTests {
                                                        @Nullable final Container root,
                                                        @NotNull final GenericTypeMatcher<T> matcher) {
     final AtomicReference<T> reference = new AtomicReference<T>();
-    Wait.minutes(2).expecting("component to be found using " + matcher.toString()).until(new Wait.Objective() {
+    String typeName = matcher.supportedType().getSimpleName();
+    Wait.minutes(2).expecting("matching " + typeName).until(new Wait.Objective() {
       @Override
       public boolean isMet() {
         ComponentFinder finder = robot.finder();
@@ -654,7 +655,8 @@ public final class GuiTests {
   public static <T extends Component> void waitUntilGone(@NotNull final Robot robot,
                                                          @NotNull final Container root,
                                                          @NotNull final GenericTypeMatcher<T> matcher) {
-    Wait.minutes(2).expecting("component to be found using " + matcher.toString()).until(new Wait.Objective() {
+    String typeName = matcher.supportedType().getSimpleName();
+    Wait.minutes(2).expecting("absence of matching " + typeName).until(new Wait.Objective() {
       @Override
       public boolean isMet() {
         Collection<T> allFound = robot.finder().findAll(root, matcher);
