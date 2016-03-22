@@ -538,8 +538,8 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     return this;
   }
 
-  private ActionButton waitForGradleSynActionButton() {
-    return waitUntilFound(robot(), target(), new GenericTypeMatcher<ActionButton>(ActionButton.class) {
+  private ActionButtonFixture waitForGradleSynActionButton() {
+    ActionButton gradleSyncButton = waitUntilFound(robot(), target(), new GenericTypeMatcher<ActionButton>(ActionButton.class) {
       @Override
       protected boolean isMatching(@NotNull ActionButton button) {
         if (button.isVisible()) {
@@ -553,6 +553,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
         return false;
       }
     });
+    return new ActionButtonFixture(robot(), gradleSyncButton);
   }
 
   @NotNull
