@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
+import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.tools.idea.uibuilder.api.DragHandler;
 import com.android.tools.idea.uibuilder.api.DragType;
@@ -41,12 +42,14 @@ public class ConstraintDragHandler extends DragHandler {
   @Override
   public void commit(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers) {
     if (this.components.size() == 1) {
-      // TODO: this should take in account the layout offset
       NlComponent component = this.components.get(0);
-      int ax = ConstraintModel.getModel().pxToDp(x);
-      int ay = ConstraintModel.getModel().pxToDp(y);
-      component.x = ax;
-      component.y = ay;
+
+      int ax = ConstraintModel.getModel().pxToDp(x - this.layout.x - component.w / 2);
+      int ay = ConstraintModel.getModel().pxToDp(y - this.layout.y - component.h / 2);
+      component.x = x;
+      component.y = y;
+      NlComponent root = component.getRoot();
+      root.ensureNamespace(SdkConstants.SHERPA_PREFIX, SdkConstants.AUTO_URI);
       ConstraintUtilities.setEditorPosition(component, ax, ay);
     }
   }
