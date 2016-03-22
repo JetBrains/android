@@ -21,6 +21,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.testutils.SdkTestCase;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
+import com.android.utils.SdkUtils;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.util.io.FileUtil;
@@ -719,6 +720,7 @@ public class RenderErrorPanelTest extends AndroidTestCase {
     throwable.setStackTrace(frames.toArray(new StackTraceElement[frames.size()]));
 
     // Dump stack back to string to make sure we have the same exception
+    desc = desc.replace("\n", SdkUtils.getLineSeparator());
     assertEquals(desc, AndroidCommonUtils.getStackTrace(throwable));
 
     return throwable;

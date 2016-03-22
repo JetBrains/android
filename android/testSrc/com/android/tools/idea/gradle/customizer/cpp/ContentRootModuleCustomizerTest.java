@@ -28,6 +28,7 @@ import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.SourceFolder;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.IdeaTestCase;
 import com.intellij.util.ExceptionUtil;
@@ -111,7 +112,7 @@ public class ContentRootModuleCustomizerTest extends IdeaTestCase {
 
     for (SourceFolder folder : sourceFolders) {
       String path = urlToPath(folder.getUrl());
-      sourcePaths.add(path);
+      sourcePaths.add(FileUtil.toSystemIndependentName(path));
     }
 
     List<String> allExpectedPaths = Lists.newArrayList();
@@ -133,7 +134,7 @@ public class ContentRootModuleCustomizerTest extends IdeaTestCase {
     }
 
     for (File file : sourceFolderPaths) {
-      allExpectedPaths.add(file.getPath());
+      allExpectedPaths.add(FileUtil.toSystemIndependentName(file.getPath()));
     }
 
     assertEquals(allExpectedPaths, sourcePaths);
