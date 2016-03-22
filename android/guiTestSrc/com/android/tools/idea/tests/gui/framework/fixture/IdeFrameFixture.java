@@ -39,6 +39,9 @@ import com.intellij.codeInspection.ui.InspectionTree;
 import com.intellij.ide.RecentProjectsManager;
 import com.intellij.ide.actions.ShowSettingsUtilImpl;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
@@ -529,19 +532,27 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
       }
     });
 
-    waitForBackgroundTasks(robot());
-    findGradleSyncAction().waitUntilEnabledAndShowing();
-    // TODO figure out why in IDEA 15 even though an action is enabled, visible and showing, clicking it (via UI testing infrastructure)
-    // does not work consistently
-    GradleProjectImporter.getInstance().requestProjectSync(getProject(), null);
+    waitForGradleSynActionButton().click();
     waitForBackgroundTasks(robot());
 
     return this;
   }
 
-  @NotNull
-  private ActionButtonFixture findGradleSyncAction() {
-    return findActionButtonByActionId("Android.SyncProject");
+  private ActionButton waitForGradleSynActionButton() {
+    return waitUntilFound(robot(), target(), new GenericTypeMatcher<ActionButton>(ActionButton.class) {
+      @Override
+      protected boolean isMatching(@NotNull ActionButton button) {
+        if (button.isVisible()) {
+          AnAction action = button.getAction();
+          return action != null
+                 && "Android.SyncProject".equals(ActionManager.getInstance().getId(action))
+                 && action.getTemplatePresentation().isEnabledAndVisible()
+                 && button.isShowing()
+                 && button.isEnabled();
+          }
+        return false;
+      }
+    });
   }
 
   @NotNull
@@ -599,7 +610,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     });
 
     waitForBackgroundTasks(robot());
-    findGradleSyncAction().waitUntilEnabledAndShowing();
+    waitForGradleSynActionButton();
 
     if (myGradleProjectEventListener.hasSyncError()) {
       RuntimeException syncError = myGradleProjectEventListener.getSyncError();
