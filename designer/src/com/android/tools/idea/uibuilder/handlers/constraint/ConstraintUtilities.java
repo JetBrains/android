@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.handlers.constraint;
 import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
+import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.sherpa.drawing.decorator.WidgetDecorator;
@@ -253,15 +254,12 @@ public class ConstraintUtilities {
    * @param x         x position (in Dp)
    * @param y         y position (in Dp)
    */
-  public static void setEditorPosition(@NonNull NlComponent component, int x, int y) {
-    if (component.getParent() == null) {
-      return;
-    }
-    String sX = x + "dp";
-    String sY = y + "dp";
+  public static void setEditorPosition(@NonNull NlComponent component,
+                                       @AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
+    String sX = String.format(SdkConstants.VALUE_N_DP, x);
+    String sY = String.format(SdkConstants.VALUE_N_DP, y);
     String attributeX = SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X;
     String attributeY = SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y;
-    // TODO: the namespace sherpa isn't created after drop, need to investigate why
     component.setAttribute(SdkConstants.SHERPA_URI, attributeX, sX);
     component.setAttribute(SdkConstants.SHERPA_URI, attributeY, sY);
   }
@@ -280,13 +278,11 @@ public class ConstraintUtilities {
       ConstraintWidget target = anchor.getTarget().getOwner();
       WidgetDecorator decorator = (WidgetDecorator)target.getCompanionWidget();
       NlComponent targetComponent = (NlComponent)decorator.getCompanionObject();
-      if (targetComponent.getId() != null) {
-        String targetId = "@+id/" + targetComponent.getId();
-        component.setAttribute(SdkConstants.SHERPA_URI, attribute, targetId);
-        if (marginAttribute != null && anchor.getMargin() > 0) {
-          String margin = anchor.getMargin() + "dp";
-          component.setAttribute(SdkConstants.SHERPA_URI, marginAttribute, margin);
-        }
+      String targetId = SdkConstants.NEW_ID_PREFIX + targetComponent.ensureId();
+      component.setAttribute(SdkConstants.SHERPA_URI, attribute, targetId);
+      if (marginAttribute != null && anchor.getMargin() > 0) {
+        String margin = String.format(SdkConstants.VALUE_N_DP, anchor.getMargin());
+        component.setAttribute(SdkConstants.SHERPA_URI, marginAttribute, margin);
       }
     }
   }
@@ -307,7 +303,7 @@ public class ConstraintUtilities {
         width = SdkConstants.VALUE_WRAP_CONTENT;
       } break;
       default:
-        width = widget.getWidth() + "dp";
+        width = String.format(SdkConstants.VALUE_N_DP, widget.getWidth());
     }
     component.setAttribute(SdkConstants.ANDROID_URI,
                            SdkConstants.ATTR_LAYOUT_WIDTH,
@@ -321,7 +317,7 @@ public class ConstraintUtilities {
         height = SdkConstants.VALUE_WRAP_CONTENT;
       } break;
       default:
-        height = widget.getHeight() + "dp";
+        height = String.format(SdkConstants.VALUE_N_DP, widget.getHeight());
     }
     component.setAttribute(SdkConstants.ANDROID_URI,
                            SdkConstants.ATTR_LAYOUT_HEIGHT,
@@ -496,6 +492,7 @@ public class ConstraintUtilities {
     if (component == null || widget == null) {
       return;
     }
+    widget.setDebugName(component.getId());
     WidgetsScene scene = constraintModel.getScene();
     widget.setDimension(constraintModel.pxToDp(component.w), constraintModel.pxToDp(component.h));
     NlComponent parent = component.getParent();
