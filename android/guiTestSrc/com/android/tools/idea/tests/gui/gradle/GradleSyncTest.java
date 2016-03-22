@@ -770,6 +770,7 @@ public class GradleSyncTest {
     syncMessages.findMessage(ERROR, firstLineStartingWith("Failed to resolve: com.android.support:appcompat-v7:"));
   }
 
+  @Ignore("failed in http://go/aj/job/studio-ui-test/592")
   @Test
   public void testImportProjectWithoutWrapper() throws IOException {
     GradleExperimentalSettings settings = GradleExperimentalSettings.getInstance();
