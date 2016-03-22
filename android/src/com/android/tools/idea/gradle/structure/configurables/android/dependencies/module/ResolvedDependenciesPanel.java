@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.structure.configurables.android.dependencie
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.treeview.ResolvedDependenciesTreeBuilder;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractDependencyNode;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.ModuleDependencyNode;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.NodeHyperlinkSupport;
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
 import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowPanel;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsdNode;
@@ -28,8 +29,6 @@ import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.android.tools.idea.gradle.structure.model.android.PsModuleDependency;
 import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
-import com.intellij.ide.util.treeView.NodeRenderer;
-import com.intellij.ide.util.treeView.PresentableNodeDescriptor;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.actionSystem.impl.ActionManagerImpl;
 import com.intellij.openapi.actionSystem.impl.MenuItemPresentationFactory;
@@ -37,7 +36,6 @@ import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.ui.PopupHandler;
-import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.TreeUIHelper;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.EventDispatcher;
@@ -54,8 +52,6 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.awt.event.InputEvent;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.EventListener;
 import java.util.List;
@@ -63,26 +59,19 @@ import java.util.Set;
 
 import static com.android.tools.idea.gradle.structure.configurables.android.dependencies.UiUtil.setUp;
 import static com.intellij.openapi.wm.impl.content.ToolWindowContentUi.POPUP_PLACE;
-import static com.intellij.ui.SimpleTextAttributes.LINK_ATTRIBUTES;
-import static com.intellij.util.BitUtil.isSet;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
-import static java.awt.Cursor.*;
-import static java.awt.Event.CTRL_MASK;
-import static java.awt.Event.META_MASK;
-import static java.awt.event.KeyEvent.*;
 import static java.awt.event.MouseEvent.MOUSE_PRESSED;
-import static javax.swing.SwingUtilities.convertPointFromScreen;
 
 class ResolvedDependenciesPanel extends ToolWindowPanel implements DependencySelection {
   @NotNull private final Tree myTree;
   @NotNull private final ResolvedDependenciesTreeBuilder myTreeBuilder;
   @NotNull private final PsContext myContext;
   @NotNull private final TreeSelectionListener myTreeSelectionListener;
+  @NotNull private final NodeHyperlinkSupport<ModuleDependencyNode> myHyperlinkSupport;
 
   @NotNull private final EventDispatcher<SelectionListener> myEventDispatcher = EventDispatcher.create(SelectionListener.class);
 
-  private ModuleDependencyNode myHoveredNode;
-  private KeyEventDispatcher myKeyEventDispatcher;
+  private boolean myIgnoreTreeSelectionEvents;
 
   ResolvedDependenciesPanel(@NotNull PsAndroidModule module,
                             @NotNull PsContext context,
@@ -97,7 +86,7 @@ class ResolvedDependenciesPanel extends ToolWindowPanel implements DependencySel
       protected void processMouseEvent(MouseEvent e) {
         int id = e.getID();
         if (id == MOUSE_PRESSED) {
-          ModuleDependencyNode node = getIfHyperlink(e.getModifiers(), e.getX(), e.getY());
+          ModuleDependencyNode node = myHyperlinkSupport.getIfHyperlink(e.getModifiers(), e.getX(), e.getY());
           if (node != null) {
             PsModuleDependency moduleDependency = node.getModels().get(0);
             String name = moduleDependency.getName();
@@ -154,7 +143,7 @@ class ResolvedDependenciesPanel extends ToolWindowPanel implements DependencySel
       }
     }, true);
 
-    addHyperlinkBehaviorToModuleNodes();
+    myHyperlinkSupport = new NodeHyperlinkSupport<ModuleDependencyNode>(myTree, ModuleDependencyNode.class);
   }
 
   private void notifySelectionChanged(@Nullable PsAndroidDependency selected) {
@@ -230,7 +219,7 @@ class ResolvedDependenciesPanel extends ToolWindowPanel implements DependencySel
   }
 
   private void popupInvoked(int x, int y) {
-    ModuleDependencyNode node = getNodeForLocation(ModuleDependencyNode.class, x, y);
+    ModuleDependencyNode node = myHyperlinkSupport.getNodeForLocation(x, y);
 
     if (node != null) {
       PsModuleDependency moduleDependency = node.getModels().get(0);
@@ -238,7 +227,7 @@ class ResolvedDependenciesPanel extends ToolWindowPanel implements DependencySel
       final String name = moduleDependency.getName();
       DefaultActionGroup group = new DefaultActionGroup();
 
-      group.add(new DumbAwareAction(String.format("Display dependencies of module '%1$s'", name)) {
+      group.add(new DumbAwareAction(String.format("Go to module '%1$s'", name)) {
         @Override
         public void actionPerformed(AnActionEvent e) {
           myContext.setSelectedModule(name, ResolvedDependenciesPanel.this);
@@ -249,108 +238,6 @@ class ResolvedDependenciesPanel extends ToolWindowPanel implements DependencySel
       popupMenu.getComponent().show(myTree, x, y);
     }
   }
-
-  private void addHyperlinkBehaviorToModuleNodes() {
-    myTree.setCellRenderer(new NodeRenderer() {
-      @Override
-      protected SimpleTextAttributes getSimpleTextAttributes(PresentableNodeDescriptor node, Color color) {
-        if (myHoveredNode != null && myHoveredNode == node) {
-          return LINK_ATTRIBUTES;
-        }
-        return super.getSimpleTextAttributes(node, color);
-      }
-    });
-
-    MouseAdapter mouseListener = new MouseAdapter() {
-      @Override
-      public void mouseMoved(MouseEvent e) {
-        Cursor cursor = getDefaultCursor();
-        ModuleDependencyNode node = getIfHyperlink(e.getModifiers(), e.getX(), e.getY());
-        if (node != null) {
-          cursor = getPredefinedCursor(HAND_CURSOR);
-        }
-        setHoveredNode(node);
-        myTree.setCursor(cursor);
-      }
-    };
-    myTree.addMouseMotionListener(mouseListener);
-
-    // Make the cursor change to 'hand' if the mouse pointer is over a 'module' node and the user presses Ctrl or Cmd.
-    myKeyEventDispatcher = new KeyEventDispatcher() {
-      @Override
-      public boolean dispatchKeyEvent(KeyEvent e) {
-        ModuleDependencyNode node = null;
-        if (e.getID() == KEY_PRESSED) {
-          Cursor cursor = getDefaultCursor();
-          if (isControlOrMetaKey(e)) {
-            node = getNodeUnderMousePointer(ModuleDependencyNode.class);
-            if (node != null) {
-              cursor = getPredefinedCursor(HAND_CURSOR);
-            }
-          }
-          setHoveredNode(node);
-          myTree.setCursor(cursor);
-        }
-        else if (e.getID() == KEY_RELEASED) {
-          if (isControlOrMetaKey(e)) {
-            setHoveredNode(null);
-          }
-          myTree.setCursor(getDefaultCursor());
-        }
-        return false;
-      }
-
-      private boolean isControlOrMetaKey(@NotNull KeyEvent e) {
-        return e.getKeyCode() == VK_META || e.getKeyCode() == VK_CONTROL;
-      }
-    };
-
-    KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(myKeyEventDispatcher);
-  }
-
-  private void setHoveredNode(@Nullable ModuleDependencyNode node) {
-    myHoveredNode = node;
-    if (myHoveredNode != null) {
-      // Force color change of the node.
-      myHoveredNode.getPresentation().clearText();
-    }
-    myTree.repaint();
-  }
-
-  @Nullable
-  private ModuleDependencyNode getIfHyperlink(int modifiers, int x, int y) {
-    if (isSet(modifiers, CTRL_MASK) || isSet(modifiers, META_MASK)) {
-      return getNodeForLocation(ModuleDependencyNode.class, x, y);
-    }
-    return null;
-  }
-
-  private <T extends AbstractPsdNode> T getNodeUnderMousePointer(@NotNull Class<T> nodeType) {
-    PointerInfo pointerInfo = MouseInfo.getPointerInfo();
-    if (pointerInfo != null) {
-      Point location = pointerInfo.getLocation();
-      convertPointFromScreen(location, myTree);
-      return getNodeForLocation(nodeType, location.x, location.y);
-    }
-    return null;
-  }
-
-  @Nullable
-  private <T extends AbstractPsdNode> T getNodeForLocation(@NotNull Class<T> nodeType, int x, int y) {
-    Object userObject = null;
-
-    TreePath path = myTree.getPathForLocation(x, y);
-    if (path != null) {
-      DefaultMutableTreeNode node = (DefaultMutableTreeNode)path.getLastPathComponent();
-      if (node != null) {
-        userObject = node.getUserObject();
-      }
-    }
-
-    return nodeType.isInstance(userObject) ? nodeType.cast(userObject) : null;
-  }
-
-  private boolean myIgnoreTreeSelectionEvents;
 
   @Override
   public void setSelection(@Nullable PsAndroidDependency selection) {
@@ -395,9 +282,7 @@ class ResolvedDependenciesPanel extends ToolWindowPanel implements DependencySel
   public void dispose() {
     super.dispose();
     Disposer.dispose(myTreeBuilder);
-    if (myKeyEventDispatcher != null) {
-      KeyboardFocusManager.getCurrentKeyboardFocusManager().removeKeyEventDispatcher(myKeyEventDispatcher);
-    }
+    Disposer.dispose(myHyperlinkSupport);
   }
 
   public interface SelectionListener extends EventListener {
