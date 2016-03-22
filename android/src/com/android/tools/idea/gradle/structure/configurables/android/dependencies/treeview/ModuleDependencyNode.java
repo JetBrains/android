@@ -34,8 +34,17 @@ import static com.android.builder.model.AndroidProject.ARTIFACT_MAIN;
 public class ModuleDependencyNode extends AbstractDependencyNode<PsModuleDependency> {
   private final List<AbstractPsdNode<?>> myChildren = Lists.newArrayList();
 
-  public ModuleDependencyNode(@NotNull AbstractPsdNode parent, @NotNull final PsModuleDependency moduleDependency) {
-    super(parent, moduleDependency);
+  public ModuleDependencyNode(@NotNull AbstractPsdNode parent, @NotNull final PsModuleDependency dependency) {
+    super(parent, dependency);
+    setUp(dependency);
+  }
+
+  public ModuleDependencyNode(@NotNull AbstractPsdNode parent, @NotNull List<PsModuleDependency> dependencies) {
+    super(parent, dependencies);
+    setUp(dependencies.get(0));
+  }
+
+  private void setUp(@NotNull final PsModuleDependency moduleDependency) {
     myName = moduleDependency.getValueAsText();
 
     PsAndroidModule dependentModule = moduleDependency.getParent();
