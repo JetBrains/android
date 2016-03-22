@@ -104,7 +104,7 @@ public class ActionButtonFixture extends JComponentFixture<ActionButtonFixture, 
     return new ActionButtonFixture(robot, button);
   }
 
-  private ActionButtonFixture(@NotNull Robot robot, @NotNull ActionButton target) {
+  public ActionButtonFixture(@NotNull Robot robot, @NotNull ActionButton target) {
     super(ActionButtonFixture.class, robot, target);
   }
 }
