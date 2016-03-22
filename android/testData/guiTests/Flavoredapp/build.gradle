@@ -1,0 +1,52 @@
+buildscript {
+    repositories {
+        jcenter()
+        if (System.getenv("MAVEN_URL") != null) {
+            maven {url System.getenv("MAVEN_URL")}
+        }
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:1.5.0'
+    }
+}
+apply plugin: 'com.android.application'
+
+repositories {
+  mavenCentral()
+}
+
+dependencies {
+    compile 'com.android.support:support-v4:22.1.1'
+    compile 'com.google.android.gms:play-services:7.3.0'
+    debugCompile 'com.android.support:support-v13:22.1.1'
+}
+
+android {
+    compileSdkVersion 22
+    buildToolsVersion "22.0.1"
+
+    defaultConfig {
+        versionCode 12
+        versionName "2.0"
+        minSdkVersion 16
+        targetSdkVersion 22
+    }
+
+    buildTypes {
+        debug {
+            applicationIdSuffix ".debug"
+        }
+    }
+
+    productFlavors {
+        flavor1 { }
+        flavor2 { }
+    }
+
+    // Override the versionCode of the release version
+    applicationVariants.all { variant ->
+        if (variant.buildType.name == "release") {
+            variant.outputs.get(0).versionCodeOverride = 13
+        }
+    }
+}
