@@ -67,6 +67,7 @@ public class RepoUpdaterUI extends SwingUpdaterUI {
 
   @Override
   public void checkCancelled() throws OperationCancelledException {
+    super.checkCancelled();
     if (myProgress.isCanceled()) {
       throw new OperationCancelledException();
     }
