@@ -20,16 +20,19 @@ import com.android.tools.idea.gradle.structure.configurables.android.dependencie
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.project.treeview.DeclaredDependenciesTreeBuilder;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractBaseTreeBuilder.MatchingNodeCollector;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractDependencyNode;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.LibraryDependencyNode;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.GoToModuleAction;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.ModuleDependencyNode;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.NodeHyperlinkSupport;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsdNode;
 import com.android.tools.idea.gradle.structure.model.PsProject;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
+import com.android.tools.idea.gradle.structure.model.android.PsModuleDependency;
 import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.ui.PopupHandler;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.EventDispatcher;
 import org.jetbrains.annotations.NotNull;
@@ -54,6 +57,7 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel {
   @NotNull private final Tree myTree;
   @NotNull private final DeclaredDependenciesTreeBuilder myTreeBuilder;
   @NotNull private final TreeSelectionListener myTreeSelectionListener;
+  @NotNull private final NodeHyperlinkSupport<ModuleDependencyNode> myHyperlinkSupport;
 
   @NotNull private final EventDispatcher<SelectionListener> myEventDispatcher = EventDispatcher.create(SelectionListener.class);
 
@@ -77,8 +81,8 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel {
           @Override
           protected void done(@NotNull List<AbstractPsdNode> matchingNodes) {
             for (AbstractPsdNode node : matchingNodes) {
-              if (node instanceof LibraryDependencyNode) {
-                selectedNodes.add(((LibraryDependencyNode)node));
+              if (node instanceof AbstractDependencyNode) {
+                selectedNodes.add(((AbstractDependencyNode<? extends PsAndroidDependency>)node));
               }
             }
           }
@@ -90,6 +94,12 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel {
       }
     };
     myTree.addTreeSelectionListener(myTreeSelectionListener);
+    myTree.addMouseListener(new PopupHandler() {
+      @Override
+      public void invokePopup(Component comp, int x, int y) {
+        popupInvoked(x, y);
+      }
+    });
 
     myTreeBuilder.getInitialized().doWhenDone(new Runnable() {
       @Override
@@ -97,6 +107,8 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel {
         doEnsureSelection();
       }
     });
+
+    myHyperlinkSupport = new NodeHyperlinkSupport<ModuleDependencyNode>(myTree, ModuleDependencyNode.class);
   }
 
   @Nullable
@@ -112,6 +124,22 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel {
   private void notifySelectionChanged(@NotNull List<AbstractDependencyNode<? extends PsAndroidDependency>> selected) {
     myEventDispatcher.getMulticaster().dependencySelected(selected);
   }
+
+  private void popupInvoked(int x, int y) {
+    ModuleDependencyNode node = myHyperlinkSupport.getNodeForLocation(x, y);
+
+    if (node != null) {
+      PsModuleDependency moduleDependency = node.getModels().get(0);
+
+      String name = moduleDependency.getName();
+      DefaultActionGroup group = new DefaultActionGroup();
+      group.add(new GoToModuleAction(name, getContext(), myTree));
+
+      ActionPopupMenu popupMenu = ActionManager.getInstance().createActionPopupMenu("", group);
+      popupMenu.getComponent().show(myTree, x, y);
+    }
+  }
+
 
   void add(@NotNull SelectionListener listener) {
     myEventDispatcher.addListener(listener);
@@ -153,6 +181,7 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel {
   @Override
   public void dispose() {
     Disposer.dispose(myTreeBuilder);
+    Disposer.dispose(myHyperlinkSupport);
   }
 
   public interface SelectionListener extends EventListener {
