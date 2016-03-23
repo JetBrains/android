@@ -120,6 +120,10 @@ class ResolvedDependenciesPanel extends ToolWindowPanel implements DependencySel
     myTreeSelectionListener = new TreeSelectionListener() {
       @Override
       public void valueChanged(TreeSelectionEvent e) {
+        if (myIgnoreTreeSelectionEvents) {
+          return;
+        }
+
         myTreeBuilder.updateSelection();
         PsAndroidDependency selected = getSelection();
         if (selected == null) {
@@ -181,8 +185,10 @@ class ResolvedDependenciesPanel extends ToolWindowPanel implements DependencySel
     additionalActions.add(new DumbAwareAction("Expand All", "", AllIcons.General.ExpandAll) {
       @Override
       public void actionPerformed(AnActionEvent e) {
+        myIgnoreTreeSelectionEvents = true;
         myTree.requestFocusInWindow();
         myTreeBuilder.expandAllNodes();
+        myIgnoreTreeSelectionEvents = false;
       }
     });
 
@@ -218,12 +224,9 @@ class ResolvedDependenciesPanel extends ToolWindowPanel implements DependencySel
   private void collapseAllNodes() {
     myTree.requestFocusInWindow();
 
-    // Remove selection listener because the selection changes when collapsing all nodes and the tree will try to use the previously
-    // selected dependency, expanding nodes while restoring the selection.
-    myTree.removeTreeSelectionListener(myTreeSelectionListener);
-
+    myIgnoreTreeSelectionEvents = true;
     myTreeBuilder.collapseAllNodes();
-    myTree.addTreeSelectionListener(myTreeSelectionListener);
+    myIgnoreTreeSelectionEvents = false;
   }
 
   private void popupInvoked(int x, int y) {
@@ -347,16 +350,18 @@ class ResolvedDependenciesPanel extends ToolWindowPanel implements DependencySel
     return nodeType.isInstance(userObject) ? nodeType.cast(userObject) : null;
   }
 
+  private boolean myIgnoreTreeSelectionEvents;
+
   @Override
   public void setSelection(@Nullable PsAndroidDependency selection) {
-    myTree.removeTreeSelectionListener(myTreeSelectionListener);
     if (selection == null) {
       myTreeBuilder.clearSelection();
     }
     else {
+      myIgnoreTreeSelectionEvents = true;
       myTreeBuilder.selectMatchingNodes(selection, true);
+      myIgnoreTreeSelectionEvents = false;
     }
-    myTree.addTreeSelectionListener(myTreeSelectionListener);
   }
 
   void add(@NotNull SelectionListener listener) {
