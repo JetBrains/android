@@ -39,7 +39,7 @@ public class TestManifestTest {
     EditorFixture editor = guiTest.ideFrame().getEditor();
     guiTest.waitForBackgroundTasks(); // Needed to make sure nothing will interfere with the typing later
 
-    editor.open("app/src/main/AndroidManifest.xml");
+    editor.open("app/src/main/AndroidManifest.xml", EditorFixture.Tab.EDITOR);
     editor.waitForCodeAnalysisHighlightCount(HighlightSeverity.ERROR, 0);
     editor.select(editor.findOffset("^.MainActivity"), editor.findOffset(".MainActivity^"));
     // TestActivity shouldn't be accessible from the main AndroidManifest.xml
