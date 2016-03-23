@@ -135,7 +135,7 @@ public class ModulesToImportDialogTest {
     FileChooserDialogFixture fileChooser = FileChooserDialogFixture.findDialog(guiTest.robot(), new GenericTypeMatcher<JDialog>(JDialog.class) {
       @Override
       protected boolean isMatching(@NotNull JDialog dialog) {
-        return dialog.isShowing() && "Save Module Selection".equals(dialog.getTitle());
+        return "Save Module Selection".equals(dialog.getTitle());
       }
     });
     fileChooser.select(targetFile).clickOk();
@@ -150,7 +150,7 @@ public class ModulesToImportDialogTest {
     fileChooser = FileChooserDialogFixture.findDialog(guiTest.robot(), new GenericTypeMatcher<JDialog>(JDialog.class) {
       @Override
       protected boolean isMatching(@NotNull JDialog dialog) {
-        return dialog.isShowing() && "Load Module Selection".equals(dialog.getTitle());
+        return "Load Module Selection".equals(dialog.getTitle());
       }
     });
     fileChooser.select(targetFile).clickOk();
@@ -196,7 +196,7 @@ public class ModulesToImportDialogTest {
     return IdeaDialogFixture.find(guiTest.robot(), ModulesToImportDialog.class, new GenericTypeMatcher<JDialog>(JDialog.class) {
       @Override
       protected boolean isMatching(@NotNull JDialog dialog) {
-        return "Select Modules to Include in Project Subset".equals(dialog.getTitle()) && dialog.isShowing();
+        return "Select Modules to Include in Project Subset".equals(dialog.getTitle());
       }
     });
   }
