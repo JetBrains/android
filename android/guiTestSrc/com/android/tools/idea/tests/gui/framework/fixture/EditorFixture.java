@@ -1079,28 +1079,12 @@ public class EditorFixture {
    */
   @NotNull
   public ThemeEditorFixture getThemeEditor() {
-    final ThemeEditorComponent themeEditorComponent =
-      GuiTests.waitUntilFound(robot, new GenericTypeMatcher<ThemeEditorComponent>(ThemeEditorComponent.class) {
-        @Override
-        protected boolean isMatching(@NotNull ThemeEditorComponent component) {
-          return true;
-        }
-      });
-
-    return new ThemeEditorFixture(robot, themeEditorComponent);
+    return new ThemeEditorFixture(robot, GuiTests.waitUntilFound(robot, GuiTests.matcherForType(ThemeEditorComponent.class)));
   }
 
   @NotNull
   public MergedManifestFixture getMergedManifestEditor() {
-    final ManifestPanel manifestComponent =
-      GuiTests.waitUntilFound(robot, new GenericTypeMatcher<ManifestPanel>(ManifestPanel.class) {
-        @Override
-        protected boolean isMatching(@NotNull ManifestPanel component) {
-          return true;
-        }
-      });
-
-    return new MergedManifestFixture(robot, manifestComponent);
+    return new MergedManifestFixture(robot, GuiTests.waitUntilFound(robot, GuiTests.matcherForType(ManifestPanel.class)));
   }
 
   /**
