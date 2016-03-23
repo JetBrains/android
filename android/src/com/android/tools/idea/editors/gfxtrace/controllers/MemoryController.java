@@ -19,6 +19,7 @@ import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.UiCallback;
 import com.android.tools.idea.editors.gfxtrace.service.MemoryInfo;
+import com.android.tools.idea.editors.gfxtrace.service.memory.MemoryRange;
 import com.android.tools.idea.editors.gfxtrace.service.path.MemoryRangePath;
 import com.android.tools.rpclib.rpccore.Rpc;
 import com.android.tools.rpclib.rpccore.RpcException;
@@ -65,6 +66,9 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 public class MemoryController extends Controller {
+  private static final int DEFAULT_MEMORY_SIZE = 0x10000;
+  private static final char UNKNOWN_CHAR = '?';
+
   @NotNull private static final Logger LOG = Logger.getInstance(MemoryController.class);
 
   public static JComponent createUI(GfxTraceEditor editor) {
@@ -111,18 +115,16 @@ public class MemoryController extends Controller {
   public void notifyPath(PathEvent event) {
     final MemoryRangePath memoryPath = event.findMemoryPath();
     if (memoryPath != null) {
+      if (memoryPath.getSize() == 0) {
+        // Fetch a default amount of memory for memory pointers, as they point to a region of unknown size.
+        memoryPath.setSize(DEFAULT_MEMORY_SIZE);
+      }
       myLoading.startLoading();
       PagedMemoryDataModel.MemoryFetcher fetcher = new PagedMemoryDataModel.MemoryFetcher() {
         @Override
-        public ListenableFuture<byte[]> get(long address, long count) {
-          return Futures.transform(myEditor.getClient().get(
-            new MemoryRangePath().setAfter(memoryPath.getAfter()).setPool(memoryPath.getPool()).setAddress(address).setSize(count)),
-            new Function<MemoryInfo, byte[]>() {
-              @Override
-              public byte[] apply(MemoryInfo input) {
-                return input.getData();
-              }
-            });
+        public ListenableFuture<MemoryInfo> get(long address, long count) {
+          return myEditor.getClient().get(
+            new MemoryRangePath().setAfter(memoryPath.getAfter()).setPool(memoryPath.getPool()).setAddress(address).setSize(count));
         }
       };
       if (PagedMemoryDataModel.shouldUsePagedModel(memoryPath.getSize())) {
@@ -130,11 +132,11 @@ public class MemoryController extends Controller {
         update();
       }
       else {
-        Rpc.listen(fetcher.get(memoryPath.getAddress(), memoryPath.getSize()), LOG, new UiCallback<byte[], MemoryDataModel>() {
+        Rpc.listen(fetcher.get(memoryPath.getAddress(), memoryPath.getSize()), LOG, new UiCallback<MemoryInfo, MemoryDataModel>() {
           @Override
-          protected MemoryDataModel onRpcThread(Rpc.Result<byte[]> result) throws RpcException, ExecutionException {
-            byte[] data = result.get();
-            return (data == null) ? null : new ImmediateMemoryDataModel(memoryPath.getAddress(), data);
+          protected MemoryDataModel onRpcThread(Rpc.Result<MemoryInfo> result) throws RpcException, ExecutionException {
+            MemoryInfo info = result.get();
+            return (info == null) ? null : new ImmediateMemoryDataModel(memoryPath.getAddress(), info);
           }
 
           @Override
@@ -144,7 +146,8 @@ public class MemoryController extends Controller {
           }
         });
       }
-    } else {
+    }
+    else {
       myScrollPane.setViewportView(myEmptyPanel);
     }
   }
@@ -401,10 +404,10 @@ public class MemoryController extends Controller {
     protected void paintComponent(Graphics g) {
       super.paintComponent(g);
       setFont(myTheme.getFont(EditorFontType.PLAIN));
+      g.setFont(myTheme.getFont(EditorFontType.PLAIN));
       initMeasurements();
       setBackground(myTheme.getDefaultBackground());
       setForeground(myTheme.getDefaultForeground());
-
       Rectangle clip = g.getClipBounds();
 
       g.setColor(getBackground());
@@ -572,13 +575,26 @@ public class MemoryController extends Controller {
     MemoryDataModel align(int byteAlign);
   }
 
+  private static BitSet computeKnown(MemoryInfo data) {
+    BitSet known = new BitSet(data.getData().length);
+    for (MemoryRange rng : data.getObserved()) {
+      known.set((int)rng.getBase(), (int)rng.getBase() + (int)rng.getSize());
+    }
+    return known;
+  }
+
   private static class ImmediateMemoryDataModel implements MemoryDataModel {
     private final long address;
-    private final byte[] data;
+    private final MemorySegment memory;
 
-    public ImmediateMemoryDataModel(long address, byte[] data) {
+    public ImmediateMemoryDataModel(long address, MemoryInfo info) {
       this.address = address;
-      this.data = data;
+      this.memory = new MemorySegment(info.getData(), computeKnown(info), 0, info.getData().length);
+    }
+
+    private ImmediateMemoryDataModel(long address, MemorySegment data) {
+      this.address = address;
+      this.memory = data;
     }
 
     @Override
@@ -588,18 +604,18 @@ public class MemoryController extends Controller {
 
     @Override
     public int getByteCount() {
-      return data.length;
+      return memory.myLength;
     }
 
     @Override
     public ListenableFuture<MemorySegment> get(int offset, int length) {
-      return Futures.immediateFuture(new MemorySegment(data, offset, Math.min(data.length - offset, length)));
+      return Futures.immediateFuture(memory.subSegment(offset, length));
     }
 
     @Override
     public MemoryDataModel align(int align) {
-      int remainder = data.length % align;
-      return (remainder == 0) ? this : new ImmediateMemoryDataModel(address, Arrays.copyOf(data, data.length + align - remainder));
+      int remainder = getByteCount() % align;
+      return (remainder == 0) ? this : new ImmediateMemoryDataModel(address, memory.subSegment(0, getByteCount() + align - remainder));
     }
   }
 
@@ -610,7 +626,7 @@ public class MemoryController extends Controller {
     private final MemoryFetcher fetcher;
     private final long address;
     private final int size;
-    private final Map<Integer, SoftReference<byte[]>> pageCache = Maps.newHashMap();
+    private final Map<Integer, SoftReference<MemoryInfo>> pageCache = Maps.newHashMap();
 
     public PagedMemoryDataModel(MemoryFetcher fetcher, long address, long size) {
       this.fetcher = fetcher;
@@ -652,15 +668,7 @@ public class MemoryController extends Controller {
       return Futures.transform(Futures.allAsList(futures), new Function<List<MemorySegment>, MemorySegment>() {
         @Override
         public MemoryController.MemorySegment apply(List<MemorySegment> segments) {
-          byte[] data = new byte[totalLength];
-          int done = 0;
-          for (Iterator<MemorySegment> it = segments.iterator(); it.hasNext() && done < totalLength; ) {
-            MemorySegment segment = it.next();
-            int count = Math.min(totalLength - done, segment.myLength);
-            System.arraycopy(segment.myData, segment.myOffset, data, done, count);
-            done += count;
-          }
-          return new MemorySegment(data, 0, done);
+          return new MemorySegment(segments, totalLength);
         }
       });
     }
@@ -678,25 +686,26 @@ public class MemoryController extends Controller {
     }
 
     private ListenableFuture<MemorySegment> getPage(final int page, final int offset, final int length) {
-      byte[] data = getFromCache(page);
-      if (data != null) {
-        return Futures.immediateFuture(new MemorySegment(data, offset, length));
+      MemoryInfo mem = getFromCache(page);
+      if (mem != null) {
+        return Futures.immediateFuture(new MemorySegment(mem).subSegment(offset, length));
       }
 
       long base = address + getOffsetForPage(page);
-      return Futures.transform(fetcher.get(base, (int)Math.min(address + size - base, PAGE_SIZE)), new Function<byte[], MemorySegment>() {
-        @Override
-        public MemorySegment apply(byte[] data) {
-          addToCache(page, data);
-          return new MemorySegment(data, offset, length);
-        }
-      });
+      return Futures
+        .transform(fetcher.get(base, (int)Math.min(address + size - base, PAGE_SIZE)), new Function<MemoryInfo, MemorySegment>() {
+          @Override
+          public MemorySegment apply(MemoryInfo mem) {
+            addToCache(page, mem);
+            return new MemorySegment(mem);
+          }
+        });
     }
 
-    private byte[] getFromCache(int page) {
-      byte[] result = null;
+    private MemoryInfo getFromCache(int page) {
+      MemoryInfo result = null;
       synchronized (pageCache) {
-        SoftReference<byte[]> reference = pageCache.get(page);
+        SoftReference<MemoryInfo> reference = pageCache.get(page);
         if (reference != null) {
           result = reference.get();
           if (result == null) {
@@ -707,9 +716,9 @@ public class MemoryController extends Controller {
       return result;
     }
 
-    private void addToCache(int page, byte[] data) {
+    private void addToCache(int page, MemoryInfo data) {
       synchronized (pageCache) {
-        pageCache.put(page, new SoftReference<byte[]>(data));
+        pageCache.put(page, new SoftReference<MemoryInfo>(data));
       }
     }
 
@@ -719,31 +728,79 @@ public class MemoryController extends Controller {
     }
 
     public interface MemoryFetcher {
-      ListenableFuture<byte[]> get(long address, long count);
+      ListenableFuture<MemoryInfo> get(long address, long count);
     }
   }
 
   private static class MemorySegment {
-    public final byte[] myData;
-    public final int myOffset;
-    public final int myLength;
+    private final byte[] myData;
+    private final BitSet myKnown;
+    private final int myOffset;
+    private final int myLength;
 
-    public MemorySegment(byte[] data, int offset, int length) {
+    private MemorySegment(byte[] data, BitSet known, int offset, int length) {
       myData = data;
       myOffset = offset;
       myLength = length;
+      myKnown = known;
+    }
+
+    public MemorySegment(List<MemorySegment> segments, int length) {
+      byte[] data = new byte[length];
+      BitSet known = new BitSet(length);
+      int done = 0;
+      for (Iterator<MemorySegment> it = segments.iterator(); it.hasNext() && done < length; ) {
+        MemorySegment segment = it.next();
+        int count = Math.min(length - done, segment.myLength);
+        System.arraycopy(segment.myData, segment.myOffset, data, done, count);
+        for (int i = 0; i < count; ++i) {
+          known.set(done + i, segment.myKnown.get(segment.myOffset + i));
+        }
+        done += count;
+      }
+      myData = data;
+      myKnown = known;
+      myOffset = 0;
+      myLength = done;
+    }
+
+    public MemorySegment(MemoryInfo info) {
+      myData = info.getData();
+      myOffset = 0;
+      myKnown = computeKnown(info);
+      myLength = info.getData().length;
     }
 
     public MemorySegment subSegment(int start, int count) {
-      return new MemorySegment(myData, myOffset + start, Math.min(count, myLength - start));
+      return new MemorySegment(myData, myKnown, myOffset + start, Math.min(count, myLength - start));
     }
 
     public String asString(int start, int count) {
       return new String(myData, myOffset + start, Math.min(count, myLength - start), Charset.forName("US-ASCII"));
     }
 
+    private boolean getByteKnown(int offset, int size) {
+      if (myKnown == null) {
+        return true;
+      }
+      for (int o = offset; o < offset + size; o++) {
+        if (!myKnown.get(myOffset + o)) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    public boolean getByteKnown(int off) {
+      return getByteKnown(off, 1);
+    }
+
     public int getByte(int off) {
       return myData[myOffset + off] & 0xFF;
+    }
+
+    public boolean getShortKnown(int off) {
+      return getByteKnown(off, 2);
     }
 
     public int getShort(int off) {
@@ -752,10 +809,18 @@ public class MemoryController extends Controller {
       return (myData[off + 0] & 0xFF) | ((myData[off + 1] & 0xFF) << 8);
     }
 
+    public boolean getIntKnown(int off) {
+      return getByteKnown(off, 4);
+    }
+
     public int getInt(int off) {
       off += myOffset;
       // TODO: figure out BigEndian vs LittleEndian.
       return (myData[off + 0] & 0xFF) | ((myData[off + 1] & 0xFF) << 8) | ((myData[off + 2] & 0xFF) << 16) | (myData[off + 3] << 24);
+    }
+
+    public boolean getLongKnown(int off) {
+      return getByteKnown(off, 8);
     }
 
     public long getLong(int off) {
@@ -860,6 +925,12 @@ public class MemoryController extends Controller {
       return myCharsPerRow;
     }
 
+    protected static void appendUnknown(StringBuilder str, int n) {
+      for (int i = 0; i < n; i++) {
+        str.append(UNKNOWN_CHAR);
+      }
+    }
+
     @Override
     protected void getLine(Segment segment, MemorySegment memory, int line) {
       segment.array = new char[myCharsPerRow];
@@ -895,34 +966,34 @@ public class MemoryController extends Controller {
     public ListenableFuture<Transferable> getTransferable(final Range<Integer> selectionRange, final Point start, final Point end) {
       return Futures.transform(
         myData.get(start.y * BYTES_PER_ROW, (end.y - start.y + 1) * BYTES_PER_ROW), new Function<MemorySegment, Transferable>() {
-           @Override
-           public Transferable apply(MemorySegment memory) {
-             StringBuilder buffer = new StringBuilder();
-             Iterator<Segment> lines = getLines(start.y, end.y + 1, memory);
-             if (lines.hasNext()) {
-               Segment segment = lines.next();
-               if (start.y == end.y) {
-                 buffer.append(segment.array, segment.offset + start.x, end.x - start.x);
-               }
-               else {
-                 buffer.append(segment.array, segment.offset + start.x, selectionRange.getTo() - start.x)
-                   .append('\n');
-               }
-             }
-             int rangeWidth = selectionRange.getTo() - selectionRange.getFrom();
-             for (int line = start.y + 1; lines.hasNext() && line < end.y; line++) {
-               Segment segment = lines.next();
-               buffer.append(segment.array, segment.offset + selectionRange.getFrom(), rangeWidth).append('\n');
-             }
-             if (lines.hasNext()) {
-               Segment segment = lines.next();
-               buffer
-                 .append(segment.array, segment.offset + selectionRange.getFrom(), end.x - selectionRange.getFrom())
-                 .append('\n');
-             }
-             return new StringSelection(buffer.toString());
-           }
-         });
+          @Override
+          public Transferable apply(MemorySegment memory) {
+            StringBuilder buffer = new StringBuilder();
+            Iterator<Segment> lines = getLines(start.y, end.y + 1, memory);
+            if (lines.hasNext()) {
+              Segment segment = lines.next();
+              if (start.y == end.y) {
+                buffer.append(segment.array, segment.offset + start.x, end.x - start.x);
+              }
+              else {
+                buffer.append(segment.array, segment.offset + start.x, selectionRange.getTo() - start.x)
+                  .append('\n');
+              }
+            }
+            int rangeWidth = selectionRange.getTo() - selectionRange.getFrom();
+            for (int line = start.y + 1; lines.hasNext() && line < end.y; line++) {
+              Segment segment = lines.next();
+              buffer.append(segment.array, segment.offset + selectionRange.getFrom(), rangeWidth).append('\n');
+            }
+            if (lines.hasNext()) {
+              Segment segment = lines.next();
+              buffer
+                .append(segment.array, segment.offset + selectionRange.getFrom(), end.x - selectionRange.getFrom())
+                .append('\n');
+            }
+            return new StringSelection(buffer.toString());
+          }
+        });
     }
   }
 
@@ -959,13 +1030,14 @@ public class MemoryController extends Controller {
         // Copy the actual myData, rather than the display.
         return Futures.transform(
           myData.get(start.y * BYTES_PER_ROW, (end.y - start.y + 1) * BYTES_PER_ROW), new Function<MemorySegment, Transferable>() {
-           @Override
-           public Transferable apply(MemorySegment s) {
-             return new StringSelection(
-               s.asString(start.x - ASCII_RANGE.getFrom(), s.myLength - start.x + ASCII_RANGE.getFrom() - ASCII_RANGE.getTo() + end.x));
-           }
-         });
-      } else {
+            @Override
+            public Transferable apply(MemorySegment s) {
+              return new StringSelection(
+                s.asString(start.x - ASCII_RANGE.getFrom(), s.myLength - start.x + ASCII_RANGE.getFrom() - ASCII_RANGE.getTo() + end.x));
+            }
+          });
+      }
+      else {
         return super.getTransferable(selectionRange, start, end);
       }
     }
@@ -974,13 +1046,19 @@ public class MemoryController extends Controller {
     protected void formatMemory(char[] buffer, MemorySegment memory) {
       for (int i = 0, j = ADDRESS_CHARS; i < memory.myLength; i++, j += CHARS_PER_BYTE + BYTE_SEPARATOR) {
         int b = memory.getByte(i);
-        buffer[j + 1] = HEX_DIGITS[(b >> 4) & 0xF];
-        buffer[j + 2] = HEX_DIGITS[(b >> 0) & 0xF];
+        if (memory.getByteKnown(i)) {
+          buffer[j + 1] = HEX_DIGITS[(b >> 4) & 0xF];
+          buffer[j + 2] = HEX_DIGITS[(b >> 0) & 0xF];
+        }
+        else {
+          buffer[j + 1] = UNKNOWN_CHAR;
+          buffer[j + 2] = UNKNOWN_CHAR;
+        }
       }
 
       for (int i = 0, j = ADDRESS_CHARS + BYTES_CHARS + ASCII_SEPARATOR; i < memory.myLength; i++, j++) {
         int b = memory.getByte(i);
-        buffer[j] = (b >= 32 && b < 127) ? (char)b : '.';
+        buffer[j] = memory.getByteKnown(i) && (b >= 32 && b < 127) ? (char)b : '.';
       }
     }
   }
@@ -1004,10 +1082,18 @@ public class MemoryController extends Controller {
     protected void formatMemory(char[] buffer, MemorySegment memory) {
       for (int i = 0, j = ADDRESS_CHARS; i < memory.myLength; i += 2, j += CHARS_PER_SHORT + SHORT_SEPARATOR) {
         int s = memory.getShort(i);
-        buffer[j + 1] = HEX_DIGITS[(s >> 12) & 0xF];
-        buffer[j + 2] = HEX_DIGITS[(s >> 8) & 0xF];
-        buffer[j + 3] = HEX_DIGITS[(s >> 4) & 0xF];
-        buffer[j + 4] = HEX_DIGITS[(s >> 0) & 0xF];
+        if (memory.getShortKnown(i)) {
+          buffer[j + 1] = HEX_DIGITS[(s >> 12) & 0xF];
+          buffer[j + 2] = HEX_DIGITS[(s >> 8) & 0xF];
+          buffer[j + 3] = HEX_DIGITS[(s >> 4) & 0xF];
+          buffer[j + 4] = HEX_DIGITS[(s >> 0) & 0xF];
+        }
+        else {
+          buffer[j + 1] = UNKNOWN_CHAR;
+          buffer[j + 2] = UNKNOWN_CHAR;
+          buffer[j + 3] = UNKNOWN_CHAR;
+          buffer[j + 4] = UNKNOWN_CHAR;
+        }
       }
     }
   }
@@ -1030,15 +1116,27 @@ public class MemoryController extends Controller {
     @Override
     protected void formatMemory(char[] buffer, MemorySegment memory) {
       for (int i = 0, j = ADDRESS_CHARS; i < memory.myLength; i += 4, j += CHARS_PER_INT + INT_SEPARATOR) {
-        int v = memory.getInt(i);
-        buffer[j + 1] = HEX_DIGITS[(v >> 28) & 0xF];
-        buffer[j + 2] = HEX_DIGITS[(v >> 24) & 0xF];
-        buffer[j + 3] = HEX_DIGITS[(v >> 20) & 0xF];
-        buffer[j + 4] = HEX_DIGITS[(v >> 16) & 0xF];
-        buffer[j + 5] = HEX_DIGITS[(v >> 12) & 0xF];
-        buffer[j + 6] = HEX_DIGITS[(v >> 8) & 0xF];
-        buffer[j + 7] = HEX_DIGITS[(v >> 4) & 0xF];
-        buffer[j + 8] = HEX_DIGITS[(v >> 0) & 0xF];
+        if (memory.getIntKnown(i)) {
+          int v = memory.getInt(i);
+          buffer[j + 1] = HEX_DIGITS[(v >> 28) & 0xF];
+          buffer[j + 2] = HEX_DIGITS[(v >> 24) & 0xF];
+          buffer[j + 3] = HEX_DIGITS[(v >> 20) & 0xF];
+          buffer[j + 4] = HEX_DIGITS[(v >> 16) & 0xF];
+          buffer[j + 5] = HEX_DIGITS[(v >> 12) & 0xF];
+          buffer[j + 6] = HEX_DIGITS[(v >> 8) & 0xF];
+          buffer[j + 7] = HEX_DIGITS[(v >> 4) & 0xF];
+          buffer[j + 8] = HEX_DIGITS[(v >> 0) & 0xF];
+        }
+        else {
+          buffer[j + 1] = UNKNOWN_CHAR;
+          buffer[j + 2] = UNKNOWN_CHAR;
+          buffer[j + 3] = UNKNOWN_CHAR;
+          buffer[j + 4] = UNKNOWN_CHAR;
+          buffer[j + 5] = UNKNOWN_CHAR;
+          buffer[j + 6] = UNKNOWN_CHAR;
+          buffer[j + 7] = UNKNOWN_CHAR;
+          buffer[j + 8] = UNKNOWN_CHAR;
+        }
       }
     }
   }
@@ -1063,7 +1161,12 @@ public class MemoryController extends Controller {
       StringBuilder sb = new StringBuilder(50);
       for (int i = 0, j = ADDRESS_CHARS; i < memory.myLength; i += 4, j += CHARS_PER_FLOAT + FLOAT_SEPARATOR) {
         sb.setLength(0);
-        sb.append(Float.intBitsToFloat(memory.getInt(i)));
+        if (memory.getIntKnown(i)) {
+          sb.append(Float.intBitsToFloat(memory.getInt(i)));
+        }
+        else {
+          appendUnknown(sb, CHARS_PER_FLOAT);
+        }
         int count = Math.min(CHARS_PER_FLOAT, sb.length());
         sb.getChars(0, count, buffer, j + CHARS_PER_FLOAT - count + 1);
       }
@@ -1090,7 +1193,12 @@ public class MemoryController extends Controller {
       StringBuilder sb = new StringBuilder(50);
       for (int i = 0, j = ADDRESS_CHARS; i < memory.myLength; i += 8, j += CHARS_PER_DOUBLE + DOUBLE_SEPARATOR) {
         sb.setLength(0);
-        sb.append(Double.longBitsToDouble(memory.getLong(i)));
+        if (memory.getLongKnown(i)) {
+          sb.append(Double.longBitsToDouble(memory.getLong(i)));
+        }
+        else {
+          appendUnknown(sb, CHARS_PER_DOUBLE);
+        }
         int count = Math.min(CHARS_PER_DOUBLE, sb.length());
         sb.getChars(0, count, buffer, j + CHARS_PER_DOUBLE - count + 1);
       }
@@ -1104,6 +1212,7 @@ public class MemoryController extends Controller {
    * depending on the data and thus impossible to predict.
    */
   private static class TextMemoryModel implements MemoryModel {
+    private static final int UNKNOWN_LINE_LENGTH = 100;
     private static final int SCAN_SIZE = 64 * 1024;
     private static final char PLACE_HOLDER = '\u25AF'; // Unicode 'white vertical rectangle'
 
@@ -1129,6 +1238,7 @@ public class MemoryController extends Controller {
           private int done = 0;
           private boolean prevWasCarriageRet = false;
           private StringBuilder current = new StringBuilder();
+          private StringBuilder unknown = new StringBuilder();
 
           /**
            * Note, we'll re-use this same function instance to process each chunk of memory.
@@ -1138,24 +1248,44 @@ public class MemoryController extends Controller {
             // Process all the bytes in this memory chunk.
             for (int i = 0, j = data.myOffset; i < data.myLength; i++, j++) {
               // Skip any '\n' following an '\r', otherwise, '\r' is treated as a newline.
-              if (data.myData[j] == '\r') {
-                result.add(current.toString());
-                current.delete(0, current.length());
-                prevWasCarriageRet = true;
-              }
-              else {
-                if (data.myData[j] == '\n') {
-                  if (!prevWasCarriageRet) {
-                    result.add(current.toString());
-                    current.delete(0, current.length());
-                  }
+              if (!data.getByteKnown(j)) {
+                if (current.length() != 0) {
+                  result.add(current.toString());
+                  current.delete(0, current.length());
+                }
+                if (unknown.length() == UNKNOWN_LINE_LENGTH) {
+                  result.add(unknown.toString());
+                  unknown.delete(0, unknown.length());
                 }
                 else {
-                  int value = data.myData[j] & 0xFF;
-                  // Use a place holder for non-printable ASCII characters.
-                  current.append((value >= 0x7f || value < 0x20) ? PLACE_HOLDER : (char)value);
+                  unknown.append(UNKNOWN_CHAR);
                 }
                 prevWasCarriageRet = false;
+              }
+              else {
+                if (unknown.length() != 0) {
+                  result.add(unknown.toString());
+                  unknown.delete(0, unknown.length());
+                }
+                if (data.myData[j] == '\r') {
+                  result.add(current.toString());
+                  current.delete(0, current.length());
+                  prevWasCarriageRet = true;
+                }
+                else {
+                  if (data.myData[j] == '\n') {
+                    if (!prevWasCarriageRet) {
+                      result.add(current.toString());
+                      current.delete(0, current.length());
+                    }
+                  }
+                  else {
+                    int value = data.myData[j] & 0xFF;
+                    // Use a place holder for non-printable ASCII characters.
+                    current.append((value >= 0x7f || value < 0x20) ? PLACE_HOLDER : (char)value);
+                  }
+                  prevWasCarriageRet = false;
+                }
               }
             }
 
@@ -1165,13 +1295,16 @@ public class MemoryController extends Controller {
               return Futures.transform(myMemory.get(done, Math.min(myMemory.getByteCount() - done, SCAN_SIZE)), this);
             }
 
-            // All memory has been scanned, add any remaining characeters as a line and finish up.
+            // All memory has been scanned, add any remaining characters as a line and finish up.
             if (current.length() > 0) {
               result.add(current.toString());
             }
+            if (unknown.length() > 0) {
+              result.add(unknown.toString());
+            }
             return Futures.immediateFuture(result);
           }
-      });
+        });
       Futures.addCallback(lines, new FutureCallback<List<String>>() {
         @Override
         public void onSuccess(List<String> result) {
