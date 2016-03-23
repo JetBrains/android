@@ -15,12 +15,18 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.project.treeview;
 
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AndroidArtifactNode;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsdNode;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.intellij.ui.treeStructure.SimpleNode;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collections;
+import java.util.List;
+
 class TargetAndroidModuleNode extends AbstractPsdNode<PsAndroidModule> {
+  private List<AndroidArtifactNode> myChildren = Collections.emptyList();
+
   public TargetAndroidModuleNode(@NotNull AbstractPsdNode<?> parent, @NotNull PsAndroidModule module) {
     super(parent, module);
     setAutoExpandNode(true);
@@ -28,6 +34,10 @@ class TargetAndroidModuleNode extends AbstractPsdNode<PsAndroidModule> {
 
   @Override
   public SimpleNode[] getChildren() {
-    return NO_CHILDREN;
+    return myChildren.toArray(new SimpleNode[myChildren.size()]);
+  }
+
+  public void setChildren(@NotNull List<AndroidArtifactNode> children) {
+    myChildren = children;
   }
 }
