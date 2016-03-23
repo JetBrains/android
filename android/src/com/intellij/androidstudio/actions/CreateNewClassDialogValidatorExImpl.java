@@ -89,12 +89,6 @@ public class CreateNewClassDialogValidatorExImpl implements CreateNewClassDialog
     return INVALID_PACKAGE_MESSAGE;
   }
 
-  @NotNull
-  @Override
-  public String getAbstractAndFinalErrorText(@Nullable String inputString) {
-    return INVALID_MODIFIER_COMBINATION_MESSAGE;
-  }
-
   @Override
   public boolean checkInput(String inputString) {
     String name = inputString.trim();

@@ -35,6 +35,11 @@ public class EditorTextFieldFixture extends AbstractJComponentFixture<EditorText
   }
 
   @NotNull
+  public static EditorTextFieldFixture findByLabel(@NotNull Robot robot, @NotNull Container target, @NotNull String label) {
+    return new EditorTextFieldFixture(robot, robot.finder().findByLabel(target, label, EditorTextField.class));
+  }
+
+  @NotNull
   @Override
   protected EditorTextFieldDriver createDriver(@NotNull Robot robot) {
     return new EditorTextFieldDriver(robot);
