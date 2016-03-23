@@ -411,7 +411,10 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       .setDebug(debug)
       .build();
 
-    ProcessHandler processHandler = info == null ? null : info.getProcessHandler();
+    ProcessHandler processHandler = null;
+    if (info != null && info.getExecutorId().equals(executor.getId())) {
+      processHandler = info.getProcessHandler();
+    }
 
     ApkProvider apkProvider = getApkProvider(facet);
     LaunchTasksProviderFactory providerFactory =
