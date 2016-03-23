@@ -34,6 +34,7 @@ public class UsageTrackerAnalyticsImpl extends UsageTracker {
   private static final String GLOGS_CATEGORY_VERSIONS = "gradleVersions";
   private static final String GLOGS_CATEGORY_LEGACY_IDEA_ANDROID_PROJECT = "legacyIdeaAndroidProject";
   private static final String GLOGS_CATEGORY_INSTANT_RUN = "irstats2";
+  private static final String GLOGS_CATEGORY_INSTANT_RUN_TIMINGS = "irtimings";
 
   private final UsageUploader myUploader;
 
@@ -151,6 +152,15 @@ public class UsageTrackerAnalyticsImpl extends UsageTracker {
     }
 
     myUploader.trackEvent(GLOGS_CATEGORY_INSTANT_RUN, kv);
+  }
+
+  @Override
+  public void trackInstantRunTimings(@NotNull Map<String, String> kv) {
+    if (!trackingEnabled()) {
+      return;
+    }
+
+    myUploader.trackEvent(GLOGS_CATEGORY_INSTANT_RUN_TIMINGS, kv);
   }
 
   @NotNull

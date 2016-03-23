@@ -20,6 +20,7 @@ import com.google.common.collect.Maps;
 import com.intellij.concurrency.JobScheduler;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
@@ -45,6 +46,18 @@ public class InstantRunStatsService {
    */
   private UUID mySessionId;
 
+  /**
+   * Time (in ms) at which the build was started. The build & deploy is considered done when {@link #notifyDeployType(DeployType)} is
+   * invoked. It is possible for the deploy type notification to never show up (e.g. build failures).
+   *
+   * NOTE: the combination of a single variable for build start time, and this service being scoped at a project level could cause
+   * conflicts if multiple launches from multiple modules are performed in parallel
+   */
+  private long myBuildStartTime;
+
+  /** A map from the deploy type to a list of timings for each deployment of that type. */
+  private StringBuilder[] myDeployTimesByType = new StringBuilder[DeployType.values().length];
+
   private int myDeployStartedCount;
   private int[] myDeployTypeCounts = new int[DeployType.values().length];
 
@@ -63,22 +76,41 @@ public class InstantRunStatsService {
     }, UPLOAD_INTERVAL_MINUTES, UPLOAD_INTERVAL_MINUTES, TimeUnit.MINUTES);
   }
 
+  public void notifyBuildStarted() {
+    synchronized (LOCK) {
+      myBuildStartTime = System.currentTimeMillis();
+    }
+  }
+
   public void notifyDeployStarted() {
     synchronized (LOCK) {
       myDeployStartedCount++;
     }
   }
 
-
   public void notifyDeployType(@NotNull DeployType type) {
     synchronized (LOCK) {
+      long buildAndDeployTime = System.currentTimeMillis() - myBuildStartTime;
+
       if (type == DeployType.FULLAPK || type == DeployType.LEGACY || type == DeployType.SPLITAPK) {
         // We want to assign a session id for all launches in order to compute the number of hot/coldswaps between each APK push
         // Installing an APK starts a new session.
         resetSession();
       }
 
-      myDeployTypeCounts[type.ordinal()]++;
+      int ordinal = type.ordinal();
+      myDeployTypeCounts[ordinal]++;
+
+      // append to the list of deploy timings
+      StringBuilder timings = myDeployTimesByType[ordinal];
+      if (timings == null) {
+        timings = new StringBuilder(256);
+      }
+      else if (timings.length() > 0) {
+        timings.append("a"); // a comma gets escaped by url escaper into 3 chars, so we use a single ascii char in lieu of the comma
+      }
+      timings.append(buildAndDeployTime/1000); // send time in seconds, also see param indicating time unit
+      myDeployTimesByType[ordinal] = timings;
     }
   }
 
@@ -102,6 +134,7 @@ public class InstantRunStatsService {
   private void uploadStats() {
     int deployCount;
     int[] deployTypeCount = new int[myDeployTypeCounts.length];
+    String[] deployTimings = new String[myDeployTimesByType.length];
     int restartCount;
     String sessionId;
 
@@ -119,6 +152,15 @@ public class InstantRunStatsService {
       for (int i = 0; i < myDeployTypeCounts.length; i++) {
         myDeployTypeCounts[i] = 0;
       }
+
+      for (int i = 0; i < myDeployTimesByType.length; i++) {
+        if (myDeployTimesByType[i] == null) {
+          continue;
+        }
+
+        deployTimings[i] = myDeployTimesByType[i].toString();
+        myDeployTimesByType[i].setLength(0);
+      }
       sessionId = mySessionId.toString();
     }
 
@@ -131,5 +173,20 @@ public class InstantRunStatsService {
     }
 
     UsageTracker.getInstance().trackInstantRunStats(kv);
+
+    kv = Maps.newHashMap();
+    for (DeployType type : DeployType.values()) {
+      String deployTiming = deployTimings[type.ordinal()];
+      if (!StringUtil.isEmpty(deployTiming)) {
+        kv.put(type.toString(), deployTiming);
+      }
+    }
+
+    if (kv.isEmpty()) {
+      return;
+    }
+
+    kv.put("timeUnit", "seconds");
+    UsageTracker.getInstance().trackInstantRunTimings(kv);
   }
 }
