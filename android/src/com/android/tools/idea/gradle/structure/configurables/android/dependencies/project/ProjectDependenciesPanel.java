@@ -41,7 +41,7 @@ class ProjectDependenciesPanel extends AbstractMainPanel {
     super(project, context, extraTopModules);
 
     myDeclaredDependenciesPanel = new DeclaredDependenciesPanel(project, context);
-    myTargetModulesPanel = new TargetModulesPanel(project);
+    myTargetModulesPanel = new TargetModulesPanel(project, context);
 
     myDeclaredDependenciesPanel.add(new DeclaredDependenciesPanel.SelectionListener() {
       @Override

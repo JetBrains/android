@@ -24,10 +24,10 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Collections;
 import java.util.List;
 
-class TargetAndroidModuleNode extends AbstractPsdNode<PsAndroidModule> {
+public class TargetAndroidModuleNode extends AbstractPsdNode<PsAndroidModule> {
   private List<AndroidArtifactNode> myChildren = Collections.emptyList();
 
-  public TargetAndroidModuleNode(@NotNull AbstractPsdNode<?> parent, @NotNull PsAndroidModule module) {
+  TargetAndroidModuleNode(@NotNull AbstractPsdNode<?> parent, @NotNull PsAndroidModule module) {
     super(parent, module);
     setAutoExpandNode(true);
   }
@@ -37,7 +37,7 @@ class TargetAndroidModuleNode extends AbstractPsdNode<PsAndroidModule> {
     return myChildren.toArray(new SimpleNode[myChildren.size()]);
   }
 
-  public void setChildren(@NotNull List<AndroidArtifactNode> children) {
+  void setChildren(@NotNull List<AndroidArtifactNode> children) {
     myChildren = children;
   }
 }
