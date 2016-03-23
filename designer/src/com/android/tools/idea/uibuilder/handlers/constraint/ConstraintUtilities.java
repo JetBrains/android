@@ -19,12 +19,14 @@ import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
+import com.android.tools.idea.uibuilder.model.Insets;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.sherpa.drawing.decorator.WidgetDecorator;
 import com.android.tools.sherpa.structure.WidgetsScene;
 import com.google.tnt.solver.widgets.ConstraintAnchor;
 import com.google.tnt.solver.widgets.ConstraintWidget;
+import com.google.tnt.solver.widgets.ConstraintWidgetContainer;
 import com.google.tnt.solver.widgets.WidgetContainer;
 import com.intellij.openapi.projectRoots.Sdk;
 
@@ -274,7 +276,7 @@ public class ConstraintUtilities {
     resetAnchor(component, anchor.getType());
     String attribute = getConnectionAttribute(anchor, anchor.getTarget());
     String marginAttribute = getConnectionAttributeMargin(anchor);
-    if (anchor.isConnected()) {
+    if (anchor.isConnected() && attribute != null) {
       ConstraintWidget target = anchor.getTarget().getOwner();
       WidgetDecorator decorator = (WidgetDecorator)target.getCompanionWidget();
       NlComponent targetComponent = (NlComponent)decorator.getCompanionObject();
@@ -494,7 +496,14 @@ public class ConstraintUtilities {
     }
     widget.setDebugName(component.getId());
     WidgetsScene scene = constraintModel.getScene();
-    widget.setDimension(constraintModel.pxToDp(component.w), constraintModel.pxToDp(component.h));
+    Insets padding = component.getPadding();
+    if (widget instanceof ConstraintWidgetContainer) {
+      widget.setDimension(constraintModel.pxToDp(component.w - padding.width()),
+                          constraintModel.pxToDp(component.h - padding.height()));
+    } else {
+      widget.setDimension(constraintModel.pxToDp(component.w),
+                          constraintModel.pxToDp(component.h));
+    }
     NlComponent parent = component.getParent();
     NlModel model = component.getModel();
     if (parent != null) {
@@ -532,11 +541,16 @@ public class ConstraintUtilities {
 
     int x = constraintModel.pxToDp(component.x);
     int y = constraintModel.pxToDp(component.y);
+    if (widget instanceof ConstraintWidgetContainer) {
+      x += constraintModel.pxToDp(padding.left);
+      y += constraintModel.pxToDp(padding.top);
+    }
     if (widget.getParent() instanceof WidgetContainer) {
       WidgetContainer parentContainer = (WidgetContainer)widget.getParent();
       NlComponent parentComponent = (NlComponent)((WidgetDecorator)parentContainer.getCompanionWidget()).getCompanionObject();
-      x -= constraintModel.pxToDp(parentComponent.x);
-      y -= constraintModel.pxToDp(parentComponent.y);
+      Insets parentPadding = parentComponent.getPadding();
+      x -= constraintModel.pxToDp(parentComponent.x + parentPadding.left);
+      y -= constraintModel.pxToDp(parentComponent.y + parentPadding.top);
     }
     widget.setOrigin(x, y);
     widget.setBaselineDistance(constraintModel.pxToDp(component.getBaseline()));
