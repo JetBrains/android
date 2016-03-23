@@ -58,6 +58,12 @@ public class InstantRunStatsService {
   /** A map from the deploy type to a list of timings for each deployment of that type. */
   private StringBuilder[] myDeployTimesByType = new StringBuilder[DeployType.values().length];
 
+  /**
+   * Keeps track of the length of the deploy timings so as to perform an early upload (before {@link #UPLOAD_INTERVAL_MINUTES} have
+   * elapsed) if the constructed URL looks like it may exceed {@link UsageTracker#MAX_URL_LENGTH}.
+   */
+  private int myDeployTimesLength = 0;
+
   private int myDeployStartedCount;
   private int[] myDeployTypeCounts = new int[DeployType.values().length];
 
@@ -97,6 +103,9 @@ public class InstantRunStatsService {
         // Installing an APK starts a new session.
         resetSession();
       }
+      else if (myDeployTimesLength > UsageTracker.MAX_URL_LENGTH - 50) {
+        uploadStats();
+      }
 
       int ordinal = type.ordinal();
       myDeployTypeCounts[ordinal]++;
@@ -108,8 +117,13 @@ public class InstantRunStatsService {
       }
       else if (timings.length() > 0) {
         timings.append("a"); // a comma gets escaped by url escaper into 3 chars, so we use a single ascii char in lieu of the comma
+        myDeployTimesLength++;
       }
-      timings.append(buildAndDeployTime/1000); // send time in seconds, also see param indicating time unit
+      String timeInSeconds = Long.toString(buildAndDeployTime / 1000); // send time in seconds, also see param indicating time unit
+
+      timings.append(timeInSeconds);
+      myDeployTimesLength += timeInSeconds.length();
+
       myDeployTimesByType[ordinal] = timings;
     }
   }
@@ -160,6 +174,7 @@ public class InstantRunStatsService {
 
         deployTimings[i] = myDeployTimesByType[i].toString();
         myDeployTimesByType[i].setLength(0);
+        myDeployTimesLength = 0;
       }
       sessionId = mySessionId.toString();
     }
