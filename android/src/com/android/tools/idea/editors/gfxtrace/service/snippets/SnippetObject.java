@@ -16,12 +16,10 @@
 package com.android.tools.idea.editors.gfxtrace.service.snippets;
 
 import com.android.tools.idea.editors.gfxtrace.service.atom.Atom;
-import com.android.tools.idea.editors.gfxtrace.service.atom.DynamicAtom;
-import com.android.tools.idea.editors.gfxtrace.service.path.Path;
 import com.android.tools.rpclib.binary.BinaryObject;
 import com.android.tools.rpclib.schema.Dynamic;
 import com.android.tools.rpclib.schema.Field;
-import sun.reflect.FieldInfo;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Map;
@@ -227,7 +225,8 @@ public class SnippetObject {
    * @param paramIndex the index of the parameter in the atom.
    * @return a new snippet object for the parameter value.
    */
-  public static SnippetObject param(DynamicAtom atom, int paramIndex) {
+  @NotNull
+  public static SnippetObject param(@NotNull Atom atom, int paramIndex) {
     final KindredSnippets[] snippets = KindredSnippets.fromMetadata(atom.unwrap().klass().entity().getMetadata());
     final Field info = atom.getFieldInfo(paramIndex);
     // The parameter name in the schema had the first letter capitalised (presumably to make it public in Go).

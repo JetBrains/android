@@ -17,6 +17,7 @@ package com.android.tools.idea.editors.gfxtrace.controllers;
 
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
+import com.android.tools.idea.editors.gfxtrace.actions.EditFieldAction;
 import com.android.tools.idea.editors.gfxtrace.models.AtomStream;
 import com.android.tools.idea.editors.gfxtrace.renderers.Render;
 import com.android.tools.idea.editors.gfxtrace.renderers.RenderUtils;
@@ -60,7 +61,8 @@ import javax.swing.tree.TreeCellRenderer;
 import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.Enumeration;
+import java.util.*;
+import java.util.List;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -102,6 +104,11 @@ public class AtomController extends TreeController implements AtomStream.Listene
       }
     }
 
+    @NotNull
+    public Path getFieldPath(@NotNull AtomsPath atomsPath, int fieldIndex) {
+      return atomsPath.index(index).field(atom.getFieldInfo(fieldIndex).getName());
+    }
+
     /**
      * Determines whether the given parameter is followable. Will invoke onUpdate if it is and {@link #getFollowPath(int)} changes from
      * returning an empty path to returning a non-empty path.
@@ -114,7 +121,7 @@ public class AtomController extends TreeController implements AtomStream.Listene
         if (parameter >= 0 && parameter < followPaths.length && followPaths[parameter] == null) {
           followPaths[parameter] = Path.EMPTY;
 
-          Path path = atomsPath.index(index).field(atom.getFieldInfo(parameter).getName());
+          Path path = getFieldPath(atomsPath, parameter);
           Futures.addCallback(client.follow(path), new FutureCallback<Path>() {
             @Override
             public void onSuccess(Path result) {
@@ -138,6 +145,28 @@ public class AtomController extends TreeController implements AtomStream.Listene
     @Override
     public void render(@NotNull SimpleColoredComponent component, @NotNull SimpleTextAttributes attributes) {
       Render.render(this, component, attributes);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+      Node node = (Node)o;
+      if (index != node.index) return false;
+      if (atom != null ? !atom.equals(node.atom) : node.atom != null) return false;
+      return true;
+    }
+
+    @Override
+    public int hashCode() {
+      int result = (int)(index ^ (index >>> 32));
+      result = 31 * result + (atom != null ? atom.hashCode() : 0);
+      return result;
+    }
+
+    @Override
+    public String toString() {
+      return "Node{atom=" + atom + ", index=" + index + '}';
     }
   }
 
@@ -175,6 +204,28 @@ public class AtomController extends TreeController implements AtomStream.Listene
     @Override
     public void render(@NotNull SimpleColoredComponent component, @NotNull SimpleTextAttributes attributes) {
       Render.render(this, component, attributes);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+      Group group1 = (Group)o;
+      if (indexOfLastLeaf != group1.indexOfLastLeaf) return false;
+      if (group != null ? !group.equals(group1.group) : group1.group != null) return false;
+      return true;
+    }
+
+    @Override
+    public int hashCode() {
+      int result = group != null ? group.hashCode() : 0;
+      result = 31 * result + (int)(indexOfLastLeaf ^ (indexOfLastLeaf >>> 32));
+      return result;
+    }
+
+    @Override
+    public String toString() {
+      return "Group{group=" + group + ", indexOfLastLeaf=" + indexOfLastLeaf + '}';
     }
   }
 
@@ -240,6 +291,7 @@ public class AtomController extends TreeController implements AtomStream.Listene
       private Node lastHoverNode;
       private Future<?> lastScheduledFuture = Futures.immediateFuture(null);
       private Balloon lastShownBalloon;
+      private JPopupMenu popupMenu = new JPopupMenu();
 
       @Override
       public void mouseEntered(MouseEvent event) {
@@ -254,6 +306,30 @@ public class AtomController extends TreeController implements AtomStream.Listene
       @Override
       public void mouseMoved(MouseEvent event) {
         updateHovering(event.getX(), event.getY());
+      }
+
+      @Override
+      public void mousePressed(MouseEvent e) {
+        if (e.isPopupTrigger()) {
+          TreePath path = myTree.getPathForLocation(e.getX(), e.getY());
+          if (path != null) {
+            DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode)path.getLastPathComponent();
+            Object userObject = treeNode.getUserObject();
+            if (userObject instanceof Node) {
+              Rectangle bounds = myTree.getPathBounds(path);
+              assert bounds != null; // can't be null, as our path is valid
+              int fieldIndex = getNodeFieldIndex(treeNode, e.getX() - bounds.x);
+              if (fieldIndex >= 0) {
+                EditFieldAction editFieldAction = EditFieldAction.getEditActionFor((Node)userObject, fieldIndex, myEditor);
+                if (editFieldAction != null) {
+                  popupMenu.removeAll();
+                  popupMenu.add(editFieldAction);
+                  popupMenu.show(e.getComponent(), e.getX(), e.getY());
+                }
+              }
+            }
+          }
+        }
       }
 
       @Override
@@ -305,9 +381,7 @@ public class AtomController extends TreeController implements AtomStream.Listene
           // Check if hovering an atom parameter.
           int index = -1;
           if (userObject instanceof Node) {
-            ColoredTreeCellRenderer renderer = (ColoredTreeCellRenderer)myTree.getCellRenderer();
-            renderer.getTreeCellRendererComponent(myTree, node, false, false, false, 0, false);
-            index = Render.getAtomParameterIndex(renderer, x);
+            index = getNodeFieldIndex(node, x);
           }
           if (index >= 0) {
             setHoveringNode((Node)userObject, index);
@@ -316,6 +390,12 @@ public class AtomController extends TreeController implements AtomStream.Listene
             setHoveringNode(null, 0);
           }
         }
+      }
+
+      private int getNodeFieldIndex(@NotNull DefaultMutableTreeNode node, int x) {
+        ColoredTreeCellRenderer renderer = (ColoredTreeCellRenderer)myTree.getCellRenderer();
+        renderer.getTreeCellRendererComponent(myTree, node, false, false, false, 0, false);
+        return Render.getAtomParameterIndex(renderer, x);
       }
 
       private void clearHovering() {
@@ -634,8 +714,56 @@ public class AtomController extends TreeController implements AtomStream.Listene
     if (atoms.isLoaded()) {
       final DefaultMutableTreeNode root = new DefaultMutableTreeNode("Stream", true);
       atoms.getHierarchy().addChildren(root, atoms.getAtoms());
+
+      Enumeration<TreePath> treeState = myTree.getExpandedDescendants(new TreePath(myTree.getModel().getRoot()));
       setRoot(root);
+      if (treeState != null) {
+        while (treeState.hasMoreElements()) {
+          myTree.expandPath(getTreePathInTree(treeState.nextElement(), myTree));
+        }
+      }
     }
+  }
+
+  @Nullable("if this path can not be found in this tree")
+  public static TreePath getTreePathInTree(TreePath treePath, JTree tree) {
+    Object root = tree.getModel().getRoot();
+    Object[] path = treePath.getPath();
+    List<Object> newPath = new ArrayList<Object>();
+    Object found = null;
+    for (Object node : path) {
+      if (found == null) {
+        if (treeNodeEquals(root, node)) {
+          found = root;
+        }
+        else {
+          return null;
+        }
+      }
+      else {
+        Object foundChild = null;
+        for (int i = 0; i < tree.getModel().getChildCount(found); i++) {
+          Object child = tree.getModel().getChild(found, i);
+          if (treeNodeEquals(node, child)) {
+            foundChild = child;
+            break;
+          }
+        }
+        if (foundChild == null) {
+          return null;
+        }
+        found = foundChild;
+      }
+      newPath.add(found);
+    }
+    return new TreePath(newPath.toArray());
+  }
+
+  public static boolean treeNodeEquals(Object a, Object b) {
+    if (a instanceof DefaultMutableTreeNode && b instanceof DefaultMutableTreeNode) {
+      return Objects.equal(((DefaultMutableTreeNode)a).getUserObject(), ((DefaultMutableTreeNode)b).getUserObject());
+    }
+    return Objects.equal(a, b);
   }
 
   @Override
