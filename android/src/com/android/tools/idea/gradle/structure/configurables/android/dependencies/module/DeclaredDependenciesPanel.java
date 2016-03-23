@@ -51,6 +51,8 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel implem
   DeclaredDependenciesPanel(@NotNull PsAndroidModule module, @NotNull PsContext context) {
     super("Declared Dependencies", context, module.getParent(), module);
 
+    getContentsPanel().add(createActionsPanel(), BorderLayout.NORTH);
+
     myDependenciesTableModel = new DeclaredDependenciesTableModel(module);
     myDependenciesTable = new TableView<PsAndroidDependency>(myDependenciesTableModel);
 
