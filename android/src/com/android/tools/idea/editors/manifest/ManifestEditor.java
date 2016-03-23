@@ -18,6 +18,7 @@ package com.android.tools.idea.editors.manifest;
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
+import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.android.tools.idea.model.MergedManifest;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.ide.structureView.StructureViewBuilder;
@@ -77,6 +78,13 @@ public class ManifestEditor extends UserDataHolderBase implements FileEditor {
       psiChange(event);
     }
   };
+  private final BuildVariantView.BuildVariantSelectionChangeListener buildVariantListener =
+    new BuildVariantView.BuildVariantSelectionChangeListener() {
+      @Override
+      public void buildVariantsConfigChanged() {
+        reload();
+      }
+    };
 
   ManifestEditor(@NotNull AndroidFacet facet, @NotNull VirtualFile manifestFile) {
     myFacet = facet;
@@ -148,10 +156,10 @@ public class ManifestEditor extends UserDataHolderBase implements FileEditor {
   public void selectNotify() {
     mySelected = true;
 
+    final Project thisProject = myFacet.getModule().getProject();
     if (myManifestPanel == null) {
       myManifestPanel = new ManifestPanel(myFacet);
       myLazyContainer.add(myManifestPanel);
-      final Project thisProject = myFacet.getModule().getProject();
       // Parts of the merged manifest come from the gradle model, so we want to know
       // if that changes so we can get the latest values.
       GradleSyncState.subscribe(thisProject, new GradleSyncListener.Adapter() {
@@ -171,14 +179,17 @@ public class ManifestEditor extends UserDataHolderBase implements FileEditor {
       }, this);
     }
 
-    PsiManager.getInstance(myFacet.getModule().getProject()).addPsiTreeChangeListener(myPsiChangeListener);
+    PsiManager.getInstance(thisProject).addPsiTreeChangeListener(myPsiChangeListener);
+    BuildVariantView.getInstance(thisProject).addListener(buildVariantListener);
     reload();
   }
 
   @Override
   public void deselectNotify() {
     mySelected = false;
-    PsiManager.getInstance(myFacet.getModule().getProject()).removePsiTreeChangeListener(myPsiChangeListener);
+    final Project thisProject = myFacet.getModule().getProject();
+    PsiManager.getInstance(thisProject).removePsiTreeChangeListener(myPsiChangeListener);
+    BuildVariantView.getInstance(thisProject).removeListener(buildVariantListener);
   }
 
   @Override

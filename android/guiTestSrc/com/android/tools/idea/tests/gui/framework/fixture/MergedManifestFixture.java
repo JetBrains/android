@@ -16,23 +16,78 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.tools.idea.editors.manifest.ManifestPanel;
+import com.intellij.ui.ColorUtil;
 import com.intellij.ui.treeStructure.Tree;
+import org.fest.swing.annotation.RunsInEDT;
+import org.fest.swing.core.MouseButton;
 import org.fest.swing.core.Robot;
+import org.fest.swing.edt.GuiActionRunner;
+import org.fest.swing.edt.GuiTask;
+import org.fest.swing.fixture.JTextComponentFixture;
 import org.fest.swing.fixture.JTreeFixture;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
+import javax.swing.tree.TreePath;
+import java.awt.*;
+
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
 
 public class MergedManifestFixture extends ComponentFixture<MergedManifestFixture, ManifestPanel>{
 
   private @NotNull JTreeFixture myTree;
+  private @NotNull JTextComponentFixture myInfoPane;
 
   public MergedManifestFixture(@NotNull Robot robot, @NotNull ManifestPanel manifestComponent) {
     super(MergedManifestFixture.class, robot, manifestComponent);
     myTree = new JTreeFixture(robot(), robot().finder()
       .findByType(this.target(), Tree.class, true));
+    myInfoPane = new JTextComponentFixture(robot(), robot().finder()
+      .findByType(this.target(), JEditorPane.class, true));
   }
 
   @NotNull
   public JTreeFixture getTree() {
     return myTree;
+  }
+
+  @NotNull
+  public JTextComponentFixture getInfoPane() {
+    return myInfoPane;
+  }
+
+  public void clickLinkAtOffset(int offset) {
+    try {
+      Rectangle rect = myInfoPane.target().modelToView(offset);
+      robot().click(myInfoPane.target(), rect.getLocation(), MouseButton.LEFT_BUTTON, 1);
+    }
+    catch (Exception ex) {
+      throw new AssertionError(ex);
+    }
+  }
+
+  @Nullable
+  public Color getSelectedNodeColor() {
+    Tree tree = (Tree)myTree.target();
+    return tree.isFileColorsEnabled() ? tree.getFileColorForPath(tree.getSelectionPath()) : null;
+  }
+
+  @RunsInEDT
+  public void checkAllRowsColored() {
+    GuiActionRunner.execute(new GuiTask() {
+      @Override
+      protected void executeInEDT() {
+        Tree tree = (Tree)myTree.target();
+        for (int row = 0; row < tree.getRowCount(); row++) {
+          TreePath path = tree.getPathForRow(row);
+          Color color = tree.getFileColorForPath(path);
+          assertNotNull(color);
+          assertNotEquals(0, color.getAlpha());
+          assertNotEquals(Color.WHITE, ColorUtil.withAlpha(color, 1));
+        }
+      }
+    });
   }
 }
