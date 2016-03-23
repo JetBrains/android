@@ -24,7 +24,17 @@ import com.android.tools.rpclib.schema.*;
 
 import java.io.IOException;
 
-public final class TypedMemoryPath implements BinaryObject {
+public final class TypedMemoryPath extends Path {
+  @Override
+  public StringBuilder stringPath(StringBuilder builder) {
+    return myRange.stringPath(builder).append(".Type<").append(myType).append(">");
+  }
+
+  @Override
+  public Path getParent() {
+    return myRange.getParent();
+  }
+
   //<<<Start:Java.ClassBody:1>>>
   private MemoryRangePath myRange;
   private MemoryType myType;
