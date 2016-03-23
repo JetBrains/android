@@ -339,12 +339,7 @@ public final class GuiTests {
     Wait.minutes(2).expecting("'Welcome' frame to show up").until(new Wait.Objective() {
       @Override
       public boolean isMet() {
-        for (Frame frame : Frame.getFrames()) {
-          if (frame == WelcomeFrame.getInstance() && frame.isShowing()) {
-            return true;
-          }
-        }
-        return false;
+        return ((Component)WelcomeFrame.getInstance()).isShowing();
       }
     });
 
