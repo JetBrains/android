@@ -64,13 +64,7 @@ public class LayoutPreviewFixture extends ToolWindowFixture implements LayoutFix
   public ConfigurationToolbarFixture getToolbar() {
     AndroidLayoutPreviewToolWindowForm form = getContent();
     ConfigurationToolBar toolbar =
-      GuiTests.waitUntilFound(myRobot, form.getContentPanel(), new GenericTypeMatcher<ConfigurationToolBar>(ConfigurationToolBar.class) {
-        @Override
-        protected boolean isMatching(@NotNull ConfigurationToolBar component) {
-          return component.isShowing();
-        }
-      });
-    assertNotNull(toolbar);
+      GuiTests.waitUntilShowing(myRobot, form.getContentPanel(), GuiTests.matcherForType(ConfigurationToolBar.class));
     return new ConfigurationToolbarFixture(myRobot, this, form, toolbar);
   }
 

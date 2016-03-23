@@ -17,6 +17,7 @@ package com.android.tools.idea.tests.gui.editors.translations;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorNotificationPanelFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.TranslationsEditorFixture;
@@ -34,7 +35,6 @@ import javax.swing.*;
 import java.io.IOException;
 import java.util.List;
 
-import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilFound;
 import static com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.Tab.EDITOR;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.swing.edt.GuiActionRunner.execute;
@@ -60,10 +60,10 @@ public class TranslationsEditorTest {
     notificationPanel.performAction("Open editor");
 
     // Wait for the translations editor table to show up, and the table to be initialized
-    waitUntilFound(guiTest.robot(), new GenericTypeMatcher<JTable>(JTable.class) {
+    GuiTests.waitUntilShowing(guiTest.robot(), new GenericTypeMatcher<JTable>(JTable.class) {
       @Override
       protected boolean isMatching(@NotNull JTable table) {
-        return table.isShowing() && table.getModel() != null && table.getModel().getColumnCount() > 0;
+        return table.getModel() != null && table.getModel().getColumnCount() > 0;
       }
     });
 

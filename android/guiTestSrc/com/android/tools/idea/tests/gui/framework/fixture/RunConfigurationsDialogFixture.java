@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.matcher.ClassNameMatcher;
 import com.intellij.execution.configurations.ConfigurationType;
 import com.intellij.ui.components.JBList;
@@ -37,7 +38,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 
-import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilFound;
 import static org.fest.reflect.core.Reflection.method;
 
 /**
@@ -51,10 +51,10 @@ public class RunConfigurationsDialogFixture extends ComponentFixture<RunConfigur
 
   @NotNull
   public static RunConfigurationsDialogFixture find(@NotNull Robot robot) {
-    JDialog frame = waitUntilFound(robot, new GenericTypeMatcher<JDialog>(JDialog.class) {
+    JDialog frame = GuiTests.waitUntilShowing(robot, new GenericTypeMatcher<JDialog>(JDialog.class) {
       @Override
       protected boolean isMatching(@NotNull JDialog dialog) {
-        return "Run/Debug Configurations".equals(dialog.getTitle()) && dialog.isShowing();
+        return "Run/Debug Configurations".equals(dialog.getTitle());
       }
     });
     return new RunConfigurationsDialogFixture(robot, frame);
