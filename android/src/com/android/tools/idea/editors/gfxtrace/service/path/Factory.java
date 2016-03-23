@@ -33,6 +33,7 @@ public final class Factory {
     ImageInfoPath.register();
     MapIndexPath.register();
     MemoryRangePath.register();
+    MemoryTypePath.register();
     MeshPathOptions.register();
     MeshPath.register();
     ReportPath.register();
@@ -42,6 +43,7 @@ public final class Factory {
     StatePath.register();
     ThumbnailPath.register();
     TimingInfoPath.register();
+    TypedMemoryPath.register();
     VertexStreamDataPath.register();
     //<<<End:Java.FactoryBody:2>>>
   }
