@@ -678,6 +678,16 @@ public final class GuiTests {
     robot.waitForIdle();
   }
 
+  @NotNull
+  public static <T extends Component> GenericTypeMatcher<T> matcherForType(final Class<T> type) {
+    return new GenericTypeMatcher<T>(type) {
+      @Override
+      protected boolean isMatching(@NotNull T component) {
+        return true;
+      }
+    };
+  }
+
   private static class MyProjectManagerListener extends ProjectManagerAdapter {
     boolean myActive;
     boolean myNotified;

@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.layout;
 
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.intellij.android.designer.designSurface.AndroidDesignerEditorPanel;
 import com.intellij.designer.model.Property;
 import com.intellij.designer.propertyTable.PropertyTable;
 import com.intellij.designer.propertyTable.PropertyTablePanel;
-import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -44,12 +44,7 @@ public class PropertySheetFixture {
     myEditorFixture = editorFixture;
     myPanel = panel;
 
-    myPropertyTablePanel = waitUntilFound(myRobot, new GenericTypeMatcher<PropertyTablePanel>(PropertyTablePanel.class) {
-      @Override
-      protected boolean isMatching(PropertyTablePanel component) {
-        return true;
-      }
-    });
+    myPropertyTablePanel = waitUntilFound(myRobot, GuiTests.matcherForType(PropertyTablePanel.class));
   }
 
   @Nullable
