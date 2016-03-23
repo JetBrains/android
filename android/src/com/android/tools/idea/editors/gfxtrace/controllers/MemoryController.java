@@ -24,7 +24,6 @@ import com.android.tools.idea.editors.gfxtrace.service.path.*;
 import com.android.tools.rpclib.rpccore.Rpc;
 import com.android.tools.rpclib.rpccore.RpcException;
 import com.google.common.base.Function;
-import com.google.common.base.Objects;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -133,13 +132,19 @@ public class MemoryController extends Controller {
       else if (size == 4) {
         return DataType.Ints;
       }
-      // TODO (anton) I think we need DataType.Long;
+      else if (size == 8) {
+        return DataType.Longs;
+      }
     }
     else if (size == 1 && kind.equals(MemoryKind.Char)) {
       return DataType.Text;
     }
-    else if (size == 4 && kind.equals(MemoryKind.Address)) {
-      return DataType.Ints;
+    else if (kind.equals(MemoryKind.Address)) {
+      if (size == 4) {
+        return DataType.Ints;
+      } else if (size == 8) {
+        return DataType.Longs;
+      }
     }
     else if (kind.equals(MemoryKind.Float)) {
       if (size == 4) {
@@ -231,6 +236,11 @@ public class MemoryController extends Controller {
       @Override
       public MemoryModel getMemoryModel(MemoryDataModel memory) {
         return new IntsMemoryModel(memory);
+      }
+    }, Longs() {
+      @Override
+      public MemoryModel getMemoryModel(MemoryDataModel memory) {
+        return new LongsMemoryModel(memory);
       }
     }, Floats() {
       @Override
@@ -1192,6 +1202,65 @@ public class MemoryController extends Controller {
           buffer[j + 6] = UNKNOWN_CHAR;
           buffer[j + 7] = UNKNOWN_CHAR;
           buffer[j + 8] = UNKNOWN_CHAR;
+        }
+      }
+    }
+  }
+
+  private static class LongsMemoryModel extends CharBufferMemoryModel {
+    private static final int LONGS_PER_ROW = BYTES_PER_ROW / 8;
+    private static final int CHARS_PER_LONG = 16; // 16 hex chars per int
+
+    private static final int LONG_SEPARATOR = 1;
+
+    private static final int LONG_CHARS = (CHARS_PER_LONG + LONG_SEPARATOR) * LONGS_PER_ROW;
+    private static final int CHARS_PER_ROW = ADDRESS_CHARS + LONG_CHARS;
+
+    private static final Range<Integer> LONGS_RANGE = new Range<Integer>(ADDRESS_CHARS + LONG_SEPARATOR, ADDRESS_CHARS + LONG_CHARS);
+
+    public LongsMemoryModel(MemoryDataModel data) {
+      super(data.align(8), CHARS_PER_ROW, LONGS_RANGE);
+    }
+
+    @Override
+    protected void formatMemory(char[] buffer, MemorySegment memory) {
+      for (int i = 0, j = ADDRESS_CHARS; i + 7 < memory.myLength; i += 8, j += CHARS_PER_LONG + LONG_SEPARATOR) {
+        if (memory.getLongKnown(i)) {
+          long v = memory.getLong(i);
+          buffer[j + 1] = HEX_DIGITS[(int)((v >> 60) & 0xF)];
+          buffer[j + 2] = HEX_DIGITS[(int)((v >> 56) & 0xF)];
+          buffer[j + 3] = HEX_DIGITS[(int)((v >> 52) & 0xF)];
+          buffer[j + 4] = HEX_DIGITS[(int)((v >> 48) & 0xF)];
+          buffer[j + 5] = HEX_DIGITS[(int)((v >> 44) & 0xF)];
+          buffer[j + 6] = HEX_DIGITS[(int)((v >> 40) & 0xF)];
+          buffer[j + 7] = HEX_DIGITS[(int)((v >> 36) & 0xF)];
+          buffer[j + 8] = HEX_DIGITS[(int)((v >> 32) & 0xF)];
+          buffer[j + 9] = HEX_DIGITS[(int)((v >> 28) & 0xF)];
+          buffer[j +10] = HEX_DIGITS[(int)((v >> 24) & 0xF)];
+          buffer[j +11] = HEX_DIGITS[(int)((v >> 20) & 0xF)];
+          buffer[j +12] = HEX_DIGITS[(int)((v >> 16) & 0xF)];
+          buffer[j +13] = HEX_DIGITS[(int)((v >> 12) & 0xF)];
+          buffer[j +14] = HEX_DIGITS[(int)((v >> 8) & 0xF)];
+          buffer[j +15] = HEX_DIGITS[(int)((v >> 4) & 0xF)];
+          buffer[j +16] = HEX_DIGITS[(int)((v >> 0) & 0xF)];
+        }
+        else {
+          buffer[j + 1] = UNKNOWN_CHAR;
+          buffer[j + 2] = UNKNOWN_CHAR;
+          buffer[j + 3] = UNKNOWN_CHAR;
+          buffer[j + 4] = UNKNOWN_CHAR;
+          buffer[j + 5] = UNKNOWN_CHAR;
+          buffer[j + 6] = UNKNOWN_CHAR;
+          buffer[j + 7] = UNKNOWN_CHAR;
+          buffer[j + 8] = UNKNOWN_CHAR;
+          buffer[j + 9] = UNKNOWN_CHAR;
+          buffer[j +10] = UNKNOWN_CHAR;
+          buffer[j +11] = UNKNOWN_CHAR;
+          buffer[j +12] = UNKNOWN_CHAR;
+          buffer[j +13] = UNKNOWN_CHAR;
+          buffer[j +14] = UNKNOWN_CHAR;
+          buffer[j +15] = UNKNOWN_CHAR;
+          buffer[j +16] = UNKNOWN_CHAR;
         }
       }
     }
