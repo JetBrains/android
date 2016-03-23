@@ -15,9 +15,8 @@
  */
 package org.jetbrains.android.dom.converters;
 
+import com.android.tools.idea.AndroidTextUtils;
 import com.android.tools.idea.model.MergedManifest;
-import com.google.common.base.Splitter;
-import com.google.common.collect.Iterables;
 import com.intellij.codeInsight.completion.JavaLookupElementBuilder;
 import com.intellij.codeInsight.daemon.EmptyResolveMessageProvider;
 import com.intellij.codeInspection.LocalQuickFix;
@@ -34,6 +33,7 @@ import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.searches.ClassInheritorsSearch;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.util.ArrayUtil;
+import com.intellij.util.Consumer;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.Query;
 import com.intellij.util.xml.*;
@@ -138,7 +138,7 @@ public class PackageClassConverter extends ResolvingConverter<PsiClass> implemen
 
   @NotNull
   @Override
-  public PsiReference[] createReferences(GenericDomValue<PsiClass> value, PsiElement element, ConvertContext context) {
+  public PsiReference[] createReferences(GenericDomValue<PsiClass> value, final PsiElement element, ConvertContext context) {
     assert element instanceof XmlAttributeValue;
     final XmlAttributeValue attrValue = (XmlAttributeValue)element;
     final String strValue = attrValue.getValue();
@@ -157,38 +157,42 @@ public class PackageClassConverter extends ResolvingConverter<PsiClass> implemen
 
     AndroidFacet facet = AndroidFacet.getInstance(context);
     // If the source XML file is contained within the test folders, we'll also allow to resolve test classes
-    boolean isTestFile = facet != null && isTestFile(facet, element.getContainingFile().getVirtualFile());
+    final boolean isTestFile = facet != null && isTestFile(facet, element.getContainingFile().getVirtualFile());
 
-    List<PsiReference> result = new ArrayList<PsiReference>();
-    final List<String> nameParts = Splitter.on('.').splitToList(strValue);
-    if (nameParts.isEmpty()) {
+    if (strValue.isEmpty()) {
       return PsiReference.EMPTY_ARRAY;
     }
 
+    final List<PsiReference> result = new ArrayList<PsiReference>();
     final Module module = context.getModule();
-    int offset = start;
 
-    for (String packagePart : Iterables.limit(nameParts, nameParts.size() - 1)) {
-      if (!packagePart.isEmpty()) {
-        offset += packagePart.length();
-        final TextRange range = new TextRange(offset - packagePart.length(), offset);
-        result.add(new MyReference(element, range, manifestPackage, startsWithPoint, start, true, module, extendClassesNames, inModuleOnly,
-                                   isTestFile));
+    /**
+     * Using inner class here as opposed to anonymous one as with anonymous class it wouldn't be possible to access {@code myPartStart} later
+     */
+    class CustomConsumer implements Consumer<Integer> {
+      int myPartStart = 0;
+      private boolean myIsPackage = true;
+
+      @Override
+      public void consume(Integer index) {
+        if (index > myPartStart) {
+          final TextRange range = new TextRange(start + myPartStart, start + index);
+          final MyReference reference =
+            new MyReference(element, range, manifestPackage, startsWithPoint, start, myIsPackage, module, extendClassesNames, inModuleOnly,
+                            isTestFile);
+          result.add(reference);
+        }
+
+        myPartStart = index + 1;
       }
-      offset++;
     }
 
-    final String className = nameParts.get(nameParts.size() - 1);
-    for (String classPart : Splitter.on('$').split(className)) {
-      if (!classPart.isEmpty()) {
-        offset += classPart.length();
+    final CustomConsumer consumer = new CustomConsumer();
 
-        final TextRange range = new TextRange(offset - classPart.length(), offset);
-        result.add(new MyReference(element, range, manifestPackage, startsWithPoint, start, false, module, extendClassesNames, inModuleOnly,
-                                   isTestFile));
-      }
-      offset++;
-    }
+    AndroidTextUtils.forEachOccurrence(strValue, '.', consumer);
+    consumer.myIsPackage = false;
+    AndroidTextUtils.forEachOccurrence(strValue, '$', consumer.myPartStart, consumer);
+    consumer.consume(strValue.length());
 
     return result.toArray(new PsiReference[result.size()]);
   }
