@@ -123,11 +123,17 @@ abstract class AndroidDomTest extends AndroidTestCase {
   }
 
   /**
-   * Loads a file and checks whether result of highlighting correspond to XML-like markers left in it. Format of the markers is best
+   * Creates a virtual file from {@code fileName} and calls {@code doTestHighlighting(VirtualFile virtualFile)} passing it as a parameter
+   */
+  protected void doTestHighlighting(String fileName) throws Throwable {
+    doTestHighlighting(copyFileToProject(fileName));
+  }
+
+  /**
+   * Loads a virtual file and checks whether result of highlighting correspond to XML-like markers left in it. Format of the markers is best
    * described by an example, check the usages of the function to find out.
    */
-  protected void doTestHighlighting(String file) throws Throwable {
-    VirtualFile virtualFile = copyFileToProject(file);
+  protected void doTestHighlighting(VirtualFile virtualFile) throws Throwable {
     myFixture.configureFromExistingVirtualFile(virtualFile);
     myFixture.checkHighlighting(true, false, false);
   }
