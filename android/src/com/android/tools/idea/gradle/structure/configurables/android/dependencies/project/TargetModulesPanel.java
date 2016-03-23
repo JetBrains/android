@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.structure.configurables.android.dependenci
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.project.treeview.TargetAndroidModuleNode;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.project.treeview.TargetModelsTreeBuilder;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.GoToModuleAction;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.NodeHyperlinkSupport;
 import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowPanel;
 import com.android.tools.idea.gradle.structure.model.PsProject;
@@ -116,15 +117,8 @@ class TargetModulesPanel extends ToolWindowPanel {
     if (node != null) {
       PsAndroidModule module = node.getModels().get(0);
 
-      final String name = module.getName();
       DefaultActionGroup group = new DefaultActionGroup();
-
-      group.add(new DumbAwareAction(String.format("Go to module '%1$s'", name)) {
-        @Override
-        public void actionPerformed(AnActionEvent e) {
-          myContext.setSelectedModule(name, TargetModulesPanel.this);
-        }
-      });
+      group.add(new GoToModuleAction(module.getName(), myContext, myTree));
 
       ActionPopupMenu popupMenu = ActionManager.getInstance().createActionPopupMenu("", group);
       popupMenu.getComponent().show(myTree, x, y);

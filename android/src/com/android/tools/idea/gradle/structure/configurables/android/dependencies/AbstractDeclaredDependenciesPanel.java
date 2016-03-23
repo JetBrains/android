@@ -53,6 +53,7 @@ import static com.intellij.util.PlatformIcons.LIBRARY_ICON;
 import static com.intellij.util.ui.UIUtil.getInactiveTextColor;
 
 public abstract class AbstractDeclaredDependenciesPanel extends JPanel implements Disposable {
+  @NotNull private final PsContext myContext;
   @NotNull private final PsProject myProject;
   @NotNull private final EmptyEditorPanel myEmptyEditorPanel;
   @NotNull private final JScrollPane myEditorScrollPane;
@@ -69,6 +70,7 @@ public abstract class AbstractDeclaredDependenciesPanel extends JPanel implement
                                               @NotNull PsProject project,
                                               @Nullable PsAndroidModule module) {
     super(new BorderLayout());
+    myContext = context;
     myProject = project;
     myModule = module;
 
@@ -184,6 +186,11 @@ public abstract class AbstractDeclaredDependenciesPanel extends JPanel implement
   @NotNull
   protected JPanel getContentsPanel() {
     return myContentsPanel;
+  }
+
+  @NotNull
+  protected PsContext getContext() {
+    return myContext;
   }
 
   private class AddDependencyAction extends AbstractPopupAction {
