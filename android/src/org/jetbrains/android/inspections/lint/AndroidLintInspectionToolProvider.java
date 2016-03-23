@@ -1,11 +1,13 @@
 package org.jetbrains.android.inspections.lint;
 
 import com.android.SdkConstants;
+import com.android.annotations.NonNull;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.resources.ResourceUrl;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.VersionQualifier;
 import com.android.resources.ResourceFolderType;
+import com.android.resources.ResourceType;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkVersionInfo;
@@ -1521,7 +1523,32 @@ public class AndroidLintInspectionToolProvider {
     @NotNull
     @Override
     public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
-      return new AndroidLintQuickFix[] { new SetAttributeQuickFix("Set backup attribute", ATTR_ALLOW_BACKUP, null) };
+      ResourceUrl url;
+      if (ManifestDetector.MISSING_FULL_BACKUP_CONTENT_RESOURCE.equals(message)
+        && (url = ResourceUrl.parse(startElement.getText())) != null) {
+        // Find the resource url
+        return new AndroidLintQuickFix[]{
+          new GenerateBackupDescriptorFix(url)
+        };
+      }
+      else {
+        return new AndroidLintQuickFix[]{
+          new SetAttributeQuickFix("Set backup attribute", ATTR_ALLOW_BACKUP, null),
+          // The fullBackupContent quick fix should only be visible if the attribute is not set
+          // and the allowBackup attribute is set to true.
+          new SetAttributeQuickFix("Set fullBackupContent attribute", ATTR_FULL_BACKUP_CONTENT, null) {
+            @Override
+            public boolean isApplicable(@NotNull PsiElement startElement,
+                                        @NotNull PsiElement endElement,
+                                        @NotNull AndroidQuickfixContexts.ContextType contextType) {
+              return SetAndGenerateBackupDescriptor.isAllowBackupEnabled(startElement)
+                     && super.isApplicable(startElement, endElement, contextType);
+            }
+          },
+          // Set the attribute as well as generate the backup descriptor.
+          new SetAndGenerateBackupDescriptor()
+        };
+      }
     }
   }
 

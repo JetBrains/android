@@ -5,12 +5,15 @@ import com.android.tools.lint.checks.CommentDetector;
 import com.android.tools.lint.checks.TextViewDetector;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.codeInsight.intention.IntentionAction;
+import com.intellij.ide.projectView.ProjectView;
+import com.intellij.ide.projectView.impl.ProjectViewPane;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.testFramework.ProjectViewTestUtil;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -243,6 +246,60 @@ public class AndroidLintTest extends AndroidTestCase {
     doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintTypographyQuotesInspection(),
                   AndroidBundle.message("android.lint.fix.replace.with.suggested.characters"),
                   "/res/values/typography.xml", "xml");
+  }
+
+  public void testGenBackupDescriptor() throws Exception {
+    deleteManifest();
+    // This is needed for quick fixes that call TemplateUtils.selectEditor(..)
+    // which in turn looks up the ProjectViewPane.ID.
+    ProjectViewTestUtil.setupImpl(getProject(), true);
+    // In unit test mode, ProjectViewSelectInTarget#select()
+    // short circuits the typical flow and sends the selection to the
+    // ProjectViewPane.ID
+    ProjectView.getInstance(getProject()).changeView(ProjectViewPane.ID);
+
+    // setup project files
+    myFixture.copyFileToProject(getGlobalTestDir() + "/MySqliteHelper.java",
+                                "src/p1/pkg/MySqliteHelper.java");
+    myFixture.copyFileToProject(getGlobalTestDir() + "/MainActivity.java",
+                                "src/p1/pkg/MainActivity.java");
+    myFixture.copyFileToProject(getGlobalTestDir() + "/R.java", "src/p1/pkg/R.java");
+    myFixture.copyFileToProject(getGlobalTestDir() + "/strings.xml", "res/values/strings.xml");
+
+    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintAllowBackupInspection(),
+                  "Generate full-backup-content descriptor",
+                  "AndroidManifest.xml", "xml");
+    // also check the generated backup descriptor.
+    myFixture.checkResultByFile("res/xml/backup.xml",
+                                getGlobalTestDir() + "/expected.xml", true);
+  }
+
+  public void testGenBackupDescriptor2() throws Exception {
+    deleteManifest();
+    // This test requires targetSdkVersion=23 to trigger inspection
+    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintAllowBackupInspection(),
+                  "Set fullBackupContent attribute",
+                  "AndroidManifest.xml", "xml");
+  }
+
+  public void testGenEmptyBackupDescriptor() throws Exception {
+    // In the absence of files that indicate presence of databases or calls to
+    // getSharedPreferences, the quickfix should create an empty backup descriptor
+    // that contains helpful comments.
+    deleteManifest();
+    // This is needed for quick fixes that call TemplateUtils.selectEditor(..)
+    // which in turn looks up the ProjectViewPane.ID.
+    ProjectViewTestUtil.setupImpl(getProject(), true);
+    // In unit test mode, ProjectViewSelectInTarget#select()
+    // short circuits the typical flow and sends the selection to the
+    // ProjectViewPane.ID
+    ProjectView.getInstance(getProject()).changeView(ProjectViewPane.ID);
+
+    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintAllowBackupInspection(),
+                  "Set fullBackupContent attribute and generate descriptor",
+                  "AndroidManifest.xml", "xml");
+    myFixture.checkResultByFile("res/xml/backup_descriptor.xml",
+                                getGlobalTestDir() + "/expected.xml", true);
   }
 
   public void testGridLayoutAttribute() throws Exception {
