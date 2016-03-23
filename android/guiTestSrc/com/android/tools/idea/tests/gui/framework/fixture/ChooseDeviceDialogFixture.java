@@ -106,8 +106,13 @@ public class ChooseDeviceDialogFixture extends ComponentFixture<ChooseDeviceDial
   }
 
   @NotNull
-  protected JRadioButton findRadioButtonByText(@NotNull String text) {
-    return robot().finder().find(target(), new JRadioButtonTextMatcher(text).andShowing());
+  private JRadioButton findRadioButtonByText(@NotNull final String text) {
+    return robot().finder().find(target(), new GenericTypeMatcher<JRadioButton>(JRadioButton.class) {
+      @Override
+      protected boolean isMatching(@NotNull JRadioButton button) {
+        return text.equals(button.getText()) && button.isShowing();
+      }
+    });
   }
 
   @NotNull
@@ -133,25 +138,5 @@ public class ChooseDeviceDialogFixture extends ComponentFixture<ChooseDeviceDial
 
   public void clickCancel() {
     findAndClickCancelButton(this);
-  }
-
-  private static class JRadioButtonTextMatcher extends GenericTypeMatcher<JRadioButton> {
-    protected String myText;
-    private boolean myIsShowing;
-
-    public JRadioButtonTextMatcher(@NotNull String text) {
-      super(JRadioButton.class);
-      myText = text;
-    }
-
-    @Override
-    protected boolean isMatching(@NotNull JRadioButton button) {
-      return myText.equals(button.getText()) && (!myIsShowing || button.isShowing());
-    }
-
-    public JRadioButtonTextMatcher andShowing() {
-      myIsShowing = true;
-      return this;
-    }
   }
 }
