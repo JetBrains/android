@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.avdmanager;
 
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.AbstractWizardFixture;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
@@ -22,15 +23,13 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
-import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilFound;
-
 
 public class AvdEditWizardFixture extends AbstractWizardFixture<AvdEditWizardFixture> {
   public static AvdEditWizardFixture find(@NotNull Robot robot) {
-    JDialog dialog = waitUntilFound(robot, new GenericTypeMatcher<JDialog>(JDialog.class) {
+    JDialog dialog = GuiTests.waitUntilShowing(robot, new GenericTypeMatcher<JDialog>(JDialog.class) {
       @Override
       protected boolean isMatching(@NotNull JDialog dialog) {
-        return "Virtual Device Configuration".equals(dialog.getTitle()) && dialog.isShowing();
+        return "Virtual Device Configuration".equals(dialog.getTitle());
       }
     });
     return new AvdEditWizardFixture(robot, dialog);
