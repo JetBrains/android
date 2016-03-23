@@ -29,6 +29,12 @@ import java.util.Map;
  */
 public abstract class UsageTracker {
   /**
+   * Maximum length of the URL constructed when uploading data to tools.google.com. This is simply the max allowed HTTP URL length,
+   * which depending on the source seems to be from 2k to 4k. We use a conservative value here.
+   */
+  public static final int MAX_URL_LENGTH = 2000;
+
+  /**
    * GA only allows sending a single <category,action,value> tuple per event
    * However, we'd like to track different components of the avd such as its version, arch, etc
    * So this category will consist of info events, but note that the total event count is somewhat meaningless
