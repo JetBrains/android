@@ -416,12 +416,7 @@ public class ThemeEditorTableTest {
       }
     }).click();
 
-    JWindow docWindow = GuiTests.waitUntilFound(guiTest.robot(), new GenericTypeMatcher<JWindow>(JWindow.class) {
-      @Override
-      protected boolean isMatching(@NotNull JWindow component) {
-        return component.isShowing();
-      }
-    });
+    JWindow docWindow = GuiTests.waitUntilShowing(guiTest.robot(), GuiTests.matcherForType(JWindow.class));
 
     JEditorPane docComp = guiTest.robot().finder().findByType(docWindow, JEditorPane.class);
     JTextComponentFixture quickDoc = new JTextComponentFixture(guiTest.robot(), docComp);

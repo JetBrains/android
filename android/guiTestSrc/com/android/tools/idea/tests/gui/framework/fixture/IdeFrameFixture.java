@@ -540,18 +540,14 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   private ActionButtonFixture waitForGradleSynActionButton() {
-    ActionButton gradleSyncButton = waitUntilFound(robot(), target(), new GenericTypeMatcher<ActionButton>(ActionButton.class) {
+    ActionButton gradleSyncButton = waitUntilShowing(robot(), target(), new GenericTypeMatcher<ActionButton>(ActionButton.class) {
       @Override
       protected boolean isMatching(@NotNull ActionButton button) {
-        if (button.isVisible()) {
-          AnAction action = button.getAction();
-          return action != null
-                 && "Android.SyncProject".equals(ActionManager.getInstance().getId(action))
-                 && action.getTemplatePresentation().isEnabledAndVisible()
-                 && button.isShowing()
-                 && button.isEnabled();
-          }
-        return false;
+        AnAction action = button.getAction();
+        return action != null
+               && "Android.SyncProject".equals(ActionManager.getInstance().getId(action))
+               && action.getTemplatePresentation().isEnabledAndVisible()
+               && button.isEnabled();
       }
     });
     return new ActionButtonFixture(robot(), gradleSyncButton);

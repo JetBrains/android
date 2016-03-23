@@ -42,12 +42,9 @@ public abstract class AbstractWizardFixture<S> extends ComponentFixture<S, JDial
   @NotNull
   protected JRootPane findStepWithTitle(@NotNull final String title) {
     JRootPane rootPane = target().getRootPane();
-    waitUntilFound(robot(), rootPane, new GenericTypeMatcher<JLabel>(JLabel.class) {
+    waitUntilShowing(robot(), rootPane, new GenericTypeMatcher<JLabel>(JLabel.class) {
       @Override
       protected boolean isMatching(@NotNull JLabel label) {
-        if (!label.isShowing()) {
-          return false;
-        }
         return title.equals(label.getText());
       }
     });
