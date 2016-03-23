@@ -22,8 +22,32 @@ import com.android.tools.rpclib.binary.*;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 public final class Observations implements BinaryObject {
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    Observations that = (Observations)o;
+    if (!Arrays.equals(myReads, that.myReads)) return false;
+    if (!Arrays.equals(myWrites, that.myWrites)) return false;
+    return true;
+  }
+
+  @Override
+  public int hashCode() {
+    int result = Arrays.hashCode(myReads);
+    result = 31 * result + Arrays.hashCode(myWrites);
+    return result;
+  }
+
+  @Override
+  public String toString() {
+    return "Observations{reads=" + Arrays.toString(myReads) + ", writes=" + Arrays.toString(myWrites) + '}';
+  }
+
   //<<<Start:Java.ClassBody:1>>>
   private Observation[] myReads;
   private Observation[] myWrites;
