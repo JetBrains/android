@@ -1301,8 +1301,8 @@ public class GradleSyncTest {
 
     assertFalse(gradleSettings.isOfflineWork());
 
-    message = guiTest
-      .ideFrame().getMessagesToolWindow().getGradleSyncContent().findMessage(ERROR, firstLineStartingWith("Failed to resolve:"));
+    message =
+      guiTest.ideFrame().getMessagesToolWindow().getGradleSyncContent().findMessage(ERROR, firstLineStartingWith("Failed to resolve:"));
 
     try {
       message.findHyperlink("Disable offline mode and Sync");
