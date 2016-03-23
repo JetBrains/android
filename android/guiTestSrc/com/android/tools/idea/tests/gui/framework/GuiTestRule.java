@@ -29,6 +29,7 @@ import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.util.ReflectionUtil;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiTask;
@@ -51,7 +52,9 @@ import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Hashtable;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import static com.google.common.base.Preconditions.checkState;
@@ -151,6 +154,8 @@ public class GuiTestRule implements TestRule {
       GuiTests.refreshFiles();
     }
     errors.addAll(GuiTests.fatalErrorsFromIde());
+
+    fixMemLeaks();
   }
 
   private List<AssertionError> cleanUpAndCheckForModalDialogs() {
@@ -175,6 +180,17 @@ public class GuiTestRule implements TestRule {
       }
     }
     return null;
+  }
+
+  private void fixMemLeaks() throws Exception {
+    myIdeFrameFixture = null;
+
+    // Work-around for https://youtrack.jetbrains.com/issue/IDEA-153492
+    Object manager = ReflectionUtil.getDeclaredMethod(Class.forName("javax.swing.KeyboardManager"), "getCurrentManager").invoke(null);
+    Map componentKeyStrokeMap = ReflectionUtil.getField(manager.getClass(), manager, Hashtable.class, "componentKeyStrokeMap");
+    componentKeyStrokeMap.clear();
+    Map containerMap = ReflectionUtil.getField(manager.getClass(), manager, Hashtable.class, "containerMap");
+    containerMap.clear();
   }
 
   public void importSimpleApplication() throws IOException {
