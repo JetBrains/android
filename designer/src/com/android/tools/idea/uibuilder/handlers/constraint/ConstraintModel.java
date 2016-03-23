@@ -23,7 +23,10 @@ import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.sherpa.drawing.SceneDraw;
 import com.android.tools.sherpa.drawing.ViewTransform;
+import com.android.tools.sherpa.drawing.decorator.CheckboxWidget;
+import com.android.tools.sherpa.drawing.decorator.RadiobuttonWidget;
 import com.android.tools.sherpa.drawing.decorator.WidgetDecorator;
+import com.android.tools.sherpa.drawing.decorator.TextWidget;
 import com.android.tools.sherpa.interaction.MouseInteraction;
 import com.android.tools.sherpa.interaction.WidgetMotion;
 import com.android.tools.sherpa.interaction.WidgetResize;
@@ -63,6 +66,7 @@ public class ConstraintModel {
   private MouseInteraction myMouseInteraction;
 
   private static Lock ourLock = new ReentrantLock();
+  private boolean mShowFakeUI = false;
 
   //////////////////////////////////////////////////////////////////////////////
   // Static functions
@@ -292,7 +296,26 @@ public class ConstraintModel {
           widget = new ConstraintWidget();
         }
       }
-      WidgetDecorator decorator = new WidgetDecorator(widget);
+      WidgetDecorator decorator = null;
+      if (component.getTagName().equalsIgnoreCase(SdkConstants.TEXT_VIEW)) {
+        String text = component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT);
+        decorator = new TextWidget(widget, text);
+      }
+      if (component.getTagName().equalsIgnoreCase(SdkConstants.BUTTON)) {
+        String text = component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT);
+        decorator = new TextWidget(widget, text);
+      }
+      if (component.getTagName().equalsIgnoreCase(SdkConstants.RADIO_BUTTON)) {
+        String text = component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT);
+        decorator = new TextWidget(widget, text);
+      }
+      if (component.getTagName().equalsIgnoreCase(SdkConstants.CHECK_BOX)) {
+        String text = component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT);
+        decorator = new TextWidget(widget, text);
+      }
+      if (decorator == null) {
+        decorator = new WidgetDecorator(widget);
+      }
       decorator.setCompanionObject(component);
       widget.setCompanionWidget(decorator);
       widget.setDebugName(component.getId());
@@ -385,6 +408,7 @@ public class ConstraintModel {
    */
   public boolean paint(@NonNull Graphics2D gc, int width, int height, boolean showAllConstraints) {
     Graphics2D g = (Graphics2D) gc.create();
+    WidgetDecorator.setShowFakeUI(mShowFakeUI);
     boolean ret = mySceneDraw.paintWidgets(width, height, myViewTransform, g, showAllConstraints, myMouseInteraction);
     g.dispose();
     return ret;
