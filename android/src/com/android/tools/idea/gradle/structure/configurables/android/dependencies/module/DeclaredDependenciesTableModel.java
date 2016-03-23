@@ -21,21 +21,29 @@ import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.android.tools.idea.gradle.structure.model.android.PsLibraryDependency;
+import com.android.tools.idea.gradle.structure.model.android.PsModuleDependency;
 import com.google.common.collect.Lists;
+import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.util.containers.Predicate;
 import com.intellij.util.ui.ColumnInfo;
 import com.intellij.util.ui.ListTableModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
 import javax.swing.table.TableCellRenderer;
 import java.util.Collections;
 import java.util.List;
+
+import static com.intellij.ui.SimpleTextAttributes.LINK_ATTRIBUTES;
+import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
 
 /**
  * Model for the table displaying the "editable" dependencies of a module.
  */
 class DeclaredDependenciesTableModel extends ListTableModel<PsAndroidDependency> {
+  @Nullable private PsModuleDependency myHoveredDependency;
+
   DeclaredDependenciesTableModel(@NotNull PsAndroidModule module) {
     createAndSetColumnInfos();
     final List<PsAndroidDependency> dependencies = Lists.newArrayList();
@@ -61,7 +69,7 @@ class DeclaredDependenciesTableModel extends ListTableModel<PsAndroidDependency>
       @Override
       @NotNull
       public TableCellRenderer getRenderer(PsAndroidDependency dependency) {
-        return new DependencyCellRenderer(dependency);
+        return new DependencyCellRenderer(dependency, dependency == myHoveredDependency);
       }
 
       @Override
@@ -90,9 +98,27 @@ class DeclaredDependenciesTableModel extends ListTableModel<PsAndroidDependency>
     setColumnInfos(new ColumnInfo[]{specColumnInfo, scopeColumnInfo});
   }
 
+  void setHoveredDependency(@Nullable PsModuleDependency hoveredDependency) {
+    myHoveredDependency = hoveredDependency;
+  }
+
   static class DependencyCellRenderer extends BaseTableCellRenderer<PsAndroidDependency> {
-    DependencyCellRenderer(@NotNull PsAndroidDependency dependency) {
+    @NotNull private final PsAndroidDependency myDependency;
+    private final boolean myIsHovered;
+
+    DependencyCellRenderer(@NotNull PsAndroidDependency dependency, boolean isHovered) {
       super(dependency);
+      myDependency = dependency;
+      myIsHovered = isHovered;
+    }
+
+    @Override
+    protected void customizeCellRenderer(JTable table, @Nullable Object value, boolean selected, boolean hasFocus, int row, int column) {
+      setIcon(myDependency.getIcon());
+      setIconOpaque(true);
+      setFocusBorderAroundIcon(true);
+      SimpleTextAttributes textAttributes = myIsHovered ? LINK_ATTRIBUTES : REGULAR_ATTRIBUTES;
+      append(getText(), textAttributes);
     }
 
     @Override
@@ -109,5 +135,7 @@ class DeclaredDependenciesTableModel extends ListTableModel<PsAndroidDependency>
       }
       return text;
     }
+
+
   }
 }

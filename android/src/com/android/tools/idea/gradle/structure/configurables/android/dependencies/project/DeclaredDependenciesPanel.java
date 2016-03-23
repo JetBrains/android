@@ -73,7 +73,7 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel {
       protected void processMouseEvent(MouseEvent e) {
         int id = e.getID();
         if (id == MOUSE_PRESSED) {
-          ModuleDependencyNode node = myHyperlinkSupport.getIfHyperlink(e.getModifiers(), e.getX(), e.getY());
+          ModuleDependencyNode node = myHyperlinkSupport.getIfHyperlink(e);
           if (node != null) {
             PsModuleDependency moduleDependency = node.getModels().get(0);
             String name = moduleDependency.getName();
