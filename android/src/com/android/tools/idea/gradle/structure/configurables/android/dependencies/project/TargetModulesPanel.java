@@ -19,7 +19,11 @@ import com.android.tools.idea.gradle.structure.configurables.android.dependencie
 import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowPanel;
 import com.android.tools.idea.gradle.structure.model.PsProject;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
+import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.treeStructure.Tree;
 import org.jetbrains.annotations.NotNull;
@@ -38,6 +42,7 @@ class TargetModulesPanel extends ToolWindowPanel {
 
   TargetModulesPanel(@NotNull PsProject project) {
     super("Target Modules", AllIcons.Nodes.ModuleGroup, null);
+    setHeaderActions();
 
     DefaultTreeModel treeModel = new DefaultTreeModel(new DefaultMutableTreeNode());
     myTree = new Tree(treeModel);
@@ -48,6 +53,27 @@ class TargetModulesPanel extends ToolWindowPanel {
 
     JScrollPane scrollPane = setUp(myTree);
     add(scrollPane, BorderLayout.CENTER);
+  }
+
+  private void setHeaderActions() {
+    List<AnAction> additionalActions = Lists.newArrayList();
+    additionalActions.add(new DumbAwareAction("Expand All", "", AllIcons.General.ExpandAll) {
+      @Override
+      public void actionPerformed(AnActionEvent e) {
+        myTree.requestFocusInWindow();
+        myTreeBuilder.expandAllNodes();
+      }
+    });
+
+    additionalActions.add(new DumbAwareAction("Collapse All", "", AllIcons.General.CollapseAll) {
+      @Override
+      public void actionPerformed(AnActionEvent e) {
+        myTree.requestFocusInWindow();
+        myTreeBuilder.collapseAllNodes();
+      }
+    });
+
+    getHeader().setAdditionalActions(additionalActions);
   }
 
   void displayTargetModules(@NotNull List<? extends PsAndroidDependency> dependencies) {

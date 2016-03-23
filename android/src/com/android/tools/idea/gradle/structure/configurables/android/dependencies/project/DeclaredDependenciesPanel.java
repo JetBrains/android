@@ -25,6 +25,10 @@ import com.android.tools.idea.gradle.structure.configurables.ui.treeview.Abstrac
 import com.android.tools.idea.gradle.structure.model.PsProject;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
 import com.google.common.collect.Lists;
+import com.intellij.icons.AllIcons;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.EventDispatcher;
@@ -37,12 +41,14 @@ import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import java.awt.*;
+import java.util.Collections;
 import java.util.EventListener;
 import java.util.List;
 import java.util.Set;
 
 import static com.android.tools.idea.gradle.structure.configurables.android.dependencies.UiUtil.setUp;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
+import static com.intellij.util.ui.tree.TreeUtil.ensureSelection;
 
 class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel {
   @NotNull private final Tree myTree;
@@ -84,6 +90,13 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel {
       }
     };
     myTree.addTreeSelectionListener(myTreeSelectionListener);
+
+    myTreeBuilder.getInitialized().doWhenDone(new Runnable() {
+      @Override
+      public void run() {
+        doEnsureSelection();
+      }
+    });
   }
 
   @Nullable
@@ -102,6 +115,39 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel {
 
   void add(@NotNull SelectionListener listener) {
     myEventDispatcher.addListener(listener);
+  }
+
+  @Override
+  @NotNull
+  protected List<AnAction> getExtraToolbarActions() {
+    List<AnAction> actions = Lists.newArrayList();
+
+    actions.add(new DumbAwareAction("Expand All", null, AllIcons.Actions.Expandall) {
+      @Override
+      public void actionPerformed(AnActionEvent e) {
+        myTree.requestFocusInWindow();
+        myTreeBuilder.expandAllNodes();
+        doEnsureSelection();
+      }
+    });
+
+    actions.add(new DumbAwareAction("Collapse All", null, AllIcons.Actions.Collapseall) {
+      @Override
+      public void actionPerformed(AnActionEvent e) {
+        myTreeBuilder.clearSelection();
+        notifySelectionChanged(Collections.<AbstractDependencyNode<? extends PsAndroidDependency>>emptyList());
+
+        myTree.requestFocusInWindow();
+        myTreeBuilder.collapseAllNodes();
+        doEnsureSelection();
+      }
+    });
+
+    return actions;
+  }
+
+  private void doEnsureSelection() {
+    ensureSelection(myTree);
   }
 
   @Override
