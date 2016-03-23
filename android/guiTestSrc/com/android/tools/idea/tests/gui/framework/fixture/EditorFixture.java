@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.resources.ResourceFolderType;
+import com.android.tools.idea.editors.manifest.ManifestEditor;
 import com.android.tools.idea.editors.manifest.ManifestPanel;
 import com.android.tools.idea.editors.strings.StringResourceEditor;
 import com.android.tools.idea.editors.strings.StringsVirtualFile;
@@ -622,6 +623,9 @@ public class EditorFixture {
       case DEFAULT:
         selectEditorTab((String)null);
         break;
+      case MERGED_MANIFEST:
+        selectEditorTab("Merged Manifest");
+        break;
       default:
         fail("Unknown tab " + tab);
     }
@@ -1084,7 +1088,27 @@ public class EditorFixture {
 
   @NotNull
   public MergedManifestFixture getMergedManifestEditor() {
-    return new MergedManifestFixture(robot, GuiTests.waitUntilFound(robot, GuiTests.matcherForType(ManifestPanel.class)));
+    robot.waitForIdle();
+    MergedManifestFixture found = execute(new GuiQuery<MergedManifestFixture>() {
+      @Override
+      @Nullable
+      protected MergedManifestFixture executeInEDT() throws Throwable {
+        FileEditorManager manager = FileEditorManager.getInstance(myFrame.getProject());
+        FileEditor[] editors = manager.getSelectedEditors();
+        if (editors.length == 0) {
+          return null;
+        }
+        FileEditor selected = editors[0];
+        if (!(selected instanceof ManifestEditor)) {
+          return null;
+        }
+        return new MergedManifestFixture(robot, (ManifestPanel)selected.getComponent().getComponent(0));
+      }
+    });
+    if (found == null) {
+      throw new AssertionError("manifest editor not found");
+    }
+    return found;
   }
 
   /**
@@ -1203,5 +1227,5 @@ public class EditorFixture {
    * The different tabs of an editor; used by for example {@link #open(VirtualFile, EditorFixture.Tab)} to indicate which
    * tab should be opened
    */
-  public enum Tab { EDITOR, DESIGN, DEFAULT }
+  public enum Tab { EDITOR, DESIGN, DEFAULT, MERGED_MANIFEST }
 }

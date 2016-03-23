@@ -51,6 +51,7 @@ import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.xml.sax.SAXParseException;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -238,7 +239,12 @@ public final class ManifestInfo {
         }
       }
       catch (ManifestMerger2.MergeFailureException ex) {
+        // action cancelled
         if (ex.getCause() instanceof ProcessCanceledException) {
+          return null;
+        }
+        // user is in the middle of editing the file
+        if (ex.getCause() instanceof SAXParseException) {
           return null;
         }
         Logger.getInstance(ManifestInfo.class).warn("getMergedManifest exception", ex);
