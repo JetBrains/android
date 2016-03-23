@@ -41,7 +41,7 @@ public class IdeSettingsDialogFixture extends IdeaDialogFixture<SettingsDialog> 
       @Override
       protected boolean isMatching(@NotNull JDialog dialog) {
         String expectedTitle = SystemInfo.isMac ? "Preferences" : "Settings";
-        return expectedTitle.equals(dialog.getTitle()) && dialog.isShowing();
+        return expectedTitle.equals(dialog.getTitle());
       }
     }));
   }

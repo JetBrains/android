@@ -29,7 +29,7 @@ public class InspectCodeDialogFixture extends IdeaDialogFixture<DialogWrapper> {
     return new InspectCodeDialogFixture(robot, find(robot, DialogWrapper.class, new GenericTypeMatcher<JDialog>(JDialog.class) {
       @Override
       protected boolean isMatching(@NotNull JDialog dialog) {
-        return dialog.isShowing() && "Specify Inspection Scope".equals(dialog.getTitle());
+        return "Specify Inspection Scope".equals(dialog.getTitle());
       }
     }));
   }
