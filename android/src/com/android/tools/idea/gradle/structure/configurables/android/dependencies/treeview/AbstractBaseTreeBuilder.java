@@ -28,6 +28,7 @@ import javax.swing.*;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -105,8 +106,12 @@ public abstract class AbstractBaseTreeBuilder extends AbstractTreeBuilder {
         Object model = models.get(0);
         if (model instanceof PsModel) {
           selectMatchingNodes((PsModel)model, collector, false);
+          return;
         }
       }
+    }
+    if (collector != null) {
+      collector.done(Collections.<AbstractPsdNode>emptyList());
     }
   }
 
@@ -132,10 +137,6 @@ public abstract class AbstractBaseTreeBuilder extends AbstractTreeBuilder {
           }
         });
 
-        if (collector != null) {
-          collector.done(collector.matchingNodes);
-        }
-
         if (isDisposed()) {
           return;
         }
@@ -151,6 +152,9 @@ public abstract class AbstractBaseTreeBuilder extends AbstractTreeBuilder {
               }
             }
             expand(toExpand.toArray(), null);
+            if (collector != null) {
+              collector.done(collector.matchingNodes);
+            }
           }
         };
         getUi().userSelect(toSelect.toArray(), new UserRunnable(onDone), false, scroll);
