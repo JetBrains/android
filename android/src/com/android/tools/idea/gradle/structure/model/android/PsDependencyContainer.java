@@ -16,7 +16,9 @@
 package com.android.tools.idea.gradle.structure.model.android;
 
 import com.google.common.base.Objects;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
 public class PsDependencyContainer {
@@ -41,6 +43,24 @@ public class PsDependencyContainer {
   @NotNull
   private static String createName(@NotNull String variant, @NotNull String artifact) {
     return variant + " " + artifact;
+  }
+
+  @Contract("_, true -> !null")
+  @Nullable
+  public PsAndroidArtifact findArtifact(@NotNull PsAndroidModule module, boolean mustExist) {
+    PsVariant variant = module.findVariant(myVariant);
+    if (variant == null && !mustExist) {
+      return null;
+    }
+    assert variant != null;
+
+    PsAndroidArtifact artifact = variant.findArtifact(myArtifact);
+    if (artifact == null && !mustExist) {
+      return null;
+    }
+
+    assert artifact != null;
+    return artifact;
   }
 
   @NotNull
