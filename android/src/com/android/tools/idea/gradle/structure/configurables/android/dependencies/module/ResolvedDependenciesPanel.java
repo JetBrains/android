@@ -18,10 +18,7 @@ package com.android.tools.idea.gradle.structure.configurables.android.dependenci
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.treeview.DependencySelection;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.treeview.ResolvedDependenciesTreeBuilder;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractDependencyNode;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.GoToModuleAction;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.ModuleDependencyNode;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.NodeHyperlinkSupport;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.*;
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
 import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowPanel;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsdNode;
@@ -79,7 +76,6 @@ class ResolvedDependenciesPanel extends ToolWindowPanel implements DependencySel
                             @NotNull DependencySelection dependencySelection) {
     super("Resolved Dependencies", AndroidIcons.Variant, ToolWindowAnchor.RIGHT);
     myContext = context;
-    setHeaderActions();
 
     DefaultTreeModel treeModel = new DefaultTreeModel(new DefaultMutableTreeNode());
     myTree = new Tree(treeModel) {
@@ -100,6 +96,7 @@ class ResolvedDependenciesPanel extends ToolWindowPanel implements DependencySel
       }
     };
 
+    setHeaderActions();
     getHeader().setPreferredFocusedComponent(myTree);
 
     myTreeBuilder = new ResolvedDependenciesTreeBuilder(module, myTree, treeModel, dependencySelection, this);
@@ -172,7 +169,7 @@ class ResolvedDependenciesPanel extends ToolWindowPanel implements DependencySel
 
     List<AnAction> additionalActions = Lists.newArrayList();
 
-    additionalActions.add(new DumbAwareAction("Expand All", "", AllIcons.General.ExpandAll) {
+    additionalActions.add(new AbstractBaseExpandAllAction(myTree) {
       @Override
       public void actionPerformed(AnActionEvent e) {
         myIgnoreTreeSelectionEvents = true;
@@ -182,7 +179,7 @@ class ResolvedDependenciesPanel extends ToolWindowPanel implements DependencySel
       }
     });
 
-    additionalActions.add(new DumbAwareAction("Collapse All", "", AllIcons.General.CollapseAll) {
+    additionalActions.add(new AbstractBaseCollapseAllAction(myTree) {
       @Override
       public void actionPerformed(AnActionEvent e) {
         collapseAllNodes();

@@ -15,31 +15,23 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview;
 
-import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.intellij.openapi.actionSystem.ActionManager;
-import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.DumbAwareAction;
+import com.intellij.ui.treeStructure.Tree;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
-import static com.intellij.openapi.actionSystem.IdeActions.ACTION_GOTO_DECLARATION;
+import static com.intellij.icons.AllIcons.General.ExpandAll;
+import static com.intellij.openapi.actionSystem.IdeActions.ACTION_EXPAND_ALL;
 
-public class GoToModuleAction extends DumbAwareAction {
-  @NotNull private final String myModuleName;
-  @NotNull private final PsContext myContext;
-  @NotNull private final Object myInvoker;
-
-  public GoToModuleAction(@NotNull String moduleName, @NotNull PsContext context, @NotNull JComponent invoker) {
-    super(String.format("Go to module '%1$s'", moduleName));
-    myModuleName = moduleName;
-    myContext = context;
-    myInvoker = invoker;
-    registerCustomShortcutSet(ActionManager.getInstance().getAction(ACTION_GOTO_DECLARATION).getShortcutSet(), invoker);
+public abstract class AbstractBaseExpandAllAction extends DumbAwareAction {
+  protected AbstractBaseExpandAllAction(@NotNull Tree tree) {
+    this(tree, ExpandAll);
   }
 
-  @Override
-  public void actionPerformed(AnActionEvent e) {
-    myContext.setSelectedModule(myModuleName, myInvoker);
+  protected AbstractBaseExpandAllAction(@NotNull Tree tree, @NotNull Icon icon) {
+    super("Expand All", "", icon);
+    registerCustomShortcutSet(ActionManager.getInstance().getAction(ACTION_EXPAND_ALL).getShortcutSet(), tree);
   }
 }
