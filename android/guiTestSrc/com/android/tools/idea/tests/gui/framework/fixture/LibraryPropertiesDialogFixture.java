@@ -117,7 +117,7 @@ public class LibraryPropertiesDialogFixture extends IdeaDialogFixture<LibraryPro
       @Override
       protected boolean isMatching(@NotNull JDialog dialog) {
         String title = dialog.getTitle();
-        return dialog.isShowing() && isNotEmpty(title) && title.startsWith("Attach Files or Directories to Library");
+        return isNotEmpty(title) && title.startsWith("Attach Files or Directories to Library");
       }
     });
     assertNotNull("Failed to find VirtualFile with path " + quote(path.getPath()), attachment);
