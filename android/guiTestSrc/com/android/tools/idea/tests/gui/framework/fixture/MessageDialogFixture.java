@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Ref;
@@ -25,7 +26,6 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
-import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilFound;
 import static com.google.common.base.Strings.nullToEmpty;
 import static org.fest.swing.edt.GuiActionRunner.execute;
 
@@ -33,10 +33,10 @@ class MessageDialogFixture extends IdeaDialogFixture<DialogWrapper> implements M
   @NotNull
   static MessageDialogFixture findByTitle(@NotNull Robot robot, @NotNull final String title) {
     final Ref<DialogWrapper> wrapperRef = new Ref<DialogWrapper>();
-    JDialog dialog = waitUntilFound(robot, new GenericTypeMatcher<JDialog>(JDialog.class) {
+    JDialog dialog = GuiTests.waitUntilShowing(robot, new GenericTypeMatcher<JDialog>(JDialog.class) {
       @Override
       protected boolean isMatching(@NotNull JDialog dialog) {
-        if (!title.equals(dialog.getTitle()) || !dialog.isShowing()) {
+        if (!title.equals(dialog.getTitle())) {
           return false;
         }
         DialogWrapper wrapper = getDialogWrapperFrom(dialog, DialogWrapper.class);

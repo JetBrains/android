@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.Ref;
 import org.fest.swing.core.GenericTypeMatcher;
@@ -25,16 +26,15 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
-import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilFound;
 
 public class SelectRefactoringDialogFixture extends IdeaDialogFixture<DialogWrapper> {
   @NotNull
   public static SelectRefactoringDialogFixture findByTitle(@NotNull Robot robot) {
     final Ref<DialogWrapper> wrapperRef = new Ref<DialogWrapper>();
-    JDialog dialog = waitUntilFound(robot, new GenericTypeMatcher<JDialog>(JDialog.class) {
+    JDialog dialog = GuiTests.waitUntilShowing(robot, new GenericTypeMatcher<JDialog>(JDialog.class) {
       @Override
       protected boolean isMatching(@NotNull JDialog dialog) {
-        if (!"Select Refactoring".equals(dialog.getTitle()) || !dialog.isShowing()) {
+        if (!"Select Refactoring".equals(dialog.getTitle())) {
           return false;
         }
         DialogWrapper wrapper = getDialogWrapperFrom(dialog, DialogWrapper.class);
