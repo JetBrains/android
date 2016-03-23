@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.tools.idea.gradle.project.ProxySettingsDialog;
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.Ref;
 import org.fest.swing.core.GenericTypeMatcher;
@@ -26,18 +27,17 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
-import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilFound;
 import static org.junit.Assert.assertNotNull;
 
 public class ProxySettingsDialogFixture extends IdeaDialogFixture<DialogWrapper> {
   @NotNull
   public static ProxySettingsDialogFixture find(@NotNull Robot robot) {
     final Ref<DialogWrapper> wrapperRef = new Ref<DialogWrapper>();
-    JDialog dialog = waitUntilFound(robot, new GenericTypeMatcher<JDialog>(JDialog.class) {
+    JDialog dialog = GuiTests.waitUntilShowing(robot, new GenericTypeMatcher<JDialog>(JDialog.class) {
       @Override
       protected boolean isMatching(@NotNull JDialog dialog) {
         DialogWrapper wrapper = getDialogWrapperFrom(dialog, DialogWrapper.class);
-        if (wrapper != null && wrapper.getClass() == ProxySettingsDialog.class && dialog.isShowing()) {
+        if (wrapper != null && wrapper.getClass() == ProxySettingsDialog.class) {
           wrapperRef.set(wrapper);
           return true;
         }

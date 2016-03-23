@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.avdmanager;
 
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
 import com.intellij.ui.HyperlinkLabel;
@@ -32,7 +33,6 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
-import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilFound;
 import static org.fest.swing.core.MouseButton.RIGHT_BUTTON;
 import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.junit.Assert.assertNotNull;
@@ -48,10 +48,10 @@ public class AvdManagerDialogFixture extends ComponentFixture<AvdManagerDialogFi
 
   @NotNull
   public static AvdManagerDialogFixture find(@NotNull Robot robot) {
-    JFrame frame = waitUntilFound(robot, new GenericTypeMatcher<JFrame>(JFrame.class) {
+    JFrame frame = GuiTests.waitUntilShowing(robot, new GenericTypeMatcher<JFrame>(JFrame.class) {
       @Override
       protected boolean isMatching(@NotNull JFrame dialog) {
-        return "Android Virtual Device Manager".equals(dialog.getTitle()) && dialog.isShowing();
+        return "Android Virtual Device Manager".equals(dialog.getTitle());
       }
     });
     return new AvdManagerDialogFixture(robot, frame);

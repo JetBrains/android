@@ -103,12 +103,12 @@ public class ThemeSelectorTest {
     guiTest.ideFrame().invokeMenuPathRegex("Edit", "Undo.*");
     DialogFixture message = new DialogFixture(guiTest.robot(), guiTest.robot().finder().findByType(Dialog.class));
     message.focus();
-    JButton OkButton = GuiTests.waitUntilFound(guiTest.robot(), message.target(), new GenericTypeMatcher<JButton>(JButton.class) {
+    JButton OkButton = GuiTests.waitUntilShowing(guiTest.robot(), message.target(), new GenericTypeMatcher<JButton>(JButton.class) {
       @Override
       protected boolean isMatching(@NotNull JButton button) {
         String buttonText = button.getText();
         if (buttonText != null) {
-          return "OK".equals(buttonText.trim()) && button.isShowing();
+          return "OK".equals(buttonText.trim());
         }
         return false;
       }

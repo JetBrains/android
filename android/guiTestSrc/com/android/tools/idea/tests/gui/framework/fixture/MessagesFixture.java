@@ -83,10 +83,10 @@ public class MessagesFixture {
 
   @NotNull
   static JPanelFixture findMacSheetByTitle(@NotNull Robot robot, @NotNull Container root, @NotNull String title) {
-    JPanel sheetPanel = waitUntilFound(robot, root, new GenericTypeMatcher<JPanel>(JPanel.class) {
+    JPanel sheetPanel = waitUntilShowing(robot, root, new GenericTypeMatcher<JPanel>(JPanel.class) {
       @Override
       protected boolean isMatching(@NotNull JPanel panel) {
-        if (panel.getClass().getName().startsWith(SheetController.class.getName()) && panel.isShowing()) {
+        if (panel.getClass().getName().startsWith(SheetController.class.getName())) {
           SheetController controller = findSheetController(panel);
           JPanel sheetPanel = field("mySheetPanel").ofType(JPanel.class).in(controller).get();
           if (sheetPanel == panel) {
