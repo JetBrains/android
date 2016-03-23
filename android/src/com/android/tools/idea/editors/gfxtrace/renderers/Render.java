@@ -197,11 +197,11 @@ public final class Render {
       MemoryPointer mp = tryMemoryPointer(dyn);
       return mp == null || mp.isAddress();
     }
-    return false;
+    return true;
   }
 
   private static boolean isHighlighted(int highlightedParameter, int i, SnippetObject paramValue) {
-    return i == highlightedParameter || CanFollow.fromSnippets(paramValue.getSnippets()) != null && isValidParam(paramValue);
+    return (i == highlightedParameter || CanFollow.fromSnippets(paramValue.getSnippets()) != null) && isValidParam(paramValue);
   }
 
   private static SimpleTextAttributes paramAttributes(int highlightedParameter, int i, SnippetObject paramValue, SimpleTextAttributes attributes) {

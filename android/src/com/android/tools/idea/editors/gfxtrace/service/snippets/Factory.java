@@ -27,6 +27,7 @@ public final class Factory {
     FieldPath.register();
     NamePath.register();
     PartPath.register();
+    RelativePath.register();
     //<<<End:Java.FactoryBody:2>>>
   }
 }
