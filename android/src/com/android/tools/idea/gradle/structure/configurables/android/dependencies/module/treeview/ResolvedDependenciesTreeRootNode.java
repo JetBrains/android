@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.treeview;
 
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.PsAndroidDependencyComparator;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AndroidArtifactNode;
 import com.android.tools.idea.gradle.structure.configurables.android.treeview.AbstractRootNode;
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsdNode;
@@ -90,12 +91,12 @@ class ResolvedDependenciesTreeRootNode extends AbstractRootNode<PsAndroidModule>
       }
     }
 
-    List<ArtifactNode> children = Lists.newArrayList();
+    List<AndroidArtifactNode> children = Lists.newArrayList();
 
     for (List<PsDependencyContainer> containers : groupedDependencies.keySet()) {
       List<PsAndroidArtifact> groupArtifacts = extractArtifacts(containers, variantsByName);
 
-      ArtifactNode mainArtifactNode = null;
+      AndroidArtifactNode mainArtifactNode = null;
       if (!containersWithMainArtifactByVariant.values().contains(containers)) {
         // This is a node for "Unit Test" or "Android Test"
         if (containers.size() == 1) {
@@ -127,15 +128,15 @@ class ResolvedDependenciesTreeRootNode extends AbstractRootNode<PsAndroidModule>
       }
 
       Collections.sort(groupArtifacts, ArtifactComparator.INSTANCE);
-      ArtifactNode artifactNode = createArtifactNode(groupArtifacts, groupedDependencies.get(containers), mainArtifactNode);
+      AndroidArtifactNode artifactNode = createArtifactNode(groupArtifacts, groupedDependencies.get(containers), mainArtifactNode);
       if (artifactNode != null) {
         children.add(artifactNode);
       }
     }
 
-    Collections.sort(children, new Comparator<ArtifactNode>() {
+    Collections.sort(children, new Comparator<AndroidArtifactNode>() {
       @Override
-      public int compare(ArtifactNode a1, ArtifactNode a2) {
+      public int compare(AndroidArtifactNode a1, AndroidArtifactNode a2) {
         return a1.getName().compareTo(a2.getName());
       }
     });
@@ -252,11 +253,11 @@ class ResolvedDependenciesTreeRootNode extends AbstractRootNode<PsAndroidModule>
   }
 
   @Nullable
-  private ArtifactNode createArtifactNode(@NotNull List<PsAndroidArtifact> artifacts,
-                                          @NotNull List<PsAndroidDependency> dependencies,
-                                          @Nullable ArtifactNode mainArtifactNode) {
+  private AndroidArtifactNode createArtifactNode(@NotNull List<PsAndroidArtifact> artifacts,
+                                                 @NotNull List<PsAndroidDependency> dependencies,
+                                                 @Nullable AndroidArtifactNode mainArtifactNode) {
     if (!dependencies.isEmpty() || mainArtifactNode != null) {
-      ArtifactNode artifactNode = new ArtifactNode(this, artifacts);
+      AndroidArtifactNode artifactNode = new AndroidArtifactNode(this, artifacts);
       populate(artifactNode, dependencies, mainArtifactNode);
       return artifactNode;
     }
@@ -264,9 +265,9 @@ class ResolvedDependenciesTreeRootNode extends AbstractRootNode<PsAndroidModule>
   }
 
   @NotNull
-  private List<? extends ArtifactNode> createChildren(@NotNull PsAndroidModule module,
-                                                      @NotNull Map<String, PsVariant> variantsByName) {
-    List<ArtifactNode> childrenNodes = Lists.newArrayList();
+  private List<? extends AndroidArtifactNode> createChildren(@NotNull PsAndroidModule module,
+                                                             @NotNull Map<String, PsVariant> variantsByName) {
+    List<AndroidArtifactNode> childrenNodes = Lists.newArrayList();
 
     // [Outer map] key: variant name, value: dependencies by artifact
     // [Inner map] key: artifact name, value: dependencies
@@ -316,7 +317,7 @@ class ResolvedDependenciesTreeRootNode extends AbstractRootNode<PsAndroidModule>
           PsAndroidArtifact artifact = variant.findArtifact(artifactName);
           assert artifact != null;
 
-          ArtifactNode mainArtifactNode = null;
+          AndroidArtifactNode mainArtifactNode = null;
           String mainArtifactName = ARTIFACT_MAIN;
           if (!mainArtifactName.equals(artifactName)) {
             // Add "main" artifact as a dependency of "unit test" or "android test" artifact.
@@ -330,7 +331,7 @@ class ResolvedDependenciesTreeRootNode extends AbstractRootNode<PsAndroidModule>
             }
           }
 
-          ArtifactNode artifactNode = createArtifactNode(artifact, dependenciesByArtifact.get(artifactName), mainArtifactNode);
+          AndroidArtifactNode artifactNode = createArtifactNode(artifact, dependenciesByArtifact.get(artifactName), mainArtifactNode);
           if (artifactNode != null) {
             childrenNodes.add(artifactNode);
           }
@@ -342,20 +343,20 @@ class ResolvedDependenciesTreeRootNode extends AbstractRootNode<PsAndroidModule>
   }
 
   @Nullable
-  private ArtifactNode createArtifactNode(@NotNull PsAndroidArtifact artifact,
-                                          @NotNull List<PsAndroidDependency> dependencies,
-                                          @Nullable ArtifactNode mainArtifactNode) {
+  private AndroidArtifactNode createArtifactNode(@NotNull PsAndroidArtifact artifact,
+                                                 @NotNull List<PsAndroidDependency> dependencies,
+                                                 @Nullable AndroidArtifactNode mainArtifactNode) {
     if (!dependencies.isEmpty() || mainArtifactNode != null) {
-      ArtifactNode artifactNode = new ArtifactNode(this, artifact);
+      AndroidArtifactNode artifactNode = new AndroidArtifactNode(this, artifact);
       populate(artifactNode, dependencies, mainArtifactNode);
       return artifactNode;
     }
     return null;
   }
 
-  private static void populate(@NotNull ArtifactNode artifactNode,
+  private static void populate(@NotNull AndroidArtifactNode artifactNode,
                                @NotNull List<PsAndroidDependency> dependencies,
-                               @Nullable ArtifactNode mainArtifactNode) {
+                               @Nullable AndroidArtifactNode mainArtifactNode) {
     List<AbstractPsdNode<?>> children = createNodesFor(artifactNode, dependencies);
     if (mainArtifactNode != null) {
       children.add(0, mainArtifactNode);
