@@ -21,8 +21,11 @@ import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.SessionParams;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.resources.ResourceFolderType;
+import com.android.resources.ScreenOrientation;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkVersionInfo;
+import com.android.sdklib.devices.Screen;
+import com.android.sdklib.devices.State;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.*;
 import com.android.tools.idea.uibuilder.api.InsertType;
@@ -66,6 +69,8 @@ import static com.android.tools.idea.uibuilder.palette.NlPaletteModel.PALETTE_VE
 public class IconPreviewFactory {
   private static final Logger LOG = Logger.getInstance(IconPreviewFactory.class);
   private static final int PREVIEW_LIMIT = 4000;
+  private static final int DEFAULT_X_DIMENSION = 1080;
+  private static final int DEFAULT_Y_DIMENSION = 1920;
   private static final String DEFAULT_THEME = "AppTheme";
   private static final String PREVIEW_PLACEHOLDER_FILE = "preview.xml";
   private static final String CONTAINER_ID = "TopLevelContainer";
@@ -98,7 +103,10 @@ public class IconPreviewFactory {
     if (image == null) {
       return null;
     }
-    return scaleAndAdjustForRetina(image, scale);
+    if (scale != 1.0) {
+      image = ImageUtils.scale(image, scale, scale);
+    }
+    return image;
   }
 
   /**
@@ -151,16 +159,6 @@ public class IconPreviewFactory {
       return null;
     }
     return image.getSubimage(view.getLeft(), view.getTop(), view.getRight(), view.getBottom());
-  }
-
-  @NonNull
-  public static BufferedImage scaleAndAdjustForRetina(@NonNull BufferedImage image, double scale) {
-    if (!ImageUtils.supportsRetina()) {
-      return ImageUtils.scale(image, scale, scale);
-    }
-    image = ImageUtils.scale(image, scale, scale);
-    BufferedImage retina = ImageUtils.convertToRetina(image);
-    return retina != null ? retina : image;
   }
 
   private static String addAndroidNamespaceIfMissing(@NonNull String xml) {
@@ -294,16 +292,26 @@ public class IconPreviewFactory {
   private static File getPreviewCacheDir(@NonNull Configuration configuration) {
     String path = PathUtil.getCanonicalPath(PathManager.getSystemPath());
     int density = configuration.getDensity().getDpiValue();
+    State state = configuration.getDeviceState();
+    Screen screen = state != null ? state.getHardware().getScreen() : null;
+    int xDimension = screen != null ? screen.getXDimension() : DEFAULT_X_DIMENSION;
+    int yDimension = screen != null ? screen.getYDimension() : DEFAULT_Y_DIMENSION;
+    ScreenOrientation orientation = state != null ? state.getOrientation() : ScreenOrientation.PORTRAIT;
+    if ((orientation == ScreenOrientation.LANDSCAPE && xDimension < yDimension) ||
+        (orientation == ScreenOrientation.PORTRAIT && xDimension > yDimension)) {
+      int temp = xDimension;
+      //noinspection SuspiciousNameCombination
+      xDimension = yDimension;
+      yDimension = temp;
+    }
     String theme = getTheme(configuration);
-    int apiVersion = getApiVersion(configuration);
-    //noinspection StringBufferReplaceableByString
-    String cacheFolder = new StringBuilder()
-      .append(path).append(File.separator)
-      .append(ANDROID_PALETTE).append(File.separator)
-      .append(PALETTE_VERSION).append(File.separator)
-      .append("image-cache").append(File.separator)
-      .append(theme).append(File.separator)
-      .append(density).append("-").append(apiVersion).toString();
+    String apiVersion = getApiVersion(configuration);
+    String cacheFolder = path + File.separator +
+                         ANDROID_PALETTE + File.separator +
+                         PALETTE_VERSION + File.separator +
+                         "image-cache" + File.separator +
+                         theme + File.separator +
+                         xDimension + "x" + yDimension + "-" + density + "-" + apiVersion;
     return new File(cacheFolder);
   }
 
@@ -320,9 +328,11 @@ public class IconPreviewFactory {
     return theme;
   }
 
-  private static int getApiVersion(@NonNull Configuration configuration) {
+  private static String getApiVersion(@NonNull Configuration configuration) {
     IAndroidTarget target = configuration.getTarget();
-    return target == null ? SdkVersionInfo.HIGHEST_KNOWN_STABLE_API : target.getVersion().getApiLevel();
+    // If the target is not found, return a version that cannot be confused with a proper result.
+    // For now: use "U" for "unknown".
+    return target == null ? SdkVersionInfo.HIGHEST_KNOWN_STABLE_API + "U" : target.getVersion().getApiString();
   }
 
   private static void addResultToCache(@Nullable RenderResult result, @Nullable List<String> ids, @NonNull Configuration configuration) {
@@ -348,7 +358,7 @@ public class IconPreviewFactory {
     if (task != null) {
       task.setOverrideBgColor(UIUtil.TRANSPARENT_COLOR.getRGB());
       task.setDecorations(false);
-      task.setRenderingMode(SessionParams.RenderingMode.FULL_EXPAND);
+      task.setRenderingMode(SessionParams.RenderingMode.V_SCROLL);
       task.setFolderType(ResourceFolderType.LAYOUT);
       result = task.render();
       task.dispose();
