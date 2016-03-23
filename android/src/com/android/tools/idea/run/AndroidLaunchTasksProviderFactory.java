@@ -64,20 +64,33 @@ public class AndroidLaunchTasksProviderFactory implements LaunchTasksProviderFac
                                    buildInfo.getTimeStamp() +
                                    ", verifier status: " +
                                    StringUtil.notNullize(buildInfo.getVerifierStatus(), "empty"));
-      }
 
-      if (canHotSwap()) {
-        return new HotSwapTasksProvider(myRunConfig, myEnv, myFacet, myApkProvider, myLaunchOptions);
+        // If there is nothing new to deploy, and there is an existing run session connected to the process,
+        // then we should not use AndroidLaunchTasksProvider since it assumes that there will be a new process created,
+        // and unnecessarily terminates and restarts the existing session. The termination is troublesome because restarting
+        // a process without proper cold swap patches could result in loss of updates from all previous hotswaps.
+        if (myPreviousSessionProcessHandler != null &&
+            !myPreviousSessionProcessHandler.isProcessTerminated() &&
+            buildInfo.hasNoChanges()) {
+          return new NoChangesTasksProvider(myFacet);
+        }
+        else if (canHotSwap(buildInfo)) {
+          return new HotSwapTasksProvider(myRunConfig, myEnv, myFacet, myApkProvider, myLaunchOptions);
+        }
+      }
+      else {
+        InstantRunManager.LOG.info("No build-info.xml file");
       }
     }
 
     return new AndroidLaunchTasksProvider(myRunConfig, myEnv, myFacet, myApkProvider, myLaunchOptions);
   }
 
-  // Returns whether the build results indicate that we can perform a hotswap
-  private boolean canHotSwap() {
+  /** Returns whether the build results indicate that we can perform a hot swap */
+  private boolean canHotSwap(@NotNull InstantRunBuildInfo info) {
     if (myPreviousSessionProcessHandler == null) {
       // if there is no existing session, then even though the build ids might match, we can't use hotswap (possibly use dexswap)
+      InstantRunManager.LOG.info("Cannot hot swap since there is no active launch session for this config.");
       return false;
     }
 
@@ -86,16 +99,9 @@ public class AndroidLaunchTasksProviderFactory implements LaunchTasksProviderFac
       return false;
     }
 
-    InstantRunBuildInfo info = getInstantRunBuildInfo();
-    boolean canHotswap = info != null && info.canHotswap();
-
+    boolean canHotswap = info.canHotswap();
     if (!canHotswap) {
-      if (info == null) {
-        InstantRunManager.LOG.info("No build-info.xml file");
-      }
-      else {
-        InstantRunManager.LOG.info("Cannot swap according to build-info.xml");
-      }
+      InstantRunManager.LOG.info("Cannot hot swap according to build-info.xml");
     }
 
     return canHotswap;
