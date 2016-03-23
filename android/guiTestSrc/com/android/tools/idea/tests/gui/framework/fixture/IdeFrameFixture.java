@@ -26,6 +26,7 @@ import com.android.tools.idea.gradle.project.build.GradleBuildContext;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.project.AndroidProjectBuildNotifications;
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.Wait;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.Tab;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdManagerDialogFixture;
@@ -815,14 +816,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
     InspectCodeDialogFixture.find(robot()).clickOk();
 
-    final InspectionTree tree = waitUntilFound(robot(), new GenericTypeMatcher<InspectionTree>(InspectionTree.class) {
-      @Override
-      protected boolean isMatching(@NotNull InspectionTree component) {
-        return true;
-      }
-    });
-
-    return new InspectionsFixture(robot(), getProject(), tree);
+    return new InspectionsFixture(robot(), getProject(), GuiTests.waitUntilFound(robot(), GuiTests.matcherForType(InspectionTree.class)));
   }
 
   @NotNull
