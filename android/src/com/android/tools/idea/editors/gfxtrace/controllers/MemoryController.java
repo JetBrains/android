@@ -780,6 +780,9 @@ public class MemoryController extends Controller {
     }
 
     private boolean getByteKnown(int offset, int size) {
+      if (offset < 0 || size < 0 || myOffset + offset + size > myData.length) {
+        return false;
+      }
       if (myKnown == null) {
         return true;
       }
@@ -1080,9 +1083,9 @@ public class MemoryController extends Controller {
 
     @Override
     protected void formatMemory(char[] buffer, MemorySegment memory) {
-      for (int i = 0, j = ADDRESS_CHARS; i < memory.myLength; i += 2, j += CHARS_PER_SHORT + SHORT_SEPARATOR) {
-        int s = memory.getShort(i);
+      for (int i = 0, j = ADDRESS_CHARS; i + 1 < memory.myLength; i += 2, j += CHARS_PER_SHORT + SHORT_SEPARATOR) {
         if (memory.getShortKnown(i)) {
+          int s = memory.getShort(i);
           buffer[j + 1] = HEX_DIGITS[(s >> 12) & 0xF];
           buffer[j + 2] = HEX_DIGITS[(s >> 8) & 0xF];
           buffer[j + 3] = HEX_DIGITS[(s >> 4) & 0xF];
@@ -1115,7 +1118,7 @@ public class MemoryController extends Controller {
 
     @Override
     protected void formatMemory(char[] buffer, MemorySegment memory) {
-      for (int i = 0, j = ADDRESS_CHARS; i < memory.myLength; i += 4, j += CHARS_PER_INT + INT_SEPARATOR) {
+      for (int i = 0, j = ADDRESS_CHARS; i + 3 < memory.myLength; i += 4, j += CHARS_PER_INT + INT_SEPARATOR) {
         if (memory.getIntKnown(i)) {
           int v = memory.getInt(i);
           buffer[j + 1] = HEX_DIGITS[(v >> 28) & 0xF];
@@ -1159,7 +1162,7 @@ public class MemoryController extends Controller {
     @Override
     protected void formatMemory(char[] buffer, MemorySegment memory) {
       StringBuilder sb = new StringBuilder(50);
-      for (int i = 0, j = ADDRESS_CHARS; i < memory.myLength; i += 4, j += CHARS_PER_FLOAT + FLOAT_SEPARATOR) {
+      for (int i = 0, j = ADDRESS_CHARS; i + 3 < memory.myLength; i += 4, j += CHARS_PER_FLOAT + FLOAT_SEPARATOR) {
         sb.setLength(0);
         if (memory.getIntKnown(i)) {
           sb.append(Float.intBitsToFloat(memory.getInt(i)));
@@ -1191,7 +1194,7 @@ public class MemoryController extends Controller {
     @Override
     protected void formatMemory(char[] buffer, MemorySegment memory) {
       StringBuilder sb = new StringBuilder(50);
-      for (int i = 0, j = ADDRESS_CHARS; i < memory.myLength; i += 8, j += CHARS_PER_DOUBLE + DOUBLE_SEPARATOR) {
+      for (int i = 0, j = ADDRESS_CHARS; i + 7 < memory.myLength; i += 8, j += CHARS_PER_DOUBLE + DOUBLE_SEPARATOR) {
         sb.setLength(0);
         if (memory.getLongKnown(i)) {
           sb.append(Double.longBitsToDouble(memory.getLong(i)));
