@@ -18,19 +18,14 @@ package com.android.tools.idea.gradle.structure.configurables.android.dependenci
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.AbstractDeclaredDependenciesPanel;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.project.treeview.DeclaredDependenciesTreeBuilder;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.*;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractBaseTreeBuilder.MatchingNodeCollector;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractDependencyNode;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.GoToModuleAction;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.ModuleDependencyNode;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.NodeHyperlinkSupport;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsdNode;
 import com.android.tools.idea.gradle.structure.model.PsProject;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsModuleDependency;
 import com.google.common.collect.Lists;
-import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.*;
-import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.PopupHandler;
 import com.intellij.ui.treeStructure.Tree;
@@ -50,6 +45,8 @@ import java.util.List;
 import java.util.Set;
 
 import static com.android.tools.idea.gradle.structure.configurables.android.dependencies.UiUtil.setUp;
+import static com.intellij.icons.AllIcons.Actions.Collapseall;
+import static com.intellij.icons.AllIcons.Actions.Expandall;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static com.intellij.util.ui.tree.TreeUtil.ensureSelection;
 
@@ -66,6 +63,8 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel {
 
     DefaultTreeModel treeModel = new DefaultTreeModel(new DefaultMutableTreeNode());
     myTree = new Tree(treeModel);
+
+    getContentsPanel().add(createActionsPanel(), BorderLayout.NORTH);
 
     JScrollPane scrollPane = setUp(myTree);
     getContentsPanel().add(scrollPane, BorderLayout.CENTER);
@@ -150,7 +149,7 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel {
   protected List<AnAction> getExtraToolbarActions() {
     List<AnAction> actions = Lists.newArrayList();
 
-    actions.add(new DumbAwareAction("Expand All", null, AllIcons.Actions.Expandall) {
+    actions.add(new AbstractBaseExpandAllAction(myTree, Expandall) {
       @Override
       public void actionPerformed(AnActionEvent e) {
         myTree.requestFocusInWindow();
@@ -159,7 +158,7 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel {
       }
     });
 
-    actions.add(new DumbAwareAction("Collapse All", null, AllIcons.Actions.Collapseall) {
+    actions.add(new AbstractBaseCollapseAllAction(myTree, Collapseall) {
       @Override
       public void actionPerformed(AnActionEvent e) {
         myTreeBuilder.clearSelection();

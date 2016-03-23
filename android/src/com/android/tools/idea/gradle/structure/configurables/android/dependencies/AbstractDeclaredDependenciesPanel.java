@@ -44,6 +44,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -85,7 +86,6 @@ public abstract class AbstractDeclaredDependenciesPanel extends JPanel implement
     OnePixelSplitter splitter = new OnePixelSplitter(true, "psd.editable.dependencies.main.horizontal.splitter.proportion", 0.75f);
 
     myContentsPanel = new JPanel(new BorderLayout());
-    myContentsPanel.add(createActionsPanel(), BorderLayout.NORTH);
 
     splitter.setFirstComponent(myContentsPanel);
     splitter.setSecondComponent(myEditorScrollPane);
@@ -115,7 +115,7 @@ public abstract class AbstractDeclaredDependenciesPanel extends JPanel implement
   }
 
   @NotNull
-  private JPanel createActionsPanel() {
+  protected final JPanel createActionsPanel() {
     final JPanel actionsPanel = new JPanel(new BorderLayout());
 
     DefaultActionGroup actions = new DefaultActionGroup();
@@ -172,12 +172,12 @@ public abstract class AbstractDeclaredDependenciesPanel extends JPanel implement
 
   @NotNull
   protected List<AnAction> getExtraToolbarActions() {
-    return Lists.newArrayList();
+    return Collections.emptyList();
   }
 
   private void initPopupActions() {
     if (myPopupActions == null) {
-      java.util.List<AbstractPopupAction> actions = Lists.newArrayList();
+      List<AbstractPopupAction> actions = Lists.newArrayList();
       actions.add(new AddDependencyAction());
       myPopupActions = actions;
     }
