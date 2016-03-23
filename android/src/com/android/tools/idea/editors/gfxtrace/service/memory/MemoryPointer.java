@@ -27,6 +27,15 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 
 public final class MemoryPointer implements BinaryObject {
+  // vm.mmap_min_addr is assumed to be the Android default value of 32kb
+  public final static long MIN_ADDR = 32<<10;  // 32Kb
+
+  // The API sometimes overloads pointers with integers, so for small values which
+  // can not possibly be addresses we treat them as an integer.
+  public final boolean isAddress() {
+    return !PoolID.ApplicationPool.equals(myPool) || myAddress >= MIN_ADDR;
+  }
+
   @Override
   public String toString() {
     return "0x" + Long.toHexString(myAddress) + "@" + myPool;

@@ -190,8 +190,18 @@ public final class Render {
     }
   }
 
+  private static boolean isValidParam(SnippetObject paramValue) {
+    if (paramValue.getObject() instanceof Dynamic) {
+      // Avoid highlighting pointers for invalid memory addresses. Note only affects rendering.
+      Dynamic dyn = (Dynamic)paramValue.getObject();
+      MemoryPointer mp = tryMemoryPointer(dyn);
+      return mp == null || mp.isAddress();
+    }
+    return false;
+  }
+
   private static boolean isHighlighted(int highlightedParameter, int i, SnippetObject paramValue) {
-    return i == highlightedParameter || CanFollow.fromSnippets(paramValue.getSnippets()) != null;
+    return i == highlightedParameter || CanFollow.fromSnippets(paramValue.getSnippets()) != null && isValidParam(paramValue);
   }
 
   private static SimpleTextAttributes paramAttributes(int highlightedParameter, int i, SnippetObject paramValue, SimpleTextAttributes attributes) {
@@ -201,10 +211,17 @@ public final class Render {
   public static void render(@NotNull MemoryPointer pointer,
                             @NotNull SimpleColoredComponent component,
                             @NotNull SimpleTextAttributes attributes) {
-    component.append("0x" + Long.toHexString(pointer.getAddress()), attributes);
     if (!PoolID.ApplicationPool.equals(pointer.getPool())) {
+      component.append("0x" + Long.toHexString(pointer.getAddress()), attributes);
       component.append("@", SimpleTextAttributes.GRAY_ATTRIBUTES);
       component.append(pointer.getPool().toString(), attributes);
+    } else {
+      if (!pointer.isAddress()) {
+        // Not really an address, display a decimal.
+        component.append(String.format("%d", pointer.getAddress()), attributes);
+      } else {
+        component.append("0x" + Long.toHexString(pointer.getAddress()), attributes);
+      }
     }
   }
 
