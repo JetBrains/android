@@ -40,7 +40,7 @@ public class FileChooserDialogFixture extends IdeaDialogFixture<FileChooserDialo
     return findDialog(robot, new GenericTypeMatcher<JDialog>(JDialog.class) {
       @Override
       protected boolean isMatching(@NotNull JDialog dialog) {
-        return dialog.isShowing() && "Open File or Project".equals(dialog.getTitle());
+        return "Open File or Project".equals(dialog.getTitle());
       }
     });
   }
@@ -51,7 +51,7 @@ public class FileChooserDialogFixture extends IdeaDialogFixture<FileChooserDialo
       @Override
       protected boolean isMatching(@NotNull JDialog dialog) {
         String title = dialog.getTitle();
-        return dialog.isShowing() && title != null && title.startsWith("Select") && title.endsWith("Project to Import");
+        return title != null && title.startsWith("Select") && title.endsWith("Project to Import");
       }
     });
   }

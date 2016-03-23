@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.Ref;
 import org.fest.reflect.exception.ReflectionError;
@@ -29,7 +30,6 @@ import javax.swing.*;
 import java.lang.ref.WeakReference;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickCancelButton;
-import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilFound;
 import static junit.framework.Assert.assertNotNull;
 import static org.fest.reflect.core.Reflection.field;
 
@@ -66,19 +66,14 @@ public abstract class IdeaDialogFixture<T extends DialogWrapper> extends Compone
 
   @NotNull
   public static <T extends DialogWrapper> DialogAndWrapper<T> find(@NotNull Robot robot, @NotNull final Class<T> clz) {
-    return find(robot, clz, new GenericTypeMatcher<JDialog>(JDialog.class) {
-      @Override
-      protected boolean isMatching(@NotNull JDialog component) {
-        return component.isShowing();
-      }
-    });
+    return find(robot, clz, GuiTests.matcherForType(JDialog.class));
   }
 
   @NotNull
   public static <T extends DialogWrapper> DialogAndWrapper<T> find(@NotNull Robot robot, @NotNull final Class<T> clz,
                                                                    @NotNull final GenericTypeMatcher<JDialog> matcher) {
     final Ref<T> wrapperRef = new Ref<T>();
-    JDialog dialog = waitUntilFound(robot, new GenericTypeMatcher<JDialog>(JDialog.class) {
+    JDialog dialog = GuiTests.waitUntilShowing(robot, new GenericTypeMatcher<JDialog>(JDialog.class) {
       @Override
       protected boolean isMatching(@NotNull JDialog dialog) {
         if (matcher.matches(dialog)) {

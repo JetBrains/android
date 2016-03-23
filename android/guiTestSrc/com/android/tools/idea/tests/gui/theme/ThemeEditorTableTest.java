@@ -236,7 +236,7 @@ public class ThemeEditorTableTest {
     ChooseResourceDialogFixture secondDialog = ChooseResourceDialogFixture.find(guiTest.robot(), new GenericTypeMatcher<JDialog>(JDialog.class) {
       @Override
       protected boolean isMatching(@NotNull JDialog component) {
-        return (component.isShowing() && !component.equals(dialog.target()));
+        return !component.equals(dialog.target());
       }
     });
     secondDialog.getColorPicker().setColorWithIntegers(new Color(200, 0, 0, 200));
@@ -253,7 +253,7 @@ public class ThemeEditorTableTest {
     secondDialog = ChooseResourceDialogFixture.find(guiTest.robot(), new GenericTypeMatcher<JDialog>(JDialog.class) {
       @Override
       protected boolean isMatching(@NotNull JDialog component) {
-        return (component.isShowing() && !component.equals(dialog.target()));
+        return !component.equals(dialog.target());
       }
     });
     secondDialog.getList(ChooseResourceDialog.APP_NAMESPACE_LABEL).clickItem("abc_disabled_alpha_material_dark");
@@ -271,7 +271,7 @@ public class ThemeEditorTableTest {
     secondDialog = ChooseResourceDialogFixture.find(guiTest.robot(), new GenericTypeMatcher<JDialog>(JDialog.class) {
       @Override
       protected boolean isMatching(@NotNull JDialog component) {
-        return (component.isShowing() && !component.equals(dialog.target()));
+        return !component.equals(dialog.target());
       }
     });
     secondDialog.getColorPicker().setColorWithIntegers(new Color(0, 200, 0, 255));
