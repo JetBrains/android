@@ -15,16 +15,20 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.project;
 
+import com.android.tools.idea.gradle.structure.configurables.PsContext;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.project.treeview.TargetAndroidModuleNode;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.project.treeview.TargetModelsTreeBuilder;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.NodeHyperlinkSupport;
 import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowPanel;
 import com.android.tools.idea.gradle.structure.model.PsProject;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.ui.PopupHandler;
 import com.intellij.ui.treeStructure.Tree;
 import org.jetbrains.annotations.NotNull;
 
@@ -32,20 +36,48 @@ import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import java.awt.*;
+import java.awt.event.MouseEvent;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.structure.configurables.android.dependencies.UiUtil.setUp;
+import static java.awt.event.MouseEvent.MOUSE_PRESSED;
 
 class TargetModulesPanel extends ToolWindowPanel {
+  @NotNull private final PsContext myContext;
   @NotNull private final Tree myTree;
   @NotNull private final TargetModelsTreeBuilder myTreeBuilder;
+  @NotNull private final NodeHyperlinkSupport<TargetAndroidModuleNode> myHyperlinkSupport;
 
-  TargetModulesPanel(@NotNull PsProject project) {
+  TargetModulesPanel(@NotNull PsProject project, @NotNull PsContext context) {
     super("Target Modules", AllIcons.Nodes.ModuleGroup, null);
+    myContext = context;
     setHeaderActions();
 
     DefaultTreeModel treeModel = new DefaultTreeModel(new DefaultMutableTreeNode());
-    myTree = new Tree(treeModel);
+    myTree = new Tree(treeModel) {
+      @Override
+      protected void processMouseEvent(MouseEvent e) {
+        int id = e.getID();
+        if (id == MOUSE_PRESSED) {
+          TargetAndroidModuleNode node = myHyperlinkSupport.getIfHyperlink(e.getModifiers(), e.getX(), e.getY());
+          if (node != null) {
+            PsAndroidModule module = node.getModels().get(0);
+            String name = module.getName();
+            myContext.setSelectedModule(name, TargetModulesPanel.this);
+            // Do not call super, to avoid selecting the 'module' node when clicking a hyperlink.
+            return;
+          }
+        }
+        super.processMouseEvent(e);
+      }
+    };
+
+    myTree.addMouseListener(new PopupHandler() {
+      @Override
+      public void invokePopup(Component comp, int x, int y) {
+        popupInvoked(x, y);
+      }
+    });
 
     getHeader().setPreferredFocusedComponent(myTree);
 
@@ -53,6 +85,8 @@ class TargetModulesPanel extends ToolWindowPanel {
 
     JScrollPane scrollPane = setUp(myTree);
     add(scrollPane, BorderLayout.CENTER);
+
+    myHyperlinkSupport = new NodeHyperlinkSupport<TargetAndroidModuleNode>(myTree, TargetAndroidModuleNode.class);
   }
 
   private void setHeaderActions() {
@@ -76,6 +110,27 @@ class TargetModulesPanel extends ToolWindowPanel {
     getHeader().setAdditionalActions(additionalActions);
   }
 
+  private void popupInvoked(int x, int y) {
+    TargetAndroidModuleNode node = myHyperlinkSupport.getNodeForLocation(x, y);
+
+    if (node != null) {
+      PsAndroidModule module = node.getModels().get(0);
+
+      final String name = module.getName();
+      DefaultActionGroup group = new DefaultActionGroup();
+
+      group.add(new DumbAwareAction(String.format("Go to module '%1$s'", name)) {
+        @Override
+        public void actionPerformed(AnActionEvent e) {
+          myContext.setSelectedModule(name, TargetModulesPanel.this);
+        }
+      });
+
+      ActionPopupMenu popupMenu = ActionManager.getInstance().createActionPopupMenu("", group);
+      popupMenu.getComponent().show(myTree, x, y);
+    }
+  }
+
   void displayTargetModules(@NotNull List<? extends PsAndroidDependency> dependencies) {
     myTreeBuilder.displayTargetModules(dependencies);
   }
@@ -84,5 +139,6 @@ class TargetModulesPanel extends ToolWindowPanel {
   public void dispose() {
     super.dispose();
     Disposer.dispose(myTreeBuilder);
+    Disposer.dispose(myHyperlinkSupport);
   }
 }
