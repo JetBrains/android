@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.tools.idea.gradle.project.library.LibraryPropertiesDialog;
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
@@ -32,7 +33,6 @@ import javax.swing.*;
 import java.io.File;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
-import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilFound;
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
@@ -70,10 +70,10 @@ public class LibraryPropertiesDialogFixture extends IdeaDialogFixture<LibraryPro
       }
     });
 
-    JDialog dialog = waitUntilFound(robot, new GenericTypeMatcher<JDialog>(JDialog.class) {
+    JDialog dialog = GuiTests.waitUntilShowing(robot, new GenericTypeMatcher<JDialog>(JDialog.class) {
       @Override
       protected boolean isMatching(@NotNull JDialog dialog) {
-        if (!"Library Properties".equals(dialog.getTitle()) || !dialog.isShowing()) {
+        if (!"Library Properties".equals(dialog.getTitle())) {
           return false;
         }
         DialogWrapper wrapper = getDialogWrapperFrom(dialog, DialogWrapper.class);

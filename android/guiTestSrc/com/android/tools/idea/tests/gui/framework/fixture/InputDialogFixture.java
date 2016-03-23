@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Ref;
@@ -28,17 +29,16 @@ import javax.swing.*;
 import javax.swing.text.JTextComponent;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
-import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilFound;
 import static org.junit.Assert.assertNotNull;
 
 public class InputDialogFixture extends IdeaDialogFixture<DialogWrapper> {
   @NotNull
   public static InputDialogFixture findByTitle(@NotNull Robot robot, @NotNull final String title) {
     final Ref<DialogWrapper> wrapperRef = new Ref<DialogWrapper>();
-    JDialog dialog = waitUntilFound(robot, new GenericTypeMatcher<JDialog>(JDialog.class) {
+    JDialog dialog = GuiTests.waitUntilShowing(robot, new GenericTypeMatcher<JDialog>(JDialog.class) {
       @Override
       protected boolean isMatching(@NotNull JDialog dialog) {
-        if (!title.equals(dialog.getTitle()) || !dialog.isShowing()) {
+        if (!title.equals(dialog.getTitle())) {
           return false;
         }
         DialogWrapper wrapper = getDialogWrapperFrom(dialog, DialogWrapper.class);

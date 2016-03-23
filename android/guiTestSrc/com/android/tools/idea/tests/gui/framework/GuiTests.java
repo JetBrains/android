@@ -611,17 +611,31 @@ public final class GuiTests {
     return null;
   }
 
-  /**
-   * Waits for a first component which passes the given matcher to become visible
-   */
+  /** Waits for a single AWT or Swing {@link Component} showing and matched by {@code matcher}. */
+  @NotNull
+  public static <T extends Component> T waitUntilShowing(@NotNull final Robot robot, @NotNull final GenericTypeMatcher<T> matcher) {
+    return waitUntilShowing(robot, null, matcher);
+  }
+
+  /** Waits for a single AWT or Swing {@link Component} showing and matched by {@code matcher} under {@code root}. */
+  @NotNull
+  public static <T extends Component> T waitUntilShowing(
+    @NotNull final Robot robot, @Nullable final Container root, @NotNull final GenericTypeMatcher<T> matcher) {
+    return waitUntilFound(robot, root, new GenericTypeMatcher<T>(matcher.supportedType()) {
+      @Override
+      protected boolean isMatching(@NotNull T component) {
+        return component.isShowing() && matcher.matches(component);
+      }
+    });
+  }
+
+  /** Waits for a single AWT or Swing {@link Component} matched by {@code matcher}. */
   @NotNull
   public static <T extends Component> T waitUntilFound(@NotNull final Robot robot, @NotNull final GenericTypeMatcher<T> matcher) {
     return waitUntilFound(robot, null, matcher);
   }
 
-  /**
-   * Waits for a first component which passes the given matcher under the given root to become visible.
-   */
+  /** Waits for a single AWT or Swing {@link Component} matched by {@code matcher} under {@code root}. */
   @NotNull
   public static <T extends Component> T waitUntilFound(@NotNull final Robot robot,
                                                        @Nullable final Container root,

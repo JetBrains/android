@@ -100,11 +100,11 @@ public class GuiTestRuleTest {
         return "Click a button".equals(dialog.getTitle());
       }
     });
-    JButton yesButton = waitUntilFound(guiTest.robot(), dialog, new GenericTypeMatcher<JButton>(JButton.class) {
+    JButton yesButton = GuiTests.waitUntilShowing(guiTest.robot(), dialog, new GenericTypeMatcher<JButton>(JButton.class) {
       @Override
       protected boolean isMatching(@NotNull JButton button) {
         String buttonText = button.getText();
-        return buttonText != null && buttonText.trim().equals("Yes") && button.isShowing();
+        return buttonText != null && buttonText.trim().equals("Yes");
       }
     });
     guiTest.robot().click(yesButton);

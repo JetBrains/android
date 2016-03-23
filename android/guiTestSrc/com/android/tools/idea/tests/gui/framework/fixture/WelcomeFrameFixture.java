@@ -17,23 +17,14 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.intellij.openapi.wm.impl.welcomeScreen.FlatWelcomeFrame;
-import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.jetbrains.annotations.NotNull;
 
 public class WelcomeFrameFixture extends ComponentFixture<WelcomeFrameFixture, FlatWelcomeFrame> {
 
-  private static final GenericTypeMatcher<FlatWelcomeFrame> WELCOME_FRAME_SHOWING =
-    new GenericTypeMatcher<FlatWelcomeFrame>(FlatWelcomeFrame.class) {
-      @Override
-      protected boolean isMatching(@NotNull FlatWelcomeFrame frame) {
-        return frame.isShowing();
-      }
-    };
-
   @NotNull
   public static WelcomeFrameFixture find(@NotNull Robot robot) {
-    return new WelcomeFrameFixture(robot, GuiTests.waitUntilFound(robot, WELCOME_FRAME_SHOWING));
+    return new WelcomeFrameFixture(robot, GuiTests.waitUntilShowing(robot, GuiTests.matcherForType(FlatWelcomeFrame.class)));
   }
 
   private WelcomeFrameFixture(@NotNull Robot robot, @NotNull FlatWelcomeFrame target) {
