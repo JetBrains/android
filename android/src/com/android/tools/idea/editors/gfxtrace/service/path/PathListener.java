@@ -57,6 +57,10 @@ public interface PathListener {
       return findPathOfType(MemoryRangePath.class);
     }
 
+    public TypedMemoryPath findTypedMemoryPath() {
+      return findPathOfType(TypedMemoryPath.class);
+    }
+
     public StatePath findStatePath() {
       return findPathOfType(StatePath.class);
     }
