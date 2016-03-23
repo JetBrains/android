@@ -18,6 +18,8 @@ package com.android.tools.idea.gradle.structure.configurables.android.dependenci
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.project.treeview.TargetAndroidModuleNode;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.project.treeview.TargetModelsTreeBuilder;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractBaseCollapseAllAction;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractBaseExpandAllAction;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.GoToModuleAction;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.NodeHyperlinkSupport;
 import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowPanel;
@@ -27,7 +29,6 @@ import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.*;
-import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.PopupHandler;
 import com.intellij.ui.treeStructure.Tree;
@@ -52,7 +53,6 @@ class TargetModulesPanel extends ToolWindowPanel {
   TargetModulesPanel(@NotNull PsProject project, @NotNull PsContext context) {
     super("Target Modules", AllIcons.Nodes.ModuleGroup, null);
     myContext = context;
-    setHeaderActions();
 
     DefaultTreeModel treeModel = new DefaultTreeModel(new DefaultMutableTreeNode());
     myTree = new Tree(treeModel) {
@@ -80,6 +80,7 @@ class TargetModulesPanel extends ToolWindowPanel {
       }
     });
 
+    setHeaderActions();
     getHeader().setPreferredFocusedComponent(myTree);
 
     myTreeBuilder = new TargetModelsTreeBuilder(project, myTree, treeModel);
@@ -92,7 +93,7 @@ class TargetModulesPanel extends ToolWindowPanel {
 
   private void setHeaderActions() {
     List<AnAction> additionalActions = Lists.newArrayList();
-    additionalActions.add(new DumbAwareAction("Expand All", "", AllIcons.General.ExpandAll) {
+    additionalActions.add(new AbstractBaseExpandAllAction(myTree) {
       @Override
       public void actionPerformed(AnActionEvent e) {
         myTree.requestFocusInWindow();
@@ -100,7 +101,7 @@ class TargetModulesPanel extends ToolWindowPanel {
       }
     });
 
-    additionalActions.add(new DumbAwareAction("Collapse All", "", AllIcons.General.CollapseAll) {
+    additionalActions.add(new AbstractBaseCollapseAllAction(myTree) {
       @Override
       public void actionPerformed(AnActionEvent e) {
         myTree.requestFocusInWindow();
