@@ -174,4 +174,5 @@ public abstract class UsageTracker {
   public abstract void trackLegacyIdeaAndroidProject(@NotNull String applicationId);
 
   public abstract void trackInstantRunStats(@NotNull Map<String,String> kv);
+  public abstract void trackInstantRunTimings(@NotNull Map<String, String> kv);
 }
