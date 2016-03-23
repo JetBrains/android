@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.treeview.DependencySelection;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.treeview.ResolvedDependenciesTreeBuilder;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractDependencyNode;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.GoToModuleAction;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.ModuleDependencyNode;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.NodeHyperlinkSupport;
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
@@ -224,15 +225,9 @@ class ResolvedDependenciesPanel extends ToolWindowPanel implements DependencySel
     if (node != null) {
       PsModuleDependency moduleDependency = node.getModels().get(0);
 
-      final String name = moduleDependency.getName();
+      String name = moduleDependency.getName();
       DefaultActionGroup group = new DefaultActionGroup();
-
-      group.add(new DumbAwareAction(String.format("Go to module '%1$s'", name)) {
-        @Override
-        public void actionPerformed(AnActionEvent e) {
-          myContext.setSelectedModule(name, ResolvedDependenciesPanel.this);
-        }
-      });
+      group.add(new GoToModuleAction(name, myContext, myTree));
 
       ActionPopupMenu popupMenu = ActionManager.getInstance().createActionPopupMenu("", group);
       popupMenu.getComponent().show(myTree, x, y);

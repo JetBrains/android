@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.structure.configurables.android.dependenci
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractDependencyNode;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.DependencyNodeComparator;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.LibraryDependencyNode;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.ModuleDependencyNode;
 import com.android.tools.idea.gradle.structure.configurables.android.treeview.AbstractRootNode;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsdNode;
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
@@ -63,6 +64,11 @@ class DeclaredDependenciesTreeRootNode extends AbstractRootNode<PsProject> {
     List<AbstractDependencyNode> children = Lists.newArrayList();
     for (Map.Entry<LibraryDependencySpecs, List<PsLibraryDependency>> entry : collector.libraryDependenciesBySpec.entrySet()) {
       LibraryDependencyNode child = new LibraryDependencyNode(this, entry.getValue());
+      children.add(child);
+    }
+
+    for (Map.Entry<String, List<PsModuleDependency>> entry : collector.moduleDependenciesByGradlePath.entrySet()) {
+      ModuleDependencyNode child = new ModuleDependencyNode(this, entry.getValue());
       children.add(child);
     }
 
