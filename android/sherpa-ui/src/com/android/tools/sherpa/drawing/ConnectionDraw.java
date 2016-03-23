@@ -259,6 +259,7 @@ public class ConnectionDraw {
 
         Canvas c = new Canvas();
         FontMetrics fm = c.getFontMetrics(sFont);
+        g.setFont(sFont);
         int padding = 4;
         Rectangle2D bounds = fm.getStringBounds(text, g);
         int th = (int) bounds.getHeight();
@@ -308,6 +309,7 @@ public class ConnectionDraw {
         }
         Canvas c = new Canvas();
         FontMetrics fm = c.getFontMetrics(sFont);
+        g.setFont(sFont);
         int padding = 4;
         Rectangle2D bounds = fm.getStringBounds(text, g);
         int th = (int) bounds.getHeight();

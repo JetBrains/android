@@ -207,6 +207,7 @@ public class SnapDraw {
             int x1, int x2, int y1, String text, boolean textOver) {
         Canvas c = new Canvas();
         FontMetrics fm = c.getFontMetrics(sFont);
+        g.setFont(sFont);
         int padding = transform.getSwingDimension(4);
         Rectangle2D bounds = fm.getStringBounds(text, g);
         int tw = (int) bounds.getWidth();
@@ -247,6 +248,7 @@ public class SnapDraw {
             int y2, String text) {
         Canvas c = new Canvas();
         FontMetrics fm = c.getFontMetrics(sFont);
+        g.setFont(sFont);
         int padding = transform.getSwingDimension(4);
         Rectangle2D bounds = fm.getStringBounds(text, g);
         int th = (int) bounds.getHeight();
