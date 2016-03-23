@@ -21,6 +21,7 @@ import com.android.tools.idea.editors.gfxtrace.service.atom.DynamicAtom;
 import com.android.tools.idea.editors.gfxtrace.service.memory.MemoryPointer;
 import com.android.tools.idea.editors.gfxtrace.service.memory.MemoryRange;
 import com.android.tools.idea.editors.gfxtrace.service.memory.PoolID;
+import com.android.tools.idea.editors.gfxtrace.service.snippets.CanFollow;
 import com.android.tools.idea.editors.gfxtrace.service.snippets.Labels;
 import com.android.tools.idea.editors.gfxtrace.service.snippets.SnippetObject;
 import com.android.tools.rpclib.schema.*;
@@ -85,7 +86,7 @@ public final class Render {
     Field[] fields = entity.getFields();
     MemoryPointer mp = new MemoryPointer();
     Field[] mpFields = mp.klass().entity().getFields();
-    if (mpFields.length != fields.length || entity.getMetadata().length != 0) {
+    if (mpFields.length != fields.length) {
       return null;
     }
     for (int i = 0; i < fields.length; ++i) {
@@ -173,21 +174,28 @@ public final class Render {
         component.append(", ", SimpleTextAttributes.REGULAR_ATTRIBUTES, -1);
       }
       needComma = true;
-      component.append(field.getDeclared() + ":",
-                       (i == highlightedParameter) ? SimpleTextAttributes.LINK_ATTRIBUTES : SimpleTextAttributes.REGULAR_ATTRIBUTES, i);
       SnippetObject paramValue = SnippetObject.param(atom, i);
-      render(paramValue, field.getType(), component, (i == highlightedParameter) ? SimpleTextAttributes.LINK_ATTRIBUTES : attributes);
+      SimpleTextAttributes attr = paramAttributes(highlightedParameter, i, paramValue, attributes);
+      component.append(field.getDeclared() + ":", attr, i);
+      render(paramValue, field.getType(), component, attr);
     }
 
     component.append(")", SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES, -1);
     if (resultIndex >= 0) {
-      component.append("->", (resultIndex == highlightedParameter)
-                             ? SimpleTextAttributes.LINK_ATTRIBUTES
-                             : SimpleTextAttributes.REGULAR_ATTRIBUTES, resultIndex);
-      Field field = atom.getFieldInfo(resultIndex);
       SnippetObject paramValue = SnippetObject.param(atom, resultIndex);
-      render(paramValue, field.getType(), component, attributes);
+      SimpleTextAttributes attr = paramAttributes(highlightedParameter, resultIndex, paramValue, attributes);
+      component.append("->", attr, resultIndex);
+      Field field = atom.getFieldInfo(resultIndex);
+      render(paramValue, field.getType(), component, attr);
     }
+  }
+
+  private static boolean isHighlighted(int highlightedParameter, int i, SnippetObject paramValue) {
+    return i == highlightedParameter || CanFollow.fromSnippets(paramValue.getSnippets()) != null;
+  }
+
+  private static SimpleTextAttributes paramAttributes(int highlightedParameter, int i, SnippetObject paramValue, SimpleTextAttributes attributes) {
+    return isHighlighted(highlightedParameter, i, paramValue) ? SimpleTextAttributes.LINK_ATTRIBUTES : attributes;
   }
 
   public static void render(@NotNull MemoryPointer pointer,
