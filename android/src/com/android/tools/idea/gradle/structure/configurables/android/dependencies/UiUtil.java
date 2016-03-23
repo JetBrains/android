@@ -36,6 +36,7 @@ public final class UiUtil {
     return new OnePixelSplitter(false, "psd.dependencies.main.vertical.splitter.proportion", .75f);
   }
 
+  @NotNull
   public static JScrollPane setUp(@NotNull Tree tree) {
     tree.setExpandsSelectedPaths(true);
     tree.setRootVisible(false);

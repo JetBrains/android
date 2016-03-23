@@ -44,6 +44,11 @@ public abstract class AbstractBaseTreeBuilder extends AbstractTreeBuilder {
   }
 
   @Override
+  public boolean isToEnsureSelectionOnFocusGained() {
+    return false;
+  }
+
+  @Override
   protected boolean isAutoExpandNode(NodeDescriptor nodeDescriptor) {
     if (nodeDescriptor instanceof AbstractPsdNode) {
       return ((AbstractPsdNode)nodeDescriptor).isAutoExpandNode();
@@ -59,6 +64,7 @@ public abstract class AbstractBaseTreeBuilder extends AbstractTreeBuilder {
   public void expandAllNodes() {
     JTree tree = getTree();
     if (tree != null) {
+      clearSelection();
       TreeUtil.expandAll(tree);
       onAllNodesExpanded();
     }
@@ -70,22 +76,26 @@ public abstract class AbstractBaseTreeBuilder extends AbstractTreeBuilder {
     JTree tree = getTree();
     if (tree != null) {
       collapseAll(tree, 1);
-      tree.setSelectionPaths(EMPTY_TREE_PATH);
+      clearSelection(tree);
     }
   }
 
   public void clearSelection() {
     JTree tree = getTree();
     if (tree != null) {
-      tree.setSelectionPaths(EMPTY_TREE_PATH);
+      clearSelection(tree);
     }
+  }
+
+  private static void clearSelection(@NotNull JTree tree) {
+    tree.setSelectionPaths(EMPTY_TREE_PATH);
   }
 
   public void updateSelection() {
     updateSelection(null);
   }
 
-  public void updateSelection(@Nullable final MatchingNodeCollector collector) {
+  public void updateSelection(@Nullable MatchingNodeCollector collector) {
     Set<Object> selectedElements = getSelectedElements();
     if (selectedElements.size() == 1) {
       Object selection = getFirstItem(selectedElements);
@@ -100,7 +110,7 @@ public abstract class AbstractBaseTreeBuilder extends AbstractTreeBuilder {
     }
   }
 
-  public void selectMatchingNodes(@NotNull final PsModel model, final boolean scroll) {
+  public void selectMatchingNodes(@NotNull PsModel model, boolean scroll) {
     selectMatchingNodes(model, null, scroll);
   }
 
