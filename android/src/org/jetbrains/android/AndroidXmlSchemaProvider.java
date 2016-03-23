@@ -36,6 +36,7 @@ import com.intellij.xml.XmlSchemaProvider;
 import gnu.trove.THashMap;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.dom.manifest.ManifestDomFileDescription;
+import org.jetbrains.android.dom.raw.RawDomFileDescription;
 import org.jetbrains.android.dom.xml.XmlResourceDomFileDescription;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidResourceUtil;
@@ -92,8 +93,8 @@ public class AndroidXmlSchemaProvider extends XmlSchemaProvider {
     return ApplicationManager.getApplication().runReadAction(new Computable<Boolean>() {
       @Override
       public Boolean compute() {
-        if (isXmlResourceFile(originalFile) ||
-            ManifestDomFileDescription.isManifestFile(originalFile)) {
+        if (isXmlResourceFile(originalFile) || ManifestDomFileDescription.isManifestFile(originalFile) ||
+            RawDomFileDescription.isRawFile(originalFile)) {
           return AndroidFacet.getInstance(originalFile) != null;
         }
         return false;
