@@ -33,7 +33,7 @@ public final class Factory {
     ImageInfoPath.register();
     MapIndexPath.register();
     MemoryRangePath.register();
-    MemoryTypePath.register();
+    MemoryType.register();
     MeshPathOptions.register();
     MeshPath.register();
     ReportPath.register();
