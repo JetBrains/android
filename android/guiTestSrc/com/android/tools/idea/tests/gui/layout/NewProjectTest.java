@@ -77,7 +77,7 @@ public class NewProjectTest {
 
     // Make sure that the activity registration uses the relative syntax
     // (regression test for https://code.google.com/p/android/issues/detail?id=76716)
-    editor.open("app/src/main/AndroidManifest.xml");
+    editor.open("app/src/main/AndroidManifest.xml", EditorFixture.Tab.EDITOR);
     int offset = editor.findOffset("\".^MainActivity\"");
     assertTrue(offset != -1);
 
