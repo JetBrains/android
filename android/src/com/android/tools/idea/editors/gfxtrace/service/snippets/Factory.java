@@ -21,6 +21,7 @@ public final class Factory {
   public static void register() {
     //<<<Start:Java.FactoryBody:2>>>
     AtomSnippets.register();
+    CanFollow.register();
     Labels.register();
     Observations.register();
     FieldPath.register();
