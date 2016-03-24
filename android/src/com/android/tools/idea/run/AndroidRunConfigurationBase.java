@@ -589,6 +589,13 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
                                      "To enable cold swaps, deploy to a target with API level 21 or higher.");
       }
 
+      String verifierStatus = buildInfo == null ? null : buildInfo.getVerifierStatus();
+      if (verifierStatus != null) {
+        if ("BINARY_MANIFEST_FILE_CHANGE".equals(verifierStatus)) {
+          return BooleanStatus.failure(FULL_BUILD_PREFIX + "Resource ids changed");
+        }
+      }
+
       // If we get here, we don't know why the session was restarted, so show a generic message.
       return BooleanStatus.failure(verifierFailure + FULL_BUILD_PREFIX + "Session restarted");
     }
