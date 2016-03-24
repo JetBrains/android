@@ -42,7 +42,7 @@ public class WidgetDecorator extends WidgetInteractionTargets {
 
     private static boolean sShowAllConstraints = false;
     private static boolean sShowTextUI = false;
-
+    private int mVisibility = 0;
     private boolean mIsSelected = false;
     private boolean mShowResizeHandles = false;
     private boolean mShowSizeIndicator = false;
@@ -533,4 +533,11 @@ public class WidgetDecorator extends WidgetInteractionTargets {
     public void mouseRelease(int x, int y, ViewTransform transform, Selection selection) {
     }
 
+    public void setVisibility(int visibility) {
+        mVisibility = visibility;
+    }
+
+    public int getVisibility() {
+        return mVisibility;
+    }
 }
