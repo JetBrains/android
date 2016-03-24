@@ -18,10 +18,9 @@ package org.jetbrains.android.dom.raw;
 import com.android.resources.ResourceFolderType;
 import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.android.dom.AndroidResourceDomFileDescription;
-import org.jetbrains.android.dom.xml.XmlResourceElement;
 import org.jetbrains.annotations.NotNull;
 
-public class RawDomFileDescription extends AndroidResourceDomFileDescription<XmlResourceElement> {
+public class RawDomFileDescription extends AndroidResourceDomFileDescription<XmlRawResourceElement> {
 
   /**
    * Placeholder tag name required by {@code AndroidResourceDomFileDescription} constructor.
@@ -29,7 +28,7 @@ public class RawDomFileDescription extends AndroidResourceDomFileDescription<Xml
   private static final String RAW_TAG_NAME = "raw";
 
   public RawDomFileDescription() {
-    super(XmlResourceElement.class, RAW_TAG_NAME, ResourceFolderType.RAW);
+    super(XmlRawResourceElement.class, RAW_TAG_NAME, ResourceFolderType.RAW);
   }
 
   public static boolean isRawFile(@NotNull final XmlFile file) {
