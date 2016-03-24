@@ -21,4 +21,12 @@ public class AndroidRawResourcesDomTest extends AndroidDomTest {
   public void testRawFileHighlighting() throws Throwable {
     doTestHighlighting(copyFileToProject("myRawResource.xml"));
   }
+
+  public void testShrinkModeValueCompletion() throws Throwable {
+    doTestCompletionVariants("shrinkModeCompletion.xml", "safe", "strict");
+  }
+
+  public void testResourceShrinkingAttributesCompletion() throws Throwable {
+    doTestCompletionVariants("keep.xml", "tools:keep", "tools:discard", "tools:shrinkMode");
+  }
 }
