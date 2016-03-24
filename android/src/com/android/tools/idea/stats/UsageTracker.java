@@ -181,4 +181,6 @@ public abstract class UsageTracker {
 
   public abstract void trackInstantRunStats(@NotNull Map<String,String> kv);
   public abstract void trackInstantRunTimings(@NotNull Map<String, String> kv);
+
+  public abstract void trackHypervisorStats(@NotNull String hyperVState);
 }
