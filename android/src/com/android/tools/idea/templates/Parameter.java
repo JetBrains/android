@@ -313,7 +313,7 @@ public final class Parameter {
     } else if (violations.contains(Constraint.DRAWABLE)) {
       String resourceNameError = ResourceNameValidator.create(false, ResourceFolderType.DRAWABLE).getErrorText(value);
       if (resourceNameError != null) {
-        return name + " is not set to a valid resource name. " + resourceNameError;
+        return name + " is not set to a valid resource name: " + resourceNameError;
 
       }
     } else if (violations.contains(Constraint.ID)) {
@@ -322,13 +322,13 @@ public final class Parameter {
     } else if (violations.contains(Constraint.STRING)) {
       String resourceNameError = ResourceNameValidator.create(false, ResourceFolderType.VALUES).getErrorText(value);
       if (resourceNameError != null) {
-        return name + " is not set to a valid resource name. " + resourceNameError;
+        return name + " is not set to a valid resource name: " + resourceNameError;
 
       }
     } else if (violations.contains(Constraint.VALUES)) {
       String resourceNameError = ResourceNameValidator.create(false, ResourceFolderType.VALUES).getErrorText(value);
       if (resourceNameError != null) {
-        return name + " is not set to a valid resource name. " + resourceNameError;
+        return name + " is not set to a valid resource name: " + resourceNameError;
       }
     }
 
