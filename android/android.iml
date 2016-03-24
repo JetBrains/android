@@ -66,7 +66,7 @@
     <orderEntry type="library" name="asm4" level="project" />
     <orderEntry type="library" scope="TEST" name="fest" level="project" />
     <orderEntry type="module" module-name="platform-main" scope="TEST" />
-    <orderEntry type="module" module-name="bootstrap" scope="TEST" />
+    <orderEntry type="module" module-name="bootstrap" />
     <orderEntry type="library" name="jcip" level="project" />
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
     <orderEntry type="module" module-name="rpclib" />

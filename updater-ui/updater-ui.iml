@@ -11,5 +11,7 @@
     <orderEntry type="module" module-name="repository" />
     <orderEntry type="module" module-name="android-annotations" />
     <orderEntry type="module" module-name="core-api" />
+    <orderEntry type="library" name="jna" level="project" />
+    <orderEntry type="module" module-name="android" />
   </component>
 </module>

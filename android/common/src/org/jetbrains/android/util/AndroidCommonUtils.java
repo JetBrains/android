@@ -17,9 +17,11 @@ package org.jetbrains.android.util;
 
 import com.android.SdkConstants;
 import com.android.jarutils.SignedJarBuilder;
+import com.android.repository.Revision;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.internal.project.ProjectProperties;
+import com.android.sdklib.repository.PkgProps;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import com.intellij.execution.process.BaseOSProcessHandler;
@@ -453,33 +455,29 @@ public class AndroidCommonUtils {
     return sdkToolsRevision == -1 || sdkToolsRevision >= 17;
   }
 
-  public static int parsePackageRevision(@NotNull String sdkDirOsPath, @NotNull String packageDirName) {
+  /**
+   * Gets the {@link Revision} for the given package in the given SDK from the {@code source.properties} file.
+   *
+   * @return The {@link Revision}, or {@code null} if the {@code source.properties} file doesn't exist, doesn't contain a revision, or
+   * the revision is unparsable.
+   */
+  @Nullable
+  public static Revision parsePackageRevision(@NotNull String sdkDirOsPath, @NotNull String packageDirName) {
     final File propFile =
       new File(sdkDirOsPath + File.separatorChar + packageDirName + File.separatorChar + SdkConstants.FN_SOURCE_PROP);
-    int revisionNumber = -1;
     if (propFile.exists() && propFile.isFile()) {
       final Map<String, String> map =
         ProjectProperties.parsePropertyFile(new BufferingFileWrapper(propFile), new MessageBuildingSdkLog());
       if (map == null) {
-        return -1;
+        return null;
       }
-      String revision = map.get("Pkg.Revision");
+      String revision = map.get(PkgProps.PKG_REVISION);
 
       if (revision != null) {
-        final int dot = revision.indexOf('.');
-        if (dot > 0) {
-          revision = revision.substring(0, dot);
-        }
-
-        try {
-          revisionNumber = Integer.parseInt(revision);
-        }
-        catch (NumberFormatException e) {
-          LOG.debug(e);
-        }
+        return Revision.parseRevision(revision);
       }
     }
-    return revisionNumber > 0 ? revisionNumber : -1;
+    return null;
   }
 
   @NotNull

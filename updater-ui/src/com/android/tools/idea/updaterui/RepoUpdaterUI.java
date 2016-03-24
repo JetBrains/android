@@ -18,10 +18,16 @@ package com.android.tools.idea.updaterui;
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.repository.api.ProgressIndicator;
+import com.android.tools.idea.sdk.install.PatchInstallerFactory;
+import com.intellij.updater.NativeFileManager;
 import com.intellij.updater.OperationCancelledException;
 import com.intellij.updater.SwingUpdaterUI;
+import com.intellij.updater.ValidationResult;
+import com.sun.jna.platform.win32.Kernel32;
 
 import java.awt.*;
+import java.util.*;
+import java.util.List;
 
 /**
  * Bridge between the Studio/IJ updater and Studio itself.
@@ -97,5 +103,30 @@ public class RepoUpdaterUI extends SwingUpdaterUI {
   @Override
   public void exit() {
     // nothing?
+  }
+
+  /**
+   * If a validation result shows that a file is in use by studio, we need to restart and run the standalone installer.
+   * Otherwise we just show the normal validation dialog.
+   */
+  @Override
+  public Map<String, ValidationResult.Option> askUser(List<ValidationResult> validationResults) throws OperationCancelledException {
+    try {
+      int pid = Kernel32.INSTANCE.GetCurrentProcessId();
+      for (ValidationResult result : validationResults) {
+        for (NativeFileManager.Process process : NativeFileManager.getProcessesUsing(result.toFile)) {
+          if (process.pid == pid) {
+            throw new PatchInstallerFactory.RestartRequiredException();
+          }
+        }
+      }
+    }
+    catch (PatchInstallerFactory.RestartRequiredException e) {
+      throw e;
+    }
+    catch (Exception e) {
+      // ignore other exceptions and show the dialog.
+    }
+    return super.askUser(validationResults);
   }
 }
