@@ -705,16 +705,8 @@ public class EditorFixture {
       }
     });
 
-    execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
-        // If Android Studio lost the focus, get it back
-        IdeFrameImpl ideFrame = myFrame.target();
-        if (ideFrame.getFocusOwner() == null) {
-          ideFrame.requestFocus();
-        }
-      }
-    });
+    myFrame.requestFocusIfLost();
+
     return this;
   }
 
