@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMap.Builder;
 import com.google.common.hash.Hashing;
 import com.intellij.openapi.extensions.ExtensionPointName;
+import com.intellij.openapi.util.SystemInfo;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,6 +36,7 @@ public class UsageTrackerAnalyticsImpl extends UsageTracker {
   private static final String GLOGS_CATEGORY_LEGACY_IDEA_ANDROID_PROJECT = "legacyIdeaAndroidProject";
   private static final String GLOGS_CATEGORY_INSTANT_RUN = "irstats2";
   private static final String GLOGS_CATEGORY_INSTANT_RUN_TIMINGS = "irtimings";
+  private static final String GLOGS_CATEGORY_HYPERVISOR = "hypervisor";
 
   private final UsageUploader myUploader;
 
@@ -161,6 +163,19 @@ public class UsageTrackerAnalyticsImpl extends UsageTracker {
     }
 
     myUploader.trackEvent(GLOGS_CATEGORY_INSTANT_RUN_TIMINGS, kv);
+  }
+
+
+  @Override
+  public void trackHypervisorStats(@NotNull String hyperVState) {
+    if (!trackingEnabled()) {
+      return;
+    }
+
+    myUploader.trackEvent(GLOGS_CATEGORY_HYPERVISOR,
+                          ImmutableMap.of(
+                            "hvstate", hyperVState,
+                            "os", SystemInfo.OS_NAME));
   }
 
   @NotNull
