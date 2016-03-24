@@ -16,17 +16,18 @@
 package com.android.tools.idea.editors.gfxtrace;
 
 import com.android.tools.idea.editors.gfxtrace.controllers.MainController;
+import com.android.tools.idea.editors.gfxtrace.gapi.GapiPaths;
 import com.android.tools.idea.editors.gfxtrace.gapi.GapisConnection;
 import com.android.tools.idea.editors.gfxtrace.gapi.GapisProcess;
-import com.android.tools.idea.editors.gfxtrace.gapi.GapiPaths;
-import com.android.tools.idea.editors.gfxtrace.service.*;
+import com.android.tools.idea.editors.gfxtrace.service.ServiceClient;
+import com.android.tools.idea.editors.gfxtrace.service.ServiceClientCache;
 import com.android.tools.idea.editors.gfxtrace.service.atom.AtomMetadata;
 import com.android.tools.idea.editors.gfxtrace.service.path.*;
 import com.android.tools.rpclib.binary.BinaryObject;
 import com.android.tools.rpclib.schema.ConstantSet;
 import com.android.tools.rpclib.schema.Dynamic;
-import com.android.tools.rpclib.schema.Message;
 import com.android.tools.rpclib.schema.Entity;
+import com.android.tools.rpclib.schema.Message;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
@@ -36,12 +37,10 @@ import com.intellij.concurrency.JobScheduler;
 import com.intellij.ide.structureView.StructureViewBuilder;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorLocation;
 import com.intellij.openapi.fileEditor.FileEditorState;
-import com.intellij.openapi.fileEditor.FileEditorStateLevel;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.LoadingDecorator;
 import com.intellij.openapi.util.UserDataHolderBase;
@@ -54,10 +53,9 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.*;
 import java.beans.PropertyChangeListener;
-import java.io.*;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
@@ -257,12 +255,6 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
 
   public void addPathListener(@NotNull PathListener listener) {
     myPathListeners.add(listener);
-  }
-
-  @NotNull
-  @Override
-  public FileEditorState getState(@NotNull FileEditorStateLevel level) {
-    return FileEditorState.INSTANCE;
   }
 
   @Override

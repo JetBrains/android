@@ -24,7 +24,6 @@ import com.intellij.openapi.fileEditor.FileEditorProvider;
 import com.intellij.openapi.fileEditor.FileEditorState;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
@@ -58,11 +57,6 @@ public class ThemeEditorProvider implements FileEditorProvider, DumbAware {
   public FileEditor createEditor(@NotNull Project project, @NotNull VirtualFile file) {
     UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_THEME_EDITOR, UsageTracker.ACTION_THEME_EDITOR_OPEN, null, null);
     return new ThemeEditor(project, file);
-  }
-
-  @Override
-  public void disposeEditor(@NotNull FileEditor editor) {
-    Disposer.dispose(editor);
   }
 
   @NotNull
