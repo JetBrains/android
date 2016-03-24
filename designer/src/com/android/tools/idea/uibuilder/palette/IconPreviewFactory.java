@@ -78,7 +78,7 @@ public class IconPreviewFactory {
                                               "    xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
                                               "    xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
                                               "    android:id=\"@+id/%1$s\"\n" +
-                                              "    android:layout_width=\"wrap_content\"\n" +
+                                              "    android:layout_width=\"match_parent\"\n" +
                                               "    android:layout_height=\"wrap_content\"\n" +
                                               "    android:orientation=\"vertical\">\n" +
                                               "  %2$s\n" +
