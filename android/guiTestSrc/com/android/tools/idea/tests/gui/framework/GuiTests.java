@@ -37,7 +37,6 @@ import com.intellij.openapi.wm.WindowManager;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
 import com.intellij.openapi.wm.impl.WindowManagerImpl;
 import com.intellij.openapi.wm.impl.welcomeScreen.WelcomeFrame;
-import com.intellij.ui.EditorTextField;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.popup.PopupFactoryImpl;
 import com.intellij.ui.popup.list.ListPopupModel;
@@ -538,31 +537,6 @@ public final class GuiTests {
         }
 
         return false;
-      }
-    });
-  }
-
-  /**
-   * @deprecated Instead use {@link org.fest.swing.fixture.JCheckBoxFixture},
-   *     which simulates keyboard input rather than manipulating UI components directly.
-   */
-  @Deprecated
-  public static void setSelected(@NotNull final JCheckBox checkBox, final boolean selected) {
-    execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
-        checkBox.setSelected(selected);
-      }
-    });
-  }
-
-  /** @deprecated Instead use {@link Robot#enterText}, which simulates keyboard input rather than manipulating UI components directly. */
-  @Deprecated
-  public static void setText(@NotNull final EditorTextField textField, @NotNull final String text) {
-    execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
-        textField.setText(text);
       }
     });
   }

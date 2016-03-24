@@ -23,5 +23,4 @@ public interface CreateNewClassDialogValidatorEx extends CreateNewClassDialogVal
   @NotNull String getSuperclassErrorText(@Nullable String inputString);
   @NotNull String getInterfacesErrorText(@Nullable String inputString);
   @NotNull String getPackageErrorText(@Nullable String inputString);
-  @NotNull String getAbstractAndFinalErrorText(@Nullable String inputString);
 }
