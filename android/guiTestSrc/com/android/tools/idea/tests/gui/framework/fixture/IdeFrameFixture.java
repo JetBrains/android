@@ -960,6 +960,21 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     robot().waitForIdle();
   }
 
+  /**
+   * Gets the focus back to Android Studio if it was lost
+   */
+  public void requestFocusIfLost() {
+    execute(new GuiTask() {
+      @Override
+      protected void executeInEDT() throws Throwable {
+        IdeFrameImpl ideFrame = target();
+        if (ideFrame.getFocusOwner() == null) {
+          ideFrame.requestFocus();
+        }
+      }
+    });
+  }
+
   /////////////////////////////////////////////////////////////////
   ////     Methods to help control debugging under a test.  ///////
   /////////////////////////////////////////////////////////////////
