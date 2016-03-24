@@ -20,14 +20,11 @@ import com.android.tools.idea.rendering.RenderService;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorPolicy;
 import com.intellij.openapi.fileEditor.FileEditorProvider;
-import com.intellij.openapi.fileEditor.FileEditorState;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
-import org.jdom.Element;
 import org.jetbrains.android.dom.layout.LayoutDomFileDescription;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.AndroidEditorSettings;
@@ -59,23 +56,6 @@ public final class AndroidDesignerEditorProvider implements FileEditorProvider, 
   @Override
   public FileEditor createEditor(@NotNull Project project, @NotNull VirtualFile file) {
     return new AndroidDesignerEditor(project, file);
-  }
-
-  @Override
-  public void disposeEditor(@NotNull FileEditor editor) {
-    Disposer.dispose(editor);
-  }
-
-  @NotNull
-  @Override
-  public FileEditorState readState(@NotNull Element sourceElement, @NotNull Project project, @NotNull VirtualFile file) {
-    // TODO: Auto-generated method stub
-    return FileEditorState.INSTANCE;
-  }
-
-  @Override
-  public void writeState(@NotNull FileEditorState state, @NotNull Project project, @NotNull Element targetElement) {
-    // TODO: Auto-generated method stub
   }
 
   @NotNull
