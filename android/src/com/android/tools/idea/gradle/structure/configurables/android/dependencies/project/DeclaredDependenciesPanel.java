@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.structure.model.PsProject;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsModuleDependency;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.PopupHandler;
@@ -39,10 +40,8 @@ import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import java.awt.*;
-import java.util.Collections;
-import java.util.EventListener;
+import java.util.*;
 import java.util.List;
-import java.util.Set;
 
 import static com.android.tools.idea.gradle.structure.configurables.android.dependencies.UiUtil.setUp;
 import static com.intellij.icons.AllIcons.Actions.Collapseall;
@@ -57,6 +56,8 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel {
   @NotNull private final NodeHyperlinkSupport<ModuleDependencyNode> myHyperlinkSupport;
 
   @NotNull private final EventDispatcher<SelectionListener> myEventDispatcher = EventDispatcher.create(SelectionListener.class);
+
+  private boolean myIgnoreTreeSelectionEvents;
 
   DeclaredDependenciesPanel(@NotNull PsProject project, @NotNull PsContext context) {
     super("All Dependencies", context, project, null);
@@ -74,21 +75,26 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel {
     myTreeSelectionListener = new TreeSelectionListener() {
       @Override
       public void valueChanged(TreeSelectionEvent e) {
-        final List<AbstractDependencyNode<? extends PsAndroidDependency>> selectedNodes = Lists.newArrayList();
+        final NodeSelectionDetector detector = new NodeSelectionDetector();
 
-        myTreeBuilder.updateSelection(new MatchingNodeCollector() {
-          @Override
-          protected void done(@NotNull List<AbstractPsdNode> matchingNodes) {
-            for (AbstractPsdNode node : matchingNodes) {
-              if (node instanceof AbstractDependencyNode) {
-                selectedNodes.add(((AbstractDependencyNode<? extends PsAndroidDependency>)node));
+        if (!myIgnoreTreeSelectionEvents) {
+          final AbstractDependencyNode<? extends PsAndroidDependency> selection = getSelection();
+          myIgnoreTreeSelectionEvents = true;
+          myTreeBuilder.updateSelection(new MatchingNodeCollector() {
+            @Override
+            protected void done(@NotNull List<AbstractPsdNode> matchingNodes) {
+              for (AbstractPsdNode node : matchingNodes) {
+                detector.add(node);
               }
-            }
-          }
-        });
+              myIgnoreTreeSelectionEvents = false;
 
-        if (getSelection() != null) {
-          notifySelectionChanged(selectedNodes);
+              List<AbstractDependencyNode<? extends PsAndroidDependency>> singleSelection = Collections.emptyList();
+              if (selection != null) {
+                singleSelection = detector.getSingleTypeSelection();
+              }
+              notifySelectionChanged(singleSelection);
+            }
+          });
         }
       }
     };
@@ -185,5 +191,37 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel {
 
   public interface SelectionListener extends EventListener {
     void dependencySelected(@NotNull List<AbstractDependencyNode<? extends PsAndroidDependency>> selectedNodes);
+  }
+
+  private static class NodeSelectionDetector {
+    private final Map<String, List<AbstractDependencyNode<? extends PsAndroidDependency>>> mySelection = Maps.newHashMap();
+
+    void add(@NotNull AbstractPsdNode node) {
+      String key = null;
+      if (node instanceof ModuleDependencyNode) {
+        key = ((ModuleDependencyNode)node).getModels().get(0).getGradlePath();
+      }
+      if (node instanceof LibraryDependencyNode) {
+        key = ((LibraryDependencyNode)node).getModels().get(0).getResolvedSpec().toString();
+      }
+      if (key != null) {
+        List<AbstractDependencyNode<? extends PsAndroidDependency>> nodes = mySelection.get(key);
+        if (nodes == null) {
+          nodes = Lists.newArrayList();
+          mySelection.put(key, nodes);
+        }
+        nodes.add(((AbstractDependencyNode<? extends PsAndroidDependency>)node));
+      }
+    }
+
+    @NotNull
+    List<AbstractDependencyNode<? extends PsAndroidDependency>> getSingleTypeSelection() {
+      Set<String> keys = mySelection.keySet();
+      if (keys.size() == 1) {
+        // Only notify selection if all the selected nodes refer to the same dependency.
+        return mySelection.get(getFirstItem(keys));
+      }
+      return Collections.emptyList();
+    }
   }
 }
