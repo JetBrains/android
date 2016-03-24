@@ -43,6 +43,7 @@ import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.dom.manifest.ManifestElement;
 import org.jetbrains.android.dom.manifest.UsesSdk;
+import org.jetbrains.android.dom.raw.XmlRawResourceElement;
 import org.jetbrains.android.dom.resources.ResourceValue;
 import org.jetbrains.android.dom.xml.AndroidXmlResourcesUtil;
 import org.jetbrains.android.dom.xml.Intent;
@@ -586,6 +587,14 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
     }
     else if (element instanceof XmlResourceElement) {
       registerExtensionsForXmlResources(facet, tag, (XmlResourceElement)element, callback, registeredSubtags, skippedAttributes);
+    }
+    // For Resource Shrinking
+    else if (element instanceof XmlRawResourceElement) {
+      if (TAG_RESOURCES.equals(tagName)) {
+        registerToolsAttribute(ATTR_SHRINK_MODE, callback);
+        registerToolsAttribute(ATTR_KEEP, callback);
+        registerToolsAttribute(ATTR_DISCARD, callback);
+      }
     }
 
     // If DOM element is annotated with @Styleable annotation, load a styleable definition
