@@ -159,28 +159,14 @@ public final class SdkQuickfixUtils {
         return null;
       }
     }
-
     List<RemotePackage> installRequests = Lists.newArrayList();
-    List<RemotePackage> skippedInstallRequests = Lists.newArrayList();
-
-    if (!checkForProblems(project, parent, resolvedPackages, installRequests, skippedInstallRequests, sdkHandler)) {
-      startSdkManagerAndExit(project, mgr.getLocalPath());
-
+    for (UpdatablePackage p : resolvedPackages) {
+      installRequests.add(p.getRemote());
     }
-
-    if (installRequests.isEmpty()) {
-      return null;
-    }
-
     ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
     wizardBuilder.addStep(new LicenseAgreementStep(new LicenseAgreementModel(mgr.getLocalPath()), installRequests));
-    InstallSelectedPackagesStep installStep = new InstallSelectedPackagesStep(installRequests, mgr, sdkHandler, backgroundable && skippedInstallRequests.isEmpty());
+    InstallSelectedPackagesStep installStep = new InstallSelectedPackagesStep(installRequests, mgr, sdkHandler, backgroundable);
     wizardBuilder.addStep(installStep);
-    if (!skippedInstallRequests.isEmpty()) {
-      HandleSkippedInstallationsModel handleSkippedInstallationsModel =
-        new HandleSkippedInstallationsModel(project, skippedInstallRequests, mgr.getLocalPath());
-      wizardBuilder.addStep(new InstallMissingPackagesStep(handleSkippedInstallationsModel));
-    }
     ModelWizard wizard = wizardBuilder.build();
 
     String title = "SDK Quickfix Installation";
@@ -222,90 +208,6 @@ public final class SdkQuickfixUtils {
     public String getDescription() {
       return myDescription;
     }
-  }
-
-  /**
-   * @param project {@link Project} used to parent any dialog shown.
-   * @param parent Parent component for any dialog shown.
-   * @param requestedPackages The packages to check.
-   * @param installRequests Will be populated with the {@link RemotePackage}s to install.
-   * @param skippedInstalls Will be populated with any {@link RemotePackage}s that are skipped.
-   * @param handler {@link AndroidSdkHandler} instance.
-   *
-   * @return false if we should exit the application to continue the installation in the standalone SDK manager.
-   */
-  private static boolean checkForProblems(@Nullable Project project,
-                                          @Nullable Component parent,
-                                          @NotNull List<UpdatablePackage> requestedPackages,
-                                          @NotNull List<RemotePackage> installRequests,
-                                          @NotNull List<RemotePackage> skippedInstalls,
-                                          @NotNull AndroidSdkHandler handler) {
-
-    Set<RemotePackage> problems = Sets.newHashSet();
-    findProblemPackages(requestedPackages, handler, problems, installRequests);
-    InstallSdkOption selectedOption = InstallSdkOption.ATTEMPT_ALL;
-
-    if (!problems.isEmpty()) {
-      StringBuilder warningBuilder = new StringBuilder("Due to your system configuration and the packages to be installed, \n" +
-                                                       "it is likely that the following packages cannot be successfully installed while ");
-      warningBuilder.append(ApplicationNamesInfo.getInstance().getFullProductName());
-      warningBuilder.append(" is running. \n\nPlease exit and install the following packages using the standalone SDK manager:");
-
-      for (RepoPackage problemPkg : problems) {
-        warningBuilder.append("\n    -");
-        warningBuilder.append(problemPkg.getDisplayName());
-      }
-
-      String[] optionNames;
-      InstallSdkOption[] options;
-
-      if (problems.size() == requestedPackages.size()) {
-        options =
-          new InstallSdkOption[]{InstallSdkOption.CANCEL, InstallSdkOption.ATTEMPT_ALL, InstallSdkOption.EXIT_AND_LAUNCH_STANDALONE};
-      }
-      else {
-        options = new InstallSdkOption[]{InstallSdkOption.EXIT_AND_LAUNCH_STANDALONE,
-          InstallSdkOption.ATTEMPT_ALL, InstallSdkOption.INSTALL_SAFE};
-      }
-      optionNames = new String[options.length];
-      for (int i = 0; i < options.length; i++) {
-        optionNames[i] = options[i].getDescription();
-      }
-      int result;
-      if (parent != null) {
-        result =
-          Messages.showDialog(parent, warningBuilder.toString(), "Warning", optionNames, optionNames.length - 1, AllIcons.General.Warning);
-      }
-      else {
-        result =
-          Messages.showDialog(project, warningBuilder.toString(), "Warning", optionNames, optionNames.length - 1, AllIcons.General.Warning);
-      }
-      
-      if (result == -1) {
-        selectedOption = InstallSdkOption.CANCEL;
-      }
-      else {
-        selectedOption = options[result];
-      }
-    }
-
-    if (selectedOption == InstallSdkOption.EXIT_AND_LAUNCH_STANDALONE) {
-      installRequests.clear();
-      skippedInstalls.clear();
-      return false;
-    }
-    else if (selectedOption == InstallSdkOption.INSTALL_SAFE) {
-      skippedInstalls.addAll(problems);
-    }
-    else if (selectedOption == InstallSdkOption.ATTEMPT_ALL) {
-      installRequests.addAll(problems);
-    }
-    else if (selectedOption == InstallSdkOption.CANCEL) {
-      installRequests.clear();
-      skippedInstalls.clear();
-    }
-
-    return true;
   }
 
   /**
