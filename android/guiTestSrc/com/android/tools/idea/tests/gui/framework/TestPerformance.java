@@ -31,6 +31,7 @@ class TestPerformance extends TestWatcher {
 
   private final List<GarbageCollectorMXBean> myGarbageCollectorMXBeans = ManagementFactory.getGarbageCollectorMXBeans();
   private final MemoryMXBean myMemoryMXBean = ManagementFactory.getMemoryMXBean();
+  private long myGcCount, myGcTime;
 
   @Override
   protected void starting(Description description) {
@@ -50,7 +51,13 @@ class TestPerformance extends TestWatcher {
       gcCount += garbageCollectorMXBean.getCollectionCount();
       gcTime += garbageCollectorMXBean.getCollectionTime();
     }
-    System.out.printf("%d garbage collections; cumulative %d ms%n", gcCount, gcTime);
+
+    long gcCountDiff = gcCount - myGcCount;
+    long gcTimeDiff = gcTime - myGcTime;
+    myGcCount = gcCount;
+    myGcTime = gcTime;
+
+    System.out.printf("cumulative garbage collections: %d, %d ms (this test %d, %dms)%n", gcCount, gcTime, gcCountDiff, gcTimeDiff);
     myMemoryMXBean.gc();
     System.out.printf("heap: %s%n", myMemoryMXBean.getHeapMemoryUsage());
     System.out.printf("non-heap: %s%n", myMemoryMXBean.getNonHeapMemoryUsage());
