@@ -27,6 +27,7 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
+import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,6 +47,8 @@ public class ReRunAction extends DumbAwareAction implements AnAction.Transparent
   public void update(AnActionEvent e) {
     Presentation presentation = e.getPresentation();
     boolean cleanBuild = isCleanBuild(e);
+
+    presentation.setIcon(cleanBuild ? AndroidIcons.RunIcons.CleanRerun : AllIcons.Actions.Restart);
 
     final Project project = e.getProject();
     if (project == null) {
