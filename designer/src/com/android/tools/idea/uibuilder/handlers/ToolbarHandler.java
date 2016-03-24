@@ -16,7 +16,6 @@
 package com.android.tools.idea.uibuilder.handlers;
 
 import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import org.intellij.lang.annotations.Language;
@@ -35,17 +34,54 @@ public class ToolbarHandler extends ViewHandler {
         return String.format("<%1$s\n" +
                              "  android:layout_width=\"match_parent\"\n" +
                              "  android:layout_height=\"wrap_content\"\n" +
-                             "  app:title=\"Toolbar\">\n" +
+                             "  android:background=\"?attr/colorPrimary\"\n" +
+                             "  android:theme=\"?attr/actionBarTheme\"\n" +
+                             "  android:minHeight=\"?attr/actionBarSize\">\n" +
                              "</%1$s>\n", tagName);
       case PREVIEW_ON_PALETTE:
       case DRAG_PREVIEW:
         return String.format("<%1$s\n" +
-                             "  android:layout_width=\"wrap_content\"\n" +  // match_parent makes the text too short...
+                             "  android:layout_width=\"match_parent\"\n" +
                              "  android:layout_height=\"wrap_content\"\n" +
-                             "  app:title=\"Toolbar\">\n" +
+                             "  android:background=\"?attr/colorPrimary\"\n" +
+                             "  android:theme=\"?attr/actionBarTheme\"\n" +
+                             "  android:minHeight=\"?attr/actionBarSize\"\n" +
+                             "  app:contentInsetStart=\"0dp\"\n" +
+                             "  app:contentInsetLeft=\"0dp\">\n" +
+                             "\n" +
+                             "  <ImageButton\n" +
+                             "    android:src=\"?attr/homeAsUpIndicator\"\n" +
+                             "    android:layout_width=\"wrap_content\"\n" +
+                             "    android:layout_height=\"wrap_content\"\n" +
+                             "    android:tint=\"?attr/actionMenuTextColor\"\n" +
+                             "    android:style=\"?attr/toolbarNavigationButtonStyle\"\n" +
+                             "  />\n" +
+                             "  <TextView\n" +
+                             "    android:text=\"v7 Toolbar\"\n" +
+                             "    android:textAppearance=\"@style/TextAppearance.Widget.AppCompat.Toolbar.Title\"\n" +
+                             "    android:layout_width=\"wrap_content\"\n" +
+                             "    android:layout_height=\"wrap_content\"\n" +
+                             "    android:gravity=\"center_vertical\"\n" +
+                             "    android:ellipsize=\"end\"\n" +
+                             "    android:maxLines=\"1\"\n" +
+                             "  />\n" +
+                             "\n" +
+                             "  <ImageButton\n" +
+                             "    android:src=\"@drawable/abc_ic_menu_moreoverflow_mtrl_alpha\"\n" +
+                             "    android:layout_width=\"40dp\"\n" +
+                             "    android:layout_height=\"wrap_content\"\n" +
+                             "    android:layout_gravity=\"right\"\n" +
+                             "    android:style=\"?attr/toolbarNavigationButtonStyle\"\n" +
+                             "    android:tint=\"?attr/actionMenuTextColor\"\n" +
+                             "  />\n" +
                              "</%1$s>\n", tagName);
       default:
         return super.getXml(tagName, xmlType);
     }
+  }
+
+  @Override
+  public double getPreviewScale(@NonNull String tagName) {
+    return 0.5;
   }
 }
