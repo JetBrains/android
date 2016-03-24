@@ -21,6 +21,9 @@ import com.intellij.ide.IdeBundle;
 import com.intellij.ide.actions.ElementCreator;
 import com.intellij.ide.actions.TemplateKindCombo;
 import com.intellij.ide.fileTemplates.FileTemplate;
+import com.intellij.ide.fileTemplates.FileTemplateManager;
+import com.intellij.ide.fileTemplates.JavaCreateFromTemplateHandler;
+import com.intellij.ide.highlighter.JavaFileType;
 import com.intellij.lang.LangBundle;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileTypes.StdFileTypes;
@@ -168,41 +171,38 @@ public class CreateFileFromTemplateDialog extends DialogWrapper {
     return super.doValidate();
   }
 
-  protected void configureComponents(Kind kind) {
-    switch (kind) {
-      case ANNOTATION:
-      case INTERFACE:
-      case ENUM:
-        mySuperclassLabel.setVisible(false);
-        mySuperclassField.setText("");
-        mySuperclassField.setFocusable(false);
-        mySuperclassFieldPlaceholder.setVisible(false);
+  private void configureComponents(@Nullable Kind kind) {
+    boolean isClassKind = (kind != null && kind == Kind.CLASS);
 
-        myModifiersLabel.setVisible(false);
-        myNoModifierRadioButton.setSelected(true);
-        myNoModifierRadioButton.setVisible(false);
-        myAbstractRadioButton.setVisible(false);
-        myFinalRadioButton.setVisible(false);
+    if (isClassKind) {
+      mySuperclassLabel.setVisible(true);
+      mySuperclassFieldPlaceholder.setVisible(true);
+      mySuperclassField.setFocusable(true);
 
-        myOverridesSeparator.setVisible(false);
-        myShowSelectOverridesDialogCheckBox.setSelected(false);
-        myShowSelectOverridesDialogCheckBox.setVisible(false);
-        break;
-      case CLASS:
-      case SINGLETON:
-        mySuperclassLabel.setVisible(true);
-        mySuperclassFieldPlaceholder.setVisible(true);
-        mySuperclassField.setFocusable(true);
+      myModifiersLabel.setVisible(true);
+      myNoModifierRadioButton.setSelected(true);
+      myNoModifierRadioButton.setVisible(true);
+      myAbstractRadioButton.setVisible(true);
+      myFinalRadioButton.setVisible(true);
 
-        myModifiersLabel.setVisible(true);
-        myNoModifierRadioButton.setSelected(true);
-        myNoModifierRadioButton.setVisible(true);
-        myAbstractRadioButton.setVisible(true);
-        myFinalRadioButton.setVisible(true);
+      myOverridesSeparator.setVisible(true);
+      myShowSelectOverridesDialogCheckBox.setVisible(true);
+    }
+    else {
+      mySuperclassLabel.setVisible(false);
+      mySuperclassField.setText("");
+      mySuperclassField.setFocusable(false);
+      mySuperclassFieldPlaceholder.setVisible(false);
 
-        myOverridesSeparator.setVisible(true);
-        myShowSelectOverridesDialogCheckBox.setVisible(true);
-        break;
+      myModifiersLabel.setVisible(false);
+      myNoModifierRadioButton.setSelected(true);
+      myNoModifierRadioButton.setVisible(false);
+      myAbstractRadioButton.setVisible(false);
+      myFinalRadioButton.setVisible(false);
+
+      myOverridesSeparator.setVisible(false);
+      myShowSelectOverridesDialogCheckBox.setSelected(false);
+      myShowSelectOverridesDialogCheckBox.setVisible(false);
     }
   }
 
@@ -300,6 +300,10 @@ public class CreateFileFromTemplateDialog extends DialogWrapper {
     myKindCombo.addItem(kind.getName(), kind.getIcon(), kind.getTemplateName());
   }
 
+  private void addKind(@NotNull FileTemplate template) {
+    myKindCombo.addItem(template.getName(), JavaFileType.INSTANCE.getIcon(), template.getName());
+  }
+
   PsiClass show(@NotNull final FileCreator creator) throws FailedToCreateFileException {
     final Ref<PsiClass> ref = Ref.create(null);
     myCreator = new ElementCreator(myProject, IdeBundle.message("title.cannot.create.class")) {
@@ -355,7 +359,12 @@ public class CreateFileFromTemplateDialog extends DialogWrapper {
       addKind(Kind.ANNOTATION);
     }
 
-    addKind(Kind.SINGLETON);
+    final JavaCreateFromTemplateHandler handler = new JavaCreateFromTemplateHandler();
+    for (FileTemplate template : FileTemplateManager.getInstance(myProject).getAllTemplates()) {
+      if (handler.handlesTemplate(template)) {
+        addKind(template);
+      }
+    }
   }
 
   interface FileCreator {
