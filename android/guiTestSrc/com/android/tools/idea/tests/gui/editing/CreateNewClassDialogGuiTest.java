@@ -15,27 +15,28 @@
  */
 package com.android.tools.idea.tests.gui.editing;
 
-import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
-import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.CreateFileFromTemplateDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.CreateFileFromTemplateDialogFixture.ComponentVisibility;
+import com.android.tools.idea.tests.gui.framework.fixture.CreateFileFromTemplateDialogFixture.Modifier;
 import com.android.tools.idea.tests.gui.framework.fixture.CreateFileFromTemplateDialogFixture.Kind;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.JavaOverrideImplementMemberChooserFixture;
 import com.intellij.androidstudio.actions.CreateFileFromTemplateDialog.Visibility;
 import com.intellij.androidstudio.actions.CreateNewClassDialogValidatorExImpl;
+import org.fest.swing.fixture.JCheckBoxFixture;
 import org.fest.swing.query.ComponentVisibleQuery;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import javax.swing.*;
 import java.io.IOException;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(GuiTestRunner.class)
 @RunIn(TestGroup.LAYOUT)
@@ -69,6 +70,8 @@ public class CreateNewClassDialogGuiTest {
   private static final String JAVA_UTIL_MAP_ENTRY = "java.util.Map.Entry";
   private static final String JAVA_UTIL_MAP_IMPORT = "import java.util.Map;";
   private static final String JAVA_UTIL_MAP_ENTRY_DECLARATION = "public %s TestThing implements Map.Entry {";
+  private static final String ABSTRACT_DECLARATION = "public abstract %s TestThing {";
+  private static final String FINAL_DECLARATION = "public final %s TestThing {";
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
   private EditorFixture myEditor;
@@ -124,7 +127,6 @@ public class CreateNewClassDialogGuiTest {
     dialog.setName(THING_NAME);
     dialog.selectKind(kind);
     dialog.setInterface(INTERFACE_0);
-    dialog.clickAddInterfaceButton();
     dialog.setPackage(PACKAGE_NAME_0);
     dialog.setVisibility(Visibility.PUBLIC);
     dialog.clickOk();
@@ -137,13 +139,11 @@ public class CreateNewClassDialogGuiTest {
     assertDeclaration(THING_FILE_PATH_0, declaration, kind);
   }
 
-  private void createWithTwoInterfacesImplicitly(Kind kind) throws IOException {
+  private void createWithTwoInterfaces(Kind kind) throws IOException {
     CreateFileFromTemplateDialogFixture dialog = invokeNewFileDialog();
     dialog.setName(THING_NAME);
     dialog.selectKind(kind);
-    dialog.setInterface(INTERFACE_0);
-    dialog.clickAddInterfaceButton();
-    dialog.setInterface(INTERFACE_1);
+    dialog.setInterface(INTERFACE_0 + "," + INTERFACE_1);
     dialog.setPackage(PACKAGE_NAME_0);
     dialog.setVisibility(Visibility.PUBLIC);
     dialog.clickOk();
@@ -160,7 +160,6 @@ public class CreateNewClassDialogGuiTest {
     dialog.setName(THING_NAME);
     dialog.selectKind(kind);
     dialog.setInterface(FULLY_QUALIFIED_INTERFACE);
-    dialog.clickAddInterfaceButton();
     dialog.setPackage(PACKAGE_NAME_0);
     dialog.setVisibility(Visibility.PUBLIC);
     dialog.clickOk();
@@ -247,30 +246,37 @@ public class CreateNewClassDialogGuiTest {
   }
 
   @Test
+  public void createAbstract() throws IOException {
+    CreateFileFromTemplateDialogFixture dialog = invokeNewFileDialog();
+    dialog.setName(THING_NAME);
+    dialog.selectKind(Kind.CLASS);
+    dialog.setModifier(Modifier.ABSTRACT);
+    dialog.clickOk();
+
+    assertPackageName(THING_FILE_PATH_0, PACKAGE_NAME_0);
+    assertDeclaration(THING_FILE_PATH_0, ABSTRACT_DECLARATION, Kind.CLASS);
+  }
+
+  @Test
+  public void createFinal() throws IOException {
+    CreateFileFromTemplateDialogFixture dialog = invokeNewFileDialog();
+    dialog.setName(THING_NAME);
+    dialog.selectKind(Kind.CLASS);
+    dialog.setModifier(Modifier.FINAL);
+    dialog.clickOk();
+
+    assertPackageName(THING_FILE_PATH_0, PACKAGE_NAME_0);
+    assertDeclaration(THING_FILE_PATH_0, FINAL_DECLARATION, Kind.CLASS);
+  }
+
+  @Test
   public void createClassWithOneInterface() throws IOException {
     createWithOneInterface(Kind.CLASS);
   }
 
   @Test
-  public void createClassWithTwoInterfacesExplicitly() throws IOException {
-    CreateFileFromTemplateDialogFixture dialog = invokeNewFileDialog();
-    dialog.setName(THING_NAME);
-    dialog.selectKind(Kind.CLASS);
-    dialog.setInterface(INTERFACE_0);
-    dialog.clickAddInterfaceButton();
-    dialog.setInterface(INTERFACE_1);
-    dialog.clickAddInterfaceButton();
-    dialog.setPackage(PACKAGE_NAME_0);
-    dialog.setVisibility(Visibility.PUBLIC);
-    dialog.clickOk();
-
-    assertPackageName(THING_FILE_PATH_0, PACKAGE_NAME_0);
-    assertDeclaration(THING_FILE_PATH_0, CLASS_IMPLEMENTING_TWO_INTERFACES_DECLARATION, Kind.CLASS);
-  }
-
-  @Test
-  public void createClassWithTwoInterfacesImplicitly() throws IOException {
-    createWithTwoInterfacesImplicitly(Kind.CLASS);
+  public void createClassWithTwoInterfaces() throws IOException {
+    createWithTwoInterfaces(Kind.CLASS);
   }
 
   @Test
@@ -335,7 +341,7 @@ public class CreateNewClassDialogGuiTest {
 
   @Test
   public void createEnumWithTwoInterfaces() throws IOException {
-    createWithTwoInterfacesImplicitly(Kind.ENUM);
+    createWithTwoInterfaces(Kind.ENUM);
   }
 
   @Test
@@ -356,7 +362,7 @@ public class CreateNewClassDialogGuiTest {
 
   @Test
   public void createInterfaceWithTwoInterfaces() throws IOException {
-    createWithTwoInterfacesImplicitly(Kind.INTERFACE);
+    createWithTwoInterfaces(Kind.INTERFACE);
   }
 
   @Test
@@ -421,19 +427,28 @@ public class CreateNewClassDialogGuiTest {
   public void hidingComponents() throws IOException {
     CreateFileFromTemplateDialogFixture dialog = invokeNewFileDialog();
     dialog.selectKind(Kind.CLASS);
-    assertTrue(ComponentVisibleQuery.isVisible(dialog.getAbstractCheckBox(ComponentVisibility.VISIBLE)));
-    assertTrue(ComponentVisibleQuery.isVisible(dialog.getFinalCheckBox(ComponentVisibility.VISIBLE)));
-    assertTrue(ComponentVisibleQuery.isVisible(dialog.getOverridesCheckBox(ComponentVisibility.VISIBLE)));
+    assertTrue(ComponentVisibleQuery.isVisible(dialog.find("none_radio_button", JRadioButton.class, ComponentVisibility.VISIBLE)));
+    assertTrue(ComponentVisibleQuery.isVisible(dialog.find("abstract_radio_button", JRadioButton.class, ComponentVisibility.VISIBLE)));
+    assertTrue(ComponentVisibleQuery.isVisible(dialog.find("final_radio_button", JRadioButton.class, ComponentVisibility.VISIBLE)));
+    assertTrue(ComponentVisibleQuery.isVisible(dialog.find("modifiers_label", JLabel.class, ComponentVisibility.VISIBLE)));
+    assertTrue(ComponentVisibleQuery.isVisible(dialog.find("overrides_separator", JSeparator.class, ComponentVisibility.VISIBLE)));
+    assertTrue(ComponentVisibleQuery.isVisible(dialog.find("overrides_check_box", JCheckBox.class, ComponentVisibility.VISIBLE)));
 
     dialog.selectKind(Kind.INTERFACE);
-    assertFalse(ComponentVisibleQuery.isVisible(dialog.getAbstractCheckBox(ComponentVisibility.NOT_VISIBLE)));
-    assertFalse(ComponentVisibleQuery.isVisible(dialog.getFinalCheckBox(ComponentVisibility.NOT_VISIBLE)));
-    assertFalse(ComponentVisibleQuery.isVisible(dialog.getOverridesCheckBox(ComponentVisibility.NOT_VISIBLE)));
+    assertFalse(ComponentVisibleQuery.isVisible(dialog.find("none_radio_button", JRadioButton.class, ComponentVisibility.NOT_VISIBLE)));
+    assertFalse(ComponentVisibleQuery.isVisible(dialog.find("abstract_radio_button", JRadioButton.class, ComponentVisibility.NOT_VISIBLE)));
+    assertFalse(ComponentVisibleQuery.isVisible(dialog.find("final_radio_button", JRadioButton.class, ComponentVisibility.NOT_VISIBLE)));
+    assertFalse(ComponentVisibleQuery.isVisible(dialog.find("modifiers_label", JLabel.class, ComponentVisibility.NOT_VISIBLE)));
+    assertFalse(ComponentVisibleQuery.isVisible(dialog.find("overrides_separator", JSeparator.class, ComponentVisibility.NOT_VISIBLE)));
+    assertFalse(ComponentVisibleQuery.isVisible(dialog.find("overrides_check_box", JCheckBox.class, ComponentVisibility.NOT_VISIBLE)));
 
     dialog.selectKind(Kind.CLASS);
-    assertTrue(ComponentVisibleQuery.isVisible(dialog.getAbstractCheckBox(ComponentVisibility.VISIBLE)));
-    assertTrue(ComponentVisibleQuery.isVisible(dialog.getFinalCheckBox(ComponentVisibility.VISIBLE)));
-    assertTrue(ComponentVisibleQuery.isVisible(dialog.getOverridesCheckBox(ComponentVisibility.VISIBLE)));
+    assertTrue(ComponentVisibleQuery.isVisible(dialog.find("none_radio_button", JRadioButton.class, ComponentVisibility.VISIBLE)));
+    assertTrue(ComponentVisibleQuery.isVisible(dialog.find("abstract_radio_button", JRadioButton.class, ComponentVisibility.VISIBLE)));
+    assertTrue(ComponentVisibleQuery.isVisible(dialog.find("final_radio_button", JRadioButton.class, ComponentVisibility.VISIBLE)));
+    assertTrue(ComponentVisibleQuery.isVisible(dialog.find("modifiers_label", JLabel.class, ComponentVisibility.VISIBLE)));
+    assertTrue(ComponentVisibleQuery.isVisible(dialog.find("overrides_separator", JSeparator.class, ComponentVisibility.VISIBLE)));
+    assertTrue(ComponentVisibleQuery.isVisible(dialog.find("overrides_check_box", JCheckBox.class, ComponentVisibility.VISIBLE)));
     dialog.clickCancel();
   }
 
@@ -444,7 +459,7 @@ public class CreateNewClassDialogGuiTest {
     dialog.setName(THING_NAME);
     dialog.selectKind(Kind.CLASS);
     dialog.setInterface("java.lang.Object");
-    dialog.clickAddInterfaceButton();
+    dialog.clickOk();
     dialog.waitForErrorMessageToAppear(CreateNewClassDialogValidatorExImpl.INVALID_QUALIFIED_NAME);
     dialog.clickCancel();
   }
@@ -465,9 +480,9 @@ public class CreateNewClassDialogGuiTest {
   public void showOverridesDialog() throws IOException {
     CreateFileFromTemplateDialogFixture newFileDialog = invokeNewFileDialog();
     newFileDialog.setName(THING_NAME);
-    GuiTests.setSelected(newFileDialog.getOverridesCheckBox(ComponentVisibility.VISIBLE), true);
+    JCheckBoxFixture overridesCheckBox = newFileDialog.findCheckBox("overrides_check_box");
+    overridesCheckBox.setSelected(true);
     newFileDialog.clickOk();
-    JavaOverrideImplementMemberChooserFixture overridesDialog = JavaOverrideImplementMemberChooserFixture.find(guiTest.robot());
-    overridesDialog.clickCancel();
+    JavaOverrideImplementMemberChooserFixture.find(guiTest.robot()).clickCancel();
   }
 }

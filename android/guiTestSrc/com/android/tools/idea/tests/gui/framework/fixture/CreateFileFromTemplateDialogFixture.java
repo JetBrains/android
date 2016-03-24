@@ -17,17 +17,23 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.Wait;
+import com.android.tools.idea.tests.gui.framework.fixture.theme.EditorTextFieldFixture;
 import com.intellij.androidstudio.actions.CreateFileFromTemplateDialog;
 import com.intellij.androidstudio.actions.CreateFileFromTemplateDialog.Visibility;
 import com.intellij.ide.actions.TemplateKindCombo;
-import com.intellij.ui.EditorTextField;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.exception.ComponentLookupException;
+import org.fest.swing.fixture.JCheckBoxFixture;
+import org.fest.swing.fixture.JRadioButtonFixture;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nonnull;
 import javax.swing.*;
+import java.awt.*;
+import java.util.Locale;
 
 
 public class CreateFileFromTemplateDialogFixture extends IdeaDialogFixture<CreateFileFromTemplateDialog> {
@@ -44,14 +50,13 @@ public class CreateFileFromTemplateDialogFixture extends IdeaDialogFixture<Creat
 
   @NotNull
   public CreateFileFromTemplateDialogFixture setName(@NotNull String name) {
-    JTextField nameField = robot().finder().findByLabel(target(), "Name:", JTextField.class);
-    GuiActionRunner.execute(new SelectFieldTask(nameField));
-    robot().enterText(name);
+    EditorTextFieldFixture.findByLabel(robot(), target(), "Name:").replaceText(name);
     return this;
   }
 
   @NotNull
   public CreateFileFromTemplateDialogFixture selectKind(@NotNull final Kind kind) {
+    // TODO: Replace this with a fixture.
     final TemplateKindCombo kindBox = robot().finder().findByType(target(), TemplateKindCombo.class);
     GuiActionRunner.execute(new SelectFieldTask(kindBox));
     GuiActionRunner.execute(new GuiTask() {
@@ -66,9 +71,7 @@ public class CreateFileFromTemplateDialogFixture extends IdeaDialogFixture<Creat
 
   @NotNull
   public CreateFileFromTemplateDialogFixture setPackage(@NotNull final String newPackage) {
-    final EditorTextField packageField = robot().finder().findByLabel(target(), "Package:", EditorTextField.class);
-    GuiActionRunner.execute(new SelectFieldTask(packageField));
-    GuiTests.setText(packageField, newPackage);
+    EditorTextFieldFixture.findByLabel(robot(), target(), "Package:").replaceText(newPackage);
     return this;
   }
 
@@ -92,21 +95,9 @@ public class CreateFileFromTemplateDialogFixture extends IdeaDialogFixture<Creat
     return this;
   }
 
-  public JCheckBox getAbstractCheckBox(ComponentVisibility visibility) {
-    return robot().finder().findByName(target(), "abstract_check_box", JCheckBox.class, visibility.equals(ComponentVisibility.VISIBLE));
-  }
-
-  public JCheckBox getFinalCheckBox(ComponentVisibility visibility) {
-    return robot().finder().findByName(target(), "final_check_box", JCheckBox.class, visibility.equals(ComponentVisibility.VISIBLE));
-  }
-
-  public JCheckBox getOverridesCheckBox(ComponentVisibility visibility) {
-    return robot().finder().findByName(target(), "overrides_check_box", JCheckBox.class, visibility.equals(ComponentVisibility.VISIBLE));
-  }
-
-  public void clickAddInterfaceButton() {
-    focus();
-    GuiTests.findAndClickButton(this, "+");
+  @Nonnull
+  public <T extends Component> T find(@Nullable String name, @Nonnull Class<T> type, @NotNull ComponentVisibility visibility) {
+    return robot().finder().findByName(target(), name, type, visibility.equals(ComponentVisibility.VISIBLE));
   }
 
   public void clickOk() {
@@ -115,27 +106,27 @@ public class CreateFileFromTemplateDialogFixture extends IdeaDialogFixture<Creat
   }
 
   public void setVisibility(Visibility visibility) {
-    final JRadioButton visibilityButton = visibility.equals(Visibility.PUBLIC) ?
-                                          robot().finder().findByName(target(), "public_radio_button", JRadioButton.class) :
-                                          robot().finder().findByName(target(), "package_private_radio_button", JRadioButton.class);
-    GuiActionRunner.execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
-        visibilityButton.setSelected(true);
-      }
-    });
+    String buttonName = visibility.equals(Visibility.PUBLIC) ? "public_radio_button" : "package_private_radio_button";
+    JRadioButtonFixture visibilityButton = new JRadioButtonFixture(robot(), buttonName);
+    visibilityButton.setSelected(true);
+  }
+
+  public void setModifier(Modifier modifier) {
+    String buttonName = modifier.toString().toLowerCase(Locale.US) + "_radio_button";
+    JRadioButtonFixture modifierButton = new JRadioButtonFixture(robot(), buttonName);
+    modifierButton.setSelected(true);
   }
 
   public void setInterface(@NotNull String iface) {
-    EditorTextField interfacesField = robot().finder().findByLabel(target(), "Interface(s):", EditorTextField.class);
-    GuiActionRunner.execute(new SelectFieldTask(interfacesField));
-    GuiTests.setText(interfacesField, iface);
+    EditorTextFieldFixture.findByLabel(robot(), target(), "Interface(s):").replaceText(iface);
   }
 
   public void setSuperclass(@NotNull String superclass) {
-    EditorTextField superclassField = robot().finder().findByLabel(target(), "Superclass:", EditorTextField.class);
-    GuiActionRunner.execute(new SelectFieldTask(superclassField));
-    GuiTests.setText(superclassField, superclass);
+    EditorTextFieldFixture.findByLabel(robot(), target(), "Superclass:").replaceText(superclass);
+  }
+
+  public JCheckBoxFixture findCheckBox(@NotNull String name) {
+    return new JCheckBoxFixture(robot(), name);
   }
 
   public enum Kind {
@@ -178,5 +169,11 @@ public class CreateFileFromTemplateDialogFixture extends IdeaDialogFixture<Creat
   public enum ComponentVisibility {
     VISIBLE,
     NOT_VISIBLE
+  }
+
+  public enum Modifier {
+    ABSTRACT,
+    FINAL,
+    NONE
   }
 }
