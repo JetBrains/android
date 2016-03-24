@@ -40,9 +40,9 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static javax.swing.event.HyperlinkEvent.EventType.ACTIVATED;
-import static junit.framework.Assert.assertNotNull;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.reflect.core.Reflection.field;
 import static org.fest.swing.awt.AWT.visibleCenterOf;
@@ -56,16 +56,7 @@ public class MessagesToolWindowFixture extends ToolWindowFixture {
 
   @NotNull
   public ContentFixture getGradleSyncContent() {
-    Content content = getContent("Gradle Sync");
-    assertNotNull(content);
-    return new SyncContentFixture(content);
-  }
-
-  @NotNull
-  public ContentFixture getGradleBuildContent() {
-    Content content = getContent("Gradle Build");
-    assertNotNull(content);
-    return new BuildContentFixture(content);
+    return new SyncContentFixture(checkNotNull(getContent("Gradle Sync")));
   }
 
   public abstract static class ContentFixture {
@@ -114,8 +105,7 @@ public class MessagesToolWindowFixture extends ToolWindowFixture {
         }
       });
 
-      assertNotNull(String.format("Failed to find message of type %1$s and matching text %2$s", kind, matcher.toString()), found);
-      return found;
+      return checkNotNull(found, String.format("Failed to find message of type %1$s and matching text %2$s", kind, matcher.toString()));
     }
 
     @Nullable
@@ -211,8 +201,7 @@ public class MessagesToolWindowFixture extends ToolWindowFixture {
           }
         }
       }
-      assertNotNull("Failed to find URL for hyperlink " + quote(hyperlinkText), url);
-      return url;
+      return checkNotNull(url, "Failed to find URL for hyperlink " + quote(hyperlinkText));
     }
 
     @NotNull
@@ -277,23 +266,21 @@ public class MessagesToolWindowFixture extends ToolWindowFixture {
       // HyperlinkEvent, simulating a click on the actual hyperlink.
       assertThat(myTarget).isInstanceOf(EditableNotificationMessageElement.class);
 
-      final JEditorPane editorComponent = execute(new GuiQuery<JEditorPane>() {
+      final JEditorPane editorComponent = checkNotNull(execute(new GuiQuery<JEditorPane>() {
         @Override
         protected JEditorPane executeInEDT() throws Throwable {
           EditableNotificationMessageElement message = (EditableNotificationMessageElement)myTarget;
           TreeCellEditor cellEditor = message.getRightSelfEditor();
           return field("editorComponent").ofType(JEditorPane.class).in(cellEditor).get();
         }
-      });
-      assertNotNull(editorComponent);
+      }));
 
-      String text = execute(new GuiQuery<String>() {
+      String text = checkNotNull(execute(new GuiQuery<String>() {
         @Override
         protected String executeInEDT() throws Throwable {
           return editorComponent.getText();
         }
-      });
-      assertNotNull(text);
+      }));
 
       return Pair.create(editorComponent, text);
     }
