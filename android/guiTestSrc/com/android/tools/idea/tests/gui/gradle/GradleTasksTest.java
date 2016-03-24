@@ -107,10 +107,7 @@ public class GradleTasksTest {
         Wait.seconds(30).expecting("'build' task to stop").until(new Wait.Objective() {
           @Override
           public boolean isMet() {
-            if (runContent.isExecutionInProgress()) {
-              return false;
-            }
-            return runContent.outputMatches(new NotMatchingPatternMatcher(buildSuccessfulPattern));
+            return !runContent.isExecutionInProgress() && runContent.outputMatches(new NotMatchingPatternMatcher(buildSuccessfulPattern));
           }
         });
       }
