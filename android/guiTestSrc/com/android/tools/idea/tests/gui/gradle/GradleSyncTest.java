@@ -68,7 +68,6 @@ import com.intellij.openapi.vfs.encoding.EncodingProjectManager;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.util.SystemProperties;
 import com.intellij.util.net.HttpConfigurable;
-import junit.framework.AssertionFailedError;
 import org.fest.reflect.reference.TypeRef;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.edt.GuiQuery;
@@ -1282,6 +1281,8 @@ public class GradleSyncTest {
 
   @Test
   public void testSyncDuringOfflineMode() throws IOException {
+    String hyperlinkText = "Disable offline mode and Sync";
+
     guiTest.importSimpleApplication();
 
     File buildFile = new File(guiTest.ideFrame().getProjectPath(), join("app", FN_BUILD_GRADLE));
@@ -1296,7 +1297,7 @@ public class GradleSyncTest {
     MessageFixture message =
       guiTest.ideFrame().getMessagesToolWindow().getGradleSyncContent().findMessage(ERROR, firstLineStartingWith("Failed to resolve:"));
 
-    HyperlinkFixture hyperlink = message.findHyperlink("Disable offline mode and Sync");
+    HyperlinkFixture hyperlink = message.findHyperlink(hyperlinkText);
     hyperlink.click();
 
     assertFalse(gradleSettings.isOfflineWork());
@@ -1305,11 +1306,13 @@ public class GradleSyncTest {
       guiTest.ideFrame().getMessagesToolWindow().getGradleSyncContent().findMessage(ERROR, firstLineStartingWith("Failed to resolve:"));
 
     try {
-      message.findHyperlink("Disable offline mode and Sync");
-      fail("Expecting AssertionFailedError");
+      message.findHyperlink(hyperlinkText);
+      fail(hyperlinkText + " link still present");
     }
-    catch (AssertionFailedError expected) {
+    catch (NullPointerException e) {
       // After offline mode is disable, the previous hyperlink will disappear after next sync
+      assertThat(e.getMessage()).contains("Failed to find URL");
+      assertThat(e.getMessage()).contains(hyperlinkText);
     }
   }
 
@@ -1354,7 +1357,7 @@ public class GradleSyncTest {
       message.findHyperlink(hyperlinkText);
       fail("There should be no link, now that the plugin is up to date.");
     }
-    catch (AssertionFailedError e) {
+    catch (NullPointerException e) {
       assertThat(e.getMessage()).contains("Failed to find URL");
       assertThat(e.getMessage()).contains(hyperlinkText);
     }
