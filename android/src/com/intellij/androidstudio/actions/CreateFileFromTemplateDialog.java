@@ -15,8 +15,8 @@
  */
 package com.intellij.androidstudio.actions;
 
-import com.google.common.base.CharMatcher;
 import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
 import com.intellij.ide.IdeBundle;
 import com.intellij.ide.actions.ElementCreator;
 import com.intellij.ide.actions.TemplateKindCombo;
@@ -33,7 +33,6 @@ import com.intellij.pom.java.LanguageLevel;
 import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.ui.EditorTextField;
-import com.intellij.util.PlatformIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -49,36 +48,31 @@ public class CreateFileFromTemplateDialog extends DialogWrapper {
   private static final String ATTRIBUTE_FINAL = "FINAL";
   private static final String ATTRIBUTE_ABSTRACT = "ABSTRACT";
   private static final String ATTRIBUTE_IMPORT_BLOCK = "IMPORT_BLOCK";
-  private static final String VISIBILITY_PACKAGE_PRIVATE = "visibility_package_private";
-  private static final String VISIBILITY_PUBLIC = "visibility_public";
 
   private JPanel myPanel;
   private JLabel myNameLabel;
-  private JTextField myNameField;
-  private JLabel myUpDownHint;
+  private EditorTextField myNameField;
   private JLabel myKindLabel;
   private TemplateKindCombo myKindCombo;
   private JLabel mySuperclassLabel;
   private JPanel mySuperclassFieldPlaceholder;
   private EditorTextField mySuperclassField;
   private JLabel myInterfacesLabel;
-  private JPanel myInterfacesPanel;
   private JPanel myInterfacesFieldPlaceholder;
-  private EditorTextField myInterfaceField;
-  private JButton myAddInterfaceButton;
+  private EditorTextField myInterfacesField;
   private JLabel myPackageLabel;
   private JPanel myPackageFieldPlaceholder;
   private EditorTextField myPackageField;
   private JLabel myVisibilityLabel;
-  private ButtonGroup myVisibilityButtonGroup;
   private JRadioButton myPublicRadioButton;
   private JRadioButton myPackagePrivateRadioButton;
-  private JCheckBox myAbstractCheckBox;
-  private JCheckBox myFinalCheckBox;
+  private JLabel myModifiersLabel;
+  private JRadioButton myNoModifierRadioButton;
+  private JRadioButton myAbstractRadioButton;
+  private JRadioButton myFinalRadioButton;
+  private JSeparator myOverridesSeparator;
   private JCheckBox myShowSelectOverridesDialogCheckBox;
-  private JTextField mySelectedInterfacesField;
 
-  private final Set<Type> mySelectedInterfaces;
   private ElementCreator myCreator;
   private CreateNewClassDialogValidatorEx myInputValidator;
 
@@ -93,10 +87,10 @@ public class CreateFileFromTemplateDialog extends DialogWrapper {
     super(project);
 
     setTitle(IdeBundle.message("action.create.new.class"));
-    mySelectedInterfaces = new LinkedHashSet<Type>();
     myKindLabel.setLabelFor(myKindCombo);
     myVisibilityLabel.setLabelFor(myPublicRadioButton);
-    myUpDownHint.setIcon(PlatformIcons.UP_DOWN_ARROWS);
+    myModifiersLabel.setLabelFor(myNoModifierRadioButton);
+    myNameLabel.setLabelFor(myNameField);
 
     myProject = project;
     myInputValidator = new CreateNewClassDialogValidatorExImpl(myProject);
@@ -109,59 +103,23 @@ public class CreateFileFromTemplateDialog extends DialogWrapper {
     mySuperclassField.setName("superclass_editor_text_field");
     mySuperclassFieldPlaceholder.add(mySuperclassField);
     mySuperclassLabel.setLabelFor(mySuperclassField);
-    myInterfaceField = initAutocompleteEditorTextField("", "A comma separated list of the interfaces to implement or extend, if any.");
-    myInterfacesFieldPlaceholder.add(myInterfaceField);
-    myInterfacesLabel.setLabelFor(myInterfaceField);
+
+    myInterfacesField = initAutocompleteEditorTextField("", "The interface to implement, if any.");
+    myInterfacesField.setName("interfaces_editor_text_field");
+    myInterfacesFieldPlaceholder.add(myInterfacesField);
+    myInterfacesLabel.setLabelFor(myInterfacesField);
+
     myPackageField = initAutocompleteEditorTextField(myDefaultPsiPackage.getQualifiedName(), "The package to create the item in.");
     myPackageFieldPlaceholder.add(myPackageField);
     myPackageLabel.setLabelFor(myPackageField);
 
     setKindComponentsVisible(false);
-    initVisibilityButtons();
-
-    myAddInterfaceButton.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent actionEvent) {
-        processNewInterface();
-      }
-    });
 
     init();
     initKindCombo();
-    if (getKindCombo().getComboBox().getItemCount() > 1) {
+    if (myKindCombo.getComboBox().getItemCount() > 1) {
       setKindComponentsVisible(true);
     }
-  }
-
-  /**
-   * Gets a new interface from the input field, validates it, stores the input interface, and displays it as a selected one.
-   */
-  private void processNewInterface() {
-    String interfaceAsString = myInterfaceField.getText();
-    if (CharMatcher.WHITESPACE.matchesAllOf(interfaceAsString)) {
-      myInterfaceField.requestFocus();
-      return;
-    }
-
-    Type interfaceAsType = Type.newType(interfaceAsString, myProject);
-    if (!interfaceAsType.canUseAsInterface() || !myInputValidator.checkInterface(interfaceAsString)) {
-      initValidation();
-      myInterfaceField.requestFocus();
-      return;
-    }
-
-    // If the interface isn't in mySelectedInterfaces, add it and display it on the screen.
-    if (mySelectedInterfaces.add(interfaceAsType)) {
-      if (mySelectedInterfaces.size() == 1) {
-        mySelectedInterfacesField.setText(interfaceAsType.getClassWithNesting());
-      }
-      else {
-        mySelectedInterfacesField.setText(mySelectedInterfacesField.getText() + ", " + interfaceAsType.getClassWithNesting());
-      }
-    }
-
-    myInterfaceField.setText("");
-    myInterfaceField.requestFocus();
   }
 
   @NotNull
@@ -174,23 +132,12 @@ public class CreateFileFromTemplateDialog extends DialogWrapper {
     return editorTextField;
   }
 
-  private void initVisibilityButtons() {
-    myPublicRadioButton.setActionCommand(VISIBILITY_PUBLIC);
-    myPackagePrivateRadioButton.setActionCommand(VISIBILITY_PACKAGE_PRIVATE);
-
-    myVisibilityButtonGroup = new ButtonGroup();
-    myVisibilityButtonGroup.add(myPublicRadioButton);
-    myVisibilityButtonGroup.add(myPackagePrivateRadioButton);
-    myPublicRadioButton.setSelected(true);
-  }
-
   @Nullable
   @Override
   protected ValidationInfo doValidate() {
     if (myInputValidator != null) {
       String nameText = myNameField.getText();
       String superclassAsString = mySuperclassField.getText();
-      String interfaceAsString = myInterfaceField.getText();
       String packageText = myPackageField.getText();
       if (!myInputValidator.checkInput(nameText)) {
         String errorText = LangBundle.message("incorrect.name");
@@ -204,45 +151,18 @@ public class CreateFileFromTemplateDialog extends DialogWrapper {
 
       Type superclassAsType = Type.newType(superclassAsString, myProject);
       if (mySuperclassField.isVisible() && (!superclassAsType.canUseAsClass() || !myInputValidator.checkSuperclass(superclassAsString))) {
-        String errorText = "Incorrect superclass";
-        String message = myInputValidator.getSuperclassErrorText(superclassAsString);
-        if (message != null) {
-          errorText = message;
-        }
-
-        return new ValidationInfo(errorText, mySuperclassField);
+        return new ValidationInfo(myInputValidator.getSuperclassErrorText(superclassAsString), mySuperclassField);
       }
 
-      Type interfaceAsType = Type.newType(interfaceAsString, myProject);
-      if (!interfaceAsType.canUseAsInterface() || !myInputValidator.checkInterface(interfaceAsString)) {
-        String errorText = LangBundle.message("incorrect.name");
-        String message = myInputValidator.getInterfacesErrorText(interfaceAsString);
-        if (message != null) {
-          errorText = message;
+      for (String interfaceAsString : Splitter.on(',').trimResults().split(getInterfaces())) {
+        Type interfaceAsType = Type.newType(interfaceAsString, myProject);
+        if (!interfaceAsType.canUseAsInterface() || !myInputValidator.checkInterface(interfaceAsString)) {
+          return new ValidationInfo(myInputValidator.getInterfacesErrorText(interfaceAsString), myInterfacesField);
         }
-
-        return new ValidationInfo(errorText, myInterfaceField);
       }
 
       if (!myInputValidator.checkPackage(packageText)) {
-        String errorText = "Incorrect package";
-        String message = myInputValidator.getPackageErrorText(packageText);
-        if (message != null) {
-          errorText = message;
-        }
-
-        return new ValidationInfo(errorText, myPackageField);
-      }
-
-      if (myAbstractCheckBox.isVisible() && myFinalCheckBox.isVisible() &&
-          !myInputValidator.checkAbstractAndFinal(myAbstractCheckBox.isSelected(), myFinalCheckBox.isSelected())) {
-        String errorText = "Incorrect abstract and final combination";
-        String message = myInputValidator.getAbstractAndFinalErrorText("");
-        if (message != null) {
-          errorText = message;
-        }
-
-        return new ValidationInfo(errorText, myFinalCheckBox);
+        return new ValidationInfo(myInputValidator.getPackageErrorText(packageText), myPackageField);
       }
     }
     return super.doValidate();
@@ -257,10 +177,14 @@ public class CreateFileFromTemplateDialog extends DialogWrapper {
         mySuperclassField.setText("");
         mySuperclassField.setFocusable(false);
         mySuperclassFieldPlaceholder.setVisible(false);
-        myAbstractCheckBox.setSelected(false);
-        myAbstractCheckBox.setVisible(false);
-        myFinalCheckBox.setSelected(false);
-        myFinalCheckBox.setVisible(false);
+
+        myModifiersLabel.setVisible(false);
+        myNoModifierRadioButton.setSelected(true);
+        myNoModifierRadioButton.setVisible(false);
+        myAbstractRadioButton.setVisible(false);
+        myFinalRadioButton.setVisible(false);
+
+        myOverridesSeparator.setVisible(false);
         myShowSelectOverridesDialogCheckBox.setSelected(false);
         myShowSelectOverridesDialogCheckBox.setVisible(false);
         break;
@@ -269,31 +193,17 @@ public class CreateFileFromTemplateDialog extends DialogWrapper {
         mySuperclassLabel.setVisible(true);
         mySuperclassFieldPlaceholder.setVisible(true);
         mySuperclassField.setFocusable(true);
-        myAbstractCheckBox.setVisible(true);
-        myFinalCheckBox.setVisible(true);
+
+        myModifiersLabel.setVisible(true);
+        myNoModifierRadioButton.setSelected(true);
+        myNoModifierRadioButton.setVisible(true);
+        myAbstractRadioButton.setVisible(true);
+        myFinalRadioButton.setVisible(true);
+
+        myOverridesSeparator.setVisible(true);
         myShowSelectOverridesDialogCheckBox.setVisible(true);
         break;
     }
-  }
-
-  Map<String, String> getCreationOptions() {
-    return myCreationOptions;
-  }
-
-  protected JTextField getNameField() {
-    return myNameField;
-  }
-
-  protected TemplateKindCombo getKindCombo() {
-    return myKindCombo;
-  }
-
-  protected JLabel getKindLabel() {
-    return myKindLabel;
-  }
-
-  protected JLabel getNameLabel() {
-    return myNameLabel;
   }
 
   private String getName() {
@@ -329,7 +239,6 @@ public class CreateFileFromTemplateDialog extends DialogWrapper {
 
   @Override
   protected void doOKAction() {
-    processNewInterface();
     List<String> imports = new ArrayList<String>();
     String localPackage = getPackage();
     String superclassAsString = getSuperclass();
@@ -344,46 +253,21 @@ public class CreateFileFromTemplateDialog extends DialogWrapper {
       myCreationOptions.put(ATTRIBUTE_SUPERCLASS, "");
     }
 
-    // There are three types of interfaces to deal with: those local to the new file's package (locals), those that are not local, but
-    // are fully qualified (non-locals), and those that are neither local nor fully qualified (mysteries).
-    // We treat the mysteries as if they're local, and let the editor show an error later.
-    // To start, we separate the interfaces into two groups: locals+mysteries and non-locals.
-    // Next we add the locals/mysteries to the interfaces set, without qualification or imports.
-    // Then we add the non-locals to the set. If there's already an entry with the same name, we add it fully qualified. Otherwise we add
-    // it without qualification and add an import line.
-    // When possible we use a Psi* backed class to parse the interfaces, to allow for extra validation. The mysteries require a string
-    // backed class, because the Psi system doesn't have any data on them.
-    Set<String> packageLocalInterfaces = new LinkedHashSet<String>();
-    Set<Type> qualifiedInterfaces = new LinkedHashSet<Type>();
-    for (Type selectedInterface : mySelectedInterfaces) {
-      if (selectedInterface.isLocal(localPackage)) {
-        packageLocalInterfaces.add(selectedInterface.getClassWithNesting());
-      }
-      else {
-        qualifiedInterfaces.add(selectedInterface);
+    List<String> interfacesToUse = new ArrayList<String>();
+    for (String interfaceAsString : Splitter.on(',').trimResults().split(getInterfaces())) {
+      Type interfaceAsType = Type.newType(interfaceAsString, myProject);
+      interfacesToUse.add(interfaceAsType.getClassWithNesting());
+      if (interfaceAsType.requiresImport(localPackage)) {
+        imports.add(interfaceAsType.getClassToImport());
       }
     }
 
-    Set<String> interfaces = new LinkedHashSet<String>();
-    interfaces.addAll(packageLocalInterfaces);
-
-    for (Type qualifiedInterface : qualifiedInterfaces) {
-      if (interfaces.add(qualifiedInterface.getClassWithNesting())) {
-        if (qualifiedInterface.requiresImport(localPackage)) {
-          imports.add(qualifiedInterface.getClassToImport());
-        }
-      }
-      else {
-        interfaces.add(qualifiedInterface.getQualifiedClass());
-      }
-    }
-
-    myCreationOptions.put(ATTRIBUTE_INTERFACES, Joiner.on(", ").join(interfaces));
+    myCreationOptions.put(ATTRIBUTE_INTERFACES, Joiner.on(", ").join(interfacesToUse));
     myCreationOptions.put(FileTemplate.ATTRIBUTE_PACKAGE_NAME, localPackage);
     Visibility visibility = myPublicRadioButton.isSelected() ? Visibility.PUBLIC : Visibility.PACKAGE_PRIVATE;
     myCreationOptions.put(ATTRIBUTE_VISIBILITY, visibility.toString());
-    myCreationOptions.put(ATTRIBUTE_ABSTRACT, Boolean.toString(myAbstractCheckBox.isSelected()).toUpperCase(Locale.ROOT));
-    myCreationOptions.put(ATTRIBUTE_FINAL, Boolean.toString(myFinalCheckBox.isSelected()).toUpperCase(Locale.ROOT));
+    myCreationOptions.put(ATTRIBUTE_ABSTRACT, Boolean.toString(myAbstractRadioButton.isSelected()).toUpperCase(Locale.ROOT));
+    myCreationOptions.put(ATTRIBUTE_FINAL, Boolean.toString(myFinalRadioButton.isSelected()).toUpperCase(Locale.ROOT));
     myCreationOptions.put(ATTRIBUTE_IMPORT_BLOCK, formatImports(imports));
     if (myCreator != null && myCreator.tryCreate(getName()).length == 0) {
       return;
@@ -404,17 +288,16 @@ public class CreateFileFromTemplateDialog extends DialogWrapper {
 
   @Override
   public JComponent getPreferredFocusedComponent() {
-    return getNameField();
+    return myNameField;
   }
 
   private void setKindComponentsVisible(boolean visible) {
     myKindCombo.setVisible(visible);
     myKindLabel.setVisible(visible);
-    myUpDownHint.setVisible(visible);
   }
 
   private void addKind(@NotNull Kind kind) {
-    getKindCombo().addItem(kind.getName(), kind.getIcon(), kind.getTemplateName());
+    myKindCombo.addItem(kind.getName(), kind.getIcon(), kind.getTemplateName());
   }
 
   PsiClass show(@NotNull final FileCreator creator) throws FailedToCreateFileException {
@@ -446,12 +329,12 @@ public class CreateFileFromTemplateDialog extends DialogWrapper {
     return myShowSelectOverridesDialogCheckBox.isSelected();
   }
 
-  String getInterface() {
-    return myInterfaceField.getText();
+  String getInterfaces() {
+    return myInterfacesField.getText();
   }
 
-  void setInterface(String newInterface) {
-    myInterfaceField.setText(newInterface);
+  void setInterfaces(String newInterface) {
+    myInterfacesField.setText(newInterface);
   }
 
   public void initKindCombo() {
@@ -497,15 +380,9 @@ public class CreateFileFromTemplateDialog extends DialogWrapper {
 
     abstract String getPackage();
 
-    abstract String getQualifiedClass();
-
     abstract boolean canUseAsClass();
 
     abstract boolean canUseAsInterface();
-
-    boolean isLocal(String localPackage) {
-      return getPackage().equals(localPackage) || getPackage().isEmpty();
-    }
 
     private static Type newType(@NotNull String qualifiedName, @NotNull Project project) {
       try {
@@ -596,11 +473,6 @@ public class CreateFileFromTemplateDialog extends DialogWrapper {
     }
 
     @Override
-    String getQualifiedClass() {
-      return myPsiClass.getQualifiedName();
-    }
-
-    @Override
     boolean canUseAsClass() {
       return !myPsiClass.isInterface() && !myPsiClass.isEnum() && !myPsiClass.isAnnotationType();
     }
@@ -645,7 +517,6 @@ public class CreateFileFromTemplateDialog extends DialogWrapper {
     }
 
     @NotNull
-    @Override
     String getQualifiedClass() {
       return myPackage.isEmpty() ? myClass : myPackage + "." + myClass;
     }
