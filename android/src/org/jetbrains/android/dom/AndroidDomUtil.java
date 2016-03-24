@@ -230,9 +230,6 @@ public class AndroidDomUtil {
     }
     ResourceReferenceConverter resConverter = getResourceReferenceConverter(attr);
     if (formats.contains(AttributeFormat.Flag)) {
-      if (resConverter != null) {
-        compositeBuilder.addConverter(new LightFlagConverter(values));
-      }
       return new FlagConverter(compositeBuilder.build(), values);
     }
 
