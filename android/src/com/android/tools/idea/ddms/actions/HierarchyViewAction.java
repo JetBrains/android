@@ -34,8 +34,6 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class HierarchyViewAction extends AbstractClientAction {
-  private static final boolean ENABLED = Boolean.getBoolean("enable.hv") || Boolean.parseBoolean(System.getenv("enable.hv"));
-
   private final Project myProject;
 
   public HierarchyViewAction(@NotNull Project project, @NotNull DeviceContext deviceContext) {
@@ -44,12 +42,6 @@ public class HierarchyViewAction extends AbstractClientAction {
           AndroidBundle.message("android.ddms.actions.hierarchyview.description"),
           AndroidIcons.Ddms.HierarchyView);
     myProject = project;
-  }
-
-  @Override
-  public void update(AnActionEvent e) {
-    e.getPresentation().setVisible(isEnabled() && ENABLED);
-    super.update(e);
   }
 
   @Override
