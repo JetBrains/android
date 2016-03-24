@@ -24,23 +24,22 @@ import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.SideBorder;
+import com.intellij.ui.navigation.History;
+import com.intellij.ui.navigation.Place;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.Collections;
 import java.util.List;
 
-public abstract class AbstractMainPanel extends JPanel implements Disposable {
+public abstract class AbstractMainPanel extends JPanel implements Disposable, Place.Navigator {
   @NotNull private final PsProject myProject;
   @NotNull private final PsContext myContext;
 
   private boolean myShowModulesDropDown;
   private JComponent myModulesToolbar;
-
-  protected AbstractMainPanel(@NotNull PsProject project, @NotNull PsContext context) {
-    this(project, context, Collections.<PsModule>emptyList());
-  }
+  private History myHistory;
 
   protected AbstractMainPanel(@NotNull PsProject project, @NotNull PsContext context, @NotNull final List<PsModule> extraTopModules) {
     super(new BorderLayout());
@@ -107,5 +106,15 @@ public abstract class AbstractMainPanel extends JPanel implements Disposable {
   @NotNull
   protected PsContext getContext() {
     return myContext;
+  }
+
+  @Override
+  public void setHistory(History history) {
+    myHistory = history;
+  }
+
+  @Nullable
+  protected History getHistory() {
+    return myHistory;
   }
 }

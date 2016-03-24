@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.eclipse;
 
-import com.android.tools.idea.gradle.structure.DefaultSdksConfigurable;
+import com.android.tools.idea.gradle.structure.IdeSdksConfigurable;
 import com.intellij.ide.util.projectWizard.WizardContext;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.projectImport.ProjectImportWizardStep;
@@ -26,13 +26,13 @@ import java.awt.*;
 /** Panel where the user configures an SDK, if needed */
 class AdtImportSdkStep extends ProjectImportWizardStep {
   private JComponent myComponent;
-  private DefaultSdksConfigurable myConfigurable;
+  private IdeSdksConfigurable myConfigurable;
 
   AdtImportSdkStep(WizardContext context) {
     super(context);
     // TODO: Pass in a context here which allows the configurable to request
     // validation when the text field is edited
-    myConfigurable = new DefaultSdksConfigurable(null, null);
+    myConfigurable = new IdeSdksConfigurable(null, null);
   }
 
   @Override
@@ -70,7 +70,7 @@ class AdtImportSdkStep extends ProjectImportWizardStep {
 
   @Override
   public boolean isStepVisible() {
-    return DefaultSdksConfigurable.isNeeded();
+    return IdeSdksConfigurable.isNeeded();
   }
 
   @Override

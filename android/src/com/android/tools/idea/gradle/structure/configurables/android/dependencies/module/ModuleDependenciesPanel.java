@@ -20,8 +20,11 @@ import com.android.tools.idea.gradle.structure.configurables.ui.*;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
+import com.intellij.openapi.util.ActionCallback;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.JBSplitter;
+import com.intellij.ui.navigation.History;
+import com.intellij.ui.navigation.Place;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -41,6 +44,8 @@ class ModuleDependenciesPanel extends AbstractMainPanel {
     super(module.getParent(), context, extraTopModules);
 
     myDeclaredDependenciesPanel = new DeclaredDependenciesPanel(module, context);
+    myDeclaredDependenciesPanel.setHistory(getHistory());
+
     myResolvedDependenciesPanel = new ResolvedDependenciesPanel(module, context, myDeclaredDependenciesPanel);
 
     myVerticalSplitter = createMainVerticalSplitter();
@@ -121,6 +126,22 @@ class ModuleDependenciesPanel extends AbstractMainPanel {
     else {
       restoreResolvedDependenciesPanel();
     }
+  }
+
+  @Override
+  public void setHistory(History history) {
+    super.setHistory(history);
+    myDeclaredDependenciesPanel.setHistory(history);
+  }
+
+  @Override
+  public ActionCallback navigateTo(@Nullable Place place, boolean requestFocus) {
+    return myDeclaredDependenciesPanel.navigateTo(place, requestFocus);
+  }
+
+  @Override
+  public void queryPlace(@NotNull Place place) {
+    myDeclaredDependenciesPanel.queryPlace(place);
   }
 
   @Override

@@ -27,8 +27,10 @@ import com.android.tools.idea.gradle.structure.model.android.PsModuleDependency;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.util.ActionCallback;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.PopupHandler;
+import com.intellij.ui.navigation.Place;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.EventDispatcher;
 import org.jetbrains.annotations.NotNull;
@@ -208,6 +210,16 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel {
   public void dispose() {
     Disposer.dispose(myTreeBuilder);
     Disposer.dispose(myHyperlinkSupport);
+  }
+
+  @Override
+  public ActionCallback navigateTo(@Nullable Place place, boolean requestFocus) {
+    return ActionCallback.DONE;
+  }
+
+  @Override
+  public void queryPlace(@NotNull Place place) {
+
   }
 
   public interface SelectionListener extends EventListener {

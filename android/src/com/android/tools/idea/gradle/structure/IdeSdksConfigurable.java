@@ -87,14 +87,14 @@ import static org.jetbrains.android.sdk.AndroidSdkUtils.tryToChooseAndroidSdk;
 /**
  * Allows the user set global Android SDK and JDK locations that are used for Gradle-based Android projects.
  */
-public class DefaultSdksConfigurable extends BaseConfigurable implements Place.Navigator {
-  @NonNls private static final String SDKS_PLACE = "sdksPlace";
+public class IdeSdksConfigurable extends BaseConfigurable implements Place.Navigator {
+  @NonNls private static final String SDKS_PLACE = "sdks.place";
 
   private static final String CHOOSE_VALID_JDK_DIRECTORY_ERR = "Please choose a valid JDK directory.";
   private static final String CHOOSE_VALID_SDK_DIRECTORY_ERR = "Please choose a valid Android SDK directory.";
   private static final String CHOOSE_VALID_NDK_DIRECTORY_ERR = "Please choose a valid Android NDK directory.";
 
-  private static final Logger LOG = Logger.getInstance(DefaultSdksConfigurable.class);
+  private static final Logger LOG = Logger.getInstance(IdeSdksConfigurable.class);
 
   @Nullable private final BaseConfigurable myHost;
   @Nullable private final Project myProject;
@@ -120,7 +120,7 @@ public class DefaultSdksConfigurable extends BaseConfigurable implements Place.N
 
   private String mySelectedComponentId;
 
-  public DefaultSdksConfigurable(@Nullable BaseConfigurable host, @Nullable Project project) {
+  public IdeSdksConfigurable(@Nullable BaseConfigurable host, @Nullable Project project) {
     myHost = host;
     myProject = project;
     myWholePanel.setPreferredSize(JBUI.size(700, 500));
