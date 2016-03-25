@@ -57,6 +57,7 @@ import org.fest.swing.driver.ComponentDriver;
 import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
+import org.fest.swing.finder.WindowFinder;
 import org.fest.swing.fixture.DialogFixture;
 import org.jetbrains.android.uipreview.AndroidLayoutPreviewToolWindowForm;
 import org.jetbrains.android.uipreview.AndroidLayoutPreviewToolWindowManager;
@@ -770,13 +771,12 @@ public class EditorFixture {
         //  invokeActionViaKeystroke("ReformatCode");
         // However, before we replace this, make sure the dialog isn't shown in some scenarios (e.g. first users)
         invokeActionViaKeystroke("ShowReformatFileDialog");
-        JDialog dialog = robot.finder().find(new GenericTypeMatcher<JDialog>(JDialog.class) {
+        DialogFixture dialogFixture = WindowFinder.findDialog(new GenericTypeMatcher<JDialog>(JDialog.class) {
           @Override
           protected boolean isMatching(@NotNull JDialog dialog) {
             return dialog.isShowing() && dialog.getTitle().contains("Reformat");
           }
-        });
-        DialogFixture dialogFixture = new DialogFixture(robot, dialog);
+        }).using(robot);
 
         // Find and click the Run button. We can't just invoke
         //    dialogFixture.button("Run").click();
