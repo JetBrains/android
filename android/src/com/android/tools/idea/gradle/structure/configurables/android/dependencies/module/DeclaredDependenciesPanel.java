@@ -18,6 +18,8 @@ package com.android.tools.idea.gradle.structure.configurables.android.dependenci
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.AbstractDeclaredDependenciesPanel;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.details.DependencyDetails;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.details.ModuleDependencyDetails;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.details.ModuleLibraryDependencyDetails;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.treeview.DependencySelection;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
@@ -78,6 +80,7 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel implem
     myPlaceName = "dependencies." + module.getName() + ".place";
 
     getContentsPanel().add(createActionsPanel(), BorderLayout.NORTH);
+    initializeDependencyDetails();
 
     myDependenciesTableModel = new DeclaredDependenciesTableModel(module);
     myDependenciesTable = new TableView<PsAndroidDependency>(myDependenciesTableModel) {
@@ -129,6 +132,11 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel implem
     getContentsPanel().add(scrollPane, BorderLayout.CENTER);
 
     updateTableColumnSizes();
+  }
+
+  private void initializeDependencyDetails() {
+    addDetails(new ModuleLibraryDependencyDetails(getContext()));
+    addDetails(new ModuleDependencyDetails(getContext(), true));
   }
 
   private void addHyperlinkFunctionality() {
@@ -306,7 +314,9 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel implem
     DependencyDetails details = getCurrentDependencyDetails();
     if (details != null) {
       PsAndroidDependency model = details.getModel();
-      dependency = model.getValueAsText();
+      if (model != null) {
+        dependency = model.getValueAsText();
+      }
     }
     place.putPath(myPlaceName, dependency);
   }
