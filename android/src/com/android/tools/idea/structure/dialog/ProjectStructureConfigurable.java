@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.structure.dialog;
 
-import com.android.tools.idea.gradle.structure.DefaultSdksConfigurable;
+import com.android.tools.idea.gradle.structure.IdeSdksConfigurable;
 import com.google.common.collect.Lists;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.*;
@@ -63,7 +63,7 @@ public class ProjectStructureConfigurable extends BaseConfigurable
   @NonNls private static final String SIDE_PROPORTION_PROPERTY = "project.structure.side.proportion";
 
   @NotNull private final Project myProject;
-  @NotNull private final DefaultSdksConfigurable mySdksConfigurable;
+  @NotNull private final IdeSdksConfigurable mySdksConfigurable;
   @NotNull private final Wrapper myDetails = new Wrapper();
   @NotNull private final List<Configurable> myConfigurables = Lists.newArrayList();
   @NotNull private final UIState myUiState = new UIState();
@@ -90,7 +90,7 @@ public class ProjectStructureConfigurable extends BaseConfigurable
 
   public ProjectStructureConfigurable(@NotNull Project project) {
     myProject = project;
-    mySdksConfigurable = new DefaultSdksConfigurable(this, project);
+    mySdksConfigurable = new IdeSdksConfigurable(this, project);
     mySdksConfigurable.setHistory(myHistory);
 
     PropertiesComponent propertiesComponent = PropertiesComponent.getInstance(myProject);
@@ -219,8 +219,10 @@ public class ProjectStructureConfigurable extends BaseConfigurable
 
   @Override
   public void queryPlace(@NotNull Place place) {
-    place.putPath(CATEGORY, mySelectedConfigurable);
-    Place.queryFurther(mySelectedConfigurable, place);
+    if (mySelectedConfigurable != null) {
+      place.putPath(CATEGORY, mySelectedConfigurable);
+      Place.queryFurther(mySelectedConfigurable, place);
+    }
   }
 
   @Override
@@ -333,6 +335,10 @@ public class ProjectStructureConfigurable extends BaseConfigurable
 
   private void addConfigurable(@NotNull Configurable configurable) {
     myConfigurables.add(configurable);
+    if (configurable instanceof Place.Navigator) {
+      Place.Navigator navigator = (Place.Navigator)configurable;
+      navigator.setHistory(myHistory);
+    }
     mySidePanel.addPlace(createPlaceFor(configurable), new Presentation(configurable.getDisplayName()));
   }
 

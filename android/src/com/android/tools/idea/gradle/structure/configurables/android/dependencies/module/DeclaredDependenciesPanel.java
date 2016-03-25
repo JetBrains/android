@@ -28,6 +28,9 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonShortcuts;
 import com.intellij.openapi.project.DumbAwareAction;
+import com.intellij.openapi.util.ActionCallback;
+import com.intellij.ui.navigation.History;
+import com.intellij.ui.navigation.Place;
 import com.intellij.ui.table.TableView;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -63,6 +66,7 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel implem
   @NotNull private final DeclaredDependenciesTableModel myDependenciesTableModel;
   @NotNull private final TableView<PsAndroidDependency> myDependenciesTable;
   @NotNull private final ListSelectionListener myTableSelectionListener;
+  @NotNull private final String myPlaceName;
 
   @NotNull private final List<SelectionListener> mySelectionListeners = Lists.newCopyOnWriteArrayList();
 
@@ -71,6 +75,7 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel implem
   DeclaredDependenciesPanel(@NotNull PsAndroidModule module, @NotNull PsContext context) {
     super("Declared Dependencies", context, module.getParent(), module);
     myContext = context;
+    myPlaceName = "dependencies." + module.getName() + ".place";
 
     getContentsPanel().add(createActionsPanel(), BorderLayout.NORTH);
 
@@ -97,7 +102,7 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel implem
 
     if (!myDependenciesTable.getItems().isEmpty()) {
       myDependenciesTable.changeSelection(0, 0, false, false);
-      updateEditor();
+      updateDetails();
     }
     myTableSelectionListener = new ListSelectionListener() {
       @Override
@@ -108,7 +113,7 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel implem
             listener.dependencySelected(selected);
           }
         }
-        updateEditor();
+        updateDetails();
       }
     };
     tableSelectionModel.addListSelectionListener(myTableSelectionListener);
@@ -210,15 +215,6 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel implem
     return actions;
   }
 
-  private void updateEditor() {
-    Collection<PsAndroidDependency> selection = myDependenciesTable.getSelection();
-    PsAndroidDependency selected = null;
-    if (selection.size() == 1) {
-      selected = getFirstItem(selection);
-    }
-    updateDetails(selected);
-  }
-
   void updateTableColumnSizes() {
     myDependenciesTable.updateColumnSizes();
   }
@@ -264,10 +260,55 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel implem
     else {
       myDependenciesTable.setSelection(Collections.singleton(selection));
     }
-    updateEditor();
+    updateDetails();
 
     // Add ListSelectionListener again, to react when user selects a table cell directly.
     tableSelectionModel.addListSelectionListener(myTableSelectionListener);
+  }
+
+  private void updateDetails() {
+    Collection<PsAndroidDependency> selection = myDependenciesTable.getSelection();
+    PsAndroidDependency selected = null;
+    if (selection.size() == 1) {
+      selected = getFirstItem(selection);
+    }
+    updateDetails(selected);
+
+    History history = getHistory();
+    if (history != null) {
+      history.pushQueryPlace();
+    }
+  }
+
+  @Override
+  public ActionCallback navigateTo(@Nullable Place place, boolean requestFocus) {
+    if (place != null) {
+      Object path = place.getPath(myPlaceName);
+      if (path instanceof String) {
+        String pathText = (String)path;
+        myDependenciesTable.requestFocusInWindow();
+        if (!pathText.isEmpty()) {
+          for (PsAndroidDependency dependency : myDependenciesTable.getItems()) {
+            if (pathText.equals(dependency.getValueAsText())) {
+              myDependenciesTable.setSelection(Collections.singletonList(dependency));
+              break;
+            }
+          }
+        }
+      }
+    }
+    return ActionCallback.DONE;
+  }
+
+  @Override
+  public void queryPlace(@NotNull Place place) {
+    String dependency = "";
+    DependencyDetails details = getCurrentDependencyDetails();
+    if (details != null) {
+      PsAndroidDependency model = details.getModel();
+      dependency = model.getValueAsText();
+    }
+    place.putPath(myPlaceName, dependency);
   }
 
   public interface SelectionListener {
