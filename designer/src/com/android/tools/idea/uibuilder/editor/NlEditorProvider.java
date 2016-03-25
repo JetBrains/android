@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.editor;
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.tools.idea.AndroidPsiUtils;
+import com.android.tools.idea.uibuilder.model.ResourceType;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorPolicy;
 import com.intellij.openapi.fileEditor.FileEditorProvider;
@@ -29,8 +30,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
 import org.jdom.Element;
-import org.jetbrains.android.dom.layout.LayoutDomFileDescription;
-import org.jetbrains.android.dom.menu.MenuDomFileDescription;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.AndroidEditorSettings;
 
@@ -59,7 +58,10 @@ public class NlEditorProvider implements FileEditorProvider, DumbAware {
     }
 
     XmlFile xmlFile = (XmlFile)psiFile;
-    return LayoutDomFileDescription.isLayoutFile(xmlFile) || MenuDomFileDescription.isMenuFile(xmlFile);
+
+    return ResourceType.LAYOUT.isResourceTypeOf(xmlFile) ||
+           ResourceType.MENU.isResourceTypeOf(xmlFile) ||
+           ResourceType.PREFERENCE_SCREEN.isResourceTypeOf(xmlFile);
   }
 
   @NonNull
