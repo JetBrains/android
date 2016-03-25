@@ -19,7 +19,7 @@ import com.android.repository.api.RepositorySource;
 import com.android.repository.api.RepositorySourceProvider;
 import com.android.repository.api.SimpleRepositorySource;
 import com.android.repository.impl.sources.LocalSourceProvider;
-import com.android.sdklib.repositoryv2.AndroidSdkHandler;
+import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.sdk.StudioDownloader;
 import com.android.tools.idea.sdk.progress.RepoProgressIndicatorAdapter;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;

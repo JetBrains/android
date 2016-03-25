@@ -24,7 +24,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.DeviceManager;
 import com.android.sdklib.internal.avd.AvdInfo;
-import com.android.sdklib.repositoryv2.targets.PlatformTarget;
+import com.android.sdklib.repository.targets.PlatformTarget;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.model.MergedManifest.ActivityAttributes;
 import com.android.tools.idea.rendering.Locale;

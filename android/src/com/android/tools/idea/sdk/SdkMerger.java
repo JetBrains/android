@@ -17,7 +17,7 @@ package com.android.tools.idea.sdk;
 
 import com.android.repository.api.LocalPackage;
 import com.android.repository.api.RepoPackage;
-import com.android.sdklib.repositoryv2.AndroidSdkHandler;
+import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.sdk.progress.RepoProgressIndicatorAdapter;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.google.common.collect.Lists;

@@ -19,8 +19,8 @@ import com.android.SdkConstants;
 import com.android.repository.api.InstallerFactory;
 import com.android.repository.api.PackageOperation;
 import com.android.repository.api.RepoPackage;
-import com.android.sdklib.repositoryv2.AndroidSdkHandler;
-import com.android.sdklib.repositoryv2.installer.SdkInstallListenerFactory;
+import com.android.sdklib.repository.AndroidSdkHandler;
+import com.android.sdklib.repository.installer.SdkInstallListenerFactory;
 import com.android.tools.idea.welcome.install.Haxm;
 import org.jetbrains.annotations.NotNull;
 

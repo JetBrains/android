@@ -18,7 +18,7 @@ package com.android.tools.idea.fd;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.repository.Revision;
 import com.android.sdklib.BuildToolInfo;
-import com.android.sdklib.repositoryv2.AndroidSdkHandler;
+import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.fd.InstantRunSettings.ColdSwapMode;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;

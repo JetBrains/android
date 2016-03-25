@@ -33,9 +33,9 @@ import com.android.sdklib.devices.Storage;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.internal.avd.HardwareProperties;
-import com.android.sdklib.repositoryv2.AndroidSdkHandler;
-import com.android.sdklib.repositoryv2.IdDisplay;
-import com.android.sdklib.repositoryv2.targets.SystemImage;
+import com.android.sdklib.repository.AndroidSdkHandler;
+import com.android.sdklib.repository.IdDisplay;
+import com.android.sdklib.repository.targets.SystemImage;
 import com.android.tools.idea.run.EmulatorConnectionListener;
 import com.android.tools.idea.run.ExternalToolRunner;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
@@ -79,8 +79,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import static com.android.sdklib.repositoryv2.targets.SystemImage.DEFAULT_TAG;
-import static com.android.sdklib.repositoryv2.targets.SystemImage.GOOGLE_APIS_TAG;
+import static com.android.sdklib.repository.targets.SystemImage.DEFAULT_TAG;
+import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_APIS_TAG;
 
 /**
  * A wrapper class for communicating with {@link AvdManager} and exposing helper functions

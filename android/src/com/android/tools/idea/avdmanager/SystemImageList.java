@@ -18,7 +18,7 @@ package com.android.tools.idea.avdmanager;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.devices.Abi;
-import com.android.sdklib.repositoryv2.meta.DetailsTypes;
+import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.collect.ComparisonChain;
@@ -47,7 +47,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static com.android.sdklib.repositoryv2.targets.SystemImage.*;
+import static com.android.sdklib.repository.targets.SystemImage.*;
 
 /**
  * Displays a list of system images currently installed and allows selection of one

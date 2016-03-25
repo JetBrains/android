@@ -3,7 +3,7 @@ package org.jetbrains.jps.android;
 import com.android.SdkConstants;
 import com.android.repository.api.ProgressIndicatorAdapter;
 import com.android.sdklib.IAndroidTarget;
-import com.android.sdklib.repositoryv2.AndroidSdkHandler;
+import com.android.sdklib.repository.AndroidSdkHandler;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.Ref;
