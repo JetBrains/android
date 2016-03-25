@@ -22,7 +22,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Abi;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.HardwareProperties;
-import com.android.sdklib.repositoryv2.targets.SystemImage;
+import com.android.sdklib.repository.targets.SystemImage;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.ide.ui.search.SearchUtil;

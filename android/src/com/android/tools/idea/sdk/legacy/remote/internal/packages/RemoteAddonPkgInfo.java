@@ -18,9 +18,9 @@ package com.android.tools.idea.sdk.legacy.remote.internal.packages;
 
 import com.android.repository.Revision;
 import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.repository.descriptors.PkgDesc;
-import com.android.sdklib.repository.local.LocalAddonPkgInfo;
-import com.android.sdklib.repositoryv2.IdDisplay;
+import com.android.sdklib.repository.legacy.descriptors.PkgDesc;
+import com.android.sdklib.repository.legacy.local.LocalAddonPkgInfo;
+import com.android.sdklib.repository.IdDisplay;
 import com.android.tools.idea.sdk.legacy.remote.RemotePkgInfo;
 import com.android.tools.idea.sdk.legacy.remote.internal.sources.SdkAddonConstants;
 import com.android.tools.idea.sdk.legacy.remote.internal.sources.SdkRepoConstants;
