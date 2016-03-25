@@ -22,10 +22,14 @@ import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.PsProject;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.util.ActionCallback;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.JBSplitter;
+import com.intellij.ui.navigation.History;
+import com.intellij.ui.navigation.Place;
 import com.intellij.ui.treeStructure.SimpleNode;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.util.List;
@@ -41,6 +45,8 @@ class ProjectDependenciesPanel extends AbstractMainPanel {
     super(project, context, extraTopModules);
 
     myDeclaredDependenciesPanel = new DeclaredDependenciesPanel(project, context);
+    myDeclaredDependenciesPanel.setHistory(getHistory());
+
     myTargetModulesPanel = new TargetModulesPanel(project, context);
 
     myDeclaredDependenciesPanel.add(new DeclaredDependenciesPanel.SelectionListener() {
@@ -76,6 +82,22 @@ class ProjectDependenciesPanel extends AbstractMainPanel {
       }
       return (AbstractDependencyNode<?>)current;
     }
+  }
+
+  @Override
+  public void setHistory(History history) {
+    super.setHistory(history);
+    myDeclaredDependenciesPanel.setHistory(history);
+  }
+
+  @Override
+  public ActionCallback navigateTo(@Nullable Place place, boolean requestFocus) {
+    return myDeclaredDependenciesPanel.navigateTo(place, requestFocus);
+  }
+
+  @Override
+  public void queryPlace(@NotNull Place place) {
+    myDeclaredDependenciesPanel.queryPlace(place);
   }
 
   @Override
