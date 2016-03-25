@@ -24,7 +24,16 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import javax.swing.tree.TreeSelectionModel;
 
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
+
+import static com.intellij.openapi.util.SystemInfo.isMac;
 import static com.intellij.ui.ScrollPaneFactory.createScrollPane;
+import static com.intellij.util.BitUtil.isSet;
+import static java.awt.Event.CTRL_MASK;
+import static java.awt.Event.META_MASK;
+import static java.awt.event.KeyEvent.VK_CONTROL;
+import static java.awt.event.KeyEvent.VK_META;
 import static javax.swing.tree.TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION;
 
 public final class UiUtil {
@@ -46,5 +55,21 @@ public final class UiUtil {
     JScrollPane scrollPane = createScrollPane(tree);
     scrollPane.setBorder(IdeBorderFactory.createEmptyBorder());
     return scrollPane;
+  }
+
+  public static boolean isMetaOrCtrlKeyPressed(@NotNull KeyEvent e) {
+    int keyCode = e.getKeyCode();
+    if (isMac) {
+      return keyCode == VK_META;
+    }
+    return keyCode == VK_CONTROL;
+  }
+
+  public static boolean isMetaOrCtrlKeyPressed(@NotNull MouseEvent e) {
+    int modifiers = e.getModifiers();
+    if (isMac) {
+      return isSet(modifiers, META_MASK);
+    }
+    return isSet(modifiers, CTRL_MASK);
   }
 }
