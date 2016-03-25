@@ -21,15 +21,60 @@ import com.google.tnt.solver.widgets.ConstraintWidget;
 /**
  * ImageButton Widget widget decorator
  */
-public class ImageButtonWidget extends TextWidget {
+public class ImageButtonWidget extends WidgetDecorator {
 
     /**
      * Base constructor
      *
      * @param widget the widget we are decorating
-     * @param text   the text content
      */
-    public ImageButtonWidget(ConstraintWidget widget, String text) {
-        super(widget, text);
+    public ImageButtonWidget(ConstraintWidget widget) {
+        super(widget);
+        wrapContent();
+    }
+
+    public void setTextSize( ) {
+        wrapContent();
+    }
+
+    /**
+     * Apply the size behaviour
+     */
+    @Override
+    public void applyDimensionBehaviour() {
+        wrapContent();
+    }
+
+    /**
+     * Utility method computing the size of the widget if dimensions are set
+     * to wrap_content, using the default font
+     */
+    protected void wrapContent() {
+        mWidget.setMinWidth(100);
+        mWidget.setMinHeight(30);
+        int tw = mWidget.getMinWidth();
+        int th = mWidget.getMinHeight();
+        if (mWidget.getHorizontalDimensionBehaviour()
+                == ConstraintWidget.DimensionBehaviour.WRAP_CONTENT) {
+            mWidget.setWidth(tw);
+        }
+        if (mWidget.getVerticalDimensionBehaviour()
+                == ConstraintWidget.DimensionBehaviour.WRAP_CONTENT) {
+            mWidget.setHeight(th);
+        }
+        if (mWidget.getHorizontalDimensionBehaviour() ==
+                ConstraintWidget.DimensionBehaviour.FIXED) {
+            if (mWidget.getWidth() <= mWidget.getMinWidth()) {
+                mWidget.setHorizontalDimensionBehaviour(
+                        ConstraintWidget.DimensionBehaviour.WRAP_CONTENT);
+            }
+        }
+        if (mWidget.getVerticalDimensionBehaviour() == ConstraintWidget.DimensionBehaviour.FIXED) {
+            if (mWidget.getHeight() <= mWidget.getMinHeight()) {
+                mWidget.setVerticalDimensionBehaviour(
+                        ConstraintWidget.DimensionBehaviour.WRAP_CONTENT);
+            }
+        }
+        mWidget.setBaselineDistance(0);
     }
 }

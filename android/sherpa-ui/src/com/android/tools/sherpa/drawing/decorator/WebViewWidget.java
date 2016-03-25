@@ -16,20 +16,109 @@
 
 package com.android.tools.sherpa.drawing.decorator;
 
+import com.android.tools.sherpa.drawing.ViewTransform;
 import com.google.tnt.solver.widgets.ConstraintWidget;
+
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Graphics2D;
 
 /**
  * WebView widget decorator
  */
-public class WebViewWidget extends TextWidget {
+public class WebViewWidget extends WidgetDecorator {
+    protected int mPadding = 5;
+    private Font mFont = new Font("Helvetica", Font.PLAIN, 12);
 
     /**
      * Base constructor
      *
      * @param widget the widget we are decorating
-     * @param text   the text content
      */
-    public WebViewWidget(ConstraintWidget widget, String text) {
-        super(widget, text);
+    public WebViewWidget(ConstraintWidget widget) {
+        super(widget);
+        wrapContent();
+    }
+
+    public void setTextSize() {
+        wrapContent();
+    }
+
+    /**
+     * Apply the size behaviour
+     */
+    @Override
+    public void applyDimensionBehaviour() {
+        wrapContent();
+    }
+
+    /**
+     * Utility method computing the size of the widget if dimensions are set
+     * to wrap_content, using the default font
+     */
+    protected void wrapContent() {
+        mWidget.setMinWidth(200);
+        mWidget.setMinHeight(300);
+        int tw = mWidget.getMinWidth();
+        int th = mWidget.getMinHeight();
+        if (mWidget.getHorizontalDimensionBehaviour()
+                == ConstraintWidget.DimensionBehaviour.WRAP_CONTENT) {
+            mWidget.setWidth(tw);
+        }
+        if (mWidget.getVerticalDimensionBehaviour()
+                == ConstraintWidget.DimensionBehaviour.WRAP_CONTENT) {
+            mWidget.setHeight(th);
+        }
+        if (mWidget.getHorizontalDimensionBehaviour() ==
+                ConstraintWidget.DimensionBehaviour.FIXED) {
+            if (mWidget.getWidth() <= mWidget.getMinWidth()) {
+                mWidget.setHorizontalDimensionBehaviour(
+                        ConstraintWidget.DimensionBehaviour.WRAP_CONTENT);
+            }
+        }
+        if (mWidget.getVerticalDimensionBehaviour() == ConstraintWidget.DimensionBehaviour.FIXED) {
+            if (mWidget.getHeight() <= mWidget.getMinHeight()) {
+                mWidget.setVerticalDimensionBehaviour(
+                        ConstraintWidget.DimensionBehaviour.WRAP_CONTENT);
+            }
+        }
+        mWidget.setBaselineDistance(0);
+    }
+
+    public void onPaintBackground(ViewTransform transform, Graphics2D g) {
+        super.onPaintBackground(transform, g);
+        int l = transform.getSwingX(mWidget.getDrawX());
+        int t = transform.getSwingY(mWidget.getDrawY());
+        int w = transform.getSwingDimension(mWidget.getDrawWidth());
+        int h = transform.getSwingDimension(mWidget.getDrawHeight());
+         if (WidgetDecorator.isShowFakeUI()) {
+             System.out.println("paint fake");
+            fakeUIPaint(transform,g, mWidget.getDrawX(), mWidget.getDrawY());
+        }
+    }
+
+    Graphics2D getClipGraphics(ViewTransform transform, Graphics2D g) {
+        int l = transform.getSwingX(mWidget.getDrawX());
+        int t = transform.getSwingY(mWidget.getDrawY());
+        int w = transform.getSwingDimension(mWidget.getDrawWidth());
+        int h = transform.getSwingDimension(mWidget.getDrawHeight());
+        Graphics2D g2 = (Graphics2D) g.create(l, t, w, h);
+        return g2;
+    }
+
+    protected void fakeUIPaint(ViewTransform transform, Graphics2D g, int x, int y) {
+        int tx = transform.getSwingX(x);
+        int ty = transform.getSwingY(y);
+        int h = transform.getSwingDimension(mWidget.getDrawHeight());
+
+        int padding = transform.getSwingDimension(mPadding);
+        int originalSize = mFont.getSize();
+        int scaleSize = transform.getSwingDimension(originalSize);
+        g.setFont(mFont.deriveFont((float) scaleSize));
+        FontMetrics fontMetrics = g.getFontMetrics();
+        g.setColor(Color.WHITE);
+
+        g.drawString("WWW", tx + padding, ty + fontMetrics.getAscent() + padding);gitk
     }
 }
