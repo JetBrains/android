@@ -17,6 +17,8 @@ package com.android.tools.idea.gradle.structure.configurables.android.dependenci
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.AbstractDeclaredDependenciesPanel;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.details.ModuleDependencyDetails;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.details.ProjectLibraryDependencyDetails;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.project.treeview.DeclaredDependenciesTreeBuilder;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.*;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractBaseTreeBuilder.MatchingNodeCollector;
@@ -69,6 +71,8 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel {
     super("All Dependencies", context, project, null);
     myContext = context;
 
+    initializeDependencyDetails();
+
     DefaultTreeModel treeModel = new DefaultTreeModel(new DefaultMutableTreeNode());
     myTree = new Tree(treeModel) {
       @Override
@@ -90,7 +94,7 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel {
 
     getContentsPanel().add(createActionsPanel(), BorderLayout.NORTH);
 
-    JScrollPane scrollPane = setUp(myTree);
+    final JScrollPane scrollPane = setUp(myTree);
     getContentsPanel().add(scrollPane, BorderLayout.CENTER);
 
     myTreeBuilder = new DeclaredDependenciesTreeBuilder(project, myTree, treeModel);
@@ -118,6 +122,9 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel {
               notifySelectionChanged(singleSelection);
             }
           });
+
+          PsAndroidDependency selected = selection != null ? selection.getModels().get(0) : null;
+          updateDetails(selected);
         }
       }
     };
@@ -168,6 +175,10 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel {
     }
   }
 
+  private void initializeDependencyDetails() {
+    addDetails(new ProjectLibraryDependencyDetails());
+    addDetails(new ModuleDependencyDetails(getContext(), false));
+  }
 
   void add(@NotNull SelectionListener listener) {
     myEventDispatcher.addListener(listener);
