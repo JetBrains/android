@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.structure;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.model.*;
@@ -33,15 +31,14 @@ import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.tree.TreeUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.TreePath;
-import javax.swing.tree.TreeSelectionModel;
+import javax.swing.tree.*;
 import java.awt.*;
 import java.awt.Insets;
 import java.awt.dnd.DropTarget;
@@ -69,14 +66,14 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   private TreePath myInsertionPath;
   private InsertionPoint myInsertionPoint;
 
-  public NlComponentTree(@NonNull DesignSurface designSurface) {
+  public NlComponentTree(@NotNull DesignSurface designSurface) {
     myDecorator = new StructureTreeDecorator(designSurface.getProject());
     myComponent2Node = new HashMap<NlComponent, DefaultMutableTreeNode>();
     myId2Node = new HashMap<String, DefaultMutableTreeNode>();
     mySelectionIsUpdating = new AtomicBoolean(false);
     myUpdateQueue = new MergingUpdateQueue(
       "android.layout.structure-pane", UPDATE_DELAY_MSECS, true, null, null, null, SWING_THREAD);
-    DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode(new FakeRootComponent(myModel));
+    TreeNode rootNode = new DefaultMutableTreeNode();
     DefaultTreeModel treeModel = new DefaultTreeModel(rootNode);
     setModel(treeModel);
     getSelectionModel().setSelectionMode(TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION);
@@ -145,7 +142,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   private void createCellRenderer() {
     ColoredTreeCellRenderer renderer = new ColoredTreeCellRenderer() {
       @Override
-      public void customizeCellRenderer(@NonNull JTree tree,
+      public void customizeCellRenderer(@NotNull JTree tree,
                                         Object value,
                                         boolean selected,
                                         boolean expanded,
@@ -277,7 +274,8 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
           }
         }
       }
-    } finally {
+    }
+    finally {
       mySelectionIsUpdating.set(false);
     }
   }
@@ -327,7 +325,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
     }
   }
 
-  public void markInsertionPoint(@Nullable TreePath path, @NonNull InsertionPoint insertionPoint) {
+  public void markInsertionPoint(@Nullable TreePath path, @NotNull InsertionPoint insertionPoint) {
     if (myInsertionPath != path || myInsertionPoint != insertionPoint) {
       myInsertionPath = path;
       myInsertionPoint = insertionPoint;
@@ -348,7 +346,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
 
   // ---- Implemented SelectionListener ----
   @Override
-  public void selectionChanged(@NonNull SelectionModel model, @NonNull List<NlComponent> selection) {
+  public void selectionChanged(@NotNull SelectionModel model, @NotNull List<NlComponent> selection) {
     UIUtil.invokeLaterIfNeeded(new Runnable() {
       @Override
       public void run() {
@@ -359,11 +357,11 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
 
   // ---- Implemented ModelListener ----
   @Override
-  public void modelChanged(@NonNull NlModel model) {
+  public void modelChanged(@NotNull NlModel model) {
   }
 
   @Override
-  public void modelRendered(@NonNull NlModel model) {
+  public void modelRendered(@NotNull NlModel model) {
     UIUtil.invokeLaterIfNeeded(new Runnable() {
       @Override
       public void run() {
@@ -375,22 +373,22 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   // ---- Implemented DesignSurfaceListener ----
 
   @Override
-  public void componentSelectionChanged(@NonNull DesignSurface surface, @NonNull List<NlComponent> newSelection) {
+  public void componentSelectionChanged(@NotNull DesignSurface surface, @NotNull List<NlComponent> newSelection) {
   }
 
   @Override
-  public void screenChanged(@NonNull DesignSurface surface, @Nullable ScreenView screenView) {
+  public void screenChanged(@NotNull DesignSurface surface, @Nullable ScreenView screenView) {
     setScreenView(screenView);
   }
 
   @Override
-  public void modelChanged(@NonNull DesignSurface surface, @Nullable NlModel model) {
+  public void modelChanged(@NotNull DesignSurface surface, @Nullable NlModel model) {
     if (model != null) {
       modelRendered(model);
     }
   }
 
-  private static NlComponent getComponentForPath(@NonNull TreePath path) {
+  private static NlComponent getComponentForPath(@NotNull TreePath path) {
     DefaultMutableTreeNode node = (DefaultMutableTreeNode)path.getLastPathComponent();
     return (NlComponent)node.getUserObject();
   }
@@ -439,15 +437,15 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
           root.addChild(component);
         }
       }
-      DefaultMutableTreeNode rootNode = (DefaultMutableTreeNode) rootPath.getLastPathComponent();
+      DefaultMutableTreeNode rootNode = (DefaultMutableTreeNode)rootPath.getLastPathComponent();
       rootNode.setUserObject(root);
       expandPath(rootPath);
     }
 
-    private void recordVisibleNodes(@NonNull TreePath path) {
+    private void recordVisibleNodes(@NotNull TreePath path) {
       if (isExpanded(path)) {
         DefaultMutableTreeNode node = (DefaultMutableTreeNode)path.getLastPathComponent();
-        for (int i=0; i<node.getChildCount(); i++) {
+        for (int i = 0; i < node.getChildCount(); i++) {
           DefaultMutableTreeNode child = (DefaultMutableTreeNode)node.getChildAt(i);
           recordVisibleNodes(path.pathByAddingChild(child));
           myVisibleNodes.add(child);
@@ -455,7 +453,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
       }
     }
 
-    private void replaceChildNodes(@NonNull TreePath path, @Nullable List<NlComponent> subComponents) {
+    private void replaceChildNodes(@NotNull TreePath path, @Nullable List<NlComponent> subComponents) {
       DefaultMutableTreeNode node = (DefaultMutableTreeNode)path.getLastPathComponent();
       node.removeAllChildren();
       if (subComponents != null) {
@@ -469,7 +467,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
       }
     }
 
-    private boolean addChildNode(@NonNull TreePath path, @NonNull NlComponent component) {
+    private boolean addChildNode(@NotNull TreePath path, @NotNull NlComponent component) {
       DefaultMutableTreeNode parent = (DefaultMutableTreeNode)path.getLastPathComponent();
       DefaultMutableTreeNode node = null;
       String id = component.getId();
@@ -478,7 +476,8 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
       }
       if (node == null) {
         node = new DefaultMutableTreeNode(component);
-      } else {
+      }
+      else {
         node.setUserObject(component);
       }
       if (id != null) {
@@ -499,14 +498,15 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
       }
       try {
         myModel.getSelectionModel().setSelection(getSelectedComponents());
-      } finally {
+      }
+      finally {
         mySelectionIsUpdating.set(false);
       }
     }
   }
 
   private static final class FakeRootComponent extends NlComponent {
-    FakeRootComponent(@NonNull NlModel model) {
+    FakeRootComponent(@NotNull NlModel model) {
       super(model, EmptyXmlTag.INSTANCE);
     }
 
@@ -526,7 +526,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   private static final class StructureSpeedSearch extends TreeSpeedSearch {
     private final StructureTreeDecorator myDecorator;
 
-    StructureSpeedSearch(@NonNull NlComponentTree tree) {
+    StructureSpeedSearch(@NotNull NlComponentTree tree) {
       super(tree);
       myDecorator = tree.myDecorator;
     }
