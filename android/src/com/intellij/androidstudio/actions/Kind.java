@@ -15,8 +15,8 @@
  */
 package com.intellij.androidstudio.actions;
 
-import com.intellij.ide.highlighter.JavaFileType;
 import com.intellij.util.PlatformIcons;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
@@ -24,8 +24,7 @@ enum Kind {
   ANNOTATION("Annotation", PlatformIcons.ANNOTATION_TYPE_ICON),
   CLASS("Class", PlatformIcons.CLASS_ICON),
   ENUM("Enum", PlatformIcons.ENUM_ICON),
-  INTERFACE("Interface", PlatformIcons.INTERFACE_ICON),
-  SINGLETON("Singleton", JavaFileType.INSTANCE.getIcon());
+  INTERFACE("Interface", PlatformIcons.INTERFACE_ICON);
 
   private final String myName;
   private final Icon myIcon;
@@ -47,6 +46,7 @@ enum Kind {
     return "AS" + myName;
   }
 
+  @Nullable
   static Kind valueOfText(String text) {
     for (Kind kind : values()) {
       if (kind.getTemplateName().equals(text)) {
@@ -54,6 +54,6 @@ enum Kind {
       }
     }
 
-    throw new IllegalArgumentException(text);
+    return null;
   }
 }
