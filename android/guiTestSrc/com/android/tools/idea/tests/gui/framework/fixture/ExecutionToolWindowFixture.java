@@ -74,8 +74,7 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
 
     /**
      * Waits until it grabs the console window and then returns true if its text matches that of {@code matcher}.
-     * Note: The caller should wrap it in something like a org.fest.swing.timing.Pause.pause to make sure they don't hang forever if the
-     * console view cannot be found for some reason.
+     * Note: This method may not terminate if the console view cannot be found.
      */
     public boolean outputMatches(@NotNull TextMatcher matcher) {
       ConsoleViewImpl consoleView;
