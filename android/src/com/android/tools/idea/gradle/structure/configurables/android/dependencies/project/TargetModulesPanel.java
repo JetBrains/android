@@ -60,7 +60,7 @@ class TargetModulesPanel extends ToolWindowPanel {
       protected void processMouseEvent(MouseEvent e) {
         int id = e.getID();
         if (id == MOUSE_PRESSED) {
-          TargetAndroidModuleNode node = myHyperlinkSupport.getIfHyperlink(e.getModifiers(), e.getX(), e.getY());
+          TargetAndroidModuleNode node = myHyperlinkSupport.getIfHyperlink(e);
           if (node != null) {
             PsAndroidModule module = node.getModels().get(0);
             String name = module.getName();
