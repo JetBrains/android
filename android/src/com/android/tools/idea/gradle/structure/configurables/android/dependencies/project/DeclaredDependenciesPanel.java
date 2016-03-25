@@ -40,6 +40,7 @@ import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import java.awt.*;
+import java.awt.event.MouseEvent;
 import java.util.*;
 import java.util.List;
 
@@ -48,8 +49,11 @@ import static com.intellij.icons.AllIcons.Actions.Collapseall;
 import static com.intellij.icons.AllIcons.Actions.Expandall;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static com.intellij.util.ui.tree.TreeUtil.ensureSelection;
+import static java.awt.event.MouseEvent.MOUSE_PRESSED;
 
 class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel {
+  @NotNull private final PsContext myContext;
+
   @NotNull private final Tree myTree;
   @NotNull private final DeclaredDependenciesTreeBuilder myTreeBuilder;
   @NotNull private final TreeSelectionListener myTreeSelectionListener;
@@ -61,9 +65,26 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel {
 
   DeclaredDependenciesPanel(@NotNull PsProject project, @NotNull PsContext context) {
     super("All Dependencies", context, project, null);
+    myContext = context;
 
     DefaultTreeModel treeModel = new DefaultTreeModel(new DefaultMutableTreeNode());
-    myTree = new Tree(treeModel);
+    myTree = new Tree(treeModel) {
+      @Override
+      protected void processMouseEvent(MouseEvent e) {
+        int id = e.getID();
+        if (id == MOUSE_PRESSED) {
+          ModuleDependencyNode node = myHyperlinkSupport.getIfHyperlink(e.getModifiers(), e.getX(), e.getY());
+          if (node != null) {
+            PsModuleDependency moduleDependency = node.getModels().get(0);
+            String name = moduleDependency.getName();
+            myContext.setSelectedModule(name, DeclaredDependenciesPanel.this);
+            // Do not call super, to avoid selecting the 'module' node when clicking a hyperlink.
+            return;
+          }
+        }
+        super.processMouseEvent(e);
+      }
+    };
 
     getContentsPanel().add(createActionsPanel(), BorderLayout.NORTH);
 
