@@ -529,7 +529,7 @@ public final class InstantRunManager implements ProjectComponent {
                 session.refresh(false);
                 XDebugSession xSession = session.getXDebugSession();
                 if (xSession != null) {
-                  xSession.rebuildViews();
+                  xSession.resume();
                 }
               }
             });
