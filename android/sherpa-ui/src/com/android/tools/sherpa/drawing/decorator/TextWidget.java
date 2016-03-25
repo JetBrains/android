@@ -29,7 +29,7 @@ import java.awt.Graphics2D;
  * Decorator for text widgets
  */
 public class TextWidget extends WidgetDecorator {
-    protected int mPadding = 2;
+    protected int mPadding = 0;
     private String mText;
     private Font mFont = new Font("Helvetica", Font.PLAIN, 12);
     private float mFontSize = 18;

@@ -16,10 +16,13 @@
 
 package com.android.tools.sherpa.drawing.decorator;
 
+import com.android.tools.sherpa.drawing.ViewTransform;
 import com.google.tnt.solver.widgets.ConstraintWidget;
 
+import java.awt.Graphics2D;
+
 /**
- * Radiobutton
+ * Button ui element
  */
 public class ButtonWidget extends TextWidget {
 
@@ -31,5 +34,18 @@ public class ButtonWidget extends TextWidget {
      */
     public ButtonWidget(ConstraintWidget widget, String text) {
         super(widget, text);
+        mPadding = 2;
+    }
+
+    @Override
+    public void onPaintBackground(ViewTransform transform, Graphics2D g) {
+        super.onPaintBackground(transform, g);
+        if (WidgetDecorator.isShowFakeUI()) {
+            int x = transform.getSwingX(mWidget.getDrawX() + mPadding);
+            int y = transform.getSwingX(mWidget.getDrawY() + mPadding);
+            int w = transform.getSwingDimension(mWidget.getDrawWidth() - mPadding * 2);
+            int h = transform.getSwingDimension(mWidget.getDrawHeight() - mPadding * 2);
+            g.drawRect(x, y, w, h);
+        }
     }
 }
