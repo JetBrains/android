@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.structure.configurables;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.intellij.openapi.options.SearchableConfigurable;
 import com.intellij.openapi.ui.NamedConfigurable;
+import com.intellij.ui.navigation.History;
 import com.intellij.ui.navigation.Place;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
@@ -31,6 +32,7 @@ public abstract class BaseNamedConfigurable<T extends PsModule> extends NamedCon
   @NotNull private final T myModule;
 
   private String myDisplayName;
+  private History myHistory;
 
   protected BaseNamedConfigurable(@NotNull T module) {
     myModule = module;
@@ -64,14 +66,24 @@ public abstract class BaseNamedConfigurable<T extends PsModule> extends NamedCon
     return "Module '" + myDisplayName + "'";
   }
 
-  @Nullable
   @Override
+  public void setHistory(History history) {
+    myHistory = history;
+  }
+
+  @Nullable
+  protected History getHistory() {
+    return myHistory;
+  }
+
+  @Override
+  @Nullable
   public String getHelpTopic() {
     return null;
   }
 
-  @Nullable
   @Override
+  @Nullable
   public Runnable enableSearch(String option) {
     return null;
   }

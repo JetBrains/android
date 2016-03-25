@@ -36,6 +36,8 @@ import com.intellij.ui.OnePixelSplitter;
 import com.intellij.ui.SideBorder;
 import com.intellij.ui.awt.RelativePoint;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.navigation.History;
+import com.intellij.ui.navigation.Place;
 import com.intellij.util.IconUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -53,7 +55,7 @@ import static com.intellij.ui.ScrollPaneFactory.createScrollPane;
 import static com.intellij.util.PlatformIcons.LIBRARY_ICON;
 import static com.intellij.util.ui.UIUtil.getInactiveTextColor;
 
-public abstract class AbstractDeclaredDependenciesPanel extends JPanel implements Disposable {
+public abstract class AbstractDeclaredDependenciesPanel extends JPanel implements Place.Navigator, Disposable {
   @NotNull private final PsContext myContext;
   @NotNull private final PsProject myProject;
   @NotNull private final EmptyDetailsPanel myEmptyDetailsPanel;
@@ -67,6 +69,7 @@ public abstract class AbstractDeclaredDependenciesPanel extends JPanel implement
 
   private List<AbstractPopupAction> myPopupActions;
   private DependencyDetails myCurrentDependencyDetails;
+  private History myHistory;
 
   protected AbstractDeclaredDependenciesPanel(@NotNull String title,
                                               @NotNull PsContext context,
@@ -206,6 +209,16 @@ public abstract class AbstractDeclaredDependenciesPanel extends JPanel implement
   @NotNull
   public String getEmptyText() {
     return myEmptyText;
+  }
+
+  @Override
+  public void setHistory(History history) {
+    myHistory = history;
+  }
+
+  @Nullable
+  protected History getHistory() {
+    return myHistory;
   }
 
   private class AddDependencyAction extends AbstractPopupAction {

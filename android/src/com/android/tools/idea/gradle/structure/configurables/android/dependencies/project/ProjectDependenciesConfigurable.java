@@ -44,24 +44,30 @@ public class ProjectDependenciesConfigurable extends AbstractDependenciesConfigu
   }
 
   @Override
-  public JComponent createOptionsPanel() {
+  public ProjectDependenciesPanel createOptionsPanel() {
     if (myDependenciesPanel == null) {
       myDependenciesPanel = new ProjectDependenciesPanel(getEditableObject().getParent(), getContext(), getExtraTopModules());
+      myDependenciesPanel.setHistory(getHistory());
     }
     return myDependenciesPanel;
   }
 
   @Override
-  public void setHistory(History history) {
-  }
-
-  @Override
   public ActionCallback navigateTo(@Nullable Place place, boolean requestFocus) {
-    return null;
+    return createOptionsPanel().navigateTo(place, requestFocus);
   }
 
   @Override
   public void queryPlace(@NotNull Place place) {
+    createOptionsPanel().queryPlace(place);
+  }
+
+  @Override
+  public void setHistory(History history) {
+    super.setHistory(history);
+    if (myDependenciesPanel != null) {
+      myDependenciesPanel.setHistory(history);
+    }
   }
 
   @Override
