@@ -59,6 +59,7 @@ public abstract class AbstractDeclaredDependenciesPanel extends JPanel implement
   @NotNull private final EmptyEditorPanel myEmptyEditorPanel;
   @NotNull private final JScrollPane myEditorScrollPane;
   @NotNull private final JPanel myContentsPanel;
+  @NotNull private final String myEmptyText;
 
   @NotNull private final Map<Class<?>, DependencyEditor> myEditors = Maps.newHashMap();
 
@@ -75,8 +76,10 @@ public abstract class AbstractDeclaredDependenciesPanel extends JPanel implement
     myProject = project;
     myModule = module;
 
+    myEmptyText = String.format("Please select a dependency from the '%1$s' view", title);
+
     initializeEditors(context);
-    myEmptyEditorPanel = new EmptyEditorPanel();
+    myEmptyEditorPanel = new EmptyEditorPanel(myEmptyText);
     myEditorScrollPane = createScrollPane(myEmptyEditorPanel);
     myEditorScrollPane.setBorder(createEmptyBorder());
 
@@ -193,6 +196,11 @@ public abstract class AbstractDeclaredDependenciesPanel extends JPanel implement
     return myContext;
   }
 
+  @NotNull
+  public String getEmptyText() {
+    return myEmptyText;
+  }
+
   private class AddDependencyAction extends AbstractPopupAction {
     AddDependencyAction() {
       super("Artifact Dependency", LIBRARY_ICON, 1);
@@ -232,9 +240,9 @@ public abstract class AbstractDeclaredDependenciesPanel extends JPanel implement
   }
 
   private static class EmptyEditorPanel extends JPanel {
-    EmptyEditorPanel() {
+    EmptyEditorPanel(@NotNull String text) {
       super(new BorderLayout());
-      JBLabel emptyText = new JBLabel("Please select a declared dependency");
+      JBLabel emptyText = new JBLabel(text);
       emptyText.setForeground(getInactiveTextColor());
       emptyText.setHorizontalAlignment(SwingConstants.CENTER);
       add(emptyText, BorderLayout.CENTER);
