@@ -38,7 +38,7 @@ import javax.swing.*;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import java.awt.*;
-import java.util.*;
+import java.util.Collections;
 import java.util.List;
 
 public abstract class BasePerspectiveConfigurable extends MasterDetailsComponent
@@ -63,14 +63,7 @@ public abstract class BasePerspectiveConfigurable extends MasterDetailsComponent
       @Override
       public void moduleSelectionChanged(@NotNull String moduleName, @NotNull Object source) {
         if (source != BasePerspectiveConfigurable.this) {
-          PsModule module = findModule(moduleName);
-          if (module != null) {
-            MyNode node = findNodeByObject(myRoot, module);
-            if (node != null) {
-              selectNodeInTree(moduleName);
-              setSelectedNode(node);
-            }
-          }
+          selectModule(moduleName);
         }
       }
     }, this);
@@ -91,6 +84,17 @@ public abstract class BasePerspectiveConfigurable extends MasterDetailsComponent
         }
       }
     }, this);
+  }
+
+  protected void selectModule(@NotNull String moduleName) {
+    PsModule module = findModule(moduleName);
+    if (module != null) {
+      MyNode node = findNodeByObject(myRoot, module);
+      if (node != null) {
+        selectNodeInTree(moduleName);
+        setSelectedNode(node);
+      }
+    }
   }
 
   @Nullable
@@ -115,6 +119,7 @@ public abstract class BasePerspectiveConfigurable extends MasterDetailsComponent
       PsModule module = baseConfigurable.getEditableObject();
       myContext.setSelectedModule(module.getName(), this);
     }
+    myHistory.pushQueryPlace();
   }
 
   @Override

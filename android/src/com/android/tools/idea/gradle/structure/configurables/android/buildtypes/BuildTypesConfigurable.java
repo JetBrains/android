@@ -19,7 +19,6 @@ import com.android.tools.idea.gradle.structure.configurables.BaseNamedConfigurab
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.util.ActionCallback;
-import com.intellij.ui.navigation.History;
 import com.intellij.ui.navigation.Place;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -34,11 +33,6 @@ public class BuildTypesConfigurable extends BaseNamedConfigurable<PsAndroidModul
   @Override
   public JComponent createOptionsPanel() {
     return new JPanel();
-  }
-
-  @Override
-  public void setHistory(History history) {
-
   }
 
   @Override
