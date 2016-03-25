@@ -2038,6 +2038,12 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
+  public static class AndroidLintStaticFieldLeakInspection extends AndroidLintInspectionBase {
+    public AndroidLintStaticFieldLeakInspection() {
+      super(AndroidBundle.message("android.lint.inspections.static.field.leak"), com.android.tools.lint.checks.LeakDetector.ISSUE);
+    }
+  }
+
   // Maybe not relevant
   public static class AndroidLintStopShipInspection extends AndroidLintInspectionBase {
     public AndroidLintStopShipInspection() {
