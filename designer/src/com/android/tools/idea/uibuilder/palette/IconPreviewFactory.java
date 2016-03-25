@@ -20,6 +20,7 @@ import com.android.annotations.Nullable;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.SessionParams;
 import com.android.ide.common.rendering.api.ViewInfo;
+import com.android.resources.Density;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ScreenOrientation;
 import com.android.sdklib.IAndroidTarget;
@@ -29,8 +30,7 @@ import com.android.sdklib.devices.State;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.*;
 import com.android.tools.idea.uibuilder.api.InsertType;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.Lists;
 import com.intellij.ide.highlighter.XmlFileType;
@@ -68,6 +68,8 @@ import static com.android.tools.idea.uibuilder.palette.NlPaletteModel.PALETTE_VE
  */
 public class IconPreviewFactory {
   private static final Logger LOG = Logger.getInstance(IconPreviewFactory.class);
+  @AndroidDpCoordinate
+  private static final int SHADOW_SIZE = 6;
   private static final int PREVIEW_LIMIT = 4000;
   private static final int DEFAULT_X_DIMENSION = 1080;
   private static final int DEFAULT_Y_DIMENSION = 1920;
@@ -158,7 +160,14 @@ public class IconPreviewFactory {
       view.getBottom() <= view.getTop() || view.getRight() <= view.getLeft()) {
       return null;
     }
-    return image.getSubimage(view.getLeft(), view.getTop(), view.getRight(), view.getBottom());
+    @AndroidCoordinate
+    int shadowWitdh = SHADOW_SIZE * screenView.getConfiguration().getDensity().getDpiValue() / Density.DEFAULT_DENSITY;
+    @SwingCoordinate
+    int shadowIncrement = 1 + Coordinates.getSwingDimension(screenView, shadowWitdh);
+    return image.getSubimage(view.getLeft(),
+                             view.getTop(),
+                             Math.min(view.getRight() + shadowIncrement, image.getWidth()),
+                             Math.min(view.getBottom() + shadowIncrement, image.getHeight()));
   }
 
   private static String addAndroidNamespaceIfMissing(@NonNull String xml) {
