@@ -190,7 +190,8 @@ public final class FormFactorApiComboBox extends JComboBox {
         }
       }
       if (target == null) {
-        // TODO: If the user has no APIs installed, we then request to install whichever version the user has targeted here.
+        // TODO: If the user has no APIs installed that are at least of api level LOWEST_COMPILE_SDK_VERSION,
+        // then we request (for now) to install HIGHEST_KNOWN_STABLE_API.
         // Instead, we should choose to install the highest stable API possible. However, users having no SDK at all installed is pretty
         // unlikely, so this logic can wait for a followup CL.
         if (ourHighestInstalledApiTarget == null ||
@@ -198,12 +199,13 @@ public final class FormFactorApiComboBox extends JComboBox {
              !ourInstalledVersions.contains(androidVersion) &&
              stateStore.get(myInclusionKey))) {
 
-          // The user selected a stable platform minSDK that is higher than any installed SDK. Let us install it.
+          // Let us install the HIGHEST_KNOWN_STABLE_API.
+          platformPath = DetailsTypes.getPlatformPath(new AndroidVersion(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API, null));
           stateStore.listPush(INSTALL_REQUESTS_KEY, platformPath);
           myInstallRequest = myRepoPackages.getRemotePackages().get(platformPath);
 
-          // The selected minVersion would also be the highest sdkVersion after this install, so specify buildApi again here:
-          populateApiLevels(androidVersion.getApiLevel(), null, stateStore);
+          // HIGHEST_KNOWN_STABLE_API would also be the highest sdkVersion after this install, so specify buildApi again here:
+          populateApiLevels(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API, null, stateStore);
         }
         if (targetItem.myAddon != null) {
           // The user selected a non stable SDK (a preview version) or a non platform SDK (e.g. for Google Glass). Let us install it:
@@ -293,7 +295,7 @@ public final class FormFactorApiComboBox extends JComboBox {
     IAndroidTarget highestInstalledTarget = null;
     ourInstalledVersions.clear();
     for (IAndroidTarget target : targets) {
-      if (target.isPlatform() &&
+      if (target.isPlatform() && target.getVersion().getFeatureLevel() >= SdkVersionInfo.LOWEST_COMPILE_SDK_VERSION &&
           (highestInstalledTarget == null ||
           target.getVersion().getFeatureLevel() > highestInstalledTarget.getVersion().getFeatureLevel() &&
           !target.getVersion().isPreview())) {
