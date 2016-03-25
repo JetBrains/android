@@ -17,6 +17,7 @@ package com.android.tools.idea.editors.gfxtrace.service.image;
 
 import com.android.tools.idea.editors.gfxtrace.service.ServiceClient;
 import com.android.tools.idea.editors.gfxtrace.service.gfxapi.Cubemap;
+import com.android.tools.idea.editors.gfxtrace.service.gfxapi.CubemapLevel;
 import com.android.tools.idea.editors.gfxtrace.service.gfxapi.Texture2D;
 import com.android.tools.idea.editors.gfxtrace.service.path.ImageInfoPath;
 import com.android.tools.idea.editors.gfxtrace.service.path.Path;
@@ -31,11 +32,11 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.awt.image.WritableRaster;
+import java.util.List;
 
 public class FetchedImage {
   @NotNull private static final Logger LOG = Logger.getInstance(FetchedImage.class);
 
-  @NotNull private final ImageInfo myImageInfo;
   @NotNull public final Dimension dimensions;
   @NotNull public final BufferedImage image;
 
@@ -60,8 +61,10 @@ public class FetchedImage {
           return load(client, ((Texture2D)object).getLevels()[0]);
         }
         if (object instanceof Cubemap) {
-          // TODO: Display mip-level and face selection, etc.
-          return load(client, ((Cubemap)object).getLevels()[0].getNegativeX());
+          // TODO: Display mip-level, etc.
+          CubemapLevel level = ((Cubemap)object).getLevels()[0];
+          return load(client, level.getNegativeX(), level.getPositiveX(), level.getNegativeY(), level.getPositiveY(), level.getNegativeZ(),
+                      level.getPositiveZ());
         }
         throw new UnsupportedOperationException("Unexpected resource type " + object.toString());
       }
@@ -77,29 +80,66 @@ public class FetchedImage {
     });
   }
 
+  private static ListenableFuture<FetchedImage> load(ServiceClient client, final ImageInfo... imageInfos) {
+    ListenableFuture<byte[]>[] futures = new ListenableFuture[imageInfos.length];
+    for (int i = 0; i < imageInfos.length; i++) {
+      futures[i] = client.get(imageInfos[i].getData());
+    }
+    return Futures.transform(Futures.allAsList(futures), new Function<List<byte[]>, FetchedImage>() {
+      @Override
+      public FetchedImage apply(List<byte[]> data) {
+        return new FetchedImage(imageInfos, data.toArray(new byte[data.size()][]));
+      }
+    });
+  }
+
   public FetchedImage(@NotNull ImageInfo imageInfo, @NotNull byte[] data) {
-    myImageInfo = imageInfo;
-    dimensions = new Dimension(myImageInfo.getWidth(), myImageInfo.getHeight());
+    assert (imageInfo.getFormat() instanceof FmtRGBA);
+    dimensions = new Dimension(imageInfo.getWidth(), imageInfo.getHeight());
     //noinspection UndesirableClassUsage
     image = new BufferedImage(dimensions.width, dimensions.height, BufferedImage.TYPE_4BYTE_ABGR);
-    WritableRaster raster = image.getRaster();
-    DataBufferByte dataBuffer = (DataBufferByte)raster.getDataBuffer();
-    assert (myImageInfo.getFormat() instanceof FmtRGBA);
-    final int stride = dimensions.width * 4;
-    int length = stride * dimensions.height;
-    byte[] destination = dataBuffer.getData();
-    assert (destination.length >= length);
+
+    updateImageData(data, 0, 0, imageInfo.getWidth(), imageInfo.getHeight());
+  }
+
+  public FetchedImage(@NotNull ImageInfo[] imageInfos, @NotNull byte[][] data) {
+    assert (imageInfos.length == data.length && imageInfos.length == 6);
+    // Typically these are all the same, but let's be safe.
+    int width = Math.max(Math.max(
+      Math.max(Math.max(Math.max(imageInfos[0].getWidth(), imageInfos[1].getWidth()), imageInfos[2].getWidth()), imageInfos[3].getWidth()),
+      imageInfos[4].getWidth()), imageInfos[5].getWidth());
+    int height = Math.max(Math.max(
+      Math.max(Math.max(Math.max(imageInfos[0].getHeight(), imageInfos[1].getHeight()), imageInfos[2].getHeight()),
+      imageInfos[3].getHeight()), imageInfos[4].getHeight()), imageInfos[5].getHeight());
+    dimensions = new Dimension(4 * width, 3 * height);
+    //noinspection UndesirableClassUsage
+    image = new BufferedImage(dimensions.width, dimensions.height, BufferedImage.TYPE_4BYTE_ABGR);
+
+    // +----+----+----+----+
+    // |    | -Y |    |    |
+    // +----+----+----+----+
+    // | -X | +Z | +X | -Z |
+    // +----+----+----+----+
+    // |    | +Y |    |    |
+    // +----+----+----+----+
+    updateImageData(data[0], 0 * width, 1 * height, imageInfos[0].getWidth(), imageInfos[0].getHeight()); // Negative X
+    updateImageData(data[1], 2 * width, 1 * height, imageInfos[1].getWidth(), imageInfos[1].getHeight()); // Positive X
+    updateImageData(data[2], 1 * width, 0 * height, imageInfos[2].getWidth(), imageInfos[2].getHeight()); // Negative Y
+    updateImageData(data[3], 1 * width, 2 * height, imageInfos[3].getWidth(), imageInfos[3].getHeight()); // Positive Y
+    updateImageData(data[4], 3 * width, 1 * height, imageInfos[4].getWidth(), imageInfos[4].getHeight()); // Negative Z
+    updateImageData(data[5], 1 * width, 1 * height, imageInfos[5].getWidth(), imageInfos[5].getHeight()); // Positive Z
+  }
+
+  private void updateImageData(byte[] data, int x, int y, int w, int h) {
+    assert (x + w <= dimensions.width && y + h <= dimensions.height);
+    byte[] destination = ((DataBufferByte)image.getRaster().getDataBuffer()).getData();
     // Convert between top-left and bottom-left formats.
-    for (int y = 0; y < dimensions.height; ++y) {
-      int yOffsetSource = stride * y;
-      int yOffsetDestination = length - stride - yOffsetSource;
-      for (int x = 0; x < stride; x += 4) {
-        int destinationOffset = yOffsetDestination + x;
-        int sourceOffset = yOffsetSource + x;
-        destination[destinationOffset + 0] = data[sourceOffset + 3];
-        destination[destinationOffset + 1] = data[sourceOffset + 2];
-        destination[destinationOffset + 2] = data[sourceOffset + 1];
-        destination[destinationOffset + 3] = data[sourceOffset + 0];
+    for (int row = 0, from = 0, to = ((y + h - 1) * dimensions.width + x) * 4; row < h; row++, from += w * 4, to -= dimensions.width * 4) {
+      for (int col = 0, i = to, j = from; col < w; col++, i += 4, j += 4) {
+        destination[i + 0] = data[j + 3];
+        destination[i + 1] = data[j + 2];
+        destination[i + 2] = data[j + 1];
+        destination[i + 3] = data[j + 0];
       }
     }
   }
