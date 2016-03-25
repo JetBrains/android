@@ -61,7 +61,7 @@ public class CreateNewClassDialogValidatorExImplTest {
 
   @Test
   public void checkPackageEmpty() {
-    assertFalse(validator.checkPackage(""));
+    assertTrue(validator.checkPackage(""));
   }
 
   @Test
