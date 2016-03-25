@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.configurables.android.dependencies.editor;
+package com.android.tools.idea.gradle.structure.configurables.android.dependencies.details;
 
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
-public interface DependencyEditor<T extends PsAndroidDependency> {
+public interface DependencyDetails<T extends PsAndroidDependency> {
   @NotNull
   JPanel getPanel();
 
@@ -28,4 +28,7 @@ public interface DependencyEditor<T extends PsAndroidDependency> {
 
   @NotNull
   Class<T> getSupportedModelType();
+
+  @NotNull
+  T getModel();
 }
