@@ -27,7 +27,6 @@ import com.intellij.ui.navigation.Place;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
 import java.util.List;
 
 public class ModuleDependenciesConfigurable extends AbstractDependenciesConfigurable<PsAndroidModule> {
@@ -40,25 +39,30 @@ public class ModuleDependenciesConfigurable extends AbstractDependenciesConfigur
   }
 
   @Override
-  public JComponent createOptionsPanel() {
+  public ModuleDependenciesPanel createOptionsPanel() {
     if (myDependenciesPanel == null) {
       myDependenciesPanel = new ModuleDependenciesPanel(getEditableObject(), getContext(), getExtraTopModules());
+      myDependenciesPanel.setHistory(getHistory());
     }
     return myDependenciesPanel;
   }
 
   @Override
-  public void setHistory(History history) {
-  }
-
-  @Override
   public ActionCallback navigateTo(@Nullable Place place, boolean requestFocus) {
-    // TODO implement.
-    return ActionCallback.DONE;
+    return createOptionsPanel().navigateTo(place, requestFocus);
   }
 
   @Override
   public void queryPlace(@NotNull Place place) {
+    createOptionsPanel().queryPlace(place);
+  }
+
+  @Override
+  public void setHistory(History history) {
+    super.setHistory(history);
+    if (myDependenciesPanel != null) {
+      myDependenciesPanel.setHistory(history);
+    }
   }
 
   @Override
