@@ -16,8 +16,8 @@
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies;
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.editor.DependencyEditor;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.editor.LibraryDependencyEditor;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.details.DependencyDetails;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.details.LibraryDependencyDetails;
 import com.android.tools.idea.gradle.structure.model.PsProject;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
@@ -56,16 +56,17 @@ import static com.intellij.util.ui.UIUtil.getInactiveTextColor;
 public abstract class AbstractDeclaredDependenciesPanel extends JPanel implements Disposable {
   @NotNull private final PsContext myContext;
   @NotNull private final PsProject myProject;
-  @NotNull private final EmptyEditorPanel myEmptyEditorPanel;
-  @NotNull private final JScrollPane myEditorScrollPane;
+  @NotNull private final EmptyDetailsPanel myEmptyDetailsPanel;
+  @NotNull private final JScrollPane myDetailsScrollPane;
   @NotNull private final JPanel myContentsPanel;
   @NotNull private final String myEmptyText;
 
-  @NotNull private final Map<Class<?>, DependencyEditor> myEditors = Maps.newHashMap();
+  @NotNull private final Map<Class<?>, DependencyDetails> myDependencyDetails = Maps.newHashMap();
 
   @Nullable private final PsAndroidModule myModule;
 
   private List<AbstractPopupAction> myPopupActions;
+  private DependencyDetails myCurrentDependencyDetails;
 
   protected AbstractDeclaredDependenciesPanel(@NotNull String title,
                                               @NotNull PsContext context,
@@ -79,9 +80,9 @@ public abstract class AbstractDeclaredDependenciesPanel extends JPanel implement
     myEmptyText = String.format("Please select a dependency from the '%1$s' view", title);
 
     initializeEditors(context);
-    myEmptyEditorPanel = new EmptyEditorPanel(myEmptyText);
-    myEditorScrollPane = createScrollPane(myEmptyEditorPanel);
-    myEditorScrollPane.setBorder(createEmptyBorder());
+    myEmptyDetailsPanel = new EmptyDetailsPanel(myEmptyText);
+    myDetailsScrollPane = createScrollPane(myEmptyDetailsPanel);
+    myDetailsScrollPane.setBorder(createEmptyBorder());
 
     Header header = new Header(title);
     add(header, BorderLayout.NORTH);
@@ -91,30 +92,36 @@ public abstract class AbstractDeclaredDependenciesPanel extends JPanel implement
     myContentsPanel = new JPanel(new BorderLayout());
 
     splitter.setFirstComponent(myContentsPanel);
-    splitter.setSecondComponent(myEditorScrollPane);
+    splitter.setSecondComponent(myDetailsScrollPane);
 
     add(splitter, BorderLayout.CENTER);
   }
 
   private void initializeEditors(@NotNull PsContext context) {
-    addEditor(new LibraryDependencyEditor(context));
+    addDetails(new LibraryDependencyDetails(context));
   }
 
-  private void addEditor(@NotNull DependencyEditor<?> editor) {
-    myEditors.put(editor.getSupportedModelType(), editor);
+  private void addDetails(@NotNull DependencyDetails<?> details) {
+    myDependencyDetails.put(details.getSupportedModelType(), details);
   }
 
-  protected void updateEditor(@Nullable PsAndroidDependency selected) {
+  protected void updateDetails(@Nullable PsAndroidDependency selected) {
     if (selected != null) {
-      DependencyEditor editor = myEditors.get(selected.getClass());
-      if (editor != null) {
-        myEditorScrollPane.setViewportView(editor.getPanel());
+      myCurrentDependencyDetails = myDependencyDetails.get(selected.getClass());
+      if (myCurrentDependencyDetails != null) {
+        myDetailsScrollPane.setViewportView(myCurrentDependencyDetails.getPanel());
         //noinspection unchecked
-        editor.display(selected);
+        myCurrentDependencyDetails.display(selected);
         return;
       }
     }
-    myEditorScrollPane.setViewportView(myEmptyEditorPanel);
+    myCurrentDependencyDetails = null;
+    myDetailsScrollPane.setViewportView(myEmptyDetailsPanel);
+  }
+
+  @Nullable
+  protected DependencyDetails getCurrentDependencyDetails() {
+    return myCurrentDependencyDetails;
   }
 
   @NotNull
@@ -239,8 +246,8 @@ public abstract class AbstractDeclaredDependenciesPanel extends JPanel implement
     abstract void execute();
   }
 
-  private static class EmptyEditorPanel extends JPanel {
-    EmptyEditorPanel(@NotNull String text) {
+  private static class EmptyDetailsPanel extends JPanel {
+    EmptyDetailsPanel(@NotNull String text) {
       super(new BorderLayout());
       JBLabel emptyText = new JBLabel(text);
       emptyText.setForeground(getInactiveTextColor());

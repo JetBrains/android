@@ -17,12 +17,17 @@ package com.android.tools.idea.gradle.structure.configurables.android.dependenci
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.AbstractDeclaredDependenciesPanel;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.details.DependencyDetails;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.treeview.DependencySelection;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.project.treeview.TargetAndroidModuleNode;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.android.tools.idea.gradle.structure.model.android.PsModuleDependency;
 import com.google.common.collect.Lists;
+import com.intellij.icons.AllIcons;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.CommonShortcuts;
+import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.ui.table.TableView;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -197,13 +202,21 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel implem
     myDependenciesTable.repaint();
   }
 
+  @Override
+  @NotNull
+  protected List<AnAction> getExtraToolbarActions() {
+    List<AnAction> actions = Lists.newArrayList();
+    actions.add(new EditDependencyAction());
+    return actions;
+  }
+
   private void updateEditor() {
     Collection<PsAndroidDependency> selection = myDependenciesTable.getSelection();
     PsAndroidDependency selected = null;
     if (selection.size() == 1) {
       selected = getFirstItem(selection);
     }
-    updateEditor(selected);
+    updateDetails(selected);
   }
 
   void updateTableColumnSizes() {
@@ -259,5 +272,23 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel implem
 
   public interface SelectionListener {
     void dependencySelected(@NotNull PsAndroidDependency dependency);
+  }
+
+  private class EditDependencyAction extends DumbAwareAction {
+    EditDependencyAction() {
+      super("Edit Dependency...", "", AllIcons.Actions.Edit);
+      registerCustomShortcutSet(CommonShortcuts.ENTER, myDependenciesTable);
+    }
+
+    @Override
+    public void update(AnActionEvent e) {
+      DependencyDetails details = getCurrentDependencyDetails();
+      e.getPresentation().setEnabled(details != null);
+    }
+
+    @Override
+    public void actionPerformed(AnActionEvent e) {
+
+    }
   }
 }
