@@ -44,11 +44,7 @@ import org.junit.runner.RunWith;
 import java.io.IOException;
 
 import static com.android.tools.idea.npw.FormFactor.MOBILE;
-import static junit.framework.Assert.assertFalse;
-import static junit.framework.Assert.assertNotNull;
-import static org.fest.assertions.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static com.google.common.truth.Truth.assertThat;
 
 @RunWith(GuiTestRunner.class)
 public class NewProjectTest {
@@ -67,28 +63,26 @@ public class NewProjectTest {
     // Verify state of project
     guiTest.ideFrame().requireModuleCount(2);
     AndroidGradleModel appAndroidModel = guiTest.ideFrame().getAndroidProjectForModule("app");
-    assertThat(appAndroidModel.getVariantNames()).as("variants").containsOnly("debug", "release");
-    assertThat(appAndroidModel.getSelectedVariant().getName()).as("selected variant").isEqualTo("debug");
+    assertThat(appAndroidModel.getVariantNames()).containsExactly("debug", "release");
+    assertThat(appAndroidModel.getSelectedVariant().getName()).isEqualTo("debug");
 
     AndroidProject model = appAndroidModel.getAndroidProject();
     ApiVersion minSdkVersion = model.getDefaultConfig().getProductFlavor().getMinSdkVersion();
-    assertNotNull("minSdkVersion", minSdkVersion);
-    assertThat(minSdkVersion.getApiString()).as("minSdkVersion API").isEqualTo("19");
+    assertThat(minSdkVersion.getApiString()).isEqualTo("19");
 
     // Make sure that the activity registration uses the relative syntax
     // (regression test for https://code.google.com/p/android/issues/detail?id=76716)
     editor.open("app/src/main/AndroidManifest.xml", EditorFixture.Tab.EDITOR);
     int offset = editor.findOffset("\".^MainActivity\"");
-    assertTrue(offset != -1);
+    assertThat(offset).isNotEqualTo(-1);
 
     // The language level should be JDK_1_7 since the compile SDK version is assumed to be 21 or higher
-    assertThat(appAndroidModel.getJavaLanguageLevel()).as("Gradle Java language level").isSameAs(LanguageLevel.JDK_1_7);
+    assertThat(appAndroidModel.getJavaLanguageLevel()).isSameAs(LanguageLevel.JDK_1_7);
     LanguageLevelProjectExtension projectExt = LanguageLevelProjectExtension.getInstance(guiTest.ideFrame().getProject());
-    assertThat(projectExt.getLanguageLevel()).as("Project Java language level").isSameAs(LanguageLevel.JDK_1_7);
+    assertThat(projectExt.getLanguageLevel()).isSameAs(LanguageLevel.JDK_1_7);
     for (Module module : ModuleManager.getInstance(guiTest.ideFrame().getProject()).getModules()) {
       LanguageLevelModuleExtension moduleExt = LanguageLevelModuleExtensionImpl.getInstance(module);
-      assertThat(moduleExt.getLanguageLevel()).as("Gradle Java language level in module " + module.getName())
-        .isSameAs(LanguageLevel.JDK_1_7);
+      assertThat(moduleExt.getLanguageLevel()).isSameAs(LanguageLevel.JDK_1_7);
     }
   }
 
@@ -112,25 +106,33 @@ public class NewProjectTest {
 
     InspectionsFixture inspections = guiTest.ideFrame().inspectCode();
 
-    assertEquals("Test Application\n" +
-                 // This warning is from the "foo" string we created in the Gradle resValue declaration above
-                 "    Android > Lint > Performance\n" +
-                 "        Unused resources\n" +
-                 "            app\n" +
-                 "                The resource 'R.string.foo' appears to be unused\n" +
+    assertThat(inspections.getResults()).isEqualTo(lines(
+      "Test Application",
+      // This warning is from the "foo" string we created in the Gradle resValue declaration above
+      "    Android > Lint > Performance",
+      "        Unused resources",
+      "            app",
+      "                The resource 'R.string.foo' appears to be unused",
 
-                 // This warning is unfortunate. We may want to get rid of it.
-                 "    Android > Lint > Security\n" +
-                 "        AllowBackup/FullBackupContent Problems\n" +
-                 "            app\n" +
-                 "                On SDK version 23 and up, your app data will be automatically backed up and restored on app install. Consider adding the attribute 'android:fullBackupContent' to specify an '@xml' resource which configures which files to backup. More info: https://developer.android.com/preview/backup/index.html\n" +
+      // This warning is unfortunate. We may want to get rid of it.
+      "    Android > Lint > Security",
+      "        AllowBackup/FullBackupContent Problems",
+      "            app",
+      "                On SDK version 23 and up, your app data will be automatically backed up and restored on app install. Consider adding the attribute 'android:fullBackupContent' to specify an '@xml' resource which configures which files to backup. More info: https://developer.android.com/preview/backup/index.html",
 
-                 // This warning is wrong: http://b.android.com/192605
-                 "    Android > Lint > Usability\n" +
-                 "        Missing support for Google App Indexing\n" +
-                 "            app\n" +
-                 "                App is not indexable by Google Search; consider adding at least one Activity with an ACTION-VIEW intent filter. See issue explanation for more details.\n",
-                 inspections.getResults());
+      // This warning is wrong: http://b.android.com/192605
+      "    Android > Lint > Usability",
+      "        Missing support for Google App Indexing",
+      "            app",
+      "                App is not indexable by Google Search; consider adding at least one Activity with an ACTION-VIEW intent filter. See issue explanation for more details."));
+  }
+
+  private static String lines(String... strings) {
+    StringBuilder sb = new StringBuilder();
+    for (String s : strings) {
+      sb.append(s).append('\n');
+    }
+    return sb.toString();
   }
 
   @Test
@@ -143,7 +145,7 @@ public class NewProjectTest {
     editor.close();
     editor.requireName("activity_a.xml");
     LayoutEditorFixture layoutEditor = editor.getLayoutEditor(true);
-    assertNotNull("Layout editor was not showing", layoutEditor);
+    assertThat(layoutEditor).isNotNull();
     layoutEditor.waitForNextRenderToFinish();
     guiTest.ideFrame().invokeProjectMake();
     layoutEditor.waitForNextRenderToFinish();
@@ -156,18 +158,14 @@ public class NewProjectTest {
     newProject("Test Application").withBriefNames().withMinSdk("21").create();
 
     AndroidGradleModel appAndroidModel = guiTest.ideFrame().getAndroidProjectForModule("app");
-    AndroidProject model = appAndroidModel.getAndroidProject();
-    ApiVersion minSdkVersion = model.getDefaultConfig().getProductFlavor().getMinSdkVersion();
-    assertNotNull("minSdkVersion", minSdkVersion);
 
-    assertThat(minSdkVersion.getApiString()).as("minSdkVersion API").isEqualTo("21");
-    assertThat(appAndroidModel.getJavaLanguageLevel()).as("Gradle Java language level").isSameAs(LanguageLevel.JDK_1_7);
+    assertThat(appAndroidModel.getAndroidProject().getDefaultConfig().getProductFlavor().getMinSdkVersion().getApiString()).isEqualTo("21");
+    assertThat(appAndroidModel.getJavaLanguageLevel()).isSameAs(LanguageLevel.JDK_1_7);
     LanguageLevelProjectExtension projectExt = LanguageLevelProjectExtension.getInstance(guiTest.ideFrame().getProject());
-    assertThat(projectExt.getLanguageLevel()).as("Project Java language level").isSameAs(LanguageLevel.JDK_1_7);
+    assertThat(projectExt.getLanguageLevel()).isSameAs(LanguageLevel.JDK_1_7);
     for (Module module : ModuleManager.getInstance(guiTest.ideFrame().getProject()).getModules()) {
       LanguageLevelModuleExtension moduleExt = LanguageLevelModuleExtensionImpl.getInstance(module);
-      assertThat(moduleExt.getLanguageLevel()).as("Gradle Java language level in module " + module.getName())
-        .isSameAs(LanguageLevel.JDK_1_7);
+      assertThat(moduleExt.getLanguageLevel()).isSameAs(LanguageLevel.JDK_1_7);
     }
   }
 
@@ -188,14 +186,14 @@ public class NewProjectTest {
 
     editor.open("app/src/main/res/layout/activity_a.xml", EditorFixture.Tab.EDITOR);
     LayoutEditorFixture layoutEditor = editor.getLayoutEditor(true);
-    assertNotNull(layoutEditor);
+    assertThat(layoutEditor).isNotNull();
     layoutEditor.waitForNextRenderToFinish();
 
     RenderErrorPanelFixture renderErrors = layoutEditor.getRenderErrors();
     String html = renderErrors.getErrorHtml();
     // We could be showing an error message, but if we do, it should *not* say missing styles
     // (should only be showing project render errors)
-    assertFalse(html, html.contains("Missing styles"));
+    assertThat(html).doesNotContain("Missing styles");
   }
 
   @NotNull
