@@ -54,7 +54,7 @@ public class CreateNewClassDialogValidatorExImpl implements CreateNewClassDialog
 
   @Override
   public boolean checkPackage(@NotNull String inputString) {
-    return !CharMatcher.WHITESPACE.matchesAllOf(inputString) && checkList(inputString, ".");
+    return CharMatcher.WHITESPACE.matchesAllOf(inputString) || checkList(inputString, ".");
   }
 
   @Override
