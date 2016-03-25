@@ -52,20 +52,23 @@ public class ViewHandlerManager implements ProjectComponent {
   /**
    * View handlers are named the same as the class for the view they represent, plus this suffix
    */
-  public static final String HANDLER_CLASS_SUFFIX = "Handler";
-  public static final Set<String> NO_PREFIX_PACKAGES = ImmutableSet
+  private static final String HANDLER_CLASS_SUFFIX = "Handler";
+  private static final Set<String> NO_PREFIX_PACKAGES = ImmutableSet
     .of(ANDROID_WIDGET_PREFIX, ANDROID_VIEW_PKG, ANDROID_WEBKIT_PKG, ANDROID_APP_PKG);
 
   private final Project myProject;
   private final Map<String, ViewHandler> myHandlers = Maps.newHashMap();
-  private static final ViewHandler NONE = new ViewHandler();
+  public static final ViewHandler NONE = new ViewHandler();
   private static final ViewHandler STANDARD_HANDLER = new ViewHandler();
   private static final ViewHandler TEXT_HANDLER = new TextViewHandler();
   private static final ViewHandler NO_PREVIEW_HANDLER = new NoPreviewHandler();
 
   @NonNull
   public static ViewHandlerManager get(@NonNull Project project) {
-    return project.getComponent(ViewHandlerManager.class);
+    ViewHandlerManager manager = project.getComponent(ViewHandlerManager.class);
+    assert manager != null;
+
+    return manager;
   }
 
   /**

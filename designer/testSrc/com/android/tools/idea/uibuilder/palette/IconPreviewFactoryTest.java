@@ -16,7 +16,7 @@
 package com.android.tools.idea.uibuilder.palette;
 
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.uibuilder.palette.NlPaletteModel.ResourceType;
+import com.android.tools.idea.uibuilder.model.ResourceType;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;

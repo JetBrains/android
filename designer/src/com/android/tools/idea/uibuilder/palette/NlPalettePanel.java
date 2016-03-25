@@ -30,7 +30,7 @@ import com.android.tools.idea.uibuilder.editor.NlPreviewForm;
 import com.android.tools.idea.uibuilder.model.DnDTransferComponent;
 import com.android.tools.idea.uibuilder.model.DnDTransferItem;
 import com.android.tools.idea.uibuilder.model.ItemTransferable;
-import com.android.tools.idea.uibuilder.palette.NlPaletteModel.ResourceType;
+import com.android.tools.idea.uibuilder.model.ResourceType;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.Lists;
 import com.intellij.designer.DesignerEditorPanelFacade;
@@ -70,8 +70,6 @@ import com.intellij.util.IJSwingUtilities;
 import com.intellij.util.ui.JBImageIcon;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.tree.TreeUtil;
-import org.jetbrains.android.dom.layout.LayoutDomFileDescription;
-import org.jetbrains.android.dom.menu.MenuDomFileDescription;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
@@ -139,15 +137,7 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent, Co
       throw new IllegalStateException(myDesigner.toString());
     }
 
-    if (LayoutDomFileDescription.isLayoutFile(file)) {
-      return ResourceType.LAYOUT;
-    }
-    else if (MenuDomFileDescription.isMenuFile(file)) {
-      return ResourceType.MENU;
-    }
-    else {
-      throw new AssertionError(file);
-    }
+    return ResourceType.valueOf(file);
   }
 
   @NonNull

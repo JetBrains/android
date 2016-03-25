@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.palette;
 import com.android.annotations.NonNull;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
+import com.android.tools.idea.uibuilder.model.ResourceType;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
@@ -25,20 +26,9 @@ import com.intellij.openapi.util.io.FileUtil;
 import javax.xml.bind.JAXBException;
 import java.io.*;
 import java.util.EnumMap;
-import java.util.Locale;
 import java.util.Map;
 
 public class NlPaletteModel {
-  enum ResourceType {
-    LAYOUT,
-    MENU;
-
-    @NonNull
-    final String getPaletteFileName() {
-      return toString().toLowerCase(Locale.ROOT) + "_palette.xml";
-    }
-  }
-
   public static final String ANDROID_PALETTE = "android-palette";
   public static final String PALETTE_VERSION = "v1";
 
