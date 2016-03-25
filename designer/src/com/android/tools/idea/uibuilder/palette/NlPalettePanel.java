@@ -372,7 +372,7 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent, Co
     myTree.setRootVisible(false);
     myTree.setShowsRootHandles(false);
     myTree.setBorder(new EmptyBorder(INSETS));
-    myTree.setToggleClickCount(1);
+    myTree.setToggleClickCount(2);
     ToolTipManager.sharedInstance().registerComponent(myTree);
     TreeUtil.installActions(myTree);
     createCellRenderer(myTree);
