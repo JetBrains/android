@@ -106,7 +106,7 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
   @NotNull private final Wrapper myDetails = new Wrapper();
   @NotNull private final UiState myUiState;
 
-  @NotNull private final DefaultSdksConfigurable mySdksConfigurable;
+  @NotNull private final IdeSdksConfigurable mySdksConfigurable;
   @NotNull private final List<Configurable> myConfigurables = Lists.newLinkedList();
 
   private final GradleSettingsFile mySettingsFile;
@@ -214,7 +214,7 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
   public AndroidProjectStructureConfigurable(@NotNull Project project) {
     myProject = project;
     myUiState = new UiState(project);
-    mySdksConfigurable = new DefaultSdksConfigurable(this, project);
+    mySdksConfigurable = new IdeSdksConfigurable(this, project);
 
     myConfigurables.add(mySdksConfigurable);
     if (!project.isDefault()) {
