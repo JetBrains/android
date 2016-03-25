@@ -31,13 +31,11 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
-import static com.intellij.openapi.util.SystemInfo.isMac;
+import static com.android.tools.idea.gradle.structure.configurables.android.dependencies.UiUtil.isMetaOrCtrlKeyPressed;
 import static com.intellij.ui.SimpleTextAttributes.LINK_ATTRIBUTES;
-import static com.intellij.util.BitUtil.isSet;
 import static java.awt.Cursor.*;
-import static java.awt.Event.CTRL_MASK;
-import static java.awt.Event.META_MASK;
-import static java.awt.event.KeyEvent.*;
+import static java.awt.event.KeyEvent.KEY_PRESSED;
+import static java.awt.event.KeyEvent.KEY_RELEASED;
 import static javax.swing.SwingUtilities.convertPointFromScreen;
 
 public class NodeHyperlinkSupport<T extends SimpleNode> implements Disposable {
@@ -68,7 +66,7 @@ public class NodeHyperlinkSupport<T extends SimpleNode> implements Disposable {
       @Override
       public void mouseMoved(MouseEvent e) {
         Cursor cursor = getDefaultCursor();
-        T node = getIfHyperlink(e.getModifiers(), e.getX(), e.getY());
+        T node = getIfHyperlink(e);
         if (node != null) {
           cursor = getPredefinedCursor(HAND_CURSOR);
         }
@@ -85,7 +83,7 @@ public class NodeHyperlinkSupport<T extends SimpleNode> implements Disposable {
         T node = null;
         if (e.getID() == KEY_PRESSED) {
           Cursor cursor = getDefaultCursor();
-          if (isControlOrMetaKey(e)) {
+          if (isMetaOrCtrlKeyPressed(e)) {
             node = getNodeUnderMousePointer();
             if (node != null) {
               cursor = getPredefinedCursor(HAND_CURSOR);
@@ -95,20 +93,12 @@ public class NodeHyperlinkSupport<T extends SimpleNode> implements Disposable {
           myTree.setCursor(cursor);
         }
         else if (e.getID() == KEY_RELEASED) {
-          if (isControlOrMetaKey(e)) {
+          if (isMetaOrCtrlKeyPressed(e)) {
             setHoveredNode(null);
           }
           myTree.setCursor(getDefaultCursor());
         }
         return false;
-      }
-
-      private boolean isControlOrMetaKey(@NotNull KeyEvent e) {
-        int keyCode = e.getKeyCode();
-        if (isMac) {
-          return keyCode == VK_META;
-        }
-        return keyCode == VK_CONTROL;
       }
     };
 
@@ -125,16 +115,9 @@ public class NodeHyperlinkSupport<T extends SimpleNode> implements Disposable {
   }
 
   @Nullable
-  public T getIfHyperlink(int modifiers, int x, int y) {
-    boolean isControlOrMetaKey;
-    if (isMac) {
-      isControlOrMetaKey = isSet(modifiers, META_MASK);
-    }
-    else {
-      isControlOrMetaKey = isSet(modifiers, CTRL_MASK);
-    }
-    if (isControlOrMetaKey) {
-      return getNodeForLocation(x, y);
+  public T getIfHyperlink(@NotNull MouseEvent e) {
+    if (isMetaOrCtrlKeyPressed(e)) {
+      return getNodeForLocation(e.getX(), e.getY());
     }
     return null;
   }
