@@ -93,7 +93,7 @@ public class PsVariant extends PsChildModel implements PsAndroidModel {
   }
 
   @Override
-  public boolean isEditable() {
+  public boolean isDeclared() {
     return false;
   }
 

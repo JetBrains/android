@@ -136,7 +136,7 @@ public class PsLibraryDependency extends PsAndroidDependency {
           PsAndroidModule androidModule = (PsAndroidModule)foundModule;
 
           PsLibraryDependency libraryDependency = androidModule.findLibraryDependency(myResolvedSpec);
-          if (libraryDependency != null && libraryDependency.isEditable()) {
+          if (libraryDependency != null && libraryDependency.isDeclared()) {
             found.add(androidModule.getName());
           }
 

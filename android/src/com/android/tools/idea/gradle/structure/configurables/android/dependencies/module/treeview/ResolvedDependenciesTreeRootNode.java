@@ -276,7 +276,7 @@ class ResolvedDependenciesTreeRootNode extends AbstractRootNode<PsAndroidModule>
     module.forEachDependency(new Predicate<PsAndroidDependency>() {
       @Override
       public boolean apply(@Nullable PsAndroidDependency dependency) {
-        if (dependency == null || !dependency.isEditable()) {
+        if (dependency == null || !dependency.isDeclared()) {
           return false; // Only show "declared" dependencies as top-level dependencies.
         }
         for (PsDependencyContainer container : dependency.getContainers()) {
