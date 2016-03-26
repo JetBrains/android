@@ -154,7 +154,7 @@ public class NewModuleWizardState extends TemplateWizardState {
 
   public void putSdkDependentParams() {
     final AndroidSdkHandler sdkHandler = AndroidSdkUtils.tryToChooseSdkHandler();
-    BuildToolInfo buildTool = sdkHandler.getLatestBuildTool(new StudioLoggerProgressIndicator(getClass()));
+    BuildToolInfo buildTool = sdkHandler.getLatestBuildTool(new StudioLoggerProgressIndicator(getClass()), false);
     if (buildTool != null) {
       // If buildTool is null, the template will use buildApi instead, which might be good enough.
       put(ATTR_BUILD_TOOLS_VERSION, buildTool.getRevision().toString());
