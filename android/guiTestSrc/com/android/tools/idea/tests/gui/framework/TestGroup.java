@@ -21,4 +21,5 @@ public enum TestGroup {
   LAYOUT,
   TEST_SUPPORT,
   THEME,
+  EDITING,
 }
