@@ -16,6 +16,7 @@
 package com.android.tools.idea.rendering;
 
 import com.android.ide.common.rendering.LayoutLibrary;
+import com.android.ide.common.rendering.RenderSecurityManager;
 import com.android.ide.common.rendering.api.*;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
@@ -265,22 +266,28 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   @Nullable
   @Override
   public XmlPullParser getXmlFileParser(String fileName) {
-    VirtualFile virtualFile = LocalFileSystem.getInstance().findFileByPath(fileName);
-    if (virtualFile != null) {
-      PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(myModule.getProject(), virtualFile);
-      if (psiFile != null) {
-        try {
-          XmlPullParser parser = getParserFactory().createParser(fileName);
-          parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, true);
-          parser.setInput(new StringReader(psiFile.getText()));
-          return parser;
-        }
-        catch (XmlPullParserException e) {
-          LOG.warn("Could not create parser for " + fileName);
+    boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
+    try {
+      VirtualFile virtualFile = LocalFileSystem.getInstance().findFileByPath(fileName);
+      if (virtualFile != null) {
+        PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(myModule.getProject(), virtualFile);
+        if (psiFile != null) {
+          try {
+            XmlPullParser parser = getParserFactory().createParser(fileName);
+            parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, true);
+            parser.setInput(new StringReader(psiFile.getText()));
+            return parser;
+          }
+          catch (XmlPullParserException e) {
+            LOG.warn("Could not create parser for " + fileName);
+          }
         }
       }
+      return null;
     }
-    return null;
+    finally {
+      RenderSecurityManager.exitSafeRegion(token);
+    }
   }
 
   public void setLayoutParser(@Nullable String layoutName, @Nullable ILayoutPullParser layoutParser) {
