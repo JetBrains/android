@@ -38,8 +38,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+@RunIn(TestGroup.EDITING)
 @RunWith(GuiTestRunner.class)
-@RunIn(TestGroup.LAYOUT)
 public class CreateNewClassDialogGuiTest {
   private static final String PROVIDED_ACTIVITY = "app/src/main/java/google/simpleapplication/MyActivity.java";
   private static final String THING_NAME = "TestThing";
