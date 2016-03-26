@@ -17,6 +17,8 @@ package com.android.tools.idea.tests.gui.editing;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import junit.framework.Assert;
 import org.junit.Rule;
@@ -25,6 +27,7 @@ import org.junit.runner.RunWith;
 
 import java.io.IOException;
 
+@RunIn(TestGroup.EDITING)
 @RunWith(GuiTestRunner.class)
 public class AttributeValueTest {
 
