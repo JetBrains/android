@@ -18,10 +18,7 @@ package com.android.tools.idea.gradle.structure.configurables.android.dependenci
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.project.treeview.TargetAndroidModuleNode;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.project.treeview.TargetModelsTreeBuilder;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractBaseCollapseAllAction;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractBaseExpandAllAction;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.GoToModuleAction;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.NodeHyperlinkSupport;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.*;
 import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowPanel;
 import com.android.tools.idea.gradle.structure.model.PsProject;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
@@ -126,8 +123,8 @@ class TargetModulesPanel extends ToolWindowPanel {
     }
   }
 
-  void displayTargetModules(@NotNull List<? extends PsAndroidDependency> dependencies) {
-    myTreeBuilder.displayTargetModules(dependencies);
+  void displayTargetModules(@NotNull List<AbstractDependencyNode<? extends PsAndroidDependency>> dependencyNodes) {
+    myTreeBuilder.displayTargetModules(dependencyNodes);
   }
 
   @Override
