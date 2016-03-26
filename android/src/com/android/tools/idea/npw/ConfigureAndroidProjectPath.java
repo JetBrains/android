@@ -96,7 +96,7 @@ public class ConfigureAndroidProjectPath extends DynamicWizardPath {
    */
   public static void putSdkDependentParams(@NotNull ScopedStateStore state) {
     final AndroidSdkHandler sdkHandler = AndroidSdkUtils.tryToChooseSdkHandler();
-    BuildToolInfo buildTool = sdkHandler.getLatestBuildTool(new StudioLoggerProgressIndicator(ConfigureAndroidProjectPath.class));
+    BuildToolInfo buildTool = sdkHandler.getLatestBuildTool(new StudioLoggerProgressIndicator(ConfigureAndroidProjectPath.class), false);
     Revision minimumRequiredBuildToolVersion = Revision.parseRevision(SdkConstants.MIN_BUILD_TOOLS_VERSION);
     if (buildTool != null && buildTool.getRevision().compareTo(minimumRequiredBuildToolVersion) >= 0) {
       state.put(WizardConstants.BUILD_TOOLS_VERSION_KEY, buildTool.getRevision().toString());
