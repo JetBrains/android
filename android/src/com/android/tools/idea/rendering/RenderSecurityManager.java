@@ -19,8 +19,6 @@ import com.android.annotations.Nullable;
 import com.android.ide.common.rendering.RenderSecurityException;
 import com.android.tools.idea.rendering.webp.NativeLibHelper;
 import com.android.utils.ILogger;
-import com.intellij.openapi.application.PathManager;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.FileDescriptor;
@@ -93,13 +91,9 @@ public class RenderSecurityManager extends SecurityManager {
   private boolean mDisabled;
   @SuppressWarnings("FieldCanBeLocal") private String mSdkPath;
   @SuppressWarnings("FieldCanBeLocal") private String mProjectPath;
-  private final String mTempDir;
-  private final String mNormalizedTempDir;
+  private String mTempDir;
+  private String mNormalizedTempDir;
   private String mCanonicalTempDir;
-  /** IDE's cache path. **/
-  private final String mySystemDir;
-  private final String myNormalizedSystemDir;
-  private String myCanonicalSystemDir;
   private String mAppTempDir;
   private SecurityManager myPreviousSecurityManager;
   private ILogger mLogger;
@@ -143,9 +137,7 @@ public class RenderSecurityManager extends SecurityManager {
     mSdkPath = sdkPath;
     mProjectPath = projectPath;
     mTempDir = System.getProperty("java.io.tmpdir");
-    mySystemDir = PathManager.getSystemPath();
     mNormalizedTempDir = new File(mTempDir).getPath(); // will call fs.normalize() on the path
-    myNormalizedSystemDir = new File(mySystemDir).getPath();
     //noinspection AssignmentToStaticFieldFromInstanceMethod
     sLastFailedPath = null;
   }
@@ -394,10 +386,7 @@ public class RenderSecurityManager extends SecurityManager {
   }
 
   private boolean isTempDirPath(String path) {
-    if (path.startsWith(mTempDir) ||
-        path.startsWith(mNormalizedTempDir) ||
-        path.startsWith(mySystemDir) ||
-        path.startsWith(myNormalizedSystemDir)) {
+    if (path.startsWith(mTempDir) || path.startsWith(mNormalizedTempDir)) {
       return true;
     }
 
@@ -407,13 +396,11 @@ public class RenderSecurityManager extends SecurityManager {
 
     // Work around weird temp directories
     try {
-      String canonicalDir = getCanonicalTempDir();
-      String canonicalFile;
-      if (path.startsWith(canonicalDir) || (canonicalFile = new File(path).getCanonicalPath()).startsWith(canonicalDir)) {
-        return true;
+      if (mCanonicalTempDir == null) {
+        mCanonicalTempDir = new File(mNormalizedTempDir).getCanonicalPath();
       }
-      canonicalDir = getCanonicalSystemDir();
-      if (path.startsWith(canonicalDir) || canonicalFile.startsWith(canonicalDir)) {
+
+      if (path.startsWith(mCanonicalTempDir) || new File(path).getCanonicalPath().startsWith(mCanonicalTempDir)) {
         return true;
       }
     }
@@ -425,34 +412,6 @@ public class RenderSecurityManager extends SecurityManager {
     sLastFailedPath = path;
 
     return false;
-  }
-
-  @NotNull
-  private String getCanonicalTempDir() {
-    if (mCanonicalTempDir == null) {
-      try {
-        mCanonicalTempDir = new File(mNormalizedTempDir).getCanonicalPath();
-      }
-      catch (IOException e) {
-        // ignore the error and use normalized temp dir
-        mCanonicalTempDir = new File(mNormalizedTempDir).getAbsolutePath();
-      }
-    }
-    return mCanonicalTempDir;
-  }
-
-  @NotNull
-  private String getCanonicalSystemDir() {
-    if (myCanonicalSystemDir == null) {
-      try {
-        myCanonicalSystemDir = new File(myNormalizedSystemDir).getCanonicalPath();
-      }
-      catch (IOException e) {
-        // ignore the error and use normalized system dir
-        myCanonicalSystemDir = new File(myNormalizedSystemDir).getAbsolutePath();
-      }
-    }
-    return myCanonicalSystemDir;
   }
 
   @SuppressWarnings({"SpellCheckingInspection", "RedundantIfStatement"})
