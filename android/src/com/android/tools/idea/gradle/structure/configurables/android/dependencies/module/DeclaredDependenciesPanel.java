@@ -34,6 +34,7 @@ import com.intellij.openapi.util.ActionCallback;
 import com.intellij.ui.navigation.History;
 import com.intellij.ui.navigation.Place;
 import com.intellij.ui.table.TableView;
+import com.intellij.util.EventDispatcher;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,6 +47,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EventListener;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.structure.configurables.android.dependencies.UiUtil.isMetaOrCtrlKeyPressed;
@@ -70,7 +72,7 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel implem
   @NotNull private final ListSelectionListener myTableSelectionListener;
   @NotNull private final String myPlaceName;
 
-  @NotNull private final List<SelectionListener> mySelectionListeners = Lists.newCopyOnWriteArrayList();
+  @NotNull private final EventDispatcher<SelectionListener> myEventDispatcher = EventDispatcher.create(SelectionListener.class);
 
   private KeyEventDispatcher myKeyEventDispatcher;
 
@@ -112,9 +114,7 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel implem
       public void valueChanged(ListSelectionEvent e) {
         PsAndroidDependency selected = getSelection();
         if (selected != null) {
-          for (SelectionListener listener : mySelectionListeners) {
-            listener.dependencySelected(selected);
-          }
+          myEventDispatcher.getMulticaster().dependencySelected(selected);
         }
         updateDetails();
       }
@@ -229,18 +229,13 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel implem
 
   @Override
   public void dispose() {
-    mySelectionListeners.clear();
     if (myKeyEventDispatcher != null) {
       KeyboardFocusManager.getCurrentKeyboardFocusManager().removeKeyEventDispatcher(myKeyEventDispatcher);
     }
   }
 
   void add(@NotNull SelectionListener listener) {
-    PsAndroidDependency selected = getSelection();
-    if (selected != null) {
-      listener.dependencySelected(selected);
-    }
-    mySelectionListeners.add(listener);
+    myEventDispatcher.addListener(listener, this);
   }
 
   @Override
@@ -321,7 +316,7 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel implem
     place.putPath(myPlaceName, dependency);
   }
 
-  public interface SelectionListener {
+  public interface SelectionListener extends EventListener {
     void dependencySelected(@NotNull PsAndroidDependency dependency);
   }
 
