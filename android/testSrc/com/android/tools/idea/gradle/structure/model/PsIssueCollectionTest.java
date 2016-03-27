@@ -18,32 +18,38 @@ package com.android.tools.idea.gradle.structure.model;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.List;
+
 import static com.android.tools.idea.gradle.structure.model.PsIssue.Type.WARNING;
+import static com.android.tools.idea.gradle.structure.navigation.PsNavigationPath.EMPTY_PATH;
 import static org.junit.Assert.assertEquals;
 
 /**
- * Tests for {@link PsIssues}.
+ * Tests for {@link PsIssueCollection}.
  */
-public class PsIssuesTest {
-  private PsIssues myIssues;
+public class PsIssueCollectionTest {
+  private PsIssueCollection myIssueCollection;
 
   @Before
   public void setUp() {
-    myIssues = new PsIssues();
+    myIssueCollection = new PsIssueCollection();
   }
 
   @Test
   public void testGetTooltipText() {
     for (int i = 0; i < 5; i++) {
-      myIssues.addIssue(new PsIssue("Issue " + (i + 1), WARNING));
+      myIssueCollection.add(new PsIssue("Issue " + (i + 1), EMPTY_PATH, WARNING));
     }
-    assertEquals("<html><body>Issue 1<br>Issue 2<br>Issue 3<br>Issue 4<br>Issue 5<br></body></html>", myIssues.getTooltipText());
+    List<PsIssue> issues = myIssueCollection.getIssues();
+    String expected = "<html><body>Issue 1<br>Issue 2<br>Issue 3<br>Issue 4<br>Issue 5<br></body></html>";
+    assertEquals(expected, PsIssueCollection.getTooltipText(issues));
 
     for (int i = 5; i < 20; i++) {
-      myIssues.addIssue(new PsIssue("Issue " + (i + 1), WARNING));
+      myIssueCollection.add(new PsIssue("Issue " + (i + 1), EMPTY_PATH, WARNING));
     }
-
-    assertEquals("<html><body>Issue 1<br>Issue 2<br>Issue 3<br>Issue 4<br>Issue 5<br>Issue 6<br>Issue 7<br>Issue 8<br>Issue 9<br>" +
-                 "Issue 10<br>Issue 11<br>9 more problems...<br></body></html>", myIssues.getTooltipText());
+    issues = myIssueCollection.getIssues();
+    expected = "<html><body>Issue 1<br>Issue 2<br>Issue 3<br>Issue 4<br>Issue 5<br>Issue 6<br>Issue 7<br>Issue 8<br>Issue 9<br>" +
+               "Issue 10<br>Issue 11<br>9 more problems...<br></body></html>";
+    assertEquals(expected, PsIssueCollection.getTooltipText(issues));
   }
 }

@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.structure.configurables.android.dependenci
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.details.DependencyDetails;
-import com.android.tools.idea.gradle.structure.model.PsProject;
+import com.android.tools.idea.gradle.structure.configurables.ui.EmptyPanel;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.android.tools.idea.structure.dialog.Header;
@@ -26,15 +26,15 @@ import com.google.common.collect.Maps;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.project.DumbAwareAction;
+import com.intellij.openapi.ui.OnePixelDivider;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.ui.popup.PopupStep;
 import com.intellij.openapi.ui.popup.util.BaseListPopupStep;
 import com.intellij.ui.IdeBorderFactory;
-import com.intellij.ui.OnePixelSplitter;
+import com.intellij.ui.JBSplitter;
 import com.intellij.ui.SideBorder;
 import com.intellij.ui.awt.RelativePoint;
-import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.navigation.History;
 import com.intellij.ui.navigation.Place;
 import com.intellij.util.IconUtil;
@@ -52,13 +52,12 @@ import java.util.Map;
 import static com.intellij.ui.IdeBorderFactory.createEmptyBorder;
 import static com.intellij.ui.ScrollPaneFactory.createScrollPane;
 import static com.intellij.util.PlatformIcons.LIBRARY_ICON;
-import static com.intellij.util.ui.UIUtil.getInactiveTextColor;
 
 public abstract class AbstractDeclaredDependenciesPanel extends JPanel implements Place.Navigator, Disposable {
   @NotNull private final PsContext myContext;
-  @NotNull private final PsProject myProject;
-  @NotNull private final EmptyDetailsPanel myEmptyDetailsPanel;
-  @NotNull private final JScrollPane myDetailsScrollPane;
+  @NotNull private final EmptyPanel myEmptyDetailsPanel;
+  @NotNull private final DependencyInfoPanel myInfoPanel;
+  @NotNull private final JScrollPane myInfoScrollPane;
   @NotNull private final JPanel myContentsPanel;
   @NotNull private final String myEmptyText;
 
@@ -70,30 +69,29 @@ public abstract class AbstractDeclaredDependenciesPanel extends JPanel implement
   private DependencyDetails myCurrentDependencyDetails;
   private History myHistory;
 
-  protected AbstractDeclaredDependenciesPanel(@NotNull String title,
-                                              @NotNull PsContext context,
-                                              @NotNull PsProject project,
-                                              @Nullable PsAndroidModule module) {
+  protected AbstractDeclaredDependenciesPanel(@NotNull String title, @NotNull PsContext context, @Nullable PsAndroidModule module) {
     super(new BorderLayout());
     myContext = context;
-    myProject = project;
     myModule = module;
 
     myEmptyText = String.format("Please select a dependency from the '%1$s' view", title);
 
-    myEmptyDetailsPanel = new EmptyDetailsPanel(myEmptyText);
-    myDetailsScrollPane = createScrollPane(myEmptyDetailsPanel);
-    myDetailsScrollPane.setBorder(createEmptyBorder());
+    myEmptyDetailsPanel = new EmptyPanel(myEmptyText);
+    myInfoPanel = new DependencyInfoPanel();
+
+    myInfoScrollPane = createScrollPane(myEmptyDetailsPanel);
+    myInfoScrollPane.setBorder(createEmptyBorder());
 
     Header header = new Header(title);
     add(header, BorderLayout.NORTH);
 
-    OnePixelSplitter splitter = new OnePixelSplitter(true, "psd.editable.dependencies.main.horizontal.splitter.proportion", 0.75f);
+    JBSplitter splitter = new JBSplitter(true, "psd.editable.dependencies.main.horizontal.splitter.proportion", 0.55f);
 
     myContentsPanel = new JPanel(new BorderLayout());
+    myContentsPanel.setBorder(new SideBorder(OnePixelDivider.BACKGROUND, SideBorder.BOTTOM));
 
     splitter.setFirstComponent(myContentsPanel);
-    splitter.setSecondComponent(myDetailsScrollPane);
+    splitter.setSecondComponent(myInfoScrollPane);
 
     add(splitter, BorderLayout.CENTER);
   }
@@ -102,18 +100,23 @@ public abstract class AbstractDeclaredDependenciesPanel extends JPanel implement
     myDependencyDetails.put(details.getSupportedModelType(), details);
   }
 
+  protected void setIssuesViewer(@NotNull JComponent issuesViewer) {
+    myInfoPanel.setIssuesViewer(issuesViewer);
+  }
+
   protected void updateDetails(@Nullable PsAndroidDependency selected) {
     if (selected != null) {
       myCurrentDependencyDetails = myDependencyDetails.get(selected.getClass());
       if (myCurrentDependencyDetails != null) {
-        myDetailsScrollPane.setViewportView(myCurrentDependencyDetails.getPanel());
+        myInfoPanel.setDetailsViewer(myCurrentDependencyDetails);
+        myInfoScrollPane.setViewportView(myInfoPanel.getPanel());
         //noinspection unchecked
         myCurrentDependencyDetails.display(selected);
         return;
       }
     }
     myCurrentDependencyDetails = null;
-    myDetailsScrollPane.setViewportView(myEmptyDetailsPanel);
+    myInfoScrollPane.setViewportView(myEmptyDetailsPanel);
   }
 
   @Nullable
@@ -224,7 +227,7 @@ public abstract class AbstractDeclaredDependenciesPanel extends JPanel implement
     void execute() {
       AddArtifactDependencyDialog dialog;
       if (myModule == null) {
-        dialog = new AddArtifactDependencyDialog(myProject);
+        dialog = new AddArtifactDependencyDialog(myContext.getProject());
       }
       else {
         dialog = new AddArtifactDependencyDialog(myModule);
@@ -251,15 +254,5 @@ public abstract class AbstractDeclaredDependenciesPanel extends JPanel implement
     }
 
     abstract void execute();
-  }
-
-  private static class EmptyDetailsPanel extends JPanel {
-    EmptyDetailsPanel(@NotNull String text) {
-      super(new BorderLayout());
-      JBLabel emptyText = new JBLabel(text);
-      emptyText.setForeground(getInactiveTextColor());
-      emptyText.setHorizontalAlignment(SwingConstants.CENTER);
-      add(emptyText, BorderLayout.CENTER);
-    }
   }
 }

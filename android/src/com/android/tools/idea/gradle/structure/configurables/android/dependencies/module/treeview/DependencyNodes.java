@@ -19,7 +19,7 @@ import com.android.tools.idea.gradle.dsl.model.dependencies.DependencyModel;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.PsAndroidDependencyComparator;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractDependencyNode;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AndroidArtifactNode;
-import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsdNode;
+import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsModelNode;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidArtifact;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsLibraryDependency;
@@ -40,9 +40,9 @@ final class DependencyNodes {
   }
 
   @NotNull
-  static List<AbstractPsdNode<?>> createNodesFor(@NotNull AndroidArtifactNode parent,
-                                                 @NotNull Collection<PsAndroidDependency> dependencies) {
-    List<AbstractPsdNode<?>> children = Lists.newArrayList();
+  static List<AbstractPsModelNode<?>> createNodesFor(@NotNull AndroidArtifactNode parent,
+                                                     @NotNull Collection<PsAndroidDependency> dependencies) {
+    List<AbstractPsModelNode<?>> children = Lists.newArrayList();
 
     List<PsAndroidDependency> declared = new SortedList<PsAndroidDependency>(PsAndroidDependencyComparator.INSTANCE);
     Multimap<PsAndroidDependency, PsAndroidDependency> allTransitive = HashMultimap.create();

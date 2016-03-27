@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.project.treeview;
 
-import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsdNode;
+import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsModelNode;
 import com.android.tools.idea.gradle.structure.model.PsProject;
 import com.intellij.ui.treeStructure.SimpleNode;
 import org.jetbrains.annotations.NotNull;
@@ -23,7 +23,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Collections;
 import java.util.List;
 
-class TargetModelsTreeRootNode extends AbstractPsdNode<PsProject> {
+class TargetModelsTreeRootNode extends AbstractPsModelNode<PsProject> {
   @NotNull private List<TargetAndroidModuleNode> myChildren = Collections.emptyList();
 
   TargetModelsTreeRootNode(@NotNull PsProject project) {

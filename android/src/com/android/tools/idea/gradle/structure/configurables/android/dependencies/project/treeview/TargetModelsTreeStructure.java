@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.project.treeview;
 
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractBaseTreeStructure;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractDependencyNode;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AndroidArtifactNode;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.SimpleNodeComparator;
+import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractBaseTreeStructure;
+import com.android.tools.idea.gradle.structure.configurables.ui.treeview.SimpleNodeComparator;
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsParsedDependencies;
 import com.android.tools.idea.gradle.structure.model.PsProject;
@@ -38,7 +38,6 @@ import java.util.*;
 import static com.android.builder.model.AndroidProject.ARTIFACT_MAIN;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
-import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 
 public class TargetModelsTreeStructure extends AbstractBaseTreeStructure {
   @NotNull private final TargetModelsTreeRootNode myRootNode;
@@ -206,14 +205,5 @@ public class TargetModelsTreeStructure extends AbstractBaseTreeStructure {
       }
     }
     return null;
-  }
-
-  @Override
-  public void commit() {
-  }
-
-  @Override
-  public boolean hasSomethingToCommit() {
-    return false;
   }
 }

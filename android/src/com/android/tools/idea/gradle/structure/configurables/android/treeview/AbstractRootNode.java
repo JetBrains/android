@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.treeview;
 
-import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsdNode;
+import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsModelNode;
 import com.android.tools.idea.gradle.structure.model.PsModel;
 import com.google.common.collect.Lists;
 import com.intellij.ui.treeStructure.SimpleNode;
@@ -23,7 +23,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-public abstract class AbstractRootNode<T extends PsModel> extends AbstractPsdNode<T> {
+public abstract class AbstractRootNode<T extends PsModel> extends AbstractPsModelNode<T> {
   private List<SimpleNode> myChildren;
 
   public AbstractRootNode(@NotNull T model) {
@@ -45,5 +45,5 @@ public abstract class AbstractRootNode<T extends PsModel> extends AbstractPsdNod
   }
 
   @NotNull
-  protected abstract List<? extends AbstractPsdNode> createChildren();
+  protected abstract List<? extends AbstractPsModelNode> createChildren();
 }

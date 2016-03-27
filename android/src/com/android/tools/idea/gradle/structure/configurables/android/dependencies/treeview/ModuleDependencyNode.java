@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview;
 
-import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsdNode;
+import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsModelNode;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.PsProject;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
@@ -32,14 +32,14 @@ import java.util.List;
 import static com.android.builder.model.AndroidProject.ARTIFACT_MAIN;
 
 public class ModuleDependencyNode extends AbstractDependencyNode<PsModuleDependency> {
-  private final List<AbstractPsdNode<?>> myChildren = Lists.newArrayList();
+  private final List<AbstractPsModelNode<?>> myChildren = Lists.newArrayList();
 
-  public ModuleDependencyNode(@NotNull AbstractPsdNode parent, @NotNull final PsModuleDependency dependency) {
+  public ModuleDependencyNode(@NotNull AbstractPsModelNode parent, @NotNull final PsModuleDependency dependency) {
     super(parent, dependency);
     setUp(dependency);
   }
 
-  public ModuleDependencyNode(@NotNull AbstractPsdNode parent, @NotNull List<PsModuleDependency> dependencies) {
+  public ModuleDependencyNode(@NotNull AbstractPsModelNode parent, @NotNull List<PsModuleDependency> dependencies) {
     super(parent, dependencies);
     setUp(dependencies.get(0));
   }
@@ -64,7 +64,7 @@ public class ModuleDependencyNode extends AbstractDependencyNode<PsModuleDepende
             return false; // Only show the dependencies in the main artifact.
           }
 
-          AbstractPsdNode<?> child = AbstractDependencyNode.createNode(ModuleDependencyNode.this, dependency);
+          AbstractPsModelNode<?> child = AbstractDependencyNode.createNode(ModuleDependencyNode.this, dependency);
           if (child != null) {
             myChildren.add(child);
             return true;

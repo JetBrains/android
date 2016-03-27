@@ -20,7 +20,7 @@ import com.android.tools.idea.gradle.structure.configurables.android.dependencie
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.LibraryDependencyNode;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.ModuleDependencyNode;
 import com.android.tools.idea.gradle.structure.configurables.android.treeview.AbstractRootNode;
-import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsdNode;
+import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsModelNode;
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.PsProject;
@@ -46,7 +46,7 @@ class DeclaredDependenciesTreeRootNode extends AbstractRootNode<PsProject> {
 
   @Override
   @NotNull
-  protected List<? extends AbstractPsdNode> createChildren() {
+  protected List<? extends AbstractPsModelNode> createChildren() {
     final DeclaredDependencyCollector collector = new DeclaredDependencyCollector();
 
     PsProject project = getModels().get(0);

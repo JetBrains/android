@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.treeview;
 
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractBaseTreeStructure;
+import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractBaseTreeStructure;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import org.jetbrains.annotations.NotNull;
 
@@ -33,14 +33,5 @@ class ResolvedDependenciesTreeStructure extends AbstractBaseTreeStructure {
 
   boolean settingsChanged() {
     return myRootNode.settingsChanged();
-  }
-
-  @Override
-  public void commit() {
-  }
-
-  @Override
-  public boolean hasSomethingToCommit() {
-    return false;
   }
 }

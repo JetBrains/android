@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.treeview;
 
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractBaseTreeBuilder;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractPsNodeTreeBuilder;
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
@@ -26,7 +26,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import javax.swing.tree.DefaultTreeModel;
 
-public class ResolvedDependenciesTreeBuilder extends AbstractBaseTreeBuilder {
+public class ResolvedDependenciesTreeBuilder extends AbstractPsNodeTreeBuilder {
   @NotNull private final DependencySelection myDependencySelectionSource;
   @NotNull private final DependencySelection myDependencySelectionDestination;
 

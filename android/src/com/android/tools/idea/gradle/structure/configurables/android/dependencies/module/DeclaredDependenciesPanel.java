@@ -20,20 +20,31 @@ import com.android.tools.idea.gradle.structure.configurables.android.dependencie
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.details.DependencyDetails;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.details.ModuleDependencyDetails;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.details.ModuleLibraryDependencyDetails;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.issues.module.IssuesTreeBuilder;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.treeview.DependencySelection;
+import com.android.tools.idea.gradle.structure.daemon.PsDaemonAnalyzer;
+import com.android.tools.idea.gradle.structure.model.PsIssue;
+import com.android.tools.idea.gradle.structure.model.PsModel;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
+import com.android.tools.idea.gradle.structure.model.android.PsLibraryDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsModuleDependency;
+import com.android.tools.idea.gradle.structure.navigation.PsLibraryDependencyPath;
+import com.android.tools.idea.gradle.structure.navigation.PsNavigationPath;
 import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
+import com.intellij.ide.util.treeView.NodeRenderer;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonShortcuts;
 import com.intellij.openapi.project.DumbAwareAction;
+import com.intellij.openapi.roots.ui.CellAppearanceEx;
 import com.intellij.openapi.util.ActionCallback;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.navigation.History;
 import com.intellij.ui.navigation.Place;
 import com.intellij.ui.table.TableView;
+import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.EventDispatcher;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -41,6 +52,8 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeModel;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
@@ -51,6 +64,7 @@ import java.util.EventListener;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.structure.configurables.android.dependencies.UiUtil.isMetaOrCtrlKeyPressed;
+import static com.android.tools.idea.gradle.structure.configurables.android.dependencies.UiUtil.setUp;
 import static com.intellij.ui.IdeBorderFactory.createEmptyBorder;
 import static com.intellij.ui.ScrollPaneFactory.createScrollPane;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
@@ -70,21 +84,55 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel implem
   @NotNull private final DeclaredDependenciesTableModel myDependenciesTableModel;
   @NotNull private final TableView<PsAndroidDependency> myDependenciesTable;
   @NotNull private final ListSelectionListener myTableSelectionListener;
+
+  @NotNull private final Tree myIssuesTree;
+  @NotNull private final IssuesTreeBuilder myIssuesTreeBuilder;
+
   @NotNull private final String myPlaceName;
 
   @NotNull private final EventDispatcher<SelectionListener> myEventDispatcher = EventDispatcher.create(SelectionListener.class);
 
   private KeyEventDispatcher myKeyEventDispatcher;
 
-  DeclaredDependenciesPanel(@NotNull PsAndroidModule module, @NotNull PsContext context) {
-    super("Declared Dependencies", context, module.getParent(), module);
+  DeclaredDependenciesPanel(@NotNull final PsAndroidModule module, @NotNull PsContext context) {
+    super("Declared Dependencies", context, module);
     myContext = context;
+    myContext.getDaemonAnalyzer().add(new PsDaemonAnalyzer.IssuesUpdatedListener() {
+      @Override
+      public void issuesUpdated(@NotNull PsModel model) {
+        if (model == module) {
+          // TODO Implement once updating adding/deleting/updating dependencies is implemented.
+        }
+      }
+    }, this);
+
     myPlaceName = "dependencies." + module.getName() + ".place";
 
     getContentsPanel().add(createActionsPanel(), BorderLayout.NORTH);
     initializeDependencyDetails();
 
-    myDependenciesTableModel = new DeclaredDependenciesTableModel(module);
+    DefaultTreeModel treeModel = new DefaultTreeModel(new DefaultMutableTreeNode());
+    myIssuesTree = new Tree(treeModel);
+    myIssuesTree.setCellRenderer(new NodeRenderer() {
+      @Override
+      public void customizeCellRenderer(JTree tree,
+                                        Object value,
+                                        boolean selected,
+                                        boolean expanded,
+                                        boolean leaf,
+                                        int row,
+                                        boolean hasFocus) {
+        super.customizeCellRenderer(tree, value, selected, expanded, leaf, row, hasFocus);
+        Object userObject = ((DefaultMutableTreeNode)value).getUserObject();
+        if (userObject instanceof CellAppearanceEx) {
+          ((CellAppearanceEx)userObject).customize(this);
+        }
+      }
+    });
+    myIssuesTreeBuilder = new IssuesTreeBuilder(myIssuesTree, treeModel);
+    setIssuesViewer(setUp(myIssuesTree));
+
+    myDependenciesTableModel = new DeclaredDependenciesTableModel(module, myContext);
     myDependenciesTable = new TableView<PsAndroidDependency>(myDependenciesTableModel) {
       @Override
       protected void processMouseEvent(MouseEvent e) {
@@ -107,7 +155,7 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel implem
 
     if (!myDependenciesTable.getItems().isEmpty()) {
       myDependenciesTable.changeSelection(0, 0, false, false);
-      updateDetails();
+      updateDetailsAndIssues();
     }
     myTableSelectionListener = new ListSelectionListener() {
       @Override
@@ -116,7 +164,7 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel implem
         if (selected != null) {
           myEventDispatcher.getMulticaster().dependencySelected(selected);
         }
-        updateDetails();
+        updateDetailsAndIssues();
       }
     };
     tableSelectionModel.addListSelectionListener(myTableSelectionListener);
@@ -190,7 +238,7 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel implem
   }
 
   @Nullable
-  public PsModuleDependency getDependencyForLocation(Point location) {
+  private PsModuleDependency getDependencyForLocation(Point location) {
     int column = myDependenciesTable.columnAtPoint(location);
     if (column == 0) {
       // "Dependency" column
@@ -229,6 +277,7 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel implem
 
   @Override
   public void dispose() {
+    Disposer.dispose(myIssuesTreeBuilder);
     if (myKeyEventDispatcher != null) {
       KeyboardFocusManager.getCurrentKeyboardFocusManager().removeKeyEventDispatcher(myKeyEventDispatcher);
     }
@@ -263,24 +312,38 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel implem
     else {
       myDependenciesTable.setSelection(Collections.singleton(selection));
     }
-    updateDetails();
+    updateDetailsAndIssues();
 
     // Add ListSelectionListener again, to react when user selects a table cell directly.
     tableSelectionModel.addListSelectionListener(myTableSelectionListener);
   }
 
-  private void updateDetails() {
+  private void updateDetailsAndIssues() {
     Collection<PsAndroidDependency> selection = myDependenciesTable.getSelection();
     PsAndroidDependency selected = null;
     if (selection.size() == 1) {
       selected = getFirstItem(selection);
     }
-    updateDetails(selected);
+
+    super.updateDetails(selected);
+    updateIssues(selected);
 
     History history = getHistory();
     if (history != null) {
       history.pushQueryPlace();
     }
+  }
+
+  private void updateIssues(@Nullable PsAndroidDependency selected) {
+    List<PsIssue> issues = Collections.emptyList();
+
+    if (selected instanceof PsLibraryDependency) {
+      PsLibraryDependency dependency = (PsLibraryDependency)selected;
+      PsNavigationPath path = new PsLibraryDependencyPath(dependency);
+      issues = myContext.getDaemonAnalyzer().getIssues().findIssues(path, null);
+    }
+
+    myIssuesTreeBuilder.display(issues);
   }
 
   @Override

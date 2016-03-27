@@ -15,81 +15,30 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview;
 
-import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsdNode;
+import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractBaseTreeBuilder;
+import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractBaseTreeStructure;
+import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsModelNode;
 import com.android.tools.idea.gradle.structure.model.PsModel;
 import com.google.common.collect.Lists;
-import com.intellij.ide.util.treeView.*;
+import com.intellij.ide.util.treeView.AbstractTreeUi;
+import com.intellij.ide.util.treeView.TreeVisitor;
 import com.intellij.ui.treeStructure.SimpleNode;
-import com.intellij.util.ui.tree.TreeUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.TreePath;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
-import static com.intellij.util.ui.tree.TreeUtil.collapseAll;
 
-public abstract class AbstractBaseTreeBuilder extends AbstractTreeBuilder {
-  private static final TreePath[] EMPTY_TREE_PATH = new TreePath[0];
-
-  public AbstractBaseTreeBuilder(@NotNull JTree tree,
-                                 @NotNull DefaultTreeModel treeModel,
-                                 @NotNull AbstractBaseTreeStructure treeStructure) {
-    super(tree, treeModel, treeStructure, IndexComparator.INSTANCE);
-  }
-
-  @Override
-  public boolean isToEnsureSelectionOnFocusGained() {
-    return false;
-  }
-
-  @Override
-  protected boolean isAutoExpandNode(NodeDescriptor nodeDescriptor) {
-    if (nodeDescriptor instanceof AbstractPsdNode) {
-      return ((AbstractPsdNode)nodeDescriptor).isAutoExpandNode();
-    }
-    return super.isAutoExpandNode(nodeDescriptor);
-  }
-
-  @Override
-  protected boolean isSmartExpand() {
-    return true;
-  }
-
-  public void expandAllNodes() {
-    JTree tree = getTree();
-    if (tree != null) {
-      clearSelection();
-      TreeUtil.expandAll(tree);
-      onAllNodesExpanded();
-    }
-  }
-
-  protected abstract void onAllNodesExpanded();
-
-  public void collapseAllNodes() {
-    JTree tree = getTree();
-    if (tree != null) {
-      collapseAll(tree, 1);
-      clearSelection(tree);
-    }
-  }
-
-  public void clearSelection() {
-    JTree tree = getTree();
-    if (tree != null) {
-      clearSelection(tree);
-    }
-  }
-
-  private static void clearSelection(@NotNull JTree tree) {
-    tree.setSelectionPaths(EMPTY_TREE_PATH);
+public abstract class AbstractPsNodeTreeBuilder extends AbstractBaseTreeBuilder {
+  public AbstractPsNodeTreeBuilder(@NotNull JTree tree,
+                                   @NotNull DefaultTreeModel treeModel,
+                                   @NotNull AbstractBaseTreeStructure treeStructure) {
+    super(tree, treeModel, treeStructure);
   }
 
   public void updateSelection() {
@@ -100,8 +49,8 @@ public abstract class AbstractBaseTreeBuilder extends AbstractTreeBuilder {
     Set<Object> selectedElements = getSelectedElements();
     if (selectedElements.size() == 1) {
       Object selection = getFirstItem(selectedElements);
-      if (selection instanceof AbstractPsdNode) {
-        AbstractPsdNode<?> node = (AbstractPsdNode)selection;
+      if (selection instanceof AbstractPsModelNode) {
+        AbstractPsModelNode<?> node = (AbstractPsModelNode)selection;
         List<?> models = node.getModels();
         Object model = models.get(0);
         if (model instanceof PsModel) {
@@ -111,7 +60,7 @@ public abstract class AbstractBaseTreeBuilder extends AbstractTreeBuilder {
       }
     }
     if (collector != null) {
-      collector.done(Collections.<AbstractPsdNode>emptyList());
+      collector.done(Collections.<AbstractPsModelNode>emptyList());
     }
   }
 
@@ -123,10 +72,10 @@ public abstract class AbstractBaseTreeBuilder extends AbstractTreeBuilder {
     getInitialized().doWhenDone(new Runnable() {
       @Override
       public void run() {
-        final List<AbstractPsdNode> toSelect = Lists.newArrayList();
-        accept(AbstractPsdNode.class, new TreeVisitor<AbstractPsdNode>() {
+        final List<AbstractPsModelNode> toSelect = Lists.newArrayList();
+        accept(AbstractPsModelNode.class, new TreeVisitor<AbstractPsModelNode>() {
           @Override
-          public boolean visit(@NotNull AbstractPsdNode node) {
+          public boolean visit(@NotNull AbstractPsModelNode node) {
             if (node.matches(model)) {
               toSelect.add(node);
               if (collector != null) {
@@ -145,7 +94,7 @@ public abstract class AbstractBaseTreeBuilder extends AbstractTreeBuilder {
           @Override
           public void run() {
             List<SimpleNode> toExpand = Lists.newArrayList();
-            for (AbstractPsdNode node : toSelect) {
+            for (AbstractPsModelNode node : toSelect) {
               SimpleNode parent = node.getParent();
               if (parent != null) {
                 toExpand.add(parent);
@@ -184,12 +133,12 @@ public abstract class AbstractBaseTreeBuilder extends AbstractTreeBuilder {
   }
 
   public static abstract class MatchingNodeCollector {
-    @NotNull final List<AbstractPsdNode> matchingNodes = Lists.newArrayList();
+    @NotNull final List<AbstractPsModelNode> matchingNodes = Lists.newArrayList();
 
-    void onMatchingNodeFound(@NotNull AbstractPsdNode node) {
+    void onMatchingNodeFound(@NotNull AbstractPsModelNode node) {
       matchingNodes.add(node);
     }
 
-    protected abstract void done(@NotNull List<AbstractPsdNode> matchingNodes);
+    protected abstract void done(@NotNull List<AbstractPsModelNode> matchingNodes);
   }
 }

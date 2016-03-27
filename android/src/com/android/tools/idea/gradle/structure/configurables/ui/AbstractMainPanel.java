@@ -41,9 +41,9 @@ public abstract class AbstractMainPanel extends JPanel implements Disposable, Pl
   private JComponent myModulesToolbar;
   private History myHistory;
 
-  protected AbstractMainPanel(@NotNull PsProject project, @NotNull PsContext context, @NotNull final List<PsModule> extraTopModules) {
+  protected AbstractMainPanel(@NotNull PsContext context, @NotNull final List<PsModule> extraTopModules) {
     super(new BorderLayout());
-    myProject = project;
+    myProject = context.getProject();
     myContext = context;
 
     PsUISettings settings = PsUISettings.getInstance();
@@ -69,7 +69,7 @@ public abstract class AbstractMainPanel extends JPanel implements Disposable, Pl
 
   private void createAndAddModulesAction(@NotNull List<PsModule> extraTopModules) {
     DefaultActionGroup actions = new DefaultActionGroup();
-    actions.add(new ModulesComboBoxAction(myProject, myContext, extraTopModules));
+    actions.add(new ModulesComboBoxAction(myContext, extraTopModules));
 
     AnAction restoreModuleListAction = new DumbAwareAction("Restore 'Modules' List", "", AllIcons.Actions.MoveTo2) {
       @Override
