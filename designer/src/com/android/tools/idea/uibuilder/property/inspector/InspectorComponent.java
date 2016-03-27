@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,18 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.property;
+package com.android.tools.idea.uibuilder.property.inspector;
 
-import com.android.tools.idea.uibuilder.property.ptable.PTableModel;
+import com.android.annotations.NonNull;
 
-public class NlPropertiesModel extends PTableModel {
-  private boolean myShowingExpertProperties;
+import javax.swing.*;
 
-  public boolean isShowingExpertProperties() {
-    return myShowingExpertProperties;
-  }
-
-  public void setShowExpertProperties(boolean en) {
-    myShowingExpertProperties = en;
-  }
+public interface InspectorComponent {
+  void attachToInspector(@NonNull JPanel inspector);
+  void refresh();
 }

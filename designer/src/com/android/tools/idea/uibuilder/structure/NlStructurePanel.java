@@ -17,9 +17,10 @@ package com.android.tools.idea.uibuilder.structure;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
-import com.android.tools.idea.uibuilder.property.NlPropertiesPanel;
+import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.intellij.designer.LightToolWindowContent;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.ui.ScrollPaneFactory;
 
@@ -31,22 +32,22 @@ import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 
 public class NlStructurePanel extends JPanel implements LightToolWindowContent {
   private final NlComponentTree myTree;
-  private final NlPropertiesPanel myPropertiesPanel;
+  private final NlPropertiesManager myPropertiesManager;
 
-  public NlStructurePanel(@NonNull DesignSurface designSurface) {
+  public NlStructurePanel(@NonNull Project project, @NonNull DesignSurface designSurface) {
     myTree = new NlComponentTree(designSurface);
     JScrollPane pane = ScrollPaneFactory.createScrollPane(myTree, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER);
-    myPropertiesPanel = new NlPropertiesPanel(designSurface);
+    myPropertiesManager = new NlPropertiesManager(project, designSurface);
     Splitter splitter = new Splitter(true, 0.4f);
     splitter.setFirstComponent(pane);
-    splitter.setSecondComponent(myPropertiesPanel);
+    splitter.setSecondComponent(myPropertiesManager.getConfigurationPanel());
     setLayout(new BorderLayout());
     add(splitter, BorderLayout.CENTER);
   }
 
   public void setDesignSurface(@Nullable DesignSurface designSurface) {
     myTree.setDesignSurface(designSurface);
-    myPropertiesPanel.setDesignSurface(designSurface);
+    myPropertiesManager.setDesignSurface(designSurface);
   }
 
   public JComponent getPanel() {
