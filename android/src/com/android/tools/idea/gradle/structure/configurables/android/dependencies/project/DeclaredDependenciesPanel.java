@@ -181,7 +181,7 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel {
   }
 
   void add(@NotNull SelectionListener listener) {
-    myEventDispatcher.addListener(listener);
+    myEventDispatcher.addListener(listener, this);
   }
 
   @Override
