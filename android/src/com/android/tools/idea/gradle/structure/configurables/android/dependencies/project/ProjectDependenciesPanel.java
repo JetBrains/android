@@ -19,7 +19,6 @@ import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractDependencyNode;
 import com.android.tools.idea.gradle.structure.configurables.ui.AbstractMainPanel;
 import com.android.tools.idea.gradle.structure.model.PsModule;
-import com.android.tools.idea.gradle.structure.model.PsProject;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
 import com.intellij.openapi.util.ActionCallback;
 import com.intellij.openapi.util.Disposer;
@@ -39,13 +38,13 @@ class ProjectDependenciesPanel extends AbstractMainPanel {
   @NotNull private final DeclaredDependenciesPanel myDeclaredDependenciesPanel;
   @NotNull private final TargetModulesPanel myTargetModulesPanel;
 
-  ProjectDependenciesPanel(@NotNull PsProject project, @NotNull PsContext context, @NotNull List<PsModule> extraTopModules) {
-    super(project, context, extraTopModules);
+  ProjectDependenciesPanel(@NotNull PsContext context, @NotNull List<PsModule> extraTopModules) {
+    super(context, extraTopModules);
 
-    myDeclaredDependenciesPanel = new DeclaredDependenciesPanel(project, context);
+    myDeclaredDependenciesPanel = new DeclaredDependenciesPanel(context);
     myDeclaredDependenciesPanel.setHistory(getHistory());
 
-    myTargetModulesPanel = new TargetModulesPanel(project, context);
+    myTargetModulesPanel = new TargetModulesPanel(context);
 
     myDeclaredDependenciesPanel.add(new DeclaredDependenciesPanel.SelectionListener() {
       @Override

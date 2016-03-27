@@ -18,6 +18,7 @@ package com.android.tools.idea.structure.dialog;
 import com.android.tools.idea.gradle.structure.IdeSdksConfigurable;
 import com.google.common.collect.Lists;
 import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.AccessToken;
 import com.intellij.openapi.components.ServiceManager;
@@ -82,6 +83,11 @@ public class ProjectStructureConfigurable extends BaseConfigurable
 
   private final JLabel myEmptySelection = new JLabel("<html><body><center>Select a setting to view or edit its details here</center></body></html>",
                                                      SwingConstants.CENTER);
+  private final Disposable myDisposable = new Disposable() {
+    @Override
+    public void dispose() {
+    }
+  };
 
   @NotNull
   public static ProjectStructureConfigurable getInstance(@NotNull Project project) {
@@ -327,7 +333,7 @@ public class ProjectStructureConfigurable extends BaseConfigurable
     }
 
     for (MainGroupConfigurableContributor contributor : MainGroupConfigurableContributor.EP_NAME.getExtensions()) {
-      for (Configurable configurable : contributor.getConfigurables(myProject)) {
+      for (Configurable configurable : contributor.getConfigurables(myProject, myDisposable)) {
         addConfigurable(configurable);
       }
     }
@@ -407,6 +413,7 @@ public class ProjectStructureConfigurable extends BaseConfigurable
     myConfigurables.clear();
 
     Disposer.dispose(myErrorsComponent);
+    Disposer.dispose(myDisposable);
 
     myUiInitialized = false;
   }
