@@ -22,9 +22,14 @@ import com.intellij.openapi.actionSystem.ToggleAction;
 import org.jetbrains.annotations.NotNull;
 
 public class ShowExpertProperties extends ToggleAction {
-  private final NlPropertiesModel myModel;
+  private final Model myModel;
 
-  public ShowExpertProperties(@NotNull NlPropertiesModel model) {
+  public interface Model {
+    boolean isShowingExpertProperties();
+    void setShowExpertProperties(boolean en);
+  }
+
+  public ShowExpertProperties(@NotNull Model model) {
     Presentation presentation = getTemplatePresentation();
     String text = "Show expert properties";
     presentation.setText(text);

@@ -18,54 +18,59 @@ package com.android.tools.idea.uibuilder.property;
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.uibuilder.property.inspector.InspectorPanel;
 import com.android.tools.idea.uibuilder.property.ptable.PTable;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
-import com.android.tools.idea.uibuilder.surface.DesignSurfaceListener;
-import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
+import com.android.tools.idea.uibuilder.property.ptable.PTableModel;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
-import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.ui.JBCardLayout;
+import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
-import com.intellij.util.Alarm;
 import com.intellij.util.ui.UIUtil;
-import com.intellij.util.ui.update.MergingUpdateQueue;
-import com.intellij.util.ui.update.Update;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.Collections;
 import java.util.List;
 
-public class NlPropertiesPanel extends JPanel implements DesignSurfaceListener {
-  public final static int UPDATE_DELAY_MSECS = 250;
+public class NlPropertiesPanel extends JPanel implements ShowExpertProperties.Model {
+  private static final String CARD_ADVANCED = "table";
+  private static final String CARD_DEFAULT = "default";
 
-  private final PTable myTable;
-  private final NlPropertiesModel myModel;
-  private DesignSurface mySurface;
-  private MergingUpdateQueue myUpdateQueue;
+  private final PTableModel myModel;
+  private final InspectorPanel myInspectorPanel;
+
   private JBLabel mySelectedComponentLabel;
+  private JPanel myCardPanel;
+  private boolean myShowAdvancedProperties;
 
-  public NlPropertiesPanel(@NonNull DesignSurface designSurface) {
+  public NlPropertiesPanel() {
     super(new BorderLayout());
     setOpaque(true);
     setFocusable(true);
     setRequestFocusEnabled(true);
     setBackground(UIUtil.TRANSPARENT_COLOR);
 
-    myModel = new NlPropertiesModel();
-    myTable = new PTable(myModel);
+    myModel = new PTableModel();
 
-    myTable.getEmptyText().setText("No selected component");
+    PTable propertiesTable = new PTable(myModel);
+    propertiesTable.getEmptyText().setText("No selected component");
+    myInspectorPanel = new InspectorPanel();
+
+    myCardPanel = new JPanel(new JBCardLayout());
 
     JPanel headerPanel = createHeaderPanel();
     add(headerPanel, BorderLayout.NORTH);
-    add(new JBScrollPane(myTable), BorderLayout.CENTER);
+    add(myCardPanel, BorderLayout.CENTER);
 
-    setDesignSurface(designSurface);
+    myCardPanel.add(CARD_DEFAULT, ScrollPaneFactory.createScrollPane(myInspectorPanel,
+                                                                     ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+                                                                     ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER));
+    myCardPanel.add(CARD_ADVANCED, ScrollPaneFactory.createScrollPane(propertiesTable));
   }
 
   @NonNull
@@ -75,7 +80,7 @@ public class NlPropertiesPanel extends JPanel implements DesignSurfaceListener {
     mySelectedComponentLabel = new JBLabel("");
     panel.add(mySelectedComponentLabel, BorderLayout.CENTER);
 
-    ShowExpertProperties showExpertAction = new ShowExpertProperties(myModel);
+    ShowExpertProperties showExpertAction = new ShowExpertProperties(this);
     ActionButton showExpertButton = new ActionButton(showExpertAction, showExpertAction.getTemplatePresentation(), ActionPlaces.UNKNOWN,
                                                      ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE);
     panel.add(showExpertButton, BorderLayout.LINE_END);
@@ -83,77 +88,35 @@ public class NlPropertiesPanel extends JPanel implements DesignSurfaceListener {
     return panel;
   }
 
-  public void setDesignSurface(@Nullable DesignSurface designSurface) {
-    if (designSurface == mySurface) {
-      return;
-    }
-    if (mySurface != null) {
-      mySurface.removeListener(this);
-    }
-    mySurface = designSurface;
-    if (mySurface != null) {
-      mySurface.addListener(this);
-      ScreenView screenView = mySurface.getCurrentScreenView();
-      List<NlComponent> selection = screenView != null ?
-                                    screenView.getSelectionModel().getSelection() : Collections.<NlComponent>emptyList();
-      componentSelectionChanged(mySurface, selection);
-    }
-  }
+  public void setItems(@Nullable NlComponent component,
+                       @NonNull List<NlProperty> properties,
+                       @NonNull NlPropertiesManager propertiesManager) {
+    String componentName = component == null ? "" : component.getTagName();
+    mySelectedComponentLabel.setText(componentName);
 
-  // ---- Implements DesignSurfaceListener ----
-
-  @Override
-  public void componentSelectionChanged(@NonNull DesignSurface surface, @NonNull final List<NlComponent> newSelection) {
-    if (surface != mySurface) {
-      return;
+    List<PTableItem> sortedProperties = null;
+    if (component == null) {
+      sortedProperties = Collections.emptyList();
     }
-    myTable.setPaintBusy(true);
-    MergingUpdateQueue queue = getUpdateQueue();
-    if (queue == null) {
-      return;
+    else {
+      final List<PTableItem> groupedProperties = new NlPropertiesGrouper().group(properties, component);
+      sortedProperties = new NlPropertiesSorter().sort(groupedProperties, component);
     }
-    queue.queue(new Update("updateProperties") {
-      @Override
-      public void run() {
-        myModel.update(newSelection, new Runnable() {
-          @Override
-          public void run() {
-            // TODO: handle multiple selections
-            NlComponent first = newSelection.size() == 1 ? newSelection.get(0) : null;
-            if (first != null) {
-              mySelectedComponentLabel.setText(first.getTagName());
-            }
-            else {
-              mySelectedComponentLabel.setText("");
-            }
-            myTable.setPaintBusy(false);
-          }
-        });
-      }
+    myModel.setItems(sortedProperties);
 
-      @Override
-      public boolean canEat(Update update) {
-        return true;
-      }
-    });
+    myInspectorPanel.setComponent(component, properties, propertiesManager);
   }
 
   @Override
-  public void screenChanged(@NonNull DesignSurface surface, @Nullable ScreenView screenView) {
+  public boolean isShowingExpertProperties() {
+    return myShowAdvancedProperties;
   }
 
   @Override
-  public void modelChanged(@NonNull DesignSurface surface, @Nullable NlModel model) {
-  }
-
-  @Nullable
-  private MergingUpdateQueue getUpdateQueue() {
-    ApplicationManager.getApplication().assertIsDispatchThread();
-
-    if (myUpdateQueue == null) {
-      myUpdateQueue = new MergingUpdateQueue("android.layout.propertysheet", UPDATE_DELAY_MSECS, true, null, mySurface, null,
-                                             Alarm.ThreadToUse.SWING_THREAD);
-    }
-    return myUpdateQueue;
+  public void setShowExpertProperties(boolean en) {
+    myShowAdvancedProperties = en;
+    JBCardLayout cardLayout = (JBCardLayout)myCardPanel.getLayout();
+    String name = en ? CARD_ADVANCED : CARD_DEFAULT;
+    cardLayout.swipe(myCardPanel, name, JBCardLayout.SwipeDirection.AUTO);
   }
 }

@@ -54,7 +54,7 @@ public class NlStructureManager extends NlAbstractWindowManager {
     }
     else {
       if (myStructurePanel == null) {
-        myStructurePanel = new NlStructurePanel(getDesignSurface(designer));
+        myStructurePanel = new NlStructurePanel(myProject, getDesignSurface(designer));
         createWindowContent(myStructurePanel.getPanel(), myStructurePanel.getPanel(), null);
       }
       myStructurePanel.setDesignSurface(getDesignSurface(designer));
@@ -81,7 +81,7 @@ public class NlStructureManager extends NlAbstractWindowManager {
       // The preview tool window does not have a structure pane.
       return null;
     }
-    NlStructurePanel structurePanel = new NlStructurePanel(getDesignSurface(designer));
+    NlStructurePanel structurePanel = new NlStructurePanel(myProject, getDesignSurface(designer));
 
     return createContent(designer, structurePanel, "Structure", AllIcons.Toolwindows.ToolWindowStructure, structurePanel.getPanel(),
                          structurePanel.getPanel(), 320, null);
