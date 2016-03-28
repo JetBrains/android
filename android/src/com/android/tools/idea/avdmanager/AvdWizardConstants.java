@@ -129,7 +129,7 @@ public class AvdWizardConstants {
   public static final String DEFAULT_NETWORK_SPEED = "full";
   public static final String DEFAULT_NETWORK_LATENCY = "none";
   public static final String DEFAULT_CAMERA = "none";
-  public static final Storage DEFAULT_INTERNAL_STORAGE = new Storage(200, Unit.MiB);
+  public static final Storage DEFAULT_INTERNAL_STORAGE = new Storage(800, Unit.MiB);
 
   // Fonts
   public static final Font STANDARD_FONT = JBFont.create(new Font("Sans", Font.PLAIN, 12));

@@ -48,7 +48,7 @@ public class AndroidVirtualDeviceTest extends AndroidTestBase {
     // Expected values are defined in http://b.android.com/78945
     ImmutableMap.Builder<String, String> builder = ImmutableMap.builder();
     builder.put("abi.type", "x86");
-    builder.put("disk.dataPartition.size", "200M");
+    builder.put("disk.dataPartition.size", "800M");
     builder.put("hw.accelerometer", "yes");
     builder.put("hw.audioInput", "yes");
     builder.put("hw.battery", "yes");
@@ -72,7 +72,7 @@ public class AndroidVirtualDeviceTest extends AndroidTestBase {
     builder.put("runtime.network.latency", "none");
     builder.put("runtime.network.speed", "full");
     builder.put("runtime.scalefactor", "auto");
-    builder.put("sdcard.size", "200M");
+    builder.put("sdcard.size", "800M");
     builder.put("skin.name", "nexus_5x");
     builder.put("snapshot.present", "no");
     builder.put("tag.display", "Google APIs");
