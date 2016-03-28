@@ -18,7 +18,7 @@ package com.android.tools.idea.sdk.legacy.remote.internal.packages;
 
 import com.android.repository.Revision;
 import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.repository.descriptors.PkgDesc;
+import com.android.sdklib.repository.legacy.descriptors.PkgDesc;
 import com.android.tools.idea.sdk.legacy.remote.internal.sources.SdkRepoConstants;
 import com.android.tools.idea.sdk.legacy.remote.internal.sources.SdkSource;
 import org.w3c.dom.Node;

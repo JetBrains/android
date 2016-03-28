@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.sdk.wizard;
 
-import com.android.sdklib.repositoryv2.AndroidSdkHandler;
+import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.sdk.wizard.legacy.LicenseAgreementStep;
 import com.android.tools.idea.welcome.install.*;
 import com.android.tools.idea.welcome.wizard.ProgressStep;

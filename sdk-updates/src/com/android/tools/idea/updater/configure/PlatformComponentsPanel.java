@@ -18,7 +18,7 @@ package com.android.tools.idea.updater.configure;
 import com.android.repository.api.RepoPackage;
 import com.android.repository.api.UpdatablePackage;
 import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.repositoryv2.meta.DetailsTypes;
+import com.android.sdklib.repository.meta.DetailsTypes;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;

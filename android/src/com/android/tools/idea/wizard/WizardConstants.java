@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.wizard;
 
-import com.android.repository.api.RemotePackage;
-import com.android.sdklib.repository.descriptors.IPkgDesc;
+import com.android.sdklib.repository.legacy.descriptors.IPkgDesc;
 import com.android.tools.idea.npw.ModuleTemplate;
 import com.android.tools.idea.ui.wizard.StudioWizardLayout;
 import com.google.common.collect.ImmutableSet;

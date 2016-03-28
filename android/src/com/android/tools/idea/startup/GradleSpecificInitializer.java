@@ -18,7 +18,7 @@ package com.android.tools.idea.startup;
 import com.android.SdkConstants;
 import com.android.prefs.AndroidLocation;
 import com.android.sdklib.IAndroidTarget;
-import com.android.sdklib.repositoryv2.AndroidSdkHandler;
+import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.actions.*;
 import com.android.tools.idea.gradle.actions.AndroidTemplateProjectSettingsGroup;
 import com.android.tools.idea.gradle.actions.AndroidTemplateProjectStructureAction;

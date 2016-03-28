@@ -21,7 +21,7 @@ import com.android.repository.Revision;
 import com.android.repository.api.RemotePackage;
 import com.android.repository.api.RepoPackage;
 import com.android.repository.io.FileOpUtils;
-import com.android.sdklib.repositoryv2.AndroidSdkHandler;
+import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
