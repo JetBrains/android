@@ -810,7 +810,7 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                  + (!DECLARE_GLOBAL_REPOSITORIES ?
                     "buildscript {\n"
                     + "    repositories {\n"
-                    + "        " + MAVEN_REPOSITORY + "\n"
+                    + "        " + MAVEN_REPOSITORY.replace(NL, "\n") + "\n"
                     + "    }\n"
                     + "}\n" : "")
                  + "apply plugin: 'java'\n",
@@ -824,7 +824,7 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                  + (DECLARE_GLOBAL_REPOSITORIES ?
                     "buildscript {\n"
                     + "    repositories {\n"
-                    + "        " + MAVEN_REPOSITORY + "\n"
+                    + "        " + MAVEN_REPOSITORY.replace(NL, "\n") + "\n"
                     + "    }\n"
                     + "    dependencies {\n"
                     + "        classpath '" + ANDROID_GRADLE_PLUGIN + "'\n"
@@ -833,7 +833,7 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                     + "\n"
                     + "allprojects {\n"
                     + "    repositories {\n"
-                    + "        " + MAVEN_REPOSITORY + "\n"
+                    + "        " + MAVEN_REPOSITORY.replace(NL, "\n") + "\n"
                     + "    }\n"
                     + "}\n" : ""),
                  Files.toString(new File(imported, "build.gradle"), UTF_8)
@@ -844,7 +844,7 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                  + (!DECLARE_GLOBAL_REPOSITORIES ?
                     "buildscript {\n"
                     + "    repositories {\n"
-                    + "        " + MAVEN_REPOSITORY + "\n"
+                    + "        " + MAVEN_REPOSITORY.replace(NL, "\n") + "\n"
                     + "    }\n"
                     + "    dependencies {\n"
                     + "        classpath '" + ANDROID_GRADLE_PLUGIN + "'\n"
@@ -854,7 +854,7 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                  + (!DECLARE_GLOBAL_REPOSITORIES ?
                     "\n"
                     + "repositories {\n"
-                    + "    " + MAVEN_REPOSITORY + "\n"
+                    + "    " + MAVEN_REPOSITORY.replace(NL, "\n") + "\n"
                     + "}\n" : "")
                  + "\n"
                  + "android {\n"
@@ -887,7 +887,7 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                  + (!DECLARE_GLOBAL_REPOSITORIES ?
                     "buildscript {\n"
                     + "    repositories {\n"
-                    + "        " + MAVEN_REPOSITORY + "\n"
+                    + "        " + MAVEN_REPOSITORY.replace(NL, "\n") + "\n"
                     + "    }\n"
                     + "    dependencies {\n"
                     + "        classpath '" + ANDROID_GRADLE_PLUGIN + "'\n"
@@ -897,7 +897,7 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                  + (!DECLARE_GLOBAL_REPOSITORIES ?
                     "\n"
                     + "repositories {\n"
-                    + "    " + MAVEN_REPOSITORY + "\n"
+                    + "    " + MAVEN_REPOSITORY.replace(NL, "\n") + "\n"
                     + "}\n" : "")
                  + "\n"
                  + "android {\n"
@@ -2234,7 +2234,7 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                  + (!DECLARE_GLOBAL_REPOSITORIES ?
                     "buildscript {\n"
                     + "    repositories {\n"
-                    + "        " + MAVEN_REPOSITORY + "\n"
+                    + "        " + MAVEN_REPOSITORY.replace(NL, "\n") + "\n"
                     + "    }\n"
                     + "}\n" : "")
                  + "apply plugin: 'java'\n"
@@ -2249,7 +2249,7 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                  + (!DECLARE_GLOBAL_REPOSITORIES ?
                     "buildscript {\n"
                     + "    repositories {\n"
-                    + "        " + MAVEN_REPOSITORY + "\n"
+                    + "        " + MAVEN_REPOSITORY.replace(NL, "\n") + "\n"
                     + "    }\n"
                     + "    dependencies {\n"
                     + "        classpath '" + ANDROID_GRADLE_PLUGIN + "'\n"
@@ -2259,7 +2259,7 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                  + (!DECLARE_GLOBAL_REPOSITORIES ?
                     "\n"
                     + "repositories {\n"
-                    + "    " + MAVEN_REPOSITORY + "\n"
+                    + "    " + MAVEN_REPOSITORY.replace(NL, "\n") + "\n"
                     + "}\n" : "")
                  + "\n"
                  + "android {\n"
@@ -2291,7 +2291,7 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                  + (!DECLARE_GLOBAL_REPOSITORIES ?
                     "buildscript {\n"
                     + "    repositories {\n"
-                    + "        " + MAVEN_REPOSITORY + "\n"
+                    + "        " + MAVEN_REPOSITORY.replace(NL, "\n") + "\n"
                     + "    }\n"
                     + "    dependencies {\n"
                     + "        classpath '" + ANDROID_GRADLE_PLUGIN + "'\n"
@@ -2301,7 +2301,7 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                  + (!DECLARE_GLOBAL_REPOSITORIES ?
                     "\n"
                     + "repositories {\n"
-                    + "    " + MAVEN_REPOSITORY + "\n"
+                    + "    " + MAVEN_REPOSITORY.replace(NL, "\n") + "\n"
                     + "}\n" : "")
                  + "\n"
                  + "android {\n"
@@ -2333,7 +2333,7 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                  + (!DECLARE_GLOBAL_REPOSITORIES ?
                     "buildscript {\n"
                     + "    repositories {\n"
-                    + "        " + MAVEN_REPOSITORY + "\n"
+                    + "        " + MAVEN_REPOSITORY.replace(NL, "\n") + "\n"
                     + "    }\n"
                     + "}\n" : "")
                  + "apply plugin: 'java'\n"
@@ -2348,7 +2348,7 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                  + (!DECLARE_GLOBAL_REPOSITORIES ?
                     "buildscript {\n"
                     + "    repositories {\n"
-                    + "        " + MAVEN_REPOSITORY + "\n"
+                    + "        " + MAVEN_REPOSITORY.replace(NL, "\n") + "\n"
                     + "    }\n"
                     + "}\n" : "")
                  + "apply plugin: 'java'\n"
@@ -2377,7 +2377,7 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                  + (DECLARE_GLOBAL_REPOSITORIES ?
                     "buildscript {\n"
                     + "    repositories {\n"
-                    + "        " + MAVEN_REPOSITORY + "\n"
+                    + "        " + MAVEN_REPOSITORY.replace(NL, "\n") + "\n"
                     + "    }\n"
                     + "    dependencies {\n"
                     + "        classpath '" + ANDROID_GRADLE_PLUGIN + "'\n"
@@ -2386,7 +2386,7 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                     + "\n"
                     + "allprojects {\n"
                     + "    repositories {\n"
-                    + "        " + MAVEN_REPOSITORY + "\n"
+                    + "        " + MAVEN_REPOSITORY.replace(NL, "\n") + "\n"
                     + "    }\n"
                     + "}\n" : ""),
                  Files.toString(new File(imported, "build.gradle"), UTF_8)
