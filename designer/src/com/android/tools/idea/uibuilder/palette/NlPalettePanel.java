@@ -20,6 +20,10 @@ import com.android.annotations.Nullable;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.resources.ResourceResolver;
+import com.android.resources.Density;
+import com.android.sdklib.devices.Device;
+import com.android.sdklib.devices.Screen;
+import com.android.sdklib.devices.State;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
@@ -89,7 +93,6 @@ import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 
 public class NlPalettePanel extends JPanel implements LightToolWindowContent, ConfigurationListener, LafManagerListener, DataProvider {
   private static final Insets INSETS = new Insets(0, 6, 0, 6);
-  private static final double PREVIEW_SCALE = 0.8;
   private static final int ICON_SPACER = 4;
 
   @NonNull private final JTree myTree;
@@ -103,6 +106,7 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent, Co
   @Nullable private ScalableDesignSurface myDesignSurface;
   @NonNull private Mode myMode;
   @Nullable private BufferedImage myLastDragImage;
+  @Nullable private Configuration myConfiguration;
 
   public NlPalettePanel(@NonNull Project project, @NonNull DesignerEditorPanelFacade designer) {
     myTree = new DnDAwareTree();
@@ -174,6 +178,7 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent, Co
       if (configuration != null) {
         configuration.addListener(this);
       }
+      updateConfiguration();
     }
     checkForNewMissingDependencies();
     setMode(myMode);
@@ -250,6 +255,7 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent, Co
 
   @Override
   public boolean changed(int flags) {
+    updateConfiguration();
     setMode(myMode);
     return true;
   }
@@ -299,13 +305,57 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent, Co
   public void setMode(@NonNull Mode mode) {
     myMode = mode;
     if (mode == Mode.PREVIEW && myDesignSurface != null) {
-      Configuration configuration = myDesignSurface.getConfiguration();
-      if (configuration != null) {
-        myIconFactory.load(configuration, myModel.getPalette(myResourceType), false);
+      if (myConfiguration != null) {
+        myIconFactory.load(myConfiguration, myModel.getPalette(myResourceType), false);
       }
     }
     setColors();
     invalidateUI();
+  }
+
+  private void updateConfiguration() {
+    myConfiguration = null;
+    if (myDesignSurface == null) {
+      return;
+    }
+    Configuration designConfiguration = myDesignSurface.getConfiguration();
+    if (designConfiguration == null) {
+      return;
+    }
+    State designState = designConfiguration.getDeviceState();
+    Configuration configuration = designConfiguration.clone();
+    Device device = configuration.getDevice();
+    if (device == null) {
+      return;
+    }
+
+    // Override to a predefined density that closest matches the screens resolution
+    Density override = null;
+    int monitorResolution = Toolkit.getDefaultToolkit().getScreenResolution();
+    for (Density density : Density.values()) {
+      if (density.getDpiValue() > 0) {
+        if (override == null || Math.abs(density.getDpiValue() - monitorResolution) < Math.abs(override.getDpiValue() - monitorResolution)) {
+          override = density;
+        }
+      }
+    }
+
+    if (override != null) {
+      device = new Device.Builder(device).build();
+      for (State state : device.getAllStates()) {
+        Screen screen = state.getHardware().getScreen();
+        screen.setXDimension((int)(screen.getXDimension() * override.getDpiValue() / screen.getXdpi()));
+        screen.setYDimension((int)(screen.getYDimension() * override.getDpiValue() / screen.getYdpi()));
+        screen.setXdpi(override.getDpiValue());
+        screen.setYdpi(override.getDpiValue());
+        screen.setPixelDensity(override);
+      }
+      configuration.setDevice(device, false);
+      if (designState != null) {
+        configuration.setDeviceStateName(designState.getName());
+      }
+      myConfiguration = configuration;
+    }
   }
 
   private void invalidateUI() {
@@ -367,8 +417,8 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent, Co
         if (content instanceof Palette.Item) {
           Palette.Item item = (Palette.Item)content;
           BufferedImage image = null;
-          if (!needsLibraryLoad(item) && myMode == Mode.PREVIEW && myDesignSurface != null && myDesignSurface.getConfiguration() != null) {
-            image = myIconFactory.getImage(item, myDesignSurface.getConfiguration(), getScale(item));
+          if (!needsLibraryLoad(item) && myMode == Mode.PREVIEW && myConfiguration != null) {
+            image = myIconFactory.getImage(item, myConfiguration, getScale(item));
           }
           if (image != null) {
             setIcon(new JBImageIcon(image));
@@ -416,7 +466,7 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent, Co
       // Do not allow ridiculous custom scale factors.
       scale = 1.0;
     }
-    return scale * PREVIEW_SCALE;
+    return scale;
   }
 
   private boolean needsLibraryLoad(@Nullable Palette.BaseItem item) {

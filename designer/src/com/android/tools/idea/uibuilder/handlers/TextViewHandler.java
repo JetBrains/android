@@ -67,7 +67,7 @@ public class TextViewHandler extends ViewHandler {
   public double getPreviewScale(@NonNull String tagName) {
     // EditText components are scaled to avoid a large presentation on the palette
     if (HAVE_REDUCED_SCALE_IN_PREVIEW.contains(tagName)) {
-      return 0.6;
+      return 0.8;
     }
     return super.getPreviewScale(tagName);
   }
