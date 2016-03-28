@@ -59,7 +59,7 @@ public class SdkMerger {
       }
       try {
         FileUtil.copyDir(pkg.srcPkg.getLocation(),
-                         new File(pkg.destLocation, pkg.srcPkg.getPath().replaceAll(RepoPackage.PATH_SEPARATOR + "", File.separator)));
+                         new File(pkg.destLocation, pkg.srcPkg.getPath().replace(RepoPackage.PATH_SEPARATOR, File.separatorChar)));
       }
       catch (IOException e) {
         LOG.error("Unable to copy package " + pkg.srcPkg.getPath(), e);
