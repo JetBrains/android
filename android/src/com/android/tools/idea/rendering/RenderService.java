@@ -22,7 +22,7 @@ import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
-import com.android.sdklib.repositoryv2.meta.DetailsTypes;
+import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.RenderContext;

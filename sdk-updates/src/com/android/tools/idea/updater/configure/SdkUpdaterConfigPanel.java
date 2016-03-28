@@ -21,7 +21,7 @@ import com.android.repository.api.RepoManager.RepoLoadedCallback;
 import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.repository.impl.meta.TypeDetails;
 import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.repositoryv2.meta.DetailsTypes;
+import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.tools.idea.npw.WizardUtils;
 import com.android.tools.idea.npw.WizardUtils.ValidationResult;
 import com.android.tools.idea.npw.WizardUtils.WritableCheckMode;

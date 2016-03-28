@@ -18,7 +18,7 @@ package com.android.tools.idea.sdk.legacy.remote.internal.sources;
 
 
 import com.android.annotations.NonNull;
-import com.android.sdklib.repository.RepoXsdUtil;
+import com.android.sdklib.repository.legacy.RepoXsdUtil;
 
 import javax.xml.transform.stream.StreamSource;
 import java.io.InputStream;
