@@ -74,7 +74,7 @@ public class PsParsedDependencies {
   }
 
   @Nullable
-  private static String guessArtifactName(@NotNull String configurationName) {
+  public static String guessArtifactName(@NotNull String configurationName) {
     if (configurationName.endsWith("androidTestCompile") || configurationName.endsWith("AndroidTestCompile")) {
       return ARTIFACT_ANDROID_TEST;
     }

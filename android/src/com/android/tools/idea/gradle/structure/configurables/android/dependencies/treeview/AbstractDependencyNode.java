@@ -45,4 +45,14 @@ public abstract class AbstractDependencyNode<T extends PsAndroidDependency> exte
   protected AbstractDependencyNode(@NotNull AbstractPsdNode<?> parent, @NotNull List<T> dependencies) {
     super(parent, dependencies);
   }
+
+  public boolean isDeclared() {
+    List<? extends PsAndroidDependency> models = getModels();
+    for (PsAndroidDependency dependency : models) {
+      if (dependency.isDeclared()) {
+        return true;
+      }
+    }
+    return false;
+  }
 }
