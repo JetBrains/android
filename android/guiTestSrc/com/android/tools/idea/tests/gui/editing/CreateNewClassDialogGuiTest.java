@@ -61,10 +61,9 @@ public class CreateNewClassDialogGuiTest {
   private static final String INTERFACE_EXTENDING_TWO_INTERFACES_DECLARATION = "public %s TestThing extends Interface0, Interface1 {";
   private static final String INTERFACE_EXTENDING_INTERFACE_THAT_NEEDS_IMPORT_DECLARATION = "public %s TestThing extends InterfaceX {";
   private static final String SUPERCLASS_0 = "Super0";
-  private static final String INVALID_NAME = "Invalid-Class Name";
+  private static final String INVALID_NAME = "0000";
   private static final String INTERFACE_0 = "Interface0";
   private static final String INTERFACE_1 = "Interface1";
-  private static final String INVALID_INTERFACE = "Invalid-Interface-Name";
   private static final String FULLY_QUALIFIED_INTERFACE = "com.example.foo.InterfaceX";
   private static final String INTERFACE_IMPORT = "import " + FULLY_QUALIFIED_INTERFACE + ";";
   private static final String JAVA_UTIL_MAP_ENTRY = "java.util.Map.Entry";
@@ -392,6 +391,10 @@ public class CreateNewClassDialogGuiTest {
     dialog.setSuperclass(INVALID_NAME);
     dialog.setPackage(PACKAGE_NAME_0);
     dialog.setVisibility(Visibility.PUBLIC);
+    // TODO:: Remove this!!!!
+    System.out.println("invalidSuperclass: clickOk with superclass: " + dialog.getSuperclass());
+    System.out.println("invalidSuperclass: clickOk with interface: " + dialog.getInterface());
+    // TODO:: Remove this!!!!
     dialog.clickOk();
     dialog.waitForErrorMessageToAppear(CreateNewClassDialogValidatorExImpl.INVALID_QUALIFIED_NAME);
     dialog.clickCancel();
@@ -402,9 +405,13 @@ public class CreateNewClassDialogGuiTest {
     CreateFileFromTemplateDialogFixture dialog = invokeNewFileDialog();
     dialog.setName(THING_NAME);
     dialog.selectKind(Kind.CLASS);
-    dialog.setInterface(INVALID_INTERFACE);
+    dialog.setInterface(INVALID_NAME);
     dialog.setPackage(PACKAGE_NAME_0);
     dialog.setVisibility(Visibility.PUBLIC);
+    // TODO:: Remove this!!!!
+    System.out.println("invalidInterfaceName: clickOk with superclass: " + dialog.getSuperclass());
+    System.out.println("invalidInterfaceName: clickOk with interface: " + dialog.getInterface());
+    // TODO:: Remove this!!!!
     dialog.clickOk();
     dialog.waitForErrorMessageToAppear(CreateNewClassDialogValidatorExImpl.INVALID_QUALIFIED_NAME);
     dialog.clickCancel();
@@ -470,6 +477,10 @@ public class CreateNewClassDialogGuiTest {
     dialog.setName(THING_NAME);
     dialog.selectKind(Kind.CLASS);
     dialog.setSuperclass("java.lang.Runnable");
+    // TODO:: Remove this!!!!
+    System.out.println("extendAnInterface: clickOk with superclass: " + dialog.getSuperclass());
+    System.out.println("extendAnInterface: clickOk with interface: " + dialog.getInterface());
+    // TODO:: Remove this!!!!
     dialog.clickOk();
     dialog.waitForErrorMessageToAppear(CreateNewClassDialogValidatorExImpl.INVALID_QUALIFIED_NAME);
     dialog.clickCancel();
