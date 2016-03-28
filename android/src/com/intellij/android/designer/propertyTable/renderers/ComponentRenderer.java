@@ -82,9 +82,4 @@ public abstract class ComponentRenderer extends ColoredListCellRenderer implemen
 
   @Nullable
   public abstract RadComponent getComponentById(RadComponent component, String value);
-
-  @Override
-  public void updateUI() {
-    SwingUtilities.updateComponentTreeUI(this);
-  }
 }
