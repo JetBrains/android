@@ -67,7 +67,8 @@ public class PluginVersionRecommendedUpdateDialog extends DialogWrapper {
 
     setUpAsHtmlLabel(myMessagePane);
     String msg = "<b>The project is using an old version of the Android Gradle plugin.</b><br/<br/>" +
-                 "To take advantage of all the latest features, such as <b>Instant Run</b>, we strongly recommend " +
+                 "To take advantage of all the latest features, such as " +
+                 "<b><a href='http://tools.android.com/tech-docs/instant-run'>Instant Run</a></b>, we strongly recommend " +
                  "that you update the Android Gradle plugin to version " +
                  GRADLE_PLUGIN_LATEST_VERSION + ".<br/><br/>" +
                  "You can learn more about this version of the plugin from the " +
