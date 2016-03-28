@@ -40,7 +40,7 @@ public class AvdEditWizardFixture extends AbstractWizardFixture<AvdEditWizardFix
   }
 
   @NotNull
-  public ChooseDeviceDefinitionStepFixture getChooseDeviceDefinitionStep() {
+  public ChooseDeviceDefinitionStepFixture selectHardware() {
     JRootPane rootPane = findStepWithTitle("Select Hardware");
     return new ChooseDeviceDefinitionStepFixture(robot(), rootPane);
   }
