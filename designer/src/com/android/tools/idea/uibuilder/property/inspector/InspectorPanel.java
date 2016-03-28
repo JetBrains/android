@@ -113,9 +113,13 @@ public class InspectorPanel extends JPanel {
     inspector.add(new JSeparator(), "span 2, grow");
   }
 
-  public static void addComponent(@NonNull JPanel inspector, @NonNull String labelText, @NonNull JComponent component) {
+  public static void addComponent(@NonNull JPanel inspector,
+                                  @NonNull String labelText,
+                                  @Nullable String tooltip,
+                                  @NonNull Component component) {
     JBLabel l = new JBLabel(labelText);
     l.setLabelFor(component);
+    l.setToolTipText(tooltip);
 
     inspector.add(l);
     inspector.add(component, "width null:null:70%"); // max 70% of container

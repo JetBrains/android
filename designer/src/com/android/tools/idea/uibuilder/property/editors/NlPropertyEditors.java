@@ -27,7 +27,7 @@ import java.util.Set;
 public class NlPropertyEditors {
   private static NlBooleanEditor ourBooleanEditor;
   private static NlFlagEditor ourFlagEditor;
-  private static NlEnumEditor ourComboEditor;
+  private static NlEnumTableCellEditor ourComboEditor;
   private static NlReferenceEditor ourDefaultEditor;
 
   public static PTableCellEditor get(@NotNull NlProperty property) {
@@ -72,7 +72,7 @@ public class NlPropertyEditors {
 
   private static PTableCellEditor getComboEditor() {
     if (ourComboEditor == null) {
-      ourComboEditor = new NlEnumEditor();
+      ourComboEditor = new NlEnumTableCellEditor();
     }
 
     return ourComboEditor;

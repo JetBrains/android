@@ -161,7 +161,14 @@ public class NlProperty extends PTableItem {
 
   @Override
   public String getTooltipText() {
-    return namespaceToPrefix(myNamespace) + myName;
+    StringBuilder sb = new StringBuilder(100);
+    sb.append(namespaceToPrefix(myNamespace));
+    sb.append(myName);
+    if (myDefinition != null) {
+      sb.append(": ");
+      sb.append(myDefinition.getDocValue(null));
+    }
+    return sb.toString();
   }
 
   @NotNull

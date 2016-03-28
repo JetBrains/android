@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.property.editors;
 
+import com.android.annotations.NonNull;
+import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
 import com.android.tools.idea.uibuilder.property.NlProperty;
-import com.android.tools.idea.uibuilder.property.ptable.PTableCellEditor;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.FixedSizeButton;
 import com.intellij.openapi.util.SystemInfo;
@@ -25,24 +26,35 @@ import com.intellij.ui.UIBundle;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.util.ArrayUtil;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
-import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-public class NlEnumEditor extends PTableCellEditor implements ActionListener {
-  private static final String UNSET = "<unset>";
+public class NlEnumEditor implements ActionListener {
+  public static final String UNSET = "<unset>";
 
   private final JPanel myPanel;
   private final JComboBox myCombo;
   private final FixedSizeButton myBrowseButton;
 
+  private final Listener myListener;
   private NlProperty myProperty;
-  private Object myValue;
 
-  public NlEnumEditor() {
+  public interface Listener {
+    /** Invoked when one of the enums is selected. */
+    void itemPicked(@NonNull NlEnumEditor source, @NonNull String value);
+
+    /** Invoked when a resource was selected using the resource picker. */
+    void resourcePicked(@NonNull NlEnumEditor source, @NonNull String value);
+
+    /** Invoked when the resource picker was cancelled. */
+    void resourcePickerCancelled(@NonNull NlEnumEditor source);
+  }
+
+  public NlEnumEditor(@NonNull Listener listener) {
+    myListener = listener;
     myPanel = new JPanel(new BorderLayout(SystemInfo.isMac ? 0 : 2, 0));
 
     myCombo = new ComboBox();
@@ -53,61 +65,80 @@ public class NlEnumEditor extends PTableCellEditor implements ActionListener {
     myBrowseButton.setToolTipText(UIBundle.message("component.with.browse.button.browse.button.tooltip.text"));
     myPanel.add(myBrowseButton, BorderLayout.LINE_END);
 
+    // TODO: Hook up general editing. (Such that the control would recognize "100dp" for example)
     myCombo.addActionListener(this);
     myBrowseButton.addActionListener(this);
   }
 
-  @Override
-  public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-    assert value instanceof NlProperty;
-    myProperty = (NlProperty)value;
+  public void setEnabled(boolean en) {
+    myCombo.setEnabled(en);
+    myBrowseButton.setEnabled(en);
+  }
 
-    String propValue = StringUtil.notNullize(myProperty.getValue());
-    myValue = propValue;
 
-    myBrowseButton.setVisible(NlReferenceEditor.hasResourceChooser(myProperty));
+  public void setProperty(@NonNull NlProperty property) {
+    myProperty = property;
+    String propValue = StringUtil.notNullize(property.getValue());
 
-    AttributeDefinition definition = myProperty.getDefinition();
+    myBrowseButton.setVisible(NlReferenceEditor.hasResourceChooser(property));
+
+    AttributeDefinition definition = property.getDefinition();
     String[] values = definition == null ? ArrayUtil.EMPTY_STRING_ARRAY : definition.getValues();
 
     DefaultComboBoxModel model = new DefaultComboBoxModel(values);
     model.insertElementAt(UNSET, 0);
-    if (model.getIndexOf(propValue) == -1) {
-      model.insertElementAt(propValue, 1);
-    }
-    model.setSelectedItem(propValue);
+    selectItem(model, propValue);
     myCombo.setModel(model);
+  }
 
+  private static void selectItem(@NonNull DefaultComboBoxModel model, @NonNull String value) {
+    if (model.getIndexOf(value) == -1) {
+      model.insertElementAt(value, 1);
+    }
+    model.setSelectedItem(value);
+  }
+
+  public Object getValue() {
+    return myCombo.getSelectedItem();
+  }
+
+  @NonNull
+  public Component getComponent() {
     return myPanel;
   }
 
-  @Override
-  public Object getCellEditorValue() {
-    return UNSET.equals(myValue) ? null : myValue;
+  public void showPopup() {
+    myCombo.showPopup();
   }
 
   @Override
   public void actionPerformed(ActionEvent e) {
+    if (myProperty == null) {
+      return;
+    }
+
     if (e.getSource() == myBrowseButton) {
       ChooseResourceDialog dialog = NlReferenceEditor.showResourceChooser(myProperty);
       if (dialog.showAndGet()) {
-        myValue = dialog.getResourceName();
-        stopCellEditing();
+        String value = dialog.getResourceName();
+
+        DefaultComboBoxModel model = (DefaultComboBoxModel)myCombo.getModel();
+        selectItem(model, value);
+
+        myListener.resourcePicked(this, value);
       } else {
-        cancelCellEditing();
+        myListener.resourcePickerCancelled(this);
       }
     }
     else if (e.getSource() == myCombo) {
-      myValue = myCombo.getModel().getSelectedItem();
-      // stop cell editing only if a value has been picked from the combo box, not for every event from the combo
-      if ("comboBoxEdited".equals(e.getActionCommand())) {
-        stopCellEditing();
+      Object value = myCombo.getModel().getSelectedItem();
+      String actionCommand = e.getActionCommand();
+
+      // only notify listener if a value has been picked from the combo box, not for every event from the combo
+      // Note: these action names seem to be platform dependent?
+      if ("comboBoxEdited".equals(actionCommand) || "comboBoxChanged".equals(actionCommand)) {
+        myListener.itemPicked(this, value.toString());
       }
     }
-  }
-
-  @Override
-  public void activate() {
-    myCombo.showPopup();
   }
 }
