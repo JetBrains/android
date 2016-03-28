@@ -18,12 +18,14 @@ package com.android.tools.idea.gradle.structure.configurables.android.dependenci
 import com.intellij.ide.util.treeView.NodeRenderer;
 import com.intellij.ide.util.treeView.PresentableNodeDescriptor;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.roots.ui.CellAppearanceEx;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.treeStructure.SimpleNode;
 import com.intellij.ui.treeStructure.Tree;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreePath;
 import java.awt.*;
@@ -59,6 +61,21 @@ public class NodeHyperlinkSupport<T extends SimpleNode> implements Disposable {
           return LINK_ATTRIBUTES;
         }
         return super.getSimpleTextAttributes(node, color);
+      }
+
+      @Override
+      public void customizeCellRenderer(JTree tree,
+                                        Object value,
+                                        boolean selected,
+                                        boolean expanded,
+                                        boolean leaf,
+                                        int row,
+                                        boolean hasFocus) {
+        super.customizeCellRenderer(tree, value, selected, expanded, leaf, row, hasFocus);
+        Object userObject = ((DefaultMutableTreeNode)value).getUserObject();
+          if (userObject instanceof CellAppearanceEx) {
+          ((CellAppearanceEx)userObject).customize(this);
+        }
       }
     });
 

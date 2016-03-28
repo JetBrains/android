@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.project.treeview;
 
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractBaseTreeBuilder;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractDependencyNode;
 import com.android.tools.idea.gradle.structure.model.PsProject;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
 import com.intellij.ide.util.treeView.AbstractTreeStructure;
@@ -36,10 +37,10 @@ public class TargetModelsTreeBuilder extends AbstractBaseTreeBuilder {
   protected void onAllNodesExpanded() {
   }
 
-  public void displayTargetModules(@NotNull List<? extends PsAndroidDependency> dependencies) {
+  public void displayTargetModules(@NotNull List<AbstractDependencyNode<? extends PsAndroidDependency>> dependencyNodes) {
     AbstractTreeStructure treeStructure = getTreeStructure();
     if (treeStructure instanceof TargetModelsTreeStructure) {
-      ((TargetModelsTreeStructure)treeStructure).displayTargetModules(dependencies);
+      ((TargetModelsTreeStructure)treeStructure).displayTargetModules(dependencyNodes);
       queueUpdate();
     }
   }
