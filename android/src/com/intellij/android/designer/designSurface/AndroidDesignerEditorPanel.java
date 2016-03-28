@@ -1416,7 +1416,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
 
   @Override
   public boolean hasAlphaChannel() {
-    return !myRootView.getShowDropShadow();
+    return myRootView == null || !myRootView.getShowDropShadow();
   }
 
   @Override
