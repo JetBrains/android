@@ -23,7 +23,7 @@ import com.android.sdklib.devices.Storage.Unit;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.internal.avd.HardwareProperties;
-import com.android.sdklib.repositoryv2.IdDisplay;
+import com.android.sdklib.repository.IdDisplay;
 import com.android.tools.idea.ddms.screenshot.DeviceArtDescriptor;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder;
@@ -45,7 +45,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-import static com.android.sdklib.repositoryv2.targets.SystemImage.*;
+import static com.android.sdklib.repository.targets.SystemImage.*;
 
 /**
  * State store keys for the AVD Manager wizards

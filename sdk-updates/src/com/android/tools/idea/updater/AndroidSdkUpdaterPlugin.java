@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.updater;
 
-import com.android.sdklib.repositoryv2.AndroidSdkHandler;
 import com.intellij.ide.externalComponents.ExternalComponentManagerImpl;
 import com.intellij.ide.externalComponents.UpdatableExternalComponent;
 import com.intellij.openapi.components.ApplicationComponent;

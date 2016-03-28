@@ -17,10 +17,10 @@
 package com.android.tools.idea.sdk.legacy.remote.internal.packages;
 
 import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.repository.descriptors.PkgDesc;
-import com.android.sdklib.repository.local.LocalSysImgPkgInfo;
-import com.android.sdklib.repositoryv2.IdDisplay;
-import com.android.sdklib.repositoryv2.targets.SystemImage;
+import com.android.sdklib.repository.legacy.descriptors.PkgDesc;
+import com.android.sdklib.repository.legacy.local.LocalSysImgPkgInfo;
+import com.android.sdklib.repository.IdDisplay;
+import com.android.sdklib.repository.targets.SystemImage;
 import com.android.tools.idea.sdk.legacy.remote.RemotePkgInfo;
 import com.android.tools.idea.sdk.legacy.remote.internal.sources.RepoConstants;
 import com.android.tools.idea.sdk.legacy.remote.internal.sources.SdkSource;

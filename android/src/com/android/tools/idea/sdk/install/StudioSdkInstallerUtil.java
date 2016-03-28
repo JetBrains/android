@@ -18,7 +18,7 @@ package com.android.tools.idea.sdk.install;
 import com.android.repository.api.*;
 import com.android.repository.impl.installer.BasicInstallerFactory;
 import com.android.repository.impl.meta.Archive;
-import com.android.sdklib.repositoryv2.AndroidSdkHandler;
+import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import org.jetbrains.annotations.NotNull;
 

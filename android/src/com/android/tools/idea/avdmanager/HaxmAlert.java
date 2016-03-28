@@ -17,7 +17,6 @@ package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.devices.Abi;
-import com.android.sdklib.repositoryv2.IdDisplay;
 import com.intellij.ui.HyperlinkAdapter;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.JBColor;
