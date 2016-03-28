@@ -15,13 +15,17 @@
  */
 package com.android.tools.idea.editors.gfxtrace.widgets;
 
+import com.android.tools.idea.editors.gfxtrace.UiCallback;
+import com.android.tools.idea.editors.gfxtrace.service.image.MultiLevelImage;
+import com.android.tools.rpclib.rpccore.Rpc;
+import com.android.tools.rpclib.rpccore.RpcException;
 import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.StatusText;
-import com.intellij.util.ui.UIUtil;
 import icons.AndroidIcons;
 import icons.ImagesIcons;
 import org.jetbrains.annotations.NotNull;
@@ -39,8 +43,10 @@ import java.awt.image.ColorModel;
 import java.awt.image.Raster;
 import java.awt.image.WritableRaster;
 import java.util.Arrays;
+import java.util.concurrent.ExecutionException;
 
 public class ImagePanel extends JPanel {
+  private static final Logger LOG = Logger.getInstance(ImagePanel.class);
   private static final int ZOOM_AMOUNT = 5;
   private static final int SCROLL_AMOUNT = 15;
 
@@ -100,7 +106,7 @@ public class ImagePanel extends JPanel {
     return myImage.getEmptyText();
   }
 
-  public void setImage(BufferedImage image) {
+  public void setImage(MultiLevelImage image) {
     myImage.setImage(image);
   }
 
@@ -108,15 +114,15 @@ public class ImagePanel extends JPanel {
     private static final double ZOOM_FIT = Double.POSITIVE_INFINITY;
     private static final double MAX_ZOOM_FACTOR = 8;
     private static final double MIN_ZOOM_WIDTH = 100.0;
-    private static final BufferedImage EMPTY_IMAGE = UIUtil.createImage(1, 1, BufferedImage.TYPE_4BYTE_ABGR);
     private static final int BORDER_SIZE = JBUI.scale(2);
     private static final Border BORDER = new LineBorder(JBColor.border(), BORDER_SIZE);
     private static final Paint CHECKER_PAINT = new CheckerboardPaint();
 
     private final JViewport parent;
     private final StatusText emptyText;
-    private BufferedImage image = EMPTY_IMAGE;
-    private BufferedImage opaqueImage = null;
+    private MultiLevelImage image;
+    private BufferedImage level = MultiLevelImage.EMPTY_LEVEL;
+    private BufferedImage opaqueLevel = null;
     private double zoom;
     private boolean drawCheckerBoard = true;
     private boolean transparent = true;
@@ -128,7 +134,7 @@ public class ImagePanel extends JPanel {
       this.emptyText = new StatusText() {
         @Override
         protected boolean isStatusVisible() {
-          return image == EMPTY_IMAGE;
+          return image == MultiLevelImage.EMPTY_IMAGE;
         }
       };
       this.emptyText.attachTo(parent);
@@ -228,20 +234,24 @@ public class ImagePanel extends JPanel {
     }
 
     public void clearImage() {
-      this.image = EMPTY_IMAGE;
+      this.image = MultiLevelImage.EMPTY_IMAGE;
+      this.level = MultiLevelImage.EMPTY_LEVEL;
       revalidate();
       repaint();
     }
 
-    public void setImage(BufferedImage image) {
-      if (this.image == EMPTY_IMAGE) {
+    public void setImage(MultiLevelImage image) {
+      if (this.image == MultiLevelImage.EMPTY_IMAGE) {
         // Ignore any zoom actions that might have happened before the first real image was shown.
         zoomToFit();
       }
-      this.image = (image == null) ? EMPTY_IMAGE : image;
-      this.opaqueImage = null;
+      this.image = (image == null) ? MultiLevelImage.EMPTY_IMAGE : image;
+      this.level = MultiLevelImage.EMPTY_LEVEL;
+      this.opaqueLevel = null;
       revalidate();
       repaint();
+
+      loadLevel(0);
     }
 
     public void addToolbarActions(DefaultActionGroup group, boolean enableVerticalFlip) {
@@ -318,12 +328,12 @@ public class ImagePanel extends JPanel {
     }
 
     public Pixel getPixel(int x, int y) {
-      if (this.image == EMPTY_IMAGE) {
+      if (this.image == MultiLevelImage.EMPTY_IMAGE || level == MultiLevelImage.EMPTY_LEVEL) {
         return Pixel.OUT_OF_BOUNDS;
       }
 
       double scale = (zoom == ZOOM_FIT) ? getFitRatio() : zoom;
-      int w = (int)(image.getWidth(this) * scale), h = (int)(image.getHeight(this) * scale);
+      int w = (int)(level.getWidth(this) * scale), h = (int)(level.getHeight(this) * scale);
 
       Point pos = parent.getViewPosition();
       pos.translate(x - (getWidth() - w) / 2, y - (getHeight() - h) / 2);
@@ -335,26 +345,26 @@ public class ImagePanel extends JPanel {
       // of the image used as a texture.
       int pixelX = (int)(pos.x / scale), pixelY = (int)(pos.y / scale);
       float u = (pos.x + 0.5f) / w, v = (pos.y + 0.5f) / h; // This is actually flipped v.
-      return new Pixel(pixelX, image.getHeight() - pixelY - 1, u, flipped ? v : 1 - v , image.getRGB(pixelX, pixelY));
+      return new Pixel(pixelX, level.getHeight() - pixelY - 1, u, flipped ? v : 1 - v , level.getRGB(pixelX, pixelY));
     }
 
     @Override
     public Dimension getPreferredSize() {
       return (zoom == ZOOM_FIT)
              ? new Dimension(parent.getWidth(), parent.getHeight())
-             : new Dimension((int)(zoom * image.getWidth(this)) + 2 * BORDER_SIZE, (int)(zoom * image.getHeight(this)) + 2 * BORDER_SIZE);
+             : new Dimension((int)(zoom * level.getWidth(this)) + 2 * BORDER_SIZE, (int)(zoom * level.getHeight(this)) + 2 * BORDER_SIZE);
     }
 
     @Override
     protected void paintComponent(Graphics g) {
       super.paintComponent(g);
-      if (image == EMPTY_IMAGE) {
+      if (image == MultiLevelImage.EMPTY_IMAGE || level == MultiLevelImage.EMPTY_LEVEL) {
         emptyText.paint(parent, g);
         return;
       }
 
       double scale = (zoom == ZOOM_FIT) ? getFitRatio() : zoom;
-      int w = (int)(image.getWidth(this) * scale), h = (int)(image.getHeight(this) * scale);
+      int w = (int)(level.getWidth(this) * scale), h = (int)(level.getHeight(this) * scale);
       int x = (getWidth() - w) / 2, y = (getHeight() - h) / 2;
 
       if (drawCheckerBoard && transparent) {
@@ -367,21 +377,47 @@ public class ImagePanel extends JPanel {
         ((Graphics2D)g).transform(new AffineTransform(1, 0, 0, -1, 0, getHeight() - 1));
       }
       if (transparent) {
-        g.drawImage(image, x, y, w, h, this);
+        g.drawImage(level, x, y, w, h, this);
       }
       else {
-        if (opaqueImage == null) {
+        if (opaqueLevel == null) {
           //noinspection UndesirableClassUsage
-          opaqueImage = new BufferedImage(image.getWidth(this), image.getHeight(this), BufferedImage.TYPE_3BYTE_BGR);
-          Graphics2D opaqueG = opaqueImage.createGraphics();
+          opaqueLevel = new BufferedImage(level.getWidth(this), level.getHeight(this), BufferedImage.TYPE_3BYTE_BGR);
+          Graphics2D opaqueG = opaqueLevel.createGraphics();
           opaqueG.setComposite(AlphaComposite.Src);
-          opaqueG.drawImage(image, 0, 0, this);
+          opaqueG.drawImage(level, 0, 0, this);
           opaqueG.dispose();
         }
-        g.drawImage(opaqueImage, x, y, w, h, this);
+        g.drawImage(opaqueLevel, x, y, w, h, this);
       }
       ((Graphics2D)g).setTransform(transform);
       BORDER.paintBorder(this, g, x - BORDER_SIZE, y - BORDER_SIZE, w + 2 * BORDER_SIZE, h + 2 * BORDER_SIZE);
+    }
+
+    private void loadLevel(int index) {
+      index = Math.min(image.getLevelCount() - 1, index);
+      Rpc.listen(image.getLevel(index), LOG, new UiCallback<BufferedImage, BufferedImage>() {
+        @Override
+        protected BufferedImage onRpcThread(Rpc.Result<BufferedImage> result) throws RpcException, ExecutionException {
+          return result.get();
+        }
+
+        @Override
+        protected void onUiThread(BufferedImage result) {
+          updateLevel(result);
+        }
+      });
+    }
+
+    protected void updateLevel(BufferedImage level) {
+      if (this.level == MultiLevelImage.EMPTY_LEVEL) {
+        // Ignore any zoom actions that might have happened before the first real image was shown.
+        zoomToFit();
+      }
+      this.level = (level == null) ? MultiLevelImage.EMPTY_LEVEL : level;
+      this.opaqueLevel = null;
+      revalidate();
+      repaint();
     }
 
     private void scrollBy(int dx, int dy) {
@@ -433,13 +469,13 @@ public class ImagePanel extends JPanel {
     }
 
     private double getFitRatio() {
-      return Math.min((double)(getWidth() - 2 * BORDER_SIZE) / image.getWidth(this),
-                      (double)(getHeight() - 2 * BORDER_SIZE) / image.getHeight(this));
+      return Math.min((double)(getWidth() - 2 * BORDER_SIZE) / level.getWidth(this),
+                      (double)(getHeight() - 2 * BORDER_SIZE) / level.getHeight(this));
     }
 
     private double getMinZoom() {
       // The smallest zoom factor to see the whole image or that causes the larger dimension to be no less than MIN_ZOOM_WIDTH pixels.
-      return Math.min(1, Math.min(getFitRatio(), Math.min(MIN_ZOOM_WIDTH / image.getWidth(this), MIN_ZOOM_WIDTH / image.getHeight(this))));
+      return Math.min(1, Math.min(getFitRatio(), Math.min(MIN_ZOOM_WIDTH / level.getWidth(this), MIN_ZOOM_WIDTH / level.getHeight(this))));
     }
 
     private double getMaxZoom() {
