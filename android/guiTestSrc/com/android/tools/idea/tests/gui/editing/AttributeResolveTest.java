@@ -17,6 +17,8 @@ package com.android.tools.idea.tests.gui.editing;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import org.junit.Rule;
 import org.junit.Test;
@@ -31,6 +33,7 @@ import static com.intellij.openapi.util.io.FileUtil.join;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 
+@RunIn(TestGroup.EDITING)
 @RunWith(GuiTestRunner.class)
 public class AttributeResolveTest {
 
