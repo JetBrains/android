@@ -21,6 +21,7 @@ import com.android.annotations.Nullable;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.uibuilder.property.NlProperty;
+import com.android.tools.idea.uibuilder.property.editors.NlEnumEditor;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.components.JBTextField;
 
@@ -32,8 +33,7 @@ import java.awt.event.ActionListener;
 import java.util.Map;
 
 
-public class IdInspectorComponent implements InspectorComponent, ActionListener {
-  @Nullable private final NlComponent myComponent;
+public class IdInspectorComponent implements InspectorComponent, ActionListener, NlEnumEditor.Listener {
   @NonNull private final NlPropertiesManager myPropertiesManager;
 
   private final NlProperty myIdAttr;
@@ -41,13 +41,12 @@ public class IdInspectorComponent implements InspectorComponent, ActionListener 
   private final NlProperty myHeightAttr;
 
   private final JBTextField myIdTextField;
-  private final JBTextField myWidthTextField;
-  private final JBTextField myHeightTextField;
+  private final NlEnumEditor myWidthEditor;
+  private final NlEnumEditor myHeightEditor;
 
   public IdInspectorComponent(@Nullable NlComponent component,
                               @NonNull Map<String, NlProperty> properties,
                               @NonNull NlPropertiesManager propertiesManager) {
-    myComponent = component;
     myPropertiesManager = propertiesManager;
 
     myIdAttr = properties.get(SdkConstants.ATTR_ID);
@@ -55,21 +54,28 @@ public class IdInspectorComponent implements InspectorComponent, ActionListener 
     myHeightAttr = properties.get(SdkConstants.ATTR_LAYOUT_HEIGHT);
 
     myIdTextField = new JBTextField();
-    myWidthTextField = new JBTextField();
-    myHeightTextField = new JBTextField();
+    myWidthEditor = new NlEnumEditor(this);
+    myHeightEditor = new NlEnumEditor(this);
 
     myIdTextField.addActionListener(this);
-    myWidthTextField.addActionListener(this);
-    myHeightTextField.addActionListener(this);
   }
 
   @Override
   public void attachToInspector(@NonNull JPanel inspector) {
-    InspectorPanel.addComponent(inspector, "ID", myIdTextField);
+    InspectorPanel.addComponent(inspector, "ID", getTooltip(myIdAttr), myIdTextField);
     InspectorPanel.addSeparator(inspector);
-    InspectorPanel.addComponent(inspector, "Width", myWidthTextField);
-    InspectorPanel.addComponent(inspector, "Height", myHeightTextField);
+    InspectorPanel.addComponent(inspector, "Width", getTooltip(myWidthAttr), myWidthEditor.getComponent());
+    InspectorPanel.addComponent(inspector, "Height", getTooltip(myHeightAttr), myHeightEditor.getComponent());
     refresh();
+  }
+
+  @Nullable
+  private static String getTooltip(@Nullable NlProperty property) {
+    if (property == null) {
+      return null;
+    }
+
+    return property.getTooltipText();
   }
 
   @Override
@@ -79,38 +85,21 @@ public class IdInspectorComponent implements InspectorComponent, ActionListener 
     myIdTextField.setText(en ? StringUtil.notNullize(myIdAttr.getValue()) : "");
 
     en = myWidthAttr != null;
-    myWidthTextField.setEnabled(en);
-    myWidthTextField.setText(en ? StringUtil.notNullize(myWidthAttr.getValue()) : "");
+    myWidthEditor.setEnabled(en);
+    if (en) {
+      myWidthEditor.setProperty(myWidthAttr);
+    }
 
     en = myHeightAttr != null;
-    myHeightTextField.setEnabled(en);
-    myHeightTextField.setText(en ? StringUtil.notNullize(myHeightAttr.getValue()) : "");
+    myHeightEditor.setEnabled(en);
+    if (en) {
+      myHeightEditor.setProperty(myHeightAttr);
+    }
   }
 
   @Override
   public void actionPerformed(@NonNull ActionEvent e) {
-    Object source = e.getSource();
-    NlProperty property = null;
-    String value = null;
-
-    if (myIdTextField == source) {
-      property = myIdAttr;
-      value = getText(myIdTextField);
-    }
-    else if (myWidthTextField == source) {
-      property = myWidthAttr;
-      value = getText(myWidthTextField);
-    }
-    else if (myHeightTextField == source) {
-      property = myHeightAttr;
-      value = getText(myHeightTextField);
-    }
-
-    if (property == null) {
-      return;
-    }
-
-    myPropertiesManager.setValue(property, value);
+    myPropertiesManager.setValue(myIdAttr, getText(myIdTextField));
   }
 
   private static String getText(@NonNull JBTextField textField) {
@@ -119,8 +108,22 @@ public class IdInspectorComponent implements InspectorComponent, ActionListener 
       return doc.getText(0, doc.getLength());
     }
     catch (BadLocationException e) {
-      // TODO: highlight in the field
       return "";
     }
+  }
+
+  @Override
+  public void itemPicked(@NonNull NlEnumEditor source, @NonNull String value) {
+    NlProperty property = source == myWidthEditor ? myWidthAttr : myHeightAttr;
+    myPropertiesManager.setValue(property, value);
+  }
+
+  @Override
+  public void resourcePicked(@NonNull NlEnumEditor source, @NonNull String value) {
+    itemPicked(source, value);
+  }
+
+  @Override
+  public void resourcePickerCancelled(@NonNull NlEnumEditor source) {
   }
 }
