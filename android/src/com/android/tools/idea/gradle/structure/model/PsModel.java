@@ -32,7 +32,7 @@ public abstract class PsModel {
   @NotNull
   public abstract String getName();
 
-  public abstract boolean isEditable();
+  public abstract boolean isDeclared();
 
   @Nullable
   public abstract Object getResolvedModel();

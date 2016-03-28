@@ -32,6 +32,7 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.tree.TreePath;
 import java.util.List;
 import java.util.Map;
 
@@ -112,6 +113,17 @@ public class DependenciesPerspectiveConfigurable extends BasePerspectiveConfigur
       return;
     }
     place.putPath(DEPENDENCIES_PLACE, "");
+  }
+
+  @Override
+  @Nullable
+  public NamedConfigurable getSelectedConfigurable() {
+    TreePath selectionPath = myTree.getSelectionPath();
+    if (selectionPath != null) {
+      MyNode node = (MyNode)selectionPath.getLastPathComponent();
+      return node.getConfigurable();
+    }
+    return null;
   }
 
   @Override

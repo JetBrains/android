@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.structure.configurables.android.dependenci
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.details.DependencyDetails;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.details.LibraryDependencyDetails;
 import com.android.tools.idea.gradle.structure.model.PsProject;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
@@ -82,7 +81,6 @@ public abstract class AbstractDeclaredDependenciesPanel extends JPanel implement
 
     myEmptyText = String.format("Please select a dependency from the '%1$s' view", title);
 
-    initializeEditors(context);
     myEmptyDetailsPanel = new EmptyDetailsPanel(myEmptyText);
     myDetailsScrollPane = createScrollPane(myEmptyDetailsPanel);
     myDetailsScrollPane.setBorder(createEmptyBorder());
@@ -100,11 +98,7 @@ public abstract class AbstractDeclaredDependenciesPanel extends JPanel implement
     add(splitter, BorderLayout.CENTER);
   }
 
-  private void initializeEditors(@NotNull PsContext context) {
-    addDetails(new LibraryDependencyDetails(context));
-  }
-
-  private void addDetails(@NotNull DependencyDetails<?> details) {
+  protected final void addDetails(@NotNull DependencyDetails<?> details) {
     myDependencyDetails.put(details.getSupportedModelType(), details);
   }
 

@@ -77,7 +77,7 @@ public abstract class PsAndroidDependency extends PsChildModel implements PsAndr
   }
 
   @Override
-  public boolean isEditable() {
+  public boolean isDeclared() {
     return myParsedModel != null;
   }
 
