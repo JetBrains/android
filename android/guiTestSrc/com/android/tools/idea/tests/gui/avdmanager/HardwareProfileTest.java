@@ -37,13 +37,13 @@ public class HardwareProfileTest {
     guiTest.importSimpleApplication();
     AvdManagerDialogFixture avdManagerDialog = guiTest.ideFrame().invokeAvdManager();
     AvdEditWizardFixture avdEditWizard = avdManagerDialog.createNew();
-    ChooseDeviceDefinitionStepFixture chooseDeviceDefinitionStep = avdEditWizard.getChooseDeviceDefinitionStep();
+    ChooseDeviceDefinitionStepFixture step = avdEditWizard.selectHardware();
 
     // UI tests are not as isolated as we would like, make sure there's no name clash.
     final String deviceName = "device-" + System.currentTimeMillis();
-    assertFalse("Device with this name already exists, no point in testing.", chooseDeviceDefinitionStep.deviceExists(deviceName));
+    assertFalse("Device with this name already exists, no point in testing.", step.hardwareProfileExists(deviceName));
 
-    DeviceEditWizardFixture deviceEditWizard = chooseDeviceDefinitionStep.createNewDevice();
+    DeviceEditWizardFixture deviceEditWizard = step.newHardwareProfile();
     ConfigureDeviceOptionsStepFixture deviceOptionsStep = deviceEditWizard.getConfigureDeviceOptionsStep();
     deviceOptionsStep.setDeviceName(deviceName)
                      .selectHasFrontCamera(false)
@@ -52,8 +52,8 @@ public class HardwareProfileTest {
                      .setScreenSize(5.2);
     guiTest.robot().waitForIdle();
     deviceEditWizard.clickFinish();
-    chooseDeviceDefinitionStep.selectDeviceByName(deviceName);
-    chooseDeviceDefinitionStep.removeDeviceByName(deviceName);
+    step.selectHardwareProfile(deviceName);
+    step.deleteHardwareProfile(deviceName);
     avdEditWizard.clickCancel();
     avdManagerDialog.close();
   }
