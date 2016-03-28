@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.structure;
 
-import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
-import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.DesignSurfaceListener;
@@ -42,8 +40,10 @@ import javax.swing.tree.*;
 import java.awt.*;
 import java.awt.Insets;
 import java.awt.dnd.DropTarget;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.android.SdkConstants.*;
@@ -105,6 +105,16 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   private void setScreenView(@Nullable ScreenView screenView) {
     myScreenView = screenView;
     setModel(screenView != null ? screenView.getModel() : null);
+  }
+
+  @NotNull
+  Map<NlComponent, DefaultMutableTreeNode> getComponentToNode() {
+    return myComponent2Node;
+  }
+
+  @NotNull
+  Map<String, DefaultMutableTreeNode> getIdToNode() {
+    return myId2Node;
   }
 
   @Nullable
@@ -183,7 +193,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
             myWasExpanded = false;
             myId2Node.clear();
           }
-          HierarchyUpdater updater = new HierarchyUpdater();
+          HierarchyUpdater updater = new HierarchyUpdater(NlComponentTree.this);
           updater.execute();
           expandOnce();
           invalidateUI();
@@ -333,6 +343,12 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
     }
   }
 
+  @Override
+  @SuppressWarnings("EmptyMethod")
+  protected void clearToggledPaths() {
+    super.clearToggledPaths();
+  }
+
   public List<NlComponent> getSelectedComponents() {
     List<NlComponent> selected = new ArrayList<NlComponent>();
     TreePath[] paths = getSelectionPaths();
@@ -393,103 +409,6 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
     return (NlComponent)node.getUserObject();
   }
 
-  /**
-   * Updating the tree nodes after the model has changed presents a few problems:
-   * <ul>
-   *   <li>We would like the current expanded nodes to continue to appear expanded.</li>
-   *   <li>NlComponent and XmlTag instances may have been changed and can no longer be trusted.</li>
-   * </ul>
-   * The solution used here is not elegant. The idea is to attempt to restore the visible nodes that have an id.
-   * We require:
-   * <ul>
-   *   <li>A mapping from component id to the tree node from the previous update.</li>
-   *   <li>A set of nodes that are currently visible which is computed here from the current tree.</li>
-   * </ul>
-   * When we find an old node for a component id we will reuse that node and make sure all parent nodes are expanded
-   * if this node was visible before the update.
-   * <br/>
-   * As a side effect we build the following maps:
-   * <ul>
-   *   <li>A map from component id to the new tree node (for the next hierarchy update).</li>
-   *   <li>A map from component reference to the new tree node (for handling of selection changes).</li>
-   * </ul>
-   */
-  private class HierarchyUpdater {
-    private final Map<String, DefaultMutableTreeNode> myId2TempNode;
-    private final Set<DefaultMutableTreeNode> myVisibleNodes;
-
-    private HierarchyUpdater() {
-      myId2TempNode = new HashMap<String, DefaultMutableTreeNode>(myId2Node);
-      myVisibleNodes = new HashSet<DefaultMutableTreeNode>();
-    }
-
-    public void execute() {
-      myId2Node.clear();
-      myComponent2Node.clear();
-      TreePath rootPath = new TreePath(getModel().getRoot());
-      recordVisibleNodes(rootPath);
-      clearToggledPaths();
-      List<NlComponent> components = myModel != null ? myModel.getComponents() : null;
-      replaceChildNodes(rootPath, components);
-      NlComponent root = new FakeRootComponent(myModel);
-      if (components != null) {
-        for (NlComponent component : components) {
-          root.addChild(component);
-        }
-      }
-      DefaultMutableTreeNode rootNode = (DefaultMutableTreeNode)rootPath.getLastPathComponent();
-      rootNode.setUserObject(root);
-      expandPath(rootPath);
-    }
-
-    private void recordVisibleNodes(@NotNull TreePath path) {
-      if (isExpanded(path)) {
-        DefaultMutableTreeNode node = (DefaultMutableTreeNode)path.getLastPathComponent();
-        for (int i = 0; i < node.getChildCount(); i++) {
-          DefaultMutableTreeNode child = (DefaultMutableTreeNode)node.getChildAt(i);
-          recordVisibleNodes(path.pathByAddingChild(child));
-          myVisibleNodes.add(child);
-        }
-      }
-    }
-
-    private void replaceChildNodes(@NotNull TreePath path, @Nullable List<NlComponent> subComponents) {
-      DefaultMutableTreeNode node = (DefaultMutableTreeNode)path.getLastPathComponent();
-      node.removeAllChildren();
-      if (subComponents != null) {
-        boolean mustExpand = false;
-        for (NlComponent child : subComponents) {
-          mustExpand |= addChildNode(path, child);
-        }
-        if (mustExpand) {
-          expandPath(path);
-        }
-      }
-    }
-
-    private boolean addChildNode(@NotNull TreePath path, @NotNull NlComponent component) {
-      DefaultMutableTreeNode parent = (DefaultMutableTreeNode)path.getLastPathComponent();
-      DefaultMutableTreeNode node = null;
-      String id = component.getId();
-      if (id != null && !myId2Node.containsKey(id)) {
-        node = myId2TempNode.get(id);
-      }
-      if (node == null) {
-        node = new DefaultMutableTreeNode(component);
-      }
-      else {
-        node.setUserObject(component);
-      }
-      if (id != null) {
-        myId2Node.put(id, node);
-      }
-      myComponent2Node.put(component, node);
-      parent.add(node);
-      replaceChildNodes(path.pathByAddingChild(node), component.children);
-      return myVisibleNodes.contains(node);
-    }
-  }
-
   private class StructurePaneSelectionListener implements TreeSelectionListener {
     @Override
     public void valueChanged(TreeSelectionEvent treeSelectionEvent) {
@@ -502,24 +421,6 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
       finally {
         mySelectionIsUpdating.set(false);
       }
-    }
-  }
-
-  private static final class FakeRootComponent extends NlComponent {
-    FakeRootComponent(@NotNull NlModel model) {
-      super(model, EmptyXmlTag.INSTANCE);
-    }
-
-    @Nullable
-    @Override
-    public ViewHandler getViewHandler() {
-      return null;
-    }
-
-    @Nullable
-    @Override
-    public ViewGroupHandler getViewGroupHandler() {
-      return null;
     }
   }
 
