@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.palette;
 
-import com.android.tools.idea.uibuilder.palette.NlPaletteModel.ResourceType;
+import com.android.tools.idea.uibuilder.model.ResourceType;
 
 import java.io.InputStreamReader;
 import java.io.Reader;
