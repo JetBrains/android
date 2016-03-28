@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.run;
 
-import com.android.sdklib.repositoryv2.IdDisplay;
+import com.android.sdklib.repository.IdDisplay;
 import com.intellij.facet.Facet;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ModalityState;

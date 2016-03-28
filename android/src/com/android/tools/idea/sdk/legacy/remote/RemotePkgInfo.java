@@ -23,7 +23,7 @@ import com.android.repository.Revision;
 import com.android.repository.api.License;
 import com.android.repository.api.RepoManager;
 import com.android.repository.impl.meta.CommonFactory;
-import com.android.sdklib.repository.descriptors.IPkgDesc;
+import com.android.sdklib.repository.legacy.descriptors.IPkgDesc;
 import com.android.tools.idea.sdk.legacy.remote.internal.archives.Archive;
 import com.android.tools.idea.sdk.legacy.remote.internal.packages.RemotePackageParserUtils;
 import com.android.tools.idea.sdk.legacy.remote.internal.sources.SdkRepoConstants;

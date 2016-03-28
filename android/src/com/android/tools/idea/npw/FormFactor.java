@@ -16,8 +16,8 @@
 package com.android.tools.idea.npw;
 
 import com.android.sdklib.SdkVersionInfo;
-import com.android.sdklib.repositoryv2.IdDisplay;
-import com.android.sdklib.repositoryv2.targets.SystemImage;
+import com.android.sdklib.repository.IdDisplay;
+import com.android.sdklib.repository.targets.SystemImage;
 import com.android.tools.idea.configurations.DeviceMenuAction;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;

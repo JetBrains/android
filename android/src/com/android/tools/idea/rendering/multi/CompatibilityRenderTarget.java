@@ -18,8 +18,6 @@ package com.android.tools.idea.rendering.multi;
 import com.android.annotations.NonNull;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.*;
-import com.android.sdklib.repositoryv2.IdDisplay;
-import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

@@ -17,7 +17,7 @@
 package com.android.tools.idea.npw;
 
 import com.android.sdklib.BuildToolInfo;
-import com.android.sdklib.repositoryv2.AndroidSdkHandler;
+import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.templates.KeystoreUtils;
 import com.android.tools.idea.templates.RepositoryUrlManager;

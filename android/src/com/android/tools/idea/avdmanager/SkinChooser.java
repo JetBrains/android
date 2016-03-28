@@ -19,7 +19,7 @@ import com.android.repository.io.FileOpUtils;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.ISystemImage;
 import com.android.sdklib.devices.Device;
-import com.android.sdklib.repositoryv2.AndroidSdkHandler;
+import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;

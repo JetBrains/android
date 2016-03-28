@@ -18,7 +18,7 @@ package com.android.tools.idea.sdk;
 import com.android.SdkConstants;
 import com.android.repository.Revision;
 import com.android.repository.api.LocalPackage;
-import com.android.sdklib.repositoryv2.AndroidSdkHandler;
+import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.startup.AndroidSdkInitializer;
 import com.android.tools.idea.stats.UsageTracker;
