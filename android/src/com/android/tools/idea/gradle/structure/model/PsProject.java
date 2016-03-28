@@ -103,7 +103,7 @@ public class PsProject extends PsModel {
   }
 
   @Override
-  public boolean isEditable() {
+  public boolean isDeclared() {
     return true;
   }
 

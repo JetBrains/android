@@ -35,16 +35,16 @@ import static com.android.builder.model.AndroidProject.ARTIFACT_MAIN;
 import static com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.treeview.DependencyNodes.createNodesFor;
 
 class ResolvedDependenciesTreeRootNode extends AbstractRootNode<PsAndroidModule> {
-  private boolean myGroupVariants = PsUISettings.getInstance().VARIANTS_DEPENDENCIES_GROUP_VARIANTS;
+  private boolean myGroupVariants = PsUISettings.getInstance().RESOLVED_DEPENDENCIES_GROUP_VARIANTS;
 
   ResolvedDependenciesTreeRootNode(@NotNull PsAndroidModule module) {
     super(module);
   }
 
   boolean settingsChanged() {
-    if (PsUISettings.getInstance().VARIANTS_DEPENDENCIES_GROUP_VARIANTS != myGroupVariants) {
+    if (PsUISettings.getInstance().RESOLVED_DEPENDENCIES_GROUP_VARIANTS != myGroupVariants) {
       // If the "Group Variants" setting changed, remove all children nodes, so the subsequent call to "queueUpdate" will recreate them.
-      myGroupVariants = PsUISettings.getInstance().VARIANTS_DEPENDENCIES_GROUP_VARIANTS;
+      myGroupVariants = PsUISettings.getInstance().RESOLVED_DEPENDENCIES_GROUP_VARIANTS;
       removeChildren();
       return true;
     }
@@ -276,7 +276,7 @@ class ResolvedDependenciesTreeRootNode extends AbstractRootNode<PsAndroidModule>
     module.forEachDependency(new Predicate<PsAndroidDependency>() {
       @Override
       public boolean apply(@Nullable PsAndroidDependency dependency) {
-        if (dependency == null || !dependency.isEditable()) {
+        if (dependency == null || !dependency.isDeclared()) {
           return false; // Only show "declared" dependencies as top-level dependencies.
         }
         for (PsDependencyContainer container : dependency.getContainers()) {

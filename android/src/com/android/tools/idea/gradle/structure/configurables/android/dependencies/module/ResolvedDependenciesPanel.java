@@ -154,14 +154,14 @@ class ResolvedDependenciesPanel extends ToolWindowPanel implements DependencySel
     settingsGroup.add(new ToggleAction("Group Similar") {
       @Override
       public boolean isSelected(AnActionEvent e) {
-        return PsUISettings.getInstance().VARIANTS_DEPENDENCIES_GROUP_VARIANTS;
+        return PsUISettings.getInstance().RESOLVED_DEPENDENCIES_GROUP_VARIANTS;
       }
 
       @Override
       public void setSelected(AnActionEvent e, boolean state) {
         PsUISettings settings = PsUISettings.getInstance();
-        if (settings.VARIANTS_DEPENDENCIES_GROUP_VARIANTS != state) {
-          settings.VARIANTS_DEPENDENCIES_GROUP_VARIANTS = state;
+        if (settings.RESOLVED_DEPENDENCIES_GROUP_VARIANTS != state) {
+          settings.RESOLVED_DEPENDENCIES_GROUP_VARIANTS = state;
           settings.fireUISettingsChanged();
         }
       }

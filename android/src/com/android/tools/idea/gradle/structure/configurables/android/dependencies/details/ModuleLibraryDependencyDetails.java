@@ -26,6 +26,7 @@ import com.intellij.ui.LightweightHint;
 import com.intellij.ui.components.JBLabel;
 import org.jdesktop.swingx.JXLabel;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
@@ -37,7 +38,7 @@ import java.util.List;
 import static com.intellij.codeInsight.hint.HintUtil.INFORMATION_COLOR;
 import static org.jetbrains.android.util.AndroidUiUtil.setUpAsHtmlLabel;
 
-public class LibraryDependencyDetails implements DependencyDetails<PsLibraryDependency> {
+public class ModuleLibraryDependencyDetails implements DependencyDetails<PsLibraryDependency> {
   @NotNull private final PsContext myContext;
 
   private JPanel myMainPanel;
@@ -49,9 +50,9 @@ public class LibraryDependencyDetails implements DependencyDetails<PsLibraryDepe
   private JBLabel myRequestedVersionLabel;
   private LightweightHint mySourceInfoHint;
 
-  private PsLibraryDependency myDependency;
+  @Nullable private PsLibraryDependency myDependency;
 
-  public LibraryDependencyDetails(@NotNull PsContext context) {
+  public ModuleLibraryDependencyDetails(@NotNull PsContext context) {
     myContext = context;
 
     mySourceInfoLabel.setIcon(AllIcons.General.Information);
@@ -82,7 +83,7 @@ public class LibraryDependencyDetails implements DependencyDetails<PsLibraryDepe
               @Override
               protected void hyperlinkActivated(HyperlinkEvent e) {
                 String moduleName = e.getDescription();
-                myContext.setSelectedModule(moduleName, LibraryDependencyDetails.this);
+                myContext.setSelectedModule(moduleName, ModuleLibraryDependencyDetails.this);
 
                 if (mySourceInfoHint != null) {
                   mySourceInfoHint.hide();
@@ -95,9 +96,9 @@ public class LibraryDependencyDetails implements DependencyDetails<PsLibraryDepe
           }
 
           HintHint hintInfo = new HintHint(e).setPreferredPosition(Balloon.Position.above)
-            .setAwtTooltip(true)
-            .setTextBg(INFORMATION_COLOR)
-            .setShowImmediately(true);
+                                             .setAwtTooltip(true)
+                                             .setTextBg(INFORMATION_COLOR)
+                                             .setShowImmediately(true);
 
           Point p = e.getPoint();
           mySourceInfoHint.show(myMainPanel, p.x, p.y, mySourceInfoLabel, hintInfo);
@@ -113,7 +114,7 @@ public class LibraryDependencyDetails implements DependencyDetails<PsLibraryDepe
   }
 
   @Override
-  public void display(PsLibraryDependency dependency) {
+  public void display(@NotNull PsLibraryDependency dependency) {
     myDependency = dependency;
 
     PsArtifactDependencySpec declaredSpec = myDependency.getDeclaredSpec();
@@ -137,7 +138,7 @@ public class LibraryDependencyDetails implements DependencyDetails<PsLibraryDepe
   }
 
   @Override
-  @NotNull
+  @Nullable
   public PsLibraryDependency getModel() {
     return myDependency;
   }

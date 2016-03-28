@@ -18,17 +18,27 @@ package com.android.tools.idea.gradle.structure.configurables.android.dependenci
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AndroidArtifactNode;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsdNode;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
+import com.intellij.openapi.roots.ui.CellAppearanceEx;
+import com.intellij.ui.HtmlListCellRenderer;
+import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.treeStructure.SimpleNode;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.List;
 
-public class TargetAndroidModuleNode extends AbstractPsdNode<PsAndroidModule> {
-  private List<AndroidArtifactNode> myChildren = Collections.emptyList();
+import static com.intellij.openapi.util.text.StringUtil.isEmpty;
+import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
 
-  TargetAndroidModuleNode(@NotNull AbstractPsdNode<?> parent, @NotNull PsAndroidModule module) {
+public class TargetAndroidModuleNode extends AbstractPsdNode<PsAndroidModule> implements CellAppearanceEx {
+  @Nullable private final String myVersion;
+
+  @NotNull private List<AndroidArtifactNode> myChildren = Collections.emptyList();
+
+  TargetAndroidModuleNode(@NotNull AbstractPsdNode<?> parent, @NotNull PsAndroidModule module, @Nullable String version) {
     super(parent, module);
+    myVersion = version;
     setAutoExpandNode(true);
   }
 
@@ -39,5 +49,23 @@ public class TargetAndroidModuleNode extends AbstractPsdNode<PsAndroidModule> {
 
   void setChildren(@NotNull List<AndroidArtifactNode> children) {
     myChildren = children;
+  }
+
+  @Override
+  @NotNull
+  public String getText() {
+    return myName;
+  }
+
+  @Override
+  public void customize(@NotNull HtmlListCellRenderer renderer) {
+  }
+
+  @Override
+  public void customize(@NotNull SimpleColoredComponent component) {
+    if (!isEmpty(myVersion)) {
+      component.append(" ");
+      component.append("(" + myVersion + ")", GRAY_ATTRIBUTES);
+    }
   }
 }

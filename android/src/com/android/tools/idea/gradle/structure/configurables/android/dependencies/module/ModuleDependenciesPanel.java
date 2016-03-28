@@ -113,13 +113,13 @@ class ModuleDependenciesPanel extends AbstractMainPanel {
   }
 
   private static void saveMinimizedState(boolean minimize) {
-    PsUISettings.getInstance().VARIANTS_DEPENDENCIES_MINIMIZE = minimize;
+    PsUISettings.getInstance().RESOLVED_DEPENDENCIES_MINIMIZE = minimize;
   }
 
   @Override
   public void addNotify() {
     super.addNotify();
-    boolean minimize = PsUISettings.getInstance().VARIANTS_DEPENDENCIES_MINIMIZE;
+    boolean minimize = PsUISettings.getInstance().RESOLVED_DEPENDENCIES_MINIMIZE;
     if (minimize) {
       minimizeResolvedDependenciesPanel();
     }
