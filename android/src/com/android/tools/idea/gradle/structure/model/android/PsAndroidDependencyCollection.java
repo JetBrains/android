@@ -331,12 +331,12 @@ class PsAndroidDependencyCollection implements PsModelCollection<PsAndroidDepend
 
   public void forEachDeclaredDependency(@NotNull Predicate<PsAndroidDependency> function) {
     for (PsLibraryDependency dependency : myLibraryDependenciesBySpec.values()) {
-      if (dependency.isEditable()) {
+      if (dependency.isDeclared()) {
         function.apply(dependency);
       }
     }
     for (PsModuleDependency dependency : myModuleDependenciesByGradlePath.values()) {
-      if (dependency.isEditable()) {
+      if (dependency.isDeclared()) {
         function.apply(dependency);
       }
     }

@@ -54,11 +54,11 @@ public class PsdAndroidModuleTest extends AndroidGradleTestCase {
 
     PsProductFlavor basic = appModule.findProductFlavor("basic");
     assertNotNull(basic);
-    assertTrue(basic.isEditable());
+    assertTrue(basic.isDeclared());
 
     PsProductFlavor release = appModule.findProductFlavor("paid");
     assertNotNull(release);
-    assertTrue(release.isEditable());
+    assertTrue(release.isDeclared());
   }
 
   @NotNull
@@ -157,7 +157,7 @@ public class PsdAndroidModuleTest extends AndroidGradleTestCase {
 
     // Verify that appcompat is considered a "editable" dependency, and it was matched properly
     PsLibraryDependency appCompatV7 = (PsLibraryDependency)declaredDependencies.get(0);
-    assertTrue(appCompatV7.isEditable());
+    assertTrue(appCompatV7.isDeclared());
 
     PsArtifactDependencySpec resolvedSpec = appCompatV7.getResolvedSpec();
     assertEquals("com.android.support", resolvedSpec.group);
@@ -186,7 +186,7 @@ public class PsdAndroidModuleTest extends AndroidGradleTestCase {
 
     // Verify that appcompat is considered a "editable" dependency, and it was matched properly
     PsLibraryDependency appCompatV7 = (PsLibraryDependency)declaredDependencies.get(0);
-    assertTrue(appCompatV7.isEditable());
+    assertTrue(appCompatV7.isDeclared());
 
     PsArtifactDependencySpec declaredSpec = appCompatV7.getDeclaredSpec();
     assertNotNull(declaredSpec);
