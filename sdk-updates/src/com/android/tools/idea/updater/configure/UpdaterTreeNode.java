@@ -20,10 +20,16 @@ import com.intellij.util.ui.ThreeStateCheckBox;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 
+import javax.accessibility.AccessibleAction;
+import javax.accessibility.AccessibleContext;
+import javax.accessibility.AccessibleRole;
+import javax.accessibility.AccessibleStateSet;
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreeCellRenderer;
 import java.awt.*;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 
 /**
  * A tree node with a checkbox that can have three states.
@@ -176,6 +182,68 @@ abstract class UpdaterTreeNode extends DefaultMutableTreeNode implements Compara
 
     public ColoredTreeCellRenderer getTextRenderer() {
       return myTextRenderer;
+    }
+
+    @Override
+    public AccessibleContext getAccessibleContext() {
+      if (accessibleContext == null) {
+        accessibleContext = new AccessibleRenderer();
+      }
+      return accessibleContext;
+    }
+
+    /**
+     * Expose accessible properties as a mix of the underlying {@link myCheckbox} and {@link myTextRenderer}
+     * so that {@link Renderer} behaves like a regular checkbox with an associated label.
+     */
+    protected class AccessibleRenderer extends AccessibleJPanel {
+      public AccessibleRenderer() {
+        if (myCheckbox.getAccessibleContext() != null) {
+          myCheckbox.getAccessibleContext().addPropertyChangeListener(new PropertyChangeListener() {
+            @Override
+            public void propertyChange(PropertyChangeEvent evt) {
+              firePropertyChange(evt.getPropertyName(), evt.getOldValue(), evt.getNewValue());
+            }
+          });
+        }
+
+        if (myTextRenderer.getAccessibleContext() != null) {
+          myTextRenderer.getAccessibleContext().addPropertyChangeListener(new PropertyChangeListener() {
+            @Override
+            public void propertyChange(PropertyChangeEvent evt) {
+              firePropertyChange(evt.getPropertyName(), evt.getOldValue(), evt.getNewValue());
+            }
+          });
+        }
+      }
+
+      @Override
+      public AccessibleRole getAccessibleRole() {
+        return myCheckbox.getAccessibleContext().getAccessibleRole();
+      }
+
+      @Override
+      public String getAccessibleName() {
+        return myTextRenderer.getAccessibleContext().getAccessibleName();
+      }
+
+      @Override
+      public String getAccessibleDescription() {
+        return myTextRenderer.getAccessibleContext().getAccessibleDescription();
+      }
+
+      @Override
+      public AccessibleStateSet getAccessibleStateSet() {
+        AccessibleStateSet set = new AccessibleStateSet();
+        set.addAll(myCheckbox.getAccessibleContext().getAccessibleStateSet().toArray());
+        set.addAll(myTextRenderer.getAccessibleContext().getAccessibleStateSet().toArray());
+        return set;
+      }
+
+      @Override
+      public AccessibleAction getAccessibleAction() {
+        return myCheckbox.getAccessibleContext().getAccessibleAction();
+      }
     }
   }
 
