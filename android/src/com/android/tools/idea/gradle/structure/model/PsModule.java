@@ -61,7 +61,7 @@ public abstract class PsModule extends PsChildModel {
   }
 
   @Override
-  public boolean isEditable() {
+  public boolean isDeclared() {
     return myParsedModel != null;
   }
 

@@ -56,7 +56,7 @@ public class ModuleDependencyNode extends AbstractDependencyNode<PsModuleDepende
       androidModule.forEachDependency(new Predicate<PsAndroidDependency>() {
         @Override
         public boolean apply(@Nullable PsAndroidDependency dependency) {
-          if (dependency == null || !dependency.isEditable()) {
+          if (dependency == null || !dependency.isDeclared()) {
             return false; // Only show "declared" dependencies as top-level dependencies.
           }
           String moduleVariant = moduleDependency.getModuleVariant();
