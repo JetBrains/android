@@ -46,7 +46,7 @@ public class ChooseDeviceDefinitionStepFixture extends AbstractWizardStepFixture
   }
 
   @NotNull
-  public ChooseDeviceDefinitionStepFixture selectDeviceByName(@NotNull final String deviceName) {
+  public ChooseDeviceDefinitionStepFixture selectHardwareProfile(@NotNull final String deviceName) {
     JTableFixture deviceListFixture = getTableFixture();
     JTableCellFixture cell = deviceListFixture.cell(deviceName);
     cell.select();
@@ -54,7 +54,7 @@ public class ChooseDeviceDefinitionStepFixture extends AbstractWizardStepFixture
   }
 
   @NotNull
-  public ChooseDeviceDefinitionStepFixture removeDeviceByName(@NotNull final String deviceName) {
+  public ChooseDeviceDefinitionStepFixture deleteHardwareProfile(@NotNull final String deviceName) {
     JTableFixture deviceListFixture = getTableFixture();
 
     deviceListFixture.cell(deviceName).click(RIGHT_BUTTON);
@@ -74,7 +74,7 @@ public class ChooseDeviceDefinitionStepFixture extends AbstractWizardStepFixture
   }
 
   @NotNull
-  public DeviceEditWizardFixture createNewDevice() {
+  public DeviceEditWizardFixture newHardwareProfile() {
     JButton newDeviceButton = robot().finder().find(target(), withText("New Hardware Profile").andShowing());
     robot().click(newDeviceButton);
     return DeviceEditWizardFixture.find(robot());
@@ -91,7 +91,7 @@ public class ChooseDeviceDefinitionStepFixture extends AbstractWizardStepFixture
     return new JTableFixture(robot(), deviceList);
   }
 
-  public boolean deviceExists(@NotNull String deviceName) {
+  public boolean hardwareProfileExists(@NotNull String deviceName) {
     try {
       getTableFixture().cell(deviceName);
       return true;
