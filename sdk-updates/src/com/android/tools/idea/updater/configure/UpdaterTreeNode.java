@@ -18,6 +18,7 @@ package com.android.tools.idea.updater.configure;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.util.ui.ThreeStateCheckBox;
 import com.intellij.util.ui.UIUtil;
+import com.intellij.util.ui.accessibility.AccessibleContextUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.accessibility.AccessibleAction;
@@ -193,29 +194,10 @@ abstract class UpdaterTreeNode extends DefaultMutableTreeNode implements Compara
     }
 
     /**
-     * Expose accessible properties as a mix of the underlying {@link myCheckbox} and {@link myTextRenderer}
+     * Expose accessible properties as a mix of the underlying {@link #myCheckbox} and {@link #myTextRenderer}
      * so that {@link Renderer} behaves like a regular checkbox with an associated label.
      */
     protected class AccessibleRenderer extends AccessibleJPanel {
-      public AccessibleRenderer() {
-        if (myCheckbox.getAccessibleContext() != null) {
-          myCheckbox.getAccessibleContext().addPropertyChangeListener(new PropertyChangeListener() {
-            @Override
-            public void propertyChange(PropertyChangeEvent evt) {
-              firePropertyChange(evt.getPropertyName(), evt.getOldValue(), evt.getNewValue());
-            }
-          });
-        }
-
-        if (myTextRenderer.getAccessibleContext() != null) {
-          myTextRenderer.getAccessibleContext().addPropertyChangeListener(new PropertyChangeListener() {
-            @Override
-            public void propertyChange(PropertyChangeEvent evt) {
-              firePropertyChange(evt.getPropertyName(), evt.getOldValue(), evt.getNewValue());
-            }
-          });
-        }
-      }
 
       @Override
       public AccessibleRole getAccessibleRole() {
@@ -224,12 +206,16 @@ abstract class UpdaterTreeNode extends DefaultMutableTreeNode implements Compara
 
       @Override
       public String getAccessibleName() {
-        return myTextRenderer.getAccessibleContext().getAccessibleName();
+        return AccessibleContextUtil.combineAccessibleStrings(
+          myTextRenderer.getAccessibleContext().getAccessibleName(), " ",
+          myCheckbox.getAccessibleContext().getAccessibleName());
       }
 
       @Override
       public String getAccessibleDescription() {
-        return myTextRenderer.getAccessibleContext().getAccessibleDescription();
+        return AccessibleContextUtil.combineAccessibleStrings(
+          myTextRenderer.getAccessibleContext().getAccessibleDescription(), " ",
+          myCheckbox.getAccessibleContext().getAccessibleDescription());
       }
 
       @Override
