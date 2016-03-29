@@ -29,6 +29,9 @@ import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
 import com.android.tools.idea.rendering.ImageUtils;
 import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.ResourceNotificationManager;
+import com.android.tools.idea.res.ResourceNotificationManager.Reason;
+import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener;
 import com.android.tools.idea.uibuilder.editor.NlEditorPanel;
 import com.android.tools.idea.uibuilder.editor.NlPreviewForm;
 import com.android.tools.idea.uibuilder.model.DnDTransferComponent;
@@ -74,6 +77,7 @@ import com.intellij.util.IJSwingUtilities;
 import com.intellij.util.ui.JBImageIcon;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.tree.TreeUtil;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
@@ -91,25 +95,29 @@ import java.util.List;
 import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
 import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 
-public class NlPalettePanel extends JPanel implements LightToolWindowContent, ConfigurationListener, LafManagerListener, DataProvider {
+public class NlPalettePanel extends JPanel
+  implements LightToolWindowContent, ConfigurationListener, ResourceChangeListener, LafManagerListener, DataProvider {
+
   private static final Insets INSETS = new Insets(0, 6, 0, 6);
   private static final int ICON_SPACER = 4;
 
-  @NonNull private final JTree myTree;
-  @NonNull private final IconPreviewFactory myIconFactory;
-  @NonNull private final NlPaletteModel myModel;
-  @NonNull private final Set<String> myMissingLibraries;
-  @NonNull private final Disposable myDisposable;
-  @NonNull private final DesignerEditorPanelFacade myDesigner;
-  @NonNull private final ResourceType myResourceType;
+  private final JTree myTree;
+  private final IconPreviewFactory myIconFactory;
+  private final NlPaletteModel myModel;
+  private final Set<String> myMissingLibraries;
+  private final Disposable myDisposable;
+  private final DesignerEditorPanelFacade myDesigner;
+  private final ResourceType myResourceType;
+  private final DnDManager myDndManager;
+  private final DnDSource myDndSource;
 
-  @Nullable private ScalableDesignSurface myDesignSurface;
-  @NonNull private Mode myMode;
-  @Nullable private BufferedImage myLastDragImage;
-  @Nullable private Configuration myConfiguration;
+  private ScalableDesignSurface myDesignSurface;
+  private Mode myMode;
+  private BufferedImage myLastDragImage;
+  private Configuration myConfiguration;
 
   public NlPalettePanel(@NonNull Project project, @NonNull DesignerEditorPanelFacade designer) {
-    myTree = new DnDAwareTree();
+    myTree = new PaletteTree();
     myIconFactory = IconPreviewFactory.get();
     myModel = NlPaletteModel.get(project);
     myMissingLibraries = new HashSet<String>();
@@ -119,6 +127,9 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent, Co
 
     myMode = Mode.ICON_AND_TEXT;
 
+    myDndManager = DnDManager.getInstance();
+    myDndSource = new PaletteDnDSource();
+    myDndManager.registerSource(myDndSource, myTree);
     initTree(project);
     JScrollPane pane = ScrollPaneFactory.createScrollPane(myTree, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER);
     setLayout(new BorderLayout());
@@ -166,22 +177,42 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent, Co
   }
 
   public void setDesignSurface(@Nullable ScalableDesignSurface designSurface) {
+    Module prevModule = null;
     if (myDesignSurface != null) {
       Configuration configuration = myDesignSurface.getConfiguration();
       if (configuration != null) {
+        prevModule = configuration.getModule();
         configuration.removeListener(this);
       }
     }
+    Module newModule = null;
     myDesignSurface = designSurface;
     if (myDesignSurface != null) {
       Configuration configuration = myDesignSurface.getConfiguration();
       if (configuration != null) {
+        newModule = configuration.getModule();
         configuration.addListener(this);
       }
       updateConfiguration();
     }
+    if (prevModule != newModule) {
+      if (prevModule != null) {
+        AndroidFacet facet = AndroidFacet.getInstance(prevModule);
+        if (facet != null) {
+          ResourceNotificationManager manager = ResourceNotificationManager.getInstance(prevModule.getProject());
+          manager.removeListener(this, facet, null, null);
+        }
+      }
+      if (newModule != null) {
+        AndroidFacet facet = AndroidFacet.getInstance(newModule);
+        if (facet != null) {
+          ResourceNotificationManager manager = ResourceNotificationManager.getInstance(newModule.getProject());
+          manager.addListener(this, facet, null, null);
+        }
+        myIconFactory.dropCache();
+      }
+    }
     checkForNewMissingDependencies();
-    setMode(myMode);
   }
 
   private void updateColorsAfterColorThemeChange(boolean doUpdate) {
@@ -192,11 +223,6 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent, Co
     else {
       manager.removeLafManagerListener(this);
     }
-  }
-
-  @Override
-  public void lookAndFeelChanged(LafManager source) {
-    setColors();
   }
 
   private void setColors() {
@@ -251,15 +277,6 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent, Co
     return null;
   }
 
-  // ---- implements ConfigurationListener ----
-
-  @Override
-  public boolean changed(int flags) {
-    updateConfiguration();
-    setMode(myMode);
-    return true;
-  }
-
   @NonNull
   public AnAction[] getActions() {
     return new AnAction[]{new OptionAction()};
@@ -304,11 +321,6 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent, Co
 
   public void setMode(@NonNull Mode mode) {
     myMode = mode;
-    if (mode == Mode.PREVIEW && myDesignSurface != null) {
-      if (myConfiguration != null) {
-        myIconFactory.load(myConfiguration, myModel.getPalette(myResourceType), false);
-      }
-    }
     setColors();
     invalidateUI();
   }
@@ -378,7 +390,6 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent, Co
     createCellRenderer(myTree);
     myTree.setSelectionRow(0);
     new PaletteSpeedSearch(myTree);
-    enableDnD();
     updateColorsAfterColorThemeChange(true);
     enableClickToLoadMissingDependency();
     DumbService.getInstance(project).smartInvokeLater(new Runnable() {
@@ -488,11 +499,6 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent, Co
     }
   }
 
-  private void enableDnD() {
-    final DnDManager dndManager = DnDManager.getInstance();
-    dndManager.registerSource(new PaletteDnDSource(), myTree);
-  }
-
   private void enableClickToLoadMissingDependency() {
     myTree.addMouseListener(new MouseAdapter() {
       @Override
@@ -516,7 +522,7 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent, Co
           Module module = getModule();
           if (module != null && module.getProject().equals(project)) {
             if (checkForNewMissingDependencies()) {
-              invalidateUI();
+              repaint();
             }
           }
         }
@@ -584,16 +590,70 @@ public class NlPalettePanel extends JPanel implements LightToolWindowContent, Co
     return (Palette.BaseItem)node.getUserObject();
   }
 
+  // ---- implements ConfigurationListener ----
+
   @Override
-  public void dispose() {
-    if (myDesignSurface != null) {
-      Configuration configuration = myDesignSurface.getConfiguration();
-      if (configuration != null) {
-        configuration.removeListener(this);
+  public boolean changed(int flags) {
+    updateConfiguration();
+    repaint();
+    return true;
+  }
+
+  // ---- implements ResourceChangeListener ----
+
+  @Override
+  public void resourcesChanged(@NotNull Set<Reason> reasons) {
+    for (Reason reason : reasons) {
+      // Drop the preview images created before this change.
+      // Unless this is a configuration change since we cache images for each configuration.
+      if (reason != Reason.CONFIGURATION_CHANGED) {
+        myIconFactory.dropCache();
+        return;
       }
     }
+  }
+
+  // ---- implements LafManagerListener ----
+
+  @Override
+  public void lookAndFeelChanged(LafManager source) {
+    setColors();
+  }
+
+  // ---- implements LightToolWindowContent ----
+
+  @Override
+  public void dispose() {
+    setDesignSurface(null);
+    myDndManager.unregisterSource(myDndSource, myTree);
+    ToolTipManager.sharedInstance().unregisterComponent(myTree);
     updateColorsAfterColorThemeChange(false);
     Disposer.dispose(myDisposable);
+  }
+
+  // ---- inner classes ----
+
+  /**
+   * Tree with special handling for preview images.
+   */
+  private class PaletteTree extends DnDAwareTree {
+    @Override
+    public void paintComponent(Graphics g) {
+      if (myMode == Mode.PREVIEW && myDesignSurface != null) {
+        if (myConfiguration != null) {
+          // We want to delay the generation of the preview images as much as possible because it is time consuming.
+          // Do this just before the images are needed for painting.
+          if (myIconFactory.load(myConfiguration, myModel.getPalette(myResourceType), false)) {
+            // If we just generated the preview images, we must invalidate the row heights that the tree is
+            // caching internally. Then invalidate and wait for the next paint.
+            // Otherwise some images may be cropped.
+            invalidateUI();
+            return;
+          }
+        }
+      }
+      super.paintComponent(g);
+    }
   }
 
   private class PaletteDnDSource implements DnDSource {
