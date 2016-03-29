@@ -15,9 +15,6 @@
  */
 package com.android.tools.idea.avdmanager;
 
-import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder;
-import com.android.tools.idea.wizard.model.ModelWizard;
-import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.event.ActionEvent;
@@ -41,11 +38,7 @@ public class CreateDeviceAction extends DeviceUiAction {
 
   @Override
   public void actionPerformed(ActionEvent e) {
-    ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
-    wizardBuilder.addStep(new ConfigureDeviceOptionsStep(new ConfigureDeviceModel(myProvider), null));
-    ModelWizard wizard = wizardBuilder.build();
-    ModelWizardDialog dialog = new StudioWizardDialogBuilder(wizard, "Hardware Profile Configuration").build();
-    dialog.show();
+    DeviceUiAction.showHardwareProfileWizard(new ConfigureDeviceModel(myProvider));
   }
 }
 
