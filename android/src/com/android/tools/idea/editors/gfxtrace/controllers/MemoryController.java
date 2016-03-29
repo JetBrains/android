@@ -17,7 +17,8 @@ package com.android.tools.idea.editors.gfxtrace.controllers;
 
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
-import com.android.tools.idea.editors.gfxtrace.UiCallback;
+import com.android.tools.idea.editors.gfxtrace.UiErrorCallback;
+import com.android.tools.idea.editors.gfxtrace.service.ErrDataUnavailable;
 import com.android.tools.idea.editors.gfxtrace.service.MemoryInfo;
 import com.android.tools.idea.editors.gfxtrace.service.memory.MemoryRange;
 import com.android.tools.idea.editors.gfxtrace.service.path.*;
@@ -182,19 +183,33 @@ public class MemoryController extends Controller {
         update();
       }
       else {
-        Rpc.listen(fetcher.get(memoryPath.getAddress(), memoryPath.getSize()), LOG, new UiCallback<MemoryInfo, MemoryDataModel>() {
+        Rpc.listen(fetcher.get(memoryPath.getAddress(), memoryPath.getSize()), LOG, new UiErrorCallback<MemoryInfo, MemoryDataModel, String>() {
           @Override
-          protected MemoryDataModel onRpcThread(Rpc.Result<MemoryInfo> result) throws RpcException, ExecutionException {
-            MemoryInfo info = result.get();
-            return (info == null) ? null : new ImmediateMemoryDataModel(memoryPath.getAddress(), info);
+          protected ResultOrError<MemoryDataModel, String> onRpcThread(Rpc.Result<MemoryInfo> result) throws RpcException, ExecutionException {
+            final MemoryInfo info;
+            try {
+              info = result.get();
+            } catch (ErrDataUnavailable e) {
+              return error(e.getMessage());
+            }
+            if (info == null) {
+              return error("No memory data");
+            }
+            return success(new ImmediateMemoryDataModel(memoryPath.getAddress(), info));
           }
 
           @Override
-          protected void onUiThread(MemoryDataModel result) {
+          protected void onUiThreadSuccess(MemoryDataModel result) {
             myMemoryData = result;
             myDataType = dataType;
             myCombo.setSelectedItem(dataType);
             update();
+          }
+
+          @Override
+          protected void onUiThreadError(String message) {
+            myEmptyPanel.setText(message);
+            myScrollPane.setViewportView(myEmptyPanel);
           }
         });
       }
@@ -206,6 +221,7 @@ public class MemoryController extends Controller {
       AtomPath atomPath = event.findAtomPath();
       if (myAtomPath == null || atomPath == null || !myAtomPath.equals(atomPath)) {
         myAtomPath = atomPath;
+        myEmptyPanel.resetText();
         myScrollPane.setViewportView(myEmptyPanel);
       }
     }
@@ -265,6 +281,14 @@ public class MemoryController extends Controller {
         return true;
       }
     };
+
+    public void resetText() {
+      myEmptyText.setText(GfxTraceEditor.SELECT_MEMORY);
+    }
+
+    public void setText(String message) {
+      myEmptyText.setText(message);
+    }
 
     public EmptyPanel() {
       myEmptyText.setText(GfxTraceEditor.SELECT_MEMORY);
