@@ -1151,14 +1151,14 @@ public class MemoryController extends Controller {
     private final int mySize;
 
     /**
-     * @returns the number of characters used to represent a single item
+     * @return the number of characters used to represent a single item
      */
     private static int charsPerItem(int size) {
       return size * 2;
     }
 
     /**
-     * @returns the number of characters per row needed for items including separators.
+     * @return the number of characters per row needed for items including separators.
      */
     private static int itemChars(int size) {
       int itemsPerRow = BYTES_PER_ROW / size;
@@ -1167,14 +1167,14 @@ public class MemoryController extends Controller {
     }
 
     /**
-     * @returns the number of characters per row including the address and items.
+     * @return the number of characters per row including the address and items.
      */
     private static int charsPerRow(int size) {
       return ADDRESS_CHARS + itemChars(size);
     }
 
     /**
-     * @returns the character column range where the items are present
+     * @return the character column range where the items are present
      */
     private static Range<Integer> itemsRange(int size) {
       return new Range<Integer>(ADDRESS_CHARS + ITEM_SEPARATOR, ADDRESS_CHARS + itemChars(size));
