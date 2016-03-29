@@ -443,6 +443,7 @@ public class ConnectionDraw {
                 if (x2 > x1) {
                     x = widget.getDrawRight() + margin;
                 }
+                x = transform.getSwingX(x);
                 ConnectionDraw.drawVerticalMarginIndicator(g, null, x, y1, y2);
             } else {
                 if (drawLine) {
@@ -452,6 +453,7 @@ public class ConnectionDraw {
                 if (y2 > y1) {
                     y = widget.getDrawBottom() + margin;
                 }
+                y = transform.getSwingX(y);
                 ConnectionDraw.drawHorizontalMarginIndicator(g, null, x1, x2, y);
             }
             g2d.dispose();
