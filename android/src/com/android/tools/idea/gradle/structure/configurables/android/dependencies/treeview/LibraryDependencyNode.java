@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview;
 
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
-import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsdNode;
+import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsModelNode;
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsModel;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
@@ -36,12 +36,12 @@ import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 public class LibraryDependencyNode extends AbstractDependencyNode<PsLibraryDependency> {
   @NotNull private final List<AbstractDependencyNode> myChildren = Lists.newArrayList();
 
-  public LibraryDependencyNode(@NotNull AbstractPsdNode parent, @NotNull PsLibraryDependency dependency) {
+  public LibraryDependencyNode(@NotNull AbstractPsModelNode parent, @NotNull PsLibraryDependency dependency) {
     super(parent, dependency);
     setUp(dependency);
   }
 
-  public LibraryDependencyNode(@NotNull AbstractPsdNode parent, @NotNull List<PsLibraryDependency> dependencies) {
+  public LibraryDependencyNode(@NotNull AbstractPsModelNode parent, @NotNull List<PsLibraryDependency> dependencies) {
     super(parent, dependencies);
     assert !dependencies.isEmpty();
     setUp(dependencies.get(0));

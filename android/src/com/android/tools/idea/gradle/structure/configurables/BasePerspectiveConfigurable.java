@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.structure.configurables;
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
 import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowHeader;
 import com.android.tools.idea.gradle.structure.model.PsModule;
-import com.android.tools.idea.gradle.structure.model.PsProject;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.options.SearchableConfigurable;
@@ -44,7 +43,6 @@ import java.util.List;
 public abstract class BasePerspectiveConfigurable extends MasterDetailsComponent
   implements SearchableConfigurable, Disposable, Place.Navigator {
 
-  @NotNull private final PsProject myProject;
   @NotNull private final PsContext myContext;
 
   protected boolean myUiDisposed = true;
@@ -55,9 +53,7 @@ public abstract class BasePerspectiveConfigurable extends MasterDetailsComponent
   private boolean myTreeInitialized;
   private boolean myTreeMinimized;
 
-  protected BasePerspectiveConfigurable(@NotNull PsProject project, @NotNull PsContext context) {
-    myProject = project;
-
+  protected BasePerspectiveConfigurable(@NotNull PsContext context) {
     myContext = context;
     myContext.addListener(new PsContext.ChangeListener() {
       @Override
@@ -99,7 +95,7 @@ public abstract class BasePerspectiveConfigurable extends MasterDetailsComponent
 
   @Nullable
   protected PsModule findModule(@NotNull String moduleName) {
-    PsModule module = myProject.findModuleByName(moduleName);
+    PsModule module = myContext.getProject().findModuleByName(moduleName);
     if (module == null) {
       for (PsModule extraModule : getExtraTopModules()) {
         if (moduleName.equals(extraModule.getName())) {
@@ -241,7 +237,7 @@ public abstract class BasePerspectiveConfigurable extends MasterDetailsComponent
       addConfigurableFor(module);
     }
 
-    myProject.forEachModule(new Predicate<PsModule>() {
+    myContext.getProject().forEachModule(new Predicate<PsModule>() {
       @Override
       public boolean apply(@Nullable PsModule module) {
         if (module == null) {
@@ -263,11 +259,6 @@ public abstract class BasePerspectiveConfigurable extends MasterDetailsComponent
 
   @Nullable
   protected abstract NamedConfigurable<? extends PsModule> getConfigurable(@NotNull PsModule module);
-
-  @NotNull
-  protected PsProject getProject() {
-    return myProject;
-  }
 
   @NotNull
   protected PsContext getContext() {
