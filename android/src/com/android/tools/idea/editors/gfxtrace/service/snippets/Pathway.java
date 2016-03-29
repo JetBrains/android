@@ -39,11 +39,12 @@ public abstract class Pathway implements BinaryObject {
   /**
    * Make a pathway for a command parameter.
    *
+   * @param typeName the name for this type in the API file.
    * @param paramName the name of the parameter.
    * @return a pathway for the parameter.
    */
-  public static Pathway param(String paramName) {
-    return new NamePath(SymbolCategory.Parameter, paramName);
+  public static Pathway param(String typeName, String paramName) {
+    return new RelativePath().setTypeName(typeName).field(paramName);
   }
 
   /**
@@ -53,7 +54,7 @@ public abstract class Pathway implements BinaryObject {
    * @return a pathway for the global.
    */
   public static Pathway global(String name) {
-    return new NamePath(SymbolCategory.Global, name);
+    return new RelativePath().setTypeName("State").field(name);
   }
 
   /**
