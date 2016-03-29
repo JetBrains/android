@@ -180,6 +180,14 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
                  "The view should be only big enough to enclose its content (plus padding).");
   }
 
+  public void testAttributeEnumDoc() {
+    checkJavadoc("/javadoc/styles/styles2.xml", "res/styles.xml",  "The type of navigation to use.");
+  }
+
+  public void testAttributeEnumValueDoc() {
+    checkJavadoc("/javadoc/styles/styles3.xml", "res/styles.xml",  "The action bar will use a series of horizontal tabs for navigation.");
+  }
+
   public void testXmlString2() {
     // Like testXmlString1, but the caret is at the right edge of an attribute value so the document provider has
     // to go to the previous XML token to obtain the resource url
