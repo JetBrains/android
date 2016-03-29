@@ -16,6 +16,7 @@
 
 package com.android.tools.sherpa.interaction;
 
+import com.android.tools.sherpa.drawing.ViewTransform;
 import com.android.tools.sherpa.structure.WidgetsScene;
 import com.android.tools.sherpa.structure.Selection;
 import com.google.tnt.solver.widgets.Animator;
@@ -71,9 +72,10 @@ public class WidgetMotion {
      * @param y           in android coordinate
      * @param snap        true if we want to snap this widget against others
      * @param isShiftDown true if the shift button is pressed
+     * @param transform   the view transform
      */
     public void dragWidget(Point startPoint, Selection.Element widget, int x, int y, boolean snap,
-            boolean isShiftDown) {
+            boolean isShiftDown, ViewTransform transform) {
         if (widget == null) {
             return;
         }
@@ -123,7 +125,7 @@ public class WidgetMotion {
         }
         if (snap) {
             SnapPlacement.snapWidget(widgetsToCheck, widget.widget,
-                    candidatePoint, false, mSnapCandidates);
+                    candidatePoint, false, mSnapCandidates, transform);
         }
         if (widget.directionLocked == Selection.DIRECTION_LOCKED_X) {
             candidatePoint.y = widget.origin.y;
@@ -132,7 +134,7 @@ public class WidgetMotion {
         }
         widget.widget.setDrawOrigin(candidatePoint.x, candidatePoint.y);
         WidgetInteractionTargets widgetInteraction = (WidgetInteractionTargets) widget.widget.getCompanionWidget();
-        widgetInteraction.updatePosition();
+        widgetInteraction.updatePosition(transform);
 
         mSimilarMargins.clear();
         for (SnapCandidate candidate : mSnapCandidates) {

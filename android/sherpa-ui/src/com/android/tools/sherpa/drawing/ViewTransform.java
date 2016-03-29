@@ -62,12 +62,30 @@ public class ViewTransform {
     }
 
     /**
+     * Return the corresponding android X coordinate given a X swing coordinate in float
+     * @param swingX the swing coordinate
+     * @return the android coordinate
+     */
+    public float getAndroidFX(int swingX) {
+        return ((swingX - dx) / scale);
+    }
+
+    /**
      * Return the corresponding android Y coordinate given a Y swing coordinate
      * @param swingY the swing coordinate
      * @return the android coordinate
      */
     public int getAndroidY(int swingY) {
         return (int) ((swingY - dy) / scale);
+    }
+
+    /**
+     * Return the corresponding android Y coordinate given a Y swing coordinate in float
+     * @param swingY the swing coordinate
+     * @return the android coordinate
+     */
+    public float getAndroidFY(int swingY) {
+        return ((swingY - dy) / scale);
     }
 
     /**

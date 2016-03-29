@@ -308,7 +308,7 @@ public class WidgetDecorator extends WidgetInteractionTargets {
             mShowSizeIndicator = false;
         }
 
-        updatePosition();
+        updatePosition(transform);
 
         WidgetDraw.drawWidgetFrame(transform, g, mWidget,
                 mDisplayAnchorsPolicy, mShowResizeHandles,
@@ -517,7 +517,7 @@ public class WidgetDecorator extends WidgetInteractionTargets {
      * @param transform view transform
      * @param selection the current selection of widgets
      */
-    public ConstraintWidget mousePressed(int x, int y, ViewTransform transform,
+    public ConstraintWidget mousePressed(float x, float y, ViewTransform transform,
             Selection selection) {
         return null;
     }

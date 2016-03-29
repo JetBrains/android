@@ -77,8 +77,9 @@ public class ResizeHandle {
     /**
      * Update the bounds of the ResizeHandle according to its type and the bounds
      * of the widget it belongs to.
+     * @param viewTransform the view transform
      */
-    public void updatePosition() {
+    public void updatePosition(ViewTransform viewTransform) {
         if (mOwner == null) {
             mBounds.setBounds(0, 0, 0, 0);
             return;
@@ -87,30 +88,31 @@ public class ResizeHandle {
         int y = getOwner().getDrawY();
         int w = getOwner().getDrawWidth();
         int h = getOwner().getDrawHeight();
+        int slope = (int) (1 + SLOPE / viewTransform.getScale());
         switch (mType) {
             case LEFT_TOP: {
-                mBounds.setBounds(x - SLOPE/2, y - SLOPE/2, SLOPE, SLOPE);
+                mBounds.setBounds(x - slope/2, y - slope/2, slope, slope);
             } break;
             case LEFT_BOTTOM: {
-                mBounds.setBounds(x - SLOPE/2, y + h - SLOPE/2, SLOPE, SLOPE);
+                mBounds.setBounds(x - slope/2, y + h - slope/2, slope, slope);
             } break;
             case RIGHT_TOP: {
-                mBounds.setBounds(x + w - SLOPE/2, y - SLOPE/2, SLOPE, SLOPE);
+                mBounds.setBounds(x + w - slope/2, y - slope/2, slope, slope);
             } break;
             case RIGHT_BOTTOM: {
-                mBounds.setBounds(x + w - SLOPE/2, y + h - SLOPE/2, SLOPE, SLOPE);
+                mBounds.setBounds(x + w - slope/2, y + h - slope/2, slope, slope);
             } break;
             case LEFT_SIDE: {
-                mBounds.setBounds(x - SLOPE/2, y + SLOPE/2, SLOPE, h - SLOPE);
+                mBounds.setBounds(x - slope/2, y + slope/2, slope, h - slope);
             } break;
             case RIGHT_SIDE: {
-                mBounds.setBounds(x + w - SLOPE/2, y + SLOPE/2, SLOPE, h - SLOPE);
+                mBounds.setBounds(x + w - slope/2, y + slope/2, slope, h - slope);
             } break;
             case TOP_SIDE: {
-                mBounds.setBounds(x + SLOPE/2, y - SLOPE/2, w - SLOPE, SLOPE);
+                mBounds.setBounds(x + slope/2, y - slope/2, w - slope, slope);
             } break;
             case BOTTOM_SIDE: {
-                mBounds.setBounds(x + SLOPE/2, y + h - SLOPE/2, w - SLOPE, SLOPE);
+                mBounds.setBounds(x + slope/2, y + h - slope/2, w - slope, slope);
             } break;
         }
     }
@@ -128,36 +130,10 @@ public class ResizeHandle {
             bounds.setBounds(0, 0, 0, 0);
             return bounds;
         }
-        int x = transform.getSwingX(getOwner().getDrawX());
-        int y = transform.getSwingY(getOwner().getDrawY());
-        int w = transform.getSwingDimension(getOwner().getDrawWidth());
-        int h = transform.getSwingDimension(getOwner().getDrawHeight());
-        switch (mType) {
-            case LEFT_TOP: {
-                bounds.setBounds(x - SLOPE/2, y - SLOPE/2, SLOPE, SLOPE);
-            } break;
-            case LEFT_BOTTOM: {
-                bounds.setBounds(x - SLOPE/2, y + h - SLOPE/2, SLOPE, SLOPE);
-            } break;
-            case RIGHT_TOP: {
-                bounds.setBounds(x + w - SLOPE/2, y - SLOPE/2, SLOPE, SLOPE);
-            } break;
-            case RIGHT_BOTTOM: {
-                bounds.setBounds(x + w - SLOPE/2, y + h - SLOPE/2, SLOPE, SLOPE);
-            } break;
-            case LEFT_SIDE: {
-                bounds.setBounds(x - SLOPE/2, y + SLOPE/2, SLOPE, h - SLOPE);
-            } break;
-            case RIGHT_SIDE: {
-                bounds.setBounds(x + w - SLOPE/2, y + SLOPE/2, SLOPE, h - SLOPE);
-            } break;
-            case TOP_SIDE: {
-                bounds.setBounds(x + SLOPE/2, y - SLOPE/2, w - SLOPE, SLOPE);
-            } break;
-            case BOTTOM_SIDE: {
-                bounds.setBounds(x + SLOPE/2, y + h - SLOPE/2, w - SLOPE, SLOPE);
-            } break;
-        }
+        bounds.setBounds(transform.getSwingX(mBounds.x),
+                transform.getSwingY(mBounds.y),
+                transform.getSwingDimension(mBounds.width),
+                transform.getSwingDimension(mBounds.height));
         return bounds;
     }
 
@@ -185,7 +161,7 @@ public class ResizeHandle {
      * @param y y coordinate
      * @return true if we hit the handle
      */
-    public boolean hit(int x, int y) {
+    public boolean hit(float x, float y) {
         return mBounds.contains(x, y);
     }
 }

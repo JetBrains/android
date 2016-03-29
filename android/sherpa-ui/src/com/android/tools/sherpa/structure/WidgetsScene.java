@@ -17,6 +17,7 @@
 package com.android.tools.sherpa.structure;
 
 import com.android.tools.sherpa.drawing.ConnectionDraw;
+import com.android.tools.sherpa.drawing.ViewTransform;
 import com.android.tools.sherpa.drawing.decorator.WidgetDecorator;
 import com.android.tools.sherpa.interaction.ResizeHandle;
 import com.android.tools.sherpa.interaction.WidgetInteractionTargets;
@@ -50,6 +51,7 @@ public class WidgetsScene {
 
     /**
      * Accessor to the list of widgets
+     *
      * @return
      */
     public Collection<ConstraintWidget> getWidgets() {
@@ -103,7 +105,8 @@ public class WidgetsScene {
         for (ConstraintWidget widget : mWidgets.values()) {
             widget.disconnectWidget(container);
         }
-        ArrayList<ConstraintWidget> children = new ArrayList<ConstraintWidget>(container.getChildren());
+        ArrayList<ConstraintWidget> children =
+                new ArrayList<ConstraintWidget>(container.getChildren());
         for (ConstraintWidget child : children) {
             parent.add(child);
             child.resetAnchors();
@@ -125,7 +128,8 @@ public class WidgetsScene {
         }
         if (widget instanceof ConstraintWidgetContainer) {
             ConstraintWidgetContainer container = (ConstraintWidgetContainer) widget;
-            ArrayList<ConstraintWidget> children = new ArrayList<ConstraintWidget>(container.getChildren());
+            ArrayList<ConstraintWidget> children =
+                    new ArrayList<ConstraintWidget>(container.getChildren());
             for (ConstraintWidget w : children) {
                 removeWidget(w);
             }
@@ -161,13 +165,14 @@ public class WidgetsScene {
      * @param y y coordinate
      * @return the ResizeHandle close to (x, y), or null if none are close enough
      */
-    public ResizeHandle findResizeHandle(int x, int y) {
+    public ResizeHandle findResizeHandle(float x, float y, ViewTransform transform) {
         for (ConstraintWidget widget : mWidgets.values()) {
             if (widget.isRoot()) {
                 continue;
             }
-            WidgetInteractionTargets widgetInteraction = (WidgetInteractionTargets) widget.getCompanionWidget();
-            widgetInteraction.updatePosition();
+            WidgetInteractionTargets widgetInteraction =
+                    (WidgetInteractionTargets) widget.getCompanionWidget();
+            widgetInteraction.updatePosition(transform);
             ResizeHandle handle = widgetInteraction.findResizeHandle(x, y);
             if (handle != null) {
                 return handle;
@@ -179,38 +184,48 @@ public class WidgetsScene {
     /**
      * Find which ConstraintAnchor is close to the (x, y) coordinates
      *
-     * @param x x coordinate
-     * @param y y coordinate
+     * @param x               x coordinate
+     * @param y               y coordinate
      * @param checkGuidelines if true, we will check for guidelines to connect to
-     * @param mousePress pass true on mouse press
+     * @param mousePress      pass true on mouse press
+     * @param viewTransform   the view transform
      * @return the ConstraintAnchor close to (x, y), or null if none are close enough
      */
-    public ConstraintAnchor findAnchor(int x, int y, boolean checkGuidelines, boolean mousePress) {
+    public ConstraintAnchor findAnchor(float x, float y, boolean checkGuidelines, boolean mousePress,
+            ViewTransform viewTransform) {
         ConnectionCandidate candidate = new ConnectionCandidate();
-        candidate.distance = ConnectionDraw.CONNECTION_ANCHOR_SIZE
-                * ConnectionDraw.CONNECTION_ANCHOR_SIZE;
+        float dist =
+                (ConnectionDraw.CONNECTION_ANCHOR_SIZE + ConnectionDraw.CONNECTION_ANCHOR_SIZE) /
+                        viewTransform.getScale();
+        candidate.distance =
+                ConnectionDraw.CONNECTION_ANCHOR_SIZE * ConnectionDraw.CONNECTION_ANCHOR_SIZE;
         // We first try to find an anchor in the current selection
         for (Selection.Element element : mSelection.getElements()) {
             ConstraintWidget widget = element.widget;
             if (!checkGuidelines && (widget instanceof Guideline)) {
                 continue;
             }
-            WidgetInteractionTargets widgetInteraction = (WidgetInteractionTargets) widget.getCompanionWidget();
-            widgetInteraction.updatePosition();
+            WidgetInteractionTargets widgetInteraction =
+                    (WidgetInteractionTargets) widget.getCompanionWidget();
+            widgetInteraction.updatePosition(viewTransform);
             widgetInteraction.findClosestConnection(x, y, candidate, mousePress);
         }
-        int slope = ConnectionDraw.CONNECTION_ANCHOR_SIZE * 2;
+
+        float slope = (dist * dist);
         if (candidate.anchorTarget != null
                 && candidate.distance < slope) {
             // allow some slope if we picked an anchor from the selection
             candidate.distance = 0;
+        } else {
+            candidate.anchorTarget = null;
         }
         for (ConstraintWidget widget : mWidgets.values()) {
             if (!checkGuidelines && (widget instanceof Guideline)) {
                 continue;
             }
-            WidgetInteractionTargets widgetInteraction = (WidgetInteractionTargets) widget.getCompanionWidget();
-            widgetInteraction.updatePosition();
+            WidgetInteractionTargets widgetInteraction =
+                    (WidgetInteractionTargets) widget.getCompanionWidget();
+            widgetInteraction.updatePosition(viewTransform);
             widgetInteraction.findClosestConnection(x, y, candidate, mousePress);
         }
         return candidate.anchorTarget;
@@ -256,7 +271,8 @@ public class WidgetsScene {
      */
     private static ArrayList<ConstraintWidgetContainer> gatherContainers(
             ConstraintWidgetContainer container) {
-        ArrayList<ConstraintWidgetContainer> containers = new ArrayList<ConstraintWidgetContainer>();
+        ArrayList<ConstraintWidgetContainer> containers =
+                new ArrayList<ConstraintWidgetContainer>();
         for (ConstraintWidget widget : container.getChildren()) {
             if (widget instanceof ConstraintWidgetContainer) {
                 containers.add((ConstraintWidgetContainer) widget);
@@ -282,7 +298,8 @@ public class WidgetsScene {
         newContainer
                 .setHorizontalDimensionBehaviour(oldContainer.getHorizontalDimensionBehaviour());
         newContainer.setVerticalDimensionBehaviour(oldContainer.getVerticalDimensionBehaviour());
-        ArrayList<ConstraintWidget> children = new ArrayList<ConstraintWidget>(oldContainer.getChildren());
+        ArrayList<ConstraintWidget> children =
+                new ArrayList<ConstraintWidget>(oldContainer.getChildren());
         for (ConstraintWidget child : children) {
             newContainer.add(child);
         }
@@ -369,8 +386,10 @@ public class WidgetsScene {
         // We do that by first setting the table to wrap_content...
         int width = table.getWidth();
         int height = table.getHeight();
-        ConstraintWidget.DimensionBehaviour horizontalBehaviour = table.getHorizontalDimensionBehaviour();
-        ConstraintWidget.DimensionBehaviour verticalBehaviour = table.getVerticalDimensionBehaviour();
+        ConstraintWidget.DimensionBehaviour horizontalBehaviour =
+                table.getHorizontalDimensionBehaviour();
+        ConstraintWidget.DimensionBehaviour verticalBehaviour =
+                table.getVerticalDimensionBehaviour();
         table.setHorizontalDimensionBehaviour(
                 ConstraintWidget.DimensionBehaviour.WRAP_CONTENT);
         table.setVerticalDimensionBehaviour(
@@ -433,16 +452,19 @@ public class WidgetsScene {
         mSelection = selection;
     }
 
-    public int size() { return mWidgets.size(); }
+    public int size() {
+        return mWidgets.size();
+    }
 
     /**
      * Utility function to return the closest horizontal anchor
      *
-     * @param widget widget we start from
+     * @param widget     widget we start from
      * @param searchLeft if true, we are searching on our left side
      * @return the closest ConstraintAnchor
      */
-    public ConstraintAnchor getClosestHorizontalWidgetAnchor(ConstraintWidget widget, boolean searchLeft) {
+    public ConstraintAnchor getClosestHorizontalWidgetAnchor(ConstraintWidget widget,
+            boolean searchLeft) {
         ConstraintWidgetContainer parent = (ConstraintWidgetContainer) widget.getParent();
         ArrayList<ConstraintWidget> children = parent.getChildren();
         int pos = widget.getDrawX();
@@ -486,11 +508,12 @@ public class WidgetsScene {
     /**
      * Utility function to return the closest vertical anchor
      *
-     * @param widget widget we start from
+     * @param widget    widget we start from
      * @param searchTop if true, we are searching above us
      * @return the closest ConstraintAnchor
      */
-    public ConstraintAnchor getClosestVerticalWidgetAnchor(ConstraintWidget widget, boolean searchTop) {
+    public ConstraintAnchor getClosestVerticalWidgetAnchor(ConstraintWidget widget,
+            boolean searchTop) {
         ConstraintWidgetContainer parent = (ConstraintWidgetContainer) widget.getParent();
         ArrayList<ConstraintWidget> children = parent.getChildren();
         int pos = widget.getDrawY();
@@ -557,13 +580,15 @@ public class WidgetsScene {
 
     /**
      * Make sure the positions of the interaction targets are correctly updated
+     *
+     * @param viewTransform the view transform
      */
-    public void updatePositions() {
+    public void updatePositions(ViewTransform viewTransform) {
         for (ConstraintWidget widget : mWidgets.values()) {
             widget.updateDrawPosition();
             WidgetInteractionTargets widgetInteraction =
                     (WidgetInteractionTargets) widget.getCompanionWidget();
-            widgetInteraction.updatePosition();
+            widgetInteraction.updatePosition(viewTransform);
         }
     }
 

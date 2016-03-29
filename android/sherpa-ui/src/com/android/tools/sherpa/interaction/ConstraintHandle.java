@@ -16,6 +16,7 @@
 
 package com.android.tools.sherpa.interaction;
 
+import com.android.tools.sherpa.drawing.ViewTransform;
 import com.google.tnt.solver.widgets.ConstraintAnchor;
 import com.google.tnt.solver.widgets.ConstraintWidget;
 import com.google.tnt.solver.widgets.Guideline;
@@ -111,8 +112,9 @@ public class ConstraintHandle {
 
     /**
      * Update the position of the anchor depending on the owner's position
+     * @param viewTransform the view transform
      */
-    void updatePosition() {
+    void updatePosition(ViewTransform viewTransform) {
         if (mOwner == null) {
             mX = 0;
             mY = 0;
