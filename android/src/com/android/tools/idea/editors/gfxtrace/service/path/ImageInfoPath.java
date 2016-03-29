@@ -26,9 +26,6 @@ import java.io.IOException;
 public final class ImageInfoPath extends Path {
   @Override
   public StringBuilder stringPath(StringBuilder builder) {
-    if (isNoImage()) {
-      return builder.append("NoImage");
-    }
     return builder.append("ImageInfo(").append(myID).append(")");
   }
 
@@ -36,8 +33,6 @@ public final class ImageInfoPath extends Path {
   public Path getParent() {
     return null;
   }
-
-  public boolean isNoImage() { return myID.equals(BinaryID.INVALID); }
 
   //<<<Start:Java.ClassBody:1>>>
   private BinaryID myID;
