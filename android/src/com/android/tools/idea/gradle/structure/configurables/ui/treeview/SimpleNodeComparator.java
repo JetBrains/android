@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview;
+package com.android.tools.idea.gradle.structure.configurables.ui.treeview;
 
 import com.intellij.ui.treeStructure.SimpleNode;
 

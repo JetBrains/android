@@ -19,7 +19,7 @@ import com.android.tools.idea.gradle.structure.configurables.android.dependencie
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AndroidArtifactNode;
 import com.android.tools.idea.gradle.structure.configurables.android.treeview.AbstractRootNode;
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
-import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsdNode;
+import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsModelNode;
 import com.android.tools.idea.gradle.structure.model.android.*;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
@@ -51,9 +51,9 @@ class ResolvedDependenciesTreeRootNode extends AbstractRootNode<PsAndroidModule>
     return false;
   }
 
-  @NotNull
   @Override
-  protected List<? extends AbstractPsdNode> createChildren() {
+  @NotNull
+  protected List<? extends AbstractPsModelNode> createChildren() {
     final Map<String, PsVariant> variantsByName = Maps.newHashMap();
     Predicate<PsVariant> function = new Predicate<PsVariant>() {
       @Override
@@ -77,8 +77,8 @@ class ResolvedDependenciesTreeRootNode extends AbstractRootNode<PsAndroidModule>
   }
 
   @NotNull
-  private List<? extends AbstractPsdNode> createGroupedChildren(@NotNull PsAndroidModule module,
-                                                                @NotNull Map<String, PsVariant> variantsByName) {
+  private List<? extends AbstractPsModelNode> createGroupedChildren(@NotNull PsAndroidModule module,
+                                                                    @NotNull Map<String, PsVariant> variantsByName) {
     Map<String, List<PsDependencyContainer>> containersWithMainArtifactByVariant = Maps.newHashMap();
 
     Map<List<PsDependencyContainer>, List<PsAndroidDependency>> groupedDependencies = groupDependencies(module);
@@ -357,7 +357,7 @@ class ResolvedDependenciesTreeRootNode extends AbstractRootNode<PsAndroidModule>
   private static void populate(@NotNull AndroidArtifactNode artifactNode,
                                @NotNull List<PsAndroidDependency> dependencies,
                                @Nullable AndroidArtifactNode mainArtifactNode) {
-    List<AbstractPsdNode<?>> children = createNodesFor(artifactNode, dependencies);
+    List<AbstractPsModelNode<?>> children = createNodesFor(artifactNode, dependencies);
     if (mainArtifactNode != null) {
       children.add(0, mainArtifactNode);
     }

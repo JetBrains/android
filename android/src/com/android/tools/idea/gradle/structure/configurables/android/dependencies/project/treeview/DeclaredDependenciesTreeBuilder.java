@@ -15,21 +15,17 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.project.treeview;
 
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractBaseTreeBuilder;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractPsNodeTreeBuilder;
 import com.android.tools.idea.gradle.structure.model.PsProject;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultTreeModel;
 
-public class DeclaredDependenciesTreeBuilder extends AbstractBaseTreeBuilder {
+public class DeclaredDependenciesTreeBuilder extends AbstractPsNodeTreeBuilder {
   public DeclaredDependenciesTreeBuilder(@NotNull PsProject project,
                                          @NotNull JTree tree,
                                          @NotNull DefaultTreeModel treeModel) {
     super(tree, treeModel, new DeclaredDependenciesTreeStructure(project));
-  }
-
-  @Override
-  protected void onAllNodesExpanded() {
   }
 }

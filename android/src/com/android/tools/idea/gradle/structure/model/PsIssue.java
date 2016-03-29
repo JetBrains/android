@@ -15,20 +15,39 @@
  */
 package com.android.tools.idea.gradle.structure.model;
 
+import com.android.tools.idea.gradle.structure.navigation.PsNavigationPath;
 import com.google.common.base.Objects;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
 import java.awt.*;
 
+import static com.intellij.icons.AllIcons.General.BalloonError;
+import static com.intellij.icons.AllIcons.General.BalloonInformation;
+import static com.intellij.icons.AllIcons.General.BalloonWarning;
 import static com.intellij.ui.JBColor.GRAY;
 import static com.intellij.ui.JBColor.RED;
+import static com.intellij.ui.JBColor.YELLOW;
 
 public class PsIssue {
   @NotNull private final String myText;
   @NotNull private final Type myType;
+  @NotNull private final PsNavigationPath myPath;
 
-  public PsIssue(@NotNull String text, @NotNull Type type) {
+  @Nullable private final String myDescription;
+
+  public PsIssue(@NotNull String text, @NotNull PsNavigationPath path, @NotNull Type type) {
     myText = text;
+    myPath = path;
+    myType = type;
+    myDescription = null;
+  }
+
+  public PsIssue(@NotNull String text, @NotNull String description, @NotNull PsNavigationPath path, @NotNull Type type) {
+    myText = text;
+    myDescription = description;
+    myPath = path;
     myType = type;
   }
 
@@ -42,6 +61,11 @@ public class PsIssue {
     return myType;
   }
 
+  @NotNull
+  public PsNavigationPath getPath() {
+    return myPath;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -51,13 +75,15 @@ public class PsIssue {
       return false;
     }
     PsIssue that = (PsIssue)o;
-    return Objects.equal(myText, that.myText) &&
-           myType == that.myType;
+    return Objects.equal(myText, that.myText)
+           && Objects.equal(myDescription, that.myDescription)
+           && Objects.equal(myPath, that.getPath())
+           && myType == that.myType;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(myText, myType);
+    return Objects.hashCode(myText, myDescription, myPath, myType);
   }
 
   @Override
@@ -66,17 +92,37 @@ public class PsIssue {
   }
 
   public enum Type {
-    ERROR(RED), WARNING(GRAY);
+    ERROR("Error", BalloonError, RED, 0), WARNING("Warning", BalloonWarning, YELLOW, 1), INFO("Information", BalloonInformation, GRAY, 2);
 
+    @NotNull private final Icon myIcon;
+    @NotNull private final String myText;
     @NotNull private final Color myColor;
+    private final int myPriority;
 
-    Type(@NotNull Color color) {
+    Type(@NotNull String text, @NotNull Icon icon, @NotNull Color color, int priority) {
+      myText = text;
       myColor = color;
+      myIcon = icon;
+      myPriority = priority;
+    }
+
+    @NotNull
+    public String getText() {
+      return myText;
+    }
+
+    @NotNull
+    public Icon getIcon() {
+      return myIcon;
     }
 
     @NotNull
     public Color getColor() {
       return myColor;
+    }
+
+    public int getPriority() {
+      return myPriority;
     }
   }
 }

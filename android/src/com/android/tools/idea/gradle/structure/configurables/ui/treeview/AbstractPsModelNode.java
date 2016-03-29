@@ -18,36 +18,33 @@ package com.android.tools.idea.gradle.structure.configurables.ui.treeview;
 import com.android.tools.idea.gradle.structure.model.PsModel;
 import com.google.common.collect.Lists;
 import com.intellij.ide.projectView.PresentationData;
-import com.intellij.ui.treeStructure.SimpleNode;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
 import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
 
-public abstract class AbstractPsdNode<T extends PsModel> extends SimpleNode {
+public abstract class AbstractPsModelNode<T extends PsModel> extends AbstractPsNode {
   @NotNull private final List<T> myModels;
 
-  private boolean myAutoExpandNode;
-
-  protected AbstractPsdNode(@NotNull AbstractPsdNode<?> parent, @NotNull T...models) {
+  protected AbstractPsModelNode(@NotNull AbstractPsModelNode<?> parent, @NotNull T...models) {
     super(parent);
     myModels = Lists.newArrayList(models);
     updateNameAndIcon();
   }
 
-  protected AbstractPsdNode(@NotNull T...models) {
+  protected AbstractPsModelNode(@NotNull T...models) {
     myModels = Lists.newArrayList(models);
     updateNameAndIcon();
   }
 
-  protected AbstractPsdNode(@NotNull AbstractPsdNode<?> parent, @NotNull List<T> models) {
+  protected AbstractPsModelNode(@NotNull AbstractPsModelNode<?> parent, @NotNull List<T> models) {
     super(parent);
     myModels = models;
     updateNameAndIcon();
   }
 
-  protected AbstractPsdNode(@NotNull List<T> models) {
+  protected AbstractPsModelNode(@NotNull List<T> models) {
     myModels = models;
     updateNameAndIcon();
   }
@@ -82,15 +79,6 @@ public abstract class AbstractPsdNode<T extends PsModel> extends SimpleNode {
   @NotNull
   public List<T> getModels() {
     return myModels;
-  }
-
-  @Override
-  public boolean isAutoExpandNode() {
-    return myAutoExpandNode;
-  }
-
-  public void setAutoExpandNode(boolean autoExpandNode) {
-    myAutoExpandNode = autoExpandNode;
   }
 
   public boolean matches(@NotNull PsModel model) {

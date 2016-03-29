@@ -15,24 +15,37 @@
  */
 package com.android.tools.idea.gradle.structure.model;
 
-import com.google.common.collect.ImmutableList;
+import com.android.tools.idea.gradle.structure.navigation.PsNavigationPath;
 import com.google.common.collect.Lists;
+import com.intellij.util.containers.ConcurrentMultiMap;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import static com.intellij.xml.util.XmlStringUtil.escapeString;
 
-public class PsIssues {
-  @NotNull private final List<PsIssue> myIssues = Lists.newArrayList();
+public class PsIssueCollection {
+  @NotNull private final ConcurrentMultiMap<PsNavigationPath, PsIssue> myIssues = new ConcurrentMultiMap<PsNavigationPath, PsIssue>();
 
-  public void addIssue(@NotNull PsIssue issue) {
-    myIssues.add(issue);
+  public void add(@NotNull PsIssue issue) {
+    myIssues.putValue(issue.getPath(), issue);
+  }
+
+  @NotNull
+  public List<PsIssue> findIssues(@NotNull PsNavigationPath path, @Nullable Comparator<PsIssue> comparator) {
+    List<PsIssue> issues = Lists.newArrayList(myIssues.get(path));
+    if (comparator != null) {
+      Collections.sort(issues, comparator);
+    }
+    return issues;
   }
 
   @NotNull
   public List<PsIssue> getIssues() {
-    return ImmutableList.copyOf(myIssues);
+    return Lists.newArrayList(myIssues.values());
   }
 
   public boolean isEmpty() {
@@ -40,13 +53,13 @@ public class PsIssues {
   }
 
   @NotNull
-  public String getTooltipText() {
+  public static String getTooltipText(@NotNull List<PsIssue> issues) {
     StringBuilder buffer = new StringBuilder();
     buffer.append("<html><body>");
-    int issueCount = myIssues.size();
+    int issueCount = issues.size();
     int problems = 0;
     for (int i = 0; i < issueCount; i++) {
-      PsIssue issue = myIssues.get(i);
+      PsIssue issue = issues.get(i);
       buffer.append(escapeString(issue.getText())).append("<br>");
       problems++;
 
