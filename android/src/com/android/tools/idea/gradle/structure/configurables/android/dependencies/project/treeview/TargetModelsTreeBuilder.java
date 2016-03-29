@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.project.treeview;
 
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractBaseTreeBuilder;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractPsNodeTreeBuilder;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractDependencyNode;
 import com.android.tools.idea.gradle.structure.model.PsProject;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
@@ -26,15 +26,11 @@ import javax.swing.*;
 import javax.swing.tree.DefaultTreeModel;
 import java.util.List;
 
-public class TargetModelsTreeBuilder extends AbstractBaseTreeBuilder {
+public class TargetModelsTreeBuilder extends AbstractPsNodeTreeBuilder {
   public TargetModelsTreeBuilder(@NotNull PsProject project,
                                  @NotNull JTree tree,
                                  @NotNull DefaultTreeModel treeModel) {
     super(tree, treeModel, new TargetModelsTreeStructure(project));
-  }
-
-  @Override
-  protected void onAllNodesExpanded() {
   }
 
   public void displayTargetModules(@NotNull List<AbstractDependencyNode<? extends PsAndroidDependency>> dependencyNodes) {

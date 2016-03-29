@@ -20,7 +20,9 @@ import com.android.tools.idea.gradle.structure.configurables.android.dependencie
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.project.treeview.TargetModelsTreeBuilder;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.*;
 import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowPanel;
-import com.android.tools.idea.gradle.structure.model.PsProject;
+import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractBaseCollapseAllAction;
+import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractBaseExpandAllAction;
+import com.android.tools.idea.gradle.structure.configurables.ui.treeview.NodeHyperlinkSupport;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.google.common.collect.Lists;
@@ -47,7 +49,7 @@ class TargetModulesPanel extends ToolWindowPanel {
   @NotNull private final TargetModelsTreeBuilder myTreeBuilder;
   @NotNull private final NodeHyperlinkSupport<TargetAndroidModuleNode> myHyperlinkSupport;
 
-  TargetModulesPanel(@NotNull PsProject project, @NotNull PsContext context) {
+  TargetModulesPanel(@NotNull PsContext context) {
     super("Target Modules", AllIcons.Nodes.ModuleGroup, null);
     myContext = context;
 
@@ -80,7 +82,7 @@ class TargetModulesPanel extends ToolWindowPanel {
     setHeaderActions();
     getHeader().setPreferredFocusedComponent(myTree);
 
-    myTreeBuilder = new TargetModelsTreeBuilder(project, myTree, treeModel);
+    myTreeBuilder = new TargetModelsTreeBuilder(myContext.getProject(), myTree, treeModel);
 
     JScrollPane scrollPane = setUp(myTree);
     add(scrollPane, BorderLayout.CENTER);

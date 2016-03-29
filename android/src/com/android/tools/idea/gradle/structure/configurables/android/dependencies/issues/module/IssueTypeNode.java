@@ -13,42 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.configurables.android.dependencies.project.treeview;
+package com.android.tools.idea.gradle.structure.configurables.android.dependencies.issues.module;
 
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AndroidArtifactNode;
-import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsModelNode;
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
+import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsNode;
+import com.android.tools.idea.gradle.structure.model.PsIssue;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.roots.ui.CellAppearanceEx;
 import com.intellij.ui.HtmlListCellRenderer;
 import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.treeStructure.SimpleNode;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
 import java.util.List;
 
-import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
 
-public class TargetAndroidModuleNode extends AbstractPsModelNode<PsAndroidModule> implements CellAppearanceEx {
-  @Nullable private final String myVersion;
+class IssueTypeNode extends AbstractPsNode implements CellAppearanceEx {
+  private final List<IssueNode> myChildren = Lists.newArrayList();
 
-  @NotNull private List<AndroidArtifactNode> myChildren = Collections.emptyList();
-
-  TargetAndroidModuleNode(@NotNull AbstractPsModelNode<?> parent, @NotNull PsAndroidModule module, @Nullable String version) {
-    super(parent, module);
-    myVersion = version;
+  IssueTypeNode(@NotNull PsIssue.Type type, @NotNull List<PsIssue> issues) {
+    myName = type.getText();
+    setIcon(type.getIcon());
+    for (PsIssue issue : issues) {
+      myChildren.add(new IssueNode(issue));
+    }
     setAutoExpandNode(true);
   }
 
   @Override
   public SimpleNode[] getChildren() {
-    return myChildren.toArray(new SimpleNode[myChildren.size()]);
-  }
-
-  void setChildren(@NotNull List<AndroidArtifactNode> children) {
-    myChildren = children;
+    return !myChildren.isEmpty() ? myChildren.toArray(new SimpleNode[myChildren.size()]) : NO_CHILDREN;
   }
 
   @Override
@@ -63,9 +57,9 @@ public class TargetAndroidModuleNode extends AbstractPsModelNode<PsAndroidModule
 
   @Override
   public void customize(@NotNull SimpleColoredComponent component) {
-    if (!isEmpty(myVersion)) {
-      component.append(" ");
-      component.append("(" + myVersion + ")", GRAY_ATTRIBUTES);
-    }
+    component.append(" ");
+    int childCount = myChildren.size();
+    component.append("(" + childCount + " ", GRAY_ATTRIBUTES);
+    component.append(childCount == 1 ? "Item)" : "Items)", GRAY_ATTRIBUTES);
   }
 }

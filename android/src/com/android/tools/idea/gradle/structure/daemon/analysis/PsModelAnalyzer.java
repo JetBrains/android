@@ -13,20 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.structure.dialog;
+package com.android.tools.idea.gradle.structure.daemon.analysis;
 
-import com.intellij.openapi.Disposable;
-import com.intellij.openapi.extensions.ExtensionPointName;
-import com.intellij.openapi.options.Configurable;
-import com.intellij.openapi.project.Project;
+import com.android.tools.idea.gradle.structure.model.PsIssueCollection;
+import com.android.tools.idea.gradle.structure.model.PsModel;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
+public abstract class PsModelAnalyzer<T extends PsModel> {
+  public final void analyze(@NotNull PsModel model, @NotNull PsIssueCollection issueCollection) {
+    assert getSupportedModelType().isInstance(model);
+    doAnalyze(getSupportedModelType().cast(model), issueCollection);
+  }
 
-public abstract class MainGroupConfigurableContributor {
-  public static final ExtensionPointName<MainGroupConfigurableContributor> EP_NAME =
-    ExtensionPointName.create("com.android.ide.mainGroupConfigurableContributor");
+  protected abstract void doAnalyze(@NotNull T model, @NotNull PsIssueCollection issueCollection);
 
   @NotNull
-  public abstract List<Configurable> getConfigurables(@NotNull Project project, @NotNull Disposable parentDisposable);
+  public abstract Class<T> getSupportedModelType();
 }
