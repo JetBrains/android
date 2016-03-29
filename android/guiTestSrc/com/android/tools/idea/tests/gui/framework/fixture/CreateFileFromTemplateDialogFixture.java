@@ -16,22 +16,19 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.tools.idea.tests.gui.framework.GuiTests;
-import com.android.tools.idea.tests.gui.framework.Wait;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.EditorTextFieldFixture;
+import com.android.tools.lint.detector.api.TextFormat;
 import com.intellij.androidstudio.actions.CreateFileFromTemplateDialog;
 import com.intellij.androidstudio.actions.CreateFileFromTemplateDialog.Visibility;
-import com.intellij.ide.actions.TemplateKindCombo;
 import com.intellij.ui.EditorTextField;
+import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
-import org.fest.swing.edt.GuiActionRunner;
-import org.fest.swing.edt.GuiTask;
-import org.fest.swing.exception.ComponentLookupException;
 import org.fest.swing.fixture.JCheckBoxFixture;
+import org.fest.swing.fixture.JComboBoxFixture;
 import org.fest.swing.fixture.JRadioButtonFixture;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nonnull;
 import javax.swing.*;
 import java.awt.*;
 import java.util.Locale;
@@ -57,16 +54,8 @@ public class CreateFileFromTemplateDialogFixture extends IdeaDialogFixture<Creat
 
   @NotNull
   public CreateFileFromTemplateDialogFixture selectKind(@NotNull final Kind kind) {
-    // TODO: Replace this with a fixture.
-    final TemplateKindCombo kindBox = robot().finder().findByType(target(), TemplateKindCombo.class);
-    GuiActionRunner.execute(new SelectFieldTask(kindBox));
-    GuiActionRunner.execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
-        kindBox.setSelectedName(kind.getTemplateName());
-      }
-    });
-
+    JComboBoxFixture kindFixture = new JComboBoxFixture(robot(), robot().finder().findByType(target(), JComboBox.class));
+    kindFixture.selectItem(kind.getTemplateName());
     return this;
   }
 
@@ -78,41 +67,35 @@ public class CreateFileFromTemplateDialogFixture extends IdeaDialogFixture<Creat
 
   @NotNull
   public CreateFileFromTemplateDialogFixture waitForErrorMessageToAppear(@NotNull final String errorMessage) {
-    Wait.minutes(2).expecting("an error message to appear").until(new Wait.Objective() {
+    GuiTests.waitUntilShowing(robot(), target(), new GenericTypeMatcher<JLabel>(JLabel.class) {
       @Override
-      public boolean isMet() {
-        try {
-          GuiTests.findLabelByText(CreateFileFromTemplateDialogFixture.this, errorMessage);
-          return true;
+      protected boolean isMatching(@NotNull JLabel label) {
+        String labelText = label.getText();
+        if (labelText != null) {
+          return errorMessage.equals(TextFormat.HTML.convertTo(labelText, TextFormat.TEXT).trim());
         }
-        catch (ComponentLookupException e) {
-          return false;
-        }
-        catch (Exception e) {
-          return false;
-        }
+        return false;
       }
     });
     return this;
   }
 
-  @Nonnull
-  public <T extends Component> T find(@Nullable String name, @Nonnull Class<T> type, @NotNull ComponentVisibility visibility) {
+  @NotNull
+  public <T extends Component> T find(@Nullable String name, @NotNull Class<T> type, @NotNull ComponentVisibility visibility) {
     return robot().finder().findByName(target(), name, type, visibility.equals(ComponentVisibility.VISIBLE));
   }
 
   public void clickOk() {
-    focus();
     GuiTests.findAndClickOkButton(this);
   }
 
-  public void setVisibility(Visibility visibility) {
+  public void setVisibility(@NotNull Visibility visibility) {
     String buttonName = visibility.equals(Visibility.PUBLIC) ? "public_radio_button" : "package_private_radio_button";
     JRadioButtonFixture visibilityButton = new JRadioButtonFixture(robot(), buttonName);
     visibilityButton.setSelected(true);
   }
 
-  public void setModifier(Modifier modifier) {
+  public void setModifier(@NotNull Modifier modifier) {
     String buttonName = modifier.toString().toLowerCase(Locale.US) + "_radio_button";
     JRadioButtonFixture modifierButton = new JRadioButtonFixture(robot(), buttonName);
     modifierButton.setSelected(true);
@@ -138,15 +121,16 @@ public class CreateFileFromTemplateDialogFixture extends IdeaDialogFixture<Creat
     EditorTextFieldFixture.findByLabel(robot(), target(), "Superclass:").replaceText(superclass);
   }
 
+  @NotNull
   public JCheckBoxFixture findCheckBox(@NotNull String name) {
     return new JCheckBoxFixture(robot(), name);
   }
 
   public enum Kind {
-    CLASS("class", "ASClass"),
-    ENUM("enum", "ASEnum"),
-    INTERFACE("interface", "ASInterface"),
-    ANNOTATION("@interface", "ASAnnotationType");
+    CLASS("class", "Class"),
+    ENUM("enum", "Enum"),
+    INTERFACE("interface", "Interface"),
+    ANNOTATION("@interface", "Annotation");
 
     private final String myKindName;
     private final String myTemplateName;
@@ -157,25 +141,14 @@ public class CreateFileFromTemplateDialogFixture extends IdeaDialogFixture<Creat
     }
 
     @Override
+    @NotNull
     public String toString() {
       return myKindName;
     }
 
+    @NotNull
     public String getTemplateName() {
       return myTemplateName;
-    }
-  }
-
-  private static class SelectFieldTask extends GuiTask {
-    private JComponent myJComponent;
-
-    private SelectFieldTask(JComponent component) {
-      myJComponent = component;
-    }
-
-    @Override
-    protected void executeInEDT() throws Throwable {
-      myJComponent.requestFocus();
     }
   }
 
