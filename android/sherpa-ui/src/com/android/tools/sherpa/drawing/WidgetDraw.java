@@ -362,6 +362,7 @@ public class WidgetDraw {
         g2.setStroke(new BasicStroke(1));
         int l = transform.getSwingX(table.getDrawX());
         int t = transform.getSwingY(table.getDrawY());
+        g2.setFont(ConnectionDraw.sFont);
         g2.drawRect(l, t - 20 - 4, 20, 20);
         int column = 0;
         String align = table.getColumnAlignmentRepresentation(column++);
