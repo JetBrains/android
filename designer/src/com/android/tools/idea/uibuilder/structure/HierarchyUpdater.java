@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.structure;
 
-import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.model.ResourceType;
+import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -136,15 +136,14 @@ final class HierarchyUpdater {
     NlModel model = myTree.getDesignerModel();
     assert model != null;
 
-    ViewHandler handler;
-
     if (ResourceType.valueOf(model.getFile()).equals(ResourceType.PREFERENCE_SCREEN)) {
-      handler = new PreferenceScreenViewHandler();
+      XmlTag tag = model.getFile().getRootTag();
+
+      // TODO Passing EmptyXmlTag.INSTANCE when the root tag is null (because the file is empty?) will cause problems down the road
+      return new FakeComponent(model, tag == null ? EmptyXmlTag.INSTANCE : tag, new PreferenceScreenViewHandler());
     }
     else {
-      handler = new DeviceScreenViewHandler();
+      return new FakeComponent(model, EmptyXmlTag.INSTANCE, new DeviceScreenViewHandler());
     }
-
-    return new FakeComponent(model, handler);
   }
 }

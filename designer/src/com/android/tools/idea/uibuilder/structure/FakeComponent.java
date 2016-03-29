@@ -19,6 +19,7 @@ import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
+import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -29,8 +30,8 @@ import org.jetbrains.annotations.Nullable;
 final class FakeComponent extends NlComponent {
   private final ViewHandler myViewHandler;
 
-  FakeComponent(@NotNull NlModel model, @NotNull ViewHandler viewHandler) {
-    super(model, EmptyXmlTag.INSTANCE);
+  FakeComponent(@NotNull NlModel model, @NotNull XmlTag tag, @NotNull ViewHandler viewHandler) {
+    super(model, tag);
     myViewHandler = viewHandler;
   }
 
