@@ -19,6 +19,7 @@ import com.android.tools.fd.client.UpdateMode;
 import com.android.tools.fd.client.UserFeedback;
 import com.android.tools.idea.fd.actions.RestartActivityAction;
 import com.google.common.html.HtmlEscapers;
+import com.intellij.ide.BrowserUtil;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationListener;
@@ -35,6 +36,8 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.event.HyperlinkEvent;
 
 public class InstantRunUserFeedback implements UserFeedback {
+  @Language("HTML") public static String LEARN_MORE_LINK = " <a href=\"http://developer.android.com/r/studio-ui/instant-run.html\">Learn More</a>.";
+
   @NotNull private final Module myModule;
 
   public InstantRunUserFeedback(@NotNull Module module) {
@@ -129,7 +132,11 @@ public class InstantRunUserFeedback implements UserFeedback {
       @Override
       public void hyperlinkUpdate(@NotNull Notification notification, @NotNull HyperlinkEvent event) {
         if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
-          if ("mute".equals(event.getDescription())) {
+          String description = event.getDescription();
+          if (description != null && description.startsWith("http")) {
+            BrowserUtil.browse(description);
+          }
+          else if ("mute".equals(description)) {
             InstantRunSettings.setShowStatusNotifications(false);
           }
           else if (listener != null) {
