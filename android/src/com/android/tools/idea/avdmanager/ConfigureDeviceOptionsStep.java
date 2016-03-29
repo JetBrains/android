@@ -36,14 +36,12 @@ import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.tools.swing.util.FormScalingUtil;
 import com.google.common.base.Optional;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.ui.*;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.Consumer;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.io.File;
@@ -83,17 +81,14 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
   private final StudioWizardStepPanel myStudioPanel;
   private final ValidatorPanel myValidatorPanel;
 
-  private final Project myProject;
-
   private BindingsManager myBindings = new BindingsManager();
   private ListenerManager myListeners = new ListenerManager();
 
-  public ConfigureDeviceOptionsStep(@NotNull ConfigureDeviceModel model, @Nullable Project project) {
+  public ConfigureDeviceOptionsStep(@NotNull ConfigureDeviceModel model) {
     super(model, "Configure Hardware Profile");
     FormScalingUtil.scaleComponentTree(this.getClass(), myRootPanel);
     myValidatorPanel = new ValidatorPanel(this, myRootPanel);
     myStudioPanel = new StudioWizardStepPanel(myValidatorPanel, "Configure this hardware profile");
-    myProject = project;
   }
 
 
@@ -246,7 +241,7 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
 
     myHardwareSkinHelpLabel = new HyperlinkLabel("How do I create a custom hardware skin?");
     myHardwareSkinHelpLabel.setHyperlinkTarget(AvdWizardUtils.CREATE_SKIN_HELP_LINK);
-    myCustomSkinPath = new SkinChooser(myProject);
+    myCustomSkinPath = new SkinChooser(null);
     myDeviceDefinitionPreview = new DeviceDefinitionPreview(getModel().getDeviceData());
   }
 
