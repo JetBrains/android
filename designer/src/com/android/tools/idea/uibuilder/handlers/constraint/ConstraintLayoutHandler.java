@@ -104,8 +104,10 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
 
     Cursor newCursor = null;
 
+    ViewTransform transform = model.getViewTransform();
+
     // First check for anchors
-    ConstraintAnchor constraintAnchor = model.getScene().findAnchor(ax, ay, false, false);
+    ConstraintAnchor constraintAnchor = model.getScene().findAnchor(ax, ay, false, false, transform);
     if (constraintAnchor != null) {
       if (constraintAnchor.isConnected()) {
         newCursor = myUnlinkAnchorCursor;
@@ -134,7 +136,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
 
     // Then for resize handles
     if (newCursor == null) {
-      ResizeHandle resizeHandle = model.getScene().findResizeHandle(ax, ay);
+      ResizeHandle resizeHandle = model.getScene().findResizeHandle(ax, ay, transform);
       if (resizeHandle != null) {
         switch (resizeHandle.getType()) {
           case LEFT_TOP: {
