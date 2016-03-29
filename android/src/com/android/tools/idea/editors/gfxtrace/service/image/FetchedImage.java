@@ -39,27 +39,16 @@ public class FetchedImage {
   @NotNull public final Dimension dimensions;
   @NotNull public final BufferedImage image;
 
-  @NotNull private static final FetchedImage NO_IMAGE = new FetchedImage();
-
   public static ListenableFuture<FetchedImage> load(final ServiceClient client, ListenableFuture<ImageInfoPath> imageInfo) {
     return Futures.transform(imageInfo, new AsyncFunction<ImageInfoPath, FetchedImage>() {
       @Override
       public ListenableFuture<FetchedImage> apply(ImageInfoPath imageInfoPath) throws Exception {
-        if (imageInfoPath.isNoImage()) {
-          return Futures.immediateFuture(NO_IMAGE);
-        }
         return load(client, imageInfoPath);
       }
     });
   }
 
   public static ListenableFuture<FetchedImage> load(final ServiceClient client, final Path imagePath) {
-    if (imagePath instanceof ImageInfoPath) {
-      ImageInfoPath p = (ImageInfoPath)imagePath;
-      if (p.isNoImage()) {
-        return Futures.immediateFuture(NO_IMAGE);
-      }
-    }
     return Futures.transform(client.get(imagePath.as(Format.RGBA)), new AsyncFunction<Object, FetchedImage>() {
       @Override
       public ListenableFuture<FetchedImage> apply(Object object) throws Exception {
@@ -86,15 +75,6 @@ public class FetchedImage {
         return new FetchedImage(imageInfo, data);
       }
     });
-  }
-
-  public FetchedImage() {
-    myImageInfo = new ImageInfo();
-    myImageInfo.setWidth(1);
-    myImageInfo.setHeight(1);
-    dimensions = new Dimension(1, 1);
-    //noinspection UndesirableClassUsage
-    image = new BufferedImage(dimensions.width, dimensions.height, BufferedImage.TYPE_4BYTE_ABGR);
   }
 
   public FetchedImage(@NotNull ImageInfo imageInfo, @NotNull byte[] data) {
