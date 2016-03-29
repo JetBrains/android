@@ -10,17 +10,17 @@
       <size top="5" left="5" bottom="5" right="5"/>
     </border>
     <children>
-      <grid id="997b1" binding="myDetailsHostPanel" layout-manager="BorderLayout" hgap="0" vgap="0">
+      <grid id="997b1" binding="myDetailsPanel" custom-create="true" layout-manager="BorderLayout" hgap="0" vgap="0">
         <constraints>
           <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="1" fill="1" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties/>
-        <border type="empty">
+        <border type="none">
           <size top="10" left="20" bottom="10" right="10"/>
         </border>
         <children/>
       </grid>
-      <grid id="38dac" binding="myIssuesHostPanel" layout-manager="BorderLayout" hgap="0" vgap="0">
+      <grid id="38dac" binding="myIssuesPanel" custom-create="true" layout-manager="BorderLayout" hgap="0" vgap="0">
         <constraints>
           <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
         </constraints>

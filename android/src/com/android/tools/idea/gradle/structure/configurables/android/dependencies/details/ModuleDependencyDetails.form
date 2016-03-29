@@ -12,20 +12,20 @@
     <children>
       <component id="76285" class="com.intellij.ui.components.JBLabel">
         <constraints>
-          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
+          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
-          <componentStyle value="REGULAR"/>
+          <componentStyle value="SMALL"/>
           <fontColor value="BRIGHTER"/>
           <text value="Name:"/>
         </properties>
       </component>
       <component id="f71c" class="com.intellij.ui.components.JBLabel">
         <constraints>
-          <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
+          <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
-          <componentStyle value="REGULAR"/>
+          <componentStyle value="SMALL"/>
           <fontColor value="BRIGHTER"/>
           <text value="Gradle Path:"/>
         </properties>
@@ -44,10 +44,10 @@
       </component>
       <component id="88fd" class="com.intellij.ui.components.JBLabel" binding="myScopePromptLabel">
         <constraints>
-          <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
+          <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
-          <componentStyle value="REGULAR"/>
+          <componentStyle value="SMALL"/>
           <fontColor value="BRIGHTER"/>
           <text value="Scope:"/>
         </properties>
