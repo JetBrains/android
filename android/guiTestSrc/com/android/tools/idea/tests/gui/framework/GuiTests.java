@@ -525,22 +525,6 @@ public final class GuiTests {
     });
   }
 
-  public static JLabel findLabelByText(@NotNull ContainerFixture<? extends Container> container, @NotNull final String text) {
-    return (JLabel)container.robot().finder().find(new ComponentMatcher() {
-      @Override
-      public boolean matches(@Nullable Component component) {
-        if (component instanceof JLabel) {
-          String labelText = ((JLabel)component).getText();
-          if (labelText != null) {
-            return text.equals(TextFormat.HTML.convertTo(labelText, TextFormat.TEXT).trim());
-          }
-        }
-
-        return false;
-      }
-    });
-  }
-
   /**
    * Returns a full path to the GUI data directory in the user's AOSP source tree, if known, or null
    */
