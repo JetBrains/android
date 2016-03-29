@@ -71,7 +71,7 @@ public class AndroidPropertyFilesUpdater extends AbstractProjectComponent {
 
   protected AndroidPropertyFilesUpdater(Project project) {
     super(project);
-    myAlarm = new SingleAlarm(() -> TransactionGuard.submitTransaction(this::updatePropertyFilesIfNecessary), 50, project);
+    myAlarm = new SingleAlarm(() -> TransactionGuard.submitTransaction(project, this::updatePropertyFilesIfNecessary), 50, project);
   }
 
   @Override
