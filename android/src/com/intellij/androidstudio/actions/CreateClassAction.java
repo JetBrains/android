@@ -26,14 +26,14 @@ import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.ex.EditorEx;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ProjectFileIndex;
+import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.psi.JavaDirectoryService;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiDirectory;
-import com.intellij.psi.PsiPackage;
+import com.intellij.psi.*;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.jps.model.java.JavaModuleSourceRootTypes;
 
 import java.util.List;
 import java.util.Map;
@@ -92,6 +92,41 @@ public final class CreateClassAction extends AnAction {
     catch (CreateFileFromTemplateDialog.FailedToCreateFileException exception) {
       Logger.getInstance(CreateClassAction.class).warn(exception);
     }
+  }
+
+  @Override
+  public void update(@NotNull AnActionEvent e) {
+    boolean enabled = isAvailable(e.getDataContext());
+    Presentation presentation = e.getPresentation();
+    presentation.setVisible(enabled);
+    presentation.setEnabled(enabled);
+  }
+
+  private boolean isAvailable(@NotNull DataContext dataContext) {
+    Project project = CommonDataKeys.PROJECT.getData(dataContext);
+    IdeView view = LangDataKeys.IDE_VIEW.getData(dataContext);
+    if (project == null || view == null || view.getDirectories().length == 0) {
+      return false;
+    }
+
+    ProjectFileIndex projectFileIndex = ProjectRootManager.getInstance(project).getFileIndex();
+    for (PsiDirectory dir : view.getDirectories()) {
+      if (projectFileIndex.isUnderSourceRootOfType(dir.getVirtualFile(), JavaModuleSourceRootTypes.SOURCES) && checkPackageExists(dir)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  private static boolean checkPackageExists(PsiDirectory directory) {
+    PsiPackage psiPackage = JavaDirectoryService.getInstance().getPackage(directory);
+    if (psiPackage == null) {
+      return false;
+    }
+
+    String name = psiPackage.getQualifiedName();
+    return StringUtil.isEmpty(name) || PsiNameHelper.getInstance(directory.getProject()).isQualifiedName(name);
   }
 
   /**
