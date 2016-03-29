@@ -1,0 +1,5 @@
+<resources>
+  <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+    <item name="android:navigationMode">tabMod<caret>e</item>
+  </style>
+</resources>
