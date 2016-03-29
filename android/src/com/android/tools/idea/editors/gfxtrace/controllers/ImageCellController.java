@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.editors.gfxtrace.controllers;
 
-import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
-import com.android.tools.idea.editors.gfxtrace.UiCallback;
+import com.android.tools.idea.editors.gfxtrace.UiErrorCallback;
 import com.android.tools.idea.editors.gfxtrace.renderers.CellRenderer;
 import com.android.tools.idea.editors.gfxtrace.renderers.ImageCellRenderer;
+import com.android.tools.idea.editors.gfxtrace.service.ErrDataUnavailable;
 import com.android.tools.idea.editors.gfxtrace.service.ServiceClient;
 import com.android.tools.idea.editors.gfxtrace.service.image.FetchedImage;
 import com.android.tools.idea.editors.gfxtrace.service.path.Path;
@@ -82,16 +82,26 @@ public abstract class ImageCellController<T extends ImageCellList.Data> extends 
   }
 
   protected void loadCellImage(final T cell, final ServiceClient client, final Path imagePath, final Runnable onLoad) {
-    Rpc.listen(FetchedImage.load(client, imagePath), LOG, cell.controller, new UiCallback<FetchedImage, BufferedImage>() {
+    Rpc.listen(FetchedImage.load(client, imagePath), LOG, cell.controller, new UiErrorCallback<FetchedImage, BufferedImage, String>() {
       @Override
-      protected BufferedImage onRpcThread(Rpc.Result<FetchedImage> result) throws RpcException, ExecutionException {
-        return result.get().image;
+      protected ResultOrError<BufferedImage, String> onRpcThread(Rpc.Result<FetchedImage> result) throws RpcException, ExecutionException {
+        try {
+          return success(result.get().image);
+        } catch (ErrDataUnavailable e) {
+          return error(e.getMessage());
+        }
       }
 
       @Override
-      protected void onUiThread(BufferedImage image) {
+      protected void onUiThreadSuccess(BufferedImage image) {
         cell.icon = new ImageIcon(image);
         onLoad.run();
+        myList.repaint();
+      }
+
+      @Override
+      protected void onUiThreadError(String message) {
+        cell.icon = null;
         myList.repaint();
       }
     });
