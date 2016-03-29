@@ -139,7 +139,7 @@ public class ImageCellRenderer<T extends ImageCellList.Data> extends CellRendere
       }
 
       int w = getWidth() - 2 * BORDER_SIZE, h = getHeight() - 2 * BORDER_SIZE;
-      graphics.setColor(myCell.hasFailed() ? UIUtil.getLabelDisabledForeground() : UIUtil.getListBackground());
+      graphics.setColor(UIUtil.getListBackground());
       graphics.fillRect(BORDER_SIZE, BORDER_SIZE, w, h);
 
       int imageWidth, imageHeight;
@@ -159,7 +159,7 @@ public class ImageCellRenderer<T extends ImageCellList.Data> extends CellRendere
         }
       }
       else if (myCell.hasFailed()) {
-        RenderUtils.drawIcon(this, graphics, AllIcons.General.Error, BORDER_SIZE, BORDER_SIZE, imageWidth, imageHeight);
+        RenderUtils.drawIcon(this, graphics, AllIcons.General.Warning, BORDER_SIZE, BORDER_SIZE, imageWidth, imageHeight);
       }
       else {
         LoadingIndicator.paint(this, graphics, BORDER_SIZE, BORDER_SIZE, imageWidth, imageHeight);
@@ -174,6 +174,7 @@ public class ImageCellRenderer<T extends ImageCellList.Data> extends CellRendere
       }
 
       if (myCell.getLabel() != null) {
+        setForeground(myCell.hasFailed() ? UIUtil.getLabelDisabledForeground() : UIUtil.getLabelForeground());
         paintLabel(graphics, myImageSize.width + 2 * BORDER_SIZE);
       }
     }
