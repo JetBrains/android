@@ -15,6 +15,7 @@
  */
 package com.intellij.androidstudio.actions;
 
+import com.android.tools.swing.util.FormScalingUtil;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.intellij.ide.IdeBundle;
@@ -88,6 +89,7 @@ public class CreateFileFromTemplateDialog extends DialogWrapper {
 
   protected CreateFileFromTemplateDialog(@NotNull Project project, @NotNull PsiDirectory defaultDirectory) {
     super(project);
+    FormScalingUtil.scaleComponentTree(this.getClass(), myPanel);
 
     setTitle(IdeBundle.message("action.create.new.class"));
     myKindLabel.setLabelFor(myKindCombo);
