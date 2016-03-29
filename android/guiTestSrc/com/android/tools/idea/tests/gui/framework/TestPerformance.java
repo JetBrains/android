@@ -52,12 +52,15 @@ class TestPerformance extends TestWatcher {
       gcTime += garbageCollectorMXBean.getCollectionTime();
     }
 
-    long gcCountDiff = gcCount - myGcCount;
-    long gcTimeDiff = gcTime - myGcTime;
+    System.out.printf("cumulative garbage collections: %d, %d ms", gcCount, gcTime);
+    if (myGcTime > 0L) {
+      System.out.printf(" (this test %d, %dms)", gcCount - myGcCount, gcTime - myGcTime);
+    }
+    System.out.println();
+
     myGcCount = gcCount;
     myGcTime = gcTime;
 
-    System.out.printf("cumulative garbage collections: %d, %d ms (this test %d, %dms)%n", gcCount, gcTime, gcCountDiff, gcTimeDiff);
     myMemoryMXBean.gc();
     System.out.printf("heap: %s%n", myMemoryMXBean.getHeapMemoryUsage());
     System.out.printf("non-heap: %s%n", myMemoryMXBean.getNonHeapMemoryUsage());
