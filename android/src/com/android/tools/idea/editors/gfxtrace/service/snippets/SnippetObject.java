@@ -232,7 +232,7 @@ public class SnippetObject {
     final Field info = atom.getFieldInfo(paramIndex);
     // The parameter name in the schema had the first letter capitalised (presumably to make it public in Go).
     final String name = lowerCaseFirstCharacter(info.getDeclared());
-    return new SnippetObject(atom.getFieldValue(paramIndex), Pathway.param(name), snippets);
+    return new SnippetObject(atom.getFieldValue(paramIndex), Pathway.param(atom.getName(), name), snippets);
   }
 
   /**
