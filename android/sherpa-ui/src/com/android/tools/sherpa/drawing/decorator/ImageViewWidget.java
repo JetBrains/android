@@ -152,7 +152,6 @@ public class ImageViewWidget extends WidgetDecorator {
         mWidget.setBaselineDistance(0);
     }
 
-
     public void onPaintBackground(ViewTransform transform, Graphics2D g) {
         super.onPaintBackground(transform, g);
         int l = transform.getSwingX(mWidget.getDrawX());

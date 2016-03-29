@@ -49,7 +49,7 @@ public class TableDecorator extends WidgetDecorator {
             mBounds.setBounds(x, y, w, h);
         }
 
-        public boolean contains(int x, int y) {
+        public boolean contains(float x, float y) {
             return mBounds.contains(x, y);
         }
 
@@ -97,7 +97,7 @@ public class TableDecorator extends WidgetDecorator {
      * @param selection the current selection of widgets
      */
     @Override
-    public ConstraintWidget mousePressed(int x, int y, ViewTransform transform, Selection selection) {
+    public ConstraintWidget mousePressed(float x, float y, ViewTransform transform, Selection selection) {
         ConstraintTableLayout table = (ConstraintTableLayout) mWidget;
         mTableClickTargets.clear();
         ArrayList<Guideline> vertical = table.getVerticalGuidelines();

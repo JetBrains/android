@@ -28,6 +28,7 @@ import com.google.tnt.solver.widgets.ConstraintWidget;
 import com.google.tnt.solver.widgets.Guideline;
 import com.google.tnt.solver.widgets.Snapshot;
 
+import javax.swing.SwingUtilities;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.KeyEvent;
@@ -57,6 +58,11 @@ public class MouseInteraction {
     private Point mLastMousePosition = new Point();
 
     private Snapshot mSnapshot = null;
+
+    // Represent the different mouse interaction modes
+    enum MouseMode { INACTIVE, RESIZE, MOVE, CONNECT }
+
+    private MouseMode mMouseMode = MouseMode.INACTIVE;
 
     /**
      * Base constructor
@@ -189,11 +195,11 @@ public class MouseInteraction {
 
     /**
      * Mouse press handling
-     *
      * @param x mouse x coordinate
      * @param y mouse y coordinate
+     * @param isRightClick
      */
-    public void mousePressed(int x, int y) {
+    public void mousePressed(float x, float y, boolean isRightClick) {
         mMouseDown = true;
         mStartPoint.setLocation(x, y);
         mLastMousePosition.setLocation(x, y);
@@ -202,12 +208,14 @@ public class MouseInteraction {
         mSelection.setSelectedAnchor(null);
         mSelection.setSelectedGuideline(null);
 
+        mMouseMode = MouseMode.INACTIVE;
+
         // check for widget, anchors, resize handle hits
 
-        mWidgetsScene.updatePositions();
+        mWidgetsScene.updatePositions(mViewTransform);
         ConstraintWidget widget = mWidgetsScene.getRoot().findWidget(x, y);
-        ConstraintAnchor anchor = mWidgetsScene.findAnchor(x, y, false, true);
-        ResizeHandle resizeHandle = mWidgetsScene.findResizeHandle(x, y);
+        ConstraintAnchor anchor = mWidgetsScene.findAnchor(x, y, false, true, mViewTransform);
+        ResizeHandle resizeHandle = mWidgetsScene.findResizeHandle(x, y, mViewTransform);
 
         // don't allow direct interactions with root
         if (widget == mWidgetsScene.getRoot()) {
@@ -221,12 +229,14 @@ public class MouseInteraction {
                     ConstraintHandle handle = WidgetInteractionTargets.constraintHandle(anchor);
                     setStartPoint(handle.getDrawX(), handle.getDrawY());
                     mSelection.setSelectedAnchor(anchor);
+                    mMouseMode = MouseMode.CONNECT;
                 }
             } else if (resizeHandle != null) {
                 mSelection.clear();
                 mSelection.setSelectedResizeHandle(resizeHandle);
                 widget = resizeHandle.getOwner();
                 mSelection.add(widget);
+                mMouseMode = MouseMode.RESIZE;
             }
         }
 
@@ -240,6 +250,9 @@ public class MouseInteraction {
                 mSelection.add(widget);
             } else if (isControlDown()) {
                 mSelection.remove(widget);
+            }
+            if (mMouseMode == MouseMode.INACTIVE) {
+                mMouseMode = MouseMode.MOVE;
             }
         }
 
@@ -264,6 +277,9 @@ public class MouseInteraction {
             mSelection.setSelectedResizeHandle(resizeHandle);
             mSelection.add(mSelection.getSelectedGuideline());
             widget = mSelection.getSelectedGuideline();
+            if (mMouseMode == MouseMode.INACTIVE) {
+                mMouseMode = MouseMode.MOVE;
+            }
         }
         ///////////////////////////////////////////////////////////////////////
 
@@ -297,6 +313,9 @@ public class MouseInteraction {
             setSnapshot(null);
         }
 
+        if (isRightClick) {
+            mMouseMode = MouseMode.INACTIVE;
+        }
         mSceneDraw.onMousePress(mSelection.getSelectedAnchor());
     }
 
@@ -314,7 +333,7 @@ public class MouseInteraction {
         // First check anchors that are not guidelines, to deal with the case
         // where we want to delete the connection
         ConstraintAnchor anchor = mWidgetsScene.findAnchor(
-                getLastPoint().x, getLastPoint().y, false, false);
+                getLastPoint().x, getLastPoint().y, false, false, mViewTransform);
         if (mSelection.getSelectedAnchor() != null
                 && mSelection.getConnectionCandidateAnchor() == null
                 && anchor == mSelection.getSelectedAnchor()) {
@@ -381,6 +400,7 @@ public class MouseInteraction {
             selection.directionLocked = Selection.DIRECTION_UNLOCKED;
         }
 
+        mMouseMode = MouseMode.INACTIVE;
         mSelection.setSelectedAnchor(null);
         mSelection.setSelectedResizeHandle(null);
         mSelection.setConnectionCandidateAnchor(null);
@@ -400,84 +420,97 @@ public class MouseInteraction {
     public void mouseDragged(int x, int y) {
         mLastMousePosition.setLocation(x, y);
 
-        if (isAltDown()
-                || (mSelection.getSelectedAnchor() == null
-                && mSelection.getSelectedResizeHandle() == null)
-                && !mSelection.isEmpty()) {
-            // Dragging the widget is no anchors or resize handles are selected
-            boolean snapPosition = mSelection.hasSingleElement();
-            if (!mSelection.hasSingleElement() && mSelection.getSelectionBounds() != null) {
-                Selection.Element bounds = mSelection.getSelectionBounds();
-                bounds.widget.setParent(mWidgetsScene.getRoot());
-                mWidgetMotion.dragWidget(getStartPoint(), bounds,
-                        x, y, true, isShiftDown());
-                mSelection.updatePositionsFromBounds();
-            } else {
-                for (Selection.Element selection : mSelection.getElements()) {
-                    mWidgetMotion.dragWidget(getStartPoint(), selection, x, y,
-                            snapPosition, isShiftDown());
-                    mSelection.addModifiedWidget(selection.widget);
-                }
-            }
-        } else if (mSelection.getSelectedResizeHandle() != null) {
-            // if we have a resize handle selected, let's resize!
-            Selection.Element selection = mSelection.getFirstElement();
-            if (mSelection.getSelectedResizeHandle() != null && !selection.widget.isRoot()) {
-                ArrayList<ConstraintWidget> widgetsToCheck = new ArrayList<ConstraintWidget>();
-                for (ConstraintWidget w : mWidgetsScene.getWidgets()) {
-                    widgetsToCheck.add(w);
-                }
-                mWidgetResize.resizeWidget(widgetsToCheck, selection.widget,
-                        mSelection.getSelectedResizeHandle(),
-                        mSelection.getOriginalWidgetBounds(), x, y);
-                mSelection.addModifiedWidget(selection.widget);
-            }
-        } else if (mSelection.getSelectedAnchor() != null && mSelection.hasSingleElement()) {
-            // we have a selected anchor, let's check against other available anchors
-            ConstraintWidget selectedWidget = mSelection.getFirstElement().widget;
-            ConstraintAnchor anchor = mWidgetsScene
-                    .findAnchor(getLastPoint().x, getLastPoint().y, true, false);
-            if (anchor != null
-                    && anchor != mSelection.getSelectedAnchor()
-                    && mSelection.getSelectedAnchor().isValidConnection(anchor)
-                    && mSelection.getSelectedAnchor().isConnectionAllowed(anchor.getOwner())) {
-                if (mSelection.getConnectionCandidateAnchor() != anchor) {
-                    if (mSelection.getConnectionCandidateAnchor() != null) {
-                        if (getSnapshot() != null) {
-                            getSnapshot().applyTo(selectedWidget);
-                            mSelection.addModifiedWidget(selectedWidget);
+        switch (mMouseMode) {
+            case MOVE: {
+                if (!mSelection.isEmpty()) {
+                    // Dragging the widget is no anchors or resize handles are selected
+                    boolean snapPosition = mSelection.hasSingleElement();
+                    if (!mSelection.hasSingleElement() && mSelection.getSelectionBounds() != null) {
+                        Selection.Element bounds = mSelection.getSelectionBounds();
+                        bounds.widget.setParent(mWidgetsScene.getRoot());
+                        mWidgetMotion.dragWidget(getStartPoint(), bounds,
+                                x, y, true, isShiftDown(), mViewTransform);
+                        mSelection.updatePositionsFromBounds();
+                    } else {
+                        for (Selection.Element selection : mSelection.getElements()) {
+                            mWidgetMotion.dragWidget(getStartPoint(), selection, x, y,
+                                    snapPosition, isShiftDown(), mViewTransform);
+                            mSelection.addModifiedWidget(selection.widget);
                         }
                     }
-                    mSelection.setConnectionCandidateAnchor(anchor);
                 }
-                if (mSelection.getSelectedAnchor().getTarget() != mSelection.getConnectionCandidateAnchor()) {
-                    int margin = 0;
-                    if (!isControlDown()) {
-                        ConstraintHandle handle = WidgetInteractionTargets.constraintHandle(
-                                mSelection.getSelectedAnchor());
-                        ConstraintHandle handleTarget = WidgetInteractionTargets.constraintHandle(
-                                mSelection.getConnectionCandidateAnchor());
-                        margin = handle.getCreationMarginFrom(handleTarget);
-                    }
-                    ConstraintAnchor.Strength strength = ConstraintAnchor.Strength.STRONG;
-                    if (isShiftDown()) {
-                        strength = ConstraintAnchor.Strength.WEAK;
-                    }
-                    ConstraintWidget widget = mSelection.getSelectedAnchor().getOwner();
-                    widget.connect(
-                            mSelection.getSelectedAnchor(),
-                            mSelection.getConnectionCandidateAnchor(), margin, strength);
-                    mSelection.addModifiedWidget(widget);
-                }
-            } else {
-                if (mSelection.getConnectionCandidateAnchor() != null) {
-                    mSelection.setConnectionCandidateAnchor(null);
-                    if (getSnapshot() != null) {
-                        getSnapshot().applyTo(selectedWidget);
-                        mSelection.addModifiedWidget(selectedWidget);
+            } break;
+            case RESIZE: {
+                if (mSelection.getSelectedResizeHandle() != null) {
+                    // if we have a resize handle selected, let's resize!
+                    Selection.Element selection = mSelection.getFirstElement();
+                    if (mSelection.getSelectedResizeHandle() != null &&
+                            !selection.widget.isRoot()) {
+                        ArrayList<ConstraintWidget> widgetsToCheck =
+                                new ArrayList<ConstraintWidget>();
+                        for (ConstraintWidget w : mWidgetsScene.getWidgets()) {
+                            widgetsToCheck.add(w);
+                        }
+                        mWidgetResize.resizeWidget(widgetsToCheck, selection.widget,
+                                mSelection.getSelectedResizeHandle(),
+                                mSelection.getOriginalWidgetBounds(), x, y);
+                        mSelection.addModifiedWidget(selection.widget);
                     }
                 }
-            }
+            } break;
+            case CONNECT: {
+                if (mSelection.getSelectedAnchor() != null && mSelection.hasSingleElement()) {
+                    // we have a selected anchor, let's check against other available anchors
+                    ConstraintWidget selectedWidget = mSelection.getFirstElement().widget;
+                    ConstraintAnchor anchor = mWidgetsScene
+                            .findAnchor(getLastPoint().x, getLastPoint().y, true, false,
+                                    mViewTransform);
+                    if (anchor != null
+                            && anchor != mSelection.getSelectedAnchor()
+                            && mSelection.getSelectedAnchor().isValidConnection(anchor)
+                            &&
+                            mSelection.getSelectedAnchor().isConnectionAllowed(anchor.getOwner())) {
+                        if (mSelection.getConnectionCandidateAnchor() != anchor) {
+                            if (mSelection.getConnectionCandidateAnchor() != null) {
+                                if (getSnapshot() != null) {
+                                    getSnapshot().applyTo(selectedWidget);
+                                    mSelection.addModifiedWidget(selectedWidget);
+                                }
+                            }
+                            mSelection.setConnectionCandidateAnchor(anchor);
+                        }
+                        if (mSelection.getSelectedAnchor().getTarget() !=
+                                mSelection.getConnectionCandidateAnchor()) {
+                            int margin = 0;
+                            if (!isControlDown()) {
+                                ConstraintHandle handle = WidgetInteractionTargets.constraintHandle(
+                                        mSelection.getSelectedAnchor());
+                                ConstraintHandle handleTarget =
+                                        WidgetInteractionTargets.constraintHandle(
+                                                mSelection.getConnectionCandidateAnchor());
+                                margin = handle.getCreationMarginFrom(handleTarget);
+                            }
+                            ConstraintAnchor.Strength strength = ConstraintAnchor.Strength.STRONG;
+                            if (isShiftDown()) {
+                                strength = ConstraintAnchor.Strength.WEAK;
+                            }
+                            ConstraintWidget widget = mSelection.getSelectedAnchor().getOwner();
+                            widget.connect(
+                                    mSelection.getSelectedAnchor(),
+                                    mSelection.getConnectionCandidateAnchor(), margin, strength);
+                            mSelection.addModifiedWidget(widget);
+                        }
+                    } else {
+                        if (mSelection.getConnectionCandidateAnchor() != null) {
+                            mSelection.setConnectionCandidateAnchor(null);
+                            if (getSnapshot() != null) {
+                                getSnapshot().applyTo(selectedWidget);
+                                mSelection.addModifiedWidget(selectedWidget);
+                            }
+                        }
+                    }
+                }
+            } break;
         }
     }
 
@@ -494,9 +527,9 @@ public class MouseInteraction {
         mIsControlDown = e.isControlDown();
         mIsShiftDown = e.isShiftDown();
         mIsAltDown = e.isAltDown();
-        int x = mViewTransform.getAndroidX(e.getX());
-        int y = mViewTransform.getAndroidY(e.getY());
-        mousePressed(x, y);
+        float x = mViewTransform.getAndroidFX(e.getX());
+        float y = mViewTransform.getAndroidFY(e.getY());
+        mousePressed(x, y, SwingUtilities.isRightMouseButton(e));
     }
 
     /**

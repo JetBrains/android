@@ -16,6 +16,7 @@
 
 package com.android.tools.sherpa.interaction;
 
+import com.android.tools.sherpa.drawing.ViewTransform;
 import com.google.tnt.solver.widgets.ConnectionCandidate;
 import com.google.tnt.solver.widgets.ConstraintAnchor;
 import com.google.tnt.solver.widgets.ConstraintWidget;
@@ -137,30 +138,33 @@ public class WidgetInteractionTargets {
 
     /**
      * Update the positions of the resize handles
+     * @param viewTransform
      */
-    private void updateResizeHandlesPositions() {
+    private void updateResizeHandlesPositions(ViewTransform viewTransform) {
         int numResizeHandles = mResizeHandles.size();
         for (int i = 0; i < numResizeHandles; i++) {
-            mResizeHandles.get(i).updatePosition();
+            mResizeHandles.get(i).updatePosition(viewTransform);
         }
     }
 
     /**
      * Update the positions of the constraint handles
+     * @param viewTransform the view transform
      */
-    private void updateConstraintHandlesPositions() {
+    private void updateConstraintHandlesPositions(ViewTransform viewTransform) {
         int numConstraintHandles = mConstraintHandles.size();
         for (int i = 0; i < numConstraintHandles; i++) {
-            mConstraintHandles.get(i).updatePosition();
+            mConstraintHandles.get(i).updatePosition(viewTransform);
         }
     }
 
     /**
      * Update our position
+     * @param viewTransform the view transform
      */
-    public void updatePosition() {
-        updateResizeHandlesPositions();
-        updateConstraintHandlesPositions();
+    public void updatePosition(ViewTransform viewTransform) {
+        updateResizeHandlesPositions(viewTransform);
+        updateConstraintHandlesPositions(viewTransform);
     }
 
     /**
@@ -172,7 +176,7 @@ public class WidgetInteractionTargets {
      * @param y the y coordinate of the point
      * @return true if we find a resize handle below the given point
      */
-    public ResizeHandle findResizeHandle(int x, int y) {
+    public ResizeHandle findResizeHandle(float x, float y) {
         ResizeHandle candidate = null;
         if (mWidget instanceof Guideline) {
             Guideline guideline = (Guideline) mWidget;
@@ -295,11 +299,11 @@ public class WidgetInteractionTargets {
      * @param candidate a structure containing the current best anchor candidate.
      * @param mousePress true if we are in mouse press
      */
-    public void findClosestConnection(int x, int y, ConnectionCandidate candidate,
+    public void findClosestConnection(float x, float y, ConnectionCandidate candidate,
             boolean mousePress) {
         // FIXME: should use subclasses this
         if (mWidget instanceof Guideline) {
-            int distance = 0;
+            float distance = 0;
             Guideline guideline = (Guideline) mWidget;
             ConstraintAnchor anchor = guideline.getAnchor();
             ConstraintHandle handle = WidgetInteractionTargets.constraintHandle(anchor);
@@ -319,7 +323,7 @@ public class WidgetInteractionTargets {
                         || anchor.getType() == ConstraintAnchor.Type.CENTER_Y) {
                     continue;
                 }
-                int distance = 0;
+                float distance = 0;
                 boolean computed = false;
                 if (!mousePress && anchor.isSideAnchor()) {
                     if (!anchor.isVerticalAnchor()) {
@@ -347,17 +351,20 @@ public class WidgetInteractionTargets {
         } else {
             for (ConstraintHandle handle : mConstraintHandles) {
                 ConstraintAnchor anchor = handle.getAnchor();
-                int distance = (handle.getDrawX() - x) * (handle.getDrawX() - x) +
+                float distance = (handle.getDrawX() - x) * (handle.getDrawX() - x) +
                         (handle.getDrawY() - y) * (handle.getDrawY() - y);
                 if (anchor.getType() == ConstraintAnchor.Type.CENTER_X
                         || anchor.getType() == ConstraintAnchor.Type.CENTER_Y) {
                     continue;
                 }
                 if (anchor.getType() == ConstraintAnchor.Type.BASELINE) {
+                    if (!anchor.getOwner().hasBaseline()) {
+                        continue;
+                    }
                     ConstraintWidget widget = anchor.getOwner();
                     int minX = widget.getDrawX();
                     int maxX = widget.getDrawRight();
-                    int d = Math.abs(handle.getDrawY() - y);
+                    float d = Math.abs(handle.getDrawY() - y);
                     if (x >= minX && x <= maxX && d < 3) {
                         distance = d * d;
                     }

@@ -119,6 +119,6 @@ public class WebViewWidget extends WidgetDecorator {
         FontMetrics fontMetrics = g.getFontMetrics();
         g.setColor(Color.WHITE);
 
-        g.drawString("WWW", tx + padding, ty + fontMetrics.getAscent() + padding);gitk
+        g.drawString("WWW", tx + padding, ty + fontMetrics.getAscent() + padding);
     }
 }

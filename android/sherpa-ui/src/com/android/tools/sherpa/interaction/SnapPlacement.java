@@ -17,6 +17,7 @@
 package com.android.tools.sherpa.interaction;
 
 import com.android.tools.sherpa.drawing.SceneDraw;
+import com.android.tools.sherpa.drawing.ViewTransform;
 import com.google.tnt.solver.widgets.ConstraintAnchor;
 import com.google.tnt.solver.widgets.ConstraintWidget;
 import com.google.tnt.solver.widgets.Guideline;
@@ -53,10 +54,11 @@ public class SnapPlacement {
      * @param candidatePoint the candidate new position
      * @param useGridSnap    flag to use or not snapping on the base grid
      * @param snapCandidates an array that will contain the snap candidates if any.
+     * @param transform      the view transform
      */
     public static void snapWidget(Collection<ConstraintWidget> widgets,
             ConstraintWidget widget, Point candidatePoint, boolean useGridSnap,
-            ArrayList<SnapCandidate> snapCandidates) {
+            ArrayList<SnapCandidate> snapCandidates, ViewTransform transform) {
         if (widget instanceof Guideline) {
             return;
         }
@@ -68,7 +70,7 @@ public class SnapPlacement {
             widget.setDrawX(candidatePoint.x);
             WidgetInteractionTargets widgetInteraction =
                     (WidgetInteractionTargets) widget.getCompanionWidget();
-            widgetInteraction.updatePosition();
+            widgetInteraction.updatePosition(transform);
 
             if (!checkHorizontalMarginsSnap(snapCandidates, widget, candidatePoint,
                     DEFAULT_MARGIN)) {
@@ -106,7 +108,7 @@ public class SnapPlacement {
             widget.setDrawY(candidatePoint.y);
             WidgetInteractionTargets widgetInteraction =
                     (WidgetInteractionTargets) widget.getCompanionWidget();
-            widgetInteraction.updatePosition();
+            widgetInteraction.updatePosition(transform);
 
             if (!checkVerticalMarginsSnap(snapCandidates, widget, candidatePoint,
                     DEFAULT_MARGIN)) {

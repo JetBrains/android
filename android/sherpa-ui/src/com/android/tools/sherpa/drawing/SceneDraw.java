@@ -154,7 +154,6 @@ public class SceneDraw {
         for (ConstraintWidget widget : mWidgetsScene.getWidgets()) {
             WidgetInteractionTargets widgetInteraction =
                     (WidgetInteractionTargets) widget.getCompanionWidget();
-            widgetInteraction.updatePosition();
             boolean highlighted = false;
             for (ConstraintAnchor a : widget.getAnchors()) {
                 if (selectedAnchor.isValidConnection(a)
@@ -196,7 +195,6 @@ public class SceneDraw {
         for (ConstraintWidget widget : mWidgetsScene.getWidgets()) {
             WidgetInteractionTargets widgetInteraction =
                     (WidgetInteractionTargets) widget.getCompanionWidget();
-            widgetInteraction.updatePosition();
             for (ConstraintAnchor a : widget.getAnchors()) {
                 if (!a.isConnected()) {
                     continue;
@@ -331,7 +329,7 @@ public class SceneDraw {
 
         WidgetInteractionTargets widgetInteraction =
                 (WidgetInteractionTargets) root.getCompanionWidget();
-        widgetInteraction.updatePosition();
+        widgetInteraction.updatePosition(transform);
 
         ConstraintAnchor selectedAnchor = mSelection.getSelectedAnchor();
         ResizeHandle selectedResizeHandle = mSelection.getSelectedResizeHandle();
