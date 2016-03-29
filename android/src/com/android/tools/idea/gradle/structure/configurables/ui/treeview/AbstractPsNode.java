@@ -13,20 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.structure.dialog;
+package com.android.tools.idea.gradle.structure.configurables.ui.treeview;
 
-import com.intellij.openapi.Disposable;
-import com.intellij.openapi.extensions.ExtensionPointName;
-import com.intellij.openapi.options.Configurable;
-import com.intellij.openapi.project.Project;
+import com.intellij.ui.treeStructure.SimpleNode;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
+public abstract class AbstractPsNode extends SimpleNode {
+  private boolean myAutoExpandNode;
 
-public abstract class MainGroupConfigurableContributor {
-  public static final ExtensionPointName<MainGroupConfigurableContributor> EP_NAME =
-    ExtensionPointName.create("com.android.ide.mainGroupConfigurableContributor");
+  public AbstractPsNode() {
+  }
 
-  @NotNull
-  public abstract List<Configurable> getConfigurables(@NotNull Project project, @NotNull Disposable parentDisposable);
+  public AbstractPsNode(@NotNull AbstractPsNode parent) {
+    super(parent);
+  }
+
+  @Override
+  public boolean isAutoExpandNode() {
+    return myAutoExpandNode;
+  }
+
+  public void setAutoExpandNode(boolean autoExpandNode) {
+    myAutoExpandNode = autoExpandNode;
+  }
 }

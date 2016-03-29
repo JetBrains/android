@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview;
+package com.android.tools.idea.gradle.structure.configurables.ui.treeview;
 
 import com.intellij.ide.util.treeView.AbstractTreeStructure;
 import com.intellij.ide.util.treeView.NodeDescriptor;
@@ -51,5 +51,14 @@ public abstract class AbstractBaseTreeStructure extends AbstractTreeStructure {
       return (NodeDescriptor)element;
     }
     throw new IllegalArgumentException("Failed to find a node descriptor for " + element);
+  }
+
+  @Override
+  public void commit() {
+  }
+
+  @Override
+  public boolean hasSomethingToCommit() {
+    return false;
   }
 }

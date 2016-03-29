@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.structure.configurables.ui;
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.model.PsModule;
-import com.android.tools.idea.gradle.structure.model.PsProject;
 import com.android.tools.idea.gradle.util.ui.LabeledComboBoxAction;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -32,13 +31,11 @@ import javax.swing.*;
 import java.util.List;
 
 public class ModulesComboBoxAction extends LabeledComboBoxAction {
-  @NotNull private final PsProject myProject;
   @NotNull private final PsContext myContext;
   @NotNull private final List<PsModule> myExtraTopModules;
 
-  public ModulesComboBoxAction(@NotNull PsProject project, @NotNull PsContext context, @NotNull List<PsModule> extraTopModules) {
+  public ModulesComboBoxAction(@NotNull PsContext context, @NotNull List<PsModule> extraTopModules) {
     super("Module: ");
-    myProject = project;
     myContext = context;
     myExtraTopModules = extraTopModules;
   }
@@ -59,7 +56,7 @@ public class ModulesComboBoxAction extends LabeledComboBoxAction {
       group.add(new ModuleAction(module));
     }
 
-    myProject.forEachModule(new Predicate<PsModule>() {
+    myContext.getProject().forEachModule(new Predicate<PsModule>() {
       @Override
       public boolean apply(@Nullable PsModule module) {
         if (module == null) {

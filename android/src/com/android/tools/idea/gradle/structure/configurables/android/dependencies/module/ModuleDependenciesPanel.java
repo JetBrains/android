@@ -41,7 +41,7 @@ class ModuleDependenciesPanel extends AbstractMainPanel {
   @NotNull private final JPanel myAltPanel;
 
   ModuleDependenciesPanel(@NotNull PsAndroidModule module, @NotNull PsContext context, @NotNull List<PsModule> extraTopModules) {
-    super(module.getParent(), context, extraTopModules);
+    super(context, extraTopModules);
 
     myDeclaredDependenciesPanel = new DeclaredDependenciesPanel(module, context);
     myDeclaredDependenciesPanel.setHistory(getHistory());

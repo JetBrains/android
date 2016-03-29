@@ -21,9 +21,11 @@ import com.android.tools.idea.gradle.structure.configurables.android.dependencie
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.details.ProjectLibraryDependencyDetails;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.project.treeview.DeclaredDependenciesTreeBuilder;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.*;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractBaseTreeBuilder.MatchingNodeCollector;
-import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsdNode;
-import com.android.tools.idea.gradle.structure.model.PsProject;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractPsNodeTreeBuilder.MatchingNodeCollector;
+import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractBaseCollapseAllAction;
+import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractBaseExpandAllAction;
+import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsModelNode;
+import com.android.tools.idea.gradle.structure.configurables.ui.treeview.NodeHyperlinkSupport;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsModuleDependency;
 import com.google.common.collect.Lists;
@@ -67,8 +69,8 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel {
 
   private boolean myIgnoreTreeSelectionEvents;
 
-  DeclaredDependenciesPanel(@NotNull PsProject project, @NotNull PsContext context) {
-    super("All Dependencies", context, project, null);
+  DeclaredDependenciesPanel(@NotNull PsContext context) {
+    super("All Dependencies", context, null);
     myContext = context;
 
     initializeDependencyDetails();
@@ -97,7 +99,7 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel {
     final JScrollPane scrollPane = setUp(myTree);
     getContentsPanel().add(scrollPane, BorderLayout.CENTER);
 
-    myTreeBuilder = new DeclaredDependenciesTreeBuilder(project, myTree, treeModel);
+    myTreeBuilder = new DeclaredDependenciesTreeBuilder(myContext.getProject(), myTree, treeModel);
 
     myTreeSelectionListener = new TreeSelectionListener() {
       @Override
@@ -109,8 +111,8 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel {
           myIgnoreTreeSelectionEvents = true;
           myTreeBuilder.updateSelection(new MatchingNodeCollector() {
             @Override
-            protected void done(@NotNull List<AbstractPsdNode> matchingNodes) {
-              for (AbstractPsdNode node : matchingNodes) {
+            protected void done(@NotNull List<AbstractPsModelNode> matchingNodes) {
+              for (AbstractPsModelNode node : matchingNodes) {
                 detector.add(node);
               }
               myIgnoreTreeSelectionEvents = false;
@@ -225,12 +227,13 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel {
 
   @Override
   public ActionCallback navigateTo(@Nullable Place place, boolean requestFocus) {
+    // TODO implement
     return ActionCallback.DONE;
   }
 
   @Override
   public void queryPlace(@NotNull Place place) {
-
+    // TODO implement
   }
 
   public interface SelectionListener extends EventListener {
@@ -240,7 +243,7 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel {
   private static class NodeSelectionDetector {
     private final Map<String, List<AbstractDependencyNode<? extends PsAndroidDependency>>> mySelection = Maps.newHashMap();
 
-    void add(@NotNull AbstractPsdNode node) {
+    void add(@NotNull AbstractPsModelNode node) {
       String key = null;
       if (node instanceof ModuleDependencyNode) {
         key = ((ModuleDependencyNode)node).getModels().get(0).getGradlePath();
