@@ -352,7 +352,7 @@ public class ConstraintModel {
    */
   public void mousePressed(@AndroidCoordinate int x, @AndroidCoordinate int y) {
     if (myMouseInteraction != null) {
-      myMouseInteraction.mousePressed(pxToDp(x), pxToDp(y));
+      myMouseInteraction.mousePressed(pxToDp(x), pxToDp(y), false);
     }
     Animator.setAnimationEnabled(true);
   }
