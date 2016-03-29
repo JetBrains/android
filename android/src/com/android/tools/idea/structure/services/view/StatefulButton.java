@@ -18,7 +18,10 @@ package com.android.tools.idea.structure.services.view;
 import com.android.tools.idea.structure.services.AssistActionStateManager;
 import com.android.tools.idea.structure.services.DeveloperService;
 import com.android.tools.idea.structure.services.DeveloperServiceMap;
+import com.android.tools.idea.structure.services.StatefulButtonNotifier;
 import com.android.tools.idea.structure.services.datamodel.ActionData;
+import com.intellij.openapi.module.Module;
+import com.intellij.util.messages.MessageBusConnection;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -67,6 +70,16 @@ public class StatefulButton extends JPanel {
       add(myMessage, BorderLayout.SOUTH);
       // Initialize to hidden until state management is completed.
       myMessage.setVisible(false);
+
+      // Listen for notifications that the state has been updated.
+      Module module = myDeveloperService.getModule();
+      MessageBusConnection connection = module.getMessageBus().connect(module);
+      connection.subscribe(StatefulButtonNotifier.BUTTON_STATE_TOPIC, new StatefulButtonNotifier() {
+        @Override
+        public void stateUpdated() {
+          updateButtonState();
+        }
+      });
     }
 
     // Initialize the button state. This includes making the proper element visible.
