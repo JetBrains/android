@@ -23,6 +23,7 @@ import org.jetbrains.annotations.NotNull;
 import com.android.tools.rpclib.binary.*;
 import com.android.tools.rpclib.schema.*;
 import com.android.tools.rpclib.schema.Pointer;
+import com.android.tools.idea.editors.gfxtrace.service.gfxapi.GfxAPIProtos.DrawPrimitive;
 
 import java.io.IOException;
 
@@ -71,7 +72,7 @@ public final class Mesh implements BinaryObject {
 
   static {
     ENTITY.setFields(new Field[]{
-      new Field("DrawPrimitive", new Primitive("DrawPrimitive", Method.Uint8)),
+      new Field("DrawPrimitive", new Primitive("DrawPrimitive", Method.Int32)),
       new Field("VertexBuffer", new Pointer(new Struct(VertexBuffer.Klass.INSTANCE.entity()))),
       new Field("IndexBuffer", new Pointer(new Struct(IndexBuffer.Klass.INSTANCE.entity()))),
     });
@@ -92,7 +93,7 @@ public final class Mesh implements BinaryObject {
     @Override
     public void encode(@NotNull Encoder e, BinaryObject obj) throws IOException {
       Mesh o = (Mesh)obj;
-      o.myDrawPrimitive.encode(e);
+      e.int32(o.myDrawPrimitive.getNumber());
       e.object(o.myVertexBuffer);
       e.object(o.myIndexBuffer);
     }
@@ -100,7 +101,7 @@ public final class Mesh implements BinaryObject {
     @Override
     public void decode(@NotNull Decoder d, BinaryObject obj) throws IOException {
       Mesh o = (Mesh)obj;
-      o.myDrawPrimitive = DrawPrimitive.decode(d);
+      o.myDrawPrimitive = DrawPrimitive.valueOf(d.int32());
       o.myVertexBuffer = (VertexBuffer)d.object();
       o.myIndexBuffer = (IndexBuffer)d.object();
     }

@@ -21,6 +21,7 @@ import org.jetbrains.annotations.NotNull;
 
 import com.android.tools.rpclib.binary.*;
 import com.android.tools.rpclib.schema.*;
+import com.android.tools.idea.editors.gfxtrace.service.path.PathProtos.MemoryKind;
 
 import java.io.IOException;
 
@@ -89,23 +90,23 @@ public final class MemoryType implements BinaryObject {
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>
   public String toString() {
-    switch (myKind.getValue()) {
-      case MemoryKind.VoidValue:
+    switch (myKind.getNumber()) {
+      case MemoryKind.Void_VALUE:
         return "Void";
-      case MemoryKind.CharValue:
+      case MemoryKind.Char_VALUE:
         return "Char";
-      case MemoryKind.FloatValue:
+      case MemoryKind.Float_VALUE:
         return String.format("%s(%d)", myKind, myByteSize);
-      case MemoryKind.AddressValue:
+      case MemoryKind.Address_VALUE:
         return String.format("%s(To:%s)", myKind, myTo);
-      case MemoryKind.IntegerValue:
+      case MemoryKind.Integer_VALUE:
         if (myByteSize == 0) {
           return String.format("%s(Signed:%b)", myKind, mySigned);
         } else {
           return String.format("%s(ByteSize:%d,Signed:%b)", myKind, myByteSize, mySigned);
         }
       default:
-        return String.format("MemoryType<invalid-kind(%d)>", myKind.getValue());
+        return String.format("MemoryType<invalid-kind(%d)>", myKind.getNumber());
     }
   }
 
@@ -122,7 +123,7 @@ public final class MemoryType implements BinaryObject {
     @Override
     public void encode(@NotNull Encoder e, BinaryObject obj) throws IOException {
       MemoryType o = (MemoryType)obj;
-      o.myKind.encode(e);
+      e.int32(o.myKind.getNumber());
       e.uint64(o.myByteSize);
       e.bool(o.mySigned);
       e.object(o.myTo);
@@ -131,7 +132,7 @@ public final class MemoryType implements BinaryObject {
     @Override
     public void decode(@NotNull Decoder d, BinaryObject obj) throws IOException {
       MemoryType o = (MemoryType)obj;
-      o.myKind = MemoryKind.decode(d);
+      o.myKind = MemoryKind.valueOf(d.int32());
       o.myByteSize = d.uint64();
       o.mySigned = d.bool();
       o.myTo = (MemoryType)d.object();

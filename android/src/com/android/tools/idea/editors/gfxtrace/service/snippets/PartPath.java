@@ -21,6 +21,7 @@ import org.jetbrains.annotations.NotNull;
 
 import com.android.tools.rpclib.binary.*;
 import com.android.tools.rpclib.schema.*;
+import com.android.tools.idea.editors.gfxtrace.service.snippets.SnippetsProtos.PartKind;
 
 import java.io.IOException;
 
@@ -111,14 +112,14 @@ final class PartPath extends Pathway implements BinaryObject {
     public void encode(@NotNull Encoder e, BinaryObject obj) throws IOException {
       PartPath o = (PartPath)obj;
       e.object(o.myBase.unwrap());
-      o.myKind.encode(e);
+      e.int32(o.myKind.getNumber());
     }
 
     @Override
     public void decode(@NotNull Decoder d, BinaryObject obj) throws IOException {
       PartPath o = (PartPath)obj;
       o.myBase = Pathway.wrap(d.object());
-      o.myKind = PartKind.decode(d);
+      o.myKind = PartKind.valueOf(d.int32());
     }
     //<<<End:Java.KlassBody:2>>>
   }

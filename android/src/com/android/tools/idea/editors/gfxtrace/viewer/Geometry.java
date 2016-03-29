@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.editors.gfxtrace.viewer;
 
-import com.android.tools.idea.editors.gfxtrace.service.gfxapi.DrawPrimitive;
+import com.android.tools.idea.editors.gfxtrace.service.gfxapi.GfxAPIProtos.DrawPrimitive;
 import com.android.tools.idea.editors.gfxtrace.viewer.camera.Emitter;
 import com.android.tools.idea.editors.gfxtrace.viewer.geo.BoundingBox;
 import com.android.tools.idea.editors.gfxtrace.viewer.geo.Model;
@@ -133,20 +133,20 @@ public class Geometry {
   }
 
   private int translatePrimitive(DrawPrimitive primitive) {
-    switch (primitive.getValue()) {
-      case DrawPrimitive.PointsValue:
+    switch (primitive.getNumber()) {
+      case DrawPrimitive.Points_VALUE:
         return GL.GL_POINTS;
-      case DrawPrimitive.LinesValue:
+      case DrawPrimitive.Lines_VALUE:
         return GL.GL_LINES;
-      case DrawPrimitive.LineStripValue:
+      case DrawPrimitive.LineStrip_VALUE:
         return GL.GL_LINE_STRIP;
-      case DrawPrimitive.LineLoopValue:
+      case DrawPrimitive.LineLoop_VALUE:
         return GL.GL_LINE_LOOP;
-      case DrawPrimitive.TrianglesValue:
+      case DrawPrimitive.Triangles_VALUE:
         return GL.GL_TRIANGLES;
-      case DrawPrimitive.TriangleStripValue:
+      case DrawPrimitive.TriangleStrip_VALUE:
         return GL.GL_TRIANGLE_STRIP;
-      case DrawPrimitive.TriangleFanValue:
+      case DrawPrimitive.TriangleFan_VALUE:
         return GL.GL_TRIANGLE_FAN;
       default:
         throw new AssertionError();
