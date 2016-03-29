@@ -576,7 +576,8 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
       if (!RunAsValidityService.getInstance().hasWorkingRunAs(device)) {
         return BooleanStatus.failure(FULL_BUILD_PREFIX +
-                                     "Instant Run detected that the deployment target does not properly support the 'run-as' command.");
+                                     "Instant Run detected that the deployment target does not properly support the 'run-as' command." +
+                                     InstantRunUserFeedback.LEARN_MORE_LINK);
       }
 
       if (!InstantRunSettings.isColdSwapEnabled()) {
@@ -616,7 +617,8 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     GradleInvoker.saveAllFilesSafely();
 
     if (InstantRunManager.manifestChanged(device, facet, pkgName)) {
-      return BooleanStatus.failure(FULL_BUILD_PREFIX + "Instant Run detected that one of the AndroidManifest.xml files have changed.");
+      return BooleanStatus.failure(FULL_BUILD_PREFIX + "Instant Run detected that one of the AndroidManifest.xml files have changed." +
+                                   InstantRunUserFeedback.LEARN_MORE_LINK);
     }
 
     if (InstantRunManager.manifestResourceChanged(device, facet, pkgName)) {
