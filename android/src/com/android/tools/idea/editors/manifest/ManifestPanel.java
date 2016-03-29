@@ -30,6 +30,7 @@ import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.rendering.HtmlLinkManager;
 import com.android.utils.HtmlBuilder;
+import com.android.xml.AndroidManifest;
 import com.google.common.base.*;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.CommandProcessor;
@@ -681,24 +682,27 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
   private XmlNode.NodeKey getNodeKey(@NotNull XmlTag xmlTag) {
     XmlNode.NodeKey key = myNodeKeys.get(xmlTag.getName());
     if (key == null) {
-      XmlAttribute attribute = xmlTag.getAttribute(SdkConstants.ATTR_NAME, SdkConstants.ANDROID_URI);
-      if (attribute != null) {
-        key = myNodeKeys.get(xmlTag.getName() + "#" + attribute.getValue());
+      XmlAttribute nameAttribute = xmlTag.getAttribute(SdkConstants.ATTR_NAME, SdkConstants.ANDROID_URI);
+      if (nameAttribute != null) {
+        key = myNodeKeys.get(xmlTag.getName() + "#" + nameAttribute.getValue());
       }
       else {
-        XmlTag[] children = xmlTag.getSubTags();
-        String[] names = new String[children.length];
-        for (int c = 0; c < children.length; c++) {
-          XmlAttribute childAttribute = children[c].getAttribute(SdkConstants.ATTR_NAME, SdkConstants.ANDROID_URI);
-          if (childAttribute != null) {
-            names[c] = childAttribute.getValue();
-          }
-          else {
-            // we don't know how to find this item, give up
-            return null;
-          }
+        XmlAttribute glEsVersionAttribute = xmlTag.getAttribute(AndroidManifest.ATTRIBUTE_GLESVERSION, SdkConstants.ANDROID_URI);
+        if (glEsVersionAttribute != null) {
+          key = myNodeKeys.get(xmlTag.getName() + "#" + glEsVersionAttribute.getValue());
         }
-        key = myNodeKeys.get(xmlTag.getName() + "#" + Joiner.on('+').join(names));
+        else {
+          XmlTag[] children = xmlTag.getSubTags();
+          List<String> names = new ArrayList<String>();
+          for (XmlTag child : children) {
+            XmlAttribute childAttribute = child.getAttribute(SdkConstants.ATTR_NAME, SdkConstants.ANDROID_URI);
+            if (childAttribute != null) {
+              names.add(childAttribute.getValue());
+            }
+          }
+          Collections.sort(names);
+          key = myNodeKeys.get(xmlTag.getName() + "#" + Joiner.on('+').join(names));
+        }
       }
     }
     return key;
