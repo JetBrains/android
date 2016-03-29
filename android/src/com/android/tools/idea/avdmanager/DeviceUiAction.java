@@ -76,7 +76,7 @@ public abstract class DeviceUiAction implements Action {
   }
 
   static void showHardwareProfileWizard(ConfigureDeviceModel model) {
-    ModelWizard wizard = new ModelWizard.Builder().addStep(new ConfigureDeviceOptionsStep(model, null)).build();
+    ModelWizard wizard = new ModelWizard.Builder().addStep(new ConfigureDeviceOptionsStep(model)).build();
     new StudioWizardDialogBuilder(wizard, "Hardware Profile Configuration").build().show();
   }
 }
