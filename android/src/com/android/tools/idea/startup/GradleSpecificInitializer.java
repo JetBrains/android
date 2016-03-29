@@ -25,7 +25,7 @@ import com.android.tools.idea.gradle.actions.AndroidTemplateProjectStructureActi
 import com.android.tools.idea.npw.WizardUtils;
 import com.android.tools.idea.npw.WizardUtils.WritableCheckMode;
 import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.idea.sdk.LegacyRemoteRepoLoader;
+import com.android.sdklib.repository.legacy.LegacyRemoteRepoLoader;
 import com.android.tools.idea.sdk.StudioSettingsController;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.wizard.AndroidStudioWelcomeScreenProvider;
