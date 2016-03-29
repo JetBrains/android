@@ -32,6 +32,7 @@ public class GradleExperimentalSettings implements PersistentStateComponent<Grad
   public int MAX_MODULE_COUNT_FOR_SOURCE_GEN = 5;
   public boolean LOAD_ALL_TEST_ARTIFACTS = true;
   public boolean USE_NEW_PROJECT_STRUCTURE_DIALOG;
+  public boolean GROUP_NATIVE_SOURCES_BY_ARTIFACT;
 
   @NotNull
   public static GradleExperimentalSettings getInstance() {
