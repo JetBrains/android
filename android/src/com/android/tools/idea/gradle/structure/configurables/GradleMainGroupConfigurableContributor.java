@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.structure.configurables;
 import com.android.tools.idea.gradle.structure.model.PsProject;
 import com.android.tools.idea.structure.dialog.MainGroupConfigurableContributor;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
@@ -27,11 +28,11 @@ import java.util.List;
 public class GradleMainGroupConfigurableContributor extends MainGroupConfigurableContributor {
   @Override
   @NotNull
-  public List<Configurable> getConfigurables(@NotNull Project project) {
-    PsContext context = new PsContext();
+  public List<Configurable> getConfigurables(@NotNull Project project, @NotNull Disposable parentDisposable) {
+    PsContext context = new PsContext(new PsProject(project), parentDisposable);
 
     List<Configurable> configurables = Lists.newArrayList();
-    configurables.add(new DependenciesPerspectiveConfigurable(new PsProject(project), context));
+    configurables.add(new DependenciesPerspectiveConfigurable(context));
 
     return configurables;
   }

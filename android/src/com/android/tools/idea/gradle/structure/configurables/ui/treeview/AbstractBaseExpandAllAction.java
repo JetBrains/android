@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview;
+package com.android.tools.idea.gradle.structure.configurables.ui.treeview;
 
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.project.DumbAwareAction;
@@ -22,16 +22,16 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
-import static com.intellij.icons.AllIcons.General.CollapseAll;
-import static com.intellij.openapi.actionSystem.IdeActions.ACTION_COLLAPSE_ALL;
+import static com.intellij.icons.AllIcons.General.ExpandAll;
+import static com.intellij.openapi.actionSystem.IdeActions.ACTION_EXPAND_ALL;
 
-public abstract class AbstractBaseCollapseAllAction extends DumbAwareAction {
-  protected AbstractBaseCollapseAllAction(@NotNull Tree tree) {
-    this(tree, CollapseAll);
+public abstract class AbstractBaseExpandAllAction extends DumbAwareAction {
+  protected AbstractBaseExpandAllAction(@NotNull Tree tree) {
+    this(tree, ExpandAll);
   }
 
-  protected AbstractBaseCollapseAllAction(@NotNull Tree tree, @NotNull Icon icon) {
-    super("Collapse All", "", icon);
-    registerCustomShortcutSet(ActionManager.getInstance().getAction(ACTION_COLLAPSE_ALL).getShortcutSet(), tree);
+  protected AbstractBaseExpandAllAction(@NotNull Tree tree, @NotNull Icon icon) {
+    super("Expand All", "", icon);
+    registerCustomShortcutSet(ActionManager.getInstance().getAction(ACTION_EXPAND_ALL).getShortcutSet(), tree);
   }
 }

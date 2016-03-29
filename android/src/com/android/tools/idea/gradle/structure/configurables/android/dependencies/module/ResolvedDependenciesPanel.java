@@ -21,7 +21,10 @@ import com.android.tools.idea.gradle.structure.configurables.android.dependencie
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.*;
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
 import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowPanel;
-import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsdNode;
+import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractBaseCollapseAllAction;
+import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractBaseExpandAllAction;
+import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsModelNode;
+import com.android.tools.idea.gradle.structure.configurables.ui.treeview.NodeHyperlinkSupport;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.android.tools.idea.gradle.structure.model.android.PsModuleDependency;
@@ -114,7 +117,7 @@ class ResolvedDependenciesPanel extends ToolWindowPanel implements DependencySel
         myTreeBuilder.updateSelection();
         PsAndroidDependency selected = getSelection();
         if (selected == null) {
-          AbstractPsdNode selectedNode = getSelectionIfSingle();
+          AbstractPsModelNode selectedNode = getSelectionIfSingle();
           if (selectedNode != null && !(selectedNode instanceof AbstractDependencyNode)) {
             // A non-dependency node was selected (e.g. a variant/artifact node)
             notifySelectionChanged(null);
@@ -250,7 +253,7 @@ class ResolvedDependenciesPanel extends ToolWindowPanel implements DependencySel
   @Override
   @Nullable
   public PsAndroidDependency getSelection() {
-    AbstractPsdNode selection = getSelectionIfSingle();
+    AbstractPsModelNode selection = getSelectionIfSingle();
     if (selection instanceof AbstractDependencyNode) {
       AbstractDependencyNode node = (AbstractDependencyNode)selection;
       List<?> models = node.getModels();
@@ -262,8 +265,8 @@ class ResolvedDependenciesPanel extends ToolWindowPanel implements DependencySel
   }
   
   @Nullable
-  private AbstractPsdNode getSelectionIfSingle() {
-    Set<AbstractPsdNode> selection = myTreeBuilder.getSelectedElements(AbstractPsdNode.class);
+  private AbstractPsModelNode getSelectionIfSingle() {
+    Set<AbstractPsModelNode> selection = myTreeBuilder.getSelectedElements(AbstractPsModelNode.class);
     if (selection.size() == 1) {
       return getFirstItem(selection);
     }

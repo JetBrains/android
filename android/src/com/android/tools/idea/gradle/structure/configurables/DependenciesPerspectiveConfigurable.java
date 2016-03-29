@@ -47,8 +47,8 @@ public class DependenciesPerspectiveConfigurable extends BasePerspectiveConfigur
   private final List<PsModule> myExtraTopModules = Lists.newArrayListWithExpectedSize(2);
   private final Map<PsModule, AbstractDependenciesConfigurable<? extends PsModule>> myExtraTopConfigurables = Maps.newHashMapWithExpectedSize(2);
 
-  public DependenciesPerspectiveConfigurable(@NotNull PsProject project, @NotNull PsContext context) {
-    super(project, context);
+  public DependenciesPerspectiveConfigurable(@NotNull PsContext context) {
+    super(context);
   }
 
   @Override
@@ -82,7 +82,8 @@ public class DependenciesPerspectiveConfigurable extends BasePerspectiveConfigur
   @NotNull
   protected List<PsModule> getExtraTopModules() {
     if (myExtraTopModules.isEmpty()) {
-      myExtraTopModules.add(new PsAllModulesFakeModule(getProject()));
+      PsProject project = getContext().getProject();
+      myExtraTopModules.add(new PsAllModulesFakeModule(project));
     }
     return myExtraTopModules;
   }

@@ -46,7 +46,7 @@ public class ProjectDependenciesConfigurable extends AbstractDependenciesConfigu
   @Override
   public ProjectDependenciesPanel createOptionsPanel() {
     if (myDependenciesPanel == null) {
-      myDependenciesPanel = new ProjectDependenciesPanel(getEditableObject().getParent(), getContext(), getExtraTopModules());
+      myDependenciesPanel = new ProjectDependenciesPanel(getContext(), getExtraTopModules());
       myDependenciesPanel.setHistory(getHistory());
     }
     return myDependenciesPanel;

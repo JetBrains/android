@@ -15,33 +15,20 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui;
 
-import com.android.tools.idea.gradle.structure.model.PsModel;
-import com.intellij.ui.ColoredTableCellRenderer;
+import com.intellij.ui.components.JBLabel;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.awt.*;
 
-public abstract class BaseTableCellRenderer<T extends PsModel> extends ColoredTableCellRenderer {
-  @NotNull private final T myModel;
+import static com.intellij.util.ui.UIUtil.getInactiveTextColor;
 
-  protected BaseTableCellRenderer(@NotNull T model) {
-    myModel = model;
-  }
-
-  @Override
-  protected void customizeCellRenderer(JTable table, @Nullable Object value, boolean selected, boolean hasFocus, int row, int column) {
-    setIcon(myModel.getIcon());
-    setIconOpaque(true);
-    setFocusBorderAroundIcon(true);
-    append(getText());
-  }
-
-  @NotNull
-  protected abstract String getText();
-
-  @NotNull
-  protected T getModel() {
-    return myModel;
+public class EmptyPanel extends JPanel {
+  public EmptyPanel(@NotNull String text) {
+    super(new BorderLayout());
+    JBLabel emptyText = new JBLabel(text);
+    emptyText.setForeground(getInactiveTextColor());
+    emptyText.setHorizontalAlignment(SwingConstants.CENTER);
+    add(emptyText, BorderLayout.CENTER);
   }
 }
