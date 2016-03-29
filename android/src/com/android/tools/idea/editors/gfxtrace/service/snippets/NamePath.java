@@ -21,6 +21,7 @@ import org.jetbrains.annotations.NotNull;
 
 import com.android.tools.rpclib.binary.*;
 import com.android.tools.rpclib.schema.*;
+import com.android.tools.idea.editors.gfxtrace.service.snippets.SnippetsProtos.SymbolCategory;
 
 import java.io.IOException;
 
@@ -110,14 +111,14 @@ final class NamePath extends Pathway implements BinaryObject {
     @Override
     public void encode(@NotNull Encoder e, BinaryObject obj) throws IOException {
       NamePath o = (NamePath)obj;
-      o.myCat.encode(e);
+      e.int32(o.myCat.getNumber());
       e.string(o.myName);
     }
 
     @Override
     public void decode(@NotNull Decoder d, BinaryObject obj) throws IOException {
       NamePath o = (NamePath)obj;
-      o.myCat = SymbolCategory.decode(d);
+      o.myCat = SymbolCategory.valueOf(d.int32());
       o.myName = d.string();
     }
     //<<<End:Java.KlassBody:2>>>

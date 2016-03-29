@@ -19,8 +19,8 @@ import com.android.tools.idea.editors.gfxtrace.controllers.AtomController;
 import com.android.tools.idea.editors.gfxtrace.controllers.StateController;
 import com.android.tools.idea.editors.gfxtrace.service.atom.DynamicAtom;
 import com.android.tools.idea.editors.gfxtrace.service.memory.MemoryPointer;
+import com.android.tools.idea.editors.gfxtrace.service.memory.MemoryProtos.PoolNames;
 import com.android.tools.idea.editors.gfxtrace.service.memory.MemoryRange;
-import com.android.tools.idea.editors.gfxtrace.service.memory.PoolID;
 import com.android.tools.idea.editors.gfxtrace.service.snippets.CanFollow;
 import com.android.tools.idea.editors.gfxtrace.service.snippets.Labels;
 import com.android.tools.idea.editors.gfxtrace.service.snippets.SnippetObject;
@@ -96,7 +96,7 @@ public final class Render {
       }
     }
     long address = ((Long)dynamic.getFieldValue(0)).longValue();
-    PoolID poolId = PoolID.findOrCreate(((Number)dynamic.getFieldValue(1)).intValue());
+    int poolId = ((Number)dynamic.getFieldValue(1)).intValue();
     mp.setAddress(address);
     mp.setPool(poolId);
     return mp;
@@ -212,10 +212,10 @@ public final class Render {
   public static void render(@NotNull MemoryPointer pointer,
                             @NotNull SimpleColoredComponent component,
                             @NotNull SimpleTextAttributes attributes) {
-    if (!PoolID.ApplicationPool.equals(pointer.getPool())) {
+    if (PoolNames.Application_VALUE != pointer.getPool()) {
       component.append("0x" + Long.toHexString(pointer.getAddress()), attributes);
       component.append("@", SimpleTextAttributes.GRAY_ATTRIBUTES);
-      component.append(pointer.getPool().toString(), attributes);
+      component.append(Long.toHexString(pointer.getPool()), attributes);
     } else {
       if (!pointer.isAddress()) {
         // Not really an address, display a decimal.
