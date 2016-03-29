@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.editors.gfxtrace.controllers;
 
-import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
-import com.android.tools.idea.editors.gfxtrace.UiCallback;
+import com.android.tools.idea.editors.gfxtrace.UiErrorCallback;
 import com.android.tools.idea.editors.gfxtrace.models.AtomStream;
 import com.android.tools.idea.editors.gfxtrace.renderers.ImageCellRenderer;
+import com.android.tools.idea.editors.gfxtrace.service.ErrDataUnavailable;
 import com.android.tools.idea.editors.gfxtrace.service.ResourceInfo;
 import com.android.tools.idea.editors.gfxtrace.service.Resources;
 import com.android.tools.idea.editors.gfxtrace.service.ServiceClient;
@@ -34,7 +34,6 @@ import com.android.tools.rpclib.futures.SingleInFlight;
 import com.android.tools.rpclib.rpccore.Rpc;
 import com.android.tools.rpclib.rpccore.RpcException;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
@@ -46,8 +45,6 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 public class TexturesController extends ImagePanelController {
-  private static final Dimension DISPLAY_SIZE = new Dimension(8192, 8192);
-
   public static JComponent createUI(GfxTraceEditor editor) {
     return new TexturesController(editor).myPanel;
   }
@@ -93,7 +90,7 @@ public class TexturesController extends ImagePanelController {
 
     @NotNull private static final Logger LOG = Logger.getInstance(TexturesController.class);
     @NotNull private final PathStore<ResourcesPath> myResourcesPath = new PathStore<ResourcesPath>();
-    @NotNull private Resources myResources;
+    private Resources myResources;
 
     private DropDownController(@NotNull final GfxTraceEditor editor) {
       super(editor);
@@ -112,29 +109,38 @@ public class TexturesController extends ImagePanelController {
     }
 
     private void loadCellMetadata(final Data cell) {
-      Rpc.listen(myEditor.getClient().get(cell.path), LOG, cell.extraController, new UiCallback<Object, String>() {
+      Rpc.listen(myEditor.getClient().get(cell.path), LOG, cell.extraController, new UiErrorCallback<Object, String, String>() {
         @Override
-        protected String onRpcThread(Rpc.Result<Object> result) throws RpcException, ExecutionException {
-          Object resource = result.get();
+        protected ResultOrError<String, String> onRpcThread(Rpc.Result<Object> result) throws RpcException, ExecutionException {
+          final Object resource;
+          try {
+            resource = result.get();
+          } catch (ErrDataUnavailable e) {
+            return error(e.getMessage());
+          }
           if (resource instanceof Texture2D) {
             Texture2D texture = (Texture2D)resource;
-            return getTextureDisplayLabel(cell, texture.getLevels()[0], texture.getLevels().length);
+            return success(getTextureDisplayLabel(cell, texture.getLevels()[0], texture.getLevels().length));
           }
           else if (resource instanceof Cubemap) {
             final Cubemap texture = (Cubemap)resource;
-            return getTextureDisplayLabel(cell, texture.getLevels()[0].getNegativeZ(), texture.getLevels().length);
+            return success(getTextureDisplayLabel(cell, texture.getLevels()[0].getNegativeZ(), texture.getLevels().length));
           }
           else {
-            return null;
+            return error("Unknown texture type: " + resource.getClass().getName());
           }
         }
 
         @Override
-        protected void onUiThread(String result) {
-          if (result != null) {
-            cell.extraLabel = result;
-            myList.repaint();
-          }
+        protected void onUiThreadSuccess(String label) {
+          cell.extraLabel = label;
+          myList.repaint();
+        }
+
+        @Override
+        protected void onUiThreadError(String error) {
+          cell.extraLabel = error;
+          myList.repaint();
         }
       });
     }
@@ -175,16 +181,30 @@ public class TexturesController extends ImagePanelController {
 
     @Override
     public void notifyPath(PathEvent event) {
-      if (myResourcesPath.updateIfNotNull(CapturePath.resources(event.findCapturePath()))) {
-        Rpc.listen(myEditor.getClient().get(myResourcesPath.getPath()), LOG, new UiCallback<Resources, Resources>() {
+      CapturePath capturePath = event.findCapturePath();
+      if (capturePath == null) {
+        return;
+      }
+      if (myResourcesPath.updateIfNotNull(CapturePath.resources(capturePath))) {
+        Rpc.listen(myEditor.getClient().get(myResourcesPath.getPath()), LOG, new UiErrorCallback<Resources, Resources, String>() {
           @Override
-          protected Resources onRpcThread(Rpc.Result<Resources> result) throws RpcException, ExecutionException {
-            return result.get();
+          protected ResultOrError<Resources, String> onRpcThread(Rpc.Result<Resources> result) throws RpcException, ExecutionException {
+            try {
+              return success(result.get());
+            } catch (ErrDataUnavailable e) {
+              return error(e.getMessage());
+            }
           }
 
           @Override
-          protected void onUiThread(Resources result) {
+          protected void onUiThreadSuccess(Resources result) {
             myResources = result;
+            update(true);
+          }
+
+          @Override
+          protected void onUiThreadError(String error) {
+            myResources = null;
             update(true);
           }
         });
