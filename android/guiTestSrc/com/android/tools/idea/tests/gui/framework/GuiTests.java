@@ -648,17 +648,18 @@ public final class GuiTests {
     });
   }
 
-  public static void waitForBackgroundTasks(Robot robot) {
+  public static void waitForBackgroundTasks(final Robot robot) {
     Wait.minutes(2).expecting("background tasks to finish").until(new Wait.Objective() {
       @Override
       public boolean isMet() {
+        robot.waitForIdle();
+
         ProgressManager progressManager = ProgressManager.getInstance();
         return !progressManager.hasModalProgressIndicator() &&
                !progressManager.hasProgressIndicator() &&
                !progressManager.hasUnsafeProgressIndicator();
       }
     });
-    robot.waitForIdle();
   }
 
   @NotNull
