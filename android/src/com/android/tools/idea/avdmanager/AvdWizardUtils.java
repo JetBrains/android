@@ -107,7 +107,7 @@ public class AvdWizardUtils {
   public static final AvdNetworkSpeed DEFAULT_NETWORK_SPEED = AvdNetworkSpeed.FULL;
   public static final AvdNetworkLatency DEFAULT_NETWORK_LATENCY = AvdNetworkLatency.NONE;
   public static final AvdCamera DEFAULT_CAMERA = AvdCamera.NONE;
-  public static final Storage DEFAULT_INTERNAL_STORAGE = new Storage(200, Unit.MiB);
+  public static final Storage DEFAULT_INTERNAL_STORAGE = new Storage(800, Unit.MiB);
 
   // Fonts
   public static final Font STANDARD_FONT = JBFont.create(new Font("Sans", Font.PLAIN, 12));
