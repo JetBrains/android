@@ -21,7 +21,6 @@ import com.android.tools.idea.uibuilder.api.DragType;
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
-import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.structure.NlComponentTree.InsertionPoint;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
@@ -44,8 +43,6 @@ import static com.android.tools.idea.uibuilder.structure.NlComponentTree.Inserti
  * Both internal moves and drags from the palette and other structure panes are supported.
  */
 public class NlDropListener extends DropTargetAdapter {
-  private static final Logger LOG = Logger.getInstance(NlDropListener.class);
-
   private final List<NlComponent> myDragged;
   private final NlComponentTree myTree;
   private DnDTransferItem myTransferItem;
@@ -101,7 +98,8 @@ public class NlDropListener extends DropTargetAdapter {
         InsertType insertType = determineInsertType(event, isPreview);
         if (insertType.isMove()) {
           myDragged.addAll(model.getSelectionModel().getSelection());
-        } else {
+        }
+        else {
           List<NlComponent> captured = model.createComponents(screenView, myTransferItem, insertType);
           if (captured != null) {
             myDragged.addAll(captured);
@@ -109,9 +107,11 @@ public class NlDropListener extends DropTargetAdapter {
         }
         return insertType;
       }
-      catch (IOException ex) {
+      catch (IOException exception) {
+        Logger.getInstance(NlDropListener.class).warn(exception);
       }
-      catch (UnsupportedFlavorException ex) {
+      catch (UnsupportedFlavorException exception) {
+        Logger.getInstance(NlDropListener.class).warn(exception);
       }
     }
     return null;
@@ -136,7 +136,8 @@ public class NlDropListener extends DropTargetAdapter {
     if (point == null) {
       clearInsertionPoint();
       event.reject();
-    } else {
+    }
+    else {
       myTree.markInsertionPoint(point.getFirst(), point.getSecond());
 
       // This determines the icon presented to the user while dragging.
@@ -159,7 +160,6 @@ public class NlDropListener extends DropTargetAdapter {
       return null;
     }
     NlModel model = screenView.getModel();
-    ViewHandlerManager handlerManager = ViewHandlerManager.get(screenView.getModel().getProject());
     DefaultMutableTreeNode node = (DefaultMutableTreeNode)path.getLastPathComponent();
     NlComponent component = (NlComponent)node.getUserObject();
     Rectangle bounds = myTree.getPathBounds(path);
@@ -167,26 +167,34 @@ public class NlDropListener extends DropTargetAdapter {
       return null;
     }
     InsertionPoint insertionPoint = findTreeStateInsertionPoint(event.getLocation().y, bounds);
-    ViewHandler handler = handlerManager.getHandler(component);
+    ViewHandler handler = component.getViewHandler();
+
     if (insertionPoint == INSERT_INTO && handler instanceof ViewGroupHandler) {
       if (!model.canAddComponents(myDragged, component, component.getChild(0))) {
         return null;
       }
       myDragReceiver = component;
       myNextDragSibling = component.getChild(0);
-    } else if (component.getParent() == null) {
-      return null;
-    } else {
-      handler = handlerManager.getHandler(component.getParent());
-      if (handler == null || !model.canAddComponents(myDragged, component.getParent(), component)) {
+    }
+    else {
+      NlComponent parent = component.getParent();
+
+      if (parent == null) {
         return null;
       }
-      insertionPoint = event.getLocation().y > bounds.getCenterY() ? INSERT_AFTER : INSERT_BEFORE;
-      myDragReceiver = component.getParent();
-      if (insertionPoint == INSERT_BEFORE) {
-        myNextDragSibling = component;
-      } else {
-        myNextDragSibling = component.getNextSibling();
+      else {
+        if (parent.getViewHandler() == null || !model.canAddComponents(myDragged, parent, component)) {
+          return null;
+        }
+        insertionPoint = event.getLocation().y > bounds.getCenterY() ? INSERT_AFTER : INSERT_BEFORE;
+        myDragReceiver = parent;
+
+        if (insertionPoint == INSERT_BEFORE) {
+          myNextDragSibling = component;
+        }
+        else {
+          myNextDragSibling = component.getNextSibling();
+        }
       }
     }
     return Pair.of(path, insertionPoint);
@@ -223,8 +231,8 @@ public class NlDropListener extends DropTargetAdapter {
       event.dropComplete(true);
       model.notifyModified();
     }
-    catch (Exception ignore) {
-      LOG.debug(ignore);
+    catch (Exception exception) {
+      Logger.getInstance(NlDropListener.class).warn(exception);
       event.rejectDrop();
     }
   }
