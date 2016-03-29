@@ -42,7 +42,7 @@ import java.util.Set;
 
 public class NlProperty extends PTableItem {
   // Certain attributes are special and do not have an attribute definition from attrs.xml
-  private static final Set<String> ATTRS_WITHOUT_DEFN = ImmutableSet.of(
+  private static final Set<String> ATTRS_WITHOUT_DEFINITIONS = ImmutableSet.of(
     SdkConstants.ATTR_STYLE, // <View style="..." />
     SdkConstants.ATTR_CLASS, // class is suggested as an attribute for a <fragment>!
     SdkConstants.ATTR_LAYOUT // <include layout="..." />
@@ -67,7 +67,7 @@ public class NlProperty extends PTableItem {
   protected NlProperty(@NotNull NlComponent component,
                        @NotNull XmlAttributeDescriptor descriptor,
                        @Nullable AttributeDefinition attributeDefinition) {
-    if (attributeDefinition == null && !ATTRS_WITHOUT_DEFN.contains(descriptor.getName())) {
+    if (attributeDefinition == null && !ATTRS_WITHOUT_DEFINITIONS.contains(descriptor.getName())) {
       throw new IllegalArgumentException("Missing attribute definition for " + descriptor.getName());
     }
 
@@ -165,8 +165,12 @@ public class NlProperty extends PTableItem {
     sb.append(namespaceToPrefix(myNamespace));
     sb.append(myName);
     if (myDefinition != null) {
-      sb.append(": ");
-      sb.append(myDefinition.getDocValue(null));
+      String value = myDefinition.getDocValue(null);
+
+      if (value != null) {
+        sb.append(": ");
+        sb.append(value);
+      }
     }
     return sb.toString();
   }
@@ -175,7 +179,8 @@ public class NlProperty extends PTableItem {
   private static String namespaceToPrefix(@Nullable String namespace) {
     if (namespace != null && SdkConstants.NS_RESOURCES.equalsIgnoreCase(namespace)) {
       return SdkConstants.ANDROID_PREFIX;
-    } else {
+    }
+    else {
       return "";
     }
   }
