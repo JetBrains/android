@@ -170,12 +170,24 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
       return generateDoc(element, url);
     } else {
       XmlAttribute attribute = PsiTreeUtil.getParentOfType(element, XmlAttribute.class, false);
+      XmlTag tag = null;
+      // True if getting the documentation of the XML value (not the value of the name attribute)
+      boolean isXmlValue = false;
+
+      // If the XmlToken under the cursor is within the value of the XmlTag (XML_DATA_CHARACTERS),
+      // get the XmlAttribute using the containing tag
+      if (element instanceof XmlToken && XML_DATA_CHARACTERS.equals(((XmlToken)element).getTokenType())) {
+        tag = PsiTreeUtil.getParentOfType(element, XmlTag.class);
+        attribute = tag == null ? null : tag.getAttribute(ATTR_NAME);
+        isXmlValue = true;
+      }
+
       if (attribute == null) {
         return null;
       }
 
       if (ATTR_NAME.equals(attribute.getName())) {
-        XmlTag tag = attribute.getParent();
+        tag = tag != null ? tag : attribute.getParent();
         XmlTag parentTag = tag.getParentTag();
         if (parentTag == null) {
           return null;
@@ -198,18 +210,24 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
           if (definitions == null) {
             return null;
           }
+          // String used to get attribute definitions
+          String targetValue = value;
 
-          if (!value.startsWith(ANDROID_NS_NAME_PREFIX)) {
-            return null;
+          if (isXmlValue && attribute.getValue() != null) {
+            // In this case, the target is the name attribute of the <item> tag, which contains the key of the attr enum
+            targetValue = attribute.getValue();
           }
-          value = value.substring(ANDROID_NS_NAME_PREFIX.length());
-          AttributeDefinition attributeDefinition = definitions.getAttrDefByName(value);
 
+          if (targetValue.startsWith(ANDROID_NS_NAME_PREFIX)) {
+            targetValue = targetValue.substring(ANDROID_NS_NAME_PREFIX.length());
+          }
+
+          AttributeDefinition attributeDefinition = definitions.getAttrDefByName(targetValue);
           if (attributeDefinition == null) {
             return null;
           }
-
-          return StringUtil.trim(attributeDefinition.getDocValue(null));
+          // Return the doc of the value if searching for an enum value, otherwise return the doc of the enum itself
+          return StringUtil.trim(isXmlValue ? attributeDefinition.getValueDoc(value) : attributeDefinition.getDocValue(null));
         }
       }
 
