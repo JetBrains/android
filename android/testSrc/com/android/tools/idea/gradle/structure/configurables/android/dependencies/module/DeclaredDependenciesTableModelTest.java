@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.module;
 
 import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.DeclaredDependenciesTableModel.DependencyCellRenderer;
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
@@ -52,7 +53,7 @@ public class DeclaredDependenciesTableModelTest extends IdeaTestCase {
 
     List<PsAndroidDependency> dependencies = Lists.newArrayList();
     dependencies.add(myLibraryDependency);
-    myTableModel = new DeclaredDependenciesTableModel(new PsAndroidModuleStub(dependencies));
+    myTableModel = new DeclaredDependenciesTableModel(new PsAndroidModuleStub(dependencies), mock(PsContext.class));
   }
 
   @Override
