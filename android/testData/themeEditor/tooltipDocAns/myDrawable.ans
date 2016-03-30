@@ -1,4 +1,4 @@
-<html><body><B>myDrawable</B><br/> My Drawable Documentation <br/><hr/><div style="background-color:gray;padding:10px"><img src='file:%1$s/data/res/drawable-xhdpi/ic_menu_paste_holo_dark.png' alt="%1$s/data/res/drawable-xhdpi/ic_menu_paste_holo_dark.png" /></div>64&#xd7;64 px (64&#xd7;64 dp @ mdpi)<BR/>
+<html><body><B>myDrawable</B><br/> My Drawable Documentation <br/><hr/><div style="background-color:gray;padding:10px"><img src='$$MAKE_URL{{$$ANDROID_SDK_PATH/data/res/drawable-xhdpi/ic_menu_paste_holo_dark.png}}' alt="$$MAKE_SYSTEM_DEPENDENT_PATH{{$$ANDROID_SDK_PATH/data/res/drawable-xhdpi/ic_menu_paste_holo_dark.png}}" /></div>64&#xd7;64 px (64&#xd7;64 dp @ mdpi)<BR/>
 <BR/>
 ?attr/myDrawable => ?android:attr/actionModePasteDrawable => @drawable/ic_menu_paste_holo_dark => ic_menu_paste_holo_dark.png<BR/>
 <BR/>
