@@ -45,7 +45,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static org.fest.assertions.Assertions.assertThat;
+import static com.google.common.truth.Truth.assertThat;
 import static org.fest.reflect.core.Reflection.field;
 import static org.junit.Assert.assertNotNull;
 
