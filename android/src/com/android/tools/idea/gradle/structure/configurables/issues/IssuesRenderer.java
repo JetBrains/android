@@ -13,23 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.configurables.android.dependencies.issues.module;
+package com.android.tools.idea.gradle.structure.configurables.issues;
 
-import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractBaseTreeStructure;
 import com.android.tools.idea.gradle.structure.model.PsIssue;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-class IssuesTreeStructure extends AbstractBaseTreeStructure {
-  @NotNull private final RootNode myRootNode = new RootNode();
-
-  @Override
-  public Object getRootElement() {
-    return myRootNode;
-  }
-
-  void display(@NotNull List<PsIssue> issues) {
-    myRootNode.createChildren(issues);
-  }
+public interface IssuesRenderer {
+  @NotNull
+  String render(@NotNull List<PsIssue> issues);
 }
