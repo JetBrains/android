@@ -73,12 +73,12 @@ import static com.android.tools.idea.AndroidTestCaseHelper.getSystemPropertyOrEn
 import static com.google.common.base.Joiner.on;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.io.Files.createTempDir;
+import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.ide.impl.ProjectUtil.closeAndDispose;
 import static com.intellij.openapi.projectRoots.JdkUtil.checkForJdk;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
-import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.fest.swing.finder.WindowFinder.findFrame;
 import static org.fest.util.Strings.quote;
