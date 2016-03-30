@@ -34,9 +34,9 @@ import org.junit.runner.RunWith;
 import java.io.IOException;
 
 import static com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.MessageMatcher.firstLineStartingWith;
+import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.ide.errorTreeView.ErrorTreeElementKind.ERROR;
 import static com.intellij.ide.errorTreeView.ErrorTreeElementKind.WARNING;
-import static org.fest.assertions.Assertions.assertThat;
 
 @RunIn(TestGroup.PROJECT_SUPPORT)
 @RunWith(GuiTestRunner.class)
@@ -80,7 +80,7 @@ public class ComponentVersionCheckTest {
     MessageFixture message = syncMessages.findMessage(ERROR, firstLineStartingWith("Gradle 2.4 requires Android Gradle plugin 1.5.0"));
 
     String text = message.getText();
-    assertThat(text).as("custom failure message").contains("Please use Android Gradle plugin 1.5.0 or newer.");
+    assertThat(text).named("custom failure message").contains("Please use Android Gradle plugin 1.5.0 or newer.");
 
     message.findHyperlink("Fix plugin version and sync project");
   }
@@ -113,7 +113,7 @@ public class ComponentVersionCheckTest {
       syncMessages.findMessage(WARNING, firstLineStartingWith("'buildToolsVersion' 19.1.0 requires Android Gradle plugin 1.5.0"));
 
     String text = message.getText();
-    assertThat(text).as("custom failure message").contains("The project will not build.")
-      .contains("Please use Android Gradle plugin 1.5.0 or newer.");
+    assertThat(text).named("custom failure message").contains("The project will not build.");
+    assertThat(text).named("custom failure message").contains("Please use Android Gradle plugin 1.5.0 or newer.");
   }
 }

@@ -29,7 +29,7 @@ import org.junit.runner.RunWith;
 import java.awt.*;
 import java.util.Collections;
 
-import static org.fest.assertions.Assertions.assertThat;
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
@@ -95,7 +95,7 @@ public class LayoutEditorTest {
 
     // Check id editing (has custom editor which strips out id prefixes
     PropertyFixture idProperty = propertySheet.findProperty("id");
-    assertThat(idProperty).as("ID property").isNotNull();
+    assertThat(idProperty).named("ID property").isNotNull();
     assertNotNull(idProperty); // for null analysis
     idProperty.enterValue("tv1");
     idProperty.requireXmlValue("@+id/tv1");
