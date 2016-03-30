@@ -113,10 +113,10 @@ public class PatchInstallerTest extends TestCase {
   public void testRunInstaller() throws Exception {
     FakeProgressIndicator progress = new FakeProgressIndicator();
     File localPackageLocation = new File("/sdk/pkg");
-    ourFileOp.recordExistingFile(new File(localPackageLocation.getPath(), "sourceFile").getPath(),
+    ourFileOp.recordExistingFile(ourFileOp.getAgnosticAbsPath(new File(localPackageLocation.getPath(), "sourceFile")),
                            "the source to which the diff will be applied");
     File patchFile = new File("/patchfile");
-    ourFileOp.recordExistingFile(patchFile.getPath(), "the patch contents");
+    ourFileOp.recordExistingFile(ourFileOp.getAgnosticAbsPath(patchFile), "the patch contents");
     boolean result = PatchInstallerFactory.runPatcher(
       progress, localPackageLocation, patchFile, FakeRunner.class, FakeUIBase.class, FakeUI.class);
 
