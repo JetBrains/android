@@ -32,8 +32,8 @@ import java.awt.*;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
 import static com.google.common.base.Strings.nullToEmpty;
+import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.JDOMUtil.loadDocument;
-import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.reflect.core.Reflection.field;
 import static org.junit.Assert.assertNotNull;
 
@@ -98,7 +98,7 @@ public class MessagesFixture {
     });
 
     String sheetTitle = getTitle(sheetPanel, robot);
-    assertThat(sheetTitle).as("Sheet title").isEqualTo(title);
+    assertThat(sheetTitle).named("Sheet title").isEqualTo(title);
 
     return new MacSheetPanelFixture(robot, sheetPanel);
   }

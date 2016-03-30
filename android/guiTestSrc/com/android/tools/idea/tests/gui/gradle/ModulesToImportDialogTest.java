@@ -51,12 +51,12 @@ import java.util.List;
 
 import static com.android.tools.idea.gradle.AndroidProjectKeys.GRADLE_MODEL;
 import static com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture.findByText;
+import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.externalSystem.model.ProjectKeys.MODULE;
 import static com.intellij.openapi.util.io.FileUtil.createTempFile;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static java.util.UUID.randomUUID;
 import static javax.swing.SwingUtilities.windowForComponent;
-import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.swing.data.TableCell.row;
 import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.junit.Assert.assertNotNull;
@@ -114,16 +114,16 @@ public class ModulesToImportDialogTest {
 
     ModulesToImportDialog wrapper = myDialogAndWrapper.wrapper;
     // Verify that only modules that are Gradle projects are in the list.
-    assertThat(wrapper.getDisplayedModules()).containsOnly("app", "lib");
+    assertThat(wrapper.getDisplayedModules()).containsExactly("app", "lib");
 
     // Verify that all elements are checked.
     Collection<DataNode<ModuleData>> selectedModules = myDialogAndWrapper.wrapper.getSelectedModules();
-    assertThat(selectedModules).containsOnly(myProjectModule, myAppModule, myLibModule);
+    assertThat(selectedModules).containsExactly(myProjectModule, myAppModule, myLibModule);
 
     JTableFixture table = getModuleList();
     table.enterValue(row(1).column(0), "false");
     selectedModules = myDialogAndWrapper.wrapper.getSelectedModules();
-    assertThat(selectedModules).containsOnly(myProjectModule, myAppModule);
+    assertThat(selectedModules).containsExactly(myProjectModule, myAppModule);
 
     // Save selection to disk
     File tempFile = createTempFile(randomUUID().toString(), ".xml", true);
@@ -156,7 +156,7 @@ public class ModulesToImportDialogTest {
     fileChooser.select(targetFile).clickOk();
 
     selectedModules = wrapper.getSelectedModules();
-    assertThat(selectedModules).containsOnly(myProjectModule, myAppModule);
+    assertThat(selectedModules).containsExactly(myProjectModule, myAppModule);
   }
 
   @Test
