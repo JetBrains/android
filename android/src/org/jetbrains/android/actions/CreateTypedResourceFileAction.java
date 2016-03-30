@@ -83,11 +83,7 @@ public class CreateTypedResourceFileAction extends CreateResourceActionBase {
     myChooseTagName = chooseTagName;
   }
 
-  @Deprecated // Switch to using the typed enum instead
-  public String getResourceType() {
-    return myResourceType.getName();
-  }
-
+  @NotNull
   public ResourceFolderType getResourceFolderType() {
     return myResourceType;
   }
