@@ -590,7 +590,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     return getLocalResourceManager();
   }
 
-  private static boolean isInAndroidSdk(@NonNull PsiElement element) {
+  public static boolean isInAndroidSdk(@NonNull PsiElement element) {
     PsiFile file = element.getContainingFile();
 
     if (file == null) {
