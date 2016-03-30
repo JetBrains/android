@@ -156,7 +156,11 @@ public class TextWidget extends WidgetDecorator {
         int scaleSize = transform.getSwingDimension(originalSize);
         g.setFont(mFont.deriveFont((float) scaleSize));
         FontMetrics fontMetrics = g.getFontMetrics();
-        g.setColor(Color.WHITE);
+        if (mWidget.getVisibility() == ConstraintWidget.INVISIBLE) {
+            g.setColor(new Color(255, 255, 255, 100));
+        } else {
+            g.setColor(Color.WHITE);
+        }
 
         g.drawString(getText(), tx + padding, ty + fontMetrics.getAscent() + padding);
     }

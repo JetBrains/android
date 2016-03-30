@@ -101,6 +101,9 @@ public class WidgetDraw {
             }
         }
 
+        if (widget.getVisibility() == ConstraintWidget.INVISIBLE) {
+            g.setStroke(SnapDraw.sDashedStroke);
+        }
         ConstraintAnchor leftAnchor = widget.getAnchor(ConstraintAnchor.Type.LEFT);
         ConstraintAnchor rightAnchor = widget.getAnchor(ConstraintAnchor.Type.RIGHT);
         ConstraintAnchor topAnchor = widget.getAnchor(ConstraintAnchor.Type.TOP);
@@ -288,7 +291,7 @@ public class WidgetDraw {
             g.drawLine(l, t, r, b);
             g.drawLine(l, b, r, t);
         }
-
+        g.setStroke(SnapDraw.sNormalStroke);
     }
 
     /**
@@ -514,6 +517,9 @@ public class WidgetDraw {
      */
     public static void drawConstraints(ViewTransform transform, Graphics2D g,
             ConstraintWidget widget, boolean isSelected, boolean showPercentIndicator) {
+        if (widget.getVisibility() == ConstraintWidget.INVISIBLE) {
+            g.setStroke(SnapDraw.sDashedStroke);
+        }
         ArrayList<ConstraintAnchor.Type> anchors = new ArrayList<ConstraintAnchor.Type>();
         anchors.add(ConstraintAnchor.Type.LEFT);
         anchors.add(ConstraintAnchor.Type.TOP);
@@ -524,6 +530,9 @@ public class WidgetDraw {
             ConstraintAnchor anchor = widget.getAnchor(type);
             if (anchor != null && anchor.isConnected()) {
                 ConstraintAnchor target = anchor.getTarget();
+                if (target.getOwner().getVisibility() == ConstraintWidget.GONE) {
+                    continue;
+                }
                 ConstraintHandle startHandle = WidgetInteractionTargets.constraintHandle(anchor);
                 ConstraintHandle endHandle = WidgetInteractionTargets.constraintHandle(target);
                 if (startHandle == null || endHandle == null) {
@@ -533,6 +542,7 @@ public class WidgetDraw {
                         isSelected, showPercentIndicator);
             }
         }
+        g.setStroke(SnapDraw.sNormalStroke);
     }
 
     /**

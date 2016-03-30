@@ -315,7 +315,12 @@ public class WidgetDecorator extends WidgetInteractionTargets {
                 mShowSizeIndicator, mIsSelected);
 
         if (!WidgetDecorator.isShowFakeUI()) {
-            g.setColor(mTextColor.getColor());
+            if (mWidget.getVisibility() == ConstraintWidget.INVISIBLE) {
+                Color c = mTextColor.getColor();
+                g.setColor(new Color(c.getRed(), c.getGreen(), c.getBlue(), 100));
+            } else {
+                g.setColor(mTextColor.getColor());
+            }
             WidgetDraw.drawWidgetInfo(transform, g, mWidget);
         }
 
@@ -329,7 +334,8 @@ public class WidgetDecorator extends WidgetInteractionTargets {
      * @param g         the graphics context
      */
     public void onPaintBackground(ViewTransform transform, Graphics2D g) {
-        if (!(mWidget instanceof ConstraintWidgetContainer)) {
+        if (!(mWidget instanceof ConstraintWidgetContainer)
+                && mWidget.getVisibility() == ConstraintWidget.VISIBLE) {
             int l = transform.getSwingX(mWidget.getDrawX());
             int t = transform.getSwingY(mWidget.getDrawY());
             int w = transform.getSwingDimension(mWidget.getDrawWidth());
@@ -358,6 +364,9 @@ public class WidgetDecorator extends WidgetInteractionTargets {
      * @param g         the graphics context
      */
     public void onPaintConstraints(ViewTransform transform, Graphics2D g) {
+        if (mWidget.getVisibility() == ConstraintWidget.GONE) {
+            return;
+        }
         g.setColor(mConstraintsColor.getColor());
         if (mIsSelected || isShowAllConstraints()) {
             WidgetDraw.drawConstraints(transform, g, mWidget, mIsSelected, mShowPercentIndicator);
@@ -533,11 +542,4 @@ public class WidgetDecorator extends WidgetInteractionTargets {
     public void mouseRelease(int x, int y, ViewTransform transform, Selection selection) {
     }
 
-    public void setVisibility(int visibility) {
-        mVisibility = visibility;
-    }
-
-    public int getVisibility() {
-        return mVisibility;
-    }
 }
