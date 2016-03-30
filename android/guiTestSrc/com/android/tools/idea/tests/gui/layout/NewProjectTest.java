@@ -61,12 +61,12 @@ public class NewProjectTest {
     // Verify state of project
     guiTest.ideFrame().requireModuleCount(2);
     AndroidGradleModel appAndroidModel = guiTest.ideFrame().getAndroidProjectForModule("app");
-    assertThat(appAndroidModel.getVariantNames()).containsExactly("debug", "release");
-    assertThat(appAndroidModel.getSelectedVariant().getName()).isEqualTo("debug");
+    assertThat(appAndroidModel.getVariantNames()).named("variants").containsExactly("debug", "release");
+    assertThat(appAndroidModel.getSelectedVariant().getName()).named("selected variant").isEqualTo("debug");
 
     AndroidProject model = appAndroidModel.getAndroidProject();
     ApiVersion minSdkVersion = model.getDefaultConfig().getProductFlavor().getMinSdkVersion();
-    assertThat(minSdkVersion.getApiString()).isEqualTo("19");
+    assertThat(minSdkVersion.getApiString()).named("minSdkVersion API").isEqualTo("19");
 
     // Make sure that the activity registration uses the relative syntax
     // (regression test for https://code.google.com/p/android/issues/detail?id=76716)
@@ -75,12 +75,13 @@ public class NewProjectTest {
     assertThat(offset).isNotEqualTo(-1);
 
     // The language level should be JDK_1_7 since the compile SDK version is assumed to be 21 or higher
-    assertThat(appAndroidModel.getJavaLanguageLevel()).isSameAs(LanguageLevel.JDK_1_7);
+    assertThat(appAndroidModel.getJavaLanguageLevel()).named("Gradle Java language level").isSameAs(LanguageLevel.JDK_1_7);
     LanguageLevelProjectExtension projectExt = LanguageLevelProjectExtension.getInstance(guiTest.ideFrame().getProject());
-    assertThat(projectExt.getLanguageLevel()).isSameAs(LanguageLevel.JDK_1_7);
+    assertThat(projectExt.getLanguageLevel()).named("Project Java language level").isSameAs(LanguageLevel.JDK_1_7);
     for (Module module : ModuleManager.getInstance(guiTest.ideFrame().getProject()).getModules()) {
       LanguageLevelModuleExtension moduleExt = LanguageLevelModuleExtensionImpl.getInstance(module);
-      assertThat(moduleExt.getLanguageLevel()).isSameAs(LanguageLevel.JDK_1_7);
+      assertThat(moduleExt.getLanguageLevel()).named("Gradle Java language level in module " + module.getName())
+        .isSameAs(LanguageLevel.JDK_1_7);
     }
   }
 
@@ -157,13 +158,15 @@ public class NewProjectTest {
 
     AndroidGradleModel appAndroidModel = guiTest.ideFrame().getAndroidProjectForModule("app");
 
-    assertThat(appAndroidModel.getAndroidProject().getDefaultConfig().getProductFlavor().getMinSdkVersion().getApiString()).isEqualTo("21");
-    assertThat(appAndroidModel.getJavaLanguageLevel()).isSameAs(LanguageLevel.JDK_1_7);
+    assertThat(appAndroidModel.getAndroidProject().getDefaultConfig().getProductFlavor().getMinSdkVersion().getApiString())
+      .named("minSdkVersion API").isEqualTo("21");
+    assertThat(appAndroidModel.getJavaLanguageLevel()).named("Gradle Java language level").isSameAs(LanguageLevel.JDK_1_7);
     LanguageLevelProjectExtension projectExt = LanguageLevelProjectExtension.getInstance(guiTest.ideFrame().getProject());
-    assertThat(projectExt.getLanguageLevel()).isSameAs(LanguageLevel.JDK_1_7);
+    assertThat(projectExt.getLanguageLevel()).named("Project Java language level").isSameAs(LanguageLevel.JDK_1_7);
     for (Module module : ModuleManager.getInstance(guiTest.ideFrame().getProject()).getModules()) {
       LanguageLevelModuleExtension moduleExt = LanguageLevelModuleExtensionImpl.getInstance(module);
-      assertThat(moduleExt.getLanguageLevel()).isSameAs(LanguageLevel.JDK_1_7);
+      assertThat(moduleExt.getLanguageLevel()).named("Gradle Java language level in module " + module.getName())
+        .isSameAs(LanguageLevel.JDK_1_7);
     }
   }
 
