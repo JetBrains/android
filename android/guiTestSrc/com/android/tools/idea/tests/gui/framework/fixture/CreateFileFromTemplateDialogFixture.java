@@ -20,7 +20,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.theme.EditorTextFieldF
 import com.android.tools.lint.detector.api.TextFormat;
 import com.intellij.androidstudio.actions.CreateFileFromTemplateDialog;
 import com.intellij.androidstudio.actions.CreateFileFromTemplateDialog.Visibility;
-import com.intellij.ui.EditorTextField;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.JCheckBoxFixture;
@@ -104,18 +103,6 @@ public class CreateFileFromTemplateDialogFixture extends IdeaDialogFixture<Creat
   public void setInterface(@NotNull String iface) {
     EditorTextFieldFixture.findByLabel(robot(), target(), "Interface(s):").replaceText(iface);
   }
-
-  // TODO: REMOVE
-  // This is for mystery logging purposes only.
-  public String getInterface() {
-    return robot().finder().findByLabel(target(), "Interface(s):", EditorTextField.class).getText();
-  }
-  // TODO: REMOVE
-  // This is for mystery logging purposes only.
-  public String getSuperclass() {
-    return robot().finder().findByLabel(target(), "Superclass:", EditorTextField.class).getText();
-  }
-
 
   public void setSuperclass(@NotNull String superclass) {
     EditorTextFieldFixture.findByLabel(robot(), target(), "Superclass:").replaceText(superclass);
