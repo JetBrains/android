@@ -85,7 +85,6 @@ public class MergedManifestFixture extends ComponentFixture<MergedManifestFixtur
           Color color = tree.getFileColorForPath(path);
           assertNotNull(color);
           assertNotEquals(0, color.getAlpha());
-          assertNotEquals(Color.WHITE, ColorUtil.withAlpha(color, 1));
         }
       }
     });
