@@ -100,6 +100,7 @@ import static com.android.tools.idea.gradle.util.GradleUtil.*;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
 import static com.android.tools.idea.tests.gui.framework.fixture.LibraryPropertiesDialogFixture.showPropertiesDialog;
+import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assert_;
 import static com.intellij.ide.impl.ProjectUtil.closeAndDispose;
 import static com.intellij.openapi.util.io.FileUtil.*;
@@ -107,7 +108,6 @@ import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.vfs.VfsUtilCore.urlToPath;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.fail;
-import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.fest.util.Strings.quote;
 import static org.jetbrains.android.AndroidPlugin.*;
@@ -176,7 +176,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   @NotNull
   public IdeFrameFixture requireModuleCount(int expected) {
     Module[] modules = getModuleManager().getModules();
-    assertThat(modules).as("Module count in project " + quote(getProject().getName())).hasSize(expected);
+    assertThat(modules).named("Module count in project " + quote(getProject().getName())).asList().hasSize(expected);
     return this;
   }
 
