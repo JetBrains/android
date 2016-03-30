@@ -19,6 +19,7 @@ import com.android.tools.idea.fd.InstantRunManager;
 import com.android.tools.idea.fd.InstantRunUtils;
 import com.intellij.execution.*;
 import com.intellij.execution.configurations.RunConfiguration;
+import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.ExecutionEnvironmentBuilder;
@@ -48,42 +49,54 @@ public class ReRunAction extends DumbAwareAction implements AnAction.Transparent
     Presentation presentation = e.getPresentation();
     boolean cleanBuild = isCleanBuild(e);
 
-    presentation.setIcon(cleanBuild ? AndroidIcons.RunIcons.CleanRerun : AllIcons.Actions.Restart);
-
     final Project project = e.getProject();
-    if (project == null) {
-      disable(cleanBuild, presentation);
-      return;
+    RunnerAndConfigurationSettings settings = project == null ? null : RunManagerEx.getInstanceEx(project).getSelectedConfiguration();
+    ProcessHandler processHandler = getActiveProcessHandler(project, settings);
+
+    boolean en = cleanBuild || processHandler != null;
+    presentation.setEnabled(en);
+    presentation.setIcon(cleanBuild ? AndroidIcons.RunIcons.CleanRerun : AllIcons.Actions.Restart);
+    presentation.setText(getActionText(cleanBuild, settings, processHandler));
+  }
+
+  @NotNull
+  private static String getActionText(boolean cleanBuild,
+                                      @Nullable RunnerAndConfigurationSettings settings,
+                                      @Nullable ProcessHandler processHandler) {
+    StringBuilder text = new StringBuilder(30);
+
+    if (cleanBuild) {
+      text.append("Clean and ");
     }
 
-    RunnerAndConfigurationSettings settings = RunManagerEx.getInstanceEx(project).getSelectedConfiguration();
-    if (settings == null) {
-      disable(cleanBuild, presentation);
-      return;
+    text.append("Rerun");
+
+    if (settings != null && processHandler != null) {
+      text.append('\'');
+      text.append(settings.getName());
+      text.append('\'');
+    }
+
+    return text.toString();
+  }
+
+  @Nullable
+  private static ProcessHandler getActiveProcessHandler(@Nullable Project project, @Nullable RunnerAndConfigurationSettings settings) {
+    if (project == null || settings == null) {
+      return null;
     }
 
     AndroidSessionInfo session = getAndroidSessionInfo(project, settings);
     if (session == null) {
-      disable(cleanBuild, presentation);
-      return;
+      return null;
     }
 
     ProcessHandler processHandler = session.getProcessHandler();
     if (processHandler.isProcessTerminated() || processHandler.isProcessTerminating()) {
-      disable(cleanBuild, presentation);
-      return;
+      return null;
     }
 
-    presentation.setEnabled(true);
-    String prefix = cleanBuild ? "Clean and " : "";
-    presentation.setText(prefix + "Rerun '" + settings.getName() + "'");
-  }
-
-  private static void disable(boolean cleanBuild, @NotNull Presentation presentation) {
-    presentation.setEnabled(false);
-
-    String text = cleanBuild ? "Clean and Rerun" : "Rerun";
-    presentation.setText(text);
+    return processHandler;
   }
 
   @Override
@@ -102,10 +115,10 @@ public class ReRunAction extends DumbAwareAction implements AnAction.Transparent
     AndroidSessionInfo session = getAndroidSessionInfo(project, settings);
     if (session == null) {
       InstantRunManager.LOG.warn("Rerun could not locate an existing session for selected run config.");
-      return;
+      // in such a case, this action behaves as if it was a "clean and run"
     }
 
-    Executor executor = getExecutor(session.getExecutorId());
+    Executor executor = session == null ? DefaultRunExecutor.getRunExecutorInstance() : getExecutor(session.getExecutorId());
     if (executor == null) {
       InstantRunManager.LOG.warn("Rerun could not identify executor for rerun");
       return;
@@ -122,8 +135,8 @@ public class ReRunAction extends DumbAwareAction implements AnAction.Transparent
 
     boolean cleanBuild = isCleanBuild(e);
     InstantRunUtils.setCleanReRun(env, cleanBuild);
-
     InstantRunManager.LOG.info("Rerun: clean? " + cleanBuild);
+
     ProgramRunnerUtil.executeConfiguration(env, false, true);
   }
 
