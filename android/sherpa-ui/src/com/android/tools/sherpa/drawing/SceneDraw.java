@@ -287,11 +287,17 @@ public class SceneDraw {
     private boolean paintWidgets(ViewTransform transform, Graphics2D g,
             WidgetContainer container, ConstraintWidget selectedWidget,
             ConstraintAnchor selectedAnchor, ResizeHandle selectedResizeHandle) {
+        if (container.getVisibility() == ConstraintWidget.GONE) {
+            return false;
+        }
         boolean needsRepaint = false;
         WidgetDecorator decorator =
                 getDecorator(container, selectedWidget, selectedAnchor, selectedResizeHandle);
         needsRepaint |= decorator.onPaint(transform, g);
         for (ConstraintWidget widget : container.getChildren()) {
+            if (widget.getVisibility() == ConstraintWidget.GONE) {
+                continue;
+            }
             if (widget instanceof WidgetContainer) {
                 needsRepaint |= paintWidgets(transform, g, (WidgetContainer) widget,
                         selectedWidget, selectedAnchor, selectedResizeHandle);
