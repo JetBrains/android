@@ -47,7 +47,7 @@ public abstract class PaletteTestCase extends AndroidTestCase {
 
   public static Palette.Group assertIsGroup(@NonNull Palette.BaseItem item, String name) {
     assertTrue(item instanceof Palette.Group);
-    Palette.Group group = (Palette.Group) item;
+    Palette.Group group = (Palette.Group)item;
     assertEquals(name, group.getName());
     return group;
   }
@@ -226,7 +226,7 @@ public abstract class PaletteTestCase extends AndroidTestCase {
 
   public void assertPlainTextEditText(@NonNull Palette.BaseItem item) {
     checkItem(item, EDIT_TEXT, "Plain Text", AndroidIcons.Views.EditText, PLAIN_EDIT_TEXT_XML, PLAIN_EDIT_TEXT_PREVIEW_XML,
-              PLAIN_EDIT_TEXT_XML, IN_PLATFORM, 0.6);
+              PLAIN_EDIT_TEXT_XML, IN_PLATFORM, 0.8);
     checkComponent(createMockComponent(EDIT_TEXT), "EditText - \"My value for EditText\"", AndroidIcons.Views.EditText);
   }
 
@@ -343,7 +343,7 @@ public abstract class PaletteTestCase extends AndroidTestCase {
   }
 
   @Language("XML")
-  private static final String TABVIEW_XML =
+  private static final String TAB_HOST_XML =
     "<TabHost\n" +
     "  android:layout_width=\"200dip\"\n" +
     "  android:layout_height=\"300dip\">\n" +
@@ -383,7 +383,7 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     "</TabHost>\n";
 
   public void assertTabHost(@NonNull Palette.BaseItem item) {
-    checkItem(item, TAB_HOST, "TabHost", AndroidIcons.Views.TabHost, TABVIEW_XML, NO_PREVIEW, TABVIEW_XML, IN_PLATFORM, NO_SCALE);
+    checkItem(item, TAB_HOST, "TabHost", AndroidIcons.Views.TabHost, TAB_HOST_XML, NO_PREVIEW, TAB_HOST_XML, IN_PLATFORM, NO_SCALE);
     checkComponent(createMockComponent(TAB_HOST), "TabHost", AndroidIcons.Views.TabHost);
   }
 
@@ -599,20 +599,50 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     "<android.support.v7.widget.Toolbar\n" +
     "  android:layout_width=\"match_parent\"\n" +
     "  android:layout_height=\"wrap_content\"\n" +
-    "  app:title=\"Toolbar\">\n" +
+    "  android:background=\"?attr/colorPrimary\"\n" +
+    "  android:theme=\"?attr/actionBarTheme\"\n" +
+    "  android:minHeight=\"?attr/actionBarSize\">\n" +
     "</android.support.v7.widget.Toolbar>\n";
 
   @Language("XML")
   private static final String TOOLBAR_PREVIEW_XML =
     "<android.support.v7.widget.Toolbar\n" +
-    "  android:layout_width=\"wrap_content\"\n" +
+    "  android:layout_width=\"match_parent\"\n" +
     "  android:layout_height=\"wrap_content\"\n" +
-    "  app:title=\"Toolbar\">\n" +
+    "  android:background=\"?attr/colorPrimary\"\n" +
+    "  android:theme=\"?attr/actionBarTheme\"\n" +
+    "  android:minHeight=\"?attr/actionBarSize\"\n" +
+    "  app:contentInsetStart=\"0dp\"\n" +
+    "  app:contentInsetLeft=\"0dp\">\n" +
+    "  <ImageButton\n" +
+    "    android:src=\"?attr/homeAsUpIndicator\"\n" +
+    "    android:layout_width=\"wrap_content\"\n" +
+    "    android:layout_height=\"wrap_content\"\n" +
+    "    android:tint=\"?attr/actionMenuTextColor\"\n" +
+    "    android:style=\"?attr/toolbarNavigationButtonStyle\"\n" +
+    "  />\n" +
+    "  <TextView\n" +
+    "    android:text=\"v7 Toolbar\"\n" +
+    "    android:textAppearance=\"@style/TextAppearance.Widget.AppCompat.Toolbar.Title\"\n" +
+    "    android:layout_width=\"wrap_content\"\n" +
+    "    android:layout_height=\"wrap_content\"\n" +
+    "    android:gravity=\"center_vertical\"\n" +
+    "    android:ellipsize=\"end\"\n" +
+    "    android:maxLines=\"1\"\n" +
+    "  />\n" +
+    "  <ImageButton\n" +
+    "    android:src=\"@drawable/abc_ic_menu_moreoverflow_mtrl_alpha\"\n" +
+    "    android:layout_width=\"40dp\"\n" +
+    "    android:layout_height=\"wrap_content\"\n" +
+    "    android:layout_gravity=\"right\"\n" +
+    "    android:style=\"?attr/toolbarNavigationButtonStyle\"\n" +
+    "    android:tint=\"?attr/actionMenuTextColor\"\n" +
+    "  />\n" +
     "</android.support.v7.widget.Toolbar>\n";
 
   public void assertToolbarV7(@NonNull Palette.BaseItem item) {
     checkItem(item, TOOLBAR_V7, "Toolbar", AndroidIcons.Views.Toolbar, TOOLBAR_XML, TOOLBAR_PREVIEW_XML, TOOLBAR_PREVIEW_XML,
-              APPCOMPAT_LIB_ARTIFACT, NO_SCALE);
+              APPCOMPAT_LIB_ARTIFACT, 0.5);
     checkComponent(createMockComponent(TOOLBAR_V7), "Toolbar", AndroidIcons.Views.Toolbar);
   }
 
@@ -683,7 +713,7 @@ public abstract class PaletteTestCase extends AndroidTestCase {
                                 @NonNull String expectedGradleCoordinate,
                                 double expectedScale) {
     assertTrue(base instanceof Palette.Item);
-    Palette.Item item = (Palette.Item) base;
+    Palette.Item item = (Palette.Item)base;
 
     assertEquals(expectedTag + ".Tag", expectedTag, item.getTagName());
     assertEquals(expectedTag + ".Title", expectedTitle, item.getTitle());
