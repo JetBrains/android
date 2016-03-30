@@ -53,7 +53,6 @@ import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.options.ShowSettingsUtil;
-import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
@@ -523,26 +522,15 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   public IdeFrameFixture requestProjectSync() {
     myGradleProjectEventListener.reset();
 
-    // We wait until all "Run Configurations" are populated in the toolbar combo-box. Until then the "Project Sync" button is not in its
-    // final position, and FEST will click the wrong button.
-    Wait.minutes(2).expecting("'Run Configurations' to be populated").until(new Wait.Objective() {
-      @Override
-      public boolean isMet() {
-        RunConfigurationComboBoxFixture runConfigurationComboBox = RunConfigurationComboBoxFixture.find(IdeFrameFixture.this);
-        return isNotEmpty(runConfigurationComboBox.getText());
-      }
-    });
-
-    waitForGradleSynActionButton().click();
-    waitForBackgroundTasks(robot());
+    waitForGradleSyncAction();
+    invokeMenuPath("Tools", "Android", "Sync Project with Gradle Files");
 
     return this;
   }
 
-  private ActionButtonFixture waitForGradleSynActionButton() {
-    DumbService.getInstance(getProject()).waitForSmartMode();
+  private void waitForGradleSyncAction() {
     waitForBackgroundTasks(robot());
-    ActionButton gradleSyncButton = waitUntilShowing(robot(), target(), new GenericTypeMatcher<ActionButton>(ActionButton.class) {
+    waitUntilShowing(robot(), target(), new GenericTypeMatcher<ActionButton>(ActionButton.class) {
       @Override
       protected boolean isMatching(@NotNull ActionButton button) {
         AnAction action = button.getAction();
@@ -552,7 +540,6 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
                && button.isEnabled();
       }
     });
-    return new ActionButtonFixture(robot(), gradleSyncButton);
   }
 
   @NotNull
@@ -609,8 +596,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
       }
     });
 
-    waitForBackgroundTasks(robot());
-    waitForGradleSynActionButton();
+    waitForGradleSyncAction();
 
     if (myGradleProjectEventListener.hasSyncError()) {
       RuntimeException syncError = myGradleProjectEventListener.getSyncError();
