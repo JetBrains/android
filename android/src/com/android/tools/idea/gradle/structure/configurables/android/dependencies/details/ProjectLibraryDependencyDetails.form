@@ -12,20 +12,20 @@
     <children>
       <component id="492d8" class="com.intellij.ui.components.JBLabel">
         <constraints>
-          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
+          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
-          <componentStyle value="REGULAR"/>
+          <componentStyle value="SMALL"/>
           <fontColor value="BRIGHTER"/>
           <text value="Group ID:"/>
         </properties>
       </component>
       <component id="18585" class="com.intellij.ui.components.JBLabel">
         <constraints>
-          <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
+          <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
-          <componentStyle value="REGULAR"/>
+          <componentStyle value="SMALL"/>
           <fontColor value="BRIGHTER"/>
           <text value="Artifact Name:"/>
         </properties>
