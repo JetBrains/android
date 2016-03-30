@@ -23,6 +23,7 @@ import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
 import org.jetbrains.android.uipreview.UnsupportedJavaRuntimeException;
 import org.jetbrains.annotations.NotNull;
@@ -72,11 +73,6 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable {
           }
         }
 
-        // This runs asynchronously, so we may no longer be valid to run
-        if (myConfiguration.getModule().isDisposed()) {
-          return;
-        }
-
         ILayoutPullParser parser = new DomPullParser(myDocument.getDocumentElement());
         GraphicsLayoutRenderer graphicsLayoutRenderer = GraphicsLayoutRenderer
           .create(myConfiguration, parser, getBackground(), false/*hasHorizontalScroll*/, true/*hasVerticalScroll*/);
@@ -87,6 +83,11 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable {
         synchronized (myGraphicsLayoutRendererLock) {
           myGraphicsLayoutRenderer = graphicsLayoutRenderer;
         }
+      }
+      catch (AlreadyDisposedException e) {
+        // This will be thrown if create happens to run on already disposed module. Since this runs on a separate thread
+        // it can happen that create blocks until after the module has been disposed.
+        // In this case we just ignore it, since this might be a stale request.
       }
       catch (UnsupportedLayoutlibException e) {
         notifyUnsupportedLayoutlib();
