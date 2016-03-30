@@ -26,7 +26,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.regex.Pattern;
 
-import static org.fest.assertions.Assertions.assertThat;
+import static com.google.common.truth.Truth.assertThat;
 import static org.fest.swing.edt.GuiActionRunner.execute;
 
 public class SearchTextFieldDriver extends JComponentDriver implements TextDisplayDriver<SearchTextField> {
