@@ -26,12 +26,12 @@ import java.util.List;
 
 public class NlPropertiesTest extends LayoutTestCase {
   private static final String[] VIEW_ATTRS = {"id", "padding", "visibility", "textAlignment", "translationZ", "elevation", "style"};
-  private static final String[] TEXTVIEW_ATTRS = {"text", "hint", "textColor", "textSize"};
+  private static final String[] TEXT_VIEW_ATTRS = {"text", "hint", "textColor", "textSize"};
 
-  private static final String[] FRAMELAYOUT_ATTRS = {"layout_gravity"};
-  private static final String[] GRIDLAYOUT_ATTRS = {"layout_rowSpan", "layout_column"};
-  private static final String[] LINEARLAYOUT_ATTRS = {"layout_weight"};
-  private static final String[] RELATIVELAYOUT_ATTRS = {"layout_toLeftOf", "layout_above", "layout_alignTop"};
+  private static final String[] FRAME_LAYOUT_ATTRS = {"layout_gravity"};
+  private static final String[] GRID_LAYOUT_ATTRS = {"layout_rowSpan", "layout_column"};
+  private static final String[] LINEAR_LAYOUT_ATTRS = {"layout_weight"};
+  private static final String[] RELATIVE_LAYOUT_ATTRS = {"layout_toLeftOf", "layout_above", "layout_alignTop"};
 
   public void testViewAttributes() {
     @Language("XML")
@@ -40,19 +40,22 @@ public class NlPropertiesTest extends LayoutTestCase {
     XmlFile xmlFile = (XmlFile)myFixture.addFileToProject("res/layout/layout.xml", source);
     String tag = "View";
 
-    List<NlProperty> properties = NlProperties.getInstance().getProperties(MockNlComponent.create(xmlFile.getRootTag()));
+    XmlTag rootTag = xmlFile.getRootTag();
+    assert rootTag != null;
+
+    List<NlProperty> properties = NlProperties.getInstance().getProperties(MockNlComponent.create(rootTag));
     assertTrue(properties.size() > 120); // at least 124 attributes (view + layouts) are available as of API 22
 
     // check that some of the View's attributes are there..
     assertPresent(tag, properties, VIEW_ATTRS);
 
     // check that non-existent properties haven't been added
-    assertAbsent(tag, properties, TEXTVIEW_ATTRS);
+    assertAbsent(tag, properties, TEXT_VIEW_ATTRS);
 
     // Views that don't have a parent layout have all the layout attributes available to them..
-    assertPresent(tag, properties, RELATIVELAYOUT_ATTRS);
-    assertPresent(tag, properties, GRIDLAYOUT_ATTRS);
-    assertPresent(tag, properties, FRAMELAYOUT_ATTRS);
+    assertPresent(tag, properties, RELATIVE_LAYOUT_ATTRS);
+    assertPresent(tag, properties, GRID_LAYOUT_ATTRS);
+    assertPresent(tag, properties, FRAME_LAYOUT_ATTRS);
   }
 
   public void testViewInRelativeLayout() {
@@ -64,20 +67,23 @@ public class NlPropertiesTest extends LayoutTestCase {
     XmlFile xmlFile = (XmlFile)myFixture.addFileToProject("res/layout/layout.xml", source);
     String tag = "TextView";
 
-    XmlTag[] subTags = xmlFile.getRootTag().getSubTags();
+    XmlTag rootTag = xmlFile.getRootTag();
+    assert rootTag != null;
+
+    XmlTag[] subTags = rootTag.getSubTags();
     assertEquals(1, subTags.length);
 
     List<NlProperty> properties = NlProperties.getInstance().getProperties(MockNlComponent.create(subTags[0]));
     assertTrue(properties.size() > 180); // at least 190 attributes are available as of API 22
 
-    // A textview should have all of its attributes and the parent class's (View) attributes
-    assertPresent(tag, properties, TEXTVIEW_ATTRS);
+    // A text view should have all of its attributes and the parent class's (View) attributes
+    assertPresent(tag, properties, TEXT_VIEW_ATTRS);
     assertPresent(tag, properties, VIEW_ATTRS);
 
     // Since it is embedded inside a relative layout, it should only have relative layout's layout attributes
-    assertPresent(tag, properties, RELATIVELAYOUT_ATTRS);
-    assertAbsent(tag, properties, GRIDLAYOUT_ATTRS);
-    assertAbsent(tag, properties, FRAMELAYOUT_ATTRS);
+    assertPresent(tag, properties, RELATIVE_LAYOUT_ATTRS);
+    assertAbsent(tag, properties, GRID_LAYOUT_ATTRS);
+    assertAbsent(tag, properties, FRAME_LAYOUT_ATTRS);
   }
 
   public void testCustomViewAttributes() {
@@ -85,20 +91,27 @@ public class NlPropertiesTest extends LayoutTestCase {
 
     String tag = "p1.p2.PieChart";
 
-    XmlTag[] subTags = xmlFile.getRootTag().getSubTags();
+    XmlTag rootTag = xmlFile.getRootTag();
+    assert rootTag != null;
+
+    XmlTag[] subTags = rootTag.getSubTags();
     assertEquals(1, subTags.length);
 
     List<NlProperty> properties = NlProperties.getInstance().getProperties(MockNlComponent.create(subTags[0]));
     assertTrue("# of properties lesser than expected: " + properties.size(), properties.size() > 90);
 
     assertPresent(tag, properties, VIEW_ATTRS);
-    assertPresent(tag, properties, LINEARLAYOUT_ATTRS);
-    assertAbsent(tag, properties, TEXTVIEW_ATTRS);
+    assertPresent(tag, properties, LINEAR_LAYOUT_ATTRS);
+    assertAbsent(tag, properties, TEXT_VIEW_ATTRS);
   }
 
   public void testPropertyNames() {
     XmlFile xmlFile = setupCustomViewProject();
-    XmlTag[] subTags = xmlFile.getRootTag().getSubTags();
+
+    XmlTag rootTag = xmlFile.getRootTag();
+    assert rootTag != null;
+
+    XmlTag[] subTags = rootTag.getSubTags();
     assertEquals(1, subTags.length);
 
     List<NlProperty> properties = NlProperties.getInstance().getProperties(MockNlComponent.create(subTags[0]));
@@ -107,7 +120,18 @@ public class NlPropertiesTest extends LayoutTestCase {
     assertNotNull(p);
 
     assertEquals("id", p.getName());
-    assertEquals("@android:id", p.getTooltipText());
+
+    String expected = "@android:id:  Supply an identifier name for this view, to later retrieve it\n" +
+                      "             with {@link android.view.View#findViewById View.findViewById()} or\n" +
+                      "             {@link android.app.Activity#findViewById Activity.findViewById()}.\n" +
+                      "             This must be a\n" +
+                      "             resource reference; typically you set this using the\n" +
+                      "             <code>@+</code> syntax to create a new ID resources.\n" +
+                      "             For example: <code>android:id=\"@+id/my_id\"</code> which\n" +
+                      "             allows you to later retrieve the view\n" +
+                      "             with <code>findViewById(R.id.my_id)</code>. ";
+
+    assertEquals(expected, p.getTooltipText());
 
     p = getPropertyByName(properties, "legend");
     assertNotNull(p);
@@ -119,9 +143,9 @@ public class NlPropertiesTest extends LayoutTestCase {
   private XmlFile setupCustomViewProject() {
     @Language("XML")
     String layoutSrc = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-                    "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\" >" +
-                    "  <p1.p2.PieChart />" +
-                    "</LinearLayout>";
+                       "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\" >" +
+                       "  <p1.p2.PieChart />" +
+                       "</LinearLayout>";
 
     @Language("XML")
     String attrsSrc = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
@@ -137,15 +161,15 @@ public class NlPropertiesTest extends LayoutTestCase {
 
     @Language("JAVA")
     String javaSrc = "package p1.p2;\n" +
-                      "\n" +
-                      "import android.content.Context;\n" +
-                      "import android.view.View;\n" +
-                      "\n" +
-                      "public class PieChart extends View {\n" +
-                      "    public PieChart(Context context) {\n" +
-                      "        super(context);\n" +
-                      "    }\n" +
-                      "}\n";
+                     "\n" +
+                     "import android.content.Context;\n" +
+                     "import android.view.View;\n" +
+                     "\n" +
+                     "public class PieChart extends View {\n" +
+                     "    public PieChart(Context context) {\n" +
+                     "        super(context);\n" +
+                     "    }\n" +
+                     "}\n";
 
     XmlFile xmlFile = (XmlFile)myFixture.addFileToProject("res/layout/layout.xml", layoutSrc);
     myFixture.addFileToProject("res/values/attrs.xml", attrsSrc);
@@ -173,7 +197,10 @@ public class NlPropertiesTest extends LayoutTestCase {
                       "</resources>";
     myFixture.addFileToProject("res/values/attrs.xml", attrsSrc);
 
-    XmlTag[] subTags = xmlFile.getRootTag().getSubTags();
+    XmlTag rootTag = xmlFile.getRootTag();
+    assert rootTag != null;
+
+    XmlTag[] subTags = rootTag.getSubTags();
     assertEquals(1, subTags.length);
 
     List<NlProperty> properties = NlProperties.getInstance().getProperties(MockNlComponent.create(subTags[0]));
