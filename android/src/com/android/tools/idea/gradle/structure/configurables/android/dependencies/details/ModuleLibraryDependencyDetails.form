@@ -12,20 +12,20 @@
     <children>
       <component id="68499" class="com.intellij.ui.components.JBLabel">
         <constraints>
-          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
+          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
-          <componentStyle value="REGULAR"/>
+          <componentStyle value="SMALL"/>
           <fontColor value="BRIGHTER"/>
           <text value="Group ID:"/>
         </properties>
       </component>
       <component id="bed01" class="com.intellij.ui.components.JBLabel">
         <constraints>
-          <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
+          <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
-          <componentStyle value="REGULAR"/>
+          <componentStyle value="SMALL"/>
           <fontColor value="BRIGHTER"/>
           <horizontalAlignment value="10"/>
           <text value="Artifact Name:"/>
@@ -45,10 +45,10 @@
       </component>
       <component id="c4064" class="com.intellij.ui.components.JBLabel">
         <constraints>
-          <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
+          <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
-          <componentStyle value="REGULAR"/>
+          <componentStyle value="SMALL"/>
           <fontColor value="BRIGHTER"/>
           <text value="Resolved Version:"/>
         </properties>
@@ -77,10 +77,10 @@
       </grid>
       <component id="467c1" class="com.intellij.ui.components.JBLabel">
         <constraints>
-          <grid row="4" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
+          <grid row="4" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
-          <componentStyle value="REGULAR"/>
+          <componentStyle value="SMALL"/>
           <fontColor value="BRIGHTER"/>
           <text value="Scope:"/>
         </properties>
@@ -93,10 +93,10 @@
       </component>
       <component id="adaf5" class="com.intellij.ui.components.JBLabel">
         <constraints>
-          <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
+          <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
-          <componentStyle value="REGULAR"/>
+          <componentStyle value="SMALL"/>
           <fontColor value="BRIGHTER"/>
           <text value="Requested Version:"/>
         </properties>

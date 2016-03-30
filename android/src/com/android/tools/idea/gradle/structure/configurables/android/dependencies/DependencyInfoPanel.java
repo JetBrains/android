@@ -16,31 +16,19 @@
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies;
 
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.details.DependencyDetails;
-import com.intellij.ui.border.IdeaTitledBorder;
+import com.android.tools.idea.gradle.structure.configurables.ui.CollapsiblePanel;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import java.awt.*;
 
 class DependencyInfoPanel {
   private JPanel myMainPanel;
-
-  private JPanel myDetailsHostPanel;
   private JPanel myDetailsPanel;
+  private JPanel myIssuesPanel;
 
-  private JPanel myIssuesHostPanel;
-  private JComponent myIssuesViewer;
-
-  DependencyInfoPanel() {
-    myIssuesHostPanel.setBorder(new IdeaTitledBorder("Issues", 0, new Insets(0, 0, 0, 0)));
-  }
-
-  void setDetailsViewer(@NotNull DependencyDetails details) {
-    if (myDetailsPanel != null) {
-      myDetailsHostPanel.remove(myDetailsPanel);
-    }
-    myDetailsPanel = details.getPanel();
-    myDetailsHostPanel.add(myDetailsPanel, BorderLayout.CENTER);
+  void setDetails(@NotNull DependencyDetails details) {
+    ((CollapsiblePanel)myDetailsPanel).setContents(details.getPanel());
+    revalidateAndRepaint();
   }
 
   @NotNull
@@ -48,11 +36,18 @@ class DependencyInfoPanel {
     return myMainPanel;
   }
 
-  public void setIssuesViewer(@NotNull JComponent issuesViewer) {
-    if (myIssuesViewer != null) {
-      myIssuesHostPanel.remove(myIssuesViewer);
-    }
-    myIssuesViewer = issuesViewer;
-    myIssuesHostPanel.add(myIssuesViewer, BorderLayout.CENTER);
+  void setFoundIssuesViewer(@NotNull JComponent viewer) {
+    ((CollapsiblePanel)myIssuesPanel).setContents(viewer);
+    revalidateAndRepaint();
+  }
+
+  private void revalidateAndRepaint() {
+    myMainPanel.revalidate();
+    myMainPanel.repaint();
+  }
+
+  private void createUIComponents() {
+    myDetailsPanel = new CollapsiblePanel("Details");
+    myIssuesPanel = new CollapsiblePanel("Messages");
   }
 }
