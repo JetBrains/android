@@ -29,7 +29,7 @@ import java.awt.*;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.fest.assertions.Assertions.assertThat;
+import static com.google.common.truth.Truth.assertThat;
 import static org.fest.util.Lists.newArrayList;
 import static org.junit.Assert.assertNotNull;
 
@@ -118,7 +118,7 @@ class MenuFixture {
       }
     });
     List<JPopupMenu> popupMenus = ref.get();
-    assertThat(popupMenus).isNotNull().hasSize(expectedCount);
+    assertThat(popupMenus).hasSize(expectedCount);
     return popupMenus;
   }
 }

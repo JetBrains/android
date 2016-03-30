@@ -32,7 +32,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
-import static org.fest.assertions.Assertions.assertThat;
+import static com.google.common.truth.Truth.assertThat;
 import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.junit.Assert.assertNotNull;
 
@@ -153,7 +153,7 @@ public class AndroidToolWindowFixture extends ToolWindowFixture {
         }
       });
       assertNotNull(index);
-      assertThat(index).isGreaterThanOrEqualTo(0);
+      assertThat(index).isAtLeast(0);
       selectItem(index);
       return this;
     }

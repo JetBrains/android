@@ -41,9 +41,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static javax.swing.event.HyperlinkEvent.EventType.ACTIVATED;
-import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.reflect.core.Reflection.field;
 import static org.fest.swing.awt.AWT.visibleCenterOf;
 import static org.fest.swing.edt.GuiActionRunner.execute;
@@ -221,7 +221,7 @@ public class MessagesToolWindowFixture extends ToolWindowFixture {
       File actualFilePath = virtualToIoFile(descriptor.getFile());
       assertThat(actualFilePath).isEqualTo(expectedFilePath);
 
-      assertThat((descriptor.getLine() + 1)).as("line").isEqualTo(line); // descriptor line is zero-based.
+      assertThat((descriptor.getLine() + 1)).named("line").isEqualTo(line); // descriptor line is zero-based.
     }
 
     @NotNull
@@ -247,7 +247,7 @@ public class MessagesToolWindowFixture extends ToolWindowFixture {
       String html = getCellEditorAndText().getSecond();
 
       int startBodyIndex = html.indexOf("<body>");
-      assertThat(startBodyIndex).isGreaterThanOrEqualTo(0);
+      assertThat(startBodyIndex).isAtLeast(0);
 
       int endBodyIndex = html.indexOf("</body>");
       assertThat(endBodyIndex).isGreaterThan(startBodyIndex);
@@ -297,7 +297,7 @@ public class MessagesToolWindowFixture extends ToolWindowFixture {
 
     @NotNull
     public HyperlinkFixture requireUrl(@NotNull String expected) {
-      assertThat(myUrl).as("URL").isEqualTo(expected);
+      assertThat(myUrl).named("URL").isEqualTo(expected);
       return this;
     }
 

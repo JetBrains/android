@@ -30,7 +30,7 @@ import org.junit.runner.RunWith;
 import java.io.IOException;
 import java.util.List;
 
-import static org.fest.assertions.Assertions.assertThat;
+import static com.google.common.truth.Truth.assertThat;
 
 @RunIn(TestGroup.PROJECT_SUPPORT)
 @RunWith(GuiTestRunner.class)
@@ -50,7 +50,7 @@ public class IdeSettingsTest {
     guiTest.importSimpleApplication();
     mySettingsDialog = guiTest.ideFrame().openIdeSettings();
     List<String> settingsNames = mySettingsDialog.getProjectSettingsNames();
-    assertThat(settingsNames).excludes("Gant", "GUI Designer");
+    assertThat(settingsNames).containsNoneOf("Gant", "GUI Designer");
   }
 
   @After
