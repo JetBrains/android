@@ -72,14 +72,14 @@ final class HierarchyUpdater {
     NlModel model = myTree.getDesignerModel();
     List<NlComponent> components = model != null ? model.getComponents() : null;
     replaceChildNodes(rootPath, components);
-    NlComponent root = newRootComponent();
-    if (components != null) {
+    if (components != null && !components.isEmpty()) {
+      NlComponent root = newRootComponent();
       for (NlComponent component : components) {
         root.addChild(component);
       }
+      DefaultMutableTreeNode rootNode = (DefaultMutableTreeNode)rootPath.getLastPathComponent();
+      rootNode.setUserObject(root);
     }
-    DefaultMutableTreeNode rootNode = (DefaultMutableTreeNode)rootPath.getLastPathComponent();
-    rootNode.setUserObject(root);
     myTree.expandPath(rootPath);
   }
 
