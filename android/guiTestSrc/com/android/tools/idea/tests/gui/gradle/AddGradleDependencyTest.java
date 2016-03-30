@@ -37,8 +37,8 @@ import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigu
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitForPopup;
 import static com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.EditorAction.SHOW_INTENTION_ACTIONS;
 import static com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.EditorAction.UNDO;
+import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
-import static org.fest.assertions.Assertions.assertThat;
 
 @RunIn(TestGroup.PROJECT_SUPPORT)
 @RunWith(GuiTestRunner.class)
@@ -180,7 +180,7 @@ public class AddGradleDependencyTest {
     Robot robot = guiTest.robot();
     JListFixture popup = new JListFixture(robot, waitForPopup(robot));
     String[] intentions = popup.contents();
-    assertThat(intentions).excludes(intention);
+    assertThat(intentions).asList().doesNotContain(intention);
   }
 
   // http://b.android.com/202480

@@ -31,7 +31,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
-import static org.fest.assertions.Assertions.assertThat;
+import static com.google.common.truth.Truth.assertThat;
 import static org.fest.swing.data.TableCell.row;
 
 public class BuildVariantsToolWindowFixture extends ToolWindowFixture {
@@ -46,7 +46,7 @@ public class BuildVariantsToolWindowFixture extends ToolWindowFixture {
   public BuildVariantsToolWindowFixture selectVariantForModule(@NotNull final String module, @NotNull String variant) {
     activate();
     Content[] contents = myToolWindow.getContentManager().getContents();
-    assertThat(contents.length).isGreaterThanOrEqualTo(1);
+    assertThat(contents.length).isAtLeast(1);
 
     Content content = contents[0];
     JTable variantsTable = myRobot.finder().findByType(content.getComponent(), JTable.class, true);
@@ -98,7 +98,7 @@ public class BuildVariantsToolWindowFixture extends ToolWindowFixture {
   private JComboBoxFixture getTestArtifactComboBox() {
     activate();
     Content[] contents = myToolWindow.getContentManager().getContents();
-    assertThat(contents.length).isGreaterThanOrEqualTo(1);
+    assertThat(contents.length).isAtLeast(1);
 
     Content content = contents[0];
     JComboBox comboBox = myRobot.finder().findByType(content.getComponent(), JComboBox.class, true);

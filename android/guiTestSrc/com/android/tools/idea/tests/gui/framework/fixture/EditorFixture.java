@@ -74,7 +74,7 @@ import java.text.AttributedString;
 import java.util.List;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
-import static org.fest.assertions.Assertions.assertThat;
+import static com.google.common.truth.Truth.assertThat;
 import static org.fest.reflect.core.Reflection.method;
 import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.fest.util.Strings.quote;
@@ -456,7 +456,7 @@ public class EditorFixture {
    */
   @NotNull
   public EditorFixture moveToLine(final int lineNumber) {
-    assertThat(lineNumber).isGreaterThanOrEqualTo(0);
+    assertThat(lineNumber).isAtLeast(0);
     execute(new GuiTask() {
       @Override
       protected void executeInEDT() throws Throwable {
@@ -480,7 +480,7 @@ public class EditorFixture {
    * @param offset the character offset.
    */
   public EditorFixture moveTo(final int offset) {
-    assertThat(offset).isGreaterThanOrEqualTo(0);
+    assertThat(offset).isAtLeast(0);
     execute(new GuiTask() {
       @Override
       protected void executeInEDT() throws Throwable {
@@ -890,7 +890,7 @@ public class EditorFixture {
     for (HighlightInfo info : getCurrentFileFixture().getHighlightInfos(severity)) {
       infos.add(info.getDescription());
     }
-    assertThat(infos).containsOnly(highlights);
+    assertThat(infos).containsExactly(highlights);
     return this;
   }
 
