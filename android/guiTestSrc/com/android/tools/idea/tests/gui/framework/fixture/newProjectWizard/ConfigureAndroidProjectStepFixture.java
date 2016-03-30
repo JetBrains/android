@@ -26,7 +26,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import java.io.File;
 
-import static org.fest.assertions.Assertions.assertThat;
+import static com.google.common.truth.Truth.assertThat;
 import static org.fest.swing.edt.GuiActionRunner.execute;
 
 public class ConfigureAndroidProjectStepFixture extends AbstractWizardStepFixture<ConfigureAndroidProjectStepFixture> {
@@ -77,7 +77,8 @@ public class ConfigureAndroidProjectStepFixture extends AbstractWizardStepFixtur
       @Override
       protected File executeInEDT() throws Throwable {
         String location = locationField.getText();
-        assertThat(location).isNotNull().isNotEmpty();
+        assertThat(location).isNotNull();
+        assertThat(location).isNotEmpty();
         return new File(location);
       }
     });

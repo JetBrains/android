@@ -32,11 +32,11 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.compiler.CompilerMessageCategory.ERROR;
 import static com.intellij.openapi.compiler.CompilerMessageCategory.INFORMATION;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertTrue;
-import static org.fest.assertions.Assertions.assertThat;
 
 /**
  * Tests fix for issue <a href="https://code.google.com/p/android/issues/detail?id=73640">73640</a>.
@@ -56,7 +56,7 @@ public class MultipleModuleTypeCompilationTest {
     GradleInvocationResult result = guiTest.ideFrame().invokeProjectMake();
     assertTrue(result.isBuildSuccessful());
     List<String> invokedTasks = result.getTasks();
-    assertThat(invokedTasks).containsOnly(":app:compileDebugSources", ":app:compileDebugAndroidTestSources", ":javaLib:compileJava");
+    assertThat(invokedTasks).containsExactly(":app:compileDebugSources", ":app:compileDebugAndroidTestSources", ":javaLib:compileJava");
   }
 
   @Ignore("failed in http://go/aj/job/studio-ui-test/345 and from IDEA")
@@ -76,7 +76,7 @@ public class MultipleModuleTypeCompilationTest {
       }
     }
     // In JPS we cannot call "compileJava" because in JPS "Make" means "assemble".
-    assertThat(invokedTasks).containsOnly(":app:assembleDebug", ":javaLib:assemble");
+    assertThat(invokedTasks).asList().containsExactly(":app:assembleDebug", ":javaLib:assemble");
 
     int errorCount = context.getMessageCount(ERROR);
     assertEquals(0, errorCount);
