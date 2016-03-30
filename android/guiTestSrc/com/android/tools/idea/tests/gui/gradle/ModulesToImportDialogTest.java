@@ -164,7 +164,6 @@ public class ModulesToImportDialogTest {
     myDialogAndWrapper = launchDialog();
 
     JTableFixture table = getModuleList();
-    table.focus();
     guiTest.robot().enterText("lib");
 
     table.requireSelectedRows(1);
