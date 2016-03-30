@@ -19,7 +19,6 @@ import com.android.SdkConstants;
 import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.ide.common.rendering.LayoutLibrary;
 import com.android.ide.common.rendering.RenderParamsFlags;
-import com.android.tools.idea.rendering.RenderSecurityManager;
 import com.android.ide.common.rendering.api.*;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.sdklib.IAndroidTarget;
@@ -139,14 +138,14 @@ public class GraphicsLayoutRenderer {
 
     AppResourceRepository appResources = AppResourceRepository.getAppResources(facet, true);
 
-    Module module = facet.getModule();
+    final Module module = facet.getModule();
     // Security token used to disable the security manager. Only objects that have a reference to it are allowed to disable it.
     Object credential = new Object();
     RenderLogger logger = new RenderLogger("theme_editor", module, credential);
     final ActionBarCallback actionBarCallback = new ActionBarCallback();
     // TODO: Remove LayoutlibCallback dependency.
     //noinspection ConstantConditions
-    LayoutlibCallbackImpl layoutlibCallback =
+    final LayoutlibCallbackImpl layoutlibCallback =
       new LayoutlibCallbackImpl(null, layoutLib, appResources, module, facet, logger, credential, null) {
         @Override
         public ActionBarCallback getActionBarCallback() {
@@ -155,7 +154,21 @@ public class GraphicsLayoutRenderer {
       };
 
     // Load the local project R identifiers.
-    layoutlibCallback.loadAndParseRClass();
+    boolean loadRResult = ApplicationManager.getApplication().runReadAction(new Computable<Boolean>() {
+      @Override
+      public Boolean compute() {
+        // create can run from a different thread so we need to run this in a read action to make sure the module hasn't been disposed
+        // half way.
+        if (module.isDisposed()) {
+          return false;
+        }
+        layoutlibCallback.loadAndParseRClass();
+        return true;
+      }
+    });
+    if (!loadRResult) {
+      throw new AlreadyDisposedException("Module was already disposed");
+    }
 
     IAndroidTarget target = configuration.getTarget();
     if (target == null) {
@@ -193,7 +206,9 @@ public class GraphicsLayoutRenderer {
    * @param configuration The configuration to use when rendering.
    * @param parser A layout pull-parser.
    * @param backgroundColor If not null, this will be use to set the global Android window background
+   * @throws AlreadyDisposedException if the module is disposed while create is running
    * @throws InitializationException if layoutlib fails to initialize.
+   * @throws UnsupportedLayoutlibException if the used layoutlib version is too old to run with this class
    */
   @NotNull
   public static GraphicsLayoutRenderer create(@NotNull Configuration configuration,
@@ -201,12 +216,16 @@ public class GraphicsLayoutRenderer {
                                               @Nullable Color backgroundColor,
                                               boolean hasHorizontalScroll,
                                               boolean hasVerticalScroll) throws InitializationException {
+    Module module = configuration.getModule();
+    if (module.isDisposed()) {
+      throw new AlreadyDisposedException("Module was already disposed");
+    }
+
     AndroidFacet facet = AndroidFacet.getInstance(configuration.getModule());
     if (facet == null) {
       throw new InitializationException("Unable to get AndroidFacet");
     }
 
-    Module module = facet.getModule();
     AndroidPlatform platform = AndroidPlatform.getInstance(module);
     if (platform == null) {
       throw new UnsupportedLayoutlibException("No Android SDK found.");
