@@ -24,7 +24,6 @@ import com.android.tools.idea.tests.gui.framework.Wait;
 import com.android.tools.idea.tests.gui.framework.fixture.ToolWindowFixture;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.project.Project;
-import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
@@ -242,15 +241,18 @@ public class LayoutPreviewFixture extends ToolWindowFixture implements LayoutFix
 
   @NotNull
   public List<LayoutWidgetFixture> findAll(@NotNull TagMatcher matcher) {
-    waitForRenderToFinish();
-    RenderResult lastResult = getContent().getLastResult();
-    assertNotNull("No render result available", lastResult);
+    Wait.minutes(2).expecting("View hierarchy").until(new Wait.Objective() {
+      @Override
+      public boolean isMet() {
+        RenderResult lastResult = getContent().getLastResult();
+        RenderedViewHierarchy hierarchy = lastResult == null ? null : lastResult.getHierarchy();
+        return hierarchy != null;
+      }
+    });
 
     List<LayoutWidgetFixture> result = Lists.newArrayList();
-    RenderedViewHierarchy hierarchy = lastResult.getHierarchy();
-    assertNotNull("No view hierarchy", hierarchy);
-
-    for (RenderedView view : hierarchy.getRoots()) {
+    //noinspection ConstantConditions
+    for (RenderedView view : getContent().getLastResult().getHierarchy().getRoots()) {
       addMatching(view, matcher, result);
     }
 
