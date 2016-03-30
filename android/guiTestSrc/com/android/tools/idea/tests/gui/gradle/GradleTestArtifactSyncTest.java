@@ -40,9 +40,9 @@ import java.io.IOException;
 import java.util.List;
 
 import static com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.EditorAction.GOTO_DECLARATION;
+import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
 import static junit.framework.Assert.assertNotNull;
-import static org.fest.assertions.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 
 @RunIn(TestGroup.PROJECT_SUPPORT)
@@ -87,12 +87,12 @@ public class GradleTestArtifactSyncTest {
       }
       List<String> pathSegments = Splitter.on(VIRTUAL_FILE_PATH_SEPARATOR).omitEmptyStrings().splitToList(path);
       int segmentCount = pathSegments.size();
-      assertThat(segmentCount).as("number of segments in path '" + path + "'").isGreaterThan(2);
+      assertThat(segmentCount).named("number of segments in path '" + path + "'").isGreaterThan(2);
       String name = Joiner.on(VIRTUAL_FILE_PATH_SEPARATOR).join(pathSegments.get(segmentCount - 2), pathSegments.get(segmentCount - 1));
       sourceRootNames.add(name);
     }
-    assertThat(sourceRootNames).containsOnly("testFree/java", "androidTestFree/java", "testDebug/java", "main/res", "main/java",
-                                             "test/java", "androidTest/java");
+    assertThat(sourceRootNames).containsExactly(
+      "testFree/java", "androidTestFree/java", "testDebug/java", "main/res", "main/java", "test/java", "androidTest/java");
 
     // Refer to the test source file for the reason of unresolved references
     editor.open("app/src/androidTest/java/com/example/ApplicationTest.java")

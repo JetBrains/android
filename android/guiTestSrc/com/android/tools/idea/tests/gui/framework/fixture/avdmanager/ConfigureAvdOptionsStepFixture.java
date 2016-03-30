@@ -26,7 +26,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
-import static org.fest.assertions.Assertions.assertThat;
+import static com.google.common.truth.Truth.assertThat;
 
 public class ConfigureAvdOptionsStepFixture extends AbstractWizardStepFixture<ConfigureAvdOptionsStepFixture> {
 
@@ -75,7 +75,7 @@ public class ConfigureAvdOptionsStepFixture extends AbstractWizardStepFixture<Co
         return textFieldWithLabel.getText();
       }
     });
-    assertThat(text).as("AVD name").isEqualTo(name);
+    assertThat(text).named("AVD name").isEqualTo(name);
     return this;
   }
 
