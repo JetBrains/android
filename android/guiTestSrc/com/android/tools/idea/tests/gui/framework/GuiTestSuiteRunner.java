@@ -37,8 +37,8 @@ import java.util.List;
 
 import static com.android.SdkConstants.DOT_CLASS;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.GUI_TESTS_RUNNING_IN_SUITE_PROPERTY;
+import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.io.FileUtil.notNullize;
-import static org.fest.assertions.Assertions.assertThat;
 
 /** {@link Runner} that finds and runs classes {@link RunWith} {@link GuiTestRunner}, limited by {@link IncludeTestGroups} if present. */
 public class GuiTestSuiteRunner extends Suite {

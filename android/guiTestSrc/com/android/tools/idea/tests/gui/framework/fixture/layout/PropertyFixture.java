@@ -38,8 +38,8 @@ import java.awt.event.KeyEvent;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilFound;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilGone;
+import static com.google.common.truth.Truth.assertThat;
 import static javax.swing.SwingUtilities.windowForComponent;
-import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.junit.Assert.*;
 
