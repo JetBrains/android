@@ -31,7 +31,6 @@ import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.android.inspections.lint.*;
-import org.jetbrains.annotations.NotNull;
 
 public class NlLintHighlightingPass implements HighlightingPass {
   private final DesignSurface mySurface;
@@ -70,7 +69,11 @@ public class NlLintHighlightingPass implements HighlightingPass {
 
     AndroidLintExternalAnnotator annotator = new AndroidLintExternalAnnotator();
     State state = annotator.collectInformation(xmlFile);
-    state = annotator.doAnnotate(state);
+
+    if (state != null) {
+      state = annotator.doAnnotate(state);
+    }
+
     if (state == null) {
       return lintModel;
     }
