@@ -101,14 +101,14 @@ public abstract class AbstractDeclaredDependenciesPanel extends JPanel implement
   }
 
   protected void setIssuesViewer(@NotNull JComponent issuesViewer) {
-    myInfoPanel.setIssuesViewer(issuesViewer);
+    myInfoPanel.setFoundIssuesViewer(issuesViewer);
   }
 
   protected void updateDetails(@Nullable PsAndroidDependency selected) {
     if (selected != null) {
       myCurrentDependencyDetails = myDependencyDetails.get(selected.getClass());
       if (myCurrentDependencyDetails != null) {
-        myInfoPanel.setDetailsViewer(myCurrentDependencyDetails);
+        myInfoPanel.setDetails(myCurrentDependencyDetails);
         myInfoScrollPane.setViewportView(myInfoPanel.getPanel());
         //noinspection unchecked
         myCurrentDependencyDetails.display(selected);
