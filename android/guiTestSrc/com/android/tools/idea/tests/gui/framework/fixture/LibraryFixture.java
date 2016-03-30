@@ -19,7 +19,7 @@ import com.intellij.openapi.roots.JavadocOrderRootType;
 import com.intellij.openapi.roots.libraries.Library;
 import org.jetbrains.annotations.NotNull;
 
-import static org.fest.assertions.Assertions.assertThat;
+import static com.google.common.truth.Truth.assertThat;
 
 public class LibraryFixture {
   @NotNull private final Library myLibrary;
@@ -31,7 +31,7 @@ public class LibraryFixture {
   @NotNull
   public LibraryFixture requireJavadocUrls(@NotNull String... urls) {
     String[] actualUrls = myLibrary.getUrls(JavadocOrderRootType.getInstance());
-    assertThat(actualUrls).as("Javadoc URLs").containsOnly(urls);
+    assertThat(actualUrls).named("Javadoc URLs").asList().containsExactly(urls);
     return this;
   }
 }
