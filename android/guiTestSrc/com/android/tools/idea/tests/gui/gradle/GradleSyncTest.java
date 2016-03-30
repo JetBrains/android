@@ -107,9 +107,11 @@ import static com.android.tools.idea.gradle.util.FilePaths.findParentContentEntr
 import static com.android.tools.idea.gradle.util.GradleUtil.*;
 import static com.android.tools.idea.gradle.util.PropertiesUtil.getProperties;
 import static com.android.tools.idea.gradle.util.PropertiesUtil.savePropertiesToFile;
+import static com.android.tools.idea.testing.FileSubject.file;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
 import static com.android.tools.idea.tests.gui.framework.fixture.FileChooserDialogFixture.findImportProjectDialog;
 import static com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.MessageMatcher.firstLineStartingWith;
+import static com.google.common.truth.Truth.assert_;
 import static com.google.common.truth.TruthJUnit.assume;
 import static com.intellij.ide.errorTreeView.ErrorTreeElementKind.*;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
@@ -287,7 +289,7 @@ public class GradleSyncTest {
       delete(myAndroidRepoTempPath);
       rename(myAndroidRepoPath, myAndroidRepoTempPath);
     }
-    assertThat(myAndroidRepoPath).doesNotExist();
+    assert_().about(file()).that(myAndroidRepoPath).doesNotExist();
 
     guiTest.importSimpleApplication();
 
@@ -328,14 +330,15 @@ public class GradleSyncTest {
 
     guiTest.ideFrame().waitForGradleProjectSyncToFinish();
 
-    assertThat(myAndroidRepoPath).as("Android Support Repository must have been reinstalled").isDirectory();
+    assert_().withFailureMessage("Android Support Repository must have been reinstalled").about(file())
+      .that(myAndroidRepoPath).isDirectory();
   }
 
   @Test
   public void testSyncDoesNotChangeDependenciesInBuildFiles() throws IOException {
     guiTest.importMultiModule();
     File appBuildFilePath = new File(guiTest.ideFrame().getProjectPath(), join("app", FN_BUILD_GRADLE));
-    assertThat(appBuildFilePath).isFile();
+    assert_().about(file()).that(appBuildFilePath).isFile();
     long lastModified = appBuildFilePath.lastModified();
 
     guiTest.ideFrame().requestProjectSync().waitForGradleProjectSyncToFinish();
@@ -502,7 +505,7 @@ public class GradleSyncTest {
     File settingsFilePath = new File(projectPath, FN_SETTINGS_GRADLE);
     delete(settingsFilePath);
     writeToFile(settingsFilePath, " ");
-    assertThat(settingsFilePath).isFile();
+    assert_().about(file()).that(settingsFilePath).isFile();
 
     // Refresh file content
     findFileByIoFile(settingsFilePath, true);
@@ -513,7 +516,7 @@ public class GradleSyncTest {
     guiTest.importSimpleApplication();
 
     File topLevelBuildFile = new File(guiTest.ideFrame().getProjectPath(), FN_BUILD_GRADLE);
-    assertThat(topLevelBuildFile).isFile();
+    assert_().about(file()).that(topLevelBuildFile).isFile();
     String content = "asdf()" + getLineSeparator() + loadFile(topLevelBuildFile);
     writeToFile(topLevelBuildFile, content);
 
@@ -534,7 +537,7 @@ public class GradleSyncTest {
     guiTest.importSimpleApplication();
 
     File settingsFile = new File(guiTest.ideFrame().getProjectPath(), FN_SETTINGS_GRADLE);
-    assertThat(settingsFile).isFile();
+    assert_().about(file()).that(settingsFile).isFile();
     writeToFile(settingsFile, "incude ':app'");
 
     guiTest.ideFrame().requestProjectSyncAndExpectFailure();
@@ -969,7 +972,7 @@ public class GradleSyncTest {
     assertNull(AndroidFacet.getInstance(library3));
 
     File library3BuildFile = new File(guiTest.ideFrame().getProjectPath(), join("library3", FN_BUILD_GRADLE));
-    assertThat(library3BuildFile).isFile();
+    assert_().about(file()).that(library3BuildFile).isFile();
     appendToFile(library3BuildFile, "dependencies { compile project(':app') }");
 
     guiTest.ideFrame().requestProjectSync().waitForGradleProjectSyncToFinish();
@@ -1083,7 +1086,7 @@ public class GradleSyncTest {
     guiTest.ideFrame().waitForGradleProjectSyncToStart().waitForGradleProjectSyncToFinish();
 
     // Verify gradle.properties has proxy settings.
-    assertThat(gradlePropertiesPath).isFile();
+    assert_().about(file()).that(gradlePropertiesPath).isFile();
 
     Properties gradleProperties = getProperties(gradlePropertiesPath);
     assertEquals(host, gradleProperties.getProperty("systemProp.http.proxyHost"));
@@ -1230,7 +1233,7 @@ public class GradleSyncTest {
     assertNotNull(AndroidFacet.getInstance(appModule));
 
     File appBuildFile = new File(guiTest.ideFrame().getProjectPath(), join("app", FN_BUILD_GRADLE));
-    assertThat(appBuildFile).isFile();
+    assert_().about(file()).that(appBuildFile).isFile();
 
     // Remove all variants.
     appendToFile(appBuildFile, "android.variantFilter { variant -> variant.ignore = true }");
@@ -1286,7 +1289,7 @@ public class GradleSyncTest {
     guiTest.importSimpleApplication();
 
     File buildFile = new File(guiTest.ideFrame().getProjectPath(), join("app", FN_BUILD_GRADLE));
-    assertThat(buildFile).isFile();
+    assert_().about(file()).that(buildFile).isFile();
     appendToFile(buildFile, "dependencies { compile 'something:not:exists' }");
 
     GradleSettings gradleSettings = GradleSettings.getInstance(guiTest.ideFrame().getProject());
