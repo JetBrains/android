@@ -79,6 +79,7 @@ public class ThemeSelectorTest {
       .contains("NewAppTheme", atIndex(0))
       .contains("Rename NewAppTheme", atIndex(8));
 
+    guiTest.robot().waitForIdle();
     themesComboBox.selectItem("Theme.AppCompat.NoActionBar"); // AppCompat is read-only, being a library theme
 
     themeList = themeEditor.getThemesList();
