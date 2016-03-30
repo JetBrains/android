@@ -242,16 +242,16 @@ public class MouseInteraction {
 
         // If we hit a widget, update the selection
         if (widget != null) {
-            if (!mSelection.contains(widget)) {
-                // replace the current selection
-                if (!(isShiftDown() || isControlDown())) {
-                    mSelection.clear();
-                }
-                mSelection.add(widget);
-            } else if (isControlDown()) {
-                mSelection.remove(widget);
-            }
             if (mMouseMode == MouseMode.INACTIVE) {
+                if (!mSelection.contains(widget)) {
+                    // replace the current selection
+                    if (!(isShiftDown() || isControlDown())) {
+                        mSelection.clear();
+                    }
+                    mSelection.add(widget);
+                } else if (isControlDown()) {
+                    mSelection.remove(widget);
+                }
                 mMouseMode = MouseMode.MOVE;
             }
         }
