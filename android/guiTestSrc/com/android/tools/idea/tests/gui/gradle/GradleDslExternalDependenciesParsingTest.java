@@ -33,8 +33,8 @@ import java.io.IOException;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.COMPILE;
+import static com.google.common.truth.Truth.assertThat;
 import static junit.framework.Assert.assertNotNull;
-import static org.fest.assertions.Assertions.assertThat;
 
 @RunIn(TestGroup.PROJECT_SUPPORT)
 @RunWith(GuiTestRunner.class)

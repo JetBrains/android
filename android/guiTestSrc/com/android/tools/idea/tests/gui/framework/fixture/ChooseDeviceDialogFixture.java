@@ -33,7 +33,7 @@ import java.awt.*;
 import java.util.concurrent.TimeUnit;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
-import static org.fest.assertions.Assertions.assertThat;
+import static com.google.common.truth.Truth.assertThat;
 import static org.fest.swing.core.matcher.JButtonMatcher.withText;
 import static org.junit.Assert.assertNotNull;
 

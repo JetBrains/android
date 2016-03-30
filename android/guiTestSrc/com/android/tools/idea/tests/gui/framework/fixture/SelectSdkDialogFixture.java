@@ -27,7 +27,7 @@ import java.awt.*;
 import java.io.File;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
-import static org.fest.assertions.Assertions.assertThat;
+import static com.google.common.truth.Truth.assertThat;
 import static org.fest.swing.edt.GuiActionRunner.execute;
 
 public class SelectSdkDialogFixture extends IdeaDialogFixture<SelectSdkDialog> {
