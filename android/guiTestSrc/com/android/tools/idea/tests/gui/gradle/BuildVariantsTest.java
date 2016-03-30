@@ -37,6 +37,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 
+import static com.android.tools.idea.testing.FileSubject.file;
+import static com.google.common.truth.Truth.assert_;
 import static com.intellij.openapi.util.io.FileUtil.appendToFile;
 import static com.intellij.openapi.util.io.FileUtil.join;
 import static org.fest.assertions.Assertions.assertThat;
@@ -152,7 +154,7 @@ public class BuildVariantsTest {
 
     // Add generated folders to all kinds of variants.
     File appBuildFile = new File(guiTest.ideFrame().getProjectPath(), join("app", SdkConstants.FN_BUILD_GRADLE));
-    assertThat(appBuildFile).isFile();
+    assert_().about(file()).that(appBuildFile).isFile();
     String gradleSnippet = "project.afterEvaluate {\n" +
                   "  android.applicationVariants.all { variant ->\n" +
                   "    if (variant.name != 'debug') return" +
