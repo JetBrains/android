@@ -24,12 +24,14 @@ import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.utils.SdkUtils;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.util.PathUtil;
 import org.apache.commons.io.FileUtils;
 import org.fest.assertions.Index;
 import org.jetbrains.android.AndroidTestCase;
@@ -40,12 +42,16 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static org.fest.assertions.Assertions.assertThat;
 
 public class ThemeEditorUtilsTest extends AndroidTestCase {
 
   private String sdkPlatformPath;
+  private static final Pattern OPERATION_PATTERN = Pattern.compile("\\$\\$([A-Z_]+)\\{\\{(.*?)\\}\\}");
+
   @Override
   protected boolean requireRecentSdk() {
     return true;
@@ -57,13 +63,37 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
 
   private void compareWithGoldenFile(@NotNull String text, @NotNull String goldenFile) throws IOException {
     final File file = new File(goldenFile);
-    String goldenText = String.format(FileUtils.readFileToString(file), sdkPlatformPath).trim();
+    String goldenText = FileUtils.readFileToString(file);
+    goldenText = goldenText.replace("$$ANDROID_SDK_PATH", sdkPlatformPath);
+    Matcher matcher = OPERATION_PATTERN.matcher(goldenText);
+    StringBuffer processedGoldenText = new StringBuffer();
+
+    while (matcher.find()) {
+      String operation = matcher.group(1);
+      String value = matcher.group(2);
+      if (operation.equals("MAKE_URL")) {
+        value = SdkUtils.fileToUrl(new File(value)).toString();
+      }
+      else if (operation.equals("MAKE_SYSTEM_DEPENDENT_PATH")) {
+        value = PathUtil.toSystemDependentName(value);
+        // escape all the backslashes so they don't get treated as backreferences by the regex engine later
+        if (File.separatorChar == '\\') {
+          value = value.replace("\\", "\\\\");
+        }
+      }
+      else {
+        // Ignore if we don't know how to handle that - may be accidental pattern match
+        continue;
+      }
+      matcher.appendReplacement(processedGoldenText, value);
+    }
+    matcher.appendTail(processedGoldenText);
 
     // Add line breaks after "<BR/>" tags for results that are easier to read.
     // Golden files are already have these line breaks, so there's no need to process them the same way.
     text = StringUtil.replace(text, "<BR/>", "<BR/>\n");
 
-    assertEquals(String.format("Comparing to golden file %s failed", file.getCanonicalPath()), goldenText, text);
+    assertEquals(String.format("Comparing to golden file %s failed", file.getCanonicalPath()), processedGoldenText.toString(), text);
   }
 
   public void testGenerateToolTipText() throws IOException {
