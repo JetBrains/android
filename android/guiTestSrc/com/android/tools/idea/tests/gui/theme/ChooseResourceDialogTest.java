@@ -36,7 +36,7 @@ import org.junit.runner.RunWith;
 import java.awt.*;
 import java.io.IOException;
 
-import static org.fest.assertions.Assertions.assertThat;
+import static com.google.common.truth.Truth.assertThat;
 import static org.fest.swing.data.TableCell.row;
 import static org.junit.Assert.*;
 
