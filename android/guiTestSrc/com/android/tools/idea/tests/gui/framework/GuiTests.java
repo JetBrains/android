@@ -486,11 +486,11 @@ public final class GuiTests {
   }
 
   public static void findAndClickOkButton(@NotNull ContainerFixture<? extends Container> container) {
-    findAndClickButton(container, "OK");
+    findAndClickButtonWhenEnabled(container, "OK");
   }
 
   public static void findAndClickCancelButton(@NotNull ContainerFixture<? extends Container> container) {
-    findAndClickButton(container, "Cancel");
+    findAndClickButtonWhenEnabled(container, "Cancel");
   }
 
   public static void findAndClickButton(@NotNull ContainerFixture<? extends Container> container, @NotNull final String text) {
