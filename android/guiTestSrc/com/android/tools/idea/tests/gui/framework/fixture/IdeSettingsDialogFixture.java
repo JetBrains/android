@@ -30,7 +30,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.List;
 
-import static org.fest.assertions.Assertions.assertThat;
+import static com.google.common.truth.Truth.assertThat;
 import static org.fest.reflect.core.Reflection.field;
 import static org.junit.Assert.assertNotNull;
 

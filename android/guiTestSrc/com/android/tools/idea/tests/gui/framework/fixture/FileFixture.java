@@ -37,9 +37,9 @@ import javax.swing.*;
 import java.io.File;
 import java.util.Collection;
 
+import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static junit.framework.Assert.assertNotNull;
-import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.reflect.core.Reflection.method;
 import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.fest.util.Strings.quote;

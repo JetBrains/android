@@ -24,7 +24,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickButton;
-import static org.fest.assertions.Assertions.assertThat;
+import static com.google.common.truth.Truth.assertThat;
 import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.junit.Assert.assertNotNull;
 
