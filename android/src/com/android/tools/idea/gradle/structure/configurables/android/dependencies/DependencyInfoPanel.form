@@ -10,7 +10,7 @@
       <size top="5" left="5" bottom="5" right="5"/>
     </border>
     <children>
-      <grid id="997b1" binding="myDetailsPanel" custom-create="true" layout-manager="BorderLayout" hgap="0" vgap="0">
+      <grid id="997b1" binding="myDependencyDetailsPanel" custom-create="true" layout-manager="BorderLayout" hgap="0" vgap="0">
         <constraints>
           <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="1" fill="1" indent="0" use-parent-layout="false"/>
         </constraints>
