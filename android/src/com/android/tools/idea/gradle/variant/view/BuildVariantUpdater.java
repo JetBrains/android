@@ -138,6 +138,16 @@ class BuildVariantUpdater {
                               String.format("Cannot find 'Android' or 'Native-Android-Gradle' facets in module '%1$s'.",
                                             moduleToUpdate.getName()));
     }
+    if (nativeAndroidFacet != null) {
+      NativeAndroidGradleModel nativeAndroidModel = getNativeAndroidModel(nativeAndroidFacet, variant);
+      if (nativeAndroidModel == null) {
+        return null;
+      }
+      if (!updateSelectedVariant(nativeAndroidFacet, nativeAndroidModel, variant)) {
+        return null;
+      }
+      affectedNativeAndroidFacets.add(nativeAndroidFacet);
+    }
     if (androidFacet != null) {
       AndroidGradleModel androidModel = getAndroidModel(androidFacet, variant);
       if (androidModel == null) {
@@ -148,16 +158,6 @@ class BuildVariantUpdater {
         return null;
       }
       affectedAndroidFacets.add(androidFacet);
-    }
-    if (nativeAndroidFacet != null) {
-      NativeAndroidGradleModel nativeAndroidModel = getNativeAndroidModel(nativeAndroidFacet, variant);
-      if (nativeAndroidModel == null) {
-        return null;
-      }
-      if (!updateSelectedVariant(nativeAndroidFacet, nativeAndroidModel, variant)) {
-        return null;
-      }
-      affectedNativeAndroidFacets.add(nativeAndroidFacet);
     }
     return moduleToUpdate;
   }
