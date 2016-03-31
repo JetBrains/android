@@ -34,17 +34,21 @@ public class ButtonWidget extends TextWidget {
      */
     public ButtonWidget(ConstraintWidget widget, String text) {
         super(widget, text);
-        mPadding = 2;
+        mHorizontalPadding = 8;
+        mVerticalPadding = 4;
+        mHorizontalMargin = 6;
+        mVerticalMargin = 4;
+        mToUpperCase = true;
     }
 
     @Override
     public void onPaintBackground(ViewTransform transform, Graphics2D g) {
         super.onPaintBackground(transform, g);
         if (WidgetDecorator.isShowFakeUI()) {
-            int x = transform.getSwingX(mWidget.getDrawX() + mPadding);
-            int y = transform.getSwingX(mWidget.getDrawY() + mPadding);
-            int w = transform.getSwingDimension(mWidget.getDrawWidth() - mPadding * 2);
-            int h = transform.getSwingDimension(mWidget.getDrawHeight() - mPadding * 2);
+            int x = transform.getSwingX(mWidget.getDrawX() + mHorizontalPadding);
+            int y = transform.getSwingX(mWidget.getDrawY() + mVerticalPadding);
+            int w = transform.getSwingDimension(mWidget.getDrawWidth() - mHorizontalPadding * 2);
+            int h = transform.getSwingDimension(mWidget.getDrawHeight() - mVerticalPadding * 2);
             g.drawRect(x, y, w, h);
         }
     }
