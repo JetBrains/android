@@ -16,7 +16,11 @@
 
 package com.android.tools.sherpa.drawing.decorator;
 
+import com.android.tools.sherpa.drawing.ViewTransform;
 import com.google.tnt.solver.widgets.ConstraintWidget;
+
+import java.awt.Color;
+import java.awt.Graphics2D;
 
 /**
  * ProgressBar Widget decorator
@@ -76,5 +80,19 @@ public class ProgressBarWidget extends WidgetDecorator {
             }
         }
         mWidget.setBaselineDistance(0);
+    }
+
+    @Override
+    public void onPaintBackground(ViewTransform transform, Graphics2D g) {
+        super.onPaintBackground(transform, g);
+        if (WidgetDecorator.isShowFakeUI()) {
+            int x = transform.getSwingX(mWidget.getDrawX());
+            int y = transform.getSwingX(mWidget.getDrawY());
+            int h = transform.getSwingDimension(mWidget.getDrawHeight());
+            int w = transform.getSwingDimension(mWidget.getDrawWidth());
+            g.setColor(Color.WHITE);
+            g.fillRoundRect(x + 2, y + h / 2 - h / 8, w / 2, h / 4, h / 4, h / 4);
+            g.drawRoundRect(x + 2, y + h / 2 - h / 8, w - 4, h / 4, h / 4, h / 4);
+        }
     }
 }
