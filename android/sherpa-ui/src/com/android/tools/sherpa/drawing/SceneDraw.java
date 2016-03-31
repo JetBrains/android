@@ -60,6 +60,8 @@ public class SceneDraw {
     public static Color DarkBlueprintFrames = ColorTheme.updateBrightness(BlueprintFrames, 0.4f);
 
     private boolean mDrawOutsideShade = false;
+    private int mViewWidth;
+    private int mViewHeight;
 
     private final WidgetsScene mWidgetsScene;
     private final Selection mSelection;
@@ -303,6 +305,22 @@ public class SceneDraw {
         WidgetDecorator decorator =
                 getDecorator(container, selectedWidget, selectedAnchor, selectedResizeHandle);
         needsRepaint |= decorator.onPaint(transform, g);
+        if (container == mWidgetsScene.getRoot()) {
+            if (mDrawOutsideShade) {
+                int xr = transform.getSwingX(container.getDrawX());
+                int yr = transform.getSwingY(container.getDrawY());
+                int wr = transform.getSwingDimension(container.getDrawWidth());
+                int hr = transform.getSwingDimension(container.getDrawHeight());
+                g.setColor(DarkBlueprintBackground);
+                g.fillRect(transform.getTranslateX(), transform.getTranslateY(), mViewWidth, yr);
+                g.fillRect(transform.getTranslateX(), yr + hr, mViewWidth, mViewHeight - yr - hr);
+                g.fillRect(transform.getTranslateX(), yr, xr, hr);
+                g.fillRect(wr + xr, yr, mViewWidth - xr - wr, hr);
+                g.setStroke(SnapDraw.sLongDashedStroke);
+                g.setColor(BlueprintHighlightFrames);
+                g.drawRect(xr, yr, wr, hr);
+            }
+        }
         for (ConstraintWidget widget : container.getChildren()) {
             if (widget.getVisibility() == ConstraintWidget.GONE) {
                 continue;
@@ -339,6 +357,8 @@ public class SceneDraw {
         if (root == null) {
             return false;
         }
+        mViewWidth = width;
+        mViewHeight = height;
         root = root.getRootConstraintContainer();
         root.layout();
 
@@ -483,20 +503,6 @@ public class SceneDraw {
             }
         }
 
-        if (mDrawOutsideShade) {
-            int xr = transform.getSwingX(root.getDrawX());
-            int yr = transform.getSwingY(root.getDrawY());
-            int wr = transform.getSwingDimension(root.getDrawWidth());
-            int hr = transform.getSwingDimension(root.getDrawHeight());
-            g.setColor(DarkBlueprintBackground);
-            g.fillRect(transform.getTranslateX(), transform.getTranslateY(), width, yr);
-            g.fillRect(transform.getTranslateX(), yr + hr, width, height - yr - hr);
-            g.fillRect(transform.getTranslateX(), yr, xr, hr);
-            g.fillRect(wr + xr, yr, width - xr - wr, hr);
-            g.setStroke(SnapDraw.sLongDashedStroke);
-            g.setColor(BlueprintHighlightFrames);
-            g.drawRect(xr, yr, wr, hr);
-        }
         return needsRepaint;
     }
 
