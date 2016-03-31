@@ -172,6 +172,9 @@ public class SceneDraw {
                     ConstraintWidget owner = a.getOwner();
                     ConstraintHandle constraintHandle =
                             WidgetInteractionTargets.constraintHandle(a);
+                    if (constraintHandle == null) {
+                        continue;
+                    }
                     if (owner instanceof Guideline || owner.isRoot()
                             || a.getType() == ConstraintAnchor.Type.BASELINE) {
                         mAnimationCandidateAnchors.add(new AnimatedLine(constraintHandle));
@@ -361,6 +364,19 @@ public class SceneDraw {
         mViewHeight = height;
         root = root.getRootConstraintContainer();
         root.layout();
+
+        // Adapt the anchor size
+        if (transform.getScale() < 2f) {
+            ConnectionDraw.CONNECTION_ANCHOR_SIZE = 4;
+            if (transform.getScale() < 1.8f) {
+                ConnectionDraw.CONNECTION_ANCHOR_SIZE = 3;
+            }
+            if (transform.getScale() < 1.4f) {
+                ConnectionDraw.CONNECTION_ANCHOR_SIZE = 2;
+            }
+        } else {
+            ConnectionDraw.CONNECTION_ANCHOR_SIZE = 6;
+        }
 
         WidgetInteractionTargets widgetInteraction =
                 (WidgetInteractionTargets) root.getCompanionWidget();
