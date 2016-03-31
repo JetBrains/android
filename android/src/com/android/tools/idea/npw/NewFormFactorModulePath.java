@@ -87,11 +87,7 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
       if (metadata == null || metadata.getFormFactor() == null) {
         continue;
       }
-      FormFactor formFactor = FormFactor.get(metadata.getFormFactor());
-      if (formFactor == null) {
-        continue;
-      }
-      NewFormFactorModulePath path = new NewFormFactorModulePath(formFactor, templateFile, disposable);
+      NewFormFactorModulePath path = new NewFormFactorModulePath(FormFactor.get(metadata.getFormFactor()), templateFile, disposable);
       toReturn.add(path);
     }
     Collections.sort(toReturn, new Comparator<NewFormFactorModulePath>() {
