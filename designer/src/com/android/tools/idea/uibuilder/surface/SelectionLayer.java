@@ -15,13 +15,14 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
-import com.android.annotations.NonNull;
+import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.model.*;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 
@@ -30,12 +31,12 @@ import static com.android.tools.idea.uibuilder.model.SelectionHandle.PIXEL_RADIU
 public class SelectionLayer extends Layer {
   private final ScreenView myScreenView;
 
-  public SelectionLayer(@NonNull ScreenView screenView) {
+  public SelectionLayer(@NotNull ScreenView screenView) {
     myScreenView = screenView;
   }
 
   @Override
-  public boolean paint(@NonNull Graphics2D gc) {
+  public boolean paint(@NotNull Graphics2D gc) {
     SelectionModel model = myScreenView.getSelectionModel();
     ViewHandlerManager viewHandlerManager = ViewHandlerManager.get(
       myScreenView.getModel().getFacet());
@@ -69,11 +70,23 @@ public class SelectionLayer extends Layer {
    *
    * @param component          the component we are looking at
    * @param viewHandlerManager the current view handler manager
-   * @return true if the parent container handels painting
+   * @return true if the parent container handles painting
    */
-  private boolean parentHandlingSelection(NlComponent component,
-                                          ViewHandlerManager viewHandlerManager) {
-    String className = component.getParent().viewInfo.getClassName();
+  private static boolean parentHandlingSelection(@NotNull NlComponent component,
+                                                 @NotNull ViewHandlerManager viewHandlerManager) {
+    NlComponent parent = component.getParent();
+
+    if (parent == null) {
+      return false;
+    }
+
+    ViewInfo view = parent.viewInfo;
+
+    if (view == null) {
+      return false;
+    }
+
+    String className = view.getClassName();
     ViewHandler handler = viewHandlerManager.getHandler(className);
     if (handler != null && handler instanceof ViewGroupHandler) {
       ViewGroupHandler viewGroupHandler = (ViewGroupHandler)handler;
