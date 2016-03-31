@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.android.tools.idea.gradle.structure.model.android.PsLibraryDependency;
 import com.android.tools.idea.gradle.structure.navigation.PsLibraryDependencyPath;
+import com.android.tools.idea.gradle.structure.navigation.PsModulePath;
 import com.android.tools.idea.gradle.structure.navigation.PsNavigationPath;
 import com.intellij.util.containers.Predicate;
 import org.jetbrains.annotations.NotNull;
@@ -39,6 +40,7 @@ public class PsAndroidModuleAnalyzer extends PsModelAnalyzer<PsAndroidModule> {
 
   @Override
   protected void doAnalyze(@NotNull PsAndroidModule module, @NotNull final PsIssueCollection issueCollection) {
+    final PsModulePath modulePath = new PsModulePath(module);
     module.forEachDependency(new Predicate<PsAndroidDependency>() {
       @Override
       public boolean apply(@Nullable PsAndroidDependency dependency) {
@@ -59,6 +61,7 @@ public class PsAndroidModuleAnalyzer extends PsModelAnalyzer<PsAndroidModule> {
                                  "version number is more problematic than using it in the minor version position.)";
             PsNavigationPath path = new PsLibraryDependencyPath(myContext, libraryDependency);
             PsIssue issue = new PsIssue(message, description, path, WARNING);
+            issue.setExtraPath(modulePath);
             issueCollection.add(issue);
           }
         }

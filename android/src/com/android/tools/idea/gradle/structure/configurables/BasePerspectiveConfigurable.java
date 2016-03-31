@@ -217,7 +217,7 @@ public abstract class BasePerspectiveConfigurable extends MasterDetailsComponent
       }
     }, true);
     ToolTipManager.sharedInstance().registerComponent(myTree);
-    // myTree.setCellRenderer(new ProjectStructureElementRenderer(myContext));
+    myTree.setCellRenderer(new PsModuleCellRenderer(myContext));
   }
 
   protected void loadTree() {
