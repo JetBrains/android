@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.gradle.structure.model;
 
+import com.android.tools.idea.gradle.structure.configurables.PsContext;
+import com.android.tools.idea.gradle.structure.model.android.PsLibraryDependency;
+import com.android.tools.idea.gradle.structure.navigation.PsLibraryDependencyPath;
 import com.android.tools.idea.gradle.structure.navigation.PsNavigationPath;
 import com.google.common.collect.Lists;
 import com.intellij.util.containers.ConcurrentMultiMap;
@@ -29,15 +32,33 @@ import static com.intellij.xml.util.XmlStringUtil.escapeString;
 
 public class PsIssueCollection {
   @NotNull private final ConcurrentMultiMap<PsNavigationPath, PsIssue> myIssues = new ConcurrentMultiMap<PsNavigationPath, PsIssue>();
+  @NotNull private final PsContext myContext;
+
+  public PsIssueCollection(@NotNull PsContext context) {
+    myContext = context;
+  }
 
   public void add(@NotNull PsIssue issue) {
     myIssues.putValue(issue.getPath(), issue);
   }
 
   @NotNull
+  public List<PsIssue> findIssues(@NotNull PsModel model, @Nullable Comparator<PsIssue> comparator) {
+    PsNavigationPath path = null;
+    if (model instanceof PsLibraryDependency) {
+      PsLibraryDependency dependency = (PsLibraryDependency)model;
+      path = new PsLibraryDependencyPath(myContext, dependency);
+    }
+    if (path != null) {
+      return findIssues(path, comparator);
+    }
+    return Collections.emptyList();
+  }
+
+  @NotNull
   public List<PsIssue> findIssues(@NotNull PsNavigationPath path, @Nullable Comparator<PsIssue> comparator) {
     List<PsIssue> issues = Lists.newArrayList(myIssues.get(path));
-    if (comparator != null) {
+    if (comparator != null && issues.size() > 1) {
       Collections.sort(issues, comparator);
     }
     return issues;
@@ -52,8 +73,12 @@ public class PsIssueCollection {
     return myIssues.isEmpty();
   }
 
-  @NotNull
+  @Nullable
   public static String getTooltipText(@NotNull List<PsIssue> issues) {
+    if (issues.isEmpty()) {
+      return null;
+    }
+
     StringBuilder buffer = new StringBuilder();
     buffer.append("<html><body>");
     int issueCount = issues.size();

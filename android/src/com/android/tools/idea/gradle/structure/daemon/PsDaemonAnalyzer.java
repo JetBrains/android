@@ -64,7 +64,7 @@ public class PsDaemonAnalyzer implements Disposable {
     myAnalyzerQueue = createQueue("Project Structure Daemon Analyzer", null);
     myResultsUpdaterQueue = createQueue("Project Structure Analysis Results Updater", ANY_COMPONENT);
     myStopped = new AtomicBoolean(false);
-    myIssues = new PsIssueCollection();
+    myIssues = new PsIssueCollection(myContext);
 
     createModelAnalyzers();
   }

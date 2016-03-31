@@ -15,6 +15,12 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui.treeview;
 
+import com.android.tools.idea.gradle.structure.configurables.PsContext;
+import com.android.tools.idea.gradle.structure.configurables.issues.IssuesByTypeComparator;
+import com.android.tools.idea.gradle.structure.model.PsIssue;
+import com.android.tools.idea.gradle.structure.model.PsIssueCollection;
+import com.android.tools.idea.gradle.structure.model.PsModel;
+import com.google.common.collect.Lists;
 import com.intellij.ide.util.treeView.NodeRenderer;
 import com.intellij.ide.util.treeView.PresentableNodeDescriptor;
 import com.intellij.openapi.Disposable;
@@ -32,9 +38,14 @@ import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 import static com.android.tools.idea.gradle.structure.configurables.android.dependencies.UiUtil.isMetaOrCtrlKeyPressed;
+import static com.android.tools.idea.gradle.structure.model.PsIssueCollection.getTooltipText;
 import static com.intellij.ui.SimpleTextAttributes.LINK_ATTRIBUTES;
+import static com.intellij.ui.SimpleTextAttributes.STYLE_WAVED;
 import static java.awt.Cursor.*;
 import static java.awt.event.KeyEvent.KEY_PRESSED;
 import static java.awt.event.KeyEvent.KEY_RELEASED;
@@ -43,24 +54,45 @@ import static javax.swing.SwingUtilities.convertPointFromScreen;
 public class NodeHyperlinkSupport<T extends SimpleNode> implements Disposable {
   @NotNull private final Tree myTree;
   @NotNull private final Class<T> mySupportedNodeType;
+  @NotNull private final PsContext myContext;
+  private final boolean myShowIssues;
 
   private T myHoveredNode;
   private KeyEventDispatcher myKeyEventDispatcher;
 
-  public NodeHyperlinkSupport(@NotNull Tree tree, @NotNull Class<T> supportedNodeType) {
+  public NodeHyperlinkSupport(@NotNull Tree tree, @NotNull Class<T> supportedNodeType, @NotNull PsContext context, boolean showIssues) {
     myTree = tree;
     mySupportedNodeType = supportedNodeType;
+    myContext = context;
+    myShowIssues = showIssues;
     addHyperlinkBehaviorToSupportedNodes();
+    myTree.repaint();
   }
 
   private void addHyperlinkBehaviorToSupportedNodes() {
     myTree.setCellRenderer(new NodeRenderer() {
       @Override
       protected SimpleTextAttributes getSimpleTextAttributes(PresentableNodeDescriptor node, Color color) {
+        List<PsIssue> issues = Collections.emptyList();
+
+        if (myShowIssues && node instanceof AbstractPsModelNode) {
+          AbstractPsModelNode<? extends PsModel> modelNode = (AbstractPsModelNode<? extends PsModel>)node;
+          issues = findIssues(modelNode, IssuesByTypeComparator.INSTANCE);
+          node.getPresentation().setTooltip(getTooltipText(issues));
+        }
+
         if (myHoveredNode != null && myHoveredNode == node) {
           return LINK_ATTRIBUTES;
         }
-        return super.getSimpleTextAttributes(node, color);
+
+        SimpleTextAttributes textAttributes = super.getSimpleTextAttributes(node, color);
+        if (!issues.isEmpty()) {
+          PsIssue issue = issues.get(0);
+          Color waveColor = issue.getType().getColor();
+          textAttributes = textAttributes.derive(STYLE_WAVED, null, null, waveColor);
+        }
+
+        return textAttributes;
       }
 
       @Override
@@ -71,11 +103,34 @@ public class NodeHyperlinkSupport<T extends SimpleNode> implements Disposable {
                                         boolean leaf,
                                         int row,
                                         boolean hasFocus) {
+        if (myShowIssues) {
+          AbstractPsModelNode<? extends PsModel> modelNode = findModelNode(value);
+          if (modelNode != null) {
+            List<PsIssue> issues = findIssues(modelNode, null);
+            if (!issues.isEmpty()) {
+              // Force color change of the node.
+              modelNode.getPresentation().clearText();
+            }
+          }
+        }
+
         super.customizeCellRenderer(tree, value, selected, expanded, leaf, row, hasFocus);
         Object userObject = ((DefaultMutableTreeNode)value).getUserObject();
           if (userObject instanceof CellAppearanceEx) {
           ((CellAppearanceEx)userObject).customize(this);
         }
+      }
+
+      @Nullable
+      private AbstractPsModelNode<? extends PsModel> findModelNode(@Nullable Object value) {
+        if (value instanceof DefaultMutableTreeNode) {
+          DefaultMutableTreeNode node = (DefaultMutableTreeNode)value;
+          Object userObject = node.getUserObject();
+          if (userObject instanceof AbstractPsModelNode) {
+            return (AbstractPsModelNode<? extends PsModel>)userObject;
+          }
+        }
+        return null;
       }
     });
 
@@ -120,6 +175,20 @@ public class NodeHyperlinkSupport<T extends SimpleNode> implements Disposable {
     };
 
     KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(myKeyEventDispatcher);
+  }
+
+  @NotNull
+  private List<PsIssue> findIssues(@NotNull AbstractPsModelNode<? extends PsModel> modelNode, @Nullable Comparator<PsIssue> comparator) {
+    List<PsIssue> issues = Lists.newArrayList();
+
+    PsIssueCollection issueCollection = myContext.getDaemonAnalyzer().getIssues();
+    for (PsModel model : modelNode.getModels()) {
+      issues.addAll(issueCollection.findIssues(model, null));
+    }
+    if (comparator != null && issues.size() > 1) {
+      Collections.sort(issues, comparator);
+    }
+    return issues;
   }
 
   private void setHoveredNode(@Nullable T node) {
