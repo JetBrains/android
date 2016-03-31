@@ -141,9 +141,16 @@ public class AndroidSdkData {
     return getLocation().getPath();
   }
 
+  /** @link Use {#getLatestBuildTool(boolean)} */
+  @Deprecated
   @Nullable
   public BuildToolInfo getLatestBuildTool() {
-    return mySdkHandler.getLatestBuildTool(new StudioLoggerProgressIndicator(getClass()));
+    return getLatestBuildTool(false);
+  }
+
+  @Nullable
+  public BuildToolInfo getLatestBuildTool(boolean allowPreview) {
+    return mySdkHandler.getLatestBuildTool(new StudioLoggerProgressIndicator(getClass()), allowPreview);
   }
 
   @NotNull
