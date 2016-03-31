@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui;
 
+import com.intellij.ui.SimpleColoredComponent;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -22,14 +23,15 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import java.awt.*;
 
+import static com.intellij.ui.SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES;
 import static com.intellij.util.ui.UIUtil.getTreeCollapsedIcon;
 import static com.intellij.util.ui.UIUtil.getTreeExpandedIcon;
 import static javax.swing.BorderFactory.createEmptyBorder;
 
 public class CollapsiblePanel extends JPanel {
-
   @NotNull private final JPanel myPanel;
-  @NotNull private final JCheckBox myExpandControl;
+  @NotNull private final JCheckBox myExpandButton;
+  @NotNull private final SimpleColoredComponent myTitleComponent;
 
   private JComponent myContents;
   private boolean myExpanded;
@@ -44,19 +46,25 @@ public class CollapsiblePanel extends JPanel {
     myPanel = new JPanel(new BorderLayout());
     add(myPanel, BorderLayout.CENTER);
 
+    myExpandButton = new JCheckBox(" ");
+    myExpandButton.setIcon(getTreeCollapsedIcon());
+    myExpandButton.setSelectedIcon(treeExpandedIcon);
+    myExpandButton.addChangeListener(new CollapseListener());
 
-    myExpandControl = new JCheckBox(title);
-    Font font = myExpandControl.getFont();
-    myExpandControl.setFont(font.deriveFont(Font.BOLD));
+    myTitleComponent = new SimpleColoredComponent();
+    myTitleComponent.append(title, REGULAR_BOLD_ATTRIBUTES);
+    int iconTextGap = 5;
+    myTitleComponent.setBorder(createEmptyBorder(0, iconTextGap, 0, 0));
+
+    JPanel expandPanel = new JPanel(new BorderLayout());
+    expandPanel.add(myExpandButton, BorderLayout.WEST);
+    expandPanel.add(myTitleComponent, BorderLayout.CENTER);
+
     int left = 4;
-    myExpandControl.setBorder(createEmptyBorder(0, left, 0, 0));
-    myExpandControl.setHorizontalTextPosition(SwingConstants.RIGHT);
-    myExpandControl.setIcon(getTreeCollapsedIcon());
-    myExpandControl.setSelectedIcon(treeExpandedIcon);
-    myExpandControl.addChangeListener(new CollapseListener());
-    add(myExpandControl, BorderLayout.NORTH);
+    expandPanel.setBorder(createEmptyBorder(0, left, 0, 0));
+    add(expandPanel, BorderLayout.NORTH);
 
-    myPanel.setBorder(createEmptyBorder(10, 10 + treeExpandedIcon.getIconWidth() + myExpandControl.getIconTextGap() + left, 10, 10));
+    myPanel.setBorder(createEmptyBorder(10, 10 + treeExpandedIcon.getIconWidth() + left + iconTextGap, 10, 10));
 
     setExpanded(true);
   }
@@ -67,27 +75,22 @@ public class CollapsiblePanel extends JPanel {
     }
     myContents = contents;
     myPanel.add(myContents, BorderLayout.CENTER);
-    revalidate();
-    repaint();
+    revalidateAndRepaint();
   }
 
   @NotNull
-  public String getTitle() {
-    return myExpandControl.getText();
-  }
-
-  public void setTitle(@NotNull String title) {
-    myExpandControl.setText(title);
+  public SimpleColoredComponent getTitleComponent() {
+    return myTitleComponent;
   }
 
   @Override
   public String getToolTipText() {
-    return myExpandControl.getToolTipText();
+    return myExpandButton.getToolTipText();
   }
 
   @Override
   public void setToolTipText(String toolTipText) {
-    myExpandControl.setToolTipText(toolTipText);
+    myExpandButton.setToolTipText(toolTipText);
   }
 
   public boolean isExpanded() {
@@ -98,23 +101,27 @@ public class CollapsiblePanel extends JPanel {
     boolean oldExpanded = myExpanded;
     if (oldExpanded != expanded) {
       myExpanded = expanded;
-      myExpandControl.setSelected(myExpanded);
+      myExpandButton.setSelected(myExpanded);
       if (myExpanded) {
         add(myPanel, BorderLayout.CENTER);
       }
       else {
         remove(myPanel);
       }
-      revalidate();
-      repaint();
+      revalidateAndRepaint();
       firePropertyChange("expanded", oldExpanded, expanded);
     }
+  }
+
+  private void revalidateAndRepaint() {
+    revalidate();
+    repaint();
   }
 
   private class CollapseListener implements ChangeListener {
     @Override
     public void stateChanged(ChangeEvent event) {
-      setExpanded(myExpandControl.isSelected());
+      setExpanded(myExpandButton.isSelected());
     }
   }
 }

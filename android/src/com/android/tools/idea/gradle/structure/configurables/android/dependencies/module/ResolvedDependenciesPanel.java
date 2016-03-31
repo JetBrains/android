@@ -144,7 +144,7 @@ class ResolvedDependenciesPanel extends ToolWindowPanel implements DependencySel
       }
     }, true);
 
-    myHyperlinkSupport = new NodeHyperlinkSupport<ModuleDependencyNode>(myTree, ModuleDependencyNode.class);
+    myHyperlinkSupport = new NodeHyperlinkSupport<ModuleDependencyNode>(myTree, ModuleDependencyNode.class, myContext, false);
   }
 
   private void notifySelectionChanged(@Nullable PsAndroidDependency selected) {
