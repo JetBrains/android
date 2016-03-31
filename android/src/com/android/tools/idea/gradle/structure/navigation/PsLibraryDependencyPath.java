@@ -49,9 +49,7 @@ public class PsLibraryDependencyPath extends PsNavigationPath {
     putPath(place, target);
     target.putPath(place, myModuleName, myDependency);
 
-    String href = serialize(place);
-    String text = String.format("%1$s (module '%2$s')", myDependency, myModuleName);
-    return String.format("Library <a href='%1$s'>%2$s</a>", href, text);
+    return String.format("Library <a href='%1$s'>%2$s</a> (<b>module '%3$s'</b>)", serialize(place), myDependency, myModuleName);
   }
 
   @Override
