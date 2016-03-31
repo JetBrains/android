@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.npw;
 
-import com.android.tools.idea.configurations.DeviceMenuAction;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
@@ -57,11 +56,11 @@ public final class AndroidModuleTemplatesProvider implements ModuleTemplateProvi
     }
     else {
       return ImmutableSet.<ModuleTemplate>of(new CreateModuleTemplate(metadata, formFactor, metadata.getTitle(),
-                                                                      getModuleTypeIcon(formFactor.getEnumValue())));
+                                                                      getModuleTypeIcon(formFactor)));
     }
   }
 
-  private static Icon getModuleTypeIcon(@NotNull DeviceMenuAction.FormFactor enumValue) {
+  private static Icon getModuleTypeIcon(@NotNull FormFactor enumValue) {
     switch (enumValue) {
       case CAR:
         return AndroidIcons.ModuleTemplates.Car;
@@ -90,11 +89,7 @@ public final class AndroidModuleTemplatesProvider implements ModuleTemplateProvi
         continue;
       }
       if (metadata.getFormFactor() != null) {
-        final FormFactor formFactor = FormFactor.get(metadata.getFormFactor());
-        if (formFactor == null) {
-          continue;
-        }
-        moduleTemplates.addAll(getModuleTemplates(metadata, formFactor));
+        moduleTemplates.addAll(getModuleTemplates(metadata, FormFactor.get(metadata.getFormFactor())));
       }
     }
 
