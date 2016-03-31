@@ -45,6 +45,8 @@ import static com.intellij.util.ui.update.MergingUpdateQueue.ANY_COMPONENT;
 public class PsDaemonAnalyzer implements Disposable {
   private static final Logger LOG = Logger.getInstance(PsDaemonAnalyzer.class);
 
+  @NotNull private final PsContext myContext;
+
   @NotNull private final MergingUpdateQueue myAnalyzerQueue;
   @NotNull private final MergingUpdateQueue myResultsUpdaterQueue;
   @NotNull private final AtomicBoolean myStopped;
@@ -56,11 +58,13 @@ public class PsDaemonAnalyzer implements Disposable {
     EventDispatcher.create(IssuesUpdatedListener.class);
 
   public PsDaemonAnalyzer(@NotNull PsContext context) {
+    myContext = context;
     Disposer.register(context, this);
+
     myAnalyzerQueue = createQueue("Project Structure Daemon Analyzer", null);
     myResultsUpdaterQueue = createQueue("Project Structure Analysis Results Updater", ANY_COMPONENT);
     myStopped = new AtomicBoolean(false);
-    myIssues = new PsIssueCollection();
+    myIssues = new PsIssueCollection(myContext);
 
     createModelAnalyzers();
   }
@@ -71,7 +75,7 @@ public class PsDaemonAnalyzer implements Disposable {
   }
 
   private void createModelAnalyzers() {
-    add(new PsAndroidModuleAnalyzer());
+    add(new PsAndroidModuleAnalyzer(myContext));
   }
 
   private void add(@NotNull PsModelAnalyzer<? extends PsModel> analyzer) {

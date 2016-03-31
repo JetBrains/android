@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
+import static com.intellij.ui.navigation.Place.goFurther;
 import static com.intellij.ui.navigation.Place.queryFurther;
 
 public class DependenciesPerspectiveConfigurable extends BasePerspectiveConfigurable {
@@ -88,6 +89,22 @@ public class DependenciesPerspectiveConfigurable extends BasePerspectiveConfigur
     return myExtraTopModules;
   }
 
+  public void putPath(@NotNull Place place, @NotNull String moduleName, @NotNull String dependency) {
+    place.putPath(DEPENDENCIES_PLACE, moduleName);
+
+    PsModule module = findModule(moduleName);
+    assert module != null;
+
+    MyNode node = findNodeByObject(myRoot, module);
+    assert node != null;
+
+    NamedConfigurable configurable = node.getConfigurable();
+    assert configurable instanceof ModuleDependenciesConfigurable;
+
+    ModuleDependenciesConfigurable dependenciesConfigurable = (ModuleDependenciesConfigurable)configurable;
+    dependenciesConfigurable.putPath(place, dependency);
+  }
+
   @Override
   public ActionCallback navigateTo(@Nullable Place place, boolean requestFocus) {
     if (place != null) {
@@ -95,8 +112,11 @@ public class DependenciesPerspectiveConfigurable extends BasePerspectiveConfigur
       if (path instanceof String) {
         String moduleName = (String)path;
         if (!isEmpty(moduleName)) {
+          ActionCallback callback = new ActionCallback();
           getContext().setSelectedModule(moduleName, this);
           selectModule(moduleName);
+          goFurther(getSelectedConfigurable(), place, requestFocus).notifyWhenDone(callback);
+          return callback;
         }
       }
     }

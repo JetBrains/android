@@ -50,6 +50,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.List;
 
+import static com.intellij.ui.navigation.Place.goFurther;
 import static com.intellij.util.ui.UIUtil.SIDE_PANEL_BACKGROUND;
 import static com.intellij.util.ui.UIUtil.requestFocus;
 
@@ -57,7 +58,8 @@ public class ProjectStructureConfigurable extends BaseConfigurable
   implements SearchableConfigurable, Place.Navigator, Configurable.NoMargin, Configurable.NoScroll {
 
   public static final DataKey<ProjectStructureConfigurable> KEY = DataKey.create("ProjectStructureConfiguration");
-  @NonNls public static final String CATEGORY = "category";
+  @NonNls private static final String CATEGORY = "category";
+  @NonNls private static final String CATEGORY_NAME = "categoryName";
 
   @NonNls private static final String LAST_EDITED_PROPERTY = "project.structure.last.edited";
   @NonNls private static final String PROPORTION_PROPERTY = "project.structure.proportion";
@@ -142,7 +144,16 @@ public class ProjectStructureConfigurable extends BaseConfigurable
     if (place == null) {
       return ActionCallback.DONE;
     }
-    Configurable toSelect = (Configurable)place.getPath(CATEGORY);
+
+    Configurable toSelect;
+    Object displayName = place.getPath(CATEGORY_NAME);
+    if (displayName instanceof String) {
+      toSelect = findConfigurable((String)displayName);
+    }
+    else {
+      toSelect = (Configurable)place.getPath(CATEGORY);
+    }
+
     JComponent detailsContent = myDetails.getTargetComponent();
 
     if (mySelectedConfigurable != toSelect) {
@@ -197,7 +208,7 @@ public class ProjectStructureConfigurable extends BaseConfigurable
     }
 
     ActionCallback result = new ActionCallback();
-    Place.goFurther(toSelect, place, requestFocus).notifyWhenDone(result);
+    goFurther(toSelect, place, requestFocus).notifyWhenDone(result);
 
     myDetails.revalidate();
     myDetails.repaint();
@@ -207,6 +218,16 @@ public class ProjectStructureConfigurable extends BaseConfigurable
     }
 
     return result;
+  }
+
+  @Nullable
+  private Configurable findConfigurable(@NotNull String displayName) {
+    for (Configurable configurable : myConfigurables) {
+      if (displayName.equals(configurable.getDisplayName())) {
+        return configurable;
+      }
+    }
+    return null;
   }
 
   private void saveSideProportion() {
@@ -346,6 +367,20 @@ public class ProjectStructureConfigurable extends BaseConfigurable
       navigator.setHistory(myHistory);
     }
     mySidePanel.addPlace(createPlaceFor(configurable), new Presentation(configurable.getDisplayName()));
+  }
+
+  public static void putPath(@NotNull Place place, @NotNull Configurable configurable) {
+    place.putPath(CATEGORY_NAME, configurable.getDisplayName());
+  }
+
+  @Nullable
+  public <T extends Configurable> T findConfigurable(@NotNull Class<T> type) {
+    for (Configurable configurable : myConfigurables) {
+      if (type.isInstance(configurable)) {
+        return type.cast(configurable);
+      }
+    }
+    return null;
   }
 
   @NotNull

@@ -134,6 +134,10 @@ class ModuleDependenciesPanel extends AbstractMainPanel {
     myDeclaredDependenciesPanel.setHistory(history);
   }
 
+  public void putPath(@NotNull Place place, @NotNull String dependency) {
+    myDeclaredDependenciesPanel.putPath(place, dependency);
+  }
+
   @Override
   public ActionCallback navigateTo(@Nullable Place place, boolean requestFocus) {
     return myDeclaredDependenciesPanel.navigateTo(place, requestFocus);
