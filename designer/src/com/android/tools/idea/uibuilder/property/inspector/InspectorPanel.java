@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.property.inspector;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.uibuilder.property.NlProperty;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.ui.JBColor;
@@ -28,7 +29,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -42,14 +42,15 @@ public class InspectorPanel extends JPanel {
 
   private static LayoutManager createGridLayout() {
     // 2 column grid by default
-    String layoutConstraints = "wrap 2, insets 2";
+    String layoutConstraints = "wrap 6, insets 1";
     if (DEBUG_BOUNDS) {
       layoutConstraints += ", debug";
     }
+    // Dual configuration:
+    // 1) [Single component] 1st column 30%, 2nd column 70%
+    // 2) [Two components]   1st and 3rd column 15%, 2nd and 4th column 35%
+    String columnConstraints = "[15%!][15%!][20%!][15%!][15%!][20%!]";
 
-    // first column should take up 30% of the overall space, and the labels should be aligned right
-    // the second column should grow and fill to take available space
-    String columnConstraints = "[30%!,align right][grow,fill]";
     return new MigLayout(layoutConstraints, columnConstraints);
   }
 
@@ -69,7 +70,8 @@ public class InspectorPanel extends JPanel {
     }
 
     InspectorProvider[] allProviders = new InspectorProvider[]{
-      new IdInspectorProvider()
+      new IdInspectorProvider(),
+      new FontInspectorProvider(),
     };
 
     List<InspectorComponent> inspectors = createInspectorComponents(component, propertiesManager, propertiesByName, allProviders);
@@ -89,7 +91,8 @@ public class InspectorPanel extends JPanel {
     if (component == null) {
       // create just the id inspector, which we know can handle a null component
       // this is simply to avoid the screen flickering when switching components
-      return Collections.singletonList(new IdInspectorProvider().createCustomInspector(null, properties, propertiesManager));
+      return ImmutableList.of(
+        new IdInspectorProvider().createCustomInspector(null, properties, propertiesManager));
     }
 
     for (InspectorProvider provider : allProviders) {
@@ -109,7 +112,7 @@ public class InspectorPanel extends JPanel {
   }
 
   public static void addSeparator(@NotNull JPanel inspector) {
-    inspector.add(new JSeparator(), "span 2, grow");
+    inspector.add(new JSeparator(), "span 6, grow");
   }
 
   public static void addComponent(@NotNull JPanel inspector,
@@ -120,8 +123,40 @@ public class InspectorPanel extends JPanel {
     l.setLabelFor(component);
     l.setToolTipText(tooltip);
 
-    inspector.add(l);
-    inspector.add(component, "width null:null:70%"); // max 70% of container
+    inspector.add(l, "span 2"); // 30%
+    inspector.add(component, "span 4"); // 70%
+  }
+
+  public static void addSplitComponents(@NotNull JPanel inspector,
+                                        @Nullable String labelText1,
+                                        @Nullable String tooltip1,
+                                        @Nullable Component component1,
+                                        @Nullable String labelText2,
+                                        @Nullable String tooltip2,
+                                        @Nullable Component component2) {
+    assert (labelText1 != null || component1 != null) && (labelText2 != null || component2 != null);
+    if (labelText1 != null) {
+      JBLabel label1 = new JBLabel(labelText1);
+      label1.setLabelFor(component1);
+      label1.setToolTipText(tooltip1);
+      int span = component1 != null ? 1 : 3;
+      inspector.add(label1, "span " + span);
+    }
+    if (component1 != null) {
+      int span = labelText1 != null ? 2 : 3;
+      inspector.add(component1, "span " + span);
+    }
+    if (labelText2 != null) {
+      JBLabel label2 = new JBLabel(labelText2);
+      label2.setLabelFor(component2);
+      label2.setToolTipText(tooltip2);
+      int span = component2 != null ? 1 : 3;
+      inspector.add(label2, "span " + span);
+    }
+    if (component2 != null) {
+      int span = labelText2 != null ? 2 : 3;
+      inspector.add(component2, "span " + span);
+    }
   }
 
   /**
