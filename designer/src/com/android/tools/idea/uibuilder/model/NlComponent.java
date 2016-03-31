@@ -20,10 +20,10 @@ import com.android.annotations.Nullable;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.AndroidPsiUtils;
-import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.rendering.AttributeSnapshot;
-import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.rendering.TagSnapshot;
+import com.android.tools.idea.res.AppResourceRepository;
+import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
@@ -31,6 +31,7 @@ import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.intellij.lang.LanguageNamesValidation;
 import com.intellij.lang.java.JavaLanguage;
@@ -54,6 +55,18 @@ import static com.android.SdkConstants.*;
  * if visual it has bounds, etc.
  */
 public class NlComponent {
+  private static final Collection<String> TAGS_THAT_DONT_NEED_DEFAULT_IDS = ImmutableSet.of(
+    "CheckBoxPreference",
+    "EditTextPreference",
+    "ListPreference",
+    "MultiSelectListPreference",
+    "SwitchPreference",
+    REQUEST_FOCUS,
+    SPACE,
+    VIEW_INCLUDE,
+    VIEW_MERGE
+  );
+
   @Nullable public List<NlComponent> children;
   @Nullable public ViewInfo viewInfo;
   @AndroidCoordinate public int x;
@@ -109,18 +122,11 @@ public class NlComponent {
     int index = before != null ? children.indexOf(before) : -1;
     if (index != -1) {
       children.add(index, component);
-    } else {
+    }
+    else {
       children.add(component);
     }
     component.setParent(this);
-  }
-
-  public void delete() {
-    NlComponent parent = getParent();
-    if (parent != null) {
-      parent.removeChild(this);
-    }
-    myTag.delete();
   }
 
   public void removeChild(@NonNull NlComponent component) {
@@ -185,7 +191,8 @@ public class NlComponent {
         if (matches != null) {
           if (result != null) {
             result.addAll(matches);
-          } else {
+          }
+          else {
             result = matches;
           }
         }
@@ -255,26 +262,30 @@ public class NlComponent {
   private static String describe(@NonNull NlComponent root) {
     return Objects.toStringHelper(root).omitNullValues()
       .add("tag", describe(root.myTag))
-      .add("bounds",  "[" + root.x + "," + root.y + ":" + root.w + "x" + root.h)
+      .add("bounds", "[" + root.x + "," + root.y + ":" + root.w + "x" + root.h)
       .toString();
   }
 
   private static String describe(@Nullable XmlTag tag) {
     if (tag == null) {
       return "";
-    } else {
+    }
+    else {
       return '<' + tag.getName() + '>';
     }
   }
 
-  /** Returns the ID of this component */
+  /**
+   * Returns the ID of this component
+   */
   @Nullable
   public String getId() {
     String id = getAttribute(ANDROID_URI, ATTR_ID);
     if (id != null) {
       if (id.startsWith(NEW_ID_PREFIX)) {
         return id.substring(NEW_ID_PREFIX.length());
-      } else if (id.startsWith(ID_PREFIX)) {
+      }
+      else if (id.startsWith(ID_PREFIX)) {
         return id.substring(ID_PREFIX.length());
       }
     }
@@ -290,9 +301,12 @@ public class NlComponent {
    * @return true if the component should have a default id
    */
   public boolean needsDefaultId() {
-    if (myTagName.equals(VIEW_INCLUDE) || myTagName.equals(VIEW_MERGE) || myTagName.equals(SPACE) || myTagName.equals(REQUEST_FOCUS) ||
-        // Handle <Space> in the compatibility library package
-        (myTagName.endsWith(SPACE) && myTagName.length() > SPACE.length() && myTagName.charAt(myTagName.length() - SPACE.length()) == '.')) {
+    if (TAGS_THAT_DONT_NEED_DEFAULT_IDS.contains(myTagName)) {
+      return false;
+    }
+
+    // Handle <Space> in the compatibility library package
+    if (myTagName.endsWith(SPACE) && myTagName.length() > SPACE.length() && myTagName.charAt(myTagName.length() - SPACE.length()) == '.') {
       return false;
     }
 
@@ -302,15 +316,18 @@ public class NlComponent {
       if (myTagName.endsWith("Layout")) {
         return false;
       }
-    } else if (viewHandler instanceof ViewGroupHandler) {
+    }
+    else if (viewHandler instanceof ViewGroupHandler) {
       return false;
     }
 
     return true;
   }
 
-  /** Returns the ID, but also assigns a default id if the component does not already have an id (even if the component does
-   * not need one according to {@link #needsDefaultId()} */
+  /**
+   * Returns the ID, but also assigns a default id if the component does not already have an id (even if the component does
+   * not need one according to {@link #needsDefaultId()}
+   */
   public String ensureId() {
     String id = getId();
     if (id != null) {
@@ -320,7 +337,7 @@ public class NlComponent {
     return assignId();
   }
 
-  public String assignId() {
+  private String assignId() {
     Collection<String> idList = getIds(myModel.getFacet());
     return assignId(this, idList);
   }
@@ -343,7 +360,8 @@ public class NlComponent {
       ++index;
       if (index == 1 && (validator == null || !validator.isKeyword(nextIdValue, project))) {
         nextIdValue = idValue;
-      } else {
+      }
+      else {
         nextIdValue = idValue + Integer.toString(index);
       }
     }
@@ -353,7 +371,9 @@ public class NlComponent {
     return newId;
   }
 
-  /** Looks up the existing set of id's reachable from the given module */
+  /**
+   * Looks up the existing set of id's reachable from the given module
+   */
   public static Collection<String> getIds(@NonNull AndroidFacet facet) {
     AppResourceRepository resources = AppResourceRepository.getAppResources(facet, true);
     return resources.getItemsOfType(ResourceType.ID);
@@ -398,7 +418,8 @@ public class NlComponent {
 
         if (left == 0 && top == 0 && right == 0 && bottom == 0) {
           myMargins = Insets.NONE;
-        } else {
+        }
+        else {
           myMargins = new Insets(left, top, right, bottom);
         }
       }
@@ -425,7 +446,8 @@ public class NlComponent {
         int bottom = fixDefault((Integer)layoutClass.getMethod("getPaddingBottom").invoke(layoutParams));
         if (left == 0 && top == 0 && right == 0 && bottom == 0) {
           myPadding = Insets.NONE;
-        } else {
+        }
+        else {
           myPadding = new Insets(left, top, right, bottom);
         }
       }
@@ -441,7 +463,7 @@ public class NlComponent {
     return myParent;
   }
 
-  public void setParent(@Nullable NlComponent parent) {
+  private void setParent(@Nullable NlComponent parent) {
     myParent = parent;
   }
 
@@ -455,7 +477,9 @@ public class NlComponent {
     return describe(this);
   }
 
-  /** Convenience wrapper for now; this should be replaced with property lookup */
+  /**
+   * Convenience wrapper for now; this should be replaced with property lookup
+   */
   public void setAttribute(@Nullable String namespace, @NonNull String attribute, @Nullable String value) {
     // Handle validity
     myTag.setAttribute(attribute, namespace, value);
@@ -468,9 +492,11 @@ public class NlComponent {
   public String getAttribute(@Nullable String namespace, @NonNull String attribute) {
     if (snapshot != null) {
       return snapshot.getAttribute(attribute, namespace);
-    } else if (myTag.isValid()) {
+    }
+    else if (myTag.isValid()) {
       return AndroidPsiUtils.getAttributeSafely(myTag, namespace, attribute);
-    } else {
+    }
+    else {
       // Newly created components for example
       return null;
     }
@@ -529,10 +555,7 @@ public class NlComponent {
 
   @Nullable
   public ViewGroupHandler getViewGroupHandler() {
-    if (myTag.getProject() != null) {
-      return ViewHandlerManager.get(myTag.getProject()).findLayoutHandler(this, false);
-    }
-    return null;
+    return ViewHandlerManager.get(myTag.getProject()).findLayoutHandler(this, false);
   }
 
   /**
@@ -562,7 +585,7 @@ public class NlComponent {
    *
    * @param fqcn the fully qualified class name, such as android.widget.Button
    * @return true if the full package path should be included in the layout XML element
-   *         tag
+   * tag
    */
   private static boolean viewNeedsPackage(String fqcn) {
     return !(fqcn.startsWith(ANDROID_WIDGET_PREFIX)
@@ -603,9 +626,9 @@ public class NlComponent {
     if (index != -1) {
       return str.substring(index + 4);
     }
-    if (index == -1) {
-      index = str.lastIndexOf("@+id/");
-    }
+
+    index = str.lastIndexOf("@+id/");
+
     if (index != -1) {
       return str.substring(index + 5);
     }
@@ -616,7 +639,6 @@ public class NlComponent {
   /**
    * Returns the value if a String contains a dp value
    */
-  @Nullable
   public static int extractDp(@Nullable String str) {
     if (str == null) {
       return 0;
