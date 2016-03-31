@@ -25,23 +25,26 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 
 public final class MemoryKind {
-  public static final MemoryKind Integer = new MemoryKind(0, "Integer");
-  public static final int IntegerValue = 0;
-  public static final MemoryKind Address = new MemoryKind(1, "Address");
-  public static final int AddressValue = 1;
-  public static final MemoryKind Float = new MemoryKind(2, "Float");
-  public static final int FloatValue = 2;
-  public static final MemoryKind Char = new MemoryKind(3, "Char");
-  public static final int CharValue = 3;
-  public static final MemoryKind Void = new MemoryKind(4, "Void");
-  public static final int VoidValue = 4;
+  public static final MemoryKind Unknown = new MemoryKind(0, "Unknown");
+  public static final int UnknownValue = 0;
+  public static final MemoryKind Integer = new MemoryKind(1, "Integer");
+  public static final int IntegerValue = 1;
+  public static final MemoryKind Address = new MemoryKind(2, "Address");
+  public static final int AddressValue = 2;
+  public static final MemoryKind Float = new MemoryKind(3, "Float");
+  public static final int FloatValue = 3;
+  public static final MemoryKind Char = new MemoryKind(4, "Char");
+  public static final int CharValue = 4;
+  public static final MemoryKind Void = new MemoryKind(5, "Void");
+  public static final int VoidValue = 5;
 
   private static final ImmutableMap<Integer, MemoryKind> VALUES = ImmutableMap.<Integer, MemoryKind>builder()
-    .put(0, Integer)
-    .put(1, Address)
-    .put(2, Float)
-    .put(3, Char)
-    .put(4, Void)
+    .put(0, Unknown)
+    .put(1, Integer)
+    .put(2, Address)
+    .put(3, Float)
+    .put(4, Char)
+    .put(5, Void)
     .build();
 
   private final int myValue;
