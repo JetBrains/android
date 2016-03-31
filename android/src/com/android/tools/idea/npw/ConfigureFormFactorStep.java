@@ -95,6 +95,9 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
         continue;
       }
       FormFactor formFactor = FormFactor.get(metadata.getFormFactor());
+      if (formFactor == FormFactor.GLASS) {
+        continue;
+      }
       Integer prevMinSdk = myFormFactors.get(formFactor);
       int templateMinSdk = metadata.getMinSdk();
 

@@ -191,6 +191,9 @@ public class FormFactorUtils {
     int width = 0;
     int height = 0;
     for (FormFactor formFactor : FormFactor.values()) {
+      if (formFactor == FormFactor.GLASS) {
+        continue;
+      }
       Icon icon = formFactor.getLargeIcon();
       height = icon.getIconHeight();
       if (!requireEmulator || formFactor.hasEmulator()) {
@@ -203,6 +206,9 @@ public class FormFactorUtils {
     int x = 0;
     for (FormFactor formFactor : FormFactor.values()) {
       if (requireEmulator && !formFactor.hasEmulator()) {
+        continue;
+      }
+      if (formFactor == FormFactor.GLASS) {
         continue;
       }
       Icon icon = formFactor.getLargeIcon();
