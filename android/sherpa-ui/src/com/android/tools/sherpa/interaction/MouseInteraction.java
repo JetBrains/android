@@ -44,7 +44,7 @@ public class MouseInteraction {
     private boolean mIsShiftDown;
     private boolean mIsAltDown;
     private boolean mMouseDown = false;
-
+    private boolean mMoveOnlyMode = true;
     private final ViewTransform mViewTransform;
     private final WidgetsScene mWidgetsScene;
     private final SceneDraw mSceneDraw;
@@ -222,7 +222,7 @@ public class MouseInteraction {
             widget = null;
         }
 
-        if (!isAltDown()) { // alt down only accept moving
+        if (!isAltDown() ^ mMoveOnlyMode) { // alt down only accept moving
             if (anchor != null) {
                 widget = anchor.getOwner();
                 if (mSelection.contains(widget)) {
@@ -600,5 +600,13 @@ public class MouseInteraction {
         if (e.getKeyCode() == KeyEvent.VK_SHIFT) {
             mIsShiftDown = false;
         }
+    }
+
+    public boolean isMoveOnlyMode() {
+        return mMoveOnlyMode;
+    }
+
+    public void setMoveOnlyMode(boolean moveOnlyMode) {
+        mMoveOnlyMode = moveOnlyMode;
     }
 }
