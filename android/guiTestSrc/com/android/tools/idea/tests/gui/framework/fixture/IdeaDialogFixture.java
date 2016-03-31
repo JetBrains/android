@@ -104,9 +104,6 @@ public abstract class IdeaDialogFixture<T extends DialogWrapper> extends Compone
   }
 
   public void clickCancel() {
-    // Grab focus in case it is not automatically done by the window manager, e.g. 9wm
-    focus();
-
     findAndClickCancelButton(this);
   }
 
