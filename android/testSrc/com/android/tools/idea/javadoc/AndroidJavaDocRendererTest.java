@@ -229,6 +229,16 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
                           "<html><body>Formats: boolean, integer<br><br> my attr 1 global docs </body></html>");
   }
 
+  public void testLocalEnumAttributes1() {
+    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/attrs/attrs.xml", "res/values/attrs.xml");
+    checkJavadoc("/javadoc/styles/styles4.xml", "res/styles.xml",  "The type of scrolling to use.");
+  }
+
+  public void testLocalEnumAttributes2() {
+    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/attrs/attrs.xml", "res/values/attrs.xml");
+    checkJavadoc("/javadoc/styles/styles5.xml", "res/styles.xml",  "The widget will scroll horizontally.");
+  }
+
   private void doTestLocalAttributes(String file, String exp) {
     myFixture.copyFileToProject(getTestDataPath() + "/javadoc/attrs/attrs.xml", "res/values/attrs.xml");
     myFixture.copyFileToProject(getTestDataPath() + "/javadoc/attrs/MyView1.java", "src/p1/p2/MyView1.java");
