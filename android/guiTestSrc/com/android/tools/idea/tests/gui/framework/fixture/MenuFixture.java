@@ -30,7 +30,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.fest.util.Lists.newArrayList;
 import static org.junit.Assert.assertNotNull;
 
 class MenuFixture {
@@ -104,7 +103,7 @@ class MenuFixture {
     Wait.seconds(30).expecting(expectedCount + " JPopupMenus to show up").until(new Wait.Objective() {
       @Override
       public boolean isMet() {
-        List<JPopupMenu> popupMenus = newArrayList(myRobot.finder().findAll(new GenericTypeMatcher<JPopupMenu>(JPopupMenu.class) {
+        List<JPopupMenu> popupMenus = Lists.newArrayList(myRobot.finder().findAll(new GenericTypeMatcher<JPopupMenu>(JPopupMenu.class) {
           @Override
           protected boolean isMatching(@NotNull JPopupMenu popupMenu) {
             return popupMenu.isShowing();
