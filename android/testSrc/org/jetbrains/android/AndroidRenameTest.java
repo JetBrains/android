@@ -133,6 +133,32 @@ public class AndroidRenameTest extends AndroidTestCase {
     myFixture.checkResultByFile(BASE_PATH + getTestName(true) + "_after.xml");
   }
 
+  public void testAndroidManifestRenameClass1() throws Throwable {
+    doTestAndroidManifestRenameClass("AndroidManifest_rename_class1.xml", "AndroidManifest_rename_class1-2_after.xml");
+  }
+
+  public void testAndroidManifestRenameClass2() throws Throwable {
+    doTestAndroidManifestRenameClass("AndroidManifest_rename_class2.xml", "AndroidManifest_rename_class1-2_after.xml");
+  }
+
+  public void testAndroidManifestRenameClass3() throws Throwable {
+    doTestAndroidManifestRenameClass("AndroidManifest_rename_class3.xml", "AndroidManifest_rename_class3_after.xml");
+  }
+
+  /**
+   * Copy {@code filePath} to project as AndroidManifest.xml, rename a class in a Java file and check if class is renamed correctly
+   * by comparing the result with {@code expectedFile}. Also check if class is actually renamed in the Java file.
+   */
+  public void doTestAndroidManifestRenameClass(final String filePath, final String expectedFile) throws Throwable {
+    deleteManifest();
+    VirtualFile f = myFixture.copyFileToProject(BASE_PATH + "MyClass.java", "src/p1/p2/MyClass.java");
+    myFixture.copyFileToProject(BASE_PATH + filePath, "AndroidManifest.xml");
+    myFixture.configureFromExistingVirtualFile(f);
+    checkAndRename("MyClass2");
+    myFixture.checkResultByFile(BASE_PATH + "MyClass2.java", true);
+    myFixture.checkResultByFile("AndroidManifest.xml", BASE_PATH + expectedFile, true);
+  }
+
   private void renameElementWithTextOccurences(final String newName) throws Throwable {
     new WriteCommandAction.Simple(myFixture.getProject()) {
       @Override
