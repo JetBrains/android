@@ -57,8 +57,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
-import static org.fest.util.Preconditions.checkNotNull;
 import static org.junit.Assume.assumeTrue;
 
 public class GuiTestRule implements TestRule {
