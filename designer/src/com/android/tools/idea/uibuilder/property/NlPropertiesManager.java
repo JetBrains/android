@@ -39,6 +39,7 @@ import java.util.List;
 public class NlPropertiesManager implements DesignSurfaceListener {
   public final static int UPDATE_DELAY_MSECS = 250;
 
+  private final Project myProject;
   private final JBLoadingPanel myLoadingPanel;
   private final NlPropertiesPanel myPropertiesPanel;
 
@@ -47,6 +48,7 @@ public class NlPropertiesManager implements DesignSurfaceListener {
   private MergingUpdateQueue myUpdateQueue;
 
   public NlPropertiesManager(@NotNull Project project, @NotNull DesignSurface designSurface) {
+    myProject = project;
     myLoadingPanel = new JBLoadingPanel(new BorderLayout(), project, 20);
     myPropertiesPanel = new NlPropertiesPanel();
     myLoadingPanel.add(myPropertiesPanel);
@@ -70,6 +72,11 @@ public class NlPropertiesManager implements DesignSurfaceListener {
                                     screenView.getSelectionModel().getSelection() : Collections.<NlComponent>emptyList();
       componentSelectionChanged(mySurface, selection);
     }
+  }
+
+  @NotNull
+  public Project getProject() {
+    return myProject;
   }
 
   @NotNull
