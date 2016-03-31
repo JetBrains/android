@@ -231,7 +231,6 @@ public class ThemeEditorTableTest {
     assertEquals("@android:color/primary_text_default_material_dark", state1.getValue());
     assertFalse(state1.isAlphaVisible());
 
-    dialog.focus();
     state0.getValueComponent().getSwatchButton().click();
     ChooseResourceDialogFixture secondDialog = ChooseResourceDialogFixture.find(guiTest.robot(), new GenericTypeMatcher<JDialog>(JDialog.class) {
       @Override
@@ -248,7 +247,6 @@ public class ThemeEditorTableTest {
       }
     });
 
-    dialog.focus();
     state0.getAlphaComponent().getSwatchButton().click();
     secondDialog = ChooseResourceDialogFixture.find(guiTest.robot(), new GenericTypeMatcher<JDialog>(JDialog.class) {
       @Override
@@ -257,7 +255,6 @@ public class ThemeEditorTableTest {
       }
     });
     secondDialog.getList(ChooseResourceDialog.APP_NAMESPACE_LABEL).clickItem("abc_disabled_alpha_material_dark");
-    secondDialog.focus();
     secondDialog.clickOK();
     Wait.seconds(30).expecting("component update").until(new Wait.Objective() {
       @Override
@@ -266,7 +263,6 @@ public class ThemeEditorTableTest {
       }
     });
 
-    dialog.focus();
     state1.getValueComponent().getSwatchButton().click();
     secondDialog = ChooseResourceDialogFixture.find(guiTest.robot(), new GenericTypeMatcher<JDialog>(JDialog.class) {
       @Override
@@ -285,7 +281,6 @@ public class ThemeEditorTableTest {
 
     dialog.requireNoError();
 
-    dialog.focus();
     dialog.clickOK();
     stateListCell.stopEditing();
 
