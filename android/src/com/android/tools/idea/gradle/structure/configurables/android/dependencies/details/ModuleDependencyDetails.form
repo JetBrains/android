@@ -34,13 +34,17 @@
         <constraints>
           <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
         </constraints>
-        <properties/>
+        <properties>
+          <font swing-font="Tree.font"/>
+        </properties>
       </component>
       <component id="c3776" class="org.jdesktop.swingx.JXLabel" binding="myGradlePathLabel">
         <constraints>
           <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
         </constraints>
-        <properties/>
+        <properties>
+          <font swing-font="Tree.font"/>
+        </properties>
       </component>
       <component id="88fd" class="com.intellij.ui.components.JBLabel" binding="myScopePromptLabel">
         <constraints>
@@ -56,13 +60,17 @@
         <constraints>
           <grid row="2" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
         </constraints>
-        <properties/>
+        <properties>
+          <font swing-font="Tree.font"/>
+        </properties>
       </component>
       <component id="a1c2e" class="com.intellij.ui.HyperlinkLabel" binding="myGoToLabel">
         <constraints>
           <grid row="3" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
         </constraints>
-        <properties/>
+        <properties>
+          <font swing-font="Tree.font"/>
+        </properties>
       </component>
     </children>
   </grid>
