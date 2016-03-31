@@ -80,7 +80,7 @@ import static com.android.SdkConstants.*;
  */
 public class NlModel implements Disposable, ResourceChangeListener, ModificationTracker {
   private static final Logger LOG = Logger.getInstance(NlModel.class);
-  @AndroidCoordinate public static final int VISUAL_EMPTY_COMPONENT_SIZE = 14;
+  @AndroidCoordinate private static final int VISUAL_EMPTY_COMPONENT_SIZE = 14;
 
   @NonNull private final DesignSurface mySurface;
   @NonNull private final AndroidFacet myFacet;
@@ -92,7 +92,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   private final SelectionModel mySelectionModel;
   private LintAnnotationsModel myLintAnnotationsModel;
   private final long myId;
-  private Disposable myParent;
+  private final Disposable myParent;
   private boolean myActive;
   private ResourceVersion myRenderedVersion;
   private long myModificationCount;
@@ -101,7 +101,10 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   private static final Object PROGRESS_LOCK = new Object();
 
   @NonNull
-  public static NlModel create(@NonNull DesignSurface surface, @Nullable Disposable parent, @NonNull AndroidFacet facet, @NonNull XmlFile file) {
+  public static NlModel create(@NonNull DesignSurface surface,
+                               @Nullable Disposable parent,
+                               @NonNull AndroidFacet facet,
+                               @NonNull XmlFile file) {
     return new NlModel(surface, parent, facet, file);
   }
 
@@ -123,7 +126,9 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     myRenderDelay = renderDelay;
   }
 
-  /** Notify model that it's active. A model is active by default. */
+  /**
+   * Notify model that it's active. A model is active by default.
+   */
   public void activate() {
     if (!myActive) {
       myActive = true;
@@ -136,7 +141,9 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     }
   }
 
-  /** Notify model that it's not active. This means it can stop watching for events etc. It may be activated again in the future. */
+  /**
+   * Notify model that it's not active. This means it can stop watching for events etc. It may be activated again in the future.
+   */
   public void deactivate() {
     if (myActive) {
       ResourceNotificationManager manager = ResourceNotificationManager.getInstance(myFile.getProject());
@@ -164,13 +171,17 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     requestRender();
   }
 
-  /** Like {@link #requestRender()}, but tries to do it as quickly as possible (flushes rendering queue) */
+  /**
+   * Like {@link #requestRender()}, but tries to do it as quickly as possible (flushes rendering queue)
+   */
   public void requestRenderAsap() {
     requestRender();
     getRenderingQueue().sendFlush();
   }
 
-  /** Renders immediately and synchronously */
+  /**
+   * Renders immediately and synchronously
+   */
   public void renderImmediately() {
     getRenderingQueue().cancelAllUpdates();
     if (!ApplicationManager.getApplication().isReadAccessAllowed()) {
@@ -191,7 +202,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
     synchronized (PROGRESS_LOCK) {
       if (myCurrentIndicator == null) {
-        myCurrentIndicator = new AndroidPreviewProgressIndicator(0);
+        myCurrentIndicator = new AndroidPreviewProgressIndicator();
         myCurrentIndicator.start();
       }
     }
@@ -339,8 +350,8 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     return myComponents;
   }
 
-  private final Map<XmlTag,NlComponent> myTagToComponentMap = Maps.newIdentityHashMap();
-  private final Map<XmlTag,NlComponent> myMergeComponentMap = Maps.newHashMap();
+  private final Map<XmlTag, NlComponent> myTagToComponentMap = Maps.newIdentityHashMap();
+  private final Map<XmlTag, NlComponent> myMergeComponentMap = Maps.newHashMap();
 
   private void updateHierarchy(@Nullable RenderResult result) {
     if (result == null || !result.getRenderResult().isSuccess()) {
@@ -384,7 +395,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     component.setSnapshot(snapshot);
     if (!snapshot.children.isEmpty()) {
       if (snapshot.children.size() != component.getChildCount()) {
-        // TODO: Investigate this; some layouts in iosched triggers this.
+        // TODO: Investigate this; some layouts in the Google I/O application trigger this
         return;
       }
       assert snapshot.children.size() == component.getChildCount();
@@ -393,12 +404,13 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
         assert child != null;
         updateSnapshot(child, snapshot.children.get(i));
       }
-    } else {
+    }
+    else {
       assert component.getChildCount() == 0;
     }
   }
 
-  protected void initTagMap(@NonNull NlComponent root) {
+  private void initTagMap(@NonNull NlComponent root) {
     myTagToComponentMap.clear();
     for (NlComponent component : root.getChildren()) {
       gatherTags(myTagToComponentMap, component);
@@ -414,12 +426,11 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     }
   }
 
-  @Nullable
-  private NlComponent updateHierarchy(@NonNull List<NlComponent> newRoots,
-                                      @Nullable NlComponent parent,
-                                      @NonNull ViewInfo view,
-                                      @AndroidCoordinate int parentX,
-                                      @AndroidCoordinate int parentY) {
+  private void updateHierarchy(@NonNull List<NlComponent> newRoots,
+                               @Nullable NlComponent parent,
+                               @NonNull ViewInfo view,
+                               @AndroidCoordinate int parentX,
+                               @AndroidCoordinate int parentY) {
     Object cookie = view.getCookie();
     NlComponent component = null;
     ViewInfo bounds = RenderService.getSafeBounds(view);
@@ -428,7 +439,8 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     boolean isMerge = false;
     if (cookie instanceof XmlTag) {
       tag = (XmlTag)cookie;
-    } else if (cookie instanceof MergeCookie) {
+    }
+    else if (cookie instanceof MergeCookie) {
       isMerge = true;
       cookie = ((MergeCookie)cookie).getCookie();
       if (cookie instanceof XmlTag) {
@@ -453,7 +465,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
           if (parent != null) {
             parent.addChild(mergedComponent);
           }
-          return mergedComponent;
+          return;
         }
       }
     }
@@ -472,7 +484,8 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       }
       if (component == null) {
         component = new NlComponent(this, tag);
-      } else {
+      }
+      else {
         component.children = null;
         myTagToComponentMap.remove(tag);
         component.setTag(tag);
@@ -508,8 +521,6 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     for (ViewInfo child : view.getChildren()) {
       updateHierarchy(newRoots, parent, child, parentX, parentY);
     }
-
-    return component;
   }
 
   @Nullable
@@ -548,7 +559,8 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       List<NlComponent> components = myComponents;
       if (components.size() == 1) {
         return components.get(0);
-      } else {
+      }
+      else {
         return null;
       }
     }
@@ -557,7 +569,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   }
 
   @Nullable
-  public NlComponent findViewByTag(@NonNull XmlTag tag) {
+  private NlComponent findViewByTag(@NonNull XmlTag tag) {
     // TODO: Consider using lookup map
     for (NlComponent component : myComponents) {
       NlComponent match = component.findViewByTag(tag);
@@ -570,14 +582,15 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   }
 
   @Nullable
-  public List<NlComponent> findViewsByTag(@NonNull XmlTag tag) {
+  private List<NlComponent> findViewsByTag(@NonNull XmlTag tag) {
     List<NlComponent> result = null;
     for (NlComponent view : myComponents) {
       List<NlComponent> matches = view.findViewsByTag(tag);
       if (matches != null) {
         if (result != null) {
           result.addAll(matches);
-        } else {
+        }
+        else {
           result = matches;
         }
       }
@@ -657,7 +670,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     mySelectionModel.setSelection(remaining);
   }
 
-  private void handleDeletion(@NonNull Collection<NlComponent> components) throws Exception {
+  private void handleDeletion(@NonNull Collection<NlComponent> components) {
     // Segment the deleted components into lists of siblings
     Map<NlComponent, List<NlComponent>> siblingLists = groupSiblings(components);
 
@@ -701,7 +714,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    * @return a map from parents (or null) to a list of components with the corresponding parent
    */
   @NonNull
-  public static Map<NlComponent, List<NlComponent>> groupSiblings(@NonNull Collection<? extends NlComponent> components) {
+  private static Map<NlComponent, List<NlComponent>> groupSiblings(@NonNull Collection<? extends NlComponent> components) {
     Map<NlComponent, List<NlComponent>> siblingLists = new HashMap<NlComponent, List<NlComponent>>();
 
     if (components.isEmpty()) {
@@ -748,13 +761,14 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
                                      @Nullable NlComponent parent,
                                      @Nullable NlComponent before,
                                      @NonNull InsertType insertType) {
-    String tagName =  NlComponent.viewClassToTag(fqcn);
+    String tagName = NlComponent.viewClassToTag(fqcn);
 
     XmlTag tag;
     if (parent != null) {
       // Creating a component intended to be inserted into an existing layout
       tag = parent.getTag().createChildTag(tagName, null, null, false);
-    } else {
+    }
+    else {
       // Creating a component not yet inserted into a layout. Typically done when trying to perform
       // a drag from palette, etc.
       XmlElementFactory elementFactory = XmlElementFactory.getInstance(getProject());
@@ -774,8 +788,9 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       // Creating a component intended to be inserted into an existing layout
       XmlTag parentTag = parent.getTag();
       if (before != null) {
-        tag = (XmlTag) parentTag.addBefore(tag, before.getTag());
-      } else {
+        tag = (XmlTag)parentTag.addBefore(tag, before.getTag());
+      }
+      else {
         tag = parentTag.addSubTag(tag, false);
       }
 
@@ -786,7 +801,8 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       if (tag.getAttribute(ATTR_LAYOUT_HEIGHT, ANDROID_URI) == null) {
         tag.setAttribute(ATTR_LAYOUT_HEIGHT, ANDROID_URI, VALUE_WRAP_CONTENT);
       }
-    } else {
+    }
+    else {
       // No namespace yet: use the default prefix instead
       if (tag.getAttribute(ANDROID_NS_NAME_PREFIX + ATTR_LAYOUT_WIDTH) == null) {
         tag.setAttribute(ANDROID_NS_NAME_PREFIX + ATTR_LAYOUT_WIDTH, VALUE_WRAP_CONTENT);
@@ -838,8 +854,9 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     if (before != null && before.getParent() != receiver) {
       return false;
     }
-    ViewHandlerManager handlerManager = ViewHandlerManager.get(getProject());
-    ViewHandler parentHandler = handlerManager.getHandler(receiver);
+
+    Object parentHandler = receiver.getViewHandler();
+
     if (!(parentHandler instanceof ViewGroupHandler)) {
       return false;
     }
@@ -852,7 +869,9 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       if (!groupHandler.acceptsChild(receiver, component)) {
         return false;
       }
-      ViewHandler handler = handlerManager.getHandler(component);
+
+      ViewHandler handler = ViewHandlerManager.get(getProject()).getHandler(component);
+
       if (handler != null && !handler.acceptsParent(receiver, component)) {
         return false;
       }
@@ -886,10 +905,11 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
                               @NonNull NlComponent receiver,
                               @Nullable NlComponent before,
                               @NonNull InsertType insertType) {
-    ViewHandlerManager handlerManager = ViewHandlerManager.get(getProject());
-    ViewGroupHandler groupHandler = (ViewGroupHandler)handlerManager.getHandler(receiver);
     Set<String> ids = Sets.newHashSet(NlComponent.getIds(myFacet));
+
+    ViewGroupHandler groupHandler = (ViewGroupHandler)receiver.getViewHandler();
     assert groupHandler != null;
+
     for (NlComponent component : added) {
       if (insertType.isMove()) {
         insertType = component.getParent() == receiver ? InsertType.MOVE_WITHIN : InsertType.MOVE_INTO;
@@ -941,15 +961,18 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
           item = new DnDTransferItem(new DnDTransferComponent("", xml, 200, 100));
         }
       }
-    } catch (InvalidDnDOperationException ex) {
+    }
+    catch (InvalidDnDOperationException ex) {
       if (!allowPlaceholder) {
         return null;
       }
       String defaultXml = "<placeholder xmlns:android=\"http://schemas.android.com/apk/res/android\"/>";
       item = new DnDTransferItem(new DnDTransferComponent("", defaultXml, 200, 100));
-    } catch (IOException ex) {
+    }
+    catch (IOException ex) {
       LOG.warn(ex);
-    } catch (UnsupportedFlavorException ex) {
+    }
+    catch (UnsupportedFlavorException ex) {
       LOG.warn(ex);
     }
     return item;
@@ -1073,11 +1096,6 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
   private class AndroidPreviewProgressIndicator extends ProgressIndicatorBase {
     private final Object myLock = new Object();
-    private final int myDelay;
-
-    public AndroidPreviewProgressIndicator(int delay) {
-      myDelay = delay;
-    }
 
     @Override
     public void start() {
@@ -1085,7 +1103,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       UIUtil.invokeLaterIfNeeded(new Runnable() {
         @Override
         public void run() {
-          final Timer timer = UIUtil.createNamedTimer("Android rendering progress timer", myDelay, new ActionListener() {
+          final Timer timer = UIUtil.createNamedTimer("Android rendering progress timer", 0, new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
               synchronized (myLock) {
