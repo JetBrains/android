@@ -20,10 +20,7 @@ import com.android.repository.api.RemotePackage;
 import com.android.repository.api.RepoManager;
 import com.android.repository.api.RepoPackage;
 import com.android.repository.impl.meta.RepositoryPackages;
-import com.android.sdklib.AndroidTargetHash;
-import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.IAndroidTarget;
-import com.android.sdklib.SdkVersionInfo;
+import com.android.sdklib.*;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.meta.DetailsTypes;
@@ -36,6 +33,7 @@ import com.android.tools.idea.sdk.progress.StudioProgressRunner;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.templates.TemplateUtils;
 import com.android.tools.idea.ui.ApiComboBoxItem;
+import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.dynamic.ScopedDataBinder;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.google.common.collect.ImmutableList;
@@ -196,6 +194,18 @@ public final class FormFactorApiComboBox extends JComboBox {
       AndroidVersion androidVersion = targetItem.myAndroidVersion;
       String platformPath = DetailsTypes.getPlatformPath(androidVersion);
 
+      // Update build tools: use preview versions with preview platforms, etc
+      BuildToolInfo buildTool = null;
+      if (target != null) {
+        buildTool = target.getBuildToolInfo();
+      }
+      if (buildTool == null) {
+        final AndroidSdkHandler sdkHandler = AndroidSdkUtils.tryToChooseSdkHandler();
+        buildTool = sdkHandler.getLatestBuildTool(new StudioLoggerProgressIndicator(ConfigureAndroidProjectPath.class), false);
+      }
+      if (buildTool != null) {
+        stateStore.put(WizardConstants.BUILD_TOOLS_VERSION_KEY, buildTool.getRevision().toString());
+      }
 
       // Check to see if this is installed. If not, request that we install it
       if (targetItem.myAddon != null) {

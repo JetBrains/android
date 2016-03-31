@@ -497,7 +497,7 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
         if (name.startsWith("android-")) {
           try {
             int version = Integer.parseInt(name.substring("android-".length()));
-            if (version > GradleImport.CURRENT_COMPILE_VERSION) {
+            if (version > CURRENT_COMPILE_VERSION) {
               // skip versions higher than the default compileSdkVersion since it's not specified in the ApiDemos
               // project and we'll pick up the default
               continue;
@@ -4068,15 +4068,16 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
     return null;
   }
 
+  /** Latest build tools version */
   private static final String BUILD_TOOLS_VERSION;
+
   static {
     String candidate = CURRENT_BUILD_TOOLS_VERSION;
     String sdkLocation = getTestSdkPathLocal();
     if (sdkLocation != null) {
       FakeProgressIndicator progress = new FakeProgressIndicator();
       AndroidSdkHandler sdkHandler = AndroidSdkHandler.getInstance(new File(sdkLocation));
-      final BuildToolInfo buildTool = sdkHandler.getLatestBuildTool(progress);
-      progress.assertNoErrorsOrWarnings();
+      BuildToolInfo buildTool = sdkHandler.getLatestBuildTool(progress, false);
       if (buildTool != null) {
         candidate = buildTool.getRevision().toString();
       }
