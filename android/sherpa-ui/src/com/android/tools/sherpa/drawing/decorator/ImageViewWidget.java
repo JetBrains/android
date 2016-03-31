@@ -22,12 +22,14 @@ import com.google.tnt.solver.widgets.ConstraintWidget;
 
 import java.awt.Canvas;
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Path2D;
+import java.awt.geom.Rectangle2D;
 
 /**
  * ImageView Widget widget decorator
@@ -57,7 +59,9 @@ public class ImageViewWidget extends WidgetDecorator {
     static Path2D sClosedPath2D;
     static int sPathWidth;
     static int sPathHeight;
-    AffineTransform mTransform = new AffineTransform();
+
+    private AffineTransform mTransform = new AffineTransform();
+    private Font mFont = new Font("Helvetica", Font.PLAIN, 12);
 
     static {
         sPath2D.moveTo(move[0], move[1]);
@@ -159,7 +163,6 @@ public class ImageViewWidget extends WidgetDecorator {
         int w = transform.getSwingDimension(mWidget.getDrawWidth());
         int h = transform.getSwingDimension(mWidget.getDrawHeight());
         if (WidgetDecorator.isShowFakeUI()) {
-            System.out.println("paint fake");
             fakeUIPaint(transform, g, mWidget.getDrawX(), mWidget.getDrawY());
         }
     }
@@ -200,5 +203,14 @@ public class ImageViewWidget extends WidgetDecorator {
         shape = sPath2D.createTransformedShape(mTransform);
         clipGraphics.setColor(SceneDraw.BlueprintText);
         clipGraphics.draw(shape);
+
+        String text = "ImageView";
+        int originalSize = mFont.getSize();
+        float scaleSize = transform.getSwingDimension(originalSize);
+        g.setFont(mFont.deriveFont(scaleSize));
+        FontMetrics fontMetrics = g.getFontMetrics();
+        g.setColor(Color.WHITE);
+        Rectangle2D bounds = fontMetrics.getStringBounds(text, g);
+        g.drawString(text, tx + (int) ((w - bounds.getWidth()) / 2f), ty + (int) (h - (h - bounds.getHeight()) / 3f));
     }
 }
