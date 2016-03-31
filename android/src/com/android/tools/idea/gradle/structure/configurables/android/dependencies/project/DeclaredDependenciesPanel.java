@@ -59,7 +59,6 @@ import java.util.List;
 import static com.android.tools.idea.gradle.structure.configurables.android.dependencies.UiUtil.setUp;
 import static com.intellij.icons.AllIcons.Actions.Collapseall;
 import static com.intellij.icons.AllIcons.Actions.Expandall;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static com.intellij.util.ui.tree.TreeUtil.ensureSelection;
 import static java.awt.event.MouseEvent.MOUSE_PRESSED;
@@ -91,12 +90,9 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel {
         buffer.append("<html><body><ol>");
 
         for (PsIssue issue : issues) {
-          buffer.append("<li>").append(issue.getPath().toHtml()).append(": ").append(issue.getText());
-          String description = issue.getDescription();
-          if (isNotEmpty(description)) {
-            buffer.append("<br/><br/>").append(description);
-          }
-          buffer.append("</li>");
+          buffer.append("<li>")
+                .append(issue.getPath().toHtml()).append(": ").append(issue.getText()).append("<p>&nbsp;</p>")
+                .append("</li>");
         }
 
         buffer.append("</ul></body></html");

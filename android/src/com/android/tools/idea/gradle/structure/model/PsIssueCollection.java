@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.structure.model.android.PsLibraryDependency
 import com.android.tools.idea.gradle.structure.navigation.PsLibraryDependencyPath;
 import com.android.tools.idea.gradle.structure.navigation.PsNavigationPath;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.intellij.util.containers.ConcurrentMultiMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -27,6 +28,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 
 import static com.intellij.xml.util.XmlStringUtil.escapeString;
 
@@ -79,16 +81,23 @@ public class PsIssueCollection {
       return null;
     }
 
+    // Removed duplicated lines.
+    Set<String> lines = Sets.newLinkedHashSet();
+    for (PsIssue issue : issues) {
+      lines.add(escapeString(issue.getText()));
+    }
+
     StringBuilder buffer = new StringBuilder();
     buffer.append("<html><body>");
-    int issueCount = issues.size();
+    int issueCount = lines.size();
     int problems = 0;
-    for (int i = 0; i < issueCount; i++) {
-      PsIssue issue = issues.get(i);
-      buffer.append(escapeString(issue.getText())).append("<br>");
+
+    int count = 0;
+    for (String line : lines) {
+      buffer.append(escapeString(line)).append("<br>");
       problems++;
 
-      if (i > 9 && issueCount > 12) {
+      if (count++ > 9 && issueCount > 12) {
         buffer.append(issueCount - problems).append(" more problems...<br>");
         break;
       }
