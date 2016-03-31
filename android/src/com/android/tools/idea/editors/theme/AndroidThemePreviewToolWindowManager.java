@@ -340,7 +340,7 @@ public class AndroidThemePreviewToolWindowManager implements ProjectComponent {
    */
   @Nullable("if there is no theme at the given offset or the theme couldn't be loaded")
   private ConfiguredThemeEditorStyle getThemeAtEditorOffset(@NotNull Document document, int offset) {
-    if (offset == -1) {
+    if (offset == -1 || myThemeEditorContext == null) {
       return null;
     }
 
