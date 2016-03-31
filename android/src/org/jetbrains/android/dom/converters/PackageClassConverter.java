@@ -404,27 +404,29 @@ public class PackageClassConverter extends ResolvingConverter<PsiClass> implemen
           // in such case reference updating is performed by AndroidPackageConverter.MyPsiPackageReference#bindToElement()
           return super.bindToElement(element);
         }
-        String newName = element instanceof PsiClass ? classToString((PsiClass)element, myBasePackage, "") :
-                         packageToString((PsiPackage)element, myBasePackage);
+        String newName;
+        if (element instanceof PsiClass) {
+          newName = classToString((PsiClass)element, myBasePackage, "");
+          // Check if the class has a full-qualified name. In this case, as classToString(...) will return a shortened version, add the base
+          // package as a prefix of the new name.
+          if (myBasePackage != null && AndroidUtils.isPackagePrefix(myBasePackage, getCurrentValue()) &&
+              newName != null && !newName.startsWith(myBasePackage)) {
+            newName = myBasePackage + (newName.startsWith(".") ? "" : ".") + newName;
+          }
+        } else {
+          // Check if the current package has a full-qualified name and, in case it has, make sure the renamed package
+          // has also a full-qualified name. resolveInner() is used to check if the package has full-qualified name because it returns null
+          // if the package is named using shortened notation.
+          newName = packageToString((PsiPackage)element, myBasePackage, resolve() != null);
+        }
+
         assert newName != null;
 
         final ElementManipulator<PsiElement> manipulator = ElementManipulators.getManipulator(myElement);
         final TextRange range = new TextRange(myStart, getRangeInElement().getEndOffset());
 
         if (manipulator != null) {
-          final PsiElement newElement = manipulator.handleContentChange(myElement, range, newName);
-
-          if (newElement instanceof XmlAttributeValue) {
-            final XmlAttributeValue attrValue = (XmlAttributeValue)newElement;
-            final String newRef = attrValue.getValue();
-
-            if (myBasePackage != null &&
-                myBasePackage.length() > 0 &&
-                newRef.startsWith(myBasePackage + ".")) {
-              return manipulator.handleContentChange(myElement, newRef.substring(myBasePackage.length()));
-            }
-          }
-          return newElement;
+          return manipulator.handleContentChange(myElement, range, newName);
         }
         return element;
       }
@@ -432,9 +434,9 @@ public class PackageClassConverter extends ResolvingConverter<PsiClass> implemen
       return super.bindToElement(element);
     }
 
-    private static String packageToString(PsiPackage psiPackage, String basePackageName) {
+    private static String packageToString(PsiPackage psiPackage, String basePackageName, boolean isFullQualified) {
       final String qName = psiPackage.getQualifiedName();
-      return basePackageName != null && AndroidUtils.isPackagePrefix(basePackageName, qName) ?
+      return basePackageName != null && AndroidUtils.isPackagePrefix(basePackageName, qName) && !isFullQualified ?
              qName.substring(basePackageName.length()) :
              qName;
     }
