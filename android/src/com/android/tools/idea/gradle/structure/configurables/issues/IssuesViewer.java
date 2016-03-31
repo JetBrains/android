@@ -22,6 +22,7 @@ import com.android.tools.idea.structure.dialog.ProjectStructureConfigurable;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.ui.HyperlinkAdapter;
+import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.navigation.Place;
 import org.jetbrains.annotations.NotNull;
@@ -35,6 +36,8 @@ import java.util.List;
 import java.util.Map;
 
 import static com.android.tools.idea.gradle.structure.navigation.Places.deserialize;
+import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
+import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
 import static com.intellij.util.ui.UIUtil.getTreeFont;
 import static org.jetbrains.android.util.AndroidUiUtil.setUpAsHtmlLabel;
 
@@ -100,7 +103,7 @@ public class IssuesViewer {
     int currentIssueIndex = typeCount - 1;
     PsIssue.Type type = types.get(currentIssueIndex);
     List<PsIssue> group = issuesByType.get(type);
-    ((CollapsiblePanel)myIssuesPanel3).setTitle(type.getText());
+    updateTitle(((CollapsiblePanel)myIssuesPanel3), type, group);
     myIssuesView3.setText(myRenderer.render(group));
 
     currentIssueIndex--;
@@ -113,7 +116,7 @@ public class IssuesViewer {
 
     type = types.get(currentIssueIndex);
     group = issuesByType.get(type);
-    ((CollapsiblePanel)myIssuesPanel2).setTitle(type.getText());
+    updateTitle(((CollapsiblePanel)myIssuesPanel2), type, group);
     myIssuesView2.setText(myRenderer.render(group));
 
     currentIssueIndex--;
@@ -125,10 +128,24 @@ public class IssuesViewer {
 
     type = types.get(currentIssueIndex);
     group = issuesByType.get(type);
-    ((CollapsiblePanel)myIssuesPanel1).setTitle(type.getText());
+    updateTitle(((CollapsiblePanel)myIssuesPanel1), type, group);
     myIssuesView1.setText(myRenderer.render(group));
 
     revalidateAndRepaint();
+  }
+
+  private void revalidateAndRepaint() {
+    myMainPanel.revalidate();
+    myMainPanel.repaint();
+  }
+
+  private static void updateTitle(@NotNull CollapsiblePanel panel, @NotNull PsIssue.Type type, @NotNull List<PsIssue> issues) {
+    SimpleColoredComponent title = panel.getTitleComponent();
+    title.clear();
+    title.setIcon(type.getIcon());
+    title.append(type.getText(), REGULAR_ATTRIBUTES);
+    int issueCount = issues.size();
+    title.append(" (" + issueCount + (issueCount == 1 ? " item)" : " items)"), GRAY_ATTRIBUTES);
   }
 
   @NotNull
@@ -157,11 +174,6 @@ public class IssuesViewer {
     myIssuesView3.addHyperlinkListener(hyperlinkListener);
     setUpAsHtmlLabel(myIssuesView3, font);
     ((CollapsiblePanel)myIssuesPanel3).setContents(myIssuesView3);
-  }
-
-  private void revalidateAndRepaint() {
-    myMainPanel.revalidate();
-    myMainPanel.repaint();
   }
 
   private class NavigationHyperlinkListener extends HyperlinkAdapter {
