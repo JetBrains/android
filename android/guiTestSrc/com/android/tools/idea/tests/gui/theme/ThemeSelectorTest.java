@@ -144,7 +144,6 @@ public class ThemeSelectorTest {
     JTreeFixture categoriesTree = themeSelectionDialog.getCategoriesTree();
     JListFixture themeList = themeSelectionDialog.getThemeList();
 
-    categoriesTree.focus(); // Acquire focus if the window manager did not give it
     categoriesTree.clickRow(1);
     assertEquals("Manifest Themes", categoriesTree.node(1).value());
     assertThat(ImmutableList.copyOf(themeList.contents())).hasSize(1)
