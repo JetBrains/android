@@ -23,6 +23,7 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics2D;
+import java.awt.geom.Rectangle2D;
 
 /**
  * WebView widget decorator
@@ -93,7 +94,6 @@ public class WebViewWidget extends WidgetDecorator {
         int w = transform.getSwingDimension(mWidget.getDrawWidth());
         int h = transform.getSwingDimension(mWidget.getDrawHeight());
          if (WidgetDecorator.isShowFakeUI()) {
-             System.out.println("paint fake");
             fakeUIPaint(transform,g, mWidget.getDrawX(), mWidget.getDrawY());
         }
     }
@@ -110,6 +110,7 @@ public class WebViewWidget extends WidgetDecorator {
     protected void fakeUIPaint(ViewTransform transform, Graphics2D g, int x, int y) {
         int tx = transform.getSwingX(x);
         int ty = transform.getSwingY(y);
+        int w = transform.getSwingDimension(mWidget.getDrawWidth());
         int h = transform.getSwingDimension(mWidget.getDrawHeight());
 
         int padding = transform.getSwingDimension(mPadding);
@@ -120,5 +121,8 @@ public class WebViewWidget extends WidgetDecorator {
         g.setColor(Color.WHITE);
 
         g.drawString("WWW", tx + padding, ty + fontMetrics.getAscent() + padding);
+        String text = "WebView";
+        Rectangle2D bounds = fontMetrics.getStringBounds(text, g);
+        g.drawString(text, tx + (int) ((w - bounds.getWidth()) / 2f), ty + (int) ((h - bounds.getHeight()) / 2f));
     }
 }
