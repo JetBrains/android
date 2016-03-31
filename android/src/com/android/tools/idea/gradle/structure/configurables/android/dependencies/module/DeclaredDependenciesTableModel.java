@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.structure.configurables.android.dependenci
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.PsAndroidDependencyComparator;
+import com.android.tools.idea.gradle.structure.configurables.issues.IssuesByTypeComparator;
 import com.android.tools.idea.gradle.structure.configurables.ui.AbstractPsModelTableCellRenderer;
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsIssue;
@@ -25,8 +26,6 @@ import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.android.tools.idea.gradle.structure.model.android.PsLibraryDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsModuleDependency;
-import com.android.tools.idea.gradle.structure.navigation.PsLibraryDependencyPath;
-import com.android.tools.idea.gradle.structure.navigation.PsNavigationPath;
 import com.google.common.collect.Lists;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.util.containers.Predicate;
@@ -39,13 +38,10 @@ import javax.swing.*;
 import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.structure.model.PsIssueCollection.getTooltipText;
-import static com.intellij.ui.SimpleTextAttributes.LINK_ATTRIBUTES;
-import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
-import static com.intellij.ui.SimpleTextAttributes.STYLE_WAVED;
+import static com.intellij.ui.SimpleTextAttributes.*;
 
 /**
  * Model for the table displaying the "editable" dependencies of a module.
@@ -133,25 +129,10 @@ class DeclaredDependenciesTableModel extends ListTableModel<PsAndroidDependency>
       setIconOpaque(true);
       setFocusBorderAroundIcon(true);
 
-      List<PsIssue> issues = Collections.emptyList();
-      if (myDependency instanceof PsLibraryDependency) {
-        PsLibraryDependency dependency = (PsLibraryDependency)myDependency;
-        PsNavigationPath path = new PsLibraryDependencyPath(myContext, dependency);
+      PsIssueCollection issueCollection = myContext.getDaemonAnalyzer().getIssues();
+      List<PsIssue> issues = issueCollection.findIssues(myDependency, IssuesByTypeComparator.INSTANCE);
 
-        PsIssueCollection issueCollection = myContext.getDaemonAnalyzer().getIssues();
-        issues = issueCollection.findIssues(path, new Comparator<PsIssue>() {
-          @Override
-          public int compare(PsIssue i1, PsIssue i2) {
-            return i1.getType().getPriority() - i2.getType().getPriority();
-          }
-        });
-      }
-
-      String tooltipText = null;
-      if (!issues.isEmpty()) {
-        tooltipText = getTooltipText(issues);
-      }
-      setToolTipText(tooltipText);
+      setToolTipText(getTooltipText(issues));
 
       SimpleTextAttributes textAttributes;
       if (myIsHovered) {

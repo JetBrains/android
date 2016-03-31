@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.gradle.structure.model;
 
+import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 import java.util.List;
 
@@ -32,7 +34,7 @@ public class PsIssueCollectionTest {
 
   @Before
   public void setUp() {
-    myIssueCollection = new PsIssueCollection();
+    myIssueCollection = new PsIssueCollection(Mockito.mock(PsContext.class));
   }
 
   @Test

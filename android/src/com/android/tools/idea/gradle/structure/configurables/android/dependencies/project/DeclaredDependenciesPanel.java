@@ -20,8 +20,11 @@ import com.android.tools.idea.gradle.structure.configurables.android.dependencie
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.details.ModuleDependencyDetails;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.details.ProjectLibraryDependencyDetails;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.project.treeview.DeclaredDependenciesTreeBuilder;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.*;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractDependencyNode;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractPsNodeTreeBuilder.MatchingNodeCollector;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.GoToModuleAction;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.LibraryDependencyNode;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.ModuleDependencyNode;
 import com.android.tools.idea.gradle.structure.configurables.issues.IssuesRenderer;
 import com.android.tools.idea.gradle.structure.configurables.issues.IssuesViewer;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractBaseCollapseAllAction;
@@ -30,10 +33,7 @@ import com.android.tools.idea.gradle.structure.configurables.ui.treeview.Abstrac
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.NodeHyperlinkSupport;
 import com.android.tools.idea.gradle.structure.model.PsIssue;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
-import com.android.tools.idea.gradle.structure.model.android.PsLibraryDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsModuleDependency;
-import com.android.tools.idea.gradle.structure.navigation.PsLibraryDependencyPath;
-import com.android.tools.idea.gradle.structure.navigation.PsNavigationPath;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.actionSystem.*;
@@ -176,7 +176,7 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel {
       }
     });
 
-    myHyperlinkSupport = new NodeHyperlinkSupport<ModuleDependencyNode>(myTree, ModuleDependencyNode.class);
+    myHyperlinkSupport = new NodeHyperlinkSupport<ModuleDependencyNode>(myTree, ModuleDependencyNode.class, myContext, true);
   }
 
   private void updateIssues(@Nullable AbstractDependencyNode<? extends PsAndroidDependency> selection) {
@@ -184,11 +184,7 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel {
 
     if (selection != null) {
       for (PsAndroidDependency selected : selection.getModels()) {
-        if (selected instanceof PsLibraryDependency) {
-          PsLibraryDependency dependency = (PsLibraryDependency)selected;
-          PsNavigationPath path = new PsLibraryDependencyPath(myContext, dependency);
-          issues.addAll(myContext.getDaemonAnalyzer().getIssues().findIssues(path, null));
-        }
+        issues.addAll(myContext.getDaemonAnalyzer().getIssues().findIssues(selected, null));
       }
     }
 
