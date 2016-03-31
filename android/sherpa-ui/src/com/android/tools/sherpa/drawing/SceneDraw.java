@@ -45,7 +45,6 @@ import java.awt.Point;
 public class SceneDraw {
 
     public static final int GRID_SPACING = 8; // Material Design 8dp grid
-    public static final boolean DRAW_OUTSIDE_SHADE = false;
 
     public static Color DarkBlueprintBackground = new Color(14, 45, 102);
     public static Color DarkBlueprintBackgroundLines = new Color(26, 60, 122);
@@ -59,6 +58,8 @@ public class SceneDraw {
     public static Color BlueprintSnapGuides = new Color(220, 220, 220);
     public static Color BlueprintSnapLightGuides = new Color(220, 220, 220, 128);
     public static Color DarkBlueprintFrames = ColorTheme.updateBrightness(BlueprintFrames, 0.4f);
+
+    private boolean mDrawOutsideShade = false;
 
     private final WidgetsScene mWidgetsScene;
     private final Selection mSelection;
@@ -106,6 +107,14 @@ public class SceneDraw {
         mAnimationCandidateAnchors.setDuration(1000);
         mAnimationCreatedConstraints.setDuration(600);
         generateColors();
+    }
+
+    /**
+     * Setter to draw the outside area shaded or not
+     * @param drawOutsideShade true to shade the outside area
+     */
+    public void setDrawOutsideShade(boolean drawOutsideShade) {
+        mDrawOutsideShade = drawOutsideShade;
     }
 
     /**
@@ -474,17 +483,19 @@ public class SceneDraw {
             }
         }
 
-        // Draw shaded outside area
-        if (DRAW_OUTSIDE_SHADE) {
+        if (mDrawOutsideShade) {
             int xr = transform.getSwingX(root.getDrawX());
             int yr = transform.getSwingY(root.getDrawY());
             int wr = transform.getSwingDimension(root.getDrawWidth());
             int hr = transform.getSwingDimension(root.getDrawHeight());
-            g.setColor(new Color(0, 0, 0, 32));
+            g.setColor(DarkBlueprintBackground);
             g.fillRect(transform.getTranslateX(), transform.getTranslateY(), width, yr);
             g.fillRect(transform.getTranslateX(), yr + hr, width, height - yr - hr);
             g.fillRect(transform.getTranslateX(), yr, xr, hr);
             g.fillRect(wr + xr, yr, width - xr - wr, hr);
+            g.setStroke(SnapDraw.sLongDashedStroke);
+            g.setColor(BlueprintHighlightFrames);
+            g.drawRect(xr, yr, wr, hr);
         }
         return needsRepaint;
     }
