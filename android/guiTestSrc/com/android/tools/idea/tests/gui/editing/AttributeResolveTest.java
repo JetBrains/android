@@ -29,7 +29,7 @@ import java.io.IOException;
 
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
 import static com.android.tools.idea.testing.FileSubject.file;
-import static com.google.common.truth.Truth.assert_;
+import static com.google.common.truth.Truth.assertAbout;
 import static com.intellij.openapi.util.io.FileUtil.appendToFile;
 import static com.intellij.openapi.util.io.FileUtil.join;
 import static org.junit.Assert.assertEquals;
@@ -47,7 +47,7 @@ public class AttributeResolveTest {
 
     // TODO add dependency using new parser API
     File appBuildFile = new File(guiTest.ideFrame().getProjectPath(), join("app", FN_BUILD_GRADLE));
-    assert_().about(file()).that(appBuildFile).isFile();
+    assertAbout(file()).that(appBuildFile).isFile();
     appendToFile(appBuildFile, "\ndependencies { compile 'com.android.support:cardview-v7:22.1.1' }\n");
     guiTest.ideFrame().requestProjectSync();
     guiTest.ideFrame().waitForGradleProjectSyncToFinish();
