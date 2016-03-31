@@ -29,7 +29,11 @@ import java.awt.Graphics2D;
  * Decorator for text widgets
  */
 public class TextWidget extends WidgetDecorator {
-    protected int mPadding = 0;
+    protected int mHorizontalPadding = 0;
+    protected int mVerticalPadding = 0;
+    protected int mVerticalMargin = 0;
+    protected int mHorizontalMargin = 0;
+    protected boolean mToUpperCase = false;
     private String mText;
     private Font mFont = new Font("Helvetica", Font.PLAIN, 12);
     private float mFontSize = 18;
@@ -108,8 +112,12 @@ public class TextWidget extends WidgetDecorator {
         c.setFont(mFont);
         FontMetrics fm = c.getFontMetrics(mFont);
 
-        int tw = fm.stringWidth(mText) + 2 * mPadding;
-        int th = fm.getMaxAscent() + fm.getMaxDescent() + 2 * mPadding;
+        String string = getText();
+        if (mToUpperCase) {
+            string = string.toUpperCase();
+        }
+        int tw = fm.stringWidth(string) + 2 * (mHorizontalPadding + mHorizontalMargin);
+        int th = fm.getMaxAscent() + fm.getMaxDescent() + 2 * (mVerticalPadding + mVerticalMargin);
         mWidget.setMinWidth(tw);
         mWidget.setMinHeight(th);
         if (mWidget.getHorizontalDimensionBehaviour()
@@ -133,7 +141,7 @@ public class TextWidget extends WidgetDecorator {
                         ConstraintWidget.DimensionBehaviour.WRAP_CONTENT);
             }
         }
-        int baseline = fm.getAscent() + mPadding;
+        int baseline = fm.getAscent() + mVerticalPadding+mVerticalMargin;
         mWidget.setBaselineDistance(baseline);
     }
 
@@ -151,7 +159,8 @@ public class TextWidget extends WidgetDecorator {
         int ty = transform.getSwingY(y);
         int h = transform.getSwingDimension(mWidget.getDrawHeight());
 
-        int padding = transform.getSwingDimension(mPadding);
+        int horizontalPadding = transform.getSwingDimension(mHorizontalPadding+mHorizontalMargin);
+        int verticalPadding = transform.getSwingDimension(mVerticalPadding+mVerticalMargin);
         int originalSize = mFont.getSize();
         int scaleSize = transform.getSwingDimension(originalSize);
         g.setFont(mFont.deriveFont((float) scaleSize));
@@ -161,7 +170,11 @@ public class TextWidget extends WidgetDecorator {
         } else {
             g.setColor(Color.WHITE);
         }
-
-        g.drawString(getText(), tx + padding, ty + fontMetrics.getAscent() + padding);
+        String string = getText();
+        if (mToUpperCase) {
+            string = string.toUpperCase();
+        }
+        g.drawString(string, tx + horizontalPadding,
+                ty + fontMetrics.getAscent() + verticalPadding);
     }
 }
