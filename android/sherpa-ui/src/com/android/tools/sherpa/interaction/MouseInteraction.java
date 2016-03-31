@@ -228,15 +228,19 @@ public class MouseInteraction {
                 if (mSelection.contains(widget)) {
                     ConstraintHandle handle = WidgetInteractionTargets.constraintHandle(anchor);
                     setStartPoint(handle.getDrawX(), handle.getDrawY());
+                    mSelection.clear();
+                    mSelection.add(widget);
                     mSelection.setSelectedAnchor(anchor);
                     mMouseMode = MouseMode.CONNECT;
                 }
             } else if (resizeHandle != null) {
-                mSelection.clear();
-                mSelection.setSelectedResizeHandle(resizeHandle);
                 widget = resizeHandle.getOwner();
-                mSelection.add(widget);
-                mMouseMode = MouseMode.RESIZE;
+                if (mSelection.contains(widget)) {
+                    mSelection.clear();
+                    mSelection.add(widget);
+                    mSelection.setSelectedResizeHandle(resizeHandle);
+                    mMouseMode = MouseMode.RESIZE;
+                }
             }
         }
 
