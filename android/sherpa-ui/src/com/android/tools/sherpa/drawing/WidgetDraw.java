@@ -396,6 +396,7 @@ public class WidgetDraw {
         int t = transform.getSwingY(root.getDrawY());
         int r = transform.getSwingX(root.getDrawX() + root.getWidth());
         int b = transform.getSwingY(root.getDrawY() + root.getHeight());
+        g.setFont(ConnectionDraw.sFont);
         if (guideline.getOrientation() == Guideline.HORIZONTAL) {
             int x = transform.getSwingX(guideline.getX()) + l;
             g2.drawLine(x, t, x, b);
