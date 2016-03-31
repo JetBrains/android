@@ -27,7 +27,6 @@ import static com.intellij.util.ui.UIUtil.getTreeExpandedIcon;
 import static javax.swing.BorderFactory.createEmptyBorder;
 
 public class CollapsiblePanel extends JPanel {
-
   @NotNull private final JPanel myPanel;
   @NotNull private final JCheckBox myExpandControl;
 
@@ -67,8 +66,7 @@ public class CollapsiblePanel extends JPanel {
     }
     myContents = contents;
     myPanel.add(myContents, BorderLayout.CENTER);
-    revalidate();
-    repaint();
+    revalidateAndRepaint();
   }
 
   @NotNull
@@ -105,10 +103,14 @@ public class CollapsiblePanel extends JPanel {
       else {
         remove(myPanel);
       }
-      revalidate();
-      repaint();
+      revalidateAndRepaint();
       firePropertyChange("expanded", oldExpanded, expanded);
     }
+  }
+
+  private void revalidateAndRepaint() {
+    revalidate();
+    repaint();
   }
 
   private class CollapseListener implements ChangeListener {
