@@ -79,9 +79,7 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel implem
   @NotNull private final DeclaredDependenciesTableModel myDependenciesTableModel;
   @NotNull private final TableView<PsAndroidDependency> myDependenciesTable;
   @NotNull private final ListSelectionListener myTableSelectionListener;
-
   @NotNull private final IssuesViewer myIssuesViewer;
-
   @NotNull private final String myPlaceName;
 
   @NotNull private final EventDispatcher<SelectionListener> myEventDispatcher = EventDispatcher.create(SelectionListener.class);
@@ -100,12 +98,12 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel implem
       }
     }, this);
 
-    myPlaceName = "dependencies." + module.getName() + ".place";
+    myPlaceName = createPlaceName(module.getName());
 
     getContentsPanel().add(createActionsPanel(), BorderLayout.NORTH);
     initializeDependencyDetails();
 
-    myIssuesViewer = new IssuesViewer(new IssuesRenderer() {
+    myIssuesViewer = new IssuesViewer(myContext, new IssuesRenderer() {
       @Override
       @NotNull
       public String render(@NotNull List<PsIssue> issues) {
@@ -175,6 +173,11 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel implem
     getContentsPanel().add(scrollPane, BorderLayout.CENTER);
 
     updateTableColumnSizes();
+  }
+
+  @NotNull
+  private static String createPlaceName(@NotNull String moduleName) {
+    return "dependencies." + moduleName + ".place";
   }
 
   private void initializeDependencyDetails() {
@@ -333,7 +336,7 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel implem
 
     if (selected instanceof PsLibraryDependency) {
       PsLibraryDependency dependency = (PsLibraryDependency)selected;
-      PsNavigationPath path = new PsLibraryDependencyPath(dependency);
+      PsNavigationPath path = new PsLibraryDependencyPath(myContext, dependency);
       issues = myContext.getDaemonAnalyzer().getIssues().findIssues(path, null);
     }
 
@@ -370,6 +373,10 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel implem
         dependency = model.getValueAsText();
       }
     }
+    putPath(place, dependency);
+  }
+
+  public void putPath(@NotNull Place place, @NotNull String dependency) {
     place.putPath(myPlaceName, dependency);
   }
 

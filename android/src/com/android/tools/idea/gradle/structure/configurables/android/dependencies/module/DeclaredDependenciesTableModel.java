@@ -136,7 +136,7 @@ class DeclaredDependenciesTableModel extends ListTableModel<PsAndroidDependency>
       List<PsIssue> issues = Collections.emptyList();
       if (myDependency instanceof PsLibraryDependency) {
         PsLibraryDependency dependency = (PsLibraryDependency)myDependency;
-        PsNavigationPath path = new PsLibraryDependencyPath(dependency);
+        PsNavigationPath path = new PsLibraryDependencyPath(myContext, dependency);
 
         PsIssueCollection issueCollection = myContext.getDaemonAnalyzer().getIssues();
         issues = issueCollection.findIssues(path, new Comparator<PsIssue>() {

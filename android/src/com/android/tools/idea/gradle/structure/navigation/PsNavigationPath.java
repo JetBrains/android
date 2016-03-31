@@ -15,8 +15,16 @@
  */
 package com.android.tools.idea.gradle.structure.navigation;
 
+import org.jetbrains.annotations.NotNull;
+
 public abstract class PsNavigationPath {
   public static final PsNavigationPath EMPTY_PATH = new PsNavigationPath() {
+    @Override
+    @NotNull
+    public String toHtml() {
+      return "";
+    }
+
     @Override
     public boolean equals(Object obj) {
       return this == obj;
@@ -32,4 +40,7 @@ public abstract class PsNavigationPath {
       return "<Empty Path>";
     }
   };
+
+  @NotNull
+  public abstract String toHtml();
 }
