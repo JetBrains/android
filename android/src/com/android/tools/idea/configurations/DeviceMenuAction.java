@@ -22,6 +22,7 @@ import com.android.sdklib.devices.State;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.tools.idea.ddms.screenshot.DeviceArtPainter;
+import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.multi.RenderPreviewMode;
 import com.google.common.collect.Lists;
@@ -152,65 +153,6 @@ public class DeviceMenuAction extends FlatComboAction {
     }
 
     return AndroidIcons.NeleIcons.Phone;
-  }
-
-  /** TODO: Combine with {@link com.android.tools.idea.npw.FormFactor} */
-  public enum FormFactor {
-    MOBILE, WEAR, GLASS, TV, CAR;
-    private Icon myIcon64;
-
-    public static FormFactor getFormFactor(@NotNull Device device) {
-      if (HardwareConfigHelper.isWear(device)) {
-        return WEAR;
-      } else if (HardwareConfigHelper.isTv(device)) {
-        return TV;
-      }
-      // Glass, Car not yet in the device list
-
-      return MOBILE;
-    }
-
-    @NotNull
-    public Icon getIcon() {
-      switch (this) {
-        case CAR: return AndroidIcons.FormFactors.Car_16;
-        case WEAR: return AndroidIcons.FormFactors.Wear_16;
-        case TV: return AndroidIcons.FormFactors.Tv_16;
-        case GLASS: return AndroidIcons.FormFactors.Glass_16;
-        case MOBILE:
-        default:
-          return AndroidIcons.FormFactors.Mobile_16;
-      }
-    }
-
-    @NotNull
-    public Icon getLargeIcon() {
-      switch (this) {
-        case CAR: return AndroidIcons.FormFactors.Car_128;
-        case WEAR: return AndroidIcons.FormFactors.Wear_128;
-        case TV: return AndroidIcons.FormFactors.Tv_128;
-        case GLASS: return AndroidIcons.FormFactors.Glass_128;
-        case MOBILE:
-        default:
-          return AndroidIcons.FormFactors.Mobile_128;
-      }
-    }
-
-    public boolean hasEmulator() {
-      return this != GLASS;
-    }
-
-    public Icon getIcon64() {
-      switch (this) {
-        case CAR: return AndroidIcons.FormFactors.Car_64;
-        case WEAR: return AndroidIcons.FormFactors.Wear_64;
-        case TV: return AndroidIcons.FormFactors.Tv_64;
-        case GLASS: return AndroidIcons.FormFactors.Glass_64;
-        case MOBILE:
-        default:
-          return AndroidIcons.FormFactors.Mobile_64;
-      }
-    }
   }
 
   @Override
