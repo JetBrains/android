@@ -1147,8 +1147,12 @@ public class GradleImport {
   }
 
   String getBuildToolsVersion() {
-    BuildToolInfo buildTool =
-      AndroidSdkHandler.getInstance(mySdkLocation).getLatestBuildTool(new StudioLoggerProgressIndicator(getClass()));
+    AndroidSdkHandler sdkHandler = AndroidSdkHandler.getInstance(mySdkLocation);
+    StudioLoggerProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
+    BuildToolInfo buildTool = sdkHandler.getLatestBuildTool(progress, false);
+    if (buildTool == null) {
+      buildTool = sdkHandler.getLatestBuildTool(progress, true);
+    }
     if (buildTool != null) {
       return buildTool.getRevision().toString();
     }

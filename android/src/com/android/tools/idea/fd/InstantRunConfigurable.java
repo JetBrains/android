@@ -253,7 +253,7 @@ public class InstantRunConfigurable
       // Should be at least 23.0.2
       String buildToolsVersion = "23.0.2";
       AndroidSdkHandler sdk = AndroidSdkUtils.tryToChooseSdkHandler();
-      BuildToolInfo latestBuildTool = sdk.getLatestBuildTool(new StudioLoggerProgressIndicator(InstantRunConfigurable.class));
+      BuildToolInfo latestBuildTool = sdk.getLatestBuildTool(new StudioLoggerProgressIndicator(InstantRunConfigurable.class), false);
       if (latestBuildTool != null) {
         Revision revision = latestBuildTool.getRevision();
         if (revision.compareTo(Revision.parseRevision(buildToolsVersion)) > 0) {
