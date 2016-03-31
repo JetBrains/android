@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.run;
+package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.fd.InstantRunManager;
-import com.android.tools.idea.run.tasks.DebugConnectorTask;
-import com.android.tools.idea.run.tasks.DeployApkTask;
-import com.android.tools.idea.run.tasks.LaunchTask;
-import com.android.tools.idea.run.tasks.LaunchTasksProvider;
+import com.android.tools.idea.fd.InstantRunUserFeedback;
+import com.android.tools.idea.run.ApkProviderUtil;
+import com.android.tools.idea.run.ApkProvisionException;
+import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.util.LaunchStatus;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -53,6 +53,7 @@ public class NoChangesTasksProvider implements LaunchTasksProvider {
     DeployApkTask.cacheManifestInstallationData(device, myFacet, pkgName);
 
     consolePrinter.stdout("No changes.");
+    new InstantRunUserFeedback(myFacet.getModule()).info("No changes to deploy");
     return Collections.emptyList();
   }
 
