@@ -44,9 +44,8 @@ public class UpdatablePackage implements UpdatableExternalComponent {
       return false;
     }
     RepoPackage otherPackage = (RepoPackage)otherKey;
-    // Ignore preview since we will only have created remote UpdatablePackages if previews were enabled
     return myPackage.getPath().equals(otherPackage.getPath()) &&
-           myPackage.getVersion().compareTo(otherPackage.getVersion(),Revision.PreviewComparison.IGNORE) > 0;
+           myPackage.getVersion().compareTo(otherPackage.getVersion()) > 0;
   }
 
   @Override
