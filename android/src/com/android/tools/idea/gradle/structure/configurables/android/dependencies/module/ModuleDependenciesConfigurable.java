@@ -47,6 +47,10 @@ public class ModuleDependenciesConfigurable extends AbstractDependenciesConfigur
     return myDependenciesPanel;
   }
 
+  public void putPath(@NotNull Place place, @NotNull String dependency) {
+    createOptionsPanel().putPath(place, dependency);
+  }
+
   @Override
   public ActionCallback navigateTo(@Nullable Place place, boolean requestFocus) {
     return createOptionsPanel().navigateTo(place, requestFocus);

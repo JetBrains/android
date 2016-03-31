@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.daemon.analysis;
 
+import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsIssue;
 import com.android.tools.idea.gradle.structure.model.PsIssueCollection;
@@ -30,6 +31,12 @@ import org.jetbrains.annotations.Nullable;
 import static com.android.tools.idea.gradle.structure.model.PsIssue.Type.WARNING;
 
 public class PsAndroidModuleAnalyzer extends PsModelAnalyzer<PsAndroidModule> {
+  @NotNull private final PsContext myContext;
+
+  public PsAndroidModuleAnalyzer(@NotNull PsContext context) {
+    myContext = context;
+  }
+
   @Override
   protected void doAnalyze(@NotNull PsAndroidModule module, @NotNull final PsIssueCollection issueCollection) {
     module.forEachDependency(new Predicate<PsAndroidDependency>() {
@@ -44,13 +51,13 @@ public class PsAndroidModuleAnalyzer extends PsModelAnalyzer<PsAndroidModule> {
           assert declaredSpec != null;
           String version = declaredSpec.version;
           if (version != null && version.endsWith("+")) {
-            String message = "Avoid using '+' in version numbers; can lead to unpredictable and unrepeatable builds";
+            String message = "Avoid using '+' in version numbers; can lead to unpredictable and unrepeatable builds.";
             String description = "Using '+' in dependencies lets you automatically pick up the latest available " +
                                  "version rather than a specific, named version. However, this is not recommended; " +
                                  "your builds are not repeatable; you may have tested with a slightly different " +
                                  "version than what the build server used. (Using a dynamic version as the major " +
                                  "version number is more problematic than using it in the minor version position.)";
-            PsNavigationPath path = new PsLibraryDependencyPath(libraryDependency);
+            PsNavigationPath path = new PsLibraryDependencyPath(myContext, libraryDependency);
             PsIssue issue = new PsIssue(message, description, path, WARNING);
             issueCollection.add(issue);
           }

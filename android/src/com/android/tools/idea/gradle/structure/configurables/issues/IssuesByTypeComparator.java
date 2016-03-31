@@ -13,34 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.navigation;
+package com.android.tools.idea.gradle.structure.configurables.issues;
 
+import com.android.tools.idea.gradle.structure.model.PsIssue;
 import org.jetbrains.annotations.NotNull;
 
-public abstract class PsNavigationPath {
-  public static final PsNavigationPath EMPTY_PATH = new PsNavigationPath() {
-    @Override
-    @NotNull
-    public String toHtml() {
-      return "";
-    }
+import java.util.Comparator;
 
-    @Override
-    public boolean equals(Object obj) {
-      return this == obj;
-    }
+public class IssuesByTypeComparator implements Comparator<PsIssue> {
+  @NotNull public static final IssuesByTypeComparator INSTANCE = new IssuesByTypeComparator();
 
-    @Override
-    public int hashCode() {
-      return 1;
-    }
-
-    @Override
-    public String toString() {
-      return "<Empty Path>";
-    }
-  };
-
-  @NotNull
-  public abstract String toHtml();
+  @Override
+  public int compare(PsIssue i1, PsIssue i2) {
+    return i1.getType().getPriority() - i2.getType().getPriority();
+  }
 }
