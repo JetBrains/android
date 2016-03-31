@@ -16,26 +16,40 @@
 package com.android.tools.idea.uibuilder.model;
 
 import com.intellij.psi.xml.XmlTag;
-import junit.framework.TestCase;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.Collections;
 
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class NlComponentTest extends TestCase {
+public final class NlComponentTest {
+  private NlModel myModel;
+
+  @Before
+  public void mockModel() {
+    myModel = mock(NlModel.class);
+  }
+
   private static XmlTag createTag(String tagName) {
     XmlTag tag = mock(XmlTag.class);
     when(tag.getName()).thenReturn(tagName);
     return tag;
   }
 
+  @Test
+  public void needsDefaultId() {
+    assertFalse(new NlComponent(myModel, createTag("SwitchPreference")).needsDefaultId());
+  }
+
+  @Test
   public void test() {
-    NlModel model = mock(NlModel.class);
-    NlComponent linearLayout = new NlComponent(model, createTag("LinearLayout"));
-    NlComponent textView = new NlComponent(model, createTag("TextView"));
-    NlComponent button = new NlComponent(model, createTag("Button"));
+    NlComponent linearLayout = new NlComponent(myModel, createTag("LinearLayout"));
+    NlComponent textView = new NlComponent(myModel, createTag("TextView"));
+    NlComponent button = new NlComponent(myModel, createTag("Button"));
 
     assertEquals(Collections.emptyList(), linearLayout.getChildren());
 
