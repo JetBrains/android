@@ -193,6 +193,9 @@ public class ConstraintHandle {
      * @return the straight line distance or Integer.MAX_VALUE if incompatible anchor.
      */
     public int getStraightDistanceFrom(ConstraintHandle anchor) {
+        if (anchor == null) {
+            return Integer.MAX_VALUE;
+        }
         switch (mAnchor.getType()) {
             case CENTER: {
                 if (anchor.getAnchor().isVerticalAnchor()) {

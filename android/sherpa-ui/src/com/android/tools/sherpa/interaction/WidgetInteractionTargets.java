@@ -307,6 +307,9 @@ public class WidgetInteractionTargets {
             Guideline guideline = (Guideline) mWidget;
             ConstraintAnchor anchor = guideline.getAnchor();
             ConstraintHandle handle = WidgetInteractionTargets.constraintHandle(anchor);
+            if (handle == null || anchor == null) {
+                return;
+            }
             if (guideline.getOrientation() == Guideline.HORIZONTAL) {
                 distance = (handle.getDrawX() - x) * (handle.getDrawX() - x);
             } else {

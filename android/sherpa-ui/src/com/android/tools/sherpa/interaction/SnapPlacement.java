@@ -209,6 +209,9 @@ public class SnapPlacement {
                         }
                         ConstraintHandle h1 = WidgetInteractionTargets.constraintHandle(a1);
                         ConstraintHandle h2 = WidgetInteractionTargets.constraintHandle(a2);
+                        if (h1 == null || h2 == null) {
+                            continue;
+                        }
                         int currentMargin = h1.getStraightDistanceFrom(h2);
                         if (Math.abs(currentMargin) == margin) {
                             SnapCandidate candidate = new SnapCandidate();
@@ -486,6 +489,9 @@ public class SnapPlacement {
             }
             ConstraintHandle sourceHandle = WidgetInteractionTargets.constraintHandle(source);
             ConstraintHandle targetHandle = WidgetInteractionTargets.constraintHandle(target);
+            if (sourceHandle == null || targetHandle == null) {
+                continue;
+            }
             int anchorDistance = sourceHandle.getDrawX() - targetHandle.getDrawX() - margin;
             if (isVertical) {
                 anchorDistance = sourceHandle.getDrawY() - targetHandle.getDrawY() - margin;

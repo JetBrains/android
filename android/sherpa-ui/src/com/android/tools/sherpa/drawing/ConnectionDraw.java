@@ -66,7 +66,7 @@ public class ConnectionDraw {
 
     static final int ARROW_SIDE = 8;
 
-    public static final int CONNECTION_ANCHOR_SIZE = 6;
+    public static int CONNECTION_ANCHOR_SIZE = 6;
     static final int CONNECTION_ARROW_SIZE = 4;
     static final int CONNECTION_RESIZE_SIZE = 4;
     static final int CONNECTION_CURVE_SIZE = 4;
