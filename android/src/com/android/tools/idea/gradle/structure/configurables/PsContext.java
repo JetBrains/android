@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.structure.configurables;
 import com.android.tools.idea.gradle.structure.daemon.PsDaemonAnalyzer;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.PsProject;
+import com.android.tools.idea.structure.dialog.ProjectStructureConfigurable;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.util.EventDispatcher;
@@ -80,6 +81,11 @@ public class PsContext implements Disposable {
 
   @Override
   public void dispose() {
+  }
+
+  @NotNull
+  public ProjectStructureConfigurable getMainConfigurable() {
+    return ProjectStructureConfigurable.getInstance(myProject.getResolvedModel());
   }
 
   public interface ChangeListener extends EventListener {
