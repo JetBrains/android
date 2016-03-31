@@ -33,6 +33,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 
 /**
@@ -169,6 +170,12 @@ public class ReRunAction extends DumbAwareAction implements AnAction.Transparent
   private static boolean isCleanBuild(@NotNull AnActionEvent e) {
     // invoked from the menu
     if (ActionPlaces.isMainMenuOrActionSearch(e.getPlace())) {
+      // For some reason, keyboard shortcuts are also reporting place = "MainMenu"
+      // so disambiguate keyboard shortcut invocations based on the input event type
+      if (e.getInputEvent() instanceof KeyEvent) {
+        return false;
+      }
+
       return true;
     }
 
