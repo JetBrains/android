@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.structure.configurables.android.dependenci
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.details.DependencyDetails;
+import com.android.tools.idea.gradle.structure.configurables.issues.IssuesViewer;
 import com.android.tools.idea.gradle.structure.configurables.ui.EmptyPanel;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
@@ -52,6 +53,8 @@ import java.util.Map;
 import static com.intellij.ui.IdeBorderFactory.createEmptyBorder;
 import static com.intellij.ui.ScrollPaneFactory.createScrollPane;
 import static com.intellij.util.PlatformIcons.LIBRARY_ICON;
+import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
+import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 
 public abstract class AbstractDeclaredDependenciesPanel extends JPanel implements Place.Navigator, Disposable {
   @NotNull private final PsContext myContext;
@@ -79,7 +82,7 @@ public abstract class AbstractDeclaredDependenciesPanel extends JPanel implement
     myEmptyDetailsPanel = new EmptyPanel(myEmptyText);
     myInfoPanel = new DependencyInfoPanel();
 
-    myInfoScrollPane = createScrollPane(myEmptyDetailsPanel);
+    myInfoScrollPane = createScrollPane(myEmptyDetailsPanel, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER);
     myInfoScrollPane.setBorder(createEmptyBorder());
 
     Header header = new Header(title);
@@ -96,19 +99,19 @@ public abstract class AbstractDeclaredDependenciesPanel extends JPanel implement
     add(splitter, BorderLayout.CENTER);
   }
 
-  protected final void addDetails(@NotNull DependencyDetails<?> details) {
+  protected void addDetails(@NotNull DependencyDetails<?> details) {
     myDependencyDetails.put(details.getSupportedModelType(), details);
   }
 
-  protected void setIssuesViewer(@NotNull JComponent issuesViewer) {
-    myInfoPanel.setFoundIssuesViewer(issuesViewer);
+  protected void setIssuesViewer(@NotNull IssuesViewer issuesViewer) {
+    myInfoPanel.setIssuesViewer(issuesViewer);
   }
 
   protected void updateDetails(@Nullable PsAndroidDependency selected) {
     if (selected != null) {
       myCurrentDependencyDetails = myDependencyDetails.get(selected.getClass());
       if (myCurrentDependencyDetails != null) {
-        myInfoPanel.setDetails(myCurrentDependencyDetails);
+        myInfoPanel.setDependencyDetails(myCurrentDependencyDetails);
         myInfoScrollPane.setViewportView(myInfoPanel.getPanel());
         //noinspection unchecked
         myCurrentDependencyDetails.display(selected);
