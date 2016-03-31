@@ -49,7 +49,7 @@ public class CheckboxWidget extends TextWidget {
         if (mImage == null) {
             mImage = WidgetDecorator.loadImage(getImagePath());
         }
-        int extra = mImage.getWidth() + 2 * mPadding;
+        int extra = mImage.getWidth() + 2 * mHorizontalPadding;
         mWidget.setMinWidth(mWidget.getMinWidth() + extra);
         mWidget.setMinHeight(mWidget.getMinHeight());
         mWidget.setDimension(0, 0);
@@ -63,7 +63,7 @@ public class CheckboxWidget extends TextWidget {
             int y = transform.getSwingX(mWidget.getDrawY());
             int h = transform.getSwingDimension(mWidget.getDrawHeight());
             int ih = transform.getSwingDimension(mImage.getHeight());
-            g.drawImage(mImage, x, y + (h - ih) / 2, ih, ih, null);
+            g.drawImage(mImage, x, y, h, h, null);
         }
     }
 
