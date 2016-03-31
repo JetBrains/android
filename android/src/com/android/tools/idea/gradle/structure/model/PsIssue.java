@@ -56,6 +56,11 @@ public class PsIssue {
     return myText;
   }
 
+  @Nullable
+  public String getDescription() {
+    return myDescription;
+  }
+
   @NotNull
   public Type getType() {
     return myType;

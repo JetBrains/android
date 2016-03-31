@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies;
 
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.details.DependencyDetails;
+import com.android.tools.idea.gradle.structure.configurables.issues.IssuesViewer;
 import com.android.tools.idea.gradle.structure.configurables.ui.CollapsiblePanel;
 import org.jetbrains.annotations.NotNull;
 
@@ -23,12 +24,12 @@ import javax.swing.*;
 
 class DependencyInfoPanel {
   private JPanel myMainPanel;
-  private JPanel myDetailsPanel;
+  private JPanel myDependencyDetailsPanel;
   private JPanel myIssuesPanel;
 
-  void setDetails(@NotNull DependencyDetails details) {
-    ((CollapsiblePanel)myDetailsPanel).setContents(details.getPanel());
-    revalidateAndRepaint();
+  void setDependencyDetails(@NotNull DependencyDetails details) {
+    ((CollapsiblePanel)myDependencyDetailsPanel).setContents(details.getPanel());
+    revalidateAndRepaint(myMainPanel);
   }
 
   @NotNull
@@ -36,18 +37,18 @@ class DependencyInfoPanel {
     return myMainPanel;
   }
 
-  void setFoundIssuesViewer(@NotNull JComponent viewer) {
-    ((CollapsiblePanel)myIssuesPanel).setContents(viewer);
-    revalidateAndRepaint();
+  void setIssuesViewer(@NotNull IssuesViewer viewer) {
+    ((CollapsiblePanel)myIssuesPanel).setContents(viewer.getPanel());
+    revalidateAndRepaint(myMainPanel);
   }
 
-  private void revalidateAndRepaint() {
-    myMainPanel.revalidate();
-    myMainPanel.repaint();
+  private static void revalidateAndRepaint(@NotNull JComponent c) {
+    c.revalidate();
+    c.repaint();
   }
 
   private void createUIComponents() {
-    myDetailsPanel = new CollapsiblePanel("Details");
+    myDependencyDetailsPanel = new CollapsiblePanel("Details");
     myIssuesPanel = new CollapsiblePanel("Messages");
   }
 }

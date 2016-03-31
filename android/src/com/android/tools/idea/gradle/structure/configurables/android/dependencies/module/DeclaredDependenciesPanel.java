@@ -20,8 +20,9 @@ import com.android.tools.idea.gradle.structure.configurables.android.dependencie
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.details.DependencyDetails;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.details.ModuleDependencyDetails;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.details.ModuleLibraryDependencyDetails;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.issues.module.IssuesTreeBuilder;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.treeview.DependencySelection;
+import com.android.tools.idea.gradle.structure.configurables.issues.IssuesRenderer;
+import com.android.tools.idea.gradle.structure.configurables.issues.IssuesViewer;
 import com.android.tools.idea.gradle.structure.daemon.PsDaemonAnalyzer;
 import com.android.tools.idea.gradle.structure.model.PsIssue;
 import com.android.tools.idea.gradle.structure.model.PsModel;
@@ -33,18 +34,14 @@ import com.android.tools.idea.gradle.structure.navigation.PsLibraryDependencyPat
 import com.android.tools.idea.gradle.structure.navigation.PsNavigationPath;
 import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
-import com.intellij.ide.util.treeView.NodeRenderer;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonShortcuts;
 import com.intellij.openapi.project.DumbAwareAction;
-import com.intellij.openapi.roots.ui.CellAppearanceEx;
 import com.intellij.openapi.util.ActionCallback;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.navigation.History;
 import com.intellij.ui.navigation.Place;
 import com.intellij.ui.table.TableView;
-import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.EventDispatcher;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -52,8 +49,6 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeModel;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
@@ -64,7 +59,7 @@ import java.util.EventListener;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.structure.configurables.android.dependencies.UiUtil.isMetaOrCtrlKeyPressed;
-import static com.android.tools.idea.gradle.structure.configurables.android.dependencies.UiUtil.setUp;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.ui.IdeBorderFactory.createEmptyBorder;
 import static com.intellij.ui.ScrollPaneFactory.createScrollPane;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
@@ -85,8 +80,7 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel implem
   @NotNull private final TableView<PsAndroidDependency> myDependenciesTable;
   @NotNull private final ListSelectionListener myTableSelectionListener;
 
-  @NotNull private final Tree myIssuesTree;
-  @NotNull private final IssuesTreeBuilder myIssuesTreeBuilder;
+  @NotNull private final IssuesViewer myIssuesViewer;
 
   @NotNull private final String myPlaceName;
 
@@ -111,26 +105,27 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel implem
     getContentsPanel().add(createActionsPanel(), BorderLayout.NORTH);
     initializeDependencyDetails();
 
-    DefaultTreeModel treeModel = new DefaultTreeModel(new DefaultMutableTreeNode());
-    myIssuesTree = new Tree(treeModel);
-    myIssuesTree.setCellRenderer(new NodeRenderer() {
+    myIssuesViewer = new IssuesViewer(new IssuesRenderer() {
       @Override
-      public void customizeCellRenderer(JTree tree,
-                                        Object value,
-                                        boolean selected,
-                                        boolean expanded,
-                                        boolean leaf,
-                                        int row,
-                                        boolean hasFocus) {
-        super.customizeCellRenderer(tree, value, selected, expanded, leaf, row, hasFocus);
-        Object userObject = ((DefaultMutableTreeNode)value).getUserObject();
-        if (userObject instanceof CellAppearanceEx) {
-          ((CellAppearanceEx)userObject).customize(this);
+      @NotNull
+      public String render(@NotNull List<PsIssue> issues) {
+        StringBuilder buffer = new StringBuilder();
+        buffer.append("<html><body><ol>");
+
+        for (PsIssue issue : issues) {
+          buffer.append("<li>").append(issue.getText());
+          String description = issue.getDescription();
+          if (isNotEmpty(description)) {
+            buffer.append("<br/><br/>").append(description);
+          }
+          buffer.append("</li>");
         }
+
+        buffer.append("</ul></body></html");
+        return buffer.toString();
       }
     });
-    myIssuesTreeBuilder = new IssuesTreeBuilder(myIssuesTree, treeModel);
-    setIssuesViewer(setUp(myIssuesTree));
+    setIssuesViewer(myIssuesViewer);
 
     myDependenciesTableModel = new DeclaredDependenciesTableModel(module, myContext);
     myDependenciesTable = new TableView<PsAndroidDependency>(myDependenciesTableModel) {
@@ -277,7 +272,6 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel implem
 
   @Override
   public void dispose() {
-    Disposer.dispose(myIssuesTreeBuilder);
     if (myKeyEventDispatcher != null) {
       KeyboardFocusManager.getCurrentKeyboardFocusManager().removeKeyEventDispatcher(myKeyEventDispatcher);
     }
@@ -343,7 +337,7 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel implem
       issues = myContext.getDaemonAnalyzer().getIssues().findIssues(path, null);
     }
 
-    myIssuesTreeBuilder.display(issues);
+    myIssuesViewer.display(issues);
   }
 
   @Override
