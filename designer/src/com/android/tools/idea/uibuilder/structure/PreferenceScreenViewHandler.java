@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.uibuilder.structure;
 
-import com.android.tools.idea.uibuilder.api.ViewHandler;
+import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import org.jetbrains.annotations.NotNull;
 
-final class PreferenceScreenViewHandler extends ViewHandler {
+final class PreferenceScreenViewHandler extends ViewGroupHandler {
   @NotNull
   @Override
   public String getTitle(@NotNull NlComponent component) {
