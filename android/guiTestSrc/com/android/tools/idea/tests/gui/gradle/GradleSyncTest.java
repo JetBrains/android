@@ -90,7 +90,9 @@ import org.junit.runner.RunWith;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
@@ -98,6 +100,8 @@ import java.util.Properties;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.AndroidTestCaseHelper.getSystemPropertyOrEnvironmentVariable;
@@ -1002,10 +1006,18 @@ public class GradleSyncTest {
   // See https://code.google.com/p/android/issues/detail?id=73087
   @Test
   public void testUserDefinedLibraryAttachments() throws IOException {
-    File javadocJarPath = getFilePathProperty("guava.javadoc.jar.path", "the path of the Javadoc jar file for Guava", false);
-    assume().that(javadocJarPath).isNotNull();
-
     guiTest.importProjectAndWaitForProjectSyncToFinish("MultipleModuleTypes");
+
+    File javadocJarPath = new File(guiTest.getProjectPath(), "fake-javadoc.jar");
+    ZipOutputStream zos = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(javadocJarPath)));
+    try {
+      zos.putNextEntry(new ZipEntry("allclasses-frame.html"));
+      zos.putNextEntry(new ZipEntry("allclasses-noframe.html"));
+    } finally {
+      zos.close();
+    }
+    refreshFiles();
+
     LibraryPropertiesDialogFixture propertiesDialog = guiTest.ideFrame().showPropertiesForLibrary("guava");
     propertiesDialog.addAttachment(javadocJarPath).clickOk();
 
