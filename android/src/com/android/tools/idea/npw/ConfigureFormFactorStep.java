@@ -98,9 +98,6 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
         continue;
       }
       FormFactor formFactor = FormFactor.get(metadata.getFormFactor());
-      if (formFactor == null) {
-        continue;
-      }
       Integer prevMinSdk = myFormFactors.get(formFactor);
       int templateMinSdk = metadata.getMinSdk();
       if (prevMinSdk == null || templateMinSdk > prevMinSdk) {

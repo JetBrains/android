@@ -22,7 +22,6 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.sdklib.repository.targets.SystemImage;
-import com.android.tools.idea.configurations.DeviceMenuAction;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Maps;
 import org.jetbrains.annotations.NotNull;
@@ -186,7 +185,7 @@ public class FormFactorUtils {
   public static Icon getFormFactorsImage(JComponent component, boolean requireEmulator) {
     int width = 0;
     int height = 0;
-    for (DeviceMenuAction.FormFactor formFactor : DeviceMenuAction.FormFactor.values()) {
+    for (FormFactor formFactor : FormFactor.values()) {
       Icon icon = formFactor.getLargeIcon();
       height = icon.getIconHeight();
       if (!requireEmulator || formFactor.hasEmulator()) {
@@ -197,7 +196,7 @@ public class FormFactorUtils {
     BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
     Graphics2D graphics = image.createGraphics();
     int x = 0;
-    for (DeviceMenuAction.FormFactor formFactor : DeviceMenuAction.FormFactor.values()) {
+    for (FormFactor formFactor : FormFactor.values()) {
       if (requireEmulator && !formFactor.hasEmulator()) {
         continue;
       }
