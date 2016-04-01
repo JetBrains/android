@@ -42,15 +42,15 @@ public class HardwareProfileTest {
     ChooseDeviceDefinitionStepFixture step = avdEditWizard.selectHardware();
     assertWithMessage("initial state").that(step.deviceNames()).doesNotContain(deviceName);
 
-    DeviceEditWizardFixture deviceEditWizard = step.newHardwareProfile();
-    ConfigureDeviceOptionsStepFixture deviceOptionsStep = deviceEditWizard.getConfigureDeviceOptionsStep();
+    HardwareProfileWizardFixture hardwareProfileWizard = step.newHardwareProfile();
+    ConfigureDeviceOptionsStepFixture deviceOptionsStep = hardwareProfileWizard.getConfigureDeviceOptionsStep();
     deviceOptionsStep.setDeviceName(deviceName)
                      .selectHasFrontCamera(false)
                      .setScreenResolutionX(1280)
                      .setScreenResolutionY(920)
                      .setScreenSize(5.2);
     guiTest.robot().waitForIdle();
-    deviceEditWizard.clickFinish();
+    hardwareProfileWizard.clickFinish();
     assertWithMessage("after creating").that(step.deviceNames()).contains(deviceName);
 
     step.deleteHardwareProfile(deviceName);
