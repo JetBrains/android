@@ -35,6 +35,7 @@ import com.android.tools.sherpa.structure.WidgetsScene;
 import com.android.tools.sherpa.structure.Selection;
 import com.google.tnt.solver.widgets.*;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Point;
@@ -60,6 +61,8 @@ public class SceneDraw {
     public static Color DarkBlueprintFrames = ColorTheme.updateBrightness(BlueprintFrames, 0.4f);
 
     private boolean mDrawOutsideShade = false;
+    private boolean mDrawResizeHandle = false;
+
     private int mViewWidth;
     private int mViewHeight;
 
@@ -113,10 +116,20 @@ public class SceneDraw {
 
     /**
      * Setter to draw the outside area shaded or not
+     *
      * @param drawOutsideShade true to shade the outside area
      */
     public void setDrawOutsideShade(boolean drawOutsideShade) {
         mDrawOutsideShade = drawOutsideShade;
+    }
+
+    /**
+     * Setter to draw or not a resize handle on the root container
+     *
+     * @param drawResizeHandle if true, will draw a resize handle
+     */
+    public void setDrawResizeHandle(boolean drawResizeHandle) {
+        mDrawResizeHandle = drawResizeHandle;
     }
 
     /**
@@ -312,11 +325,11 @@ public class SceneDraw {
         }
         needsRepaint |= decorator.onPaint(transform, g);
         if (container == mWidgetsScene.getRoot()) {
+            int xr = transform.getSwingX(container.getDrawX());
+            int yr = transform.getSwingY(container.getDrawY());
+            int wr = transform.getSwingDimension(container.getDrawWidth());
+            int hr = transform.getSwingDimension(container.getDrawHeight());
             if (mDrawOutsideShade) {
-                int xr = transform.getSwingX(container.getDrawX());
-                int yr = transform.getSwingY(container.getDrawY());
-                int wr = transform.getSwingDimension(container.getDrawWidth());
-                int hr = transform.getSwingDimension(container.getDrawHeight());
                 g.setColor(DarkBlueprintBackground);
                 g.fillRect(transform.getTranslateX(), transform.getTranslateY(), mViewWidth, yr);
                 g.fillRect(transform.getTranslateX(), yr + hr, mViewWidth, mViewHeight - yr - hr);
@@ -325,6 +338,14 @@ public class SceneDraw {
                 g.setStroke(SnapDraw.sLongDashedStroke);
                 g.setColor(BlueprintHighlightFrames);
                 g.drawRect(xr, yr, wr, hr);
+            }
+            if (mDrawResizeHandle) {
+                g.setColor(BlueprintHighlightFrames);
+                int resizeHandleSize = 10;
+                int gap = 8;
+                g.setStroke(new BasicStroke(3));
+                g.drawLine(xr + wr - resizeHandleSize, yr + hr + gap, xr + wr + gap, yr + hr + gap);
+                g.drawLine(xr + wr + gap, yr + hr - resizeHandleSize, xr + wr + gap, yr + hr + gap);
             }
         }
         for (ConstraintWidget widget : container.getChildren()) {

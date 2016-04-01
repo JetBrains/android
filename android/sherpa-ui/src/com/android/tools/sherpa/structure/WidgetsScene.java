@@ -158,7 +158,7 @@ public class WidgetsScene {
             containers = WidgetsScene.gatherContainers(root);
         }
     }
-    
+
     /**
      * Find a widget at the coordinate (x, y), taking the decorator visibility in account
      *

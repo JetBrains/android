@@ -34,10 +34,10 @@ public class ButtonWidget extends TextWidget {
      */
     public ButtonWidget(ConstraintWidget widget, String text) {
         super(widget, text);
-        mHorizontalPadding = 8;
-        mVerticalPadding = 4;
-        mHorizontalMargin = 6;
-        mVerticalMargin = 4;
+        mHorizontalPadding = 4;
+        mVerticalPadding = 8;
+        mHorizontalMargin = 4;
+        mVerticalMargin = 6;
         mToUpperCase = true;
     }
 
@@ -45,11 +45,12 @@ public class ButtonWidget extends TextWidget {
     public void onPaintBackground(ViewTransform transform, Graphics2D g) {
         super.onPaintBackground(transform, g);
         if (WidgetDecorator.isShowFakeUI()) {
-            int x = transform.getSwingX(mWidget.getDrawX() + mHorizontalPadding);
-            int y = transform.getSwingX(mWidget.getDrawY() + mVerticalPadding);
-            int w = transform.getSwingDimension(mWidget.getDrawWidth() - mHorizontalPadding * 2);
-            int h = transform.getSwingDimension(mWidget.getDrawHeight() - mVerticalPadding * 2);
-            g.drawRect(x, y, w, h);
+            int x = transform.getSwingX(mWidget.getDrawX() + mHorizontalMargin);
+            int y = transform.getSwingX(mWidget.getDrawY() + mVerticalMargin);
+            int w = transform.getSwingDimension(mWidget.getDrawWidth() - mHorizontalMargin * 2);
+            int h = transform.getSwingDimension(mWidget.getDrawHeight() - mVerticalMargin * 2);
+            int round = transform.getSwingDimension(5);
+            g.drawRoundRect(x, y, w, h, round, round);
         }
     }
 }
