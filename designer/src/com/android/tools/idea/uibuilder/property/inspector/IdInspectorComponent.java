@@ -32,7 +32,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Map;
 
-
 public class IdInspectorComponent implements InspectorComponent, ActionListener, NlEnumEditor.Listener {
   @NotNull private final NlPropertiesManager myPropertiesManager;
 

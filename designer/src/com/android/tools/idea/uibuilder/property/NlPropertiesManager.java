@@ -99,7 +99,7 @@ public class NlPropertiesManager implements DesignSurfaceListener {
     ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
       @Override
       public void run() {
-        final List<NlProperty> properties = NlProperties.getInstance().getProperties(component);
+        final List<NlPropertyItem> properties = NlProperties.getInstance().getProperties(component);
 
         UIUtil.invokeLaterIfNeeded(new Runnable() {
           @Override
@@ -115,7 +115,7 @@ public class NlPropertiesManager implements DesignSurfaceListener {
   }
 
   private void setEmptySelection() {
-    myPropertiesPanel.setItems(null, Collections.<NlProperty>emptyList(), this);
+    myPropertiesPanel.setItems(null, Collections.<NlPropertyItem>emptyList(), this);
   }
 
   public void setValue(@NotNull NlProperty property, @NotNull String value) {

@@ -48,17 +48,17 @@ public class NlProperties {
   }
 
   @NotNull
-  public List<NlProperty> getProperties(@NotNull final NlComponent component) {
-    return ApplicationManager.getApplication().runReadAction(new Computable<List<NlProperty>>() {
+  public List<NlPropertyItem> getProperties(@NotNull final NlComponent component) {
+    return ApplicationManager.getApplication().runReadAction(new Computable<List<NlPropertyItem>>() {
       @Override
-      public List<NlProperty> compute() {
+      public List<NlPropertyItem> compute() {
         return getPropertiesWithReadLock(component);
       }
     });
   }
 
   @NotNull
-  private List<NlProperty> getPropertiesWithReadLock(@NotNull NlComponent component) {
+  private List<NlPropertyItem> getPropertiesWithReadLock(@NotNull NlComponent component) {
     XmlTag tag = component.getTag();
     if (!tag.isValid()) {
       return Collections.emptyList();
@@ -75,7 +75,7 @@ public class NlProperties {
     }
 
     XmlAttributeDescriptor[] descriptors = elementDescriptor.getAttributesDescriptors(tag);
-    List<NlProperty> properties = Lists.newArrayListWithExpectedSize(descriptors.length);
+    List<NlPropertyItem> properties = Lists.newArrayListWithExpectedSize(descriptors.length);
 
     ResourceManager localResourceManager = facet.getLocalResourceManager();
     ResourceManager systemResourceManager = facet.getSystemResourceManager();
@@ -95,7 +95,7 @@ public class NlProperties {
       }
       AttributeDefinitions attrDefs = SdkConstants.NS_RESOURCES.equals(namespace) ? systemAttrDefs : localAttrDefs;
       AttributeDefinition attrDef = attrDefs == null ? null : attrDefs.getAttrDefByName(desc.getName());
-      properties.add(NlProperty.create(component, desc, attrDef));
+      properties.add(NlPropertyItem.create(component, desc, attrDef));
     }
 
     return properties;

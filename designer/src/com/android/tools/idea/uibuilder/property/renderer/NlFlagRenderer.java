@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.property.renderer;
 
-import com.android.tools.idea.uibuilder.property.NlFlagProperty;
-import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
+import com.android.tools.idea.uibuilder.property.NlFlagPropertyItem;
+import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.intellij.ui.components.JBLabel;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.annotations.NotNull;
@@ -37,13 +37,13 @@ public class NlFlagRenderer extends NlAttributeRenderer {
 
   @Override
   public void customizeRenderContent(@NotNull JTable table,
-                                     @NotNull PTableItem item,
+                                     @NotNull NlProperty p,
                                      boolean selected,
                                      boolean hasFocus,
                                      int row,
                                      int col) {
-    assert item instanceof NlFlagProperty;
-    NlFlagProperty property = (NlFlagProperty)item;
+    assert p instanceof NlFlagPropertyItem;
+    NlFlagPropertyItem property = (NlFlagPropertyItem)p;
 
     if (col != 1) {
       return;
@@ -53,12 +53,12 @@ public class NlFlagRenderer extends NlAttributeRenderer {
 
   @Nullable
   @Override
-  public Icon getHoverIcon(@NotNull PTableItem p) {
+  public Icon getHoverIcon(@NotNull NlProperty p) {
     return null;
   }
 
   @Override
-  public boolean canRender(@NotNull PTableItem item, @NotNull Set<AttributeFormat> formats) {
+  public boolean canRender(@NotNull NlProperty item, @NotNull Set<AttributeFormat> formats) {
     return formats.contains(AttributeFormat.Flag);
   }
 }

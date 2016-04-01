@@ -43,7 +43,7 @@ public class NlPropertiesTest extends LayoutTestCase {
     XmlTag rootTag = xmlFile.getRootTag();
     assert rootTag != null;
 
-    List<NlProperty> properties = NlProperties.getInstance().getProperties(MockNlComponent.create(rootTag));
+    List<NlPropertyItem> properties = NlProperties.getInstance().getProperties(MockNlComponent.create(rootTag));
     assertTrue(properties.size() > 120); // at least 124 attributes (view + layouts) are available as of API 22
 
     // check that some of the View's attributes are there..
@@ -73,7 +73,7 @@ public class NlPropertiesTest extends LayoutTestCase {
     XmlTag[] subTags = rootTag.getSubTags();
     assertEquals(1, subTags.length);
 
-    List<NlProperty> properties = NlProperties.getInstance().getProperties(MockNlComponent.create(subTags[0]));
+    List<NlPropertyItem> properties = NlProperties.getInstance().getProperties(MockNlComponent.create(subTags[0]));
     assertTrue(properties.size() > 180); // at least 190 attributes are available as of API 22
 
     // A text view should have all of its attributes and the parent class's (View) attributes
@@ -97,7 +97,7 @@ public class NlPropertiesTest extends LayoutTestCase {
     XmlTag[] subTags = rootTag.getSubTags();
     assertEquals(1, subTags.length);
 
-    List<NlProperty> properties = NlProperties.getInstance().getProperties(MockNlComponent.create(subTags[0]));
+    List<NlPropertyItem> properties = NlProperties.getInstance().getProperties(MockNlComponent.create(subTags[0]));
     assertTrue("# of properties lesser than expected: " + properties.size(), properties.size() > 90);
 
     assertPresent(tag, properties, VIEW_ATTRS);
@@ -114,9 +114,9 @@ public class NlPropertiesTest extends LayoutTestCase {
     XmlTag[] subTags = rootTag.getSubTags();
     assertEquals(1, subTags.length);
 
-    List<NlProperty> properties = NlProperties.getInstance().getProperties(MockNlComponent.create(subTags[0]));
+    List<NlPropertyItem> properties = NlProperties.getInstance().getProperties(MockNlComponent.create(subTags[0]));
 
-    NlProperty p = getPropertyByName(properties, "id");
+    NlPropertyItem p = getPropertyByName(properties, "id");
     assertNotNull(p);
 
     assertEquals("id", p.getName());
@@ -203,7 +203,7 @@ public class NlPropertiesTest extends LayoutTestCase {
     XmlTag[] subTags = rootTag.getSubTags();
     assertEquals(1, subTags.length);
 
-    List<NlProperty> properties = NlProperties.getInstance().getProperties(MockNlComponent.create(subTags[0]));
+    List<NlPropertyItem> properties = NlProperties.getInstance().getProperties(MockNlComponent.create(subTags[0]));
     assertTrue(properties.size() > 180); // at least 190 attributes are available as of API 22
 
     // The attrs.xml in appcompat-22.0.0 includes android:focusable, theme and android:theme.
@@ -213,8 +213,8 @@ public class NlPropertiesTest extends LayoutTestCase {
   }
 
   @Nullable
-  public static NlProperty getPropertyByName(@NotNull List<NlProperty> properties, @NotNull String name) {
-    for (NlProperty property : properties) {
+  public static NlPropertyItem getPropertyByName(@NotNull List<NlPropertyItem> properties, @NotNull String name) {
+    for (NlPropertyItem property : properties) {
       if (name.equals(property.getName())) {
         return property;
       }
@@ -223,13 +223,13 @@ public class NlPropertiesTest extends LayoutTestCase {
     return null;
   }
 
-  private static void assertPresent(String tag, List<NlProperty> properties, String... names) {
+  private static void assertPresent(String tag, List<NlPropertyItem> properties, String... names) {
     for (String n : names) {
       assertNotNull("Missing attribute " + n + " for " + tag, getPropertyByName(properties, n));
     }
   }
 
-  private static void assertAbsent(String tag, List<NlProperty> properties, String... names) {
+  private static void assertAbsent(String tag, List<NlPropertyItem> properties, String... names) {
     for (String n : names) {
       assertNull("Attribute " + n + " not applicable for a " + tag, getPropertyByName(properties, n));
     }

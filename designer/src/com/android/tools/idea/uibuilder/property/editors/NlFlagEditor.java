@@ -16,7 +16,7 @@
 package com.android.tools.idea.uibuilder.property.editors;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.uibuilder.property.NlFlagPropertyValue;
+import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.ptable.PTableCellEditor;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.util.ui.UIUtil;
@@ -30,7 +30,7 @@ public class NlFlagEditor extends PTableCellEditor implements ActionListener {
   private final JPanel myPanel;
   private final JCheckBox myCheckbox;
 
-  private NlFlagPropertyValue myProperty;
+  private NlProperty myProperty;
   private String myValue;
 
   public NlFlagEditor() {
@@ -42,9 +42,9 @@ public class NlFlagEditor extends PTableCellEditor implements ActionListener {
 
   @Override
   public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-    assert value instanceof NlFlagPropertyValue;
+    assert value instanceof NlProperty;
 
-    myProperty = (NlFlagPropertyValue)value;
+    myProperty = (NlProperty)value;
 
     Color fg = UIUtil.getTableSelectionForeground();
     Color bg = UIUtil.getTableSelectionBackground();

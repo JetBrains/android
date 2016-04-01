@@ -31,7 +31,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-public class NlFlagProperty extends NlProperty {
+public class NlFlagPropertyItem extends NlPropertyItem implements NlProperty {
   private List<PTableItem> myItems;
   private long myLastRead;
   private String myLastValue;
@@ -41,9 +41,9 @@ public class NlFlagProperty extends NlProperty {
 
   private static final Splitter VALUE_SPLITTER = Splitter.on("|").trimResults();
 
-  protected NlFlagProperty(@NotNull NlComponent component,
-                           @NotNull XmlAttributeDescriptor descriptor,
-                           @Nullable AttributeDefinition attributeDefinition) {
+  protected NlFlagPropertyItem(@NotNull NlComponent component,
+                               @NotNull XmlAttributeDescriptor descriptor,
+                               @Nullable AttributeDefinition attributeDefinition) {
     super(component, descriptor, attributeDefinition);
     assert attributeDefinition != null;
   }
@@ -60,7 +60,7 @@ public class NlFlagProperty extends NlProperty {
       assert myDefinition != null;
       myItems = Lists.newArrayListWithCapacity(myDefinition.getValues().length);
       for (String value : myDefinition.getValues()) {
-        myItems.add(new NlFlagPropertyValue(value, this));
+        myItems.add(new NlFlagPropertyItemValue(value, this));
       }
     }
     return myItems;
@@ -118,11 +118,11 @@ public class NlFlagProperty extends NlProperty {
     myLastRead = myComponent.getModel().getModificationCount();
   }
 
-  public boolean isItemSet(@NotNull NlFlagPropertyValue item) {
+  public boolean isItemSet(@NotNull NlFlagPropertyItemValue item) {
     return getValues().contains(item.getName());
   }
 
-  public void setItem(@NotNull NlFlagPropertyValue changedItem, boolean on) {
+  public void setItem(@NotNull NlFlagPropertyItemValue changedItem, boolean on) {
     String removed = on ? null : changedItem.getName();
     String added = on ? changedItem.getName() : null;
     Set<String> values = getValues();
