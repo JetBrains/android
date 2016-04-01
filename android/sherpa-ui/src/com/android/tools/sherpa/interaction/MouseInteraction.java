@@ -46,7 +46,7 @@ public class MouseInteraction {
     private boolean mIsShiftDown;
     private boolean mIsAltDown;
     private boolean mMouseDown = false;
-    private boolean mMoveOnlyMode = true;
+    private boolean mMoveOnlyMode = false;
     private final ViewTransform mViewTransform;
     private final WidgetsScene mWidgetsScene;
     private final SceneDraw mSceneDraw;

@@ -117,7 +117,7 @@ public class TextWidget extends WidgetDecorator {
             string = string.toUpperCase();
         }
         int tw = fm.stringWidth(string) + 2 * (mHorizontalPadding + mHorizontalMargin);
-        int th = fm.getMaxAscent() + fm.getMaxDescent() + 2 * (mVerticalPadding + mVerticalMargin);
+        int th = fm.getMaxAscent() + 2*fm.getMaxDescent() + 2 * (mVerticalPadding + mVerticalMargin);
         mWidget.setMinWidth(tw);
         mWidget.setMinHeight(th);
         if (mWidget.getHorizontalDimensionBehaviour()
@@ -141,7 +141,7 @@ public class TextWidget extends WidgetDecorator {
                         ConstraintWidget.DimensionBehaviour.WRAP_CONTENT);
             }
         }
-        int baseline = fm.getAscent() + mVerticalPadding+mVerticalMargin;
+        int baseline = fm.getAscent() + fm.getMaxDescent() + mVerticalPadding+mVerticalMargin;
         mWidget.setBaselineDistance(baseline);
     }
 
@@ -175,6 +175,6 @@ public class TextWidget extends WidgetDecorator {
             string = string.toUpperCase();
         }
         g.drawString(string, tx + horizontalPadding,
-                ty + fontMetrics.getAscent() + verticalPadding);
+                ty + fontMetrics.getAscent() + fontMetrics.getMaxDescent() + verticalPadding);
     }
 }
