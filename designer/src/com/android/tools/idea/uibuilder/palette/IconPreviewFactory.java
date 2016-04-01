@@ -15,11 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.palette;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.SessionParams;
 import com.android.ide.common.rendering.api.ViewInfo;
+import com.android.resources.Density;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ScreenOrientation;
 import com.android.sdklib.IAndroidTarget;
@@ -29,8 +28,7 @@ import com.android.sdklib.devices.State;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.*;
 import com.android.tools.idea.uibuilder.api.InsertType;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.Lists;
 import com.intellij.ide.highlighter.XmlFileType;
@@ -48,6 +46,8 @@ import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.PathUtil;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -68,6 +68,8 @@ import static com.android.tools.idea.uibuilder.palette.NlPaletteModel.PALETTE_VE
  */
 public class IconPreviewFactory {
   private static final Logger LOG = Logger.getInstance(IconPreviewFactory.class);
+  @AndroidDpCoordinate
+  private static final int SHADOW_SIZE = 6;
   private static final int PREVIEW_LIMIT = 4000;
   private static final int DEFAULT_X_DIMENSION = 1080;
   private static final int DEFAULT_Y_DIMENSION = 1920;
@@ -86,7 +88,7 @@ public class IconPreviewFactory {
 
   private static IconPreviewFactory ourInstance;
 
-  @NonNull
+  @NotNull
   public static IconPreviewFactory get() {
     if (ourInstance == null) {
       ourInstance = new IconPreviewFactory();
@@ -98,7 +100,7 @@ public class IconPreviewFactory {
   }
 
   @Nullable
-  public BufferedImage getImage(@NonNull Palette.Item item, @NonNull Configuration configuration, double scale) {
+  public BufferedImage getImage(@NotNull Palette.Item item, @NotNull Configuration configuration, double scale) {
     BufferedImage image = readImage(item.getId(), configuration);
     if (image == null) {
       return null;
@@ -114,17 +116,17 @@ public class IconPreviewFactory {
    * Return null if such an image cannot be rendered. The palette must provide a fallback in this case.
    */
   @Nullable
-  public BufferedImage renderDragImage(@NonNull Palette.Item item, @NonNull ScreenView screenView) {
+  public BufferedImage renderDragImage(@NotNull Palette.Item item, @NotNull ScreenView screenView) {
     XmlElementFactory elementFactory = XmlElementFactory.getInstance(screenView.getModel().getProject());
     String xml = item.getDragPreviewXml();
     if (xml.equals(NO_PREVIEW)) {
       return null;
     }
-    xml = addAndroidNamespaceIfMissing(xml);
     XmlTag tag = null;
     try {
       tag = elementFactory.createTagFromText(xml);
-    } catch (IncorrectOperationException ignore) {
+    }
+    catch (IncorrectOperationException ignore) {
     }
     if (tag == null) {
       return null;
@@ -158,35 +160,18 @@ public class IconPreviewFactory {
       view.getBottom() <= view.getTop() || view.getRight() <= view.getLeft()) {
       return null;
     }
-    return image.getSubimage(view.getLeft(), view.getTop(), view.getRight(), view.getBottom());
+    @AndroidCoordinate
+    int shadowWitdh = SHADOW_SIZE * screenView.getConfiguration().getDensity().getDpiValue() / Density.DEFAULT_DENSITY;
+    @SwingCoordinate
+    int shadowIncrement = 1 + Coordinates.getSwingDimension(screenView, shadowWitdh);
+    return image.getSubimage(view.getLeft(),
+                             view.getTop(),
+                             Math.min(view.getRight() + shadowIncrement, image.getWidth()),
+                             Math.min(view.getBottom() + shadowIncrement, image.getHeight()));
   }
 
-  private static String addAndroidNamespaceIfMissing(@NonNull String xml) {
-    // TODO: Remove this temporary hack, which adds an Android namespace if necessary
-    // (this is such that the resulting tag is namespace aware, and attempts to manipulate it from
-    // a component handler will correctly set namespace prefixes)
-
-    if (!xml.contains(ANDROID_URI)) {
-      int index = xml.indexOf('<');
-      if (index != -1) {
-        index = xml.indexOf(' ', index);
-        if (index == -1) {
-          index = xml.indexOf("/>");
-          if (index == -1) {
-            index = xml.indexOf('>');
-          }
-        }
-        if (index != -1) {
-          xml =
-            xml.substring(0, index) + " xmlns:android=\"http://schemas.android.com/apk/res/android\"" + xml.substring(index);
-        }
-      }
-    }
-    return xml;
-  }
-
-  private static BufferedImage readImage(@NonNull String id, @NonNull Configuration configuration) {
-    File file = new File(getPreviewCacheDir(configuration), id + DOT_PNG);
+  private static BufferedImage readImage(@NotNull String id, @NotNull Configuration configuration) {
+    File file = new File(getPreviewCacheDirForConfiguration(configuration), id + DOT_PNG);
     if (!file.exists()) {
       return null;
     }
@@ -207,17 +192,25 @@ public class IconPreviewFactory {
   }
 
   /**
+   * Drop the preview cache for this configuration.
+   */
+  public void dropCache() {
+    FileUtil.delete(getPreviewCacheDir());
+  }
+
+  /**
    * Load preview images for each component into a file cache.
    * Each combination of theme, device density, and API level will have its own cache.
    *
    * @param configuration a hardware configuration to generate previews for
    * @param palette a palette will the components to generate previews of
    * @param reload if true replace the existing preview images
+   * @return true if the images were loaded, false if they already existed
    */
-  public void load(@NonNull final Configuration configuration,
-                   @NonNull final Palette palette,
-                   boolean reload) {
-    load(configuration, palette, reload, null, null);
+  public boolean load(@NotNull Configuration configuration,
+                      @NotNull Palette palette,
+                      boolean reload) {
+    return load(configuration, palette, reload, null, null);
   }
 
   /**
@@ -229,19 +222,20 @@ public class IconPreviewFactory {
    * @param reload if true replace the existing preview images
    * @param requestedIds for testing only: gather the IDs of the components whose previews were requested
    * @param generatedIds for testing only: gather the IDs of the components whose preview images where generated
+   * @return true if the images were loaded, false if they already existed
    */
   @VisibleForTesting
-  void load(@NonNull final Configuration configuration,
-            @NonNull final Palette palette,
-            boolean reload,
-            @Nullable final List<String> requestedIds,
-            @Nullable final List<String> generatedIds) {
-    File cacheDir = getPreviewCacheDir(configuration);
+  boolean load(@NotNull final Configuration configuration,
+               @NotNull final Palette palette,
+               boolean reload,
+               @Nullable final List<String> requestedIds,
+               @Nullable final List<String> generatedIds) {
+    File cacheDir = getPreviewCacheDirForConfiguration(configuration);
     String[] files = cacheDir.list();
     if (files != null && files.length > 0) {
       // The previews have already been generated.
       if (!reload) {
-        return;
+        return false;
       }
       FileUtil.delete(cacheDir);
     }
@@ -258,9 +252,10 @@ public class IconPreviewFactory {
         return null;
       }
     });
+    return true;
   }
 
-  private static void loadSources(@NonNull List<StringBuilder> sources, @Nullable List<String> ids, List<Palette.BaseItem> items) {
+  private static void loadSources(@NotNull List<StringBuilder> sources, @Nullable List<String> ids, List<Palette.BaseItem> items) {
     boolean previousRenderedSeparately = false;
     for (Palette.BaseItem base : items) {
       if (base instanceof Palette.Group) {
@@ -288,14 +283,27 @@ public class IconPreviewFactory {
     }
   }
 
-  @NonNull
-  private static File getPreviewCacheDir(@NonNull Configuration configuration) {
-    String path = PathUtil.getCanonicalPath(PathManager.getSystemPath());
+  @NotNull
+  private static File getPreviewCacheDir() {
+    return new File(
+      PathUtil.getCanonicalPath(PathManager.getSystemPath()) + File.separator +
+      ANDROID_PALETTE + File.separator +
+      PALETTE_VERSION + File.separator +
+      "image-cache");
+  }
+
+  @NotNull
+  private static File getPreviewCacheDirForConfiguration(@NotNull Configuration configuration) {
     int density = configuration.getDensity().getDpiValue();
     State state = configuration.getDeviceState();
     Screen screen = state != null ? state.getHardware().getScreen() : null;
-    int xDimension = screen != null ? screen.getXDimension() : DEFAULT_X_DIMENSION;
-    int yDimension = screen != null ? screen.getYDimension() : DEFAULT_Y_DIMENSION;
+    int xDimension = DEFAULT_X_DIMENSION;
+    int yDimension = DEFAULT_Y_DIMENSION;
+    if (screen != null) {
+      xDimension = screen.getXDimension();
+      yDimension = screen.getYDimension();
+      density = screen.getPixelDensity().getDpiValue();
+    }
     ScreenOrientation orientation = state != null ? state.getOrientation() : ScreenOrientation.PORTRAIT;
     if ((orientation == ScreenOrientation.LANDSCAPE && xDimension < yDimension) ||
         (orientation == ScreenOrientation.PORTRAIT && xDimension > yDimension)) {
@@ -306,17 +314,13 @@ public class IconPreviewFactory {
     }
     String theme = getTheme(configuration);
     String apiVersion = getApiVersion(configuration);
-    String cacheFolder = path + File.separator +
-                         ANDROID_PALETTE + File.separator +
-                         PALETTE_VERSION + File.separator +
-                         "image-cache" + File.separator +
-                         theme + File.separator +
+    String cacheFolder = theme + File.separator +
                          xDimension + "x" + yDimension + "-" + density + "-" + apiVersion;
-    return new File(cacheFolder);
+    return new File(getPreviewCacheDir(), cacheFolder);
   }
 
-  @NonNull
-  private static String getTheme(@NonNull Configuration configuration) {
+  @NotNull
+  private static String getTheme(@NotNull Configuration configuration) {
     String theme = configuration.getTheme();
     if (theme == null) {
       theme = DEFAULT_THEME;
@@ -328,14 +332,14 @@ public class IconPreviewFactory {
     return theme;
   }
 
-  private static String getApiVersion(@NonNull Configuration configuration) {
+  private static String getApiVersion(@NotNull Configuration configuration) {
     IAndroidTarget target = configuration.getTarget();
     // If the target is not found, return a version that cannot be confused with a proper result.
     // For now: use "U" for "unknown".
     return target == null ? SdkVersionInfo.HIGHEST_KNOWN_STABLE_API + "U" : target.getVersion().getApiString();
   }
 
-  private static void addResultToCache(@Nullable RenderResult result, @Nullable List<String> ids, @NonNull Configuration configuration) {
+  private static void addResultToCache(@Nullable RenderResult result, @Nullable List<String> ids, @NotNull Configuration configuration) {
     if (result == null || result.getRenderedImage() == null || result.getRootViews() == null || result.getRootViews().isEmpty()) {
       return;
     }
@@ -344,7 +348,7 @@ public class IconPreviewFactory {
   }
 
   @Nullable
-  private static RenderResult renderImage(@NonNull String xml, @NonNull Configuration configuration) {
+  private static RenderResult renderImage(@NotNull String xml, @NotNull Configuration configuration) {
     AndroidFacet facet = AndroidFacet.getInstance(configuration.getModule());
     if (facet == null) {
       return null;
@@ -373,15 +377,15 @@ public class IconPreviewFactory {
     private final int myHeight;
     private final int myWidth;
 
-    private ImageAccumulator(@NonNull BufferedImage image, @Nullable List<String> ids, @NonNull Configuration configuration) {
+    private ImageAccumulator(@NotNull BufferedImage image, @Nullable List<String> ids, @NotNull Configuration configuration) {
       myImage = image;
       myIds = ids;
-      myCacheDir = getPreviewCacheDir(configuration);
+      myCacheDir = getPreviewCacheDirForConfiguration(configuration);
       myHeight = image.getRaster().getHeight();
       myWidth = image.getRaster().getWidth();
     }
 
-    private void run(@NonNull List<ViewInfo> views, int top, @Nullable String parentId) {
+    private void run(@NotNull List<ViewInfo> views, int top, @Nullable String parentId) {
       for (ViewInfo info : views) {
         String id = null;
         if (info.getCookie() instanceof XmlTag) {
@@ -424,7 +428,7 @@ public class IconPreviewFactory {
     }
 
 
-    private void saveImage(@NonNull String id, @NonNull BufferedImage image) {
+    private void saveImage(@NotNull String id, @NotNull BufferedImage image) {
       //noinspection ResultOfMethodCallIgnored
       myCacheDir.mkdirs();
       File file = new File(myCacheDir, id + DOT_PNG);

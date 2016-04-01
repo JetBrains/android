@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.palette;
 
+import com.android.SdkConstants;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.model.ResourceType;
 import com.google.common.base.Joiner;
@@ -70,6 +71,9 @@ public class IconPreviewFactoryTest extends AndroidTestCase {
         fail("Image generated but not requested: " + id);
       }
     }
+
+    // TODO: Add the design support library to the test project (could not find out how to do so).
+    assertTrue(ids.remove(SdkConstants.TOOLBAR_V7));
 
     assertEmpty("Failed to generate preview for: " + Joiner.on(", ").join(ids), ids);
   }

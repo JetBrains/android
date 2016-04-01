@@ -33,13 +33,24 @@ public class FloatingActionButtonHandler extends ImageViewHandler {
   @NonNull
   @Language("XML")
   public String getXml(@NonNull String tagName, @NonNull XmlType xmlType) {
-    return String.format("<%1$s\n" +
-                         "  android:src=\"%2$s\"\n" +
-                         "  android:layout_width=\"wrap_content\"\n" +
-                         "  android:layout_height=\"wrap_content\"\n" +
-                         "  android:clickable=\"true\"\n" +
-                         "  app:fabSize=\"mini\">\n" +
-                         "</%1$s>\n", tagName, getSampleImageSrc());
+    switch (xmlType) {
+      case PREVIEW_ON_PALETTE:
+        return String.format("<%1$s\n" +
+                             "  android:src=\"%2$s\"\n" +
+                             "  android:layout_width=\"wrap_content\"\n" +
+                             "  android:layout_height=\"wrap_content\"\n" +
+                             "  android:clickable=\"true\"\n" +
+                             "  app:elevation=\"0dp\"\n" +
+                             "</%1$s>\n", tagName, getSampleImageSrc());
+      default:
+        return String.format("<%1$s\n" +
+                             "  android:src=\"%2$s\"\n" +
+                             "  android:layout_width=\"wrap_content\"\n" +
+                             "  android:layout_height=\"wrap_content\"\n" +
+                             "  android:clickable=\"true\"\n" +
+                             "  app:fabSize=\"mini\">\n" +
+                             "</%1$s>\n", tagName, getSampleImageSrc());
+    }
   }
 
   @Override
@@ -47,6 +58,11 @@ public class FloatingActionButtonHandler extends ImageViewHandler {
   public String getSampleImageSrc() {
     // Builtin graphics available since v1:
     return "@android:drawable/ic_input_add"; //$NON-NLS-1$
+  }
+
+  @Override
+  public double getPreviewScale(@NonNull String tagName) {
+    return 0.8;
   }
 
   @Override
