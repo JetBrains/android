@@ -16,7 +16,6 @@
 package com.android.tools.idea.uibuilder.property;
 
 import com.android.SdkConstants;
-import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.uibuilder.property.editors.NlPropertyEditors;
 import com.android.tools.idea.uibuilder.property.ptable.PTableCellEditor;
 import com.android.tools.idea.uibuilder.property.ptable.PTableItem;

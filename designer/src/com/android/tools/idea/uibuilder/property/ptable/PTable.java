@@ -16,7 +16,6 @@
 package com.android.tools.idea.uibuilder.property.ptable;
 
 import com.android.tools.idea.uibuilder.property.ptable.renderers.PNameRenderer;
-import com.intellij.designer.model.Property;
 import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.openapi.wm.ex.IdeFocusTraversalPolicy;
 import com.intellij.ui.Cell;
@@ -24,7 +23,6 @@ import com.intellij.ui.TableSpeedSearch;
 import com.intellij.ui.TableUtil;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.PairFunction;
-import com.intellij.util.containers.Convertor;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -39,7 +37,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.*;
 
 public class PTable extends JBTable {
   private final PNameRenderer myNameRenderer = new PNameRenderer();

@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.uibuilder.property.inspector;
 
-import com.android.annotations.NonNull;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
 public interface InspectorComponent {
-  void attachToInspector(@NonNull JPanel inspector);
+  void attachToInspector(@NotNull JPanel inspector);
   void refresh();
 }
