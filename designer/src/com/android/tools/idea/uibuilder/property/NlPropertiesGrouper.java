@@ -27,23 +27,23 @@ import java.util.List;
 import java.util.Set;
 
 public class NlPropertiesGrouper {
-  public List<PTableItem> group(@NotNull List<NlProperty> properties, @NotNull final NlComponent component) {
+  public List<PTableItem> group(@NotNull List<NlPropertyItem> properties, @NotNull final NlComponent component) {
     final String className = component.getTagName();
 
     List<PTableItem> result = Lists.newArrayListWithExpectedSize(properties.size());
 
     // group theme attributes together
-    NlPropertyAccumulator themePropertiesAccumulator = new NlPropertyAccumulator("Theme", new Predicate<NlProperty>() {
+    NlPropertyAccumulator themePropertiesAccumulator = new NlPropertyAccumulator("Theme", new Predicate<NlPropertyItem>() {
       @Override
-      public boolean apply(@Nullable NlProperty p) {
+      public boolean apply(@Nullable NlPropertyItem p) {
         return p != null && (p.getParentStylables().contains("Theme") || p.getName().equalsIgnoreCase("theme"));
       }
     });
 
     // group attributes that correspond to this component together
-    NlPropertyAccumulator customViewPropertiesAccumulator = new NlPropertyAccumulator(className, new Predicate<NlProperty>() {
+    NlPropertyAccumulator customViewPropertiesAccumulator = new NlPropertyAccumulator(className, new Predicate<NlPropertyItem>() {
       @Override
-      public boolean apply(@Nullable NlProperty p) {
+      public boolean apply(@Nullable NlPropertyItem p) {
         return p != null && p.getParentStylables().contains(className);
       }
     });
@@ -59,7 +59,7 @@ public class NlPropertiesGrouper {
 
     Set<String> modifiedAttrs = NlPropertiesSorter.getModifiedAttributes(component);
 
-    for (NlProperty p : properties) {
+    for (NlPropertyItem p : properties) {
       if (modifiedAttrs.contains(p.getName())) {
         result.add(p);
         continue;

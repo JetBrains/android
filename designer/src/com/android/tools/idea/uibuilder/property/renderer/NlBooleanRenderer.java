@@ -18,7 +18,6 @@ package com.android.tools.idea.uibuilder.property.renderer;
 import com.android.SdkConstants;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.uibuilder.property.NlProperty;
-import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
 import com.intellij.icons.AllIcons;
 import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.SimpleTextAttributes;
@@ -47,9 +46,7 @@ public class NlBooleanRenderer extends NlAttributeRenderer {
   }
 
   @Override
-  public void customizeRenderContent(@NotNull JTable table, @NotNull PTableItem item, boolean selected, boolean hasFocus, int row, int col) {
-    assert item instanceof NlProperty;
-    NlProperty p = (NlProperty)item;
+  public void customizeRenderContent(@NotNull JTable table, @NotNull NlProperty p, boolean selected, boolean hasFocus, int row, int col) {
     myCheckbox.setEnabled(true);
     myLabel.clear();
 
@@ -73,7 +70,7 @@ public class NlBooleanRenderer extends NlAttributeRenderer {
   }
 
   @Override
-  public Icon getHoverIcon(@NotNull PTableItem property) {
+  public Icon getHoverIcon(@NotNull NlProperty property) {
     return AllIcons.General.Ellipsis;
   }
 
@@ -124,7 +121,7 @@ public class NlBooleanRenderer extends NlAttributeRenderer {
   }
 
   @Override
-  public boolean canRender(@NotNull PTableItem item, @NotNull Set<AttributeFormat> formats) {
+  public boolean canRender(@NotNull NlProperty item, @NotNull Set<AttributeFormat> formats) {
     return formats.contains(AttributeFormat.Boolean);
   }
 }

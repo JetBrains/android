@@ -16,8 +16,8 @@
 package com.android.tools.idea.uibuilder.property.renderer;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.uibuilder.property.NlFlagPropertyValue;
-import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
+import com.android.tools.idea.uibuilder.property.NlFlagPropertyItemValue;
+import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.intellij.icons.AllIcons;
 import com.intellij.ui.SimpleColoredComponent;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
@@ -41,7 +41,7 @@ public class NlFlagItemRenderer extends NlAttributeRenderer {
   }
 
   @Override
-  public void customizeRenderContent(@NotNull JTable table, @NotNull PTableItem item, boolean selected, boolean hasFocus, int row, int col) {
+  public void customizeRenderContent(@NotNull JTable table, @NotNull NlProperty item, boolean selected, boolean hasFocus, int row, int col) {
     myCheckbox.setEnabled(true);
     myLabel.clear();
 
@@ -57,12 +57,12 @@ public class NlFlagItemRenderer extends NlAttributeRenderer {
 
   @Nullable
   @Override
-  public Icon getHoverIcon(@NotNull PTableItem p) {
+  public Icon getHoverIcon(@NotNull NlProperty p) {
     return AllIcons.General.EditItemInSection;
   }
 
   @Override
-  public boolean canRender(@NotNull PTableItem item, @NotNull Set<AttributeFormat> formats) {
-    return item instanceof NlFlagPropertyValue;
+  public boolean canRender(@NotNull NlProperty property, @NotNull Set<AttributeFormat> formats) {
+    return property instanceof NlFlagPropertyItemValue;
   }
 }

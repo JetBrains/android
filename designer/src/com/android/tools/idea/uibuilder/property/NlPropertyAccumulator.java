@@ -25,15 +25,15 @@ import javax.swing.table.TableCellRenderer;
 
 class NlPropertyAccumulator {
   private final String myGroupName;
-  private final Predicate<NlProperty> myFilter;
+  private final Predicate<NlPropertyItem> myFilter;
   private GroupNode myGroupNode;
 
-  public NlPropertyAccumulator(@NotNull String groupName, @NotNull Predicate<NlProperty> isApplicable) {
+  public NlPropertyAccumulator(@NotNull String groupName, @NotNull Predicate<NlPropertyItem> isApplicable) {
     myGroupName = groupName;
     myFilter = isApplicable;
   }
 
-  public boolean process(@NotNull NlProperty p) {
+  public boolean process(@NotNull NlPropertyItem p) {
     if (!myFilter.apply(p)) {
       return false;
     }
@@ -82,9 +82,9 @@ class NlPropertyAccumulator {
 
   public static class PropertyNamePrefixAccumulator extends NlPropertyAccumulator {
     public PropertyNamePrefixAccumulator(@NotNull String groupName, @NotNull final String prefix) {
-      super(groupName, new Predicate<NlProperty>() {
+      super(groupName, new Predicate<NlPropertyItem>() {
         @Override
-        public boolean apply(NlProperty p) {
+        public boolean apply(NlPropertyItem p) {
           return p != null && p.getName().startsWith(prefix);
         }
       });

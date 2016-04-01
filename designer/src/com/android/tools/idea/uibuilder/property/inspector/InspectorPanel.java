@@ -54,7 +54,7 @@ public class InspectorPanel extends JPanel {
   }
 
   public void setComponent(@Nullable NlComponent component,
-                           @NotNull List<NlProperty> properties,
+                           @NotNull List<? extends NlProperty> properties,
                            @NotNull NlPropertiesManager propertiesManager) {
     removeAll();
 

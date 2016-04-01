@@ -88,12 +88,12 @@ public class NlPropertiesPanel extends JPanel implements ShowExpertProperties.Mo
   }
 
   public void setItems(@Nullable NlComponent component,
-                       @NotNull List<NlProperty> properties,
+                       @NotNull List<NlPropertyItem> properties,
                        @NotNull NlPropertiesManager propertiesManager) {
     String componentName = component == null ? "" : component.getTagName();
     mySelectedComponentLabel.setText(componentName);
 
-    List<PTableItem> sortedProperties = null;
+    List<PTableItem> sortedProperties;
     if (component == null) {
       sortedProperties = Collections.emptyList();
     }
