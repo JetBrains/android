@@ -25,8 +25,10 @@ import com.android.tools.sherpa.structure.Selection;
 import com.android.tools.sherpa.structure.WidgetsScene;
 import com.google.tnt.solver.widgets.ConstraintAnchor;
 import com.google.tnt.solver.widgets.ConstraintWidget;
+import com.google.tnt.solver.widgets.ConstraintWidgetContainer;
 import com.google.tnt.solver.widgets.Guideline;
 import com.google.tnt.solver.widgets.Snapshot;
+import com.google.tnt.solver.widgets.WidgetContainer;
 
 import javax.swing.SwingUtilities;
 import java.awt.Point;
@@ -213,7 +215,7 @@ public class MouseInteraction {
         // check for widget, anchors, resize handle hits
 
         mWidgetsScene.updatePositions(mViewTransform);
-        ConstraintWidget widget = mWidgetsScene.getRoot().findWidget(x, y);
+        ConstraintWidget widget = mWidgetsScene.findWidget(mWidgetsScene.getRoot(), x, y);
         ConstraintAnchor anchor = mWidgetsScene.findAnchor(x, y, false, true, mViewTransform);
         ResizeHandle resizeHandle = mWidgetsScene.findResizeHandle(x, y, mViewTransform);
 
@@ -367,7 +369,8 @@ public class MouseInteraction {
             int y2 = Math.max(getStartPoint().y, getLastPoint().y);
             Rectangle selectionRect = new Rectangle(x1, y1, x2 - x1, y2 - y1);
             if (selectionRect.getWidth() > 0 && selectionRect.getHeight() > 0) {
-                ArrayList<ConstraintWidget> selection = mWidgetsScene.getRoot().findWidgets(
+                ArrayList<ConstraintWidget> selection = mWidgetsScene.findWidgets(
+                        mWidgetsScene.getRoot(),
                         selectionRect.x, selectionRect.y,
                         selectionRect.width, selectionRect.height);
                 for (ConstraintWidget widget : selection) {

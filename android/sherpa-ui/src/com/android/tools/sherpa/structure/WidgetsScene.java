@@ -23,6 +23,7 @@ import com.android.tools.sherpa.interaction.ResizeHandle;
 import com.android.tools.sherpa.interaction.WidgetInteractionTargets;
 import com.google.tnt.solver.widgets.*;
 
+import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -157,6 +158,78 @@ public class WidgetsScene {
             containers = WidgetsScene.gatherContainers(root);
         }
     }
+    
+    /**
+     * Find a widget at the coordinate (x, y), taking the decorator visibility in account
+     *
+     * @param x x position
+     * @param y y position
+     * @return a widget if found, null otherwise
+     */
+    public ConstraintWidget findWidget(ConstraintWidgetContainer container, float x, float y) {
+        WidgetDecorator containerDecorator = (WidgetDecorator) container.getCompanionWidget();
+        if (!containerDecorator.isVisible()) {
+            return null;
+        }
+        ConstraintWidget found = null;
+        int l = container.getDrawX();
+        int t = container.getDrawY();
+        int r = l + container.getWidth();
+        int b = t + container.getHeight();
+        if (x >= l && x <= r && y >= t && y <= b) {
+            found = container;
+        }
+        for (ConstraintWidget widget : container.getChildren()) {
+            WidgetDecorator decorator = (WidgetDecorator) widget.getCompanionWidget();
+            if (!decorator.isVisible()) {
+                continue;
+            }
+            if (widget instanceof WidgetContainer) {
+                ConstraintWidget f = findWidget((ConstraintWidgetContainer) widget, x, y);
+                if (f != null) {
+                    found = f;
+                }
+            }
+            else {
+                l = widget.getDrawX();
+                t = widget.getDrawY();
+                r = l + widget.getWidth();
+                b = t + widget.getHeight();
+                if (x >= l && x <= r && y >= t && y <= b) {
+                    found = widget;
+                }
+            }
+        }
+        return found;
+    }
+
+    /**
+     * Gather all the widgets contained in the area specified and return them as an array,
+     * taking the decorator visibility in account
+     *
+     * @param x      x position of the selection area
+     * @param y      y position of the selection area
+     * @param width  width of the selection area
+     * @param height height of the selection area
+     * @return an array containing the widgets inside the selection area
+     */
+    public ArrayList<ConstraintWidget> findWidgets(ConstraintWidgetContainer container,
+            int x, int y, int width, int height) {
+        ArrayList<ConstraintWidget> found = new ArrayList<ConstraintWidget>();
+        Rectangle area = new Rectangle(x, y, width, height);
+        for (ConstraintWidget widget : container.getChildren()) {
+            WidgetDecorator decorator = (WidgetDecorator) widget.getCompanionWidget();
+            if (!decorator.isVisible()) {
+                continue;
+            }
+            Rectangle bounds = new Rectangle(widget.getDrawX(), widget.getDrawY(),
+                    widget.getWidth(), widget.getHeight());
+            if (area.intersects(bounds)) {
+                found.add(widget);
+            }
+        }
+        return found;
+    }
 
     /**
      * Find which ResizeHandle is close to the (x, y) coordinates
@@ -168,6 +241,10 @@ public class WidgetsScene {
     public ResizeHandle findResizeHandle(float x, float y, ViewTransform transform) {
         for (ConstraintWidget widget : mWidgets.values()) {
             if (widget.isRoot()) {
+                continue;
+            }
+            WidgetDecorator decorator = (WidgetDecorator) widget.getCompanionWidget();
+            if (!decorator.isVisible()) {
                 continue;
             }
             WidgetInteractionTargets widgetInteraction =
@@ -221,6 +298,10 @@ public class WidgetsScene {
         }
         for (ConstraintWidget widget : mWidgets.values()) {
             if (!checkGuidelines && (widget instanceof Guideline)) {
+                continue;
+            }
+            WidgetDecorator decorator = (WidgetDecorator) widget.getCompanionWidget();
+            if (!decorator.isVisible()) {
                 continue;
             }
             WidgetInteractionTargets widgetInteraction =
@@ -591,5 +672,4 @@ public class WidgetsScene {
             widgetInteraction.updatePosition(viewTransform);
         }
     }
-
 }
