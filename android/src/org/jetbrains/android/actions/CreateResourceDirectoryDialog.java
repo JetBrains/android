@@ -150,7 +150,7 @@ public abstract class CreateResourceDirectoryDialog extends DialogWrapper {
   }
 
   @Nullable
-  public SourceProvider getSourceProvider() {
+  private SourceProvider getSourceProvider() {
     return CreateResourceActionBase.getSourceProvider(mySourceSetCombo);
   }
 

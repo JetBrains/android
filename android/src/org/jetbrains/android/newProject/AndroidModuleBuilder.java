@@ -631,8 +631,17 @@ public class AndroidModuleBuilder extends JavaModuleBuilder {
     if (appNameResElement == null) {
       final String fileName = AndroidResourceUtil.getDefaultResourceFileName(ResourceType.STRING);
       assert fileName != null;
-      AndroidResourceUtil.createValueResource(facet.getModule(), appNameResource, ResourceType.STRING, fileName, Collections
-              .singletonList(SdkConstants.FD_RES_VALUES), appName);
+      VirtualFile resDir = facet.getPrimaryResourceDir();
+      Module module = facet.getModule();
+      Project project = module.getProject();
+      if (resDir == null) {
+        AndroidUtils.reportError(project, AndroidBundle.message("check.resource.dir.error", module.getName()));
+      }
+      else {
+        AndroidResourceUtil.createValueResource(project, resDir, appNameResource, ResourceType.STRING, fileName,
+                                                Collections
+                                                  .singletonList(SdkConstants.FD_RES_VALUES), appName);
+      }
     }
     else {
       final String normalizedAppName = AndroidResourceUtil.normalizeXmlResourceValue(appName);

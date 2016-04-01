@@ -22,6 +22,7 @@ import com.android.resources.ResourceConstants;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.res.ResourceNameValidator;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.intellij.CommonBundle;
 import com.intellij.application.options.ModulesComboBox;
@@ -32,6 +33,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.InputValidator;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.TextFieldWithAutoCompletion;
@@ -39,6 +41,7 @@ import com.intellij.ui.components.JBLabel;
 import com.intellij.util.PlatformIcons;
 import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.android.uipreview.DeviceConfiguratorPanel;
 import org.jetbrains.android.uipreview.InvalidOptionValueException;
 import org.jetbrains.android.util.AndroidBundle;
@@ -321,11 +324,10 @@ public class CreateResourceFileDialog extends DialogWrapper {
     return "AndroidCreateResourceFileDialog";
   }
 
-  @Nullable
-  public SourceProvider getSourceProvider() {
-    return CreateResourceActionBase.getSourceProvider(mySourceSetCombo);
-  }
-
+  /**
+   * Determine the resource directory, when there is some context.
+   * @return the resource directory
+   */
   @Contract("_,true -> !null")
   @Nullable
   public PsiDirectory getResourceDirectory(@Nullable DataContext context, boolean create) {
@@ -341,9 +343,45 @@ public class CreateResourceFileDialog extends DialogWrapper {
     return null;
   }
 
+  /**
+   * Determine the resource directory, when there is no context, and we only have the UI choices.
+   * @return the resource directory
+   */
+  @Nullable
+  public VirtualFile getResourceDirectory() {
+    SourceProvider provider = getSourceProvider();
+    Module selectedModule = getSelectedModule();
+    AndroidFacet selectedFacet = AndroidFacet.getInstance(selectedModule);
+    assert selectedFacet != null;
+    VirtualFile resDir;
+    if (provider != null) {
+      Collection<VirtualFile> resDirectories = IdeaSourceProvider.create(provider).getResDirectories();
+      if (!resDirectories.isEmpty()) {
+        resDir = Iterables.getFirst(resDirectories, null);
+      } else {
+        resDir = selectedFacet.getPrimaryResourceDir();
+      }
+    } else {
+      resDir = selectedFacet.getPrimaryResourceDir();
+    }
+    if (resDir == null) {
+      Messages.showErrorDialog(selectedModule.getProject(),
+                               "Cannot find resource directory for module " + selectedModule.getName(),
+                               CommonBundle.getErrorTitle());
+    }
+    return resDir;
+  }
+
   @NotNull
-  public Module getSelectedModule() {
-    return myModuleCombo.getSelectedModule();
+  private Module getSelectedModule() {
+    Module module = myModuleCombo.getSelectedModule();
+    assert module != null;
+    return module;
+  }
+
+  @Nullable
+  private SourceProvider getSourceProvider() {
+    return CreateResourceActionBase.getSourceProvider(mySourceSetCombo);
   }
 
   @NotNull
