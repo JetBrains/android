@@ -17,10 +17,17 @@ package com.android.tools.idea.uibuilder.handlers.grid;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
+import com.android.tools.idea.uibuilder.api.DragType;
+import com.android.tools.idea.uibuilder.api.ViewEditor;
+import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.fixtures.ComponentDescriptor;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.intellij.openapi.command.WriteCommandAction;
+import org.mockito.Mockito;
+
+import java.util.Collections;
+import java.util.List;
 
 public final class GridDragHandlerTest extends LayoutTestCase {
   private GridDragHandler handler;
@@ -28,6 +35,7 @@ public final class GridDragHandlerTest extends LayoutTestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
+    ViewEditor editor = Mockito.mock(ViewEditor.class);
 
     GridLayout viewObject = new GridLayout();
     viewObject.setVerticalAxis(new Axis(new int[]{0, 1024}));
@@ -57,7 +65,8 @@ public final class GridDragHandlerTest extends LayoutTestCase {
       .build();
     // @formatter:on
 
-    handler = new GridDragHandler(null, null, model.getComponents().get(0), null, null);
+    List<NlComponent> components = Collections.emptyList();
+    handler = new GridDragHandler(editor, new ViewGroupHandler(), model.getComponents().get(0), components, DragType.CREATE);
   }
 
   public void testCommitCellHasChild() {
@@ -137,8 +146,8 @@ public final class GridDragHandlerTest extends LayoutTestCase {
   }
 
   private static final class LayoutParams {
-    final Object rowSpec;
-    final Object columnSpec;
+    @SuppressWarnings("unused") final Object rowSpec;
+    @SuppressWarnings("unused") final Object columnSpec;
 
     private LayoutParams(Spec rowSpec, Spec columnSpec) {
       this.rowSpec = rowSpec;
