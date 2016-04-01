@@ -15,18 +15,18 @@
  */
 package com.android.tools.idea.uibuilder.property.inspector;
 
-import com.android.annotations.NonNull;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.uibuilder.property.NlProperty;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 
 public interface InspectorProvider {
-  boolean isApplicable(@NonNull NlComponent component, @NonNull Map<String, NlProperty> properties);
+  boolean isApplicable(@NotNull NlComponent component, @NotNull Map<String, NlProperty> properties);
 
-  @NonNull
-  InspectorComponent createCustomInspector(@NonNull NlComponent component,
-                                           @NonNull Map<String, NlProperty> properties,
-                                           @NonNull NlPropertiesManager propertiesManager);
+  @NotNull
+  InspectorComponent createCustomInspector(@NotNull NlComponent component,
+                                           @NotNull Map<String, NlProperty> properties,
+                                           @NotNull NlPropertiesManager propertiesManager);
 }

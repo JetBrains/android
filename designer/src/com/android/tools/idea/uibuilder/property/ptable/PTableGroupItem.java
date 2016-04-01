@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.property.ptable;
 
-import com.android.ide.common.resources.ResourceResolver;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

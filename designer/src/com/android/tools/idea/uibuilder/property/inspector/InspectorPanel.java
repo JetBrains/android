@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.property.inspector;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.uibuilder.property.NlProperty;
@@ -26,6 +24,7 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import net.miginfocom.swing.MigLayout;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -55,8 +54,8 @@ public class InspectorPanel extends JPanel {
   }
 
   public void setComponent(@Nullable NlComponent component,
-                           @NonNull List<NlProperty> properties,
-                           @NonNull NlPropertiesManager propertiesManager) {
+                           @NotNull List<NlProperty> properties,
+                           @NotNull NlPropertiesManager propertiesManager) {
     removeAll();
 
     JPanel panel = new JPanel();
@@ -82,9 +81,9 @@ public class InspectorPanel extends JPanel {
 
   @NotNull
   private static List<InspectorComponent> createInspectorComponents(@Nullable NlComponent component,
-                                                                    @NonNull NlPropertiesManager propertiesManager,
-                                                                    @NonNull Map<String, NlProperty> properties,
-                                                                    @NonNull InspectorProvider[] allProviders) {
+                                                                    @NotNull NlPropertiesManager propertiesManager,
+                                                                    @NotNull Map<String, NlProperty> properties,
+                                                                    @NotNull InspectorProvider[] allProviders) {
     List<InspectorComponent> inspectors = Lists.newArrayListWithExpectedSize(allProviders.length);
 
     if (component == null) {
@@ -102,21 +101,21 @@ public class InspectorPanel extends JPanel {
     return inspectors;
   }
 
-  public static void addTitle(@NonNull JPanel inspector, @NonNull String title) {
+  public static void addTitle(@NotNull JPanel inspector, @NotNull String title) {
     JBLabel label = new JBLabel(title);
     label.setForeground(TITLE_COLOR);
     inspector.add(label, "gapbottom 1, span, split 2, aligny center");
     inspector.add(new JSeparator(), "gapleft rel, growx");
   }
 
-  public static void addSeparator(@NonNull JPanel inspector) {
+  public static void addSeparator(@NotNull JPanel inspector) {
     inspector.add(new JSeparator(), "span 2, grow");
   }
 
-  public static void addComponent(@NonNull JPanel inspector,
-                                  @NonNull String labelText,
+  public static void addComponent(@NotNull JPanel inspector,
+                                  @NotNull String labelText,
                                   @Nullable String tooltip,
-                                  @NonNull Component component) {
+                                  @NotNull Component component) {
     JBLabel l = new JBLabel(labelText);
     l.setLabelFor(component);
     l.setToolTipText(tooltip);
@@ -128,7 +127,7 @@ public class InspectorPanel extends JPanel {
   /**
    * Adds a custom panel that spans the entire width, just set the preferred height on the panel
    */
-  public static void addPanel(@NonNull JPanel inspector, @NonNull JPanel panel) {
+  public static void addPanel(@NotNull JPanel inspector, @NotNull JPanel panel) {
     inspector.add(panel, "span 2, grow");
   }
 }
