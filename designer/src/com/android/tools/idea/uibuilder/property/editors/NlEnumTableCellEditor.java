@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.property.editors;
 
-import com.android.annotations.NonNull;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.ptable.PTableCellEditor;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
@@ -50,19 +50,19 @@ public class NlEnumTableCellEditor extends PTableCellEditor implements NlEnumEdi
   }
 
   @Override
-  public void itemPicked(@NonNull NlEnumEditor source, @NonNull String value) {
+  public void itemPicked(@NotNull NlEnumEditor source, @NotNull String value) {
     myValue = value;
     stopCellEditing();
   }
 
   @Override
-  public void resourcePicked(@NonNull NlEnumEditor source, @NonNull String value) {
+  public void resourcePicked(@NotNull NlEnumEditor source, @NotNull String value) {
     myValue = value;
     stopCellEditing();
   }
 
   @Override
-  public void resourcePickerCancelled(@NonNull NlEnumEditor source) {
+  public void resourcePickerCancelled(@NotNull NlEnumEditor source) {
     cancelCellEditing();
   }
 }

@@ -16,14 +16,14 @@
 package com.android.tools.idea.uibuilder.property.inspector;
 
 import com.android.SdkConstants;
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.editors.NlEnumEditor;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.components.JBTextField;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.text.BadLocationException;
@@ -34,7 +34,7 @@ import java.util.Map;
 
 
 public class IdInspectorComponent implements InspectorComponent, ActionListener, NlEnumEditor.Listener {
-  @NonNull private final NlPropertiesManager myPropertiesManager;
+  @NotNull private final NlPropertiesManager myPropertiesManager;
 
   private final NlProperty myIdAttr;
   private final NlProperty myWidthAttr;
@@ -45,8 +45,8 @@ public class IdInspectorComponent implements InspectorComponent, ActionListener,
   private final NlEnumEditor myHeightEditor;
 
   public IdInspectorComponent(@Nullable NlComponent component,
-                              @NonNull Map<String, NlProperty> properties,
-                              @NonNull NlPropertiesManager propertiesManager) {
+                              @NotNull Map<String, NlProperty> properties,
+                              @NotNull NlPropertiesManager propertiesManager) {
     myPropertiesManager = propertiesManager;
 
     myIdAttr = properties.get(SdkConstants.ATTR_ID);
@@ -61,7 +61,7 @@ public class IdInspectorComponent implements InspectorComponent, ActionListener,
   }
 
   @Override
-  public void attachToInspector(@NonNull JPanel inspector) {
+  public void attachToInspector(@NotNull JPanel inspector) {
     InspectorPanel.addComponent(inspector, "ID", getTooltip(myIdAttr), myIdTextField);
     InspectorPanel.addSeparator(inspector);
     InspectorPanel.addComponent(inspector, "Width", getTooltip(myWidthAttr), myWidthEditor.getComponent());
@@ -98,11 +98,11 @@ public class IdInspectorComponent implements InspectorComponent, ActionListener,
   }
 
   @Override
-  public void actionPerformed(@NonNull ActionEvent e) {
+  public void actionPerformed(@NotNull ActionEvent e) {
     myPropertiesManager.setValue(myIdAttr, getText(myIdTextField));
   }
 
-  private static String getText(@NonNull JBTextField textField) {
+  private static String getText(@NotNull JBTextField textField) {
     Document doc = textField.getDocument();
     try {
       return doc.getText(0, doc.getLength());
@@ -113,17 +113,17 @@ public class IdInspectorComponent implements InspectorComponent, ActionListener,
   }
 
   @Override
-  public void itemPicked(@NonNull NlEnumEditor source, @NonNull String value) {
+  public void itemPicked(@NotNull NlEnumEditor source, @NotNull String value) {
     NlProperty property = source == myWidthEditor ? myWidthAttr : myHeightAttr;
     myPropertiesManager.setValue(property, value);
   }
 
   @Override
-  public void resourcePicked(@NonNull NlEnumEditor source, @NonNull String value) {
+  public void resourcePicked(@NotNull NlEnumEditor source, @NotNull String value) {
     itemPicked(source, value);
   }
 
   @Override
-  public void resourcePickerCancelled(@NonNull NlEnumEditor source) {
+  public void resourcePickerCancelled(@NotNull NlEnumEditor source) {
   }
 }
