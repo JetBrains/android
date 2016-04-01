@@ -39,7 +39,6 @@ import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.ui.PopupHandler;
-import com.intellij.ui.TreeUIHelper;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.EventDispatcher;
 import icons.AndroidIcons;
@@ -131,11 +130,6 @@ class ResolvedDependenciesPanel extends ToolWindowPanel implements DependencySel
         popupInvoked(x, y);
       }
     });
-
-    TreeUIHelper.getInstance().installTreeSpeedSearch(myTree, path -> {
-      Object last = path.getLastPathComponent();
-      return last != null ? last.toString() : "";
-    }, true);
 
     myHyperlinkSupport = new NodeHyperlinkSupport<>(myTree, ModuleDependencyNode.class, myContext, false);
   }
