@@ -61,6 +61,10 @@
     <applicationService serviceInterface="org.jetbrains.plugins.gradle.service.GradleInstallationManager"
                         serviceImplementation="com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager"
                         overrides="true"/>
+
+    <projectService serviceInterface="org.jetbrains.plugins.gradle.settings.GradleSettings"
+                        serviceImplementation="com.android.tools.idea.gradle.project.AndroidStudioGradleSettings"
+                        overrides="true"/>
   </extensions>
 
 </idea-plugin>
