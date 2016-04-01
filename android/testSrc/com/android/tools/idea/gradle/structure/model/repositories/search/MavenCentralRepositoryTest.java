@@ -188,10 +188,10 @@ public class MavenCentralRepositoryTest {
     assertEquals(409, result.getTotalFound());
     List<String> data = result.getData();
     assertThat(data).hasSize(5)
-      .containsSequence("org.sonatype.spice.inject:guice-bean:1.3.4",
-                        "org.sonatype.spice.inject:guice-nexus:0.1.0",
-                        "be.fluid-it.com.squarespace.jersey2-guice:jersey2-guice:0.10-fix",
-                        "com.peterphi.std.guice:stdlib-guice-hibernate:8.5.1",
-                        "com.peterphi.std.guice:stdlib-guice-webapp:8.5.1");
+                    .containsSequence("org.sonatype.spice.inject:guice-bean:1.3.4",
+                                      "org.sonatype.spice.inject:guice-nexus:0.1.0",
+                                      "be.fluid-it.com.squarespace.jersey2-guice:jersey2-guice:0.10-fix",
+                                      "com.peterphi.std.guice:stdlib-guice-hibernate:8.5.1",
+                                      "com.peterphi.std.guice:stdlib-guice-webapp:8.5.1");
   }
 }
