@@ -17,11 +17,11 @@ package com.android.tools.idea.tests.gui.framework.fixture.avdmanager;
 
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.AbstractWizardStepFixture;
+import com.google.common.collect.ImmutableList;
 import com.intellij.ui.SearchTextField;
 import com.intellij.ui.table.TableView;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
-import org.fest.swing.exception.ActionFailedException;
 import org.fest.swing.fixture.JPopupMenuFixture;
 import org.fest.swing.fixture.JTableCellFixture;
 import org.fest.swing.fixture.JTableFixture;
@@ -34,6 +34,10 @@ import static org.fest.swing.core.matcher.JButtonMatcher.withText;
 import static org.junit.Assert.assertNotNull;
 
 public class ChooseDeviceDefinitionStepFixture extends AbstractWizardStepFixture<ChooseDeviceDefinitionStepFixture> {
+
+  /** The index of the Name column in the device-definition table. */
+  private static final int NAME_COLUMN = 0;
+
   public ChooseDeviceDefinitionStepFixture(@NotNull Robot robot, @NotNull JRootPane rootPane) {
     super(ChooseDeviceDefinitionStepFixture.class, robot, rootPane);
   }
@@ -91,13 +95,11 @@ public class ChooseDeviceDefinitionStepFixture extends AbstractWizardStepFixture
     return new JTableFixture(robot(), deviceList);
   }
 
-  public boolean hardwareProfileExists(@NotNull String deviceName) {
-    try {
-      getTableFixture().cell(deviceName);
-      return true;
+  public ImmutableList<String> deviceNames() {
+    ImmutableList.Builder<String> listBuilder = ImmutableList.builder();
+    for (String[] row : getTableFixture().contents()) {
+      listBuilder.add(row[NAME_COLUMN]);
     }
-    catch (ActionFailedException e) {
-      return false;
-    }
+    return listBuilder.build();
   }
 }
