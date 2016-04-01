@@ -154,12 +154,14 @@ public class CreateFileFromTemplateDialog extends DialogWrapper {
         return new ValidationInfo(errorText, myNameField);
       }
 
-      Type superclassAsType = Type.newType(superclassAsString, myProject);
-      if (mySuperclassField.isVisible() && (!superclassAsType.canUseAsClass() || !myInputValidator.checkSuperclass(superclassAsString))) {
-        return new ValidationInfo(myInputValidator.getSuperclassErrorText(superclassAsString), mySuperclassField);
+      if (!superclassAsString.isEmpty()) {
+        Type superclassAsType = Type.newType(superclassAsString, myProject);
+        if (mySuperclassField.isVisible() && (!superclassAsType.canUseAsClass() || !myInputValidator.checkSuperclass(superclassAsString))) {
+          return new ValidationInfo(myInputValidator.getSuperclassErrorText(superclassAsString), mySuperclassField);
+        }
       }
 
-      for (String interfaceAsString : Splitter.on(',').trimResults().split(getInterfaces())) {
+      for (String interfaceAsString : Splitter.on(',').trimResults().omitEmptyStrings().split(getInterfaces())) {
         Type interfaceAsType = Type.newType(interfaceAsString, myProject);
         if (!interfaceAsType.canUseAsInterface() || !myInputValidator.checkInterface(interfaceAsString)) {
           return new ValidationInfo(myInputValidator.getInterfacesErrorText(interfaceAsString), myInterfacesField);
@@ -256,7 +258,7 @@ public class CreateFileFromTemplateDialog extends DialogWrapper {
     }
 
     List<String> interfacesToUse = new ArrayList<String>();
-    for (String interfaceAsString : Splitter.on(',').trimResults().split(getInterfaces())) {
+    for (String interfaceAsString : Splitter.on(',').trimResults().omitEmptyStrings().split(getInterfaces())) {
       Type interfaceAsType = Type.newType(interfaceAsString, myProject);
       interfacesToUse.add(interfaceAsType.getClassWithNesting());
       if (interfaceAsType.requiresImport(localPackage)) {
@@ -499,6 +501,10 @@ public class CreateFileFromTemplateDialog extends DialogWrapper {
     private final String myClass;
 
     private StringBackedType(@NotNull String className) {
+      if (className.isEmpty()) {
+        throw new IllegalArgumentException("className is empty.");
+      }
+
       int lastDotIndex = className.lastIndexOf(".");
       if (lastDotIndex != -1) {
         myPackage = className.substring(0, lastDotIndex);
