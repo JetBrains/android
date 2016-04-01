@@ -35,7 +35,7 @@ public class TextWidget extends WidgetDecorator {
     protected int mHorizontalMargin = 0;
     protected boolean mToUpperCase = false;
     private String mText;
-    private Font mFont = new Font("Helvetica", Font.PLAIN, 12);
+    protected Font mFont = new Font("Helvetica", Font.PLAIN, 12);
     private float mFontSize = 18;
 
     /**

@@ -59,8 +59,8 @@ public class WebViewWidget extends WidgetDecorator {
      * to wrap_content, using the default font
      */
     protected void wrapContent() {
-        mWidget.setMinWidth(200);
-        mWidget.setMinHeight(300);
+        mWidget.setMinWidth(100);
+        mWidget.setMinHeight(100);
         int tw = mWidget.getMinWidth();
         int th = mWidget.getMinHeight();
         if (mWidget.getHorizontalDimensionBehaviour()
