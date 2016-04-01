@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
-import com.android.annotations.NonNull;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
@@ -29,6 +28,7 @@ import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -46,7 +46,7 @@ public class NlPropertiesManager implements DesignSurfaceListener {
 
   private MergingUpdateQueue myUpdateQueue;
 
-  public NlPropertiesManager(@NonNull Project project, @NonNull DesignSurface designSurface) {
+  public NlPropertiesManager(@NotNull Project project, @NotNull DesignSurface designSurface) {
     myLoadingPanel = new JBLoadingPanel(new BorderLayout(), project, 20);
     myPropertiesPanel = new NlPropertiesPanel();
     myLoadingPanel.add(myPropertiesPanel);
@@ -72,7 +72,7 @@ public class NlPropertiesManager implements DesignSurfaceListener {
     }
   }
 
-  @NonNull
+  @NotNull
   public JComponent getConfigurationPanel() {
     return myLoadingPanel;
   }
@@ -118,7 +118,7 @@ public class NlPropertiesManager implements DesignSurfaceListener {
     myPropertiesPanel.setItems(null, Collections.<NlProperty>emptyList(), this);
   }
 
-  public void setValue(@NonNull NlProperty property, @NonNull String value) {
+  public void setValue(@NotNull NlProperty property, @NotNull String value) {
     property.setValue(value);
 
     // TODO: refresh all custom inspectors
@@ -127,7 +127,7 @@ public class NlPropertiesManager implements DesignSurfaceListener {
   // ---- Implements DesignSurfaceListener ----
 
   @Override
-  public void componentSelectionChanged(@NonNull DesignSurface surface, @NonNull final List<NlComponent> newSelection) {
+  public void componentSelectionChanged(@NotNull DesignSurface surface, @NotNull final List<NlComponent> newSelection) {
     if (surface != mySurface) {
       return;
     }
@@ -166,10 +166,10 @@ public class NlPropertiesManager implements DesignSurfaceListener {
   }
 
   @Override
-  public void screenChanged(@NonNull DesignSurface surface, @com.android.annotations.Nullable ScreenView screenView) {
+  public void screenChanged(@NotNull DesignSurface surface, @Nullable ScreenView screenView) {
   }
 
   @Override
-  public void modelChanged(@NonNull DesignSurface surface, @com.android.annotations.Nullable NlModel model) {
+  public void modelChanged(@NotNull DesignSurface surface, @Nullable NlModel model) {
   }
 }

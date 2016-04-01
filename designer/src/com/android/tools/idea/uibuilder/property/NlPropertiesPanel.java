@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.inspector.InspectorPanel;
 import com.android.tools.idea.uibuilder.property.ptable.PTable;
@@ -29,8 +27,9 @@ import com.intellij.ui.JBCardLayout;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBPanel;
-import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.UIUtil;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -73,7 +72,7 @@ public class NlPropertiesPanel extends JPanel implements ShowExpertProperties.Mo
     myCardPanel.add(CARD_ADVANCED, ScrollPaneFactory.createScrollPane(propertiesTable));
   }
 
-  @NonNull
+  @NotNull
   private JPanel createHeaderPanel() {
     JBPanel panel = new JBPanel(new BorderLayout());
 
@@ -89,8 +88,8 @@ public class NlPropertiesPanel extends JPanel implements ShowExpertProperties.Mo
   }
 
   public void setItems(@Nullable NlComponent component,
-                       @NonNull List<NlProperty> properties,
-                       @NonNull NlPropertiesManager propertiesManager) {
+                       @NotNull List<NlProperty> properties,
+                       @NotNull NlPropertiesManager propertiesManager) {
     String componentName = component == null ? "" : component.getTagName();
     mySelectedComponentLabel.setText(componentName);
 

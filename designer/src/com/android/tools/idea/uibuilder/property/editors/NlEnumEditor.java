@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.property.editors;
 
-import com.android.annotations.NonNull;
 import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.intellij.openapi.ui.ComboBox;
@@ -26,6 +25,7 @@ import com.intellij.ui.UIBundle;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.util.ArrayUtil;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
@@ -44,16 +44,16 @@ public class NlEnumEditor implements ActionListener {
 
   public interface Listener {
     /** Invoked when one of the enums is selected. */
-    void itemPicked(@NonNull NlEnumEditor source, @NonNull String value);
+    void itemPicked(@NotNull NlEnumEditor source, @NotNull String value);
 
     /** Invoked when a resource was selected using the resource picker. */
-    void resourcePicked(@NonNull NlEnumEditor source, @NonNull String value);
+    void resourcePicked(@NotNull NlEnumEditor source, @NotNull String value);
 
     /** Invoked when the resource picker was cancelled. */
-    void resourcePickerCancelled(@NonNull NlEnumEditor source);
+    void resourcePickerCancelled(@NotNull NlEnumEditor source);
   }
 
-  public NlEnumEditor(@NonNull Listener listener) {
+  public NlEnumEditor(@NotNull Listener listener) {
     myListener = listener;
     myPanel = new JPanel(new BorderLayout(SystemInfo.isMac ? 0 : 2, 0));
 
@@ -76,7 +76,7 @@ public class NlEnumEditor implements ActionListener {
   }
 
 
-  public void setProperty(@NonNull NlProperty property) {
+  public void setProperty(@NotNull NlProperty property) {
     myProperty = property;
     String propValue = StringUtil.notNullize(property.getValue());
 
@@ -91,7 +91,7 @@ public class NlEnumEditor implements ActionListener {
     myCombo.setModel(model);
   }
 
-  private static void selectItem(@NonNull DefaultComboBoxModel model, @NonNull String value) {
+  private static void selectItem(@NotNull DefaultComboBoxModel model, @NotNull String value) {
     if (model.getIndexOf(value) == -1) {
       model.insertElementAt(value, 1);
     }
@@ -102,7 +102,7 @@ public class NlEnumEditor implements ActionListener {
     return myCombo.getSelectedItem();
   }
 
-  @NonNull
+  @NotNull
   public Component getComponent() {
     return myPanel;
   }
