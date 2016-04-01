@@ -36,7 +36,8 @@ final class GridDragHandler extends DragHandler {
   private int row;
   private int column;
 
-  GridDragHandler(ViewEditor editor, ViewGroupHandler handler, NlComponent layout, List<NlComponent> components, DragType type) {
+  GridDragHandler(@NotNull ViewEditor editor, @NotNull ViewGroupHandler handler, @NotNull NlComponent layout,
+                  @NotNull List<NlComponent> components, @NotNull DragType type) {
     super(editor, handler, layout, components, type);
     info = new GridInfo(layout);
   }
