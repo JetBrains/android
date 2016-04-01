@@ -40,7 +40,7 @@ public class FloatingActionButtonHandler extends ImageViewHandler {
                              "  android:layout_width=\"wrap_content\"\n" +
                              "  android:layout_height=\"wrap_content\"\n" +
                              "  android:clickable=\"true\"\n" +
-                             "  app:elevation=\"0dp\"\n" +
+                             "  app:elevation=\"0dp\">\n" +
                              "</%1$s>\n", tagName, getSampleImageSrc());
       default:
         return String.format("<%1$s\n" +
