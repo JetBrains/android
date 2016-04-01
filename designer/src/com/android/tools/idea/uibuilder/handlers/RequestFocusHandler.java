@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.tools.idea.uibuilder.model.NlComponent;
@@ -31,33 +31,33 @@ import javax.swing.*;
 public class RequestFocusHandler extends ViewHandler {
 
   @Override
-  @NonNull
-  public String getTitle(@NonNull String tagName) {
+  @NotNull
+  public String getTitle(@NotNull String tagName) {
     return "<requestFocus>";
   }
 
   @Override
-  @NonNull
-  public String getTitle(@NonNull NlComponent component) {
+  @NotNull
+  public String getTitle(@NotNull NlComponent component) {
     return "<requestFocus>";
   }
 
   @Override
-  @NonNull
-  public Icon getIcon(@NonNull String tagName) {
+  @NotNull
+  public Icon getIcon(@NotNull String tagName) {
     return AndroidIcons.Views.RequestFocus;
   }
 
   @Override
-  @NonNull
-  public Icon getIcon(@NonNull NlComponent component) {
+  @NotNull
+  public Icon getIcon(@NotNull NlComponent component) {
     return AndroidIcons.Views.RequestFocus;
   }
 
   @Override
   @Language("XML")
-  @NonNull
-  public String getXml(@NonNull String tagName, @NonNull XmlType xmlType) {
+  @NotNull
+  public String getXml(@NotNull String tagName, @NotNull XmlType xmlType) {
     switch (xmlType) {
       case COMPONENT_CREATION:
         return "<requestFocus/>";

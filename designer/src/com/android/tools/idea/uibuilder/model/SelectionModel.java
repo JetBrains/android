@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.model;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.uibuilder.api.DragType;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -33,7 +33,7 @@ public class SelectionModel {
   private List<SelectionListener> myListeners;
   private Map<NlComponent, SelectionHandles> myHandles;
 
-  @NonNull
+  @NotNull
   public List<NlComponent> getSelection() {
     return Collections.unmodifiableList(mySelection);
   }
@@ -43,11 +43,11 @@ public class SelectionModel {
     return myPrimary;
   }
 
-  public void setSelection(@NonNull Collection<NlComponent> components) {
+  public void setSelection(@NotNull Collection<NlComponent> components) {
     setSelection(components, components.isEmpty() ? null : components.iterator().next());
   }
 
-  public void setSelection(@NonNull Collection<NlComponent> components, @Nullable NlComponent primary) {
+  public void setSelection(@NotNull Collection<NlComponent> components, @Nullable NlComponent primary) {
     if (components.equals(mySelection)) {
       return;
     }
@@ -67,7 +67,7 @@ public class SelectionModel {
     updateListeners();
   }
 
-  public void toggle(@NonNull NlComponent component) {
+  public void toggle(@NotNull NlComponent component) {
     myHandles = null;
     if (mySelection.contains(component)) {
       mySelection.remove(component);
@@ -91,7 +91,7 @@ public class SelectionModel {
     }
   }
 
-  public void addListener(@NonNull SelectionListener listener) {
+  public void addListener(@NotNull SelectionListener listener) {
     if (myListeners == null) {
       myListeners = Lists.newArrayList();
     } else {
@@ -100,7 +100,7 @@ public class SelectionModel {
     myListeners.add(listener);
   }
 
-  public void removeListener(@NonNull SelectionListener listener) {
+  public void removeListener(@NotNull SelectionListener listener) {
     if (myListeners != null) {
       myListeners.remove(listener);
     }
@@ -136,8 +136,8 @@ public class SelectionModel {
     return null;
   }
 
-  @NonNull
-  public SelectionHandles getHandles(@NonNull NlComponent component) {
+  @NotNull
+  public SelectionHandles getHandles(@NotNull NlComponent component) {
     if (myHandles == null) {
       myHandles = Maps.newHashMap();
     }
@@ -149,7 +149,7 @@ public class SelectionModel {
     return handles;
   }
 
-  public void selectAll(@NonNull NlModel model) {
+  public void selectAll(@NotNull NlModel model) {
     List<NlComponent> all = Lists.newArrayList();
     for (NlComponent component : model.getComponents()) {
       addComponent(all, component);
@@ -165,7 +165,7 @@ public class SelectionModel {
   }
 
   /** Returns true if the given component is part of the selection */
-  public boolean isSelected(@NonNull NlComponent component) {
+  public boolean isSelected(@NotNull NlComponent component) {
     return mySelection.contains(component);
   }
 

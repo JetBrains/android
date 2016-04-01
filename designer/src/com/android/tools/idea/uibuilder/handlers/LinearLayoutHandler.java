@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
@@ -43,9 +43,9 @@ import static com.android.utils.XmlUtils.formatFloatAttribute;
  */
 public class LinearLayoutHandler extends ViewGroupHandler {
 
-  @NonNull
+  @NotNull
   @Override
-  public String getTitleAttributes(@NonNull NlComponent component) {
+  public String getTitleAttributes(@NotNull NlComponent component) {
     if (!component.getTagName().equals(LINEAR_LAYOUT)) {
       return super.getTitleAttributes(component);
     }
@@ -53,8 +53,8 @@ public class LinearLayoutHandler extends ViewGroupHandler {
   }
 
   @Override
-  @NonNull
-  public Icon getIcon(@NonNull NlComponent component) {
+  @NotNull
+  public Icon getIcon(@NotNull NlComponent component) {
     if (!component.getTagName().equals(LINEAR_LAYOUT)) {
       return super.getIcon(component);
     }
@@ -62,7 +62,7 @@ public class LinearLayoutHandler extends ViewGroupHandler {
   }
 
   @Override
-  public boolean paintConstraints(@NonNull ScreenView screenView, @NonNull Graphics2D graphics, @NonNull NlComponent component) {
+  public boolean paintConstraints(@NotNull ScreenView screenView, @NotNull Graphics2D graphics, @NotNull NlComponent component) {
     NlComponent prev = null;
     boolean vertical = isVertical(component);
     for (NlComponent child : component.getChildren()) {
@@ -87,7 +87,7 @@ public class LinearLayoutHandler extends ViewGroupHandler {
    * @param component the node to check layout orientation for
    * @return true if the layout is in vertical mode, otherwise false
    */
-  protected boolean isVertical(@NonNull NlComponent component) {
+  protected boolean isVertical(@NotNull NlComponent component) {
     // Horizontal is the default, so if no value is specified it is horizontal.
     String orientation = component.getAttribute(ANDROID_URI, ATTR_ORIENTATION);
     return VALUE_VERTICAL.equals(orientation);
@@ -100,7 +100,7 @@ public class LinearLayoutHandler extends ViewGroupHandler {
    * @return "horizontal" or "vertical" depending on the current orientation of the
    *         linear layout
    */
-  private static String getCurrentOrientation(@NonNull final NlComponent component) {
+  private static String getCurrentOrientation(@NotNull final NlComponent component) {
     String orientation = component.getAttribute(ANDROID_URI, ATTR_ORIENTATION);
     if (orientation == null || orientation.length() == 0) {
       orientation = VALUE_HORIZONTAL;
@@ -158,10 +158,10 @@ public class LinearLayoutHandler extends ViewGroupHandler {
 
   @Override
   @Nullable
-  public DragHandler createDragHandler(@NonNull ViewEditor editor,
-                                       @NonNull NlComponent layout,
-                                       @NonNull List<NlComponent> components,
-                                       @NonNull DragType type) {
+  public DragHandler createDragHandler(@NotNull ViewEditor editor,
+                                       @NotNull NlComponent layout,
+                                       @NotNull List<NlComponent> components,
+                                       @NotNull DragType type) {
     if (layout.w == 0 || layout.h == 0) {
       return null;
     }
@@ -216,10 +216,10 @@ public class LinearLayoutHandler extends ViewGroupHandler {
     private Integer myHeight;
 
 
-    public LinearDragHandler(@NonNull ViewEditor editor,
-                             @NonNull NlComponent layout,
-                             @NonNull List<NlComponent> components,
-                             @NonNull DragType type) {
+    public LinearDragHandler(@NotNull ViewEditor editor,
+                             @NotNull NlComponent layout,
+                             @NotNull List<NlComponent> components,
+                             @NotNull DragType type) {
       super(editor, LinearLayoutHandler.this, layout, components, type);
       assert !components.isEmpty();
 
@@ -330,7 +330,7 @@ public class LinearLayoutHandler extends ViewGroupHandler {
     }
 
     @Override
-    public void paint(@NonNull NlGraphics gc) {
+    public void paint(@NotNull NlGraphics gc) {
       Insets padding = layout.getPadding();
       int layoutX = layout.x + padding.left;
       int layoutW = layout.w - padding.width();
@@ -499,7 +499,7 @@ public class LinearLayoutHandler extends ViewGroupHandler {
   }
 
   @Override
-  public void onChildInserted(@NonNull NlComponent layout, @NonNull NlComponent newChild, @NonNull InsertType insertType) {
+  public void onChildInserted(@NotNull NlComponent layout, @NotNull NlComponent newChild, @NotNull InsertType insertType) {
     if (insertType == InsertType.MOVE_WITHIN) {
       // Don't adjust widths/heights/weights when just moving within a single
       // LinearLayout
@@ -567,8 +567,8 @@ public class LinearLayoutHandler extends ViewGroupHandler {
 
   @Override
   @Nullable
-  public ResizeHandler createResizeHandler(@NonNull ViewEditor editor,
-                                           @NonNull NlComponent component,
+  public ResizeHandler createResizeHandler(@NotNull ViewEditor editor,
+                                           @NotNull NlComponent component,
                                            @Nullable SegmentType horizontalEdgeType,
                                            @Nullable SegmentType verticalEdgeType) {
     return new LinearResizeHandler(editor, this, component, horizontalEdgeType, verticalEdgeType);
@@ -588,18 +588,18 @@ public class LinearLayoutHandler extends ViewGroupHandler {
     /** List of nodes which should have their weights cleared */
     public List<NlComponent> mClearWeights;
 
-    public LinearResizeHandler(@NonNull ViewEditor editor,
-                               @NonNull ViewGroupHandler handler,
-                               @NonNull NlComponent component,
+    public LinearResizeHandler(@NotNull ViewEditor editor,
+                               @NotNull ViewGroupHandler handler,
+                               @NotNull NlComponent component,
                                @Nullable SegmentType horizontalEdgeType,
                                @Nullable SegmentType verticalEdgeType) {
       super(editor, handler, component, horizontalEdgeType, verticalEdgeType);
 
       unweightedSizes = editor.measureChildren(layout, new RenderTask.AttributeFilter() {
                                                  @Override
-                                                 public String getAttribute(@NonNull XmlTag n,
+                                                 public String getAttribute(@NotNull XmlTag n,
                                                                             @Nullable String namespace,
-                                                                            @NonNull String localName) {
+                                                                            @NotNull String localName) {
                                                    // Clear out layout weights; we need to measure the unweighted sizes
                                                    // of the children
                                                    if (ATTR_LAYOUT_WEIGHT.equals(localName) && ANDROID_URI.equals(namespace)) {
@@ -779,10 +779,10 @@ public class LinearLayoutHandler extends ViewGroupHandler {
      * layout_height (for vertical LinearLayouts).
      */
     @Override
-    protected void setNewSizeBounds(@NonNull NlComponent component,
-                                    @NonNull NlComponent layout,
-                                    @NonNull Rectangle oldBounds,
-                                    @NonNull Rectangle newBounds,
+    protected void setNewSizeBounds(@NotNull NlComponent component,
+                                    @NotNull NlComponent layout,
+                                    @NotNull Rectangle oldBounds,
+                                    @NotNull Rectangle newBounds,
                                     @Nullable SegmentType horizontalEdge,
                                     @Nullable SegmentType verticalEdge) {
       updateResizeState(component, layout, oldBounds, newBounds, horizontalEdge, verticalEdge);
@@ -810,9 +810,9 @@ public class LinearLayoutHandler extends ViewGroupHandler {
     }
 
     @Override
-    protected String getResizeUpdateMessage(@NonNull NlComponent child,
-                                            @NonNull NlComponent parent,
-                                            @NonNull Rectangle newBounds,
+    protected String getResizeUpdateMessage(@NotNull NlComponent child,
+                                            @NotNull NlComponent parent,
+                                            @NotNull Rectangle newBounds,
                                             @Nullable SegmentType horizontalEdge,
                                             @Nullable SegmentType verticalEdge) {
       updateResizeState(child, parent, newBounds, newBounds,
@@ -851,7 +851,7 @@ public class LinearLayoutHandler extends ViewGroupHandler {
    * Returns the layout weight of of the given child of a LinearLayout, or 0.0 if it
    * does not define a weight
    */
-  private static float getWeight(@NonNull NlComponent linearLayoutChild) {
+  private static float getWeight(@NotNull NlComponent linearLayoutChild) {
     String weight = linearLayoutChild.getAttribute(ANDROID_URI, ATTR_LAYOUT_WEIGHT);
     if (weight != null && weight.length() > 0) {
       try {
@@ -869,7 +869,7 @@ public class LinearLayoutHandler extends ViewGroupHandler {
    * @param linearLayout the layout to compute the total sum for
    * @return the total sum of all the layout weights in the given layout
    */
-  private static float getWeightSum(@NonNull NlComponent linearLayout) {
+  private static float getWeightSum(@NotNull NlComponent linearLayout) {
     String weightSum = linearLayout.getAttribute(ANDROID_URI, ATTR_WEIGHT_SUM);
     float sum = -1.0f;
     if (weightSum != null) {
@@ -885,7 +885,7 @@ public class LinearLayoutHandler extends ViewGroupHandler {
     return getSumOfWeights(linearLayout);
   }
 
-  private static float getSumOfWeights(@NonNull NlComponent linearLayout) {
+  private static float getSumOfWeights(@NotNull NlComponent linearLayout) {
     float sum = 0.0f;
     for (NlComponent child : linearLayout.getChildren()) {
       sum += getWeight(child);

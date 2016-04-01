@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
-import com.android.annotations.NonNull;
+import org.jetbrains.annotations.NotNull;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
@@ -36,7 +36,7 @@ public class BlueprintLayer extends Layer {
   private int myWidth;
   private int myHeight;
 
-  public BlueprintLayer(@NonNull ScreenView screenView) {
+  public BlueprintLayer(@NotNull ScreenView screenView) {
     myScreenView = screenView;
   }
 
@@ -48,7 +48,7 @@ public class BlueprintLayer extends Layer {
    * @return true if we need to repaint
    */
   @Override
-  public boolean paint(@NonNull Graphics2D gc) {
+  public boolean paint(@NotNull Graphics2D gc) {
     int tlx = myScreenView.getX();
     int tly = myScreenView.getY();
     gc.setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);
@@ -93,8 +93,8 @@ public class BlueprintLayer extends Layer {
    *
    * @return true if we need to
    */
-  private boolean drawComponent(@NonNull Graphics2D gc, @NonNull NlComponent component,
-                                @NonNull ViewHandlerManager viewHandlerManager) {
+  private boolean drawComponent(@NotNull Graphics2D gc, @NotNull NlComponent component,
+                                @NotNull ViewHandlerManager viewHandlerManager) {
     boolean needsRepaint = false;
 
     if (component.viewInfo != null) {
@@ -184,7 +184,7 @@ public class BlueprintLayer extends Layer {
    * @param gc the graphics context
    * @param component the component
    */
-  private void drawComponentBackground(@NonNull Graphics2D gc, @NonNull NlComponent component) {
+  private void drawComponentBackground(@NotNull Graphics2D gc, @NotNull NlComponent component) {
     if (component.viewInfo != null) {
       int x = getSwingX(myScreenView, component.x);
       int y = getSwingY(myScreenView, component.y);

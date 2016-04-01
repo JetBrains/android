@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.api;
 
-import com.android.annotations.NonNull;
+import org.jetbrains.annotations.NotNull;
 import com.intellij.openapi.util.IconLoader;
 import icons.AndroidIcons;
 import org.intellij.lang.annotations.Language;
@@ -50,8 +50,8 @@ public abstract class PaletteComponentHandler {
    * @param tagName the tag name of the component
    * @return a title of the component
    */
-  @NonNull
-  public String getTitle(@NonNull String tagName) {
+  @NotNull
+  public String getTitle(@NotNull String tagName) {
     return getSimpleTagName(tagName);
   }
 
@@ -62,8 +62,8 @@ public abstract class PaletteComponentHandler {
    * @param tagName the tag name of the component
    * @return an icon to identify the component
    */
-  @NonNull
-  public Icon getIcon(@NonNull String tagName) {
+  @NotNull
+  public Icon getIcon(@NotNull String tagName) {
     return loadBuiltinIcon(tagName);
   }
 
@@ -76,8 +76,8 @@ public abstract class PaletteComponentHandler {
    *
    * @return the Gradle Coordinate of the library this component belongs to
    */
-  @NonNull
-  public String getGradleCoordinate(@NonNull String tagName) {
+  @NotNull
+  public String getGradleCoordinate(@NotNull String tagName) {
     return getBuiltinCoordinate(tagName);
   }
 
@@ -94,9 +94,9 @@ public abstract class PaletteComponentHandler {
    * @param xmlType how the caller intend to use the XML returned
    * @return the XML for a newly created component
    */
-  @NonNull
+  @NotNull
   @Language("XML")
-  public String getXml(@NonNull String tagName, @NonNull XmlType xmlType) {
+  public String getXml(@NotNull String tagName, @NotNull XmlType xmlType) {
     // Most components that are not containers are rendered by this simple XML
     return String.format("<%1$s\n" +
                          "  android:layout_width=\"wrap_content\"\n" +
@@ -110,25 +110,25 @@ public abstract class PaletteComponentHandler {
    * @param tagName the tag name of the component
    * @return the scale used to preview the component
    */
-  public double getPreviewScale(@NonNull String tagName) {
+  public double getPreviewScale(@NotNull String tagName) {
     return 1.0;
   }
 
-  @NonNull
-  protected static String getSimpleTagName(@NonNull String tagName) {
+  @NotNull
+  protected static String getSimpleTagName(@NotNull String tagName) {
     int lastIndex = tagName.lastIndexOf('.');
     return lastIndex < 0 ? tagName : tagName.substring(lastIndex + 1);
   }
 
-  @NonNull
-  protected Icon loadBuiltinIcon(@NonNull String tagName) {
+  @NotNull
+  protected Icon loadBuiltinIcon(@NotNull String tagName) {
     String path = "AndroidIcons.Views." + getSimpleTagName(tagName);
     Icon icon = IconLoader.findIcon(path, getClass());
     return icon != null ? icon : AndroidIcons.Views.Unknown;
   }
 
-  @NonNull
-  private static String getBuiltinCoordinate(@NonNull String tagName) {
+  @NotNull
+  private static String getBuiltinCoordinate(@NotNull String tagName) {
     if (tagName.startsWith(ANDROID_SUPPORT_V4_PKG)) {
       return SUPPORT_LIB_ARTIFACT;
     }

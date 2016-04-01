@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.relative;
 
-import com.android.annotations.Nullable;
+import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.uibuilder.model.Segment;
 import com.android.tools.idea.uibuilder.model.TextDirection;
 import com.intellij.android.designer.designSurface.feedbacks.TextFeedback;

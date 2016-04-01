@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.grid;
 
-import com.android.annotations.NonNull;
+import org.jetbrains.annotations.NotNull;
 
 import static com.android.SdkConstants.GRID_LAYOUT_LIB_ARTIFACT;
 
@@ -25,8 +25,8 @@ import static com.android.SdkConstants.GRID_LAYOUT_LIB_ARTIFACT;
 public class GridLayoutV7Handler extends GridLayoutHandler {
 
   @Override
-  @NonNull
-  public String getGradleCoordinate(@NonNull String viewTag) {
+  @NotNull
+  public String getGradleCoordinate(@NotNull String viewTag) {
     return GRID_LAYOUT_LIB_ARTIFACT;
   }
 }

@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler;
@@ -63,8 +63,8 @@ public class ViewHandlerManager implements ProjectComponent {
   private static final ViewHandler TEXT_HANDLER = new TextViewHandler();
   private static final ViewHandler NO_PREVIEW_HANDLER = new NoPreviewHandler();
 
-  @NonNull
-  public static ViewHandlerManager get(@NonNull Project project) {
+  @NotNull
+  public static ViewHandlerManager get(@NotNull Project project) {
     ViewHandlerManager manager = project.getComponent(ViewHandlerManager.class);
     assert manager != null;
 
@@ -74,12 +74,12 @@ public class ViewHandlerManager implements ProjectComponent {
   /**
    * Returns the {@link ViewHandlerManager} for the current project
    */
-  @NonNull
-  public static ViewHandlerManager get(@NonNull AndroidFacet facet) {
+  @NotNull
+  public static ViewHandlerManager get(@NotNull AndroidFacet facet) {
     return get(facet.getModule().getProject());
   }
 
-  public ViewHandlerManager(@NonNull Project project) {
+  public ViewHandlerManager(@NotNull Project project) {
     myProject = project;
   }
 
@@ -90,7 +90,7 @@ public class ViewHandlerManager implements ProjectComponent {
    * @return the corresponding view handler, if any
    */
   @Nullable
-  public ViewHandler getHandler(@NonNull NlComponent component) {
+  public ViewHandler getHandler(@NotNull NlComponent component) {
     return getHandler(component.getTagName());
   }
 
@@ -98,8 +98,8 @@ public class ViewHandlerManager implements ProjectComponent {
    * Gets the {@link ViewHandler} associated with a given component.
    * If there is no custom handler found returns an instance of {@link TextViewHandler}.
    */
-  @NonNull
-  public ViewHandler getHandlerOrDefault(@NonNull NlComponent component) {
+  @NotNull
+  public ViewHandler getHandlerOrDefault(@NotNull NlComponent component) {
     ViewHandler handler = getHandler(component);
     return handler != null ? handler : NONE;
   }
@@ -108,8 +108,8 @@ public class ViewHandlerManager implements ProjectComponent {
    * Gets the {@link ViewHandler} associated with the given XML tag.
    * If there is no custom handler found returns an instance of {@link TextViewHandler}.
    */
-  @NonNull
-  public ViewHandler getHandlerOrDefault(@NonNull String viewTag) {
+  @NotNull
+  public ViewHandler getHandlerOrDefault(@NotNull String viewTag) {
     ViewHandler handler = getHandler(viewTag);
     return handler != null ? handler : NONE;
   }
@@ -121,7 +121,7 @@ public class ViewHandlerManager implements ProjectComponent {
    * @return the corresponding view handler, if any
    */
   @Nullable
-  public ViewHandler getHandler(@NonNull String viewTag) {
+  public ViewHandler getHandler(@NotNull String viewTag) {
     ViewHandler handler = myHandlers.get(viewTag);
     if (handler == null) {
       if (viewTag.indexOf('.') != -1) {
@@ -150,7 +150,7 @@ public class ViewHandlerManager implements ProjectComponent {
    * @param strict    if true, only consider parents of the component, not the component itself
    */
   @Nullable
-  public ViewGroupHandler findLayoutHandler(@NonNull NlComponent component, boolean strict) {
+  public ViewGroupHandler findLayoutHandler(@NotNull NlComponent component, boolean strict) {
     NlComponent curr = component;
     if (strict) {
       curr = curr.getParent();
@@ -167,7 +167,7 @@ public class ViewHandlerManager implements ProjectComponent {
     return null;
   }
 
-  private ViewHandler createHandler(@NonNull String viewTag) {
+  private ViewHandler createHandler(@NotNull String viewTag) {
     // Builtin view. Don't bother with reflection for the common cases.
     if (FRAME_LAYOUT.equals(viewTag) ||
         IMAGE_SWITCHER.equals(viewTag) ||
@@ -350,7 +350,7 @@ public class ViewHandlerManager implements ProjectComponent {
   }
 
   @Nullable
-  private String getFullyQualifiedClassName(@NonNull String viewTag) {
+  private String getFullyQualifiedClassName(@NotNull String viewTag) {
     if (viewTag.indexOf('.') > 0) {
       return viewTag;
     }
@@ -382,7 +382,7 @@ public class ViewHandlerManager implements ProjectComponent {
     myHandlers.clear();
   }
 
-  @NonNull
+  @NotNull
   @Override
   public String getComponentName() {
     return "ViewHandlerManager";

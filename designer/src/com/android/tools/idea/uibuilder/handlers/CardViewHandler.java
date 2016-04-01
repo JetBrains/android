@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import com.android.annotations.NonNull;
+import org.jetbrains.annotations.NotNull;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import org.intellij.lang.annotations.Language;
 
@@ -27,9 +27,9 @@ import static com.android.SdkConstants.CARD_VIEW_LIB_ARTIFACT;
 public class CardViewHandler extends FrameLayoutHandler {
 
   @Override
-  @NonNull
+  @NotNull
   @Language("XML")
-  public String getXml(@NonNull String tagName, @NonNull XmlType xmlType) {
+  public String getXml(@NotNull String tagName, @NotNull XmlType xmlType) {
     switch (xmlType) {
       case COMPONENT_CREATION:
         return String.format("<%1$s\n" +
@@ -42,8 +42,8 @@ public class CardViewHandler extends FrameLayoutHandler {
   }
 
   @Override
-  @NonNull
-  public String getGradleCoordinate(@NonNull String viewTag) {
+  @NotNull
+  public String getGradleCoordinate(@NotNull String viewTag) {
     return CARD_VIEW_LIB_ARTIFACT;
   }
 }

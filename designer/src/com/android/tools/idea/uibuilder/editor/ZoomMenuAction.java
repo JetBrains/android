@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.editor;
 
-import com.android.annotations.NonNull;
+import org.jetbrains.annotations.NotNull;
 import com.android.tools.idea.configurations.FlatComboAction;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ZoomType;
@@ -31,9 +31,9 @@ import javax.swing.*;
  * Dropdown menu action shown in the layout editor toolbar for choosing a different view size
  */
 public class ZoomMenuAction extends FlatComboAction {
-  @NonNull private final DesignSurface mySurface;
+  @NotNull private final DesignSurface mySurface;
 
-  public ZoomMenuAction(@NonNull DesignSurface surface) {
+  public ZoomMenuAction(@NotNull DesignSurface surface) {
     mySurface = surface;
     Presentation presentation = getTemplatePresentation();
     presentation.setDescription("Set View Zoom");
@@ -53,7 +53,7 @@ public class ZoomMenuAction extends FlatComboAction {
   }
 
   @Override
-  @NonNull
+  @NotNull
   protected DefaultActionGroup createPopupActionGroup(JComponent button) {
     DefaultActionGroup group = new DefaultActionGroup("Zoom", true);
 
@@ -68,10 +68,10 @@ public class ZoomMenuAction extends FlatComboAction {
   }
 
   private static class SetZoomAction extends AnAction {
-    @NonNull private final DesignSurface mySurface;
-    @NonNull private final ZoomType myType;
+    @NotNull private final DesignSurface mySurface;
+    @NotNull private final ZoomType myType;
 
-    public SetZoomAction(@NonNull DesignSurface surface, @NonNull ZoomType type) {
+    public SetZoomAction(@NotNull DesignSurface surface, @NotNull ZoomType type) {
       super(type.getLabel());
       myType = type;
       mySurface = surface;

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.lint;
 
-import com.android.annotations.NonNull;
+import org.jetbrains.annotations.NotNull;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
@@ -36,12 +36,12 @@ public class NlLintHighlightingPass implements HighlightingPass {
   private final DesignSurface mySurface;
   private LintAnnotationsModel myLintAnnotationsModel;
 
-  public NlLintHighlightingPass(@NonNull DesignSurface surface) {
+  public NlLintHighlightingPass(@NotNull DesignSurface surface) {
     mySurface = surface;
   }
 
   @Override
-  public void collectInformation(@NonNull ProgressIndicator progress) {
+  public void collectInformation(@NotNull ProgressIndicator progress) {
     ScreenView screenView = mySurface.getCurrentScreenView();
     if (screenView == null) {
       return;
@@ -60,8 +60,8 @@ public class NlLintHighlightingPass implements HighlightingPass {
     screenView.getModel().setLintAnnotationsModel(myLintAnnotationsModel);
   }
 
-  @NonNull
-  private static LintAnnotationsModel getAnnotations(@NonNull NlModel model, @NonNull ProgressIndicator progress) {
+  @NotNull
+  private static LintAnnotationsModel getAnnotations(@NotNull NlModel model, @NotNull ProgressIndicator progress) {
     ApplicationManager.getApplication().assertReadAccessAllowed();
     LintAnnotationsModel lintModel = new LintAnnotationsModel();
 

@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.editor;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.uibuilder.palette.NlPalettePanel;
 import com.android.tools.idea.uibuilder.palette.ScalableDesignSurface;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
@@ -31,12 +31,12 @@ import com.intellij.openapi.wm.ToolWindowAnchor;
 public class NlPaletteManager extends NlAbstractWindowManager {
   private NlPalettePanel myPalette;
 
-  public NlPaletteManager(@NonNull Project project, @NonNull FileEditorManager fileEditorManager) {
+  public NlPaletteManager(@NotNull Project project, @NotNull FileEditorManager fileEditorManager) {
     super(project, fileEditorManager);
   }
 
-  @NonNull
-  public static NlPaletteManager get(@NonNull Project project) {
+  @NotNull
+  public static NlPaletteManager get(@NotNull Project project) {
     return project.getComponent(NlPaletteManager.class);
   }
 
@@ -69,8 +69,8 @@ public class NlPaletteManager extends NlAbstractWindowManager {
     return ToolWindowAnchor.LEFT;
   }
 
-  @NonNull
-  private static DesignSurface getDesignSurface(@NonNull DesignerEditorPanelFacade designer) {
+  @NotNull
+  private static DesignSurface getDesignSurface(@NotNull DesignerEditorPanelFacade designer) {
     if (designer instanceof NlEditorPanel) {
       NlEditorPanel editor = (NlEditorPanel)designer;
       return editor.getSurface();
@@ -83,7 +83,7 @@ public class NlPaletteManager extends NlAbstractWindowManager {
     throw new RuntimeException(designer.getClass().getName());
   }
 
-  public String getVisibilityKeyName(@NonNull DesignerEditorPanelFacade designer) {
+  public String getVisibilityKeyName(@NotNull DesignerEditorPanelFacade designer) {
     return getComponentName()+ "-" + designer.getClass().getSimpleName();
   }
 
@@ -93,7 +93,7 @@ public class NlPaletteManager extends NlAbstractWindowManager {
   }
 
   @Override
-  protected LightToolWindow createContent(@NonNull DesignerEditorPanelFacade designer) {
+  protected LightToolWindow createContent(@NotNull DesignerEditorPanelFacade designer) {
     LightToolWindow toolWindow = (LightToolWindow)designer.getClientProperty(getComponentName());
     if (toolWindow != null) {
       // Avoid memory leaks for palettes created for the preview form (the palette is shared for all files).
@@ -127,7 +127,7 @@ public class NlPaletteManager extends NlAbstractWindowManager {
     }
   }
 
-  @NonNull
+  @NotNull
   @Override
   public String getComponentName() {
     return "NlPaletteManager";

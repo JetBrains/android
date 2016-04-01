@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.structure;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.uibuilder.api.DragType;
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
@@ -49,32 +49,32 @@ public class NlDropListener extends DropTargetAdapter {
   private NlComponent myDragReceiver;
   private NlComponent myNextDragSibling;
 
-  public NlDropListener(@NonNull NlComponentTree tree) {
+  public NlDropListener(@NotNull NlComponentTree tree) {
     myDragged = new ArrayList<NlComponent>(10);
     myTree = tree;
   }
 
   @Override
-  public void dragEnter(@NonNull DropTargetDragEvent dragEvent) {
+  public void dragEnter(@NotNull DropTargetDragEvent dragEvent) {
     NlDropEvent event = new NlDropEvent(dragEvent);
     captureDraggedComponents(event, true /* preview */);
     updateInsertionPoint(event);
   }
 
   @Override
-  public void dragOver(@NonNull DropTargetDragEvent dragEvent) {
+  public void dragOver(@NotNull DropTargetDragEvent dragEvent) {
     NlDropEvent event = new NlDropEvent(dragEvent);
     updateInsertionPoint(event);
   }
 
   @Override
-  public void dragExit(@NonNull DropTargetEvent event) {
+  public void dragExit(@NotNull DropTargetEvent event) {
     clearInsertionPoint();
     clearDraggedComponents();
   }
 
   @Override
-  public void drop(@NonNull DropTargetDropEvent dropEvent) {
+  public void drop(@NotNull DropTargetDropEvent dropEvent) {
     NlDropEvent event = new NlDropEvent(dropEvent);
     InsertType insertType = captureDraggedComponents(event, false /* not as preview */);
     if (findInsertionPoint(event) != null) {
@@ -85,7 +85,7 @@ public class NlDropListener extends DropTargetAdapter {
   }
 
   @Nullable
-  private InsertType captureDraggedComponents(@NonNull NlDropEvent event, boolean isPreview) {
+  private InsertType captureDraggedComponents(@NotNull NlDropEvent event, boolean isPreview) {
     clearDraggedComponents();
     ScreenView screenView = myTree.getScreenView();
     if (screenView == null) {
@@ -117,8 +117,8 @@ public class NlDropListener extends DropTargetAdapter {
     return null;
   }
 
-  @NonNull
-  private InsertType determineInsertType(@NonNull NlDropEvent event, boolean isPreview) {
+  @NotNull
+  private InsertType determineInsertType(@NotNull NlDropEvent event, boolean isPreview) {
     NlModel model = myTree.getDesignerModel();
     if (model == null || myTransferItem == null) {
       return InsertType.MOVE_INTO;
@@ -131,7 +131,7 @@ public class NlDropListener extends DropTargetAdapter {
     myDragged.clear();
   }
 
-  private void updateInsertionPoint(@NonNull NlDropEvent event) {
+  private void updateInsertionPoint(@NotNull NlDropEvent event) {
     Pair<TreePath, InsertionPoint> point = findInsertionPoint(event);
     if (point == null) {
       clearInsertionPoint();
@@ -148,7 +148,7 @@ public class NlDropListener extends DropTargetAdapter {
   }
 
   @Nullable
-  private Pair<TreePath, InsertionPoint> findInsertionPoint(@NonNull NlDropEvent event) {
+  private Pair<TreePath, InsertionPoint> findInsertionPoint(@NotNull NlDropEvent event) {
     myDragReceiver = null;
     myNextDragSibling = null;
     TreePath path = myTree.getClosestPathForLocation(event.getLocation().x, event.getLocation().y);
@@ -200,8 +200,8 @@ public class NlDropListener extends DropTargetAdapter {
     return Pair.of(path, insertionPoint);
   }
 
-  @NonNull
-  private static InsertionPoint findTreeStateInsertionPoint(@SwingCoordinate int y, @SwingCoordinate @NonNull Rectangle bounds) {
+  @NotNull
+  private static InsertionPoint findTreeStateInsertionPoint(@SwingCoordinate int y, @SwingCoordinate @NotNull Rectangle bounds) {
     int delta = bounds.height / 9;
     if (bounds.y + delta > y) {
       return INSERT_BEFORE;
@@ -216,7 +216,7 @@ public class NlDropListener extends DropTargetAdapter {
     myTree.markInsertionPoint(null, INSERT_BEFORE);
   }
 
-  private void performDrop(@NonNull final DropTargetDropEvent event, final InsertType insertType) {
+  private void performDrop(@NotNull final DropTargetDropEvent event, final InsertType insertType) {
     NlModel model = myTree.getDesignerModel();
     assert model != null;
     try {

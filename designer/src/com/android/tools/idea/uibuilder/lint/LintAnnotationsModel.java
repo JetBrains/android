@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.lint;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
@@ -34,13 +34,13 @@ public class LintAnnotationsModel {
   /** A map from a component to a list of issues for that component. */
   private ListMultimap<NlComponent, IssueData> myIssues;
 
-  @NonNull
+  @NotNull
   public Collection<NlComponent> getComponentsWithIssues() {
     return myIssues == null ? Collections.<NlComponent>emptyList() : myIssues.keySet();
   }
 
   @Nullable
-  public Icon getIssueIcon(@NonNull NlComponent component) {
+  public Icon getIssueIcon(@NotNull NlComponent component) {
     List<IssueData> issueData = myIssues.get(component);
     if (issueData == null || issueData.isEmpty()) {
       return null;
@@ -50,7 +50,7 @@ public class LintAnnotationsModel {
     return HighlightDisplayLevel.ERROR.equals(max.level) ? AndroidIcons.ErrorBadge : AndroidIcons.WarningBadge;
   }
 
-  public String getIssueMessage(@NonNull NlComponent component) {
+  public String getIssueMessage(@NotNull NlComponent component) {
     List<IssueData> issueData = myIssues.get(component);
     if (issueData == null || issueData.isEmpty()) {
       return null;
@@ -69,9 +69,9 @@ public class LintAnnotationsModel {
     });
   }
 
-  public void addIssue(@NonNull NlComponent component,
-                       @NonNull AndroidLintInspectionBase inspection,
-                       @NonNull HighlightDisplayLevel level) {
+  public void addIssue(@NotNull NlComponent component,
+                       @NotNull AndroidLintInspectionBase inspection,
+                       @NotNull HighlightDisplayLevel level) {
     if (myIssues == null) {
       myIssues = ArrayListMultimap.create();
     }
@@ -80,10 +80,10 @@ public class LintAnnotationsModel {
   }
 
   private static class IssueData {
-    @NonNull public final AndroidLintInspectionBase inspection;
-    @NonNull public final HighlightDisplayLevel level;
+    @NotNull public final AndroidLintInspectionBase inspection;
+    @NotNull public final HighlightDisplayLevel level;
 
-    private IssueData(@NonNull AndroidLintInspectionBase inspection, @NonNull HighlightDisplayLevel level) {
+    private IssueData(@NotNull AndroidLintInspectionBase inspection, @NotNull HighlightDisplayLevel level) {
       this.inspection = inspection;
       this.level = level;
     }

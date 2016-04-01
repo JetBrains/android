@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.api;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.uibuilder.model.FillPolicy;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
@@ -34,8 +34,8 @@ public class ViewHandler extends StructurePaneComponentHandler {
    * @param newChild the newly created component
    * @return true if the proposed parent is accepted
    */
-  public boolean acceptsParent(@NonNull NlComponent layout,
-                               @NonNull NlComponent newChild) {
+  public boolean acceptsParent(@NotNull NlComponent layout,
+                               @NotNull NlComponent newChild) {
     return true;
   }
 
@@ -63,10 +63,10 @@ public class ViewHandler extends StructurePaneComponentHandler {
    * unconfigured component lingering around, so the component create handler
    * cancels the drop instead by returning false.
    */
-  public boolean onCreate(@NonNull ViewEditor editor,
+  public boolean onCreate(@NotNull ViewEditor editor,
                           @Nullable NlComponent parent,
-                          @NonNull NlComponent newChild,
-                          @NonNull InsertType insertType) {
+                          @NotNull NlComponent newChild,
+                          @NotNull InsertType insertType) {
     return true;
   }
 
@@ -78,7 +78,7 @@ public class ViewHandler extends StructurePaneComponentHandler {
    * @param component the component whose constraints we want to paint
    * @return true if we're done with this component <b>and</b> it's children
    */
-  public boolean paintConstraints(@NonNull ScreenView screenView, @NonNull Graphics2D graphics, @NonNull NlComponent component) {
+  public boolean paintConstraints(@NotNull ScreenView screenView, @NotNull Graphics2D graphics, @NotNull NlComponent component) {
     return false;
   }
 

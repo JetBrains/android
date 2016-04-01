@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.handlers.relative;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
@@ -32,7 +32,7 @@ import java.util.List;
 /** Handler for the {@code <RelativeLayout>} layout */
 public class RelativeLayoutHandler extends ViewGroupHandler {
   @Override
-  public boolean paintConstraints(@NonNull ScreenView screenView, @NonNull Graphics2D graphics, @NonNull NlComponent component) {
+  public boolean paintConstraints(@NotNull ScreenView screenView, @NotNull Graphics2D graphics, @NotNull NlComponent component) {
     NlGraphics g = new NlGraphics(graphics, screenView);
     Iterable<NlComponent> iterable = component.getChildren();
     List<NlComponent> children = Lists.newArrayList(iterable);
@@ -42,10 +42,10 @@ public class RelativeLayoutHandler extends ViewGroupHandler {
 
   @Override
   @Nullable
-  public DragHandler createDragHandler(@NonNull ViewEditor editor,
-                                       @NonNull NlComponent layout,
-                                       @NonNull List<NlComponent> components,
-                                       @NonNull DragType type) {
+  public DragHandler createDragHandler(@NotNull ViewEditor editor,
+                                       @NotNull NlComponent layout,
+                                       @NotNull List<NlComponent> components,
+                                       @NotNull DragType type) {
     final RelativeDragHandler moveHandler = new RelativeDragHandler(editor, layout, components);
     return new DragHandler(editor, this, layout, components, type) {
       @Nullable
@@ -61,7 +61,7 @@ public class RelativeLayoutHandler extends ViewGroupHandler {
       }
 
       @Override
-      public void paint(@NonNull NlGraphics graphics) {
+      public void paint(@NotNull NlGraphics graphics) {
         GuidelinePainter.paint(graphics, moveHandler);
       }
 
@@ -96,8 +96,8 @@ public class RelativeLayoutHandler extends ViewGroupHandler {
 
   @Override
   @Nullable
-  public ResizeHandler createResizeHandler(@NonNull ViewEditor editor,
-                                           @NonNull NlComponent component,
+  public ResizeHandler createResizeHandler(@NotNull ViewEditor editor,
+                                           @NotNull NlComponent component,
                                            @Nullable SegmentType horizontalEdgeType,
                                            @Nullable SegmentType verticalEdgeType) {
     NlComponent parent = component.getParent();
@@ -112,7 +112,7 @@ public class RelativeLayoutHandler extends ViewGroupHandler {
       public String update(@AndroidCoordinate int x,
                            @AndroidCoordinate int y,
                            int modifiers,
-                           @NonNull @AndroidCoordinate Rectangle newBounds) {
+                           @NotNull @AndroidCoordinate Rectangle newBounds) {
         super.update(x, y, modifiers, newBounds);
         resizeHandler.updateResize(component, newBounds, modifiers);
         return null;
@@ -122,13 +122,13 @@ public class RelativeLayoutHandler extends ViewGroupHandler {
       public void commit(@AndroidCoordinate int px,
                          @AndroidCoordinate int py,
                          int modifiers,
-                         @NonNull @AndroidCoordinate Rectangle newBounds) {
+                         @NotNull @AndroidCoordinate Rectangle newBounds) {
         resizeHandler.removeCycles();
         resizeHandler.applyConstraints(component);
       }
 
       @Override
-      public void paint(@NonNull NlGraphics graphics) {
+      public void paint(@NotNull NlGraphics graphics) {
         GuidelinePainter.paint(graphics, resizeHandler);
       }
     };

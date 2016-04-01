@@ -16,8 +16,8 @@
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
 import com.android.SdkConstants;
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
 import com.android.tools.idea.uibuilder.model.Insets;
 import com.android.tools.idea.uibuilder.model.NlComponent;
@@ -170,7 +170,7 @@ public class ConstraintUtilities {
    * @param component  the component we work on
    * @param anchorType the anchor type
    */
-  public static void resetAnchor(@NonNull NlComponent component, @NonNull ConstraintAnchor.Type anchorType) {
+  public static void resetAnchor(@NotNull NlComponent component, @NotNull ConstraintAnchor.Type anchorType) {
     switch (anchorType) {
       case LEFT: {
         component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_LEFT_STRENGTH, null);
@@ -213,7 +213,7 @@ public class ConstraintUtilities {
    * @param component the component we work on
    * @param alignment the type of alignment
    */
-  public static void resetVerticalAlignment(@NonNull NlComponent component, int alignment) {
+  public static void resetVerticalAlignment(@NotNull NlComponent component, int alignment) {
     if (alignment == -1 || alignment == 1) {
       component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_TOP_STRENGTH, null);
       component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BOTTOM_STRENGTH, null);
@@ -234,7 +234,7 @@ public class ConstraintUtilities {
    * @param component the component we work on
    * @param alignment the type of alignment
    */
-  public static void resetHorizontalAlignment(@NonNull NlComponent component, int alignment) {
+  public static void resetHorizontalAlignment(@NotNull NlComponent component, int alignment) {
     if (alignment == -1 || alignment == 1) {
       component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_LEFT_STRENGTH, null);
       component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_RIGHT_STRENGTH, null);
@@ -256,7 +256,7 @@ public class ConstraintUtilities {
    * @param x         x position (in Dp)
    * @param y         y position (in Dp)
    */
-  public static void setEditorPosition(@NonNull NlComponent component,
+  public static void setEditorPosition(@NotNull NlComponent component,
                                        @AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
     String sX = String.format(SdkConstants.VALUE_N_DP, x);
     String sY = String.format(SdkConstants.VALUE_N_DP, y);
@@ -272,7 +272,7 @@ public class ConstraintUtilities {
    * @param component the component we work on
    * @param anchor    the anchor we want to update from
    */
-  static void setConnection(@NonNull NlComponent component, @NonNull ConstraintAnchor anchor) {
+  static void setConnection(@NotNull NlComponent component, @NotNull ConstraintAnchor anchor) {
     resetAnchor(component, anchor.getType());
     String attribute = getConnectionAttribute(anchor, anchor.getTarget());
     String marginAttribute = getConnectionAttributeMargin(anchor);
@@ -295,7 +295,7 @@ public class ConstraintUtilities {
    * @param component the component we work on
    * @param widget    the widget we use as a model
    */
-  public static void setDimension(@NonNull NlComponent component, @NonNull ConstraintWidget widget) {
+  public static void setDimension(@NotNull NlComponent component, @NotNull ConstraintWidget widget) {
     String width;
     switch (widget.getHorizontalDimensionBehaviour()) {
       case ANY: {
@@ -332,8 +332,8 @@ public class ConstraintUtilities {
    * @param component the component we are looking at
    * @param widget    the constraint widget we set the strength on
    */
-  static void setStrength(@NonNull String attribute, @NonNull ConstraintAnchor.Type type,
-                          @NonNull NlComponent component, @NonNull ConstraintWidget widget) {
+  static void setStrength(@NotNull String attribute, @NotNull ConstraintAnchor.Type type,
+                          @NotNull NlComponent component, @NotNull ConstraintWidget widget) {
     String strength = component.getAttribute(SdkConstants.SHERPA_URI, attribute);
     if (strength != null) {
       if (strength.equalsIgnoreCase("weak")) {
@@ -352,7 +352,7 @@ public class ConstraintUtilities {
    * @param component the component we are looking at
    * @param widget    the constraint widget we set the margin on
    */
-  static void setLeftMargin(@Nullable String left, @NonNull NlComponent component, @NonNull ConstraintWidget widget) {
+  static void setLeftMargin(@Nullable String left, @NotNull NlComponent component, @NotNull ConstraintWidget widget) {
     if (left != null) {
       String margin = component.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_LEFT_MARGIN);
       if (margin != null) {
@@ -369,7 +369,7 @@ public class ConstraintUtilities {
    * @param component the component we are looking at
    * @param widget    the constraint widget we set the margin on
    */
-  static void setRightMargin(@Nullable String right, @NonNull NlComponent component, @NonNull ConstraintWidget widget) {
+  static void setRightMargin(@Nullable String right, @NotNull NlComponent component, @NotNull ConstraintWidget widget) {
     if (right != null) {
       String margin = component.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_RIGHT_MARGIN);
       if (margin != null) {
@@ -386,7 +386,7 @@ public class ConstraintUtilities {
    * @param component the component we are looking at
    * @param widget    the constraint widget we set the margin on
    */
-  static void setTopMargin(@Nullable String top, @NonNull NlComponent component, @NonNull ConstraintWidget widget) {
+  static void setTopMargin(@Nullable String top, @NotNull NlComponent component, @NotNull ConstraintWidget widget) {
     if (top != null) {
       String margin = component.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_TOP_MARGIN);
       if (margin != null) {
@@ -403,7 +403,7 @@ public class ConstraintUtilities {
    * @param component the component we are looking at
    * @param widget    the constraint widget we set the margin on
    */
-  static void setBottomMargin(@Nullable String bottom, @NonNull NlComponent component, @NonNull ConstraintWidget widget) {
+  static void setBottomMargin(@Nullable String bottom, @NotNull NlComponent component, @NotNull ConstraintWidget widget) {
     if (bottom != null) {
       String margin = component.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BOTTOM_MARGIN);
       if (margin != null) {
@@ -423,8 +423,8 @@ public class ConstraintUtilities {
    * @param constraintA  the source anchor type
    * @param constraintB  the target anchor type
    */
-  static void setTarget(@NonNull NlModel model, @NonNull WidgetsScene widgetsScene, @Nullable String targetID, @Nullable ConstraintWidget widgetSrc,
-                        @NonNull ConstraintAnchor.Type constraintA, @NonNull ConstraintAnchor.Type constraintB) {
+  static void setTarget(@NotNull NlModel model, @NotNull WidgetsScene widgetsScene, @Nullable String targetID, @Nullable ConstraintWidget widgetSrc,
+                        @NotNull ConstraintAnchor.Type constraintA, @NotNull ConstraintAnchor.Type constraintB) {
     if (targetID == null) {
       return;
     }
@@ -456,7 +456,7 @@ public class ConstraintUtilities {
    * @return the component if found, null otherwise
    */
   @Nullable
-  static NlComponent getComponentFromId(@NonNull NlComponent component, @NonNull String id) {
+  static NlComponent getComponentFromId(@NotNull NlComponent component, @NotNull String id) {
     // TODO: move this method to NlModel
     if (component.getId() != null && component.getId().equalsIgnoreCase(id)) {
       return component;
@@ -477,7 +477,7 @@ public class ConstraintUtilities {
    * @param margin the margin to set
    * @param type   the type of the anchor
    */
-  private static void setMargin(@NonNull ConstraintWidget widget, int margin, @NonNull ConstraintAnchor.Type type) {
+  private static void setMargin(@NotNull ConstraintWidget widget, int margin, @NotNull ConstraintAnchor.Type type) {
     if (widget.getAnchor(type).isConnected()) {
       widget.getAnchor(type).setMargin(margin);
     }
@@ -490,7 +490,7 @@ public class ConstraintUtilities {
    * @param widget          constraint widget
    * @param component       the model component
    */
-  static void updateWidget(@NonNull ConstraintModel constraintModel, @Nullable ConstraintWidget widget, @Nullable NlComponent component) {
+  static void updateWidget(@NotNull ConstraintModel constraintModel, @Nullable ConstraintWidget widget, @Nullable NlComponent component) {
     if (component == null || widget == null) {
       return;
     }

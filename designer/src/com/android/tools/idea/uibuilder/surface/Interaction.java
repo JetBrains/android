@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
-import com.android.annotations.NonNull;
+import org.jetbrains.annotations.NotNull;
 import com.android.tools.idea.uibuilder.model.SwingCoordinate;
 
 import java.awt.event.KeyEvent;
@@ -136,7 +136,7 @@ public class Interaction {
    * @param event The AWT event for the key press,
    * @return true if this interaction consumed the key press, otherwise return false
    */
-  public boolean keyPressed(@NonNull KeyEvent event) {
+  public boolean keyPressed(@NotNull KeyEvent event) {
     return false;
   }
 
@@ -146,7 +146,7 @@ public class Interaction {
    * @param event The AWT event for the key release,
    * @return true if this interaction consumed the key press, otherwise return false
    */
-  public boolean keyReleased(@NonNull KeyEvent event) {
+  public boolean keyReleased(@NotNull KeyEvent event) {
     return false;
   }
 }

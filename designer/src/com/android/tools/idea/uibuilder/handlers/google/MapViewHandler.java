@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.handlers.google;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
@@ -30,9 +30,9 @@ import org.intellij.lang.annotations.Language;
 public class MapViewHandler extends ViewHandler {
 
   @Override
-  @NonNull
+  @NotNull
   @Language("XML")
-  public String getXml(@NonNull String tagName, @NonNull XmlType xmlType) {
+  public String getXml(@NotNull String tagName, @NotNull XmlType xmlType) {
     switch (xmlType) {
       case PREVIEW_ON_PALETTE:
       case DRAG_PREVIEW:
@@ -44,10 +44,10 @@ public class MapViewHandler extends ViewHandler {
   }
 
   @Override
-  public boolean onCreate(@NonNull ViewEditor editor,
+  public boolean onCreate(@NotNull ViewEditor editor,
                           @Nullable NlComponent parent,
-                          @NonNull NlComponent newChild,
-                          @NonNull InsertType insertType) {
+                          @NotNull NlComponent newChild,
+                          @NotNull InsertType insertType) {
     // TODO: Implement onCreate that helps the user get an Maps ID and generate the correct XML
     return true;
   }

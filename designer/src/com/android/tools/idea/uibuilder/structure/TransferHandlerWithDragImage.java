@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.structure;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
@@ -82,7 +82,7 @@ public class TransferHandlerWithDragImage extends TransferHandler {
    * to coordinates of an anchor offset of the image
    * relative to the upper left corner of the image
    */
-  public void setDragImageOffset(@NonNull Point p) {
+  public void setDragImageOffset(@NotNull Point p) {
     dragImageOffset = new Point(p);
   }
 
@@ -94,7 +94,7 @@ public class TransferHandlerWithDragImage extends TransferHandler {
    * relative to the upper left corner of the image.
    * The point {@code (0,0)} returns by default.
    */
-  @NonNull
+  @NotNull
   public Point getDragImageOffset() {
     if (dragImageOffset == null) {
       return new Point(0,0);
@@ -150,7 +150,7 @@ public class TransferHandlerWithDragImage extends TransferHandler {
   }
 
   @Nullable
-  private static Class<?> getDeclaredClass(@NonNull String name) {
+  private static Class<?> getDeclaredClass(@NotNull String name) {
     for (Class<?> klass : TransferHandler.class.getDeclaredClasses()) {
       if (klass.getName().endsWith(name)) {
         return klass;

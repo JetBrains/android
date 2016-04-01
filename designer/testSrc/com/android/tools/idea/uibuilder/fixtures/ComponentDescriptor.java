@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.fixtures;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 import com.android.utils.XmlUtils;
@@ -31,9 +31,9 @@ import java.util.List;
 import static com.android.SdkConstants.*;
 
 public class ComponentDescriptor {
-  @NonNull private final String myTagName;
-  @NonNull List<Pair<String, String>> myAttributes = Lists.newArrayList();
-  @NonNull private ComponentDescriptor[] myChildren = new ComponentDescriptor[0];
+  @NotNull private final String myTagName;
+  @NotNull List<Pair<String, String>> myAttributes = Lists.newArrayList();
+  @NotNull private ComponentDescriptor[] myChildren = new ComponentDescriptor[0];
   @AndroidCoordinate private int myX;
   @AndroidCoordinate private int myY;
   @AndroidCoordinate private int myWidth;
@@ -42,7 +42,7 @@ public class ComponentDescriptor {
   @Nullable private Object myViewObject;
   @Nullable private Object myLayoutParamsObject;
 
-  public ComponentDescriptor(@NonNull String tagName) {
+  public ComponentDescriptor(@NotNull String tagName) {
     myTagName = tagName;
   }
 
@@ -57,24 +57,24 @@ public class ComponentDescriptor {
     return this;
   }
 
-  public ComponentDescriptor withAttribute(@NonNull String name, @NonNull String value) {
+  public ComponentDescriptor withAttribute(@NotNull String name, @NotNull String value) {
     myAttributes.add(Pair.create(name, value));
     return this;
   }
 
-  public ComponentDescriptor id(@NonNull String id) {
+  public ComponentDescriptor id(@NotNull String id) {
     return withAttribute(ANDROID_URI, ATTR_ID, id);
   }
 
-  public ComponentDescriptor text(@NonNull String text) {
+  public ComponentDescriptor text(@NotNull String text) {
     return withAttribute(ANDROID_URI, ATTR_TEXT, text);
   }
 
-  public ComponentDescriptor width(@NonNull String width) {
+  public ComponentDescriptor width(@NotNull String width) {
     return withAttribute(ANDROID_URI, ATTR_LAYOUT_WIDTH, width);
   }
 
-  public ComponentDescriptor height(@NonNull String height) {
+  public ComponentDescriptor height(@NotNull String height) {
     return withAttribute(ANDROID_URI, ATTR_LAYOUT_HEIGHT, height);
   }
 
@@ -94,7 +94,7 @@ public class ComponentDescriptor {
     return height(VALUE_WRAP_CONTENT);
   }
 
-  public ComponentDescriptor withAttribute(@NonNull String namespace, @NonNull String name, @NonNull String value) {
+  public ComponentDescriptor withAttribute(@NotNull String namespace, @NotNull String name, @NotNull String value) {
     if (ANDROID_URI.equals(namespace)) {
       return withAttribute(PREFIX_ANDROID + name, value);
     }
@@ -109,7 +109,7 @@ public class ComponentDescriptor {
     return new Rectangle(myX, myY, myWidth, myHeight);
   }
 
-  public ComponentDescriptor children(@NonNull ComponentDescriptor... children) {
+  public ComponentDescriptor children(@NotNull ComponentDescriptor... children) {
     // Make sure that all the children have bounds that fit within this component
     Rectangle bounds = getBounds();
     for (ComponentDescriptor child : children) {
@@ -137,7 +137,7 @@ public class ComponentDescriptor {
     return this;
   }
 
-  public void appendXml(@NonNull StringBuilder sb, int depth) {
+  public void appendXml(@NotNull StringBuilder sb, int depth) {
     for (int i = 0; i < depth; i++) {
       sb.append("  ");
     }
@@ -168,8 +168,8 @@ public class ComponentDescriptor {
     }
   }
 
-  @NonNull
-  public ViewInfo createViewInfo(@Nullable ComponentDescriptor parent, @NonNull XmlTag tag) {
+  @NotNull
+  public ViewInfo createViewInfo(@Nullable ComponentDescriptor parent, @NotNull XmlTag tag) {
     TestCase.assertNull(myViewInfo);
     int left = myX;
     int top = myY;

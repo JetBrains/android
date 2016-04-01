@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
@@ -37,40 +37,40 @@ import static com.android.SdkConstants.*;
 public final class FragmentHandler extends ViewHandler {
 
   @Override
-  @NonNull
-  public String getTitle(@NonNull String tagName) {
+  @NotNull
+  public String getTitle(@NotNull String tagName) {
     return "<fragment>";
   }
 
   @Override
-  @NonNull
-  public String getTitle(@NonNull NlComponent component) {
+  @NotNull
+  public String getTitle(@NotNull NlComponent component) {
     return "<fragment>";
   }
 
-  @NonNull
+  @NotNull
   @Override
-  public String getTitleAttributes(@NonNull NlComponent component) {
+  public String getTitleAttributes(@NotNull NlComponent component) {
     String name = component.getAttribute(ANDROID_URI, ATTR_NAME);
     return StringUtil.isEmpty(name) ? "" : "- " + name;
   }
 
   @Override
-  @NonNull
-  public Icon getIcon(@NonNull String tagName) {
+  @NotNull
+  public Icon getIcon(@NotNull String tagName) {
     return AndroidIcons.Views.Fragment;
   }
 
   @Override
-  @NonNull
-  public Icon getIcon(@NonNull NlComponent component) {
+  @NotNull
+  public Icon getIcon(@NotNull NlComponent component) {
     return AndroidIcons.Views.Fragment;
   }
 
   @Override
   @Language("XML")
-  @NonNull
-  public String getXml(@NonNull String tagName, @NonNull XmlType xmlType) {
+  @NotNull
+  public String getXml(@NotNull String tagName, @NotNull XmlType xmlType) {
     switch (xmlType) {
       case PREVIEW_ON_PALETTE:
       case DRAG_PREVIEW:
@@ -81,10 +81,10 @@ public final class FragmentHandler extends ViewHandler {
   }
 
   @Override
-  public boolean onCreate(@NonNull ViewEditor editor,
+  public boolean onCreate(@NotNull ViewEditor editor,
                           @Nullable NlComponent parent,
-                          @NonNull NlComponent newChild,
-                          @NonNull InsertType insertType) {
+                          @NotNull NlComponent newChild,
+                          @NotNull InsertType insertType) {
     if (insertType == InsertType.CREATE) { // NOT InsertType.CREATE_PREVIEW
       if (newChild.getAttribute(ANDROID_URI, ATTR_NAME) != null) {
         return true;

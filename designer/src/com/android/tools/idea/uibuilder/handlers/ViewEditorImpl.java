@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.resources.ResourceType;
 import com.android.sdklib.AndroidVersion;
@@ -52,7 +52,7 @@ import java.util.Set;
 public class ViewEditorImpl extends ViewEditor {
   private final ScreenView myScreen;
 
-  public ViewEditorImpl(@NonNull ScreenView screen) {
+  public ViewEditorImpl(@NotNull ScreenView screen) {
     myScreen = screen;
   }
 
@@ -67,25 +67,25 @@ public class ViewEditorImpl extends ViewEditor {
     return AndroidModuleInfo.get(myScreen.getModel().getFacet()).getBuildSdkVersion();
   }
 
-  @NonNull
+  @NotNull
   @Override
   public AndroidVersion getMinSdkVersion() {
     return AndroidModuleInfo.get(myScreen.getModel().getFacet()).getMinSdkVersion();
   }
 
-  @NonNull
+  @NotNull
   @Override
   public AndroidVersion getTargetSdkVersion() {
     return AndroidModuleInfo.get(myScreen.getModel().getFacet()).getTargetSdkVersion();
   }
 
-  @NonNull
+  @NotNull
   @Override
   public Configuration getConfiguration() {
     return myScreen.getConfiguration();
   }
 
-  @NonNull
+  @NotNull
   @Override
   public NlModel getModel() {
     return myScreen.getModel();
@@ -93,7 +93,7 @@ public class ViewEditorImpl extends ViewEditor {
 
   @Nullable
   @Override
-  public Map<NlComponent, Dimension> measureChildren(@NonNull NlComponent parent, @Nullable RenderTask.AttributeFilter filter) {
+  public Map<NlComponent, Dimension> measureChildren(@NotNull NlComponent parent, @Nullable RenderTask.AttributeFilter filter) {
     // TODO: Reuse snapshot!
     Map<NlComponent, Dimension> unweightedSizes = Maps.newHashMap();
     XmlTag parentTag = parent.getTag();
@@ -137,7 +137,7 @@ public class ViewEditorImpl extends ViewEditor {
 
   @Nullable
   @Override
-  public String displayResourceInput(@NonNull EnumSet<ResourceType> types, @Nullable String currentValue) {
+  public String displayResourceInput(@NotNull EnumSet<ResourceType> types, @Nullable String currentValue) {
     Module module = myScreen.getModel().getModule();
     ResourceType[] typeArray = types.toArray(new ResourceType[types.size()]);
     ChooseResourceDialog dialog = new ChooseResourceDialog(module, typeArray, currentValue, null);
@@ -154,14 +154,14 @@ public class ViewEditorImpl extends ViewEditor {
 
   @Nullable
   @Override
-  public String displayClassInput(@NonNull Set<String> superTypes, @Nullable String currentValue) {
+  public String displayClassInput(@NotNull Set<String> superTypes, @Nullable String currentValue) {
     Module module = myScreen.getModel().getModule();
     String[] superTypesArray = ArrayUtil.toStringArray(superTypes);
 
     return ChooseClassDialog.openDialog(module, "Classes", true, superTypesArray);
   }
 
-  @NonNull
+  @NotNull
   public ScreenView getScreenView() {
     return myScreen;
   }

@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.palette;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.resources.ResourceResolver;
@@ -116,7 +116,7 @@ public class NlPalettePanel extends JPanel
   private BufferedImage myLastDragImage;
   private Configuration myConfiguration;
 
-  public NlPalettePanel(@NonNull Project project, @NonNull DesignerEditorPanelFacade designer) {
+  public NlPalettePanel(@NotNull Project project, @NotNull DesignerEditorPanelFacade designer) {
     myTree = new PaletteTree();
     myIconFactory = IconPreviewFactory.get();
     myModel = NlPaletteModel.get(project);
@@ -136,7 +136,7 @@ public class NlPalettePanel extends JPanel
     add(pane, BorderLayout.CENTER);
   }
 
-  @NonNull
+  @NotNull
   private ResourceType initResourceType() {
     XmlFile file;
 
@@ -155,7 +155,7 @@ public class NlPalettePanel extends JPanel
     return ResourceType.valueOf(file);
   }
 
-  @NonNull
+  @NotNull
   public JComponent getFocusedComponent() {
     return myTree;
   }
@@ -170,7 +170,7 @@ public class NlPalettePanel extends JPanel
       myMenuText = menuText;
     }
 
-    @NonNull
+    @NotNull
     public String getMenuText() {
       return myMenuText;
     }
@@ -277,7 +277,7 @@ public class NlPalettePanel extends JPanel
     return null;
   }
 
-  @NonNull
+  @NotNull
   public AnAction[] getActions() {
     return new AnAction[]{new OptionAction()};
   }
@@ -291,7 +291,7 @@ public class NlPalettePanel extends JPanel
     }
 
     @Override
-    public void actionPerformed(@NonNull AnActionEvent e) {
+    public void actionPerformed(@NotNull AnActionEvent e) {
       int x = 0;
       int y = 0;
       InputEvent inputEvent = e.getInputEvent();
@@ -304,7 +304,7 @@ public class NlPalettePanel extends JPanel
     }
   }
 
-  private void showOptionPopup(@NonNull Component component, int x, int y) {
+  private void showOptionPopup(@NotNull Component component, int x, int y) {
     DefaultActionGroup group = new DefaultActionGroup();
     group.add(new TogglePaletteModeAction(this, Mode.ICON_AND_TEXT));
     group.add(new TogglePaletteModeAction(this, Mode.PREVIEW));
@@ -314,12 +314,12 @@ public class NlPalettePanel extends JPanel
     popupMenu.getComponent().show(component, x, y);
   }
 
-  @NonNull
+  @NotNull
   public Mode getMode() {
     return myMode;
   }
 
-  public void setMode(@NonNull Mode mode) {
+  public void setMode(@NotNull Mode mode) {
     myMode = mode;
     setColors();
     invalidateUI();
@@ -375,7 +375,7 @@ public class NlPalettePanel extends JPanel
     IJSwingUtilities.updateComponentTreeUI(myTree);
   }
 
-  private void initTree(@NonNull Project project) {
+  private void initTree(@NotNull Project project) {
     DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode(null);
     DefaultTreeModel treeModel = new DefaultTreeModel(rootNode);
     myTree.setModel(treeModel);
@@ -403,7 +403,7 @@ public class NlPalettePanel extends JPanel
     });
   }
 
-  private static void expandAll(@NonNull JTree tree, @NonNull DefaultMutableTreeNode rootNode) {
+  private static void expandAll(@NotNull JTree tree, @NotNull DefaultMutableTreeNode rootNode) {
     TreePath rootPath = new TreePath(rootNode);
     tree.expandPath(rootPath);
     TreeNode child = rootNode.getLastChild();
@@ -413,10 +413,10 @@ public class NlPalettePanel extends JPanel
     }
   }
 
-  private void createCellRenderer(@NonNull JTree tree) {
+  private void createCellRenderer(@NotNull JTree tree) {
     ColoredTreeCellRenderer renderer = new ColoredTreeCellRenderer() {
       @Override
-      public void customizeCellRenderer(@NonNull JTree tree,
+      public void customizeCellRenderer(@NotNull JTree tree,
                                         Object value,
                                         boolean selected,
                                         boolean expanded,
@@ -471,7 +471,7 @@ public class NlPalettePanel extends JPanel
     tree.setCellRenderer(renderer);
   }
 
-  private static double getScale(@NonNull Palette.Item item) {
+  private static double getScale(@NotNull Palette.Item item) {
     double scale = item.getPreviewScale();
     if (scale <= 0.1 || scale > 5.0) {
       // Do not allow ridiculous custom scale factors.
@@ -488,7 +488,7 @@ public class NlPalettePanel extends JPanel
     return myMissingLibraries.contains(paletteItem.getGradleCoordinate());
   }
 
-  private static void addItems(@NonNull List<Palette.BaseItem> items, @NonNull DefaultMutableTreeNode rootNode) {
+  private static void addItems(@NotNull List<Palette.BaseItem> items, @NotNull DefaultMutableTreeNode rootNode) {
     for (Palette.BaseItem item : items) {
       DefaultMutableTreeNode node = new DefaultMutableTreeNode(item);
       if (item instanceof Palette.Group) {
@@ -544,8 +544,8 @@ public class NlPalettePanel extends JPanel
     return true;
   }
 
-  @NonNull
-  private static List<GradleCoordinate> toGradleCoordinates(@NonNull Collection<String> dependencies) {
+  @NotNull
+  private static List<GradleCoordinate> toGradleCoordinates(@NotNull Collection<String> dependencies) {
     if (dependencies.isEmpty()) {
       return Collections.emptyList();
     }
@@ -560,8 +560,8 @@ public class NlPalettePanel extends JPanel
     return coordinates;
   }
 
-  @NonNull
-  private static List<String> fromGradleCoordinates(@NonNull Collection<GradleCoordinate> coordinates) {
+  @NotNull
+  private static List<String> fromGradleCoordinates(@NotNull Collection<GradleCoordinate> coordinates) {
     if (coordinates.isEmpty()) {
       return Collections.emptyList();
     }
@@ -740,7 +740,7 @@ public class NlPalettePanel extends JPanel
   }
 
   private static final class PaletteSpeedSearch extends TreeSpeedSearch {
-    PaletteSpeedSearch(@NonNull JTree tree) {
+    PaletteSpeedSearch(@NotNull JTree tree) {
       super(tree);
     }
 
@@ -758,7 +758,7 @@ public class NlPalettePanel extends JPanel
   private class ActionHandler implements DeleteProvider, CutProvider, CopyProvider, PasteProvider {
 
     @Override
-    public void performCopy(@NonNull DataContext dataContext) {
+    public void performCopy(@NotNull DataContext dataContext) {
       TreePath path = myTree.getSelectionPath();
       Palette.BaseItem content = getItemForPath(path);
       if (content instanceof Palette.Item && !needsLibraryLoad(content)) {
@@ -769,49 +769,49 @@ public class NlPalettePanel extends JPanel
     }
 
     @Override
-    public boolean isCopyEnabled(@NonNull DataContext dataContext) {
+    public boolean isCopyEnabled(@NotNull DataContext dataContext) {
       return true;
     }
 
     @Override
-    public boolean isCopyVisible(@NonNull DataContext dataContext) {
+    public boolean isCopyVisible(@NotNull DataContext dataContext) {
       return true;
     }
 
     @Override
-    public void performCut(@NonNull DataContext dataContext) {
+    public void performCut(@NotNull DataContext dataContext) {
     }
 
     @Override
-    public boolean isCutEnabled(@NonNull DataContext dataContext) {
+    public boolean isCutEnabled(@NotNull DataContext dataContext) {
       return false;
     }
 
     @Override
-    public boolean isCutVisible(@NonNull DataContext dataContext) {
+    public boolean isCutVisible(@NotNull DataContext dataContext) {
       return false;
     }
 
     @Override
-    public void deleteElement(@NonNull DataContext dataContext) {
+    public void deleteElement(@NotNull DataContext dataContext) {
     }
 
     @Override
-    public boolean canDeleteElement(@NonNull DataContext dataContext) {
+    public boolean canDeleteElement(@NotNull DataContext dataContext) {
       return false;
     }
 
     @Override
-    public void performPaste(@NonNull DataContext dataContext) {
+    public void performPaste(@NotNull DataContext dataContext) {
     }
 
     @Override
-    public boolean isPastePossible(@NonNull DataContext dataContext) {
+    public boolean isPastePossible(@NotNull DataContext dataContext) {
       return false;
     }
 
     @Override
-    public boolean isPasteEnabled(@NonNull DataContext dataContext) {
+    public boolean isPasteEnabled(@NotNull DataContext dataContext) {
       return false;
     }
   }

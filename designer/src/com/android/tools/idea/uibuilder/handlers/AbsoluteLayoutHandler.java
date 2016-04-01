@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
@@ -33,13 +33,13 @@ import static com.android.SdkConstants.*;
 public class AbsoluteLayoutHandler extends ViewGroupHandler {
   @Override
   @Nullable
-  public DragHandler createDragHandler(@NonNull ViewEditor editor,
-                                       @NonNull NlComponent layout,
-                                       @NonNull List<NlComponent> components,
-                                       @NonNull DragType type) {
+  public DragHandler createDragHandler(@NotNull ViewEditor editor,
+                                       @NotNull NlComponent layout,
+                                       @NotNull List<NlComponent> components,
+                                       @NotNull DragType type) {
     return new DragHandler(editor, this, layout, components, type) {
       @Override
-      public void paint(@NonNull NlGraphics graphics) {
+      public void paint(@NotNull NlGraphics graphics) {
         int deltaX = lastX - startX;
         int deltaY = lastY - startY;
         for (NlComponent component : components) {
@@ -71,8 +71,8 @@ public class AbsoluteLayoutHandler extends ViewGroupHandler {
 
   @Override
   @Nullable
-  public ResizeHandler createResizeHandler(@NonNull ViewEditor editor,
-                                           @NonNull NlComponent component,
+  public ResizeHandler createResizeHandler(@NotNull ViewEditor editor,
+                                           @NotNull NlComponent component,
                                            @Nullable SegmentType horizontalEdgeType,
                                            @Nullable SegmentType verticalEdgeType) {
     return new DefaultResizeHandler(editor, this, component, horizontalEdgeType, verticalEdgeType) {
@@ -85,10 +85,10 @@ public class AbsoluteLayoutHandler extends ViewGroupHandler {
        * this case, the bottom right corner will stay fixed).
        */
       @Override
-      protected void setNewSizeBounds(@NonNull NlComponent component,
-                                      @NonNull NlComponent layout,
-                                      @NonNull Rectangle oldBounds,
-                                      @NonNull Rectangle newBounds,
+      protected void setNewSizeBounds(@NotNull NlComponent component,
+                                      @NotNull NlComponent layout,
+                                      @NotNull Rectangle oldBounds,
+                                      @NotNull Rectangle newBounds,
                                       @Nullable SegmentType horizontalEdge,
                                       @Nullable SegmentType verticalEdge) {
         Rectangle previousBounds = new Rectangle(component.x, component.y, component.w, component.h);
@@ -103,9 +103,9 @@ public class AbsoluteLayoutHandler extends ViewGroupHandler {
       }
 
       @Override
-      protected String getResizeUpdateMessage(@NonNull NlComponent child,
-                                              @NonNull NlComponent parent,
-                                              @NonNull Rectangle newBounds,
+      protected String getResizeUpdateMessage(@NotNull NlComponent child,
+                                              @NotNull NlComponent parent,
+                                              @NotNull Rectangle newBounds,
                                               @Nullable SegmentType horizontalEdge,
                                               @Nullable SegmentType verticalEdge) {
         Rectangle parentBounds = new Rectangle(layout.x, layout.y, layout.w, layout.h);

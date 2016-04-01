@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.editor;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.res.ResourceNotificationManager;
@@ -168,7 +168,7 @@ public class NlPreviewManager implements ProjectComponent {
   }
 
   @Override
-  @NonNull
+  @NotNull
   @NonNls
   public String getComponentName() {
     return "NlPreviewManager";
@@ -372,7 +372,7 @@ public class NlPreviewManager implements ProjectComponent {
    * simply anticipate the change by calling this method first; the subsequent file open will
    * then become a no-op since the file doesn't change.
    */
-  public void notifyFileShown(@NonNull TextEditor editor, boolean renderImmediately) {
+  public void notifyFileShown(@NotNull TextEditor editor, boolean renderImmediately) {
     // Don't delete: should be invoked from ConfigurationAction#pickedBetterMatch when we can access designer code from there
     // (or when ConfigurationAction moves here)
     if (renderImmediately) {
@@ -384,19 +384,19 @@ public class NlPreviewManager implements ProjectComponent {
     }
   }
 
-  @NonNull
+  @NotNull
   public Project getProject() {
     return myProject;
   }
 
   private class MyFileEditorManagerListener implements FileEditorManagerListener {
     @Override
-    public void fileOpened(@NonNull FileEditorManager source, @NonNull VirtualFile file) {
+    public void fileOpened(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
       processFileEditorChange(getActiveLayoutXmlEditor());
     }
 
     @Override
-    public void fileClosed(@NonNull FileEditorManager source, @NonNull VirtualFile file) {
+    public void fileClosed(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
       ApplicationManager.getApplication().invokeLater(new Runnable() {
         @Override
         public void run() {
@@ -406,7 +406,7 @@ public class NlPreviewManager implements ProjectComponent {
     }
 
     @Override
-    public void selectionChanged(@NonNull FileEditorManagerEvent event) {
+    public void selectionChanged(@NotNull FileEditorManagerEvent event) {
       final FileEditor newEditor = event.getNewEditor();
       TextEditor layoutXmlEditor = null;
       if (newEditor instanceof TextEditor) {

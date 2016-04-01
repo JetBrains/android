@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
@@ -36,9 +36,9 @@ import static com.android.SdkConstants.ATTR_SRC;
 public class ImageViewHandler extends ViewHandler {
 
   @Override
-  @NonNull
+  @NotNull
   @Language("XML")
-  public String getXml(@NonNull String tagName, @NonNull XmlType xmlType) {
+  public String getXml(@NotNull String tagName, @NotNull XmlType xmlType) {
     return String.format("<%1$s\n" +
                          "  android:src=\"%2$s\"\n" +
                          "  android:layout_width=\"wrap_content\"\n" +
@@ -47,10 +47,10 @@ public class ImageViewHandler extends ViewHandler {
   }
 
   @Override
-  public boolean onCreate(@NonNull ViewEditor editor,
+  public boolean onCreate(@NotNull ViewEditor editor,
                           @Nullable NlComponent parent,
-                          @NonNull NlComponent newChild,
-                          @NonNull InsertType insertType) {
+                          @NotNull NlComponent newChild,
+                          @NotNull InsertType insertType) {
     if (insertType == InsertType.CREATE) { // NOT InsertType.CREATE_PREVIEW
       String src = editor.displayResourceInput(EnumSet.of(ResourceType.DRAWABLE), null);
       if (src != null) {
@@ -78,7 +78,7 @@ public class ImageViewHandler extends ViewHandler {
    *
    * @return a source attribute to use for sample images, never null
    */
-  @NonNull
+  @NotNull
   public String getSampleImageSrc() {
     // Builtin graphics available since v1:
     return "@android:drawable/btn_star"; //$NON-NLS-1$

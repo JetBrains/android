@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import com.android.annotations.NonNull;
+import org.jetbrains.annotations.NotNull;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 
 /**
@@ -26,7 +26,7 @@ public class DatePickerHandler extends ViewHandler {
   // Note: This handler is derived from ViewHandler to avoid being treated as a {@code FrameLayout}.
 
   @Override
-  public double getPreviewScale(@NonNull String tagName) {
+  public double getPreviewScale(@NotNull String tagName) {
     return 0.4;
   }
 }

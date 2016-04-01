@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
-import com.android.annotations.NonNull;
+import org.jetbrains.annotations.NotNull;
 import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
 import com.android.tools.idea.uibuilder.model.Coordinates;
@@ -49,7 +49,7 @@ public class MarqueeInteraction extends Interaction {
    * @param toggle If true, toggle the membership of contained elements
    *            instead of adding it.
    */
-  public MarqueeInteraction(@NonNull ScreenView surface, boolean toggle) {
+  public MarqueeInteraction(@NotNull ScreenView surface, boolean toggle) {
     myScreenView = surface;
 
     if (toggle) {
@@ -143,7 +143,7 @@ public class MarqueeInteraction extends Interaction {
     }
 
     @Override
-    public boolean paint(@NonNull Graphics2D gc) {
+    public boolean paint(@NotNull Graphics2D gc) {
       NlGraphics.drawFilledRect(NlDrawingStyle.SELECTION, gc, x, y, w, h);
       return false;
     }

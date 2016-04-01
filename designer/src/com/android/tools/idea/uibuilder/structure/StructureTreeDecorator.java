@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.structure;
 
-import com.android.annotations.NonNull;
+import org.jetbrains.annotations.NotNull;
 import com.android.tools.idea.uibuilder.api.StructurePaneComponentHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
@@ -32,7 +32,7 @@ import com.intellij.ui.SimpleTextAttributes;
 public class StructureTreeDecorator {
   private final ViewHandlerManager myViewHandlerManager;
 
-  public StructureTreeDecorator(@NonNull Project project) {
+  public StructureTreeDecorator(@NotNull Project project) {
     myViewHandlerManager = ViewHandlerManager.get(project);
   }
 
@@ -40,7 +40,7 @@ public class StructureTreeDecorator {
    * Decorate a tree node with ID, title, and attributes of the current component.
    * Any changes made to this method should be duplicated in {@link #getText}.
    */
-  public void decorate(@NonNull NlComponent component, @NonNull SimpleColoredComponent renderer, boolean full) {
+  public void decorate(@NotNull NlComponent component, @NotNull SimpleColoredComponent renderer, boolean full) {
     String id = component.getId();
     id = LintUtils.stripIdPrefix(id);
     id = StringUtil.nullize(id);
@@ -77,8 +77,8 @@ public class StructureTreeDecorator {
    * Generate the string shown by {@link #decorate} that can be used for searches.
    * Any changes made to this method should be duplicated in {@link #decorate}.
    */
-  @NonNull
-  public String getText(@NonNull NlComponent component) {
+  @NotNull
+  public String getText(@NotNull NlComponent component) {
     if (component.getTag().equals(EmptyXmlTag.INSTANCE)) {
       return "";
     }

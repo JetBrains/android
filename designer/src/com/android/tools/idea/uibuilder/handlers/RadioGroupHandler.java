@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import com.android.annotations.NonNull;
+import org.jetbrains.annotations.NotNull;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import org.intellij.lang.annotations.Language;
@@ -28,9 +28,9 @@ import static com.android.SdkConstants.RADIO_GROUP;
 @SuppressWarnings("unused") // Loaded by reflection
 public class RadioGroupHandler extends LinearLayoutHandler {
 
-  @NonNull
+  @NotNull
   @Override
-  public String getTitleAttributes(@NonNull NlComponent component) {
+  public String getTitleAttributes(@NotNull NlComponent component) {
     if (!component.getTagName().equals(RADIO_GROUP)) {
       return super.getTitleAttributes(component);
     }
@@ -39,8 +39,8 @@ public class RadioGroupHandler extends LinearLayoutHandler {
 
   @Override
   @Language("XML")
-  @NonNull
-  public String getXml(@NonNull String tagName, @NonNull XmlType xmlType) {
+  @NotNull
+  public String getXml(@NotNull String tagName, @NotNull XmlType xmlType) {
     // Use the default layout parameters for a horizontal RadioGroup:
     switch (xmlType) {
       case COMPONENT_CREATION:

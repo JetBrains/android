@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
-import com.android.annotations.NonNull;
+import org.jetbrains.annotations.NotNull;
 
 /** Describes different types of zoom actions */
 public enum ZoomType {
@@ -49,7 +49,7 @@ public enum ZoomType {
    */
   SCREEN("Exact Device Size");
 
-  ZoomType(@NonNull String label) {
+  ZoomType(@NotNull String label) {
     myLabel = label;
   }
 

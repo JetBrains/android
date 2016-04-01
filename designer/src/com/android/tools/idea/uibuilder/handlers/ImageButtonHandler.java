@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import com.android.annotations.NonNull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Handler for the {@code <ImageButton>} widget
@@ -23,7 +23,7 @@ import com.android.annotations.NonNull;
 public class ImageButtonHandler extends ImageViewHandler {
 
   @Override
-  @NonNull
+  @NotNull
   public String getSampleImageSrc() {
     // Builtin graphics available since v1:
     return "@android:drawable/btn_star"; //$NON-NLS-1$

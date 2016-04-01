@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
@@ -38,40 +38,40 @@ import static com.android.SdkConstants.ATTR_LAYOUT;
 public final class IncludeHandler extends ViewHandler {
 
   @Override
-  @NonNull
-  public String getTitle(@NonNull String tagName) {
+  @NotNull
+  public String getTitle(@NotNull String tagName) {
     return "<include>";
   }
 
   @Override
-  @NonNull
-  public String getTitle(@NonNull NlComponent component) {
+  @NotNull
+  public String getTitle(@NotNull NlComponent component) {
     return "<include>";
   }
 
-  @NonNull
+  @NotNull
   @Override
-  public String getTitleAttributes(@NonNull NlComponent component) {
+  public String getTitleAttributes(@NotNull NlComponent component) {
     String layout = component.getAttribute(null, ATTR_LAYOUT);
     return StringUtil.isEmpty(layout) ? "" : "- " + layout;
   }
 
   @Override
-  @NonNull
-  public Icon getIcon(@NonNull String tagName) {
+  @NotNull
+  public Icon getIcon(@NotNull String tagName) {
     return AndroidIcons.Views.Include;
   }
 
   @Override
-  @NonNull
-  public Icon getIcon(@NonNull NlComponent component) {
+  @NotNull
+  public Icon getIcon(@NotNull NlComponent component) {
     return AndroidIcons.Views.Include;
   }
 
   @Override
   @Language("XML")
-  @NonNull
-  public String getXml(@NonNull String tagName, @NonNull XmlType xmlType) {
+  @NotNull
+  public String getXml(@NotNull String tagName, @NotNull XmlType xmlType) {
     switch (xmlType) {
       case COMPONENT_CREATION:
         return "<include/>";
@@ -81,10 +81,10 @@ public final class IncludeHandler extends ViewHandler {
   }
 
   @Override
-  public boolean onCreate(@NonNull ViewEditor editor,
+  public boolean onCreate(@NotNull ViewEditor editor,
                           @Nullable NlComponent parent,
-                          @NonNull NlComponent newChild,
-                          @NonNull InsertType insertType) {
+                          @NotNull NlComponent newChild,
+                          @NotNull InsertType insertType) {
     // When dropping an include tag, ask the user which layout to include.
     if (insertType == InsertType.CREATE) { // NOT InsertType.CREATE_PREVIEW
       String src = editor.displayResourceInput(EnumSet.of(ResourceType.LAYOUT), null);

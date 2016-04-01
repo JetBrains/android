@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.fixtures;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import com.android.resources.Density;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
@@ -42,7 +42,7 @@ public class ScreenFixture {
   private int myTranslateY = 0;
   private Density myDensity = Density.MEDIUM;
 
-  public ScreenFixture(@NonNull SurfaceFixture surface, @NonNull NlModel model) {
+  public ScreenFixture(@NotNull SurfaceFixture surface, @NotNull NlModel model) {
     mySurface = surface;
     myModel = model;
   }
@@ -50,8 +50,8 @@ public class ScreenFixture {
   /**
    * Like {@link #find}, but expects the component to be found
    */
-  @NonNull
-  public ComponentFixture get(@NonNull String description) {
+  @NotNull
+  public ComponentFixture get(@NotNull String description) {
     ComponentFixture fixture = findById(description);
     if (fixture == null) {
       fixture = findByTag(description);
@@ -60,8 +60,8 @@ public class ScreenFixture {
     return fixture;
   }
 
-  @NonNull
-  public ComponentListFixture find(@NonNull String... descriptions) {
+  @NotNull
+  public ComponentListFixture find(@NotNull String... descriptions) {
     List<ComponentFixture> fixtures = Lists.newArrayList();
     for (String description : descriptions) {
       ComponentFixture fixture = find(description);
@@ -72,8 +72,8 @@ public class ScreenFixture {
     return new ComponentListFixture(this, fixtures);
   }
 
-  @NonNull
-  public ComponentListFixture get(@NonNull String... descriptions) {
+  @NotNull
+  public ComponentListFixture get(@NotNull String... descriptions) {
     List<ComponentFixture> fixtures = Lists.newArrayList();
     for (String description : descriptions) {
       fixtures.add(get(description));
@@ -82,7 +82,7 @@ public class ScreenFixture {
   }
 
   @Nullable
-  public ComponentFixture find(@NonNull String description) {
+  public ComponentFixture find(@NotNull String description) {
     ComponentFixture fixture = findById(description);
     if (fixture == null) {
       fixture = findByTag(description);
@@ -90,8 +90,8 @@ public class ScreenFixture {
     return fixture;
   }
 
-  @NonNull
-  public ComponentFixture getById(@NonNull String id) {
+  @NotNull
+  public ComponentFixture getById(@NotNull String id) {
     List<NlComponent> components = findAllById(id);
     ensureAtMostOneMatch("id = " + id, components);
     ensureAtLeastOneMatch("id = " + id, components);
@@ -99,14 +99,14 @@ public class ScreenFixture {
   }
 
   @Nullable
-  public ComponentFixture findById(@NonNull String id) {
+  public ComponentFixture findById(@NotNull String id) {
     List<NlComponent> components = findAllById(id);
     ensureAtMostOneMatch("id = " + id, components);
     return new ComponentFixture(this, components.get(0));
   }
 
-  @NonNull
-  public ComponentFixture getByTag(@NonNull String tag) {
+  @NotNull
+  public ComponentFixture getByTag(@NotNull String tag) {
     List<NlComponent> components = findAllByTag(tag);
     ensureAtLeastOneMatch("tag = " + tag, components);
     ensureAtMostOneMatch("tag = " + tag, components);
@@ -114,26 +114,26 @@ public class ScreenFixture {
   }
 
   @Nullable
-  public ComponentFixture findByTag(@NonNull String tag) {
+  public ComponentFixture findByTag(@NotNull String tag) {
     List<NlComponent> components = findAllByTag(tag);
     ensureAtMostOneMatch("Tag = " + tag, components);
     return new ComponentFixture(this, components.get(0));
   }
 
-  private void ensureAtMostOneMatch(@NonNull String match, List<NlComponent> components) {
+  private void ensureAtMostOneMatch(@NotNull String match, List<NlComponent> components) {
     if (components.size() != 1) {
       fail("Found multiple components with matcher " + match + ": component hierarchy is " + NlComponent.toTree(myModel.getComponents()));
     }
   }
 
-  private void ensureAtLeastOneMatch(@NonNull String match, List<NlComponent> components) {
+  private void ensureAtLeastOneMatch(@NotNull String match, List<NlComponent> components) {
     if (components.isEmpty()) {
       fail("Could not find component with matcher " + match + ": component hierarchy is " + NlComponent.toTree(myModel.getComponents()));
     }
   }
 
-  @NonNull
-  private List<NlComponent> findAllById(@NonNull String id) {
+  @NotNull
+  private List<NlComponent> findAllById(@NotNull String id) {
     List<NlComponent> list = Lists.newArrayList();
     for (NlComponent root : myModel.getComponents()) {
       findById(list, root, id);
@@ -142,8 +142,8 @@ public class ScreenFixture {
     return list;
   }
 
-  @NonNull
-  private List<NlComponent> findAllByTag(@NonNull String tag) {
+  @NotNull
+  private List<NlComponent> findAllByTag(@NotNull String tag) {
     List<NlComponent> list = Lists.newArrayList();
     for (NlComponent root : myModel.getComponents()) {
       findByTag(list, root, tag);
@@ -152,7 +152,7 @@ public class ScreenFixture {
     return list;
   }
 
-  private static void findById(@NonNull List<NlComponent> result, @NonNull NlComponent component, @NonNull String id) {
+  private static void findById(@NotNull List<NlComponent> result, @NotNull NlComponent component, @NotNull String id) {
     if (id.equals(component.getAttribute(ANDROID_URI, ATTR_ID))) {
       result.add(component);
     }
@@ -162,14 +162,14 @@ public class ScreenFixture {
     }
   }
 
-  @NonNull
-  private static List<NlComponent> findByTag(@NonNull NlComponent component, @NonNull String tag) {
+  @NotNull
+  private static List<NlComponent> findByTag(@NotNull NlComponent component, @NotNull String tag) {
     List<NlComponent> list = Lists.newArrayList();
     findByTag(list, component, tag);
     return list;
   }
 
-  private static void findByTag(@NonNull List<NlComponent> result, @NonNull NlComponent component, @NonNull String tag) {
+  private static void findByTag(@NotNull List<NlComponent> result, @NotNull NlComponent component, @NotNull String tag) {
     if (tag.equals(component.getTagName())) {
       result.add(component);
     }
@@ -179,26 +179,26 @@ public class ScreenFixture {
     }
   }
 
-  @NonNull
+  @NotNull
   public ScreenFixture withScale(double scale) {
     myScale = scale;
     return this;
   }
 
-  @NonNull
-  public ScreenFixture withDensity(@NonNull Density density) {
+  @NotNull
+  public ScreenFixture withDensity(@NotNull Density density) {
     myDensity = density;
     return this;
   }
 
-  @NonNull
+  @NotNull
   public ScreenFixture withOffset(@SwingCoordinate int x, @SwingCoordinate int y) {
     myTranslateX = x;
     myTranslateY = y;
     return this;
   }
 
-  @NonNull
+  @NotNull
   public ScreenView getScreen() {
     if (myScreen == null) {
       myScreen = createScreen(mySurface.getSurface(), myModel, new SelectionModel(), myScale, myTranslateX, myTranslateY, myDensity);

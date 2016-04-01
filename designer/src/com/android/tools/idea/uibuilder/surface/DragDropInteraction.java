@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
@@ -83,7 +83,7 @@ public class DragDropInteraction extends Interaction {
   /** The transfer item for this drag if any */
   private DnDTransferItem myTransferItem;
 
-  public DragDropInteraction(@NonNull DesignSurface designSurface, @NonNull List<NlComponent> dragged) {
+  public DragDropInteraction(@NotNull DesignSurface designSurface, @NotNull List<NlComponent> dragged) {
     myDesignSurface = designSurface;
     myDraggedComponents = dragged;
   }
@@ -95,7 +95,7 @@ public class DragDropInteraction extends Interaction {
     }
   }
 
-  public void setTransferItem(@NonNull DnDTransferItem item) {
+  public void setTransferItem(@NotNull DnDTransferItem item) {
     myTransferItem = item;
   }
 
@@ -181,7 +181,7 @@ public class DragDropInteraction extends Interaction {
         String label = myType.getDescription();
         WriteCommandAction action = new WriteCommandAction(project, label, file) {
           @Override
-          protected void run(@NonNull Result result) throws Throwable {
+          protected void run(@NotNull Result result) throws Throwable {
             myDragHandler.commit(ax, ay, modifiers); // TODO: Run this *after* making a copy
 
             NlComponent before = null;
@@ -246,7 +246,7 @@ public class DragDropInteraction extends Interaction {
     return null;
   }
 
-  private boolean dropIsPossible(@NonNull ViewHandlerManager handlerManager, @NonNull NlComponent component, @NonNull ViewGroupHandler layout) {
+  private boolean dropIsPossible(@NotNull ViewHandlerManager handlerManager, @NotNull NlComponent component, @NotNull ViewGroupHandler layout) {
     for (NlComponent dragged : myDraggedComponents) {
       if (!layout.acceptsChild(component, dragged)) {
         return false;
@@ -276,7 +276,7 @@ public class DragDropInteraction extends Interaction {
     return Collections.<Layer>singletonList(new DragLayer());
   }
 
-  @NonNull
+  @NotNull
   public List<NlComponent> getDraggedComponents() {
     return myDraggedComponents;
   }
@@ -307,7 +307,7 @@ public class DragDropInteraction extends Interaction {
     }
 
     @Override
-    public boolean paint(@NonNull Graphics2D gc) {
+    public boolean paint(@NotNull Graphics2D gc) {
       if (myDragHandler != null) {
         myDragHandler.paint(new NlGraphics(gc, myScreenView));
       }

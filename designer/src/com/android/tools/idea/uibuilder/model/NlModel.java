@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.model;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.MergeCookie;
 import com.android.ide.common.rendering.api.ViewInfo;
@@ -82,8 +82,8 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   private static final Logger LOG = Logger.getInstance(NlModel.class);
   @AndroidCoordinate private static final int VISUAL_EMPTY_COMPONENT_SIZE = 14;
 
-  @NonNull private final DesignSurface mySurface;
-  @NonNull private final AndroidFacet myFacet;
+  @NotNull private final DesignSurface mySurface;
+  @NotNull private final AndroidFacet myFacet;
   private final XmlFile myFile;
   private RenderResult myRenderResult;
   private final Configuration myConfiguration;
@@ -100,16 +100,16 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   private AndroidPreviewProgressIndicator myCurrentIndicator;
   private static final Object PROGRESS_LOCK = new Object();
 
-  @NonNull
-  public static NlModel create(@NonNull DesignSurface surface,
+  @NotNull
+  public static NlModel create(@NotNull DesignSurface surface,
                                @Nullable Disposable parent,
-                               @NonNull AndroidFacet facet,
-                               @NonNull XmlFile file) {
+                               @NotNull AndroidFacet facet,
+                               @NotNull XmlFile file) {
     return new NlModel(surface, parent, facet, file);
   }
 
   @VisibleForTesting
-  protected NlModel(@NonNull DesignSurface surface, @Nullable Disposable parent, @NonNull AndroidFacet facet, @NonNull XmlFile file) {
+  protected NlModel(@NotNull DesignSurface surface, @Nullable Disposable parent, @NotNull AndroidFacet facet, @NotNull XmlFile file) {
     mySurface = surface;
     myParent = parent;
     myFacet = facet;
@@ -156,7 +156,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     return myFile;
   }
 
-  @NonNull
+  @NotNull
   public SelectionModel getSelectionModel() {
     return mySelectionModel;
   }
@@ -235,7 +235,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     });
   }
 
-  @NonNull
+  @NotNull
   private MergingUpdateQueue getRenderingQueue() {
     int delay = myRenderDelay;
     synchronized (myRenderingQueueLock) {
@@ -298,14 +298,14 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     notifyListenersRenderComplete();
   }
 
-  public void addListener(@NonNull ModelListener listener) {
+  public void addListener(@NotNull ModelListener listener) {
     synchronized (myListeners) {
       myListeners.remove(listener); // prevent duplicate registration
       myListeners.add(listener);
     }
   }
 
-  public void removeListener(@NonNull ModelListener listener) {
+  public void removeListener(@NotNull ModelListener listener) {
     synchronized (myListeners) {
       myListeners.remove(listener);
     }
@@ -325,27 +325,27 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     return myRenderResult;
   }
 
-  @NonNull
+  @NotNull
   public AndroidFacet getFacet() {
     return myFacet;
   }
 
-  @NonNull
+  @NotNull
   public Module getModule() {
     return myFacet.getModule();
   }
 
-  @NonNull
+  @NotNull
   public Project getProject() {
     return getModule().getProject();
   }
 
-  @NonNull
+  @NotNull
   public Configuration getConfiguration() {
     return myConfiguration;
   }
 
-  @NonNull
+  @NotNull
   public List<NlComponent> getComponents() {
     return myComponents;
   }
@@ -390,7 +390,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     myComponents = newRoots;
   }
 
-  private static void updateSnapshot(@NonNull NlComponent component, @NonNull TagSnapshot snapshot) {
+  private static void updateSnapshot(@NotNull NlComponent component, @NotNull TagSnapshot snapshot) {
     assert component.getTag() == snapshot.tag;
     component.setSnapshot(snapshot);
     if (!snapshot.children.isEmpty()) {
@@ -410,7 +410,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     }
   }
 
-  private void initTagMap(@NonNull NlComponent root) {
+  private void initTagMap(@NotNull NlComponent root) {
     myTagToComponentMap.clear();
     for (NlComponent component : root.getChildren()) {
       gatherTags(myTagToComponentMap, component);
@@ -426,9 +426,9 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     }
   }
 
-  private void updateHierarchy(@NonNull List<NlComponent> newRoots,
+  private void updateHierarchy(@NotNull List<NlComponent> newRoots,
                                @Nullable NlComponent parent,
-                               @NonNull ViewInfo view,
+                               @NotNull ViewInfo view,
                                @AndroidCoordinate int parentX,
                                @AndroidCoordinate int parentY) {
     Object cookie = view.getCookie();
@@ -569,7 +569,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   }
 
   @Nullable
-  private NlComponent findViewByTag(@NonNull XmlTag tag) {
+  private NlComponent findViewByTag(@NotNull XmlTag tag) {
     // TODO: Consider using lookup map
     for (NlComponent component : myComponents) {
       NlComponent match = component.findViewByTag(tag);
@@ -582,7 +582,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   }
 
   @Nullable
-  private List<NlComponent> findViewsByTag(@NonNull XmlTag tag) {
+  private List<NlComponent> findViewsByTag(@NotNull XmlTag tag) {
     List<NlComponent> result = null;
     for (NlComponent view : myComponents) {
       List<NlComponent> matches = view.findViewsByTag(tag);
@@ -632,8 +632,8 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     return within;
   }
 
-  private static boolean addWithin(@NonNull List<NlComponent> result,
-                                   @NonNull NlComponent component,
+  private static boolean addWithin(@NotNull List<NlComponent> result,
+                                   @NotNull NlComponent component,
                                    @AndroidCoordinate int x,
                                    @AndroidCoordinate int y,
                                    @AndroidCoordinate int width,
@@ -659,7 +659,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     // Group by parent and ask each one to participate
     WriteCommandAction<Void> action = new WriteCommandAction<Void>(myFacet.getModule().getProject(), "Delete Component", myFile) {
       @Override
-      protected void run(@NonNull Result<Void> result) throws Throwable {
+      protected void run(@NotNull Result<Void> result) throws Throwable {
         handleDeletion(components);
       }
     };
@@ -670,7 +670,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     mySelectionModel.setSelection(remaining);
   }
 
-  private void handleDeletion(@NonNull Collection<NlComponent> components) {
+  private void handleDeletion(@NotNull Collection<NlComponent> components) {
     // Segment the deleted components into lists of siblings
     Map<NlComponent, List<NlComponent>> siblingLists = groupSiblings(components);
 
@@ -713,8 +713,8 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    * @param components the components to be grouped
    * @return a map from parents (or null) to a list of components with the corresponding parent
    */
-  @NonNull
-  private static Map<NlComponent, List<NlComponent>> groupSiblings(@NonNull Collection<? extends NlComponent> components) {
+  @NotNull
+  private static Map<NlComponent, List<NlComponent>> groupSiblings(@NotNull Collection<? extends NlComponent> components) {
     Map<NlComponent, List<NlComponent>> siblingLists = new HashMap<NlComponent, List<NlComponent>>();
 
     if (components.isEmpty()) {
@@ -757,10 +757,10 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    * @param insertType The type of insertion
    */
   public NlComponent createComponent(@Nullable ScreenView screenView,
-                                     @NonNull String fqcn,
+                                     @NotNull String fqcn,
                                      @Nullable NlComponent parent,
                                      @Nullable NlComponent before,
-                                     @NonNull InsertType insertType) {
+                                     @NotNull InsertType insertType) {
     String tagName = NlComponent.viewClassToTag(fqcn);
 
     XmlTag tag;
@@ -780,10 +780,10 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   }
 
   public NlComponent createComponent(@Nullable ScreenView screenView,
-                                     @NonNull XmlTag tag,
+                                     @NotNull XmlTag tag,
                                      @Nullable NlComponent parent,
                                      @Nullable NlComponent before,
-                                     @NonNull InsertType insertType) {
+                                     @NotNull InsertType insertType) {
     if (parent != null) {
       // Creating a component intended to be inserted into an existing layout
       XmlTag parentTag = parent.getTag();
@@ -842,7 +842,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     return child;
   }
 
-  @NonNull
+  @NotNull
   public Transferable getSelectionAsTransferable() {
     return mySelectionModel.getTransferable(myId);
   }
@@ -850,7 +850,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   /**
    * Returns true if the specified components can be added to the specified receiver.
    */
-  public boolean canAddComponents(@Nullable List<NlComponent> toAdd, @NonNull NlComponent receiver, @Nullable NlComponent before) {
+  public boolean canAddComponents(@Nullable List<NlComponent> toAdd, @NotNull NlComponent receiver, @Nullable NlComponent before) {
     if (before != null && before.getParent() != receiver) {
       return false;
     }
@@ -884,9 +884,9 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    * If insertType is a move the components specified should be components from this model.
    */
   public void addComponents(@Nullable final List<NlComponent> toAdd,
-                            @NonNull final NlComponent receiver,
+                            @NotNull final NlComponent receiver,
                             @Nullable final NlComponent before,
-                            @NonNull final InsertType insertType) {
+                            @NotNull final InsertType insertType) {
     if (!canAddComponents(toAdd, receiver, before)) {
       return;
     }
@@ -894,17 +894,17 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
     WriteCommandAction<Void> action = new WriteCommandAction<Void>(getProject(), insertType.getDragType().getDescription(), myFile) {
       @Override
-      protected void run(@NonNull Result<Void> result) throws Throwable {
+      protected void run(@NotNull Result<Void> result) throws Throwable {
         handleAddition(toAdd, receiver, before, insertType);
       }
     };
     action.execute();
   }
 
-  private void handleAddition(@NonNull List<NlComponent> added,
-                              @NonNull NlComponent receiver,
+  private void handleAddition(@NotNull List<NlComponent> added,
+                              @NotNull NlComponent receiver,
                               @Nullable NlComponent before,
-                              @NonNull InsertType insertType) {
+                              @NotNull InsertType insertType) {
     Set<String> ids = Sets.newHashSet(NlComponent.getIds(myFacet));
 
     ViewGroupHandler groupHandler = (ViewGroupHandler)receiver.getViewHandler();
@@ -949,7 +949,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   }
 
   @Nullable
-  public static DnDTransferItem getTransferItem(@NonNull Transferable transferable, boolean allowPlaceholder) {
+  public static DnDTransferItem getTransferItem(@NotNull Transferable transferable, boolean allowPlaceholder) {
     DnDTransferItem item = null;
     try {
       if (transferable.isDataFlavorSupported(ItemTransferable.DESIGNER_FLAVOR)) {
@@ -979,9 +979,9 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   }
 
   @Nullable
-  public List<NlComponent> createComponents(@NonNull ScreenView screenView,
-                                            @NonNull DnDTransferItem item,
-                                            @NonNull InsertType insertType) {
+  public List<NlComponent> createComponents(@NotNull ScreenView screenView,
+                                            @NotNull DnDTransferItem item,
+                                            @NotNull InsertType insertType) {
     List<NlComponent> components = new ArrayList<NlComponent>(item.getComponents().size());
     for (DnDTransferComponent dndComponent : item.getComponents()) {
       XmlTag tag = createTagFromTransferItem(screenView, dndComponent.getRepresentation());
@@ -996,8 +996,8 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     return components;
   }
 
-  @NonNull
-  private static XmlTag createTagFromTransferItem(@NonNull ScreenView screenView, @NonNull String text) {
+  @NotNull
+  private static XmlTag createTagFromTransferItem(@NotNull ScreenView screenView, @NotNull String text) {
     NlModel model = screenView.getModel();
     Project project = model.getFacet().getModule().getProject();
     XmlElementFactory elementFactory = XmlElementFactory.getInstance(project);
@@ -1024,7 +1024,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     return tag;
   }
 
-  private static String addAndroidNamespaceIfMissing(@NonNull String xml) {
+  private static String addAndroidNamespaceIfMissing(@NotNull String xml) {
     // TODO: Remove this temporary hack, which adds an Android namespace if necessary
     // (this is such that the resulting tag is namespace aware, and attempts to manipulate it from
     // a component handler will correctly set namespace prefixes)
@@ -1048,8 +1048,8 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     return xml;
   }
 
-  @NonNull
-  public InsertType determineInsertType(@NonNull DragType dragType, @Nullable DnDTransferItem item, boolean asPreview) {
+  @NotNull
+  public InsertType determineInsertType(@NotNull DragType dragType, @Nullable DnDTransferItem item, boolean asPreview) {
     if (item != null && item.isFromPalette()) {
       return asPreview ? InsertType.CREATE_PREVIEW : InsertType.CREATE;
     }
@@ -1079,7 +1079,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   // ---- Implements ResourceNotificationManager.ResourceChangeListener ----
 
   @Override
-  public void resourcesChanged(@NonNull Set<ResourceNotificationManager.Reason> reason) {
+  public void resourcesChanged(@NotNull Set<ResourceNotificationManager.Reason> reason) {
     requestRender();
   }
 

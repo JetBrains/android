@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.uibuilder.api.DragHandler;
 import com.android.tools.idea.uibuilder.api.DragType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
@@ -36,10 +36,10 @@ import static com.android.SdkConstants.*;
 public class CoordinatorLayoutHandler extends FrameLayoutHandler {
   @Nullable
   @Override
-  public DragHandler createDragHandler(@NonNull ViewEditor editor,
-                                       @NonNull NlComponent layout,
-                                       @NonNull List<NlComponent> components,
-                                       @NonNull DragType type) {
+  public DragHandler createDragHandler(@NotNull ViewEditor editor,
+                                       @NotNull NlComponent layout,
+                                       @NotNull List<NlComponent> components,
+                                       @NotNull DragType type) {
     // The {@link CoordinatorDragHandler} handles the logic for anchoring a
     // single component to an existing component in the CoordinatorLayout.
     // If we are moving several components we probably don't want them to be
@@ -62,10 +62,10 @@ public class CoordinatorLayoutHandler extends FrameLayoutHandler {
     @AndroidCoordinate
     private int myPreviewY;
 
-    public CoordinatorDragHandler(@NonNull ViewEditor editor,
-                                  @NonNull NlComponent layout,
-                                  @NonNull List<NlComponent> components,
-                                  @NonNull DragType type) {
+    public CoordinatorDragHandler(@NotNull ViewEditor editor,
+                                  @NotNull NlComponent layout,
+                                  @NotNull List<NlComponent> components,
+                                  @NotNull DragType type) {
       super(editor, CoordinatorLayoutHandler.this, layout, components, type);
       assert components.size() == 1;
       myDragged = components.get(0);
@@ -106,7 +106,7 @@ public class CoordinatorLayoutHandler extends FrameLayoutHandler {
     }
 
     @Override
-    public void paint(@NonNull NlGraphics gc) {
+    public void paint(@NotNull NlGraphics gc) {
       if (myAnchor == null) {
         super.paint(gc);
       } else {

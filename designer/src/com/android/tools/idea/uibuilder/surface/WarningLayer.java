@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.uibuilder.lint.LintAnnotationsModel;
 import com.android.tools.idea.uibuilder.model.Coordinates;
 import com.android.tools.idea.uibuilder.model.NlComponent;
@@ -36,12 +36,12 @@ public class WarningLayer extends Layer {
   private final ScreenView myScreenView;
   private final List<NlComponent> myAnnotatedComponents = Lists.newArrayList();
 
-  public WarningLayer(@NonNull ScreenView screenView) {
+  public WarningLayer(@NotNull ScreenView screenView) {
     myScreenView = screenView;
   }
 
   @Override
-  public boolean paint(@NonNull Graphics2D gc) {
+  public boolean paint(@NotNull Graphics2D gc) {
     myAnnotatedComponents.clear();
 
     LintAnnotationsModel lintModel = myScreenView.getModel().getLintAnnotationsModel();

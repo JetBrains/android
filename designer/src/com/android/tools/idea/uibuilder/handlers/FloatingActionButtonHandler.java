@@ -16,8 +16,8 @@
 package com.android.tools.idea.uibuilder.handlers;
 
 import com.android.SdkConstants;
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import org.intellij.lang.annotations.Language;
@@ -30,9 +30,9 @@ import static com.android.SdkConstants.COORDINATOR_LAYOUT;
 public class FloatingActionButtonHandler extends ImageViewHandler {
 
   @Override
-  @NonNull
+  @NotNull
   @Language("XML")
-  public String getXml(@NonNull String tagName, @NonNull XmlType xmlType) {
+  public String getXml(@NotNull String tagName, @NotNull XmlType xmlType) {
     switch (xmlType) {
       case PREVIEW_ON_PALETTE:
         return String.format("<%1$s\n" +
@@ -54,19 +54,19 @@ public class FloatingActionButtonHandler extends ImageViewHandler {
   }
 
   @Override
-  @NonNull
+  @NotNull
   public String getSampleImageSrc() {
     // Builtin graphics available since v1:
     return "@android:drawable/ic_input_add"; //$NON-NLS-1$
   }
 
   @Override
-  public double getPreviewScale(@NonNull String tagName) {
+  public double getPreviewScale(@NotNull String tagName) {
     return 0.8;
   }
 
   @Override
-  public boolean acceptsParent(@NonNull NlComponent layout, @NonNull NlComponent newChild) {
+  public boolean acceptsParent(@NotNull NlComponent layout, @NotNull NlComponent newChild) {
     NlComponent appBar = getAppBar(layout);
     if (appBar == null) {
       return super.acceptsParent(layout, newChild);
@@ -75,7 +75,7 @@ public class FloatingActionButtonHandler extends ImageViewHandler {
   }
 
   @Nullable
-  private static NlComponent getAppBar(@NonNull NlComponent component) {
+  private static NlComponent getAppBar(@NotNull NlComponent component) {
     NlComponent parent = component.getParent();
     while (parent != null) {
       component = parent;
