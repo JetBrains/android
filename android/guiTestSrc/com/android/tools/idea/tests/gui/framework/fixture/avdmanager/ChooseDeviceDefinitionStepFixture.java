@@ -78,10 +78,10 @@ public class ChooseDeviceDefinitionStepFixture extends AbstractWizardStepFixture
   }
 
   @NotNull
-  public DeviceEditWizardFixture newHardwareProfile() {
+  public HardwareProfileWizardFixture newHardwareProfile() {
     JButton newDeviceButton = robot().finder().find(target(), withText("New Hardware Profile").andShowing());
     robot().click(newDeviceButton);
-    return DeviceEditWizardFixture.find(robot());
+    return HardwareProfileWizardFixture.find(robot());
   }
 
   @NotNull
