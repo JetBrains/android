@@ -15,17 +15,21 @@
  */
 package com.android.tools.idea.tests.gui.editing;
 
-import com.android.tools.idea.tests.gui.framework.*;
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.CreateFileFromTemplateDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.CreateFileFromTemplateDialogFixture.ComponentVisibility;
-import com.android.tools.idea.tests.gui.framework.fixture.CreateFileFromTemplateDialogFixture.Modifier;
 import com.android.tools.idea.tests.gui.framework.fixture.CreateFileFromTemplateDialogFixture.Kind;
+import com.android.tools.idea.tests.gui.framework.fixture.CreateFileFromTemplateDialogFixture.Modifier;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.JavaOverrideImplementMemberChooserFixture;
 import com.intellij.androidstudio.actions.CreateFileFromTemplateDialog.Visibility;
 import com.intellij.androidstudio.actions.CreateNewClassDialogValidatorExImpl;
 import org.fest.swing.fixture.JCheckBoxFixture;
 import org.fest.swing.query.ComponentVisibleQuery;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -34,9 +38,7 @@ import org.junit.runner.RunWith;
 import javax.swing.*;
 import java.io.IOException;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 @RunIn(TestGroup.EDITING)
 @RunWith(GuiTestRunner.class)
@@ -88,7 +90,7 @@ public class CreateNewClassDialogGuiTest {
     return CreateFileFromTemplateDialogFixture.find(guiTest.robot());
   }
 
-  private void assertPackageName(String filePath, String packageName) {
+  private void assertPackageName(@NotNull String filePath, @NotNull String packageName) {
     myEditor.open(filePath);
     myEditor.moveTo(0);
     String expectedPackage = "package " + packageName + ";";
@@ -96,18 +98,23 @@ public class CreateNewClassDialogGuiTest {
     assertEquals(expectedPackage, actualPackage);
   }
 
-  private void assertDeclaration(String filePath, String expectedDeclaration, Kind kind) {
+  private void assertDeclaration(@NotNull String filePath, @NotNull String expectedDeclaration, @NotNull Kind kind) {
     myEditor.open(filePath);
     myEditor.moveTo(myEditor.findOffset(kind + " " + THING_NAME + "|"));
     String declarationLine = myEditor.getCurrentLineContents(true, false, 0);
     assertEquals(String.format(expectedDeclaration, kind), declarationLine);
   }
 
-  private void assertImport(String filePath, String expectedImport) {
+  private void assertImport(@NotNull String filePath, @NotNull String expectedImport) {
     myEditor.open(filePath);
     myEditor.moveTo(myEditor.findOffset(expectedImport + "|"));
     String actualImport = myEditor.getCurrentLineContents(true, false, 0);
     assertEquals(expectedImport, actualImport);
+  }
+
+  private void assertThereAreNoImports(@NotNull String filePath) {
+    myEditor.open(filePath);
+    assertEquals(-1, myEditor.findOffset("import|"));
   }
 
   private void createPackagePrivate(Kind kind) throws IOException {
@@ -184,6 +191,7 @@ public class CreateNewClassDialogGuiTest {
 
     assertPackageName(THING_FILE_PATH_0, PACKAGE_NAME_0);
     assertDeclaration(THING_FILE_PATH_0, PUBLIC_DECLARATION, Kind.CLASS);
+    assertThereAreNoImports(THING_FILE_PATH_0);
   }
 
   @Test
