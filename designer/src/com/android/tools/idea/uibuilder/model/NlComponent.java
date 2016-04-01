@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.model;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.AndroidPsiUtils;
@@ -74,28 +74,28 @@ public class NlComponent {
   @AndroidCoordinate public int w;
   @AndroidCoordinate public int h;
   private NlComponent myParent;
-  @NonNull private final NlModel myModel;
-  @NonNull private XmlTag myTag;
-  @NonNull private String myTagName; // for non-read lock access elsewhere
+  @NotNull private final NlModel myModel;
+  @NotNull private XmlTag myTag;
+  @NotNull private String myTagName; // for non-read lock access elsewhere
   @Nullable private TagSnapshot snapshot;
 
-  public NlComponent(@NonNull NlModel model, @NonNull XmlTag tag) {
+  public NlComponent(@NotNull NlModel model, @NotNull XmlTag tag) {
     myModel = model;
     myTag = tag;
     myTagName = tag.getName();
   }
 
-  @NonNull
+  @NotNull
   public XmlTag getTag() {
     return myTag;
   }
 
-  @NonNull
+  @NotNull
   public NlModel getModel() {
     return myModel;
   }
 
-  public void setTag(@NonNull XmlTag tag) {
+  public void setTag(@NotNull XmlTag tag) {
     myTag = tag;
     myTagName = tag.getName();
   }
@@ -111,11 +111,11 @@ public class NlComponent {
     this.h = h;
   }
 
-  public void addChild(@NonNull NlComponent component) {
+  public void addChild(@NotNull NlComponent component) {
     addChild(component, null);
   }
 
-  public void addChild(@NonNull NlComponent component, @Nullable NlComponent before) {
+  public void addChild(@NotNull NlComponent component, @Nullable NlComponent before) {
     if (children == null) {
       children = Lists.newArrayList();
     }
@@ -129,14 +129,14 @@ public class NlComponent {
     component.setParent(this);
   }
 
-  public void removeChild(@NonNull NlComponent component) {
+  public void removeChild(@NotNull NlComponent component) {
     if (children != null) {
       children.remove(component);
     }
     component.setParent(null);
   }
 
-  @NonNull
+  @NotNull
   public Iterable<NlComponent> getChildren() {
     return children != null ? children : Collections.<NlComponent>emptyList();
   }
@@ -164,7 +164,7 @@ public class NlComponent {
   }
 
   @Nullable
-  public NlComponent findViewByTag(@NonNull XmlTag tag) {
+  public NlComponent findViewByTag(@NotNull XmlTag tag) {
     if (myTag == tag) {
       return this;
     }
@@ -182,7 +182,7 @@ public class NlComponent {
   }
 
   @Nullable
-  public List<NlComponent> findViewsByTag(@NonNull XmlTag tag) {
+  public List<NlComponent> findViewsByTag(@NotNull XmlTag tag) {
     List<NlComponent> result = null;
 
     if (children != null) {
@@ -240,7 +240,7 @@ public class NlComponent {
     return component;
   }
 
-  public static String toTree(@NonNull List<NlComponent> roots) {
+  public static String toTree(@NotNull List<NlComponent> roots) {
     StringBuilder sb = new StringBuilder(200);
     for (NlComponent root : roots) {
       describe(sb, root, 0);
@@ -248,7 +248,7 @@ public class NlComponent {
     return sb.toString().trim();
   }
 
-  private static void describe(@NonNull StringBuilder sb, @NonNull NlComponent component, int depth) {
+  private static void describe(@NotNull StringBuilder sb, @NotNull NlComponent component, int depth) {
     for (int i = 0; i < depth; i++) {
       sb.append("    ");
     }
@@ -259,7 +259,7 @@ public class NlComponent {
     }
   }
 
-  private static String describe(@NonNull NlComponent root) {
+  private static String describe(@NotNull NlComponent root) {
     return Objects.toStringHelper(root).omitNullValues()
       .add("tag", describe(root.myTag))
       .add("bounds", "[" + root.x + "," + root.y + ":" + root.w + "x" + root.h)
@@ -342,7 +342,7 @@ public class NlComponent {
     return assignId(this, idList);
   }
 
-  public static String assignId(@NonNull NlComponent component, @NonNull Collection<String> idList) {
+  public static String assignId(@NotNull NlComponent component, @NotNull Collection<String> idList) {
     String idValue = StringUtil.decapitalize(component.getTagName());
 
     Module module = component.getModel().getModule();
@@ -374,7 +374,7 @@ public class NlComponent {
   /**
    * Looks up the existing set of id's reachable from the given module
    */
-  public static Collection<String> getIds(@NonNull AndroidFacet facet) {
+  public static Collection<String> getIds(@NotNull AndroidFacet facet) {
     AppResourceRepository resources = AppResourceRepository.getAppResources(facet, true);
     return resources.getItemsOfType(ResourceType.ID);
   }
@@ -399,7 +399,7 @@ public class NlComponent {
     return value == Integer.MIN_VALUE ? 0 : value;
   }
 
-  @NonNull
+  @NotNull
   public Insets getMargins() {
     if (myMargins == null) {
       if (viewInfo == null) {
@@ -430,7 +430,7 @@ public class NlComponent {
     return myMargins;
   }
 
-  @NonNull
+  @NotNull
   public Insets getPadding() {
     if (myPadding == null) {
       if (viewInfo == null) {
@@ -467,7 +467,7 @@ public class NlComponent {
     myParent = parent;
   }
 
-  @NonNull
+  @NotNull
   public String getTagName() {
     return myTagName;
   }
@@ -480,7 +480,7 @@ public class NlComponent {
   /**
    * Convenience wrapper for now; this should be replaced with property lookup
    */
-  public void setAttribute(@Nullable String namespace, @NonNull String attribute, @Nullable String value) {
+  public void setAttribute(@Nullable String namespace, @NotNull String attribute, @Nullable String value) {
     // Handle validity
     myTag.setAttribute(attribute, namespace, value);
     if (snapshot != null) {
@@ -489,7 +489,7 @@ public class NlComponent {
   }
 
   @Nullable
-  public String getAttribute(@Nullable String namespace, @NonNull String attribute) {
+  public String getAttribute(@Nullable String namespace, @NotNull String attribute) {
     if (snapshot != null) {
       return snapshot.getAttribute(attribute, namespace);
     }
@@ -502,7 +502,7 @@ public class NlComponent {
     }
   }
 
-  @NonNull
+  @NotNull
   public List<AttributeSnapshot> getAttributes() {
     if (snapshot != null) {
       return snapshot.attributes;
@@ -523,7 +523,7 @@ public class NlComponent {
     return Collections.emptyList();
   }
 
-  public String ensureNamespace(@NonNull String prefix, @NonNull String namespace) {
+  public String ensureNamespace(@NotNull String prefix, @NotNull String namespace) {
     //todo: Merge with functionality in {@link SuppressLintIntentionAction#ensureNamespaceImported}
     assert isRoot();
     // Handle validity
@@ -572,10 +572,10 @@ public class NlComponent {
    * @param before     The sibling to insert immediately before, or null to append
    * @param insertType The type of insertion
    */
-  public NlComponent createChild(@NonNull ViewEditor editor,
-                                 @NonNull String fqcn,
+  public NlComponent createChild(@NotNull ViewEditor editor,
+                                 @NotNull String fqcn,
                                  @Nullable NlComponent before,
-                                 @NonNull InsertType insertType) {
+                                 @NotNull InsertType insertType) {
     return myModel.createComponent(((ViewEditorImpl)editor).getScreenView(), fqcn, this, before, insertType);
   }
 
@@ -602,8 +602,8 @@ public class NlComponent {
    * @param fqcn fully qualified class name
    * @return the corresponding view tag
    */
-  @NonNull
-  public static String viewClassToTag(@NonNull String fqcn) {
+  @NotNull
+  public static String viewClassToTag(@NotNull String fqcn) {
     if (!viewNeedsPackage(fqcn)) {
       return fqcn.substring(fqcn.lastIndexOf('.') + 1);
     }

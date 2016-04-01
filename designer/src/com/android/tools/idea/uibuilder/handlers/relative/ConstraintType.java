@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.handlers.relative;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.uibuilder.model.SegmentType;
 
 import java.util.HashMap;
@@ -135,7 +135,7 @@ enum ConstraintType {
    * @return the corresponding {@link ConstraintType}
    */
   @Nullable
-  public static ConstraintType fromAttribute(@NonNull String attribute) {
+  public static ConstraintType fromAttribute(@NotNull String attribute) {
     if (ourSNameToType == null) {
       ConstraintType[] types = ConstraintType
         .values();

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.model;
 
-import com.android.annotations.NonNull;
+import org.jetbrains.annotations.NotNull;
 import com.android.tools.idea.uibuilder.model.SelectionHandle.Position;
 
 import java.util.ArrayList;
@@ -38,7 +38,7 @@ public class SelectionHandles implements Iterable<SelectionHandle> {
    *
    * @param component the item to create {@link SelectionHandles} for
    */
-  public SelectionHandles(@NonNull NlComponent component) {
+  public SelectionHandles(@NotNull NlComponent component) {
     myComponent = component;
     createHandles();
   }

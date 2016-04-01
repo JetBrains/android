@@ -16,7 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
 import com.android.SdkConstants;
-import com.android.annotations.NonNull;
+import org.jetbrains.annotations.NotNull;
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.ModelListener;
 import com.android.tools.idea.uibuilder.model.NlComponent;
@@ -77,7 +77,7 @@ public class ConstraintModel {
    *
    * @param model new model
    */
-  public static void useNewModel(@NonNull NlModel model) {
+  public static void useNewModel(@NotNull NlModel model) {
     useNewModel(model, false);
   }
 
@@ -87,20 +87,20 @@ public class ConstraintModel {
    * @param model     new model
    * @param didChange true if the new model comes from the modelChanged callback
    */
-  private static void useNewModel(@NonNull NlModel model, boolean didChange) {
+  private static void useNewModel(@NotNull NlModel model, boolean didChange) {
     ourLock.lock();
 
     // First, let's make sure we have a listener
     if (ourModelListener == null) {
       ourModelListener = new ModelListener() {
         @Override
-        public void modelChanged(@NonNull NlModel model) {
+        public void modelChanged(@NotNull NlModel model) {
           // TODO: it seems that NlComponentTree / NlModel aren't calling this?..
           useNewModel(model, true);
         }
 
         @Override
-        public void modelRendered(@NonNull NlModel model) {
+        public void modelRendered(@NotNull NlModel model) {
           // TODO: Check things on render for now, but this ought not to be necessary
           useNewModel(model, true);
         }
@@ -141,7 +141,7 @@ public class ConstraintModel {
    *
    * @return the current ConstraintModel
    */
-  @NonNull
+  @NotNull
   public static ConstraintModel getModel() {
     ourLock.lock();
     ConstraintModel model = ourConstraintModel;
@@ -173,7 +173,7 @@ public class ConstraintModel {
    *
    * @return the current WidgetsScene
    */
-  @NonNull
+  @NotNull
   public WidgetsScene getScene() {
     return myWidgetsScene;
   }
@@ -183,7 +183,7 @@ public class ConstraintModel {
    *
    * @return the current view transform
    */
-  @NonNull
+  @NotNull
   public ViewTransform getViewTransform() {
     return myViewTransform;
   }
@@ -193,7 +193,7 @@ public class ConstraintModel {
    *
    * @return the current selection
    */
-  @NonNull
+  @NotNull
   public Selection getSelection() {
     return mySelection;
   }
@@ -207,7 +207,7 @@ public class ConstraintModel {
    *
    * @param components list of components in NlModel
    */
-  private void updateNlModel(@NonNull List<NlComponent> components) {
+  private void updateNlModel(@NotNull List<NlComponent> components) {
     // Initialize a list of widgets to potentially removed from the current list of widgets
     ArrayList<ConstraintWidget> widgets = new ArrayList(myWidgetsScene.getWidgets());
     if (widgets.size() > 0) {
@@ -250,7 +250,7 @@ public class ConstraintModel {
    * @param component the component to look up
    * @param widgets   a list of widgets to remove from the scene
    */
-  private void findComponent(@NonNull NlComponent component, @NonNull ArrayList<ConstraintWidget> widgets) {
+  private void findComponent(@NotNull NlComponent component, @NotNull ArrayList<ConstraintWidget> widgets) {
     ConstraintWidget widget = myWidgetsScene.getWidget(component.getTag());
     if (widget != null) {
       widgets.remove(widget);
@@ -267,7 +267,7 @@ public class ConstraintModel {
    *
    * @param component the component we want to represent
    */
-  private void createSolverWidgetFromComponent(@NonNull NlComponent component) {
+  private void createSolverWidgetFromComponent(@NotNull NlComponent component) {
     ConstraintWidget widget = null;
     if (component.getTag() != null) {
       widget = myWidgetsScene.getWidget(component.getTag());
@@ -332,7 +332,7 @@ public class ConstraintModel {
    *
    * @param component the component we want to update from
    */
-  private void updateSolverWidgetFromComponent(@NonNull NlComponent component) {
+  private void updateSolverWidgetFromComponent(@NotNull NlComponent component) {
     ConstraintWidget widget = myWidgetsScene.getWidget(component.getTag());
     ConstraintUtilities.updateWidget(this, widget, component);
     for (NlComponent child : component.getChildren()) {
@@ -406,7 +406,7 @@ public class ConstraintModel {
    * @param showAllConstraints flag to show or not all the existing constraints
    * @return true if we need to repaint
    */
-  public boolean paint(@NonNull Graphics2D gc, int width, int height, boolean showAllConstraints) {
+  public boolean paint(@NotNull Graphics2D gc, int width, int height, boolean showAllConstraints) {
     Graphics2D g = (Graphics2D) gc.create();
     WidgetDecorator.setShowFakeUI(mShowFakeUI);
     boolean ret = mySceneDraw.paintWidgets(width, height, myViewTransform, g, showAllConstraints, myMouseInteraction);
@@ -443,7 +443,7 @@ public class ConstraintModel {
    *
    * @param component
    */
-  public void selectComponent(@NonNull NlComponent component) {
+  public void selectComponent(@NotNull NlComponent component) {
     // TODO: move to NlModel's selection system
     ConstraintWidget widget = myWidgetsScene.getWidget(component.getTag());
     if (widget != null && !widget.isRoot()) {

@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import com.android.annotations.VisibleForTesting;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
@@ -81,21 +81,21 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
   public enum ScreenMode {
     SCREEN_ONLY, BLUEPRINT_ONLY, BOTH;
 
-    @NonNull
+    @NotNull
     public ScreenMode next() {
       ScreenMode[] values = values();
       return values[(ordinal() + 1) % values.length];
     }
   }
 
-  @NonNull private ScreenMode myScreenMode = ScreenMode.SCREEN_ONLY;
+  @NotNull private ScreenMode myScreenMode = ScreenMode.SCREEN_ONLY;
   @Nullable private ScreenView myScreenView;
   @Nullable private ScreenView myBlueprintView;
   @SwingCoordinate private int myScreenX = RULER_SIZE_PX + DEFAULT_SCREEN_OFFSET_X;
   @SwingCoordinate private int myScreenY = RULER_SIZE_PX + DEFAULT_SCREEN_OFFSET_Y;
 
   private double myScale = 1;
-  @NonNull private final JScrollPane myScrollPane;
+  @NotNull private final JScrollPane myScrollPane;
   private final MyLayeredPane myLayeredPane;
   private boolean myDeviceFrames = false;
   private final List<Layer> myLayers = Lists.newArrayList();
@@ -106,7 +106,7 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
   private List<DesignSurfaceListener> myListeners;
   private boolean myCentered;
 
-  public DesignSurface(@NonNull Project project) {
+  public DesignSurface(@NotNull Project project) {
     super(new BorderLayout());
     myProject = project;
 
@@ -180,12 +180,12 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
     myCentered = centered;
   }
 
-  @NonNull
+  @NotNull
   public ScreenMode getScreenMode() {
     return myScreenMode;
   }
 
-  public void setScreenMode(@NonNull ScreenMode screenMode) {
+  public void setScreenMode(@NotNull ScreenMode screenMode) {
     if (screenMode != myScreenMode) {
       // If we're going from 1 screens to 2 or back from 2 to 1, must adjust the zoom
       // to-fit the screen(s) in the surface
@@ -353,7 +353,7 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
     }
   }
 
-  public void zoom(@NonNull ZoomType type) {
+  public void zoom(@NotNull ZoomType type) {
     switch (type) {
       case IN:
         setScale(myScale * 1.1);
@@ -431,7 +431,7 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
   }
 
   /** Returns true if we want to arrange screens vertically instead of horizontally */
-  private static boolean isVerticalScreenConfig(int availableWidth, int availableHeight, @NonNull Dimension preferredSize) {
+  private static boolean isVerticalScreenConfig(int availableWidth, int availableHeight, @NotNull Dimension preferredSize) {
     boolean stackVertically = preferredSize.width > preferredSize.height;
     if (availableWidth > 10 && availableHeight > 3 * availableWidth / 2) {
       stackVertically = true;
@@ -532,18 +532,18 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
     repaint();
   }
 
-  @NonNull
+  @NotNull
   public JComponent getLayeredPane() {
     return myLayeredPane;
   }
 
   @VisibleForTesting
-  @NonNull
+  @NotNull
   public InteractionManager getInteractionManager() {
     return myInteractionManager;
   }
 
-  private void notifySelectionListeners(@NonNull List<NlComponent> newSelection) {
+  private void notifySelectionListeners(@NotNull List<NlComponent> newSelection) {
     if (myListeners != null) {
       List<DesignSurfaceListener> listeners = Lists.newArrayList(myListeners);
       for (DesignSurfaceListener listener : listeners) {
@@ -564,7 +564,7 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
     }
   }
 
-  public void addListener(@NonNull DesignSurfaceListener listener) {
+  public void addListener(@NotNull DesignSurfaceListener listener) {
     if (myListeners == null) {
       myListeners = Lists.newArrayList();
     } else {
@@ -573,7 +573,7 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
     myListeners.add(listener);
   }
 
-  public void removeListener(@NonNull DesignSurfaceListener listener) {
+  public void removeListener(@NotNull DesignSurfaceListener listener) {
     if (myListeners != null) {
       myListeners.remove(listener);
     }
@@ -581,7 +581,7 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
 
   private final SelectionListener mySelectionListener = new SelectionListener() {
     @Override
-    public void selectionChanged(@NonNull SelectionModel model, @NonNull List<NlComponent> selection) {
+    public void selectionChanged(@NotNull SelectionModel model, @NotNull List<NlComponent> selection) {
       if (myScreenView != null) {
         notifySelectionListeners(selection);
       } else {
@@ -640,7 +640,7 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
       setupCorners();
     }
 
-    @NonNull
+    @NotNull
     @Override
     public JScrollBar createVerticalScrollBar() {
       return new MyScrollBar(Adjustable.VERTICAL);
@@ -773,7 +773,7 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
     }
 
     @Override
-    protected void paintComponent(@NonNull Graphics graphics) {
+    protected void paintComponent(@NotNull Graphics graphics) {
       super.paintComponent(graphics);
 
       if (myScreenView == null) {
@@ -836,14 +836,14 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
       }
     }
 
-    private void paintBackground(@NonNull Graphics2D graphics, int lx, int ly) {
+    private void paintBackground(@NotNull Graphics2D graphics, int lx, int ly) {
       int width = myScrollPane.getWidth() - RULER_SIZE_PX;
       int height = myScrollPane.getHeight() - RULER_SIZE_PX;
       graphics.setColor(DESIGN_SURFACE_BG);
       graphics.fillRect(RULER_SIZE_PX + lx, RULER_SIZE_PX + ly, width, height);
     }
 
-    private void paintRulers(@NonNull Graphics2D g, int lx, int ly) {
+    private void paintRulers(@NotNull Graphics2D g, int lx, int ly) {
       final Graphics2D graphics = (Graphics2D)g.create();
       try {
         int width = myScrollPane.getWidth();
@@ -937,7 +937,7 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
     }
 
     @Override
-    protected void paintChildren(@NonNull Graphics graphics) {
+    protected void paintChildren(@NotNull Graphics graphics) {
       super.paintChildren(graphics); // paints the screen
 
       // Paint rulers on top of whatever is under the scroll panel
@@ -960,7 +960,7 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
    * Notifies the design surface that the given screenview (which must be showing in this design surface)
    * has been rendered (possibly with errors)
    */
-  public void updateErrorDisplay(@NonNull ScreenView view, @Nullable final RenderResult result) {
+  public void updateErrorDisplay(@NotNull ScreenView view, @Nullable final RenderResult result) {
     if (view == myScreenView) {
       getErrorQueue().cancelAllUpdates();
       boolean hasProblems = result != null && result.getLogger().hasProblems();
@@ -1013,7 +1013,7 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
     });
   }
 
-  @NonNull
+  @NotNull
   private MergingUpdateQueue getErrorQueue() {
     synchronized (myErrorQueueLock) {
       if (myErrorQueue == null) {
@@ -1067,14 +1067,14 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
   @SuppressWarnings("FieldAccessedSynchronizedAndUnsynchronized")
   private final MyProgressPanel myProgressPanel;
 
-  public synchronized void registerIndicator(@NonNull ProgressIndicator indicator) {
+  public synchronized void registerIndicator(@NotNull ProgressIndicator indicator) {
     synchronized (myProgressIndicators) {
       myProgressIndicators.add(indicator);
       myProgressPanel.showProgressIcon();
     }
   }
 
-  public void unregisterIndicator(@NonNull ProgressIndicator indicator) {
+  public void unregisterIndicator(@NotNull ProgressIndicator indicator) {
     synchronized (myProgressIndicators) {
       myProgressIndicators.remove(indicator);
 
@@ -1173,12 +1173,12 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
       return getProgressIcon().getPreferredSize();
     }
 
-    @NonNull
+    @NotNull
     private AsyncProcessIcon getProgressIcon() {
       return getProgressIcon(mySmall);
     }
 
-    @NonNull
+    @NotNull
     private AsyncProcessIcon getProgressIcon(boolean small) {
       if (small) {
         if (mySmallProgressIcon == null) {

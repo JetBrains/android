@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.palette;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.uibuilder.api.PaletteComponentHandler;
 import com.android.tools.idea.uibuilder.api.XmlType;
@@ -61,7 +61,7 @@ public class Palette {
   /**
    * Handles parsing a palette.xml file. A palette file specifies the layout of the palette.
    */
-  public static Palette parse(@NotNull Reader xmlReader, @NonNull ViewHandlerManager manager) throws JAXBException {
+  public static Palette parse(@NotNull Reader xmlReader, @NotNull ViewHandlerManager manager) throws JAXBException {
     Palette palette = unMarshal(xmlReader);
 
     palette.resolve(manager);
@@ -70,7 +70,7 @@ public class Palette {
     return palette;
   }
 
-  private void addGradleCoordinates(@NonNull Iterable<BaseItem> items) {
+  private void addGradleCoordinates(@NotNull Iterable<BaseItem> items) {
     for (Object item : items) {
       if (item instanceof Item) {
         String coordinateAsString = ((Item)item).getGradleCoordinate();
@@ -89,12 +89,12 @@ public class Palette {
     }
   }
 
-  @NonNull
+  @NotNull
   public List<BaseItem> getItems() {
     return myItems;
   }
 
-  @NonNull
+  @NotNull
   Set<GradleCoordinate> getGradleCoordinates() {
     return myGradleCoordinates;
   }
@@ -110,7 +110,7 @@ public class Palette {
     return (Palette)unmarshaller.unmarshal(xmlReader);
   }
 
-  private void resolve(@NonNull ViewHandlerManager manager) {
+  private void resolve(@NotNull ViewHandlerManager manager) {
     for (BaseItem item : myItems) {
       item.resolve(manager);
     }
@@ -123,13 +123,13 @@ public class Palette {
     /**
      * Resolve each {@link Item} contained in the current class to its corresponding {@link PaletteComponentHandler} if any.
      */
-    void resolve(@NonNull ViewHandlerManager manager);
+    void resolve(@NotNull ViewHandlerManager manager);
   }
 
   @SuppressWarnings("unused")
   public static class Group implements BaseItem {
     @XmlAttribute(required = true, name = "name")
-    @NonNull
+    @NotNull
     @SuppressWarnings("NullableProblems")
     private String myName;
 
@@ -141,29 +141,29 @@ public class Palette {
     private List<BaseItem> myItems = Lists.newArrayList();
     // @formatter:on
 
-    @NonNull
+    @NotNull
     public String getName() {
       return myName;
     }
 
-    @NonNull
+    @NotNull
     public List<BaseItem> getItems() {
       return myItems;
     }
 
-    @NonNull
+    @NotNull
     public BaseItem getItem(int index) {
       return myItems.get(index);
     }
 
     @Override
-    public void resolve(@NonNull ViewHandlerManager manager) {
+    public void resolve(@NotNull ViewHandlerManager manager) {
       for (BaseItem item : myItems) {
         item.resolve(manager);
       }
     }
 
-    @NonNull
+    @NotNull
     @Override
     public String toString() {
       return myName;
@@ -173,7 +173,7 @@ public class Palette {
   @SuppressWarnings("unused")
   public static class Item implements BaseItem {
     @XmlAttribute(required = true, name = "tag")
-    @NonNull
+    @NotNull
     @SuppressWarnings({"NullableProblems", "unused"})
     private String myTagName;
 
@@ -220,17 +220,17 @@ public class Palette {
 
     private PaletteComponentHandler myHandler;
 
-    @NonNull
+    @NotNull
     public String getTagName() {
       return myTagName;
     }
 
-    @NonNull
+    @NotNull
     public String getId() {
       return myId != null ? myId : myTagName;
     }
 
-    @NonNull
+    @NotNull
     public String getTitle() {
       if (myTitle != null) {
         return myTitle;
@@ -238,7 +238,7 @@ public class Palette {
       return myHandler.getTitle(myTagName);
     }
 
-    @NonNull
+    @NotNull
     public Icon getIcon() {
       if (myIconName != null) {
         Icon icon = IconLoader.findIcon(myIconName, getClass());
@@ -257,7 +257,7 @@ public class Palette {
       return myHandler.getGradleCoordinate(myTagName);
     }
 
-    @NonNull
+    @NotNull
     @Language("XML")
     public String getXml() {
       if (myXml != null) {
@@ -266,7 +266,7 @@ public class Palette {
       return myHandler.getXml(myTagName, XmlType.COMPONENT_CREATION);
     }
 
-    @NonNull
+    @NotNull
     @Language("XML")
     public String getPreviewXml() {
       if (myPreviewXml != null) {
@@ -275,7 +275,7 @@ public class Palette {
       return myHandler.getXml(myTagName, XmlType.PREVIEW_ON_PALETTE);
     }
 
-    @NonNull
+    @NotNull
     @Language("XML")
     public String getDragPreviewXml() {
       if (myDragPreviewXml != null) {
@@ -299,7 +299,7 @@ public class Palette {
     }
 
     @Override
-    public void resolve(@NonNull ViewHandlerManager manager) {
+    public void resolve(@NotNull ViewHandlerManager manager) {
       myHandler = manager.getHandlerOrDefault(myTagName);
       if (myXmlValuePart != null) {
         myXml = myXmlValuePart.getValue();
@@ -327,7 +327,7 @@ public class Palette {
       return xml.substring(0, index) + "\n  android:id=\"@+id/" + getId() + "\"\n" + xml.substring(index);
     }
 
-    @NonNull
+    @NotNull
     @Override
     public String toString() {
       return myTagName;
@@ -350,7 +350,7 @@ public class Palette {
       return myValue;
     }
 
-    private boolean reuseFor(@NonNull String part) {
+    private boolean reuseFor(@NotNull String part) {
       return myReuse != null && Splitter.on(",").trimResults().splitToList(myReuse).contains(part);
     }
 

@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.ide.common.rendering.api.HardwareConfig;
 import com.android.sdklib.devices.Device;
@@ -41,13 +41,13 @@ public class ScreenView {
   @SwingCoordinate private int x;
   @SwingCoordinate private int y;
 
-  public ScreenView(@NonNull DesignSurface surface, @NonNull NlModel model) {
+  public ScreenView(@NotNull DesignSurface surface, @NotNull NlModel model) {
     mySurface = surface;
     myModel = model;
 
     myModel.addListener(new ModelListener() {
       @Override
-      public void modelRendered(@NonNull NlModel model) {
+      public void modelRendered(@NotNull NlModel model) {
         ApplicationManager.getApplication().invokeLater(new Runnable() {
           @Override
           public void run() {
@@ -58,12 +58,12 @@ public class ScreenView {
       }
 
       @Override
-      public void modelChanged(@NonNull NlModel model) {
+      public void modelChanged(@NotNull NlModel model) {
       }
     });
     myModel.getSelectionModel().addListener(new SelectionListener() {
       @Override
-      public void selectionChanged(@NonNull SelectionModel model, @NonNull List<NlComponent> selection) {
+      public void selectionChanged(@NotNull SelectionModel model, @NotNull List<NlComponent> selection) {
         ApplicationManager.getApplication().invokeLater(new Runnable() {
           @Override
           public void run() {
@@ -122,17 +122,17 @@ public class ScreenView {
     }
   }
 
-  @NonNull
+  @NotNull
   public Configuration getConfiguration() {
     return myModel.getConfiguration();
   }
 
-  @NonNull
+  @NotNull
   public NlModel getModel() {
     return myModel;
   }
 
-  @NonNull
+  @NotNull
   public SelectionModel getSelectionModel() {
     // For now, the selection model is tied to the model itself.
     // This is deliberate: rather than having each view have its own

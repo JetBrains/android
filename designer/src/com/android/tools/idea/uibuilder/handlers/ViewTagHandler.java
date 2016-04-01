@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
@@ -33,21 +33,21 @@ import static com.android.SdkConstants.*;
 public class ViewTagHandler extends ViewHandler {
 
   @Override
-  @NonNull
-  public String getTitle(@NonNull String tagName) {
+  @NotNull
+  public String getTitle(@NotNull String tagName) {
     return "View";
   }
 
   @Override
-  @NonNull
-  public String getTitle(@NonNull NlComponent component) {
+  @NotNull
+  public String getTitle(@NotNull NlComponent component) {
     return "View";
   }
 
   @Override
   @Language("XML")
-  @NonNull
-  public String getXml(@NonNull String tagName, @NonNull XmlType xmlType) {
+  @NotNull
+  public String getXml(@NotNull String tagName, @NotNull XmlType xmlType) {
     switch (xmlType) {
       case COMPONENT_CREATION:
         return "<view/>";
@@ -60,10 +60,10 @@ public class ViewTagHandler extends ViewHandler {
   }
 
   @Override
-  public boolean onCreate(@NonNull ViewEditor editor,
+  public boolean onCreate(@NotNull ViewEditor editor,
                           @Nullable NlComponent parent,
-                          @NonNull NlComponent newChild,
-                          @NonNull InsertType insertType) {
+                          @NotNull NlComponent newChild,
+                          @NotNull InsertType insertType) {
     if (insertType == InsertType.CREATE) { // NOT InsertType.CREATE_PREVIEW
       String src = editor.displayClassInput(Sets.newHashSet(CLASS_VIEW), null);
       if (src != null) {

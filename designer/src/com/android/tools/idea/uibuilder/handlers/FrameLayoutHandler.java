@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
@@ -30,26 +30,26 @@ import java.util.List;
 public class FrameLayoutHandler extends ViewGroupHandler {
   @Override
   @Nullable
-  public DragHandler createDragHandler(@NonNull ViewEditor editor,
-                                       @NonNull NlComponent layout,
-                                       @NonNull List<NlComponent> components,
-                                       @NonNull DragType type) {
+  public DragHandler createDragHandler(@NotNull ViewEditor editor,
+                                       @NotNull NlComponent layout,
+                                       @NotNull List<NlComponent> components,
+                                       @NotNull DragType type) {
     return new FrameDragHandler(editor, this, layout, components, type) {
     };
   }
 
   protected class FrameDragHandler extends DragHandler {
 
-    protected FrameDragHandler(@NonNull ViewEditor editor,
-                               @NonNull ViewGroupHandler handler,
-                               @NonNull NlComponent layout,
-                               @NonNull List<NlComponent> components,
-                               @NonNull DragType type) {
+    protected FrameDragHandler(@NotNull ViewEditor editor,
+                               @NotNull ViewGroupHandler handler,
+                               @NotNull NlComponent layout,
+                               @NotNull List<NlComponent> components,
+                               @NotNull DragType type) {
       super(editor, handler, layout, components, type);
     }
 
     @Override
-    public void paint(@NonNull NlGraphics graphics) {
+    public void paint(@NotNull NlGraphics graphics) {
       graphics.useStyle(NlDrawingStyle.DROP_RECIPIENT);
       graphics.drawRect(layout.x, layout.y, layout.w, layout.h);
 
@@ -73,8 +73,8 @@ public class FrameLayoutHandler extends ViewGroupHandler {
 
   @Override
   @Nullable
-  public ResizeHandler createResizeHandler(@NonNull ViewEditor editor,
-                                           @NonNull NlComponent component,
+  public ResizeHandler createResizeHandler(@NotNull ViewEditor editor,
+                                           @NotNull NlComponent component,
                                            @Nullable SegmentType horizontalEdgeType,
                                            @Nullable SegmentType verticalEdgeType) {
     return new DefaultResizeHandler(editor, this, component, horizontalEdgeType, verticalEdgeType);

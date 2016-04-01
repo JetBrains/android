@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.rendering.ImageUtils;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.uibuilder.model.NlModel;
@@ -35,12 +35,12 @@ public class ScreenViewLayer extends Layer {
   /** The scale at which we cached the scaled image  */
   private double myCachedScale;
 
-  public ScreenViewLayer(@NonNull ScreenView screenView) {
+  public ScreenViewLayer(@NotNull ScreenView screenView) {
     myScreenView = screenView;
   }
 
   @Override
-  public boolean paint(@NonNull Graphics2D g) {
+  public boolean paint(@NotNull Graphics2D g) {
     NlModel myModel = myScreenView.getModel();
     RenderResult renderResult = myModel.getRenderResult();
     if (renderResult != null && renderResult.getImage() != null) {
@@ -53,7 +53,7 @@ public class ScreenViewLayer extends Layer {
     return false;
   }
 
-  public void paintLoDpi(@NonNull Graphics g, @NonNull BufferedImage originalImage) {
+  public void paintLoDpi(@NotNull Graphics g, @NotNull BufferedImage originalImage) {
     double scale = myScreenView.getScale();
     int x = myScreenView.getX();
     int y = myScreenView.getY();
@@ -66,7 +66,7 @@ public class ScreenViewLayer extends Layer {
     g.drawImage(myScaledImage, x, y, null);
   }
 
-  public boolean paintHiDpi(@NonNull Graphics g, @NonNull BufferedImage originalImage) {
+  public boolean paintHiDpi(@NotNull Graphics g, @NotNull BufferedImage originalImage) {
     if (!ImageUtils.supportsRetina()) {
       return false;
     }

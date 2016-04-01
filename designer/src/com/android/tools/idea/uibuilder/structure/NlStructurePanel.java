@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.structure;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.intellij.designer.LightToolWindowContent;
@@ -34,7 +34,7 @@ public class NlStructurePanel extends JPanel implements LightToolWindowContent {
   private final NlComponentTree myTree;
   private final NlPropertiesManager myPropertiesManager;
 
-  public NlStructurePanel(@NonNull Project project, @NonNull DesignSurface designSurface) {
+  public NlStructurePanel(@NotNull Project project, @NotNull DesignSurface designSurface) {
     myTree = new NlComponentTree(designSurface);
     JScrollPane pane = ScrollPaneFactory.createScrollPane(myTree, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER);
     myPropertiesManager = new NlPropertiesManager(project, designSurface);

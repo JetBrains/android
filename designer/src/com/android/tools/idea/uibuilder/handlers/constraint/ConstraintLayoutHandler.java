@@ -16,7 +16,7 @@
 
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
-import com.android.annotations.NonNull;
+import org.jetbrains.annotations.NotNull;
 import com.android.tools.idea.uibuilder.api.DragHandler;
 import com.android.tools.idea.uibuilder.api.DragType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
@@ -65,7 +65,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
    * @return a new instance of ConstraintInteraction
    */
   @Override
-  public Interaction createInteraction(@NonNull ScreenView screenView, @NonNull NlComponent component) {
+  public Interaction createInteraction(@NotNull ScreenView screenView, @NotNull NlComponent component) {
     return new ConstraintInteraction(screenView, component);
   }
 
@@ -79,10 +79,10 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
    * @return instance of a ConstraintDragHandler
    */
   @Override
-  public DragHandler createDragHandler(@NonNull ViewEditor editor,
-                                       @NonNull NlComponent layout,
-                                       @NonNull java.util.List<NlComponent> components,
-                                       @NonNull DragType type) {
+  public DragHandler createDragHandler(@NotNull ViewEditor editor,
+                                       @NotNull NlComponent layout,
+                                       @NotNull java.util.List<NlComponent> components,
+                                       @NotNull DragType type) {
     return new ConstraintDragHandler(editor, this, layout, components, type);
   }
 
@@ -96,7 +96,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
    * @return true if we modified the cursor
    */
   @Override
-  public boolean updateCursor(@NonNull DesignSurface designSurface,
+  public boolean updateCursor(@NotNull DesignSurface designSurface,
                               @AndroidCoordinate int x, @AndroidCoordinate int y) {
     ConstraintModel model = ConstraintModel.getModel();
     int ax = model.pxToDp(x);
@@ -191,8 +191,8 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
    * @param text the alternate text for this cursor
    * @return a new custom cursor
    */
-  @NonNull
-  private Cursor createCursor(@NonNull Icon icon, int x, int y, @NonNull String text) {
+  @NotNull
+  private Cursor createCursor(@NotNull Icon icon, int x, int y, @NotNull String text) {
     Toolkit toolkit = Toolkit.getDefaultToolkit();
     Image image = ((ImageIcon)icon).getImage();
     return toolkit.createCustomCursor(image, new Point(x, y), text);
@@ -220,8 +220,8 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
    * @return true to indicate that we will need to be repainted
    */
   @Override
-  public boolean drawGroup(@NonNull Graphics2D gc, @NonNull ScreenView screenView,
-                           int width, int height, @NonNull NlComponent component) {
+  public boolean drawGroup(@NotNull Graphics2D gc, @NotNull ScreenView screenView,
+                           int width, int height, @NotNull NlComponent component) {
     boolean needsRepaint = false;
     int dpi = screenView.getConfiguration().getDensity().getDpiValue();
     int baseDpi = ConstraintModel.DEFAULT_DENSITY;

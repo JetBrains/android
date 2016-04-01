@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.editor;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.*;
 import com.android.tools.idea.rendering.RenderResult;
@@ -63,7 +63,7 @@ public class NlEditorPanel extends JPanel implements DesignerEditorPanelFacade, 
   private final DesignSurface mySurface;
   private final ThreeComponentsSplitter myContentSplitter;
 
-  public NlEditorPanel(@NonNull NlEditor editor, @NonNull AndroidFacet facet, @NonNull VirtualFile file) {
+  public NlEditorPanel(@NotNull NlEditor editor, @NotNull AndroidFacet facet, @NotNull VirtualFile file) {
     super(new BorderLayout());
     setOpaque(true);
 
@@ -93,7 +93,7 @@ public class NlEditorPanel extends JPanel implements DesignerEditorPanelFacade, 
     model.requestRenderAsap();
   }
 
-  static JComponent createToolbar(@NonNull DesignSurface surface) {
+  static JComponent createToolbar(@NotNull DesignSurface surface) {
     RenderContext context = new NlRenderContext(surface);
     ActionGroup group = createActions(context, surface);
 
@@ -154,7 +154,7 @@ public class NlEditorPanel extends JPanel implements DesignerEditorPanelFacade, 
     mySurface.deactivate();
   }
 
-  @NonNull
+  @NotNull
   public XmlFile getFile() {
     return myFile;
   }
@@ -187,7 +187,7 @@ public class NlEditorPanel extends JPanel implements DesignerEditorPanelFacade, 
     }
 
     @Override
-    public void performCopy(@NonNull DataContext dataContext) {
+    public void performCopy(@NotNull DataContext dataContext) {
       ScreenView screenView = myEditor.getSurface().getCurrentScreenView();
       if (screenView == null) {
         return;
@@ -196,33 +196,33 @@ public class NlEditorPanel extends JPanel implements DesignerEditorPanelFacade, 
     }
 
     @Override
-    public boolean isCopyEnabled(@NonNull DataContext dataContext) {
+    public boolean isCopyEnabled(@NotNull DataContext dataContext) {
       return hasNonEmptySelection();
     }
 
     @Override
-    public boolean isCopyVisible(@NonNull DataContext dataContext) {
+    public boolean isCopyVisible(@NotNull DataContext dataContext) {
       return true;
     }
 
     @Override
-    public void performCut(@NonNull DataContext dataContext) {
+    public void performCut(@NotNull DataContext dataContext) {
       performCopy(dataContext);
       deleteElement(dataContext);
     }
 
     @Override
-    public boolean isCutEnabled(@NonNull DataContext dataContext) {
+    public boolean isCutEnabled(@NotNull DataContext dataContext) {
       return hasNonEmptySelection();
     }
 
     @Override
-    public boolean isCutVisible(@NonNull DataContext dataContext) {
+    public boolean isCutVisible(@NotNull DataContext dataContext) {
       return true;
     }
 
     @Override
-    public void deleteElement(@NonNull DataContext dataContext) {
+    public void deleteElement(@NotNull DataContext dataContext) {
       DesignSurface surface = myEditor.getSurface();
       ScreenView screenView = surface.getCurrentScreenView();
       if (screenView == null) {
@@ -235,22 +235,22 @@ public class NlEditorPanel extends JPanel implements DesignerEditorPanelFacade, 
     }
 
     @Override
-    public boolean canDeleteElement(@NonNull DataContext dataContext) {
+    public boolean canDeleteElement(@NotNull DataContext dataContext) {
       return hasNonEmptySelection();
     }
 
     @Override
-    public void performPaste(@NonNull DataContext dataContext) {
+    public void performPaste(@NotNull DataContext dataContext) {
       pasteOperation(false /* check and perform the actual paste */);
     }
 
     @Override
-    public boolean isPastePossible(@NonNull DataContext dataContext) {
+    public boolean isPastePossible(@NotNull DataContext dataContext) {
       return true;
     }
 
     @Override
-    public boolean isPasteEnabled(@NonNull DataContext dataContext) {
+    public boolean isPasteEnabled(@NotNull DataContext dataContext) {
       return pasteOperation(true /* check only */);
     }
 
@@ -321,9 +321,9 @@ public class NlEditorPanel extends JPanel implements DesignerEditorPanelFacade, 
    * talk to multiple different editor implementations, and the render actions can directly address DesignSurface.
    */
   private static class NlRenderContext implements RenderContext {
-    @NonNull private final DesignSurface mySurface;
+    @NotNull private final DesignSurface mySurface;
 
-    public NlRenderContext(@NonNull DesignSurface surface) {
+    public NlRenderContext(@NotNull DesignSurface surface) {
       mySurface = surface;
     }
 
@@ -334,7 +334,7 @@ public class NlEditorPanel extends JPanel implements DesignerEditorPanelFacade, 
     }
 
     @Override
-    public void setConfiguration(@NonNull Configuration configuration) {
+    public void setConfiguration(@NotNull Configuration configuration) {
       // This method is used in the layout editor to support the multi-preview
       // At the moment we don't do anything as we only have a single Configuration (updated from the drop down).
     }
@@ -346,7 +346,7 @@ public class NlEditorPanel extends JPanel implements DesignerEditorPanelFacade, 
       }
     }
 
-    @NonNull
+    @NotNull
     @Override
     public UsageType getType() {
       return UsageType.LAYOUT_EDITOR;
@@ -387,25 +387,25 @@ public class NlEditorPanel extends JPanel implements DesignerEditorPanelFacade, 
       return false;
     }
 
-    @NonNull
+    @NotNull
     @Override
     public Component getComponent() {
       return mySurface;
     }
 
-    @NonNull
+    @NotNull
     @Override
     public Dimension getFullImageSize() {
       throw new UnsupportedOperationException();
     }
 
-    @NonNull
+    @NotNull
     @Override
     public Dimension getScaledImageSize() {
       throw new UnsupportedOperationException();
     }
 
-    @NonNull
+    @NotNull
     @Override
     public Rectangle getClientArea() {
       throw new UnsupportedOperationException();

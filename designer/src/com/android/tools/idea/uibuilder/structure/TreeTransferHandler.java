@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.structure;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.intellij.util.ui.UIUtil;
 
@@ -70,7 +70,7 @@ public final class TreeTransferHandler extends TransferHandlerWithDragImage {
   }
 
   @Nullable
-  private static Image getDragImageOfSelection(@NonNull NlComponentTree tree) {
+  private static Image getDragImageOfSelection(@NotNull NlComponentTree tree) {
     TreePath[] paths = tree.getSelectionPaths();
     if (paths == null) {
       return null;

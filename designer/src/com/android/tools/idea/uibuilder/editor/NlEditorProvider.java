@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.editor;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.uibuilder.model.ResourceType;
 import com.intellij.openapi.fileEditor.FileEditor;
@@ -40,13 +40,13 @@ public class NlEditorProvider implements FileEditorProvider, DumbAware {
   private static final String DESIGNER_ID = "android-designer2";
 
   @Nullable
-  private static AndroidFacet getFacet(@NonNull Project project, @NonNull VirtualFile file) {
+  private static AndroidFacet getFacet(@NotNull Project project, @NotNull VirtualFile file) {
     PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(project, file);
     return psiFile instanceof XmlFile ? AndroidFacet.getInstance(psiFile) : null;
   }
 
   @Override
-  public boolean accept(@NonNull Project project, @NonNull VirtualFile file) {
+  public boolean accept(@NotNull Project project, @NotNull VirtualFile file) {
     if (getFacet(project, file) == null) {
       return false;
     }
@@ -64,36 +64,36 @@ public class NlEditorProvider implements FileEditorProvider, DumbAware {
            ResourceType.PREFERENCE_SCREEN.isResourceTypeOf(xmlFile);
   }
 
-  @NonNull
+  @NotNull
   @Override
-  public FileEditor createEditor(@NonNull Project project, @NonNull VirtualFile file) {
+  public FileEditor createEditor(@NotNull Project project, @NotNull VirtualFile file) {
     AndroidFacet facet = getFacet(project, file);
     assert facet != null; // checked by acceptLayout
     return new NlEditor(facet, file, project);
   }
 
   @Override
-  public void disposeEditor(@NonNull FileEditor editor) {
+  public void disposeEditor(@NotNull FileEditor editor) {
     Disposer.dispose(editor);
   }
 
-  @NonNull
+  @NotNull
   @Override
-  public FileEditorState readState(@NonNull Element sourceElement, @NonNull Project project, @NonNull VirtualFile file) {
+  public FileEditorState readState(@NotNull Element sourceElement, @NotNull Project project, @NotNull VirtualFile file) {
     return FileEditorState.INSTANCE;
   }
 
   @Override
-  public void writeState(@NonNull FileEditorState state, @NonNull Project project, @NonNull Element targetElement) {
+  public void writeState(@NotNull FileEditorState state, @NotNull Project project, @NotNull Element targetElement) {
   }
 
-  @NonNull
+  @NotNull
   @Override
   public String getEditorTypeId() {
     return DESIGNER_ID;
   }
 
-  @NonNull
+  @NotNull
   @Override
   public FileEditorPolicy getPolicy() {
     return AndroidEditorSettings.getInstance().getGlobalState().isPreferXmlEditor()

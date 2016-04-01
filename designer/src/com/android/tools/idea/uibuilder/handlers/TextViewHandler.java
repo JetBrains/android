@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.tools.idea.uibuilder.model.NlComponent;
@@ -40,9 +40,9 @@ public class TextViewHandler extends ViewHandler {
     ImmutableSet.of(AUTO_COMPLETE_TEXT_VIEW, EDIT_TEXT, MULTI_AUTO_COMPLETE_TEXT_VIEW);
 
   // Display the android:text attribute if this component has such an attribute.
-  @NonNull
+  @NotNull
   @Override
-  public String getTitleAttributes(@NonNull NlComponent component) {
+  public String getTitleAttributes(@NotNull NlComponent component) {
     if (hasTextAttribute(component.getTagName())) {
       String text = component.getAttribute(ANDROID_URI, ATTR_TEXT);
       if (!StringUtil.isEmpty(text)) {
@@ -54,8 +54,8 @@ public class TextViewHandler extends ViewHandler {
 
   @Override
   @Language("XML")
-  @NonNull
-  public String getXml(@NonNull String tagName, @NonNull XmlType xmlType) {
+  @NotNull
+  public String getXml(@NotNull String tagName, @NotNull XmlType xmlType) {
     return String.format("<%1$s\n" +
                          "  android:text=\"%1$s\"\n" +
                          "  android:layout_width=\"wrap_content\"\n" +
@@ -64,7 +64,7 @@ public class TextViewHandler extends ViewHandler {
   }
 
   @Override
-  public double getPreviewScale(@NonNull String tagName) {
+  public double getPreviewScale(@NotNull String tagName) {
     // EditText components are scaled to avoid a large presentation on the palette
     if (HAVE_REDUCED_SCALE_IN_PREVIEW.contains(tagName)) {
       return 0.8;
@@ -72,7 +72,7 @@ public class TextViewHandler extends ViewHandler {
     return super.getPreviewScale(tagName);
   }
 
-  public static boolean hasTextAttribute(@NonNull String tagName) {
+  public static boolean hasTextAttribute(@NotNull String tagName) {
     return HAVE_TEXT_ATTRIBUTE.contains(tagName);
   }
 }

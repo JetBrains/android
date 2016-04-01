@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.palette;
 
-import com.android.annotations.NonNull;
+import org.jetbrains.annotations.NotNull;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.model.ResourceType;
@@ -35,17 +35,17 @@ public class NlPaletteModel {
   private final Map<ResourceType, Palette> resourceTypeToPalette;
   private final Project myProject;
 
-  public static NlPaletteModel get(@NonNull Project project) {
+  public static NlPaletteModel get(@NotNull Project project) {
     return project.getComponent(NlPaletteModel.class);
   }
 
-  private NlPaletteModel(@NonNull Project project) {
+  private NlPaletteModel(@NotNull Project project) {
     resourceTypeToPalette = new EnumMap<ResourceType, Palette>(ResourceType.class);
     myProject = project;
   }
 
-  @NonNull
-  Palette getPalette(@NonNull ResourceType type) {
+  @NotNull
+  Palette getPalette(@NotNull ResourceType type) {
     Palette palette = resourceTypeToPalette.get(type);
 
     if (palette == null) {
@@ -57,7 +57,7 @@ public class NlPaletteModel {
     }
   }
 
-  private void loadPalette(@NonNull ResourceType type) {
+  private void loadPalette(@NotNull ResourceType type) {
     try {
       String name = type.getPaletteFileName();
       File file = new File(PathManager.getSystemPath(), ANDROID_PALETTE + File.separatorChar + PALETTE_VERSION + File.separatorChar + name);
@@ -83,12 +83,12 @@ public class NlPaletteModel {
   }
 
   @VisibleForTesting
-  void loadPalette(@NonNull Reader reader, @NonNull ResourceType type) throws JAXBException {
+  void loadPalette(@NotNull Reader reader, @NotNull ResourceType type) throws JAXBException {
     Palette palette = Palette.parse(reader, ViewHandlerManager.get(myProject));
     resourceTypeToPalette.put(type, palette);
   }
 
-  private static void copyPredefinedPalette(@NonNull File paletteFile, @NonNull String metadata) throws IOException {
+  private static void copyPredefinedPalette(@NotNull File paletteFile, @NotNull String metadata) throws IOException {
     InputStream stream = NlPaletteModel.class.getResourceAsStream(metadata);
     File folder = paletteFile.getParentFile();
     if (!folder.isDirectory() && !folder.mkdirs()) {

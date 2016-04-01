@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.model;
 
-import com.android.annotations.NonNull;
+import org.jetbrains.annotations.NotNull;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.intellij.openapi.util.Ref;
 
@@ -33,7 +33,7 @@ public class SelectionModelTest extends LayoutTestCase {
 
     SelectionListener listener = new SelectionListener() {
       @Override
-      public void selectionChanged(@NonNull SelectionModel model, @NonNull List<NlComponent> selection) {
+      public void selectionChanged(@NotNull SelectionModel model, @NotNull List<NlComponent> selection) {
         assertFalse(called.get());
         called.set(true);
       }

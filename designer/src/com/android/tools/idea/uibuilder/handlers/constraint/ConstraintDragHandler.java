@@ -16,7 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
 import com.android.SdkConstants;
-import com.android.annotations.NonNull;
+import org.jetbrains.annotations.NotNull;
 import com.android.tools.idea.uibuilder.api.DragHandler;
 import com.android.tools.idea.uibuilder.api.DragType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
@@ -31,10 +31,10 @@ import java.util.List;
  */
 public class ConstraintDragHandler extends DragHandler {
 
-  public ConstraintDragHandler(@NonNull ViewEditor editor,
-                               @NonNull ConstraintLayoutHandler constraintLayoutHandler,
-                               @NonNull NlComponent layout,
-                               @NonNull List<NlComponent> components, DragType type) {
+  public ConstraintDragHandler(@NotNull ViewEditor editor,
+                               @NotNull ConstraintLayoutHandler constraintLayoutHandler,
+                               @NotNull NlComponent layout,
+                               @NotNull List<NlComponent> components, DragType type) {
     super(editor, constraintLayoutHandler, layout, components, type);
     ConstraintModel.useNewModel(editor.getModel());
   }
@@ -55,7 +55,7 @@ public class ConstraintDragHandler extends DragHandler {
   }
 
   @Override
-  public void paint(@NonNull NlGraphics graphics) {
+  public void paint(@NotNull NlGraphics graphics) {
     // do nothing for now
   }
 }

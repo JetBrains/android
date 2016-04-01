@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.editor;
 
-import com.android.annotations.NonNull;
+import org.jetbrains.annotations.NotNull;
 import com.android.tools.idea.uibuilder.structure.NlStructurePanel;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.intellij.designer.DesignerEditorPanelFacade;
@@ -34,8 +34,8 @@ public class NlStructureManager extends NlAbstractWindowManager {
     super(project, fileEditorManager);
   }
 
-  @NonNull
-  public static NlStructureManager get(@NonNull Project project) {
+  @NotNull
+  public static NlStructureManager get(@NotNull Project project) {
     return project.getComponent(NlStructureManager.class);
   }
 

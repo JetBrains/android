@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
-import com.android.annotations.NonNull;
+import org.jetbrains.annotations.NotNull;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.surface.Interaction;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
@@ -46,8 +46,8 @@ public class ConstraintInteraction extends Interaction {
    * @param screenView the ScreenView we belong to
    * @param component the component we belong to
    */
-  public ConstraintInteraction(@NonNull ScreenView screenView,
-                               @NonNull NlComponent component) {
+  public ConstraintInteraction(@NotNull ScreenView screenView,
+                               @NotNull NlComponent component) {
     myScreenView = screenView;
   }
 
@@ -114,7 +114,7 @@ public class ConstraintInteraction extends Interaction {
     String label = "Constraint";
     WriteCommandAction action = new WriteCommandAction(project, label, file) {
       @Override
-      protected void run(@NonNull Result result) throws Throwable {
+      protected void run(@NotNull Result result) throws Throwable {
         ConstraintModel model = ConstraintModel.getModel();
         model.updateModifiers(theModifiers);
         model.mouseReleased(ax, ay);
@@ -148,7 +148,7 @@ public class ConstraintInteraction extends Interaction {
    * @param widget the widget we want to save to the model
    * @param model the model to save to
    */
-  private void commitElement(@NonNull ConstraintWidget widget, @NonNull NlModel model) {
+  private void commitElement(@NotNull ConstraintWidget widget, @NotNull NlModel model) {
     WidgetDecorator decorator = (WidgetDecorator)widget.getCompanionWidget();
     NlComponent component = (NlComponent) decorator.getCompanionObject();
     for (NlComponent c : model.getComponents()) {

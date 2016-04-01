@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 
@@ -27,11 +27,11 @@ import java.util.List;
  */
 public interface DesignSurfaceListener {
   /** The set of currently selected components in the given surface changed */
-  void componentSelectionChanged(@NonNull DesignSurface surface, @NonNull List<NlComponent> newSelection);
+  void componentSelectionChanged(@NotNull DesignSurface surface, @NotNull List<NlComponent> newSelection);
 
   /** The current screen, if any, changed */
-  void screenChanged(@NonNull DesignSurface surface, @Nullable ScreenView screenView);
+  void screenChanged(@NotNull DesignSurface surface, @Nullable ScreenView screenView);
 
   /** The current model changed */
-  void modelChanged(@NonNull DesignSurface surface, @Nullable NlModel model);
+  void modelChanged(@NotNull DesignSurface surface, @Nullable NlModel model);
 }

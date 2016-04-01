@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import com.android.annotations.NonNull;
+import org.jetbrains.annotations.NotNull;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import com.google.common.collect.ImmutableList;
@@ -36,8 +36,8 @@ public class NoPreviewHandler extends ViewHandler {
 
   @Override
   @Language("XML")
-  @NonNull
-  public String getXml(@NonNull String tagName, @NonNull XmlType xmlType) {
+  @NotNull
+  public String getXml(@NotNull String tagName, @NotNull XmlType xmlType) {
     switch (xmlType) {
       case PREVIEW_ON_PALETTE:
       case DRAG_PREVIEW:
@@ -47,7 +47,7 @@ public class NoPreviewHandler extends ViewHandler {
     }
   }
 
-  public static boolean hasNoPreview(@NonNull String tagName) {
+  public static boolean hasNoPreview(@NotNull String tagName) {
     return HAVE_NO_PREVIEW.contains(tagName);
   }
 }

@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ResizeHandler;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
@@ -31,20 +31,20 @@ import static com.android.SdkConstants.TABLE_ROW;
 public class TableRowHandler extends LinearLayoutHandler {
 
   @Override
-  protected boolean isVertical(@NonNull NlComponent component) {
+  protected boolean isVertical(@NotNull NlComponent component) {
     // Rows are always horizontal
     return false;
   }
 
   @Override
-  public boolean acceptsParent(@NonNull NlComponent layout,
-                               @NonNull NlComponent newChild) {
+  public boolean acceptsParent(@NotNull NlComponent layout,
+                               @NotNull NlComponent newChild) {
     // Only table rows are allowed as direct children of the table
     return TABLE_ROW.equals(newChild.getTagName());
   }
 
   @Override
-  public void onChildInserted(@NonNull NlComponent parent, @NonNull NlComponent child, @NonNull InsertType insertType) {
+  public void onChildInserted(@NotNull NlComponent parent, @NotNull NlComponent child, @NotNull InsertType insertType) {
     // Overridden to inhibit the setting of layout_width/layout_height since
     // the table row will enforce match_parent and wrap_content for width and height
     // respectively.
@@ -52,8 +52,8 @@ public class TableRowHandler extends LinearLayoutHandler {
 
   @Nullable
   @Override
-  public ResizeHandler createResizeHandler(@NonNull ViewEditor editor,
-                                           @NonNull NlComponent component,
+  public ResizeHandler createResizeHandler(@NotNull ViewEditor editor,
+                                           @NotNull NlComponent component,
                                            @Nullable SegmentType horizontalEdgeType,
                                            @Nullable SegmentType verticalEdgeType) {
     // No resizing in TableRows; the width is *always* match_parent and the height is

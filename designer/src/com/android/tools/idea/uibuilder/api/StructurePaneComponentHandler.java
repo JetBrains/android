@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.api;
 
-import com.android.annotations.NonNull;
+import org.jetbrains.annotations.NotNull;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 
 import javax.swing.*;
@@ -30,8 +30,8 @@ public class StructurePaneComponentHandler extends PaletteComponentHandler {
    * @param component a component to get the title of
    * @return a title of the component (usually the non qualified tag name)
    */
-  @NonNull
-  public String getTitle(@NonNull NlComponent component) {
+  @NotNull
+  public String getTitle(@NotNull NlComponent component) {
     return getSimpleTagName(component.getTagName());
   }
 
@@ -41,8 +41,8 @@ public class StructurePaneComponentHandler extends PaletteComponentHandler {
    * @param component a component to get the title attributes from
    * @return a string representing important attribute values or the empty string if no attributes should be shown
    */
-  @NonNull
-  public String getTitleAttributes(@NonNull NlComponent component) {
+  @NotNull
+  public String getTitleAttributes(@NotNull NlComponent component) {
     return "";
   }
 
@@ -53,8 +53,8 @@ public class StructurePaneComponentHandler extends PaletteComponentHandler {
    * @param component a component to get the icon for
    * @return an icon to identify the component
    */
-  @NonNull
-  public Icon getIcon(@NonNull NlComponent component) {
+  @NotNull
+  public Icon getIcon(@NotNull NlComponent component) {
     return loadBuiltinIcon(component.getTagName());
   }
 }

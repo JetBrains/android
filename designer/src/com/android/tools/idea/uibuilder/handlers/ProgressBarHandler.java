@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.intellij.openapi.util.text.StringUtil;
@@ -33,9 +33,9 @@ public class ProgressBarHandler extends ViewHandler {
   private static final String SMALL = "Small";
   private static final String HORIZONTAL = "Horizontal";
 
-  @NonNull
+  @NotNull
   @Override
-  public String getTitleAttributes(@NonNull NlComponent component) {
+  public String getTitleAttributes(@NotNull NlComponent component) {
     String style = getStyle(component);
     return StringUtil.isEmpty(style) ? "" : "(" + style + ")";
   }
@@ -46,7 +46,7 @@ public class ProgressBarHandler extends ViewHandler {
    * @return either (Large, Small, Normal)
    */
   @Nullable
-  protected String getStyle(@NonNull NlComponent component) {
+  protected String getStyle(@NotNull NlComponent component) {
     String style = component.getAttribute(null, TAG_STYLE);
     if (style == null) {
       return null;
@@ -63,7 +63,7 @@ public class ProgressBarHandler extends ViewHandler {
   }
 
   @Nullable
-  private static String findProgressBarType(@NonNull String style) {
+  private static String findProgressBarType(@NotNull String style) {
     if (style.startsWith(LARGE)) {
       return LARGE;
     }

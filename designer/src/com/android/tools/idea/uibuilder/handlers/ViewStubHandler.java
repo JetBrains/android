@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
@@ -37,8 +37,8 @@ public class ViewStubHandler extends ViewHandler {
 
   @Override
   @Language("XML")
-  @NonNull
-  public String getXml(@NonNull String tagName, @NonNull XmlType xmlType) {
+  @NotNull
+  public String getXml(@NotNull String tagName, @NotNull XmlType xmlType) {
     switch (xmlType) {
       case PREVIEW_ON_PALETTE:
       case DRAG_PREVIEW:
@@ -49,10 +49,10 @@ public class ViewStubHandler extends ViewHandler {
   }
 
   @Override
-  public boolean onCreate(@NonNull ViewEditor editor,
+  public boolean onCreate(@NotNull ViewEditor editor,
                           @Nullable NlComponent parent,
-                          @NonNull NlComponent newChild,
-                          @NonNull InsertType insertType) {
+                          @NotNull NlComponent newChild,
+                          @NotNull InsertType insertType) {
     switch (insertType) {
       case CREATE:
         // When dropping a ViewStub tag, ask the user which layout to include:

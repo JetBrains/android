@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.api;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
@@ -68,16 +68,16 @@ public class DefaultResizeHandler extends ResizeHandler {
    * @param horizontalEdgeType the horizontal (top or bottom) edge being resized, if any
    * @param verticalEdgeType   the vertical (left or right) edge being resized, if any
    */
-  public DefaultResizeHandler(@NonNull ViewEditor editor,
-                              @NonNull ViewGroupHandler handler,
-                              @NonNull NlComponent component,
+  public DefaultResizeHandler(@NotNull ViewEditor editor,
+                              @NotNull ViewGroupHandler handler,
+                              @NotNull NlComponent component,
                               @Nullable SegmentType horizontalEdgeType,
                               @Nullable SegmentType verticalEdgeType) {
     super(editor, handler, component, horizontalEdgeType, verticalEdgeType);
 
     Map<NlComponent, Dimension> sizes = editor.measureChildren(layout, new RenderTask.AttributeFilter() {
       @Override
-      public String getAttribute(@NonNull XmlTag n, @Nullable String namespace, @NonNull String localName) {
+      public String getAttribute(@NotNull XmlTag n, @Nullable String namespace, @NotNull String localName) {
         // Change attributes to wrap_content
         if (ATTR_LAYOUT_WIDTH.equals(localName) && ANDROID_URI.equals(namespace)) {
           return VALUE_WRAP_CONTENT;
@@ -100,7 +100,7 @@ public class DefaultResizeHandler extends ResizeHandler {
   public String update(@AndroidCoordinate int x,
                        @AndroidCoordinate int y,
                        int modifiers,
-                       @NonNull @AndroidCoordinate Rectangle newBounds) {
+                       @NotNull @AndroidCoordinate Rectangle newBounds) {
     super.update(x, y, modifiers, newBounds);
     bounds = newBounds;
 
@@ -160,7 +160,7 @@ public class DefaultResizeHandler extends ResizeHandler {
   public void commit(@AndroidCoordinate int px,
                      @AndroidCoordinate int py,
                      int modifiers,
-                     @NonNull @AndroidCoordinate Rectangle newBounds) {
+                     @NotNull @AndroidCoordinate Rectangle newBounds) {
     NlComponent parent = component.getParent();
     if (parent == null) {
       return;
@@ -170,7 +170,7 @@ public class DefaultResizeHandler extends ResizeHandler {
   }
 
   @Override
-  public void paint(@NonNull NlGraphics graphics) {
+  public void paint(@NotNull NlGraphics graphics) {
     graphics.useStyle(NlDrawingStyle.RESIZE_PREVIEW);
     if (bounds == null) {
       return;
@@ -256,7 +256,7 @@ public class DefaultResizeHandler extends ResizeHandler {
    *
    * @return the width string, never null
    */
-  @NonNull
+  @NotNull
   public String getWidthAttribute() {
     if (wrapWidth) {
       return VALUE_WRAP_CONTENT;
@@ -272,7 +272,7 @@ public class DefaultResizeHandler extends ResizeHandler {
    *
    * @return the height string, never null
    */
-  @NonNull
+  @NotNull
   public String getHeightAttribute() {
     if (wrapHeight) {
       return VALUE_WRAP_CONTENT;
@@ -294,9 +294,9 @@ public class DefaultResizeHandler extends ResizeHandler {
    * @return the message to display for the current resize bounds
    */
   @Nullable
-  protected String getResizeUpdateMessage(@NonNull NlComponent child,
-                                          @NonNull NlComponent parent,
-                                          @NonNull Rectangle newBounds,
+  protected String getResizeUpdateMessage(@NotNull NlComponent child,
+                                          @NotNull NlComponent parent,
+                                          @NotNull Rectangle newBounds,
                                           @Nullable SegmentType horizontalEdge,
                                           @Nullable SegmentType verticalEdge) {
     String width = getWidthAttribute();
@@ -323,10 +323,10 @@ public class DefaultResizeHandler extends ResizeHandler {
    * @param horizontalEdge the horizontal edge being resized
    * @param verticalEdge   the vertical edge being resized
    */
-  protected void setNewSizeBounds(@NonNull NlComponent component,
-                                  @NonNull NlComponent layout,
-                                  @NonNull Rectangle oldBounds,
-                                  @NonNull Rectangle newBounds,
+  protected void setNewSizeBounds(@NotNull NlComponent component,
+                                  @NotNull NlComponent layout,
+                                  @NotNull Rectangle oldBounds,
+                                  @NotNull Rectangle newBounds,
                                   @Nullable SegmentType horizontalEdge,
                                   @Nullable SegmentType verticalEdge) {
     if (verticalEdge != null

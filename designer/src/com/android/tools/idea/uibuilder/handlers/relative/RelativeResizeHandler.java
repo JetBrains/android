@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.handlers.relative;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.Segment;
@@ -48,9 +48,9 @@ public class RelativeResizeHandler extends GuidelineHandler {
    * @param horizontalEdgeType the type of horizontal edge being resized, or null
    * @param verticalEdgeType   the type of vertical edge being resized, or null
    */
-  public RelativeResizeHandler(@NonNull ViewEditor viewEditor,
-                               @NonNull NlComponent layout,
-                               @NonNull NlComponent resized,
+  public RelativeResizeHandler(@NotNull ViewEditor viewEditor,
+                               @NotNull NlComponent layout,
+                               @NotNull NlComponent resized,
                                @Nullable SegmentType horizontalEdgeType,
                                @Nullable SegmentType verticalEdgeType) {
     super(viewEditor, layout);

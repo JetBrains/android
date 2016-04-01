@@ -16,8 +16,8 @@
 package com.android.tools.idea.uibuilder.editor;
 
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.uibuilder.model.ModelListener;
@@ -69,7 +69,7 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
     mySurface.setScreenMode(DesignSurface.ScreenMode.SCREEN_ONLY);
     mySurface.addListener(new DesignSurfaceListener() {
       @Override
-      public void componentSelectionChanged(@NonNull DesignSurface surface, @NonNull List<NlComponent> newSelection) {
+      public void componentSelectionChanged(@NotNull DesignSurface surface, @NotNull List<NlComponent> newSelection) {
         assert surface == mySurface; // We're maintaining the listener per surface
         // Allow only one component
         NlComponent component = newSelection.size() == 1 ? newSelection.get(0) : null;
@@ -77,11 +77,11 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
       }
 
       @Override
-      public void screenChanged(@NonNull DesignSurface surface, @Nullable ScreenView screenView) {
+      public void screenChanged(@NotNull DesignSurface surface, @Nullable ScreenView screenView) {
       }
 
       @Override
-      public void modelChanged(@NonNull DesignSurface surface, @Nullable NlModel model) {
+      public void modelChanged(@NotNull DesignSurface surface, @Nullable NlModel model) {
       }
     });
 
@@ -174,7 +174,7 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
     return myFile;
   }
 
-  @NonNull
+  @NotNull
   public JPanel getContentPanel() {
     return myContentSplitter;
   }
@@ -201,11 +201,11 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
     }
 
     @Override
-    public void modelChanged(@NonNull NlModel model) {
+    public void modelChanged(@NotNull NlModel model) {
     }
 
     @Override
-    public void modelRendered(@NonNull NlModel model) {
+    public void modelRendered(@NotNull NlModel model) {
       model.removeListener(this);
       if (valid) {
         valid = false;
@@ -277,7 +277,7 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
     return myRenderResult;
   }
 
-  public void setRenderResult(@NonNull RenderResult renderResult) {
+  public void setRenderResult(@NotNull RenderResult renderResult) {
     myRenderResult = renderResult;
   }
 
@@ -290,7 +290,7 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
     return null;
   }
 
-  @NonNull
+  @NotNull
   public DesignSurface getSurface() {
     return mySurface;
   }

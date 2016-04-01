@@ -15,14 +15,14 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import com.android.annotations.NonNull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Handler for the {@code <ZoomButtom>} widget
  */
 public class ZoomButtonHandler extends ImageButtonHandler {
   @Override
-  @NonNull
+  @NotNull
   public String getSampleImageSrc() {
     // Builtin graphics available since v1:
     return "@android:drawable/btn_plus"; //$NON-NLS-1$

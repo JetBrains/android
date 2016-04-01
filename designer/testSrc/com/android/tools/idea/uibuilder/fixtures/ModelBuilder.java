@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.fixtures;
 
-import com.android.annotations.NonNull;
+import org.jetbrains.annotations.NotNull;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.utils.XmlUtils;
@@ -42,10 +42,10 @@ public class ModelBuilder {
   private final AndroidFacet myFacet;
   private final JavaCodeInsightTestFixture myFixture;
 
-  public ModelBuilder(@NonNull AndroidFacet facet,
-                      @NonNull JavaCodeInsightTestFixture fixture,
-                      @NonNull String name,
-                      @NonNull ComponentDescriptor root) {
+  public ModelBuilder(@NotNull AndroidFacet facet,
+                      @NotNull JavaCodeInsightTestFixture fixture,
+                      @NotNull String name,
+                      @NotNull ComponentDescriptor root) {
     TestCase.assertTrue(name, name.endsWith(DOT_XML));
     myFacet = facet;
     myFixture = fixture;

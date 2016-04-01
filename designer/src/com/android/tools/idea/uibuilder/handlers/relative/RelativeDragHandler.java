@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.relative;
 
-import com.android.annotations.NonNull;
+import org.jetbrains.annotations.NotNull;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.handlers.relative.DependencyGraph.ViewData;
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
@@ -50,7 +50,7 @@ public class RelativeDragHandler extends GuidelineHandler {
    * @param layout     the layout element the handler is operating on
    * @param elements   the elements being dragged in the move operation
    */
-  public RelativeDragHandler(@NonNull ViewEditor viewEditor, @NonNull NlComponent layout, @NonNull List<NlComponent> elements) {
+  public RelativeDragHandler(@NotNull ViewEditor viewEditor, @NotNull NlComponent layout, @NotNull List<NlComponent> elements) {
     super(viewEditor, layout);
 
     // Compute list of nodes being dragged within the layout, if any
@@ -165,7 +165,7 @@ public class RelativeDragHandler extends GuidelineHandler {
    * @param offsetY      the Y delta
    * @param modifierMask the keyboard modifiers pressed during the drag
    */
-  public void updateMove(@NonNull NlComponent primary, @AndroidCoordinate int offsetX, @AndroidCoordinate int offsetY, int modifierMask) {
+  public void updateMove(@NotNull NlComponent primary, @AndroidCoordinate int offsetX, @AndroidCoordinate int offsetY, int modifierMask) {
     clearSuggestions();
     mySnap = (modifierMask & InputEvent.SHIFT_MASK) == 0;
     myBounds = new Rectangle(primary.x + offsetX, primary.y + offsetY, primary.w, primary.h);

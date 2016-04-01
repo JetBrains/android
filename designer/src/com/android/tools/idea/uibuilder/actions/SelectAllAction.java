@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.actions;
 
-import com.android.annotations.NonNull;
+import org.jetbrains.annotations.NotNull;
 import com.android.tools.idea.uibuilder.model.SelectionModel;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
@@ -25,7 +25,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 public class SelectAllAction extends AnAction {
   private final DesignSurface mySurface;
 
-  public SelectAllAction(@NonNull DesignSurface surface) {
+  public SelectAllAction(@NotNull DesignSurface surface) {
     super("Select All", "Select All", null);
     mySurface = surface;
   }

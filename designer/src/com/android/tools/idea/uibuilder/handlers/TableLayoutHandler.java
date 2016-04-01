@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ResizeHandler;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
@@ -30,19 +30,19 @@ import static com.android.SdkConstants.*;
  */
 public class TableLayoutHandler extends LinearLayoutHandler {
   @Override
-  protected boolean isVertical(@NonNull NlComponent component) {
+  protected boolean isVertical(@NotNull NlComponent component) {
     // Tables are always vertical
     return true;
   }
 
   @Override
-  public boolean acceptsChild(@NonNull NlComponent layout, @NonNull NlComponent newChild) {
+  public boolean acceptsChild(@NotNull NlComponent layout, @NotNull NlComponent newChild) {
     // Only table rows are allowed as direct children of the table
     return TABLE_ROW.equals(newChild.getTagName());
   }
 
   @Override
-  public void onChildInserted(@NonNull NlComponent parent, @NonNull NlComponent child, @NonNull InsertType insertType) {
+  public void onChildInserted(@NotNull NlComponent parent, @NotNull NlComponent child, @NotNull InsertType insertType) {
     // Overridden to inhibit the setting of layout_width/layout_height since
     // it should always be match_parent
     child.setAttribute(ANDROID_URI, ATTR_LAYOUT_WIDTH, VALUE_MATCH_PARENT);
@@ -50,10 +50,10 @@ public class TableLayoutHandler extends LinearLayoutHandler {
   }
 
   @Override
-  public boolean onCreate(@NonNull ViewEditor editor,
+  public boolean onCreate(@NotNull ViewEditor editor,
                           @Nullable NlComponent parent,
-                          @NonNull NlComponent node,
-                          @NonNull InsertType insertType) {
+                          @NotNull NlComponent node,
+                          @NotNull InsertType insertType) {
     if (insertType.isCreate()) {
       // Start the table with 4 rows
       for (int i = 0; i < 4; i++) {
@@ -66,8 +66,8 @@ public class TableLayoutHandler extends LinearLayoutHandler {
 
   @Nullable
   @Override
-  public ResizeHandler createResizeHandler(@NonNull ViewEditor editor,
-                                           @NonNull NlComponent component,
+  public ResizeHandler createResizeHandler(@NotNull ViewEditor editor,
+                                           @NotNull NlComponent component,
                                            @Nullable SegmentType horizontalEdgeType,
                                            @Nullable SegmentType verticalEdgeType) {
     // Children of a table layout cannot set their widths (it is controlled by column

@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.model;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A {@link ResizePolicy} records state for whether a widget is resizable, and if so, in
@@ -113,7 +113,7 @@ public class ResizePolicy {
    *
    * @return a resize policy allowing resizing in any direction
    */
-  @NonNull
+  @NotNull
   public static ResizePolicy full() {
     return ourAny;
   }
@@ -123,7 +123,7 @@ public class ResizePolicy {
    *
    * @return a policy which does not allow any resizing
    */
-  @NonNull
+  @NotNull
   public static ResizePolicy none() {
     return ourNone;
   }
@@ -133,7 +133,7 @@ public class ResizePolicy {
    *
    * @return a policy which allows horizontal resizing only
    */
-  @NonNull
+  @NotNull
   public static ResizePolicy horizontal() {
     return ourHorizontal;
   }
@@ -143,7 +143,7 @@ public class ResizePolicy {
    *
    * @return a policy which allows vertical resizing only
    */
-  @NonNull
+  @NotNull
   public static ResizePolicy vertical() {
     return ourVertical;
   }
@@ -153,7 +153,7 @@ public class ResizePolicy {
    *
    * @return a resize policy allowing scaled / aspect-ratio preserving resizing only
    */
-  @NonNull
+  @NotNull
   public static ResizePolicy scaled() {
     return ourScaled;
   }
@@ -169,7 +169,7 @@ public class ResizePolicy {
    * @param preserve whether the policy requires the aspect ratio to be preserved
    * @return a resize policy recording the constraints required by the parameters
    */
-  @NonNull
+  @NotNull
   public static ResizePolicy create(boolean top, boolean right, boolean bottom, boolean left, boolean preserve) {
     int mask = NONE;
     if (top) mask |= TOP_EDGE;
@@ -217,8 +217,8 @@ public class ResizePolicy {
    * @param component the component to look up a resize policy for
    * @return a suitable {@linkplain ResizePolicy}
    */
-  @NonNull
-  public static ResizePolicy getResizePolicy(@NonNull NlComponent component) {
+  @NotNull
+  public static ResizePolicy getResizePolicy(@NotNull NlComponent component) {
     // TODO: Look up from metadata
     return ourAny;
   }

@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.editor;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.uibuilder.lint.NlBackgroundEditorHighlighter;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.designer.LightToolWindowManager;
@@ -52,7 +52,7 @@ public class NlEditor extends UserDataHolderBase implements FileEditor {
     myStructureManager = NlStructureManager.get(project);
   }
 
-  @NonNull
+  @NotNull
   @Override
   public NlEditorPanel getComponent() {
     if (myEditorPanel == null) {
@@ -75,20 +75,20 @@ public class NlEditor extends UserDataHolderBase implements FileEditor {
     return getComponent().getPreferredFocusedComponent();
   }
 
-  @NonNull
+  @NotNull
   @Override
   public String getName() {
     return "Design";
   }
 
   @Override
-  @NonNull
-  public FileEditorState getState(@NonNull FileEditorStateLevel level) {
+  @NotNull
+  public FileEditorState getState(@NotNull FileEditorStateLevel level) {
     return FileEditorState.INSTANCE;
   }
 
   @Override
-  public void setState(@NonNull FileEditorState state) {
+  public void setState(@NotNull FileEditorState state) {
   }
 
   @Override
@@ -117,11 +117,11 @@ public class NlEditor extends UserDataHolderBase implements FileEditor {
   }
 
   @Override
-  public void addPropertyChangeListener(@NonNull PropertyChangeListener listener) {
+  public void addPropertyChangeListener(@NotNull PropertyChangeListener listener) {
   }
 
   @Override
-  public void removePropertyChangeListener(@NonNull PropertyChangeListener listener) {
+  public void removePropertyChangeListener(@NotNull PropertyChangeListener listener) {
   }
 
   @Nullable

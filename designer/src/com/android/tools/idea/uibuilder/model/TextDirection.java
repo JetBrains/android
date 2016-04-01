@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.model;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import com.android.ide.common.resources.configuration.LayoutDirectionQualifier;
 import com.android.resources.LayoutDirection;
 import com.android.tools.idea.configurations.Configuration;
@@ -46,7 +46,7 @@ public enum TextDirection {
    * Returns the RTL SegmentType that corresponds to the LEFT side of the screen. This will be different depending if
    * the user has RTL preview enabled or not.
    */
-  @NonNull
+  @NotNull
   public SegmentType getLeftSegment() {
     return this == LEFT_TO_RIGHT ? SegmentType.START : SegmentType.END;
   }
@@ -55,7 +55,7 @@ public enum TextDirection {
    * Returns the RTL SegmentType that corresponds to the RIGHT side of the screen. This will be different depending if
    * the user has RTL preview enabled or not.
    */
-  @NonNull
+  @NotNull
   public SegmentType getRightSegment() {
     return this == LEFT_TO_RIGHT ? SegmentType.END : SegmentType.START;
   }
@@ -83,7 +83,7 @@ public enum TextDirection {
   /**
    * Returns the RTL attribute name for aligning components left on screen.
    */
-  @NonNull
+  @NotNull
   public String getAttrLeft() {
     return this == LEFT_TO_RIGHT ? ATTR_LAYOUT_ALIGN_START : ATTR_LAYOUT_ALIGN_END;
   }
@@ -91,7 +91,7 @@ public enum TextDirection {
   /**
    * Returns the RTL attribute name for aligning components left on screen.
    */
-  @NonNull
+  @NotNull
   public String getAttrLeftOf() {
     return this == LEFT_TO_RIGHT ? ATTR_LAYOUT_TO_START_OF : ATTR_LAYOUT_TO_END_OF;
   }
@@ -99,7 +99,7 @@ public enum TextDirection {
   /**
    * Returns the RTL attribute name for aligning components right on screen.
    */
-  @NonNull
+  @NotNull
   public String getAttrRight() {
     return this == LEFT_TO_RIGHT ? ATTR_LAYOUT_ALIGN_END : ATTR_LAYOUT_ALIGN_START;
   }
@@ -107,7 +107,7 @@ public enum TextDirection {
   /**
    * Returns the RTL attribute name for aligning components right-of on screen.
    */
-  @NonNull
+  @NotNull
   public String getAttrRightOf() {
     return this == LEFT_TO_RIGHT ? ATTR_LAYOUT_TO_END_OF : ATTR_LAYOUT_TO_START_OF;
   }
@@ -115,7 +115,7 @@ public enum TextDirection {
   /**
    * Returns the RTL attribute name for aligning components parent-left on screen.
    */
-  @NonNull
+  @NotNull
   public String getAttrAlignParentLeft() {
     return this == LEFT_TO_RIGHT ? ATTR_LAYOUT_ALIGN_PARENT_START : ATTR_LAYOUT_ALIGN_PARENT_END;
   }
@@ -123,7 +123,7 @@ public enum TextDirection {
   /**
    * Returns the RTL attribute name for aligning components parent-right on screen.
    */
-  @NonNull
+  @NotNull
   public String getAttrAlignParentRight() {
     return this == LEFT_TO_RIGHT ? ATTR_LAYOUT_ALIGN_PARENT_END : ATTR_LAYOUT_ALIGN_PARENT_START;
   }
@@ -131,7 +131,7 @@ public enum TextDirection {
   /**
    * Returns the RTL attribute name to specify the margin on the left side of the component.
    */
-  @NonNull
+  @NotNull
   public String getAttrMarginLeft() {
     return this == LEFT_TO_RIGHT ? ATTR_LAYOUT_MARGIN_START : ATTR_LAYOUT_MARGIN_END;
   }
@@ -139,7 +139,7 @@ public enum TextDirection {
   /**
    * Returns the RTL attribute name to specify the margin on the right side of the component.
    */
-  @NonNull
+  @NotNull
   public String getAttrMarginRight() {
     return this == LEFT_TO_RIGHT ? ATTR_LAYOUT_MARGIN_END : ATTR_LAYOUT_MARGIN_START;
   }

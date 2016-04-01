@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.fixtures;
 
-import com.android.annotations.NonNull;
+import org.jetbrains.annotations.NotNull;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.Lists;
@@ -28,13 +28,13 @@ public class ComponentListFixture {
   private final ScreenFixture myScreenFixture;
   private List<ComponentFixture> myComponents;
 
-  public ComponentListFixture(@NonNull ScreenFixture screenFixture, @NonNull List<ComponentFixture> components) {
+  public ComponentListFixture(@NotNull ScreenFixture screenFixture, @NotNull List<ComponentFixture> components) {
     myScreenFixture = screenFixture;
     myComponents = components;
   }
 
-  @NonNull
-  public ComponentListFixture primary(@NonNull String description) {
+  @NotNull
+  public ComponentListFixture primary(@NotNull String description) {
     ComponentFixture primary = myScreenFixture.get(description);
     assertTrue(myComponents.contains(primary));
     myComponents = Lists.newArrayList(myComponents); // ensure mutable
@@ -43,17 +43,17 @@ public class ComponentListFixture {
     return this;
   }
 
-  @NonNull
+  @NotNull
   public ComponentFixture primary() {
     return myComponents.get(0);
   }
 
-  @NonNull
+  @NotNull
   public ScreenView getScreen() {
     return myScreenFixture.getScreen();
   }
 
-  @NonNull
+  @NotNull
   public List<NlComponent> getComponents() {
     List<NlComponent> list = Lists.newArrayList();
     for (ComponentFixture fixture : myComponents) {

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import com.android.annotations.NonNull;
+import org.jetbrains.annotations.NotNull;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 
 import static com.android.SdkConstants.RECYCLER_VIEW_LIB_ARTIFACT;
@@ -26,8 +26,8 @@ import static com.android.SdkConstants.RECYCLER_VIEW_LIB_ARTIFACT;
 public class RecyclerViewHandler extends ViewGroupHandler {
 
   @Override
-  @NonNull
-  public String getGradleCoordinate(@NonNull String tagName) {
+  @NotNull
+  public String getGradleCoordinate(@NotNull String tagName) {
     return RECYCLER_VIEW_LIB_ARTIFACT;
   }
 }

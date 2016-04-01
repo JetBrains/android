@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.uibuilder.api.DragType;
 import com.android.tools.idea.uibuilder.api.InsertType;
@@ -57,7 +57,7 @@ public class InteractionManager {
   private static final int HOVER_DELAY_MS = Registry.intValue("ide.tooltip.initialDelay");
 
   /** The canvas which owns this {@linkplain InteractionManager}. */
-  @NonNull
+  @NotNull
   private final DesignSurface mySurface;
 
   /** The currently executing {@link Interaction}, or null. */
@@ -117,7 +117,7 @@ public class InteractionManager {
    *
    * @param surface The surface which controls this {@link InteractionManager}
    */
-  public InteractionManager(@NonNull DesignSurface surface) {
+  public InteractionManager(@NotNull DesignSurface surface) {
     mySurface = surface;
 
     myHoverTimer = new Timer(HOVER_DELAY_MS, null);
@@ -130,7 +130,7 @@ public class InteractionManager {
    * @return The {@link DesignSurface} associated with this {@linkplain InteractionManager}.
    *         Never null.
    */
-  @NonNull
+  @NotNull
   public DesignSurface getSurface() {
     return mySurface;
   }
@@ -304,7 +304,7 @@ public class InteractionManager {
     // --- Implements MouseListener ----
 
     @Override
-    public void mouseClicked(@NonNull MouseEvent event) {
+    public void mouseClicked(@NotNull MouseEvent event) {
       if (event.getClickCount() == 2 && event.getButton() == MouseEvent.BUTTON1) {
         // Warp to the text editor and show the corresponding XML for the
         // double-clicked widget
@@ -321,7 +321,7 @@ public class InteractionManager {
     }
 
     @Override
-    public void mousePressed(@NonNull MouseEvent event) {
+    public void mousePressed(@NotNull MouseEvent event) {
       if(event.getID() == MouseEvent.MOUSE_PRESSED){
         mySurface.getLayeredPane().requestFocusInWindow();
       }
@@ -352,7 +352,7 @@ public class InteractionManager {
     }
 
     @Override
-    public void mouseReleased(@NonNull MouseEvent event) {
+    public void mouseReleased(@NotNull MouseEvent event) {
       //ControlPoint mousePos = ControlPoint.create(mySurface, e);
 
       int x = event.getX();
@@ -391,13 +391,13 @@ public class InteractionManager {
     }
 
     @Override
-    public void mouseEntered(@NonNull MouseEvent event) {
+    public void mouseEntered(@NotNull MouseEvent event) {
       myHoverTimer.restart();
       mySurface.resetHover();
     }
 
     @Override
-    public void mouseExited(@NonNull MouseEvent event) {
+    public void mouseExited(@NotNull MouseEvent event) {
       myHoverTimer.stop();
       mySurface.resetHover();
     }

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.palette;
 
-import com.android.annotations.NonNull;
+import org.jetbrains.annotations.NotNull;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.api.XmlType;
@@ -45,34 +45,34 @@ public abstract class PaletteTestCase extends AndroidTestCase {
   private static final Splitter SPLITTER = Splitter.on("\n").trimResults();
   private static final double NO_SCALE = 1.0;
 
-  public static Palette.Group assertIsGroup(@NonNull Palette.BaseItem item, String name) {
+  public static Palette.Group assertIsGroup(@NotNull Palette.BaseItem item, String name) {
     assertTrue(item instanceof Palette.Group);
     Palette.Group group = (Palette.Group)item;
     assertEquals(name, group.getName());
     return group;
   }
 
-  public void assertTextViewItem(@NonNull Palette.BaseItem item) {
+  public void assertTextViewItem(@NotNull Palette.BaseItem item) {
     assertStandardTextView(item, TEXT_VIEW, IN_PLATFORM);
   }
 
-  public void assertButton(@NonNull Palette.BaseItem item) {
+  public void assertButton(@NotNull Palette.BaseItem item) {
     assertStandardTextView(item, BUTTON, IN_PLATFORM);
   }
 
-  public void assertToggleButton(@NonNull Palette.BaseItem item) {
+  public void assertToggleButton(@NotNull Palette.BaseItem item) {
     assertStandardTextView(item, TOGGLE_BUTTON, IN_PLATFORM);
   }
 
-  public void assertCheckBox(@NonNull Palette.BaseItem item) {
+  public void assertCheckBox(@NotNull Palette.BaseItem item) {
     assertStandardTextView(item, CHECK_BOX, IN_PLATFORM);
   }
 
-  public void assertRadioButton(@NonNull Palette.BaseItem item) {
+  public void assertRadioButton(@NotNull Palette.BaseItem item) {
     assertStandardTextView(item, RADIO_BUTTON, IN_PLATFORM);
   }
 
-  public void assertCheckedTextView(@NonNull Palette.BaseItem item) {
+  public void assertCheckedTextView(@NotNull Palette.BaseItem item) {
     assertStandardTextView(item, CHECKED_TEXT_VIEW, IN_PLATFORM);
   }
 
@@ -91,7 +91,7 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     "  android:entries=\"@android:array/postalAddressTypes\">\n" +
     "</Spinner>\n";
 
-  public void assertSpinner(@NonNull Palette.BaseItem item) {
+  public void assertSpinner(@NotNull Palette.BaseItem item) {
     checkItem(item, SPINNER, "Spinner", AndroidIcons.Views.Spinner, SPINNER_XML, SPINNER_PREVIEW_XML,
               SPINNER_XML, IN_PLATFORM, NO_SCALE);
     checkComponent(createMockComponent(SPINNER), "Spinner", AndroidIcons.Views.Spinner);
@@ -114,7 +114,7 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     "  android:layout_height=\"wrap_content\"\n" +
     "/>\n";
 
-  public void assertLargeProgressBarItem(@NonNull Palette.BaseItem item) {
+  public void assertLargeProgressBarItem(@NotNull Palette.BaseItem item) {
     checkItem(item, "ProgressBar", "ProgressBar (Large)", AndroidIcons.Views.ProgressBar, LARGE_PROGRESS_XML, LARGE_PROGRESS_PREVIEW_XML,
               LARGE_PROGRESS_XML, IN_PLATFORM, NO_SCALE);
     NlComponent component = createMockComponent("ProgressBar");
@@ -130,7 +130,7 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     "  android:layout_height=\"wrap_content\"\n" +
     "/>\n";
 
-  public void assertNormalProgressBarItem(@NonNull Palette.BaseItem item) {
+  public void assertNormalProgressBarItem(@NotNull Palette.BaseItem item) {
     checkItem(item, "ProgressBar", "ProgressBar", AndroidIcons.Views.ProgressBar, NORMAL_PROGRESS_XML, NORMAL_PROGRESS_XML,
               NORMAL_PROGRESS_XML, IN_PLATFORM, NO_SCALE);
     checkComponent(createMockComponent("ProgressBar"), "ProgressBar", AndroidIcons.Views.ProgressBar);
@@ -153,7 +153,7 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     "  android:layout_height=\"wrap_content\"\n" +
     "/>\n";
 
-  public void assertSmallProgressBarItem(@NonNull Palette.BaseItem item) {
+  public void assertSmallProgressBarItem(@NotNull Palette.BaseItem item) {
     checkItem(item, "ProgressBar", "ProgressBar (Small)", AndroidIcons.Views.ProgressBar, SMALL_PROGRESS_XML, SMALL_PROGRESS_PREVIEW_XML,
               SMALL_PROGRESS_XML, IN_PLATFORM, NO_SCALE);
     NlComponent component = createMockComponent("ProgressBar");
@@ -178,7 +178,7 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     "  android:layout_height=\"wrap_content\"\n" +
     "/>\n";
 
-  public void assertHorizontalProgressBarItem(@NonNull Palette.BaseItem item) {
+  public void assertHorizontalProgressBarItem(@NotNull Palette.BaseItem item) {
     checkItem(item, "ProgressBar", "ProgressBar (Horizontal)", AndroidIcons.Views.ProgressBar, HORIZONTAL_PROGRESS_XML,
               HORIZONTAL_PROGRESS_PREVIEW_XML, HORIZONTAL_PROGRESS_XML, IN_PLATFORM, 2.0);
     NlComponent component = createMockComponent("ProgressBar");
@@ -186,23 +186,23 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     checkComponent(component, "ProgressBar (Horizontal)", AndroidIcons.Views.ProgressBar);
   }
 
-  public void assertSeekBar(@NonNull Palette.BaseItem item) {
+  public void assertSeekBar(@NotNull Palette.BaseItem item) {
     assertStandardView(item, SEEK_BAR, IN_PLATFORM, NO_SCALE);
   }
 
-  public void assertQuickContactBadge(@NonNull Palette.BaseItem item) {
+  public void assertQuickContactBadge(@NotNull Palette.BaseItem item) {
     assertStandardView(item, "QuickContactBadge", IN_PLATFORM, NO_SCALE);
   }
 
-  public void assertRatingBar(@NonNull Palette.BaseItem item) {
+  public void assertRatingBar(@NotNull Palette.BaseItem item) {
     assertStandardView(item, "RatingBar", IN_PLATFORM, 0.4);
   }
 
-  public void assertSwitch(@NonNull Palette.BaseItem item) {
+  public void assertSwitch(@NotNull Palette.BaseItem item) {
     assertStandardTextView(item, SWITCH, IN_PLATFORM);
   }
 
-  public void assertSpace(@NonNull Palette.BaseItem item) {
+  public void assertSpace(@NotNull Palette.BaseItem item) {
     assertNoPreviewView(item, SPACE, IN_PLATFORM);
   }
 
@@ -224,21 +224,21 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     "  android:layout_height=\"wrap_content\">\n" +
     "</EditText>\n";
 
-  public void assertPlainTextEditText(@NonNull Palette.BaseItem item) {
+  public void assertPlainTextEditText(@NotNull Palette.BaseItem item) {
     checkItem(item, EDIT_TEXT, "Plain Text", AndroidIcons.Views.EditText, PLAIN_EDIT_TEXT_XML, PLAIN_EDIT_TEXT_PREVIEW_XML,
               PLAIN_EDIT_TEXT_XML, IN_PLATFORM, 0.8);
     checkComponent(createMockComponent(EDIT_TEXT), "EditText - \"My value for EditText\"", AndroidIcons.Views.EditText);
   }
 
-  public void assertGridLayout(@NonNull Palette.BaseItem item) {
+  public void assertGridLayout(@NotNull Palette.BaseItem item) {
     assertStandardLayout(item, GRID_LAYOUT, IN_PLATFORM);
   }
 
-  public void assertFrameLayout(@NonNull Palette.BaseItem item) {
+  public void assertFrameLayout(@NotNull Palette.BaseItem item) {
     assertStandardLayout(item, FRAME_LAYOUT, IN_PLATFORM);
   }
 
-  public void assertLinearLayoutItem(@NonNull Palette.BaseItem item) {
+  public void assertLinearLayoutItem(@NotNull Palette.BaseItem item) {
     checkItem(item, LINEAR_LAYOUT, "LinearLayout (horizontal)", AndroidIcons.Views.LinearLayout,
               STANDARD_LAYOUT.getXml(LINEAR_LAYOUT, XmlType.COMPONENT_CREATION), NO_PREVIEW, NO_PREVIEW, IN_PLATFORM, NO_SCALE);
     checkComponent(createMockComponent(LINEAR_LAYOUT), "LinearLayout (horizontal)", AndroidIcons.Views.LinearLayout);
@@ -252,7 +252,7 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     "  android:layout_height=\"match_parent\">\n" +
     "</LinearLayout>\n";
 
-  public void assertVerticalLinearLayoutItem(@NonNull Palette.BaseItem item) {
+  public void assertVerticalLinearLayoutItem(@NotNull Palette.BaseItem item) {
     checkItem(item, LINEAR_LAYOUT, "LinearLayout (vertical)", AndroidIcons.Views.VerticalLinearLayout, VERTICAL_LINEAR_LAYOUT_XML,
               NO_PREVIEW, NO_PREVIEW, IN_PLATFORM, NO_SCALE);
     NlComponent component = createMockComponent(LINEAR_LAYOUT);
@@ -260,25 +260,25 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     checkComponent(component, "LinearLayout (vertical)", AndroidIcons.Views.VerticalLinearLayout);
   }
 
-  public void assertRelativeLayout(@NonNull Palette.BaseItem item) {
+  public void assertRelativeLayout(@NotNull Palette.BaseItem item) {
     assertStandardLayout(item, RELATIVE_LAYOUT, IN_PLATFORM);
   }
 
-  public void assertTableLayout(@NonNull Palette.BaseItem item) {
+  public void assertTableLayout(@NotNull Palette.BaseItem item) {
     assertStandardLayout(item, TABLE_LAYOUT, IN_PLATFORM);
   }
 
-  public void assertTableRow(@NonNull Palette.BaseItem item) {
+  public void assertTableRow(@NotNull Palette.BaseItem item) {
     assertStandardLayout(item, TABLE_ROW, IN_PLATFORM);
   }
 
-  public void assertFragment(@NonNull Palette.BaseItem item) {
+  public void assertFragment(@NotNull Palette.BaseItem item) {
     checkItem(item, VIEW_FRAGMENT, "<fragment>", AndroidIcons.Views.Fragment,
               STANDARD_VIEW.getXml(VIEW_FRAGMENT, XmlType.COMPONENT_CREATION), NO_PREVIEW, NO_PREVIEW, IN_PLATFORM, NO_SCALE);
     checkComponent(createMockComponent(VIEW_FRAGMENT), "<fragment>", AndroidIcons.Views.Fragment);
   }
 
-  public void assertRadioGroup(@NonNull Palette.BaseItem item) {
+  public void assertRadioGroup(@NotNull Palette.BaseItem item) {
     checkItem(item, RADIO_GROUP, "RadioGroup", AndroidIcons.Views.RadioGroup, STANDARD_VIEW.getXml(RADIO_GROUP, XmlType.COMPONENT_CREATION),
               NO_PREVIEW, NO_PREVIEW, IN_PLATFORM, NO_SCALE);
     checkComponent(createMockComponent(RADIO_GROUP), "RadioGroup (horizontal)", AndroidIcons.Views.RadioGroup);
@@ -301,13 +301,13 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     "  android:dividerHeight=\"1px\">\n" +
     "</ListView>\n";
 
-  public void assertListView(@NonNull Palette.BaseItem item) {
+  public void assertListView(@NotNull Palette.BaseItem item) {
     checkItem(item, LIST_VIEW, "ListView", AndroidIcons.Views.ListView, LIST_VIEW_XML, LIST_VIEW_PREVIEW_XML, LIST_VIEW_PREVIEW_XML,
               IN_PLATFORM, NO_SCALE);
     checkComponent(createMockComponent(LIST_VIEW), "ListView", AndroidIcons.Views.ListView);
   }
 
-  public void assertGridView(@NonNull Palette.BaseItem item) {
+  public void assertGridView(@NotNull Palette.BaseItem item) {
     assertStandardLayout(item, GRID_VIEW, IN_PLATFORM);
   }
 
@@ -328,17 +328,17 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     "  android:dividerHeight=\"1px\">\n" +
     "</ExpandableListView>\n";
 
-  public void assertExpandableListView(@NonNull Palette.BaseItem item) {
+  public void assertExpandableListView(@NotNull Palette.BaseItem item) {
     checkItem(item, EXPANDABLE_LIST_VIEW, "ExpandableListView", AndroidIcons.Views.ExpandableListView, EXPANDABLE_LIST_VIEW_XML,
               EXPANDABLE_LIST_VIEW_PREVIEW_XML, EXPANDABLE_LIST_VIEW_PREVIEW_XML, IN_PLATFORM, NO_SCALE);
     checkComponent(createMockComponent(EXPANDABLE_LIST_VIEW), "ExpandableListView", AndroidIcons.Views.ExpandableListView);
   }
 
-  public void assertScrollView(@NonNull Palette.BaseItem item) {
+  public void assertScrollView(@NotNull Palette.BaseItem item) {
     assertStandardLayout(item, SCROLL_VIEW, IN_PLATFORM);
   }
 
-  public void assertHorizontalScrollView(@NonNull Palette.BaseItem item) {
+  public void assertHorizontalScrollView(@NotNull Palette.BaseItem item) {
     assertStandardLayout(item, HORIZONTAL_SCROLL_VIEW, IN_PLATFORM);
   }
 
@@ -382,16 +382,16 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     "  </LinearLayout>\n" +
     "</TabHost>\n";
 
-  public void assertTabHost(@NonNull Palette.BaseItem item) {
+  public void assertTabHost(@NotNull Palette.BaseItem item) {
     checkItem(item, TAB_HOST, "TabHost", AndroidIcons.Views.TabHost, TAB_HOST_XML, NO_PREVIEW, TAB_HOST_XML, IN_PLATFORM, NO_SCALE);
     checkComponent(createMockComponent(TAB_HOST), "TabHost", AndroidIcons.Views.TabHost);
   }
 
-  public void assertWebView(@NonNull Palette.BaseItem item) {
+  public void assertWebView(@NotNull Palette.BaseItem item) {
     assertStandardLayout(item, WEB_VIEW, IN_PLATFORM);
   }
 
-  public void assertSearchView(@NonNull Palette.BaseItem item) {
+  public void assertSearchView(@NotNull Palette.BaseItem item) {
     assertStandardLayout(item, "SearchView", IN_PLATFORM);
   }
 
@@ -403,7 +403,7 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     "  android:layout_height=\"wrap_content\">\n" +
     "</ImageButton>\n";
 
-  public void assertImageButton(@NonNull Palette.BaseItem item) {
+  public void assertImageButton(@NotNull Palette.BaseItem item) {
     checkItem(item, IMAGE_BUTTON, "ImageButton", AndroidIcons.Views.ImageButton, IMAGE_BUTTON_XML, IMAGE_BUTTON_XML, IMAGE_BUTTON_XML,
               IN_PLATFORM, NO_SCALE);
     checkComponent(createMockComponent(IMAGE_BUTTON), "ImageButton", AndroidIcons.Views.ImageButton);
@@ -417,102 +417,102 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     "  android:layout_height=\"wrap_content\">\n" +
     "</ImageView>\n";
 
-  public void assertImageView(@NonNull Palette.BaseItem item) {
+  public void assertImageView(@NotNull Palette.BaseItem item) {
     checkItem(item, IMAGE_VIEW, "ImageView", AndroidIcons.Views.ImageView, IMAGE_VIEW_XML, IMAGE_VIEW_XML, IMAGE_VIEW_XML, IN_PLATFORM,
               NO_SCALE);
     checkComponent(createMockComponent(IMAGE_VIEW), "ImageView", AndroidIcons.Views.ImageView);
   }
 
-  public void assertVideoView(@NonNull Palette.BaseItem item) {
+  public void assertVideoView(@NotNull Palette.BaseItem item) {
     assertNoPreviewView(item, "VideoView", IN_PLATFORM);
   }
 
-  public void assertTimePicker(@NonNull Palette.BaseItem item) {
+  public void assertTimePicker(@NotNull Palette.BaseItem item) {
     assertStandardView(item, "TimePicker", IN_PLATFORM, 0.4);
   }
 
-  public void assertDatePicker(@NonNull Palette.BaseItem item) {
+  public void assertDatePicker(@NotNull Palette.BaseItem item) {
     assertStandardView(item, "DatePicker", IN_PLATFORM, 0.4);
   }
 
-  public void assertCalendarView(@NonNull Palette.BaseItem item) {
+  public void assertCalendarView(@NotNull Palette.BaseItem item) {
     assertStandardView(item, CALENDAR_VIEW, IN_PLATFORM, 0.4);
   }
 
-  public void assertChronometer(@NonNull Palette.BaseItem item) {
+  public void assertChronometer(@NotNull Palette.BaseItem item) {
     assertStandardView(item, CHRONOMETER, IN_PLATFORM, NO_SCALE);
   }
 
-  public void assertAnalogClock(@NonNull Palette.BaseItem item) {
+  public void assertAnalogClock(@NotNull Palette.BaseItem item) {
     assertStandardView(item, "AnalogClock", IN_PLATFORM, 0.6);
   }
 
-  public void assertTextClock(@NonNull Palette.BaseItem item) {
+  public void assertTextClock(@NotNull Palette.BaseItem item) {
     assertStandardView(item, TEXT_CLOCK, IN_PLATFORM, NO_SCALE);
   }
 
-  public void assertImageSwitcher(@NonNull Palette.BaseItem item) {
+  public void assertImageSwitcher(@NotNull Palette.BaseItem item) {
     assertStandardLayout(item, IMAGE_SWITCHER, IN_PLATFORM);
   }
 
-  public void assertAdapterViewFlipper(@NonNull Palette.BaseItem item) {
+  public void assertAdapterViewFlipper(@NotNull Palette.BaseItem item) {
     assertStandardLayout(item, "AdapterViewFlipper", IN_PLATFORM);
   }
 
-  public void assertStackView(@NonNull Palette.BaseItem item) {
+  public void assertStackView(@NotNull Palette.BaseItem item) {
     assertStandardLayout(item, STACK_VIEW, IN_PLATFORM);
   }
 
-  public void assertTextSwitcher(@NonNull Palette.BaseItem item) {
+  public void assertTextSwitcher(@NotNull Palette.BaseItem item) {
     assertStandardLayout(item, TEXT_SWITCHER, IN_PLATFORM);
   }
 
-  public void assertViewAnimator(@NonNull Palette.BaseItem item) {
+  public void assertViewAnimator(@NotNull Palette.BaseItem item) {
     assertStandardLayout(item, VIEW_ANIMATOR, IN_PLATFORM);
   }
 
-  public void assertViewFlipper(@NonNull Palette.BaseItem item) {
+  public void assertViewFlipper(@NotNull Palette.BaseItem item) {
     assertStandardLayout(item, VIEW_FLIPPER, IN_PLATFORM);
   }
 
-  public void assertViewSwitcher(@NonNull Palette.BaseItem item) {
+  public void assertViewSwitcher(@NotNull Palette.BaseItem item) {
     assertStandardLayout(item, VIEW_SWITCHER, IN_PLATFORM);
   }
 
-  public void assertIncludeItem(@NonNull Palette.BaseItem item) {
+  public void assertIncludeItem(@NotNull Palette.BaseItem item) {
     checkItem(item, VIEW_INCLUDE, "<include>", AndroidIcons.Views.Include, "<include/>\n", NO_PREVIEW, NO_PREVIEW, IN_PLATFORM,
               NO_SCALE);
     checkComponent(createMockComponent(VIEW_INCLUDE), "<include>", AndroidIcons.Views.Include);
   }
 
-  public void assertRequestFocus(@NonNull Palette.BaseItem item) {
+  public void assertRequestFocus(@NotNull Palette.BaseItem item) {
     checkItem(item, REQUEST_FOCUS, "<requestFocus>", AndroidIcons.Views.RequestFocus, "<requestFocus/>\n", NO_PREVIEW, NO_PREVIEW,
               IN_PLATFORM, NO_SCALE);
     checkComponent(createMockComponent(REQUEST_FOCUS), "<requestFocus>", AndroidIcons.Views.RequestFocus);
   }
 
-  public void assertViewTag(@NonNull Palette.BaseItem item) {
+  public void assertViewTag(@NotNull Palette.BaseItem item) {
     checkItem(item, VIEW_TAG, "View", AndroidIcons.Views.Unknown, "<view/>\n", NO_PREVIEW, NO_PREVIEW, IN_PLATFORM, NO_SCALE);
     checkComponent(createMockComponent(VIEW_TAG), "View", AndroidIcons.Views.Unknown);
   }
 
-  public void assertViewStub(@NonNull Palette.BaseItem item) {
+  public void assertViewStub(@NotNull Palette.BaseItem item) {
     assertNoPreviewView(item, VIEW_STUB, IN_PLATFORM);
   }
 
-  public void assertGestureOverlayView(@NonNull Palette.BaseItem item) {
+  public void assertGestureOverlayView(@NotNull Palette.BaseItem item) {
     assertStandardLayout(item, GESTURE_OVERLAY_VIEW, IN_PLATFORM);
   }
 
-  public void assertTextureView(@NonNull Palette.BaseItem item) {
+  public void assertTextureView(@NotNull Palette.BaseItem item) {
     assertNoPreviewView(item, TEXTURE_VIEW, IN_PLATFORM);
   }
 
-  public void assertSurfaceView(@NonNull Palette.BaseItem item) {
+  public void assertSurfaceView(@NotNull Palette.BaseItem item) {
     assertNoPreviewView(item, SURFACE_VIEW, IN_PLATFORM);
   }
 
-  public void assertNumberPicker(@NonNull Palette.BaseItem item) {
+  public void assertNumberPicker(@NotNull Palette.BaseItem item) {
     assertNoPreviewView(item, "NumberPicker", IN_PLATFORM);
   }
 
@@ -524,41 +524,41 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     "  android:layout_height=\"wrap_content\">\n" +
     "</ZoomButton>\n";
 
-  public void assertZoomButton(@NonNull Palette.BaseItem item) {
+  public void assertZoomButton(@NotNull Palette.BaseItem item) {
     checkItem(item, ZOOM_BUTTON, "ZoomButton", AndroidIcons.Views.ZoomButton, ZOOM_BUTTON_XML, ZOOM_BUTTON_XML, ZOOM_BUTTON_XML,
               IN_PLATFORM, NO_SCALE);
     checkComponent(createMockComponent(ZOOM_BUTTON), "ZoomButton", AndroidIcons.Views.ZoomButton);
   }
 
-  public void assertZoomControls(@NonNull Palette.BaseItem item) {
+  public void assertZoomControls(@NotNull Palette.BaseItem item) {
     assertStandardView(item, "ZoomControls", IN_PLATFORM, 0.6);
   }
 
-  public void assertDialerFilter(@NonNull Palette.BaseItem item) {
+  public void assertDialerFilter(@NotNull Palette.BaseItem item) {
     assertStandardLayout(item, DIALER_FILTER, IN_PLATFORM);
   }
 
-  public void assertAdView(@NonNull Palette.BaseItem item) {
+  public void assertAdView(@NotNull Palette.BaseItem item) {
     assertNoPreviewView(item, AD_VIEW, ADS_ARTIFACT);
   }
 
-  public void assertMapFragment(@NonNull Palette.BaseItem item) {
+  public void assertMapFragment(@NotNull Palette.BaseItem item) {
     assertNoPreviewView(item, MAP_FRAGMENT, MAPS_ARTIFACT);
   }
 
-  public void assertMapView(@NonNull Palette.BaseItem item) {
+  public void assertMapView(@NotNull Palette.BaseItem item) {
     assertNoPreviewView(item, MAP_VIEW, MAPS_ARTIFACT);
   }
 
-  public void assertCoordinatorLayoutItem(@NonNull Palette.BaseItem item) {
+  public void assertCoordinatorLayoutItem(@NotNull Palette.BaseItem item) {
     assertStandardLayout(item, COORDINATOR_LAYOUT, DESIGN_LIB_ARTIFACT);
   }
 
-  public void assertAppBarLayoutItem(@NonNull Palette.BaseItem item) {
+  public void assertAppBarLayoutItem(@NotNull Palette.BaseItem item) {
     assertStandardLayout(item, APP_BAR_LAYOUT, DESIGN_LIB_ARTIFACT);
   }
 
-  public void assertNestedScrollViewItem(@NonNull Palette.BaseItem item) {
+  public void assertNestedScrollViewItem(@NotNull Palette.BaseItem item) {
     assertStandardLayout(item, NESTED_SCROLL_VIEW, SUPPORT_LIB_ARTIFACT);
   }
 
@@ -572,25 +572,25 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     "  app:fabSize=\"mini\">\n" +
     "</android.support.design.widget.FloatingActionButton>\n";
 
-  public void assertFloatingActionButtonItem(@NonNull Palette.BaseItem item) {
+  public void assertFloatingActionButtonItem(@NotNull Palette.BaseItem item) {
     checkItem(item, FLOATING_ACTION_BUTTON, "FloatingActionButton", AndroidIcons.Views.FloatingActionButton, FLOATING_ACTION_BUTTON_XML,
               FLOATING_ACTION_BUTTON_XML, FLOATING_ACTION_BUTTON_XML, DESIGN_LIB_ARTIFACT, NO_SCALE);
     checkComponent(createMockComponent(FLOATING_ACTION_BUTTON), "FloatingActionButton", AndroidIcons.Views.FloatingActionButton);
   }
 
-  public void assertTextInputLayoutItem(@NonNull Palette.BaseItem item) {
+  public void assertTextInputLayoutItem(@NotNull Palette.BaseItem item) {
     assertLimitedHeightLayout(item, TEXT_INPUT_LAYOUT, DESIGN_LIB_ARTIFACT);
   }
 
-  public void assertCardView(@NonNull Palette.BaseItem item) {
+  public void assertCardView(@NotNull Palette.BaseItem item) {
     assertLimitedHeightLayout(item, CARD_VIEW, CARD_VIEW_LIB_ARTIFACT);
   }
 
-  public void assertGridLayoutV7(@NonNull Palette.BaseItem item) {
+  public void assertGridLayoutV7(@NotNull Palette.BaseItem item) {
     assertStandardLayout(item, GRID_LAYOUT_V7, GRID_LAYOUT_LIB_ARTIFACT);
   }
 
-  public void assertRecyclerView(@NonNull Palette.BaseItem item) {
+  public void assertRecyclerView(@NotNull Palette.BaseItem item) {
     assertStandardLayout(item, RECYCLER_VIEW, RECYCLER_VIEW_LIB_ARTIFACT);
   }
 
@@ -640,31 +640,31 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     "  />\n" +
     "</android.support.v7.widget.Toolbar>\n";
 
-  public void assertToolbarV7(@NonNull Palette.BaseItem item) {
+  public void assertToolbarV7(@NotNull Palette.BaseItem item) {
     checkItem(item, TOOLBAR_V7, "Toolbar", AndroidIcons.Views.Toolbar, TOOLBAR_XML, TOOLBAR_PREVIEW_XML, TOOLBAR_PREVIEW_XML,
               APPCOMPAT_LIB_ARTIFACT, 0.5);
     checkComponent(createMockComponent(TOOLBAR_V7), "Toolbar", AndroidIcons.Views.Toolbar);
   }
 
-  public void assertBrowseFragment(@NonNull Palette.BaseItem item) {
+  public void assertBrowseFragment(@NotNull Palette.BaseItem item) {
     assertNoPreviewView(item, BROWSE_FRAGMENT, LEANBACK_V17_ARTIFACT);
   }
 
-  public void assertDetailsFragment(@NonNull Palette.BaseItem item) {
+  public void assertDetailsFragment(@NotNull Palette.BaseItem item) {
     assertNoPreviewView(item, DETAILS_FRAGMENT, LEANBACK_V17_ARTIFACT);
   }
 
-  public void assertPlaybackOverlayFragment(@NonNull Palette.BaseItem item) {
+  public void assertPlaybackOverlayFragment(@NotNull Palette.BaseItem item) {
     assertNoPreviewView(item, PLAYBACK_OVERLAY_FRAGMENT, LEANBACK_V17_ARTIFACT);
   }
 
-  public void assertSearchFragment(@NonNull Palette.BaseItem item) {
+  public void assertSearchFragment(@NotNull Palette.BaseItem item) {
     assertNoPreviewView(item, SEARCH_FRAGMENT, LEANBACK_V17_ARTIFACT);
   }
 
-  private void assertStandardView(@NonNull Palette.BaseItem item,
-                                  @NonNull String tag,
-                                  @NonNull String expectedGradleCoordinate,
+  private void assertStandardView(@NotNull Palette.BaseItem item,
+                                  @NotNull String tag,
+                                  @NotNull String expectedGradleCoordinate,
                                   double expectedScale) {
     @Language("XML")
     String xml = STANDARD_VIEW.getXml(tag, XmlType.COMPONENT_CREATION);
@@ -672,26 +672,26 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     checkComponent(createMockComponent(tag), tag, STANDARD_VIEW.getIcon(tag));
   }
 
-  private void assertStandardLayout(@NonNull Palette.BaseItem item, @NonNull String tag, @NonNull String expectedGradleCoordinate) {
+  private void assertStandardLayout(@NotNull Palette.BaseItem item, @NotNull String tag, @NotNull String expectedGradleCoordinate) {
     checkItem(item, tag, STANDARD_VIEW.getTitle(tag), STANDARD_LAYOUT.getIcon(tag), STANDARD_LAYOUT.getXml(tag, XmlType.COMPONENT_CREATION),
               NO_PREVIEW, NO_PREVIEW, expectedGradleCoordinate, NO_SCALE);
     checkComponent(createMockComponent(tag), STANDARD_VIEW.getTitle(tag), STANDARD_LAYOUT.getIcon(tag));
   }
 
-  private void assertNoPreviewView(@NonNull Palette.BaseItem item, @NonNull String tag, @NonNull String expectedGradleCoordinate) {
+  private void assertNoPreviewView(@NotNull Palette.BaseItem item, @NotNull String tag, @NotNull String expectedGradleCoordinate) {
     checkItem(item, tag, STANDARD_VIEW.getTitle(tag), STANDARD_VIEW.getIcon(tag), STANDARD_VIEW.getXml(tag, XmlType.COMPONENT_CREATION),
               NO_PREVIEW, NO_PREVIEW, expectedGradleCoordinate, NO_SCALE);
     checkComponent(createMockComponent(tag), STANDARD_VIEW.getTitle(tag), STANDARD_VIEW.getIcon(tag));
   }
 
-  private void assertStandardTextView(@NonNull Palette.BaseItem item, @NonNull String tag, @NonNull String expectedGradleCoordinate) {
+  private void assertStandardTextView(@NotNull Palette.BaseItem item, @NotNull String tag, @NotNull String expectedGradleCoordinate) {
     @Language("XML")
     String xml = STANDARD_TEXT.getXml(tag, XmlType.COMPONENT_CREATION);
     checkItem(item, tag, STANDARD_TEXT.getTitle(tag), STANDARD_TEXT.getIcon(tag), xml, xml, xml, expectedGradleCoordinate, NO_SCALE);
     checkComponent(createMockComponent(tag), String.format("%1$s - \"My value for %1$s\"", tag), STANDARD_TEXT.getIcon(tag));
   }
 
-  private void assertLimitedHeightLayout(@NonNull Palette.BaseItem item, @NonNull String tag, @NonNull String expectedGradleCoordinate) {
+  private void assertLimitedHeightLayout(@NotNull Palette.BaseItem item, @NotNull String tag, @NotNull String expectedGradleCoordinate) {
     @Language("XML")
     String xml = String.format(
       "<%1$s\n" +
@@ -703,14 +703,14 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     checkComponent(createMockComponent(tag), STANDARD_VIEW.getTitle(tag), STANDARD_LAYOUT.getIcon(tag));
   }
 
-  private static void checkItem(@NonNull Palette.BaseItem base,
-                                @NonNull String expectedTag,
-                                @NonNull String expectedTitle,
-                                @NonNull Icon expectedIcon,
-                                @NonNull @Language("XML") String expectedXml,
-                                @NonNull @Language("XML") String expectedPreviewXml,
-                                @NonNull @Language("XML") String expectedDragPreviewXml,
-                                @NonNull String expectedGradleCoordinate,
+  private static void checkItem(@NotNull Palette.BaseItem base,
+                                @NotNull String expectedTag,
+                                @NotNull String expectedTitle,
+                                @NotNull Icon expectedIcon,
+                                @NotNull @Language("XML") String expectedXml,
+                                @NotNull @Language("XML") String expectedPreviewXml,
+                                @NotNull @Language("XML") String expectedDragPreviewXml,
+                                @NotNull String expectedGradleCoordinate,
                                 double expectedScale) {
     assertTrue(base instanceof Palette.Item);
     Palette.Item item = (Palette.Item)base;
@@ -725,7 +725,7 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     assertEquals(expectedTag + ".PreviewScale", expectedScale, item.getPreviewScale());
   }
 
-  private void checkComponent(@NonNull NlComponent component, @NonNull String expectedTitle, @NonNull Icon expectedIcon) {
+  private void checkComponent(@NotNull NlComponent component, @NotNull String expectedTitle, @NotNull Icon expectedIcon) {
     ViewHandlerManager handlerManager = ViewHandlerManager.get(getProject());
     ViewHandler handler = handlerManager.getHandlerOrDefault(component);
     String title = handler.getTitle(component);
@@ -737,16 +737,16 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     assertEquals(component.getTagName() + ".Component.Icon", expectedIcon, handler.getIcon(component));
   }
 
-  private static NlComponent createMockComponent(@NonNull String tag) {
+  private static NlComponent createMockComponent(@NotNull String tag) {
     NlComponent component = Mockito.mock(NlComponent.class);
     Mockito.when(component.getTagName()).thenReturn(tag);
     Mockito.when(component.getAttribute(ANDROID_URI, ATTR_TEXT)).thenReturn("My value for " + tag);
     return component;
   }
 
-  @NonNull
+  @NotNull
   @Language("XML")
-  private static String formatXml(@NonNull @Language("XML") String xml) {
+  private static String formatXml(@NotNull @Language("XML") String xml) {
     if (xml.equals(NO_PREVIEW)) {
       return xml;
     }

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import com.android.annotations.NonNull;
+import org.jetbrains.annotations.NotNull;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import org.intellij.lang.annotations.Language;
 
@@ -30,8 +30,8 @@ public class TabHostHandler extends FrameLayoutHandler {
    */
   @Override
   @Language("XML")
-  @NonNull
-  public String getXml(@NonNull String tagName, @NonNull XmlType xmlType) {
+  @NotNull
+  public String getXml(@NotNull String tagName, @NotNull XmlType xmlType) {
     switch (xmlType) {
       case COMPONENT_CREATION:
       case DRAG_PREVIEW:
@@ -42,9 +42,9 @@ public class TabHostHandler extends FrameLayoutHandler {
     }
   }
 
-  @NonNull
+  @NotNull
   @Language("XML")
-  private static String getXmlWithTabs(@NonNull String tagName, int tabs) {
+  private static String getXmlWithTabs(@NotNull String tagName, int tabs) {
     StringBuilder builder = new StringBuilder();
     for (int tab = 0; tab < tabs; tab++) {
       builder.append(String.format("<LinearLayout\n" +

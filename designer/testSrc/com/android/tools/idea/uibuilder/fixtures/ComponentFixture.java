@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.fixtures;
 
-import com.android.annotations.NonNull;
+import org.jetbrains.annotations.NotNull;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.SegmentType;
@@ -32,23 +32,23 @@ public class ComponentFixture {
   private final ScreenFixture myScreenFixture;
   private final NlComponent myComponent;
 
-  public ComponentFixture(@NonNull ScreenFixture screenFixture, @NonNull NlComponent component) {
+  public ComponentFixture(@NotNull ScreenFixture screenFixture, @NotNull NlComponent component) {
     myScreenFixture = screenFixture;
     myComponent = component;
   }
 
-  @NonNull
+  @NotNull
   public ComponentListFixture singleton() {
     return new ComponentListFixture(myScreenFixture, Collections.singletonList(this));
   }
 
-  public ResizeFixture resize(@NonNull SegmentType edge1, @NonNull SegmentType edge2) {
+  public ResizeFixture resize(@NotNull SegmentType edge1, @NotNull SegmentType edge2) {
     return new ResizeFixture(this,
                              edge1.isHorizontal() ? edge1 : edge2,
                              edge1.isHorizontal() ? edge2 : edge1);
   }
 
-  public ResizeFixture resize(@NonNull SegmentType edge) {
+  public ResizeFixture resize(@NotNull SegmentType edge) {
     return new ResizeFixture(this,
                              edge.isHorizontal() ? edge : null,
                              edge.isHorizontal() ? null : edge);
@@ -58,50 +58,50 @@ public class ComponentFixture {
     return new DragFixture(singleton());
   }
 
-  public ComponentFixture expectWidth(@NonNull String width) {
+  public ComponentFixture expectWidth(@NotNull String width) {
     assertEquals("Wrong width", width, AndroidPsiUtils.getAttributeSafely(myComponent.getTag(), ANDROID_URI, ATTR_LAYOUT_WIDTH));
     return this;
   }
 
-  public ComponentFixture expectHeight(@NonNull String height) {
+  public ComponentFixture expectHeight(@NotNull String height) {
     assertEquals("Wrong height", height, AndroidPsiUtils.getAttributeSafely(myComponent.getTag(), ANDROID_URI, ATTR_LAYOUT_HEIGHT));
     return this;
   }
 
-  public ComponentFixture expectAttribute(@NonNull String name, @NonNull String value) {
+  public ComponentFixture expectAttribute(@NotNull String name, @NotNull String value) {
     assertEquals("Wrong " + name, value, AndroidPsiUtils.getAttributeSafely(myComponent.getTag(), ANDROID_URI, name));
     return this;
   }
 
-  public ComponentFixture expectAttribute(@NonNull String namespace, @NonNull String name, @NonNull String value) {
+  public ComponentFixture expectAttribute(@NotNull String namespace, @NotNull String name, @NotNull String value) {
     assertEquals("Wrong " + name, value, AndroidPsiUtils.getAttributeSafely(myComponent.getTag(), namespace, name));
     return this;
   }
 
-  @NonNull
-  public ComponentFixture expectXml(@NonNull @Language("XML") String xml) {
+  @NotNull
+  public ComponentFixture expectXml(@NotNull @Language("XML") String xml) {
     assertEquals(xml, myComponent.getTag().getText());
     return this;
   }
 
-  @NonNull
+  @NotNull
   public ScreenView getScreen() {
     return myScreenFixture.getScreen();
   }
 
-  @NonNull
+  @NotNull
   public NlComponent getComponent() {
     return myComponent;
   }
 
-  @NonNull
+  @NotNull
   public ComponentFixture parent() {
     assertNotNull(myComponent.getParent());
     return new ComponentFixture(myScreenFixture, myComponent.getParent());
   }
 
-  @NonNull
-  public ComponentFixture expectHierarchy(@NonNull String hierarchy) {
+  @NotNull
+  public ComponentFixture expectHierarchy(@NotNull String hierarchy) {
     String tree = NlComponent.toTree(Collections.singletonList(myComponent));
     assertEquals(tree, hierarchy);
     return this;

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
-import com.android.annotations.NonNull;
+import org.jetbrains.annotations.NotNull;
 import com.android.tools.idea.uibuilder.api.ResizeHandler;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
@@ -50,7 +50,7 @@ public class ResizeInteraction extends Interaction {
   /** The resize handler for the layout view */
   private ResizeHandler myResizeHandler;
 
-  public ResizeInteraction(@NonNull ScreenView screenView, @NonNull NlComponent component, @NonNull SelectionHandle handle) {
+  public ResizeInteraction(@NotNull ScreenView screenView, @NotNull NlComponent component, @NotNull SelectionHandle handle) {
     myScreenView = screenView;
     myComponent = component;
     myHorizontalEdge = handle.getHorizontalEdge();
@@ -113,7 +113,7 @@ public class ResizeInteraction extends Interaction {
       String label = "Resize";
       WriteCommandAction action = new WriteCommandAction(project, label, file) {
         @Override
-        protected void run(@NonNull Result result) throws Throwable {
+        protected void run(@NotNull Result result) throws Throwable {
           myResizeHandler.commit(ax, ay, modifiers, newBounds);
         }
       };
@@ -234,7 +234,7 @@ public class ResizeInteraction extends Interaction {
     }
 
     @Override
-    public boolean paint(@NonNull Graphics2D gc) {
+    public boolean paint(@NotNull Graphics2D gc) {
       if (myResizeHandler != null) {
         myResizeHandler.paint(new NlGraphics(gc, myScreenView));
       }

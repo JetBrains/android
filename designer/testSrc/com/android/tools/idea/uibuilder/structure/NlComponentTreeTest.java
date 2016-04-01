@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.structure;
 
-import com.android.annotations.NonNull;
+import org.jetbrains.annotations.NotNull;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
 import com.android.tools.idea.uibuilder.model.NlComponent;
@@ -190,7 +190,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
     }
   }
 
-  @NonNull
+  @NotNull
   private NlModel createModel() {
     ModelBuilder builder = model("relative.xml",
                                  component(RELATIVE_LAYOUT)
@@ -227,7 +227,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
     return model;
   }
 
-  @NonNull
+  @NotNull
   private NlModel createModelWithAppBar() {
     ModelBuilder builder = model("coordinator.xml",
                                  component(COORDINATOR_LAYOUT)

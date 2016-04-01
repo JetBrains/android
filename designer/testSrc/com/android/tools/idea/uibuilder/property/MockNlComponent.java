@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
-import com.android.annotations.NonNull;
+import org.jetbrains.annotations.NotNull;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.intellij.psi.xml.XmlTag;
@@ -23,11 +23,11 @@ import com.intellij.psi.xml.XmlTag;
 import static org.mockito.Mockito.mock;
 
 public class MockNlComponent extends NlComponent {
-  private MockNlComponent(@NonNull NlModel model, @NonNull XmlTag tag) {
+  private MockNlComponent(@NotNull NlModel model, @NotNull XmlTag tag) {
     super(model, tag);
   }
 
-  public static NlComponent create(@NonNull XmlTag tag) {
+  public static NlComponent create(@NotNull XmlTag tag) {
     return new MockNlComponent(mock(NlModel.class), tag);
   }
 }

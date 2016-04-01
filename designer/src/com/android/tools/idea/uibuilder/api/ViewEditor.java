@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.api;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import com.android.resources.ResourceType;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.configurations.Configuration;
@@ -70,7 +70,7 @@ public abstract class ViewEditor {
    * @param px the pixel dimension
    * @return the corresponding dp dimension string
    */
-  @NonNull
+  @NotNull
   public String pxToDpWithUnits(int px) {
     return String.format(Locale.US, VALUE_N_DP, pxToDp(px));
   }
@@ -80,19 +80,19 @@ public abstract class ViewEditor {
   public abstract AndroidVersion getCompileSdkVersion();
 
   /** Returns the minSdkVersion for the module containing this editor */
-  @NonNull
+  @NotNull
   public abstract AndroidVersion getMinSdkVersion();
 
   /** Returns the targetSdkVersion for the module containing this editor */
-  @NonNull
+  @NotNull
   public abstract AndroidVersion getTargetSdkVersion();
 
   /** Returns the configuration for the editor */
-  @NonNull
+  @NotNull
   public abstract Configuration getConfiguration();
 
   /** Returns the model for the editor */
-  @NonNull
+  @NotNull
   public abstract NlModel getModel();
 
   /**
@@ -103,7 +103,7 @@ public abstract class ViewEditor {
    * @return a map from child to bounds information, if possible
    */
   @Nullable
-  public abstract Map<NlComponent, Dimension> measureChildren(@NonNull NlComponent parent, @Nullable RenderTask.AttributeFilter filter);
+  public abstract Map<NlComponent, Dimension> measureChildren(@NotNull NlComponent parent, @Nullable RenderTask.AttributeFilter filter);
 
   /**
    * Displays an input dialog where the user can enter an Android resource name of the
@@ -114,8 +114,8 @@ public abstract class ViewEditor {
    * @return the resource value edited by the user, or null
    */
   @Nullable
-  public abstract String displayResourceInput(@NonNull EnumSet<ResourceType> types, @Nullable String currentValue);
+  public abstract String displayResourceInput(@NotNull EnumSet<ResourceType> types, @Nullable String currentValue);
 
   @Nullable
-  public abstract String displayClassInput(@NonNull Set<String> superTypes, @Nullable String currentValue);
+  public abstract String displayClassInput(@NotNull Set<String> superTypes, @Nullable String currentValue);
 }
