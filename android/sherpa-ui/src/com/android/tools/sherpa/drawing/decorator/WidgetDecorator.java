@@ -42,7 +42,7 @@ public class WidgetDecorator extends WidgetInteractionTargets {
 
     private static boolean sShowAllConstraints = false;
     private static boolean sShowTextUI = false;
-    private int mVisibility = 0;
+    private boolean mIsVisible = true;
     private boolean mIsSelected = false;
     private boolean mShowResizeHandles = false;
     private boolean mShowSizeIndicator = false;
@@ -137,6 +137,24 @@ public class WidgetDecorator extends WidgetInteractionTargets {
      */
     public Object getCompanionObject() {
         return mCompanionObject;
+    }
+
+    /**
+     * Setter for the visibility of the widget
+     *
+     * @param isVisible if true, display the widget
+     */
+    public void setIsVisible(boolean isVisible) {
+        mIsVisible = isVisible;
+    }
+
+    /**
+     * Getter for the visibility of the widget
+     *
+     * @return the current visibility status, true if visible
+     */
+    public boolean isVisible() {
+        return mIsVisible;
     }
 
     /**

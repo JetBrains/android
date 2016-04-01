@@ -307,6 +307,9 @@ public class SceneDraw {
         boolean needsRepaint = false;
         WidgetDecorator decorator =
                 getDecorator(container, selectedWidget, selectedAnchor, selectedResizeHandle);
+        if (!decorator.isVisible()) {
+            return needsRepaint;
+        }
         needsRepaint |= decorator.onPaint(transform, g);
         if (container == mWidgetsScene.getRoot()) {
             if (mDrawOutsideShade) {
@@ -334,7 +337,9 @@ public class SceneDraw {
             } else {
                 WidgetDecorator widgetDecorator =
                         getDecorator(widget, selectedWidget, selectedAnchor, selectedResizeHandle);
-                needsRepaint |= widgetDecorator.onPaint(transform, g);
+                if (widgetDecorator.isVisible()) {
+                    needsRepaint |= widgetDecorator.onPaint(transform, g);
+                }
             }
         }
         return needsRepaint;
@@ -420,7 +425,9 @@ public class SceneDraw {
         // Then draw the constraints
         for (ConstraintWidget widget : mWidgetsScene.getWidgets()) {
             WidgetDecorator decorator = (WidgetDecorator) widget.getCompanionWidget();
-            decorator.onPaintConstraints(transform, g);
+            if (decorator.isVisible()) {
+                decorator.onPaintConstraints(transform, g);
+            }
         }
 
         // Draw snap candidates
