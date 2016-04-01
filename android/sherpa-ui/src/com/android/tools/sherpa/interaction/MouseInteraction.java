@@ -42,6 +42,9 @@ import java.util.ArrayList;
  */
 public class MouseInteraction {
 
+    // Used as a margin value
+    private static int sMargin = 8;
+
     private boolean mIsControlDown;
     private boolean mIsShiftDown;
     private boolean mIsAltDown;
@@ -60,6 +63,12 @@ public class MouseInteraction {
     private Point mLastMousePosition = new Point();
 
     private Snapshot mSnapshot = null;
+
+    private boolean mUseDefinedMargin = false;
+
+    public static void setMargin(int margin) {
+        sMargin = margin;
+    }
 
     // Represent the different mouse interaction modes
     enum MouseMode { INACTIVE, RESIZE, MOVE, CONNECT }
@@ -189,6 +198,26 @@ public class MouseInteraction {
      */
     public void setStartPoint(int x, int y) {
         mStartPoint.setLocation(x, y);
+    }
+
+    /**
+     * Getter returning true if we'll use the defined margin value, false if we'll use
+     * the current distance between anchors as a margin.
+     *
+     * @return true if we'll use the defined margin value
+     */
+    public boolean isUseDefinedMargin() {
+        return mUseDefinedMargin;
+    }
+
+    /**
+     * Setter for deciding to use or not the defined margin value. Pass true to use it,
+     * false to use instead the current distance between anchors as a margin when making a connection.
+     *
+     * @param useDefinedMargin
+     */
+    public void setUseDefinedMargin(boolean useDefinedMargin) {
+        mUseDefinedMargin = useDefinedMargin;
     }
 
     /*-----------------------------------------------------------------------*/
@@ -489,13 +518,20 @@ public class MouseInteraction {
                         if (mSelection.getSelectedAnchor().getTarget() !=
                                 mSelection.getConnectionCandidateAnchor()) {
                             int margin = 0;
-                            if (!isControlDown()) {
-                                ConstraintHandle handle = WidgetInteractionTargets.constraintHandle(
-                                        mSelection.getSelectedAnchor());
+                            boolean useExistingDistance = !mUseDefinedMargin;
+                            if (isControlDown()) {
+                                useExistingDistance = !useExistingDistance;
+                            }
+                            if (useExistingDistance) {
+                                ConstraintHandle handle =
+                                        WidgetInteractionTargets.constraintHandle(
+                                                mSelection.getSelectedAnchor());
                                 ConstraintHandle handleTarget =
                                         WidgetInteractionTargets.constraintHandle(
                                                 mSelection.getConnectionCandidateAnchor());
                                 margin = handle.getCreationMarginFrom(handleTarget);
+                            } else {
+                                margin = sMargin;
                             }
                             ConstraintAnchor.Strength strength = ConstraintAnchor.Strength.STRONG;
                             if (isShiftDown()) {

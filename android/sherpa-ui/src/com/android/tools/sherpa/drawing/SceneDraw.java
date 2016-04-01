@@ -346,6 +346,7 @@ public class SceneDraw {
                 g.setStroke(new BasicStroke(3));
                 g.drawLine(xr + wr - resizeHandleSize, yr + hr + gap, xr + wr + gap, yr + hr + gap);
                 g.drawLine(xr + wr + gap, yr + hr - resizeHandleSize, xr + wr + gap, yr + hr + gap);
+                g.setStroke(new BasicStroke(1));
             }
         }
         for (ConstraintWidget widget : container.getChildren()) {
@@ -393,12 +394,12 @@ public class SceneDraw {
 
         // Adapt the anchor size
         if (transform.getScale() < 2f) {
-            ConnectionDraw.CONNECTION_ANCHOR_SIZE = 4;
+            ConnectionDraw.CONNECTION_ANCHOR_SIZE = 5;
             if (transform.getScale() < 1.8f) {
-                ConnectionDraw.CONNECTION_ANCHOR_SIZE = 3;
+                ConnectionDraw.CONNECTION_ANCHOR_SIZE = 4;
             }
             if (transform.getScale() < 1.4f) {
-                ConnectionDraw.CONNECTION_ANCHOR_SIZE = 2;
+                ConnectionDraw.CONNECTION_ANCHOR_SIZE = 3;
             }
         } else {
             ConnectionDraw.CONNECTION_ANCHOR_SIZE = 6;
