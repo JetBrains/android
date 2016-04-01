@@ -572,9 +572,19 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     "  app:fabSize=\"mini\">\n" +
     "</android.support.design.widget.FloatingActionButton>\n";
 
+  @Language("XML")
+  private static final String FLOATING_ACTION_BUTTON_PREVIEW_XML =
+    "<android.support.design.widget.FloatingActionButton\n" +
+    "  android:src=\"@android:drawable/ic_input_add\"\n" +
+    "  android:layout_width=\"wrap_content\"\n" +
+    "  android:layout_height=\"wrap_content\"\n" +
+    "  android:clickable=\"true\"\n" +
+    "  app:elevation=\"0dp\">\n" +
+    "</android.support.design.widget.FloatingActionButton>\n";
+
   public void assertFloatingActionButtonItem(@NotNull Palette.BaseItem item) {
     checkItem(item, FLOATING_ACTION_BUTTON, "FloatingActionButton", AndroidIcons.Views.FloatingActionButton, FLOATING_ACTION_BUTTON_XML,
-              FLOATING_ACTION_BUTTON_XML, FLOATING_ACTION_BUTTON_XML, DESIGN_LIB_ARTIFACT, NO_SCALE);
+              FLOATING_ACTION_BUTTON_PREVIEW_XML, FLOATING_ACTION_BUTTON_XML, DESIGN_LIB_ARTIFACT, 0.8);
     checkComponent(createMockComponent(FLOATING_ACTION_BUTTON), "FloatingActionButton", AndroidIcons.Views.FloatingActionButton);
   }
 
