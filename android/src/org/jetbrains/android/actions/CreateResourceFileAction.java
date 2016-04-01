@@ -17,7 +17,6 @@
 package org.jetbrains.android.actions;
 
 
-import com.android.builder.model.SourceProvider;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceFolderType;
 import com.google.common.collect.Maps;
@@ -29,7 +28,6 @@ import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.InputValidator;
-import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -38,7 +36,6 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -148,13 +145,9 @@ public class CreateResourceFileAction extends CreateResourceActionBase {
     final CreateResourceFileAction action = getInstance();
 
     final String subdirName;
-    final Module selectedModule;
     final VirtualFile resourceDir;
-    final AndroidFacet selectedFacet;
     if (ApplicationManager.getApplication().isUnitTestMode()) {
       subdirName = resType.getName();
-      selectedModule = facet.getModule();
-      selectedFacet = facet;
       resourceDir = facet.getPrimaryResourceDir();
     }
     else {
@@ -172,29 +165,13 @@ public class CreateResourceFileAction extends CreateResourceActionBase {
         resName = dialog.getFileName();
       }
       subdirName = dialog.getSubdirName();
-      selectedModule = dialog.getSelectedModule();
-      selectedFacet = AndroidFacet.getInstance(selectedModule);
-      assert selectedFacet != null;
-
-      SourceProvider provider = dialog.getSourceProvider();
-      if (provider != null) {
-        Collection<VirtualFile> resDirectories = IdeaSourceProvider.create(provider).getResDirectories();
-        if (resDirectories.isEmpty()) {
-          resourceDir = resDirectories.iterator().next();
-        } else {
-          resourceDir = selectedFacet.getPrimaryResourceDir();
-        }
-      } else {
-        resourceDir = selectedFacet.getPrimaryResourceDir();
-      }
+      resourceDir = dialog.getResourceDirectory();
     }
 
     final Project project = facet.getModule().getProject();
     final PsiDirectory psiResDir = resourceDir != null ? PsiManager.getInstance(project).findDirectory(resourceDir) : null;
 
     if (psiResDir == null) {
-      Messages.showErrorDialog(project, "Cannot find resource directory for module " + selectedFacet.getModule().getName(),
-                               CommonBundle.getErrorTitle());
       return PsiElement.EMPTY_ARRAY;
     }
     final String finalResName = resName;

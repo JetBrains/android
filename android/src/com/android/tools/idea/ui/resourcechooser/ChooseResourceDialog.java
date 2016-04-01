@@ -29,7 +29,7 @@ import com.android.tools.idea.editors.theme.attributes.editors.DrawableRendererE
 import com.android.tools.idea.editors.theme.attributes.editors.GraphicalResourceRendererEditor;
 import com.android.tools.idea.editors.theme.ui.ResourceComponent;
 import com.android.tools.idea.javadoc.AndroidJavaDocRenderer;
-import com.android.tools.idea.rendering.*;
+import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.res.ProjectResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.res.ResourceNameValidator;
@@ -46,6 +46,7 @@ import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ex.ApplicationManagerEx;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.OnePixelDivider;
 import com.intellij.openapi.ui.ValidationInfo;
@@ -74,7 +75,9 @@ import org.jetbrains.android.refactoring.AndroidBaseLayoutRefactoringAction;
 import org.jetbrains.android.refactoring.AndroidExtractStyleAction;
 import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.android.sdk.AndroidTargetData;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidResourceUtil;
+import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -82,7 +85,9 @@ import javax.swing.*;
 import javax.swing.border.CompoundBorder;
 import javax.swing.event.*;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.*;
@@ -279,19 +284,26 @@ public class ChooseResourceDialog extends DialogWrapper {
         public String doSave() {
           String stateListName = getSelectedPanel().myEditorPanel.getResourceName();
           Module module = getSelectedModule();
+          VirtualFile resDir = getResourceDirectory();
           List<String> dirNames = getLocationSettings().getDirNames();
           ResourceFolderType resourceFolderType = ResourceFolderType.getFolderType(dirNames.get(0));
           ResourceType resourceType = ResourceType.getEnum(resourceFolderType.getName());
 
+          Project project = module.getProject();
           List<VirtualFile> files = null;
-          if (resourceType != null) {
-            files = AndroidResourceUtil.findOrCreateStateListFiles(module, resourceFolderType, resourceType, stateListName, dirNames);
+          if (resDir == null) {
+            AndroidUtils.reportError(project, AndroidBundle.message("check.resource.dir.error", module.getName()));
+          } else {
+            if (resourceType != null) {
+              files = AndroidResourceUtil.findOrCreateStateListFiles(project, resDir, resourceFolderType, resourceType,
+                                                                     stateListName, dirNames);
+            }
           }
           if (files != null) {
             assert myStateListPicker != null;
             ResourceHelper.StateList stateList = myStateListPicker.getStateList();
             assert stateList != null;
-            AndroidResourceUtil.updateStateList(module, stateList, files);
+            AndroidResourceUtil.updateStateList(project, stateList, files);
           }
 
           if (resourceFolderType == ResourceFolderType.COLOR) {
@@ -607,8 +619,10 @@ public class ChooseResourceDialog extends DialogWrapper {
       return;
     }
 
-    Module moduleToPlaceResource = dialog.getModule();
-    if (moduleToPlaceResource == null) {
+    Project project = myModule.getProject();
+    final VirtualFile resDir = dialog.getResourceDirectory();
+    if (resDir == null) {
+      AndroidUtils.reportError(project, AndroidBundle.message("check.resource.dir.error", myModule));
       return;
     }
 
@@ -616,7 +630,7 @@ public class ChooseResourceDialog extends DialogWrapper {
     List<String> dirNames = dialog.getDirNames();
     String resValue = dialog.getValue();
     String resName = dialog.getResourceName();
-    if (!AndroidResourceUtil.createValueResource(moduleToPlaceResource, resName, resourceType, fileName, dirNames, resValue)) {
+    if (!AndroidResourceUtil.createValueResource(project, resDir, resName, resourceType, fileName, dirNames, resValue)) {
       return;
     }
 
@@ -811,16 +825,19 @@ public class ChooseResourceDialog extends DialogWrapper {
   @NotNull
   private String saveValuesResource(@NotNull String name, @NotNull String value, @NotNull CreateXmlResourcePanel locationSettings) {
     ResourceType type = locationSettings.getType();
-    Module module = locationSettings.getModule();
-    assert module != null;
     String fileName = locationSettings.getFileName();
     List<String> dirNames = locationSettings.getDirNames();
-    AndroidFacet facet = AndroidFacet.getInstance(module);
-    assert facet != null;
-    if (!AndroidResourceUtil.changeValueResource(facet, name, type, value, fileName, dirNames, myUseGlobalUndo)) {
-      // Changing value resource has failed, one possible reason is that resource isn't defined in the project.
-      // Trying to create the resource instead.
-      AndroidResourceUtil.createValueResource(module, name, type, fileName, dirNames, value);
+
+    Project project = myModule.getProject();
+    final VirtualFile resDir = locationSettings.getResourceDirectory();
+    if (resDir == null) {
+      AndroidUtils.reportError(project, AndroidBundle.message("check.resource.dir.error", myModule.getName()));
+    } else {
+      if (!AndroidResourceUtil.changeValueResource(project, resDir, name, type, value, fileName, dirNames, myUseGlobalUndo)) {
+        // Changing value resource has failed, one possible reason is that resource isn't defined in the project.
+        // Trying to create the resource instead.
+        AndroidResourceUtil.createValueResource(project, resDir, name, type, fileName, dirNames, value);
+      }
     }
     return SdkConstants.PREFIX_RESOURCE_REF + type + "/" + name;
   }
