@@ -28,7 +28,7 @@ public class NlPropertyEditors {
   private static NlBooleanEditor ourBooleanEditor;
   private static NlFlagEditor ourFlagEditor;
   private static NlEnumTableCellEditor ourComboEditor;
-  private static NlReferenceEditor ourDefaultEditor;
+  private static NlReferenceTableCellEditor ourDefaultEditor;
 
   public static PTableCellEditor get(@NotNull NlProperty property) {
     AttributeDefinition definition = property.getDefinition();
@@ -80,7 +80,7 @@ public class NlPropertyEditors {
 
   private static PTableCellEditor getDefaultEditor(Project project) {
     if (ourDefaultEditor == null) {
-      ourDefaultEditor = new NlReferenceEditor(project);
+      ourDefaultEditor = new NlReferenceTableCellEditor(project);
     }
 
     return ourDefaultEditor;
