@@ -21,7 +21,6 @@ import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
 import com.android.tools.idea.ui.resourcechooser.ResourceGroup;
 import com.android.tools.idea.ui.resourcechooser.ResourceItem;
 import com.android.tools.idea.uibuilder.property.NlProperty;
-import com.android.tools.idea.uibuilder.property.ptable.PTableCellEditor;
 import com.android.tools.idea.uibuilder.property.renderer.NlDefaultRenderer;
 import com.google.common.collect.Lists;
 import com.intellij.android.designer.propertyTable.editors.ResourceEditor;
@@ -55,8 +54,11 @@ import java.awt.event.*;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
-public class NlReferenceEditor extends PTableCellEditor implements ActionListener {
+public class NlReferenceEditor {
+  private final EditingListener myListener;
+  private final boolean myIncludeBrowseButton;
   private final JPanel myPanel;
   private final JBLabel myLabel;
   private final TextFieldWithAutoCompletion myTextFieldWithAutoCompletion;
@@ -66,25 +68,47 @@ public class NlReferenceEditor extends PTableCellEditor implements ActionListene
   private NlProperty myProperty;
   private String myValue;
 
-  public NlReferenceEditor(@NotNull Project project) {
+  public interface EditingListener {
+    void stopEditing(@NotNull NlReferenceEditor editor, @NotNull String value);
+    void cancelEditing(@NotNull NlReferenceEditor editor);
+  }
+
+  public static NlReferenceEditor create(@NotNull Project project, @NotNull EditingListener listener) {
+    return new NlReferenceEditor(project, listener, true);
+  }
+
+  public static NlReferenceEditor createWithoutBrowseButton(@NotNull Project project, @NotNull EditingListener listener) {
+    return new NlReferenceEditor(project, listener, false);
+  }
+
+  private NlReferenceEditor(@NotNull Project project, @NotNull EditingListener listener, boolean includeBrowseButton) {
+    myIncludeBrowseButton = includeBrowseButton;
+    myListener = listener;
     myPanel = new JPanel(new BorderLayout(SystemInfo.isMac ? 0 : 2, 0));
 
     myLabel = new JBLabel();
     myPanel.add(myLabel, BorderLayout.LINE_START);
+    myLabel.addMouseListener(new MouseAdapter() {
+      @Override
+      public void mouseClicked(MouseEvent mouseEvent) {
+        displayResourcePicker();
+      }
+    });
 
     myCompletionProvider = new CompletionProvider();
-    myTextFieldWithAutoCompletion = new TextFieldWithAutoCompletion<String>(project, myCompletionProvider, true, null);
+    myTextFieldWithAutoCompletion = new TextFieldWithAutoCompletion<>(project, myCompletionProvider, true, null);
     myPanel.add(myTextFieldWithAutoCompletion, BorderLayout.CENTER);
 
     myBrowseButton = new FixedSizeButton(new JBCheckBox());
     myBrowseButton.setToolTipText(UIBundle.message("component.with.browse.button.browse.button.tooltip.text"));
     myPanel.add(myBrowseButton, BorderLayout.LINE_END);
 
-    myTextFieldWithAutoCompletion
-      .registerKeyboardAction(this, KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+    myTextFieldWithAutoCompletion.registerKeyboardAction(event -> stopEditing(myTextFieldWithAutoCompletion.getDocument().getText()),
+                                                         KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0),
+                                                         JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
     selectTextOnFocusGain(myTextFieldWithAutoCompletion);
 
-    myBrowseButton.addActionListener(this);
+    myBrowseButton.addActionListener(event -> displayResourcePicker());
   }
 
   public static void selectTextOnFocusGain(EditorTextField textField) {
@@ -104,44 +128,48 @@ public class NlReferenceEditor extends PTableCellEditor implements ActionListene
     });
   }
 
-  @Override
-  public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-    assert value instanceof NlProperty;
-    myProperty = (NlProperty)value;
+  public NlProperty getProperty() {
+    return myProperty;
+  }
+
+  public void setProperty(@NotNull NlProperty property) {
+    myProperty = property;
 
     Icon icon = NlDefaultRenderer.getIcon(myProperty);
     myLabel.setIcon(icon);
     myLabel.setVisible(icon != null);
 
-    myBrowseButton.setVisible(hasResourceChooser(myProperty));
+    myBrowseButton.setVisible(myIncludeBrowseButton && hasResourceChooser(myProperty));
 
     String propValue = StringUtil.notNullize(myProperty.getValue());
     myValue = propValue;
     myTextFieldWithAutoCompletion.setText(propValue);
     myCompletionProvider.updateCompletions(myProperty);
+  }
 
+  public Component getComponent() {
     return myPanel;
   }
 
-  @Override
-  public Object getCellEditorValue() {
+  public Object getValue() {
     return myValue;
   }
 
-  @Override
-  public void actionPerformed(ActionEvent e) {
-    if (e.getSource() == myBrowseButton) {
-      ChooseResourceDialog dialog = showResourceChooser(myProperty);
-      if (dialog.showAndGet()) {
-        myValue = dialog.getResourceName();
-        stopCellEditing();
-      } else {
-        cancelCellEditing();
-      }
-    }
-    else if (e.getSource() == myTextFieldWithAutoCompletion) {
-      myValue = myTextFieldWithAutoCompletion.getDocument().getText();
-      stopCellEditing();
+  private void cancelEditing() {
+    myListener.cancelEditing(this);
+  }
+
+  private void stopEditing(@NotNull String newValue) {
+    myValue = newValue;
+    myListener.stopEditing(this, newValue);
+  }
+
+  private void displayResourcePicker() {
+    ChooseResourceDialog dialog = showResourceChooser(myProperty);
+    if (dialog.showAndGet()) {
+      stopEditing(dialog.getResourceName());
+    } else {
+      cancelEditing();
     }
   }
 
@@ -233,11 +261,7 @@ public class NlReferenceEditor extends PTableCellEditor implements ActionListene
 
     @NotNull
     private static List<String> getResNames(List<ResourceItem> resItems) {
-      List<String> result = Lists.newArrayListWithExpectedSize(resItems.size());
-      for (ResourceItem item : resItems) {
-        result.add(item.getResourceUrl());
-      }
-      return result;
+      return resItems.stream().map(ResourceItem::getResourceUrl).collect(Collectors.toList());
     }
   }
 }
