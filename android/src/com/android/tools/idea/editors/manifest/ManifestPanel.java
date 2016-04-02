@@ -39,6 +39,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -253,7 +254,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
       HtmlBuilder sb = new HtmlBuilder();
       sb.openHtmlBody();
       for (Actions.Record record : records) {
-        sb.add(String.valueOf(record.getActionType()));
+        sb.add(StringUtil.capitalize(String.valueOf(record.getActionType()).toLowerCase(Locale.US)));
         sb.add(" from ");
         sb.addHtml(getHtml(myFacet, record.getActionLocation()));
 
