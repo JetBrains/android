@@ -19,7 +19,7 @@ import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.property.MockNlComponent;
 import com.android.tools.idea.uibuilder.property.NlProperties;
 import com.android.tools.idea.uibuilder.property.NlPropertiesTest;
-import com.android.tools.idea.uibuilder.property.NlProperty;
+import com.android.tools.idea.uibuilder.property.NlPropertyItem;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.intellij.lang.annotations.Language;
@@ -39,11 +39,11 @@ public class NlDefaultRendererTest extends LayoutTestCase {
     XmlTag[] subTags = xmlFile.getRootTag().getSubTags();
     assertEquals(1, subTags.length);
 
-    List<NlProperty> properties = NlProperties.getInstance().getProperties(MockNlComponent.create(subTags[0]));
+    List<NlPropertyItem> properties = NlProperties.getInstance().getProperties(MockNlComponent.create(subTags[0]));
 
     NlDefaultRenderer renderer = new NlDefaultRenderer();
 
-    NlProperty property = NlPropertiesTest.getPropertyByName(properties, "id");
+    NlPropertyItem property = NlPropertiesTest.getPropertyByName(properties, "id");
     validateRendering(renderer, property, "id", "@+id/textView");
 
     property = NlPropertiesTest.getPropertyByName(properties, "text");
@@ -54,7 +54,7 @@ public class NlDefaultRendererTest extends LayoutTestCase {
   }
 
   private static void validateRendering(@NotNull NlDefaultRenderer renderer,
-                                        @NotNull NlProperty property,
+                                        @NotNull NlPropertyItem property,
                                         @NotNull String name,
                                         @NotNull String value) {
     renderer.getLabel().clear();

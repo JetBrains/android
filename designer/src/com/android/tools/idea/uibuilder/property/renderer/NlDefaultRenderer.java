@@ -25,7 +25,6 @@ import com.android.tools.idea.rendering.GutterIconCache;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.editors.NlReferenceEditor;
-import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
 import com.intellij.icons.AllIcons;
 import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.SimpleTextAttributes;
@@ -53,17 +52,13 @@ public class NlDefaultRenderer extends NlAttributeRenderer {
   }
 
   @Override
-  public void customizeRenderContent(@NotNull JTable table, @NotNull PTableItem item, boolean selected, boolean hasFocus, int row, int col) {
-    assert item instanceof NlProperty;
+  public void customizeRenderContent(@NotNull JTable table, @NotNull NlProperty p, boolean selected, boolean hasFocus, int row, int col) {
     myLabel.clear();
-    NlProperty p = (NlProperty)item;
     customize(p, col);
   }
 
   @Override
-  public Icon getHoverIcon(@NotNull PTableItem item) {
-    assert item instanceof NlProperty;
-    NlProperty property = (NlProperty)item;
+  public Icon getHoverIcon(@NotNull NlProperty property) {
     AttributeDefinition definition = property.getDefinition();
     if (NlReferenceEditor.hasResourceChooser(property)) {
       return AllIcons.General.Ellipsis;
@@ -180,7 +175,7 @@ public class NlDefaultRenderer extends NlAttributeRenderer {
   }
 
   @Override
-  public boolean canRender(@NotNull PTableItem p, @NotNull Set<AttributeFormat> formats) {
+  public boolean canRender(@NotNull NlProperty p, @NotNull Set<AttributeFormat> formats) {
     return true;
   }
 

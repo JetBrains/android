@@ -16,20 +16,23 @@
 package com.android.tools.idea.uibuilder.property;
 
 import com.android.SdkConstants;
+import com.android.ide.common.resources.ResourceResolver;
+import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.editors.NlPropertyEditors;
 import com.android.tools.idea.uibuilder.property.ptable.PTableCellEditor;
 import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
 import com.android.tools.idea.uibuilder.property.renderer.NlPropertyRenderers;
+import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.table.TableCellRenderer;
 
-public class NlFlagPropertyValue extends PTableItem {
+public class NlFlagPropertyItemValue extends PTableItem implements NlProperty {
   private final String myName;
-  private final NlFlagProperty myFlags;
+  private final NlFlagPropertyItem myFlags;
 
-  public NlFlagPropertyValue(@NotNull String name, @NotNull NlFlagProperty flags) {
+  public NlFlagPropertyItemValue(@NotNull String name, @NotNull NlFlagPropertyItem flags) {
     myName = name;
     myFlags = flags;
     setParent(flags);
@@ -52,6 +55,23 @@ public class NlFlagPropertyValue extends PTableItem {
       value = SdkConstants.VALUE_FALSE;
     }
     myFlags.setItem(this, SdkConstants.VALUE_TRUE.equalsIgnoreCase(value.toString()));
+  }
+
+  @Nullable
+  @Override
+  public AttributeDefinition getDefinition() {
+    return myFlags.getDefinition();
+  }
+
+  @NotNull
+  @Override
+  public NlComponent getComponent() {
+    return myFlags.getComponent();
+  }
+
+  @Override
+  public ResourceResolver getResolver() {
+    return myFlags.getResolver();
   }
 
   @NotNull
