@@ -100,8 +100,8 @@ import static com.android.tools.idea.gradle.util.GradleUtil.*;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
 import static com.android.tools.idea.tests.gui.framework.fixture.LibraryPropertiesDialogFixture.showPropertiesDialog;
+import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth.assert_;
 import static com.intellij.ide.impl.ProjectUtil.closeAndDispose;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
@@ -746,14 +746,14 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   @NotNull
   public IdeFrameFixture requireGradleWrapperSet() {
     File wrapperDirPath = getGradleWrapperDirPath(getProjectPath());
-    assert_().about(file()).that(wrapperDirPath).named("Gradle wrapper").isDirectory();
+    assertAbout(file()).that(wrapperDirPath).named("Gradle wrapper").isDirectory();
     return this;
   }
 
   public static void deleteWrapper(@NotNull File projectDirPath) {
     File wrapperDirPath = getGradleWrapperDirPath(projectDirPath);
     delete(wrapperDirPath);
-    assert_().about(file()).that(wrapperDirPath).named("Gradle wrapper").doesNotExist();
+    assertAbout(file()).that(wrapperDirPath).named("Gradle wrapper").doesNotExist();
   }
 
   @NotNull
