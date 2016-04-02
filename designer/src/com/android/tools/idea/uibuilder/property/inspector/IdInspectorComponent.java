@@ -53,8 +53,8 @@ public class IdInspectorComponent implements InspectorComponent, ActionListener,
     myHeightAttr = properties.get(SdkConstants.ATTR_LAYOUT_HEIGHT);
 
     myIdTextField = new JBTextField();
-    myWidthEditor = new NlEnumEditor(this);
-    myHeightEditor = new NlEnumEditor(this);
+    myWidthEditor = NlEnumEditor.createWithoutBrowseButton(this);
+    myHeightEditor = NlEnumEditor.createWithoutBrowseButton(this);
 
     myIdTextField.addActionListener(this);
   }
