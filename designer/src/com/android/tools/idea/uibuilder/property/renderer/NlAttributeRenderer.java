@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.property.renderer;
 
+import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.ptable.PTable;
-import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
 import com.intellij.openapi.ui.FixedSizeButton;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.UIBundle;
@@ -49,7 +49,7 @@ public abstract class NlAttributeRenderer implements TableCellRenderer {
 
   @Override
   public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int col) {
-    assert value instanceof PTableItem;
+    assert value instanceof NlProperty;
     assert table instanceof PTable;
 
     Color fg, bg;
@@ -71,24 +71,24 @@ public abstract class NlAttributeRenderer implements TableCellRenderer {
       comp.setBackground(bg);
     }
 
-    Icon icon = getHoverIcon((PTableItem)value);
+    Icon icon = getHoverIcon((NlProperty)value);
     boolean hover = icon != null && ((PTable)table).isHover(row, col);
     myBrowseButton.setVisible(hover);
     myBrowseButton.setIcon(icon);
-    customizeRenderContent(table, (PTableItem)value, isSelected, hasFocus, row, col);
+    customizeRenderContent(table, (NlProperty)value, isSelected, hasFocus, row, col);
 
     return myPanel;
   }
 
   public abstract void customizeRenderContent(@NotNull JTable table,
-                                              @NotNull PTableItem p,
+                                              @NotNull NlProperty p,
                                               boolean selected,
                                               boolean hasFocus,
                                               int row,
                                               int col);
 
   @Nullable
-  public abstract Icon getHoverIcon(@NotNull PTableItem p);
+  public abstract Icon getHoverIcon(@NotNull NlProperty p);
 
-  public abstract boolean canRender(@NotNull PTableItem p, @NotNull Set<AttributeFormat> formats);
+  public abstract boolean canRender(@NotNull NlProperty p, @NotNull Set<AttributeFormat> formats);
 }

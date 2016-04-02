@@ -34,7 +34,7 @@ public class NlPropertyOrderingTest extends LayoutTestCase {
                     "  <TextView />" +
                     "</RelativeLayout>";
     NlComponent component = getFirstComponent(source);
-    List<NlProperty> properties = NlProperties.getInstance().getProperties(component);
+    List<NlPropertyItem> properties = NlProperties.getInstance().getProperties(component);
     List<PTableItem> items = new NlPropertiesGrouper().group(properties, component);
 
     // assert that all padding related attributes are grouped together
@@ -61,7 +61,7 @@ public class NlPropertyOrderingTest extends LayoutTestCase {
                     "</RelativeLayout>";
 
     NlComponent component = getFirstComponent(source);
-    List<NlProperty> properties = NlProperties.getInstance().getProperties(component);
+    List<NlPropertyItem> properties = NlProperties.getInstance().getProperties(component);
     List<PTableItem> items = new NlPropertiesGrouper().group(properties, component);
     items = new NlPropertiesSorter().sort(items, component);
 
