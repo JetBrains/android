@@ -47,6 +47,7 @@ public class CollapsiblePanel extends JPanel {
     add(myPanel, BorderLayout.CENTER);
 
     myExpandButton = new JCheckBox(" ");
+    myExpandButton.setFocusable(false);
     myExpandButton.setIcon(getTreeCollapsedIcon());
     myExpandButton.setSelectedIcon(treeExpandedIcon);
     myExpandButton.addChangeListener(new CollapseListener());

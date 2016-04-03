@@ -61,7 +61,7 @@ import static com.intellij.openapi.wm.impl.content.ToolWindowContentUi.POPUP_PLA
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static java.awt.event.MouseEvent.MOUSE_PRESSED;
 
-class ResolvedDependenciesPanel extends ToolWindowPanel implements DependencySelection {
+public class ResolvedDependenciesPanel extends ToolWindowPanel implements DependencySelection {
   @NotNull private final Tree myTree;
   @NotNull private final ResolvedDependenciesTreeBuilder myTreeBuilder;
   @NotNull private final PsContext myContext;
@@ -72,10 +72,17 @@ class ResolvedDependenciesPanel extends ToolWindowPanel implements DependencySel
 
   private boolean myIgnoreTreeSelectionEvents;
 
-  ResolvedDependenciesPanel(@NotNull PsAndroidModule module,
-                            @NotNull PsContext context,
-                            @NotNull DependencySelection dependencySelection) {
-    super("Resolved Dependencies", AndroidIcons.Variant, ToolWindowAnchor.RIGHT);
+  public ResolvedDependenciesPanel(@NotNull PsAndroidModule module,
+                                   @NotNull PsContext context,
+                                   @NotNull DependencySelection dependencySelection) {
+    this("Resolved Dependencies", module, context, dependencySelection);
+  }
+
+  public ResolvedDependenciesPanel(@NotNull String title,
+                                   @NotNull PsAndroidModule module,
+                                   @NotNull PsContext context,
+                                   @NotNull DependencySelection dependencySelection) {
+    super(title, AndroidIcons.Variant, ToolWindowAnchor.RIGHT);
     myContext = context;
 
     DefaultTreeModel treeModel = new DefaultTreeModel(new DefaultMutableTreeNode());
@@ -233,7 +240,7 @@ class ResolvedDependenciesPanel extends ToolWindowPanel implements DependencySel
     }
   }
 
-  void add(@NotNull SelectionListener listener) {
+  public void add(@NotNull SelectionListener listener) {
     myEventDispatcher.addListener(listener);
   }
 
