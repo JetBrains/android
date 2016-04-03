@@ -160,6 +160,41 @@ public class WidgetsScene {
     }
 
     /**
+     * Find a widget at the coordinate (x, y) in the current selection,
+     * taking the decorator visibility in account
+     *
+     * @param x x position
+     * @param y y position
+     * @return a widget if found, null otherwise
+     */
+    public ConstraintWidget findWidgetInSelection(float x, float y) {
+        ConstraintWidget found = null;
+        ArrayList<ConstraintWidget> selection = mSelection.getWidgets();
+        for (ConstraintWidget widget : selection) {
+            WidgetDecorator decorator = (WidgetDecorator) widget.getCompanionWidget();
+            if (!decorator.isVisible()) {
+                continue;
+            }
+            if (widget instanceof WidgetContainer) {
+                ConstraintWidget f = findWidget((ConstraintWidgetContainer) widget, x, y);
+                if (f != null) {
+                    found = f;
+                }
+            }
+            else {
+                int l = widget.getDrawX();
+                int t = widget.getDrawY();
+                int r = l + widget.getWidth();
+                int b = t + widget.getHeight();
+                if (x >= l && x <= r && y >= t && y <= b) {
+                    found = widget;
+                }
+            }
+        }
+        return found;
+    }
+
+    /**
      * Find a widget at the coordinate (x, y), taking the decorator visibility in account
      *
      * @param x x position
@@ -172,6 +207,13 @@ public class WidgetsScene {
             return null;
         }
         ConstraintWidget found = null;
+        if (container == getRoot()) {
+            // First, check the current selection
+            found = findWidgetInSelection(x, y);
+            if (found != null) {
+                return found;
+            }
+        }
         int l = container.getDrawX();
         int t = container.getDrawY();
         int r = l + container.getWidth();
