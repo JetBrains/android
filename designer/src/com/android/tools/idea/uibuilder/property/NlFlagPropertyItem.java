@@ -54,7 +54,7 @@ public class NlFlagPropertyItem extends NlPropertyItem implements NlProperty {
   }
 
   @Override
-  @Nullable
+  @NotNull
   public List<PTableItem> getChildren() {
     if (myItems == null) {
       assert myDefinition != null;
@@ -64,6 +64,17 @@ public class NlFlagPropertyItem extends NlPropertyItem implements NlProperty {
       }
     }
     return myItems;
+  }
+
+  @NotNull
+  @Override
+  public NlProperty getChildProperty(@NotNull String itemName) {
+    for (PTableItem child : getChildren()) {
+      if (child.getName().equals(itemName)) {
+        return (NlProperty)child;
+      }
+    }
+    throw new IllegalArgumentException(itemName);
   }
 
   @Override
@@ -127,7 +138,7 @@ public class NlFlagPropertyItem extends NlPropertyItem implements NlProperty {
     String added = on ? changedItem.getName() : null;
     Set<String> values = getValues();
     StringBuilder builder = new StringBuilder();
-    for (PTableItem item : myItems) {
+    for (PTableItem item : getChildren()) {
       // Enumerate over myItems in order to generate a string with the elements in a predictable order:
       if (values.contains(item.getName()) && !item.getName().equals(removed) || item.getName().equals(added)) {
         if (builder.length() > 0) {

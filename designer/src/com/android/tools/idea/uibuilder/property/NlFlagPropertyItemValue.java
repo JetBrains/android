@@ -57,6 +57,12 @@ public class NlFlagPropertyItemValue extends PTableItem implements NlProperty {
     myFlags.setItem(this, SdkConstants.VALUE_TRUE.equalsIgnoreCase(value.toString()));
   }
 
+  @NotNull
+  @Override
+  public NlProperty getChildProperty(@NotNull String itemName) {
+    throw new UnsupportedOperationException(itemName);
+  }
+
   @Nullable
   @Override
   public AttributeDefinition getDefinition() {
