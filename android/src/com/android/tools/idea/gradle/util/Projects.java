@@ -49,7 +49,6 @@ import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.openapi.wm.IdeFrame;
 import com.intellij.openapi.wm.WindowManager;
 import com.intellij.openapi.wm.ex.IdeFrameEx;
-import com.intellij.util.Consumer;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -69,6 +68,7 @@ import static com.intellij.ide.impl.ProjectUtil.updateLastProjectLocation;
 import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE;
 import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE_CONTEXT_ARRAY;
 import static com.intellij.openapi.externalSystem.model.ProjectKeys.PROJECT;
+import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.visit;
 import static com.intellij.openapi.module.ModuleUtilCore.findModuleForFile;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.wm.impl.IdeFrameImpl.SHOULD_OPEN_IN_FULL_SCREEN;
@@ -125,36 +125,29 @@ public final class Projects {
   }
 
   public static void populate(@NotNull final Project project, @NotNull final Collection<DataNode<ModuleData>> modules) {
-    invokeAndWaitIfNeeded(new Runnable() {
-      @Override
-      public void run() {
-        ProjectSyncMessages messages = ProjectSyncMessages.getInstance(project);
-        messages.removeMessages(PROJECT_STRUCTURE_ISSUES, MISSING_DEPENDENCIES_BETWEEN_MODULES, FAILED_TO_SET_UP_DEPENDENCIES,
-                                VARIANT_SELECTION_CONFLICTS, EXTRA_GENERATED_SOURCES);
+    invokeAndWaitIfNeeded((Runnable)() -> {
+      ProjectSyncMessages messages = ProjectSyncMessages.getInstance(project);
+      messages.removeMessages(PROJECT_STRUCTURE_ISSUES, MISSING_DEPENDENCIES_BETWEEN_MODULES, FAILED_TO_SET_UP_DEPENDENCIES,
+                              VARIANT_SELECTION_CONFLICTS, EXTRA_GENERATED_SOURCES);
 
-        ApplicationManager.getApplication().runWriteAction(new Runnable() {
-          @Override
-          public void run() {
-            if (!project.isDisposed()) {
-              ProjectRootManagerEx.getInstanceEx(project).mergeRootsChangesDuring(new Runnable() {
-                @Override
-                public void run() {
-                  doSelectiveImport(modules, project);
-                }
-              });
-            }
-          }
-        });
-        // We need to call this method here, otherwise the IDE will think the project is not a Gradle project and it won't generate
-        // sources for it. This happens on new projects.
-        PostProjectSetupTasksExecutor.getInstance(project).onProjectSyncCompletion();
-      }
+      ApplicationManager.getApplication().runWriteAction(() -> {
+        if (!project.isDisposed()) {
+          ProjectRootManagerEx.getInstanceEx(project).mergeRootsChangesDuring(() -> {
+            ProjectDataManager dataManager = ServiceManager.getService(ProjectDataManager.class);
+            dataManager.importData(modules, project, true /* synchronous */);
+          });
+        }
+      });
+      // We need to call this method here, otherwise the IDE will think the project is not a Gradle project and it won't generate
+      // sources for it. This happens on new projects.
+      PostProjectSetupTasksExecutor.getInstance(project).onProjectSyncCompletion();
     });
   }
 
   /**
    * Reuse external system 'selective import' feature for importing of the project sub-set.
    */
+  // TODO: figure out why this broke sync. This was added in IntelliJ IDEA 2016.1.1.
   private static void doSelectiveImport(@NotNull Collection<DataNode<ModuleData>> enabledModules, @NotNull Project project) {
     ProjectDataManager dataManager = ServiceManager.getService(ProjectDataManager.class);
     DataNode<ProjectData> projectNode = enabledModules.isEmpty() ? null :
@@ -166,12 +159,7 @@ public final class Projects {
         final Set<DataNode<ModuleData>> moduleToIgnore = ContainerUtil.newIdentityTroveSet(allModules);
         moduleToIgnore.removeAll(enabledModules);
         for (DataNode<ModuleData> moduleNode : moduleToIgnore) {
-          ExternalSystemApiUtil.visit(moduleNode, new Consumer<DataNode<?>>() {
-            @Override
-            public void consume(DataNode node) {
-              node.setIgnored(true);
-            }
-          });
+          visit(moduleNode, node -> node.setIgnored(true));
         }
       }
       dataManager.importData(projectNode, project, true /* synchronous */);
@@ -187,19 +175,11 @@ public final class Projects {
       }
       return;
     }
-    invokeAndWaitIfNeeded(new Runnable() {
-      @Override
-      public void run() {
-        ApplicationManager.getApplication().runWriteAction(new Runnable() {
-          @Override
-          public void run() {
-            if (!project.isDisposed()) {
-              ProjectRootManagerEx.getInstanceEx(project).mergeRootsChangesDuring(changes);
-            }
-          }
-        });
+    invokeAndWaitIfNeeded((Runnable)() -> ApplicationManager.getApplication().runWriteAction(() -> {
+      if (!project.isDisposed()) {
+        ProjectRootManagerEx.getInstanceEx(project).mergeRootsChangesDuring(changes);
       }
-    });
+    }));
   }
 
   public static void setHasSyncErrors(@NotNull Project project, boolean hasSyncErrors) {
