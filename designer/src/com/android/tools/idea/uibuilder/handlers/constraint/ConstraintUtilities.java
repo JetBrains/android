@@ -547,10 +547,8 @@ public class ConstraintUtilities {
     }
     if (widget.getParent() instanceof WidgetContainer) {
       WidgetContainer parentContainer = (WidgetContainer)widget.getParent();
-      NlComponent parentComponent = (NlComponent)((WidgetDecorator)parentContainer.getCompanionWidget()).getCompanionObject();
-      Insets parentPadding = parentComponent.getPadding();
-      x -= constraintModel.pxToDp(parentComponent.x + parentPadding.left);
-      y -= constraintModel.pxToDp(parentComponent.y + parentPadding.top);
+      x -= parentContainer.getDrawX();
+      y -= parentContainer.getDrawY();
     }
     widget.setOrigin(x, y);
     widget.setBaselineDistance(constraintModel.pxToDp(component.getBaseline()));
