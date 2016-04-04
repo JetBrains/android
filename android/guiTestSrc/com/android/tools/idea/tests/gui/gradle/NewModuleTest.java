@@ -27,7 +27,6 @@ import org.fest.swing.core.matcher.DialogMatcher;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.fixture.DialogFixture;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -48,7 +47,6 @@ public class NewModuleTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
-  @Ignore("failed in http://go/aj/job/studio-ui-test/389 and from IDEA")
   @Test
   public void testNewModuleOldGradle() throws Exception {
     guiTest.importSimpleApplication();
@@ -65,7 +63,7 @@ public class NewModuleTest {
     guiTest.ideFrame().waitForGradleProjectSyncToFinish();
 
     guiTest.ideFrame().invokeMenuPath("File", "New", "New Module...");
-    Dialog dialog = guiTest.robot().finder().find(DialogMatcher.withTitle("Create New Module"));
+    Dialog dialog = guiTest.robot().finder().find(DialogMatcher.withTitle("Create New Module").andShowing());
     DialogFixture dialogFixture = new DialogFixture(guiTest.robot(), dialog);
 
     selectItemInGallery(dialog, 1, "Android Library");
