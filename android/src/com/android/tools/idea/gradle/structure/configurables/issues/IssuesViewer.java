@@ -21,7 +21,6 @@ import com.android.tools.idea.gradle.structure.model.PsIssue;
 import com.android.tools.idea.structure.dialog.ProjectStructureConfigurable;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.intellij.ide.BrowserUtil;
 import com.intellij.ui.HyperlinkAdapter;
 import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.components.JBLabel;
@@ -37,7 +36,6 @@ import java.util.List;
 import java.util.Map;
 
 import static com.android.tools.idea.gradle.structure.navigation.Places.deserialize;
-import static com.android.tools.idea.gradle.structure.navigation.PsNavigationPath.GO_TO_PATH_TYPE;
 import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
 import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
 import static com.intellij.util.ui.UIUtil.getTreeFont;
@@ -181,18 +179,9 @@ public class IssuesViewer {
   private class NavigationHyperlinkListener extends HyperlinkAdapter {
     @Override
     protected void hyperlinkActivated(HyperlinkEvent e) {
-      String target = e.getDescription();
-
-      if (target.startsWith(GO_TO_PATH_TYPE)) {
-        String serializedPlace = target.substring(GO_TO_PATH_TYPE.length());
-        Place place = deserialize(serializedPlace);
-        ProjectStructureConfigurable mainConfigurable = myContext.getMainConfigurable();
-        mainConfigurable.navigateTo(place, true);
-        return;
-      }
-      if (target.startsWith("https://") || target.startsWith("http://")) {
-        BrowserUtil.browse(target);
-      }
+      Place place = deserialize(e.getDescription());
+      ProjectStructureConfigurable mainConfigurable = myContext.getMainConfigurable();
+      mainConfigurable.navigateTo(place, true);
     }
   }
 }

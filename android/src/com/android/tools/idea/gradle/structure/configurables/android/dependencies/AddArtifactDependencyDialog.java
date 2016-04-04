@@ -17,17 +17,11 @@ package com.android.tools.idea.gradle.structure.configurables.android.dependenci
 
 import com.android.builder.model.AndroidProject;
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.model.repositories.JCenterDefaultRepositoryModel;
-import com.android.tools.idea.gradle.dsl.model.repositories.MavenCentralRepositoryModel;
-import com.android.tools.idea.gradle.dsl.model.repositories.RepositoryModel;
 import com.android.tools.idea.gradle.structure.configurables.ui.ArtifactRepositorySearchForm;
-import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.PsProject;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.android.tools.idea.gradle.structure.model.repositories.search.AndroidSdkRepository;
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepository;
-import com.android.tools.idea.gradle.structure.model.repositories.search.JCenterRepository;
 import com.android.tools.idea.gradle.structure.model.repositories.search.MavenCentralRepository;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.ui.DialogWrapper;
@@ -39,12 +33,12 @@ import java.awt.*;
 import java.util.List;
 
 public class AddArtifactDependencyDialog extends DialogWrapper {
-  @Nullable private final PsModule myModule;
+  @Nullable private final PsAndroidModule myModule;
 
   private JPanel myPanel;
   private ArtifactRepositorySearchForm mySearchForm;
 
-  public AddArtifactDependencyDialog(@NotNull PsModule module) {
+  public AddArtifactDependencyDialog(@NotNull PsAndroidModule module) {
     super(module.getParent().getResolvedModel());
     myModule = module;
     setUp();
@@ -79,28 +73,12 @@ public class AddArtifactDependencyDialog extends DialogWrapper {
 
   private void setUpUI() {
     List<ArtifactRepository> repositories = Lists.newArrayList();
-    if (myModule != null) {
-      GradleBuildModel parsedModel = myModule.getParsedModel();
-      if (parsedModel != null) {
-        for (RepositoryModel repositoryModel : parsedModel.repositories().repositories()) {
-          if (repositoryModel instanceof JCenterDefaultRepositoryModel) {
-            repositories.add(new JCenterRepository());
-            continue;
-          }
-          if (repositoryModel instanceof MavenCentralRepositoryModel) {
-            repositories.add(new MavenCentralRepository());
-          }
-        }
-      }
-    }
-    else {
-      // Fall back to jcenter
-      repositories.add(new JCenterRepository());
-    }
+    repositories.add(new MavenCentralRepository()); // TODO get the repository from the build.gradle file.
+
 
     AndroidProject androidProject = null;
-    if (myModule instanceof PsAndroidModule) {
-      AndroidGradleModel gradleModel = ((PsAndroidModule)myModule).getGradleModel();
+    if (myModule != null) {
+      AndroidGradleModel gradleModel = myModule.getGradleModel();
       androidProject = gradleModel.getAndroidProject();
     }
     repositories.add(new AndroidSdkRepository(androidProject));

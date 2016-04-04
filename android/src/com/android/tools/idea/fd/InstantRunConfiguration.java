@@ -22,9 +22,7 @@ import org.jetbrains.annotations.Nullable;
 
 @State(
   name = "InstantRunConfiguration",
-  storages = {
-    @Storage(file = StoragePathMacros.APP_CONFIG + "/instant-run.xml", roamingType = RoamingType.DISABLED)
-  }
+  storages = @Storage(value = "instant-run.xml", roamingType = RoamingType.DISABLED)
 )
 public class InstantRunConfiguration implements PersistentStateComponent<InstantRunConfiguration> {
   public boolean INSTANT_RUN = true;

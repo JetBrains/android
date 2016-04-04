@@ -83,7 +83,7 @@ public class AndroidXmlSpellcheckingStrategy extends XmlSpellcheckingStrategy {
     // check which language the dictionary/dictionaries correspond to,
     // and english.dic is included by default.
 
-    return true;
+    return AndroidFacet.getInstance(element) != null;
   }
 
   @NotNull

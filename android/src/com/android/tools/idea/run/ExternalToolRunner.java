@@ -59,7 +59,7 @@ public class ExternalToolRunner {
 
   public ProcessHandler start() throws ExecutionException {
     final Process process = createProcess();
-    myProcessHandler = createProcessHandler(process);
+    myProcessHandler = createProcessHandler(process, myCommandLine);
 
     UIUtil.invokeLaterIfNeeded(new Runnable() {
       @Override
@@ -77,8 +77,8 @@ public class ExternalToolRunner {
   }
 
   @NotNull
-  protected ProcessHandler createProcessHandler(Process process) {
-    return new OSProcessHandler(process);
+  protected ProcessHandler createProcessHandler(Process process, @NotNull GeneralCommandLine commandLine) {
+    return new OSProcessHandler(process, commandLine.getCommandLineString());
   }
 
   protected ConsoleView initConsoleUi() {

@@ -440,7 +440,7 @@ public class DataBindingUtil {
           PsiField[] defaultValue() {
             return PsiField.EMPTY_ARRAY;
           }
-        });
+        }, false);
     }
 
     @Override

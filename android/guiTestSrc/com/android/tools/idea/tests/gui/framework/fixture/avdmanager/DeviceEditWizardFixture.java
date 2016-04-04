@@ -25,20 +25,20 @@ import javax.swing.*;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
 
-public class HardwareProfileWizardFixture extends AbstractWizardFixture<HardwareProfileWizardFixture> {
+public class DeviceEditWizardFixture extends AbstractWizardFixture<DeviceEditWizardFixture> {
 
-  public static HardwareProfileWizardFixture find(@NotNull Robot robot) {
+  public static DeviceEditWizardFixture find(@NotNull Robot robot) {
     JDialog dialog = GuiTests.waitUntilShowing(robot, new GenericTypeMatcher<JDialog>(JDialog.class) {
       @Override
       protected boolean isMatching(@NotNull JDialog dialog) {
         return "Hardware Profile Configuration".equals(dialog.getTitle());
       }
     });
-    return new HardwareProfileWizardFixture(robot, dialog);
+    return new DeviceEditWizardFixture(robot, dialog);
   }
 
-  public HardwareProfileWizardFixture(Robot robot, JDialog target) {
-    super(HardwareProfileWizardFixture.class, robot, target);
+  public DeviceEditWizardFixture(Robot robot, JDialog target) {
+    super(DeviceEditWizardFixture.class, robot, target);
   }
 
   @NotNull
@@ -48,7 +48,7 @@ public class HardwareProfileWizardFixture extends AbstractWizardFixture<Hardware
   }
 
   @NotNull
-  public HardwareProfileWizardFixture clickOk() {
+  public DeviceEditWizardFixture clickOk() {
     findAndClickOkButton(this);
     return this;
   }

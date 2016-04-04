@@ -18,8 +18,6 @@ package com.android.tools.idea.gradle.structure.navigation;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class PsNavigationPath {
-  public static final String GO_TO_PATH_TYPE = "psdGoTo://";
-
   public static final PsNavigationPath EMPTY_PATH = new PsNavigationPath() {
     @Override
     @NotNull

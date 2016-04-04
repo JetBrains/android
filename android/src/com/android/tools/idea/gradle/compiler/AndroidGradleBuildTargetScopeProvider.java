@@ -39,8 +39,6 @@ import java.util.List;
  * Instructs the JPS builder to use Gradle to build the project.
  */
 public class AndroidGradleBuildTargetScopeProvider extends BuildTargetScopeProvider {
-  public static final String TARGET_ID = "android_gradle_build_target";
-  public static final String TARGET_TYPE_ID = "android_gradle_build_target_type";
 
   @Override
   @NotNull
@@ -86,7 +84,8 @@ public class AndroidGradleBuildTargetScopeProvider extends BuildTargetScopeProvi
       buildSettings.setBuildMode(BuildMode.COMPILE_JAVA);
     }
 
-    TargetTypeBuildScope scope = CmdlineProtoUtil.createTargetsScope(TARGET_TYPE_ID, Collections.singletonList(TARGET_ID), forceBuild);
+    TargetTypeBuildScope scope = CmdlineProtoUtil.createTargetsScope(AndroidGradleBuildTargetConstants.TARGET_TYPE_ID, Collections.singletonList(
+      AndroidGradleBuildTargetConstants.TARGET_ID), forceBuild);
     return Collections.singletonList(scope);
   }
 }

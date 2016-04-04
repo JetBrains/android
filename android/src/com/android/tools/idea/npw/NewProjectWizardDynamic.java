@@ -19,11 +19,14 @@ import com.android.SdkConstants;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.startup.AndroidStudioInitializer;
 import com.android.tools.idea.templates.KeystoreUtils;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateUtils;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.dynamic.DynamicWizard;
+import com.android.tools.idea.wizard.dynamic.DynamicWizardHost;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.android.tools.idea.wizard.template.TemplateWizard;
 import com.intellij.openapi.application.ApplicationManager;
@@ -32,6 +35,8 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
+import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VfsUtil;
@@ -65,8 +70,22 @@ public class NewProjectWizardDynamic extends DynamicWizard {
     setTitle("Create New Project");
   }
 
+  public NewProjectWizardDynamic(@Nullable Project project,
+                                 @Nullable Module module,
+                                 @NotNull DynamicWizardHost host) {
+    super(project, module, "New Project", host);
+    setTitle("Create New Project");
+  }
+
   @Override
   public void init() {
+    checkSdk();
+    addPaths();
+    initState();
+    super.init();
+  }
+
+  protected void checkSdk() {
     if (!AndroidSdkUtils.isAndroidSdkAvailable() || !TemplateManager.templatesAreValid()) {
       String title = "SDK problem";
       String msg = "<html>Your Android SDK is missing, out of date, or is missing templates.<br>" +
@@ -74,9 +93,6 @@ public class NewProjectWizardDynamic extends DynamicWizard {
       Messages.showErrorDialog(msg, title);
       throw new IllegalStateException("Android SDK missing");
     }
-    addPaths();
-    initState();
-    super.init();
   }
 
   /**
@@ -185,6 +201,18 @@ public class NewProjectWizardDynamic extends DynamicWizard {
       }
     }
 
+    // This is required for Android plugin in IDEA
+    if (!AndroidStudioInitializer.isAndroidStudio()) {
+      final Sdk jdk = IdeSdks.getJdk();
+      if (jdk != null) {
+        ApplicationManager.getApplication().runWriteAction(new Runnable() {
+          @Override
+          public void run() {
+            ProjectRootManager.getInstance(myProject).setProjectSdk(jdk);
+          }
+        });
+      }
+    }
     try {
       GradleSyncListener listener = new PostStartupGradleSyncListener(new Runnable() {
         @Override

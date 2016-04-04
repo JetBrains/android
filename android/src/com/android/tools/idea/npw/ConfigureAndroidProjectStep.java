@@ -135,6 +135,7 @@ public class ConfigureAndroidProjectStep extends DynamicWizardStepWithHeaderAndD
 
   @Override
   public boolean validate() {
+    if (!myPath.validate()) return false;
     WizardUtils.ValidationResult locationValidationResult = WizardUtils.validateLocation(myState.get(WizardConstants.PROJECT_LOCATION_KEY));
     setErrorHtml(locationValidationResult.isOk() ? "" : locationValidationResult.getFormattedMessage());
     return validateAppName() && validatePackageName() && !locationValidationResult.isError();
