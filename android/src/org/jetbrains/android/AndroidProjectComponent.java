@@ -22,7 +22,6 @@ import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.TransactionGuard;
-import com.intellij.openapi.application.TransactionKind;
 import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.components.AbstractProjectComponent;
 import com.intellij.openapi.module.Module;
@@ -56,11 +55,7 @@ public class AndroidProjectComponent extends AbstractProjectComponent {
     final CompilerManager manager = CompilerManager.getInstance(myProject);
     manager.addBeforeTask(new AndroidPrecompileTask());
 
-    myDisposable = new Disposable() {
-      @Override
-      public void dispose() {
-      }
-    };
+    myDisposable = Disposer.newDisposable(getClass().getName());
 
     if (!ApplicationManager.getApplication().isUnitTestMode() &&
         !ApplicationManager.getApplication().isHeadlessEnvironment()) {
@@ -137,7 +132,7 @@ public class AndroidProjectComponent extends AbstractProjectComponent {
 
   private void generate(final Map<AndroidFacet, Collection<AndroidAutogeneratorMode>> facetsToProcess) {
     TransactionGuard.getInstance().submitTransactionAndWait(
-      TransactionKind.ANY_CHANGE, () -> AndroidCompileUtil.createGenModulesAndSourceRoots(myProject, facetsToProcess.keySet()));
+      () -> AndroidCompileUtil.createGenModulesAndSourceRoots(myProject, facetsToProcess.keySet()));
 
     for (Map.Entry<AndroidFacet, Collection<AndroidAutogeneratorMode>> entry : facetsToProcess.entrySet()) {
       final AndroidFacet facet = entry.getKey();
