@@ -274,23 +274,47 @@ public class WidgetsScene {
     /**
      * Find which ResizeHandle is close to the (x, y) coordinates
      *
+     * @param widget the widget we are checking
+     * @param x x coordinate
+     * @param y y coordinate
+     * @return the ResizeHandle close to (x, y), or null if none are close enough
+     */
+    private ResizeHandle findResizeHandleInWidget(ConstraintWidget widget,
+            float x, float y, ViewTransform transform) {
+        WidgetDecorator decorator = (WidgetDecorator) widget.getCompanionWidget();
+        if (!decorator.isVisible()) {
+            return null;
+        }
+        WidgetInteractionTargets widgetInteraction =
+                (WidgetInteractionTargets) widget.getCompanionWidget();
+        widgetInteraction.updatePosition(transform);
+        ResizeHandle handle = widgetInteraction.findResizeHandle(x, y);
+        if (handle != null) {
+            return handle;
+        }
+        return null;
+    }
+
+    /**
+     * Find which ResizeHandle is close to the (x, y) coordinates
+     *
      * @param x x coordinate
      * @param y y coordinate
      * @return the ResizeHandle close to (x, y), or null if none are close enough
      */
     public ResizeHandle findResizeHandle(float x, float y, ViewTransform transform) {
+        for (Selection.Element element : mSelection.getElements()) {
+            ConstraintWidget widget = element.widget;
+            ResizeHandle handle = findResizeHandleInWidget(widget, x, y, transform);
+            if (handle != null) {
+                return handle;
+            }
+        }
         for (ConstraintWidget widget : mWidgets.values()) {
             if (widget.isRoot()) {
                 continue;
             }
-            WidgetDecorator decorator = (WidgetDecorator) widget.getCompanionWidget();
-            if (!decorator.isVisible()) {
-                continue;
-            }
-            WidgetInteractionTargets widgetInteraction =
-                    (WidgetInteractionTargets) widget.getCompanionWidget();
-            widgetInteraction.updatePosition(transform);
-            ResizeHandle handle = widgetInteraction.findResizeHandle(x, y);
+            ResizeHandle handle = findResizeHandleInWidget(widget, x, y, transform);
             if (handle != null) {
                 return handle;
             }
