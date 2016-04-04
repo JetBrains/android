@@ -92,12 +92,9 @@ public class ToolWindowHeader extends Header implements Disposable {
       };
       setAdditionalActions(Lists.newArrayList(myMinimizeAction));
     }
-    addActivationListener(new ActivationListener() {
-      @Override
-      public void activated() {
-        if (myPreferredFocusedComponent != null) {
-          myPreferredFocusedComponent.requestFocusInWindow();
-        }
+    addActivationListener(() -> {
+      if (myPreferredFocusedComponent != null) {
+        myPreferredFocusedComponent.requestFocusInWindow();
       }
     }, this);
   }

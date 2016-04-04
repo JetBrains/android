@@ -32,7 +32,6 @@ import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
 import java.awt.*;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
@@ -91,12 +90,7 @@ public class IssuesViewer {
     }
 
     List<PsIssue.Type> types = Lists.newArrayList(issuesByType.keySet());
-    Collections.sort(types, new Comparator<PsIssue.Type>() {
-      @Override
-      public int compare(PsIssue.Type t1, PsIssue.Type t2) {
-        return t1.getPriority() - t2.getPriority();
-      }
-    });
+    Collections.sort(types, (t1, t2) -> t1.getPriority() - t2.getPriority());
 
     int typeCount = types.size();
     assert typeCount < 4; // There are only 3 types of issues

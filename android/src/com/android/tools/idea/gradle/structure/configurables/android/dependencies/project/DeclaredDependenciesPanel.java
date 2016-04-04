@@ -25,7 +25,6 @@ import com.android.tools.idea.gradle.structure.configurables.android.dependencie
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.GoToModuleAction;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.LibraryDependencyNode;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.ModuleDependencyNode;
-import com.android.tools.idea.gradle.structure.configurables.issues.IssuesRenderer;
 import com.android.tools.idea.gradle.structure.configurables.issues.IssuesViewer;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractBaseCollapseAllAction;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractBaseExpandAllAction;
@@ -47,7 +46,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
@@ -82,22 +80,18 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel {
 
     initializeDependencyDetails();
 
-    myIssuesViewer = new IssuesViewer(myContext, new IssuesRenderer() {
-      @Override
-      @NotNull
-      public String render(@NotNull List<PsIssue> issues) {
-        StringBuilder buffer = new StringBuilder();
-        buffer.append("<html><body><ol>");
+    myIssuesViewer = new IssuesViewer(myContext, issues -> {
+      StringBuilder buffer = new StringBuilder();
+      buffer.append("<html><body><ol>");
 
-        for (PsIssue issue : issues) {
-          buffer.append("<li>")
-                .append(issue.getPath().toHtml()).append(": ").append(issue.getText()).append("<p>&nbsp;</p>")
-                .append("</li>");
-        }
-
-        buffer.append("</ul></body></html");
-        return buffer.toString();
+      for (PsIssue issue : issues) {
+        buffer.append("<li>")
+              .append(issue.getPath().toHtml()).append(": ").append(issue.getText()).append("<p>&nbsp;</p>")
+              .append("</li>");
       }
+
+      buffer.append("</ul></body></html");
+      return buffer.toString();
     });
     setIssuesViewer(myIssuesViewer);
 
@@ -127,34 +121,29 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel {
 
     myTreeBuilder = new DeclaredDependenciesTreeBuilder(myContext.getProject(), myTree, treeModel);
 
-    myTreeSelectionListener = new TreeSelectionListener() {
-      @Override
-      public void valueChanged(TreeSelectionEvent e) {
-        final NodeSelectionDetector detector = new NodeSelectionDetector();
+    myTreeSelectionListener = e -> {
+      final NodeSelectionDetector detector = new NodeSelectionDetector();
 
-        if (!myIgnoreTreeSelectionEvents) {
-          final AbstractDependencyNode<? extends PsAndroidDependency> selection = getSelection();
-          myIgnoreTreeSelectionEvents = true;
-          myTreeBuilder.updateSelection(new MatchingNodeCollector() {
-            @Override
-            protected void done(@NotNull List<AbstractPsModelNode> matchingNodes) {
-              for (AbstractPsModelNode node : matchingNodes) {
-                detector.add(node);
-              }
-              myIgnoreTreeSelectionEvents = false;
+      if (!myIgnoreTreeSelectionEvents) {
+        final AbstractDependencyNode<? extends PsAndroidDependency> selection = getSelection();
+        myIgnoreTreeSelectionEvents = true;
+        myTreeBuilder.updateSelection(new MatchingNodeCollector() {
+          @Override
+          protected void done(@NotNull List<AbstractPsModelNode> matchingNodes) {
+            matchingNodes.forEach(detector::add);
+            myIgnoreTreeSelectionEvents = false;
 
-              List<AbstractDependencyNode<? extends PsAndroidDependency>> singleSelection = Collections.emptyList();
-              if (selection != null) {
-                singleSelection = detector.getSingleTypeSelection();
-              }
-              notifySelectionChanged(singleSelection);
+            List<AbstractDependencyNode<? extends PsAndroidDependency>> singleSelection = Collections.emptyList();
+            if (selection != null) {
+              singleSelection = detector.getSingleTypeSelection();
             }
-          });
+            notifySelectionChanged(singleSelection);
+          }
+        });
 
-          PsAndroidDependency selected = selection != null ? selection.getModels().get(0) : null;
-          updateDetails(selected);
-          updateIssues(selection);
-        }
+        PsAndroidDependency selected = selection != null ? selection.getModels().get(0) : null;
+        updateDetails(selected);
+        updateIssues(selection);
       }
     };
     myTree.addTreeSelectionListener(myTreeSelectionListener);
@@ -165,14 +154,9 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel {
       }
     });
 
-    myTreeBuilder.getInitialized().doWhenDone(new Runnable() {
-      @Override
-      public void run() {
-        doEnsureSelection();
-      }
-    });
+    myTreeBuilder.getInitialized().doWhenDone(this::doEnsureSelection);
 
-    myHyperlinkSupport = new NodeHyperlinkSupport<ModuleDependencyNode>(myTree, ModuleDependencyNode.class, myContext, true);
+    myHyperlinkSupport = new NodeHyperlinkSupport<>(myTree, ModuleDependencyNode.class, myContext, true);
   }
 
   private void updateIssues(@Nullable AbstractDependencyNode<? extends PsAndroidDependency> selection) {
@@ -243,7 +227,7 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel {
       @Override
       public void actionPerformed(AnActionEvent e) {
         myTreeBuilder.clearSelection();
-        notifySelectionChanged(Collections.<AbstractDependencyNode<? extends PsAndroidDependency>>emptyList());
+        notifySelectionChanged(Collections.emptyList());
 
         myTree.requestFocusInWindow();
         myTreeBuilder.collapseAllNodes();

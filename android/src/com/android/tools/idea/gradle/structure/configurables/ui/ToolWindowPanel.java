@@ -28,8 +28,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.EventListener;
 
 import static com.intellij.openapi.wm.ToolWindowAnchor.*;
@@ -50,12 +48,9 @@ public abstract class ToolWindowPanel extends JPanel implements Disposable {
 
     if (anchor != null) {
       myAnchoredButton = new AnchoredToolWindowButton(myHeader, anchor);
-      myAnchoredButton.addActionListener(new ActionListener() {
-        @Override
-        public void actionPerformed(ActionEvent e) {
-          myAnchoredButton.setSelected(false);
-          myEventDispatcher.getMulticaster().restored();
-        }
+      myAnchoredButton.addActionListener(e -> {
+        myAnchoredButton.setSelected(false);
+        myEventDispatcher.getMulticaster().restored();
       });
 
       myMinimizedPanel = new MinimizedContainerPanel(myAnchoredButton);

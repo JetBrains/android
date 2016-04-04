@@ -16,10 +16,8 @@
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.project;
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractDependencyNode;
 import com.android.tools.idea.gradle.structure.configurables.ui.AbstractMainPanel;
 import com.android.tools.idea.gradle.structure.model.PsModule;
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
 import com.intellij.openapi.util.ActionCallback;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.JBSplitter;
@@ -46,12 +44,7 @@ class ProjectDependenciesPanel extends AbstractMainPanel {
 
     myTargetModulesPanel = new TargetModulesPanel(context);
 
-    myDeclaredDependenciesPanel.add(new DeclaredDependenciesPanel.SelectionListener() {
-      @Override
-      public void dependencySelected(@NotNull List<AbstractDependencyNode<? extends PsAndroidDependency>> selectedNodes) {
-        myTargetModulesPanel.displayTargetModules(selectedNodes);
-      }
-    });
+    myDeclaredDependenciesPanel.add(myTargetModulesPanel::displayTargetModules);
 
     myVerticalSplitter = createMainVerticalSplitter();
     myVerticalSplitter.setFirstComponent(myDeclaredDependenciesPanel);

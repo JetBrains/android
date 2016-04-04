@@ -41,16 +41,13 @@ public class JCenterRepository implements ArtifactRepository {
   @NotNull
   public SearchResult search(@NotNull SearchRequest request) throws IOException {
     String url = createRequestUrl(request);
-    return HttpRequests.request(url).accept("application/json").connect(new HttpRequests.RequestProcessor<SearchResult>() {
-      @Override
-      public SearchResult process(@NotNull HttpRequests.Request request) throws IOException {
-        try {
-          return parse(request.getReader());
-        }
-        catch (RuntimeException e) {
-          String msg = String.format("Failed to parse request '%1$s'", request);
-          throw new IOException(msg, e);
-        }
+    return HttpRequests.request(url).accept("application/json").connect(request1 -> {
+      try {
+        return parse(request1.getReader());
+      }
+      catch (RuntimeException e) {
+        String msg = String.format("Failed to parse request '%1$s'", request1);
+        throw new IOException(msg, e);
       }
     });
   }

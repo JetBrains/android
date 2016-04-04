@@ -84,10 +84,7 @@ public class ProjectStructureConfigurable extends BaseConfigurable
 
   private final JLabel myEmptySelection = new JLabel("<html><body><center>Select a setting to view or edit its details here</center></body></html>",
                                                      SwingConstants.CENTER);
-  private final Disposable myDisposable = new Disposable() {
-    @Override
-    public void dispose() {
-    }
+  private final Disposable myDisposable = () -> {
   };
 
   @NotNull
@@ -345,17 +342,13 @@ public class ProjectStructureConfigurable extends BaseConfigurable
         for (ProjectStructureItemGroup group : itemGroups) {
           String name = group.getGroupName();
           mySidePanel.addSeparator(name);
-          for (Configurable item : group.getItems()) {
-            addConfigurable(item);
-          }
+          group.getItems().forEach(this::addConfigurable);
         }
       }
     }
 
     for (MainGroupConfigurableContributor contributor : MainGroupConfigurableContributor.EP_NAME.getExtensions()) {
-      for (Configurable configurable : contributor.getConfigurables(myProject, myDisposable)) {
-        addConfigurable(configurable);
-      }
+      contributor.getConfigurables(myProject, myDisposable).forEach(this::addConfigurable);
     }
   }
 
@@ -441,9 +434,7 @@ public class ProjectStructureConfigurable extends BaseConfigurable
 
     myUiState.proportion = mySplitter.getProportion();
     saveSideProportion();
-    for (Configurable each : myConfigurables) {
-      each.disposeUIResources();
-    }
+    myConfigurables.forEach(Configurable::disposeUIResources);
     myConfigurables.clear();
 
     Disposer.dispose(myErrorsComponent);

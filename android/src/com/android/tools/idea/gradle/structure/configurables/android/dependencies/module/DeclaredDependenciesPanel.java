@@ -21,11 +21,8 @@ import com.android.tools.idea.gradle.structure.configurables.android.dependencie
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.details.ModuleDependencyDetails;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.details.ModuleLibraryDependencyDetails;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.treeview.DependencySelection;
-import com.android.tools.idea.gradle.structure.configurables.issues.IssuesRenderer;
 import com.android.tools.idea.gradle.structure.configurables.issues.IssuesViewer;
-import com.android.tools.idea.gradle.structure.daemon.PsDaemonAnalyzer;
 import com.android.tools.idea.gradle.structure.model.PsIssue;
-import com.android.tools.idea.gradle.structure.model.PsModel;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.android.tools.idea.gradle.structure.model.android.PsModuleDependency;
@@ -44,10 +41,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import java.awt.*;
-import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Collection;
@@ -86,12 +81,9 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel implem
   DeclaredDependenciesPanel(@NotNull final PsAndroidModule module, @NotNull PsContext context) {
     super("Declared Dependencies", context, module);
     myContext = context;
-    myContext.getDaemonAnalyzer().add(new PsDaemonAnalyzer.IssuesUpdatedListener() {
-      @Override
-      public void issuesUpdated(@NotNull PsModel model) {
-        if (model == module) {
-          // TODO Implement once updating adding/deleting/updating dependencies is implemented.
-        }
+    myContext.getDaemonAnalyzer().add(model -> {
+      if (model == module) {
+        // TODO Implement once updating adding/deleting/updating dependencies is implemented.
       }
     }, this);
 
@@ -100,25 +92,21 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel implem
     getContentsPanel().add(createActionsPanel(), BorderLayout.NORTH);
     initializeDependencyDetails();
 
-    myIssuesViewer = new IssuesViewer(myContext, new IssuesRenderer() {
-      @Override
-      @NotNull
-      public String render(@NotNull List<PsIssue> issues) {
-        StringBuilder buffer = new StringBuilder();
-        buffer.append("<html><body><ol>");
+    myIssuesViewer = new IssuesViewer(myContext, issues -> {
+      StringBuilder buffer = new StringBuilder();
+      buffer.append("<html><body><ol>");
 
-        for (PsIssue issue : issues) {
-          buffer.append("<li>").append(issue.getText());
-          String description = issue.getDescription();
-          if (isNotEmpty(description)) {
-            buffer.append("<br/><br/>").append(description);
-          }
-          buffer.append("</li>");
+      for (PsIssue issue : issues) {
+        buffer.append("<li>").append(issue.getText());
+        String description = issue.getDescription();
+        if (isNotEmpty(description)) {
+          buffer.append("<br/><br/>").append(description);
         }
-
-        buffer.append("</ul></body></html");
-        return buffer.toString();
+        buffer.append("</li>");
       }
+
+      buffer.append("</ul></body></html");
+      return buffer.toString();
     });
     setIssuesViewer(myIssuesViewer);
 
@@ -147,15 +135,12 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel implem
       myDependenciesTable.changeSelection(0, 0, false, false);
       updateDetailsAndIssues();
     }
-    myTableSelectionListener = new ListSelectionListener() {
-      @Override
-      public void valueChanged(ListSelectionEvent e) {
-        PsAndroidDependency selected = getSelection();
-        if (selected != null) {
-          myEventDispatcher.getMulticaster().dependencySelected(selected);
-        }
-        updateDetailsAndIssues();
+    myTableSelectionListener = e -> {
+      PsAndroidDependency selected = getSelection();
+      if (selected != null) {
+        myEventDispatcher.getMulticaster().dependencySelected(selected);
       }
+      updateDetailsAndIssues();
     };
     tableSelectionModel.addListSelectionListener(myTableSelectionListener);
 
@@ -191,23 +176,20 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel implem
       }
     });
 
-    myKeyEventDispatcher = new KeyEventDispatcher() {
-      @Override
-      public boolean dispatchKeyEvent(KeyEvent e) {
-        PsModuleDependency dependency = null;
-        if (e.getID() == KEY_PRESSED) {
-          if (isMetaOrCtrlKeyPressed(e)) {
-            dependency = getDependencyUnderMousePointer();
-          }
-          setHoveredDependency(dependency);
+    myKeyEventDispatcher = e -> {
+      PsModuleDependency dependency = null;
+      if (e.getID() == KEY_PRESSED) {
+        if (isMetaOrCtrlKeyPressed(e)) {
+          dependency = getDependencyUnderMousePointer();
         }
-        else if (e.getID() == KEY_RELEASED) {
-          if (isMetaOrCtrlKeyPressed(e)) {
-            setHoveredDependency(null);
-          }
-        }
-        return false;
+        setHoveredDependency(dependency);
       }
+      else if (e.getID() == KEY_RELEASED) {
+        if (isMetaOrCtrlKeyPressed(e)) {
+          setHoveredDependency(null);
+        }
+      }
+      return false;
     };
 
     KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(myKeyEventDispatcher);
