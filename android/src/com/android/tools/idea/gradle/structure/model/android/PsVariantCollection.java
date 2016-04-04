@@ -59,8 +59,6 @@ class PsVariantCollection implements PsModelCollection<PsVariant> {
 
   @Override
   public void forEach(@NotNull Predicate<PsVariant> function) {
-    for (PsVariant variant : myVariantsByName.values()) {
-      function.apply(variant);
-    }
+    myVariantsByName.values().forEach(function::apply);
   }
 }

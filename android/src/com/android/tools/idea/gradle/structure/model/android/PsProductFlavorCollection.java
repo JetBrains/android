@@ -61,9 +61,7 @@ class PsProductFlavorCollection implements PsModelCollection<PsProductFlavor> {
 
   @Override
   public void forEach(@NotNull Predicate<PsProductFlavor> function) {
-    for (PsProductFlavor productFlavor : myProductFlavorsByName.values()) {
-      function.apply(productFlavor);
-    }
+    myProductFlavorsByName.values().forEach(function::apply);
   }
 
   @Nullable

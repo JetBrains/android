@@ -34,7 +34,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
-import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Collections;
 import java.util.List;
@@ -64,12 +63,9 @@ public class ArtifactRepositorySearchForm {
       }
     });
 
-    ActionListener actionListener = new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        if (mySearchButton.isEnabled()) {
-          performSearch();
-        }
+    ActionListener actionListener = e -> {
+      if (mySearchButton.isEnabled()) {
+        performSearch();
       }
     };
 
@@ -81,7 +77,7 @@ public class ArtifactRepositorySearchForm {
     myGroupIdTextField.addActionListener(actionListener);
     myGroupIdTextField.getEmptyText().setText("Example: \"com.google.guava\"");
 
-    myResultsTable = new TableView<FoundArtifact>(new ResultsTableModel());
+    myResultsTable = new TableView<>(new ResultsTableModel());
     myResultsTable.setAutoCreateRowSorter(true);
     myResultsTable.setShowGrid(false);
     myResultsTable.getTableHeader().setReorderingAllowed(false);
@@ -98,41 +94,33 @@ public class ArtifactRepositorySearchForm {
 
     SearchRequest request = new SearchRequest(getArtifactName(), getGroupId(), 50, 0);
     final ArtifactRepositorySearch.Callback callback = mySearch.start(request);
-    callback.doWhenDone(new Runnable() {
-      @Override
-      public void run() {
-        invokeLaterIfNeeded(new Runnable() {
-          @Override
-          public void run() {
-            List<FoundArtifact> foundArtifacts = Lists.newArrayList();
+    callback.doWhenDone(() -> invokeLaterIfNeeded(() -> {
+      List<FoundArtifact> foundArtifacts = Lists.newArrayList();
 
-            for (SearchResult result : callback.getSearchResults()) {
-              for (String coordinateText : result.getData()) {
-                GradleCoordinate coordinate = parseCoordinateString(coordinateText);
-                if (coordinate != null) {
-                  foundArtifacts.add(new FoundArtifact(coordinate, result.getRepositoryName()));
-                }
-              }
-            }
-
-            myResultsTable.getListTableModel().setItems(foundArtifacts);
-            myResultsTable.updateColumnSizes();
-            myResultsTable.setPaintBusy(false);
-            myResultsTable.getEmptyText().setText("Nothing to show");
-            if (!foundArtifacts.isEmpty()) {
-              myResultsTable.changeSelection(0, 0, false, false);
-            }
-            myResultsTable.requestFocusInWindow();
-
-            mySearchButton.setEnabled(true);
+      for (SearchResult result : callback.getSearchResults()) {
+        for (String coordinateText : result.getData()) {
+          GradleCoordinate coordinate = parseCoordinateString(coordinateText);
+          if (coordinate != null) {
+            foundArtifacts.add(new FoundArtifact(coordinate, result.getRepositoryName()));
           }
-        });
+        }
       }
-    });
+
+      myResultsTable.getListTableModel().setItems(foundArtifacts);
+      myResultsTable.updateColumnSizes();
+      myResultsTable.setPaintBusy(false);
+      myResultsTable.getEmptyText().setText("Nothing to show");
+      if (!foundArtifacts.isEmpty()) {
+        myResultsTable.changeSelection(0, 0, false, false);
+      }
+      myResultsTable.requestFocusInWindow();
+
+      mySearchButton.setEnabled(true);
+    }));
   }
 
   private void clearResults() {
-    myResultsTable.getListTableModel().setItems(Collections.<FoundArtifact>emptyList());
+    myResultsTable.getListTableModel().setItems(Collections.emptyList());
   }
   @NotNull
   private String getArtifactName() {

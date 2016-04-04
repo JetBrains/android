@@ -55,15 +55,12 @@ class ResolvedDependenciesTreeRootNode extends AbstractRootNode<PsAndroidModule>
   @NotNull
   protected List<? extends AbstractPsModelNode> createChildren() {
     final Map<String, PsVariant> variantsByName = Maps.newHashMap();
-    Predicate<PsVariant> function = new Predicate<PsVariant>() {
-      @Override
-      public boolean apply(@Nullable PsVariant variant) {
-        if (variant == null) {
-          return false;
-        }
-        variantsByName.put(variant.getName(), variant);
-        return true;
+    Predicate<PsVariant> function = variant -> {
+      if (variant == null) {
+        return false;
       }
+      variantsByName.put(variant.getName(), variant);
+      return true;
     };
     for (PsAndroidModule module : getModels()) {
       module.forEachVariant(function);
@@ -134,12 +131,7 @@ class ResolvedDependenciesTreeRootNode extends AbstractRootNode<PsAndroidModule>
       }
     }
 
-    Collections.sort(children, new Comparator<AndroidArtifactNode>() {
-      @Override
-      public int compare(AndroidArtifactNode a1, AndroidArtifactNode a2) {
-        return a1.getName().compareTo(a2.getName());
-      }
-    });
+    Collections.sort(children, (a1, a2) -> a1.getName().compareTo(a2.getName()));
     return children;
   }
 
@@ -151,26 +143,23 @@ class ResolvedDependenciesTreeRootNode extends AbstractRootNode<PsAndroidModule>
     // Key: variant name
     final Map<String, PsDependencyContainer> containerWithMainArtifact = Maps.newHashMap();
 
-    module.forEachDependency(new Predicate<PsAndroidDependency>() {
-      @Override
-      public boolean apply(@Nullable PsAndroidDependency dependency) {
-        if (dependency == null) {
-          return false;
-        }
-        Set<PsDependencyContainer> containers = dependency.getContainers();
-        for (PsDependencyContainer container : containers) {
-          if (container.getArtifact().equals(ARTIFACT_MAIN)) {
-            containerWithMainArtifact.put(container.getVariant(), container);
-          }
-          List<PsAndroidDependency> containerDependencies = dependenciesByContainer.get(container);
-          if (containerDependencies == null) {
-            containerDependencies = new SortedList<PsAndroidDependency>(PsAndroidDependencyComparator.INSTANCE);
-            dependenciesByContainer.put(container, containerDependencies);
-          }
-          containerDependencies.add(dependency);
-        }
-        return true;
+    module.forEachDependency(dependency -> {
+      if (dependency == null) {
+        return false;
       }
+      Set<PsDependencyContainer> containers = dependency.getContainers();
+      for (PsDependencyContainer container : containers) {
+        if (container.getArtifact().equals(ARTIFACT_MAIN)) {
+          containerWithMainArtifact.put(container.getVariant(), container);
+        }
+        List<PsAndroidDependency> containerDependencies = dependenciesByContainer.get(container);
+        if (containerDependencies == null) {
+          containerDependencies = new SortedList<>(PsAndroidDependencyComparator.INSTANCE);
+          dependenciesByContainer.put(container, containerDependencies);
+        }
+        containerDependencies.add(dependency);
+      }
+      return true;
     });
 
     List<List<PsDependencyContainer>> containerGroups = Lists.newArrayList();
@@ -273,31 +262,28 @@ class ResolvedDependenciesTreeRootNode extends AbstractRootNode<PsAndroidModule>
     // [Inner map] key: artifact name, value: dependencies
     final Map<String, Map<String, List<PsAndroidDependency>>> dependenciesByVariantAndArtifact = Maps.newHashMap();
 
-    module.forEachDependency(new Predicate<PsAndroidDependency>() {
-      @Override
-      public boolean apply(@Nullable PsAndroidDependency dependency) {
-        if (dependency == null || !dependency.isDeclared()) {
-          return false; // Only show "declared" dependencies as top-level dependencies.
-        }
-        for (PsDependencyContainer container : dependency.getContainers()) {
-          Map<String, List<PsAndroidDependency>> dependenciesByArtifact =
-            dependenciesByVariantAndArtifact.get(container.getVariant());
-
-          if (dependenciesByArtifact == null) {
-            dependenciesByArtifact = Maps.newHashMap();
-            dependenciesByVariantAndArtifact.put(container.getVariant(), dependenciesByArtifact);
-          }
-
-          List<PsAndroidDependency> artifactDependencies = dependenciesByArtifact.get(container.getArtifact());
-          if (artifactDependencies == null) {
-            artifactDependencies = Lists.newArrayList();
-            dependenciesByArtifact.put(container.getArtifact(), artifactDependencies);
-          }
-
-          artifactDependencies.add(dependency);
-        }
-        return true;
+    module.forEachDependency(dependency -> {
+      if (dependency == null || !dependency.isDeclared()) {
+        return false; // Only show "declared" dependencies as top-level dependencies.
       }
+      for (PsDependencyContainer container : dependency.getContainers()) {
+        Map<String, List<PsAndroidDependency>> dependenciesByArtifact =
+          dependenciesByVariantAndArtifact.get(container.getVariant());
+
+        if (dependenciesByArtifact == null) {
+          dependenciesByArtifact = Maps.newHashMap();
+          dependenciesByVariantAndArtifact.put(container.getVariant(), dependenciesByArtifact);
+        }
+
+        List<PsAndroidDependency> artifactDependencies = dependenciesByArtifact.get(container.getArtifact());
+        if (artifactDependencies == null) {
+          artifactDependencies = Lists.newArrayList();
+          dependenciesByArtifact.put(container.getArtifact(), artifactDependencies);
+        }
+
+        artifactDependencies.add(dependency);
+      }
+      return true;
     });
 
     List<String> variantNames = Lists.newArrayList(dependenciesByVariantAndArtifact.keySet());
