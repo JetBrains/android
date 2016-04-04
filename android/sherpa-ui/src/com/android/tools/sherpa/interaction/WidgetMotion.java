@@ -73,11 +73,13 @@ public class WidgetMotion {
      * @param snap        true if we want to snap this widget against others
      * @param isShiftDown true if the shift button is pressed
      * @param transform   the view transform
+     * @return the type of direction (locked in x/y or not)
      */
-    public void dragWidget(Point startPoint, Selection.Element widget, int x, int y, boolean snap,
+    public int dragWidget(Point startPoint, Selection.Element widget, int x, int y, boolean snap,
             boolean isShiftDown, ViewTransform transform) {
+        int directionLockedStatus = Selection.DIRECTION_UNLOCKED;
         if (widget == null) {
-            return;
+            return directionLockedStatus;
         }
         Animator.setAnimationEnabled(false);
         int dX = startPoint.x - widget.origin.x;
@@ -95,8 +97,10 @@ public class WidgetMotion {
                     if (dragX > dragY) {
                         // lock in x
                         widget.directionLocked = Selection.DIRECTION_LOCKED_X;
+                        directionLockedStatus = Selection.DIRECTION_LOCKED_X;
                     } else {
                         widget.directionLocked = Selection.DIRECTION_LOCKED_Y;
+                        directionLockedStatus = Selection.DIRECTION_LOCKED_Y;
                     }
                 } else {
                     snap = false; // prevent snapping while we are figuring out the locked axis
@@ -147,6 +151,7 @@ public class WidgetMotion {
                     .gatherMargins(mWidgetsScene.getWidgets(), mSimilarMargins,
                             candidate.margin, candidate.source.isVerticalAnchor());
         }
+        return directionLockedStatus;
     }
 
     /**

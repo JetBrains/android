@@ -464,10 +464,11 @@ public class MouseInteraction {
      *
      * @param x mouse x coordinate
      * @param y mouse y coordinate
+     * @return the type of direction (locked in x/y or not)
      */
-    public void mouseDragged(int x, int y) {
+    public int mouseDragged(int x, int y) {
         mLastMousePosition.setLocation(x, y);
-
+        int directionLockedStatus = Selection.DIRECTION_UNLOCKED;
         switch (mMouseMode) {
             case MOVE: {
                 if (!mSelection.isEmpty()) {
@@ -476,13 +477,14 @@ public class MouseInteraction {
                     if (!mSelection.hasSingleElement() && mSelection.getSelectionBounds() != null) {
                         Selection.Element bounds = mSelection.getSelectionBounds();
                         bounds.widget.setParent(mWidgetsScene.getRoot());
-                        mWidgetMotion.dragWidget(getStartPoint(), bounds,
+                        directionLockedStatus = mWidgetMotion.dragWidget(getStartPoint(), bounds,
                                 x, y, true, isShiftDown(), mViewTransform);
                         mSelection.updatePositionsFromBounds();
                     } else {
                         for (Selection.Element selection : mSelection.getElements()) {
-                            mWidgetMotion.dragWidget(getStartPoint(), selection, x, y,
-                                    snapPosition, isShiftDown(), mViewTransform);
+                            directionLockedStatus =
+                                    mWidgetMotion.dragWidget(getStartPoint(), selection, x, y,
+                                            snapPosition, isShiftDown(), mViewTransform);
                             mSelection.addModifiedWidget(selection.widget);
                         }
                     }
@@ -570,6 +572,7 @@ public class MouseInteraction {
             }
             break;
         }
+        return directionLockedStatus;
     }
 
     /**
@@ -618,14 +621,15 @@ public class MouseInteraction {
      * Mouse dragged handling
      *
      * @param e mouse event
+     * @return the type of direction (locked in x/y or not)
      */
-    public void mouseDragged(MouseEvent e) {
+    public int mouseDragged(MouseEvent e) {
         mIsControlDown = e.isControlDown();
         mIsShiftDown = e.isShiftDown();
         mIsAltDown = e.isAltDown();
         int x = mViewTransform.getAndroidX(e.getX());
         int y = mViewTransform.getAndroidY(e.getY());
-        mouseDragged(x, y);
+        return mouseDragged(x, y);
     }
 
     /**
