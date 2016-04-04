@@ -84,8 +84,7 @@ public class ProjectStructureConfigurable extends BaseConfigurable
 
   private final JLabel myEmptySelection = new JLabel("<html><body><center>Select a setting to view or edit its details here</center></body></html>",
                                                      SwingConstants.CENTER);
-  private final Disposable myDisposable = () -> {
-  };
+  private MyDisposable myDisposable = new MyDisposable();
 
   @NotNull
   public static ProjectStructureConfigurable getInstance(@NotNull Project project) {
@@ -347,6 +346,9 @@ public class ProjectStructureConfigurable extends BaseConfigurable
       }
     }
 
+    if (myDisposable.disposed) {
+      myDisposable = new MyDisposable();
+    }
     for (MainGroupConfigurableContributor contributor : MainGroupConfigurableContributor.EP_NAME.getExtensions()) {
       contributor.getConfigurables(myProject, myDisposable).forEach(this::addConfigurable);
     }
@@ -470,5 +472,14 @@ public class ProjectStructureConfigurable extends BaseConfigurable
     public float proportion;
     public float sideProportion;
     @Nullable public String lastEditedConfigurable;
+  }
+
+  private static class MyDisposable implements Disposable {
+    volatile boolean disposed;
+
+    @Override
+    public void dispose() {
+      disposed = true;
+    }
   }
 }
