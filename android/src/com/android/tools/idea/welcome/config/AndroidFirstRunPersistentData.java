@@ -16,16 +16,17 @@
 package com.android.tools.idea.welcome.config;
 
 import com.google.common.base.Objects;
-import com.intellij.openapi.components.*;
+import com.intellij.openapi.components.PersistentStateComponent;
+import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.components.State;
+import com.intellij.openapi.components.Storage;
 import com.intellij.util.xmlb.annotations.Tag;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * Store for persistent Android first run data.
  */
-@State(
-  name = "AndroidFirstRunPersistentData",
-  storages = {@Storage(file = StoragePathMacros.APP_CONFIG + "/androidStudioFirstRun.xml")})
+@State(name = "AndroidFirstRunPersistentData", storages = @Storage("androidStudioFirstRun.xml"))
 public class AndroidFirstRunPersistentData implements PersistentStateComponent<AndroidFirstRunPersistentData.FirstRunData> {
   private static final int CURRENT_SDK_UPDATE_VERSION = 1;
 

@@ -38,6 +38,7 @@ import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Key;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -50,6 +51,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 public class RunHprofConvAndSaveAsAction extends DumbAwareAction {
   public RunHprofConvAndSaveAsAction() {
@@ -127,10 +130,9 @@ public class RunHprofConvAndSaveAsAction extends DumbAwareAction {
       }
 
       String hprofConvPath = new File(sdkData.getLocation(), AndroidCommonUtils.platformToolPath(SdkConstants.FN_HPROF_CONV)).getPath();
-      ProcessBuilder pb =
-        new ProcessBuilder(hprofConvPath, VfsUtilCore.virtualToIoFile(mySource).getAbsolutePath(), myDestination.getAbsolutePath());
-      BaseOSProcessHandler handler;
-      handler = new BaseOSProcessHandler(pb.start(), "", null);
+      List<String> commandLine = Arrays.asList(hprofConvPath, VfsUtilCore.virtualToIoFile(mySource).getAbsolutePath(), myDestination.getAbsolutePath());
+      ProcessBuilder pb = new ProcessBuilder(commandLine);
+      BaseOSProcessHandler handler = new BaseOSProcessHandler(pb.start(), StringUtil.join(commandLine, " "), null);
       final StringBuilder builder = new StringBuilder();
       handler.addProcessListener(new ProcessAdapter() {
         @Override

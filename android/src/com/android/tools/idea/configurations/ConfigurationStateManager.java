@@ -37,12 +37,7 @@ import java.util.Map;
  * The {@linkplain ConfigurationStateManager} is responsible for papering over these
  * differences and providing persistence for configuration changes.
  */
-@State(
-  name = "AndroidLayouts",
-  storages = {
-    @Storage(id = "AndroidLayouts", file = StoragePathMacros.WORKSPACE_FILE)
-  }
-)
+@State(name = "AndroidLayouts", storages = @Storage(StoragePathMacros.WORKSPACE_FILE))
 public class ConfigurationStateManager implements PersistentStateComponent<ConfigurationStateManager.State> {
   private final Map<VirtualFile, ConfigurationFileState> myFileToState = new HashMap<VirtualFile, ConfigurationFileState>();
   private ConfigurationProjectState myProjectState = new ConfigurationProjectState();

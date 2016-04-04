@@ -23,6 +23,7 @@ import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.components.JBTextField;
@@ -86,7 +87,7 @@ public class RenameCaptureFileAction extends DumbAwareAction {
       myInput.getDocument().addDocumentListener(new DocumentAdapter() {
         @Override
         public void textChanged(DocumentEvent documentEvent) {
-          boolean isValid = VirtualFile.isValidName(myInput.getText().trim());
+          boolean isValid = StandardFileSystems.local().isValidName(myInput.getText().trim());
           setErrorText(isValid ? null : String.format("'%1$s' is not valid", myInput.getText()));
           myOKAction.setEnabled(isValid);
         }

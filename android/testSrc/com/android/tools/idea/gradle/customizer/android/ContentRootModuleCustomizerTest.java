@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.ContentRootSourcePaths;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
@@ -103,6 +104,12 @@ public class ContentRootModuleCustomizerTest extends IdeaTestCase {
     try {
       myCustomizer.customizeModule(myProject, myModule, modelsProvider, myAndroidModel);
       modelsProvider.commit();
+      ApplicationManager.getApplication().runWriteAction(new Runnable() {
+        @Override
+        public void run() {
+          modelsProvider.commit();
+        }
+      });
     }
     catch (Throwable t) {
       modelsProvider.dispose();

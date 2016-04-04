@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.GradleModel;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -79,16 +80,21 @@ public class GradleUtilIdeaTest extends IdeaTestCase {
 
     GradleModel gradleModel = GradleModel.create(myModule.getName(), project, myBuildFile, "2.2.1");
 
-    FacetManager facetManager = FacetManager.getInstance(myModule);
-    ModifiableFacetModel model = facetManager.createModifiableModel();
-    try {
-      AndroidGradleFacet facet = facetManager.createFacet(AndroidGradleFacet.getFacetType(), AndroidGradleFacet.NAME, null);
-      model.addFacet(facet);
-      facet.setGradleModel(gradleModel);
-    }
-    finally {
-      model.commit();
-    }
+    final FacetManager facetManager = FacetManager.getInstance(myModule);
+    ApplicationManager.getApplication().runWriteAction(new Runnable() {
+      @Override
+      public void run() {
+        ModifiableFacetModel model = facetManager.createModifiableModel();
+        try {
+          AndroidGradleFacet facet = facetManager.createFacet(AndroidGradleFacet.getFacetType(), AndroidGradleFacet.NAME, null);
+          model.addFacet(facet);
+          facet.setGradleModel(gradleModel);
+        }
+        finally {
+          model.commit();
+        }
+      }
+    });
 
     VirtualFile buildFile = GradleUtil.getGradleBuildFile(myModule);
     assertIsGradleBuildFile(buildFile);
