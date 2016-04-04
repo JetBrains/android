@@ -298,6 +298,7 @@ public abstract class CreateResourceActionBase extends AnAction {
       return myCreatedElements.length > 0;
     }
 
+    @NotNull
     @Override
     public final PsiElement[] getCreatedElements() {
       return myCreatedElements;

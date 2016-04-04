@@ -28,7 +28,6 @@ import com.intellij.CommonBundle;
 import com.intellij.application.options.ModulesComboBox;
 import com.intellij.ide.actions.TemplateKindCombo;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
@@ -53,7 +52,7 @@ import java.awt.event.ActionListener;
 import java.util.*;
 import java.util.List;
 
-public class CreateResourceFileDialog extends DialogWrapper {
+public class CreateResourceFileDialog extends CreateResourceFileDialogBase {
   private JTextField myFileNameField;
   private TemplateKindCombo myResourceTypeCombo;
   private JPanel myPanel;
@@ -71,7 +70,7 @@ public class CreateResourceFileDialog extends DialogWrapper {
   private JBLabel mySourceSetLabel;
   private TextFieldWithAutoCompletion<String> myRootElementField;
   private ElementCreatingValidator myValidator;
-  private ValidatorFactory myValidatorFactory;
+  private CreateResourceFileDialogBase.ValidatorFactory myValidatorFactory;
 
   private final Map<ResourceFolderType, CreateTypedResourceFileAction> myResType2ActionMap = Maps.newEnumMap(ResourceFolderType.class);
   private final DeviceConfiguratorPanel myDeviceConfiguratorPanel;
@@ -80,14 +79,14 @@ public class CreateResourceFileDialog extends DialogWrapper {
 
   public CreateResourceFileDialog(@NotNull AndroidFacet facet,
                                   Collection<CreateTypedResourceFileAction> actions,
-                                  @Nullable ResourceFolderType predefinedResourceType,
-                                  @Nullable String predefinedFileName,
-                                  @Nullable String predefinedRootElement,
-                                  @Nullable FolderConfiguration predefinedConfig,
+                                  @Nullable ResourceFolderType folderType,
+                                  @Nullable String filename,
+                                  @Nullable String rootElement,
+                                  @Nullable FolderConfiguration folderConfiguration,
                                   boolean chooseFileName,
                                   boolean chooseModule,
                                   @Nullable PsiDirectory resDirectory,
-                                  @NotNull ValidatorFactory validatorFactory) {
+                                  @NotNull CreateResourceFileDialogBase.ValidatorFactory validatorFactory) {
     super(facet.getModule().getProject());
     Module module = facet.getModule();
     myFacet = facet;
@@ -113,7 +112,7 @@ public class CreateResourceFileDialog extends DialogWrapper {
       myResType2ActionMap.put(resType, action);
       myResourceTypeCombo.addItem(action.toString(), null, resType.getName());
 
-      if (predefinedResourceType != null && predefinedResourceType == resType) {
+      if (folderType != null && folderType == resType) {
         selectedTemplate = resType.getName();
       }
     }
@@ -139,8 +138,8 @@ public class CreateResourceFileDialog extends DialogWrapper {
         updateOkAction();
       }
     };
-    if (predefinedConfig != null) {
-      myDeviceConfiguratorPanel.init(predefinedConfig);
+    if (folderConfiguration != null) {
+      myDeviceConfiguratorPanel.init(folderConfiguration);
     }
 
     myResourceTypeCombo.getComboBox().addActionListener(new ActionListener() {
@@ -151,8 +150,8 @@ public class CreateResourceFileDialog extends DialogWrapper {
       }
     });
 
-    if (predefinedResourceType != null && selectedTemplate != null) {
-      final boolean v = predefinedResourceType == ResourceFolderType.LAYOUT;
+    if (folderType != null && selectedTemplate != null) {
+      final boolean v = folderType == ResourceFolderType.LAYOUT;
       myRootElementLabel.setVisible(v);
       myRootElementFieldWrapper.setVisible(v);
 
@@ -166,21 +165,21 @@ public class CreateResourceFileDialog extends DialogWrapper {
     }
 
     if (chooseFileName) {
-      predefinedFileName = ResourceHelper.prependResourcePrefix(module, predefinedFileName);
+      filename = ResourceHelper.prependResourcePrefix(module, filename);
     }
 
     boolean validateImmediately = false;
-    if (predefinedFileName != null && getNameError(predefinedFileName) != null) {
+    if (filename != null && getNameError(filename) != null) {
       chooseFileName = true;
       validateImmediately = true;
     }
 
-    if (predefinedFileName != null) {
+    if (filename != null) {
       if (!chooseFileName) {
         myFileNameField.setVisible(false);
         myFileNameLabel.setVisible(false);
       }
-      myFileNameField.setText(predefinedFileName);
+      myFileNameField.setText(filename);
     }
 
     final Set<Module> modulesSet = new HashSet<Module>();
@@ -206,10 +205,10 @@ public class CreateResourceFileDialog extends DialogWrapper {
     updateOkAction();
     updateRootElementTextField();
 
-    if (predefinedRootElement != null) {
+    if (rootElement != null) {
       myRootElementLabel.setVisible(false);
       myRootElementFieldWrapper.setVisible(false);
-      myRootElementField.setText(predefinedRootElement);
+      myRootElementField.setText(rootElement);
     }
     init();
 
@@ -322,14 +321,10 @@ public class CreateResourceFileDialog extends DialogWrapper {
     }
   }
 
+  @NotNull
+  @Override
   public PsiElement[] getCreatedElements() {
     return myValidator != null ? myValidator.getCreatedElements() : PsiElement.EMPTY_ARRAY;
-  }
-
-  public interface ValidatorFactory {
-    @NotNull
-    ElementCreatingValidator create(@NotNull PsiDirectory resourceDirectory, @NotNull String subdirName,
-                                    @Nullable String rootElement);
   }
 
   @Override

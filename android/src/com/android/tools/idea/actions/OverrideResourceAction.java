@@ -436,14 +436,14 @@ public class OverrideResourceAction extends AbstractIntentionAction {
       return directory.createSubdirectory(ourTargetFolderName);
     }
     CreateResourceDirectoryDialog dialog = new CreateResourceDirectoryDialog(
-      project, folderType, directory, null, null,
+      project, null, folderType, directory, null,
       resDirectory -> new ResourceDirectorySelector(project, resDirectory));
     dialog.setTitle("Select Resource Directory");
     if (!dialog.showAndGet()) {
       return null;
     }
     PsiElement[] createdElements = dialog.getCreatedElements();
-    if (createdElements != null && createdElements.length > 0) {
+    if (createdElements.length > 0) {
       return (PsiDirectory)createdElements[0];
     }
 
@@ -503,6 +503,7 @@ public class OverrideResourceAction extends AbstractIntentionAction {
       return myCreatedElements.length > 0;
     }
 
+    @NotNull
     @Override
     public final PsiElement[] getCreatedElements() {
       return myCreatedElements;

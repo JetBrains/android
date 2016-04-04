@@ -22,7 +22,6 @@ import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
@@ -42,9 +41,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 /**
- * @author Eugene.Kudelevsky
+ * Dialog to decide where to create a res/ subdirectory (e.g., layout/, values-foo/, etc.)
+ * and how to name it (based on chosen configuration)
  */
-public class CreateResourceDirectoryDialog extends DialogWrapper {
+public class CreateResourceDirectoryDialog extends CreateResourceDirectoryDialogBase {
   private JComboBox myResourceTypeComboBox;
   private JPanel myDeviceConfiguratorWrapper;
   private JTextField myDirectoryNameTextField;
@@ -59,9 +59,9 @@ public class CreateResourceDirectoryDialog extends DialogWrapper {
   private PsiDirectory myResDirectory;
   private DataContext myDataContext;
 
-  public CreateResourceDirectoryDialog(@NotNull Project project, @Nullable ResourceFolderType resType,
+  public CreateResourceDirectoryDialog(@NotNull Project project, @Nullable Module module, @Nullable ResourceFolderType resType,
                                        @Nullable PsiDirectory resDirectory, @Nullable DataContext dataContext,
-                                       @Nullable Module module, @NotNull ValidatorFactory validatorFactory) {
+                                       @NotNull ValidatorFactory validatorFactory) {
     super(project);
     myResDirectory = resDirectory;
     myDataContext = dataContext;
@@ -138,11 +138,6 @@ public class CreateResourceDirectoryDialog extends DialogWrapper {
   }
 
 
-  public interface ValidatorFactory {
-    @NotNull
-    ElementCreatingValidator create(@NotNull PsiDirectory resourceDirectory);
-  }
-
   @Nullable
   @Override
   protected String getHelpId() {
@@ -164,6 +159,8 @@ public class CreateResourceDirectoryDialog extends DialogWrapper {
     }
   }
 
+  @Override
+  @NotNull
   public PsiElement[] getCreatedElements() {
     return myValidator != null ? myValidator.getCreatedElements() : PsiElement.EMPTY_ARRAY;
   }
