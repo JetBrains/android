@@ -106,12 +106,7 @@ public class PsDaemonAnalyzer implements Disposable {
         result.setResult(ActionCallback.DONE);
       }
     }.execute();
-    result.getResultObject().doWhenDone(new Runnable() {
-      @Override
-      public void run() {
-        myResultsUpdaterQueue.queue(new PsIssuesComputedUpdate(model));
-      }
-    });
+    result.getResultObject().doWhenDone(() -> myResultsUpdaterQueue.queue(new PsIssuesComputedUpdate(model)));
   }
 
   public void reset() {

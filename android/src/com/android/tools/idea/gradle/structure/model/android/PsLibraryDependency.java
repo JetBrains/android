@@ -27,7 +27,6 @@ import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import com.intellij.util.containers.Predicate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -124,26 +123,23 @@ public class PsLibraryDependency extends PsAndroidDependency {
 
   private void findRequestingModuleDependencies(@NotNull PsAndroidModule module, @NotNull final Collection<String> found) {
     final PsProject project = module.getParent();
-    module.forEachModuleDependency(new Predicate<PsModuleDependency>() {
-      @Override
-      public boolean apply(@Nullable PsModuleDependency moduleDependency) {
-        if (moduleDependency == null) {
-          return false;
-        }
-        String gradlePath = moduleDependency.getGradlePath();
-        PsModule foundModule = project.findModuleByGradlePath(gradlePath);
-        if (foundModule instanceof PsAndroidModule) {
-          PsAndroidModule androidModule = (PsAndroidModule)foundModule;
-
-          PsLibraryDependency libraryDependency = androidModule.findLibraryDependency(myResolvedSpec);
-          if (libraryDependency != null && libraryDependency.isDeclared()) {
-            found.add(androidModule.getName());
-          }
-
-          findRequestingModuleDependencies(androidModule, found);
-        }
-        return true;
+    module.forEachModuleDependency(moduleDependency -> {
+      if (moduleDependency == null) {
+        return false;
       }
+      String gradlePath = moduleDependency.getGradlePath();
+      PsModule foundModule = project.findModuleByGradlePath(gradlePath);
+      if (foundModule instanceof PsAndroidModule) {
+        PsAndroidModule androidModule = (PsAndroidModule)foundModule;
+
+        PsLibraryDependency libraryDependency = androidModule.findLibraryDependency(myResolvedSpec);
+        if (libraryDependency != null && libraryDependency.isDeclared()) {
+          found.add(androidModule.getName());
+        }
+
+        findRequestingModuleDependencies(androidModule, found);
+      }
+      return true;
     });
   }
 

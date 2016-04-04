@@ -18,14 +18,11 @@ package com.android.tools.idea.gradle.structure.configurables.android.dependenci
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsModelNode;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.PsProject;
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.android.tools.idea.gradle.structure.model.android.PsModuleDependency;
 import com.google.common.collect.Lists;
 import com.intellij.ui.treeStructure.SimpleNode;
-import com.intellij.util.containers.Predicate;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -53,24 +50,21 @@ public class ModuleDependencyNode extends AbstractDependencyNode<PsModuleDepende
     PsModule referred = project.findModuleByGradlePath(moduleDependency.getGradlePath());
     if (referred instanceof PsAndroidModule) {
       PsAndroidModule androidModule = (PsAndroidModule)referred;
-      androidModule.forEachDependency(new Predicate<PsAndroidDependency>() {
-        @Override
-        public boolean apply(@Nullable PsAndroidDependency dependency) {
-          if (dependency == null || !dependency.isDeclared()) {
-            return false; // Only show "declared" dependencies as top-level dependencies.
-          }
-          String moduleVariant = moduleDependency.getModuleVariant();
-          if (!dependency.isIn(ARTIFACT_MAIN, moduleVariant)) {
-            return false; // Only show the dependencies in the main artifact.
-          }
-
-          AbstractPsModelNode<?> child = AbstractDependencyNode.createNode(ModuleDependencyNode.this, dependency);
-          if (child != null) {
-            myChildren.add(child);
-            return true;
-          }
-          return false;
+      androidModule.forEachDependency(dependency -> {
+        if (dependency == null || !dependency.isDeclared()) {
+          return false; // Only show "declared" dependencies as top-level dependencies.
         }
+        String moduleVariant = moduleDependency.getModuleVariant();
+        if (!dependency.isIn(ARTIFACT_MAIN, moduleVariant)) {
+          return false; // Only show the dependencies in the main artifact.
+        }
+
+        AbstractPsModelNode<?> child = AbstractDependencyNode.createNode(this, dependency);
+        if (child != null) {
+          myChildren.add(child);
+          return true;
+        }
+        return false;
       });
     }
   }

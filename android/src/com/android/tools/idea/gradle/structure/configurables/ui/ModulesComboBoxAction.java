@@ -23,9 +23,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.project.DumbAwareAction;
-import com.intellij.util.containers.Predicate;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.util.List;
@@ -56,15 +54,12 @@ public class ModulesComboBoxAction extends LabeledComboBoxAction {
       group.add(new ModuleAction(module));
     }
 
-    myContext.getProject().forEachModule(new Predicate<PsModule>() {
-      @Override
-      public boolean apply(@Nullable PsModule module) {
-        if (module == null) {
-          return false;
-        }
-        group.add(new ModuleAction(module));
-        return true;
+    myContext.getProject().forEachModule(module -> {
+      if (module == null) {
+        return false;
       }
+      group.add(new ModuleAction(module));
+      return true;
     });
     return group;
   }

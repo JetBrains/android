@@ -31,9 +31,7 @@ import com.android.tools.idea.gradle.structure.model.android.PsModuleDependency;
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.intellij.util.containers.Predicate;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.List;
@@ -50,15 +48,12 @@ class DeclaredDependenciesTreeRootNode extends AbstractRootNode<PsProject> {
     final DeclaredDependencyCollector collector = new DeclaredDependencyCollector();
 
     PsProject project = getModels().get(0);
-    project.forEachModule(new Predicate<PsModule>() {
-      @Override
-      public boolean apply(@Nullable PsModule module) {
-        if (module == null) {
-          return false;
-        }
-        collectDeclaredDependencies(module, collector);
-        return true;
+    project.forEachModule(module -> {
+      if (module == null) {
+        return false;
       }
+      collectDeclaredDependencies(module, collector);
+      return true;
     });
 
     List<AbstractDependencyNode> children = Lists.newArrayList();
@@ -79,15 +74,12 @@ class DeclaredDependenciesTreeRootNode extends AbstractRootNode<PsProject> {
   private static void collectDeclaredDependencies(@NotNull PsModule module, @NotNull final DeclaredDependencyCollector collector) {
     if (module instanceof PsAndroidModule) {
       PsAndroidModule androidModule = (PsAndroidModule)module;
-      androidModule.forEachDeclaredDependency(new Predicate<PsAndroidDependency>() {
-        @Override
-        public boolean apply(@Nullable PsAndroidDependency dependency) {
-          if (dependency == null) {
-            return false;
-          }
-          collector.add(dependency);
-          return true;
+      androidModule.forEachDeclaredDependency(dependency -> {
+        if (dependency == null) {
+          return false;
         }
+        collector.add(dependency);
+        return true;
       });
     }
   }

@@ -28,7 +28,6 @@ import com.android.tools.idea.gradle.structure.model.android.PsLibraryDependency
 import com.android.tools.idea.gradle.structure.model.android.PsModuleDependency;
 import com.google.common.collect.Lists;
 import com.intellij.ui.SimpleTextAttributes;
-import com.intellij.util.containers.Predicate;
 import com.intellij.util.ui.ColumnInfo;
 import com.intellij.util.ui.ListTableModel;
 import org.jetbrains.annotations.NotNull;
@@ -55,12 +54,9 @@ class DeclaredDependenciesTableModel extends ListTableModel<PsAndroidDependency>
     myContext = context;
     createAndSetColumnInfos();
     final List<PsAndroidDependency> dependencies = Lists.newArrayList();
-    module.forEachDeclaredDependency(new Predicate<PsAndroidDependency>() {
-      @Override
-      public boolean apply(@Nullable PsAndroidDependency dependency) {
-        dependencies.add(dependency);
-        return true;
-      }
+    module.forEachDeclaredDependency(dependency -> {
+      dependencies.add(dependency);
+      return true;
     });
     Collections.sort(dependencies, PsAndroidDependencyComparator.INSTANCE);
     setItems(dependencies);

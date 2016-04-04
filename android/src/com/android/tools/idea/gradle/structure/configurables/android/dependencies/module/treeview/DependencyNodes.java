@@ -32,6 +32,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.android.tools.idea.gradle.structure.model.PsParsedDependencies.isDependencyInArtifact;
 
@@ -44,7 +45,7 @@ final class DependencyNodes {
                                                      @NotNull Collection<PsAndroidDependency> dependencies) {
     List<AbstractPsModelNode<?>> children = Lists.newArrayList();
 
-    List<PsAndroidDependency> declared = new SortedList<PsAndroidDependency>(PsAndroidDependencyComparator.INSTANCE);
+    List<PsAndroidDependency> declared = new SortedList<>(PsAndroidDependencyComparator.INSTANCE);
     Multimap<PsAndroidDependency, PsAndroidDependency> allTransitive = HashMultimap.create();
     List<PsAndroidDependency> mayBeTransitive = Lists.newArrayList();
 
@@ -70,11 +71,9 @@ final class DependencyNodes {
     }
 
     Collection<PsAndroidDependency> uniqueTransitives = allTransitive.values();
-    for (PsAndroidDependency dependency : mayBeTransitive) {
-      if (!uniqueTransitives.contains(dependency)) {
-        declared.add(dependency);
-      }
-    }
+    declared.addAll(mayBeTransitive.stream()
+                                   .filter(dependency -> !uniqueTransitives.contains(dependency))
+                                   .collect(Collectors.toList()));
 
     for (PsAndroidDependency dependency : declared) {
       AbstractDependencyNode<?> child = AbstractDependencyNode.createNode(parent, dependency);
