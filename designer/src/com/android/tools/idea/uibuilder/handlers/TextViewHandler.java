@@ -15,14 +15,13 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.util.text.StringUtil;
 import org.intellij.lang.annotations.Language;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
 
@@ -32,22 +31,16 @@ import static com.android.SdkConstants.*;
  * Handler for several widgets that have a {@code text} attribute.
  */
 public class TextViewHandler extends ViewHandler {
-  // A list of components that have an android:text attribute.
-  private static final Set<String> HAVE_TEXT_ATTRIBUTE = ImmutableSet
-    .of(AUTO_COMPLETE_TEXT_VIEW, BUTTON, CHECK_BOX, CHECKED_TEXT_VIEW, EDIT_TEXT, MULTI_AUTO_COMPLETE_TEXT_VIEW, RADIO_BUTTON, SWITCH,
-        TEXT_VIEW, TOGGLE_BUTTON);
   private static final Set<String> HAVE_REDUCED_SCALE_IN_PREVIEW =
     ImmutableSet.of(AUTO_COMPLETE_TEXT_VIEW, EDIT_TEXT, MULTI_AUTO_COMPLETE_TEXT_VIEW);
 
-  // Display the android:text attribute if this component has such an attribute.
   @NotNull
   @Override
   public String getTitleAttributes(@NotNull NlComponent component) {
-    if (hasTextAttribute(component.getTagName())) {
-      String text = component.getAttribute(ANDROID_URI, ATTR_TEXT);
-      if (!StringUtil.isEmpty(text)) {
-        return String.format("- \"%1$s\"", text);
-      }
+    String text = component.getAttribute(ANDROID_URI, ATTR_TEXT);
+    if (!StringUtil.isEmpty(text)) {
+      // Display the android:text attribute if this component has such an attribute.
+      return String.format("- \"%1$s\"", text);
     }
     return super.getTitleAttributes(component);
   }
@@ -70,9 +63,5 @@ public class TextViewHandler extends ViewHandler {
       return 0.8;
     }
     return super.getPreviewScale(tagName);
-  }
-
-  public static boolean hasTextAttribute(@NotNull String tagName) {
-    return HAVE_TEXT_ATTRIBUTE.contains(tagName);
   }
 }
