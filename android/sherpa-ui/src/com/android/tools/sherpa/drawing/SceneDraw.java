@@ -19,7 +19,9 @@ package com.android.tools.sherpa.drawing;
 import com.android.tools.sherpa.animation.AnimatedCircle;
 import com.android.tools.sherpa.animation.AnimatedColor;
 import com.android.tools.sherpa.animation.AnimatedConnection;
+import com.android.tools.sherpa.animation.AnimatedHoverAnchor;
 import com.android.tools.sherpa.animation.AnimatedLine;
+import com.android.tools.sherpa.animation.Animation;
 import com.android.tools.sherpa.animation.AnimationSet;
 import com.android.tools.sherpa.animation.Choreographer;
 import com.android.tools.sherpa.drawing.decorator.ColorTheme;
@@ -74,6 +76,7 @@ public class SceneDraw {
     // Animations
     private Choreographer mChoreographer = new Choreographer();
 
+    private Animation mAnimationCurrentAnchor = null;
     private AnimationSet mAnimationCandidateAnchors = new AnimationSet();
     private AnimationSet mAnimationCreatedConstraints = new AnimationSet();
 
@@ -86,6 +89,7 @@ public class SceneDraw {
     private AnimatedColor mDarkToNormal = new AnimatedColor(
             SceneDraw.DarkBlueprintBackground,
             SceneDraw.BlueprintBackground);
+    private ConstraintAnchor mCurrentUnderneathAnchor;
 
     public static void generateColors() {
         BlueprintBackgroundLines = ColorTheme.updateBrightness(BlueprintBackground, 1.06f);
@@ -368,6 +372,26 @@ public class SceneDraw {
     }
 
     /**
+     * Utility function returning the size of an anchor depending on the current scale factor
+     *
+     * @param scale the current scale factor
+     * @return the size of the anchor, in Dp
+     */
+    public static float getAnchorSize(float scale) {
+        float size = 6;
+        if (scale < 2f) {
+            size = 5;
+            if (scale < 1.8f) {
+                size = 4;
+            }
+            if (scale < 1.4f) {
+                size = 3;
+            }
+        }
+        return size;
+    }
+
+    /**
      * Main painting function
      *
      * @param width              width of the canvas we paint on
@@ -393,17 +417,7 @@ public class SceneDraw {
         root.layout();
 
         // Adapt the anchor size
-        if (transform.getScale() < 2f) {
-            ConnectionDraw.CONNECTION_ANCHOR_SIZE = 5;
-            if (transform.getScale() < 1.8f) {
-                ConnectionDraw.CONNECTION_ANCHOR_SIZE = 4;
-            }
-            if (transform.getScale() < 1.4f) {
-                ConnectionDraw.CONNECTION_ANCHOR_SIZE = 3;
-            }
-        } else {
-            ConnectionDraw.CONNECTION_ANCHOR_SIZE = 6;
-        }
+        ConnectionDraw.CONNECTION_ANCHOR_SIZE = (int) getAnchorSize(transform.getScale());
 
         WidgetInteractionTargets widgetInteraction =
                 (WidgetInteractionTargets) root.getCompanionWidget();
@@ -551,4 +565,23 @@ public class SceneDraw {
         return needsRepaint;
     }
 
+    /**
+     * Start an animation for the current anchor (under the mouse)
+     *
+     * @param underneathAnchor
+     */
+    public void setCurrentUnderneathAnchor(ConstraintAnchor underneathAnchor) {
+        if (mCurrentUnderneathAnchor != underneathAnchor) {
+            mCurrentUnderneathAnchor = underneathAnchor;
+            mChoreographer.removeAnimation(mAnimationCurrentAnchor);
+            if (mCurrentUnderneathAnchor != null) {
+                ConstraintHandle constraintHandle =
+                        WidgetInteractionTargets.constraintHandle(mCurrentUnderneathAnchor);
+                mAnimationCurrentAnchor = new AnimatedHoverAnchor(constraintHandle);
+                mChoreographer.addAnimation(mAnimationCurrentAnchor);
+            } else {
+                mAnimationCurrentAnchor = null;
+            }
+        }
+    }
 }

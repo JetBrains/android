@@ -25,10 +25,8 @@ import com.android.tools.sherpa.structure.Selection;
 import com.android.tools.sherpa.structure.WidgetsScene;
 import com.google.tnt.solver.widgets.ConstraintAnchor;
 import com.google.tnt.solver.widgets.ConstraintWidget;
-import com.google.tnt.solver.widgets.ConstraintWidgetContainer;
 import com.google.tnt.solver.widgets.Guideline;
 import com.google.tnt.solver.widgets.Snapshot;
-import com.google.tnt.solver.widgets.WidgetContainer;
 
 import javax.swing.SwingUtilities;
 import java.awt.Point;
@@ -71,14 +69,16 @@ public class MouseInteraction {
     }
 
     // Represent the different mouse interaction modes
-    enum MouseMode { INACTIVE, RESIZE, MOVE, CONNECT }
+    enum MouseMode {
+        INACTIVE, RESIZE, MOVE, CONNECT
+    }
 
     private MouseMode mMouseMode = MouseMode.INACTIVE;
 
     /**
      * Base constructor
      *
-     * @param transform the view transform
+     * @param transform    the view transform
      * @param widgetsScene
      */
     public MouseInteraction(ViewTransform transform,
@@ -129,7 +129,9 @@ public class MouseInteraction {
      *
      * @param value
      */
-    public void setIsControlDown(boolean value) { mIsControlDown = value; }
+    public void setIsControlDown(boolean value) {
+        mIsControlDown = value;
+    }
 
     /**
      * Accessor for shift down check
@@ -145,7 +147,9 @@ public class MouseInteraction {
      *
      * @param value
      */
-    public void setIsShiftDown(boolean value) { mIsShiftDown = value; }
+    public void setIsShiftDown(boolean value) {
+        mIsShiftDown = value;
+    }
 
     /**
      * Accessor for alt down check
@@ -161,7 +165,9 @@ public class MouseInteraction {
      *
      * @param value
      */
-    public void setIsAltDown(boolean value) { mIsAltDown = value; }
+    public void setIsAltDown(boolean value) {
+        mIsAltDown = value;
+    }
 
     /**
      * Accessor for mouse down check
@@ -226,8 +232,9 @@ public class MouseInteraction {
 
     /**
      * Mouse press handling
-     * @param x mouse x coordinate
-     * @param y mouse y coordinate
+     *
+     * @param x            mouse x coordinate
+     * @param y            mouse y coordinate
      * @param isRightClick
      */
     public void mousePressed(float x, float y, boolean isRightClick) {
@@ -351,6 +358,7 @@ public class MouseInteraction {
         if (isRightClick) {
             mMouseMode = MouseMode.INACTIVE;
         }
+        mSceneDraw.setCurrentUnderneathAnchor(mSelection.getSelectedAnchor());
         mSceneDraw.onMousePress(mSelection.getSelectedAnchor());
     }
 
@@ -379,9 +387,11 @@ public class MouseInteraction {
                 mSelection.getSelectedAnchor().getOwner().resetAnchor(
                         mSelection.getSelectedAnchor());
                 ConstraintAnchor selectedAnchor = mSelection.getSelectedAnchor();
-                ConstraintHandle selectedHandle = WidgetInteractionTargets.constraintHandle(selectedAnchor);
+                ConstraintHandle selectedHandle =
+                        WidgetInteractionTargets.constraintHandle(selectedAnchor);
                 if (mSelection.getSelectedAnchor().getType() == ConstraintAnchor.Type.BASELINE) {
-                    mSceneDraw.getChoreographer().addAnimation(new AnimatedDestroyLine(selectedHandle));
+                    mSceneDraw.getChoreographer()
+                            .addAnimation(new AnimatedDestroyLine(selectedHandle));
                 } else {
                     mSceneDraw.getChoreographer().addAnimation(
                             new AnimatedDestroyCircle(selectedHandle));
@@ -408,12 +418,13 @@ public class MouseInteraction {
             }
         }
 
-        if (mSelection.getSelectedGuideline()  != null) {
+        if (mSelection.getSelectedGuideline() != null) {
             Rectangle head = mSelection.getSelectedGuideline().getHead();
             if (head.contains(getStartPoint().x, getStartPoint().y)) {
                 Selection.Element element = mSelection.get(mSelection.getSelectedGuideline());
                 if (element != null) {
-                    if (mSelection.getSelectedGuideline().getOrientation() == Guideline.HORIZONTAL) {
+                    if (mSelection.getSelectedGuideline().getOrientation() ==
+                            Guideline.HORIZONTAL) {
                         if (element.origin.x == mSelection.getSelectedGuideline().getDrawX()) {
                             mSelection.getSelectedGuideline().cyclePosition();
                         }
@@ -436,6 +447,7 @@ public class MouseInteraction {
             selection.directionLocked = Selection.DIRECTION_UNLOCKED;
         }
 
+        mSceneDraw.setCurrentUnderneathAnchor(null);
         mMouseMode = MouseMode.INACTIVE;
         mSelection.setSelectedAnchor(null);
         mSelection.setSelectedResizeHandle(null);
@@ -475,7 +487,8 @@ public class MouseInteraction {
                         }
                     }
                 }
-            } break;
+            }
+            break;
             case RESIZE: {
                 if (mSelection.getSelectedResizeHandle() != null) {
                     // if we have a resize handle selected, let's resize!
@@ -493,7 +506,8 @@ public class MouseInteraction {
                         mSelection.addModifiedWidget(selection.widget);
                     }
                 }
-            } break;
+            }
+            break;
             case CONNECT: {
                 if (mSelection.getSelectedAnchor() != null && mSelection.hasSingleElement()) {
                     // we have a selected anchor, let's check against other available anchors
@@ -553,8 +567,22 @@ public class MouseInteraction {
                         }
                     }
                 }
-            } break;
+            }
+            break;
         }
+    }
+
+    /**
+     * Mouse moved handling
+     *
+     * @param x mouse x coordinate
+     * @param y mouse y coordinate
+     */
+    public void mouseMoved(float x, float y) {
+        // In Mouse Moved, find any anchors we are hovering above
+        ConstraintAnchor anchor =
+                mWidgetsScene.findAnchorInSelection(x, y, false, true, mViewTransform);
+        mSceneDraw.setCurrentUnderneathAnchor(anchor);
     }
 
     /*-----------------------------------------------------------------------*/
@@ -620,6 +648,9 @@ public class MouseInteraction {
         mIsControlDown = e.isControlDown();
         mIsShiftDown = e.isShiftDown();
         mIsAltDown = e.isAltDown();
+        float x = mViewTransform.getAndroidFX(e.getX());
+        float y = mViewTransform.getAndroidFY(e.getY());
+        mouseMoved(x, y);
     }
 
     /*-----------------------------------------------------------------------*/
