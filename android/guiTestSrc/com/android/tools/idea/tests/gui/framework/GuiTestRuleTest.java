@@ -20,7 +20,6 @@ import com.intellij.openapi.wm.impl.welcomeScreen.WelcomeFrame;
 import com.intellij.util.ui.UIUtil;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -36,7 +35,7 @@ import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
-import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilFound;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowing;
 import static com.google.common.truth.Truth.assertThat;
 import static org.hamcrest.CoreMatchers.allOf;
 import static org.hamcrest.CoreMatchers.containsString;
@@ -63,7 +62,6 @@ public class GuiTestRuleTest {
     WelcomeFrameFixture.find(guiTest.robot()).createNewProject();
   }
 
-  @Ignore("We don't yet have a reliable way to close multiple modal dialogs.")
   @Test
   public void testModalDialogsLeftOpen() throws IOException {
     exception.expectMessage(allOf(
@@ -94,13 +92,13 @@ public class GuiTestRuleTest {
       }
     });
 
-    JDialog dialog = waitUntilFound(guiTest.robot(), new GenericTypeMatcher<JDialog>(JDialog.class) {
+    JDialog dialog = waitUntilShowing(guiTest.robot(), new GenericTypeMatcher<JDialog>(JDialog.class) {
       @Override
       protected boolean isMatching(@NotNull JDialog dialog) {
         return "Click a button".equals(dialog.getTitle());
       }
     });
-    JButton yesButton = GuiTests.waitUntilShowing(guiTest.robot(), dialog, new GenericTypeMatcher<JButton>(JButton.class) {
+    JButton yesButton = waitUntilShowing(guiTest.robot(), dialog, new GenericTypeMatcher<JButton>(JButton.class) {
       @Override
       protected boolean isMatching(@NotNull JButton button) {
         String buttonText = button.getText();
