@@ -180,8 +180,7 @@ public class WidgetsScene {
                 if (f != null) {
                     found = f;
                 }
-            }
-            else {
+            } else {
                 int l = widget.getDrawX();
                 int t = widget.getDrawY();
                 int r = l + widget.getWidth();
@@ -231,8 +230,7 @@ public class WidgetsScene {
                 if (f != null) {
                     found = f;
                 }
-            }
-            else {
+            } else {
                 l = widget.getDrawX();
                 t = widget.getDrawY();
                 r = l + widget.getWidth();
@@ -301,6 +299,47 @@ public class WidgetsScene {
     }
 
     /**
+     * Find which ConstraintAnchor is close to the (x, y) coordinates in the current selection
+     *
+     * @param x               x coordinate
+     * @param y               y coordinate
+     * @param checkGuidelines if true, we will check for guidelines to connect to
+     * @param mousePress      pass true on mouse press
+     * @param viewTransform   the view transform
+     * @return the ConstraintAnchor close to (x, y), or null if none are close enough
+     */
+    public ConstraintAnchor findAnchorInSelection(float x, float y, boolean checkGuidelines,
+            boolean mousePress, ViewTransform viewTransform) {
+        ConnectionCandidate candidate = new ConnectionCandidate();
+        float dist =
+                (ConnectionDraw.CONNECTION_ANCHOR_SIZE + ConnectionDraw.CONNECTION_ANCHOR_SIZE) /
+                        viewTransform.getScale();
+        candidate.distance =
+                ConnectionDraw.CONNECTION_ANCHOR_SIZE * ConnectionDraw.CONNECTION_ANCHOR_SIZE;
+        // We first try to find an anchor in the current selection
+        for (Selection.Element element : mSelection.getElements()) {
+            ConstraintWidget widget = element.widget;
+            if (!checkGuidelines && (widget instanceof Guideline)) {
+                continue;
+            }
+            WidgetInteractionTargets widgetInteraction =
+                    (WidgetInteractionTargets) widget.getCompanionWidget();
+            widgetInteraction.updatePosition(viewTransform);
+            widgetInteraction.findClosestConnection(x, y, candidate, mousePress);
+        }
+
+        float slope = (dist * dist);
+        if (candidate.anchorTarget != null
+                && candidate.distance < slope) {
+            // allow some slope if we picked an anchor from the selection
+            candidate.distance = 0;
+        } else {
+            candidate.anchorTarget = null;
+        }
+        return candidate.anchorTarget;
+    }
+
+    /**
      * Find which ConstraintAnchor is close to the (x, y) coordinates
      *
      * @param x               x coordinate
@@ -310,7 +349,8 @@ public class WidgetsScene {
      * @param viewTransform   the view transform
      * @return the ConstraintAnchor close to (x, y), or null if none are close enough
      */
-    public ConstraintAnchor findAnchor(float x, float y, boolean checkGuidelines, boolean mousePress,
+    public ConstraintAnchor findAnchor(float x, float y, boolean checkGuidelines,
+            boolean mousePress,
             ViewTransform viewTransform) {
         ConnectionCandidate candidate = new ConnectionCandidate();
         float dist =

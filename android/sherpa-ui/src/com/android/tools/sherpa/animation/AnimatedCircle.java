@@ -19,8 +19,10 @@ package com.android.tools.sherpa.animation;
 import com.android.tools.sherpa.drawing.ViewTransform;
 import com.android.tools.sherpa.interaction.ConstraintHandle;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.Stroke;
 import java.awt.geom.Ellipse2D;
 
 /**
@@ -34,6 +36,7 @@ public class AnimatedCircle extends Animation {
     protected int mRadius = 3;
     protected Color mColor = Color.white;
     protected Color mBackgroundColor = new Color(24, 55, 112);
+    private Stroke mStroke = new BasicStroke(1);
 
     /**
      * Constructor, create a new AnimatedCircle at the given anchor's position
@@ -79,6 +82,7 @@ public class AnimatedCircle extends Animation {
         g.setColor(highlight);
         Ellipse2D.Float circle = new Ellipse2D.Float(x - radius, y - radius,
                 radius * 2, radius * 2);
+        g.setStroke(mStroke);
         g.fill(circle);
         g.draw(circle);
     }
