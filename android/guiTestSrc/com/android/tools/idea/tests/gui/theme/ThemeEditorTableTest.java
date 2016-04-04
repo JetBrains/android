@@ -293,7 +293,6 @@ public class ThemeEditorTableTest {
   /**
    * Test the text completion for attribute values
    */
-  @Ignore("Too flaky")
   @Test
   public void testResourceCompletion() throws IOException {
     guiTest.importSimpleApplication();
