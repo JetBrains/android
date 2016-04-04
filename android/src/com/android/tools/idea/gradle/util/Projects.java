@@ -33,8 +33,11 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
+import com.intellij.openapi.externalSystem.model.ProjectKeys;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
+import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataManager;
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -46,6 +49,8 @@ import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.openapi.wm.IdeFrame;
 import com.intellij.openapi.wm.WindowManager;
 import com.intellij.openapi.wm.ex.IdeFrameEx;
+import com.intellij.util.Consumer;
+import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -55,6 +60,7 @@ import org.jetbrains.plugins.gradle.util.GradleConstants;
 import javax.swing.*;
 import java.io.File;
 import java.util.Collection;
+import java.util.Set;
 
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.*;
 import static com.android.tools.idea.gradle.project.ProjectImportUtil.findImportTarget;
@@ -62,6 +68,7 @@ import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidS
 import static com.intellij.ide.impl.ProjectUtil.updateLastProjectLocation;
 import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE;
 import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE_CONTEXT_ARRAY;
+import static com.intellij.openapi.externalSystem.model.ProjectKeys.PROJECT;
 import static com.intellij.openapi.module.ModuleUtilCore.findModuleForFile;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.wm.impl.IdeFrameImpl.SHOULD_OPEN_IN_FULL_SCREEN;
@@ -132,8 +139,7 @@ public final class Projects {
               ProjectRootManagerEx.getInstanceEx(project).mergeRootsChangesDuring(new Runnable() {
                 @Override
                 public void run() {
-                  ProjectDataManager dataManager = ServiceManager.getService(ProjectDataManager.class);
-                  dataManager.importData(modules, project, true /* synchronous */);
+                  doSelectiveImport(modules, project);
                 }
               });
             }
@@ -144,6 +150,34 @@ public final class Projects {
         PostProjectSetupTasksExecutor.getInstance(project).onProjectSyncCompletion();
       }
     });
+  }
+
+  /**
+   * Reuse external system 'selective import' feature for importing of the project sub-set.
+   */
+  private static void doSelectiveImport(@NotNull Collection<DataNode<ModuleData>> enabledModules, @NotNull Project project) {
+    ProjectDataManager dataManager = ServiceManager.getService(ProjectDataManager.class);
+    DataNode<ProjectData> projectNode = enabledModules.isEmpty() ? null :
+                                        ExternalSystemApiUtil.findParent(enabledModules.iterator().next(), PROJECT);
+
+    if (projectNode != null) {
+      final Collection<DataNode<ModuleData>> allModules = ExternalSystemApiUtil.findAll(projectNode, ProjectKeys.MODULE);
+      if (enabledModules.size() != allModules.size()) {
+        final Set<DataNode<ModuleData>> moduleToIgnore = ContainerUtil.newIdentityTroveSet(allModules);
+        moduleToIgnore.removeAll(enabledModules);
+        for (DataNode<ModuleData> moduleNode : moduleToIgnore) {
+          ExternalSystemApiUtil.visit(moduleNode, new Consumer<DataNode<?>>() {
+            @Override
+            public void consume(DataNode node) {
+              node.setIgnored(true);
+            }
+          });
+        }
+      }
+      dataManager.importData(projectNode, project, true /* synchronous */);
+    } else {
+      dataManager.importData(enabledModules, project, true /* synchronous */);
+    }
   }
 
   public static void executeProjectChanges(@NotNull final Project project, @NotNull final Runnable changes) {
@@ -257,6 +291,7 @@ public final class Projects {
   /**
    * Indicates whether the given project has at least one module backed by an {@link AndroidProject}. To check if a project is a
    * "Gradle project," please use the method {@link Projects#isBuildWithGradle(Project)}.
+   *
    * @param project the given project.
    * @return {@code true} if the given project has one or more modules backed by an {@link AndroidProject}; {@code false} otherwise.
    */
@@ -402,6 +437,10 @@ public final class Projects {
    * @return {@code true} if the given module is the one that represents the project, {@code false} otherwise.
    */
   public static boolean isGradleProjectModule(@NotNull Module module) {
+    if (!ExternalSystemApiUtil.isExternalSystemAwareModule(GradleConstants.SYSTEM_ID, module)) {
+      return false;
+    }
+
     AndroidFacet androidFacet = AndroidFacet.getInstance(module);
     if (androidFacet != null && androidFacet.requiresAndroidModel() && isBuildWithGradle(module)) {
       // If the module is an Android project, check that the module's path is the same as the project's.

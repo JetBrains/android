@@ -125,7 +125,7 @@ public class LocalPropertiesTest extends IdeaTestCase {
 
   public void testSetAndroidNdkPathWithFile() throws Exception {
     String androidNdkPath = toSystemDependentName("/home/ndk2");
-    myLocalProperties.setAndroidNdkPath(androidNdkPath);
+    myLocalProperties.setAndroidNdkPath(new File(androidNdkPath));
     myLocalProperties.save();
 
     File actual = myLocalProperties.getAndroidNdkPath();

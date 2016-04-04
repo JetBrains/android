@@ -16,7 +16,7 @@
 package com.android.tools.idea.startup;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.sdk.SystemInfoStatsMonitor;
+import com.android.tools.idea.sdk.HypervisorStatsMonitor;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.wizard.AndroidStudioWelcomeScreenProvider;
@@ -80,11 +80,11 @@ public class AndroidSdkInitializer implements Runnable {
     }
 
     if (androidSdkPath != null) {
-      // We need to start the system info monitoring even in case when user never
+      // We need to start the hypervisor monitoring even in case when user never
       // runs a single emulator instance: e.g., incompatible hypervisor might be
       // the reason why emulator is never run, and that's exactly the data
-      // SystemInfoStatsMonitor collects
-      new SystemInfoStatsMonitor().start();
+      // HypervisorStatsMonitor collects
+      new HypervisorStatsMonitor().start();
     }
   }
 

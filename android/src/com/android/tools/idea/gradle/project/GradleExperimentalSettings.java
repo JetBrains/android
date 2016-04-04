@@ -15,16 +15,17 @@
  */
 package com.android.tools.idea.gradle.project;
 
-import com.intellij.openapi.components.*;
+import com.intellij.openapi.components.PersistentStateComponent;
+import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.components.State;
+import com.intellij.openapi.components.Storage;
 import com.intellij.util.xmlb.XmlSerializerUtil;
 import org.jetbrains.annotations.NotNull;
 
 @State(
   name="GradleExperimentalSettings",
   storages = {
-  @Storage(
-    file = StoragePathMacros.APP_CONFIG + "/gradle.experimental.xml"
-  )}
+  @Storage("gradle.experimental.xml")}
 )
 public class GradleExperimentalSettings implements PersistentStateComponent<GradleExperimentalSettings> {
   public boolean SELECT_MODULES_ON_PROJECT_IMPORT;

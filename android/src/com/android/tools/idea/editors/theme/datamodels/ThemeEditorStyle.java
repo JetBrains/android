@@ -358,7 +358,7 @@ public class ThemeEditorStyle {
     // we should modify every FolderConfiguration, thus we set desiredApi to -1
     final int desiredApi = (maxApi <= minSdk) ? -1 : maxApi;
 
-    new WriteCommandAction.Simple(project, "Setting value of " + attribute, null) {
+    new WriteCommandAction.Simple(project, "Setting value of " + attribute) {
       @Override
       protected void run() {
         // Makes the command global even if only one xml file is modified

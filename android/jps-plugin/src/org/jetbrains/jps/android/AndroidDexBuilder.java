@@ -358,7 +358,7 @@ public class AndroidDexBuilder extends AndroidTargetBuilder<BuildRootDescriptor,
     messages.put(AndroidCompilerMessageKind.WARNING, new ArrayList<String>());
     messages.put(AndroidCompilerMessageKind.INFORMATION, new ArrayList<String>());
 
-    AndroidCommonUtils.handleDexCompilationResult(process, outFilePath, messages, multiDex);
+    AndroidCommonUtils.handleDexCompilationResult(process, StringUtil.join(commandLine, " "), outFilePath, messages, multiDex);
 
     AndroidJpsUtil.addMessages(context, messages, builderName, srcTargetName);
     final boolean success = messages.get(AndroidCompilerMessageKind.ERROR).size() == 0;

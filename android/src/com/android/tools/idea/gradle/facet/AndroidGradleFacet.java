@@ -27,6 +27,7 @@ import com.intellij.openapi.roots.ModuleRootEvent;
 import com.intellij.openapi.util.WriteExternalException;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.util.messages.MessageBusConnection;
+import org.jetbrains.android.model.AndroidModelSerializationConstants;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -42,8 +43,8 @@ public class AndroidGradleFacet extends Facet<AndroidGradleFacetConfiguration> {
 
   @NotNull public static final FacetTypeId<AndroidGradleFacet> TYPE_ID = new FacetTypeId<AndroidGradleFacet>("android-gradle");
 
-  @NonNls public static final String ID = "android-gradle";
-  @NonNls public static final String NAME = "Android-Gradle";
+  @NonNls public static final String ID = AndroidModelSerializationConstants.ANDROID_GRADLE_FACET_ID;
+  @NonNls public static final String NAME = AndroidModelSerializationConstants.ANDROID_GRADLE_FACET_NAME;
 
   private GradleModel myGradleModel;
 

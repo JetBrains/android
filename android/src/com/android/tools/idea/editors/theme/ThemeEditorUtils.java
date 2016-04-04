@@ -101,7 +101,9 @@ public class ThemeEditorUtils {
     // Bundled path
     "/plugins/android/lib/androidWidgets/theme-editor-widgets.jar",
     // Development path
-    "/../adt/idea/android/lib/androidWidgets/theme-editor-widgets.jar"
+    "/../adt/idea/android/lib/androidWidgets/theme-editor-widgets.jar",
+    // IDEA plugin Development path
+    "/community/android/android/lib/androidWidgets/theme-editor-widgets.jar"
   };
 
   private ThemeEditorUtils() {

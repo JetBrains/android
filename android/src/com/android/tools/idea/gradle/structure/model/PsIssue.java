@@ -37,8 +37,6 @@ public class PsIssue {
 
   @Nullable private final String myDescription;
 
-  @Nullable private PsNavigationPath myExtraPath;
-
   public PsIssue(@NotNull String text, @NotNull PsNavigationPath path, @NotNull Type type) {
     myText = text;
     myPath = path;
@@ -71,15 +69,6 @@ public class PsIssue {
   @NotNull
   public PsNavigationPath getPath() {
     return myPath;
-  }
-
-  @Nullable
-  public PsNavigationPath getExtraPath() {
-    return myExtraPath;
-  }
-
-  public void setExtraPath(@Nullable PsNavigationPath extraPath) {
-    myExtraPath = extraPath;
   }
 
   @Override

@@ -28,7 +28,10 @@ import com.android.tools.idea.gradle.structure.model.PsIssue;
 import com.android.tools.idea.gradle.structure.model.PsModel;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
+import com.android.tools.idea.gradle.structure.model.android.PsLibraryDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsModuleDependency;
+import com.android.tools.idea.gradle.structure.navigation.PsLibraryDependencyPath;
+import com.android.tools.idea.gradle.structure.navigation.PsNavigationPath;
 import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -332,6 +335,8 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel implem
     List<PsIssue> issues = Collections.emptyList();
 
     if (selected != null) {
+      PsLibraryDependency dependency = (PsLibraryDependency)selected;
+      PsNavigationPath path = new PsLibraryDependencyPath(myContext, dependency);
       issues = myContext.getDaemonAnalyzer().getIssues().findIssues(selected, null);
     }
 

@@ -93,7 +93,7 @@ public class ErrorReporter extends ErrorReportSubmitter {
     Object data = event.getData();
 
     if (data instanceof AbstractMessage) {
-      bean.setAttachments(((AbstractMessage)data).getAttachments());
+      bean.setAttachments(((AbstractMessage)data).getIncludedAttachments());
     }
 
     final Project project = CommonDataKeys.PROJECT.getData(dataContext);
