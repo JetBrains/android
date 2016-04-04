@@ -17,29 +17,30 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service.image;
 
-import com.android.tools.rpclib.schema.*;
-import com.android.tools.rpclib.binary.*;
 import org.jetbrains.annotations.NotNull;
+
+import com.android.tools.rpclib.binary.*;
+import com.android.tools.rpclib.schema.*;
 
 import java.io.IOException;
 
-final class FmtAlpha extends Format {
+final class FmtFloat16 extends Format {
   @Override
   public String getDisplayName() {
-    return "ALPHA";
+    return "HALF_FLOAT";
   }
 
   //<<<Start:Java.ClassBody:1>>>
 
-  // Constructs a default-initialized {@link FmtAlpha}.
-  public FmtAlpha() {}
+  // Constructs a default-initialized {@link FmtFloat16}.
+  public FmtFloat16() {}
 
 
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
 
-  private static final Entity ENTITY = new Entity("image", "fmtAlpha", "", "");
+  private static final Entity ENTITY = new Entity("image", "fmtFloat16", "", "");
 
   static {
     ENTITY.setFields(new Field[]{
@@ -56,7 +57,7 @@ final class FmtAlpha extends Format {
     public Entity entity() { return ENTITY; }
 
     @Override @NotNull
-    public BinaryObject create() { return new FmtAlpha(); }
+    public BinaryObject create() { return new FmtFloat16(); }
 
     @Override
     public void encode(@NotNull Encoder e, BinaryObject obj) throws IOException {
