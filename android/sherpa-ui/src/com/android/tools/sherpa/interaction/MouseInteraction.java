@@ -62,7 +62,7 @@ public class MouseInteraction {
 
     private Snapshot mSnapshot = null;
 
-    private boolean mUseDefinedMargin = false;
+    private boolean mUseDefinedMargin = true;
 
     public static void setMargin(int margin) {
         sMargin = margin;
