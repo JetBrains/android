@@ -242,6 +242,7 @@
     <importCustomizer implementation="com.android.tools.idea.gradle.project.AndroidStudioGradleImportCustomizer"/>
     <taskManager implementation="com.android.tools.idea.gradle.task.AndroidGradleTaskManager"/>
     <settingsControlProvider implementation="com.android.tools.idea.gradle.project.AndroidStudioGradleSettingsControlProvider"/>
+    <testTasksProvider implementation="com.android.tools.idea.gradle.run.AndroidGradleTestTasksProvider"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">
@@ -389,6 +390,7 @@
 
     <projectTemplatesFactory implementation="com.android.tools.idea.npw.TemplateWizardProjectTemplateFactory"/>
     <projectTemplatesFactory implementation="org.jetbrains.android.newProject.AndroidProjectTemplatesFactory"/>
+    <moduleBuilder builderClass="org.jetbrains.android.newProject.AndroidWizardWrapper"/>
 
     <defaultLiveTemplatesProvider implementation="com.android.tools.idea.templates.live.AndroidLiveTemplatesProvider"/>
 
@@ -876,6 +878,7 @@
 
     <compileServer.plugin classpath="jps/android-jps-plugin.jar;jps/android-gradle-jps.jar;android-common.jar;android-rt.jar;sdk-common.jar"/>
     <compileServer.plugin classpath="repository.jar;sdklib.jar;common.jar;jarutils.jar;layoutlib-api.jar;manifest-merger.jar"/>
+    <buildProcess.parametersProvider implementation="org.jetbrains.android.compiler.AndroidBuildProcessParametersProvider"/>
 
     <inlineActionHandler implementation="org.jetbrains.android.refactoring.AndroidInlineStyleHandler"/>
     <inlineActionHandler implementation="org.jetbrains.android.refactoring.AndroidInlineLayoutHandler" order="first"/>
@@ -887,7 +890,6 @@
     <editorNotificationProvider implementation="org.jetbrains.android.sdk.AndroidSdkNotConfiguredNotificationProvider"/>
     <compiler.buildTargetScopeProvider implementation="org.jetbrains.android.compiler.AndroidBuildTargetScopeProvider"/>
     <compiler.buildTargetScopeProvider implementation="com.android.tools.idea.gradle.compiler.AndroidGradleBuildTargetScopeProvider"/>
-    <buildProcess.parametersProvider implementation="org.jetbrains.android.compiler.AndroidBuildProcessParametersProvider"/>
 
     <!-- Temporarily disabled: need to display counts for files in multiple folders, and investigate bug
          where cloned layout files do not appear etc.

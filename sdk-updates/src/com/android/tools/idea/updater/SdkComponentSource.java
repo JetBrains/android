@@ -17,16 +17,19 @@ package com.android.tools.idea.updater;
 
 import com.android.SdkConstants;
 import com.android.repository.Revision;
-import com.android.repository.api.*;
+import com.android.repository.api.LocalPackage;
+import com.android.repository.api.RemotePackage;
+import com.android.repository.api.RepoManager;
+import com.android.repository.api.RepoPackage;
 import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.SdkVersionInfo;
+import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.meta.DetailsTypes;
-import com.android.tools.idea.sdk.StudioDownloader;
-import com.android.tools.idea.sdk.StudioSettingsController;
 import com.android.tools.idea.sdk.progress.RepoProgressIndicatorAdapter;
+import com.android.tools.idea.sdk.StudioDownloader;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
-import com.google.common.annotations.VisibleForTesting;
+import com.android.tools.idea.sdk.StudioSettingsController;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
@@ -46,7 +49,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 /**
- * An {@link ExternalComponentSource} that retrieves information from the {@link RepoManager} provided
+ * An {@link ExternalComponentSource} that retrieves information from the {@link LocalSdk} and {@link RemoteSdk} provided
  * by the Android SDK.
  */
 public class SdkComponentSource implements ExternalComponentSource {
@@ -61,7 +64,7 @@ public class SdkComponentSource implements ExternalComponentSource {
   private static final StudioLoggerProgressIndicator LOGGER = new StudioLoggerProgressIndicator(SdkComponentSource.class);
 
   private void initIfNecessary(@Nullable ProgressIndicator indicator) {
-    RepoManager mgr = getRepoManager();
+    RepoManager mgr = AndroidSdkUtils.tryToChooseSdkHandler().getSdkManager(LOGGER);
     com.android.repository.api.ProgressIndicator progress;
     if (indicator != null) {
       progress = new RepoProgressIndicatorAdapter(indicator);
@@ -70,27 +73,9 @@ public class SdkComponentSource implements ExternalComponentSource {
       progress = LOGGER;
     }
     if (mgr
-      .loadSynchronously(TimeUnit.MINUTES.toMillis(1), progress, getDownloader(indicator), getSettingsController())) {
+      .loadSynchronously(TimeUnit.MINUTES.toMillis(1), progress, new StudioDownloader(indicator), StudioSettingsController.getInstance())) {
       myPackages = mgr.getPackages();
     }
-  }
-
-  @VisibleForTesting
-  @NotNull
-  SettingsController getSettingsController() {
-    return StudioSettingsController.getInstance();
-  }
-
-  @VisibleForTesting
-  @NotNull
-  Downloader getDownloader(@Nullable ProgressIndicator indicator) {
-    return new StudioDownloader(indicator);
-  }
-
-  @VisibleForTesting
-  @NotNull
-  RepoManager getRepoManager() {
-    return AndroidSdkUtils.tryToChooseSdkHandler().getSdkManager(LOGGER);
   }
 
   /**
@@ -108,7 +93,7 @@ public class SdkComponentSource implements ExternalComponentSource {
   }
 
   /**
-   * Retrieves information on updates available from the remote sdk.
+   * Retrieves information on updates available from the {@link RemoteSdk}.
    *
    * @param indicator      A {@code ProgressIndicator} that can be updated to show progress, or can be used to cancel the process.
    * @param updateSettings The UpdateSettings to use.
@@ -122,7 +107,7 @@ public class SdkComponentSource implements ExternalComponentSource {
   }
 
   /**
-   * Retrieves information on components installed locally.
+   * Retrieves information on updates installed using the {@link LocalSdk}.
    *
    * @return A collection of {@link UpdatablePackage}s corresponding to the currently installed Packages.
    */
@@ -173,15 +158,16 @@ public class SdkComponentSource implements ExternalComponentSource {
   @NotNull
   @Override
   public Collection<? extends Pair<String, String>> getStatuses() {
+    AndroidSdkHandler handler = AndroidSdkUtils.tryToChooseSdkHandler();
     Revision toolsRevision = null;
-    LocalPackage toolsPackage = getRepoManager().getPackages().getLocalPackages().get(SdkConstants.FD_TOOLS);
+    LocalPackage toolsPackage = handler.getLocalPackage(SdkConstants.FD_TOOLS, LOGGER);
     if (toolsPackage != null) {
       toolsRevision = toolsPackage.getVersion();
     }
 
     Revision platformRevision = null;
     AndroidVersion platformVersion = null;
-    for (LocalPackage info : getRepoManager().getPackages().getLocalPackagesForPrefix(SdkConstants.FD_PLATFORMS)) {
+    for (LocalPackage info : handler.getSdkManager(LOGGER).getPackages().getLocalPackagesForPrefix(SdkConstants.FD_PLATFORMS)) {
       if (info.getTypeDetails() instanceof DetailsTypes.PlatformDetailsType) {
         DetailsTypes.PlatformDetailsType details = (DetailsTypes.PlatformDetailsType)info.getTypeDetails();
         AndroidVersion testVersion = new AndroidVersion(details.getApiLevel(), details.getCodename());

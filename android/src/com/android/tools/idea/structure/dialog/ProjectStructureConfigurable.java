@@ -26,7 +26,6 @@ import com.intellij.openapi.options.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectBundle;
 import com.intellij.openapi.project.ProjectManager;
-import com.intellij.openapi.roots.ui.configuration.ConfigurationErrorsComponent;
 import com.intellij.openapi.roots.ui.configuration.SidePanel;
 import com.intellij.openapi.ui.MasterDetailsComponent;
 import com.intellij.openapi.util.ActionCallback;

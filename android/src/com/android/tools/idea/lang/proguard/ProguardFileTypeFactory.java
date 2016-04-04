@@ -32,7 +32,7 @@ public class ProguardFileTypeFactory extends FileTypeFactory {
     @Override
     public boolean acceptsCharSequence(@NotNull CharSequence fileName) {
       return StringUtil.endsWith(fileName, ProguardFileType.DOT_PRO) ||
-             StringUtil.endsWith(fileName, SdkConstants.DOT_TXT) && StringUtil.startsWith(fileName, "proguard-") ||
+             StringUtil.startsWith(fileName, "proguard-") && StringUtil.endsWith(fileName, SdkConstants.DOT_TXT) ||
              StringUtil.equals(fileName, SdkConstants.OLD_PROGUARD_FILE)
         ;
     }

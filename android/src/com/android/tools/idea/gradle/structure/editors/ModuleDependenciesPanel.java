@@ -36,6 +36,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooser;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectBundle;
 import com.intellij.openapi.roots.ui.CellAppearanceEx;
@@ -492,6 +493,7 @@ public class ModuleDependenciesPanel extends EditorPanel {
     for (ModuleDependenciesTableItem item : items) {
       dependencies.add(item.getEntry());
     }
+    DumbService.getInstance(myProject).setAlternativeResolveEnabled(true);
     try {
       ActionRunner.runInsideWriteAction(new ActionRunner.InterruptibleRunnable() {
         @Override
@@ -502,6 +504,9 @@ public class ModuleDependenciesPanel extends EditorPanel {
     }
     catch (Exception e) {
       LOG.error("Unable to commit dependency changes", e);
+    }
+    finally {
+      DumbService.getInstance(myProject).setAlternativeResolveEnabled(false);
     }
     myModel.resetModified();
   }

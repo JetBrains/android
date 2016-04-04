@@ -208,12 +208,12 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
 
     enforceExternalBuild(myProject);
 
-    // Make sure the gradle test configurations are ignored in this project, since they don't work in Android gradle projects. This
+    // Make sure the gradle test configurations are not ignored in this project, since they already work in Android gradle projects. This
     // will modify .idea/runConfigurations.xml
     RunConfigurationProducerService runConfigurationProducerManager = RunConfigurationProducerService.getInstance(myProject);
-    runConfigurationProducerManager.addIgnoredProducer(AllInPackageGradleConfigurationProducer.class);
-    runConfigurationProducerManager.addIgnoredProducer(TestMethodGradleConfigurationProducer.class);
-    runConfigurationProducerManager.addIgnoredProducer(TestClassGradleConfigurationProducer.class);
+    runConfigurationProducerManager.getState().ignoredProducers.remove(AllInPackageGradleConfigurationProducer.class.getName());
+    runConfigurationProducerManager.getState().ignoredProducers.remove(TestMethodGradleConfigurationProducer.class.getName());
+    runConfigurationProducerManager.getState().ignoredProducers.remove(TestClassGradleConfigurationProducer.class.getName());
   }
 
   @Override

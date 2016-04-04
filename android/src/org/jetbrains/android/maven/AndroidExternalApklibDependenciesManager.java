@@ -33,7 +33,7 @@ import java.util.Map;
 @State(
   name = "AndroidExternalApklibDependenciesManager",
   storages = {
-    @Storage(file = StoragePathMacros.WORKSPACE_FILE)
+    @Storage(StoragePathMacros.WORKSPACE_FILE)
   }
 )
 public class AndroidExternalApklibDependenciesManager implements PersistentStateComponent<AndroidExternalApklibDependenciesManager.State> {
