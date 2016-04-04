@@ -39,25 +39,22 @@ public class ResolvedDependenciesTreeBuilder extends AbstractPsNodeTreeBuilder {
     myDependencySelectionSource = dependencySelectionSource;
     myDependencySelectionDestination = dependencySelectionDestination;
 
-    PsUISettings.ChangeListener changeListener = new PsUISettings.ChangeListener() {
-      @Override
-      public void settingsChanged(@NotNull PsUISettings settings) {
-        AbstractTreeStructure treeStructure = getTreeStructure();
+    PsUISettings.ChangeListener changeListener = settings -> {
+      AbstractTreeStructure treeStructure = getTreeStructure();
 
-        if (treeStructure instanceof ResolvedDependenciesTreeStructure) {
-          final PsAndroidDependency selected = myDependencySelectionSource.getSelection();
+      if (treeStructure instanceof ResolvedDependenciesTreeStructure) {
+        final PsAndroidDependency selected = myDependencySelectionSource.getSelection();
 
-          boolean needsUpdate = ((ResolvedDependenciesTreeStructure)treeStructure).settingsChanged();
+        boolean needsUpdate = ((ResolvedDependenciesTreeStructure)treeStructure).settingsChanged();
 
-          if (needsUpdate) {
-            ActionCallback actionCallback = ResolvedDependenciesTreeBuilder.this.queueUpdate();
-            actionCallback.doWhenDone(new Runnable() {
-              @Override
-              public void run() {
-                myDependencySelectionDestination.setSelection(selected);
-              }
-            });
-          }
+        if (needsUpdate) {
+          ActionCallback actionCallback = queueUpdate();
+          actionCallback.doWhenDone(new Runnable() {
+            @Override
+            public void run() {
+              myDependencySelectionDestination.setSelection(selected);
+            }
+          });
         }
       }
     };
@@ -66,12 +63,9 @@ public class ResolvedDependenciesTreeBuilder extends AbstractPsNodeTreeBuilder {
 
   @Override
   protected void onAllNodesExpanded() {
-    getReady(this).doWhenDone(new Runnable() {
-      @Override
-      public void run() {
-        PsAndroidDependency selection = myDependencySelectionSource.getSelection();
-        myDependencySelectionDestination.setSelection(selection);
-      }
+    getReady(this).doWhenDone(() -> {
+      PsAndroidDependency selection = myDependencySelectionSource.getSelection();
+      myDependencySelectionDestination.setSelection(selection);
     });
   }
 }

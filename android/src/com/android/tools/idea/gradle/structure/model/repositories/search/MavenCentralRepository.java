@@ -42,16 +42,13 @@ public class MavenCentralRepository implements ArtifactRepository {
   public SearchResult search(@NotNull SearchRequest request) throws IOException {
     // This query searches for artifacts with name equal to the passed text.
     String url = createRequestUrl(request);
-    return HttpRequests.request(url).accept("application/xml").connect(new HttpRequests.RequestProcessor<SearchResult>() {
-      @Override
-      public SearchResult process(@NotNull HttpRequests.Request request) throws IOException {
-        try {
-          return parse(request.getReader());
-        }
-        catch (JDOMException e) {
-          String msg = String.format("Failed to parse request '%1$s'", request);
-          throw new IOException(msg, e);
-        }
+    return HttpRequests.request(url).accept("application/xml").connect(request1 -> {
+      try {
+        return parse(request1.getReader());
+      }
+      catch (JDOMException e) {
+        String msg = String.format("Failed to parse request '%1$s'", request1);
+        throw new IOException(msg, e);
       }
     });
   }

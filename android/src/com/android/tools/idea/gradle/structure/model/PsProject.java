@@ -91,9 +91,7 @@ public class PsProject extends PsModel {
   }
 
   public void forEachModule(@NotNull Predicate<PsModule> function) {
-    for (PsModule module : myModules) {
-      function.apply(module);
-    }
+    myModules.forEach(function::apply);
   }
 
   @Override

@@ -51,17 +51,14 @@ public abstract class AbstractMainPanel extends JPanel implements Disposable, Pl
     if (myShowModulesDropDown) {
       createAndAddModulesAction(extraTopModules);
     }
-    settings.addListener(new PsUISettings.ChangeListener() {
-      @Override
-      public void settingsChanged(@NotNull PsUISettings settings) {
-        if (settings.MODULES_LIST_MINIMIZE != myShowModulesDropDown) {
-          myShowModulesDropDown = settings.MODULES_LIST_MINIMIZE;
-          if (myShowModulesDropDown) {
-            createAndAddModulesAction(extraTopModules);
-          }
-          else {
-            removeModulesAction();
-          }
+    settings.addListener(settings1 -> {
+      if (settings1.MODULES_LIST_MINIMIZE != myShowModulesDropDown) {
+        myShowModulesDropDown = settings1.MODULES_LIST_MINIMIZE;
+        if (myShowModulesDropDown) {
+          createAndAddModulesAction(extraTopModules);
+        }
+        else {
+          removeModulesAction();
         }
       }
     }, this);
