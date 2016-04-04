@@ -30,6 +30,7 @@ public final class Factory {
     FmtETC1RGB8.register();
     FmtETC2RGB8.register();
     FmtETC2RGBA8EAC.register();
+    FmtFloat16.register();
     FmtFloat32.register();
     FmtLuminance.register();
     FmtLuminanceAlpha.register();
@@ -39,7 +40,9 @@ public final class Factory {
     FmtRGBA.register();
     FmtRGBA4444.register();
     FmtRGBA5551.register();
+    FmtRGBAF16.register();
     FmtRGBAF32.register();
+    FmtRGBF16.register();
     FmtRGBF32.register();
     FmtRed.register();
     //<<<End:Java.FactoryBody:2>>>
