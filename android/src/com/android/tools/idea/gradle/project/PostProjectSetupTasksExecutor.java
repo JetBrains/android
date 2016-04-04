@@ -296,10 +296,6 @@ public class PostProjectSetupTasksExecutor {
       logProjectVersion(androidProject);
       if (isNonExperimentalPlugin(androidProject)) {
         GradleVersion latest = GradleVersion.parse(GRADLE_PLUGIN_LATEST_VERSION);
-        if (latest.getPreviewType() != null) {
-          // Latest is a preview. Do not suggest upgrading to a preview.
-          return false;
-        }
         String current = androidProject.getModelVersion();
         return latest.compareTo(current) > 0;
       }
