@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.jps.model.impl;
 
-import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.jps.AndroidGradleJps;
 import com.android.tools.idea.jps.model.JpsAndroidGradleModuleExtension;
 import com.google.common.collect.ImmutableList;
 import com.intellij.util.xmlb.XmlSerializer;
 import org.jdom.Element;
+import org.jetbrains.android.model.AndroidModelSerializationConstants;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.android.model.JpsAndroidSdkProperties;
@@ -76,7 +76,7 @@ public class JpsAndroidGradleModelSerializerExtension extends JpsModelSerializer
     extends JpsFacetConfigurationSerializer<JpsAndroidGradleModuleExtension> {
 
     JpsAndroidGradleFacetConfigurationSerializer() {
-      super(JpsAndroidGradleModuleExtensionImpl.KIND, AndroidGradleFacet.ID, AndroidGradleFacet.NAME);
+      super(JpsAndroidGradleModuleExtensionImpl.KIND, AndroidModelSerializationConstants.ANDROID_GRADLE_FACET_ID, AndroidModelSerializationConstants.ANDROID_GRADLE_FACET_NAME);
     }
 
     @Override

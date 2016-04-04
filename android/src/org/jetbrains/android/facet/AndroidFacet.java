@@ -565,7 +565,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   @Nullable
   public static AndroidFacet getInstance(@NotNull PsiElement element) {
     Module module = getModuleSafely(element);
-    return module != null ? getInstance(module) : null;
+    return module != null && !module.isDisposed() ? getInstance(module) : null;
   }
 
   @Nullable

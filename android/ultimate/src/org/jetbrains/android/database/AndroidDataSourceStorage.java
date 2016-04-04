@@ -15,7 +15,7 @@ import java.util.List;
 @State(
   name = "AndroidDataSourceStorage",
   storages = {
-    @Storage(file = StoragePathMacros.WORKSPACE_FILE)
+    @Storage(StoragePathMacros.WORKSPACE_FILE)
   })
 public class AndroidDataSourceStorage implements PersistentStateComponent<AndroidDataSourceStorage.State> {
   private final List<AndroidDataSource> myDataSources = ContainerUtil.createLockFreeCopyOnWriteList();
@@ -37,8 +37,10 @@ public class AndroidDataSourceStorage implements PersistentStateComponent<Androi
     for (AndroidDataSource.State dataSourceState : state.myDataSources) {
       AndroidDataSource o = new AndroidDataSource();
       o.loadState(dataSourceState);
-      o.ensureDriverConfigured();
       addDataSource(o);
+    }
+    for (AndroidDataSource o : myDataSources) {
+      o.ensureDriverConfigured();
     }
   }
 

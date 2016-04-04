@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.util;
 
+import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -50,7 +51,7 @@ public final class AndroidExecutionUtil {
       builder.environment().putAll(enviroment);
       process = builder.start();
     }
-    ProcessResult result = readProcessOutput(process);
+    ProcessResult result = readProcessOutput(process, StringUtil.join(argv, " "));
     Map<AndroidCompilerMessageKind, List<String>> messages = result.getMessages();
     int code = result.getExitCode();
     List<String> errMessages = messages.get(AndroidCompilerMessageKind.ERROR);
@@ -79,8 +80,8 @@ public final class AndroidExecutionUtil {
   }
 
   @NotNull
-  private static ProcessResult readProcessOutput(Process process) throws IOException {
-    final AndroidOSProcessHandler handler = new AndroidOSProcessHandler(process, "");
+  private static ProcessResult readProcessOutput(@NotNull Process process, @NotNull String commandLine) throws IOException {
+    final AndroidOSProcessHandler handler = new AndroidOSProcessHandler(process, commandLine);
     handler.startNotify();
     handler.waitFor();
     int exitCode = handler.getProcess().exitValue();
