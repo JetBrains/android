@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableMap.Builder;
 import com.google.common.hash.Hashing;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.util.SystemInfo;
+import com.intellij.util.containers.HashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -36,7 +37,7 @@ public class UsageTrackerAnalyticsImpl extends UsageTracker {
   private static final String GLOGS_CATEGORY_LEGACY_IDEA_ANDROID_PROJECT = "legacyIdeaAndroidProject";
   private static final String GLOGS_CATEGORY_INSTANT_RUN = "irstats2";
   private static final String GLOGS_CATEGORY_INSTANT_RUN_TIMINGS = "irtimings";
-  private static final String GLOGS_CATEGORY_HYPERVISOR = "hypervisor";
+  private static final String GLOGS_CATEGORY_SYSTEM_INFO = "systeminfo";
 
   private final UsageUploader myUploader;
 
@@ -167,15 +168,22 @@ public class UsageTrackerAnalyticsImpl extends UsageTracker {
 
 
   @Override
-  public void trackHypervisorStats(@NotNull String hyperVState) {
+  public void trackSystemInfo(@Nullable String hyperVState, @Nullable String cpuInfoFlags) {
     if (!trackingEnabled()) {
       return;
     }
 
-    myUploader.trackEvent(GLOGS_CATEGORY_HYPERVISOR,
-                          ImmutableMap.of(
-                            "hvstate", hyperVState,
-                            "os", SystemInfo.OS_NAME));
+    HashMap<String, String> kv = new HashMap<String, String>();
+    if (hyperVState != null) {
+      kv.put("hvstate", hyperVState);
+    }
+    if (cpuInfoFlags != null) {
+      kv.put("cpuflags", cpuInfoFlags);
+    }
+    kv.put("os", SystemInfo.OS_NAME);
+    kv.put("bits", (SystemInfo.is64Bit || SystemInfo.OS_ARCH.contains("64")) ? "64" : "32");
+
+    myUploader.trackEvent(GLOGS_CATEGORY_SYSTEM_INFO, kv);
   }
 
   @NotNull
