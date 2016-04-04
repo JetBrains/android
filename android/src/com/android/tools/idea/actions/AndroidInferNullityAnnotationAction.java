@@ -27,40 +27,25 @@ import com.android.tools.idea.templates.RepositoryUrlManager;
 import com.google.common.collect.Lists;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.analysis.BaseAnalysisActionDialog;
-import com.intellij.codeInsight.FileModificationService;
 import com.intellij.codeInspection.inferNullity.InferNullityAnnotationsAction;
-import com.intellij.codeInspection.inferNullity.NullityInferrer;
 import com.intellij.history.LocalHistory;
 import com.intellij.history.LocalHistoryAction;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
-import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootModificationUtil;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.Computable;
-import com.intellij.openapi.util.Factory;
-import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.*;
-import com.intellij.refactoring.RefactoringBundle;
+import com.intellij.psi.PsiDocumentManager;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
 import com.intellij.usageView.UsageInfo;
-import com.intellij.usageView.UsageViewUtil;
-import com.intellij.usages.*;
 import com.intellij.util.Consumer;
 import com.intellij.util.Function;
-import com.intellij.util.Processor;
-import com.intellij.util.SequentialModalProgressTask;
-import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -96,17 +81,7 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
       return;
     }
 
-    if (usageInfos.length < 5) {
-      SwingUtilities.invokeLater(applyRunnable(project, new Computable<UsageInfo[]>() {
-        @Override
-        public UsageInfo[] compute() {
-          return usageInfos;
-        }
-      }));
-    }
-    else {
-      showUsageView(project, usageInfos, scope);
-    }
+    processUsages(project, scope, usageInfos);
   }
 
   private static Map<Module, PsiFile> findModulesFromUsage(UsageInfo[] infos) {
@@ -120,50 +95,6 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
       modules.put(module, file);
     }
     return modules;
-  }
-
-  // Intellij code from InferNullityAnnotationsAction.
-  private static UsageInfo[] findUsages(@NotNull final Project project,
-                                        @NotNull final AnalysisScope scope,
-                                        final int fileCount) {
-    final NullityInferrer inferrer = new NullityInferrer(false, project);
-    final PsiManager psiManager = PsiManager.getInstance(project);
-    final Runnable searchForUsages = new Runnable() {
-      @Override
-      public void run() {
-        scope.accept(new PsiElementVisitor() {
-          int myFileCount = 0;
-
-          @Override
-          public void visitFile(final PsiFile file) {
-            myFileCount++;
-            final VirtualFile virtualFile = file.getVirtualFile();
-            final FileViewProvider viewProvider = psiManager.findViewProvider(virtualFile);
-            final Document document = viewProvider == null ? null : viewProvider.getDocument();
-            if (document == null || virtualFile.getFileType().isBinary()) return; //do not inspect binary files
-            final ProgressIndicator progressIndicator = ProgressManager.getInstance().getProgressIndicator();
-            if (progressIndicator != null) {
-              progressIndicator.setText2(ProjectUtil.calcRelativeToProjectPath(virtualFile, project));
-              progressIndicator.setFraction(((double)myFileCount) / fileCount);
-            }
-            if (file instanceof PsiJavaFile) {
-              inferrer.collect(file);
-            }
-          }
-        });
-      }
-    };
-    if (ApplicationManager.getApplication().isDispatchThread()) {
-      if (!ProgressManager.getInstance().runProcessWithProgressSynchronously(searchForUsages, INFER_NULLITY_ANNOTATIONS, true, project)) {
-        return null;
-      }
-    } else {
-      searchForUsages.run();
-    }
-
-    final List<UsageInfo> usages = new ArrayList<UsageInfo>();
-    inferrer.collect(usages);
-    return usages.toArray(new UsageInfo[usages.size()]);
   }
 
   // For Android we need to check SDK version and possibly update the gradle project file
@@ -253,116 +184,6 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
     return false;
   }
 
-  // Intellij code from InferNullityAnnotationsAction.
-  private static Runnable applyRunnable(final Project project, final Computable<UsageInfo[]> computable) {
-    return new Runnable() {
-      @Override
-      public void run() {
-        final LocalHistoryAction action = LocalHistory.getInstance().startAction(INFER_NULLITY_ANNOTATIONS);
-        try {
-          new WriteCommandAction(project, INFER_NULLITY_ANNOTATIONS) {
-            @Override
-            protected void run(@NotNull Result result) throws Throwable {
-              final UsageInfo[] infos = computable.compute();
-              if (infos.length > 0) {
-
-                final Set<PsiElement> elements = new LinkedHashSet<PsiElement>();
-                for (UsageInfo info : infos) {
-                  final PsiElement element = info.getElement();
-                  if (element != null) {
-                    ContainerUtil.addIfNotNull(elements, element.getContainingFile());
-                  }
-                }
-                if (!FileModificationService.getInstance().preparePsiElementsForWrite(elements)) return;
-
-                final SequentialModalProgressTask progressTask = new SequentialModalProgressTask(project, INFER_NULLITY_ANNOTATIONS, false);
-                progressTask.setMinIterationTime(200);
-                progressTask.setTask(new AnnotateTask(project, progressTask, infos));
-                ProgressManager.getInstance().run(progressTask);
-              } else {
-                NullityInferrer.nothingFoundMessage(project);
-              }
-            }
-          }.execute();
-        }
-        finally {
-          action.finish();
-        }
-      }
-    };
-  }
-
-  // Intellij code from InferNullityAnnotationsAction.
-  protected void restartAnalysis(final Project project, final AnalysisScope scope) {
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
-      @Override
-      public void run() {
-        analyze(project, scope);
-      }
-    });
-  }
-
-  // Intellij code from InferNullityAnnotationsAction.
-  private void showUsageView(@NotNull Project project, final UsageInfo[] usageInfos, @NotNull AnalysisScope scope) {
-    final UsageTarget[] targets = UsageTarget.EMPTY_ARRAY;
-    final Ref<Usage[]> convertUsagesRef = new Ref<Usage[]>();
-    if (!ProgressManager.getInstance().runProcessWithProgressSynchronously(new Runnable() {
-      @Override
-      public void run() {
-        ApplicationManager.getApplication().runReadAction(new Runnable() {
-          @Override
-          public void run() {
-            convertUsagesRef.set(UsageInfo2UsageAdapter.convert(usageInfos));
-          }
-        });
-      }
-    }, "Preprocess usages", true, project)) return;
-
-    if (convertUsagesRef.isNull()) return;
-    final Usage[] usages = convertUsagesRef.get();
-
-    final UsageViewPresentation presentation = new UsageViewPresentation();
-    presentation.setTabText("Infer Nullity Preview");
-    presentation.setShowReadOnlyStatusAsRed(true);
-    presentation.setShowCancelButton(true);
-    presentation.setUsagesString(RefactoringBundle.message("usageView.usagesText"));
-
-    final UsageView usageView = UsageViewManager.getInstance(project).showUsages(targets, usages, presentation, rerunFactory(project, scope));
-
-    final Runnable refactoringRunnable = applyRunnable(project, new Computable<UsageInfo[]>() {
-      @Override
-      public UsageInfo[] compute() {
-        final Set<UsageInfo> infos = UsageViewUtil.getNotExcludedUsageInfos(usageView);
-        return infos.toArray(new UsageInfo[infos.size()]);
-      }
-    });
-
-    String canNotMakeString = "Cannot perform operation.\nThere were changes in code after usages have been found.\nPlease perform operation search again.";
-
-    usageView.addPerformOperationAction(refactoringRunnable, INFER_NULLITY_ANNOTATIONS, canNotMakeString, INFER_NULLITY_ANNOTATIONS, false);
-  }
-
-  // Intellij code from InferNullityAnnotationsAction.
-  @NotNull
-  private static Factory<UsageSearcher> rerunFactory(@NotNull final Project project, @NotNull final AnalysisScope scope) {
-    return new Factory<UsageSearcher>() {
-      @Override
-      public UsageSearcher create() {
-        return new UsageInfoSearcherAdapter() {
-          @Override
-          protected UsageInfo[] findUsages() {
-            return AndroidInferNullityAnnotationAction.findUsages(project, scope, scope.getFileCount());
-          }
-
-          @Override
-          public void generate(@NotNull Processor<Usage> processor) {
-            processUsages(processor, project);
-          }
-        };
-      }
-    };
-  }
-
   private static void addDependency(final Module module, final String libraryCoordinate) {
     ModuleRootModificationUtil.updateModel(module, new Consumer<ModifiableRootModel>() {
       @Override
@@ -375,6 +196,11 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
         }
       }
     });
+  }
+
+  @Override
+  protected boolean isAnnotateLocalVariables() {
+    return false;
   }
 
   /* Android nullable annotations do not support annotations on local variables. */
