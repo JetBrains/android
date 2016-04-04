@@ -23,6 +23,7 @@ import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateUtils;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.dynamic.DynamicWizard;
+import com.android.tools.idea.wizard.dynamic.DynamicWizardHost;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStepWithHeaderAndDescription.WizardStepHeaderSettings;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.android.tools.idea.wizard.dynamic.SingleStepPath;
@@ -52,19 +53,31 @@ public class NewModuleWizardDynamic extends DynamicWizard {
     setTitle("Create New Module");
   }
 
+  public NewModuleWizardDynamic(@Nullable Project project,
+                                @Nullable Module module,
+                                @NotNull DynamicWizardHost host) {
+    super(project, module, "New Module", host);
+    setTitle("Create New Module");
+  }
+
   @Override
   public void init() {
+    if (!checkSdk()) return;
+    addPaths();
+    ConfigureAndroidProjectPath.putSdkDependentParams(getState());
+    initState();
+    super.init();
+  }
+
+  protected boolean checkSdk() {
     if (!AndroidSdkUtils.isAndroidSdkAvailable() || !TemplateManager.templatesAreValid()) {
       String title = "SDK problem";
       String msg = "<html>Your Android SDK is missing, out of date, or is missing templates.<br>" +
                    "You can configure your SDK via <b>Configure | Project Defaults | Project Structure | SDKs</b></html>";
       Messages.showErrorDialog(msg, title);
-      return;
+      return false;
     }
-    addPaths();
-    ConfigureAndroidProjectPath.putSdkDependentParams(getState());
-    initState();
-    super.init();
+    return true;
   }
 
   /**

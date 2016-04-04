@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.jps.builder;
 
-import com.android.tools.idea.gradle.compiler.AndroidGradleBuildTargetScopeProvider;
+import com.android.tools.idea.gradle.compiler.AndroidGradleBuildTargetConstants;
 import com.android.tools.idea.jps.AndroidGradleJps;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -51,7 +51,7 @@ public class AndroidGradleBuildTarget extends BuildTarget<AndroidGradleBuildTarg
 
   @Override
   public String getId() {
-    return AndroidGradleBuildTargetScopeProvider.TARGET_ID;
+    return AndroidGradleBuildTargetConstants.TARGET_ID;
   }
 
   @Override
@@ -108,7 +108,7 @@ public class AndroidGradleBuildTarget extends BuildTarget<AndroidGradleBuildTarg
     public static final TargetType INSTANCE = new TargetType();
 
     private TargetType() {
-      super(AndroidGradleBuildTargetScopeProvider.TARGET_TYPE_ID);
+      super(AndroidGradleBuildTargetConstants.TARGET_TYPE_ID);
     }
 
     @Override
@@ -130,7 +130,7 @@ public class AndroidGradleBuildTarget extends BuildTarget<AndroidGradleBuildTarg
         @Nullable
         @Override
         public AndroidGradleBuildTarget createTarget(@NotNull String targetId) {
-          return AndroidGradleBuildTargetScopeProvider.TARGET_ID.equals(targetId) && AndroidGradleJps.hasAndroidGradleFacet(project)
+          return AndroidGradleBuildTargetConstants.TARGET_ID.equals(targetId) && AndroidGradleJps.hasAndroidGradleFacet(project)
                  ? new AndroidGradleBuildTarget(project)
                  : null;
         }

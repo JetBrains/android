@@ -55,7 +55,7 @@ public class AndroidRunDdmsAction extends AndroidRunSdkToolAction {
 
   private static void doLaunchDdms(GeneralCommandLine commandLine, final Project project, final boolean adbServiceWasEnabled) {
     try {
-      ourProcessHandler = new OSProcessHandler(commandLine.createProcess(), "");
+      ourProcessHandler = new OSProcessHandler(commandLine);
       ourProcessHandler.startNotify();
       ourProcessHandler.waitFor();
     }

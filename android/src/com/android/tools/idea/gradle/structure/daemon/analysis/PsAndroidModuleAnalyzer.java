@@ -23,13 +23,11 @@ import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.android.tools.idea.gradle.structure.model.android.PsLibraryDependency;
 import com.android.tools.idea.gradle.structure.navigation.PsLibraryDependencyPath;
-import com.android.tools.idea.gradle.structure.navigation.PsModulePath;
 import com.android.tools.idea.gradle.structure.navigation.PsNavigationPath;
 import com.intellij.util.containers.Predicate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static com.android.tools.idea.gradle.structure.model.PsIssue.Type.INFO;
 import static com.android.tools.idea.gradle.structure.model.PsIssue.Type.WARNING;
 
 public class PsAndroidModuleAnalyzer extends PsModelAnalyzer<PsAndroidModule> {
@@ -41,7 +39,6 @@ public class PsAndroidModuleAnalyzer extends PsModelAnalyzer<PsAndroidModule> {
 
   @Override
   protected void doAnalyze(@NotNull PsAndroidModule module, @NotNull final PsIssueCollection issueCollection) {
-    final PsModulePath modulePath = new PsModulePath(module);
     module.forEachDependency(new Predicate<PsAndroidDependency>() {
       @Override
       public boolean apply(@Nullable PsAndroidDependency dependency) {
@@ -50,31 +47,18 @@ public class PsAndroidModuleAnalyzer extends PsModelAnalyzer<PsAndroidModule> {
         }
         if (dependency instanceof PsLibraryDependency && dependency.isDeclared()) {
           PsLibraryDependency libraryDependency = (PsLibraryDependency)dependency;
-          PsNavigationPath path = new PsLibraryDependencyPath(myContext, libraryDependency);
-
           PsArtifactDependencySpec declaredSpec = libraryDependency.getDeclaredSpec();
           assert declaredSpec != null;
-          String declaredVersion = declaredSpec.version;
-          if (declaredVersion != null && declaredVersion.endsWith("+")) {
+          String version = declaredSpec.version;
+          if (version != null && version.endsWith("+")) {
             String message = "Avoid using '+' in version numbers; can lead to unpredictable and unrepeatable builds.";
             String description = "Using '+' in dependencies lets you automatically pick up the latest available " +
                                  "version rather than a specific, named version. However, this is not recommended; " +
                                  "your builds are not repeatable; you may have tested with a slightly different " +
                                  "version than what the build server used. (Using a dynamic version as the major " +
                                  "version number is more problematic than using it in the minor version position.)";
+            PsNavigationPath path = new PsLibraryDependencyPath(myContext, libraryDependency);
             PsIssue issue = new PsIssue(message, description, path, WARNING);
-            issue.setExtraPath(modulePath);
-            issueCollection.add(issue);
-          }
-
-          if (libraryDependency.hasPromotedVersion()) {
-            PsArtifactDependencySpec resolvedSpec = libraryDependency.getResolvedSpec();
-            String message = "Gradle promoted library version from " + declaredVersion + " to " + resolvedSpec.version;
-            String description = "To resolve version conflicts, Gradle by default uses the newest version of a dependency. " +
-                                 "<a href='https://docs.gradle.org/current/userguide/dependency_management.html'>Open Gradle " +
-                                 "documentation</a>";
-            PsIssue issue = new PsIssue(message, description, path, INFO);
-            issue.setExtraPath(modulePath);
             issueCollection.add(issue);
           }
         }
