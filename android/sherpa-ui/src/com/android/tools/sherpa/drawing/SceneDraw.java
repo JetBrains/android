@@ -89,6 +89,7 @@ public class SceneDraw {
     private AnimatedColor mDarkToNormal = new AnimatedColor(
             SceneDraw.DarkBlueprintBackground,
             SceneDraw.BlueprintBackground);
+
     private ConstraintAnchor mCurrentUnderneathAnchor;
 
     public static void generateColors() {
@@ -563,6 +564,10 @@ public class SceneDraw {
         }
 
         return needsRepaint;
+    }
+
+    public ConstraintAnchor getCurrentUnderneathAnchor() {
+        return mCurrentUnderneathAnchor;
     }
 
     /**
