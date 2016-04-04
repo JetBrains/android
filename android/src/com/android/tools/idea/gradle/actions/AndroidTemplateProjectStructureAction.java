@@ -19,7 +19,7 @@ import com.android.tools.idea.gradle.structure.AndroidProjectStructureConfigurab
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.options.ShowSettingsUtil;
-import com.intellij.openapi.options.newEditor.OptionsEditorDialog;
+import com.intellij.openapi.options.newEditor.SettingsDialog;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
@@ -43,6 +43,6 @@ public class AndroidTemplateProjectStructureAction extends DumbAwareAction {
     AndroidProjectStructureConfigurable configurable = AndroidProjectStructureConfigurable.getInstance(project);
 
     ShowSettingsUtil settings = ShowSettingsUtil.getInstance();
-    settings.editConfigurable(project, OptionsEditorDialog.DIMENSION_KEY, configurable, true);
+    settings.editConfigurable(project, SettingsDialog.DIMENSION_KEY, configurable, true);
   }
 }

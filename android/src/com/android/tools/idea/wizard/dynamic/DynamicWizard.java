@@ -275,7 +275,7 @@ public abstract class DynamicWizard implements ScopedStateStore.ScopedStoreListe
 
     JComponent focusedComponent = step.getPreferredFocusedComponent();
     if (focusedComponent != null) {
-      IdeFocusManager.findInstanceByComponent(focusedComponent).requestFocus(focusedComponent, false);
+      IdeFocusManager.findInstanceByComponent(focusedComponent).requestFocus(focusedComponent, true);
     }
   }
 

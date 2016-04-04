@@ -196,7 +196,7 @@ public class CpuSampler extends DeviceSampler {
 
     @Override
     public void processNewLines(String[] lines) {
-      long totalUptime = 0l;
+      long totalUptime = 0L;
 
       String[] tokens = lines[0].split("\\s+");
       if (tokens.length < 11 || !tokens[0].equals("cpu")) {

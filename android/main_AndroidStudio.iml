@@ -2,7 +2,7 @@
 <module type="JAVA_MODULE" version="4">
   <component name="NewModuleRootManager" inherit-compiler-output="true">
     <exclude-output />
-    <orderEntry type="inheritedJdk" />
+    <orderEntry type="jdk" jdkName="1.8" jdkType="JavaSDK" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="adt-branding" />
     <orderEntry type="module" module-name="android" />
@@ -12,4 +12,3 @@
     <orderEntry type="module" module-name="colorSchemes" />
   </component>
 </module>
-

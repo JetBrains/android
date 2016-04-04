@@ -53,7 +53,6 @@
       </library>
     </orderEntry>
     <orderEntry type="module" module-name="external-system-api" />
-    <orderEntry type="module" module-name="gradle" />
     <orderEntry type="module" module-name="external-system-impl" />
     <orderEntry type="library" name="gson" level="project" />
     <orderEntry type="module" module-name="jetgroovy" />
@@ -116,5 +115,34 @@
       </library>
     </orderEntry>
     <orderEntry type="module" module-name="lang-api" />
+    <orderEntry type="module-library">
+      <library name="Gradle">
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/../../plugins/gradle/lib/gradle-tooling-api-2.9.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../plugins/gradle/lib/gradle-core-2.9.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../plugins/gradle/lib/gradle-model-core-2.9.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../plugins/gradle/lib/gradle-model-groovy-2.9.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../plugins/gradle/lib/gradle-messaging-2.9.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../plugins/gradle/lib/gradle-wrapper-2.9.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../plugins/gradle/lib/gradle-base-services-2.9.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../plugins/gradle/lib/gradle-base-services-groovy-2.9.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../plugins/gradle/lib/gradle-native-2.9.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../plugins/gradle/lib/gradle-resources-2.9.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="jar://$MODULE_DIR$/../../plugins/gradle/lib/gradle-2.9-src.zip!/gradle-2.9/subprojects/tooling-api/src/main/java" />
+          <root url="jar://$MODULE_DIR$/../../plugins/gradle/lib/gradle-2.9-src.zip!/gradle-2.9/subprojects/core/src/main/groovy" />
+          <root url="jar://$MODULE_DIR$/../../plugins/gradle/lib/gradle-2.9-src.zip!/gradle-2.9/subprojects/messaging/src/main/java" />
+          <root url="jar://$MODULE_DIR$/../../plugins/gradle/lib/gradle-2.9-src.zip!/gradle-2.9/subprojects/wrapper/src/main/java" />
+          <root url="jar://$MODULE_DIR$/../../plugins/gradle/lib/gradle-2.9-src.zip!/gradle-2.9/subprojects/base-services/src/main/java" />
+          <root url="jar://$MODULE_DIR$/../../plugins/gradle/lib/gradle-2.9-src.zip!/gradle-2.9/subprojects/base-services-groovy/src/main/groovy" />
+          <root url="jar://$MODULE_DIR$/../../plugins/gradle/lib/gradle-2.9-src.zip!/gradle-2.9/subprojects/native/src/main/java" />
+          <root url="jar://$MODULE_DIR$/../../plugins/gradle/lib/gradle-2.9-src.zip!/gradle-2.9/subprojects/resources/src/main/java" />
+        </SOURCES>
+      </library>
+    </orderEntry>
+    <orderEntry type="module" module-name="gradle" />
+    <orderEntry type="module" module-name="gradle-tests" scope="TEST" />
   </component>
 </module>

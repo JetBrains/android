@@ -33,7 +33,7 @@ import java.io.IOException;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.testing.FileSubject.file;
-import static com.google.common.truth.Truth.assertAbout;
+import static com.google.common.truth.Truth.assert_;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static com.intellij.openapi.util.io.FileUtil.ensureCanCreateFile;
 import static com.intellij.openapi.util.io.FileUtil.writeToFile;
@@ -56,13 +56,13 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     String basePath = myProject.getBasePath();
     assertNotNull(basePath);
     File projectBasePath = new File(basePath);
-    assertAbout(file()).that(projectBasePath).isDirectory();
+    assert_().about(file()).that(projectBasePath).isDirectory();
     mySettingsFile = new File(projectBasePath, FN_SETTINGS_GRADLE);
     assertTrue(ensureCanCreateFile(mySettingsFile));
 
     File moduleFilePath = new File(myModule.getModuleFilePath());
     File moduleDirPath = moduleFilePath.getParentFile();
-    assertAbout(file()).that(moduleDirPath).isDirectory();
+    assert_().about(file()).that(moduleDirPath).isDirectory();
     myBuildFile = new File(moduleDirPath, FN_BUILD_GRADLE);
     assertTrue(ensureCanCreateFile(myBuildFile));
     myPropertiesFile = new File(moduleDirPath, FN_GRADLE_PROPERTIES);
@@ -70,7 +70,7 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
 
     File subModuleFilePath = new File(mySubModule.getModuleFilePath());
     File subModuleDirPath = subModuleFilePath.getParentFile();
-    assertAbout(file()).that(subModuleDirPath).isDirectory();
+    assert_().about(file()).that(subModuleDirPath).isDirectory();
     mySubModuleBuildFile = new File(subModuleDirPath, FN_BUILD_GRADLE);
     assertTrue(ensureCanCreateFile(mySubModuleBuildFile));
     mySubModulePropertiesFile = new File(subModuleDirPath, FN_GRADLE_PROPERTIES);

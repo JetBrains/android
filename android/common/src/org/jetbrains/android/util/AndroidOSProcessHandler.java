@@ -21,7 +21,6 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,7 +36,7 @@ public class AndroidOSProcessHandler extends BaseOSProcessHandler {
   private final List<String> myInfoMessages = new ArrayList<String>();
   private final List<String> myErrorMessages = new ArrayList<String>();
   
-  public AndroidOSProcessHandler(@NotNull final Process process, @Nullable final String commandLine) {
+  public AndroidOSProcessHandler(@NotNull final Process process, @NotNull final String commandLine) {
     super(process, commandLine, null);
   }
 
