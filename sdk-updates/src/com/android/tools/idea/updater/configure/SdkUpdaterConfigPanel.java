@@ -57,6 +57,7 @@ import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.ui.dualView.TreeTableView;
 import com.intellij.ui.table.SelectionProvider;
+import com.intellij.util.ui.accessibility.ScreenReader;
 import com.intellij.util.ui.tree.TreeUtil;
 import org.jetbrains.android.actions.RunAndroidSdkManagerAction;
 import org.jetbrains.annotations.NotNull;
@@ -372,8 +373,13 @@ public class SdkUpdaterConfigPanel {
     ActionMap am = table.getActionMap();
     final CycleAction forwardAction = new CycleAction(false);
     final CycleAction backwardAction = new CycleAction(true);
-    am.put("selectPreviousColumnCell", backwardAction);
-    am.put("selectNextColumnCell", forwardAction);
+
+    // With a screen reader, we need to let the user navigate through all the
+    // cells so that they can be read, so don't override the prev/next cell actions.
+    if (!ScreenReader.isActive()) {
+      am.put("selectPreviousColumnCell", backwardAction);
+      am.put("selectNextColumnCell", forwardAction);
+    }
 
     table.addKeyListener(new KeyAdapter() {
       @Override
