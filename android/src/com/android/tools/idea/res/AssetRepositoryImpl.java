@@ -16,6 +16,8 @@
 package com.android.tools.idea.res;
 
 import com.android.ide.common.rendering.api.AssetRepository;
+import com.intellij.openapi.Disposable;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.IdeaSourceProvider;
@@ -29,12 +31,17 @@ import java.util.List;
 /**
  * Finds an asset in all the asset directories and returns the input stream.
  */
-public class AssetRepositoryImpl extends AssetRepository {
+public class AssetRepositoryImpl extends AssetRepository implements Disposable {
 
   private AndroidFacet myFacet;
 
   public AssetRepositoryImpl(@NotNull AndroidFacet facet) {
     myFacet = facet;
+
+    // LayoutLib keeps a static reference to the AssetRepository that will be replaced once a new project is opened.
+    // In unit tests this will trigger a memory leak error. This makes sure that we do not keep the reference to the facet so
+    // the unit test is happy.
+    Disposer.register(myFacet, this);
   }
 
   @Override
@@ -48,6 +55,8 @@ public class AssetRepositoryImpl extends AssetRepository {
   @Nullable
   @Override
   public InputStream openAsset(String path, int mode) throws IOException {
+    assert myFacet != null;
+
     // mode is currently ignored. It can help in optimizing read performance, but it shouldn't matter here.
     List<IdeaSourceProvider> sourceProviders = IdeaSourceProvider.getAllIdeaSourceProviders(myFacet);
     for (int i = sourceProviders.size() - 1; i >= 0; i--) {
@@ -61,5 +70,10 @@ public class AssetRepositoryImpl extends AssetRepository {
     }
 
     return null;
+  }
+
+  @Override
+  public void dispose() {
+    myFacet = null;
   }
 }
