@@ -22,7 +22,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import static org.junit.Assert.assertFalse;
+import static com.google.common.truth.Truth.assertWithMessage;
 
 /**
  * Tests exercising the UI for hardware profile management
@@ -33,27 +33,29 @@ public class HardwareProfileTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
   @Test
-  public void testCreateHardwareProfile() throws Exception {
+  public void createAndDeleteHardwareProfile() throws Exception {
+    String deviceName = HardwareProfileTest.class.getSimpleName();
+
     guiTest.importSimpleApplication();
     AvdManagerDialogFixture avdManagerDialog = guiTest.ideFrame().invokeAvdManager();
     AvdEditWizardFixture avdEditWizard = avdManagerDialog.createNew();
     ChooseDeviceDefinitionStepFixture step = avdEditWizard.selectHardware();
+    assertWithMessage("initial state").that(step.deviceNames()).doesNotContain(deviceName);
 
-    // UI tests are not as isolated as we would like, make sure there's no name clash.
-    final String deviceName = "device-" + System.currentTimeMillis();
-    assertFalse("Device with this name already exists, no point in testing.", step.hardwareProfileExists(deviceName));
-
-    DeviceEditWizardFixture deviceEditWizard = step.newHardwareProfile();
-    ConfigureDeviceOptionsStepFixture deviceOptionsStep = deviceEditWizard.getConfigureDeviceOptionsStep();
+    HardwareProfileWizardFixture hardwareProfileWizard = step.newHardwareProfile();
+    ConfigureDeviceOptionsStepFixture deviceOptionsStep = hardwareProfileWizard.getConfigureDeviceOptionsStep();
     deviceOptionsStep.setDeviceName(deviceName)
                      .selectHasFrontCamera(false)
                      .setScreenResolutionX(1280)
                      .setScreenResolutionY(920)
                      .setScreenSize(5.2);
     guiTest.robot().waitForIdle();
-    deviceEditWizard.clickFinish();
-    step.selectHardwareProfile(deviceName);
+    hardwareProfileWizard.clickFinish();
+    assertWithMessage("after creating").that(step.deviceNames()).contains(deviceName);
+
     step.deleteHardwareProfile(deviceName);
+    assertWithMessage("after deleting").that(step.deviceNames()).doesNotContain(deviceName);
+
     avdEditWizard.clickCancel();
     avdManagerDialog.close();
   }
