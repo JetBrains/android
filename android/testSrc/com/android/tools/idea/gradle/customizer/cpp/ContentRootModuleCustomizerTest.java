@@ -20,25 +20,27 @@ import com.android.builder.model.NativeFile;
 import com.android.builder.model.NativeFolder;
 import com.android.tools.idea.gradle.NativeAndroidGradleModel;
 import com.android.tools.idea.gradle.stubs.android.NativeAndroidProjectStub;
+import com.android.tools.idea.gradle.util.Projects;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.SourceFolder;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.IdeaTestCase;
-import com.intellij.util.ExceptionUtil;
 
 import java.io.File;
 import java.util.List;
 import java.util.Set;
 
 import static com.android.tools.idea.gradle.TestProjects.createNativeProject;
+import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
 import static com.intellij.openapi.vfs.VfsUtilCore.urlToPath;
+import static com.intellij.util.ExceptionUtil.rethrowAllAsUnchecked;
 import static org.jetbrains.plugins.gradle.util.GradleConstants.SYSTEM_ID;
 
 /**
@@ -53,10 +55,7 @@ public class ContentRootModuleCustomizerTest extends IdeaTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-
-    String basePath = myProject.getBasePath();
-    assertNotNull(basePath);
-    File baseDir = new File(basePath);
+    File baseDir = Projects.getBaseDirPath(myProject);
     myNativeAndroidProject = createNativeProject(baseDir, myProject.getName());
 
     myNativeAndroidGradleModel = new NativeAndroidGradleModel(SYSTEM_ID, myNativeAndroidProject.getName(), baseDir, myNativeAndroidProject);
@@ -73,6 +72,7 @@ public class ContentRootModuleCustomizerTest extends IdeaTestCase {
       }
     }
     finally {
+      //noinspection ThrowFromFinallyBlock
       super.tearDown();
     }
   }
@@ -82,14 +82,11 @@ public class ContentRootModuleCustomizerTest extends IdeaTestCase {
     assertNotNull(moduleFile);
     final VirtualFile moduleDir = moduleFile.getParent();
 
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(myModule);
-        ModifiableRootModel model = moduleRootManager.getModifiableModel();
-        model.addContentEntry(moduleDir);
-        model.commit();
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(myModule);
+      ModifiableRootModel model = moduleRootManager.getModifiableModel();
+      model.addContentEntry(moduleDir);
+      model.commit();
     });
   }
 
@@ -97,11 +94,11 @@ public class ContentRootModuleCustomizerTest extends IdeaTestCase {
     final IdeModifiableModelsProviderImpl modelsProvider = new IdeModifiableModelsProviderImpl(myProject);
     try {
       myCustomizer.customizeModule(myProject, myModule, modelsProvider, myNativeAndroidGradleModel);
-      modelsProvider.commit();
+      ApplicationManager.getApplication().runWriteAction(modelsProvider::commit);
     }
     catch (Throwable t) {
       modelsProvider.dispose();
-      ExceptionUtil.rethrowAllAsUnchecked(t);
+      rethrowAllAsUnchecked(t);
     }
 
     ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(myModule);
@@ -112,7 +109,7 @@ public class ContentRootModuleCustomizerTest extends IdeaTestCase {
 
     for (SourceFolder folder : sourceFolders) {
       String path = urlToPath(folder.getUrl());
-      sourcePaths.add(FileUtil.toSystemIndependentName(path));
+      sourcePaths.add(toSystemIndependentName(path));
     }
 
     List<String> allExpectedPaths = Lists.newArrayList();
@@ -134,7 +131,7 @@ public class ContentRootModuleCustomizerTest extends IdeaTestCase {
     }
 
     for (File file : sourceFolderPaths) {
-      allExpectedPaths.add(FileUtil.toSystemIndependentName(file.getPath()));
+      allExpectedPaths.add(toSystemIndependentName(file.getPath()));
     }
 
     assertEquals(allExpectedPaths, sourcePaths);
