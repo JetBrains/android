@@ -21,15 +21,17 @@ import com.android.tools.idea.gradle.TestProjects;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
-import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.roots.CompilerModuleExtension;
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.VfsUtilCore;
+import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.testFramework.IdeaTestCase;
-import com.intellij.util.ExceptionUtil;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
+
+import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.toCanonicalPath;
+import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
+import static com.intellij.openapi.vfs.VfsUtilCore.pathToUrl;
+import static com.intellij.util.ExceptionUtil.rethrowAllAsUnchecked;
 
 /**
  * Tests for {@link CompilerOutputModuleCustomizer}.
@@ -47,10 +49,15 @@ public class CompilerOutputModuleCustomizerTest extends IdeaTestCase {
 
   @Override
   protected void tearDown() throws Exception {
-    if (androidProject != null) {
-      androidProject.dispose();
+    try {
+      if (androidProject != null) {
+        androidProject.dispose();
+      }
     }
-    super.tearDown();
+    finally {
+      //noinspection ThrowFromFinallyBlock
+      super.tearDown();
+    }
   }
 
   public void testCustomizeModule() {
@@ -61,24 +68,20 @@ public class CompilerOutputModuleCustomizerTest extends IdeaTestCase {
     final IdeModifiableModelsProviderImpl modelsProvider = new IdeModifiableModelsProviderImpl(myProject);
     try {
       customizer.customizeModule(myProject, myModule, modelsProvider, androidModel);
-      CompilerModuleExtension compilerSettings = modelsProvider.getModifiableRootModel(myModule).getModuleExtension(CompilerModuleExtension.class);
+      ModifiableRootModel rootModel = modelsProvider.getModifiableRootModel(myModule);
+      CompilerModuleExtension compilerSettings = rootModel.getModuleExtension(CompilerModuleExtension.class);
       compilerOutputPath = compilerSettings.getCompilerOutputUrl();
-      modelsProvider.commit();
-      ApplicationManager.getApplication().runWriteAction(new Runnable() {
-        @Override
-        public void run() {
-          modelsProvider.commit();
-        }
-      });
+
+      ApplicationManager.getApplication().runWriteAction(modelsProvider::commit);
     }
     catch (Throwable t) {
       modelsProvider.dispose();
-      ExceptionUtil.rethrowAllAsUnchecked(t);
+      rethrowAllAsUnchecked(t);
     }
 
     File classesFolder = androidModel.getSelectedVariant().getMainArtifact().getClassesFolder();
-    String path = FileUtil.toSystemIndependentName(classesFolder.getPath());
-    String expected = VfsUtilCore.pathToUrl(ExternalSystemApiUtil.toCanonicalPath(path));
+    String path = toSystemIndependentName(classesFolder.getPath());
+    String expected = pathToUrl(toCanonicalPath(path));
     assertEquals(expected, compilerOutputPath);
   }
 }
