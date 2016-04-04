@@ -91,6 +91,7 @@ public class SceneDraw {
             SceneDraw.BlueprintBackground);
 
     private ConstraintAnchor mCurrentUnderneathAnchor;
+    private boolean mMoveOnlyMode = false;
 
     public static void generateColors() {
         BlueprintBackgroundLines = ColorTheme.updateBrightness(BlueprintBackground, 1.06f);
@@ -301,6 +302,9 @@ public class SceneDraw {
         } else {
             decorator.setShowResizeHandles(mWidgetMotion.needToShowDecorations());
             decorator.setShowSizeIndicator(selectedResizeHandle != null);
+        }
+        if (mMoveOnlyMode) {
+            decorator.setShowResizeHandles(false);
         }
         return decorator;
     }
@@ -588,5 +592,9 @@ public class SceneDraw {
                 mAnimationCurrentAnchor = null;
             }
         }
+    }
+
+    public void setMoveOnlyMode(boolean moveOnlyMode) {
+        mMoveOnlyMode = moveOnlyMode;
     }
 }

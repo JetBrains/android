@@ -582,6 +582,9 @@ public class MouseInteraction {
      * @param y mouse y coordinate
      */
     public void mouseMoved(float x, float y) {
+        if (mMoveOnlyMode) {
+            return;
+        }
         // In Mouse Moved, find any anchors we are hovering above
         ConstraintAnchor anchor =
                 mWidgetsScene.findAnchorInSelection(x, y, false, true, mViewTransform);
