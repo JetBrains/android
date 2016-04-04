@@ -47,28 +47,22 @@ class PsAndroidDependencyCollection implements PsModelCollection<PsAndroidDepend
 
   PsAndroidDependencyCollection(@NotNull PsAndroidModule parent) {
     myParent = parent;
-    parent.forEachVariant(new Predicate<PsVariant>() {
-      @Override
-      public boolean apply(@Nullable PsVariant variant) {
-        if (variant == null) {
-          return false;
-        }
-        addDependencies(variant);
-        return true;
+    parent.forEachVariant(variant -> {
+      if (variant == null) {
+        return false;
       }
+      addDependencies(variant);
+      return true;
     });
   }
 
   private void addDependencies(@NotNull PsVariant variant) {
-    variant.forEachArtifact(new Predicate<PsAndroidArtifact>() {
-      @Override
-      public boolean apply(@Nullable PsAndroidArtifact artifact) {
-        if (artifact == null) {
-          return false;
-        }
-        collectDependencies(artifact);
-        return true;
+    variant.forEachArtifact(artifact -> {
+      if (artifact == null) {
+        return false;
       }
+      collectDependencies(artifact);
+      return true;
     });
   }
 
@@ -321,30 +315,20 @@ class PsAndroidDependencyCollection implements PsModelCollection<PsAndroidDepend
 
   @Override
   public void forEach(@NotNull Predicate<PsAndroidDependency> function) {
-    for (PsLibraryDependency dependency : myLibraryDependenciesBySpec.values()) {
-      function.apply(dependency);
-    }
-    for (PsModuleDependency dependency : myModuleDependenciesByGradlePath.values()) {
-      function.apply(dependency);
-    }
+    myLibraryDependenciesBySpec.values().forEach(function::apply);
+    myModuleDependenciesByGradlePath.values().forEach(function::apply);
   }
 
   public void forEachDeclaredDependency(@NotNull Predicate<PsAndroidDependency> function) {
-    for (PsLibraryDependency dependency : myLibraryDependenciesBySpec.values()) {
-      if (dependency.isDeclared()) {
-        function.apply(dependency);
-      }
-    }
-    for (PsModuleDependency dependency : myModuleDependenciesByGradlePath.values()) {
-      if (dependency.isDeclared()) {
-        function.apply(dependency);
-      }
-    }
+    myLibraryDependenciesBySpec.values().stream()
+                                        .filter(PsAndroidDependency::isDeclared)
+                                        .forEach(function::apply);
+    myModuleDependenciesByGradlePath.values().stream()
+                                             .filter(PsAndroidDependency::isDeclared)
+                                             .forEach(function::apply);
   }
 
   public void forEachModuleDependency(@NotNull Predicate<PsModuleDependency> function) {
-    for (PsModuleDependency dependency : myModuleDependenciesByGradlePath.values()) {
-      function.apply(dependency);
-    }
+    myModuleDependenciesByGradlePath.values().forEach(function::apply);
   }
 }
