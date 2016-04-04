@@ -35,4 +35,9 @@ public abstract class Format implements BinaryObject {
   public BinaryObject unwrap() {
     return this;
   }
+
+  @Override
+  public String toString() {
+    return getClass().getSimpleName();
+  }
 }
