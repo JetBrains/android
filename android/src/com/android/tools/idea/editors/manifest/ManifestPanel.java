@@ -31,10 +31,16 @@ import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.rendering.HtmlLinkManager;
 import com.android.utils.HtmlBuilder;
 import com.google.common.base.*;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.IdeActions;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
@@ -213,6 +219,18 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
     };
     myTree.addMouseListener(ml);
 
+    AnAction goToDeclarationAction = new AnAction() {
+      @Override
+      public void actionPerformed(AnActionEvent e) {
+        ManifestPanel.ManifestTreeNode node = (ManifestPanel.ManifestTreeNode)myTree.getLastSelectedPathComponent();
+        if (node != null) {
+          goToDeclaration(node.getUserObject());
+        }
+      }
+    };
+    goToDeclarationAction
+      .registerCustomShortcutSet(ActionManager.getInstance().getAction(IdeActions.ACTION_GOTO_DECLARATION).getShortcutSet(), myTree);
+
     JBSplitter splitter = new JBSplitter(0.66f);
     splitter.setFirstComponent(new JBScrollPane(myTree));
     splitter.setSecondComponent(new JBScrollPane(myDetails));
@@ -340,6 +358,32 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
       }
     }
     return false;
+  }
+
+  private void goToDeclaration(XmlElement element) {
+    List<? extends Actions.Record> records = getRecords(element);
+    for (Actions.Record record : records) {
+      SourceFilePosition sourceFilePosition = record.getActionLocation();
+      SourceFile sourceFile = sourceFilePosition.getFile();
+      if (!SourceFile.UNKNOWN.equals(sourceFile)) {
+        File ioFile = sourceFile.getSourceFile();
+        if (ioFile != null) {
+          VirtualFile file = LocalFileSystem.getInstance().findFileByIoFile(ioFile);
+          assert file != null;
+          int line = -1;
+          int column = 0;
+          SourcePosition sourcePosition = sourceFilePosition.getPosition();
+          if (!SourcePosition.UNKNOWN.equals(sourcePosition)) {
+            line = sourcePosition.getStartLine();
+            column = sourcePosition.getStartColumn();
+          }
+          Project project = myFacet.getModule().getProject();
+          OpenFileDescriptor descriptor = new OpenFileDescriptor(project, file, line, column);
+          FileEditorManager.getInstance(project).openEditor(descriptor, true);
+          return;
+        }
+      }
+    }
   }
 
   @NotNull
