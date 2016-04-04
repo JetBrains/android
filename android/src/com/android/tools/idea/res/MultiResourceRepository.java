@@ -54,26 +54,21 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
         LocalResourceRepository resources = myChildren.get(i);
         resources.removeParent(this);
       }
-      if (myChildren.size() == 1) {
-        myGeneration = Math.max(myChildren.get(0).getModificationCount(), myGeneration);
-      }
     }
+    myGeneration = ourModificationCounter.incrementAndGet();
     myChildren = children;
     myModificationCounts = new long[children.size()];
     if (children.size() == 1) {
       // Make sure that the modification count of the child and the parent are same. This is
       // done so that we can return child's modification count, instead of ours.
       LocalResourceRepository child = children.get(0);
-      long modCount = Math.max(child.getModificationCount(), myGeneration);
-      child.myGeneration = modCount + 1;
-      myGeneration = modCount;  // it's incremented below.
+      child.myGeneration = myGeneration;
     }
     for (int i = myChildren.size() - 1; i >= 0; i--) {
       LocalResourceRepository resources = myChildren.get(i);
       resources.addParent(this);
       myModificationCounts[i] = resources.getModificationCount();
     }
-    myGeneration++;
     clearCache();
     invalidateItemCaches();
   }
@@ -107,7 +102,7 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
       }
     }
     if (changed) {
-      myGeneration++;
+      myGeneration = ourModificationCounter.incrementAndGet();
     }
 
     return myGeneration;
@@ -279,7 +274,7 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
       }
     }
     myItems = null;
-    myGeneration++;
+    myGeneration = ourModificationCounter.incrementAndGet();
 
     invalidateItemCaches(types);
   }
