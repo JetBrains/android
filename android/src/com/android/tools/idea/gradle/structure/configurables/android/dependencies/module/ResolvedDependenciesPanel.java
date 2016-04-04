@@ -18,7 +18,9 @@ package com.android.tools.idea.gradle.structure.configurables.android.dependenci
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.treeview.DependencySelection;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.treeview.ResolvedDependenciesTreeBuilder;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.*;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractDependencyNode;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.GoToModuleAction;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.ModuleDependencyNode;
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
 import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowPanel;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractBaseCollapseAllAction;
@@ -40,17 +42,14 @@ import com.intellij.ui.PopupHandler;
 import com.intellij.ui.TreeUIHelper;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.EventDispatcher;
-import com.intellij.util.containers.Convertor;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
@@ -107,25 +106,22 @@ class ResolvedDependenciesPanel extends ToolWindowPanel implements DependencySel
     JScrollPane scrollPane = setUp(myTree);
     add(scrollPane, BorderLayout.CENTER);
 
-    myTreeSelectionListener = new TreeSelectionListener() {
-      @Override
-      public void valueChanged(TreeSelectionEvent e) {
-        if (myIgnoreTreeSelectionEvents) {
-          return;
-        }
+    myTreeSelectionListener = e -> {
+      if (myIgnoreTreeSelectionEvents) {
+        return;
+      }
 
-        myTreeBuilder.updateSelection();
-        PsAndroidDependency selected = getSelection();
-        if (selected == null) {
-          AbstractPsModelNode selectedNode = getSelectionIfSingle();
-          if (selectedNode != null && !(selectedNode instanceof AbstractDependencyNode)) {
-            // A non-dependency node was selected (e.g. a variant/artifact node)
-            notifySelectionChanged(null);
-          }
+      myTreeBuilder.updateSelection();
+      PsAndroidDependency selected = getSelection();
+      if (selected == null) {
+        AbstractPsModelNode selectedNode = getSelectionIfSingle();
+        if (selectedNode != null && !(selectedNode instanceof AbstractDependencyNode)) {
+          // A non-dependency node was selected (e.g. a variant/artifact node)
+          notifySelectionChanged(null);
         }
-        else {
-          notifySelectionChanged(selected);
-        }
+      }
+      else {
+        notifySelectionChanged(selected);
       }
     };
     myTree.addTreeSelectionListener(myTreeSelectionListener);
@@ -136,15 +132,12 @@ class ResolvedDependenciesPanel extends ToolWindowPanel implements DependencySel
       }
     });
 
-    TreeUIHelper.getInstance().installTreeSpeedSearch(myTree, new Convertor<TreePath, String>() {
-      @Override
-      public String convert(TreePath path) {
-        Object last = path.getLastPathComponent();
-        return last != null ? last.toString() : "";
-      }
+    TreeUIHelper.getInstance().installTreeSpeedSearch(myTree, path -> {
+      Object last = path.getLastPathComponent();
+      return last != null ? last.toString() : "";
     }, true);
 
-    myHyperlinkSupport = new NodeHyperlinkSupport<ModuleDependencyNode>(myTree, ModuleDependencyNode.class, myContext, false);
+    myHyperlinkSupport = new NodeHyperlinkSupport<>(myTree, ModuleDependencyNode.class, myContext, false);
   }
 
   private void notifySelectionChanged(@Nullable PsAndroidDependency selected) {

@@ -60,7 +60,7 @@ public abstract class AbstractPsNodeTreeBuilder extends AbstractBaseTreeBuilder 
       }
     }
     if (collector != null) {
-      collector.done(Collections.<AbstractPsModelNode>emptyList());
+      collector.done(Collections.emptyList());
     }
   }
 
@@ -69,45 +69,39 @@ public abstract class AbstractPsNodeTreeBuilder extends AbstractBaseTreeBuilder 
   }
 
   private void selectMatchingNodes(@NotNull final PsModel model, @Nullable final MatchingNodeCollector collector, final boolean scroll) {
-    getInitialized().doWhenDone(new Runnable() {
-      @Override
-      public void run() {
-        final List<AbstractPsModelNode> toSelect = Lists.newArrayList();
-        accept(AbstractPsModelNode.class, new TreeVisitor<AbstractPsModelNode>() {
-          @Override
-          public boolean visit(@NotNull AbstractPsModelNode node) {
-            if (node.matches(model)) {
-              toSelect.add(node);
-              if (collector != null) {
-                collector.onMatchingNodeFound(node);
-              }
-            }
-            return false;
-          }
-        });
-
-        if (isDisposed()) {
-          return;
-        }
-        // Expand the parents of all selected nodes, so they can be visible to the user.
-        Runnable onDone = new Runnable() {
-          @Override
-          public void run() {
-            List<SimpleNode> toExpand = Lists.newArrayList();
-            for (AbstractPsModelNode node : toSelect) {
-              SimpleNode parent = node.getParent();
-              if (parent != null) {
-                toExpand.add(parent);
-              }
-            }
-            expand(toExpand.toArray(), null);
+    getInitialized().doWhenDone(() -> {
+      final List<AbstractPsModelNode> toSelect = Lists.newArrayList();
+      accept(AbstractPsModelNode.class, new TreeVisitor<AbstractPsModelNode>() {
+        @Override
+        public boolean visit(@NotNull AbstractPsModelNode node) {
+          if (node.matches(model)) {
+            toSelect.add(node);
             if (collector != null) {
-              collector.done(collector.matchingNodes);
+              collector.onMatchingNodeFound(node);
             }
           }
-        };
-        getUi().userSelect(toSelect.toArray(), new UserRunnable(onDone), false, scroll);
+          return false;
+        }
+      });
+
+      if (isDisposed()) {
+        return;
       }
+      // Expand the parents of all selected nodes, so they can be visible to the user.
+      Runnable onDone = () -> {
+        List<SimpleNode> toExpand = Lists.newArrayList();
+        for (AbstractPsModelNode node : toSelect) {
+          SimpleNode parent = node.getParent();
+          if (parent != null) {
+            toExpand.add(parent);
+          }
+        }
+        expand(toExpand.toArray(), null);
+        if (collector != null) {
+          collector.done(collector.matchingNodes);
+        }
+      };
+      getUi().userSelect(toSelect.toArray(), new UserRunnable(onDone), false, scroll);
     });
   }
 

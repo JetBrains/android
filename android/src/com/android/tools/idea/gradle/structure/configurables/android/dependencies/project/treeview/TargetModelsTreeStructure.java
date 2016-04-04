@@ -29,7 +29,6 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.util.Pair;
 import com.intellij.ui.treeStructure.SimpleNode;
-import com.intellij.util.containers.Predicate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -146,27 +145,24 @@ public class TargetModelsTreeStructure extends AbstractBaseTreeStructure {
             // The dependency is declared in the main artifact. Both test artifacts should be added as well, since they inherit the
             // dependencies.
             PsVariant parentVariant = mainArtifact.getParent();
-            parentVariant.forEachArtifact(new Predicate<PsAndroidArtifact>() {
-              @Override
-              public boolean apply(@Nullable PsAndroidArtifact artifact) {
-                if (artifact == null || existingArtifacts.contains(artifact)) {
-                  return false;
-                }
-                AndroidArtifactNode artifactNode = new AndroidArtifactNode(moduleNode, artifact);
-                artifactNodes.add(artifactNode);
-                return true;
+            parentVariant.forEachArtifact(artifact -> {
+              if (artifact == null || existingArtifacts.contains(artifact)) {
+                return false;
               }
+              AndroidArtifactNode artifactNode = new AndroidArtifactNode(moduleNode, artifact);
+              artifactNodes.add(artifactNode);
+              return true;
             });
           }
         }
 
-        Collections.sort(artifactNodes, new SimpleNodeComparator<AndroidArtifactNode>());
+        Collections.sort(artifactNodes, new SimpleNodeComparator<>());
         moduleNode.setChildren(artifactNodes);
       }
       children.add(moduleNode);
     }
 
-    Collections.sort(children, new SimpleNodeComparator<TargetAndroidModuleNode>());
+    Collections.sort(children, new SimpleNodeComparator<>());
     myRootNode.setChildren(children);
   }
 

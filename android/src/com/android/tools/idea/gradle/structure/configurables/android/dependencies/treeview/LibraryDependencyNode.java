@@ -52,13 +52,12 @@ public class LibraryDependencyNode extends AbstractDependencyNode<PsLibraryDepen
 
     ImmutableCollection<PsAndroidDependency> transitiveDependencies = dependency.getTransitiveDependencies();
 
-    for (PsAndroidDependency transitive : transitiveDependencies) {
-      if (transitive instanceof PsLibraryDependency) {
-        PsLibraryDependency transitiveLibrary = (PsLibraryDependency)transitive;
-        LibraryDependencyNode child = new LibraryDependencyNode(this, transitiveLibrary);
-        myChildren.add(child);
-      }
-    }
+    transitiveDependencies.stream().filter(transitive -> transitive instanceof PsLibraryDependency)
+                                   .forEach(transitive -> {
+      PsLibraryDependency transitiveLibrary = (PsLibraryDependency)transitive;
+      LibraryDependencyNode child = new LibraryDependencyNode(this, transitiveLibrary);
+      myChildren.add(child);
+    });
 
     Collections.sort(myChildren, DependencyNodeComparator.INSTANCE);
   }

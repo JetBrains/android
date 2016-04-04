@@ -41,9 +41,7 @@ public class PsAndroidArtifactCollection implements PsModelCollection<PsAndroidA
   }
 
   private void addArtifacts(@NotNull Collection<? extends BaseArtifact> artifacts) {
-    for (BaseArtifact artifact : artifacts) {
-      addArtifact(artifact);
-    }
+    artifacts.forEach(this::addArtifact);
   }
 
   private void addArtifact(@NotNull BaseArtifact artifact) {
@@ -59,9 +57,7 @@ public class PsAndroidArtifactCollection implements PsModelCollection<PsAndroidA
 
   @Override
   public void forEach(@NotNull Predicate<PsAndroidArtifact> function) {
-    for (PsAndroidArtifact artifact : myArtifactsByName.values()) {
-      function.apply(artifact);
-    }
+    myArtifactsByName.values().forEach(function::apply);
   }
 
   @NotNull

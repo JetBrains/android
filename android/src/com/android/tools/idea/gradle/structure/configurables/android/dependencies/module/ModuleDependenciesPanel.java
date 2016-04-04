@@ -16,9 +16,10 @@
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.module;
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
-import com.android.tools.idea.gradle.structure.configurables.ui.*;
+import com.android.tools.idea.gradle.structure.configurables.ui.AbstractMainPanel;
+import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
+import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowHeader;
 import com.android.tools.idea.gradle.structure.model.PsModule;
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.intellij.openapi.util.ActionCallback;
 import com.intellij.openapi.util.Disposer;
@@ -55,19 +56,9 @@ class ModuleDependenciesPanel extends AbstractMainPanel {
     add(myVerticalSplitter, BorderLayout.CENTER);
 
     myDeclaredDependenciesPanel.updateTableColumnSizes();
-    myDeclaredDependenciesPanel.add(new DeclaredDependenciesPanel.SelectionListener() {
-      @Override
-      public void dependencySelected(@NotNull PsAndroidDependency dependency) {
-        myResolvedDependenciesPanel.setSelection(dependency);
-      }
-    });
+    myDeclaredDependenciesPanel.add(myResolvedDependenciesPanel::setSelection);
 
-    myResolvedDependenciesPanel.add(new ResolvedDependenciesPanel.SelectionListener() {
-      @Override
-      public void dependencySelected(@Nullable PsAndroidDependency dependency) {
-        myDeclaredDependenciesPanel.setSelection(dependency);
-      }
-    });
+    myResolvedDependenciesPanel.add(myDeclaredDependenciesPanel::setSelection);
 
     myAltPanel = new JPanel(new BorderLayout());
 
@@ -77,19 +68,9 @@ class ModuleDependenciesPanel extends AbstractMainPanel {
     assert minimizedContainerPanel != null;
     myAltPanel.add(minimizedContainerPanel, BorderLayout.EAST);
 
-    header.addMinimizeListener(new ToolWindowHeader.MinimizeListener() {
-      @Override
-      public void minimized() {
-        minimizeResolvedDependenciesPanel();
-      }
-    });
+    header.addMinimizeListener(this::minimizeResolvedDependenciesPanel);
 
-    myResolvedDependenciesPanel.addRestoreListener(new ToolWindowPanel.RestoreListener() {
-      @Override
-      public void restored() {
-        restoreResolvedDependenciesPanel();
-      }
-    });
+    myResolvedDependenciesPanel.addRestoreListener(this::restoreResolvedDependenciesPanel);
   }
 
   private void restoreResolvedDependenciesPanel() {

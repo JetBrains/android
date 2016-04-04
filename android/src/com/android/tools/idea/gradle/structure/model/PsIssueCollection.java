@@ -30,11 +30,12 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.intellij.xml.util.XmlStringUtil.escapeString;
 
 public class PsIssueCollection {
-  @NotNull private final ConcurrentMultiMap<PsNavigationPath, PsIssue> myIssues = new ConcurrentMultiMap<PsNavigationPath, PsIssue>();
+  @NotNull private final ConcurrentMultiMap<PsNavigationPath, PsIssue> myIssues = new ConcurrentMultiMap<>();
   @NotNull private final PsContext myContext;
 
   public PsIssueCollection(@NotNull PsContext context) {
@@ -92,9 +93,8 @@ public class PsIssueCollection {
 
     // Removed duplicated lines.
     Set<String> lines = Sets.newLinkedHashSet();
-    for (PsIssue issue : issues) {
-      lines.add(escapeString(issue.getText()));
-    }
+    lines.addAll(issues.stream().map(issue -> escapeString(issue.getText()))
+                                .collect(Collectors.toList()));
 
     StringBuilder buffer = new StringBuilder();
     buffer.append("<html><body>");
