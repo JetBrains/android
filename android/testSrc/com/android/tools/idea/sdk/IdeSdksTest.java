@@ -24,6 +24,7 @@ import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.util.Computable;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
@@ -46,18 +47,16 @@ public class IdeSdksTest extends IdeaTestCase {
     AndroidTestCaseHelper.removeExistingAndroidSdks();
     myAndroidSdkPath = AndroidTestCaseHelper.getAndroidSdkPath();
 
-    ApplicationManager.getApplication().runWriteAction(new Runnable() {
-      @Override
-      public void run() {
-        FacetManager facetManager = FacetManager.getInstance(myModule);
+    ApplicationManager.getApplication().runWriteAction(() -> {
+      FacetManager facetManager = FacetManager.getInstance(myModule);
 
-        ModifiableFacetModel model = facetManager.createModifiableModel();
-        try {
-          model.addFacet(facetManager.createFacet(AndroidFacet.getFacetType(), AndroidFacet.NAME, null));
-          model.addFacet(facetManager.createFacet(AndroidGradleFacet.getFacetType(), AndroidGradleFacet.NAME, null));
-        } finally {
-          model.commit();
-        }
+      ModifiableFacetModel model = facetManager.createModifiableModel();
+      try {
+        model.addFacet(facetManager.createFacet(AndroidFacet.getFacetType(), AndroidFacet.NAME, null));
+        model.addFacet(facetManager.createFacet(AndroidGradleFacet.getFacetType(), AndroidGradleFacet.NAME, null));
+      }
+      finally {
+        model.commit();
       }
     });
     AndroidFacet facet = AndroidFacet.getInstance(myModule);
@@ -92,7 +91,8 @@ public class IdeSdksTest extends IdeaTestCase {
     localProperties.setAndroidSdkPath("");
     localProperties.save();
 
-    List<Sdk> sdks = IdeSdks.setAndroidSdkPath(myAndroidSdkPath, null);
+    List<Sdk> sdks =
+      ApplicationManager.getApplication().runWriteAction((Computable<List<Sdk>>)() -> IdeSdks.setAndroidSdkPath(myAndroidSdkPath, null));
     assertOneSdkPerAvailableTarget(sdks);
 
     localProperties = new LocalProperties(myProject);
