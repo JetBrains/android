@@ -4,7 +4,7 @@
   <description>
     Supports the development of Open Handset Alliance Android applications with IntelliJ IDEA.
   </description>
-  <version>10.2.0</version>
+  <version>10.2.0 RC 3</version>
   <vendor>JetBrains</vendor>
 
   <depends>JUnit</depends>
