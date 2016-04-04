@@ -150,12 +150,7 @@ public abstract class AbstractDeclaredDependenciesPanel extends JPanel implement
 
           @Override
           public PopupStep onChosen(final AbstractPopupAction action, boolean finalChoice) {
-            return doFinalStep(new Runnable() {
-              @Override
-              public void run() {
-                action.execute();
-              }
-            });
+            return doFinalStep(action::execute);
           }
 
           @Override

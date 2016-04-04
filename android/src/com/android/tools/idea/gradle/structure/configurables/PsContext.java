@@ -16,13 +16,11 @@
 package com.android.tools.idea.gradle.structure.configurables;
 
 import com.android.tools.idea.gradle.structure.daemon.PsDaemonAnalyzer;
-import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.PsProject;
 import com.android.tools.idea.structure.dialog.ProjectStructureConfigurable;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.util.EventDispatcher;
-import com.intellij.util.containers.Predicate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -41,15 +39,12 @@ public class PsContext implements Disposable {
     myDaemonAnalyzer = new PsDaemonAnalyzer(this);
     myDaemonAnalyzer.reset();
 
-    myProject.forEachModule(new Predicate<PsModule>() {
-      @Override
-      public boolean apply(@Nullable PsModule module) {
-        if (module == null) {
-          return false;
-        }
-        myDaemonAnalyzer.queueUpdate(module);
-        return true;
+    myProject.forEachModule(module -> {
+      if (module == null) {
+        return false;
       }
+      myDaemonAnalyzer.queueUpdate(module);
+      return true;
     });
 
     Disposer.register(parentDisposable, this);

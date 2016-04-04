@@ -28,14 +28,11 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.ui.TreeSpeedSearch;
 import com.intellij.ui.navigation.Place;
-import com.intellij.util.containers.Convertor;
-import com.intellij.util.containers.Predicate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.util.Collections;
 import java.util.List;
@@ -55,29 +52,22 @@ public abstract class BasePerspectiveConfigurable extends MasterDetailsComponent
 
   protected BasePerspectiveConfigurable(@NotNull PsContext context) {
     myContext = context;
-    myContext.addListener(new PsContext.ChangeListener() {
-      @Override
-      public void moduleSelectionChanged(@NotNull String moduleName, @NotNull Object source) {
-        if (source != BasePerspectiveConfigurable.this) {
-          selectModule(moduleName);
-        }
+    myContext.addListener((moduleName, source) -> {
+      if (source != this) {
+        selectModule(moduleName);
       }
     }, this);
 
-    PsUISettings settings = PsUISettings.getInstance();
-    myTreeMinimized = settings.MODULES_LIST_MINIMIZE;
+    myTreeMinimized = PsUISettings.getInstance().MODULES_LIST_MINIMIZE;
     if (myTreeMinimized) {
       myToReInitWholePanel = true;
       reInitWholePanelIfNeeded();
     }
-    settings.addListener(new PsUISettings.ChangeListener() {
-      @Override
-      public void settingsChanged(@NotNull PsUISettings settings) {
-        if (settings.MODULES_LIST_MINIMIZE != myTreeMinimized) {
-          myTreeMinimized = settings.MODULES_LIST_MINIMIZE;
-          myToReInitWholePanel = true;
-          reInitWholePanelIfNeeded();
-        }
+    PsUISettings.getInstance().addListener(settings -> {
+      if (settings.MODULES_LIST_MINIMIZE != myTreeMinimized) {
+        myTreeMinimized = settings.MODULES_LIST_MINIMIZE;
+        myToReInitWholePanel = true;
+        reInitWholePanelIfNeeded();
       }
     }, this);
   }
@@ -161,12 +151,9 @@ public abstract class BasePerspectiveConfigurable extends MasterDetailsComponent
         JPanel panel = (JPanel)first;
         myHeader = ToolWindowHeader.createAndAdd("Modules", AllIcons.Nodes.Module, panel, ToolWindowAnchor.LEFT);
         myHeader.setPreferredFocusedComponent(myTree);
-        myHeader.addMinimizeListener(new ToolWindowHeader.MinimizeListener() {
-          @Override
-          public void minimized() {
-            modulesTreeMinimized();
-            reInitWholePanelIfNeeded();
-          }
+        myHeader.addMinimizeListener(() -> {
+          modulesTreeMinimized();
+          reInitWholePanelIfNeeded();
         });
       }
     }
@@ -210,12 +197,7 @@ public abstract class BasePerspectiveConfigurable extends MasterDetailsComponent
     super.initTree();
     myTree.setRootVisible(false);
 
-    new TreeSpeedSearch(myTree, new Convertor<TreePath, String>() {
-      @Override
-      public String convert(final TreePath treePath) {
-        return ((MyNode)treePath.getLastPathComponent()).getDisplayName();
-      }
-    }, true);
+    new TreeSpeedSearch(myTree, treePath -> ((MyNode)treePath.getLastPathComponent()).getDisplayName(), true);
     ToolTipManager.sharedInstance().registerComponent(myTree);
     myTree.setCellRenderer(new PsModuleCellRenderer(myContext));
   }
@@ -233,19 +215,14 @@ public abstract class BasePerspectiveConfigurable extends MasterDetailsComponent
   }
 
   private void createModuleNodes(@NotNull List<PsModule> extraTopModules) {
-    for (PsModule module : extraTopModules) {
-      addConfigurableFor(module);
-    }
+    extraTopModules.forEach(this::addConfigurableFor);
 
-    myContext.getProject().forEachModule(new Predicate<PsModule>() {
-      @Override
-      public boolean apply(@Nullable PsModule module) {
-        if (module == null) {
-          return false;
-        }
-        addConfigurableFor(module);
-        return true;
+    myContext.getProject().forEachModule(module -> {
+      if (module == null) {
+        return false;
       }
+      addConfigurableFor(module);
+      return true;
     });
   }
 

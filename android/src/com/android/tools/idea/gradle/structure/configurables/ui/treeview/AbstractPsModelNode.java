@@ -27,12 +27,14 @@ import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
 public abstract class AbstractPsModelNode<T extends PsModel> extends AbstractPsNode {
   @NotNull private final List<T> myModels;
 
+  @SafeVarargs
   protected AbstractPsModelNode(@NotNull AbstractPsModelNode<?> parent, @NotNull T...models) {
     super(parent);
     myModels = Lists.newArrayList(models);
     updateNameAndIcon();
   }
 
+  @SafeVarargs
   protected AbstractPsModelNode(@NotNull T...models) {
     myModels = Lists.newArrayList(models);
     updateNameAndIcon();
