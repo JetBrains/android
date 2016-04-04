@@ -72,7 +72,8 @@ public class AnimatedHoverAnchor extends Animation {
             int extra = radius;
             g.setColor(highlight);
             g.setStroke(new BasicStroke(strokeWidth));
-            g.drawRoundRect(l, t + widget.getBaselineDistance() - extra / 2,
+            g.drawRoundRect(l,
+                    t + transform.getSwingDimension(widget.getBaselineDistance()) - extra / 2,
                     w + 1, extra, radius, radius);
         } else {
             if (isNewConnection) {
