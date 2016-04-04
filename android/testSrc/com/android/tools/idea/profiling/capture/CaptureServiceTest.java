@@ -52,10 +52,10 @@ public class CaptureServiceTest extends IdeaTestCase {
     VirtualFile projectDir = LocalFileSystem.getInstance().findFileByPath(myProject.getBasePath());
     assertNotNull(projectDir);
 
-    VirtualFile captures = projectDir.createChildDirectory(null, "captures");
+    VirtualFile captures = createChildDirectory(projectDir, "captures");
 
     assertTrue(service.getCaptures().isEmpty());
-    captures.createChildData(null, "data.capture");
+    createChildData(captures, "data.capture");
     service.update();
     assertTrue(service.getCaptures().isEmpty());
 

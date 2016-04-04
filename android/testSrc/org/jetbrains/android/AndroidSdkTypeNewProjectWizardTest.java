@@ -18,6 +18,7 @@ package org.jetbrains.android;
 import com.intellij.ide.projectWizard.NewProjectWizardTestCase;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkTypeId;
@@ -52,10 +53,15 @@ public class AndroidSdkTypeNewProjectWizardTest extends NewProjectWizardTestCase
   public void testSatisfied() throws Exception {
     ProjectSdksModel model = new ProjectSdksModel();
     model.addSdk(IdeaTestUtil.getMockJdk17());
-    ProjectJdkTable jdkTable = ProjectJdkTable.getInstance();
-    Sdk sdk = jdkTable.createSdk("a", AndroidSdkType.getInstance());
+    final ProjectJdkTable jdkTable = ProjectJdkTable.getInstance();
+    final Sdk sdk = jdkTable.createSdk("a", AndroidSdkType.getInstance());
     mySdks.add(sdk);
-    jdkTable.addJdk(sdk);
+    ApplicationManager.getApplication().runWriteAction(new Runnable() {
+      @Override
+      public void run() {
+        jdkTable.addJdk(sdk);
+      }
+    });
     AnAction action = getAddAction(model);
     try {
       action.actionPerformed(new TestActionEvent(action));

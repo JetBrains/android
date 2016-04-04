@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.structure.model;
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.model.android.PsLibraryDependency;
 import com.android.tools.idea.gradle.structure.navigation.PsLibraryDependencyPath;
-import com.android.tools.idea.gradle.structure.navigation.PsModulePath;
 import com.android.tools.idea.gradle.structure.navigation.PsNavigationPath;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -43,19 +42,11 @@ public class PsIssueCollection {
 
   public void add(@NotNull PsIssue issue) {
     myIssues.putValue(issue.getPath(), issue);
-    PsNavigationPath extraPath = issue.getExtraPath();
-    if (extraPath != null) {
-      myIssues.putValue(extraPath, issue);
-    }
   }
 
   @NotNull
   public List<PsIssue> findIssues(@NotNull PsModel model, @Nullable Comparator<PsIssue> comparator) {
     PsNavigationPath path = null;
-    if (model instanceof PsModule) {
-      PsModule module = (PsModule)model;
-      path = new PsModulePath(module);
-    }
     if (model instanceof PsLibraryDependency) {
       PsLibraryDependency dependency = (PsLibraryDependency)model;
       path = new PsLibraryDependencyPath(myContext, dependency);

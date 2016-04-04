@@ -11,6 +11,7 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.io.FileFilters;
+import com.intellij.openapi.util.io.FileSystemUtil;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.util.ArrayUtil;
@@ -1159,7 +1160,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
                                        @Nullable AndroidAptValidityState oldState)
     throws IOException {
     final String resFilePath = FileUtil.toSystemIndependentName(resFile.getPath());
-    final long resFileTimestamp = resFile.lastModified();
+    final long resFileTimestamp = FileSystemUtil.lastModified(resFile);
 
     if (ResourceFolderType.VALUES == resourceFolderType && FileUtilRt.extensionEquals(resFile.getName(), "xml")) {
       ResourceFileData dataToReuse = null;

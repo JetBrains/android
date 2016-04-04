@@ -10,7 +10,7 @@ import com.intellij.util.xmlb.XmlSerializerUtil;
 @State(
   name = "GenerateSignedApkSettings",
   storages = {
-    @Storage(file = StoragePathMacros.WORKSPACE_FILE)
+    @Storage(StoragePathMacros.WORKSPACE_FILE)
   }
 )
 public class GenerateSignedApkSettings implements PersistentStateComponent<GenerateSignedApkSettings> {

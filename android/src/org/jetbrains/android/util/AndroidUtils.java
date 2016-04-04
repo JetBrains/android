@@ -374,7 +374,7 @@ public class AndroidUtils {
                                                @Nullable final OutputProcessor processor,
                                                @Nullable WaitingStrategies.Strategy strategy) throws ExecutionException {
     LOG.info(commandLine.getCommandLineString());
-    OSProcessHandler handler = new OSProcessHandler(commandLine.createProcess(), "");
+    OSProcessHandler handler = new OSProcessHandler(commandLine);
 
     final ProcessAdapter listener = new ProcessAdapter() {
       @Override

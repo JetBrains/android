@@ -1,6 +1,7 @@
 package org.jetbrains.jps.android;
 
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.io.FileSystemUtil;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.containers.HashMap;
 import org.jetbrains.annotations.NotNull;
@@ -101,7 +102,7 @@ public class AndroidProGuardStateStorage implements StorageOwner {
       myProGuardConfigFiles = new HashMap<String, Long>();
 
       for (File file : proGuardCfgFiles) {
-        myProGuardConfigFiles.put(file.getPath(), file.lastModified());
+        myProGuardConfigFiles.put(file.getPath(), FileSystemUtil.lastModified(file));
       }
     }
 
