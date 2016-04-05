@@ -33,7 +33,7 @@ import org.jetbrains.annotations.Nullable;
  * This class expects the logcat format to be 'logcat -v long' (which prints out a header and then
  * 1+ lines of log text below, for each log message).
  */
-public final class AndroidLogcatReceiver extends AndroidOutputReceiver implements Disposable {
+final class AndroidLogcatReceiver extends AndroidOutputReceiver implements Disposable {
 
   private final LogCatMessageParser myParser = new LogCatMessageParser();
 
@@ -44,7 +44,7 @@ public final class AndroidLogcatReceiver extends AndroidOutputReceiver implement
   private static final String STACK_TRACE_CAUSE_LINE_PREFIX = Character.toString(' ');
 
   private volatile boolean myCanceled = false;
-  private final AndroidConsoleWriter myWriter;
+  private final AndroidLogcatService.LogLineListener myLogLineListener;
   private final IDevice myDevice;
 
   /**
@@ -57,9 +57,9 @@ public final class AndroidLogcatReceiver extends AndroidOutputReceiver implement
   @Nullable private LogCatHeader myActiveHeader;
   private int myLineIndex;
 
-  public AndroidLogcatReceiver(@NotNull IDevice device, @NotNull AndroidConsoleWriter writer) {
+  public AndroidLogcatReceiver(@NotNull IDevice device, @NotNull AndroidLogcatService.LogLineListener logLineListener) {
     myDevice = device;
-    myWriter = writer;
+    myLogLineListener = logLineListener;
     myStackTraceExpander = new StackTraceExpander(STACK_TRACE_LINE_PREFIX, STACK_TRACE_CAUSE_LINE_PREFIX);
   }
 
@@ -115,7 +115,7 @@ public final class AndroidLogcatReceiver extends AndroidOutputReceiver implement
     else {
       line = AndroidLogcatFormatter.formatContinuation(line);
     }
-    myWriter.addMessage(line);
+    myLogLineListener.receiveLogLine(line);
     myLineIndex++;
   }
 
