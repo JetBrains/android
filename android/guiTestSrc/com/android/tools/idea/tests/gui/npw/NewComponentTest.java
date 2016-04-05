@@ -52,12 +52,7 @@ public class NewComponentTest {
       }
     });
     wizardFixture.getFileNameField().enterText("2");
-    Wait.minutes(2).expecting("Finish to be enabled").until(new Wait.Objective() {
-      @Override
-      public boolean isMet() {
-        return finishFixture.isEnabled();
-      }
-    });
+    Wait.minutes(2).expecting("Finish to be enabled").until(finishFixture::isEnabled);
 
     // Now test an invalid file name. Currently we have "strings2" so add an space to make it invalid.
     wizardFixture.getFileNameField().enterText(" ");

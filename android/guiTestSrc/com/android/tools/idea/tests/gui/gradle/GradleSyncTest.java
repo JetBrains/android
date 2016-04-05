@@ -1543,11 +1543,6 @@ public class GradleSyncTest {
       }
     });
 
-    Wait.minutes(2).expecting("sync to be skipped").until(new Wait.Objective() {
-      @Override
-      public boolean isMet() {
-        return syncSkipped.get();
-      }
-    });
+    Wait.minutes(2).expecting("sync to be skipped").until(syncSkipped::get);
   }
 }

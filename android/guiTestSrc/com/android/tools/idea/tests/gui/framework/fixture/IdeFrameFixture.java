@@ -562,12 +562,8 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     Project project = getProject();
     final GradleSyncState syncState = GradleSyncState.getInstance(project);
     if (!syncState.isSyncInProgress()) {
-      Wait.minutes(2).expecting("Syncing project " + quote(project.getName()) + " to finish").until(new Wait.Objective() {
-        @Override
-        public boolean isMet() {
-          return myGradleProjectEventListener.isSyncStarted();
-        }
-      });
+      Wait.minutes(2).expecting("Syncing project " + quote(project.getName()) + " to finish")
+        .until(myGradleProjectEventListener::isSyncStarted);
     }
     return this;
   }
