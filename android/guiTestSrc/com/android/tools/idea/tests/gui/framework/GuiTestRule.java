@@ -164,6 +164,10 @@ public class GuiTestRule implements TestRule {
     Dialog modalDialog;
     while ((modalDialog = getActiveModalDialog()) != null) {
       robot().close(modalDialog);
+      final Container parent = modalDialog.getParent();
+      if (parent.isVisible()) {
+        robot().focusAndWaitForFocusGain(parent);
+      }
       errors.add(new AssertionError(
         String.format("Modal dialog showing: %s with title '%s'", modalDialog.getClass().getName(), modalDialog.getTitle())));
     }
