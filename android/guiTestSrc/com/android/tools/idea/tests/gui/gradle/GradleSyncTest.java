@@ -377,14 +377,10 @@ public class GradleSyncTest {
     ProjectViewFixture.NodeFixture externalLibrariesNode = projectPane.findExternalLibrariesNode();
     projectPane.expand();
 
-    Wait.minutes(2).expecting("'Project View' to be customized").until(new Wait.Objective() {
-      @Override
-      public boolean isMet() {
-        // 2 nodes should be changed: JDK (remove all children except rt.jar) and rt.jar (remove all children except packages 'java' and
-        // 'javax'.
-        return changedNodes.size() == 2;
-      }
-    });
+    Wait.minutes(2).expecting("'Project View' to be customized")
+      // 2 nodes should be changed: JDK (remove all children except rt.jar) and rt.jar (remove all children except packages 'java' and
+      // 'javax'.
+      .until(() -> changedNodes.size() == 2);
 
     List<ProjectViewFixture.NodeFixture> libraryNodes = externalLibrariesNode.getChildren();
 
@@ -399,13 +395,7 @@ public class GradleSyncTest {
     assertNotNull(jdkNode);
 
     final ProjectViewFixture.NodeFixture finalJdkNode = jdkNode;
-    Wait.seconds(30).expecting("JDK node to be customized").until(new Wait.Objective() {
-      @Override
-      public boolean isMet() {
-        List<ProjectViewFixture.NodeFixture> jdkChildren = finalJdkNode.getChildren();
-        return jdkChildren.size() == 1;
-      }
-    });
+    Wait.seconds(30).expecting("JDK node to be customized").until(() -> finalJdkNode.getChildren().size() == 1);
 
     // Now we verify that the JDK node has only these children:
     // - jdk
