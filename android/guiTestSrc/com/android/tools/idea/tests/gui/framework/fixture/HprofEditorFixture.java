@@ -194,12 +194,7 @@ public class HprofEditorFixture extends EditorFixture {
       assertTrue(buttonPanel instanceof Container);
 
       final JButton button = robot().finder().findByType((Container)buttonPanel, JButton.class, false);
-      Wait.minutes(2).expecting("button to be visible").until(new Wait.Objective() {
-        @Override
-        public boolean isMet() {
-          return button.isShowing();
-        }
-      });
+      Wait.minutes(2).expecting("button to be visible").until(button::isShowing);
       return ComboBoxActionFixture.findComboBox(robot(), (Container)buttonPanel);
     }
 
