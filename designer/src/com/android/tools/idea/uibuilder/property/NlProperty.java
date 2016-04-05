@@ -61,4 +61,11 @@ public interface NlProperty {
    * Get the {@link ResourceResolver} for the component this property is associated with.
    */
   ResourceResolver getResolver();
+
+  /**
+   * Return a child property by name.
+   * An exception is raised if no such child property exists.
+   */
+  @NotNull
+  NlProperty getChildProperty(@NotNull String name);
 }

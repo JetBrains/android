@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.property.editors;
 
+import com.android.SdkConstants;
 import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
 import com.android.tools.idea.uibuilder.property.NlProperty;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.FixedSizeButton;
 import com.intellij.openapi.util.SystemInfo;
@@ -24,20 +26,27 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.UIBundle;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.util.ArrayUtil;
+import org.jetbrains.android.dom.AndroidDomUtil;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.List;
 
 public class NlEnumEditor implements ActionListener {
   public static final String UNSET = "<unset>";
+  private static final List<String> AVAILABLE_TEXT_SIZES = ImmutableList.of("8sp", "10sp", "12sp", "14sp", "18sp", "24sp", "30sp", "36sp");
+  private static final List<String> AVAILABLE_LINE_SPACINGS = AVAILABLE_TEXT_SIZES;
 
   private final JPanel myPanel;
-  private final JComboBox myCombo;
+  private final JComboBox<String> myCombo;
   private final FixedSizeButton myBrowseButton;
+  private final boolean myIncludeBrowseButton;
+  private final boolean myIncludeUnset;
 
   private final Listener myListener;
   private NlProperty myProperty;
@@ -53,16 +62,28 @@ public class NlEnumEditor implements ActionListener {
     void resourcePickerCancelled(@NotNull NlEnumEditor source);
   }
 
-  public NlEnumEditor(@NotNull Listener listener) {
+  public static NlEnumEditor create(@NotNull Listener listener) {
+    return new NlEnumEditor(listener, true, true);
+  }
+
+  public static NlEnumEditor createWithoutBrowseButton(@NotNull Listener listener) {
+    return new NlEnumEditor(listener, false, false);
+  }
+
+  private NlEnumEditor(@NotNull Listener listener, boolean includeBrowseButton, boolean includeUnset) {
     myListener = listener;
+    myIncludeBrowseButton = includeBrowseButton;
+    myIncludeUnset = includeUnset;
     myPanel = new JPanel(new BorderLayout(SystemInfo.isMac ? 0 : 2, 0));
 
-    myCombo = new ComboBox();
+    //noinspection unchecked
+    myCombo = (JComboBox<String>)new ComboBox();
     myCombo.setEditable(true);
     myPanel.add(myCombo, BorderLayout.CENTER);
 
     myBrowseButton = new FixedSizeButton(new JBCheckBox());
     myBrowseButton.setToolTipText(UIBundle.message("component.with.browse.button.browse.button.tooltip.text"));
+    myBrowseButton.setVisible(includeBrowseButton);
     myPanel.add(myBrowseButton, BorderLayout.LINE_END);
 
     // TODO: Hook up general editing. (Such that the control would recognize "100dp" for example)
@@ -75,25 +96,44 @@ public class NlEnumEditor implements ActionListener {
     myBrowseButton.setEnabled(en);
   }
 
-
   public void setProperty(@NotNull NlProperty property) {
     myProperty = property;
     String propValue = StringUtil.notNullize(property.getValue());
 
-    myBrowseButton.setVisible(NlReferenceEditor.hasResourceChooser(property));
+    myBrowseButton.setVisible(myIncludeBrowseButton && NlReferenceEditor.hasResourceChooser(property));
 
     AttributeDefinition definition = property.getDefinition();
-    String[] values = definition == null ? ArrayUtil.EMPTY_STRING_ARRAY : definition.getValues();
+    String[] values;
+    switch (property.getName()) {
+      case SdkConstants.ATTR_FONT_FAMILY:
+        values = ArrayUtil.toStringArray(AndroidDomUtil.AVAILABLE_FAMILIES);
+        break;
+      case SdkConstants.ATTR_TEXT_SIZE:
+        values = ArrayUtil.toStringArray(AVAILABLE_TEXT_SIZES);
+        break;
+      case SdkConstants.ATTR_LINE_SPACING_EXTRA:
+        values = ArrayUtil.toStringArray(AVAILABLE_LINE_SPACINGS);
+        break;
+      default:
+        values = definition == null ? ArrayUtil.EMPTY_STRING_ARRAY : definition.getValues();
+    }
 
-    DefaultComboBoxModel model = new DefaultComboBoxModel(values);
-    model.insertElementAt(UNSET, 0);
+    DefaultComboBoxModel<String> model = new DefaultComboBoxModel<>(values);
+    if (myIncludeUnset) {
+      model.insertElementAt(UNSET, 0);
+    }
     selectItem(model, propValue);
     myCombo.setModel(model);
   }
 
-  private static void selectItem(@NotNull DefaultComboBoxModel model, @NotNull String value) {
+  @Nullable
+  public NlProperty getProperty() {
+    return myProperty;
+  }
+
+  private void selectItem(@NotNull DefaultComboBoxModel<String> model, @NotNull String value) {
     if (model.getIndexOf(value) == -1) {
-      model.insertElementAt(value, 1);
+      model.insertElementAt(value, myIncludeUnset ? 1 : 0);
     }
     model.setSelectedItem(value);
   }
@@ -122,7 +162,7 @@ public class NlEnumEditor implements ActionListener {
       if (dialog.showAndGet()) {
         String value = dialog.getResourceName();
 
-        DefaultComboBoxModel model = (DefaultComboBoxModel)myCombo.getModel();
+        DefaultComboBoxModel<String> model = (DefaultComboBoxModel<String>)myCombo.getModel();
         selectItem(model, value);
 
         myListener.resourcePicked(this, value);

@@ -23,5 +23,6 @@
     <orderEntry type="module" module-name="sherpa-solver" />
     <orderEntry type="module" module-name="sherpa" />
     <orderEntry type="module" module-name="sherpa-ui" />
+    <orderEntry type="module" module-name="assetstudio" />
   </component>
 </module>

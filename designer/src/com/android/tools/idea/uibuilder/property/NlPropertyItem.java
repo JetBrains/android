@@ -101,6 +101,12 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
     return myComponent.getAttribute(myNamespace, myName);
   }
 
+  @NotNull
+  @Override
+  public NlProperty getChildProperty(@NotNull String itemName) {
+    throw new UnsupportedOperationException(itemName);
+  }
+
   @Override
   @Nullable
   public ResourceResolver getResolver() {
