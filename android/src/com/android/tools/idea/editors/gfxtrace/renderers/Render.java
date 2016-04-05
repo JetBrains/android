@@ -29,6 +29,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.SimpleTextAttributes;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -358,13 +359,22 @@ public final class Render {
                                           @NotNull Primitive type,
                                           @NotNull SimpleColoredComponent component,
                                           @NotNull SimpleTextAttributes attributes) {
+    Constant value = findConstant(obj, type);
+    if (value != null) {
+      component.append(value.getName(), attributes);
+      return true;
+    }
+    return false;
+  }
+
+  @Nullable("can't find a matching constant")
+  public static Constant findConstant(@NotNull SnippetObject obj, @NotNull Primitive type) {
     final ConstantSet constants = ConstantSet.lookup(type);
     if (constants != null && constants.getEntries().length != 0) {
       List<Constant> byValue = constants.getByValue(obj.getObject());
       if (byValue != null && byValue.size() != 0) {
         if (byValue.size() == 1) {
-          component.append(byValue.get(0).getName(), attributes);
-          return true;
+          return byValue.get(0);
         }
         Labels labels = Labels.fromSnippets(obj.getSnippets());
         List<Constant> preferred;
@@ -372,8 +382,7 @@ public final class Render {
           // There are label snippets, use them to disambiguate.
           preferred = labels.preferred(byValue);
           if (preferred.size() == 1) {
-            component.append(preferred.get(0).getName(), attributes);
-            return true;
+            return preferred.get(0);
           } else if (preferred.size() == 0) {
             // No matches, continue with the unfiltered constants.
             preferred = byValue;
@@ -384,13 +393,12 @@ public final class Render {
         // labels wasn't enough, try the heuristic.
         // Using an ambiguity threshold of 8. This side steps the most egregious misinterpretations.
         if (preferred.size() < 8) {
-          component.append(pickShortestName(preferred).getName(), attributes);
-          return true;
+          return pickShortestName(preferred);
         }
         // Nothing worked we will show a numeric value.
       }
     }
-    return false;
+    return null;
   }
 
   public static void render(@NotNull SnippetObject obj,
