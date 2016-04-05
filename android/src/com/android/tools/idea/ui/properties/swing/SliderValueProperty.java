@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.ui.properties.swing;
 
-import com.android.tools.idea.ui.properties.ObservableProperty;
+import com.android.tools.idea.ui.properties.AbstractProperty;
 import com.android.tools.idea.ui.properties.core.IntProperty;
 import org.jetbrains.annotations.NotNull;
 
@@ -25,7 +25,7 @@ import javax.swing.event.ChangeListener;
 
 
 /**
- * {@link ObservableProperty} that wraps a slider and exposes its value.
+ * {@link AbstractProperty} that wraps a slider and exposes its value.
  */
 public final class SliderValueProperty extends IntProperty implements ChangeListener {
   @NotNull private final JSlider mySlider;

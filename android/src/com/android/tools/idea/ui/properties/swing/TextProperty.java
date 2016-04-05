@@ -16,9 +16,8 @@
 package com.android.tools.idea.ui.properties.swing;
 
 import com.android.tools.idea.ui.LabelWithEditLink;
-import com.android.tools.idea.ui.properties.ObservableProperty;
+import com.android.tools.idea.ui.properties.AbstractProperty;
 import com.android.tools.idea.ui.properties.core.StringProperty;
-import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.EditorComboBox;
 import org.jetbrains.annotations.NotNull;
 
@@ -30,7 +29,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
 /**
- * {@link ObservableProperty} that wraps a Swing component and exposes its text value.
+ * {@link AbstractProperty} that wraps a Swing component and exposes its text value.
  */
 public final class TextProperty extends StringProperty implements DocumentListener, PropertyChangeListener,
                                                                   com.intellij.openapi.editor.event.DocumentListener {

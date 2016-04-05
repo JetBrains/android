@@ -16,7 +16,7 @@
 package com.android.tools.idea.ui.properties.core;
 
 import com.android.tools.idea.ui.properties.ObservableValue;
-import com.android.tools.idea.ui.properties.ObservableProperty;
+import com.android.tools.idea.ui.properties.AbstractProperty;
 import com.android.tools.idea.ui.properties.expressions.integer.ComparisonExpression;
 import org.jetbrains.annotations.NotNull;
 
@@ -24,7 +24,7 @@ import org.jetbrains.annotations.NotNull;
  * Base class that every integer-type property should inherit from, as it provides useful methods
  * that enable chaining.
  */
-public abstract class IntProperty extends ObservableProperty<Integer> implements ObservableInt {
+public abstract class IntProperty extends AbstractProperty<Integer> implements ObservableInt {
 
   public void increment() {
     set(get() + 1);

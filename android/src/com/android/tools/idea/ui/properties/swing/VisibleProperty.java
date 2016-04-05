@@ -15,17 +15,16 @@
  */
 package com.android.tools.idea.ui.properties.swing;
 
-import com.android.tools.idea.ui.properties.ObservableProperty;
+import com.android.tools.idea.ui.properties.AbstractProperty;
 import com.android.tools.idea.ui.properties.core.BoolProperty;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 
 /**
- * {@link ObservableProperty} that wraps a Swing component and exposes its visibility state.
+ * {@link AbstractProperty} that wraps a Swing component and exposes its visibility state.
  */
 public final class VisibleProperty extends BoolProperty implements ComponentListener {
   @NotNull private final JComponent myComponent;
