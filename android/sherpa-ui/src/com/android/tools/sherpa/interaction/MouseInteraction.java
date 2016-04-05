@@ -245,6 +245,7 @@ public class MouseInteraction {
         mSelection.setConnectionCandidateAnchor(null);
         mSelection.setSelectedAnchor(null);
         mSelection.setSelectedGuideline(null);
+        mSelection.setLastConnectedAnchor(null);
 
         mMouseMode = MouseMode.INACTIVE;
 
@@ -538,16 +539,19 @@ public class MouseInteraction {
                             if (isControlDown()) {
                                 useExistingDistance = !useExistingDistance;
                             }
+                            ConstraintHandle handle =
+                                    WidgetInteractionTargets.constraintHandle(
+                                            mSelection.getSelectedAnchor());
+                            ConstraintHandle handleTarget =
+                                    WidgetInteractionTargets.constraintHandle(
+                                            mSelection.getConnectionCandidateAnchor());
+                            int existingDistance = handle.getCreationMarginFrom(handleTarget);
                             if (useExistingDistance) {
-                                ConstraintHandle handle =
-                                        WidgetInteractionTargets.constraintHandle(
-                                                mSelection.getSelectedAnchor());
-                                ConstraintHandle handleTarget =
-                                        WidgetInteractionTargets.constraintHandle(
-                                                mSelection.getConnectionCandidateAnchor());
-                                margin = handle.getCreationMarginFrom(handleTarget);
+                                margin = existingDistance;
                             } else {
-                                margin = sMargin;
+                                if (existingDistance >= sMargin) {
+                                    margin = sMargin;
+                                }
                             }
                             ConstraintAnchor.Strength strength = ConstraintAnchor.Strength.STRONG;
                             if (isShiftDown()) {
@@ -558,6 +562,7 @@ public class MouseInteraction {
                                     mSelection.getSelectedAnchor(),
                                     mSelection.getConnectionCandidateAnchor(), margin, strength);
                             mSelection.addModifiedWidget(widget);
+                            mSelection.setLastConnectedAnchor(mSelection.getSelectedAnchor());
                         }
                     } else {
                         if (mSelection.getConnectionCandidateAnchor() != null) {

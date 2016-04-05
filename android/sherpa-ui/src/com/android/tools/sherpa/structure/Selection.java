@@ -37,6 +37,7 @@ public class Selection {
 
     private ConstraintAnchor mSelectedAnchor = null;
     private ConstraintAnchor mConnectionCandidateAnchor = null;
+    private ConstraintAnchor mLastConnectedAnchor = null;
 
     // the target of the selected anchor when we first mouse press
     private ConstraintAnchor mSelectedAnchorInitialTarget;
@@ -301,6 +302,21 @@ public class Selection {
      */
     public void setConnectionCandidateAnchor(ConstraintAnchor anchor) {
         mConnectionCandidateAnchor = anchor;
+    }
+
+    /**
+     * Setter for the last connected anchor
+     * @param lastConnectedAnchor
+     */
+    public void setLastConnectedAnchor(ConstraintAnchor lastConnectedAnchor) {
+        mLastConnectedAnchor = lastConnectedAnchor;
+    }
+
+    /**
+     * Accessor for the last connected anchor
+     */
+    public ConstraintAnchor getLastConnectedAnchor() {
+        return mLastConnectedAnchor;
     }
 
     /**
