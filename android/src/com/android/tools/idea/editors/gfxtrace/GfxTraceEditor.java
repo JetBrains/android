@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.editors.gfxtrace;
 
+import com.android.repository.api.LocalPackage;
 import com.android.tools.idea.editors.gfxtrace.controllers.MainController;
 import com.android.tools.idea.editors.gfxtrace.gapi.GapisConnection;
 import com.android.tools.idea.editors.gfxtrace.gapi.GapisFeatures;
@@ -27,6 +28,8 @@ import com.android.tools.idea.editors.gfxtrace.service.atom.AtomMetadata;
 import com.android.tools.idea.editors.gfxtrace.service.path.*;
 import com.android.tools.idea.editors.gfxtrace.service.stringtable.Info;
 import com.android.tools.idea.editors.gfxtrace.service.stringtable.StringTable;
+import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
+import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.android.tools.rpclib.rpccore.Rpc;
 import com.android.tools.rpclib.rpccore.RpcException;
 import com.android.tools.rpclib.schema.ConstantSet;
@@ -50,6 +53,7 @@ import com.intellij.openapi.ui.LoadingDecorator;
 import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.panels.NonOpaquePanel;
@@ -58,10 +62,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.event.HyperlinkListener;
 import java.awt.*;
 import java.beans.PropertyChangeListener;
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
@@ -69,14 +76,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
-  @NotNull public static final String LOADING_CAPTURE = "Loading capture...";
-  @NotNull public static final String SELECT_ATOM = "Select a frame or command";
-  @NotNull public static final String SELECT_DRAW_CALL = "Select a draw call";
-  @NotNull public static final String SELECT_MEMORY = "Select a memory range or pointer in the command list";
-  @NotNull public static final String SELECT_TEXTURE = "Select a texture";
-  @NotNull public static final String NO_TEXTURES = "No textures have been created by this point";
 
-  @NotNull private static final Logger LOG = Logger.getInstance(GfxTraceEditor.class);
+  private static final int GAPI_VERSION_MAJOR = 1;
+  private static final int GAPI_VERSION_MINOR = 0;
 
   private static final int FETCH_SCHEMA_TIMEOUT_MS = 3000;
   private static final int FETCH_FEATURES_TIMEOUT_MS = 3000;
@@ -86,19 +88,30 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
   private static final int FETCH_REPLAY_DEVICE_MAX_RETRIES = 30;
   private static final int FETCH_TRACE_TIMEOUT_MS = 30000;
 
+  @NotNull public static final String LOADING_CAPTURE = "Loading capture...";
+  @NotNull public static final String SELECT_ATOM = "Select a frame or command";
+  @NotNull public static final String SELECT_DRAW_CALL = "Select a draw call";
+  @NotNull public static final String SELECT_MEMORY = "Select a memory range or pointer in the command list";
+  @NotNull public static final String SELECT_TEXTURE = "Select a texture";
+  @NotNull public static final String NO_TEXTURES = "No textures have been created by this point";
+
   @NotNull private static final String ERR_INIT_GAPIS_CONNECTION = "Error communicating with the graphics server";
+  @NotNull private static final Logger LOG = Logger.getInstance(GfxTraceEditor.class);
 
   @NotNull private final Project myProject;
-  @NotNull private TraceLoadingDecorator myLoadingDecorator;
-  @NotNull private JBPanel myView = new JBPanel(new BorderLayout());
+  @NotNull private final TraceLoadingDecorator myLoadingDecorator;
+  @NotNull private final JBPanel myView = new JBPanel(new BorderLayout());
   @NotNull private final ListeningExecutorService myExecutor = MoreExecutors.listeningDecorator(Executors.newCachedThreadPool());
-  private GapisConnection myGapisConnection;
-  private ServiceClient myClient;
-  private final AtomStream myAtomStream = new AtomStream(this);
-  private final GpuState myState = new GpuState(this);
+  @NotNull private final AtomStream myAtomStream = new AtomStream(this);
+  @NotNull private final GpuState myState = new GpuState(this);
+  @NotNull private final VirtualFile myFile;
+  @NotNull private final JComponent myMainUi;
 
-  @NotNull private List<PathListener> myPathListeners = new ArrayList<PathListener>();
-  @NotNull private PathStore<Path> myLastActivatadPath = new PathStore<Path>();
+  @NotNull private final List<PathListener> myPathListeners = new ArrayList<PathListener>();
+  @NotNull private final PathStore<Path> myLastActivatadPath = new PathStore<Path>();
+
+  @Nullable private GapisConnection myGapisConnection;
+  @Nullable private ServiceClient myClient;
 
   public static boolean isEnabled() {
     return true;
@@ -106,6 +119,7 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
 
   public GfxTraceEditor(@NotNull final Project project, @SuppressWarnings("UnusedParameters") @NotNull final VirtualFile file) {
     myProject = project;
+    myFile = file;
     myLoadingDecorator = new TraceLoadingDecorator(myView, this, 0);
     myLoadingDecorator.setLoadingText("Initializing GFX Trace System");
     myLoadingDecorator.startLoading(false);
@@ -113,8 +127,13 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
     addPathListener(myAtomStream);
     addPathListener(myState);
 
-    final JComponent mainUi = MainController.createUI(GfxTraceEditor.this);
+    // we need to create the UI before we call connect, as the UI will listen to events that happen during connection.
+    myMainUi = MainController.createUI(this);
 
+    connect();
+  }
+
+  private void connect() {
     // Attempt to start/connect to the server on a separate thread to reduce the IDE from stalling.
     ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
       @Override
@@ -124,7 +143,7 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
           return;
         }
 
-        if (!GapiPaths.isValid()) {
+        if (installNeeded()) {
           setLoadingErrorTextOnEdt("GPU debugging SDK not installed");
           return;
         }
@@ -161,12 +180,12 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
           fetchReplayDevice();
 
           status = "load trace";
-          fetchTrace(file);
+          fetchTrace(myFile);
 
           ApplicationManager.getApplication().invokeLater(new Runnable() {
             @Override
             public void run() {
-              myView.add(mainUi, BorderLayout.CENTER);
+              myView.add(myMainUi, BorderLayout.CENTER);
               myLoadingDecorator.stopLoading();
             }
           });
@@ -178,6 +197,12 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
         }
       }
     });
+  }
+
+  private static boolean installNeeded() {
+    LocalPackage gapi = GapiPaths.getLocalPackage();
+    return !GapiPaths.isValid() || gapi == null ||
+           gapi.getVersion().getMajor() != GAPI_VERSION_MAJOR || gapi.getVersion().getMinor() < GAPI_VERSION_MINOR;
   }
 
   /**
@@ -430,7 +455,7 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
     myExecutor.shutdown();
   }
 
-  private static class TraceLoadingDecorator extends LoadingDecorator {
+  private class TraceLoadingDecorator extends LoadingDecorator {
     private JPanel iconPanel;
 
     public TraceLoadingDecorator(JComponent content, Disposable parent, int startDelayMs) {
@@ -439,12 +464,31 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
 
     @Override
     protected NonOpaquePanel customizeLoadingLayer(JPanel parent, JLabel text, final AsyncProcessIcon icon) {
-      NonOpaquePanel result = super.customizeLoadingLayer(parent, text, icon);
+      final NonOpaquePanel result = super.customizeLoadingLayer(parent, text, icon);
 
       // Replace the icon with a panel where we can switch it out.
       result.remove(0);
       result.add(iconPanel = new JPanel(), 0);
       iconPanel.add(icon);
+
+      if (installNeeded()) {
+        HyperlinkLabel link = new HyperlinkLabel("install");
+        link.addHyperlinkListener(new HyperlinkListener() {
+          @Override
+          public void hyperlinkUpdate(HyperlinkEvent e) {
+            Collection<String> requested = com.google.common.collect.ImmutableList.of(GapiPaths.SDK_PACKAGE_PATH);
+            // TODO do we want to tell it to install a specific version?
+            ModelWizardDialog dialog = SdkQuickfixUtils.createDialogForPaths(result, requested);
+            if (dialog != null) {
+              dialog.setTitle("Install Missing Components");
+              if (dialog.showAndGet()) {
+                connect();
+              }
+            }
+          }
+        });
+        result.add(link);
+      }
 
       return result;
     }
