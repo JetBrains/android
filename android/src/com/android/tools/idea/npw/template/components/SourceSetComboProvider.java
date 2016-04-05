@@ -17,7 +17,7 @@ package com.android.tools.idea.npw.template.components;
 
 import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.npw.project.AndroidProjectPaths;
-import com.android.tools.idea.ui.properties.ObservableProperty;
+import com.android.tools.idea.ui.properties.AbstractProperty;
 import com.android.tools.idea.ui.properties.swing.SelectedItemProperty;
 import com.intellij.ui.ListCellRendererWrapper;
 import org.jetbrains.annotations.NotNull;
@@ -63,7 +63,7 @@ public final class SourceSetComboProvider extends ComponentProvider<JComboBox> {
 
   @Nullable
   @Override
-  public ObservableProperty<?> createProperty(@NotNull JComboBox sourceSetCombo) {
+  public AbstractProperty<?> createProperty(@NotNull JComboBox sourceSetCombo) {
     return new SelectedItemProperty<SourceProvider>(sourceSetCombo);
   }
 }

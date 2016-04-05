@@ -39,7 +39,7 @@
  * only the latter.
  * <p/>
  * Finally, this wizard code makes heavy use of the various
- * {@link com.android.tools.idea.ui.properties.ObservableProperty} classes, in order to bind data
+ * {@link com.android.tools.idea.ui.properties.AbstractProperty} classes, in order to bind data
  * values to UI components. It's recommended you take a moment and read the package level
  * documentation for properties before using this wizard framework.
  */
