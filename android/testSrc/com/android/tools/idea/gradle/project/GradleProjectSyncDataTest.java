@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.templates.AndroidGradleTestCase;
 import com.intellij.openapi.project.Project;
+import com.intellij.util.PathUtil;
 
 import java.io.*;
 import java.util.Map;
@@ -52,10 +53,10 @@ public class GradleProjectSyncDataTest extends AndroidGradleTestCase {
     Map<String, byte[]> checksums = data.getFileChecksums();
     assertEquals(7, checksums.size());
     assertContainsElements(checksums.keySet(), "gradle.properties", "local.properties", "build.gradle", "settings.gradle",
-                           "app/build.gradle", "lib/build.gradle");
+                           PathUtil.toSystemDependentName("app/build.gradle"), PathUtil.toSystemDependentName("lib/build.gradle"));
     String home = System.getProperty("user.home");
     if (home != null) {
-      File userProperties = new File(new File(home), ".gradle/gradle.properties");
+      File userProperties = new File(new File(home), PathUtil.toSystemDependentName(".gradle/gradle.properties"));
       assertContainsElements(checksums.keySet(), userProperties.getPath());
     }
 
