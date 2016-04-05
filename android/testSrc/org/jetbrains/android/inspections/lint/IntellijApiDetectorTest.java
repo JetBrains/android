@@ -157,7 +157,7 @@ public class IntellijApiDetectorTest extends AndroidTestCase {
     deleteManifest();
     myFixture.copyFileToProject("formatter/xml/manifest1.xml", "AndroidManifest.xml");
     AndroidLintNewApiInspection inspection = new AndroidLintNewApiInspection();
-    doTest(inspection, null);
+    doTest(inspection, null, false);
   }
 
   public void testAnonymousInherited() throws Exception {
@@ -211,11 +211,17 @@ public class IntellijApiDetectorTest extends AndroidTestCase {
   }
 
   private void doTest(@NotNull final AndroidLintInspectionBase inspection, @Nullable String quickFixName) throws Exception {
-    createManifest();
+    doTest(inspection, quickFixName, true);
+  }
+
+  private void doTest(@NotNull final AndroidLintInspectionBase inspection, @Nullable String quickFixName,
+                      boolean createManifest) throws Exception {
+    if (createManifest) {
+      createManifest();
+    }
     myFixture.enableInspections(inspection);
     VirtualFile file = myFixture.copyFileToProject(BASE_PATH + getTestName(false) + ".java", "src/p1/p2/Class.java");
     myFixture.configureFromExistingVirtualFile(file);
-    //myFixture.doHighlighting();
     myFixture.checkHighlighting(true, false, false);
 
     if (quickFixName != null) {
