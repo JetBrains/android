@@ -25,6 +25,7 @@ import com.android.sdklib.devices.Device;
 import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.configurations.RenderContext;
 import com.android.tools.idea.gradle.structure.editors.AndroidProjectSettingsService;
 import com.android.tools.idea.gradle.util.Projects;
@@ -43,6 +44,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.maven.AndroidMavenUtil;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
+import org.jetbrains.android.uipreview.LayoutLibraryLoader;
 import org.jetbrains.android.uipreview.RenderingException;
 import org.jetbrains.android.uipreview.UnsupportedJavaRuntimeException;
 import org.jetbrains.android.util.AndroidBundle;
@@ -264,11 +266,17 @@ public class RenderService {
   }
 
   private static boolean ourWarnAboutObsoleteLayoutLibVersions = true;
-  protected static void warnIfObsoleteLayoutLib(@NotNull final Module module,
-                                                @NotNull RenderLogger logger,
-                                                @Nullable final RenderContext renderContext,
-                                                @NotNull IAndroidTarget target) {
+  private static void warnIfObsoleteLayoutLib(@NotNull final Module module,
+                                              @NotNull RenderLogger logger,
+                                              @Nullable final RenderContext renderContext,
+                                              @NotNull IAndroidTarget target) {
     if (!ourWarnAboutObsoleteLayoutLibVersions) {
+      return;
+    }
+
+    if (!LayoutLibraryLoader.USE_SDK_LAYOUTLIB) {
+      // We are using the version shipped with studio, it can never be obsolete. StudioEmbeddedRenderTarget does not implement getVersion.
+      ourWarnAboutObsoleteLayoutLibVersions = false;
       return;
     }
 
