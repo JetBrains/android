@@ -89,7 +89,7 @@ public class AndroidBuildScriptsGroupNode extends ProjectViewNode<List<PsiDirect
     VirtualFile baseDir = myProject.getBaseDir();
     buildScripts.put(baseDir.findChild(SdkConstants.FN_SETTINGS_GRADLE), "Project Settings");
     buildScripts.put(baseDir.findChild(SdkConstants.FN_GRADLE_PROPERTIES), "Project Properties");
-    buildScripts.put(baseDir.findFileByRelativePath(GradleUtil.GRADLEW_PROPERTIES_PATH), "Gradle Version");
+    buildScripts.put(baseDir.findFileByRelativePath(GradleUtil.GRADLEW_PROPERTIES_PATH.replace(File.separatorChar, '/')), "Gradle Version");
     buildScripts.put(baseDir.findChild(SdkConstants.FN_LOCAL_PROPERTIES), "SDK Location");
 
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
