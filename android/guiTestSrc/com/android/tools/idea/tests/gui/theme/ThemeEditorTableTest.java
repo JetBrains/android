@@ -145,7 +145,6 @@ public class ThemeEditorTableTest {
     });
   }
 
-  @Ignore("Too flaky")
   @Test
   public void testSettingColorAttribute() throws IOException {
     guiTest.importSimpleApplication();
@@ -349,7 +348,6 @@ public class ThemeEditorTableTest {
   /**
    * @see com.android.tools.idea.editors.theme.ThemeEditorTable#getPopupMenuAtCell(int, int)
    */
-  @Ignore("Too flaky")
   @Test
   public void testResettingColorAttribute() throws IOException {
     guiTest.importSimpleApplication();
