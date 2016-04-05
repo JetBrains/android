@@ -178,7 +178,7 @@ public class EditedStyleItem implements Comparable<EditedStyleItem> {
       return true;
     }
     Configuration configuration = mySourceTheme.getConfiguration();
-    IAndroidTarget target = configuration.getRealTarget();
+    IAndroidTarget target = configuration.getTarget();
     if (target == null) {
       LOG.error("Unable to get IAndroidTarget.");
       return false;

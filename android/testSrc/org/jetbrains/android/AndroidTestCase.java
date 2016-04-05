@@ -47,7 +47,6 @@ import com.intellij.util.ArrayUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.formatter.AndroidXmlCodeStyleSettings;
-import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -148,8 +147,6 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     myUseCustomSettings = getAndroidCodeStyleSettings().USE_CUSTOM_SETTINGS;
     getAndroidCodeStyleSettings().USE_CUSTOM_SETTINGS = true;
 
-    // If we do not need a recent target, we disable the studio embedded target to allow tests to pick the test SDK in the testData
-    StudioEmbeddedRenderTarget.setDisableEmbeddedTarget(!requireRecentSdk());
   }
 
   protected void collectAllowedRoots(List<String> roots) throws IOException {
@@ -260,7 +257,6 @@ public abstract class AndroidTestCase extends AndroidTestBase {
   @Override
   protected void tearDown() throws Exception {
     try {
-      StudioEmbeddedRenderTarget.setDisableEmbeddedTarget(false);
       myModule = null;
       myAdditionalModules = null;
       myFixture.tearDown();
