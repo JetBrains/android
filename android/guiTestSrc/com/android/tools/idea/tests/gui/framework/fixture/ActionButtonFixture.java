@@ -39,9 +39,8 @@ public class ActionButtonFixture extends JComponentFixture<ActionButtonFixture, 
                                                    @NotNull final Robot robot,
                                                    @NotNull final Container container) {
     final Ref<ActionButton> actionButtonRef = new Ref<ActionButton>();
-    Wait.minutes(2).expecting("ActionButton with ID '" + actionId + "' to be visible").until(new Wait.Objective() {
-      @Override
-      public boolean isMet() {
+    Wait.minutes(2).expecting("ActionButton with ID '" + actionId + "' to be visible")
+      .until(() -> {
         Collection<ActionButton> found = robot.finder().findAll(container, new GenericTypeMatcher<ActionButton>(ActionButton.class) {
           @Override
           protected boolean isMatching(@NotNull ActionButton button) {
@@ -60,8 +59,7 @@ public class ActionButtonFixture extends JComponentFixture<ActionButtonFixture, 
           return true;
         }
         return false;
-      }
-    });
+      });
 
     ActionButton button = actionButtonRef.get();
     if (button == null) {

@@ -272,9 +272,8 @@ public final class GuiTests {
       }
 
       if (listener.myActive) {
-        Wait.minutes(2).expecting("project to be opened").until(new Wait.Objective() {
-          @Override
-          public boolean isMet() {
+        Wait.minutes(2).expecting("project to be opened")
+          .until(() -> {
             boolean notified = listener.myNotified;
             if (notified) {
               ProgressManager progressManager = ProgressManager.getInstance();
@@ -287,8 +286,7 @@ public final class GuiTests {
               return isIdle;
             }
             return false;
-          }
-        });
+          });
       }
     }
     finally {
@@ -310,9 +308,8 @@ public final class GuiTests {
   }
 
   static void closeAllProjects() {
-    Wait.minutes(2).expecting("all projects to be closed").until(new Wait.Objective() {
-      @Override
-      public boolean isMet() {
+    Wait.minutes(2).expecting("all projects to be closed")
+      .until(() -> {
         final Project[] openProjects = ProjectManager.getInstance().getOpenProjects();
         execute(new GuiTask() {
           @Override
@@ -323,8 +320,7 @@ public final class GuiTests {
           }
         });
         return ProjectManager.getInstance().getOpenProjects().length == 0;
-      }
-    });
+      });
 
     execute(new GuiTask() {
       @Override
@@ -586,9 +582,8 @@ public final class GuiTests {
                                                        @NotNull final GenericTypeMatcher<T> matcher) {
     final AtomicReference<T> reference = new AtomicReference<T>();
     String typeName = matcher.supportedType().getSimpleName();
-    Wait.minutes(2).expecting("matching " + typeName).until(new Wait.Objective() {
-      @Override
-      public boolean isMet() {
+    Wait.minutes(2).expecting("matching " + typeName)
+      .until(() -> {
         ComponentFinder finder = robot.finder();
         Collection<T> allFound = root != null ? finder.findAll(root, matcher) : finder.findAll(matcher);
         boolean found = allFound.size() == 1;
@@ -601,8 +596,7 @@ public final class GuiTests {
           fail("Found more than one " + matcher.supportedType().getSimpleName() + " which matches the criteria: " + allFound);
         }
         return found;
-      }
-    });
+      });
 
     return reference.get();
   }
@@ -618,17 +612,15 @@ public final class GuiTests {
   }
 
   public static void waitForBackgroundTasks(final Robot robot) {
-    Wait.minutes(2).expecting("background tasks to finish").until(new Wait.Objective() {
-      @Override
-      public boolean isMet() {
+    Wait.minutes(2).expecting("background tasks to finish")
+      .until(() -> {
         robot.waitForIdle();
 
         ProgressManager progressManager = ProgressManager.getInstance();
         return !progressManager.hasModalProgressIndicator() &&
                !progressManager.hasProgressIndicator() &&
                !progressManager.hasUnsafeProgressIndicator();
-      }
-    });
+      });
   }
 
   @NotNull

@@ -36,9 +36,8 @@ public class ActionLinkFixture extends JComponentFixture<ActionLinkFixture, Acti
                                                  @NotNull final Robot robot,
                                                  @NotNull final Container container) {
     final Ref<ActionLink> actionLinkRef = new Ref<ActionLink>();
-    Wait.minutes(2).expecting("ActionLink with ID '" + actionId + "' to be visible").until(new Wait.Objective() {
-      @Override
-      public boolean isMet() {
+    Wait.minutes(2).expecting("ActionLink with ID '" + actionId + "' to be visible")
+      .until(() -> {
         Collection<ActionLink> found = robot.finder().findAll(container, new GenericTypeMatcher<ActionLink>(ActionLink.class) {
           @Override
           protected boolean isMatching(@NotNull ActionLink actionLink) {
@@ -55,8 +54,7 @@ public class ActionLinkFixture extends JComponentFixture<ActionLinkFixture, Acti
           return true;
         }
         return false;
-      }
-    });
+      });
 
     ActionLink actionLink = actionLinkRef.get();
     if (actionLink == null) {

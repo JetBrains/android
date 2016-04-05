@@ -113,9 +113,8 @@ public class ComboBoxActionFixture {
   }
 
   private static void selectItemByText(@NotNull final JList list, @NotNull final String text) {
-    Wait.minutes(2).expecting("the list to be populated").until(new Wait.Objective() {
-      @Override
-      public boolean isMet() {
+    Wait.minutes(2).expecting("the list to be populated")
+      .until(() -> {
         ListPopupModel popupModel = (ListPopupModel)list.getModel();
         for (int i = 0; i < popupModel.getSize(); ++i) {
           PopupFactoryImpl.ActionItem actionItem = (PopupFactoryImpl.ActionItem)popupModel.get(i);
@@ -125,8 +124,7 @@ public class ComboBoxActionFixture {
           }
         }
         return false;
-      }
-    });
+      });
 
     final Integer appIndex = execute(new GuiQuery<Integer>() {
       @Override
