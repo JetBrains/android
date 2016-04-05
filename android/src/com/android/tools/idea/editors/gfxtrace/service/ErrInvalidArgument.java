@@ -60,7 +60,7 @@ public final class ErrInvalidArgument extends RpcException implements BinaryObje
 
   @Override
   public String getMessage() {
-    return myReason.getString();
+    return myReason.toString();
   }
 
   public enum Klass implements BinaryClass {
