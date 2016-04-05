@@ -109,9 +109,8 @@ public class ProjectViewFixture extends ToolWindowFixture {
     @NotNull
     private AbstractTreeStructure getTreeStructure() {
       final AtomicReference<AbstractTreeStructure> treeStructureRef = new AtomicReference<AbstractTreeStructure>();
-      Wait.minutes(2).expecting("AbstractTreeStructure to be built").until(new Wait.Objective() {
-        @Override
-        public boolean isMet() {
+      Wait.minutes(2).expecting("AbstractTreeStructure to be built")
+        .until(() -> {
           AbstractTreeStructure treeStructure = GuiActionRunner.execute(new GuiQuery<AbstractTreeStructure>() {
             @Override
             protected AbstractTreeStructure executeInEDT() throws Throwable {
@@ -126,8 +125,7 @@ public class ProjectViewFixture extends ToolWindowFixture {
           });
           treeStructureRef.set(treeStructure);
           return treeStructure != null;
-        }
-      });
+        });
 
       return treeStructureRef.get();
     }

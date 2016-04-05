@@ -44,9 +44,8 @@ public class AndroidToolWindowFixture extends ToolWindowFixture {
     show();
 
     final JPanel contentPanel = getContentPanel();
-    Wait.minutes(2).expecting("window to finish initializing").until(new Wait.Objective() {
-      @Override
-      public boolean isMet() {
+    Wait.minutes(2).expecting("window to finish initializing")
+      .until(() -> {
         try {
           myRobot.finder().find(contentPanel, JLabelMatcher.withText("Initializing..."));
         }
@@ -55,8 +54,7 @@ public class AndroidToolWindowFixture extends ToolWindowFixture {
           return true;
         }
         return false;
-      }
-    });
+      });
     myProcessListFixture = new ProcessListFixture(robot, robot.finder().findByType(getContentPanel(), JList.class, false));
   }
 

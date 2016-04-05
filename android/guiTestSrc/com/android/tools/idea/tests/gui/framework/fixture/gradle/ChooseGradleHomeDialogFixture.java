@@ -110,9 +110,8 @@ public class ChooseGradleHomeDialogFixture extends ComponentFixture<ChooseGradle
 
   @NotNull
   public ChooseGradleHomeDialogFixture requireValidationError(@NotNull final String errorText) {
-    Wait.minutes(2).expecting(String.format("error message '%1$s' to appear", errorText)).until(new Wait.Objective() {
-      @Override
-      public boolean isMet() {
+    Wait.minutes(2).expecting(String.format("error message '%1$s' to appear", errorText))
+      .until(() -> {
         ComponentFinder finder = robot().finder();
         Collection<JPanel> errorTextPanels = finder.findAll(target(), new GenericTypeMatcher<JPanel>(JPanel.class) {
           @Override
@@ -134,8 +133,7 @@ public class ChooseGradleHomeDialogFixture extends ComponentFixture<ChooseGradle
           }
         });
         return labels.size() == 1;
-      }
-    });
+      });
 
     // The label with the error message above also has HTML formatting, which makes the check for error not 100% reliable.
     // To ensure that the shown error message is what we expect, we store the message as a client property in the dialog's

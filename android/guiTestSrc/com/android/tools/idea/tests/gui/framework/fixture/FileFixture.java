@@ -150,9 +150,8 @@ public class FileFixture {
   @NotNull
   public FileFixture waitForCodeAnalysisHighlightCount(@NotNull final HighlightSeverity severity, final int expected) {
     final Document document = getNotNullDocument();
-    Wait.minutes(2).expecting("code analysis " + severity + " count to reach " + expected).until(new Wait.Objective() {
-      @Override
-      public boolean isMet() {
+    Wait.minutes(2).expecting("code analysis " + severity + " count to reach " + expected)
+      .until(() -> {
         Collection<HighlightInfo> highlightInfos = execute(new GuiQuery<Collection<HighlightInfo>>() {
           @Override
           protected Collection<HighlightInfo> executeInEDT() throws Throwable {
@@ -163,8 +162,7 @@ public class FileFixture {
         });
         assertNotNull(highlightInfos);
         return highlightInfos.size() == expected;
-      }
-    });
+      });
 
     return this;
   }

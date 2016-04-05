@@ -1027,14 +1027,12 @@ public class EditorFixture {
       myFrame.invokeMenuPath("View", "Tool Windows", "Preview");
     }
 
-    Wait.minutes(2).expecting("Preview window to be visible").until(new Wait.Objective() {
-      @Override
-      public boolean isMet() {
+    Wait.minutes(2).expecting("Preview window to be visible")
+      .until(() -> {
         AndroidLayoutPreviewToolWindowManager manager = AndroidLayoutPreviewToolWindowManager.getInstance(myFrame.getProject());
         AndroidLayoutPreviewToolWindowForm toolWindowForm = manager.getToolWindowForm();
         return toolWindowForm != null && toolWindowForm.getPreviewPanel().isShowing();
-      }
-    });
+      });
 
     return new LayoutPreviewFixture(robot, myFrame.getProject());
   }
