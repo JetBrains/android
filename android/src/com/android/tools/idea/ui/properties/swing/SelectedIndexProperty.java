@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.ui.properties.swing;
 
-import com.android.tools.idea.ui.properties.ObservableProperty;
+import com.android.tools.idea.ui.properties.AbstractProperty;
 import com.android.tools.idea.ui.properties.core.IntProperty;
 import org.jetbrains.annotations.NotNull;
 
@@ -24,7 +24,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 /**
- * {@link ObservableProperty} that wraps a Swing combobox and exposes its selected index.
+ * {@link AbstractProperty} that wraps a Swing combobox and exposes its selected index.
  */
 public final class SelectedIndexProperty extends IntProperty implements ActionListener {
 

@@ -17,7 +17,7 @@ package com.android.tools.idea.npw.template.components;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.templates.Parameter;
-import com.android.tools.idea.ui.properties.ObservableProperty;
+import com.android.tools.idea.ui.properties.AbstractProperty;
 import com.android.tools.idea.ui.properties.swing.TextProperty;
 import com.google.common.base.Strings;
 import com.intellij.ide.util.ClassFilter;
@@ -39,9 +39,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_PACKAGE_NAME;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_PARENT_ACTIVITY_CLASS;
 
 /**
  * A provider which returns a combobox paired with a browse button which allows the user to explore
@@ -81,7 +78,7 @@ public final class ActivityComboProvider extends ParameterComponentProvider<Refe
 
   @Nullable
   @Override
-  public ObservableProperty<?> createProperty(@NotNull ReferenceEditorComboWithBrowseButton component) {
+  public AbstractProperty<?> createProperty(@NotNull ReferenceEditorComboWithBrowseButton component) {
     return new TextProperty(component.getChildComponent());
   }
 

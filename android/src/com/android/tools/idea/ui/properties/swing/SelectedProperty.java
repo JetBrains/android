@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.ui.properties.swing;
 
-import com.android.tools.idea.ui.properties.ObservableProperty;
+import com.android.tools.idea.ui.properties.AbstractProperty;
 import com.android.tools.idea.ui.properties.core.BoolProperty;
 import org.jetbrains.annotations.NotNull;
 
@@ -24,7 +24,7 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 
 /**
- * {@link ObservableProperty} that wraps a Swing button and exposes its selected state (useful for
+ * {@link AbstractProperty} that wraps a Swing button and exposes its selected state (useful for
  * checkboxes).
  */
 public final class SelectedProperty extends BoolProperty implements ItemListener {

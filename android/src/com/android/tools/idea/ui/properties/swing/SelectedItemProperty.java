@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.ui.properties.swing;
 
-import com.android.tools.idea.ui.properties.ObservableProperty;
-import com.android.tools.idea.ui.properties.core.IntProperty;
-import com.android.tools.idea.ui.properties.core.ObjectProperty;
+import com.android.tools.idea.ui.properties.AbstractProperty;
 import com.android.tools.idea.ui.properties.core.OptionalProperty;
 import com.google.common.base.Optional;
 import org.jetbrains.annotations.NotNull;
@@ -27,7 +25,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 /**
- * {@link ObservableProperty} that wraps a Swing combobox and exposes its selected item.
+ * {@link AbstractProperty} that wraps a Swing combobox and exposes its selected item.
  */
 @SuppressWarnings("unchecked")
 public final class SelectedItemProperty<T> extends OptionalProperty<T> implements ActionListener {

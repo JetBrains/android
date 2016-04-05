@@ -15,14 +15,14 @@
  */
 package com.android.tools.idea.npw.template.components;
 
-import com.android.tools.idea.ui.properties.ObservableProperty;
+import com.android.tools.idea.ui.properties.AbstractProperty;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
 /**
- * An interface for providing a Swing component and an {@link ObservableProperty} that controls it.
+ * An interface for providing a Swing component and an {@link AbstractProperty} that controls it.
  *
  * To use this class, simply call {@link #createComponent()} and
  * {@link #createProperty(JComponent)} with the component it returns.
@@ -32,7 +32,7 @@ public abstract class ComponentProvider<T extends JComponent> {
   public abstract T createComponent();
 
   @Nullable
-  public ObservableProperty<?> createProperty(@NotNull T component) {
+  public AbstractProperty<?> createProperty(@NotNull T component) {
     return null;
   }
 

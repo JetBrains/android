@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.ui.properties.adapters;
 
-import com.android.tools.idea.ui.properties.ObservableProperty;
+import com.android.tools.idea.ui.properties.AbstractProperty;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -27,7 +27,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public final class StringToIntAdapterProperty extends AdapterProperty<String, Integer> {
 
-  public StringToIntAdapterProperty(@NotNull ObservableProperty<String> wrappedProperty) {
+  public StringToIntAdapterProperty(@NotNull AbstractProperty<String> wrappedProperty) {
     super(wrappedProperty, 0);
   }
 

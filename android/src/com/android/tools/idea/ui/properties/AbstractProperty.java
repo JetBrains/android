@@ -31,27 +31,27 @@ import java.util.List;
  * Child classes should implement {@link #get()} and {@link #setDirectly(Object)} methods to
  * support modifying the actual value of this property.
  */
-public abstract class ObservableProperty<T> extends AbstractObservableValue<T> implements SettableValue<T> {
+public abstract class AbstractProperty<T> extends AbstractObservableValue<T> implements SettableValue<T> {
   // Null by default since a majority of properties will never have a constraint
   @Nullable List<Constraint<T>> myConstraints;
 
   /**
-   * Uses reflection to get all {@code ObservableProperty} instances in an Object instance.
+   * Uses reflection to get all {@code AbstractProperty} instances in an Object instance.
    * This method is useful if you want to listen to all properties on a target object, for example calling an refresh method.
    *
-   * @return A {@link List<ObservableProperty>} containing all {@link ObservableProperty} found in the object.
+   * @return A {@link List< AbstractProperty >} containing all {@link AbstractProperty} found in the object.
    * If none are found an empty list is returned.
    */
   @NotNull
-  public static List<ObservableProperty<?>> getAll(Object object) {
-    ArrayList<ObservableProperty<?>> properties = new ArrayList<ObservableProperty<?>>();
+  public static List<AbstractProperty<?>> getAll(Object object) {
+    ArrayList<AbstractProperty<?>> properties = new ArrayList<AbstractProperty<?>>();
     for (Field field : object.getClass().getDeclaredFields()) {
-      if (ObservableProperty.class.isAssignableFrom(field.getType())) {
+      if (AbstractProperty.class.isAssignableFrom(field.getType())) {
         try {
           // We change the access level of this field to avoid getting an IllegalAccessException
           boolean isFieldPrivate = !field.isAccessible();
           field.setAccessible(true);
-          properties.add((ObservableProperty)field.get(object));
+          properties.add((AbstractProperty)field.get(object));
           if (isFieldPrivate) {
             field.setAccessible(false);
           }
