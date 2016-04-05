@@ -143,50 +143,36 @@ public class CreateResourceFileAction extends CreateResourceActionBase {
                                                    @Nullable String dialogTitle,
                                                    final boolean navigate) {
     final CreateResourceFileAction action = getInstance();
+    final Project project = facet.getModule().getProject();
+    action.myNavigate = navigate;
 
-    final String subdirName;
-    final VirtualFile resourceDir;
+    CreateResourceFileDialog.ValidatorFactory validatorFactory = action.createValidatorFactory(project);
     if (ApplicationManager.getApplication().isUnitTestMode()) {
-      subdirName = resType.getName();
-      resourceDir = facet.getPrimaryResourceDir();
-    }
-    else {
-      final MyDialog dialog = new MyDialog(facet, action.mySubactions.values(), resType, resName, rootElement,
-                                           config, chooseResName, action, facet.getModule(), true,
-                                           null);
-      dialog.setNavigate(navigate);
-      if (dialogTitle != null) {
-        dialog.setTitle(dialogTitle);
-      }
-      if (!dialog.showAndGet()) {
+      String subdirName = resType.getName();
+      VirtualFile resDir = facet.getPrimaryResourceDir();
+      if (resDir == null) {
         return PsiElement.EMPTY_ARRAY;
       }
-      if (chooseResName) {
-        resName = dialog.getFileName();
+      PsiDirectory resourceDir = PsiManager.getInstance(project).findDirectory(resDir);
+      if (resourceDir == null) {
+        return PsiElement.EMPTY_ARRAY;
       }
-      subdirName = dialog.getSubdirName();
-      resourceDir = dialog.getResourceDirectory();
+      InputValidator inputValidator = validatorFactory.create(resourceDir, subdirName, null);
+      // Simulate the dialog OK action by inlining the checkInput and canClose, before getCreatedElements.
+      return (inputValidator.checkInput(resName) && inputValidator.canClose(resName)) ?
+             ((MyInputValidator)inputValidator).getCreatedElements() :
+             PsiElement.EMPTY_ARRAY;
     }
-
-    final Project project = facet.getModule().getProject();
-    final PsiDirectory psiResDir = resourceDir != null ? PsiManager.getInstance(project).findDirectory(resourceDir) : null;
-
-    if (psiResDir == null) {
+    final CreateResourceFileDialog dialog = new CreateResourceFileDialog(
+      facet, action.mySubactions.values(), resType, resName, rootElement,
+      config, chooseResName, true, null, validatorFactory);
+    if (dialogTitle != null) {
+      dialog.setTitle(dialogTitle);
+    }
+    if (!dialog.showAndGet()) {
       return PsiElement.EMPTY_ARRAY;
     }
-    final String finalResName = resName;
-
-    final PsiElement[] elements = ApplicationManager.getApplication().runWriteAction(new Computable<PsiElement[]>() {
-      @Nullable
-      @Override
-      public PsiElement[] compute() {
-        MyInputValidator validator = action.createValidator(project, psiResDir, subdirName);
-        return validator.checkInput(finalResName) && validator.canClose(finalResName)
-               ? validator.getCreatedElements()
-               : null;
-      }
-    });
-    return elements != null ? elements : PsiElement.EMPTY_ARRAY;
+    return dialog.getCreatedElements();
   }
 
   @NotNull
@@ -205,20 +191,15 @@ public class CreateResourceFileAction extends CreateResourceActionBase {
     if (files != null && files.length > 0) {
       config = files.length == 1 ? FolderConfiguration.getConfigForFolder(files[0].getName()) : null;
     }
+    myNavigate = true;
+    final CreateResourceFileDialog dialog =
+      new CreateResourceFileDialog(facet, mySubactions.values(), folderType, null, null, config, true,
+                                   false, findResourceDirectory(dataContext), createValidatorFactory(project));
 
-    final MyDialog dialog =
-      new MyDialog(facet, mySubactions.values(), folderType, null, null, config, true, CreateResourceFileAction.this, facet.getModule(),
-                   false, findResourceDirectory(dataContext)) {
-        @Override
-        protected InputValidator createValidator(@NotNull String subdirName) {
-          Module module = LangDataKeys.MODULE.getData(dataContext);
-          assert module != null;
-          PsiDirectory resourceDirectory = getResourceDirectory(dataContext, true);
-          return CreateResourceFileAction.this.createValidator(module.getProject(), resourceDirectory, subdirName);
-        }
-    };
-    dialog.show();
-    return PsiElement.EMPTY_ARRAY;
+    if (!dialog.showAndGet()) {
+      return PsiElement.EMPTY_ARRAY;
+    }
+    return dialog.getCreatedElements();
   }
 
   @Nullable
@@ -247,18 +228,25 @@ public class CreateResourceFileAction extends CreateResourceActionBase {
     return folderType;
   }
 
+  // Or we could pass the action down, the dialog will set the root element, and then it can choose how to
+  // create the validator on its own. On the other hand this is symmetric with the other dialogs.
   @NotNull
-  private MyInputValidator createValidator(Project project, final PsiDirectory resDir, final String subdirName) {
-    PsiDirectory resSubdir = resDir.findSubdirectory(subdirName);
-    if (resSubdir == null) {
-      resSubdir = ApplicationManager.getApplication().runWriteAction(new Computable<PsiDirectory>() {
-        @Override
-        public PsiDirectory compute() {
-          return resDir.createSubdirectory(subdirName);
+  private CreateResourceFileDialog.ValidatorFactory createValidatorFactory(@NotNull final Project project) {
+    return new CreateResourceFileDialog.ValidatorFactory() {
+      @Override
+      @NotNull
+      public ElementCreatingValidator create(@NotNull final PsiDirectory resourceDirectory, @NotNull final String subdirName,
+                                             @Nullable String rootElement) {
+        PsiDirectory resSubdir = resourceDirectory.findSubdirectory(subdirName);
+        if (resSubdir == null) {
+          resSubdir = ApplicationManager.getApplication().runWriteAction(
+            (Computable<PsiDirectory>)() -> resourceDirectory.createSubdirectory(subdirName));
         }
-      });
-    }
-    return new MyInputValidator(project, resSubdir);
+        // Stash the chosen rootElement before action is asked to create() the elements.
+        myRootElement = rootElement;
+        return new MyInputValidator(project, resSubdir);
+      }
+    };
   }
 
   @NotNull
@@ -304,37 +292,5 @@ public class CreateResourceFileAction extends CreateResourceActionBase {
       newName += ".xml";
     }
     return AndroidBundle.message("new.resource.action.name", directory.getName() + File.separator + newName);
-  }
-
-  private static class MyDialog extends CreateResourceFileDialog {
-    private final CreateResourceFileAction myAction;
-    private boolean myNavigate = true;
-
-    protected MyDialog(@NotNull AndroidFacet facet,
-                       Collection<CreateTypedResourceFileAction> actions,
-                       @Nullable ResourceFolderType predefinedResourceType,
-                       @Nullable String predefinedFileName,
-                       @Nullable String predefinedRootElement,
-                       @Nullable FolderConfiguration predefinedConfig,
-                       boolean chooseFileName,
-                       @NotNull CreateResourceFileAction action,
-                       @NotNull Module module,
-                       boolean chooseModule,
-                       @Nullable PsiDirectory resDirectory) {
-      super(facet, actions, predefinedResourceType, predefinedFileName, predefinedRootElement,
-            predefinedConfig, chooseFileName, module, chooseModule, resDirectory);
-      myAction = action;
-    }
-
-    @Override
-    protected void doOKAction() {
-      myAction.myRootElement = getRootElement();
-      myAction.myNavigate = myNavigate;
-      super.doOKAction();
-    }
-
-    public void setNavigate(boolean navigate) {
-      myNavigate = navigate;
-    }
   }
 }

@@ -37,7 +37,6 @@ import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.InputValidator;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.io.StreamUtil;
@@ -49,6 +48,7 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.android.actions.CreateResourceDirectoryDialog;
+import org.jetbrains.android.actions.ElementCreatingValidator;
 import org.jetbrains.android.dom.resources.ResourceElement;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
@@ -424,7 +424,7 @@ public class OverrideResourceAction extends AbstractIntentionAction {
 
   @Nullable
   public static PsiDirectory selectFolderDir(final Project project, VirtualFile res, ResourceFolderType folderType) {
-    final PsiDirectory directory = PsiManager.getInstance(project).findDirectory(res);
+    PsiDirectory directory = PsiManager.getInstance(project).findDirectory(res);
     if (directory == null) {
       return null;
     }
@@ -435,20 +435,16 @@ public class OverrideResourceAction extends AbstractIntentionAction {
       }
       return directory.createSubdirectory(ourTargetFolderName);
     }
-    final CreateResourceDirectoryDialog dialog = new CreateResourceDirectoryDialog(project, folderType, directory, null) {
-      @Override
-      protected InputValidator createValidator() {
-        return new ResourceDirectorySelector(project, directory);
-      }
-    };
+    CreateResourceDirectoryDialog dialog = new CreateResourceDirectoryDialog(
+      project, folderType, directory, null, null,
+      resDirectory -> new ResourceDirectorySelector(project, resDirectory));
     dialog.setTitle("Select Resource Directory");
-    dialog.show();
-    final InputValidator validator = dialog.getValidator();
-    if (validator != null) {
-      PsiElement[] createdElements = ((ResourceDirectorySelector)validator).getCreatedElements();
-      if (createdElements != null && createdElements.length > 0) {
-        return (PsiDirectory)createdElements[0];
-      }
+    if (!dialog.showAndGet()) {
+      return null;
+    }
+    PsiElement[] createdElements = dialog.getCreatedElements();
+    if (createdElements != null && createdElements.length > 0) {
+      return (PsiDirectory)createdElements[0];
     }
 
     return null;
@@ -467,7 +463,7 @@ public class OverrideResourceAction extends AbstractIntentionAction {
   /**
    * Selects (and optionally creates) a resource directory
    */
-  private static class ResourceDirectorySelector extends ElementCreator implements InputValidator {
+  private static class ResourceDirectorySelector extends ElementCreator implements ElementCreatingValidator {
     private final PsiDirectory myDirectory;
     private PsiElement[] myCreatedElements = PsiElement.EMPTY_ARRAY;
 
@@ -507,6 +503,7 @@ public class OverrideResourceAction extends AbstractIntentionAction {
       return myCreatedElements.length > 0;
     }
 
+    @Override
     public final PsiElement[] getCreatedElements() {
       return myCreatedElements;
     }
