@@ -30,6 +30,8 @@ import java.util.ArrayList;
  */
 public class WidgetInteractionTargets {
 
+    private static final boolean USE_SIDE_RESIZE = false;
+
     // The resize handles available on the widget
     // note: all resize handles should be added to the mResizeHandles array (see addResizeHandles())
     private ResizeHandle mLeftTop = new ResizeHandle(this, ResizeHandle.Type.LEFT_TOP);
@@ -87,10 +89,17 @@ public class WidgetInteractionTargets {
         mResizeHandles.add(mLeftBottom);
         mResizeHandles.add(mRightTop);
         mResizeHandles.add(mRightBottom);
-        mResizeHandles.add(mLeftSide);
-        mResizeHandles.add(mRightSide);
-        mResizeHandles.add(mTopSide);
-        mResizeHandles.add(mBottomSide);
+        if (mWidget instanceof Guideline) {
+            mResizeHandles.add(mLeftSide);
+            mResizeHandles.add(mTopSide);
+        } else {
+            if (USE_SIDE_RESIZE) {
+                mResizeHandles.add(mLeftSide);
+                mResizeHandles.add(mTopSide);
+                mResizeHandles.add(mRightSide);
+                mResizeHandles.add(mBottomSide);
+            }
+        }
     }
 
     /**
