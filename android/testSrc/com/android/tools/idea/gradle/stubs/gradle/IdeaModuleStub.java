@@ -19,10 +19,8 @@ import com.android.tools.idea.gradle.stubs.FileStructure;
 import com.google.common.collect.Lists;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.HierarchicalElement;
-import org.gradle.tooling.model.idea.IdeaCompilerOutput;
-import org.gradle.tooling.model.idea.IdeaContentRoot;
-import org.gradle.tooling.model.idea.IdeaDependency;
-import org.gradle.tooling.model.idea.IdeaModule;
+import org.gradle.tooling.model.UnsupportedMethodException;
+import org.gradle.tooling.model.idea.*;
 import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -55,6 +53,11 @@ public class IdeaModuleStub implements IdeaModule {
   @NotNull
   public File getRootDir() {
     return myFileStructure.getRootDir();
+  }
+
+  @Override
+  public IdeaJavaLanguageSettings getJavaLanguageSettings() throws UnsupportedMethodException {
+    throw new UnsupportedOperationException();
   }
 
   @NotNull
