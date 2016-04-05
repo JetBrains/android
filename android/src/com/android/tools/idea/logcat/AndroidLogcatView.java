@@ -92,6 +92,9 @@ public abstract class AndroidLogcatView implements Disposable {
           return;
         }
         if (forceReconnect) {
+          if (myDevice != null) {
+            AndroidLogcatService.getInstance().removeListener(myDevice, myLogConsole);
+          }
           myDevice = null;
         }
         updateLogConsole();
@@ -307,23 +310,19 @@ public abstract class AndroidLogcatView implements Disposable {
     }
   }
 
-  private volatile @Nullable AndroidLogcatReceiver myReceiver;
-
   private void updateLogConsole() {
     IDevice device = getSelectedDevice();
     if (myDevice != device) {
+      AndroidLogcatService androidLogcatService = AndroidLogcatService.getInstance();
+      if (myDevice != null) {
+        androidLogcatService.removeListener(myDevice, myLogConsole);
+      }
+      ConsoleView console = myLogConsole.getConsole();
+      if (console != null) {
+        console.clear();
+      }
       myDevice = device;
-      AndroidLogcatReceiver receiver = myReceiver;
-      if (receiver != null) {
-        receiver.cancel();
-      }
-      if (device != null) {
-        final ConsoleView console = myLogConsole.getConsole();
-        if (console != null) {
-          console.clear();
-        }
-        myReceiver = AndroidLogcatUtils.startLoggingThread(myProject, device, false, myLogConsole);
-      }
+      androidLogcatService.addListener(myDevice, myLogConsole, true);
     }
   }
 
@@ -451,7 +450,7 @@ public abstract class AndroidLogcatView implements Disposable {
     }
   }
 
-  final class AndroidLogConsole extends LogConsoleBase implements AndroidConsoleWriter {
+  final class AndroidLogConsole extends LogConsoleBase implements AndroidLogcatService.LogLineListener {
       private final RegexFilterComponent myRegexFilterComponent = new RegexFilterComponent("LOG_FILTER_HISTORY", 5);
       private final AndroidLogcatPreferences myPreferences;
 
@@ -495,8 +494,8 @@ public abstract class AndroidLogcatView implements Disposable {
     }
 
     @Override
-    public synchronized void addMessage(@NotNull String text) {
-      super.addMessage(text);
+    public void receiveLogLine(@NotNull String line) {
+      addMessage(line);
     }
 
     /**
