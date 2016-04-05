@@ -72,7 +72,7 @@ public final class ErrInvalidPath extends RpcException implements BinaryObject {
 
   @Override
   public String getMessage() {
-    return myReason.getString();
+    return myReason.toString();
   }
 
   public enum Klass implements BinaryClass {
