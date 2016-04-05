@@ -20,6 +20,8 @@ import com.android.tools.idea.gradle.stubs.FileStructure;
 import com.google.common.collect.Lists;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.HierarchicalElement;
+import org.gradle.tooling.model.UnsupportedMethodException;
+import org.gradle.tooling.model.idea.IdeaJavaLanguageSettings;
 import org.gradle.tooling.model.idea.IdeaLanguageLevel;
 import org.gradle.tooling.model.idea.IdeaModule;
 import org.gradle.tooling.model.idea.IdeaProject;
@@ -40,6 +42,11 @@ public class IdeaProjectStub implements IdeaProject {
     myName = name;
     myFileStructure = new FileStructure(name);
     myBuildFile = myFileStructure.createProjectFile(SdkConstants.FN_BUILD_GRADLE);
+  }
+
+  @Override
+  public IdeaJavaLanguageSettings getJavaLanguageSettings() throws UnsupportedMethodException {
+    throw new UnsupportedOperationException();
   }
 
   @Override
