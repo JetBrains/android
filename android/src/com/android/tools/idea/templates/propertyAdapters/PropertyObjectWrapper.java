@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.templates.propertyAdapters;
 
-import com.android.tools.idea.ui.properties.ObservableProperty;
+import com.android.tools.idea.ui.properties.AbstractProperty;
 import com.android.tools.idea.ui.properties.core.BoolValueProperty;
 import com.android.tools.idea.ui.properties.core.IntValueProperty;
 import com.android.tools.idea.ui.properties.core.StringValueProperty;
@@ -26,7 +26,7 @@ import freemarker.template.TemplateModelException;
 
 /**
  * A freemarker {@link ObjectWrapper} which, additionally, knows about our various
- * {@link ObservableProperty} classes (so we can add them directly into our freemarker data model).
+ * {@link AbstractProperty} classes (so we can add them directly into our freemarker data model).
  * <p/>
  * <a href="http://freemarker.org/docs/pgui_datamodel_objectWrapper.html">Click here</a> to read
  * more about Freemarker object wrappers.

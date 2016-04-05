@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.ui.properties.adapters;
 
-import com.android.tools.idea.ui.properties.ObservableProperty;
+import com.android.tools.idea.ui.properties.AbstractProperty;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -37,15 +37,15 @@ public final class StringToDoubleAdapterProperty extends AdapterProperty<String,
   /**
    * Defaults to 1 decimal point of precision.
    */
-  public StringToDoubleAdapterProperty(@NotNull ObservableProperty<String> wrappedProperty) {
+  public StringToDoubleAdapterProperty(@NotNull AbstractProperty<String> wrappedProperty) {
     this(wrappedProperty, 1);
   }
 
-  public StringToDoubleAdapterProperty(@NotNull ObservableProperty<String> wrappedProperty, int numDecimals) {
+  public StringToDoubleAdapterProperty(@NotNull AbstractProperty<String> wrappedProperty, int numDecimals) {
     this(wrappedProperty, numDecimals, numDecimals);
   }
 
-  public StringToDoubleAdapterProperty(@NotNull ObservableProperty<String> wrappedProperty, int numDecimals, int maxDecimals) {
+  public StringToDoubleAdapterProperty(@NotNull AbstractProperty<String> wrappedProperty, int numDecimals, int maxDecimals) {
     super(wrappedProperty, 0d);
     if (maxDecimals < numDecimals) {
       throw new IllegalArgumentException("maxDecimals must be larger or equal to numDecimals");

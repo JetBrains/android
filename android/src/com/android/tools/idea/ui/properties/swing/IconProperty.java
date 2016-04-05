@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.ui.properties.swing;
 
-import com.android.tools.idea.ui.properties.ObservableProperty;
+import com.android.tools.idea.ui.properties.AbstractProperty;
 import com.android.tools.idea.ui.properties.core.OptionalProperty;
 import com.google.common.base.Optional;
 import org.jetbrains.annotations.NotNull;
@@ -25,7 +25,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
 /**
- * {@link ObservableProperty} that wraps a label and exposes its icon value.
+ * {@link AbstractProperty} that wraps a label and exposes its icon value.
  */
 public final class IconProperty extends OptionalProperty<Icon> implements PropertyChangeListener {
   @NotNull private final JComponent myComponent;

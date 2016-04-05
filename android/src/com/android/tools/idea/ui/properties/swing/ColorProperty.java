@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.ui.properties.swing;
 
-import com.android.tools.idea.ui.properties.ObservableProperty;
+import com.android.tools.idea.ui.properties.AbstractProperty;
 import com.android.tools.idea.ui.properties.core.OptionalProperty;
 import com.google.common.base.Optional;
 import com.intellij.ui.ColorPanel;
@@ -27,7 +27,7 @@ import java.awt.event.ActionListener;
 
 
 /**
- * {@link ObservableProperty} that wraps a {@link ColorPanel} and exposes its color.
+ * {@link AbstractProperty} that wraps a {@link ColorPanel} and exposes its color.
  */
 public final class ColorProperty extends OptionalProperty<Color> implements ActionListener {
   @NotNull private final ColorPanel myColorPanel;

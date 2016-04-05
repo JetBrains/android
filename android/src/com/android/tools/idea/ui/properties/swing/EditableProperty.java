@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.ui.properties.swing;
 
-import com.android.tools.idea.ui.properties.ObservableProperty;
+import com.android.tools.idea.ui.properties.AbstractProperty;
 import com.android.tools.idea.ui.properties.core.BoolProperty;
 import org.jetbrains.annotations.NotNull;
 
@@ -24,7 +24,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
 /**
- * {@link ObservableProperty} that wraps a Swing component and exposes its editable state.
+ * {@link AbstractProperty} that wraps a Swing component and exposes its editable state.
  */
 public final class EditableProperty extends BoolProperty implements PropertyChangeListener {
   @NotNull private final JTextComponent myTextComponent;
