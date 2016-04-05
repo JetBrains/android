@@ -36,6 +36,28 @@ public final class Range implements BinaryObject {
     return atomImdex >= myStart && atomImdex < myEnd;
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    Range range = (Range)o;
+    if (myStart != range.myStart) return false;
+    if (myEnd != range.myEnd) return false;
+    return true;
+  }
+
+  @Override
+  public int hashCode() {
+    int result = (int)(myStart ^ (myStart >>> 32));
+    result = 31 * result + (int)(myEnd ^ (myEnd >>> 32));
+    return result;
+  }
+
+  @Override
+  public String toString() {
+    return "Range{start=" + myStart + ", end=" + myEnd + '}';
+  }
+
   //<<<Start:Java.ClassBody:1>>>
   private long myStart;
   private long myEnd;

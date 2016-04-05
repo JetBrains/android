@@ -71,6 +71,52 @@ public final class AtomMetadata implements BinaryObject {
     }
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    AtomMetadata that = (AtomMetadata)o;
+
+    if (myIsPrepared != that.myIsPrepared) return false;
+    if (myResultIndex != that.myResultIndex) return false;
+    if (myExtrasIndex != that.myExtrasIndex) return false;
+    if (myEndOfFrame != that.myEndOfFrame) return false;
+    if (myDrawCall != that.myDrawCall) return false;
+    if (myAPI != null ? !myAPI.equals(that.myAPI) : that.myAPI != null) return false;
+    if (myDisplayName != null ? !myDisplayName.equals(that.myDisplayName) : that.myDisplayName != null) return false;
+    if (myDocumentationUrl != null ? !myDocumentationUrl.equals(that.myDocumentationUrl) : that.myDocumentationUrl != null) return false;
+
+    return true;
+  }
+
+  @Override
+  public int hashCode() {
+    int result = (myIsPrepared ? 1 : 0);
+    result = 31 * result + myResultIndex;
+    result = 31 * result + myExtrasIndex;
+    result = 31 * result + (myAPI != null ? myAPI.hashCode() : 0);
+    result = 31 * result + (myDisplayName != null ? myDisplayName.hashCode() : 0);
+    result = 31 * result + (myEndOfFrame ? 1 : 0);
+    result = 31 * result + (myDrawCall ? 1 : 0);
+    result = 31 * result + (myDocumentationUrl != null ? myDocumentationUrl.hashCode() : 0);
+    return result;
+  }
+
+  @Override
+  public String toString() {
+    return "AtomMetadata{" +
+           "prepared=" + myIsPrepared +
+           ", resultIndex=" + myResultIndex +
+           ", extrasIndex=" + myExtrasIndex +
+           ", API=" + myAPI +
+           ", displayName='" + myDisplayName + '\'' +
+           ", endOfFrame=" + myEndOfFrame +
+           ", drawCall=" + myDrawCall +
+           ", documentationUrl='" + myDocumentationUrl + '\'' +
+           '}';
+  }
+
   //<<<Start:Java.ClassBody:1>>>
   private ApiID myAPI;
   private String myDisplayName;
