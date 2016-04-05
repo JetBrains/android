@@ -23,6 +23,7 @@ import com.intellij.openapi.util.SystemInfo;
 import com.intellij.util.SystemProperties;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
@@ -58,7 +59,7 @@ public final class GapiPaths {
   @NotNull private static final String TRACER_NAME = "gfxtracer.aar";
   @NotNull private static final String EXE_EXTENSION;
   @NotNull private static final String SDK_PATH = "gapid";
-  @NotNull private static final String SDK_PACKAGE_PATH = "extras;android;gapid";
+  @NotNull public static final String SDK_PACKAGE_PATH = "extras;android;gapid";
   @NotNull private static final String OS_ANDROID = "android";
 
   static {
@@ -173,11 +174,16 @@ public final class GapiPaths {
     return value;
   }
 
-  public static File getSdkPath() {
+  @Nullable("gapi is not installed")
+  public static LocalPackage getLocalPackage() {
     AndroidSdkHandler handler = AndroidSdkUtils.tryToChooseSdkHandler();
-    LocalPackage info = handler.getLocalPackage(SDK_PACKAGE_PATH, new StudioLoggerProgressIndicator(GapiPaths.class));
-    if (info == null) { return null; }
-    return info.getLocation();
+    return handler.getLocalPackage(SDK_PACKAGE_PATH, new StudioLoggerProgressIndicator(GapiPaths.class));
+  }
+
+  @Nullable("gapi is not installed")
+  public static File getSdkPath() {
+    LocalPackage info = getLocalPackage();
+    return info == null ? null : info.getLocation();
   }
 
   private static boolean checkForTools(File dir) {
