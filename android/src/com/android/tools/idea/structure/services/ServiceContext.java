@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.structure.services;
 
+import com.android.tools.idea.ui.properties.AbstractProperty;
 import com.android.tools.idea.ui.properties.InvalidationListener;
-import com.android.tools.idea.ui.properties.ObservableProperty;
 import com.android.tools.idea.ui.properties.ObservableValue;
 import com.android.tools.idea.ui.properties.core.BoolValueProperty;
 import com.android.tools.idea.ui.properties.core.ObservableBool;
@@ -35,7 +35,7 @@ import java.util.concurrent.Callable;
  * entries here allows them to be referenced within service.xml.
  * <p/>
  * Some of the values added to a context are marked as "watched", using
- * {@link #putWatchedValue(String, ObservableProperty)}. Those values are special, and modifying
+ * {@link #putWatchedValue(String, AbstractProperty)}. Those values are special, and modifying
  * any of them will mark this context as modified. {@link #snapshot()} and {@link #restore()} will
  * also save and revert watched values - this is useful, for example, if a user is modifying a
  * service but then cancels their changes.
@@ -52,7 +52,7 @@ public final class ServiceContext {
 
   private final Map<String, ObservableValue> myValues = Maps.newHashMap();
   private final Map<String, Runnable> myActions = Maps.newHashMap();
-  private final Map<ObservableProperty, Object> myWatched = new WeakHashMap<ObservableProperty, Object>();
+  private final Map<AbstractProperty, Object> myWatched = new WeakHashMap<AbstractProperty, Object>();
   private final BoolValueProperty myInstalled = new BoolValueProperty();
   private final BoolValueProperty myModified = new BoolValueProperty();
 
@@ -132,7 +132,7 @@ public final class ServiceContext {
   /**
    * A property which indicates if any of the watched values have been changed.
    *
-   * @see #putWatchedValue(String, ObservableProperty)
+   * @see #putWatchedValue(String, AbstractProperty)
    */
   public ObservableBool modified() {
     return myModified;
@@ -142,13 +142,13 @@ public final class ServiceContext {
    * Take a snapshot of the current state of all watched values and clear the modified flag. You
    * can later {@link #restore()} the values to the snapshot.
    *
-   * @see #putWatchedValue(String, ObservableProperty)
+   * @see #putWatchedValue(String, AbstractProperty)
    */
   public void snapshot() {
     // TODO: The snapshot concept was added when we thought users would be able to modify the
     // values of installed services. However, that's currently not supported and may never be.
     // Remove this method? (Related: http://b.android.com/178452)
-    for (ObservableProperty property : myWatched.keySet()) {
+    for (AbstractProperty property : myWatched.keySet()) {
       myWatched.put(property, property.get());
     }
 
@@ -159,7 +159,7 @@ public final class ServiceContext {
    * Restore the values captured by {@link #snapshot()}
    */
   public void restore() {
-    for (ObservableProperty property : myWatched.keySet()) {
+    for (AbstractProperty property : myWatched.keySet()) {
       //noinspection unchecked
       property.set(myWatched.get(property));
     }
@@ -178,7 +178,7 @@ public final class ServiceContext {
    * Put a named value into the context which can be {@link #snapshot()}ed and {@link #restore()}d.
    * Watched values are also used to determine whether this service has been {@link #modified()}.
    */
-  public void putWatchedValue(@NotNull String key, @NotNull ObservableProperty property) {
+  public void putWatchedValue(@NotNull String key, @NotNull AbstractProperty property) {
     putValue(key, property);
     property.addWeakListener(myWatchedListener);
     myWatched.put(property, property.get());

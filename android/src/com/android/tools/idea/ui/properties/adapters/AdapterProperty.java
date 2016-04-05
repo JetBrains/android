@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.ui.properties.adapters;
 
+import com.android.tools.idea.ui.properties.AbstractProperty;
 import com.android.tools.idea.ui.properties.InvalidationListener;
-import com.android.tools.idea.ui.properties.ObservableProperty;
 import com.android.tools.idea.ui.properties.ObservableValue;
 import com.android.tools.idea.ui.properties.core.BoolProperty;
 import com.android.tools.idea.ui.properties.core.BoolValueProperty;
@@ -39,9 +39,9 @@ import org.jetbrains.annotations.Nullable;
  * @param <S> The source type we're wrapping
  * @param <D> The destination type we're converting to
  */
-public abstract class AdapterProperty<S, D> extends ObservableProperty<D> implements InvalidationListener {
+public abstract class AdapterProperty<S, D> extends AbstractProperty<D> implements InvalidationListener {
 
-  @NotNull private final ObservableProperty<S> myWrappedProperty;
+  @NotNull private final AbstractProperty<S> myWrappedProperty;
 
   @NotNull private D myLastValue;
 
@@ -50,7 +50,7 @@ public abstract class AdapterProperty<S, D> extends ObservableProperty<D> implem
   // appropriately.
   private final BoolProperty myInSync = new BoolValueProperty(true);
 
-  public AdapterProperty(@NotNull ObservableProperty<S> wrappedProperty, @NotNull D initialValue) {
+  public AdapterProperty(@NotNull AbstractProperty<S> wrappedProperty, @NotNull D initialValue) {
     myLastValue = initialValue;
     myWrappedProperty = wrappedProperty;
     myWrappedProperty.addWeakListener(this);

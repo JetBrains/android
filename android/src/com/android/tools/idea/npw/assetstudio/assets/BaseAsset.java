@@ -17,7 +17,7 @@ package com.android.tools.idea.npw.assetstudio.assets;
 
 import com.android.tools.idea.npw.assetstudio.AssetStudioUtils;
 import com.android.tools.idea.npw.assetstudio.icon.AndroidIconGenerator;
-import com.android.tools.idea.ui.properties.ObservableProperty;
+import com.android.tools.idea.ui.properties.AbstractProperty;
 import com.android.tools.idea.ui.properties.core.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -28,7 +28,7 @@ import java.awt.image.BufferedImage;
  * Base class for all asset types which can be converted into Android icons. See also
  * {@link AndroidIconGenerator}, which handles the conversion.
  *
- * Asset fields are all {@link ObservableProperty} instances, which allows for assets to be easily
+ * Asset fields are all {@link AbstractProperty} instances, which allows for assets to be easily
  * bound to and modified by UI widgets.
  */
 @SuppressWarnings("UseJBColor") // Intentionally not using JBColor for Android icons
