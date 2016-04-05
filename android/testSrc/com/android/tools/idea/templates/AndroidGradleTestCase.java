@@ -448,7 +448,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
       @Override
       public void run() {
         AssetStudioAssetGenerator assetGenerator = new AssetStudioAssetGenerator(projectWizardState);
-        NewProjectWizard.createProject(projectWizardState, myFixture.getProject(), assetGenerator);
+        WizardUtils.createProject(projectWizardState, myFixture.getProject(), assetGenerator);
         FileDocumentManager.getInstance().saveAllDocuments();
       }
     });
