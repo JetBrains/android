@@ -20,6 +20,7 @@ import com.android.tools.idea.uibuilder.property.inspector.InspectorPanel;
 import com.android.tools.idea.uibuilder.property.ptable.PTable;
 import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
 import com.android.tools.idea.uibuilder.property.ptable.PTableModel;
+import com.android.util.PropertiesMap;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
@@ -46,6 +47,8 @@ public class NlPropertiesPanel extends JPanel implements ShowExpertProperties.Mo
 
   private JBLabel mySelectedComponentLabel;
   private JPanel myCardPanel;
+  private NlComponent myComponent;
+  private List<NlPropertyItem> myProperties;
   private boolean myShowAdvancedProperties;
 
   public NlPropertiesPanel() {
@@ -92,6 +95,8 @@ public class NlPropertiesPanel extends JPanel implements ShowExpertProperties.Mo
                        @NotNull List<NlPropertyItem> properties,
                        @NotNull NlPropertiesManager propertiesManager) {
     String componentName = component == null ? "" : component.getTagName();
+    myComponent = component;
+    myProperties = properties;
     mySelectedComponentLabel.setText(componentName);
 
     List<PTableItem> sortedProperties;
@@ -107,11 +112,26 @@ public class NlPropertiesPanel extends JPanel implements ShowExpertProperties.Mo
     }
     myModel.setItems(sortedProperties);
 
+    updateDefaultProperties(propertiesManager);
     myInspectorPanel.setComponent(component, properties, propertiesManager);
   }
 
-  public void modelRendered() {
+  public void modelRendered(@NotNull NlPropertiesManager propertiesManager) {
+    updateDefaultProperties(propertiesManager);
     myInspectorPanel.refresh();
+  }
+
+  private void updateDefaultProperties(@NotNull NlPropertiesManager propertiesManager) {
+    if (myComponent == null || myProperties == null) {
+      return;
+    }
+    PropertiesMap defaultValues = propertiesManager.getDefaultProperties(myComponent);
+    if (defaultValues.isEmpty()) {
+      return;
+    }
+    for (NlPropertyItem property : myProperties) {
+      property.setDefaultValue(defaultValues.get(property.getName()));
+    }
   }
 
   @Override

@@ -21,6 +21,7 @@ import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.DesignSurfaceListener;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.android.util.PropertiesMap;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.components.JBLoadingPanel;
@@ -36,6 +37,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 public class NlPropertiesManager implements DesignSurfaceListener, ModelListener {
   public final static int UPDATE_DELAY_MSECS = 250;
@@ -139,11 +141,24 @@ public class NlPropertiesManager implements DesignSurfaceListener, ModelListener
     });
   }
 
+  @NotNull
+  public PropertiesMap getDefaultProperties(@NotNull NlComponent component) {
+    if (mySurface == null) {
+      return PropertiesMap.EMPTY_MAP;
+    }
+    ScreenView view = mySurface.getCurrentScreenView();
+    if (view == null) {
+      return PropertiesMap.EMPTY_MAP;
+    }
+    Map<Object, PropertiesMap> map = view.getModel().getDefaultProperties();
+    return map.getOrDefault(component.getTag(), PropertiesMap.EMPTY_MAP);
+  }
+
   private void setEmptySelection() {
     myPropertiesPanel.setItems(null, Collections.emptyList(), this);
   }
 
-  public void setValue(@NotNull NlProperty property, @NotNull String value) {
+  public void setValue(@NotNull NlProperty property, @Nullable String value) {
     property.setValue(value);
 
     // TODO: refresh all custom inspectors
@@ -199,6 +214,6 @@ public class NlPropertiesManager implements DesignSurfaceListener, ModelListener
 
   @Override
   public void modelRendered(@NotNull NlModel model) {
-    myPropertiesPanel.modelRendered();
+    myPropertiesPanel.modelRendered(this);
   }
 }

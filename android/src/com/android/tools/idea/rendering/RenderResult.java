@@ -20,6 +20,7 @@ import com.android.ide.common.rendering.api.Result;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.sdklib.devices.Device;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.util.PropertiesMap;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
@@ -29,7 +30,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import static com.android.tools.idea.rendering.RenderedImage.ShadowType;
 
@@ -43,6 +46,7 @@ public class RenderResult {
   @NotNull private final Result myRenderResult;
   @Nullable private IncludeReference myIncludedWithin = IncludeReference.NONE;
   @NotNull private final Rectangle myImageBounds;
+  @NotNull private final Map<Object, PropertiesMap> myDefaultProperties;
 
   public RenderResult(@Nullable RenderTask renderTask,
                       @Nullable RenderSession session,
@@ -73,10 +77,13 @@ public class RenderResult {
       }
       // image might be null if we only inflated the layout but we didn't call render
       myImage = image != null ? new RenderedImage(configuration, image, alphaChannelImage, shadowType) : null;
+      Map<Object, PropertiesMap> defaultProperties = session.getDefaultProperties();
+      myDefaultProperties = defaultProperties != null ? defaultProperties : Collections.emptyMap();
     } else {
       myRootViews = null;
       mySystemRootViews = null;
       myImage = null;
+      myDefaultProperties = Collections.emptyMap();
     }
 
     myImageBounds =
@@ -151,5 +158,10 @@ public class RenderResult {
   @NotNull
   public Rectangle getOriginalBounds() {
     return myImageBounds;
+  }
+
+  @NotNull
+  public Map<Object, PropertiesMap> getDefaultProperties() {
+    return myDefaultProperties;
   }
 }
