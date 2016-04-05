@@ -15,23 +15,24 @@
  */
 package org.jetbrains.android.actions;
 
-import com.android.builder.model.SourceProvider;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceFolderType;
+import com.intellij.CommonBundle;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
-import com.intellij.openapi.ui.InputValidator;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.psi.PsiDirectory;
+import com.intellij.psi.PsiElement;
 import com.intellij.ui.EnumComboBoxModel;
 import com.intellij.ui.ListCellRendererWrapper;
 import com.intellij.ui.components.JBLabel;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.DeviceConfiguratorPanel;
 import org.jetbrains.android.uipreview.InvalidOptionValueException;
-import org.jetbrains.annotations.Contract;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -43,7 +44,7 @@ import java.awt.event.ActionListener;
 /**
  * @author Eugene.Kudelevsky
  */
-public abstract class CreateResourceDirectoryDialog extends DialogWrapper {
+public class CreateResourceDirectoryDialog extends DialogWrapper {
   private JComboBox myResourceTypeComboBox;
   private JPanel myDeviceConfiguratorWrapper;
   private JTextField myDirectoryNameTextField;
@@ -53,13 +54,18 @@ public abstract class CreateResourceDirectoryDialog extends DialogWrapper {
   private JBLabel mySourceSetLabel;
 
   private final DeviceConfiguratorPanel myDeviceConfiguratorPanel;
-  private InputValidator myValidator;
+  private ElementCreatingValidator myValidator;
+  private ValidatorFactory myValidatorFactory;
   private PsiDirectory myResDirectory;
+  private DataContext myDataContext;
 
   public CreateResourceDirectoryDialog(@NotNull Project project, @Nullable ResourceFolderType resType,
-                                       @Nullable PsiDirectory resDirectory, @Nullable Module module) {
+                                       @Nullable PsiDirectory resDirectory, @Nullable DataContext dataContext,
+                                       @Nullable Module module, @NotNull ValidatorFactory validatorFactory) {
     super(project);
     myResDirectory = resDirectory;
+    myDataContext = dataContext;
+    myValidatorFactory = validatorFactory;
     myResourceTypeComboBox.setModel(new EnumComboBoxModel<ResourceFolderType>(ResourceFolderType.class));
     myResourceTypeComboBox.setRenderer(new ListCellRendererWrapper() {
       @Override
@@ -112,16 +118,29 @@ public abstract class CreateResourceDirectoryDialog extends DialogWrapper {
     init();
   }
 
-  protected abstract InputValidator createValidator();
-
   @Override
   protected void doOKAction() {
     final String dirName = myDirectoryNameTextField.getText();
     assert dirName != null;
-    myValidator = createValidator();
+    PsiDirectory resourceDirectory = getResourceDirectory(myDataContext);
+    if (resourceDirectory == null) {
+      Module module = LangDataKeys.MODULE.getData(myDataContext);
+      Messages.showErrorDialog(AndroidBundle.message("check.resource.dir.error", module),
+                               CommonBundle.getErrorTitle());
+      // Not much the user can do, just close the dialog.
+      super.doOKAction();
+      return;
+    }
+    myValidator = myValidatorFactory.create(resourceDirectory);
     if (myValidator.checkInput(dirName) && myValidator.canClose(dirName)) {
       super.doOKAction();
     }
+  }
+
+
+  public interface ValidatorFactory {
+    @NotNull
+    ElementCreatingValidator create(@NotNull PsiDirectory resourceDirectory);
   }
 
   @Nullable
@@ -145,25 +164,19 @@ public abstract class CreateResourceDirectoryDialog extends DialogWrapper {
     }
   }
 
-  public InputValidator getValidator() {
-    return myValidator;
+  public PsiElement[] getCreatedElements() {
+    return myValidator != null ? myValidator.getCreatedElements() : PsiElement.EMPTY_ARRAY;
   }
 
   @Nullable
-  private SourceProvider getSourceProvider() {
-    return CreateResourceActionBase.getSourceProvider(mySourceSetCombo);
-  }
-
-  @Contract("_,true -> !null")
-  @Nullable
-  public PsiDirectory getResourceDirectory(@Nullable DataContext context, boolean create) {
+  private PsiDirectory getResourceDirectory(@Nullable DataContext context) {
     if (myResDirectory != null) {
       return myResDirectory;
     }
     if (context != null) {
       Module module = LangDataKeys.MODULE.getData(context);
       assert module != null;
-      return CreateResourceActionBase.getResourceDirectory(getSourceProvider(), module, create);
+      return CreateResourceActionBase.getResourceDirectory(CreateResourceActionBase.getSourceProvider(mySourceSetCombo), module, true);
     }
 
     return null;
