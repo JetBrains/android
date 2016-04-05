@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.structure.editors;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.gradle.parser.BuildFileKey;
 import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.stats.UsageTracker;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
@@ -34,12 +35,15 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 
 import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
+import static com.android.tools.idea.stats.UsageTracker.*;
 import static javax.swing.SwingConstants.TOP;
 
 /**
@@ -129,6 +133,14 @@ public class AndroidModuleEditor implements Place.Navigator, Disposable {
           editor.reset();
         }
       }
+      myTabbedPane.addChangeListener(new ChangeListener() {
+        @Override
+        public void stateChanged(ChangeEvent e) {
+          String tabName = myEditors.get(myTabbedPane.getSelectedIndex()).getDisplayName();
+          UsageTracker.getInstance().trackEvent(CATEGORY_PROJECT_STRUCTURE_DIALOG, ACTION_PROJECT_STRUCTURE_DIALOG_TOP_TAB_CLICK, tabName, null);
+        }
+      });
+
       myGenericSettingsPanel = myTabbedPane;
     }
     return myGenericSettingsPanel;
@@ -154,6 +166,7 @@ public class AndroidModuleEditor implements Place.Navigator, Disposable {
 
   public void apply() throws ConfigurationException {
     for (ModuleConfigurationEditor editor : myEditors) {
+      UsageTracker.getInstance().trackEvent(CATEGORY_PROJECT_STRUCTURE_DIALOG, ACTION_PROJECT_STRUCTURE_DIALOG_TOP_TAB_SAVE, editor.getDisplayName(), null);
       editor.saveData();
       editor.apply();
     }
