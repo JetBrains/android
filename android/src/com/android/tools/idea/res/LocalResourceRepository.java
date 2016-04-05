@@ -48,6 +48,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_ID;
@@ -143,6 +144,9 @@ import static com.android.tools.lint.detector.api.LintUtils.stripIdPrefix;
 @SuppressWarnings("deprecation") // Deprecated com.android.util.Pair is required by ProjectCallback interface
 public abstract class LocalResourceRepository extends AbstractResourceRepository implements Disposable, ModificationTracker {
   protected static final Logger LOG = Logger.getInstance(LocalResourceRepository.class);
+
+  protected static final AtomicLong ourModificationCounter = new AtomicLong();
+
   private final String myDisplayName;
 
   @Nullable private List<MultiResourceRepository> myParents;
@@ -155,6 +159,7 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
   protected LocalResourceRepository(@NotNull String displayName) {
     super(false);
     myDisplayName = displayName;
+    myGeneration = ourModificationCounter.incrementAndGet();
   }
 
   @NotNull
