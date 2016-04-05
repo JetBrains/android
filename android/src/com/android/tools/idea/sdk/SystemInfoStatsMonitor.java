@@ -129,7 +129,7 @@ public class SystemInfoStatsMonitor {
       return;
     }
 
-    myUploadTask = JobScheduler.getScheduler().scheduleAtFixedRate(
+    myUploadTask = JobScheduler.getScheduler().scheduleWithFixedDelay(
       new Runnable() {
         @Override
         public void run() {
