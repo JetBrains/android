@@ -192,6 +192,29 @@ public class AndroidIcons {
     public static final Icon Theme = load("/icons/nele/theme.png");
   }
 
+  public static class TextDecoration {
+    // TODO: provide icons for these palette actions:
+    public static final Icon Bold = load("/icons/dimension.png");
+    public static final Icon BoldActive = load("/icons/nightmode.png");
+    public static final Icon Italics = load("/icons/ddms/attachDebugger.png");
+    public static final Icon ItalicsActive = load("/icons/ddms/allocation_tracker.png");
+    public static final Icon AllCaps = load("/icons/views/DeviceScreen.png");
+    public static final Icon AllCapsActive = load("/icons/views/RadioButton.png");
+  }
+
+  public static class Alignment {
+    public static final Icon Start = load("/icons/nele/language.png");
+    public static final Icon StartActive = load("/icons/nele/api.png");
+    public static final Icon Left = load("/icons/nele/wear.png");
+    public static final Icon LeftActive = load("/icons/nele/rotate.png");
+    public static final Icon Center = load("/icons/nele/size.png");
+    public static final Icon CenterActive = load("/icons/nele/tv.png");
+    public static final Icon Right = load("/icons/nele/tablet.png");
+    public static final Icon RightActive = load("/icons/nele/theme.png");
+    public static final Icon End = load("/icons/nele/phone.png");
+    public static final Icon EndActive = load("/icons/nele/tv.png");
+  }
+
   public static class RunIcons {
     public static final Icon Attach = load("/icons/run/attach.png");
 
