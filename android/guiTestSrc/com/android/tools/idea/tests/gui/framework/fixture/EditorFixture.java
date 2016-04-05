@@ -693,18 +693,14 @@ public class EditorFixture {
       }
     });
 
-    Wait.minutes(2).expecting("file " + quote(file.getPath()) + " to be opened").until(new Wait.Objective() {
-      @Override
-      public boolean isMet() {
-        //noinspection ConstantConditions
-        return execute(new GuiQuery<Boolean>() {
+    Wait.minutes(2).expecting("file " + quote(file.getPath()) + " to be opened").until(
+      () -> GuiActionRunner.execute(
+        new GuiQuery<Boolean>() {
           @Override
           protected Boolean executeInEDT() throws Throwable {
             return file.equals(getCurrentFile());
           }
-        });
-      }
-    });
+        }));
 
     myFrame.requestFocusIfLost();
 
@@ -1130,20 +1126,15 @@ public class EditorFixture {
       myFrame.invokeMenuPath("View", "Tool Windows", "Theme Preview");
     }
 
-    Wait.minutes(2).expecting("Theme Preview window to be visible").until(new Wait.Objective() {
-      @Override
-      public boolean isMet() {
-        final ToolWindow window = ToolWindowManager.getInstance(myFrame.getProject()).getToolWindow("Theme Preview");
-        Boolean result = execute(new GuiQuery<Boolean>() {
+    Wait.minutes(2).expecting("Theme Preview window to be visible").until(
+      () -> GuiActionRunner.execute(
+        new GuiQuery<Boolean>() {
           @Override
           protected Boolean executeInEDT() throws Throwable {
-            return window.isVisible();
+            ToolWindow window = ToolWindowManager.getInstance(myFrame.getProject()).getToolWindow("Theme Preview");
+            return window != null && window.isVisible();
           }
-        });
-
-        return result != null && result;
-      }
-    });
+        }));
 
     // Wait for it to be fully opened
     robot.waitForIdle();

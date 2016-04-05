@@ -195,10 +195,9 @@ public class ProjectViewFixture extends ToolWindowFixture {
 
       assertNotNull(node);
 
-      Wait.minutes(2).expecting("node to be selected").until(new Wait.Objective() {
-        @Override
-        public boolean isMet() {
-          return node.equals(GuiActionRunner.execute(new GuiQuery<Object>() {
+      Wait.minutes(2).expecting("node to be selected").until(
+        () -> node.equals(GuiActionRunner.execute(
+          new GuiQuery<Object>() {
             @Override
             protected Object executeInEDT() throws Throwable {
               DefaultMutableTreeNode selectedNode = myPane.getSelectedNode();
@@ -207,9 +206,7 @@ public class ProjectViewFixture extends ToolWindowFixture {
               }
               return null;
             }
-          }));
-        }
-      });
+          })));
     }
   }
 

@@ -70,11 +70,9 @@ public class ActionButtonFixture extends JComponentFixture<ActionButtonFixture, 
 
   @NotNull
   public ActionButtonFixture waitUntilEnabledAndShowing() {
-    Wait.minutes(2).expecting("action to be enabled and showing").until(new Wait.Objective() {
-      @Override
-      public boolean isMet() {
-        //noinspection ConstantConditions
-        return execute(new GuiQuery<Boolean>() {
+    Wait.minutes(2).expecting("action to be enabled and showing").until(
+      () -> execute(
+        new GuiQuery<Boolean>() {
           @Nullable
           @Override
           protected Boolean executeInEDT() throws Throwable {
@@ -84,9 +82,7 @@ public class ActionButtonFixture extends JComponentFixture<ActionButtonFixture, 
             }
             return false;
           }
-        });
-      }
-    });
+        }));
     return this;
   }
 
