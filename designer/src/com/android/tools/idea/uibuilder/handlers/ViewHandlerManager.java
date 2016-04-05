@@ -169,139 +169,116 @@ public class ViewHandlerManager implements ProjectComponent {
 
   private ViewHandler createHandler(@NotNull String viewTag) {
     // Builtin view. Don't bother with reflection for the common cases.
-    if (FRAME_LAYOUT.equals(viewTag) ||
-        IMAGE_SWITCHER.equals(viewTag) ||
-        TEXT_SWITCHER.equals(viewTag) ||
-        VIEW_SWITCHER.equals(viewTag) ||
-        VIEW_FLIPPER.equals(viewTag) ||
-        VIEW_ANIMATOR.equals(viewTag) ||
-        GESTURE_OVERLAY_VIEW.equals(viewTag) ||
-        NESTED_SCROLL_VIEW.equals(viewTag)) {
-      return new FrameLayoutHandler();
-    }
-    if (COORDINATOR_LAYOUT.equals(viewTag)) {
-      return new CoordinatorLayoutHandler();
-    }
-    if (APP_BAR_LAYOUT.equals(viewTag)) {
-      return new AppBarLayoutHandler();
-    }
-    if (LINEAR_LAYOUT.equals(viewTag) || FQCN_LINEAR_LAYOUT.equals(viewTag)) {
-      return new LinearLayoutHandler();
-    }
-    if (TABLE_LAYOUT.equals(viewTag)) {
-      return new TableLayoutHandler();
-    }
-    if (TABLE_ROW.equals(viewTag)) {
-      return new TableRowHandler();
-    }
-    if (GRID_LAYOUT.equals(viewTag)) {
-      return new GridLayoutHandler();
-    }
-    if (GRID_LAYOUT_V7.equals(viewTag)) {
-      return new GridLayoutV7Handler();
-    }
-    if (RELATIVE_LAYOUT.equals(viewTag) || FQCN_RELATIVE_LAYOUT.equals(viewTag) || DIALER_FILTER.equals(viewTag)) {
-      return new RelativeLayoutHandler();
-    }
-    if (CONSTRAINT_LAYOUT.equals(viewTag)) {
-      return new ConstraintLayoutHandler();
-    }
-    if (TABLE_CONSTRAINT_LAYOUT.equals(viewTag)) {
-      return new ConstraintLayoutHandler();
-    }
-    if (SCROLL_VIEW.equals(viewTag)) {
-      return new ScrollViewHandler();
-    }
-    if (HORIZONTAL_SCROLL_VIEW.equals(viewTag)) {
-      return new HorizontalScrollViewHandler();
-    }
-    if (IMAGE_BUTTON.equals(viewTag)) {
-      return new ImageButtonHandler();
-    }
-    if (IMAGE_VIEW.equals(viewTag)) {
-      return new ImageViewHandler();
-    }
-    if (ZOOM_BUTTON.equals(viewTag)) {
-      return new ZoomButtonHandler();
-    }
-    if (VIEW_INCLUDE.equals(viewTag)) {
-      return new IncludeHandler();
-    }
-    if (VIEW_FRAGMENT.equals(viewTag)) {
-      return new FragmentHandler();
-    }
-    if (REQUEST_FOCUS.equals(viewTag)) {
-      return new RequestFocusHandler();
-    }
-    if (VIEW_TAG.equals(viewTag)) {
-      return new ViewTagHandler();
-    }
-    if (VIEW_STUB.equals(viewTag)) {
-      return new ViewStubHandler();
-    }
-    if (ADAPTER_VIEW.equals(viewTag) || STACK_VIEW.equals(viewTag)) {
-      return new AdapterViewHandler();
-    }
-    if (ABSOLUTE_LAYOUT.equals(viewTag)) {
-      return new AbsoluteLayoutHandler();
-    }
-    if (FLOATING_ACTION_BUTTON.equals(viewTag)) {
-      return new FloatingActionButtonHandler();
-    }
-    if (PROGRESS_BAR.equals(viewTag)) {
-      return new ProgressBarHandler();
-    }
-    if (TEXT_INPUT_LAYOUT.equals(viewTag)) {
-      return new TextInputLayoutHandler();
-    }
-    if (AD_VIEW.equals(viewTag)) {
-      return new AdViewHandler();
-    }
-    if (MAP_FRAGMENT.equals(viewTag)) {
-      return new MapFragmentHandler();
-    }
-    if (MAP_VIEW.equals(viewTag)) {
-      return new MapViewHandler();
-    }
-    if (CARD_VIEW.equals(viewTag)) {
-      return new CardViewHandler();
-    }
-    if (RECYCLER_VIEW.equals(viewTag)) {
-      return new RecyclerViewHandler();
-    }
-    if (TOOLBAR_V7.equals(viewTag)) {
-      return new ToolbarHandler();
-    }
-    if (BROWSE_FRAGMENT.equals(viewTag)) {
-      return new BrowseFragmentHandler();
-    }
-    if (DETAILS_FRAGMENT.equals(viewTag)) {
-      return new DetailsFragmentHandler();
-    }
-    if (PLAYBACK_OVERLAY_FRAGMENT.equals(viewTag)) {
-      return new PlaybackOverlayFragmentHandler();
-    }
-    if (SEARCH_FRAGMENT.equals(viewTag)) {
-      return new SearchFragmentHandler();
-    }
-    if (TAB_HOST.equals(viewTag)) {
-      return new TabHostHandler();
-    }
-    if (EXPANDABLE_LIST_VIEW.equals(viewTag)) {
-      // TODO: Find out why this fails to load by class name
-      return new ListViewHandler();
-    }
-    if (SPINNER.equals(viewTag)) {
-      return new SpinnerHandler();
-    }
-    if (CHRONOMETER.equals(viewTag) || TEXT_CLOCK.equals(viewTag) || QUICK_CONTACT_BADGE.equals(viewTag)) {
-      return STANDARD_HANDLER;
-    }
-    if (TextViewHandler.hasTextAttribute(viewTag)) {
-      return TEXT_HANDLER;
-    }
-    if (NoPreviewHandler.hasNoPreview(viewTag)) {
-      return NO_PREVIEW_HANDLER;
+    switch (viewTag) {
+      case FRAME_LAYOUT:
+      case IMAGE_SWITCHER:
+      case TEXT_SWITCHER:
+      case VIEW_SWITCHER:
+      case VIEW_FLIPPER:
+      case VIEW_ANIMATOR:
+      case GESTURE_OVERLAY_VIEW:
+      case NESTED_SCROLL_VIEW:
+        return new FrameLayoutHandler();
+      case APP_BAR_LAYOUT:
+        return new AppBarLayoutHandler();
+      case COORDINATOR_LAYOUT:
+        return new CoordinatorLayoutHandler();
+      case LINEAR_LAYOUT:
+      case FQCN_LINEAR_LAYOUT:
+        return new LinearLayoutHandler();
+      case TABLE_LAYOUT:
+        return new TableLayoutHandler();
+      case TABLE_ROW:
+        return new TableRowHandler();
+      case GRID_LAYOUT:
+        return new GridLayoutHandler();
+      case GRID_LAYOUT_V7:
+        return new GridLayoutV7Handler();
+      case RELATIVE_LAYOUT:
+      case FQCN_RELATIVE_LAYOUT:
+        case DIALER_FILTER:
+        return new RelativeLayoutHandler();
+      case CONSTRAINT_LAYOUT:
+        return new ConstraintLayoutHandler();
+      case TABLE_CONSTRAINT_LAYOUT:
+        return new ConstraintLayoutHandler();
+      case SCROLL_VIEW:
+        return new ScrollViewHandler();
+      case HORIZONTAL_SCROLL_VIEW:
+        return new HorizontalScrollViewHandler();
+      case IMAGE_BUTTON:
+        return new ImageButtonHandler();
+      case IMAGE_VIEW:
+        return new ImageViewHandler();
+      case ZOOM_BUTTON:
+        return new ZoomButtonHandler();
+      case VIEW_INCLUDE:
+        return new IncludeHandler();
+      case VIEW_FRAGMENT:
+        return new FragmentHandler();
+      case REQUEST_FOCUS:
+        return new RequestFocusHandler();
+      case VIEW_TAG:
+        return new ViewTagHandler();
+      case VIEW_STUB:
+        return new ViewStubHandler();
+      case ADAPTER_VIEW:
+      case STACK_VIEW:
+        return new AdapterViewHandler();
+      case ABSOLUTE_LAYOUT:
+        return new AbsoluteLayoutHandler();
+      case FLOATING_ACTION_BUTTON:
+        return new FloatingActionButtonHandler();
+      case PROGRESS_BAR:
+        return new ProgressBarHandler();
+      case TEXT_INPUT_LAYOUT:
+        return new TextInputLayoutHandler();
+      case AD_VIEW:
+        return new AdViewHandler();
+      case MAP_FRAGMENT:
+        return new MapFragmentHandler();
+      case MAP_VIEW:
+        return new MapViewHandler();
+      case CARD_VIEW:
+        return new CardViewHandler();
+      case RECYCLER_VIEW:
+        return new RecyclerViewHandler();
+      case TOOLBAR_V7:
+        return new ToolbarHandler();
+      case BROWSE_FRAGMENT:
+        return new BrowseFragmentHandler();
+      case DETAILS_FRAGMENT:
+        return new DetailsFragmentHandler();
+      case PLAYBACK_OVERLAY_FRAGMENT:
+        return new PlaybackOverlayFragmentHandler();
+      case SEARCH_FRAGMENT:
+        return new SearchFragmentHandler();
+      case TAB_HOST:
+        return new TabHostHandler();
+      case EXPANDABLE_LIST_VIEW:
+        // TODO: Find out why this fails to load by class name
+        return new ListViewHandler();
+      case SPINNER:
+        return new SpinnerHandler();
+      case CHRONOMETER:
+      case TEXT_CLOCK:
+      case QUICK_CONTACT_BADGE:
+        return STANDARD_HANDLER;
+      case AUTO_COMPLETE_TEXT_VIEW:
+      case BUTTON:
+      case CHECK_BOX:
+      case CHECKED_TEXT_VIEW:
+      case EDIT_TEXT:
+      case MULTI_AUTO_COMPLETE_TEXT_VIEW:
+      case RADIO_BUTTON:
+      case SWITCH:
+      case TEXT_VIEW:
+      case TOGGLE_BUTTON:
+        return TEXT_HANDLER;
+      case SPACE:
+      case SURFACE_VIEW:
+      case TEXTURE_VIEW:
+        return NO_PREVIEW_HANDLER;
     }
 
     // Look for other handlers via reflection; first built into the IDE:
