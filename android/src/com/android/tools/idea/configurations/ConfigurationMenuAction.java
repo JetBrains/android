@@ -207,8 +207,7 @@ public class ConfigurationMenuAction extends FlatComboAction {
     Configuration configuration = context.getConfiguration();
     Module module = context.getModule();
     if (configuration != null && module != null) {
-      ConfigurationManager configurationManager = configuration.getConfigurationManager();
-      IAndroidTarget target = configurationManager.getTarget();
+      IAndroidTarget target = configuration.getTarget();
       if (target != null) {
         LayoutLibrary library = RenderService.getLayoutLibrary(module, target);
         enabled = library != null && library.supports(capability);
