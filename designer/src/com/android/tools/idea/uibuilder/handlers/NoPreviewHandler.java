@@ -31,9 +31,6 @@ import static com.android.SdkConstants.*;
  */
 public class NoPreviewHandler extends ViewHandler {
 
-  // A list of simple components that have no preview.
-  private static final List<String> HAVE_NO_PREVIEW = ImmutableList.of(SPACE, SURFACE_VIEW, TEXTURE_VIEW);
-
   @Override
   @Language("XML")
   @NotNull
@@ -45,9 +42,5 @@ public class NoPreviewHandler extends ViewHandler {
       default:
         return super.getXml(tagName, xmlType);
     }
-  }
-
-  public static boolean hasNoPreview(@NotNull String tagName) {
-    return HAVE_NO_PREVIEW.contains(tagName);
   }
 }
