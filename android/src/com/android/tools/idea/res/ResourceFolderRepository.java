@@ -972,7 +972,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
       if (added || removed) {
         // TODO: Consider doing a deeper diff of the changes to the resource items
         // to determine if the removed and added items actually differ
-        myGeneration++;
+        myGeneration = ourModificationCounter.incrementAndGet();
         invalidateItemCaches();
       }
     } else {
@@ -1036,7 +1036,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
           }
 
           if (!idsBefore.equals(idsAfter)) {
-            myGeneration++;
+            myGeneration = ourModificationCounter.incrementAndGet();
           }
           scanDataBinding(resourceFile, myGeneration);
           // Identities may have changed even if the ids are the same, so update maps
@@ -1074,7 +1074,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
               scanFileResourceFileAsPsi(getQualifiers(dirName), folderType, folderConfiguration, type, idGeneratingFile, map, file);
             }
           }
-          myGeneration++;
+          myGeneration = ourModificationCounter.incrementAndGet();
           invalidateItemCaches();
         }
       }
@@ -1191,7 +1191,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                       ResourceItem item = new PsiResourceItem(name, type, tag, psiFile);
                       map.put(name, item);
                       resourceFile.addItems(Collections.singletonList(item));
-                      myGeneration++;
+                      myGeneration = ourModificationCounter.incrementAndGet();
                       invalidateItemCaches(type);
                       return;
                     }
@@ -1209,7 +1209,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                 ResourceItem parentItem = findValueResourceItem(parentTag, psiFile);
                 if (parentItem instanceof PsiResourceItem) {
                   if (((PsiResourceItem)parentItem).recomputeValue()) {
-                    myGeneration++;
+                    myGeneration = ourModificationCounter.incrementAndGet();
                   }
                   return;
                 }
@@ -1254,7 +1254,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                     assert resFile instanceof PsiResourceFile;
                     PsiResourceFile resourceFile = (PsiResourceFile)resFile;
                     resourceFile.addItems(ids);
-                    myGeneration++;
+                    myGeneration = ourModificationCounter.incrementAndGet();
                   }
                 }
                 return;
@@ -1354,7 +1354,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                   ResourceItem resourceItem = findValueResourceItem(parentTag, psiFile);
                   if (resourceItem instanceof PsiResourceItem) {
                     if (((PsiResourceItem)resourceItem).recomputeValue()) {
-                      myGeneration++;
+                      myGeneration = ourModificationCounter.incrementAndGet();
                     }
 
                     if (resourceItem.getType() == ResourceType.ATTR) {
@@ -1363,7 +1363,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                         ResourceItem declareStyleable = findValueResourceItem(parentTag, psiFile);
                         if (declareStyleable instanceof PsiResourceItem) {
                           if (((PsiResourceItem)declareStyleable).recomputeValue()) {
-                            myGeneration++;
+                            myGeneration = ourModificationCounter.incrementAndGet();
                           }
                         }
                       }
@@ -1401,7 +1401,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                         return;
                       }
                       if (removeItems(resourceFile, type, name, true)) {
-                        myGeneration++;
+                        myGeneration = ourModificationCounter.incrementAndGet();
                         invalidateItemCaches(type);
                       }
                     }
@@ -1451,7 +1451,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
         }
       }
 
-      myGeneration++;
+      myGeneration = ourModificationCounter.incrementAndGet();
       invalidateItemCaches();
 
       ResourceFolderType folderType = ResourceHelper.getFolderType(resourceFile);
@@ -1479,7 +1479,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
         return;
       }
       myResourceFiles.remove(psiFile.getVirtualFile());
-      myGeneration++;
+      myGeneration = ourModificationCounter.incrementAndGet();
       invalidateItemCaches();
 
       ResourceFolderType folderType = ResourceHelper.getFolderType(psiFile);
@@ -1581,7 +1581,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                             ResourceItem newItem = new PsiResourceItem(newName, ResourceType.ID, xmlTag, psiFile);
                             map.put(newName, newItem);
                             resourceFile.replace(item, newItem);
-                            myGeneration++;
+                            myGeneration = ourModificationCounter.incrementAndGet();
                             invalidateItemCaches(ResourceType.ID);
                             return;
                           }
@@ -1626,7 +1626,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                           ResourceItem newItem = new PsiResourceItem(newName, ResourceType.ID, xmlTag, psiFile);
                           map.put(newName, newItem);
                           resourceFile.replace(item, newItem);
-                          myGeneration++;
+                          myGeneration = ourModificationCounter.incrementAndGet();
                           invalidateItemCaches(ResourceType.ID);
                           return;
                         }
@@ -1641,7 +1641,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                   if (resFile != null) {
                     // Data-binding files are always scanned as PsiResourceFiles.
                     PsiResourceFile resourceFile = (PsiResourceFile)resFile;
-                    myGeneration++;
+                    myGeneration = ourModificationCounter.incrementAndGet();
                     scanDataBinding(resourceFile, myGeneration);
                   }
                 }
@@ -1683,7 +1683,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                   ResourceItem resourceItem = findValueResourceItem(parentTag, psiFile);
                   if (resourceItem instanceof PsiResourceItem) {
                     if (((PsiResourceItem)resourceItem).recomputeValue()) {
-                      myGeneration++;
+                      myGeneration = ourModificationCounter.incrementAndGet();
                     }
                     return;
                   }
@@ -1748,7 +1748,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                         else {
                           assert false : item;
                         }
-                        myGeneration++;
+                        myGeneration = ourModificationCounter.incrementAndGet();
                         invalidateItemCaches(type);
 
                         // Invalidate surrounding declare styleable if any
@@ -1776,7 +1776,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                       ResourceItem resourceItem = findValueResourceItem(parentTag, psiFile);
                       if (resourceItem instanceof PsiResourceItem) {
                         if (((PsiResourceItem)resourceItem).recomputeValue()) {
-                          myGeneration++;
+                          myGeneration = ourModificationCounter.incrementAndGet();
                         }
                         return;
                       }
@@ -1807,7 +1807,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                 }
               }
 
-              myGeneration++;
+              myGeneration = ourModificationCounter.incrementAndGet();
               return;
             }
           } // else: can ignore this edit
@@ -1860,7 +1860,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
           if (item instanceof PsiResourceItem) {
             boolean cleared = ((PsiResourceItem)item).recomputeValue();
             if (cleared) { // Only bump revision if this is a value which has already been observed!
-              myGeneration++;
+              myGeneration = ourModificationCounter.incrementAndGet();
             }
           }
           return;
@@ -1879,7 +1879,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
             // Edited XML value
             boolean cleared = ((PsiResourceItem)item).recomputeValue();
             if (cleared) { // Only bump revision if this is a value which has already been observed!
-              myGeneration++;
+              myGeneration = ourModificationCounter.incrementAndGet();
             }
           }
           break;
@@ -1959,7 +1959,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                 assert newParent != null; // Since newFolderType != null
                 String newDirName = newParent.getName();
                 psiResourceFile.setPsiFile(psiFile, getQualifiers(newDirName));
-                myGeneration++; // qualifiers may have changed: can affect configuration matching
+                myGeneration = ourModificationCounter.incrementAndGet(); // qualifiers may have changed: can affect configuration matching
                 // We need to recompute resource values too, since some of these can point to
                 // the old file (e.g. a drawable resource could have a DensityBasedResourceValue
                 // pointing to the old file
