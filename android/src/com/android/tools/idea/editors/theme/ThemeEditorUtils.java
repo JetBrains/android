@@ -156,29 +156,9 @@ public class ThemeEditorUtils {
     ApplicationManager.getApplication().invokeLater(new Runnable() {
       @Override
       public void run() {
-        ThemeEditorVirtualFile file = null;
-        final FileEditorManager fileEditorManager = FileEditorManager.getInstance(project);
-
-        for (final FileEditor editor : fileEditorManager.getAllEditors()) {
-          if (!(editor instanceof ThemeEditor)) {
-            continue;
-          }
-
-          ThemeEditor themeEditor = (ThemeEditor)editor;
-          if (themeEditor.getVirtualFile().getProject() == project) {
-            file = themeEditor.getVirtualFile();
-            break;
-          }
-        }
-
-        // If existing virtual file is found, openEditor with created descriptor is going to
-        // show existing editor (without creating a new tab). If we haven't found any existing
-        // virtual file, we're creating one here (new tab with theme editor will be opened).
-        if (file == null) {
-          file = ThemeEditorVirtualFile.getThemeEditorFile(project);
-        }
-        final OpenFileDescriptor descriptor = new OpenFileDescriptor(project, file);
-        fileEditorManager.openEditor(descriptor, true);
+        ThemeEditorVirtualFile file = ThemeEditorVirtualFile.getThemeEditorFile(project);
+        OpenFileDescriptor descriptor = new OpenFileDescriptor(project, file);
+        FileEditorManager.getInstance(project).openEditor(descriptor, true);
       }
     });
   }
