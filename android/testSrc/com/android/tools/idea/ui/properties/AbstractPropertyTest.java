@@ -22,7 +22,7 @@ import java.util.List;
 
 import static org.fest.assertions.Assertions.assertThat;
 
-public class ObservablePropertyTest {
+public class AbstractPropertyTest {
 
   @Test
   public void testGetAll() {
@@ -32,10 +32,10 @@ public class ObservablePropertyTest {
     ObjectWithObservableProperties dummy = new ObjectWithObservableProperties();
     CountingRunnable counter = new CountingRunnable();
 
-    List<ObservableProperty<?>> dummyObservables = ObservableProperty.getAll(dummy);
-    assert !dummyObservables.isEmpty();
+    List<AbstractProperty<?>> dummyProperties = AbstractProperty.getAll(dummy);
+    assert !dummyProperties.isEmpty();
 
-    listeners.listenAll(dummyObservables).with(counter);
+    listeners.listenAll(dummyProperties).with(counter);
 
     assertThat(counter.myRunCount).isEqualTo(0);
     dummy.bool().set(true);
@@ -55,8 +55,8 @@ public class ObservablePropertyTest {
   @Test
   public void testGetAllWithNoObservableProperties() {
     ObjectWithNoObservableProperties object = new ObjectWithNoObservableProperties(false, 42, 42.0, "test");
-    List<ObservableProperty<?>> dummyObservables = ObservableProperty.getAll(object);
-    assert dummyObservables.isEmpty();
+    List<AbstractProperty<?>> properties = AbstractProperty.getAll(object);
+    assert properties.isEmpty();
   }
 
   private static class ObjectWithObservableProperties {

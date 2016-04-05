@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.ui.properties.core;
 
-import com.android.tools.idea.ui.properties.ObservableProperty;
+import com.android.tools.idea.ui.properties.AbstractProperty;
 import com.google.common.base.Optional;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * An {@link ObservableProperty} backed by an optional value.
+ * An {@link AbstractProperty} backed by an optional value.
  */
 public final class OptionalValueProperty<T> extends OptionalProperty<T> {
 

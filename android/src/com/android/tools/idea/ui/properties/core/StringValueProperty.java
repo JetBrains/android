@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.ui.properties.core;
 
-import com.android.tools.idea.ui.properties.ObservableProperty;
+import com.android.tools.idea.ui.properties.AbstractProperty;
 import com.android.tools.idea.ui.properties.expressions.string.IsEmptyExpression;
 import com.android.tools.idea.ui.properties.expressions.string.TrimExpression;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * A String-backed {@link ObservableProperty}.
+ * A String-backed {@link AbstractProperty}.
  */
 public final class StringValueProperty extends StringProperty {
 
