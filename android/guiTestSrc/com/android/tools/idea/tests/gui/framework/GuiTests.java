@@ -335,12 +335,7 @@ public final class GuiTests {
       }
     });
 
-    Wait.minutes(2).expecting("'Welcome' frame to show up").until(new Wait.Objective() {
-      @Override
-      public boolean isMet() {
-        return ((Component)WelcomeFrame.getInstance()).isShowing();
-      }
-    });
+    Wait.minutes(2).expecting("'Welcome' frame to show up").until(() -> ((Component)WelcomeFrame.getInstance()).isShowing());
 
     // At this point there are no open projects and we're displaying the welcome screen, with no ongoing animations. The AWT queue might
     // have some events left from project closing actions, so we flush it completely before proceeding.
@@ -502,12 +497,8 @@ public final class GuiTests {
   public static void findAndClickButtonWhenEnabled(@NotNull ContainerFixture<? extends Container> container, @NotNull final String text) {
     Robot robot = container.robot();
     final JButton button = findButton(container, text, robot);
-    Wait.minutes(2).expecting("button " + text + " to be enabled").until(new Wait.Objective() {
-      @Override
-      public boolean isMet() {
-        return button.isEnabled() && button.isVisible() && button.isShowing();
-      }
-    });
+    Wait.minutes(2).expecting("button " + text + " to be enabled")
+      .until(() -> button.isEnabled() && button.isVisible() && button.isShowing());
     robot.click(button);
   }
 
@@ -623,13 +614,7 @@ public final class GuiTests {
                                                          @NotNull final Container root,
                                                          @NotNull final GenericTypeMatcher<T> matcher) {
     String typeName = matcher.supportedType().getSimpleName();
-    Wait.minutes(2).expecting("absence of matching " + typeName).until(new Wait.Objective() {
-      @Override
-      public boolean isMet() {
-        Collection<T> allFound = robot.finder().findAll(root, matcher);
-        return allFound.isEmpty();
-      }
-    });
+    Wait.minutes(2).expecting("absence of matching " + typeName).until(() -> robot.finder().findAll(root, matcher).isEmpty());
   }
 
   public static void waitForBackgroundTasks(final Robot robot) {

@@ -141,12 +141,7 @@ public abstract class ToolWindowFixture {
       }
     });
 
-    Wait.seconds(SECONDS_TO_WAIT).expecting("ToolWindow '" + myToolWindowId + "' to be activated").until(new Wait.Objective() {
-      @Override
-      public boolean isMet() {
-        return callback.finished;
-      }
-    });
+    Wait.seconds(SECONDS_TO_WAIT).expecting("ToolWindow '" + myToolWindowId + "' to be activated").until(() -> callback.finished);
   }
 
   protected void waitUntilIsVisible() {

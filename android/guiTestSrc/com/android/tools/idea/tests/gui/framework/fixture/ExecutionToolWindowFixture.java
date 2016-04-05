@@ -64,12 +64,7 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
     }
 
     public void waitForOutput(@NotNull final TextMatcher matcher, @NotNull long secondsToWait) {
-      Wait.seconds(secondsToWait).expecting("LogCat tool window output check for package name").until(new Wait.Objective() {
-        @Override
-        public boolean isMet() {
-          return outputMatches(matcher);
-        }
-      });
+      Wait.seconds(secondsToWait).expecting("LogCat tool window output check for package name").until(() -> outputMatches(matcher));
     }
 
     /**
@@ -195,12 +190,7 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
     }
 
     public void waitForExecutionToFinish() {
-      Wait.minutes(2).expecting("execution to finish").until(new Wait.Objective() {
-        @Override
-        public boolean isMet() {
-          return !isExecutionInProgress();
-        }
-      });
+      Wait.minutes(2).expecting("execution to finish").until(() -> !isExecutionInProgress());
     }
 
     @TestOnly

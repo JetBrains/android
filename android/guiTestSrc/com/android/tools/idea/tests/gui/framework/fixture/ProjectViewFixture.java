@@ -58,13 +58,8 @@ public class ProjectViewFixture extends ToolWindowFixture {
   public PaneFixture selectProjectPane() {
     activate();
     final ProjectView projectView = ProjectView.getInstance(myProject);
-    Wait.minutes(2).expecting("ProjectView to be initialized").until(new Wait.Objective() {
-      @Override
-      public boolean isMet() {
-        //noinspection ConstantConditions
-        return field("isInitialized").ofType(boolean.class).in(projectView).get();
-      }
-    });
+    Wait.minutes(2).expecting("ProjectView to be initialized")
+      .until(() -> field("isInitialized").ofType(boolean.class).in(projectView).get());
 
     final String id = "ProjectPane";
     GuiActionRunner.execute(new GuiTask() {
@@ -80,13 +75,8 @@ public class ProjectViewFixture extends ToolWindowFixture {
   public PaneFixture selectAndroidPane() {
     activate();
     final ProjectView projectView = ProjectView.getInstance(myProject);
-    Wait.minutes(2).expecting("ProjectView to be initialized").until(new Wait.Objective() {
-      @Override
-      public boolean isMet() {
-        //noinspection ConstantConditions
-        return field("isInitialized").ofType(boolean.class).in(projectView).get();
-      }
-    });
+    Wait.minutes(2).expecting("ProjectView to be initialized")
+      .until(() -> field("isInitialized").ofType(boolean.class).in(projectView).get());
 
     final String id = "AndroidView";
     GuiActionRunner.execute(new GuiTask() {

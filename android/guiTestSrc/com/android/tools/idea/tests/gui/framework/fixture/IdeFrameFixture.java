@@ -133,13 +133,8 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
       }
     };
 
-    Wait.minutes(2).expecting("IdeFrame " + quote(projectPath.getPath()) + " to show up").until(new Wait.Objective() {
-      @Override
-      public boolean isMet() {
-        Collection<IdeFrameImpl> frames = robot.finder().findAll(matcher);
-        return !frames.isEmpty();
-      }
-    });
+    Wait.minutes(2).expecting("IdeFrame " + quote(projectPath.getPath()) + " to show up")
+      .until(() -> !robot.finder().findAll(matcher).isEmpty());
 
     IdeFrameImpl ideFrame = robot.finder().find(matcher);
     return new IdeFrameFixture(robot, ideFrame, projectPath);
@@ -333,12 +328,8 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     if (application.getUserData(GRADLE_BUILD_OUTPUT_IN_GUI_TEST_KEY) == null) {
       fail("No fake gradle output is configured");
     }
-    Wait.minutes(2).expecting("fake gradle output to be applied").until(new Wait.Objective() {
-      @Override
-      public boolean isMet() {
-        return application.getUserData(GRADLE_BUILD_OUTPUT_IN_GUI_TEST_KEY) == null;
-      }
-    });
+    Wait.minutes(2).expecting("fake gradle output to be applied")
+      .until(() -> application.getUserData(GRADLE_BUILD_OUTPUT_IN_GUI_TEST_KEY) == null);
     String fakeOutput = application.getUserData(GRADLE_BUILD_OUTPUT_IN_GUI_TEST_KEY);
     if (fakeOutput != null) {
       fail(String.format("Fake gradle output (%s) is not applied in %d ms", fakeOutput, TimeUnit.MINUTES.toMillis(2)));
@@ -370,13 +361,8 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     try {
       selectProjectMakeAction();
 
-      Wait.minutes(2).expecting("Build (" + COMPILE_JAVA + ") for project " + quote(project.getName()) + " to finish'").until(new Wait.Objective() {
-        @Override
-        public boolean isMet() {
-          CompileContext context = contextRef.get();
-          return context != null;
-        }
-      });
+      Wait.minutes(2).expecting("Build (" + COMPILE_JAVA + ") for project " + quote(project.getName()) + " to finish'")
+        .until(() -> contextRef.get() != null);
 
       CompileContext context = contextRef.get();
       assertNotNull(context);
@@ -852,12 +838,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     final GradleSettings settings = GradleSettings.getInstance(project);
     settings.setGradleVmOptions(jvmArgs);
 
-    Wait.minutes(2).expecting("Gradle settings to be set").until(new Wait.Objective() {
-      @Override
-      public boolean isMet() {
-        return jvmArgs.equals(settings.getGradleVmOptions());
-      }
-    });
+    Wait.minutes(2).expecting("Gradle settings to be set").until(() -> jvmArgs.equals(settings.getGradleVmOptions()));
 
     return this;
   }
@@ -1069,12 +1050,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     final ExecutionToolWindowFixture.ContentFixture contentFixture = debugToolWindowFixture.findContent(debugConfigName);
 
     contentFixture.clickDebuggerTreeRoot();
-    Wait.seconds(15).expecting("debugger tree to appear").until(new Wait.Objective() {
-      @Override
-      public boolean isMet() {
-        return contentFixture.getDebuggerTreeRoot() != null;
-      }
-    });
+    Wait.seconds(15).expecting("debugger tree to appear").until(() -> contentFixture.getDebuggerTreeRoot() != null);
 
     // Get the debugger tree and print it.
     XDebuggerTreeNode debuggerTreeRoot = contentFixture.getDebuggerTreeRoot();

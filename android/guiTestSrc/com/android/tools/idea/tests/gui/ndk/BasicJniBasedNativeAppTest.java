@@ -117,12 +117,8 @@ public class BasicJniBasedNativeAppTest {
     // breakpointToExpectedPatterns.
     for (int breakPoint : breakPoints) {
       final String[] expectedPatterns = breakpointToExpectedPatterns.get(breakPoint);
-      Wait.seconds(secondsToWait).expecting("the debugger tree to appear").until(new Wait.Objective() {
-        @Override
-        public boolean isMet() {
-          return projectFrame.verifyVariablesAtBreakpoint(expectedPatterns, DEBUG_CONFIG_NAME);
-        }
-      });
+      Wait.seconds(secondsToWait).expecting("the debugger tree to appear")
+        .until(() -> projectFrame.verifyVariablesAtBreakpoint(expectedPatterns, DEBUG_CONFIG_NAME));
 
       projectFrame.resumeProgram();
     }
