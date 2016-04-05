@@ -27,7 +27,6 @@ import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.utils.SdkUtils;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
-import com.google.common.io.Files;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -36,7 +35,6 @@ import com.intellij.util.PathUtil;
 import org.apache.commons.io.FileUtils;
 import org.fest.assertions.Index;
 import org.jetbrains.android.AndroidTestCase;
-import org.jetbrains.android.uipreview.LayoutLibraryLoader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -104,15 +102,11 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
 
     Configuration configuration = myFacet.getConfigurationManager().getConfiguration(myFile);
 
+    sdkPlatformPath = getTestSdkPath();
+    if (!sdkPlatformPath.endsWith("/")) sdkPlatformPath += "/";
     IAndroidTarget androidTarget = configuration.getTarget();
     assertNotNull(androidTarget);
-    sdkPlatformPath = androidTarget.getLocation();
-
-    if (LayoutLibraryLoader.USE_SDK_LAYOUTLIB) {
-      if (!sdkPlatformPath.endsWith("/")) sdkPlatformPath += "/";
-      sdkPlatformPath += "platforms/android-" + androidTarget.getVersion().getApiString();
-    }
-    sdkPlatformPath = Files.simplifyPath(sdkPlatformPath);
+    sdkPlatformPath += "platforms/android-" + androidTarget.getVersion().getApiString();
     ThemeResolver themeResolver = new ThemeResolver(configuration);
     ConfiguredThemeEditorStyle theme = themeResolver.getTheme("AppTheme");
     assertNotNull(theme);
