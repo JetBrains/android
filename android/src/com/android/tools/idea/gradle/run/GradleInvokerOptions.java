@@ -53,6 +53,7 @@ import java.util.List;
 import java.util.Properties;
 
 import static com.android.builder.model.AndroidProject.PROPERTY_BUILD_API;
+import static com.android.builder.model.AndroidProject.PROPERTY_BUILD_ABI;
 import static com.android.builder.model.AndroidProject.PROPERTY_BUILD_DENSITY;
 import static com.android.tools.idea.startup.GradleSpecificInitializer.ENABLE_EXPERIMENTAL_PROFILING;
 
@@ -255,9 +256,6 @@ public class GradleInvokerOptions {
     String id = runConfiguration != null ? runConfiguration.getType().getId() : null;
     return GradleInvoker.getTestCompileType(id);
   }
-
-  // TODO: Move this constant up to the builder model (in the AndroidProject class)
-  private static final String PROPERTY_BUILD_ABI = "android.injected.build.abi";
 
   @NotNull
   private static List<String> getDeviceSpecificArguments(@NotNull List<AndroidDevice> devices) {
