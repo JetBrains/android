@@ -77,7 +77,7 @@ public class ConfigurationTest extends AndroidTestCase {
     assertEquals(UiMode.TELEVISION, configuration.getUiMode());
     assertEquals(Locale.create("en-rUS"), configuration.getLocale());
     if (target != null) {
-      assertSame(target, configuration.getRealTarget());
+      assertSame(target, configuration.getTarget());
     }
     if (device != null) {
       assertSame(device, configuration.getDevice());

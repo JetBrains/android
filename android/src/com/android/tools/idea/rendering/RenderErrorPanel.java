@@ -988,7 +988,7 @@ public class RenderErrorPanel extends JPanel {
     if (renderTask == null) {
       return;
     }
-    IAndroidTarget target = renderTask.getConfiguration().getRealTarget();
+    IAndroidTarget target = renderTask.getConfiguration().getTarget();
     if (target == null) {
       return;
     }
@@ -1113,7 +1113,7 @@ public class RenderErrorPanel extends JPanel {
           String url = null;
           if (isFramework(frame) && platformSourceExists) { // try to link to documentation, if available
             if (platformSource == null) {
-              IAndroidTarget target = myResult.getRenderTask().getConfiguration().getRealTarget();
+              IAndroidTarget target = myResult.getRenderTask().getConfiguration().getTarget();
               platformSource = AndroidSdkUtils.findPlatformSources(target);
               platformSourceExists = platformSource != null;
             }
