@@ -9,7 +9,7 @@
     </style>
 
     <style name="Theme.Holo.Light" parent="android:Theme.Light">
-        <item name="android:textAppearanceMedium">@android:style/TextAppearance.Holo.Light.Medium</item>
+        <item name="android:textAppearanceMedium">@android:style/TextAppearance.Medium</item>
         <item name="android:textColorPrimary">#ff000000</item>
         <item name="android:textColorHighlight">6633b5e5</item>
         <item name="android:textColorHint">#808080</item>
