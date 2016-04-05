@@ -993,7 +993,7 @@ public class ChooseResourceDialog extends DialogWrapper {
           ValidationInfo error = super.doValidate();
           if (error == null) {
             int minDirectoriesApi = ThemeEditorUtils.getMinFolderApi(getLocationSettings().getDirNames(), myModule);
-            IAndroidTarget target = ThemeEditorUtils.getConfigurationForModule(myModule).getRealTarget();
+            IAndroidTarget target = ThemeEditorUtils.getConfigurationForModule(myModule).getTarget();
             assert target != null;
             final AndroidTargetData androidTargetData = AndroidTargetData.getTargetData(target, myModule);
             assert androidTargetData != null;
