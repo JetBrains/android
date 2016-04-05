@@ -25,6 +25,29 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 
 public final class Observation implements BinaryObject {
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    Observation that = (Observation)o;
+    if (myRange != null ? !myRange.equals(that.myRange) : that.myRange != null) return false;
+    if (myID != null ? !myID.equals(that.myID) : that.myID != null) return false;
+    return true;
+  }
+
+  @Override
+  public int hashCode() {
+    int result = myRange != null ? myRange.hashCode() : 0;
+    result = 31 * result + (myID != null ? myID.hashCode() : 0);
+    return result;
+  }
+
+  @Override
+  public String toString() {
+    return "Observation{ID=" + myID + ", range=" + myRange + '}';
+  }
+
   //<<<Start:Java.ClassBody:1>>>
   private MemoryRange myRange;
   private BinaryID myID;
