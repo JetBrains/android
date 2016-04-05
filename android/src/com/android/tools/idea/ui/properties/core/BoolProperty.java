@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.ui.properties.core;
 
+import com.android.tools.idea.ui.properties.AbstractProperty;
 import com.android.tools.idea.ui.properties.ObservableValue;
-import com.android.tools.idea.ui.properties.ObservableProperty;
 import com.android.tools.idea.ui.properties.expressions.bool.AndExpression;
 import com.android.tools.idea.ui.properties.expressions.bool.NotExpression;
 import com.android.tools.idea.ui.properties.expressions.bool.OrExpression;
@@ -26,7 +26,7 @@ import org.jetbrains.annotations.NotNull;
  * Base class that every boolean-type property should inherit from, as it provides useful methods
  * that enable chaining.
  */
-public abstract class BoolProperty extends ObservableProperty<Boolean> implements ObservableBool {
+public abstract class BoolProperty extends AbstractProperty<Boolean> implements ObservableBool {
 
   public void invert() {
     set(!get());

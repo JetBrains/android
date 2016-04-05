@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.ui.properties.constraints;
 
-import com.android.tools.idea.ui.properties.ObservableProperty;
+import com.android.tools.idea.ui.properties.AbstractProperty;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * A constraint that enforces a value be clamped between two numbers (inclusive).
  */
-public final class RangeConstraint implements ObservableProperty.Constraint<Integer> {
+public final class RangeConstraint implements AbstractProperty.Constraint<Integer> {
   public static RangeConstraint forPercents() {
     return new RangeConstraint(0, 100);
   }

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.ui.properties.core;
 
-import com.android.tools.idea.ui.properties.ObservableProperty;
+import com.android.tools.idea.ui.properties.AbstractProperty;
 
 /**
  * Base class for all properties that return a generic (e.g. not int, String, bool, etc.), non-null
@@ -23,7 +23,7 @@ import com.android.tools.idea.ui.properties.ObservableProperty;
  * <p/>
  * If you need to support null values, use {@link OptionalProperty} instead.
  */
-public abstract class ObjectProperty<T> extends ObservableProperty<T> implements ObservableObject<T> {
+public abstract class ObjectProperty<T> extends AbstractProperty<T> implements ObservableObject<T> {
   /**
    * At the moment, although this class doesn't have any methods, someday it may. For now, it's
    * purpose is to express intention and provide a consistent API. That is, the pattern
@@ -32,7 +32,7 @@ public abstract class ObjectProperty<T> extends ObservableProperty<T> implements
    *
    * while currently equivalent to
    *
-   * {@code ObservableProperty<File> myFile = new ObjectValueProperty<File>(targetFile)}
+   * {@code AbstractProperty<File> myFile = new ObjectValueProperty<File>(targetFile)}
    *
    * doesn't match the convention that other property types in this package follow, e.g.
    *

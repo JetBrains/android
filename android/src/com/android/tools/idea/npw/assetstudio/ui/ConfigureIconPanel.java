@@ -140,13 +140,13 @@ public final class ConfigureIconPanel extends JPanel implements Disposable {
   private VectorIconButton myClipartAssetButton;
   private TextAssetEditor myTextAssetEditor;
 
-  private ObservableProperty<Color> myForegroundColor;
-  private ObservableProperty<Color> myBackgroundColor;
+  private AbstractProperty<Color> myForegroundColor;
+  private AbstractProperty<Color> myBackgroundColor;
   private BoolProperty myCropped;
   private BoolProperty myDogEared;
-  private ObservableProperty<ActionBarIconGenerator.Theme> myTheme;
-  private ObservableProperty<GraphicGenerator.Shape> myShape;
-  private ObservableProperty<Color> myThemeColor;
+  private AbstractProperty<ActionBarIconGenerator.Theme> myTheme;
+  private AbstractProperty<GraphicGenerator.Shape> myShape;
+  private AbstractProperty<Color> myThemeColor;
 
   /**
    * Create a panel which can generate Android icons. The supported types passed in will be
