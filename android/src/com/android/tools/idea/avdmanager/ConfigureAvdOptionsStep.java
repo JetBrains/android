@@ -387,7 +387,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
 
     myListeners.listen(getModel().device(), myDeviceConsumer);
 
-    List<ObservableProperty<?>> deviceProperties = ObservableProperty.getAll(getModel().getAvdDeviceData());
+    List<AbstractProperty<?>> deviceProperties = AbstractProperty.getAll(getModel().getAvdDeviceData());
     deviceProperties.add(getModel().systemImage());
     myListeners.listenAll(deviceProperties).with(new Runnable() {
       @Override

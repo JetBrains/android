@@ -19,7 +19,7 @@ import com.android.SdkConstants;
 import com.android.tools.idea.templates.Parameter;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.ui.ApiComboBoxItem;
-import com.android.tools.idea.ui.properties.ObservableProperty;
+import com.android.tools.idea.ui.properties.AbstractProperty;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
@@ -96,7 +96,7 @@ public final class EnumComboProvider extends ParameterComponentProvider<JComboBo
 
   @Nullable
   @Override
-  public ObservableProperty<?> createProperty(@NotNull final JComboBox comboBox) {
+  public AbstractProperty<?> createProperty(@NotNull final JComboBox comboBox) {
     return new ApiComboBoxTextProperty(comboBox);
   }
 
@@ -106,7 +106,7 @@ public final class EnumComboProvider extends ParameterComponentProvider<JComboBo
    * NOTE: This is currently only needed here but we can promote it to ui.wizard.properties if it's
    * ever needed in more places.
    */
-  private static class ApiComboBoxTextProperty extends ObservableProperty<String> implements ActionListener {
+  private static class ApiComboBoxTextProperty extends AbstractProperty<String> implements ActionListener {
     @NotNull private final JComboBox myComboBox;
 
     public ApiComboBoxTextProperty(@NotNull JComboBox comboBox) {

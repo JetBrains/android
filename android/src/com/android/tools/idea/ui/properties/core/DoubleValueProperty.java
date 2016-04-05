@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.ui.properties.core;
 
-import com.android.tools.idea.ui.properties.ObservableProperty;
+import com.android.tools.idea.ui.properties.AbstractProperty;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * An double-backed {@link ObservableProperty}.
+ * An double-backed {@link AbstractProperty}.
  */
 public final class DoubleValueProperty extends DoubleProperty {
 

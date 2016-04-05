@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.ui.properties.adapters;
 
-import com.android.tools.idea.ui.properties.ObservableProperty;
+import com.android.tools.idea.ui.properties.AbstractProperty;
 import com.google.common.base.Optional;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -26,7 +26,7 @@ import org.jetbrains.annotations.Nullable;
  * components could technically return null, but in practice never do for some forms.
  */
 public final class OptionalToValuePropertyAdapter<T> extends AdapterProperty<Optional<T>, T> {
-  public OptionalToValuePropertyAdapter(@NotNull ObservableProperty<Optional<T>> wrappedProperty, @NotNull T initialValue) {
+  public OptionalToValuePropertyAdapter(@NotNull AbstractProperty<Optional<T>> wrappedProperty, @NotNull T initialValue) {
     super(wrappedProperty, initialValue);
   }
 
@@ -34,7 +34,7 @@ public final class OptionalToValuePropertyAdapter<T> extends AdapterProperty<Opt
    * Constructor which extracts an initial value from the optional property's current value. If the
    * optional property is not set, this will throw an exception.
    */
-  public OptionalToValuePropertyAdapter(@NotNull ObservableProperty<Optional<T>> wrappedProperty) {
+  public OptionalToValuePropertyAdapter(@NotNull AbstractProperty<Optional<T>> wrappedProperty) {
     this(wrappedProperty, wrappedProperty.get().get());
   }
 

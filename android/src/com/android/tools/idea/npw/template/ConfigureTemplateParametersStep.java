@@ -27,9 +27,9 @@ import com.android.tools.idea.templates.*;
 import com.android.tools.idea.ui.LabelWithEditLink;
 import com.android.tools.idea.ui.ProportionalLayout;
 import com.android.tools.idea.ui.TooltipLabel;
+import com.android.tools.idea.ui.properties.AbstractProperty;
 import com.android.tools.idea.ui.properties.BindingsManager;
 import com.android.tools.idea.ui.properties.InvalidationListener;
-import com.android.tools.idea.ui.properties.ObservableProperty;
 import com.android.tools.idea.ui.properties.ObservableValue;
 import com.android.tools.idea.ui.properties.core.*;
 import com.android.tools.idea.ui.properties.expressions.Expression;
@@ -703,7 +703,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
     @Nullable private final JPanel myHeader;
     @NotNull private final ComponentProvider<T> myComponentProvider;
     @NotNull private final T myComponent;
-    @Nullable private ObservableProperty<?> myProperty;
+    @Nullable private AbstractProperty<?> myProperty;
     @NotNull private WantGrow myWantGrow;
 
     public RowEntry(@NotNull String headerText, @NotNull ComponentProvider<T> componentProvider) {
@@ -762,7 +762,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
     public <V> void setValue(@NotNull V value) {
       assert myProperty != null;
       //noinspection unchecked Should always be true if registration is done correctly
-      ((ObservableProperty<V>)myProperty).set(value);
+      ((AbstractProperty<V>)myProperty).set(value);
     }
 
     @NotNull

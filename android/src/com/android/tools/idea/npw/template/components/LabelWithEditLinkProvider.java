@@ -17,7 +17,7 @@ package com.android.tools.idea.npw.template.components;
 
 import com.android.tools.idea.templates.Parameter;
 import com.android.tools.idea.ui.LabelWithEditLink;
-import com.android.tools.idea.ui.properties.ObservableProperty;
+import com.android.tools.idea.ui.properties.AbstractProperty;
 import com.android.tools.idea.ui.properties.swing.TextProperty;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -39,7 +39,7 @@ public final class LabelWithEditLinkProvider extends ParameterComponentProvider<
 
   @Nullable
   @Override
-  public ObservableProperty<?> createProperty(@NotNull LabelWithEditLink editLink) {
+  public AbstractProperty<?> createProperty(@NotNull LabelWithEditLink editLink) {
     return new TextProperty(editLink);
   }
 }
