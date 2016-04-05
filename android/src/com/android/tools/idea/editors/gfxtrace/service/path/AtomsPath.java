@@ -30,7 +30,7 @@ public final class AtomsPath extends Path {
   }
 
   @Override
-  public Path getParent() {
+  public CapturePath getParent() {
     return myCapture;
   }
 

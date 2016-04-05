@@ -24,6 +24,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 import java.io.IOException;
+import java.util.Arrays;
 
 public final class AtomGroup implements BinaryObject {
   public boolean isValid() {
@@ -44,6 +45,31 @@ public final class AtomGroup implements BinaryObject {
     }
     // Add all the trailing atoms
     atoms.addAtoms(parent, next, myRange.getEnd());
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    AtomGroup atomGroup = (AtomGroup)o;
+    if (myName != null ? !myName.equals(atomGroup.myName) : atomGroup.myName != null) return false;
+    if (myRange != null ? !myRange.equals(atomGroup.myRange) : atomGroup.myRange != null) return false;
+    if (!Arrays.equals(mySubGroups, atomGroup.mySubGroups)) return false;
+    return true;
+  }
+
+  @Override
+  public int hashCode() {
+    int result = myName != null ? myName.hashCode() : 0;
+    result = 31 * result + (myRange != null ? myRange.hashCode() : 0);
+    result = 31 * result + Arrays.hashCode(mySubGroups);
+    return result;
+  }
+
+  @Override
+  public String toString() {
+    return "AtomGroup{" +
+           "name='" + myName + '\'' + ", range=" + myRange + ", subGroups=" + Arrays.toString(mySubGroups) + '}';
   }
 
   //<<<Start:Java.ClassBody:1>>>
