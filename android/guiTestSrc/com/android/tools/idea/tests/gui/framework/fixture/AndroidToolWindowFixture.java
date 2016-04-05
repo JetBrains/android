@@ -109,11 +109,9 @@ public class AndroidToolWindowFixture extends ToolWindowFixture {
 
     @NotNull
     public ProcessListFixture waitForProcess(@NotNull final String packageName) {
-      Wait.minutes(2).expecting("the process list to show the package name").until(new Wait.Objective() {
-        @Override
-        public boolean isMet() {
-          //noinspection ConstantConditions
-          return execute(new GuiQuery<Boolean>() {
+      Wait.minutes(2).expecting("the process list to show the package name").until(
+        () -> execute(
+          new GuiQuery<Boolean>() {
             @Override
             protected Boolean executeInEDT() throws Throwable {
               ListModel model = target().getModel();
@@ -127,9 +125,7 @@ public class AndroidToolWindowFixture extends ToolWindowFixture {
               }
               return false;
             }
-          });
-        }
-      });
+          }));
       return this;
     }
 

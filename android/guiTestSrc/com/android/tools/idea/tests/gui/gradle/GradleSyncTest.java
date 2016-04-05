@@ -317,18 +317,14 @@ public class GradleSyncTest {
     final JButtonFixture finish = quickFixDialog.button(withText("Finish"));
 
     // Wait until installation is finished. By then the "Finish" button will be enabled.
-    Wait.minutes(2).expecting("Android Support Repository to be installed").until(new Wait.Objective() {
-      @Override
-      public boolean isMet() {
-        //noinspection ConstantConditions
-        return execute(new GuiQuery<Boolean>() {
+    Wait.minutes(2).expecting("Android Support Repository to be installed").until(
+      () -> execute(
+        new GuiQuery<Boolean>() {
           @Override
           protected Boolean executeInEDT() {
             return finish.target().isEnabled();
           }
-        });
-      }
-    });
+        }));
 
     // Installation finished. Click finish to resync project.
     finish.click();

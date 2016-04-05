@@ -92,18 +92,14 @@ public class ComboBoxActionFixture {
 
   private void click() {
     final JButtonFixture comboBoxButtonFixture = new JButtonFixture(myRobot, myTarget);
-    Wait.minutes(2).expecting("comboBoxButton to be enabled").until(new Wait.Objective() {
-      @Override
-      public boolean isMet() {
-        //noinspection ConstantConditions
-        return execute(new GuiQuery<Boolean>() {
+    Wait.minutes(2).expecting("comboBoxButton to be enabled").until(
+      () -> execute(
+        new GuiQuery<Boolean>() {
           @Override
           protected Boolean executeInEDT() throws Throwable {
             return comboBoxButtonFixture.target().isEnabled();
           }
-        });
-      }
-    });
+        }));
     comboBoxButtonFixture.click();
   }
 
