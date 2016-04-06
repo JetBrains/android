@@ -46,11 +46,7 @@ public class HardwareProfileTest {
 
     HardwareProfileWizardFixture hardwareProfileWizard = step.newHardwareProfile();
     ConfigureDeviceOptionsStepFixture deviceOptionsStep = hardwareProfileWizard.getConfigureDeviceOptionsStep();
-    deviceOptionsStep.setDeviceName(deviceName)
-                     .selectHasFrontCamera(false)
-                     .setScreenResolutionX("1280")
-                     .setScreenResolutionY("920")
-                     .setScreenSize("5.2");
+    deviceOptionsStep.setDeviceName(deviceName);
     guiTest.robot().waitForIdle();
     hardwareProfileWizard.clickFinish();
     assertWithMessage("after creating").that(step.deviceNames()).contains(deviceName);
@@ -71,10 +67,6 @@ public class HardwareProfileTest {
 
     HardwareProfileWizardFixture hardwareProfileWizard = chooseDeviceDefinitionStep.newHardwareProfile();
     ConfigureDeviceOptionsStepFixture deviceOptionsStep = hardwareProfileWizard.getConfigureDeviceOptionsStep();
-    deviceOptionsStep.selectHasFrontCamera(false)
-      .setScreenResolutionX("1280")
-      .setScreenResolutionY("920")
-      .setScreenSize("5.2");
 
     deviceOptionsStep.setDeviceName("\b");
     assertThat(avdEditWizard.getValidationText(Validator.Severity.ERROR))
