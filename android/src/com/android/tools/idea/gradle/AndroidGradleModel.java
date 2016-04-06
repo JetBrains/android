@@ -921,10 +921,7 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
   }
 
   private void writeObject(ObjectOutputStream out) throws IOException {
-    // Avoid persisting the model when the proxy object is not ready.
-    if(myProxyAndroidProject == null) {
-      return;
-    }
+    waitForProxyAndroidProject();
 
     out.writeObject(myProjectSystemId);
     out.writeObject(myModuleName);
