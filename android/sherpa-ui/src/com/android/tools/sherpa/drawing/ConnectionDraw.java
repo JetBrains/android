@@ -757,7 +757,7 @@ public class ConnectionDraw {
      * @param x     x coordinate
      * @param y     y coordinate
      */
-    private static void drawArrow(Graphics2D g, Polygon arrow, int x, int y) {
+    public static void drawArrow(Graphics2D g, Polygon arrow, int x, int y) {
         arrow.translate(x, y);
         g.fill(arrow);
         arrow.translate(-x, -y);
@@ -768,7 +768,7 @@ public class ConnectionDraw {
      *
      * @return return a Polygon representing a left arrow
      */
-    static Polygon getLeftArrow() {
+    public static Polygon getLeftArrow() {
         if (sLeftArrow == null) {
             sLeftArrow = new Polygon();
             sLeftArrow.addPoint(0, 0);
@@ -783,7 +783,7 @@ public class ConnectionDraw {
      *
      * @return return a Polygon representing a right arrow
      */
-    static Polygon getRightArrow() {
+    public static Polygon getRightArrow() {
         if (sRightArrow == null) {
             sRightArrow = new Polygon();
             sRightArrow.addPoint(0, 0);
@@ -798,7 +798,7 @@ public class ConnectionDraw {
      *
      * @return return a Polygon representing a top arrow
      */
-    static Polygon getTopArrow() {
+    public static Polygon getTopArrow() {
         if (sTopArrow == null) {
             sTopArrow = new Polygon();
             sTopArrow.addPoint(0, 0);
@@ -813,7 +813,7 @@ public class ConnectionDraw {
      *
      * @return return a Polygon representing a bottom arrow
      */
-    static Polygon getBottomArrow() {
+    public static Polygon getBottomArrow() {
         if (sBottomArrow == null) {
             sBottomArrow = new Polygon();
             sBottomArrow.addPoint(0, 0);

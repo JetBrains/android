@@ -571,7 +571,7 @@ public class WidgetDraw {
      * @param x2 end x point
      * @param y  y point
      */
-    static void drawHorizontalZigZagLine(Graphics2D g, int x1, int x2, int y) {
+    public static void drawHorizontalZigZagLine(Graphics2D g, int x1, int x2, int y) {
         drawHorizontalZigZagLine(g, x1, x2, y, CENTER_ZIGZAG, CENTER_ZIGZAG);
     }
 
@@ -618,7 +618,7 @@ public class WidgetDraw {
      * @param y1 start y point
      * @param y2 end y point
      */
-    static void drawVerticalZigZagLine(Graphics2D g, int x, int y1, int y2) {
+    public static void drawVerticalZigZagLine(Graphics2D g, int x, int y1, int y2) {
         drawVerticalZigZagLine(g, x, y1, y2, CENTER_ZIGZAG, CENTER_ZIGZAG);
     }
 
