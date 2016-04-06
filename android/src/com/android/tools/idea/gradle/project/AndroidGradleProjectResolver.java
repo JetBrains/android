@@ -32,15 +32,17 @@ import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
+import com.intellij.openapi.externalSystem.model.ProjectKeys;
+import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.util.ExternalSystemConstants;
 import com.intellij.openapi.externalSystem.util.Order;
+import com.intellij.openapi.module.StdModuleTypes;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.KeyValue;
-import com.intellij.util.containers.ContainerUtil;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.gradle.GradleScript;
 import org.gradle.tooling.model.idea.IdeaModule;
@@ -48,13 +50,17 @@ import org.jetbrains.android.AndroidPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.model.BuildScriptClasspathModel;
+import org.jetbrains.plugins.gradle.model.ExternalProject;
 import org.jetbrains.plugins.gradle.model.ModuleExtendedModel;
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectResolverExtension;
-import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil;
+import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
@@ -75,26 +81,30 @@ import static com.android.tools.idea.stats.UsageTracker.*;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.isInProcessMode;
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
+import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.util.ArrayUtil.toStringArray;
 import static com.intellij.util.ExceptionUtil.getRootCause;
 import static com.intellij.util.PathUtil.getJarPathForClass;
 import static com.intellij.util.containers.ContainerUtil.addIfNotNull;
+import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static java.util.Collections.sort;
 import static org.jetbrains.android.AndroidPlugin.isGuiTestingMode;
+import static org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil.getModuleConfigPath;
 
 /**
  * Imports Android-Gradle projects into IDEA.
  */
 @Order(ExternalSystemConstants.UNORDERED)
 public class AndroidGradleProjectResolver extends AbstractProjectResolverExtension {
-  /** Default test artifact selected when importing a project. */
+  /**
+   * Default test artifact selected when importing a project.
+   */
   private static final String DEFAULT_TEST_ARTIFACT = ARTIFACT_ANDROID_TEST;
   private static final Key<Boolean> IS_ANDROID_PROJECT_KEY = Key.create("IS_ANDROID_PROJECT_KEY");
 
   @NotNull private final ProjectImportErrorHandler myErrorHandler;
 
-  @SuppressWarnings("UnusedDeclaration")
   public AndroidGradleProjectResolver() {
     this(new ProjectImportErrorHandler());
   }
@@ -104,8 +114,8 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     myErrorHandler = errorHandler;
   }
 
-  @NotNull
   @Override
+  @NotNull
   public DataNode<ModuleData> createModule(@NotNull IdeaModule gradleModule, @NotNull DataNode<ProjectData> projectDataNode) {
     AndroidProject androidProject = resolverCtx.getExtraProject(gradleModule, AndroidProject.class);
     if (androidProject != null && !isSupportedVersion(androidProject)) {
@@ -115,11 +125,35 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       throw new IllegalStateException(msg);
     }
     if (isAndroidGradleProject()) {
-      return GradleProjectResolverUtil.createMainModule(resolverCtx, gradleModule, projectDataNode);
+      return doCreateModule(gradleModule, projectDataNode);
     }
     else {
       return nextResolver.createModule(gradleModule, projectDataNode);
     }
+  }
+
+  @NotNull
+  private DataNode<ModuleData> doCreateModule(@NotNull IdeaModule gradleModule, @NotNull DataNode<ProjectData> projectDataNode) {
+    String moduleName = gradleModule.getName();
+    if (moduleName == null) {
+      throw new IllegalStateException("Module with undefined name detected: " + gradleModule);
+    }
+
+    String projectPath = projectDataNode.getData().getLinkedExternalProjectPath();
+    String moduleConfigPath = getModuleConfigPath(resolverCtx, gradleModule, projectPath);
+
+    String gradlePath = gradleModule.getGradleProject().getPath();
+    String moduleId = isEmpty(gradlePath) || ":".equals(gradlePath) ? moduleName : gradlePath;
+    ProjectSystemId owner = GradleConstants.SYSTEM_ID;
+    String typeId = StdModuleTypes.JAVA.getId();
+
+    ModuleData moduleData = new ModuleData(moduleId, owner, typeId, moduleName, moduleConfigPath, moduleConfigPath);
+
+    ExternalProject externalProject = resolverCtx.getExtraProject(gradleModule, ExternalProject.class);
+    if (externalProject != null) {
+      moduleData.setDescription(externalProject.getDescription());
+    }
+    return projectDataNode.createChild(ProjectKeys.MODULE, moduleData);
   }
 
   @Override
@@ -131,7 +165,9 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     GradleScript buildScript = null;
     try {
       buildScript = gradleProject.getBuildScript();
-    } catch (UnsupportedOperationException ignore) {}
+    }
+    catch (UnsupportedOperationException ignore) {
+    }
 
     if (buildScript == null || !isAndroidGradleProject()) {
       nextResolver.populateModuleContentRoots(gradleModule, ideModule);
@@ -228,7 +264,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   @Override
   @NotNull
   public Set<Class> getExtraProjectModelClasses() {
-    return Sets.<Class>newHashSet(AndroidProject.class, NativeAndroidProject.class);
+    return Sets.newHashSet(AndroidProject.class, NativeAndroidProject.class);
   }
 
   @Override
@@ -265,8 +301,8 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     return Collections.emptyList();
   }
 
-  @NotNull
   @Override
+  @NotNull
   public List<String> getExtraCommandLineArgs() {
     List<String> args = Lists.newArrayList();
 
@@ -373,8 +409,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       }
     }
     else {
-      builder.append(". ")
-             .append(recommendedVersion);
+      builder.append(". ").append(recommendedVersion);
     }
     return builder.toString();
   }
@@ -383,7 +418,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   private static Variant getVariantToSelect(@NotNull AndroidProject androidProject) {
     Collection<Variant> variants = androidProject.getVariants();
     if (variants.size() == 1) {
-      Variant variant = ContainerUtil.getFirstItem(variants);
+      Variant variant = getFirstItem(variants);
       assert variant != null;
       return variant;
     }
@@ -395,12 +430,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       }
     }
     List<Variant> sortedVariants = Lists.newArrayList(variants);
-    sort(sortedVariants, new Comparator<Variant>() {
-      @Override
-      public int compare(Variant o1, Variant o2) {
-        return o1.getName().compareTo(o2.getName());
-      }
-    });
+    sort(sortedVariants, (o1, o2) -> o1.getName().compareTo(o2.getName()));
     return sortedVariants.isEmpty() ? null : sortedVariants.get(0);
   }
 
