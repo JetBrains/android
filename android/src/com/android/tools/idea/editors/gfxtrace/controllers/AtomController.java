@@ -61,7 +61,9 @@ import javax.swing.tree.TreeCellRenderer;
 import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.*;
+import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
@@ -181,7 +183,7 @@ public class AtomController extends TreeController implements AtomStream.Listene
     public final Atom lastLeaf;
     public final long indexOfLastLeaf;
 
-    private ListenableFuture<FetchedImage> thumbnail;
+    private ListenableFuture<BufferedImage> thumbnail;
     private DevicePath lastDevicePath;
 
     public Group(AtomGroup group, Atom lastLeaf, long indexOfLastLeaf) {
@@ -190,12 +192,12 @@ public class AtomController extends TreeController implements AtomStream.Listene
       this.indexOfLastLeaf = indexOfLastLeaf;
     }
 
-    public ListenableFuture<FetchedImage> getThumbnail(ServiceClient client, @NotNull DevicePath devicePath, @NotNull AtomsPath atomsPath) {
+    public ListenableFuture<BufferedImage> getThumbnail(ServiceClient client, @NotNull DevicePath devicePath, @NotNull AtomsPath atomsPath) {
       synchronized (this) {
         if (thumbnail == null || !Objects.equal(lastDevicePath, devicePath)) {
           lastDevicePath = devicePath;
-          thumbnail = FetchedImage.load(client, client.getFramebufferColor(
-            devicePath, new AtomPath().setAtoms(atomsPath).setIndex(indexOfLastLeaf), THUMBNAIL_SETTINGS));
+          thumbnail = FetchedImage.loadLevel(FetchedImage.load(client, client.getFramebufferColor(
+            devicePath, new AtomPath().setAtoms(atomsPath).setIndex(indexOfLastLeaf), THUMBNAIL_SETTINGS)), 0);
         }
         return thumbnail;
       }
@@ -462,8 +464,8 @@ public class AtomController extends TreeController implements AtomStream.Listene
                 DevicePath device = myRenderDevice.getPath();
                 AtomsPath atoms = myEditor.getAtomStream().getPath();
                 if (device != null && atoms != null) {
-                  lastShownBalloon = JBPopupFactory.getInstance().createBalloonBuilder(new PreviewPanel(
-                      group.getThumbnail(myEditor.getClient(), device, atoms)))
+                  lastShownBalloon = JBPopupFactory.getInstance().createBalloonBuilder(
+                      new PreviewPanel(group.getThumbnail(myEditor.getClient(), device, atoms)))
                     .setAnimationCycle(100)
                     .createBalloon();
                   lastShownBalloon.show(new RelativePoint(myTree, new Point(x, y)), Balloon.Position.atRight);
@@ -477,14 +479,14 @@ public class AtomController extends TreeController implements AtomStream.Listene
       class PreviewPanel extends JComponent {
         private Image image;
 
-        public PreviewPanel(final ListenableFuture<FetchedImage> imageFuture) {
+        public PreviewPanel(final ListenableFuture<BufferedImage> imageFuture) {
           if (imageFuture.isDone()) {
-            image = Futures.getUnchecked(imageFuture).image;
+            image = Futures.getUnchecked(imageFuture);
           } else {
             imageFuture.addListener(new Runnable() {
               @Override
               public void run() {
-                image = Futures.getUnchecked(imageFuture).image;
+                image = Futures.getUnchecked(imageFuture);
                 Balloon parent = lastShownBalloon;
                 if (parent != null) {
                   parent.revalidate();
@@ -558,9 +560,8 @@ public class AtomController extends TreeController implements AtomStream.Listene
         if (userObject instanceof Group && device != null && atoms != null) {
           Group group = (Group)userObject;
           if (shouldShowPreview(group)) {
-            ListenableFuture<FetchedImage> iconFuture =
-              group.getThumbnail(myEditor.getClient(), device, atoms);
-            final FetchedImage image;
+            ListenableFuture<BufferedImage> iconFuture = group.getThumbnail(myEditor.getClient(), device, atoms);
+            final BufferedImage image;
             if (iconFuture.isDone()) {
               image = Futures.getUnchecked(iconFuture);
             } else {
@@ -579,7 +580,7 @@ public class AtomController extends TreeController implements AtomStream.Listene
                   LoadingIndicator.paint(tree, g, x, y, Group.THUMBNAIL_SIZE, Group.THUMBNAIL_SIZE);
                   LoadingIndicator.scheduleForRedraw(Repaintables.forComponent(tree));
                 } else {
-                  RenderUtils.drawImage(tree, g, image.image, x, y, Group.THUMBNAIL_SIZE, Group.THUMBNAIL_SIZE);
+                  RenderUtils.drawImage(tree, g, image, x, y, Group.THUMBNAIL_SIZE, Group.THUMBNAIL_SIZE);
                 }
               }
 

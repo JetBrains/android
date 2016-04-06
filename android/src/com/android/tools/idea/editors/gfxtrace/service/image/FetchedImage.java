@@ -37,8 +37,8 @@ import java.util.List;
 public class FetchedImage implements MultiLevelImage {
   @NotNull private static final Logger LOG = Logger.getInstance(FetchedImage.class);
 
-  @NotNull public final Dimension dimensions;
-  @NotNull public final BufferedImage image;
+  @NotNull private final Dimension dimensions;
+  @NotNull private final BufferedImage image;
 
   public static ListenableFuture<FetchedImage> load(final ServiceClient client, ListenableFuture<ImageInfoPath> imageInfo) {
     return Futures.transform(imageInfo, new AsyncFunction<ImageInfoPath, FetchedImage>() {
@@ -153,5 +153,14 @@ public class FetchedImage implements MultiLevelImage {
   public ListenableFuture<BufferedImage> getLevel(int index) {
     return (index == 0) ? Futures.immediateFuture(image) :
            Futures.<BufferedImage>immediateFailedFuture(new IllegalArgumentException("Invalid image level"));
+  }
+
+  public static ListenableFuture<BufferedImage> loadLevel(ListenableFuture<FetchedImage> futureImage, final int level) {
+    return Futures.transform(futureImage, new AsyncFunction<FetchedImage, BufferedImage>() {
+      @Override
+      public ListenableFuture<BufferedImage> apply(FetchedImage image) throws Exception {
+        return image.getLevel(Math.min(level, image.getLevelCount()));
+      }
+    });
   }
 }
