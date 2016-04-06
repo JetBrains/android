@@ -37,6 +37,8 @@ import java.awt.*;
 import java.util.Collections;
 import java.util.List;
 
+import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
+
 public abstract class BasePerspectiveConfigurable extends MasterDetailsComponent
   implements SearchableConfigurable, Disposable, Place.Navigator {
 
@@ -55,6 +57,15 @@ public abstract class BasePerspectiveConfigurable extends MasterDetailsComponent
     myContext.addListener((moduleName, source) -> {
       if (source != this) {
         selectModule(moduleName);
+      }
+    }, this);
+    myContext.getDaemonAnalyzer().add(model -> {
+      if (myTree.isShowing()) {
+        // If issues are updated and the tree is showing, trigger a repaint so the proper highlight and tooltip is applied.
+        invokeLaterIfNeeded(() -> {
+          myTree.revalidate();
+          myTree.repaint();
+        });
       }
     }, this);
 

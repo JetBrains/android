@@ -114,9 +114,9 @@ public class TargetModelsTreeStructure extends AbstractBaseTreeStructure {
 
     for (Pair<PsAndroidModule, String> moduleAndVersion : modules.values()) {
       PsAndroidModule module = moduleAndVersion.getFirst();
-      final TargetAndroidModuleNode moduleNode = new TargetAndroidModuleNode(myRootNode, module, moduleAndVersion.getSecond());
+      TargetAndroidModuleNode moduleNode = new TargetAndroidModuleNode(myRootNode, module, moduleAndVersion.getSecond());
 
-      final List<AndroidArtifactNode> artifactNodes = Lists.newArrayList();
+      List<AndroidArtifactNode> artifactNodes = Lists.newArrayList();
 
       Set<PsDependencyContainer> containers = containersByModule.get(module.getName());
       if (containers != null) {
@@ -139,7 +139,7 @@ public class TargetModelsTreeStructure extends AbstractBaseTreeStructure {
         }
 
         for (String variant : containersByVariant.keySet()) {
-          final Set<PsAndroidArtifact> existingArtifacts = containersByVariant.get(variant);
+          Set<PsAndroidArtifact> existingArtifacts = containersByVariant.get(variant);
           PsAndroidArtifact mainArtifact = findMainArtifact(existingArtifacts);
           if (mainArtifact != null) {
             // The dependency is declared in the main artifact. Both test artifacts should be added as well, since they inherit the

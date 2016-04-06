@@ -78,7 +78,7 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel implem
 
   private KeyEventDispatcher myKeyEventDispatcher;
 
-  DeclaredDependenciesPanel(@NotNull final PsAndroidModule module, @NotNull PsContext context) {
+  DeclaredDependenciesPanel(@NotNull PsAndroidModule module, @NotNull PsContext context) {
     super("Declared Dependencies", context, module);
     myContext = context;
     myContext.getDaemonAnalyzer().add(model -> {
