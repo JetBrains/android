@@ -24,11 +24,9 @@ import com.google.common.collect.*;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
@@ -49,13 +47,13 @@ import java.util.Map;
 import static com.android.builder.model.AndroidProject.ARTIFACT_MAIN;
 import static com.android.tools.idea.gradle.util.ProxyUtil.getAndroidModelProxyValues;
 import static com.android.tools.idea.gradle.util.ProxyUtil.isAndroidModelProxyObject;
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
+import static com.intellij.openapi.util.text.StringUtil.trimStart;
 
 /**
  * "Android Model" tool window to visualize the Android-Gradle model data.
  */
 public class AndroidModelView {
-  private static final Logger LOG = Logger.getInstance(AndroidModelView.class);
-
   private static final ImmutableMultimap<String, String> SOURCE_PROVIDERS_GROUP =
     ImmutableMultimap.<String, String>builder().putAll("SourceProviders", "SourceProvider", "ExtraSourceProviders").build();
   private static final ImmutableMultimap<String, String> SDK_VERSIONS_GROUP =
@@ -116,38 +114,32 @@ public class AndroidModelView {
       myTree.setModel(new DefaultTreeModel(new DefaultMutableTreeNode("Loading ...")));
     }
 
-    ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
-      @Override
-      public void run() {
-        final DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode(myProject.getName());
-        String projectPath = myProject.getBasePath();
-        for (Module module : ModuleManager.getInstance(myProject).getModules()) {
-          AndroidGradleModel androidModel = AndroidGradleModel.get(module);
-          if (androidModel != null) {
-            DefaultMutableTreeNode moduleNode = new ModuleNodeBuilder(module.getName(), androidModel, projectPath).getNode();
-            rootNode.add(moduleNode);
-          }
+    ApplicationManager.getApplication().executeOnPooledThread(() -> {
+      final DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode(myProject.getName());
+      String projectPath = myProject.getBasePath();
+      for (Module module : ModuleManager.getInstance(myProject).getModules()) {
+        AndroidGradleModel androidModel = AndroidGradleModel.get(module);
+        if (androidModel != null) {
+          DefaultMutableTreeNode moduleNode = new ModuleNodeBuilder(module.getName(), androidModel, projectPath).getNode();
+          rootNode.add(moduleNode);
         }
-
-        UIUtil.invokeLaterIfNeeded(new Runnable() {
-          @Override
-          public void run() {
-            DefaultTreeCellRenderer renderer = new DefaultTreeCellRenderer();
-            renderer.setOpenIcon(AllIcons.Nodes.NewFolder);
-            renderer.setClosedIcon(AllIcons.Nodes.NewFolder);
-            renderer.setLeafIcon(AllIcons.ObjectBrowser.ShowModules);
-            myTree.setCellRenderer(renderer);
-
-            DefaultTreeModel model = new DefaultTreeModel(rootNode);
-            myTree.setRootVisible(false);
-            myTree.setModel(model);
-          }
-        });
+        // TODO: Also add NativeAndroidGradleModel to the view.
       }
+
+      UIUtil.invokeLaterIfNeeded(() -> {
+        DefaultTreeCellRenderer renderer = new DefaultTreeCellRenderer();
+        renderer.setOpenIcon(AllIcons.Nodes.NewFolder);
+        renderer.setClosedIcon(AllIcons.Nodes.NewFolder);
+        renderer.setLeafIcon(AllIcons.ObjectBrowser.ShowModules);
+        myTree.setCellRenderer(renderer);
+
+        DefaultTreeModel model = new DefaultTreeModel(rootNode);
+        myTree.setRootVisible(false);
+        myTree.setModel(model);
+      });
     });
   }
 
-  @VisibleForTesting
   static class ModuleNodeBuilder {
     @NotNull private final String myModuleName;
     @NotNull private final AndroidGradleModel myAndroidModel;
@@ -162,7 +154,7 @@ public class AndroidModelView {
       if (projectPath != null && !projectPath.endsWith(File.separator)) {
         projectPath += File.separator;
       }
-      myProjectPath = FileUtil.toSystemDependentName(projectPath);
+      myProjectPath = projectPath == null ? null : toSystemDependentName(projectPath);
     }
 
     public DefaultMutableTreeNode getNode() {
@@ -171,9 +163,7 @@ public class AndroidModelView {
 
       artifactNodes.clear();
       addProxyObject(moduleNode, androidProject, false, ImmutableList.of("SyncIssues", "UnresolvedDependencies", "ApiVersion"));
-      for (DefaultMutableTreeNode artifactNode : artifactNodes) {
-        addSources(artifactNode);
-      }
+      artifactNodes.forEach(this::addSources);
       return moduleNode;
     }
 
@@ -183,14 +173,14 @@ public class AndroidModelView {
     }
 
     private void addProxyObject(@NotNull DefaultMutableTreeNode node, @NotNull Object obj, boolean useDerivedNodeName) {
-      addProxyObject(node, obj, useDerivedNodeName, ImmutableList.<String>of());
+      addProxyObject(node, obj, useDerivedNodeName, ImmutableList.of());
     }
 
     private void addProxyObject(@NotNull DefaultMutableTreeNode node,
                                 @NotNull Object obj,
                                 boolean useDerivedNodeName,
                                 @NotNull Collection<String> skipProperties) {
-      addProxyObject(node, obj, useDerivedNodeName, skipProperties, ImmutableList.<String>of(), ImmutableMultimap.<String, String>of());
+      addProxyObject(node, obj, useDerivedNodeName, skipProperties, ImmutableList.of(), ImmutableMultimap.of());
     }
 
     private void addProxyObject(@NotNull DefaultMutableTreeNode node,
@@ -198,7 +188,7 @@ public class AndroidModelView {
                                 boolean useDerivedNodeName,
                                 @NotNull Collection<String> inlineProperties,
                                 @NotNull Multimap<String, String> groupProperties) {
-      addProxyObject(node, obj, useDerivedNodeName, ImmutableList.<String>of(), inlineProperties, groupProperties);
+      addProxyObject(node, obj, useDerivedNodeName, ImmutableList.of(), inlineProperties, groupProperties);
     }
 
     private void addProxyObject(@NotNull DefaultMutableTreeNode node,
@@ -215,9 +205,7 @@ public class AndroidModelView {
         String property = entry.getKey(); // method name in canonical form.
         property = property.substring(0, property.lastIndexOf('('));
         property = property.substring(property.lastIndexOf('.') + 1, property.length());
-        if (property.startsWith("get")) {
-          property = property.substring(3);
-        }
+        property = trimStart(property, "get");
         if (skipProperties.contains(property)) {
           continue;
         }
@@ -309,17 +297,17 @@ public class AndroidModelView {
         addProxyObject(propertyNode, value, useDerivedName, ImmutableList.of("BuildType", "ExtraSourceProviders"), SOURCE_PROVIDERS_GROUP);
       }
       else if (value instanceof SourceProviderContainer) {
-        addProxyObject(propertyNode, value, useDerivedName, ImmutableList.of("SourceProvider"), ImmutableMultimap.<String, String>of());
+        addProxyObject(propertyNode, value, useDerivedName, ImmutableList.of("SourceProvider"), ImmutableMultimap.of());
       }
       else if (value instanceof SourceProvider) {
         addProxyObject(propertyNode, value, useDerivedName, ImmutableList.of("CppDirectories"), ImmutableList.of("CDirectories"),
                        JNI_DIRECTORIES_GROUP);
       }
       else if (value instanceof ProductFlavor) {
-        addProxyObject(propertyNode, value, useDerivedName, ImmutableList.<String>of(), SDK_VERSIONS_GROUP);
+        addProxyObject(propertyNode, value, useDerivedName, ImmutableList.of(), SDK_VERSIONS_GROUP);
       }
       else if (value instanceof Variant) {
-        addProxyObject(propertyNode, value, useDerivedName, ImmutableList.<String>of(),
+        addProxyObject(propertyNode, value, useDerivedName, ImmutableList.of(),
                        ImmutableList.of("ExtraAndroidArtifacts", "ExtraJavaArtifacts"), ARTIFACTS_GROUP);
       }
       else if (value instanceof BaseArtifact) {
