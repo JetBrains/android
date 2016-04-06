@@ -27,6 +27,7 @@ import com.android.tools.idea.gradle.structure.editors.AndroidProjectConfigurabl
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.ModuleTypeComparator;
 import com.android.tools.idea.gradle.util.Projects;
+import com.android.tools.idea.stats.UsageTracker;
 import com.android.tools.idea.structure.services.DeveloperService;
 import com.android.tools.idea.structure.services.DeveloperServices;
 import com.android.tools.idea.structure.services.ServiceCategory;
@@ -85,6 +86,8 @@ import java.awt.*;
 import java.io.File;
 import java.util.*;
 import java.util.List;
+
+import static com.android.tools.idea.stats.UsageTracker.*;
 
 /**
  * Contents of the "Project Structure" dialog, for Gradle-based Android projects, in Android Studio.
@@ -208,6 +211,7 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
   }
 
   private boolean doShowDialog(@Nullable Runnable advanceInit) {
+    UsageTracker.getInstance().trackEvent(CATEGORY_PROJECT_STRUCTURE_DIALOG, ACTION_PROJECT_STRUCTURE_DIALOG_OPEN, null, null);
     return ShowSettingsUtil.getInstance().editConfigurable(myProject, this, advanceInit);
   }
 
@@ -293,6 +297,8 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
 
   @Override
   public void apply() throws ConfigurationException {
+    UsageTracker.getInstance().trackEvent(CATEGORY_PROJECT_STRUCTURE_DIALOG, ACTION_PROJECT_STRUCTURE_DIALOG_SAVE, null, null);
+
     validateState();
     if (myErrorsPanel.hasCriticalErrors()) {
       return;
@@ -301,6 +307,8 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
     boolean dataChanged = false;
     for (Configurable configurable: myConfigurables) {
       if (configurable.isModified()) {
+        UsageTracker.getInstance().trackEvent(CATEGORY_PROJECT_STRUCTURE_DIALOG, ACTION_PROJECT_STRUCTURE_DIALOG_LEFT_NAV_SAVE, configurable.getDisplayName(),
+                                              null);
         dataChanged = true;
         configurable.apply();
       }
@@ -456,6 +464,8 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
   }
 
   private void selectConfigurable(@NotNull Configurable configurable) {
+    UsageTracker.getInstance().trackEvent(CATEGORY_PROJECT_STRUCTURE_DIALOG, ACTION_PROJECT_STRUCTURE_DIALOG_LEFT_NAV_CLICK, configurable.getDisplayName(),
+                                          null);
     JComponent content = configurable.createComponent();
     assert content != null;
     myDetails.setContent(content);
