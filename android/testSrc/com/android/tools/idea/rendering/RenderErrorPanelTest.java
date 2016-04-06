@@ -32,6 +32,7 @@ import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
+import org.jetbrains.android.uipreview.LayoutLibraryLoader;
 import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -90,7 +91,14 @@ public class RenderErrorPanelTest extends AndroidTestCase {
     assertNotNull(target);
     configurationManager.setTarget(target);
     Configuration configuration = configurationManager.getConfiguration(file);
-    assertSame(target, configuration.getTarget());
+    assertSame(target, configuration.getRealTarget());
+
+    if (!LayoutLibraryLoader.USE_SDK_LAYOUTLIB) {
+      // TODO: Remove this after http://b.android.com/203392 is released
+      // If we are using the embedded layoutlib, use a recent theme to avoid missing styles errors.
+      configuration.setTheme("android:Theme.Material");
+    }
+
     RenderService renderService = RenderService.get(facet);
     RenderLogger logger = renderService.createLogger();
     final RenderTask task = renderService.createTask(psiFile, configuration, logger, null);
@@ -303,7 +311,7 @@ public class RenderErrorPanelTest extends AndroidTestCase {
           "\tat java.lang.Thread.run(Thread.java:680)\n");
         logger.error(null, null, throwable, null);
         //noinspection ConstantConditions
-        target.set(render.getRenderTask().getConfiguration().getTarget());
+        target.set(render.getRenderTask().getConfiguration().getRealTarget());
 
         assertTrue(logger.hasProblems());
       }
@@ -537,7 +545,7 @@ public class RenderErrorPanelTest extends AndroidTestCase {
         logger.error(null, null, throwable, null);
 
         //noinspection ConstantConditions
-        target.set(render.getRenderTask().getConfiguration().getTarget());
+        target.set(render.getRenderTask().getConfiguration().getRealTarget());
       }
     };
 
