@@ -17,6 +17,7 @@ package com.android.tools.idea.editors.gfxtrace.widgets;
 
 import com.android.tools.idea.editors.gfxtrace.UiCallback;
 import com.android.tools.idea.editors.gfxtrace.service.image.MultiLevelImage;
+import com.android.tools.rpclib.futures.FutureController;
 import com.android.tools.rpclib.rpccore.Rpc;
 import com.android.tools.rpclib.rpccore.RpcException;
 import com.intellij.openapi.actionSystem.*;
@@ -24,6 +25,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.ui.components.JBSlidingPanel;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.StatusText;
 import icons.AndroidIcons;
@@ -34,6 +36,8 @@ import sun.awt.image.IntegerComponentRaster;
 import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.border.LineBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.AffineTransform;
@@ -62,7 +66,10 @@ public class ImagePanel extends JPanel {
     scrollPane.getHorizontalScrollBar().setUnitIncrement(20);
     scrollPane.setBorder(BorderFactory.createLineBorder(JBColor.border()));
     add(scrollPane, BorderLayout.CENTER);
-    add(myStatus, BorderLayout.SOUTH);
+    add(new JPanel(new FlowLayout(FlowLayout.LEFT)) {{
+      add(myImage.getLevelChooser());
+      add(myStatus, BorderLayout.SOUTH);
+    }} , BorderLayout.SOUTH);
     setFocusable(true);
 
     MouseAdapter mouseHandler = new MouseAdapter() {
@@ -106,6 +113,10 @@ public class ImagePanel extends JPanel {
     return myImage.getEmptyText();
   }
 
+  public void setImageRequestController(FutureController imageRequestController) {
+    myImage.setImageRequestController(imageRequestController);
+  }
+
   public void setImage(MultiLevelImage image) {
     myImage.setImage(image);
   }
@@ -120,6 +131,8 @@ public class ImagePanel extends JPanel {
 
     private final JViewport parent;
     private final StatusText emptyText;
+    private final LevelChooser levelChooser = new LevelChooser();
+    private FutureController imageRequestController = FutureController.NULL_CONTROLLER;
     private MultiLevelImage image;
     private BufferedImage level = MultiLevelImage.EMPTY_LEVEL;
     private BufferedImage opaqueLevel = null;
@@ -139,6 +152,12 @@ public class ImagePanel extends JPanel {
       };
       this.emptyText.attachTo(parent);
       this.zoom = ZOOM_FIT;
+      this.levelChooser.addListener(new LevelChooser.Listener() {
+        @Override
+        public void levelChanged(int level) {
+          loadLevel(level);
+        }
+      });
 
       MouseAdapter mouseHandler = new MouseAdapter() {
         private int lastX, lastY;
@@ -233,9 +252,14 @@ public class ImagePanel extends JPanel {
       return emptyText;
     }
 
+    public void setImageRequestController(FutureController imageRequestController) {
+      this.imageRequestController = imageRequestController;
+    }
+
     public void clearImage() {
       this.image = MultiLevelImage.EMPTY_IMAGE;
       this.level = MultiLevelImage.EMPTY_LEVEL;
+      levelChooser.update(1);
       revalidate();
       repaint();
     }
@@ -248,10 +272,11 @@ public class ImagePanel extends JPanel {
       this.image = (image == null) ? MultiLevelImage.EMPTY_IMAGE : image;
       this.level = MultiLevelImage.EMPTY_LEVEL;
       this.opaqueLevel = null;
+      if (!levelChooser.update(this.image.getLevelCount())) {
+        loadLevel(levelChooser.getLevel());
+      }
       revalidate();
       repaint();
-
-      loadLevel(0);
     }
 
     public void addToolbarActions(DefaultActionGroup group, boolean enableVerticalFlip) {
@@ -327,6 +352,10 @@ public class ImagePanel extends JPanel {
       }
     }
 
+    public LevelChooser getLevelChooser() {
+      return levelChooser;
+    }
+
     public Pixel getPixel(int x, int y) {
       if (this.image == MultiLevelImage.EMPTY_IMAGE || level == MultiLevelImage.EMPTY_LEVEL) {
         return Pixel.OUT_OF_BOUNDS;
@@ -396,7 +425,7 @@ public class ImagePanel extends JPanel {
 
     private void loadLevel(int index) {
       index = Math.min(image.getLevelCount() - 1, index);
-      Rpc.listen(image.getLevel(index), LOG, new UiCallback<BufferedImage, BufferedImage>() {
+      Rpc.listen(image.getLevel(index), LOG, imageRequestController, new UiCallback<BufferedImage, BufferedImage>() {
         @Override
         protected BufferedImage onRpcThread(Rpc.Result<BufferedImage> result) throws RpcException, ExecutionException {
           return result.get();
@@ -567,6 +596,65 @@ public class ImagePanel extends JPanel {
       @Override
       public int getTransparency() {
         return Transparency.OPAQUE;
+      }
+    }
+
+    private static class LevelChooser extends JPanel {
+      private final JSlider mySlider = new JSlider();
+
+      public LevelChooser() {
+        mySlider.setPaintTicks(true);
+        mySlider.setSnapToTicks(true);
+        mySlider.setMajorTickSpacing(1);
+        mySlider.setFocusable(false);
+        setVisible(false);
+
+        final JBLabel valueLabel = new JBLabel("0");
+        mySlider.addChangeListener(new ChangeListener() {
+          @Override
+          public void stateChanged(ChangeEvent e) {
+            valueLabel.setText(String.valueOf(mySlider.getValue()));
+          }
+        });
+
+        add(new JBLabel("Level:"));
+        add(mySlider);
+        add(valueLabel);
+      }
+
+      public boolean update(int numLevels) {
+        setVisible(numLevels > 1);
+
+        int value = mySlider.getValue();
+        if (value >= numLevels) {
+          mySlider.setValue(numLevels - 1);
+        }
+        mySlider.setMinimum(0);
+        mySlider.setMaximum(numLevels - 1);
+        return value >= numLevels;
+      }
+
+      public int getLevel() {
+        return mySlider.getValue();
+      }
+
+      public void addListener(final Listener listener) {
+        mySlider.addChangeListener(new ChangeListener() {
+          private int value = mySlider.getValue();
+
+          @Override
+          public void stateChanged(ChangeEvent e) {
+            int newValue = mySlider.getValue();
+            if (newValue != value) {
+              value = newValue;
+              listener.levelChanged(newValue);
+            }
+          }
+        });
+      }
+
+      public interface Listener {
+        void levelChanged(int level);
       }
     }
   }
