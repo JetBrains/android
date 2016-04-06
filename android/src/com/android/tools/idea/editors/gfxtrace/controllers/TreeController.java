@@ -16,9 +16,9 @@
 package com.android.tools.idea.editors.gfxtrace.controllers;
 
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
+import com.android.tools.idea.editors.gfxtrace.widgets.LoadablePanel;
 import com.android.tools.idea.editors.gfxtrace.widgets.Tree;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.components.JBScrollPane;
 import org.jetbrains.annotations.NotNull;
 
@@ -32,7 +32,7 @@ import java.awt.*;
 public abstract class TreeController extends Controller {
   public static final int TREE_ROW_HEIGHT = 19;
 
-  @NotNull protected final JBLoadingPanel myLoadingPanel;
+  @NotNull protected final LoadablePanel myLoadingPanel;
   @NotNull protected final JPanel myPanel = new JPanel(new BorderLayout());
   @NotNull protected final JBScrollPane myScrollPane = new JBScrollPane();
   @NotNull protected final Tree myTree = new Tree(new DefaultTreeModel(new DefaultMutableTreeNode()));
@@ -45,8 +45,8 @@ public abstract class TreeController extends Controller {
     myTree.setLineStyleAngled();
     myTree.setCellRenderer(getRenderer());
     myTree.getEmptyText().setText(emptyText);
-    myLoadingPanel = new JBLoadingPanel(new BorderLayout(), editor.getProject());
-    myLoadingPanel.add(myTree);
+    myLoadingPanel = new LoadablePanel(new BorderLayout());
+    myLoadingPanel.getContentLayer().add(myTree);
     myScrollPane.setViewportView(myLoadingPanel);
     myScrollPane.getHorizontalScrollBar().setUnitIncrement(TREE_ROW_HEIGHT);
     myScrollPane.getVerticalScrollBar().setUnitIncrement(TREE_ROW_HEIGHT);
@@ -68,7 +68,6 @@ public abstract class TreeController extends Controller {
     assert (ApplicationManager.getApplication().isDispatchThread());
     myTree.setModel(model);
     myLoadingPanel.stopLoading();
-    myLoadingPanel.revalidate();
   }
 
   public TreeModel getModel() {
