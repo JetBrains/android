@@ -23,12 +23,12 @@ import com.android.tools.idea.editors.gfxtrace.renderers.Render;
 import com.android.tools.idea.editors.gfxtrace.renderers.RenderUtils;
 import com.android.tools.idea.editors.gfxtrace.service.RenderSettings;
 import com.android.tools.idea.editors.gfxtrace.service.ServiceClient;
-import com.android.tools.idea.editors.gfxtrace.service.WireframeMode;
+import com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.WireframeMode;
 import com.android.tools.idea.editors.gfxtrace.service.atom.Atom;
 import com.android.tools.idea.editors.gfxtrace.service.atom.AtomGroup;
 import com.android.tools.idea.editors.gfxtrace.service.atom.Observation;
 import com.android.tools.idea.editors.gfxtrace.service.image.FetchedImage;
-import com.android.tools.idea.editors.gfxtrace.service.memory.PoolID;
+import com.android.tools.idea.editors.gfxtrace.service.memory.MemoryProtos.PoolNames;
 import com.android.tools.idea.editors.gfxtrace.service.path.*;
 import com.android.tools.idea.editors.gfxtrace.widgets.LoadingIndicator;
 import com.android.tools.idea.editors.gfxtrace.widgets.Repaintables;
@@ -175,7 +175,7 @@ public class AtomController extends TreeController implements AtomStream.Listene
     public static final int PREVIEW_SIZE = JBUI.scale(200);
 
     private static final RenderSettings THUMBNAIL_SETTINGS =
-      new RenderSettings().setMaxWidth(PREVIEW_SIZE).setMaxHeight(PREVIEW_SIZE).setWireframeMode(WireframeMode.NoWireframe);
+      new RenderSettings().setMaxWidth(PREVIEW_SIZE).setMaxHeight(PREVIEW_SIZE).setWireframeMode(WireframeMode.None);
 
     public final AtomGroup group;
     public final Atom lastLeaf;
@@ -272,7 +272,7 @@ public class AtomController extends TreeController implements AtomStream.Listene
         else if (object instanceof Memory) {
           Memory memory = (Memory)object;
           myEditor.activatePath(
-            atoms.getPath().index(memory.index).memoryAfter(PoolID.ApplicationPool, memory.observation.getRange()), AtomController.this);
+            atoms.getPath().index(memory.index).memoryAfter(PoolNames.Application_VALUE, memory.observation.getRange()), AtomController.this);
         }
       }
     });

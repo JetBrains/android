@@ -21,6 +21,7 @@ import org.jetbrains.annotations.NotNull;
 
 import com.android.tools.rpclib.binary.*;
 import com.android.tools.rpclib.schema.*;
+import com.android.tools.idea.editors.gfxtrace.service.vertex.VertexProtos.VectorElement;
 
 import java.io.IOException;
 
@@ -59,7 +60,7 @@ public final class FmtUint32 extends Format implements BinaryObject {
 
   static {
     ENTITY.setFields(new Field[]{
-      new Field("Order", new Slice("VectorOrder", new Primitive("VectorElement", Method.Int8))),
+      new Field("Order", new Slice("VectorOrder", new Primitive("VectorElement", Method.Int32))),
       new Field("Normalized", new Primitive("bool", Method.Bool)),
     });
     Namespace.register(Klass.INSTANCE);
@@ -81,7 +82,7 @@ public final class FmtUint32 extends Format implements BinaryObject {
       FmtUint32 o = (FmtUint32)obj;
       e.uint32(o.myOrder.length);
       for (int i = 0; i < o.myOrder.length; i++) {
-        o.myOrder[i].encode(e);
+        e.int32(o.myOrder[i].getNumber());
       }
       e.bool(o.myNormalized);
     }
@@ -91,7 +92,7 @@ public final class FmtUint32 extends Format implements BinaryObject {
       FmtUint32 o = (FmtUint32)obj;
       o.myOrder = new VectorElement[d.uint32()];
       for (int i = 0; i <o.myOrder.length; i++) {
-        o.myOrder[i] = VectorElement.decode(d);
+        o.myOrder[i] = VectorElement.valueOf(d.int32());
       }
       o.myNormalized = d.bool();
     }

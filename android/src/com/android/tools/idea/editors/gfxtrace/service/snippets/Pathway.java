@@ -16,6 +16,8 @@
 package com.android.tools.idea.editors.gfxtrace.service.snippets;
 
 import com.android.tools.rpclib.binary.BinaryObject;
+import com.android.tools.idea.editors.gfxtrace.service.snippets.SnippetsProtos.SymbolCategory;
+import com.android.tools.idea.editors.gfxtrace.service.snippets.SnippetsProtos.PartKind;
 
 /**
  * Created by anton on 2/10/16.
@@ -73,7 +75,7 @@ public abstract class Pathway implements BinaryObject {
    * @return a pathway for the key.
    */
   public Pathway key() {
-    return new PartPath(this, PartKind.KeyPart);
+    return new PartPath(this, PartKind.Key);
   }
 
   /**
@@ -82,7 +84,7 @@ public abstract class Pathway implements BinaryObject {
    * @return a pathway for the element.
    */
   public Pathway elem() {
-    return new PartPath(this, PartKind.ElemPart);
+    return new PartPath(this, PartKind.Elem);
   }
 
   /**

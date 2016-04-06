@@ -21,6 +21,7 @@ import org.jetbrains.annotations.NotNull;
 
 import com.android.tools.rpclib.binary.*;
 import com.android.tools.rpclib.schema.*;
+import com.android.tools.idea.editors.gfxtrace.service.vertex.VertexProtos.SemanticType;
 
 import java.io.IOException;
 
@@ -59,7 +60,7 @@ public final class Semantic implements BinaryObject {
 
   static {
     ENTITY.setFields(new Field[]{
-      new Field("Type", new Primitive("SemanticType", Method.Uint32)),
+      new Field("Type", new Primitive("SemanticType", Method.Int32)),
       new Field("Index", new Primitive("uint8", Method.Uint8)),
     });
     Namespace.register(Klass.INSTANCE);
@@ -79,14 +80,14 @@ public final class Semantic implements BinaryObject {
     @Override
     public void encode(@NotNull Encoder e, BinaryObject obj) throws IOException {
       Semantic o = (Semantic)obj;
-      o.myType.encode(e);
+      e.int32(o.myType.getNumber());
       e.uint8(o.myIndex);
     }
 
     @Override
     public void decode(@NotNull Decoder d, BinaryObject obj) throws IOException {
       Semantic o = (Semantic)obj;
-      o.myType = SemanticType.decode(d);
+      o.myType = SemanticType.valueOf(d.int32());
       o.myIndex = d.uint8();
     }
     //<<<End:Java.KlassBody:2>>>

@@ -17,12 +17,13 @@ package com.android.tools.idea.editors.gfxtrace.controllers;
 
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.models.AtomStream;
-import com.android.tools.idea.editors.gfxtrace.service.gfxapi.DrawPrimitive;
+import com.android.tools.idea.editors.gfxtrace.service.gfxapi.GfxAPIProtos.DrawPrimitive;
 import com.android.tools.idea.editors.gfxtrace.service.gfxapi.Mesh;
 import com.android.tools.idea.editors.gfxtrace.service.path.AtomPath;
 import com.android.tools.idea.editors.gfxtrace.service.path.MeshPath;
 import com.android.tools.idea.editors.gfxtrace.service.path.MeshPathOptions;
 import com.android.tools.idea.editors.gfxtrace.service.vertex.*;
+import com.android.tools.idea.editors.gfxtrace.service.vertex.VertexProtos.*;
 import com.android.tools.idea.editors.gfxtrace.viewer.Geometry;
 import com.android.tools.idea.editors.gfxtrace.viewer.Viewer;
 import com.android.tools.idea.editors.gfxtrace.viewer.camera.CylindricalCameraModel;
