@@ -26,6 +26,7 @@ import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
@@ -195,7 +196,7 @@ public class InternalAndroidModelView {
   private String getStringForValue(@Nullable Object value) {
     if (value != null && value instanceof File) {
       String filePath = ((File)value).getPath();
-      String basePath = myProject.getBasePath();
+      String basePath = FileUtil.toSystemDependentName(myProject.getBasePath());
       if (basePath != null) {
         if (!basePath.endsWith(File.separator)) {
           basePath += File.separator;
