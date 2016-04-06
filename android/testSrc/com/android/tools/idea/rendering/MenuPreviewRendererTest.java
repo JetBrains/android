@@ -23,6 +23,8 @@ import com.android.utils.SdkUtils;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.w3c.dom.Element;
 
+import java.lang.reflect.Field;
+
 public class MenuPreviewRendererTest extends RenderTestBase {
 
   public void test() throws Exception {
@@ -429,6 +431,17 @@ public class MenuPreviewRendererTest extends RenderTestBase {
     } else {
       System.err.println("Not running MenuPreviewRendererTest.testLightTheme: Associated layoutlib in test SDK needs " +
                          "to use API 21 or higher");
+    }
+
+    // TODO: Remove the hack below after LayoutLib has been fixed properly.
+    try {
+      Field threadInstanceField =
+        task.getLayoutLib().getClassLoader().loadClass("android.view.Choreographer").getDeclaredField("sThreadInstance");
+      threadInstanceField.setAccessible(true);
+      ((ThreadLocal)threadInstanceField.get(null)).remove();
+    }
+    catch (Exception ignore) {
+      // Clearing the field may no longer be necessary if the exception is thrown (updated layoutlib?)
     }
   }
 }
