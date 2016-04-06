@@ -88,10 +88,10 @@ public class GeneratedCodeMatchTest extends AndroidGradleTestCase {
     Collection<File> classes = FileUtils.listFiles(classesOut, new String[]{"class"}, true);
     assertTrue("if we cannot find any class, something is wrong with the test", classes.size() > 0);
     ClassReader viewDataBindingClass = findViewDataBindingClass();
-    Set<String> baseClassInfo = collectDescriptionSet(viewDataBindingClass, new HashSet<String>());
+    Set<String> baseClassInfo = collectDescriptionSet(viewDataBindingClass, new HashSet<>());
 
     JavaPsiFacade javaPsiFacade = JavaPsiFacade.getInstance(myAndroidFacet.getModule().getProject());
-    Set<String> missingClasses = new HashSet<String>();
+    Set<String> missingClasses = new HashSet<>();
     boolean foundOne = false;
     for (File classFile : classes) {
       ClassReader classReader = new ClassReader(FileUtils.readFileToByteArray(classFile));
@@ -134,7 +134,7 @@ public class GeneratedCodeMatchTest extends AndroidGradleTestCase {
 
   @NotNull
   private static TreeSet<String> collectDescriptionSet(@NotNull ClassReader classReader, @NotNull final Set<String> exclude) {
-    final TreeSet<String> set = new TreeSet<String>();
+    final TreeSet<String> set = new TreeSet<>();
     classReader.accept(new ClassVisitor(Opcodes.ASM5) {
       @Override
       public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
@@ -164,7 +164,7 @@ public class GeneratedCodeMatchTest extends AndroidGradleTestCase {
 
   @NotNull
   private static String collectDescriptions(@NotNull PsiClass psiClass) {
-    final TreeSet<String> set = new TreeSet<String>();
+    final TreeSet<String> set = new TreeSet<>();
     for (PsiMethod method : psiClass.getMethods()) {
       if (method.getModifierList() != null && method.getModifierList().hasModifierProperty(PsiModifier.PUBLIC)) {
         set.add(modifierDescription(method) + " " + method.getName() + " : " + createMethodDescription(method));

@@ -82,7 +82,7 @@ public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
       }
     }
 
-    final List<Issue> missing = new ArrayList<Issue>();
+    final List<Issue> missing = new ArrayList<>();
     final IntellijLintIssueRegistry fullRegistry = new IntellijLintIssueRegistry();
 
     List<Issue> allIssues = fullRegistry.getIssues();

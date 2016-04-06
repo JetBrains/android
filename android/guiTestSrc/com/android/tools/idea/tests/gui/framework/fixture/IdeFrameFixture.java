@@ -279,7 +279,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   public GradleInvocationResult invokeProjectMake(@Nullable Runnable executeAfterInvokingMake) {
     myGradleProjectEventListener.reset();
 
-    final AtomicReference<GradleInvocationResult> resultRef = new AtomicReference<GradleInvocationResult>();
+    final AtomicReference<GradleInvocationResult> resultRef = new AtomicReference<>();
     AndroidProjectBuildNotifications.subscribe(getProject(), new AndroidProjectBuildNotifications.AndroidProjectBuildListener() {
       @Override
       public void buildComplete(@NotNull AndroidProjectBuildNotifications.BuildContext context) {
@@ -343,7 +343,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     AndroidGradleBuildConfiguration buildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
     buildConfiguration.USE_EXPERIMENTAL_FASTER_BUILD = false;
 
-    final AtomicReference<CompileContext> contextRef = new AtomicReference<CompileContext>();
+    final AtomicReference<CompileContext> contextRef = new AtomicReference<>();
     CompilerManager compilerManager = CompilerManager.getInstance(project);
 
     Disposable disposable = new NoOpDisposable();
@@ -623,7 +623,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   @NotNull
   public EditorNotificationPanelFixture requireEditorNotification(@NotNull final String message) {
-    final Ref<EditorNotificationPanel> notificationPanelRef = new Ref<EditorNotificationPanel>();
+    final Ref<EditorNotificationPanel> notificationPanelRef = new Ref<>();
 
     Wait.seconds(30).expecting("EditorNotificationPanel with message '" + message + "' to show up")
       .until(() -> {
@@ -885,7 +885,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     if (openInEditor) {
       getEditor().open(buildFile, Tab.DEFAULT).getCurrentFile();
     }
-    final Ref<GradleBuildModel> buildModelRef = new Ref<GradleBuildModel>();
+    final Ref<GradleBuildModel> buildModelRef = new Ref<>();
     new ReadAction() {
       @Override
       protected void run(@NotNull Result result) throws Throwable {

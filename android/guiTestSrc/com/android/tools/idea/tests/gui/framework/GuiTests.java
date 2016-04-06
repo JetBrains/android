@@ -113,7 +113,7 @@ public final class GuiTests {
 
   public static List<Error> fatalErrorsFromIde() {
     List<AbstractMessage> errorMessages = MessagePool.getInstance().getFatalErrors(true, true);
-    List<Error> errors = new ArrayList<Error>(errorMessages.size());
+    List<Error> errors = new ArrayList<>(errorMessages.size());
     for (AbstractMessage errorMessage : errorMessages) {
       StringBuilder messageBuilder = new StringBuilder(errorMessage.getMessage());
       String additionalInfo = errorMessage.getAdditionalInfo();
@@ -580,7 +580,7 @@ public final class GuiTests {
   public static <T extends Component> T waitUntilFound(@NotNull final Robot robot,
                                                        @Nullable final Container root,
                                                        @NotNull final GenericTypeMatcher<T> matcher) {
-    final AtomicReference<T> reference = new AtomicReference<T>();
+    final AtomicReference<T> reference = new AtomicReference<>();
     String typeName = matcher.supportedType().getSimpleName();
     Wait.minutes(2).expecting("matching " + typeName)
       .until(() -> {

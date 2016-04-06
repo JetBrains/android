@@ -32,14 +32,14 @@ public final class ObservableListTest {
   @Test
   public void testCopyConstructor() {
     List<String> srcList = Lists.newArrayList("A", "B", "C");
-    ObservableList<String> cloneList = new ObservableList<String>(srcList);
+    ObservableList<String> cloneList = new ObservableList<>(srcList);
 
     assertThat(cloneList).containsExactly("A", "B", "C");
   }
 
   @Test
   public void testSizeQueries() throws Exception {
-    ObservableList<String> list = new ObservableList<String>();
+    ObservableList<String> list = new ObservableList<>();
     list.add("A");
     list.add("B");
     list.add("C");
@@ -50,7 +50,7 @@ public final class ObservableListTest {
 
   @Test
   public void testContains() throws Exception {
-    ObservableList<String> list = new ObservableList<String>();
+    ObservableList<String> list = new ObservableList<>();
     list.add("A");
     list.add("B");
     list.add("C");
@@ -61,7 +61,7 @@ public final class ObservableListTest {
 
   @Test
   public void testContainsAll() throws Exception {
-    ObservableList<String> list = new ObservableList<String>();
+    ObservableList<String> list = new ObservableList<>();
     list.add("A");
     list.add("B");
     list.add("C");
@@ -72,7 +72,7 @@ public final class ObservableListTest {
 
   @Test
   public void testIndexOf() {
-    ObservableList<String> list = new ObservableList<String>();
+    ObservableList<String> list = new ObservableList<>();
     list.add("A");
     list.add("B");
     list.add("C");
@@ -85,7 +85,7 @@ public final class ObservableListTest {
 
   @Test
   public void testToArray() throws Exception {
-    ObservableList<String> list = new ObservableList<String>();
+    ObservableList<String> list = new ObservableList<>();
     list.add("A");
     list.add("B");
     list.add("C");
@@ -96,7 +96,7 @@ public final class ObservableListTest {
   @Test
   public void testToArray2() throws Exception {
     String[] testArray = new String[3];
-    ObservableList<String> list = new ObservableList<String>();
+    ObservableList<String> list = new ObservableList<>();
     list.add("A");
     list.add("B");
     list.add("C");
@@ -107,7 +107,7 @@ public final class ObservableListTest {
 
   @Test
   public void listIsIterable() throws Exception {
-    ObservableList<String> list = new ObservableList<String>();
+    ObservableList<String> list = new ObservableList<>();
     list.add("A");
     list.add("B");
     list.add("C");
@@ -122,7 +122,7 @@ public final class ObservableListTest {
 
   @Test
   public void listIsListIterable() throws Exception {
-    ObservableList<String> list = new ObservableList<String>();
+    ObservableList<String> list = new ObservableList<>();
     list.add("A");
     list.add("B");
     list.add("C");
@@ -138,7 +138,7 @@ public final class ObservableListTest {
 
   @Test
   public void listIsListIterableAtIndex() throws Exception {
-    ObservableList<String> list = new ObservableList<String>();
+    ObservableList<String> list = new ObservableList<>();
     list.add("A");
     list.add("B");
     list.add("C");
@@ -154,7 +154,7 @@ public final class ObservableListTest {
 
   @Test
   public void testSublist() throws Exception {
-    ObservableList<String> list = new ObservableList<String>();
+    ObservableList<String> list = new ObservableList<>();
     list.add("A");
     list.add("B");
     list.add("C");
@@ -165,7 +165,7 @@ public final class ObservableListTest {
 
   @Test
   public void listInvalidatedOnAdd() throws Exception {
-    ObservableList<String> list = new ObservableList<String>();
+    ObservableList<String> list = new ObservableList<>();
     CountListener listener = new CountListener();
     list.addListener(listener);
 
@@ -176,7 +176,7 @@ public final class ObservableListTest {
 
   @Test
   public void listInvalidatedOnAddAtIndex() throws Exception {
-    ObservableList<String> list = new ObservableList<String>();
+    ObservableList<String> list = new ObservableList<>();
     CountListener listener = new CountListener();
     list.addListener(listener);
 
@@ -191,7 +191,7 @@ public final class ObservableListTest {
 
   @Test
   public void listInvalidatedOnSet() throws Exception {
-    ObservableList<String> list = new ObservableList<String>();
+    ObservableList<String> list = new ObservableList<>();
     CountListener listener = new CountListener();
     list.addListener(listener);
 
@@ -207,7 +207,7 @@ public final class ObservableListTest {
 
   @Test
   public void listInvalidatedForEachElementAdded() throws Exception {
-    ObservableList<String> list = new ObservableList<String>();
+    ObservableList<String> list = new ObservableList<>();
     CountListener listener = new CountListener();
     list.addListener(listener);
 
@@ -220,7 +220,7 @@ public final class ObservableListTest {
 
   @Test
   public void listInvalidatedOnRemove() throws Exception {
-    ObservableList<String> list = new ObservableList<String>();
+    ObservableList<String> list = new ObservableList<>();
     CountListener listener = new CountListener();
     list.addListener(listener);
 
@@ -236,7 +236,7 @@ public final class ObservableListTest {
 
   @Test
   public void listInvalidatedOnClear() throws Exception {
-    ObservableList<String> list = new ObservableList<String>();
+    ObservableList<String> list = new ObservableList<>();
     CountListener listener = new CountListener();
     list.addListener(listener);
 
@@ -249,7 +249,7 @@ public final class ObservableListTest {
 
   @Test
   public void clearOnEmptyListDoesntFireInvalidation() throws Exception {
-    ObservableList<String> list = new ObservableList<String>();
+    ObservableList<String> list = new ObservableList<>();
     CountListener listener = new CountListener();
     list.addListener(listener);
 
@@ -259,7 +259,7 @@ public final class ObservableListTest {
 
   @Test
   public void listInvalidatedOnRemoveAll() throws Exception {
-    ObservableList<String> list = new ObservableList<String>();
+    ObservableList<String> list = new ObservableList<>();
     CountListener listener = new CountListener();
     list.addListener(listener);
 
@@ -275,7 +275,7 @@ public final class ObservableListTest {
 
   @Test
   public void removeAllWithoutChangeDoesntFireInvalidation() throws Exception {
-    ObservableList<String> list = new ObservableList<String>();
+    ObservableList<String> list = new ObservableList<>();
     CountListener listener = new CountListener();
     list.addListener(listener);
 
@@ -291,7 +291,7 @@ public final class ObservableListTest {
 
   @Test
   public void listInvalidatedOnRetainAll() throws Exception {
-    ObservableList<String> list = new ObservableList<String>();
+    ObservableList<String> list = new ObservableList<>();
     CountListener listener = new CountListener();
     list.addListener(listener);
 
@@ -307,7 +307,7 @@ public final class ObservableListTest {
 
   @Test
   public void retainAllWithoutChangeDoesntFireInvalidation() throws Exception {
-    ObservableList<String> list = new ObservableList<String>();
+    ObservableList<String> list = new ObservableList<>();
     CountListener listener = new CountListener();
     list.addListener(listener);
 
@@ -323,7 +323,7 @@ public final class ObservableListTest {
 
   @Test
   public void listInvalidatedOnAddAll() throws Exception {
-    ObservableList<String> list = new ObservableList<String>();
+    ObservableList<String> list = new ObservableList<>();
     CountListener listener = new CountListener();
     list.addListener(listener);
 
@@ -335,7 +335,7 @@ public final class ObservableListTest {
 
   @Test
   public void listInvalidatedOnAddAllAtIndex() throws Exception {
-    ObservableList<String> list = new ObservableList<String>();
+    ObservableList<String> list = new ObservableList<>();
     CountListener listener = new CountListener();
     list.addListener(listener);
 
@@ -351,7 +351,7 @@ public final class ObservableListTest {
 
   @Test
   public void listInvalidatedOnIteratorRemove() {
-    ObservableList<String> list = new ObservableList<String>();
+    ObservableList<String> list = new ObservableList<>();
     CountListener listener = new CountListener();
     list.addListener(listener);
 
@@ -369,7 +369,7 @@ public final class ObservableListTest {
 
   @Test
   public void listInvalidatedOnListIteratorRemove() {
-    ObservableList<String> list = new ObservableList<String>();
+    ObservableList<String> list = new ObservableList<>();
     CountListener listener = new CountListener();
     list.addListener(listener);
 
@@ -386,7 +386,7 @@ public final class ObservableListTest {
   }
   @Test
   public void listInvalidatedOnListIteratorSet() {
-    ObservableList<String> list = new ObservableList<String>();
+    ObservableList<String> list = new ObservableList<>();
     CountListener listener = new CountListener();
     list.addListener(listener);
 
@@ -404,7 +404,7 @@ public final class ObservableListTest {
   }
   @Test
   public void listInvalidatedOnListIteratorAdd() {
-    ObservableList<String> list = new ObservableList<String>();
+    ObservableList<String> list = new ObservableList<>();
     CountListener listener = new CountListener();
     list.addListener(listener);
 
@@ -421,7 +421,7 @@ public final class ObservableListTest {
 
   @Test
   public void listInvalidationDeferredIfUsingBeginEndUpdate() throws Exception {
-    ObservableList<String> list = new ObservableList<String>();
+    ObservableList<String> list = new ObservableList<>();
     CountListener listener = new CountListener();
     list.addListener(listener);
 
@@ -437,7 +437,7 @@ public final class ObservableListTest {
 
   @Test
   public void beginUpdateCanBeCalledMultipleTimes() throws Exception {
-    ObservableList<String> list = new ObservableList<String>();
+    ObservableList<String> list = new ObservableList<>();
     CountListener listener = new CountListener();
     list.addListener(listener);
 
@@ -460,7 +460,7 @@ public final class ObservableListTest {
 
   @Test
   public void setAllReplacesTheCurrentList()  throws Exception {
-    ObservableList<Integer> numericList = new ObservableList<Integer>();
+    ObservableList<Integer> numericList = new ObservableList<>();
     numericList.add(1);
     numericList.add(2);
     numericList.add(3);
@@ -476,7 +476,7 @@ public final class ObservableListTest {
 
   @Test
   public void setAllWithEmptyCollectionCanClearTheCurrentList()  throws Exception {
-    ObservableList<Integer> numericList = new ObservableList<Integer>();
+    ObservableList<Integer> numericList = new ObservableList<>();
     numericList.add(1);
     numericList.add(2);
     numericList.add(3);
@@ -492,7 +492,7 @@ public final class ObservableListTest {
 
   @Test(expected = IllegalStateException.class)
   public void listThrowsExceptionOnEndUpdateWithoutBeginUpdate() {
-    ObservableList<String> list = new ObservableList<String>();
+    ObservableList<String> list = new ObservableList<>();
     list.endUpdate();
   }
 }

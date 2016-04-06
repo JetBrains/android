@@ -67,11 +67,11 @@ public final class BindingsManagerTest {
   public void mapBindingsUpdateDestinationList() throws Exception {
     BindingsManager bindings = new BindingsManager(INVOKE_IMMEDIATELY_STRATEGY);
 
-    ObservableList<Integer> numericList = new ObservableList<Integer>();
+    ObservableList<Integer> numericList = new ObservableList<>();
     for (int i = 1; i <= 5; i++) {
       numericList.add(i);
     }
-    ObservableList<String> stringList = new ObservableList<String>();
+    ObservableList<String> stringList = new ObservableList<>();
     CountListener listener = new CountListener();
     stringList.addListener(listener);
 
@@ -154,8 +154,8 @@ public final class BindingsManagerTest {
   @Test
   public void releaseDisconnectsListBindings() throws Exception {
     BindingsManager bindings = new BindingsManager(INVOKE_IMMEDIATELY_STRATEGY);
-    ObservableList<String> dest = new ObservableList<String>();
-    ObservableList<Integer> src = new ObservableList<Integer>();
+    ObservableList<String> dest = new ObservableList<>();
+    ObservableList<Integer> src = new ObservableList<>();
 
     bindings.bind(dest, new MapExpression<Integer, String>(src) {
       @NotNull
@@ -210,8 +210,8 @@ public final class BindingsManagerTest {
   @Test
   public void releaseAllDisconnectsListBindings() throws Exception {
     BindingsManager bindings = new BindingsManager(INVOKE_IMMEDIATELY_STRATEGY);
-    ObservableList<String> dest = new ObservableList<String>();
-    ObservableList<Integer> src = new ObservableList<Integer>();
+    ObservableList<String> dest = new ObservableList<>();
+    ObservableList<Integer> src = new ObservableList<>();
 
     bindings.bind(dest, new MapExpression<Integer, String>(src) {
       @NotNull

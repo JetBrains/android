@@ -85,8 +85,8 @@ public class ResourceNotificationManagerTest extends AndroidTestCase {
     final ResourceNotificationManager manager = ResourceNotificationManager.getInstance(getProject());
 
     // Listener 1: Listens for changes in layout 1
-    final Ref<Boolean> called1 = new Ref<Boolean>(false);
-    final Ref<Set<Reason>> calledValue1 = new Ref<Set<Reason>>();
+    final Ref<Boolean> called1 = new Ref<>(false);
+    final Ref<Set<Reason>> calledValue1 = new Ref<>();
     ResourceChangeListener listener1 = new ResourceChangeListener() {
       @Override
       public void resourcesChanged(@NotNull Set<Reason> reason) {
@@ -96,8 +96,8 @@ public class ResourceNotificationManagerTest extends AndroidTestCase {
     };
 
     // Listener 2: Only listens for general changes in the module
-    final Ref<Boolean> called2 = new Ref<Boolean>(false);
-    final Ref<Set<Reason>> calledValue2 = new Ref<Set<Reason>>();
+    final Ref<Boolean> called2 = new Ref<>(false);
+    final Ref<Set<Reason>> calledValue2 = new Ref<>();
     ResourceChangeListener listener2 = new ResourceChangeListener() {
       @Override
       public void resourcesChanged(@NotNull Set<Reason> reason) {

@@ -43,10 +43,10 @@ public class ClassNameMatcher<T extends Component> extends GenericTypeMatcher<T>
   }
 
   public static <T extends Component> ClassNameMatcher<T> forClass(String className, Class<T> supportedType) {
-    return new ClassNameMatcher<T>(className, supportedType);
+    return new ClassNameMatcher<>(className, supportedType);
   }
 
   public static <T extends Component> ClassNameMatcher<T> forClass(String className, Class<T> supportedType, boolean requireShowing) {
-    return new ClassNameMatcher<T>(className, supportedType, requireShowing);
+    return new ClassNameMatcher<>(className, supportedType, requireShowing);
   }
 }
