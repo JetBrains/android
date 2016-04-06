@@ -22,6 +22,7 @@ import com.android.tools.idea.editors.gfxtrace.service.ErrDataUnavailable;
 import com.android.tools.idea.editors.gfxtrace.service.MemoryInfo;
 import com.android.tools.idea.editors.gfxtrace.service.memory.MemoryRange;
 import com.android.tools.idea.editors.gfxtrace.service.path.*;
+import com.android.tools.idea.editors.gfxtrace.service.path.PathProtos.MemoryKind;
 import com.android.tools.rpclib.rpccore.Rpc;
 import com.android.tools.rpclib.rpccore.RpcException;
 import com.google.common.base.Function;

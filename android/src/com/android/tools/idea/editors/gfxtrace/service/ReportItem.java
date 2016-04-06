@@ -18,7 +18,7 @@
 package com.android.tools.idea.editors.gfxtrace.service;
 
 import com.android.tools.rpclib.schema.*;
-import com.android.tools.idea.editors.gfxtrace.service.log.Severity;
+import com.android.tools.idea.editors.gfxtrace.service.log.LogProtos.Severity;
 import com.android.tools.rpclib.binary.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -90,7 +90,7 @@ public final class ReportItem implements BinaryObject {
     @Override
     public void encode(@NotNull Encoder e, BinaryObject obj) throws IOException {
       ReportItem o = (ReportItem)obj;
-      o.mySeverity.encode(e);
+      e.int32(o.mySeverity.getNumber());
       e.string(o.myMessage);
       e.uint64(o.myAtom);
     }
@@ -98,7 +98,7 @@ public final class ReportItem implements BinaryObject {
     @Override
     public void decode(@NotNull Decoder d, BinaryObject obj) throws IOException {
       ReportItem o = (ReportItem)obj;
-      o.mySeverity = Severity.decode(d);
+      o.mySeverity = Severity.valueOf(d.int32());
       o.myMessage = d.string();
       o.myAtom = d.uint64();
     }
