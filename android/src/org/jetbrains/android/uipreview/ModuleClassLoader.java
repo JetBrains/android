@@ -1,15 +1,15 @@
 package org.jetbrains.android.uipreview;
 
 import com.android.ide.common.rendering.LayoutLibrary;
-import com.android.tools.idea.rendering.RenderSecurityManager;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.editors.theme.ThemeEditorProvider;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.ClassJarProvider;
+import com.android.tools.idea.rendering.RenderClassLoader;
+import com.android.tools.idea.rendering.RenderSecurityManager;
 import com.android.tools.idea.res.AarResourceClassRegistry;
 import com.android.tools.idea.res.AppResourceRepository;
-import com.android.tools.idea.rendering.RenderClassLoader;
 import com.android.utils.SdkUtils;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ApplicationManager;
@@ -37,12 +37,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.lang.ref.WeakReference;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.gradle.AndroidGradleModel.EXPLODED_AAR;
@@ -59,7 +57,7 @@ public final class ModuleClassLoader extends RenderClassLoader {
 
   /** The base module to use as a render context; the class loader will consult the module dependencies and library dependencies
    * of this class as well to find classes */
-  private final Module myModule;
+  private final WeakReference<Module> myModuleReference;
 
   /** The layout library to use as a root class loader (e.g. the place to obtain the layoutlib Android SDK view classes from */
   private final LayoutLibrary myLibrary;
@@ -82,7 +80,7 @@ public final class ModuleClassLoader extends RenderClassLoader {
   private ModuleClassLoader(@NotNull LayoutLibrary library, @NotNull Module module) {
     super(library.getClassLoader());
     myLibrary = library;
-    myModule = module;
+    myModuleReference = new WeakReference<>(module);
   }
 
   @NotNull
@@ -92,11 +90,15 @@ public final class ModuleClassLoader extends RenderClassLoader {
       return super.findClass(name);
     } catch (ClassNotFoundException e) {
       if (!myInsideJarClassLoader) {
+        final Module module = myModuleReference.get();
+        if (module == null) {
+          throw e;
+        }
         int index = name.lastIndexOf('.');
         if (index != -1 && name.charAt(index + 1) == 'R' && (index == name.length() - 2 || name.charAt(index + 2) == '$') && index > 1) {
-          AppResourceRepository appResources = AppResourceRepository.getAppResources(myModule, false);
+          AppResourceRepository appResources = AppResourceRepository.getAppResources(module, false);
           if (appResources != null) {
-            byte[] data = AarResourceClassRegistry.get(myModule.getProject()).findClassDefinition(name, appResources);
+            byte[] data = AarResourceClassRegistry.get(module.getProject()).findClassDefinition(name, appResources);
             if (data != null) {
               data = convertClass(data);
               if (DEBUG_CLASS_LOADING) {
@@ -141,7 +143,11 @@ public final class ModuleClassLoader extends RenderClassLoader {
   @NotNull
   @Override
   protected Class<?> load(String name) throws ClassNotFoundException {
-    Class<?> aClass = loadClassFromModuleOrDependency(myModule, name, new HashSet<Module>());
+    Module module = myModuleReference.get();
+    if (module == null) {
+      throw new ClassNotFoundException(name);
+    }
+    Class<?> aClass = loadClassFromModuleOrDependency(module, name, new HashSet<Module>());
 
     if (aClass == null) {
       aClass = loadClassFromJar(name);
@@ -212,6 +218,10 @@ public final class ModuleClassLoader extends RenderClassLoader {
    * @return true if the source file has been modified, or false if not (or if the source file cannot be found)
    */
   public boolean isSourceModified(@NotNull final String fqcn, @Nullable final Object myCredential) {
+    final Module module = myModuleReference.get();
+    if (module == null) {
+      return false;
+    }
     VirtualFile classFile = getClassFile(fqcn);
 
     // Make sure the class file is up to date and if not, log an error
@@ -225,8 +235,8 @@ public final class ModuleClassLoader extends RenderClassLoader {
             @Nullable
             @Override
             public VirtualFile compute() {
-              Project project = myModule.getProject();
-              GlobalSearchScope scope = myModule.getModuleWithDependenciesScope();
+              Project project = module.getProject();
+              GlobalSearchScope scope = module.getModuleWithDependenciesScope();
               PsiManager psiManager = PsiManager.getInstance(project);
               JavaPsiFacade psiFacade = JavaPsiFacade.getInstance(psiManager.getProject());
               PsiClass source = psiFacade.findClass(fqcn, scope);
@@ -248,14 +258,14 @@ public final class ModuleClassLoader extends RenderClassLoader {
               File sourceFile = VfsUtilCore.virtualToIoFile(virtualFile);
               long sourceFileModified = sourceFile.lastModified();
 
-              AndroidFacet facet = AndroidFacet.getInstance(myModule);
+              AndroidFacet facet = AndroidFacet.getInstance(module);
               // User modifications on the source file might not always result on a new .class file.
               // We use the project modification time instead to display the warning more reliably.
               // Also, some build systems may use a constant last modified timestamp for .class files,
               // for deterministic builds, so the project modification time is more reliable.
               long lastBuildTimestamp = classFileModified;
               if (facet != null && facet.requiresAndroidModel() && facet.getAndroidModel() != null) {
-                Long projectBuildTimestamp = facet.getAndroidModel().getLastBuildTimestamp(myModule.getProject());
+                Long projectBuildTimestamp = facet.getAndroidModel().getLastBuildTimestamp(module.getProject());
                 if (projectBuildTimestamp != null) {
                   lastBuildTimestamp = projectBuildTimestamp;
                 }
@@ -292,6 +302,10 @@ public final class ModuleClassLoader extends RenderClassLoader {
 
   @Override
   protected List<URL> getExternalJars() {
+    final Module module = myModuleReference.get();
+    if (module == null) {
+      return Collections.emptyList();
+    }
     final List<URL> result = new ArrayList<URL>();
 
     if (ThemeEditorProvider.THEME_EDITOR_ENABLE) {
@@ -302,12 +316,12 @@ public final class ModuleClassLoader extends RenderClassLoader {
       }
     }
     List<VirtualFile> externalLibraries;
-    AndroidFacet facet = AndroidFacet.getInstance(myModule);
+    AndroidFacet facet = AndroidFacet.getInstance(module);
     if (facet != null && facet.requiresAndroidModel() && facet.getAndroidModel() != null) {
       AndroidModel androidModel = facet.getAndroidModel();
-      externalLibraries = androidModel.getClassJarProvider().getModuleExternalLibraries(myModule);
+      externalLibraries = androidModel.getClassJarProvider().getModuleExternalLibraries(module);
     } else {
-      externalLibraries = AndroidRootUtil.getExternalLibraries(myModule);
+      externalLibraries = AndroidRootUtil.getExternalLibraries(module);
     }
     for (VirtualFile libFile : externalLibraries) {
       if (EXT_JAR.equals(libFile.getExtension())) {
@@ -322,9 +336,9 @@ public final class ModuleClassLoader extends RenderClassLoader {
                 // Gradle plugin version 1.2.x and later has classes in aar-dir/jars/
                 aarDir = aarDir.getParentFile();
               }
-              AppResourceRepository appResources = AppResourceRepository.getAppResources(myModule, true);
+              AppResourceRepository appResources = AppResourceRepository.getAppResources(module, true);
               if (appResources != null) {
-                AarResourceClassRegistry.get(myModule.getProject()).addLibrary(appResources, aarDir);
+                AarResourceClassRegistry.get(module.getProject()).addLibrary(appResources, aarDir);
               }
             }
           }
