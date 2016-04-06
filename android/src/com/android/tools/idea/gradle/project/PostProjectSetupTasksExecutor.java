@@ -730,43 +730,9 @@ public class PostProjectSetupTasksExecutor {
       GradleSyncState.getInstance(myProject).syncSkipped(lastSyncTimestamp);
     }
 
-    persistAndroidGradleModelData(myUsingCachedProjectData);
-
     // set default value back.
     myUsingCachedProjectData = DEFAULT_USING_CACHED_PROJECT_DATA;
     myLastSyncTimestamp = DEFAULT_LAST_SYNC_TIMESTAMP;
-  }
-
-  private void persistAndroidGradleModelData(final boolean usingCachedProjectData) {
-    if (ApplicationManager.getApplication().isUnitTestMode()) {
-      return;
-    }
-
-    ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
-      @Override
-      public void run() {
-        if (!usingCachedProjectData) {
-          // Wait for the proxy operations to complete in a pooled thread (to avoid the UI freeze) and
-          // then save the project to persist the model data.
-          // See https://code.google.com/p/android/issues/detail?id=196206 for more details.
-          for (Module module : ModuleManager.getInstance(myProject).getModules()) {
-            AndroidGradleModel androidGradleModel = AndroidGradleModel.get(module);
-            if (androidGradleModel != null) {
-              androidGradleModel.waitForProxyAndroidProject();
-            }
-          }
-        }
-
-        UIUtil.invokeLaterIfNeeded(new Runnable() {
-          @Override
-          public void run() {
-            // The model data is not persisted if the project.save() was already executed between the sync completion and now.
-            // TODO: Investigate it further and update it to always persist the model data here.
-            myProject.save();
-          }
-        });
-      }
-    });
   }
 
   /**
