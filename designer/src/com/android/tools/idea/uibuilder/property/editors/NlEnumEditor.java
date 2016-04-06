@@ -34,10 +34,11 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.util.List;
 
-public class NlEnumEditor implements ActionListener {
+public class NlEnumEditor {
   public static final String UNSET = "<unset>";
   private static final List<String> AVAILABLE_TEXT_SIZES = ImmutableList.of("8sp", "10sp", "12sp", "14sp", "18sp", "24sp", "30sp", "36sp");
   private static final List<String> AVAILABLE_LINE_SPACINGS = AVAILABLE_TEXT_SIZES;
@@ -86,9 +87,16 @@ public class NlEnumEditor implements ActionListener {
     myBrowseButton.setVisible(includeBrowseButton);
     myPanel.add(myBrowseButton, BorderLayout.LINE_END);
 
-    // TODO: Hook up general editing. (Such that the control would recognize "100dp" for example)
-    myCombo.addActionListener(this);
-    myBrowseButton.addActionListener(this);
+    myBrowseButton.addActionListener(event -> resourcePicked());
+    myCombo.addActionListener(this::comboValuePicked);
+    myCombo.getEditor().getEditorComponent().addKeyListener(new KeyAdapter() {
+      @Override
+      public void keyTyped(KeyEvent event) {
+        if (event.getKeyChar() == KeyEvent.VK_ENTER) {
+          myListener.itemPicked(NlEnumEditor.this, myCombo.getEditor().getItem().toString());
+        }
+      }
+    });
   }
 
   public void setEnabled(boolean en) {
@@ -151,34 +159,34 @@ public class NlEnumEditor implements ActionListener {
     myCombo.showPopup();
   }
 
-  @Override
-  public void actionPerformed(ActionEvent e) {
+  private void resourcePicked() {
     if (myProperty == null) {
       return;
     }
+    ChooseResourceDialog dialog = NlReferenceEditor.showResourceChooser(myProperty);
+    if (dialog.showAndGet()) {
+      String value = dialog.getResourceName();
 
-    if (e.getSource() == myBrowseButton) {
-      ChooseResourceDialog dialog = NlReferenceEditor.showResourceChooser(myProperty);
-      if (dialog.showAndGet()) {
-        String value = dialog.getResourceName();
+      DefaultComboBoxModel<String> model = (DefaultComboBoxModel<String>)myCombo.getModel();
+      selectItem(model, value);
 
-        DefaultComboBoxModel<String> model = (DefaultComboBoxModel<String>)myCombo.getModel();
-        selectItem(model, value);
-
-        myListener.resourcePicked(this, value);
-      } else {
-        myListener.resourcePickerCancelled(this);
-      }
+      myListener.resourcePicked(this, value);
+    } else {
+      myListener.resourcePickerCancelled(this);
     }
-    else if (e.getSource() == myCombo) {
-      Object value = myCombo.getModel().getSelectedItem();
-      String actionCommand = e.getActionCommand();
+  }
 
-      // only notify listener if a value has been picked from the combo box, not for every event from the combo
-      // Note: these action names seem to be platform dependent?
-      if ("comboBoxEdited".equals(actionCommand) || "comboBoxChanged".equals(actionCommand)) {
-        myListener.itemPicked(this, value.toString());
-      }
+  private void comboValuePicked(ActionEvent event) {
+    if (myProperty == null) {
+      return;
+    }
+    Object value = myCombo.getModel().getSelectedItem();
+    String actionCommand = event.getActionCommand();
+
+    // only notify listener if a value has been picked from the combo box, not for every event from the combo
+    // Note: these action names seem to be platform dependent?
+    if ("comboBoxEdited".equals(actionCommand) || "comboBoxChanged".equals(actionCommand)) {
+      myListener.itemPicked(this, value.toString());
     }
   }
 }
