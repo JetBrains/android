@@ -18,6 +18,8 @@ package com.android.tools.idea.tests.gui.avdmanager;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.*;
+import com.android.tools.idea.ui.validation.Validator;
+import org.fest.assertions.Assertions;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -46,9 +48,9 @@ public class HardwareProfileTest {
     ConfigureDeviceOptionsStepFixture deviceOptionsStep = hardwareProfileWizard.getConfigureDeviceOptionsStep();
     deviceOptionsStep.setDeviceName(deviceName)
                      .selectHasFrontCamera(false)
-                     .setScreenResolutionX(1280)
-                     .setScreenResolutionY(920)
-                     .setScreenSize(5.2);
+                     .setScreenResolutionX("1280")
+                     .setScreenResolutionY("920")
+                     .setScreenSize("5.2");
     guiTest.robot().waitForIdle();
     hardwareProfileWizard.clickFinish();
     assertWithMessage("after creating").that(step.deviceNames()).contains(deviceName);
@@ -56,6 +58,44 @@ public class HardwareProfileTest {
     step.deleteHardwareProfile(deviceName);
     assertWithMessage("after deleting").that(step.deviceNames()).doesNotContain(deviceName);
 
+    avdEditWizard.clickCancel();
+    avdManagerDialog.close();
+  }
+
+  @Test
+  public void testCreateHardwareProfileErrors() throws Exception {
+    guiTest.importSimpleApplication();
+    AvdManagerDialogFixture avdManagerDialog = guiTest.ideFrame().invokeAvdManager();
+    AvdEditWizardFixture avdEditWizard = avdManagerDialog.createNew();
+    ChooseDeviceDefinitionStepFixture chooseDeviceDefinitionStep = avdEditWizard.selectHardware();
+
+    HardwareProfileWizardFixture hardwareProfileWizard = chooseDeviceDefinitionStep.newHardwareProfile();
+    ConfigureDeviceOptionsStepFixture deviceOptionsStep = hardwareProfileWizard.getConfigureDeviceOptionsStep();
+    deviceOptionsStep.selectHasFrontCamera(false)
+      .setScreenResolutionX("1280")
+      .setScreenResolutionY("920")
+      .setScreenSize("5.2");
+
+    deviceOptionsStep.setDeviceName("\b");
+    Assertions.assertThat(avdEditWizard.getValidationText(Validator.Severity.ERROR))
+      .isSameAs("Please write a name for the new device.");
+
+    deviceOptionsStep.setDeviceName("My Device Test")
+      .setScreenSize("5.2x");
+    Assertions.assertThat(avdEditWizard.getValidationText(Validator.Severity.ERROR))
+      .isSameAs("Please enter a non-zero positive floating point value for the screen size.");
+
+    deviceOptionsStep.setScreenSize("5.2")
+      .setScreenResolutionX("0");
+    Assertions.assertThat(avdEditWizard.getValidationText(Validator.Severity.ERROR))
+      .isSameAs("Please enter non-zero positive integer values for the screen resolution width.");
+
+    deviceOptionsStep.setScreenResolutionX("1280")
+      .setScreenResolutionY("0");
+    Assertions.assertThat(avdEditWizard.getValidationText(Validator.Severity.ERROR))
+      .isSameAs("Please enter non-zero positive integer values for the screen resolution height.");
+
+    hardwareProfileWizard.clickCancel();
     avdEditWizard.clickCancel();
     avdManagerDialog.close();
   }
