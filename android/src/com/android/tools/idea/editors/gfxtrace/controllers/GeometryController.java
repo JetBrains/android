@@ -29,6 +29,7 @@ import com.android.tools.idea.editors.gfxtrace.viewer.Viewer;
 import com.android.tools.idea.editors.gfxtrace.viewer.camera.CylindricalCameraModel;
 import com.android.tools.idea.editors.gfxtrace.viewer.camera.IsoSurfaceCameraModel;
 import com.android.tools.idea.editors.gfxtrace.viewer.geo.Model;
+import com.android.tools.idea.editors.gfxtrace.widgets.LoadablePanel;
 import com.android.tools.rpclib.rpccore.Rpc;
 import com.android.tools.rpclib.rpccore.RpcException;
 import com.google.common.base.Function;
@@ -37,7 +38,6 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.util.ui.StatusText;
 import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLProfile;
@@ -65,7 +65,7 @@ public class GeometryController extends Controller implements AtomStream.Listene
   );
 
   private final JPanel myPanel = new JPanel(new CardLayout());
-  private final JBLoadingPanel myLoading = new JBLoadingPanel(new BorderLayout(), myEditor.getProject(), 50);
+  private final LoadablePanel myLoading = new LoadablePanel(new BorderLayout());
   private final EmptyPanel myEmptyPanel = new EmptyPanel();
   private final GLJPanel myCanvas;
   private final IsoSurfaceCameraModel myCamera = new IsoSurfaceCameraModel(new CylindricalCameraModel());
@@ -94,7 +94,7 @@ public class GeometryController extends Controller implements AtomStream.Listene
     geoPanel.add(myCanvas, BorderLayout.CENTER);
     geoPanel.add(
       ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN, getToolbarActions(), false).getComponent(), BorderLayout.WEST);
-    myLoading.add(geoPanel, BorderLayout.CENTER);
+    myLoading.getContentLayer().add(geoPanel, BorderLayout.CENTER);
     myPanel.add(myEmptyPanel, CARD_EMPTY);
     myPanel.add(myLoading, CARD_GEOMETRY);
   }
