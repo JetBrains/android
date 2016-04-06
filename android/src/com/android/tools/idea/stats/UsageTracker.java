@@ -107,6 +107,14 @@ public abstract class UsageTracker {
   public static final String ACTION_SDK_MANAGER_STANDALONE_LAUNCHED = "standaloneLaunched";
   public static final String ACTION_SDK_MANAGER_LOADED = "sdkManagerLoaded";
 
+  public static final String CATEGORY_PROJECT_STRUCTURE_DIALOG = "projectStructureDialog";
+  public static final String ACTION_PROJECT_STRUCTURE_DIALOG_OPEN = "open";
+  public static final String ACTION_PROJECT_STRUCTURE_DIALOG_SAVE = "save";
+  public static final String ACTION_PROJECT_STRUCTURE_DIALOG_TOP_TAB_CLICK = "topTabClick";
+  public static final String ACTION_PROJECT_STRUCTURE_DIALOG_TOP_TAB_SAVE = "topTabSave";
+  public static final String ACTION_PROJECT_STRUCTURE_DIALOG_LEFT_NAV_CLICK = "leftNavClick";
+  public static final String ACTION_PROJECT_STRUCTURE_DIALOG_LEFT_NAV_SAVE = "leftNavSave";
+
   /**
    * Tracking when a template.xml file is rendered (instantiated) into the project.
    */
