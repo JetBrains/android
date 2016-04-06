@@ -26,6 +26,9 @@ import com.android.tools.idea.editors.gfxtrace.service.path.Path;
 import com.android.tools.idea.editors.gfxtrace.widgets.*;
 import com.android.tools.rpclib.rpccore.Rpc;
 import com.android.tools.rpclib.rpccore.RpcException;
+import com.google.common.util.concurrent.AsyncFunction;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 
@@ -82,11 +85,16 @@ public abstract class ImageCellController<T extends ImageCellList.Data> extends 
   }
 
   protected void loadCellImage(final T cell, final ServiceClient client, final Path imagePath, final Runnable onLoad) {
-    Rpc.listen(FetchedImage.load(client, imagePath), LOG, cell.controller, new UiErrorCallback<FetchedImage, BufferedImage, String>() {
+    Rpc.listen(Futures.transform(FetchedImage.load(client, imagePath), new AsyncFunction<FetchedImage, BufferedImage>() {
       @Override
-      protected ResultOrError<BufferedImage, String> onRpcThread(Rpc.Result<FetchedImage> result) throws RpcException, ExecutionException {
+      public ListenableFuture<BufferedImage> apply(FetchedImage image) throws Exception {
+        return getLevelToShow(image);
+      }
+    }), LOG, cell.controller, new UiErrorCallback<BufferedImage, BufferedImage, String>() {
+      @Override
+      protected ResultOrError<BufferedImage, String> onRpcThread(Rpc.Result<BufferedImage> result) throws RpcException, ExecutionException {
         try {
-          return success(result.get().image);
+          return success(result.get());
         } catch (ErrDataUnavailable e) {
           return error(e.getMessage());
         }
@@ -105,5 +113,10 @@ public abstract class ImageCellController<T extends ImageCellList.Data> extends 
         myList.repaint();
       }
     });
+  }
+
+  /** @return the level to show for the image (0 by default). Subclasses can override this to pick a diferent level. */
+  protected ListenableFuture<BufferedImage> getLevelToShow(FetchedImage image) {
+    return image.getLevel(0);
   }
 }
