@@ -38,7 +38,12 @@ public abstract class AndroidGradleArtifactsTestCase extends AndroidGradleTestCa
 
   @Override
   public void tearDown() throws Exception {
-    GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS = myOriginalLoadAllTestArtifactsValue;
-    super.tearDown();
+    try {
+      GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS = myOriginalLoadAllTestArtifactsValue;
+    }
+    finally {
+      //noinspection ThrowFromFinallyBlock
+      super.tearDown();
+    }
   }
 }
