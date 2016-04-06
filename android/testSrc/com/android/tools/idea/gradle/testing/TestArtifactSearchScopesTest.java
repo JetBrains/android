@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.testing;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.templates.AndroidGradleArtifactsTestCase;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -35,11 +36,13 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.util.concurrent.CountDownLatch;
 
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.android.utils.FileUtils.join;
 import static com.android.utils.FileUtils.toSystemDependentPath;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static com.intellij.openapi.util.io.FileUtil.appendToFile;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 public class TestArtifactSearchScopesTest extends AndroidGradleArtifactsTestCase {
   @Override
@@ -105,8 +108,9 @@ public class TestArtifactSearchScopesTest extends AndroidGradleArtifactsTestCase
     assertNotAcceptLibrary(scopes.getAndroidTestExcludeScope(), gson);
 
     // Now add gson to unit test dependencies as well
-    File buildFile = new File(new File(scopes.getModule().getModuleFilePath()).getParentFile(), "build.gradle");
-    appendToFile(buildFile, "\n\ndependencies { compile 'com.google.code.gson:gson:2.4' }\n");
+    VirtualFile buildFile = getGradleBuildFile(scopes.getModule());
+    assertNotNull(buildFile);
+    appendToFile(virtualToIoFile(buildFile), "\n\ndependencies { compile 'com.google.code.gson:gson:2.4' }\n");
 
     final CountDownLatch latch = new CountDownLatch(1);
     GradleSyncListener postSetupListener = new GradleSyncListener.Adapter() {
