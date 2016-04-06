@@ -17,6 +17,7 @@ package com.android.tools.idea.editors.gfxtrace.models;
 
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
+import com.android.tools.idea.editors.gfxtrace.UiErrorCallback;
 import com.android.tools.idea.editors.gfxtrace.controllers.StateController;
 import com.android.tools.idea.editors.gfxtrace.service.ErrDataUnavailable;
 import com.android.tools.idea.editors.gfxtrace.service.path.*;
@@ -60,15 +61,26 @@ public class GpuState implements PathListener {
   @Override
   public void notifyPath(PathEvent event) {
     if (myStatePath.updateIfNotNull(AtomPath.stateAfter(event.findAtomPath()))) {
-      Rpc.listen(myEditor.getClient().get(myStatePath.getPath()), EdtExecutor.INSTANCE, LOG, myReqController, new Rpc.Callback<Object>() {
+      Rpc.listen(myEditor.getClient().get(myStatePath.getPath()), LOG, myReqController, new UiErrorCallback<Object, Dynamic, ErrDataUnavailable>() {
         @Override
-        public void onFinish(Rpc.Result<Object> result) throws RpcException, ExecutionException {
+        protected ResultOrError<Dynamic, ErrDataUnavailable> onRpcThread(Rpc.Result<Object> result)
+            throws RpcException, ExecutionException {
           try {
-            update((Dynamic)result.get(), null);
+            return success((Dynamic)result.get());
           }
           catch (ErrDataUnavailable e) {
-            update(null, e);
+            return error(e);
           }
+        }
+
+        @Override
+        protected void onUiThreadSuccess(Dynamic result) {
+          update(result);
+        }
+
+        @Override
+        protected void onUiThreadError(ErrDataUnavailable error) {
+          update(error);
         }
       });
     }
@@ -84,19 +96,19 @@ public class GpuState implements PathListener {
     }
   }
 
-  protected void update(Dynamic state, ErrDataUnavailable error) {
+  protected void update(Dynamic state) {
     myState = state;
-    if (error != null) {
-      myListeners.onStateLoadingFailure(this, error);
+    myListeners.onStateLoadingSuccess(this);
+    if (myCachedSelection.getParent() != null) {
+      mySelection = myCachedSelection;
+      myCachedSelection = NO_SELECTION;
+      myListeners.onStateSelection(this, mySelection);
     }
-    else {
-      myListeners.onStateLoadingSuccess(this);
-      if (myCachedSelection.getParent() != null) {
-        mySelection = myCachedSelection;
-        myCachedSelection = NO_SELECTION;
-        myListeners.onStateSelection(this, mySelection);
-      }
-    }
+  }
+
+  protected void update(ErrDataUnavailable error) {
+    myState = null;
+    myListeners.onStateLoadingFailure(this, error);
   }
 
   public StatePath getPath() {
