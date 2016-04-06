@@ -107,7 +107,7 @@ public class AndroidExtractStyleTest extends AndroidTestCase {
 
     @Override
     public void validate(@NotNull List<XmlAttribute> extractableAttributes) {
-      final List<String> names = new ArrayList<String>(extractableAttributes.size());
+      final List<String> names = new ArrayList<>(extractableAttributes.size());
 
       for (XmlAttribute attribute : extractableAttributes) {
         names.add(attribute.getName());

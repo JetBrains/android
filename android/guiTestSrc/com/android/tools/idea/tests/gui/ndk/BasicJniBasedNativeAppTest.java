@@ -64,7 +64,7 @@ public class BasicJniBasedNativeAppTest {
     projectFrame.openAndToggleBreakPoints("app/src/main/jni/multifunction-jni.c", breakPoints);
 
     // Set up the expected patterns to match the variable values displayed in Debug windows's 'Variables' tab.
-    final Map<Integer, String[]> breakpointToExpectedPatterns = new HashMap<Integer, String[]>();
+    final Map<Integer, String[]> breakpointToExpectedPatterns = new HashMap<>();
     breakpointToExpectedPatterns.put(
       35, new String[] {
         IdeFrameFixture.variableToSearchPattern("x1", "int", "1"),

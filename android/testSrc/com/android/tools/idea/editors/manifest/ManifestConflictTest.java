@@ -69,7 +69,7 @@ public class ManifestConflictTest extends AndroidGradleTestCase {
   }
 
   public static List<String> grabHTMLLinks(String html) {
-    List<String> result = new ArrayList<String>();
+    List<String> result = new ArrayList<>();
     Matcher matcherTag = LINK_PATTERN.matcher(html);
     while (matcherTag.find()) {
       String link = matcherTag.group(1);

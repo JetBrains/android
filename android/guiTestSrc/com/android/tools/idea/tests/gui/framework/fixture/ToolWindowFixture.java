@@ -45,7 +45,7 @@ public abstract class ToolWindowFixture {
   protected ToolWindowFixture(@NotNull final String toolWindowId, @NotNull final Project project, @NotNull Robot robot) {
     myToolWindowId = toolWindowId;
     myProject = project;
-    final Ref<ToolWindow> toolWindowRef = new Ref<ToolWindow>();
+    final Ref<ToolWindow> toolWindowRef = new Ref<>();
     Wait.seconds(SECONDS_TO_WAIT).expecting("tool window with ID '" + toolWindowId + "' to be found")
       .until(() -> {
         ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow(toolWindowId);
@@ -59,7 +59,7 @@ public abstract class ToolWindowFixture {
   @Nullable
   protected Content getContent(@NotNull final String displayName) {
     activateAndWaitUntilIsVisible();
-    final Ref<Content> contentRef = new Ref<Content>();
+    final Ref<Content> contentRef = new Ref<>();
     Wait.seconds(SECONDS_TO_WAIT).expecting("content '" + displayName + "' to be found")
       .until(() -> {
         Content[] contents = getContents();
@@ -79,7 +79,7 @@ public abstract class ToolWindowFixture {
     long startTime = System.currentTimeMillis();
     activateAndWaitUntilIsVisible(SECONDS_TO_WAIT);
     long secondsRemaining = SECONDS_TO_WAIT - TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - startTime);
-    final Ref<Content> contentRef = new Ref<Content>();
+    final Ref<Content> contentRef = new Ref<>();
     Wait.seconds(secondsRemaining).expecting("content matching " + displayNameMatcher.formattedValues() + " to be found")
       .until(() -> {
         Content[] contents = getContents();

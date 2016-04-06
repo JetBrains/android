@@ -125,7 +125,7 @@ public class NewModuleWizardTest extends AndroidTestCase {
     assertNotNull(chooseTemplateStep);
 
     DefaultListModel templateMetadatas = (DefaultListModel)chooseTemplateStep.myTemplateList.getModel();
-    Set<String> templateNames = new HashSet<String>(templateMetadatas.getSize());
+    Set<String> templateNames = new HashSet<>(templateMetadatas.getSize());
     for (Object o : templateMetadatas.toArray()) {
       templateNames.add(o.toString());
     }

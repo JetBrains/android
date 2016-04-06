@@ -108,7 +108,7 @@ public class GuiTestRule implements TestRule {
           assumeTrue("An IDE internal error occurred previously.", GuiTests.fatalErrorsFromIde().isEmpty());
           assumeOnlyWelcomeFrameShowing();
           setUp();
-          List<Throwable> errors = new ArrayList<Throwable>();
+          List<Throwable> errors = new ArrayList<>();
           try {
             base.evaluate();
           } catch (MultipleFailureException e) {
@@ -159,7 +159,7 @@ public class GuiTestRule implements TestRule {
   }
 
   private List<AssertionError> cleanUpAndCheckForModalDialogs() {
-    List<AssertionError> errors = new ArrayList<AssertionError>();
+    List<AssertionError> errors = new ArrayList<>();
     // We close all modal dialogs left over, because they block the AWT thread and could trigger a deadlock in the next test.
     Dialog modalDialog;
     while ((modalDialog = getActiveModalDialog()) != null) {

@@ -252,8 +252,8 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
       if (expected == XmlPullParser.START_TAG) {
         assertEquals(referenceParser.getName(), parser.getName());
         if (element != xmlFile.getRootTag()) { // KXmlParser seems to not include xmlns: attributes on the root tag!{
-          SortedSet<String> referenceAttributes = new TreeSet<String>();
-          SortedSet<String> attributes = new TreeSet<String>();
+          SortedSet<String> referenceAttributes = new TreeSet<>();
+          SortedSet<String> attributes = new TreeSet<>();
           for (int i = 0; i < referenceParser.getAttributeCount(); i++) {
             String s = referenceParser.getAttributePrefix(i) + ':' + referenceParser.getAttributeName(i) + '='
                        + referenceParser.getAttributeValue(i);

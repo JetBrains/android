@@ -27,7 +27,7 @@ public final class ListExpressionsTest {
 
   @Test
   public void testMapExpression() {
-    ObservableList<String> strings = new ObservableList<String>();
+    ObservableList<String> strings = new ObservableList<>();
     strings.add("First");
     strings.add("seconD");
     strings.add("thIrd");
@@ -49,7 +49,7 @@ public final class ListExpressionsTest {
 
   @Test
   public void testSizeExpression() {
-    ObservableList<Integer> numbers = new ObservableList<Integer>();
+    ObservableList<Integer> numbers = new ObservableList<>();
     SizeExpression count = new SizeExpression(numbers);
 
     assertThat(count.get()).isEqualTo(0);

@@ -68,7 +68,7 @@ public class GradleProjectImporterTest extends IdeaTestCase {
     final File projectFile = new File(myProjectRootDir, SdkConstants.FN_BUILD_GRADLE);
     final String configPath = projectFile.getPath();
     ProjectData projectData = new ProjectData(GradleConstants.SYSTEM_ID, myProjectName, projectRootDirPath, configPath);
-    myCachedProject = new DataNode<ProjectData>(ProjectKeys.PROJECT, projectData, null);
+    myCachedProject = new DataNode<>(ProjectKeys.PROJECT, projectData, null);
 
     ModuleData moduleData =
       new ModuleData("", GradleConstants.SYSTEM_ID, JAVA.getId(), myModule.getName(), projectRootDirPath, configPath);

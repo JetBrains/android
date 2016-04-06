@@ -591,7 +591,7 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
     VirtualFile file = copyFileToProject(fileName);
     myFixture.configureFromExistingVirtualFile(file);
     final LookupElement[] elements = myFixture.complete(CompletionType.BASIC);
-    final Set<String> elementsToCheck = new HashSet<String>(Arrays.asList(
+    final Set<String> elementsToCheck = new HashSet<>(Arrays.asList(
       "view", "include", "requestFocus", "fragment", "Button"));
 
     for (LookupElement element : elements) {
@@ -931,7 +931,7 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
     final VirtualFile virtualFile = copyFileToProject(getTestName(true) + ".xml");
     myFixture.configureFromExistingVirtualFile(virtualFile);
     final List<HighlightInfo> infos = myFixture.doHighlighting();
-    final List<IntentionAction> actions = new ArrayList<IntentionAction>();
+    final List<IntentionAction> actions = new ArrayList<>();
 
     for (HighlightInfo info : infos) {
       final List<Pair<HighlightInfo.IntentionActionDescriptor, TextRange>> ranges = info.quickFixActionRanges;

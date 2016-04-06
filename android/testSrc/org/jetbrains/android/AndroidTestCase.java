@@ -64,7 +64,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
   private boolean myCreateManifest;
   protected AndroidFacet myFacet;
 
-  private List<String> myAllowedRoots = new ArrayList<String>();
+  private List<String> myAllowedRoots = new ArrayList<>();
   private boolean myUseCustomSettings;
 
   public AndroidTestCase(boolean createManifest) {
@@ -94,7 +94,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     }
     tuneModule(moduleFixtureBuilder, dirPath);
 
-    final ArrayList<MyAdditionalModuleData> modules = new ArrayList<MyAdditionalModuleData>();
+    final ArrayList<MyAdditionalModuleData> modules = new ArrayList<>();
     configureAdditionalModules(projectBuilder, modules);
 
     myFixture.setUp();
@@ -118,7 +118,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
 
     myFixture.copyDirectoryToProject(getResDir(), "res");
 
-    myAdditionalModules = new ArrayList<Module>();
+    myAdditionalModules = new ArrayList<>();
 
     for (MyAdditionalModuleData data : modules) {
       final Module additionalModule = data.myModuleFixtureBuilder.getFixture().getModule();
@@ -142,7 +142,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
       RenderSecurityManager.sEnabled = false;
     }
 
-    ArrayList<String> allowedRoots = new ArrayList<String>();
+    ArrayList<String> allowedRoots = new ArrayList<>();
     collectAllowedRoots(allowedRoots);
     registerAllowedRoots(allowedRoots, myTestRootDisposable);
     myUseCustomSettings = getAndroidCodeStyleSettings().USE_CUSTOM_SETTINGS;
@@ -156,7 +156,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
   }
 
   public void registerAllowedRoots(List<String> roots, @NotNull Disposable disposable) {
-    final List<String> newRoots = new ArrayList<String>(roots);
+    final List<String> newRoots = new ArrayList<>(roots);
     newRoots.removeAll(myAllowedRoots);
 
     final String[] newRootsArray = ArrayUtil.toStringArray(newRoots);

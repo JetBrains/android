@@ -133,7 +133,7 @@ public class ThemePreviewBuilderTest extends TestCase {
 
     NodeList nodeList =
       (NodeList)xPath.evaluate(GROUP_LABELS_XPATH + "@*[local-name() = 'text']", document.getDocumentElement(), XPathConstants.NODESET);
-    HashSet<String> headerTitles = new HashSet<String>();
+    HashSet<String> headerTitles = new HashSet<>();
     for (int i = 0; i < nodeList.getLength(); i++) {
       String title = nodeList.item(i).getNodeValue();
       if (headerTitles.contains(title)) {

@@ -110,7 +110,7 @@ public class ProjectViewFixture extends ToolWindowFixture {
 
     @NotNull
     private AbstractTreeStructure getTreeStructure() {
-      final AtomicReference<AbstractTreeStructure> treeStructureRef = new AtomicReference<AbstractTreeStructure>();
+      final AtomicReference<AbstractTreeStructure> treeStructureRef = new AtomicReference<>();
       Wait.minutes(2).expecting("AbstractTreeStructure to be built")
         .until(() -> {
           AbstractTreeStructure treeStructure = GuiActionRunner.execute(new GuiQuery<AbstractTreeStructure>() {
