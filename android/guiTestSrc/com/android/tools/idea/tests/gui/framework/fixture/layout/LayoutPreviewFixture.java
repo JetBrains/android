@@ -99,16 +99,12 @@ public class LayoutPreviewFixture extends ToolWindowFixture implements LayoutFix
   public Object waitForNextRenderToFinish(@Nullable final Object previous) {
     myRobot.waitForIdle();
 
-    Wait.minutes(2).expecting("render to finish").until(new Wait.Objective() {
-      @Override
-      public boolean isMet() {
-        AndroidLayoutPreviewToolWindowManager manager = getManager();
-        return !manager.isRenderPending() &&
-               manager.getToolWindowForm() != null &&
-               manager.getToolWindowForm().getLastResult() != null &&
-               manager.getToolWindowForm().getLastResult() != previous;
-      }
-    });
+    AndroidLayoutPreviewToolWindowManager manager = getManager();
+    Wait.minutes(2).expecting("render to finish").until(
+      () -> !manager.isRenderPending() &&
+            manager.getToolWindowForm() != null &&
+            manager.getToolWindowForm().getLastResult() != null &&
+            manager.getToolWindowForm().getLastResult() != previous);
 
     myRobot.waitForIdle();
 
@@ -241,14 +237,8 @@ public class LayoutPreviewFixture extends ToolWindowFixture implements LayoutFix
 
   @NotNull
   public List<LayoutWidgetFixture> findAll(@NotNull TagMatcher matcher) {
-    Wait.minutes(2).expecting("View hierarchy").until(new Wait.Objective() {
-      @Override
-      public boolean isMet() {
-        RenderResult lastResult = getContent().getLastResult();
-        RenderedViewHierarchy hierarchy = lastResult == null ? null : lastResult.getHierarchy();
-        return hierarchy != null;
-      }
-    });
+    Wait.minutes(2).expecting("View hierarchy")
+      .until(() -> getContent().getLastResult() != null && getContent().getLastResult().getHierarchy() != null);
 
     List<LayoutWidgetFixture> result = Lists.newArrayList();
     //noinspection ConstantConditions

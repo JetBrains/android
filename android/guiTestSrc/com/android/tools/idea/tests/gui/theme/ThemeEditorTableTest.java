@@ -110,12 +110,7 @@ public class ThemeEditorTableTest {
     guiTest.ideFrame().invokeMenuPathRegex("Edit", "Redo.*");
     assertEquals(newParent, themeEditorTable.getComboBoxSelectionAt(parentCell));
 
-    Wait.seconds(30).expecting("potential tooltips to disappear").until(new Wait.Objective() {
-      @Override
-      public boolean isMet() {
-        return guiTest.robot().findActivePopupMenu() == null;
-      }
-    });
+    Wait.seconds(30).expecting("potential tooltips to disappear").until(() -> guiTest.robot().findActivePopupMenu() == null);
     testParentPopup(themeEditorTable.cell(parentCell), newParent, themeEditor);
 
     guiTest.ideFrame().invokeMenuPath("Window", "Editor Tabs", "Select Previous Tab");
@@ -135,14 +130,10 @@ public class ThemeEditorTableTest {
     edit.click();
 
     final JComboBoxFixture themesComboBox = themeEditor.getThemesComboBox();
-    Wait.minutes(2).expecting("parent to load").until(new Wait.Objective() {
-      @Override
-      public boolean isMet() {
-        // Cannot use themesComboBox.selectedItem() here
-        // because the parent theme is not necessarily one of the themes present in the combobox model
-        return parentName.equals(themesComboBox.target().getSelectedItem().toString());
-      }
-    });
+    Wait.minutes(2).expecting("parent to load")
+      // Cannot use themesComboBox.selectedItem() here
+      // because the parent theme is not necessarily one of the themes present in the combobox model
+      .until(() -> parentName.equals(themesComboBox.target().getSelectedItem().toString()));
   }
 
   @Test
@@ -239,12 +230,7 @@ public class ThemeEditorTableTest {
     });
     secondDialog.getColorPicker().setColorWithIntegers(new Color(200, 0, 0, 200));
     secondDialog.clickOK();
-    Wait.seconds(30).expecting("component update").until(new Wait.Objective() {
-      @Override
-      public boolean isMet() {
-        return "@color/primary_text_default_material_dark".equals(state0.getValue());
-      }
-    });
+    Wait.seconds(30).expecting("component update").until(() -> "@color/primary_text_default_material_dark".equals(state0.getValue()));
 
     state0.getAlphaComponent().getSwatchButton().click();
     secondDialog = ChooseResourceDialogFixture.find(guiTest.robot(), new GenericTypeMatcher<JDialog>(JDialog.class) {
@@ -255,12 +241,7 @@ public class ThemeEditorTableTest {
     });
     secondDialog.getList(ChooseResourceDialog.APP_NAMESPACE_LABEL).clickItem("abc_disabled_alpha_material_dark");
     secondDialog.clickOK();
-    Wait.seconds(30).expecting("component update").until(new Wait.Objective() {
-      @Override
-      public boolean isMet() {
-        return "@dimen/abc_disabled_alpha_material_dark".equals(state0.getAlphaValue());
-      }
-    });
+    Wait.seconds(30).expecting("component update").until(() -> "@dimen/abc_disabled_alpha_material_dark".equals(state0.getAlphaValue()));
 
     state1.getValueComponent().getSwatchButton().click();
     secondDialog = ChooseResourceDialogFixture.find(guiTest.robot(), new GenericTypeMatcher<JDialog>(JDialog.class) {
@@ -271,12 +252,7 @@ public class ThemeEditorTableTest {
     });
     secondDialog.getColorPicker().setColorWithIntegers(new Color(0, 200, 0, 255));
     secondDialog.clickOK();
-    Wait.seconds(30).expecting("component update").until(new Wait.Objective() {
-      @Override
-      public boolean isMet() {
-        return "@color/primary_text_default_material_dark".equals(state1.getValue());
-      }
-    });
+    Wait.seconds(30).expecting("component update").until(() -> "@color/primary_text_default_material_dark".equals(state1.getValue()));
 
     dialog.requireNoError();
 
@@ -312,12 +288,7 @@ public class ThemeEditorTableTest {
     textComponent.requireText("@android:color/background_holo_light");
     textComponent.enterText("invalid");
     tableCell.stopEditing();
-    Wait.minutes(2).expecting("warning icon to be loaded").until(new Wait.Objective() {
-      @Override
-      public boolean isMet() {
-        return themeEditorTable.hasWarningIconAt(cell);
-      }
-    });
+    Wait.minutes(2).expecting("warning icon to be loaded").until(() -> themeEditorTable.hasWarningIconAt(cell));
 
     tableCell.startEditing();
     textComponent = resourceComponent.getTextField();
