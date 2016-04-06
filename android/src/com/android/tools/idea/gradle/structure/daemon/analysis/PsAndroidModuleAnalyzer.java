@@ -37,8 +37,8 @@ public class PsAndroidModuleAnalyzer extends PsModelAnalyzer<PsAndroidModule> {
   }
 
   @Override
-  protected void doAnalyze(@NotNull PsAndroidModule module, @NotNull final PsIssueCollection issueCollection) {
-    final PsModulePath modulePath = new PsModulePath(module);
+  protected void doAnalyze(@NotNull PsAndroidModule module, @NotNull PsIssueCollection issueCollection) {
+    PsModulePath modulePath = new PsModulePath(module);
     module.forEachDependency(dependency -> {
       if (dependency == null) {
         return false;

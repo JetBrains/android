@@ -121,8 +121,8 @@ public class PsLibraryDependency extends PsAndroidDependency {
     return sorted;
   }
 
-  private void findRequestingModuleDependencies(@NotNull PsAndroidModule module, @NotNull final Collection<String> found) {
-    final PsProject project = module.getParent();
+  private void findRequestingModuleDependencies(@NotNull PsAndroidModule module, @NotNull Collection<String> found) {
+    PsProject project = module.getParent();
     module.forEachModuleDependency(moduleDependency -> {
       if (moduleDependency == null) {
         return false;

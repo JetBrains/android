@@ -54,7 +54,7 @@ class ResolvedDependenciesTreeRootNode extends AbstractRootNode<PsAndroidModule>
   @Override
   @NotNull
   protected List<? extends AbstractPsModelNode> createChildren() {
-    final Map<String, PsVariant> variantsByName = Maps.newHashMap();
+    Map<String, PsVariant> variantsByName = Maps.newHashMap();
     Predicate<PsVariant> function = variant -> {
       if (variant == null) {
         return false;
@@ -138,10 +138,10 @@ class ResolvedDependenciesTreeRootNode extends AbstractRootNode<PsAndroidModule>
   @VisibleForTesting
   @NotNull
   static Map<List<PsDependencyContainer>, List<PsAndroidDependency>> groupDependencies(@NotNull PsAndroidModule module) {
-    final Map<PsDependencyContainer, List<PsAndroidDependency>> dependenciesByContainer = Maps.newHashMap();
+    Map<PsDependencyContainer, List<PsAndroidDependency>> dependenciesByContainer = Maps.newHashMap();
 
     // Key: variant name
-    final Map<String, PsDependencyContainer> containerWithMainArtifact = Maps.newHashMap();
+    Map<String, PsDependencyContainer> containerWithMainArtifact = Maps.newHashMap();
 
     module.forEachDependency(dependency -> {
       if (dependency == null) {
@@ -260,7 +260,7 @@ class ResolvedDependenciesTreeRootNode extends AbstractRootNode<PsAndroidModule>
 
     // [Outer map] key: variant name, value: dependencies by artifact
     // [Inner map] key: artifact name, value: dependencies
-    final Map<String, Map<String, List<PsAndroidDependency>>> dependenciesByVariantAndArtifact = Maps.newHashMap();
+    Map<String, Map<String, List<PsAndroidDependency>>> dependenciesByVariantAndArtifact = Maps.newHashMap();
 
     module.forEachDependency(dependency -> {
       if (dependency == null || !dependency.isDeclared()) {

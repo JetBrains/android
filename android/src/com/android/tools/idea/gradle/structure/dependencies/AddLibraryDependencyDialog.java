@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.OnePixelDivider;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.OnePixelSplitter;
 import com.intellij.ui.SideBorder;
@@ -77,7 +78,7 @@ public class AddLibraryDependencyDialog extends DialogWrapper {
             @Override
             public void setSelection(@Nullable PsAndroidDependency selection) {
             }
-          });
+          }, null);
         myResolvedDependenciesPanel.setBorder(new SideBorder(OnePixelDivider.BACKGROUND, BOTTOM));
         splitter.setSecondComponent(myResolvedDependenciesPanel);
       }

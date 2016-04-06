@@ -124,7 +124,8 @@ public class ArtifactRepositorySearchForm {
     clearResults();
 
     SearchRequest request = new SearchRequest(getArtifactName(), getGroupId(), 50, 0);
-    final ArtifactRepositorySearch.Callback callback = mySearch.start(request);
+
+    ArtifactRepositorySearch.Callback callback = mySearch.start(request);
     callback.doWhenDone(() -> invokeLaterIfNeeded(() -> {
       List<FoundArtifact> foundArtifacts = Lists.newArrayList();
 
