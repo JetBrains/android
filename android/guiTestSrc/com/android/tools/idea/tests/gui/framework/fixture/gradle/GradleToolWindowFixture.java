@@ -76,9 +76,11 @@ public class GradleToolWindowFixture extends ToolWindowFixture {
 
     Rectangle bounds = tasksTree.getPathBounds(treePath);
     assertNotNull(bounds);
+    bounds.translate(0, bounds.height / 2); // Make sure we are not under the horizontal scroll bar
+    tasksTree.scrollRectToVisible(bounds);
     Rectangle visibleRect = tasksTree.getVisibleRect();
     Point clickLocation = new Point(locationOnScreen.x + bounds.x + bounds.width / 2 - visibleRect.x,
-                                    locationOnScreen.y + bounds.y + bounds.height / 2 - visibleRect.y);
+                                    locationOnScreen.y + bounds.y - visibleRect.y);
     myRobot.click(clickLocation, LEFT_BUTTON, 2);
   }
 
