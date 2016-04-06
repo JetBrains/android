@@ -59,9 +59,8 @@ public class CapturesToolWindowFixture extends ToolWindowFixture {
 
     if (pathName != null) {
       final String finalPathName = pathName;
-      Wait.minutes(2).expecting("the file to be recognized").until(new Wait.Objective() {
-        @Override
-        public boolean isMet() {
+      Wait.minutes(2).expecting("the file to be recognized")
+        .until(() -> {
           try {
             String fileToSelect = finalPathName + "/" + fileName;
             myTreeFixture.selectPath(fileToSelect);
@@ -73,8 +72,7 @@ public class CapturesToolWindowFixture extends ToolWindowFixture {
           catch (LocationUnavailableException e) {
             return false;
           }
-        }
-      });
+        });
     }
   }
 

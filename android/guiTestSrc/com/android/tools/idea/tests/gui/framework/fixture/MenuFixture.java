@@ -100,9 +100,8 @@ class MenuFixture {
   @NotNull
   private List<JPopupMenu> findShowingPopupMenus(final int expectedCount) {
     final Ref<List<JPopupMenu>> ref = new Ref<List<JPopupMenu>>();
-    Wait.seconds(30).expecting(expectedCount + " JPopupMenus to show up").until(new Wait.Objective() {
-      @Override
-      public boolean isMet() {
+    Wait.seconds(30).expecting(expectedCount + " JPopupMenus to show up")
+      .until(() -> {
         List<JPopupMenu> popupMenus = Lists.newArrayList(myRobot.finder().findAll(new GenericTypeMatcher<JPopupMenu>(JPopupMenu.class) {
           @Override
           protected boolean isMatching(@NotNull JPopupMenu popupMenu) {
@@ -114,8 +113,7 @@ class MenuFixture {
           ref.set(popupMenus);
         }
         return allFound;
-      }
-    });
+      });
     List<JPopupMenu> popupMenus = ref.get();
     assertThat(popupMenus).hasSize(expectedCount);
     return popupMenus;

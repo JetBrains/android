@@ -178,12 +178,7 @@ public class NewProjectTest {
     newProject("Test Application").withBriefNames().withMinSdk("15").withoutSync().create();
     final EditorFixture editor = guiTest.ideFrame().getEditor();
 
-    Wait.seconds(30).expecting("file to open").until(new Wait.Objective() {
-      @Override
-      public boolean isMet() {
-        return "A.java".equals(editor.getCurrentFileName());
-      }
-    });
+    Wait.seconds(30).expecting("file to open").until(() -> "A.java".equals(editor.getCurrentFileName()));
 
     editor.open("app/src/main/res/layout/activity_a.xml", EditorFixture.Tab.EDITOR);
     LayoutEditorFixture layoutEditor = editor.getLayoutEditor(true);

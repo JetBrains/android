@@ -86,12 +86,7 @@ public class FileChooserDialogFixture extends IdeaDialogFixture<FileChooserDialo
       }
     });
 
-    Wait.minutes(2).expecting("file " + quote(file.getPath()) + " to be selected").until(new Wait.Objective() {
-      @Override
-      public boolean isMet() {
-        return fileSelected.get();
-      }
-    });
+    Wait.minutes(2).expecting("file " + quote(file.getPath()) + " to be selected").until(fileSelected::get);
 
     return this;
   }
