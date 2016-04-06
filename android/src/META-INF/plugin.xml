@@ -1040,7 +1040,6 @@
   <extensions defaultExtensionNs="com.android.ide">
     <sdkEventListener implementation="com.android.tools.idea.gradle.sdk.GradleAndroidSdkEventListener"/>
     <developerServiceBuildSystemOperations implementation="com.android.tools.idea.gradle.structure.services.GradleOperations"/>
-    <projectStructureItemsContributor implementation="com.android.tools.idea.gradle.structure.prototype.GradleProjectStructureItemsContributor"/>
     <mainGroupConfigurableContributor
         implementation="com.android.tools.idea.gradle.structure.configurables.GradleMainGroupConfigurableContributor"/>
 
