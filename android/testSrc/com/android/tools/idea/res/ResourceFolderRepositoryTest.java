@@ -30,6 +30,7 @@ import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
+import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
@@ -273,7 +274,20 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
     // Try adding and then deleting a drawable file with IDs too.
     generation = resources.getModificationCount();
-    VirtualFile file2 = myFixture.copyFileToProject(DRAWABLE_ID_SCAN, "res/drawable-v21/drawable_with_ids.xml");
+
+    // TODO: make this work with copyFileToProject
+    // copyFileToProject now creates an empty file first which triggers a childAdded event w/ an empty file (so no IDs are parsed).
+    // It then it copies the contents over and triggers a childrenChanged event but in a way that is unlike typing in content,
+    // so we don't re-parse the XML for IDs.
+    //VirtualFile file2 = myFixture.copyFileToProject(DRAWABLE_ID_SCAN, "res/drawable-v21/drawable_with_ids.xml");
+    File fromFile = new File(myFixture.getTestDataPath(), DRAWABLE_ID_SCAN);
+    assertExists(fromFile);
+    File targetFile = new File(myFixture.getTempDirFixture().getTempDirPath(), "res/drawable-v21/drawable_with_ids.xml");
+    assertFalse(targetFile.exists());
+    FileUtil.copy(fromFile, targetFile);
+    VirtualFile file2 = VfsUtil.findFileByIoFile(targetFile, true);
+    assertNotNull(file2);
+
     final PsiFile psiFile2 = PsiManager.getInstance(getProject()).findFile(file2);
     assertNotNull(psiFile2);
     drawables = resources.getItemsOfType(ResourceType.DRAWABLE);
@@ -3814,6 +3828,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(resources.hasResourceItem(ResourceType.DRAWABLE, "logo"));
     assertTrue(resources.hasResourceItem(ResourceType.STRING, "hello_world"));
     resources.saveStateToFile();
+    ResourceFolderRegistry.reset();
 
     // Delete a non-value file.
     WriteCommandAction.runWriteCommandAction(null, new Runnable() {
@@ -3823,7 +3838,6 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       }
     });
 
-    ResourceFolderRegistry.reset();
     final ResourceFolderRepository fromBlob = createRepository();
     assertNotNull(fromBlob);
     // Non-value files aren't counted in the cache, so deleting doesn't affect freshness.
@@ -3836,6 +3850,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
     // Update the blob first, then delete a value file.
     resources.saveStateToFile();
+    ResourceFolderRegistry.reset();
     final PsiFile psiFile2 = PsiManager.getInstance(getProject()).findFile(file2);
     assertNotNull(psiFile2);
     WriteCommandAction.runWriteCommandAction(null, new Runnable() {
@@ -3845,7 +3860,6 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       }
     });
 
-    ResourceFolderRegistry.reset();
     final ResourceFolderRepository fromBlob2 = createRepository();
     assertNotNull(fromBlob2);
     // Value files are counted in the cache, but we only count the percentage re-parsed for freshness.
@@ -3873,6 +3887,8 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(resources.hasResourceItem(ResourceType.STRING, "hello_world"));
 
     resources.saveStateToFile();
+    ResourceFolderRegistry.reset();
+
     WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
@@ -3880,7 +3896,6 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       }
     });
 
-    ResourceFolderRegistry.reset();
     final ResourceFolderRepository fromBlob = createRepository();
     assertNotNull(fromBlob);
 
@@ -3899,6 +3914,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
     assertTrue(resources.hasResourceItem(ResourceType.STRING, "hello_world"));
     resources.saveStateToFile();
+    ResourceFolderRegistry.reset();
 
     // Editing via the DocumentManager.commitDocument interface doesn't touch the lastModified
     // stamp of the actual file in time, so just edit the file directly and bump the lastModified
@@ -3911,7 +3927,6 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       return;
     }
 
-    ResourceFolderRegistry.reset();
     final ResourceFolderRepository fromBlob = createRepository();
     assertNotNull(fromBlob);
     assertFalse(fromBlob.hasFreshFileCache());
@@ -3928,18 +3943,18 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertFalse(resources.hasResourceItem(ResourceType.ID, "noteArea"));
 
     resources.saveStateToFile();
+    ResourceFolderRegistry.reset();
 
     myFixture.copyFileToProject(LAYOUT1, "res/layout/layout.xml");
 
-    ResourceFolderRegistry.reset();
     final ResourceFolderRepository fromBlob = createRepository();
     assertNotNull(fromBlob);
     // Freshness depends on a heurisitic, but now half the XML files are parsed.
     assertFalse(fromBlob.hasFreshFileCache());
 
     assertTrue(fromBlob.hasResourceItem(ResourceType.STRING, "hello_world"));
-    assertTrue(resources.hasResourceItem(ResourceType.LAYOUT, "layout"));
-    assertTrue(resources.hasResourceItem(ResourceType.ID, "noteArea"));
+    assertTrue(fromBlob.hasResourceItem(ResourceType.LAYOUT, "layout"));
+    assertTrue(fromBlob.hasResourceItem(ResourceType.ID, "noteArea"));
   }
 
   public void testSerializationAddDrawableFileAndLoad() throws Exception {
@@ -3950,17 +3965,17 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertFalse(resources.hasResourceItem(ResourceType.DRAWABLE, "logo"));
 
     resources.saveStateToFile();
+    ResourceFolderRegistry.reset();
 
     myFixture.copyFileToProject(DRAWABLE, "res/drawable/logo.png");
 
-    ResourceFolderRegistry.reset();
     final ResourceFolderRepository fromBlob = createRepository();
     assertNotNull(fromBlob);
     // Freshness depends on a heurisitic, but we don't count PNG in the blob.
     assertTrue(fromBlob.hasFreshFileCache());
 
     assertTrue(fromBlob.hasResourceItem(ResourceType.STRING, "hello_world"));
-    assertTrue(resources.hasResourceItem(ResourceType.DRAWABLE, "logo"));
+    assertTrue(fromBlob.hasResourceItem(ResourceType.DRAWABLE, "logo"));
   }
 
   public void testSerializeLayoutAndIdResourceValues() throws Exception {
