@@ -21,6 +21,7 @@ import org.jetbrains.annotations.NotNull;
 
 import com.android.tools.rpclib.binary.*;
 import com.android.tools.rpclib.schema.*;
+import com.android.tools.idea.editors.gfxtrace.service.snippets.SnippetsProtos.ObservationType;
 
 import java.io.IOException;
 
@@ -97,7 +98,7 @@ public final class Observations extends KindredSnippets implements BinaryObject 
       e.object(o.myPath.unwrap());
       e.uint32(o.myObservations.length);
       for (int i = 0; i < o.myObservations.length; i++) {
-        o.myObservations[i].encode(e);
+        e.int32(o.myObservations[i].getNumber());
       }
     }
 
@@ -107,7 +108,7 @@ public final class Observations extends KindredSnippets implements BinaryObject 
       o.myPath = Pathway.wrap(d.object());
       o.myObservations = new ObservationType[d.uint32()];
       for (int i = 0; i <o.myObservations.length; i++) {
-        o.myObservations[i] = ObservationType.decode(d);
+        o.myObservations[i] = ObservationType.valueOf(d.int32());
       }
     }
     //<<<End:Java.KlassBody:2>>>
