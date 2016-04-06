@@ -21,9 +21,7 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.projectRoots.SdkTypeId;
 import com.intellij.openapi.roots.ui.configuration.projectRoot.ProjectSdksModel;
-import com.intellij.openapi.util.Condition;
 import com.intellij.testFramework.IdeaTestUtil;
 import com.intellij.testFramework.TestActionEvent;
 import org.jetbrains.android.sdk.AndroidSdkType;
@@ -74,12 +72,7 @@ public class AndroidSdkTypeNewProjectWizardTest extends NewProjectWizardTestCase
 
   private static AnAction getAddAction(ProjectSdksModel model) {
     DefaultActionGroup group = new DefaultActionGroup();
-    model.createAddActions(group, new JPanel(), null, new Condition<SdkTypeId>() {
-      @Override
-      public boolean value(SdkTypeId id) {
-        return id == AndroidSdkType.getInstance();
-      }
-    });
+    model.createAddActions(group, new JPanel(), sdk -> {}, id -> id == AndroidSdkType.getInstance());
     AnAction[] children = group.getChildren(null);
     assertEquals(1, children.length);
     return children[0];
