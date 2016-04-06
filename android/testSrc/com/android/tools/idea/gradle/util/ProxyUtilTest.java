@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.util;
 
 import com.android.builder.model.AndroidProject;
+import com.android.builder.model.NativeAndroidProject;
 import com.android.tools.idea.gradle.util.ProxyUtil.WrapperInvocationHandler;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -45,6 +46,7 @@ public class ProxyUtilTest extends TestCase {
 
   public void testSupportedTypes() throws Exception {
     assertTypeIsSupported(AndroidProject.class.getPackage(), AndroidProject.class);
+    assertTypeIsSupported(NativeAndroidProject.class.getPackage(), NativeAndroidProject.class);
   }
 
   private static void assertTypeIsSupported(Package reproxy, Class<?> clazz) {
@@ -113,15 +115,12 @@ public class ProxyUtilTest extends TestCase {
 
   private static MyInterface createProxyInstance(boolean recurse) {
     final MyInterfaceImpl delegate = new MyInterfaceImpl(recurse);
-    return (MyInterface)Proxy.newProxyInstance(MyInterface.class.getClassLoader(), new Class[]{MyInterface.class}, new InvocationHandler() {
-      @Override
-      public Object invoke(Object o, Method method, Object[] objects) throws Throwable {
-        try {
-          return method.invoke(delegate, objects);
-        }
-        catch (InvocationTargetException e) {
-          throw e.getCause();
-        }
+    return (MyInterface)Proxy.newProxyInstance(MyInterface.class.getClassLoader(), new Class[]{MyInterface.class}, (o, method, objects) -> {
+      try {
+        return method.invoke(delegate, objects);
+      }
+      catch (InvocationTargetException e) {
+        throw e.getCause();
       }
     });
   }
@@ -267,8 +266,8 @@ public class ProxyUtilTest extends TestCase {
     public Map<String, Collection<MyInterface>> getMapToProxy() {
       if (!recurse) return null;
 
-      return ImmutableMap.<String, Collection<MyInterface>>of("one", Sets.<MyInterface>newHashSet(new MyInterfaceImpl(false)), "two",
-                                                              Lists.newArrayList(createProxyInstance(false), createProxyInstance(false)));
+      return ImmutableMap.of("one", Sets.newHashSet(new MyInterfaceImpl(false)), "two",
+                             Lists.newArrayList(createProxyInstance(false), createProxyInstance(false)));
     }
 
     @Override
