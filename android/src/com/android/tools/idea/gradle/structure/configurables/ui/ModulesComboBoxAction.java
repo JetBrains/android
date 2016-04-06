@@ -48,7 +48,7 @@ public class ModulesComboBoxAction extends LabeledComboBoxAction {
   @Override
   @NotNull
   protected DefaultActionGroup createPopupActionGroup(JComponent button) {
-    final DefaultActionGroup group = new DefaultActionGroup();
+    DefaultActionGroup group = new DefaultActionGroup();
 
     for (PsModule module : myExtraTopModules) {
       group.add(new ModuleAction(module));

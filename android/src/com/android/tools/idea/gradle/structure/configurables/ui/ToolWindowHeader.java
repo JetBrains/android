@@ -52,12 +52,12 @@ public class ToolWindowHeader extends Header implements Disposable {
   @NotNull
   public static ToolWindowHeader createAndAdd(@NotNull String title,
                                               @NotNull Icon icon,
-                                              @NotNull final JComponent parent,
+                                              @NotNull JComponent parent,
                                               @Nullable ToolWindowAnchor anchor) {
     LayoutManager layout = parent.getLayout();
     assert layout instanceof BorderLayout;
 
-    final ToolWindowHeader header = new ToolWindowHeader(title, icon, anchor) {
+    ToolWindowHeader header = new ToolWindowHeader(title, icon, anchor) {
       @Override
       public boolean isActive() {
         KeyboardFocusManager focusManager = KeyboardFocusManager.getCurrentKeyboardFocusManager();

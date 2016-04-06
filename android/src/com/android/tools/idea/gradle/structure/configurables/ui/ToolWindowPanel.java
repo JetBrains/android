@@ -36,8 +36,7 @@ import static com.intellij.util.ui.UIUtil.getLabelFont;
 
 public abstract class ToolWindowPanel extends JPanel implements Disposable {
   @NotNull private final ToolWindowHeader myHeader;
-
-  private final EventDispatcher<RestoreListener> myEventDispatcher = EventDispatcher.create(RestoreListener.class);
+  @NotNull private final EventDispatcher<RestoreListener> myEventDispatcher = EventDispatcher.create(RestoreListener.class);
 
   private JPanel myMinimizedPanel;
   private AnchoredToolWindowButton myAnchoredButton;
