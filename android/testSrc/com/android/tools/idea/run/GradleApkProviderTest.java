@@ -24,9 +24,12 @@ import org.junit.Test;
 import org.junit.rules.TestName;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-import org.mockito.Mockito;
 
 import java.util.*;
+
+import static com.intellij.util.containers.ContainerUtil.getFirstItem;
+import static org.fest.assertions.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 /**
  * Tests for {@link GradleApkProvider}.
@@ -81,13 +84,14 @@ public class GradleApkProviderTest extends AndroidGradleArtifactsTestCase {
   public void testGetApks() throws Exception {
     loadProject("projects/runConfig/activity");
     GradleApkProvider provider = new GradleApkProvider(myAndroidFacet, false);
-    IDevice device = Mockito.mock(IDevice.class);
-    Collection<ApkInfo> apks = provider.getApks(device);
-    assertNotNull(apks);
-    assertEquals(1, apks.size());
-    ApkInfo apk = apks.iterator().next();
+    Collection<ApkInfo> apks = provider.getApks(mock(IDevice.class));
+    assertThat(apks).isNotNull().hasSize(1);
+
+    ApkInfo apk = getFirstItem(apks);
+    assertNotNull(apk);
     assertEquals("from.gradle.debug", apk.getApplicationId());
-    assertTrue(apk.getFile().getPath().endsWith(getName() + "0-debug.apk"));
+    String path = apk.getFile().getPath();
+    assertThat(path).endsWith(getName() + "-debug.apk");
   }
 
   @Test
@@ -104,23 +108,22 @@ public class GradleApkProviderTest extends AndroidGradleArtifactsTestCase {
   public void testGetApksForTest() throws Exception {
     loadProject("projects/runConfig/activity");
     GradleApkProvider provider = new GradleApkProvider(myAndroidFacet, true);
-    IDevice device = Mockito.mock(IDevice.class);
-    Collection<ApkInfo> apks = provider.getApks(device);
-    assertNotNull(apks);
-    assertEquals(2, apks.size());
-    // Sort the apks to keep test consistent.
-    List<ApkInfo> apkList = new ArrayList<ApkInfo>(apks);
-    Collections.sort(apkList, new Comparator<ApkInfo>() {
-      @Override
-      public int compare(ApkInfo a, ApkInfo b) {
-        return a.getApplicationId().compareTo(b.getApplicationId());
-      }
-    });
+
+    Collection<ApkInfo> apks = provider.getApks(mock(IDevice.class));
+    assertThat(apks).isNotNull().hasSize(2);
+
+    // Sort the APKs to keep test consistent.
+    List<ApkInfo> apkList = new ArrayList<>(apks);
+    Collections.sort(apkList, (a, b) -> a.getApplicationId().compareTo(b.getApplicationId()));
     ApkInfo mainApk = apkList.get(0);
     ApkInfo testApk = apkList.get(1);
+
     assertEquals("from.gradle.debug", mainApk.getApplicationId());
-    assertTrue(mainApk.getFile().getPath().endsWith(getName() + "0-debug.apk"));
+    String path = mainApk.getFile().getPath();
+    assertThat(path).endsWith(getName() + "-debug.apk");
+
     assertEquals(testApk.getApplicationId(), "from.gradle.debug.test");
-    assertTrue(testApk.getFile().getPath().endsWith(getName() + "0-debug-androidTest-unaligned.apk"));
+    path = testApk.getFile().getPath();
+    assertThat(path).endsWith(getName() + "-debug-androidTest-unaligned.apk");
   }
 }
