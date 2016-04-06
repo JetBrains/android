@@ -159,12 +159,7 @@ public class ChooseResourceDialogTest {
 
     final String expectedError = "<html><font color='#ff0000'><left>'" + badText +
                                  "' is not a valid resource name character</left></b></font></html>";
-    Wait.minutes(2).expecting("error to update").until(new Wait.Objective() {
-      @Override
-      public boolean isMet() {
-        return dialog.getError().equals(expectedError);
-      }
-    });
+    Wait.minutes(2).expecting("error to update").until(() -> dialog.getError().equals(expectedError));
 
     dialog.clickCancel();
     colorCell.cancelEditing();

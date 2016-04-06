@@ -133,13 +133,8 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
       }
     };
 
-    Wait.minutes(2).expecting("IdeFrame " + quote(projectPath.getPath()) + " to show up").until(new Wait.Objective() {
-      @Override
-      public boolean isMet() {
-        Collection<IdeFrameImpl> frames = robot.finder().findAll(matcher);
-        return !frames.isEmpty();
-      }
-    });
+    Wait.minutes(2).expecting("IdeFrame " + quote(projectPath.getPath()) + " to show up")
+      .until(() -> !robot.finder().findAll(matcher).isEmpty());
 
     IdeFrameImpl ideFrame = robot.finder().find(matcher);
     return new IdeFrameFixture(robot, ideFrame, projectPath);
@@ -333,12 +328,8 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     if (application.getUserData(GRADLE_BUILD_OUTPUT_IN_GUI_TEST_KEY) == null) {
       fail("No fake gradle output is configured");
     }
-    Wait.minutes(2).expecting("fake gradle output to be applied").until(new Wait.Objective() {
-      @Override
-      public boolean isMet() {
-        return application.getUserData(GRADLE_BUILD_OUTPUT_IN_GUI_TEST_KEY) == null;
-      }
-    });
+    Wait.minutes(2).expecting("fake gradle output to be applied")
+      .until(() -> application.getUserData(GRADLE_BUILD_OUTPUT_IN_GUI_TEST_KEY) == null);
     String fakeOutput = application.getUserData(GRADLE_BUILD_OUTPUT_IN_GUI_TEST_KEY);
     if (fakeOutput != null) {
       fail(String.format("Fake gradle output (%s) is not applied in %d ms", fakeOutput, TimeUnit.MINUTES.toMillis(2)));
@@ -370,13 +361,8 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     try {
       selectProjectMakeAction();
 
-      Wait.minutes(2).expecting("Build (" + COMPILE_JAVA + ") for project " + quote(project.getName()) + " to finish'").until(new Wait.Objective() {
-        @Override
-        public boolean isMet() {
-          CompileContext context = contextRef.get();
-          return context != null;
-        }
-      });
+      Wait.minutes(2).expecting("Build (" + COMPILE_JAVA + ") for project " + quote(project.getName()) + " to finish'")
+        .until(() -> contextRef.get() != null);
 
       CompileContext context = contextRef.get();
       assertNotNull(context);
@@ -459,9 +445,8 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
       return this;
     }
 
-    Wait.minutes(2).expecting("Build (" + buildMode + ") for project " + quote(project.getName()) + " to finish'").until(new Wait.Objective() {
-      @Override
-      public boolean isMet() {
+    Wait.minutes(2).expecting("Build (" + buildMode + ") for project " + quote(project.getName()) + " to finish'")
+      .until(() -> {
         if (buildMode == SOURCE_GEN) {
           PostProjectBuildTasksExecutor tasksExecutor = PostProjectBuildTasksExecutor.getInstance(project);
           if (tasksExecutor.getLastBuildTimestamp() != null) {
@@ -471,8 +456,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
           }
         }
         return myGradleProjectEventListener.isBuildFinished(buildMode);
-      }
-    });
+      });
 
     waitForBackgroundTasks(robot());
     robot().waitForIdle();
@@ -562,12 +546,8 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     Project project = getProject();
     final GradleSyncState syncState = GradleSyncState.getInstance(project);
     if (!syncState.isSyncInProgress()) {
-      Wait.minutes(2).expecting("Syncing project " + quote(project.getName()) + " to finish").until(new Wait.Objective() {
-        @Override
-        public boolean isMet() {
-          return myGradleProjectEventListener.isSyncStarted();
-        }
-      });
+      Wait.minutes(2).expecting("Syncing project " + quote(project.getName()) + " to finish")
+        .until(myGradleProjectEventListener::isSyncStarted);
     }
     return this;
   }
@@ -585,9 +565,8 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     AndroidGradleBuildConfiguration buildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
     buildConfiguration.USE_EXPERIMENTAL_FASTER_BUILD = true;
 
-    Wait.minutes(2).expecting("Syncing project " + quote(project.getName()) + " to finish").until(new Wait.Objective() {
-      @Override
-      public boolean isMet() {
+    Wait.minutes(2).expecting("Syncing project " + quote(project.getName()) + " to finish")
+      .until(() -> {
         GradleSyncState syncState = GradleSyncState.getInstance(project);
         boolean syncFinished =
           (myGradleProjectEventListener.isSyncFinished() || syncState.isSyncNeeded() != ThreeState.YES) && !syncState.isSyncInProgress();
@@ -595,8 +574,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
           syncFinished = syncFinished && myGradleProjectEventListener.hasSyncError();
         }
         return syncFinished;
-      }
-    });
+      });
 
     waitForGradleSyncAction();
 
@@ -647,14 +625,12 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   public EditorNotificationPanelFixture requireEditorNotification(@NotNull final String message) {
     final Ref<EditorNotificationPanel> notificationPanelRef = new Ref<EditorNotificationPanel>();
 
-    Wait.seconds(30).expecting("EditorNotificationPanel with message '" + message + "' to show up").until(new Wait.Objective() {
-      @Override
-      public boolean isMet() {
+    Wait.seconds(30).expecting("EditorNotificationPanel with message '" + message + "' to show up")
+      .until(() -> {
         EditorNotificationPanel notificationPanel = findNotificationPanel(message);
         notificationPanelRef.set(notificationPanel);
         return notificationPanel != null;
-      }
-    });
+      });
 
     EditorNotificationPanel notificationPanel = notificationPanelRef.get();
     assertNotNull(notificationPanel);
@@ -826,17 +802,15 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
         WelcomeFrame.showIfNoProjectOpened();
       }
     });
-    Wait.seconds(30).expecting("'Welcome' page to show up").until(new Wait.Objective() {
-      @Override
-      public boolean isMet() {
+    Wait.seconds(30).expecting("'Welcome' page to show up")
+      .until(() -> {
         for (Frame frame : Frame.getFrames()) {
           if (frame == WelcomeFrame.getInstance() && frame.isShowing()) {
             return true;
           }
         }
         return false;
-      }
-    });
+      });
   }
 
   @NotNull
@@ -856,12 +830,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     final GradleSettings settings = GradleSettings.getInstance(project);
     settings.setGradleVmOptions(jvmArgs);
 
-    Wait.minutes(2).expecting("Gradle settings to be set").until(new Wait.Objective() {
-      @Override
-      public boolean isMet() {
-        return jvmArgs.equals(settings.getGradleVmOptions());
-      }
-    });
+    Wait.minutes(2).expecting("Gradle settings to be set").until(() -> jvmArgs.equals(settings.getGradleVmOptions()));
 
     return this;
   }
@@ -1073,12 +1042,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     final ExecutionToolWindowFixture.ContentFixture contentFixture = debugToolWindowFixture.findContent(debugConfigName);
 
     contentFixture.clickDebuggerTreeRoot();
-    Wait.seconds(15).expecting("debugger tree to appear").until(new Wait.Objective() {
-      @Override
-      public boolean isMet() {
-        return contentFixture.getDebuggerTreeRoot() != null;
-      }
-    });
+    Wait.seconds(15).expecting("debugger tree to appear").until(() -> contentFixture.getDebuggerTreeRoot() != null);
 
     // Get the debugger tree and print it.
     XDebuggerTreeNode debuggerTreeRoot = contentFixture.getDebuggerTreeRoot();

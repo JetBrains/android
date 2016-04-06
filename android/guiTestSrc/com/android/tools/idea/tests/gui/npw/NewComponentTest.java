@@ -45,28 +45,13 @@ public class NewComponentTest {
     wizardFixture.getFileNameField().enterText("strings");
     final JLabelFixture errorLabel = wizardFixture.findLabel("Values File Name must be unique");
 
-    Wait.minutes(2).expecting("Finish to be disabled").until(new Wait.Objective() {
-      @Override
-      public boolean isMet() {
-        return !finishFixture.isEnabled();
-      }
-    });
+    Wait.minutes(2).expecting("Finish to be disabled").until(() -> !finishFixture.isEnabled());
     wizardFixture.getFileNameField().enterText("2");
-    Wait.minutes(2).expecting("Finish to be enabled").until(new Wait.Objective() {
-      @Override
-      public boolean isMet() {
-        return finishFixture.isEnabled();
-      }
-    });
+    Wait.minutes(2).expecting("Finish to be enabled").until(finishFixture::isEnabled);
 
     // Now test an invalid file name. Currently we have "strings2" so add an space to make it invalid.
     wizardFixture.getFileNameField().enterText(" ");
-    Wait.minutes(2).expecting("Finish to be disabled").until(new Wait.Objective() {
-      @Override
-      public boolean isMet() {
-        return !finishFixture.isEnabled();
-      }
-    });
+    Wait.minutes(2).expecting("Finish to be disabled").until(() -> !finishFixture.isEnabled());
     errorLabel.requireText("Values File Name is not set to a valid resource name: ' ' is not a valid resource name character");
 
     // UI tests should close all dialogs before finishing
