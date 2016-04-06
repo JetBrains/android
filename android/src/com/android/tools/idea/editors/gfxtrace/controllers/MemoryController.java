@@ -23,6 +23,7 @@ import com.android.tools.idea.editors.gfxtrace.service.MemoryInfo;
 import com.android.tools.idea.editors.gfxtrace.service.memory.MemoryRange;
 import com.android.tools.idea.editors.gfxtrace.service.path.*;
 import com.android.tools.idea.editors.gfxtrace.service.path.PathProtos.MemoryKind;
+import com.android.tools.idea.editors.gfxtrace.widgets.LoadablePanel;
 import com.android.tools.rpclib.rpccore.Rpc;
 import com.android.tools.rpclib.rpccore.RpcException;
 import com.google.common.base.Function;
@@ -46,7 +47,6 @@ import com.intellij.openapi.editor.colors.EditorFontType;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.reference.SoftReference;
-import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.Range;
 import com.intellij.util.containers.EmptyIterator;
@@ -79,7 +79,7 @@ public class MemoryController extends Controller {
   }
 
   @NotNull private final JPanel myPanel = new JPanel(new BorderLayout());
-  @NotNull private final JBLoadingPanel myLoading = new JBLoadingPanel(new BorderLayout(), myEditor.getProject(), 50);
+  @NotNull private final LoadablePanel myLoading = new LoadablePanel(new BorderLayout());
   @NotNull private final EmptyPanel myEmptyPanel = new EmptyPanel();
   @NotNull private final JScrollPane myScrollPane = new JBScrollPane(myEmptyPanel);
   @NotNull private DataType myDataType = DataType.Bytes;
@@ -89,7 +89,7 @@ public class MemoryController extends Controller {
 
   private MemoryController(@NotNull GfxTraceEditor editor) {
     super(editor);
-    myLoading.add(myScrollPane, BorderLayout.CENTER);
+    myLoading.getContentLayer().add(myScrollPane, BorderLayout.CENTER);
     myCombo = new ComboBox(DataType.values()) {{
       setSelectedIndex(1);
       addItemListener(new ItemListener() {
