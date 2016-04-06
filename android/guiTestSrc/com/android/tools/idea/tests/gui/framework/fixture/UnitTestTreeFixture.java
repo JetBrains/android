@@ -37,12 +37,7 @@ public class UnitTestTreeFixture {
 
   @Nullable
   public TestFrameworkRunningModel getModel() {
-    Wait.seconds(30).expecting("the test results model").until(new Wait.Objective() {
-      @Override
-      public boolean isMet() {
-        return myTreeView.getData(TestTreeView.MODEL_DATA_KEY.getName()) != null;
-      }
-    });
+    Wait.seconds(30).expecting("the test results model").until(() -> myTreeView.getData(TestTreeView.MODEL_DATA_KEY.getName()) != null);
 
     return (TestFrameworkRunningModel)myTreeView.getData(TestTreeView.MODEL_DATA_KEY.getName());
   }

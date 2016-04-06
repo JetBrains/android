@@ -317,18 +317,14 @@ public class GradleSyncTest {
     final JButtonFixture finish = quickFixDialog.button(withText("Finish"));
 
     // Wait until installation is finished. By then the "Finish" button will be enabled.
-    Wait.minutes(2).expecting("Android Support Repository to be installed").until(new Wait.Objective() {
-      @Override
-      public boolean isMet() {
-        //noinspection ConstantConditions
-        return execute(new GuiQuery<Boolean>() {
+    Wait.minutes(2).expecting("Android Support Repository to be installed").until(
+      () -> execute(
+        new GuiQuery<Boolean>() {
           @Override
           protected Boolean executeInEDT() {
             return finish.target().isEnabled();
           }
-        });
-      }
-    });
+        }));
 
     // Installation finished. Click finish to resync project.
     finish.click();
@@ -377,14 +373,10 @@ public class GradleSyncTest {
     ProjectViewFixture.NodeFixture externalLibrariesNode = projectPane.findExternalLibrariesNode();
     projectPane.expand();
 
-    Wait.minutes(2).expecting("'Project View' to be customized").until(new Wait.Objective() {
-      @Override
-      public boolean isMet() {
-        // 2 nodes should be changed: JDK (remove all children except rt.jar) and rt.jar (remove all children except packages 'java' and
-        // 'javax'.
-        return changedNodes.size() == 2;
-      }
-    });
+    Wait.minutes(2).expecting("'Project View' to be customized")
+      // 2 nodes should be changed: JDK (remove all children except rt.jar) and rt.jar (remove all children except packages 'java' and
+      // 'javax'.
+      .until(() -> changedNodes.size() == 2);
 
     List<ProjectViewFixture.NodeFixture> libraryNodes = externalLibrariesNode.getChildren();
 
@@ -399,13 +391,7 @@ public class GradleSyncTest {
     assertNotNull(jdkNode);
 
     final ProjectViewFixture.NodeFixture finalJdkNode = jdkNode;
-    Wait.seconds(30).expecting("JDK node to be customized").until(new Wait.Objective() {
-      @Override
-      public boolean isMet() {
-        List<ProjectViewFixture.NodeFixture> jdkChildren = finalJdkNode.getChildren();
-        return jdkChildren.size() == 1;
-      }
-    });
+    Wait.seconds(30).expecting("JDK node to be customized").until(() -> finalJdkNode.getChildren().size() == 1);
 
     // Now we verify that the JDK node has only these children:
     // - jdk
@@ -1543,11 +1529,6 @@ public class GradleSyncTest {
       }
     });
 
-    Wait.minutes(2).expecting("sync to be skipped").until(new Wait.Objective() {
-      @Override
-      public boolean isMet() {
-        return syncSkipped.get();
-      }
-    });
+    Wait.minutes(2).expecting("sync to be skipped").until(syncSkipped::get);
   }
 }

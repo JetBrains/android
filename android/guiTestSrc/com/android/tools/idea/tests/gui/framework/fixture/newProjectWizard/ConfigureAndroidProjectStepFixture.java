@@ -56,12 +56,7 @@ public class ConfigureAndroidProjectStepFixture extends AbstractWizardStepFixtur
     robot().click(editLabel);
 
     final JTextField textField = robot().finder().findByType(link, JTextField.class);
-    Wait.seconds(30).expecting("'Package name' field to be visible").until(new Wait.Objective() {
-      @Override
-      public boolean isMet() {
-        return textField.isShowing();
-      }
-    });
+    Wait.seconds(30).expecting("'Package name' field to be visible").until(textField::isShowing);
     replaceText(textField, text);
 
     // click "Done"

@@ -156,9 +156,8 @@ public class HprofEditorFixture extends EditorFixture {
   }
 
   private void waitForHprofEditor() {
-    Wait.minutes(2).expecting("editor to be ready").until(new Wait.Objective() {
-      @Override
-      public boolean isMet() {
+    Wait.minutes(2).expecting("editor to be ready")
+      .until(() -> {
         try {
           robot.finder().findByName(myHprofEditor.getComponent(), "HprofClassesTree", true);
           return true;
@@ -166,8 +165,7 @@ public class HprofEditorFixture extends EditorFixture {
         catch (ComponentLookupException e) {
           return false;
         }
-      }
-    });
+      });
   }
 
   protected static class ActionToolbarFixture extends JComponentFixture<ActionToolbarFixture, ActionToolbarImpl> {
@@ -194,12 +192,7 @@ public class HprofEditorFixture extends EditorFixture {
       assertTrue(buttonPanel instanceof Container);
 
       final JButton button = robot().finder().findByType((Container)buttonPanel, JButton.class, false);
-      Wait.minutes(2).expecting("button to be visible").until(new Wait.Objective() {
-        @Override
-        public boolean isMet() {
-          return button.isShowing();
-        }
-      });
+      Wait.minutes(2).expecting("button to be visible").until(button::isShowing);
       return ComboBoxActionFixture.findComboBox(robot(), (Container)buttonPanel);
     }
 
