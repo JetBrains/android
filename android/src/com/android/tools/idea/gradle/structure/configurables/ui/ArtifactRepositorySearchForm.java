@@ -21,11 +21,14 @@ import com.android.tools.idea.gradle.structure.model.repositories.search.Artifac
 import com.android.tools.idea.gradle.structure.model.repositories.search.SearchRequest;
 import com.android.tools.idea.gradle.structure.model.repositories.search.SearchResult;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.Disposable;
 import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.TableSpeedSearch;
+import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.JBTextField;
 import com.intellij.ui.table.TableView;
+import com.intellij.util.EventDispatcher;
 import com.intellij.util.ui.ColumnInfo;
 import com.intellij.util.ui.ListTableModel;
 import org.jetbrains.annotations.NonNls;
@@ -34,24 +37,36 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
+import java.awt.*;
 import java.awt.event.ActionListener;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.EventListener;
 import java.util.List;
 
 import static com.android.ide.common.repository.GradleCoordinate.parseCoordinateString;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
+import static javax.swing.ListSelectionModel.SINGLE_SELECTION;
 
 public class ArtifactRepositorySearchForm {
   @NotNull private final ArtifactRepositorySearch mySearch;
 
+  private JBLabel myArtifactNameLabel;
   private JBTextField myArtifactNameTextField;
+
+  private JBLabel myGroupIdLabel;
   private JBTextField myGroupIdTextField;
+
   private JButton mySearchButton;
-  private JBScrollPane myResultsScrollPane;
-  private JPanel myPanel;
 
   private TableView<FoundArtifact> myResultsTable;
+  private JBScrollPane myResultsScrollPane;
+
+  private JPanel myPanel;
+
+  @NotNull private final EventDispatcher<SelectionListener> myEventDispatcher = EventDispatcher.create(SelectionListener.class);
 
   public ArtifactRepositorySearchForm(@NotNull List<ArtifactRepository> repositories) {
     mySearch = new ArtifactRepositorySearch(repositories);
@@ -71,17 +86,33 @@ public class ArtifactRepositorySearchForm {
 
     mySearchButton.addActionListener(actionListener);
 
+    myArtifactNameLabel.setLabelFor(myArtifactNameTextField);
     myArtifactNameTextField.addActionListener(actionListener);
     myArtifactNameTextField.getEmptyText().setText("Example: \"guava\"");
 
+    myGroupIdLabel.setLabelFor(myGroupIdTextField);
     myGroupIdTextField.addActionListener(actionListener);
     myGroupIdTextField.getEmptyText().setText("Example: \"com.google.guava\"");
 
     myResultsTable = new TableView<>(new ResultsTableModel());
+    myResultsTable.setPreferredSize(new Dimension(520, 320));
+
+    myResultsTable.setSelectionMode(SINGLE_SELECTION);
     myResultsTable.setAutoCreateRowSorter(true);
     myResultsTable.setShowGrid(false);
     myResultsTable.getTableHeader().setReorderingAllowed(false);
     myResultsScrollPane.setViewportView(myResultsTable);
+
+    myResultsTable.getSelectionModel().addListSelectionListener(e -> {
+      Collection<FoundArtifact> selection = myResultsTable.getSelection();
+      FoundArtifact artifact = null;
+      if (selection.size() == 1) {
+        artifact = getFirstItem(selection);
+      }
+      GradleCoordinate coordinate = artifact != null ? artifact.coordinate : null;
+      String selected = coordinate != null ? coordinate.toString() : null;
+      myEventDispatcher.getMulticaster().selectionChanged(selected);
+    });
 
     new TableSpeedSearch(myResultsTable);
   }
@@ -93,7 +124,8 @@ public class ArtifactRepositorySearchForm {
     clearResults();
 
     SearchRequest request = new SearchRequest(getArtifactName(), getGroupId(), 50, 0);
-    final ArtifactRepositorySearch.Callback callback = mySearch.start(request);
+
+    ArtifactRepositorySearch.Callback callback = mySearch.start(request);
     callback.doWhenDone(() -> invokeLaterIfNeeded(() -> {
       List<FoundArtifact> foundArtifacts = Lists.newArrayList();
 
@@ -122,6 +154,7 @@ public class ArtifactRepositorySearchForm {
   private void clearResults() {
     myResultsTable.getListTableModel().setItems(Collections.emptyList());
   }
+
   @NotNull
   private String getArtifactName() {
     return myArtifactNameTextField.getText().trim();
@@ -131,6 +164,10 @@ public class ArtifactRepositorySearchForm {
   private String getGroupId() {
     String groupId = myGroupIdTextField.getText().trim();
     return isNotEmpty(groupId) ? groupId : null;
+  }
+
+  public void add(@NotNull SelectionListener listener, @NotNull Disposable parentDisposable) {
+    myEventDispatcher.addListener(listener, parentDisposable);
   }
 
   @NotNull
@@ -213,5 +250,9 @@ public class ArtifactRepositorySearchForm {
       this.coordinate = coordinate;
       this.repository = repository;
     }
+  }
+
+  public interface SelectionListener extends EventListener {
+    void selectionChanged(@Nullable String selectedLibrary);
   }
 }

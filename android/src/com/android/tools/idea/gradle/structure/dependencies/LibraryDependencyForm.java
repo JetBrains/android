@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.configurables.android.dependencies;
+package com.android.tools.idea.gradle.structure.dependencies;
 
 import com.android.builder.model.AndroidProject;
 import com.android.tools.idea.gradle.AndroidGradleModel;
@@ -23,14 +23,15 @@ import com.android.tools.idea.gradle.dsl.model.repositories.MavenCentralReposito
 import com.android.tools.idea.gradle.dsl.model.repositories.RepositoryModel;
 import com.android.tools.idea.gradle.structure.configurables.ui.ArtifactRepositorySearchForm;
 import com.android.tools.idea.gradle.structure.model.PsModule;
-import com.android.tools.idea.gradle.structure.model.PsProject;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.android.tools.idea.gradle.structure.model.repositories.search.AndroidSdkRepository;
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepository;
 import com.android.tools.idea.gradle.structure.model.repositories.search.JCenterRepository;
 import com.android.tools.idea.gradle.structure.model.repositories.search.MavenCentralRepository;
 import com.google.common.collect.Lists;
-import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.openapi.Disposable;
+import com.intellij.ui.components.JBLabel;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -38,74 +39,64 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.List;
 
-public class AddArtifactDependencyDialog extends DialogWrapper {
-  @Nullable private final PsModule myModule;
+import static com.intellij.util.ui.UIUtil.getButtonFont;
 
-  private JPanel myPanel;
-  private ArtifactRepositorySearchForm mySearchForm;
+class LibraryDependencyForm implements Disposable {
+  @NotNull private final ArtifactRepositorySearchForm mySearchForm;
 
-  public AddArtifactDependencyDialog(@NotNull PsModule module) {
-    super(module.getParent().getResolvedModel());
-    myModule = module;
-    setUp();
-  }
+  private JPanel myMainPanel;
+  private JBLabel myTitleLabel;
+  private JTextField myLibraryTextField;
+  private JPanel mySearchPanelHost;
 
-  public AddArtifactDependencyDialog(@NotNull PsProject project) {
-    super(project.getResolvedModel());
-    myModule = null;
-    setUp();
-  }
+  LibraryDependencyForm(@NotNull PsModule module) {
+    myTitleLabel.setFont(getButtonFont().deriveFont(Font.BOLD));
+    myTitleLabel.setIcon(module.getIcon());
+    myTitleLabel.setText(String.format("Module '%1$s'", module.getName()));
 
-  private void setUp() {
-    setTitle("Add Artifact Dependency");
-    init();
-  }
-
-  @Override
-  @Nullable
-  protected JComponent createCenterPanel() {
-    if (myPanel == null) {
-      myPanel = new JPanel(new BorderLayout());
-      setUpUI();
-    }
-    return myPanel;
-  }
-
-  @Override
-  @Nullable
-  public JComponent getPreferredFocusedComponent() {
-    return mySearchForm != null ? mySearchForm.getPreferredFocusedComponent() : super.getPreferredFocusedComponent();
-  }
-
-  private void setUpUI() {
     List<ArtifactRepository> repositories = Lists.newArrayList();
-    if (myModule != null) {
-      GradleBuildModel parsedModel = myModule.getParsedModel();
-      if (parsedModel != null) {
-        for (RepositoryModel repositoryModel : parsedModel.repositories().repositories()) {
-          if (repositoryModel instanceof JCenterDefaultRepositoryModel) {
-            repositories.add(new JCenterRepository());
-            continue;
-          }
-          if (repositoryModel instanceof MavenCentralRepositoryModel) {
-            repositories.add(new MavenCentralRepository());
-          }
+    GradleBuildModel parsedModel = module.getParsedModel();
+    if (parsedModel != null) {
+      for (RepositoryModel repositoryModel : parsedModel.repositories().repositories()) {
+        if (repositoryModel instanceof JCenterDefaultRepositoryModel) {
+          repositories.add(new JCenterRepository());
+          continue;
+        }
+        if (repositoryModel instanceof MavenCentralRepositoryModel) {
+          repositories.add(new MavenCentralRepository());
         }
       }
     }
-    else {
-      // Fall back to jcenter
-      repositories.add(new JCenterRepository());
-    }
 
     AndroidProject androidProject = null;
-    if (myModule instanceof PsAndroidModule) {
-      AndroidGradleModel gradleModel = ((PsAndroidModule)myModule).getGradleModel();
+    if (module instanceof PsAndroidModule) {
+      AndroidGradleModel gradleModel = ((PsAndroidModule)module).getGradleModel();
       androidProject = gradleModel.getAndroidProject();
     }
     repositories.add(new AndroidSdkRepository(androidProject));
 
     mySearchForm = new ArtifactRepositorySearchForm(repositories);
-    myPanel.add(mySearchForm.getPanel(), BorderLayout.CENTER);
+    mySearchForm.add(new ArtifactRepositorySearchForm.SelectionListener() {
+      @Override
+      public void selectionChanged(@Nullable String selectedLibrary) {
+        myLibraryTextField.setText(selectedLibrary);
+      }
+    }, this);
+
+    mySearchPanelHost.add(mySearchForm.getPanel(), BorderLayout.CENTER);
+  }
+
+  @NotNull
+  JComponent getPreferredFocusedComponent() {
+    return mySearchForm.getPreferredFocusedComponent();
+  }
+
+  @NotNull
+  JPanel getPanel() {
+    return myMainPanel;
+  }
+
+  @Override
+  public void dispose() {
   }
 }

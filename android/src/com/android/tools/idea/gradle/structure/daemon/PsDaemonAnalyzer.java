@@ -90,8 +90,8 @@ public class PsDaemonAnalyzer implements Disposable {
     myAnalyzerQueue.queue(new AnalyzeModelUpdate(model));
   }
 
-  private void doCheck(@NotNull final PsModel model) {
-    final PsModelAnalyzer<?> analyzer = myModelAnalyzers.get(model.getClass());
+  private void doCheck(@NotNull PsModel model) {
+    PsModelAnalyzer<?> analyzer = myModelAnalyzers.get(model.getClass());
     if (analyzer == null) {
       LOG.info("Failed to find analyzer for model of type " + model.getClass().getName());
       return;
