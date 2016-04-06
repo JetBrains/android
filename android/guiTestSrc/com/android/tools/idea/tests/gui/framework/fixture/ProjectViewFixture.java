@@ -95,7 +95,9 @@ public class ProjectViewFixture extends ToolWindowFixture {
         projectView.changeView(id);
       }
     });
-    return new PaneFixture(projectView.getProjectViewPaneById(id));
+    AbstractProjectViewPane androidPane = projectView.getProjectViewPaneById(id);
+    Wait.minutes(2).expecting("Android pane to be selected").until(() -> androidPane.getSelectedElement() != null);
+    return new PaneFixture(androidPane);
   }
 
   public static class PaneFixture {
