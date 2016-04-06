@@ -50,6 +50,7 @@ public abstract class ImagePanelController extends Controller {
     LoadablePanel loading = new LoadablePanel(myImagePanel, LoadablePanel.Style.OPAQUE);
     myPanel.add(loading.getContentLayer(), BorderLayout.CENTER);
     myImageRequestController = new SingleInFlight(loading);
+    myImagePanel.setImageRequestController(myImageRequestController);
   }
 
   protected void initToolbar(DefaultActionGroup group, boolean enableVerticalFlip) {
