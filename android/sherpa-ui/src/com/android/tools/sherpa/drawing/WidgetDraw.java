@@ -171,6 +171,9 @@ public class WidgetDraw {
             showCenterAnchor |= centerAnchorIsConnected;
             showBaselineAnchor |= baselineAnchorIsConnected;
         }
+        if (!ConstraintAnchor.USE_CENTER_ANCHOR) {
+            showCenterAnchor = false;
+        }
 
         int anchorInnerMargin = 3;
 
