@@ -10,9 +10,4 @@ public class AndroidStudioUpdateStrategyCustomization extends UpdateStrategyCust
   public boolean forceEapUpdateChannelForEapBuilds() {
     return false;
   }
-
-  @Override
-  public boolean allowMajorVersionUpdate() {
-    return true;
-  }
 }
