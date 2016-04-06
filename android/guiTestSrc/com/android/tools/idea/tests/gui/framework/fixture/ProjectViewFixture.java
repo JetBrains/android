@@ -58,13 +58,8 @@ public class ProjectViewFixture extends ToolWindowFixture {
   public PaneFixture selectProjectPane() {
     activate();
     final ProjectView projectView = ProjectView.getInstance(myProject);
-    Wait.minutes(2).expecting("ProjectView to be initialized").until(new Wait.Objective() {
-      @Override
-      public boolean isMet() {
-        //noinspection ConstantConditions
-        return field("isInitialized").ofType(boolean.class).in(projectView).get();
-      }
-    });
+    Wait.minutes(2).expecting("ProjectView to be initialized")
+      .until(() -> field("isInitialized").ofType(boolean.class).in(projectView).get());
 
     final String id = "ProjectPane";
     GuiActionRunner.execute(new GuiTask() {
@@ -80,13 +75,8 @@ public class ProjectViewFixture extends ToolWindowFixture {
   public PaneFixture selectAndroidPane() {
     activate();
     final ProjectView projectView = ProjectView.getInstance(myProject);
-    Wait.minutes(2).expecting("ProjectView to be initialized").until(new Wait.Objective() {
-      @Override
-      public boolean isMet() {
-        //noinspection ConstantConditions
-        return field("isInitialized").ofType(boolean.class).in(projectView).get();
-      }
-    });
+    Wait.minutes(2).expecting("ProjectView to be initialized")
+      .until(() -> field("isInitialized").ofType(boolean.class).in(projectView).get());
 
     final String id = "AndroidView";
     GuiActionRunner.execute(new GuiTask() {
@@ -121,9 +111,8 @@ public class ProjectViewFixture extends ToolWindowFixture {
     @NotNull
     private AbstractTreeStructure getTreeStructure() {
       final AtomicReference<AbstractTreeStructure> treeStructureRef = new AtomicReference<AbstractTreeStructure>();
-      Wait.minutes(2).expecting("AbstractTreeStructure to be built").until(new Wait.Objective() {
-        @Override
-        public boolean isMet() {
+      Wait.minutes(2).expecting("AbstractTreeStructure to be built")
+        .until(() -> {
           AbstractTreeStructure treeStructure = GuiActionRunner.execute(new GuiQuery<AbstractTreeStructure>() {
             @Override
             protected AbstractTreeStructure executeInEDT() throws Throwable {
@@ -138,8 +127,7 @@ public class ProjectViewFixture extends ToolWindowFixture {
           });
           treeStructureRef.set(treeStructure);
           return treeStructure != null;
-        }
-      });
+        });
 
       return treeStructureRef.get();
     }
@@ -209,10 +197,9 @@ public class ProjectViewFixture extends ToolWindowFixture {
 
       assertNotNull(node);
 
-      Wait.minutes(2).expecting("node to be selected").until(new Wait.Objective() {
-        @Override
-        public boolean isMet() {
-          return node.equals(GuiActionRunner.execute(new GuiQuery<Object>() {
+      Wait.minutes(2).expecting("node to be selected").until(
+        () -> node.equals(GuiActionRunner.execute(
+          new GuiQuery<Object>() {
             @Override
             protected Object executeInEDT() throws Throwable {
               DefaultMutableTreeNode selectedNode = myPane.getSelectedNode();
@@ -221,9 +208,7 @@ public class ProjectViewFixture extends ToolWindowFixture {
               }
               return null;
             }
-          }));
-        }
-      });
+          })));
     }
   }
 
