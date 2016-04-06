@@ -45,7 +45,7 @@ class DeclaredDependenciesTreeRootNode extends AbstractRootNode<PsProject> {
   @Override
   @NotNull
   protected List<? extends AbstractPsModelNode> createChildren() {
-    final DeclaredDependencyCollector collector = new DeclaredDependencyCollector();
+    DeclaredDependencyCollector collector = new DeclaredDependencyCollector();
 
     PsProject project = getModels().get(0);
     project.forEachModule(module -> {
@@ -71,7 +71,7 @@ class DeclaredDependenciesTreeRootNode extends AbstractRootNode<PsProject> {
     return children;
   }
 
-  private static void collectDeclaredDependencies(@NotNull PsModule module, @NotNull final DeclaredDependencyCollector collector) {
+  private static void collectDeclaredDependencies(@NotNull PsModule module, @NotNull DeclaredDependencyCollector collector) {
     if (module instanceof PsAndroidModule) {
       PsAndroidModule androidModule = (PsAndroidModule)module;
       androidModule.forEachDeclaredDependency(dependency -> {

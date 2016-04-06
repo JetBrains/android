@@ -69,7 +69,7 @@ class AndroidScopesForm implements ScopesForm {
 
     CheckedTreeNode root = new CheckedTreeNode();
 
-    final List<PsAndroidArtifact> artifacts = Lists.newArrayList();
+    List<PsAndroidArtifact> artifacts = Lists.newArrayList();
     myModule.forEachVariant(variant -> {
       if (variant == null) {
         return false;

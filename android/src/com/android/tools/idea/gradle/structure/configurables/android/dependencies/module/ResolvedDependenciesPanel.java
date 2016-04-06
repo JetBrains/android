@@ -65,7 +65,6 @@ public class ResolvedDependenciesPanel extends ToolWindowPanel implements Depend
   @NotNull private final Tree myTree;
   @NotNull private final ResolvedDependenciesTreeBuilder myTreeBuilder;
   @NotNull private final PsContext myContext;
-  @NotNull private final TreeSelectionListener myTreeSelectionListener;
   @NotNull private final NodeHyperlinkSupport<ModuleDependencyNode> myHyperlinkSupport;
 
   @NotNull private final EventDispatcher<SelectionListener> myEventDispatcher = EventDispatcher.create(SelectionListener.class);
@@ -75,14 +74,15 @@ public class ResolvedDependenciesPanel extends ToolWindowPanel implements Depend
   public ResolvedDependenciesPanel(@NotNull PsAndroidModule module,
                                    @NotNull PsContext context,
                                    @NotNull DependencySelection dependencySelection) {
-    this("Resolved Dependencies", module, context, dependencySelection);
+    this("Resolved Dependencies", module, context, dependencySelection, ToolWindowAnchor.RIGHT);
   }
 
   public ResolvedDependenciesPanel(@NotNull String title,
                                    @NotNull PsAndroidModule module,
                                    @NotNull PsContext context,
-                                   @NotNull DependencySelection dependencySelection) {
-    super(title, AndroidIcons.Variant, ToolWindowAnchor.RIGHT);
+                                   @NotNull DependencySelection dependencySelection,
+                                   @Nullable ToolWindowAnchor anchor) {
+    super(title, AndroidIcons.Variant, anchor);
     myContext = context;
 
     DefaultTreeModel treeModel = new DefaultTreeModel(new DefaultMutableTreeNode());
@@ -112,7 +112,7 @@ public class ResolvedDependenciesPanel extends ToolWindowPanel implements Depend
     JScrollPane scrollPane = setUp(myTree);
     add(scrollPane, BorderLayout.CENTER);
 
-    myTreeSelectionListener = e -> {
+    TreeSelectionListener treeSelectionListener = e -> {
       if (myIgnoreTreeSelectionEvents) {
         return;
       }
@@ -130,7 +130,7 @@ public class ResolvedDependenciesPanel extends ToolWindowPanel implements Depend
         notifySelectionChanged(selected);
       }
     };
-    myTree.addTreeSelectionListener(myTreeSelectionListener);
+    myTree.addTreeSelectionListener(treeSelectionListener);
     myTree.addMouseListener(new PopupHandler() {
       @Override
       public void invokePopup(Component comp, int x, int y) {
@@ -146,7 +146,7 @@ public class ResolvedDependenciesPanel extends ToolWindowPanel implements Depend
   }
 
   private void setHeaderActions() {
-    final DefaultActionGroup settingsGroup = new DefaultActionGroup();
+    DefaultActionGroup settingsGroup = new DefaultActionGroup();
 
     settingsGroup.add(new ToggleAction("Group Similar") {
       @Override

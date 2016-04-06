@@ -130,7 +130,7 @@ public abstract class AbstractDeclaredDependenciesPanel extends JPanel implement
 
   @NotNull
   protected final JPanel createActionsPanel() {
-    final JPanel actionsPanel = new JPanel(new BorderLayout());
+    JPanel actionsPanel = new JPanel(new BorderLayout());
 
     DefaultActionGroup actions = new DefaultActionGroup();
 
@@ -150,7 +150,7 @@ public abstract class AbstractDeclaredDependenciesPanel extends JPanel implement
           }
 
           @Override
-          public PopupStep onChosen(final AbstractPopupAction action, boolean finalChoice) {
+          public PopupStep onChosen(AbstractPopupAction action, boolean finalChoice) {
             return doFinalStep(action::execute);
           }
 

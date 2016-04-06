@@ -43,10 +43,9 @@ public class ResolvedDependenciesTreeBuilder extends AbstractPsNodeTreeBuilder {
       AbstractTreeStructure treeStructure = getTreeStructure();
 
       if (treeStructure instanceof ResolvedDependenciesTreeStructure) {
-        final PsAndroidDependency selected = myDependencySelectionSource.getSelection();
+        PsAndroidDependency selected = myDependencySelectionSource.getSelection();
 
         boolean needsUpdate = ((ResolvedDependenciesTreeStructure)treeStructure).settingsChanged();
-
         if (needsUpdate) {
           ActionCallback actionCallback = queueUpdate();
           actionCallback.doWhenDone(new Runnable() {

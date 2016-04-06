@@ -20,11 +20,8 @@ import com.android.tools.idea.gradle.structure.configurables.android.dependencie
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.details.ModuleDependencyDetails;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.details.ProjectLibraryDependencyDetails;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.project.treeview.DeclaredDependenciesTreeBuilder;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractDependencyNode;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.*;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractPsNodeTreeBuilder.MatchingNodeCollector;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.GoToModuleAction;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.LibraryDependencyNode;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.ModuleDependencyNode;
 import com.android.tools.idea.gradle.structure.configurables.issues.IssuesViewer;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractBaseCollapseAllAction;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractBaseExpandAllAction;
@@ -66,7 +63,6 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel {
 
   @NotNull private final Tree myTree;
   @NotNull private final DeclaredDependenciesTreeBuilder myTreeBuilder;
-  @NotNull private final TreeSelectionListener myTreeSelectionListener;
   @NotNull private final NodeHyperlinkSupport<ModuleDependencyNode> myHyperlinkSupport;
   @NotNull private final IssuesViewer myIssuesViewer;
 
@@ -116,16 +112,16 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel {
 
     getContentsPanel().add(createActionsPanel(), BorderLayout.NORTH);
 
-    final JScrollPane scrollPane = setUp(myTree);
+    JScrollPane scrollPane = setUp(myTree);
     getContentsPanel().add(scrollPane, BorderLayout.CENTER);
 
     myTreeBuilder = new DeclaredDependenciesTreeBuilder(myContext.getProject(), myTree, treeModel);
 
-    myTreeSelectionListener = e -> {
-      final NodeSelectionDetector detector = new NodeSelectionDetector();
+    TreeSelectionListener treeSelectionListener = e -> {
+      NodeSelectionDetector detector = new NodeSelectionDetector();
 
       if (!myIgnoreTreeSelectionEvents) {
-        final AbstractDependencyNode<? extends PsAndroidDependency> selection = getSelection();
+        AbstractDependencyNode<? extends PsAndroidDependency> selection = getSelection();
         myIgnoreTreeSelectionEvents = true;
         myTreeBuilder.updateSelection(new MatchingNodeCollector() {
           @Override
@@ -146,7 +142,7 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel {
         updateIssues(selection);
       }
     };
-    myTree.addTreeSelectionListener(myTreeSelectionListener);
+    myTree.addTreeSelectionListener(treeSelectionListener);
     myTree.addMouseListener(new PopupHandler() {
       @Override
       public void invokePopup(Component comp, int x, int y) {
