@@ -399,8 +399,6 @@ public final class AvdDeviceData {
     int height = myScreenResolutionHeight.get();
     ScreenOrientation orientation = getDefaultDeviceOrientation();
 
-    assert width > 0 && height > 0;
-
     // compute width and height to take orientation into account.
     int finalWidth, finalHeight;
 
