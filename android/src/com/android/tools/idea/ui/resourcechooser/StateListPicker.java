@@ -177,7 +177,7 @@ public class StateListPicker extends JPanel {
    */
   @Nullable("if there is no error")
   public ValidationInfo doValidate(int minApi) {
-    IAndroidTarget target = myConfiguration.getTarget();
+    IAndroidTarget target = myConfiguration.getRealTarget();
     assert target != null;
     final AndroidTargetData androidTargetData = AndroidTargetData.getTargetData(target, myModule);
     assert androidTargetData != null;
