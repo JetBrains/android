@@ -34,7 +34,7 @@ import java.awt.image.DataBufferByte;
 import java.awt.image.WritableRaster;
 import java.util.List;
 
-public class FetchedImage {
+public class FetchedImage implements MultiLevelImage {
   @NotNull private static final Logger LOG = Logger.getInstance(FetchedImage.class);
 
   @NotNull public final Dimension dimensions;
@@ -142,5 +142,16 @@ public class FetchedImage {
         destination[i + 3] = data[j + 0];
       }
     }
+  }
+
+  @Override
+  public int getLevelCount() {
+    return 1;
+  }
+
+  @Override
+  public ListenableFuture<BufferedImage> getLevel(int index) {
+    return (index == 0) ? Futures.immediateFuture(image) :
+           Futures.<BufferedImage>immediateFailedFuture(new IllegalArgumentException("Invalid image level"));
   }
 }
