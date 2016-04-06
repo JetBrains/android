@@ -114,11 +114,6 @@ public class ThemeEditorTableFixture extends JTableFixture {
   }
 
   public void requireValueAt(@NotNull final TableCell cell, @Nullable final String value) {
-    Wait.minutes(2).expecting("theme editor update").until(new Wait.Objective() {
-      @Override
-      public boolean isMet() {
-        return Objects.equal(valueAt(cell), value);
-      }
-    });
+    Wait.minutes(2).expecting("theme editor update").until(() -> Objects.equal(valueAt(cell), value));
   }
 }

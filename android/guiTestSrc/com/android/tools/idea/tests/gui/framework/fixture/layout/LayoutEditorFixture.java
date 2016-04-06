@@ -110,12 +110,8 @@ public class LayoutEditorFixture extends ComponentFixture<LayoutEditorFixture, C
   public Object waitForNextRenderToFinish(@Nullable final Object previous) {
     robot().waitForIdle();
 
-    Wait.minutes(2).expecting("render to finish").until(new Wait.Objective() {
-      @Override
-      public boolean isMet() {
-        return !myPanel.isRenderPending() && myPanel.getLastResult() != null && myPanel.getLastResult() != previous;
-      }
-    });
+    Wait.minutes(2).expecting("render to finish")
+      .until(() -> !myPanel.isRenderPending() && myPanel.getLastResult() != null && myPanel.getLastResult() != previous);
 
     robot().waitForIdle();
 

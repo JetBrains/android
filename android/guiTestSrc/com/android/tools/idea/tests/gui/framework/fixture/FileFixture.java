@@ -58,18 +58,14 @@ public class FileFixture {
   @NotNull
   public FileFixture requireOpenAndSelected() {
     requireVirtualFile();
-    Wait.minutes(2).expecting("file " + quote(myPath.getPath()) + " to be opened").until(new Wait.Objective() {
-      @Override
-      public boolean isMet() {
-        //noinspection ConstantConditions
-        return execute(new GuiQuery<Boolean>() {
+    Wait.minutes(2).expecting("file " + quote(myPath.getPath()) + " to be opened").until(
+      () -> execute(
+        new GuiQuery<Boolean>() {
           @Override
           protected Boolean executeInEDT() throws Throwable {
             return isOpenAndSelected();
           }
-        });
-      }
-    });
+        }));
     return this;
   }
 
@@ -96,18 +92,14 @@ public class FileFixture {
 
   @NotNull
   public FileFixture waitUntilErrorAnalysisFinishes() {
-    Wait.minutes(2).expecting("error analysis to finish").until(new Wait.Objective() {
-      @Override
-      public boolean isMet() {
-        //noinspection ConstantConditions
-        return execute(new GuiQuery<Boolean>() {
+    Wait.minutes(2).expecting("error analysis to finish").until(
+      () -> execute(
+        new GuiQuery<Boolean>() {
           @Override
           protected Boolean executeInEDT() throws Throwable {
             return DaemonCodeAnalyzerEx.getInstanceEx(myProject).isErrorAnalyzingFinished(getPsiFile());
           }
-        });
-      }
-    });
+        }));
     return this;
   }
 
@@ -150,9 +142,8 @@ public class FileFixture {
   @NotNull
   public FileFixture waitForCodeAnalysisHighlightCount(@NotNull final HighlightSeverity severity, final int expected) {
     final Document document = getNotNullDocument();
-    Wait.minutes(2).expecting("code analysis " + severity + " count to reach " + expected).until(new Wait.Objective() {
-      @Override
-      public boolean isMet() {
+    Wait.minutes(2).expecting("code analysis " + severity + " count to reach " + expected)
+      .until(() -> {
         Collection<HighlightInfo> highlightInfos = execute(new GuiQuery<Collection<HighlightInfo>>() {
           @Override
           protected Collection<HighlightInfo> executeInEDT() throws Throwable {
@@ -163,8 +154,7 @@ public class FileFixture {
         });
         assertNotNull(highlightInfos);
         return highlightInfos.size() == expected;
-      }
-    });
+      });
 
     return this;
   }
