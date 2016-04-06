@@ -19,6 +19,7 @@ import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.UiErrorCallback;
 import com.android.tools.idea.editors.gfxtrace.service.ErrDataUnavailable;
 import com.android.tools.idea.editors.gfxtrace.service.image.FetchedImage;
+import com.android.tools.idea.editors.gfxtrace.service.image.MultiLevelImage;
 import com.android.tools.idea.editors.gfxtrace.widgets.ImagePanel;
 import com.android.tools.idea.editors.gfxtrace.widgets.LoadablePanel;
 import com.android.tools.rpclib.futures.SingleInFlight;
@@ -67,11 +68,12 @@ public abstract class ImagePanelController extends Controller {
       return;
     }
 
-    Rpc.listen(imageFuture, LOG, myImageRequestController, new UiErrorCallback<FetchedImage, BufferedImage, String>() {
+    Rpc.listen(imageFuture, LOG, myImageRequestController, new UiErrorCallback<FetchedImage, MultiLevelImage, String>() {
       @Override
-      protected ResultOrError<BufferedImage, String> onRpcThread(Rpc.Result<FetchedImage> result) throws RpcException, ExecutionException {
+      protected ResultOrError<MultiLevelImage, String> onRpcThread(
+          Rpc.Result<FetchedImage> result) throws RpcException, ExecutionException {
         try {
-          return success(result.get().image);
+          return success(result.get());
         }
         catch (ErrDataUnavailable e) {
           return error(e.getMessage());
@@ -79,7 +81,7 @@ public abstract class ImagePanelController extends Controller {
       }
 
       @Override
-      protected void onUiThreadSuccess(BufferedImage result) {
+      protected void onUiThreadSuccess(MultiLevelImage result) {
         myImagePanel.setImage(result);
       }
 
