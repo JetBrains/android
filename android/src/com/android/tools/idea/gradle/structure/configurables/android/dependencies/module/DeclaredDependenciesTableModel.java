@@ -53,7 +53,7 @@ class DeclaredDependenciesTableModel extends ListTableModel<PsAndroidDependency>
   DeclaredDependenciesTableModel(@NotNull PsAndroidModule module, @NotNull PsContext context) {
     myContext = context;
     createAndSetColumnInfos();
-    final List<PsAndroidDependency> dependencies = Lists.newArrayList();
+    List<PsAndroidDependency> dependencies = Lists.newArrayList();
     module.forEachDeclaredDependency(dependency -> {
       dependencies.add(dependency);
       return true;

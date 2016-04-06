@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.details.DependencyDetails;
 import com.android.tools.idea.gradle.structure.configurables.issues.IssuesViewer;
 import com.android.tools.idea.gradle.structure.configurables.ui.EmptyPanel;
+import com.android.tools.idea.gradle.structure.dependencies.AddLibraryDependencyDialog;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.android.tools.idea.structure.dialog.Header;
@@ -129,7 +130,7 @@ public abstract class AbstractDeclaredDependenciesPanel extends JPanel implement
 
   @NotNull
   protected final JPanel createActionsPanel() {
-    final JPanel actionsPanel = new JPanel(new BorderLayout());
+    JPanel actionsPanel = new JPanel(new BorderLayout());
 
     DefaultActionGroup actions = new DefaultActionGroup();
 
@@ -149,7 +150,7 @@ public abstract class AbstractDeclaredDependenciesPanel extends JPanel implement
           }
 
           @Override
-          public PopupStep onChosen(final AbstractPopupAction action, boolean finalChoice) {
+          public PopupStep onChosen(AbstractPopupAction action, boolean finalChoice) {
             return doFinalStep(action::execute);
           }
 
@@ -223,13 +224,10 @@ public abstract class AbstractDeclaredDependenciesPanel extends JPanel implement
 
     @Override
     void execute() {
-      AddArtifactDependencyDialog dialog;
       if (myModule == null) {
-        dialog = new AddArtifactDependencyDialog(myContext.getProject());
+        return;
       }
-      else {
-        dialog = new AddArtifactDependencyDialog(myModule);
-      }
+      AddLibraryDependencyDialog dialog = new AddLibraryDependencyDialog(myModule, myContext);
       dialog.showAndGet();
     }
   }

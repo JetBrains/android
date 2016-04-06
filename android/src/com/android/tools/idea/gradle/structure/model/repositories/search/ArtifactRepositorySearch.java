@@ -26,7 +26,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 
 @NotThreadSafe
@@ -38,36 +37,28 @@ public class ArtifactRepositorySearch {
   }
 
   @NotNull
-  public Callback start(@NotNull final SearchRequest request) {
-    final Callback callback = new Callback();
+  public Callback start(@NotNull SearchRequest request) {
+    Callback callback = new Callback();
 
-    final List<Future<SearchResult>> jobs = Lists.newArrayListWithExpectedSize(myRepositories.size());
-    final List<SearchResult> results = Lists.newArrayList();
-    final List<Exception> errors = Lists.newArrayList();
+    List<Future<SearchResult>> jobs = Lists.newArrayListWithExpectedSize(myRepositories.size());
+    List<SearchResult> results = Lists.newArrayList();
+    List<Exception> errors = Lists.newArrayList();
 
-    final Application application = ApplicationManager.getApplication();
-    application.executeOnPooledThread(new Runnable() {
-      @Override
-      public void run() {
-        for (final ArtifactRepository repository : myRepositories) {
-          jobs.add(application.executeOnPooledThread(new Callable<SearchResult>() {
-            @Override
-            public SearchResult call() throws Exception {
-              return repository.search(request);
-            }
-          }));
-        }
-
-        for (Future<SearchResult> job : jobs) {
-          try {
-            results.add(Futures.get(job, Exception.class));
-          }
-          catch (Exception e) {
-            errors.add(e);
-          }
-        }
-        callback.setDone(results, errors);
+    Application application = ApplicationManager.getApplication();
+    application.executeOnPooledThread(() -> {
+      for (final ArtifactRepository repository : myRepositories) {
+        jobs.add(application.executeOnPooledThread(() -> repository.search(request)));
       }
+
+      for (Future<SearchResult> job : jobs) {
+        try {
+          results.add(Futures.get(job, Exception.class));
+        }
+        catch (Exception e) {
+          errors.add(e);
+        }
+      }
+      callback.setDone(results, errors);
     });
     return callback;
   }

@@ -39,7 +39,6 @@ import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.ui.PopupHandler;
-import com.intellij.ui.TreeUIHelper;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.EventDispatcher;
 import icons.AndroidIcons;
@@ -62,21 +61,28 @@ import static com.intellij.openapi.wm.impl.content.ToolWindowContentUi.POPUP_PLA
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static java.awt.event.MouseEvent.MOUSE_PRESSED;
 
-class ResolvedDependenciesPanel extends ToolWindowPanel implements DependencySelection {
+public class ResolvedDependenciesPanel extends ToolWindowPanel implements DependencySelection {
   @NotNull private final Tree myTree;
   @NotNull private final ResolvedDependenciesTreeBuilder myTreeBuilder;
   @NotNull private final PsContext myContext;
-  @NotNull private final TreeSelectionListener myTreeSelectionListener;
   @NotNull private final NodeHyperlinkSupport<ModuleDependencyNode> myHyperlinkSupport;
 
   @NotNull private final EventDispatcher<SelectionListener> myEventDispatcher = EventDispatcher.create(SelectionListener.class);
 
   private boolean myIgnoreTreeSelectionEvents;
 
-  ResolvedDependenciesPanel(@NotNull PsAndroidModule module,
-                            @NotNull PsContext context,
-                            @NotNull DependencySelection dependencySelection) {
-    super("Resolved Dependencies", AndroidIcons.Variant, ToolWindowAnchor.RIGHT);
+  public ResolvedDependenciesPanel(@NotNull PsAndroidModule module,
+                                   @NotNull PsContext context,
+                                   @NotNull DependencySelection dependencySelection) {
+    this("Resolved Dependencies", module, context, dependencySelection, ToolWindowAnchor.RIGHT);
+  }
+
+  public ResolvedDependenciesPanel(@NotNull String title,
+                                   @NotNull PsAndroidModule module,
+                                   @NotNull PsContext context,
+                                   @NotNull DependencySelection dependencySelection,
+                                   @Nullable ToolWindowAnchor anchor) {
+    super(title, AndroidIcons.Variant, anchor);
     myContext = context;
 
     DefaultTreeModel treeModel = new DefaultTreeModel(new DefaultMutableTreeNode());
@@ -106,7 +112,7 @@ class ResolvedDependenciesPanel extends ToolWindowPanel implements DependencySel
     JScrollPane scrollPane = setUp(myTree);
     add(scrollPane, BorderLayout.CENTER);
 
-    myTreeSelectionListener = e -> {
+    TreeSelectionListener treeSelectionListener = e -> {
       if (myIgnoreTreeSelectionEvents) {
         return;
       }
@@ -124,18 +130,13 @@ class ResolvedDependenciesPanel extends ToolWindowPanel implements DependencySel
         notifySelectionChanged(selected);
       }
     };
-    myTree.addTreeSelectionListener(myTreeSelectionListener);
+    myTree.addTreeSelectionListener(treeSelectionListener);
     myTree.addMouseListener(new PopupHandler() {
       @Override
       public void invokePopup(Component comp, int x, int y) {
         popupInvoked(x, y);
       }
     });
-
-    TreeUIHelper.getInstance().installTreeSpeedSearch(myTree, path -> {
-      Object last = path.getLastPathComponent();
-      return last != null ? last.toString() : "";
-    }, true);
 
     myHyperlinkSupport = new NodeHyperlinkSupport<>(myTree, ModuleDependencyNode.class, myContext, false);
   }
@@ -145,7 +146,7 @@ class ResolvedDependenciesPanel extends ToolWindowPanel implements DependencySel
   }
 
   private void setHeaderActions() {
-    final DefaultActionGroup settingsGroup = new DefaultActionGroup();
+    DefaultActionGroup settingsGroup = new DefaultActionGroup();
 
     settingsGroup.add(new ToggleAction("Group Similar") {
       @Override
@@ -239,7 +240,7 @@ class ResolvedDependenciesPanel extends ToolWindowPanel implements DependencySel
     }
   }
 
-  void add(@NotNull SelectionListener listener) {
+  public void add(@NotNull SelectionListener listener) {
     myEventDispatcher.addListener(listener);
   }
 

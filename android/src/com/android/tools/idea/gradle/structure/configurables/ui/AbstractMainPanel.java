@@ -41,7 +41,7 @@ public abstract class AbstractMainPanel extends JPanel implements Disposable, Pl
   private JComponent myModulesToolbar;
   private History myHistory;
 
-  protected AbstractMainPanel(@NotNull PsContext context, @NotNull final List<PsModule> extraTopModules) {
+  protected AbstractMainPanel(@NotNull PsContext context, @NotNull List<PsModule> extraTopModules) {
     super(new BorderLayout());
     myProject = context.getProject();
     myContext = context;
