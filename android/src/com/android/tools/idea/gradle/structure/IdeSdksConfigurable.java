@@ -18,17 +18,16 @@ package com.android.tools.idea.gradle.structure;
 
 import com.android.repository.api.ProgressIndicator;
 import com.android.repository.api.RepoManager;
-import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.npw.WizardUtils;
 import com.android.tools.idea.npw.WizardUtils.WritableCheckMode;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.SdkPaths.ValidationResult;
-import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.sdk.StudioDownloader;
+import com.android.tools.idea.sdk.StudioSettingsController;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.progress.StudioProgressRunner;
-import com.android.tools.idea.sdk.StudioSettingsController;
+import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
@@ -68,13 +67,16 @@ import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.HyperlinkEvent;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
 import static com.android.SdkConstants.FD_NDK;
 import static com.android.SdkConstants.NDK_DIR_PROPERTY;
+import static com.android.tools.idea.npw.WizardUtils.validateLocation;
 import static com.android.tools.idea.sdk.SdkPaths.validateAndroidNdk;
 import static com.android.tools.idea.sdk.SdkPaths.validateAndroidSdk;
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -136,29 +138,21 @@ public class IdeSdksConfigurable extends BaseConfigurable implements Place.Navig
 
     adjustNdkQuickFixVisibility();
 
-    final CardLayout layout = (CardLayout)myNdkDownloadPanel.getLayout();
+    CardLayout layout = (CardLayout)myNdkDownloadPanel.getLayout();
     layout.show(myNdkDownloadPanel, "loading");
 
     ProgressIndicator logger = new StudioLoggerProgressIndicator(getClass());
     RepoManager repoManager = AndroidSdkUtils.tryToChooseSdkHandler().getSdkManager(logger);
     StudioProgressRunner runner = new StudioProgressRunner(false, true, false, "Loading Remote SDK", true, project);
-    RepoManager.RepoLoadedCallback onComplete = new RepoManager.RepoLoadedCallback() {
-      @Override
-      public void doRun(@NotNull RepositoryPackages packages) {
-        if (packages.getRemotePackages().get(FD_NDK) != null) {
-          layout.show(myNdkDownloadPanel, "link");
-        }
-        else {
-          myNdkDownloadPanel.setVisible(false);
-        }
+    RepoManager.RepoLoadedCallback onComplete = packages -> {
+      if (packages.getRemotePackages().get(FD_NDK) != null) {
+        layout.show(myNdkDownloadPanel, "link");
       }
-    };
-    Runnable onError = new Runnable() {
-      @Override
-      public void run() {
+      else {
         myNdkDownloadPanel.setVisible(false);
       }
     };
+    Runnable onError = () -> myNdkDownloadPanel.setVisible(false);
     repoManager.load(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, null, ImmutableList.of(onComplete), ImmutableList.of(onError), runner,
                      new StudioDownloader(), StudioSettingsController.getInstance(), false);
 
@@ -206,18 +200,15 @@ public class IdeSdksConfigurable extends BaseConfigurable implements Place.Navig
 
   @Override
   public void apply() throws ConfigurationException {
-    ApplicationManager.getApplication().runWriteAction(new Runnable() {
-      @Override
-      public void run() {
-        // Setting the Sdk path will trigger the project sync. Set the Ndk path and Jdk path before the Sdk path to get the changes to them
-        // to take effect during the sync.
-        saveAndroidNdkPath();
-        IdeSdks.setJdkPath(getJdkLocation());
-        IdeSdks.setAndroidSdkPath(getSdkLocation(), myProject);
+    ApplicationManager.getApplication().runWriteAction(() -> {
+      // Setting the Sdk path will trigger the project sync. Set the Ndk path and Jdk path before the Sdk path to get the changes to them
+      // to take effect during the sync.
+      saveAndroidNdkPath();
+      IdeSdks.setJdkPath(getJdkLocation());
+      IdeSdks.setAndroidSdkPath(getSdkLocation(), myProject);
 
-        if (!ApplicationManager.getApplication().isUnitTestMode()) {
-          RunAndroidSdkManagerAction.updateInWelcomePage(myDetailsComponent.getComponent());
-        }
+      if (!ApplicationManager.getApplication().isUnitTestMode()) {
+        RunAndroidSdkManagerAction.updateInWelcomePage(myDetailsComponent.getComponent());
       }
     });
   }
@@ -259,58 +250,42 @@ public class IdeSdksConfigurable extends BaseConfigurable implements Place.Navig
 
   private void createSdkLocationTextField() {
     mySdkLocationTextField = createTextFieldWithBrowseButton("Choose Android SDK Location", CHOOSE_VALID_SDK_DIRECTORY_ERR,
-                                                             new Function<File, ValidationResult>() {
-                                                               @Override
-                                                               public ValidationResult fun(File file) {
-                                                                 return validateAndroidSdk(file, false);
-                                                               }
-                                                             });
+                                                             file -> validateAndroidSdk(file, false));
   }
 
   private void createNdkLocationTextField() {
     myNdkLocationTextField = createTextFieldWithBrowseButton(
       "Choose Android NDK Location", CHOOSE_VALID_NDK_DIRECTORY_ERR,
-      new Function<File, ValidationResult>() {
-        @Override
-        public ValidationResult fun(File file) {
-          return validateAndroidNdk(file, false);
-        }
-      });
+      file -> validateAndroidNdk(file, false));
   }
 
   @NotNull
   private TextFieldWithBrowseButton createTextFieldWithBrowseButton(@NotNull String title,
-                                                                    @NotNull final String errorMessage,
-                                                                    @NotNull final Function<File, ValidationResult> validation) {
-    final FileChooserDescriptor descriptor = createSingleFolderDescriptor(title, new Function<File, Void>() {
-      @Override
-      public Void fun(File file) {
-        ValidationResult validationResult = validation.fun(file);
-        if (!validationResult.success) {
-          String msg = validationResult.message;
-          if (isEmpty(msg)) {
-            msg = errorMessage;
-          }
-          throw new IllegalArgumentException(msg);
+                                                                    @NotNull String errorMessage,
+                                                                    @NotNull Function<File, ValidationResult> validation) {
+    FileChooserDescriptor descriptor = createSingleFolderDescriptor(title, file -> {
+      ValidationResult validationResult = validation.fun(file);
+      if (!validationResult.success) {
+        String msg = validationResult.message;
+        if (isEmpty(msg)) {
+          msg = errorMessage;
         }
-        return null;
+        throw new IllegalArgumentException(msg);
       }
+      return null;
     });
 
-    final JTextField textField = new JTextField(10);
-    return new TextFieldWithBrowseButton(textField, new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        VirtualFile suggestedDir = null;
-        File ndkLocation = getNdkLocation();
-        if (ndkLocation.isDirectory()) {
-          suggestedDir = findFileByIoFile(ndkLocation, false);
-        }
-        VirtualFile chosen = FileChooser.chooseFile(descriptor, null, suggestedDir);
-        if (chosen != null) {
-          File f = virtualToIoFile(chosen);
-          textField.setText(f.getPath());
-        }
+    JTextField textField = new JTextField(10);
+    return new TextFieldWithBrowseButton(textField, e -> {
+      VirtualFile suggestedDir = null;
+      File ndkLocation = getNdkLocation();
+      if (ndkLocation.isDirectory()) {
+        suggestedDir = findFileByIoFile(ndkLocation, false);
+      }
+      VirtualFile chosen = FileChooser.chooseFile(descriptor, null, suggestedDir);
+      if (chosen != null) {
+        File f = virtualToIoFile(chosen);
+        textField.setText(f.getPath());
       }
     });
   }
@@ -354,11 +329,8 @@ public class IdeSdksConfigurable extends BaseConfigurable implements Place.Navig
 
   private void createJdkLocationTextField() {
     JTextField textField = new JTextField(10);
-    myJdkLocationTextField = new TextFieldWithBrowseButton(textField, new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        chooseJdkLocation();
-      }
+    myJdkLocationTextField = new TextFieldWithBrowseButton(textField, e -> {
+      chooseJdkLocation();
     });
   }
 
@@ -370,14 +342,11 @@ public class IdeSdksConfigurable extends BaseConfigurable implements Place.Navig
     if (jdkLocation.isDirectory()) {
       suggestedDir = findFileByIoFile(jdkLocation, false);
     }
-    VirtualFile chosen = FileChooser.chooseFile(createSingleFolderDescriptor("Choose JDK Location", new Function<File, Void>() {
-      @Override
-      public Void fun(File file) {
-        if (!validateAndUpdateJdkPath(file)) {
-          throw new IllegalArgumentException(CHOOSE_VALID_JDK_DIRECTORY_ERR);
-        }
-        return null;
+    VirtualFile chosen = FileChooser.chooseFile(createSingleFolderDescriptor("Choose JDK Location", file -> {
+      if (!validateAndUpdateJdkPath(file)) {
+        throw new IllegalArgumentException(CHOOSE_VALID_JDK_DIRECTORY_ERR);
       }
+      return null;
     }), null, suggestedDir);
     if (chosen != null) {
       File f = virtualToIoFile(chosen);
@@ -397,8 +366,8 @@ public class IdeSdksConfigurable extends BaseConfigurable implements Place.Navig
   }
 
   @NotNull
-  private static FileChooserDescriptor createSingleFolderDescriptor(@NotNull String title, @NotNull final Function<File, Void> validation) {
-    final FileChooserDescriptor descriptor = new FileChooserDescriptor(false, true, false, false, false, false) {
+  private static FileChooserDescriptor createSingleFolderDescriptor(@NotNull String title, @NotNull Function<File, Void> validation) {
+    FileChooserDescriptor descriptor = new FileChooserDescriptor(false, true, false, false, false, false) {
       @Override
       public void validateSelectedFiles(VirtualFile[] files) throws Exception {
         for (VirtualFile virtualFile : files) {
@@ -588,7 +557,7 @@ public class IdeSdksConfigurable extends BaseConfigurable implements Place.Navig
   @Nullable
   private String validateAndroidSdkPath() {
     WizardUtils.ValidationResult wizardValidationResult =
-      WizardUtils.validateLocation(getSdkLocation().getAbsolutePath(), "Android SDK location", false, WritableCheckMode.DO_NOT_CHECK);
+      validateLocation(getSdkLocation().getAbsolutePath(), "Android SDK location", false, WritableCheckMode.DO_NOT_CHECK);
     if (!wizardValidationResult.isOk()) {
       return wizardValidationResult.getFormattedMessage();
     }

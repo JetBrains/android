@@ -68,9 +68,9 @@ public abstract class AbstractPsNodeTreeBuilder extends AbstractBaseTreeBuilder 
     selectMatchingNodes(model, null, scroll);
   }
 
-  private void selectMatchingNodes(@NotNull final PsModel model, @Nullable final MatchingNodeCollector collector, final boolean scroll) {
+  private void selectMatchingNodes(@NotNull PsModel model, @Nullable MatchingNodeCollector collector, boolean scroll) {
     getInitialized().doWhenDone(() -> {
-      final List<AbstractPsModelNode> toSelect = Lists.newArrayList();
+      List<AbstractPsModelNode> toSelect = Lists.newArrayList();
       accept(AbstractPsModelNode.class, new TreeVisitor<AbstractPsModelNode>() {
         @Override
         public boolean visit(@NotNull AbstractPsModelNode node) {

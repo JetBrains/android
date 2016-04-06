@@ -66,7 +66,6 @@ import java.util.*;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.getDirectLibraryDependencies;
-import static com.android.tools.idea.gradle.util.Projects.getAndroidModel;
 
 public class ProjectProfileSelectionDialog extends DialogWrapper {
   private static final SimpleTextAttributes UNRESOLVED_ATTRIBUTES =
