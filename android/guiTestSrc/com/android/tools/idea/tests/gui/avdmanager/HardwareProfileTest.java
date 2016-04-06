@@ -19,11 +19,11 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.*;
 import com.android.tools.idea.ui.validation.Validator;
-import org.fest.assertions.Assertions;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
 
 /**
@@ -77,23 +77,23 @@ public class HardwareProfileTest {
       .setScreenSize("5.2");
 
     deviceOptionsStep.setDeviceName("\b");
-    Assertions.assertThat(avdEditWizard.getValidationText(Validator.Severity.ERROR))
-      .isSameAs("Please write a name for the new device.");
+    assertThat(avdEditWizard.getValidationText(Validator.Severity.ERROR))
+      .isEqualTo("Please write a name for the new device.");
 
     deviceOptionsStep.setDeviceName("My Device Test")
       .setScreenSize("5.2x");
-    Assertions.assertThat(avdEditWizard.getValidationText(Validator.Severity.ERROR))
-      .isSameAs("Please enter a non-zero positive floating point value for the screen size.");
+    assertThat(avdEditWizard.getValidationText(Validator.Severity.ERROR))
+      .isEqualTo("Please enter a non-zero positive floating point value for the screen size.");
 
     deviceOptionsStep.setScreenSize("5.2")
       .setScreenResolutionX("0");
-    Assertions.assertThat(avdEditWizard.getValidationText(Validator.Severity.ERROR))
-      .isSameAs("Please enter non-zero positive integer values for the screen resolution width.");
+    assertThat(avdEditWizard.getValidationText(Validator.Severity.ERROR))
+      .isEqualTo("Please enter non-zero positive integer values for the screen resolution width.");
 
     deviceOptionsStep.setScreenResolutionX("1280")
       .setScreenResolutionY("0");
-    Assertions.assertThat(avdEditWizard.getValidationText(Validator.Severity.ERROR))
-      .isSameAs("Please enter non-zero positive integer values for the screen resolution height.");
+    assertThat(avdEditWizard.getValidationText(Validator.Severity.ERROR))
+      .isEqualTo("Please enter non-zero positive integer values for the screen resolution height.");
 
     hardwareProfileWizard.clickCancel();
     avdEditWizard.clickCancel();
