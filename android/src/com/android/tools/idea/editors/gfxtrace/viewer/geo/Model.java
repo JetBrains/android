@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.editors.gfxtrace.viewer.geo;
 
-import com.android.tools.idea.editors.gfxtrace.service.gfxapi.DrawPrimitive;
+import com.android.tools.idea.editors.gfxtrace.service.gfxapi.GfxAPIProtos.DrawPrimitive;
 
 public class Model {
   private final DrawPrimitive myPrimitive;

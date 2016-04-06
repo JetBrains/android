@@ -20,7 +20,7 @@ import com.android.tools.idea.editors.gfxtrace.actions.FramebufferTypeAction;
 import com.android.tools.idea.editors.gfxtrace.actions.FramebufferWireframeAction;
 import com.android.tools.idea.editors.gfxtrace.models.AtomStream;
 import com.android.tools.idea.editors.gfxtrace.service.RenderSettings;
-import com.android.tools.idea.editors.gfxtrace.service.WireframeMode;
+import com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.WireframeMode;
 import com.android.tools.idea.editors.gfxtrace.service.image.FetchedImage;
 import com.android.tools.idea.editors.gfxtrace.service.path.AtomPath;
 import com.android.tools.idea.editors.gfxtrace.service.path.DevicePath;
@@ -57,7 +57,7 @@ public class FrameBufferController extends ImagePanelController implements AtomS
 
     mySettings.setMaxHeight(MAX_SIZE);
     mySettings.setMaxWidth(MAX_SIZE);
-    mySettings.setWireframeMode(WireframeMode.NoWireframe);
+    mySettings.setWireframeMode(WireframeMode.None);
 
     initToolbar(getToolbarActions(), false);
   }
@@ -69,12 +69,12 @@ public class FrameBufferController extends ImagePanelController implements AtomS
     group.add(new FramebufferTypeAction(this, BufferType.Depth, "Depth Buffer", "Display the depth framebuffer",
                                         AndroidIcons.GfxTrace.DepthBuffer));
     group.add(new Separator());
-    group.add(new FramebufferWireframeAction(this, WireframeMode.NoWireframe, "Shaded", "Display the framebuffer with shaded polygons",
+    group.add(new FramebufferWireframeAction(this, WireframeMode.None, "Shaded", "Display the framebuffer with shaded polygons",
                                              AndroidIcons.GfxTrace.WireframeNone));
-    group.add(new FramebufferWireframeAction(this, WireframeMode.WireframeOverlay, "Shaded + Wireframe",
+    group.add(new FramebufferWireframeAction(this, WireframeMode.Overlay, "Shaded + Wireframe",
                                              "Display the framebuffer with shaded polygons and overlay the wireframe of the last draw call",
                                              AndroidIcons.GfxTrace.WireframeOverlay));
-    group.add(new FramebufferWireframeAction(this, WireframeMode.AllWireframe, "Wireframe", "Display the framebuffer with wireframes",
+    group.add(new FramebufferWireframeAction(this, WireframeMode.All, "Wireframe", "Display the framebuffer with wireframes",
                                              AndroidIcons.GfxTrace.WireframeAll));
     group.add(new Separator());
     return group;

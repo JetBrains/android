@@ -19,7 +19,7 @@ import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.models.AtomStream;
 import com.android.tools.idea.editors.gfxtrace.service.RenderSettings;
 import com.android.tools.idea.editors.gfxtrace.service.ServiceClient;
-import com.android.tools.idea.editors.gfxtrace.service.WireframeMode;
+import com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.WireframeMode;
 import com.android.tools.idea.editors.gfxtrace.service.atom.Atom;
 import com.android.tools.idea.editors.gfxtrace.service.atom.AtomList;
 import com.android.tools.idea.editors.gfxtrace.service.atom.Range;
@@ -69,7 +69,7 @@ public class ScrubberController extends ImageCellController<ScrubberController.D
     usingListWidget(CellList.Orientation.HORIZONTAL, GfxTraceEditor.LOADING_CAPTURE, PREVIEW_SIZE);
     myRenderSettings.setMaxWidth(PREVIEW_SIZE.width);
     myRenderSettings.setMaxHeight(PREVIEW_SIZE.height);
-    myRenderSettings.setWireframeMode(WireframeMode.NoWireframe);
+    myRenderSettings.setWireframeMode(WireframeMode.None);
   }
 
   @Override
