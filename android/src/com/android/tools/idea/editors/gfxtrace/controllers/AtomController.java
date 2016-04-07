@@ -320,7 +320,7 @@ public class AtomController extends TreeController implements AtomStream.Listene
             if (userObject instanceof Node) {
               Rectangle bounds = myTree.getPathBounds(path);
               assert bounds != null; // can't be null, as our path is valid
-              int fieldIndex = getNodeFieldIndex(treeNode, e.getX() - bounds.x);
+              int fieldIndex = Render.getNodeFieldIndex(myTree, treeNode, e.getX() - bounds.x);
               if (fieldIndex >= 0) {
                 EditFieldAction editFieldAction = EditFieldAction.getEditActionFor((Node)userObject, fieldIndex, myEditor);
                 if (editFieldAction != null) {
@@ -383,7 +383,7 @@ public class AtomController extends TreeController implements AtomStream.Listene
           // Check if hovering an atom parameter.
           int index = -1;
           if (userObject instanceof Node) {
-            index = getNodeFieldIndex(node, x);
+            index = Render.getNodeFieldIndex(myTree, node, x);
           }
           if (index >= 0) {
             setHoveringNode((Node)userObject, index);
@@ -392,12 +392,6 @@ public class AtomController extends TreeController implements AtomStream.Listene
             setHoveringNode(null, 0);
           }
         }
-      }
-
-      private int getNodeFieldIndex(@NotNull DefaultMutableTreeNode node, int x) {
-        ColoredTreeCellRenderer renderer = (ColoredTreeCellRenderer)myTree.getCellRenderer();
-        renderer.getTreeCellRendererComponent(myTree, node, false, false, false, 0, false);
-        return Render.getAtomParameterIndex(renderer, x);
       }
 
       private void clearHovering() {
