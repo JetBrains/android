@@ -47,7 +47,6 @@ import static com.android.tools.idea.gradle.AndroidProjectKeys.*;
 import static com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType.RESOLVE_PROJECT;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getChildren;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
-import static org.easymock.EasyMock.expect;
 import static org.easymock.classextension.EasyMock.*;
 import static org.jetbrains.plugins.gradle.util.GradleConstants.SYSTEM_ID;
 

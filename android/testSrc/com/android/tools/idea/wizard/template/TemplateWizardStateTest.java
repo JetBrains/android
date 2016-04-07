@@ -18,7 +18,6 @@ package com.android.tools.idea.wizard.template;
 import com.android.tools.idea.templates.AndroidGradleTestCase;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
-import com.android.tools.idea.wizard.template.TemplateWizardState;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.util.io.FileUtil;
 

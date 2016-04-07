@@ -18,7 +18,6 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 import com.android.tools.idea.sdk.SelectSdkDialog;
 import org.fest.swing.core.Robot;
 import org.fest.swing.core.matcher.JLabelMatcher;
-import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiTask;
 import org.jetbrains.annotations.NotNull;
 

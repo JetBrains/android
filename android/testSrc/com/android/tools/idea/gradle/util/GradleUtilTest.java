@@ -35,7 +35,6 @@ import static com.android.tools.idea.gradle.util.PropertiesUtil.getProperties;
 import static com.google.common.io.Files.createTempDir;
 import static com.google.common.io.Files.write;
 import static com.intellij.openapi.util.io.FileUtil.*;
-import static com.intellij.openapi.util.io.FileUtilRt.createIfNotExists;
 import static org.mockito.Mockito.*;
 import static org.junit.Assert.*;
 

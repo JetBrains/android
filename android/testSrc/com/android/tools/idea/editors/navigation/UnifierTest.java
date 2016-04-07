@@ -17,7 +17,6 @@ package com.android.tools.idea.editors.navigation;
 
 import com.android.tools.idea.editors.navigation.macros.CodeTemplate;
 import com.android.tools.idea.editors.navigation.macros.Unifier;
-import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
 import org.jetbrains.android.AndroidTestCase;
 
