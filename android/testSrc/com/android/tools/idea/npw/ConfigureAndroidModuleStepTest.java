@@ -16,8 +16,6 @@
 package com.android.tools.idea.npw;
 
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.idea.npw.ConfigureAndroidModuleStep;
-import com.android.tools.idea.npw.NewModuleWizardState;
 import com.android.tools.idea.templates.AndroidGradleTestCase;
 import com.android.tools.idea.templates.TemplateUtils;
 import com.android.tools.idea.wizard.template.TemplateWizardStep;

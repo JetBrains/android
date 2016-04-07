@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.ui;
 
-import com.intellij.openapi.util.EmptyRunnable;
 import org.junit.Test;
 
 import javax.swing.*;

@@ -23,7 +23,6 @@ import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiTask;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Assert;
 
 import javax.swing.*;
 import java.util.concurrent.atomic.AtomicBoolean;

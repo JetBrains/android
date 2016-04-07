@@ -21,11 +21,7 @@ import com.android.tools.swing.layoutlib.AndroidPreviewPanel;
 import org.fest.swing.core.Robot;
 import org.jetbrains.annotations.NotNull;
 
-import java.awt.Dimension;
 import java.awt.Point;
-
-import static junit.framework.Assert.assertTrue;
-import static org.junit.Assert.assertNotNull;
 
 /**
  * Fixture wrapping the {@link AndroidPreviewPanel}

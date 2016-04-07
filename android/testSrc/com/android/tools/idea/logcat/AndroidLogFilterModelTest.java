@@ -19,7 +19,6 @@ package com.android.tools.idea.logcat;
 import com.android.ddmlib.Log.LogLevel;
 import com.intellij.diagnostic.logging.LogFilterModel;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.junit.Before;
 import org.junit.Test;
 
