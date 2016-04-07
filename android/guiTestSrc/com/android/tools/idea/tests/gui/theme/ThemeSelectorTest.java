@@ -26,7 +26,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.ThemeSelectionDialogFi
 import com.android.tools.idea.tests.gui.framework.fixture.theme.NewStyleDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorTableFixture;
-import com.google.common.collect.ImmutableList;
 import org.fest.swing.data.TableCell;
 import org.fest.swing.fixture.*;
 import org.junit.Rule;
@@ -36,8 +35,7 @@ import org.junit.runner.RunWith;
 import java.io.IOException;
 import java.util.List;
 
-import static org.fest.assertions.Assertions.assertThat;
-import static org.fest.assertions.Index.atIndex;
+import static com.google.common.truth.Truth.assertThat;
 import static org.fest.swing.data.TableCell.row;
 import static org.junit.Assert.*;
 
@@ -71,22 +69,20 @@ public class ThemeSelectorTest {
     themesComboBox.requireSelection("NewAppTheme");
 
     List<String> themeList = themeEditor.getThemesList();
-    assertThat(themeList)
-      .hasSize(9)
-      .contains("NewAppTheme", atIndex(0))
-      .contains("Rename NewAppTheme", atIndex(8));
+    assertThat(themeList).hasSize(9);
+    assertThat(themeList.get(0)).isEqualTo("NewAppTheme");
+    assertThat(themeList.get(8)).isEqualTo("Rename NewAppTheme");
 
     guiTest.robot().waitForIdle();
     themesComboBox.selectItem("Theme.AppCompat.NoActionBar"); // AppCompat is read-only, being a library theme
 
     themeList = themeEditor.getThemesList();
-    assertThat(themeList)
-      .hasSize(8)
-      .contains("NewAppTheme", atIndex(0))
-      .contains("Theme.AppCompat.Light.NoActionBar", atIndex(3))
-      .contains("Theme.AppCompat.NoActionBar", atIndex(4))
-      .contains("Show all themes", atIndex(5))
-      .contains("Create New Theme", atIndex(7));
+    assertThat(themeList).hasSize(8);
+    assertThat(themeList.get(0)).isEqualTo("NewAppTheme");
+    assertThat(themeList.get(3)).isEqualTo("Theme.AppCompat.Light.NoActionBar");
+    assertThat(themeList.get(4)).isEqualTo("Theme.AppCompat.NoActionBar");
+    assertThat(themeList.get(5)).isEqualTo("Show all themes");
+    assertThat(themeList.get(7)).isEqualTo("Create New Theme");
 
     ideFrame.invokeMenuPath("Window", "Editor Tabs", "Select Previous Tab");
     EditorFixture editor = ideFrame.getEditor();
@@ -131,17 +127,16 @@ public class ThemeSelectorTest {
 
     categoriesTree.clickRow(1);
     assertEquals("Manifest Themes", categoriesTree.node(1).value());
-    assertThat(ImmutableList.copyOf(themeList.contents())).hasSize(1)
-      .contains("AppTheme", atIndex(0));
+    assertThat(themeList.contents()).asList().containsExactly("AppTheme");
 
     categoriesTree.clickRow(2);
     assertEquals("Project Themes", categoriesTree.node(2).value());
-    assertThat(ImmutableList.copyOf(themeList.contents())).hasSize(2)
-      .contains("AppTheme", atIndex(0));
+    assertThat(themeList.contents()).hasLength(2);
+    assertThat(themeList.contents()[0]).isEqualTo("AppTheme");
 
     categoriesTree.clickRow(10);
     assertEquals("All", categoriesTree.node(10).value());
-    assertThat(ImmutableList.copyOf(themeList.contents())).contains("android:Theme", atIndex(0));
+    assertThat(themeList.contents()[0]).isEqualTo("android:Theme");
     themeList.selectItem("Theme.AppCompat.NoActionBar");
     themeSelectionDialog.clickOk();
 
@@ -172,7 +167,7 @@ public class ThemeSelectorTest {
     JComboBoxFixture parentComboBox = newStyleDialog.getParentComboBox();
 
     parentComboBox.requireSelection("AppTheme");
-    ImmutableList<String> parentsList = ImmutableList.copyOf(parentComboBox.contents());
+    String[] parentsArray = parentComboBox.contents();
     // The expected elements are:
     // 0. AppTheme
     // 1. -- Separator
@@ -180,13 +175,13 @@ public class ThemeSelectorTest {
     // 3. AppCompat
     // 4. -- Separator
     // 5. Show all themes
-    assertThat(parentsList).hasSize(6)
-      .contains("AppTheme", atIndex(0))
-      .contains("Theme.AppCompat.Light.NoActionBar", atIndex(2))
-      .contains("Theme.AppCompat.NoActionBar", atIndex(3))
-      .contains("Show all themes", atIndex(5));
-    assertThat(parentsList.get(1)).startsWith("javax.swing.JSeparator");
-    assertThat(parentsList.get(4)).startsWith("javax.swing.JSeparator");
+    assertThat(parentsArray).hasLength(6);
+    assertThat(parentsArray[0]).isEqualTo("AppTheme");
+    assertThat(parentsArray[2]).isEqualTo("Theme.AppCompat.Light.NoActionBar");
+    assertThat(parentsArray[3]).isEqualTo("Theme.AppCompat.NoActionBar");
+    assertThat(parentsArray[5]).isEqualTo("Show all themes");
+    assertThat(parentsArray[1]).startsWith("javax.swing.JSeparator");
+    assertThat(parentsArray[4]).startsWith("javax.swing.JSeparator");
 
     parentComboBox.selectItem("Theme.AppCompat.NoActionBar");
     newNameTextField.requireText("Theme.AppTheme.NoActionBar");
@@ -255,9 +250,8 @@ public class ThemeSelectorTest {
     // Check AppCompat themes are gone
     themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(guiTest.ideFrame());
     themeList = themeEditor.getThemesList();
-    assertThat(themeList)
-      .excludes("Theme.AppCompat.Light.NoActionBar")
-      .contains("android:Theme.Material.NoActionBar")
-      .contains("android:Theme.Material.Light.NoActionBar");
+    assertThat(themeList).doesNotContain("Theme.AppCompat.Light.NoActionBar");
+    assertThat(themeList).contains("android:Theme.Material.NoActionBar");
+    assertThat(themeList).contains("android:Theme.Material.Light.NoActionBar");
   }
 }
