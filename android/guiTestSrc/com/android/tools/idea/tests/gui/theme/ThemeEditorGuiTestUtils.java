@@ -64,13 +64,7 @@ public class ThemeEditorGuiTestUtils {
       }
     });
     JListFixture listFixture = new JListFixture(robot, list);
-    listFixture.replaceCellReader(new JListCellReader() {
-      @Nullable
-      @Override
-      public String valueAt(@NotNull JList list, int index) {
-        return ((LookupElement)list.getModel().getElementAt(index)).getLookupString();
-      }
-    });
+    listFixture.replaceCellReader((jList, index) -> ((LookupElement)jList.getModel().getElementAt(index)).getLookupString());
     return listFixture;
   }
 }
