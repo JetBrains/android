@@ -30,6 +30,7 @@ import com.intellij.ide.util.projectWizard.SettingsStep;
 import com.intellij.ide.util.projectWizard.WizardContext;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.ExternalSystemDataKeys;
 import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.module.StdModuleTypes;
@@ -58,11 +59,13 @@ import java.util.Map;
 
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
-import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static com.android.tools.idea.npw.FormFactorUtils.ATTR_MODULE_NAME;
 import static com.android.tools.idea.npw.NewModuleWizardState.ATTR_PROJECT_LOCATION;
+import static com.android.tools.idea.templates.TemplateMetadata.*;
 
-public class ImportWizardModuleBuilder extends ModuleBuilder implements TemplateWizardStep.UpdateListener, ChooseTemplateStep.TemplateChangeListener {
+public class ImportWizardModuleBuilder extends ModuleBuilder
+  implements TemplateWizardStep.UpdateListener, ChooseTemplateStep.TemplateChangeListener {
+
   @NotNull protected final List<ModuleWizardStep> mySteps;
   @NotNull protected final Iterable<WizardPath> myPaths;
   protected final NewModuleWizardState myWizardState;
@@ -72,6 +75,11 @@ public class ImportWizardModuleBuilder extends ModuleBuilder implements Template
   protected boolean myInitializationComplete = false;
   @Nullable private Project myProject;
   private ImportSourceModulePath myImportSourcesPath;
+
+  @NotNull
+  private static Logger getLog() {
+    return Logger.getInstance(ImportWizardModuleBuilder.class);
+  }
 
   public ImportWizardModuleBuilder(@Nullable File templateFile,
                                    @Nullable Project project,
@@ -214,45 +222,46 @@ public class ImportWizardModuleBuilder extends ModuleBuilder implements Template
     final Project project = rootModel.getProject();
 
     // in IntelliJ wizard user is able to choose SDK (i.e. for "java library" module), so set it
-    if (myJdk != null){
+    if (myJdk != null) {
       rootModel.setSdk(myJdk);
-    } else {
+    }
+    else {
       rootModel.inheritSdk();
     }
     if (myProject == null) {
       project.putUserData(ExternalSystemDataKeys.NEWLY_IMPORTED_PROJECT, Boolean.TRUE);
     }
     StartupManager.getInstance(project).runWhenProjectIsInitialized(new DumbAwareRunnable() {
-        @Override
-        public void run() {
-          DumbService.getInstance(project).smartInvokeLater(new Runnable() {
-            @Override
-            public void run() {
-              ApplicationManager.getApplication().runWriteAction(new Runnable() {
-                @Override
-                public void run() {
-                  DumbService.getInstance(project).withAlternativeResolveEnabled(new Runnable() {
-                    @Override
-                    public void run() {
-                      if (myProject == null) {
-                        myWizardState.putSdkDependentParams();
-                        myWizardState.put(ATTR_PROJECT_LOCATION, project.getBasePath());
-                        AssetStudioAssetGenerator assetGenerator = new AssetStudioAssetGenerator(myWizardState);
-                        NewProjectWizard.createProject(myWizardState, project, assetGenerator);
-                      }
-                      else {
-                        myWizardState.put(ATTR_MODULE_NAME, getName());
-                        createModule();
-                      }
+      @Override
+      public void run() {
+        DumbService.getInstance(project).smartInvokeLater(new Runnable() {
+          @Override
+          public void run() {
+            ApplicationManager.getApplication().runWriteAction(new Runnable() {
+              @Override
+              public void run() {
+                DumbService.getInstance(project).withAlternativeResolveEnabled(new Runnable() {
+                  @Override
+                  public void run() {
+                    if (myProject == null) {
+                      myWizardState.putSdkDependentParams();
+                      myWizardState.put(ATTR_PROJECT_LOCATION, project.getBasePath());
+                      AssetStudioAssetGenerator assetGenerator = new AssetStudioAssetGenerator(myWizardState);
+                      WizardUtils.createProject(myWizardState, project, assetGenerator);
                     }
-                  });
-                }
-              });
-            }
-          });
-        }
-      });
-    }
+                    else {
+                      myWizardState.put(ATTR_MODULE_NAME, getName());
+                      createModule();
+                    }
+                  }
+                });
+              }
+            });
+          }
+        });
+      }
+    });
+  }
 
   @Override
   @NotNull
@@ -281,6 +290,7 @@ public class ImportWizardModuleBuilder extends ModuleBuilder implements Template
 
   /**
    * Inflate the chosen template to create the module.
+   *
    * @param performGradleSync if set to true, a sync will be triggered after the template has been created.
    */
   public void createModule(boolean performGradleSync) {
