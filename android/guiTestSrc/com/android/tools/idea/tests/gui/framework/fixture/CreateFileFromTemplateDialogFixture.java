@@ -70,10 +70,7 @@ public class CreateFileFromTemplateDialogFixture extends IdeaDialogFixture<Creat
       @Override
       protected boolean isMatching(@NotNull JLabel label) {
         String labelText = label.getText();
-        if (labelText != null) {
-          return errorMessage.equals(TextFormat.HTML.convertTo(labelText, TextFormat.TEXT).trim());
-        }
-        return false;
+        return labelText != null && errorMessage.equals(TextFormat.HTML.convertTo(labelText, TextFormat.TEXT).trim());
       }
     });
     return this;
