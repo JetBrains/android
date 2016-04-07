@@ -15,4 +15,9 @@
   -->
 <palette>
   <item tag="CheckBoxPreference"/>
+  <item tag="EditTextPreference"/>
+  <item tag="ListPreference"/>
+  <item tag="MultiSelectListPreference"/>
+  <item tag="RingtonePreference"/>
+  <item tag="SwitchPreference"/>
 </palette>

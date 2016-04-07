@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.model;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.AndroidPsiUtils;
@@ -36,6 +34,7 @@ import com.google.common.collect.Lists;
 import com.intellij.lang.LanguageNamesValidation;
 import com.intellij.lang.java.JavaLanguage;
 import com.intellij.lang.refactoring.NamesValidator;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -43,6 +42,8 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -56,11 +57,12 @@ import static com.android.SdkConstants.*;
  */
 public class NlComponent {
   private static final Collection<String> TAGS_THAT_DONT_NEED_DEFAULT_IDS = ImmutableSet.of(
-    "CheckBoxPreference",
-    "EditTextPreference",
-    "ListPreference",
-    "MultiSelectListPreference",
-    "SwitchPreference",
+    PreferenceTags.CHECK_BOX_PREFERENCE,
+    PreferenceTags.EDIT_TEXT_PREFERENCE,
+    PreferenceTags.LIST_PREFERENCE,
+    PreferenceTags.MULTI_SELECT_LIST_PREFERENCE,
+    PreferenceTags.RINGTONE_PREFERENCE,
+    PreferenceTags.SWITCH_PREFERENCE,
     REQUEST_FOCUS,
     SPACE,
     VIEW_INCLUDE,
@@ -138,7 +140,7 @@ public class NlComponent {
 
   @NotNull
   public Iterable<NlComponent> getChildren() {
-    return children != null ? children : Collections.<NlComponent>emptyList();
+    return children != null ? children : Collections.emptyList();
   }
 
   public int getChildCount() {
@@ -488,6 +490,10 @@ public class NlComponent {
     }
   }
 
+  public void removeAndroidAttribute(@NotNull String name) {
+    setAttribute(ANDROID_URI, name, null);
+  }
+
   @Nullable
   public String getAttribute(@Nullable String namespace, @NotNull String attribute) {
     if (snapshot != null) {
@@ -509,13 +515,10 @@ public class NlComponent {
     }
 
     if (myTag.isValid()) {
-      if (!ApplicationManager.getApplication().isReadAccessAllowed()) {
-        return ApplicationManager.getApplication().runReadAction(new Computable<List<AttributeSnapshot>>() {
-          @Override
-          public List<AttributeSnapshot> compute() {
-            return AttributeSnapshot.createAttributesForTag(myTag);
-          }
-        });
+      Application application = ApplicationManager.getApplication();
+
+      if (!application.isReadAccessAllowed()) {
+        return application.runReadAction((Computable<List<AttributeSnapshot>>)() -> AttributeSnapshot.createAttributesForTag(myTag));
       }
       return AttributeSnapshot.createAttributesForTag(myTag);
     }
