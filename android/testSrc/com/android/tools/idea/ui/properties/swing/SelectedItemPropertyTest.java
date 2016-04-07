@@ -33,7 +33,7 @@ public final class SelectedItemPropertyTest {
     model.addElement(b);
 
     JComboBox comboBox = new JComboBox(model);
-    SelectedItemProperty<TestString> selectedItemProperty = new SelectedItemProperty<TestString>(comboBox);
+    SelectedItemProperty<TestString> selectedItemProperty = new SelectedItemProperty<>(comboBox);
     CountListener listener = new CountListener();
     selectedItemProperty.addListener(listener);
 

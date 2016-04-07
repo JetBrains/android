@@ -383,7 +383,7 @@ public class MergedManifestTest extends AndroidTestCase {
     @NotNull
     @Override
     public List<String> getBootClasspath() {
-      return new ArrayList<String>();
+      return new ArrayList<>();
     }
   }
 }

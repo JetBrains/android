@@ -29,7 +29,7 @@ public final class OptionalExpressionsTest {
   public void testAsOptionalExpression() {
     IntProperty intProperty = new IntValueProperty(42);
 
-    AsOptionalExpression<Integer> asOptionalExpr = new AsOptionalExpression<Integer>(intProperty);
+    AsOptionalExpression<Integer> asOptionalExpr = new AsOptionalExpression<>(intProperty);
 
     assertThat(asOptionalExpr.get().get()).isEqualTo(42);
 

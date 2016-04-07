@@ -39,7 +39,7 @@ public class AndroidFindStyleApplicationsTest extends AndroidTestCase {
     XmlFile layoutFile = (XmlFile)files.iterator().next();
     assertInstanceOf(DomManager.getDomManager(myFixture.getProject()).getDomFileDescription(
       (XmlFile)layoutFile), LayoutDomFileDescription.class);
-    final List<UsageInfo> usages = new ArrayList<UsageInfo>();
+    final List<UsageInfo> usages = new ArrayList<>();
     processor.collectPossibleStyleApplications(layoutFile, usages);
     assertEquals(2, usages.size());
   }

@@ -38,7 +38,7 @@ public class ActionButtonFixture extends JComponentFixture<ActionButtonFixture, 
   public static ActionButtonFixture findByActionId(@NotNull final String actionId,
                                                    @NotNull final Robot robot,
                                                    @NotNull final Container container) {
-    final Ref<ActionButton> actionButtonRef = new Ref<ActionButton>();
+    final Ref<ActionButton> actionButtonRef = new Ref<>();
     Wait.minutes(2).expecting("ActionButton with ID '" + actionId + "' to be visible")
       .until(() -> {
         Collection<ActionButton> found = robot.finder().findAll(container, new GenericTypeMatcher<ActionButton>(ActionButton.class) {

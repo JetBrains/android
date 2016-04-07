@@ -255,7 +255,7 @@ public class RenderErrorPanelTest extends AndroidTestCase {
   }
 
   public void testBrokenCustomView() {
-    final AtomicReference<IAndroidTarget> target = new AtomicReference<IAndroidTarget>();
+    final AtomicReference<IAndroidTarget> target = new AtomicReference<>();
     LogOperation operation = new LogOperation() {
       @Override
       public void addErrors(@NotNull RenderLogger logger, @NotNull RenderResult render) {
@@ -481,7 +481,7 @@ public class RenderErrorPanelTest extends AndroidTestCase {
   }
 
   public void testSecurity() throws Exception {
-    final AtomicReference<IAndroidTarget> target = new AtomicReference<IAndroidTarget>();
+    final AtomicReference<IAndroidTarget> target = new AtomicReference<>();
     LogOperation operation = new LogOperation() {
       @Override
       public void addErrors(@NotNull RenderLogger logger, @NotNull RenderResult render) {

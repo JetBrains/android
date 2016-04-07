@@ -46,7 +46,7 @@ public class ContentRootSourcePaths {
 
   public ContentRootSourcePaths() {
     for (ExternalSystemSourceType sourceType : ALL_SOURCE_TYPES) {
-      myDirectoryPathsBySourceType.put(sourceType, new ArrayList<String>());
+      myDirectoryPathsBySourceType.put(sourceType, new ArrayList<>());
     }
   }
 

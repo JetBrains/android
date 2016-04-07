@@ -83,7 +83,7 @@ public class AndroidGradleModelDataServiceTest extends IdeaTestCase {
     }
     List<DataNode<AndroidGradleModel>> nodes = Lists.newArrayList();
     Key<AndroidGradleModel> key = AndroidProjectKeys.ANDROID_MODEL;
-    nodes.add(new DataNode<AndroidGradleModel>(key, myAndroidModel, null));
+    nodes.add(new DataNode<>(key, myAndroidModel, null));
 
     assertEquals(key, service.getTargetDataKey());
 

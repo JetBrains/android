@@ -78,7 +78,7 @@ abstract class AndroidDomTest extends AndroidTestCase {
     myFixture.complete(CompletionType.BASIC);
     final List<String> variants = myFixture.getLookupElementStrings();
     assertNotNull(variants);
-    final List<String> expectedVariants = new ArrayList<String>();
+    final List<String> expectedVariants = new ArrayList<>();
 
     if (systemNamespace) {
       expectedVariants.add(SdkConstants.ANDROID_URI);
@@ -228,7 +228,7 @@ abstract class AndroidDomTest extends AndroidTestCase {
 
   protected List<IntentionAction> highlightAndFindQuickFixes(Class<?> aClass) {
     final List<HighlightInfo> infos = myFixture.doHighlighting();
-    final List<IntentionAction> actions = new ArrayList<IntentionAction>();
+    final List<IntentionAction> actions = new ArrayList<>();
 
     for (HighlightInfo info : infos) {
       final List<Pair<HighlightInfo.IntentionActionDescriptor, TextRange>> ranges = info.quickFixActionRanges;

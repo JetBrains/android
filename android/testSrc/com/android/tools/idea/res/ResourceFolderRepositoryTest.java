@@ -3559,7 +3559,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertEquals("String", variable1.getExtra(SdkConstants.ATTR_TYPE));
     assertNotNull(variable1.getXmlTag());
 
-    List<PsiDataBindingResourceItem> imports = new ArrayList<PsiDataBindingResourceItem>();// clone to be able to sort
+    List<PsiDataBindingResourceItem> imports = new ArrayList<>();// clone to be able to sort
     imports.addAll(info.getItems(DataBindingResourceType.IMPORT));
     assertEquals(2, imports.size());
 

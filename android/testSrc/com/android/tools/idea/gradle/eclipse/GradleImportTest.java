@@ -642,7 +642,7 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
 
     new File(projectDir, FN_PROJECT_PROPERTIES).delete();
 
-    final AtomicReference<GradleImport> importReference = new AtomicReference<GradleImport>();
+    final AtomicReference<GradleImport> importReference = new AtomicReference<>();
     File imported = checkProject(projectDir, ""
                                              + MSG_HEADER
                                              + MSG_FOLDER_STRUCTURE
@@ -2143,7 +2143,7 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                  + "    guava-13.0.1.jar\n",
                  fileTree(root, true));
 
-    final AtomicReference<GradleImport> importReference = new AtomicReference<GradleImport>();
+    final AtomicReference<GradleImport> importReference = new AtomicReference<>();
     File imported = checkProject(app,
                                  ""
                                   + MSG_HEADER
@@ -2406,7 +2406,7 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
     final File root = pair.getFirst();
     File app = pair.getSecond();
 
-    final AtomicReference<GradleImport> importReference = new AtomicReference<GradleImport>();
+    final AtomicReference<GradleImport> importReference = new AtomicReference<>();
     File imported = checkProject(app,
                                  ""
                                   + MSG_HEADER
@@ -2455,7 +2455,7 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
     libs.mkdirs();
     new File(libs, "unknown-lib.jar").createNewFile();
 
-    final AtomicReference<GradleImport> importReference = new AtomicReference<GradleImport>();
+    final AtomicReference<GradleImport> importReference = new AtomicReference<>();
     File imported = checkProject(app,
                                  ""
                                   + MSG_HEADER
@@ -2616,7 +2616,7 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
     File propertyFile = new File(app, ".project");
     propertyFile.delete();
 
-    final AtomicReference<GradleImport> importReference = new AtomicReference<GradleImport>();
+    final AtomicReference<GradleImport> importReference = new AtomicReference<>();
     File imported = checkProject(app,
                                  ""
                                   + MSG_HEADER
@@ -2703,7 +2703,7 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                    "\000blahblahblah").getBytes(Charsets.UTF_8);
     Files.write(data, location);
 
-    final AtomicReference<GradleImport> importReference = new AtomicReference<GradleImport>();
+    final AtomicReference<GradleImport> importReference = new AtomicReference<>();
     File imported = checkProject(app,
                                  ""
                                   + MSG_HEADER
@@ -2768,7 +2768,7 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                    "\000blahblahblah").getBytes(Charsets.UTF_8);
     Files.write(data, location);
 
-    final AtomicReference<GradleImport> importReference = new AtomicReference<GradleImport>();
+    final AtomicReference<GradleImport> importReference = new AtomicReference<>();
     File imported = checkProject(app,
                                  ""
                                   + MSG_HEADER
@@ -2823,7 +2823,7 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                 + "        <classpathentry kind=\"output\" path=\"bin/classes\"/>\n"
                 + "</classpath>", classPath, UTF_8);
 
-    final AtomicReference<GradleImport> importReference = new AtomicReference<GradleImport>();
+    final AtomicReference<GradleImport> importReference = new AtomicReference<>();
     File imported = checkProject(projectDir,
                                  ""
                                  + MSG_HEADER
@@ -2866,7 +2866,7 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                 + "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
                 + "<x>\n", manifest, UTF_8);
 
-    final AtomicReference<GradleImport> importReference = new AtomicReference<GradleImport>();
+    final AtomicReference<GradleImport> importReference = new AtomicReference<>();
     File imported = checkProject(projectDir,
                                  ""
                                  + MSG_HEADER
