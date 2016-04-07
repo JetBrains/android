@@ -44,6 +44,7 @@ import com.intellij.analysis.AnalysisScope;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.process.CapturingProcessHandler;
 import com.intellij.execution.process.ProcessOutput;
+import com.intellij.idea.IdeaTestApplication;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
@@ -142,11 +143,15 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
       myFixture = JavaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(projectBuilder.getFixture());
       myFixture.setUp();
       myFixture.setTestDataPath(getTestDataPath());
+      ensureSdkManagerAvailable();
+      setUpSdks();
+    } else {
+      // This is necessary when we don't create a default project,
+      // to ensure that the LocalFileSystemHolder is initialized.
+      IdeaTestApplication.getInstance();
+
+      ensureSdkManagerAvailable();
     }
-
-    ensureSdkManagerAvailable();
-
-    setUpSdks();
   }
 
   private void setUpSdks() {

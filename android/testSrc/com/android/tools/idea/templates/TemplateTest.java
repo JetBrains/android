@@ -136,16 +136,16 @@ public class TemplateTest extends AndroidGradleTestCase {
 
   @Override
   protected boolean createDefaultProject() {
-    // We'll be creating projects manually
-    //return false;
-    return true; // Doesn't work yet; find out why!
+    // We'll be creating projects manually except for the following tests
+    String testName = getName();
+    return testName.equals("testTemplateFormatting")
+      || testName.equals("testCreateGradleWrapper");
   }
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     myApiSensitiveTemplate = true;
-
     if (!ourValidatedTemplateManager) {
       ourValidatedTemplateManager = true;
       File templateRootFolder = TemplateManager.getTemplateRootFolder();
@@ -202,11 +202,13 @@ public class TemplateTest extends AndroidGradleTestCase {
 
     // For templates that aren't API sensitive, only test with latest API
     if (!myApiSensitiveTemplate) {
-      return api == SdkVersionInfo.HIGHEST_KNOWN_API;
+      // Use HIGHEST_KNOWN_STABLE_API rather than HIGHEST_KNOWN_API which
+      // can point to preview releases.
+      return api == SdkVersionInfo.HIGHEST_KNOWN_STABLE_API;
     }
 
     // Always accept the highest known version
-    if (api == SdkVersionInfo.HIGHEST_KNOWN_API) {
+    if (api == SdkVersionInfo.HIGHEST_KNOWN_STABLE_API) {
       return true;
     }
 
@@ -230,12 +232,12 @@ public class TemplateTest extends AndroidGradleTestCase {
     }
   }
 
-  public void testNewBlankActivity() throws Exception {
-    checkCreateTemplate("activities", "BlankActivity", false);
+  public void testNewBasicActivity() throws Exception {
+    checkCreateTemplate("activities", "BasicActivity", false);
   }
 
-  public void testNewProjectWithBlankActivity() throws Exception {
-    checkCreateTemplate("activities", "BlankActivity", true);
+  public void testNewProjectWithBasicActivity() throws Exception {
+    checkCreateTemplate("activities", "BasicActivity", true);
   }
 
   public void testNewEmptyActivity() throws Exception {
@@ -418,7 +420,7 @@ public class TemplateTest extends AndroidGradleTestCase {
       NewProjectWizardState state = createNewProjectState(true, sdkData);
 
       // TODO: Allow null activity state!
-      File activity = findTemplate("activities", "BlankActivity");
+      File activity = findTemplate("activities", "BasicActivity");
       TemplateWizardState activityState = state.getActivityTemplateState();
       assertNotNull(activity);
       activityState.setTemplateLocation(activity);
@@ -443,7 +445,7 @@ public class TemplateTest extends AndroidGradleTestCase {
     NewProjectWizardState state = createNewProjectState(true, sdkData);
 
     // TODO: Allow null activity state!
-    File activity = findTemplate("activities", "BlankActivity");
+    File activity = findTemplate("activities", "BasicActivity");
     TemplateWizardState activityState = state.getActivityTemplateState();
     assertNotNull(activity);
     activityState.setTemplateLocation(activity);
