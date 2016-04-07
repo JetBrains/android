@@ -147,14 +147,12 @@ public class LayoutEditorFixture extends ComponentFixture<LayoutEditorFixture, C
     final RadComponent rootComponent = panel.getRootComponent();
     assertNotNull(rootComponent);
     assertTrue(rootComponent.getClass().getName(), rootComponent instanceof RadViewComponent);
-    ApplicationManager.getApplication().runReadAction(new Runnable() {
-      @Override
-      public void run() {
+    ApplicationManager.getApplication().runReadAction(
+      () -> {
         addComponents(tag, (RadViewComponent)rootComponent, components);
         // Sort by visual order
-        Collections.sort(components, new Comparator<RadViewComponent>() {
-          @Override
-          public int compare(RadViewComponent component1, RadViewComponent component2) {
+        Collections.sort(
+          components, (component1, component2) -> {
             Rectangle bounds1 = component1.getBounds();
             Rectangle bounds2 = component2.getBounds();
             int delta = bounds1.y - bounds2.y;
@@ -167,10 +165,8 @@ public class LayoutEditorFixture extends ComponentFixture<LayoutEditorFixture, C
             }
             // Unlikely
             return component1.getTag().getTextOffset() - component2.getTag().getTextOffset();
-          }
-        });
-      }
-    });
+          });
+      });
 
     assertTrue("Only " + components.size() + " found, not enough for occurrence #" + occurrence, components.size() > occurrence);
 
@@ -195,9 +191,8 @@ public class LayoutEditorFixture extends ComponentFixture<LayoutEditorFixture, C
     assertNotNull(rootComponent);
     assertTrue(rootComponent.getClass().getName(), rootComponent instanceof RadViewComponent);
     final AtomicReference<RadViewComponent> reference = new AtomicReference<>();
-    ApplicationManager.getApplication().runReadAction(new Runnable() {
-      @Override
-      public void run() {
+    ApplicationManager.getApplication().runReadAction(
+      () -> {
         rootComponent.accept(new RadComponentVisitor() {
           @Override
           public void endVisit(RadComponent component) {
@@ -208,8 +203,7 @@ public class LayoutEditorFixture extends ComponentFixture<LayoutEditorFixture, C
             }
           }
         }, true);
-      }
-    });
+      });
 
     RadViewComponent component = reference.get();
     assertNotNull("No component with " + id + " was found", component);
@@ -292,9 +286,8 @@ public class LayoutEditorFixture extends ComponentFixture<LayoutEditorFixture, C
     final StringBuilder sb = new StringBuilder(100);
     final RadComponent root = myPanel.getRootComponent();
     if (root != null) {
-      ApplicationManager.getApplication().runReadAction(new Runnable() {
-        @Override
-        public void run() {
+      ApplicationManager.getApplication().runReadAction(
+        () -> {
           SimpleColoredRenderer renderer = new SimpleColoredRenderer();
           AttributeWrapper wrapper = attributes -> SimpleTextAttributes.REGULAR_ATTRIBUTES;
           describe(renderer, wrapper, root, showSelected, 0);
@@ -303,8 +296,7 @@ public class LayoutEditorFixture extends ComponentFixture<LayoutEditorFixture, C
             iterator.next();
             sb.append(iterator.getFragment());
           }
-        }
-      });
+        });
     }
 
     return sb.toString();

@@ -61,14 +61,12 @@ public class LibraryPropertiesDialogFixture extends IdeaDialogFixture<LibraryPro
 
     // Using invokeLater because the dialog is modal. Using GuiActionRunner will make the test block forever.
     //noinspection SSBasedInspection
-    SwingUtilities.invokeLater(new Runnable() {
-      @Override
-      public void run() {
+    SwingUtilities.invokeLater(
+      () -> {
         LibraryPropertiesDialog wrapper = new LibraryPropertiesDialog(project, library);
         wrapperRef.set(wrapper);
         wrapper.showAndGet();
-      }
-    });
+      });
 
     JDialog dialog = GuiTests.waitUntilShowing(robot, new GenericTypeMatcher<JDialog>(JDialog.class) {
       @Override

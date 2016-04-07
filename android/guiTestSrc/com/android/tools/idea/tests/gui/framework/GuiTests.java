@@ -169,9 +169,8 @@ public final class GuiTests {
         File currentAndroidSdkPath = IdeSdks.getAndroidSdkPath();
         File currentJdkPath = IdeSdks.getJdkPath();
         if (!filesEqual(androidSdkPath, currentAndroidSdkPath) || !filesEqual(jdkPath, currentJdkPath)) {
-          ApplicationManager.getApplication().runWriteAction(new Runnable() {
-            @Override
-            public void run() {
+          ApplicationManager.getApplication().runWriteAction(
+            () -> {
               System.out.println(String.format("Setting Android SDK: '%1$s'", androidSdkPath.getPath()));
               IdeSdks.setAndroidSdkPath(androidSdkPath, null);
 
@@ -179,8 +178,7 @@ public final class GuiTests {
               IdeSdks.setJdkPath(jdkPath);
 
               System.out.println();
-            }
-          });
+            });
         }
       }
     });
@@ -191,12 +189,10 @@ public final class GuiTests {
     execute(new GuiTask() {
       @Override
       protected void executeInEDT() throws Throwable {
-        ApplicationManager.getApplication().runWriteAction(new Runnable() {
-          @Override
-          public void run() {
+        ApplicationManager.getApplication().runWriteAction(
+          () -> {
             LocalFileSystem.getInstance().refresh(false /* synchronous */);
-          }
-        });
+          });
       }
     });
   }
