@@ -105,12 +105,7 @@ public class LibraryPropertiesDialogFixture extends IdeaDialogFixture<LibraryPro
     });
     robot().moveMouse(addButton);
     //noinspection SSBasedInspection
-    SwingUtilities.invokeLater(new Runnable() {
-      @Override
-      public void run() {
-        addButton.click();
-      }
-    });
+    SwingUtilities.invokeLater(addButton::click);
 
     VirtualFile attachment = findFileByIoFile(path, true);
     FileChooserDialogFixture fileChooser = FileChooserDialogFixture.findDialog(robot(), new GenericTypeMatcher<JDialog>(JDialog.class) {

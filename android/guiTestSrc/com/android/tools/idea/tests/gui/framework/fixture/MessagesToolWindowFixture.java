@@ -321,23 +321,13 @@ public class MessagesToolWindowFixture extends ToolWindowFixture {
         execute(new GuiTask() {
           @Override
           protected void executeInEDT() {
-            new Runnable() {
-              @Override
-              public void run() {
-                doClick();
-              }
-            }.run();
+            ((Runnable)HyperlinkFixture.this::doClick).run();
           }
         });
       }
       else {
         //noinspection SSBasedInspection
-        SwingUtilities.invokeLater(new Runnable() {
-          @Override
-          public void run() {
-            doClick();
-          }
-        });
+        SwingUtilities.invokeLater(this::doClick);
       }
     }
 
