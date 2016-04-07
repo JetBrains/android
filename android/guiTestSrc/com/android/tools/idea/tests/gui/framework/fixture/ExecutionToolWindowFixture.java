@@ -24,7 +24,6 @@ import com.intellij.execution.ui.layout.impl.JBRunnerTabs;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl;
-import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.tabs.impl.JBTabsImpl;
@@ -33,7 +32,6 @@ import com.intellij.xdebugger.impl.ui.tree.XDebuggerTree;
 import com.intellij.xdebugger.impl.ui.tree.nodes.XDebuggerTreeNode;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
-import org.fest.swing.core.TypeMatcher;
 import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.exception.ComponentLookupException;
@@ -42,7 +40,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.TestOnly;
 
 import javax.swing.*;
-import java.util.Collection;
 import java.util.List;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilFound;

@@ -22,7 +22,6 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.event.HyperlinkEvent;
 
-import static org.easymock.EasyMock.expect;
 import static org.easymock.classextension.EasyMock.*;
 
 /**

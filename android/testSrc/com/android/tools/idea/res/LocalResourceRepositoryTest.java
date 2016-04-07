@@ -16,8 +16,6 @@
 package com.android.tools.idea.res;
 
 import com.android.resources.ResourceType;
-import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.ModuleResourceRepository;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;

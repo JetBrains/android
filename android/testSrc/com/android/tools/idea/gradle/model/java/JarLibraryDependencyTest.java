@@ -23,8 +23,6 @@ import org.junit.Test;
 
 import java.io.File;
 
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.*;
 import static org.junit.Assert.*;
 

@@ -17,10 +17,8 @@ package com.android.tools.idea.gradle.util;
 
 import com.intellij.testFramework.IdeaTestCase;
 import com.intellij.util.net.HttpConfigurable;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.util.List;
 
 /**
  * Tests for {@link GradleProperties}.

@@ -17,7 +17,6 @@ package com.android.tools.idea.tests.gui.framework;
 
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.lint.detector.api.TextFormat;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.diagnostic.AbstractMessage;

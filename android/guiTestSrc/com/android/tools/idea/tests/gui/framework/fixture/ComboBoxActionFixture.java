@@ -24,7 +24,6 @@ import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
-import org.fest.swing.exception.ComponentLookupException;
 import org.fest.swing.fixture.JButtonFixture;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

@@ -17,11 +17,9 @@ package com.android.tools.idea.ui.properties.adapters;
 
 import com.android.tools.idea.ui.properties.BindingsManager;
 import com.android.tools.idea.ui.properties.core.*;
-import com.intellij.openapi.util.EmptyRunnable;
 import org.junit.After;
 import org.junit.Test;
 
-import javax.swing.*;
 import java.util.Locale;
 
 import static com.android.tools.idea.ui.properties.BatchInvoker.INVOKE_IMMEDIATELY_STRATEGY;
