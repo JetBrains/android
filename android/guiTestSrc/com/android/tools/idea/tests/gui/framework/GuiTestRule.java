@@ -48,7 +48,9 @@ import org.junit.runner.Description;
 import org.junit.runners.model.MultipleFailureException;
 import org.junit.runners.model.Statement;
 
+import javax.swing.*;
 import java.awt.*;
+import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -63,6 +65,8 @@ import static org.junit.Assume.assumeTrue;
 
 public class GuiTestRule implements TestRule {
   private static final Timeout DEFAULT_TIMEOUT = new Timeout(5, TimeUnit.MINUTES);
+  /** Hack to solve focus issue when running with no window manager */
+  private static final boolean HAS_EXTERNAL_WINDOW_MANAGER = Toolkit.getDefaultToolkit().isFrameStateSupported(Frame.MAXIMIZED_BOTH);
 
   private File myProjectPath;
   private IdeFrameFixture myIdeFrameFixture;
@@ -77,6 +81,16 @@ public class GuiTestRule implements TestRule {
     .around(new IdeHandling())
     .around(new TestPerformance())
     .around(new ScreenshotOnFailure());
+  private final PropertyChangeListener myGlobalFocusListener = e -> {
+    Object oldValue = e.getOldValue();
+    if (oldValue instanceof Component && e.getNewValue() == null) {
+      Window parentWindow = oldValue instanceof Window ? (Window)oldValue : SwingUtilities.getWindowAncestor((Component)oldValue);
+      Container parent = parentWindow.getParent();
+      if (parent != null && parent.isVisible()) {
+        parent.requestFocus();
+      }
+    }
+  };
 
   public GuiTestRule() {
     myTimeout = DEFAULT_TIMEOUT;
@@ -138,6 +152,10 @@ public class GuiTestRule implements TestRule {
     GuiTests.setUpDefaultProjectCreationLocationPath();
     GuiTests.setIdeSettings();
     GuiTests.setUpSdks();
+
+    if (!HAS_EXTERNAL_WINDOW_MANAGER) {
+      KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener("permanentFocusOwner", myGlobalFocusListener);
+    }
   }
 
   private void tearDown(List<Throwable> errors) throws Exception {
@@ -153,6 +171,9 @@ public class GuiTestRule implements TestRule {
       FileUtilRt.delete(myProjectPath);
       GuiTests.refreshFiles();
     }
+    if (!HAS_EXTERNAL_WINDOW_MANAGER) {
+      KeyboardFocusManager.getCurrentKeyboardFocusManager().removePropertyChangeListener("permanentFocusOwner", myGlobalFocusListener);
+    }
     errors.addAll(GuiTests.fatalErrorsFromIde());
 
     fixMemLeaks();
@@ -164,10 +185,6 @@ public class GuiTestRule implements TestRule {
     Dialog modalDialog;
     while ((modalDialog = getActiveModalDialog()) != null) {
       robot().close(modalDialog);
-      final Container parent = modalDialog.getParent();
-      if (parent.isVisible()) {
-        robot().focusAndWaitForFocusGain(parent);
-      }
       errors.add(new AssertionError(
         String.format("Modal dialog showing: %s with title '%s'", modalDialog.getClass().getName(), modalDialog.getTitle())));
     }
