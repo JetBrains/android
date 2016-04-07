@@ -263,12 +263,7 @@ public class GradleSyncTest {
     execute(new GuiTask() {
       @Override
       protected void executeInEDT() throws Throwable {
-        ApplicationManager.getApplication().runWriteAction(new Runnable() {
-          @Override
-          public void run() {
-            libraryModel.commit();
-          }
-        });
+        ApplicationManager.getApplication().runWriteAction(libraryModel::commit);
       }
     });
 
@@ -747,12 +742,7 @@ public class GradleSyncTest {
 
     assertTrue(versionChanged);
 
-    runWriteCommandAction(project, new Runnable() {
-      @Override
-      public void run() {
-        buildModel.applyChanges();
-      }
-    });
+    runWriteCommandAction(project, buildModel::applyChanges);
 
     guiTest.ideFrame().requestProjectSync().waitForGradleProjectSyncToFinish();
 

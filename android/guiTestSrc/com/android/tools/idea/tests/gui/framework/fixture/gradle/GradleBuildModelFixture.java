@@ -74,12 +74,7 @@ public class GradleBuildModelFixture {
     execute(new GuiTask() {
       @Override
       protected void executeInEDT() throws Throwable {
-        WriteCommandAction.runWriteCommandAction(myTarget.getProject(), new Runnable() {
-          @Override
-          public void run() {
-            myTarget.applyChanges();
-          }
-        });
+        WriteCommandAction.runWriteCommandAction(myTarget.getProject(), myTarget::applyChanges);
       }
     });
   }
