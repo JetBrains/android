@@ -39,9 +39,9 @@ import java.util.Collection;
 
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.google.common.truth.Truth.assertAbout;
+import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.io.FileUtil.appendToFile;
 import static com.intellij.openapi.util.io.FileUtil.join;
-import static org.fest.assertions.Assertions.assertThat;
 import static org.jetbrains.jps.model.java.JavaSourceRootType.SOURCE;
 import static org.jetbrains.jps.model.java.JavaSourceRootType.TEST_SOURCE;
 import static org.junit.Assert.assertEquals;
@@ -71,14 +71,15 @@ public class BuildVariantsTest {
     String generatedSourceDirPath = MODULE_NAME + "/build/generated/source/";
 
     Collection<String> sourceFolders = guiTest.ideFrame().getSourceFolderRelativePaths(MODULE_NAME, SOURCE);
-    assertThat(sourceFolders).contains(generatedSourceDirPath + "r/flavor1/release",
-                                       generatedSourceDirPath + "aidl/flavor1/release",
-                                       generatedSourceDirPath + "buildConfig/flavor1/release",
-                                       generatedSourceDirPath + "rs/flavor1/release",
-                                       MODULE_NAME + "/src/flavor1Release/aidl",
-                                       MODULE_NAME + "/src/flavor1Release/java",
-                                       MODULE_NAME + "/src/flavor1Release/jni",
-                                       MODULE_NAME + "/src/flavor1Release/rs");
+    assertThat(sourceFolders).containsAllOf(
+      generatedSourceDirPath + "r/flavor1/release",
+      generatedSourceDirPath + "aidl/flavor1/release",
+      generatedSourceDirPath + "buildConfig/flavor1/release",
+      generatedSourceDirPath + "rs/flavor1/release",
+      MODULE_NAME + "/src/flavor1Release/aidl",
+      MODULE_NAME + "/src/flavor1Release/java",
+      MODULE_NAME + "/src/flavor1Release/jni",
+      MODULE_NAME + "/src/flavor1Release/rs");
 
     Module appModule = guiTest.ideFrame().getModule(MODULE_NAME);
     AndroidFacet androidFacet = AndroidFacet.getInstance(appModule);
@@ -92,10 +93,11 @@ public class BuildVariantsTest {
     buildVariants.selectVariantForModule(MODULE_NAME, "flavor1Debug");
 
     sourceFolders = guiTest.ideFrame().getSourceFolderRelativePaths(MODULE_NAME, SOURCE);
-    assertThat(sourceFolders).contains(generatedSourceDirPath + "r/flavor1/debug", generatedSourceDirPath + "aidl/flavor1/debug",
-                                       generatedSourceDirPath + "buildConfig/flavor1/debug", generatedSourceDirPath + "rs/flavor1/debug",
-                                       MODULE_NAME + "/src/flavor1Debug/aidl", MODULE_NAME + "/src/flavor1Debug/java",
-                                       MODULE_NAME + "/src/flavor1Debug/jni", MODULE_NAME + "/src/flavor1Debug/rs");
+    assertThat(sourceFolders).containsAllOf(
+      generatedSourceDirPath + "r/flavor1/debug", generatedSourceDirPath + "aidl/flavor1/debug",
+      generatedSourceDirPath + "buildConfig/flavor1/debug", generatedSourceDirPath + "rs/flavor1/debug",
+      MODULE_NAME + "/src/flavor1Debug/aidl", MODULE_NAME + "/src/flavor1Debug/java",
+      MODULE_NAME + "/src/flavor1Debug/jni", MODULE_NAME + "/src/flavor1Debug/rs");
 
     assertEquals("assembleFlavor1Debug", androidFacetProperties.ASSEMBLE_TASK_NAME);
     // Verifies that https://code.google.com/p/android/issues/detail?id=83077 is not a bug.
@@ -114,12 +116,14 @@ public class BuildVariantsTest {
     String unitTestSrc = MODULE_NAME + "/src/test/java";
 
     Collection<String> testSourceFolders = guiTest.ideFrame().getSourceFolderRelativePaths(MODULE_NAME, TEST_SOURCE);
-    assertThat(testSourceFolders).contains(androidTestSrc).excludes(unitTestSrc);
+    assertThat(testSourceFolders).contains(androidTestSrc);
+    assertThat(testSourceFolders).doesNotContain(unitTestSrc);
 
     buildVariants.selectTestArtifact("Unit Tests");
 
     testSourceFolders = guiTest.ideFrame().getSourceFolderRelativePaths(MODULE_NAME, TEST_SOURCE);
-    assertThat(testSourceFolders).contains(unitTestSrc).excludes(androidTestSrc);
+    assertThat(testSourceFolders).contains(unitTestSrc);
+    assertThat(testSourceFolders).doesNotContain(androidTestSrc);
   }
 
   @Ignore("failed in http://go/aj/job/studio-ui-test/345 and from IDEA")
@@ -195,22 +199,26 @@ public class BuildVariantsTest {
     }
 
     Collection<String> sourceFolders = guiTest.ideFrame().getSourceFolderRelativePaths(MODULE_NAME, SOURCE);
-    assertThat(sourceFolders).contains(mainSrc).excludes(androidTestSrc, unitTestSrc);
+    assertThat(sourceFolders).contains(mainSrc);
+    assertThat(sourceFolders).containsNoneOf(androidTestSrc, unitTestSrc);
     Collection<String> testSourceFolders = guiTest.ideFrame().getSourceFolderRelativePaths(MODULE_NAME, TEST_SOURCE);
-    assertThat(testSourceFolders).contains(androidTestSrc).excludes(unitTestSrc, mainSrc);
+    assertThat(testSourceFolders).contains(androidTestSrc);
+    assertThat(testSourceFolders).containsNoneOf(unitTestSrc, mainSrc);
 
     if (compareVersions(pluginVersion, "1.1") >= 0) {
       buildVariants.selectTestArtifact("Unit Tests");
 
       sourceFolders = guiTest.ideFrame().getSourceFolderRelativePaths(MODULE_NAME, SOURCE);
-      assertThat(sourceFolders).contains(mainSrc).excludes(androidTestSrc, unitTestSrc);
+      assertThat(sourceFolders).contains(mainSrc);
+      assertThat(sourceFolders).containsNoneOf(androidTestSrc, unitTestSrc);
 
       testSourceFolders = guiTest.ideFrame().getSourceFolderRelativePaths(MODULE_NAME, TEST_SOURCE);
       if (compareVersions(pluginVersion, "1.3") >= 0) {
         // In 1.3 we started to include unit testing generated folders in the model.
-        assertThat(testSourceFolders).contains(unitTestSrc).excludes(androidTestSrc, mainSrc);
+        assertThat(testSourceFolders).contains(unitTestSrc);
+        assertThat(testSourceFolders).containsNoneOf(androidTestSrc, mainSrc);
       } else {
-        assertThat(testSourceFolders).excludes(unitTestSrc, androidTestSrc, mainSrc);
+        assertThat(testSourceFolders).containsNoneOf(unitTestSrc, androidTestSrc, mainSrc);
       }
     }
   }

@@ -23,7 +23,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorFixtu
 import com.intellij.notification.EventLog;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
-import org.fest.assertions.Index;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -33,7 +32,7 @@ import java.io.IOException;
 import java.util.List;
 
 import static com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorFixture.clickPopupMenuItem;
-import static org.fest.assertions.Assertions.assertThat;
+import static com.google.common.truth.Truth.assertThat;
 
 /**
  * Unit test for the layout theme editor
@@ -74,14 +73,13 @@ public class ThemeEditorTest {
     // 5. -- Separator
     // 6. Create New Theme
     // 7. Rename AppTheme
-    assertThat(themeList)
-      .hasSize(9)
-      .contains("AppTheme", Index.atIndex(0))
-      .contains("Theme.AppCompat.Light.NoActionBar", Index.atIndex(3))
-      .contains("Theme.AppCompat.NoActionBar", Index.atIndex(4))
-      .contains("Show all themes", Index.atIndex(5))
-      .contains("Create New Theme", Index.atIndex(7))
-      .contains("Rename AppTheme", Index.atIndex(8));
+    assertThat(themeList).hasSize(9);
+    assertThat(themeList.get(0)).isEqualTo("AppTheme");
+    assertThat(themeList.get(3)).isEqualTo("Theme.AppCompat.Light.NoActionBar");
+    assertThat(themeList.get(4)).isEqualTo("Theme.AppCompat.NoActionBar");
+    assertThat(themeList.get(5)).isEqualTo("Show all themes");
+    assertThat(themeList.get(7)).isEqualTo("Create New Theme");
+    assertThat(themeList.get(8)).isEqualTo("Rename AppTheme");
 
     assertThat(themeList.get(2)).startsWith("javax.swing.JSeparator");
     assertThat(themeList.get(6)).startsWith("javax.swing.JSeparator");
