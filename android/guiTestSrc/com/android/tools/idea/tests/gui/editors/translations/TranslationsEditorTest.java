@@ -33,11 +33,10 @@ import org.junit.runner.RunWith;
 
 import javax.swing.*;
 import java.io.IOException;
-import java.util.List;
 
 import static com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.Tab.EDITOR;
-import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.swing.edt.GuiActionRunner.execute;
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.*;
 
 @RunWith(GuiTestRunner.class)
@@ -71,12 +70,10 @@ public class TranslationsEditorTest {
     TranslationsEditorFixture txEditor = editor.getTranslationsEditor();
     assertNotNull(txEditor);
 
-    List<String> locales = txEditor.locales();
-    Object[] expectedLocales = {"English (en)", "English (en) in United Kingdom (GB)", "Tamil (ta)", "Chinese (zh) in China (CN)"};
-    assertThat(locales).containsSequence(expectedLocales);
+    assertThat(txEditor.locales()).containsExactly(
+      "English (en)", "English (en) in United Kingdom (GB)", "Tamil (ta)", "Chinese (zh) in China (CN)").inOrder();
 
-    List<String> keys = txEditor.keys();
-    assertThat(keys).containsSequence("action_settings", "app_name", "cancel", "hello_world");
+    assertThat(txEditor.keys()).containsExactly("action_settings", "app_name", "cancel", "hello_world").inOrder();
 
     JTableCellFixture cancel = txEditor.cell(TableCell.row(2).column(6)); // cancel in zh-rCN
     assertEquals("取消", cancel.value());
