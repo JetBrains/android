@@ -48,7 +48,7 @@ public class AndroidFindUsagesTest extends AndroidTestCase {
 
   public List<UsageInfo> findCodeUsages(String path, String pathInProject) throws Throwable {
     Collection<UsageInfo> usages = findUsages(path, myFixture, pathInProject);
-    List<UsageInfo> result = new ArrayList<UsageInfo>();
+    List<UsageInfo> result = new ArrayList<>();
     for (UsageInfo usage : usages) {
       if (!usage.isNonCodeUsage) {
         result.add(usage);
@@ -478,7 +478,7 @@ public class AndroidFindUsagesTest extends AndroidTestCase {
   private static String describeUsages(Collection<UsageInfo> collection) {
     assertNotNull(collection);
     // Ensure stable output: sort in a predictable order
-    List<UsageInfo> usages = new ArrayList<UsageInfo>(collection);
+    List<UsageInfo> usages = new ArrayList<>(collection);
     Collections.sort(usages, new Comparator<UsageInfo>() {
       @Override
       public int compare(UsageInfo usageInfo1, UsageInfo usageInfo2) {

@@ -207,7 +207,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
       ProjectManagerEx projectManager = ProjectManagerEx.getInstanceEx();
       Project[] openProjects = projectManager.getOpenProjects();
       if (openProjects.length > 0) {
-        final List<Throwable> exceptions = new SmartList<Throwable>();
+        final List<Throwable> exceptions = new SmartList<>();
         try {
           PlatformTestCase.closeAndDisposeProjectAndCheckThatNoOpenProjects(openProjects[0], exceptions);
         }
@@ -548,7 +548,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
                                       final @Nullable GradleSyncListener listener)
     throws IOException, ConfigurationException, InterruptedException {
 
-    final Ref<Throwable> throwableRef = new Ref<Throwable>();
+    final Ref<Throwable> throwableRef = new Ref<>();
     final CountDownLatch latch = new CountDownLatch(1);
     GradleSyncListener postSetupListener = new GradleSyncListener.Adapter() {
       @Override

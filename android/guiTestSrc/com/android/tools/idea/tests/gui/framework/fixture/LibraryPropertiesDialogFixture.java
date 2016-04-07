@@ -57,7 +57,7 @@ public class LibraryPropertiesDialogFixture extends IdeaDialogFixture<LibraryPro
     assertNotNull("Failed to find library with name '" + libraryName + "'", found);
 
     final Library library = found;
-    final Ref<LibraryPropertiesDialog> wrapperRef = new Ref<LibraryPropertiesDialog>();
+    final Ref<LibraryPropertiesDialog> wrapperRef = new Ref<>();
 
     // Using invokeLater because the dialog is modal. Using GuiActionRunner will make the test block forever.
     //noinspection SSBasedInspection

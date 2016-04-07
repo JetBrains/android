@@ -26,7 +26,7 @@ public final class ObjectPropertyTest {
   @Test
   public void testInitialization() {
     Person person = new Person("John Doe", 25);
-    ObjectProperty<Person> personProperty = new ObjectValueProperty<Person>(person);
+    ObjectProperty<Person> personProperty = new ObjectValueProperty<>(person);
     assertThat(personProperty.get()).isSameAs(person);
   }
 
@@ -34,7 +34,7 @@ public final class ObjectPropertyTest {
   public void testSetValue() {
     Person personA = new Person("John Doe", 25);
     Person personB = new Person("Jane Doe", 21);
-    ObjectProperty<Person> personProperty = new ObjectValueProperty<Person>(personA);
+    ObjectProperty<Person> personProperty = new ObjectValueProperty<>(personA);
     personProperty.set(personB);
     assertThat(personProperty.get()).isSameAs(personB);
   }
@@ -46,7 +46,7 @@ public final class ObjectPropertyTest {
     Person cloneB = new Person("Jane Doe", 21);
 
     CountListener listener = new CountListener();
-    ObjectProperty<Person> personProperty = new ObjectValueProperty<Person>(personA);
+    ObjectProperty<Person> personProperty = new ObjectValueProperty<>(personA);
 
     personProperty.addListener(listener);
 

@@ -194,7 +194,7 @@ public class LayoutEditorFixture extends ComponentFixture<LayoutEditorFixture, C
     final RadComponent rootComponent = panel.getRootComponent();
     assertNotNull(rootComponent);
     assertTrue(rootComponent.getClass().getName(), rootComponent instanceof RadViewComponent);
-    final AtomicReference<RadViewComponent> reference = new AtomicReference<RadViewComponent>();
+    final AtomicReference<RadViewComponent> reference = new AtomicReference<>();
     ApplicationManager.getApplication().runReadAction(new Runnable() {
       @Override
       public void run() {

@@ -45,7 +45,7 @@ public class RenderProblemTest extends TestCase {
   }
 
   public void testSorting() {
-    List<RenderProblem> list = new ArrayList<RenderProblem>();
+    List<RenderProblem> list = new ArrayList<>();
     list.add(RenderProblem.createPlain(ERROR, "first").priority(PRIORITY_RENDERING_FIDELITY));
     list.add(RenderProblem.createPlain(ERROR, "second"));
     list.add(RenderProblem.createPlain(ERROR, "third"));

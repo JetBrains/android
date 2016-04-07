@@ -209,7 +209,7 @@ public class ConfiguredThemeEditorStyleTest extends AndroidTestCase {
     // ResourceFolderRepository needs to rescan the files to pick up the changes.
     UIUtil.dispatchAllInvocationEvents();
 
-    HashSet<String> modifiedFolders = new HashSet<String>(Arrays.asList(answerFolders));
+    HashSet<String> modifiedFolders = new HashSet<>(Arrays.asList(answerFolders));
     int valuesFound = 0;
     for (ConfiguredElement<ItemResourceValue> value : style.getConfiguredValues()) {
       if (item.equals(value.getElement())) {
@@ -313,7 +313,7 @@ public class ConfiguredThemeEditorStyleTest extends AndroidTestCase {
     // ResourceFolderRepository needs to rescan the files to pick up the changes.
     UIUtil.dispatchAllInvocationEvents();
 
-    HashSet<String> modifiedFolders = new HashSet<String>(Arrays.asList(answerFolders));
+    HashSet<String> modifiedFolders = new HashSet<>(Arrays.asList(answerFolders));
     int valuesFound = 0;
     for (ConfiguredElement<String> value : theme.getParentNames()) {
       if (newParent.equals(value.getElement())) {
