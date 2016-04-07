@@ -100,7 +100,7 @@ public class ModulesToImportDialogTest {
   private static DataNode<ModuleData> createModule(@NotNull String name, boolean isGradleProject) {
     String path = "~/project/" + name;
     ModuleData data = new ModuleData(name, GradleConstants.SYSTEM_ID, StdModuleTypes.JAVA.getId(), name, path, path);
-    DataNode<ModuleData> module = new DataNode<ModuleData>(MODULE, data, null);
+    DataNode<ModuleData> module = new DataNode<>(MODULE, data, null);
     if (isGradleProject) {
       List<String> taskNames = Collections.emptyList();
       module.createChild(GRADLE_MODEL, new GradleModel("app", taskNames, ":" + name, null, null));

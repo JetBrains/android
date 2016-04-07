@@ -517,7 +517,7 @@ public class AndroidValueResourcesTest extends AndroidDomTest {
   private void doCreateValueResourceFromUsage(VirtualFile virtualFile) {
     myFixture.configureFromExistingVirtualFile(virtualFile);
     final List<HighlightInfo> infos = myFixture.doHighlighting();
-    final List<IntentionAction> actions = new ArrayList<IntentionAction>();
+    final List<IntentionAction> actions = new ArrayList<>();
 
     for (HighlightInfo info : infos) {
       final List<Pair<HighlightInfo.IntentionActionDescriptor, TextRange>> ranges = info.quickFixActionRanges;

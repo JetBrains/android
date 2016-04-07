@@ -47,7 +47,7 @@ public final class ValueExpressionsTest {
   public void testAsValueExpression() {
     OptionalProperty<Integer> optionalIntProperty = OptionalValueProperty.of(42);
 
-    AsValueExpression<Integer> intExpr = new AsValueExpression<Integer>(optionalIntProperty);
+    AsValueExpression<Integer> intExpr = new AsValueExpression<>(optionalIntProperty);
 
     assertThat(intExpr.get()).isEqualTo(42);
 

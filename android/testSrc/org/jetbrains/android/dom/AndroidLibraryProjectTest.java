@@ -279,7 +279,7 @@ public class AndroidLibraryProjectTest extends UsefulTestCase {
     String newFilePath = dir + path;
     VirtualFile file = myFixture.copyFileToProject(BASE_PATH + path, newFilePath);
     Collection<UsageInfo> usages = AndroidFindUsagesTest.findUsages(file, myFixture);
-    List<UsageInfo> result = new ArrayList<UsageInfo>();
+    List<UsageInfo> result = new ArrayList<>();
     for (UsageInfo usage : usages) {
       if (!usage.isNonCodeUsage) {
         result.add(usage);

@@ -120,7 +120,7 @@ public class AndroidGradleProjectResolverIdeaTest extends IdeaTestCase {
 
     try {
       ProjectData project = myProjectResolver.createProject();
-      DataNode<ProjectData> projectDataNode = new DataNode<ProjectData>(ProjectKeys.PROJECT, project, null);
+      DataNode<ProjectData> projectDataNode = new DataNode<>(ProjectKeys.PROJECT, project, null);
       myProjectResolver.createModule(myAndroidModule, projectDataNode);
       fail();
     }
@@ -132,7 +132,7 @@ public class AndroidGradleProjectResolverIdeaTest extends IdeaTestCase {
 
   public void testPopulateModuleContentRootsWithAndroidProject() {
     ProjectData project = myProjectResolver.createProject();
-    DataNode<ProjectData> projectNode = new DataNode<ProjectData>(ProjectKeys.PROJECT, project, null);
+    DataNode<ProjectData> projectNode = new DataNode<>(ProjectKeys.PROJECT, project, null);
     DataNode<ModuleData> moduleDataNode = myProjectResolver.createModule(myAndroidModule, projectNode);
     myProjectResolver.populateModuleContentRoots(myAndroidModule, moduleDataNode);
 
@@ -153,7 +153,7 @@ public class AndroidGradleProjectResolverIdeaTest extends IdeaTestCase {
 
   public void testPopulateModuleContentRootsWithNativeAndroidProject() {
     ProjectData project = myProjectResolver.createProject();
-    DataNode<ProjectData> projectNode = new DataNode<ProjectData>(ProjectKeys.PROJECT, project, null);
+    DataNode<ProjectData> projectNode = new DataNode<>(ProjectKeys.PROJECT, project, null);
     DataNode<ModuleData> moduleDataNode = myProjectResolver.createModule(myNativeAndroidModule, projectNode);
 
     myProjectResolver.populateModuleContentRoots(myNativeAndroidModule, moduleDataNode);
@@ -179,7 +179,7 @@ public class AndroidGradleProjectResolverIdeaTest extends IdeaTestCase {
 
   public void testPopulateModuleContentRootsWithJavaProject() {
     ProjectData project = myProjectResolver.createProject();
-    DataNode<ProjectData> projectNode = new DataNode<ProjectData>(ProjectKeys.PROJECT, project, null);
+    DataNode<ProjectData> projectNode = new DataNode<>(ProjectKeys.PROJECT, project, null);
     DataNode<ModuleData> moduleDataNode = myProjectResolver.createModule(myJavaUtilModule, projectNode);
 
     myProjectResolver.populateModuleContentRoots(myJavaUtilModule, moduleDataNode);

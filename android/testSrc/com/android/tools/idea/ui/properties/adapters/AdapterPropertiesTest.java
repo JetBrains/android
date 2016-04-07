@@ -120,10 +120,10 @@ public class AdapterPropertiesTest {
   @Test
   public void bindingOptionalToValueAdapterWorks() throws Exception {
     BindingsManager bindings = new BindingsManager(INVOKE_IMMEDIATELY_STRATEGY);
-    OptionalProperty<String> optionalValue = new OptionalValueProperty<String>("Initial");
+    OptionalProperty<String> optionalValue = new OptionalValueProperty<>("Initial");
     StringProperty stringValue = new StringValueProperty();
 
-    OptionalToValuePropertyAdapter<String> adapterProperty = new OptionalToValuePropertyAdapter<String>(optionalValue);
+    OptionalToValuePropertyAdapter<String> adapterProperty = new OptionalToValuePropertyAdapter<>(optionalValue);
     bindings.bindTwoWay(stringValue, adapterProperty);
 
     assertThat(stringValue.get()).isEqualTo("Initial");
@@ -141,10 +141,10 @@ public class AdapterPropertiesTest {
   @Test
   public void bindingOptionalToValueAdapterWithDefaultValueWorks() throws Exception {
     BindingsManager bindings = new BindingsManager(INVOKE_IMMEDIATELY_STRATEGY);
-    OptionalProperty<String> optionalValue = new OptionalValueProperty<String>();
+    OptionalProperty<String> optionalValue = new OptionalValueProperty<>();
     StringProperty stringValue = new StringValueProperty();
 
-    bindings.bindTwoWay(stringValue, new OptionalToValuePropertyAdapter<String>(optionalValue, "Initial"));
+    bindings.bindTwoWay(stringValue, new OptionalToValuePropertyAdapter<>(optionalValue, "Initial"));
 
     assertThat(stringValue.get()).isEqualTo("Initial");
 

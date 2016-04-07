@@ -141,7 +141,7 @@ public class AndroidGradleBuildProcessParametersProviderTest extends IdeaTestCas
   }
 
   private static Map<String, String> convertJvmArgsToMap(List<String> jvmArgs) {
-    Map<String, String> map = new HashMap<String, String>();
+    Map<String, String> map = new HashMap<>();
     for (String arg : jvmArgs) {
       String[] pair = arg.split("=", 2);
       if (pair.length == 2) {

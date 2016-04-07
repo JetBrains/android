@@ -927,19 +927,19 @@ public class AndroidFacetImporterTest extends FacetImporterTestCase<AndroidFacet
       final ModuleRootManager rootManager = ModuleRootManager.getInstance(module);
 
       String[] sourceRoots = toRelativePaths(rootManager.getSourceRootUrls());
-      assertEquals(new HashSet<String>(Arrays.asList(
+      assertEquals(new HashSet<>(Arrays.asList(
         "target/generated-sources/r",
         "target/generated-sources/aidl")
-      ), new HashSet<String>(Arrays.asList(sourceRoots)));
+      ), new HashSet<>(Arrays.asList(sourceRoots)));
 
       String[] excludedRootUrls = toRelativePaths(rootManager.getExcludeRootUrls());
-      assertEquals(new HashSet<String>(Arrays.asList(
+      assertEquals(new HashSet<>(Arrays.asList(
         "target/generated-sources/combined-resources",
         "target/generated-sources/combined-assets",
         "target/test-classes",
         "target/classes",
         "target/generated-sources/extracted-dependencies")
-      ), new HashSet<String>(Arrays.asList(excludedRootUrls)));
+      ), new HashSet<>(Arrays.asList(excludedRootUrls)));
 
       final AndroidFacet facet = AndroidFacet.getInstance(module);
       assertNotNull(facet);
@@ -952,14 +952,14 @@ public class AndroidFacetImporterTest extends FacetImporterTestCase<AndroidFacet
       assertEquals(2, sourceRoots.length);
 
       excludedRootUrls = toRelativePaths(rootManager.getExcludeRootUrls());
-      assertEquals(new HashSet<String>(Arrays.asList(
+      assertEquals(new HashSet<>(Arrays.asList(
         "target/test-classes", "target/classes",
         "target/generated-sources/combined-resources",
         "target/generated-sources/combined-assets",
         "target/generated-sources/extracted-dependencies",
         "target/generated-sources/r",
         "target/generated-sources/aidl")
-      ), new HashSet<String>(Arrays.asList(excludedRootUrls)));
+      ), new HashSet<>(Arrays.asList(excludedRootUrls)));
     }
     finally {
       AndroidFacetImporterBase.ANDROID_SDK_PATH_TEST = null;
@@ -1052,7 +1052,7 @@ public class AndroidFacetImporterTest extends FacetImporterTestCase<AndroidFacet
     final AndroidSdkAdditionalData data = (AndroidSdkAdditionalData)additionalData;
     assertEquals(buildTarget, data.getBuildTargetHashString());
     assertEquals(myJdk, data.getJavaSdk());
-    final HashSet<String> urls = new HashSet<String>(Arrays.asList(sdk.getRootProvider().getUrls(OrderRootType.CLASSES)));
+    final HashSet<String> urls = new HashSet<>(Arrays.asList(sdk.getRootProvider().getUrls(OrderRootType.CLASSES)));
     assertTrue(urls.containsAll(Arrays.asList(myJdk.getRootProvider().getUrls(OrderRootType.CLASSES))));
   }
 }

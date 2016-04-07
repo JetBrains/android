@@ -50,6 +50,6 @@ public class ModulesToImportDialogSelectionTest extends TestCase {
   private static DataNode<ModuleData> createModule(@NotNull String name) {
     String path = "~/project/" + name;
     ModuleData data = new ModuleData(name, GradleConstants.SYSTEM_ID, StdModuleTypes.JAVA.getId(), name, path, path);
-    return new DataNode<ModuleData>(MODULE, data, null);
+    return new DataNode<>(MODULE, data, null);
   }
 }

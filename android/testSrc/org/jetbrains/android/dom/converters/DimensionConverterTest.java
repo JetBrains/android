@@ -43,7 +43,7 @@ public class DimensionConverterTest extends LightIdeaTestCase {
     assertNotNull(handler);
     ConvertContext context = ConvertContextFactory.createConvertContext(handler);
 
-    List<String> variants = new ArrayList<String>(converter.getVariants(context));
+    List<String> variants = new ArrayList<>(converter.getVariants(context));
     Collections.sort(variants);
     assertEquals(Arrays.asList("10dp", "10in", "10mm", "10pt", "10px", "10sp"), variants);
 

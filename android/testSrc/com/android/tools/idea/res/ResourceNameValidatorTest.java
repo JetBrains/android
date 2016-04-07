@@ -147,7 +147,7 @@ public class ResourceNameValidatorTest extends AndroidTestCase {
   }
 
   public void testUniqueOrExists() throws Exception {
-    Set<String> existing = new HashSet<String>();
+    Set<String> existing = new HashSet<>();
     existing.add("foo1");
     existing.add("foo2");
     existing.add("foo3");

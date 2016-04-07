@@ -67,7 +67,7 @@ public class ColorUtilsTest extends AndroidTestCase {
     assertEquals("", ColorUtils
       .getContrastWarningMessage(textColorContrastColors, new Color(0, 0, 0, 250), ColorUtils.isBackgroundAttribute("textColor")));
 
-    LinkedHashMap<String, Color> colorsWithDescription = new LinkedHashMap<String, Color>();
+    LinkedHashMap<String, Color> colorsWithDescription = new LinkedHashMap<>();
     colorsWithDescription.put("color very transparent", new Color(0, 0, 0, 50));
     colorsWithDescription.put("color a little transparent", new Color(0, 0, 0, 200));
     assertEquals("<html>Not enough contrast with color very transparent",
