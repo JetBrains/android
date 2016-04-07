@@ -25,7 +25,6 @@ import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.Wait;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.*;
-import org.fest.assertions.Index;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.data.TableCell;
 import org.fest.swing.fixture.*;
@@ -40,7 +39,7 @@ import java.awt.*;
 import java.io.IOException;
 import java.util.List;
 
-import static org.fest.assertions.Assertions.assertThat;
+import static com.google.common.truth.Truth.assertThat;
 import static org.fest.swing.data.TableCell.row;
 import static org.junit.Assert.*;
 
@@ -72,12 +71,11 @@ public class ThemeEditorTableTest {
     // 4. -- Separator
     // 5. Show all themes
     assertNotNull(parentsList);
-    assertThat(parentsList)
-      .hasSize(6)
-      .contains("android:Theme.Holo.Light.DarkActionBar", Index.atIndex(0))
-      .contains("Theme.AppCompat.Light.NoActionBar", Index.atIndex(2))
-      .contains("Theme.AppCompat.NoActionBar", Index.atIndex(3))
-      .contains("Show all themes", Index.atIndex(5));
+    assertThat(parentsList).hasSize(6);
+    assertThat(parentsList.get(0)).isEqualTo("android:Theme.Holo.Light.DarkActionBar");
+    assertThat(parentsList.get(2)).isEqualTo("Theme.AppCompat.Light.NoActionBar");
+    assertThat(parentsList.get(3)).isEqualTo("Theme.AppCompat.NoActionBar");
+    assertThat(parentsList.get(5)).isEqualTo("Show all themes");
 
     assertThat(parentsList.get(1)).startsWith("javax.swing.JSeparator");
     assertThat(parentsList.get(4)).startsWith("javax.swing.JSeparator");

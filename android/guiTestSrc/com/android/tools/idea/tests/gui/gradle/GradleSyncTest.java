@@ -114,6 +114,7 @@ import static com.android.tools.idea.tests.gui.framework.fixture.FileChooserDial
 import static com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.MessageMatcher.firstLineStartingWith;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertWithMessage;
+import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.TruthJUnit.assume;
 import static com.intellij.ide.errorTreeView.ErrorTreeElementKind.*;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
@@ -128,7 +129,6 @@ import static com.intellij.pom.java.LanguageLevel.*;
 import static com.intellij.util.SystemProperties.getLineSeparator;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertTrue;
-import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.reflect.core.Reflection.field;
 import static org.fest.swing.core.matcher.JButtonMatcher.withText;
 import static org.fest.swing.edt.GuiActionRunner.execute;
@@ -279,7 +279,7 @@ public class GradleSyncTest {
     assertNotNull(library);
 
     String[] urls = library.getUrls(SOURCES);
-    assertThat(urls).contains(url);
+    assertThat(urls).asList().contains(url);
   }
 
   @Ignore("failed in http://go/aj/job/studio-ui-test/389 and from IDEA")
@@ -659,7 +659,7 @@ public class GradleSyncTest {
 
     // This is the only way we can at least know that we pass the right command-line option.
     String[] commandLineOptions = ApplicationManager.getApplication().getUserData(GRADLE_SYNC_COMMAND_LINE_OPTIONS_KEY);
-    assertThat(commandLineOptions).contains("--refresh-dependencies");
+    assertThat(commandLineOptions).asList().contains("--refresh-dependencies");
   }
 
   // See https://code.google.com/p/android/issues/detail?id=74259
@@ -811,11 +811,11 @@ public class GradleSyncTest {
     guiTest.ideFrame().waitForGradleProjectSyncToFinish();
 
     // Verify that "lib" (which was unchecked in the "Select Modules to Include" dialog) is not a module.
-    assertThat(guiTest.ideFrame().getModuleNames()).containsOnly("Flavoredlib", "app");
+    assertThat(guiTest.ideFrame().getModuleNames()).containsExactly("Flavoredlib", "app");
 
     // subsequent project syncs should respect module selection
     guiTest.ideFrame().requestProjectSync().waitForGradleProjectSyncToFinish();
-    assertThat(guiTest.ideFrame().getModuleNames()).containsOnly("Flavoredlib", "app");
+    assertThat(guiTest.ideFrame().getModuleNames()).containsExactly("Flavoredlib", "app");
   }
 
   @Test
@@ -928,7 +928,7 @@ public class GradleSyncTest {
     LibraryTable libraryTable = ProjectLibraryTable.getInstance(guiTest.ideFrame().getProject());
     // When serialization of Java model fails, libraries are not set up.
     // Here we confirm that serialization works, because the Java module has the dependency declared in its build.gradle file.
-    assertThat(libraryTable.getLibraries()).hasSize(1);
+    assertThat(libraryTable.getLibraries()).asList().hasSize(1);
   }
 
   // See https://code.google.com/p/android/issues/detail?id=167378
@@ -1400,7 +1400,7 @@ public class GradleSyncTest {
 
     // Verify that the library has the right j
     VirtualFile[] jarFiles = library.getFiles(CLASSES);
-    assertThat(jarFiles).hasSize(1);
+    assertThat(jarFiles).asList().hasSize(1);
     VirtualFile jarFile = jarFiles[0];
     assertEquals("org.apache.http.legacy.jar", jarFile.getName());
 
@@ -1456,7 +1456,7 @@ public class GradleSyncTest {
     Library library = libraryTable.getLibraryByName(libraryName);
     assertNotNull(library);
     VirtualFile[] files = library.getFiles(SOURCES);
-    assertThat(files).hasSize(1);
+    assertThat(files).asList().hasSize(1);
   }
 
   // https://code.google.com/p/android/issues/detail?id=185313
