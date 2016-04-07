@@ -73,7 +73,8 @@ public final class Msg implements BinaryObject {
   /**
    * Returns the message as a string without any rich-formatting.
    */
-  public String getString() {
+  @Override
+  public String toString() {
     StringTable stringTable = StringTable.getCurrent();
     if (stringTable != null) {
       Node node = stringTable.get(myIdentifier);
@@ -81,7 +82,7 @@ public final class Msg implements BinaryObject {
         return node.getString(myArguments);
       }
     }
-    return myIdentifier;
+    return myIdentifier + " " + myArguments;
   }
 
   public enum Klass implements BinaryClass {
