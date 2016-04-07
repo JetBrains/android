@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard;
 
+import com.android.tools.idea.tests.gui.framework.Wait;
 import com.android.tools.idea.tests.gui.framework.fixture.JComponentFixture;
+import com.intellij.ui.components.JBLabel;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.driver.JTextComponentDriver;
@@ -56,5 +58,11 @@ public abstract class AbstractWizardStepFixture<S> extends JComponentFixture<S, 
     JTextComponentDriver driver = new JTextComponentDriver(robot());
     driver.selectAll(textField);
     driver.enterText(textField, text);
+  }
+
+  public String getValidationText() {
+    JBLabel validationLabel = robot().finder().findByName(target(), "ValidationLabel", JBLabel.class);
+    Wait.seconds(1).expecting("validation text to appear").until(() -> validationLabel.getText().matches(".*\\S.*"));
+    return validationLabel.getText();
   }
 }

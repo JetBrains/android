@@ -16,11 +16,7 @@
 package com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard;
 
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
-import com.android.tools.idea.ui.validation.Validator;
 import com.android.tools.idea.wizard.dynamic.DynamicWizard;
-import com.intellij.icons.AllIcons;
-import com.intellij.openapi.util.text.StringUtil;
-import org.fest.assertions.Fail;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.ContainerFixture;
@@ -103,35 +99,5 @@ public abstract class AbstractWizardFixture<S> extends ComponentFixture<S, JDial
     });
 
     return new JLabelFixture(robot(), label);
-  }
-
-  @NotNull
-  public String getValidationText(Validator.Severity severity) {
-    robot().waitForIdle();
-
-    final Icon severityIcon;
-    switch (severity) {
-      case ERROR:
-        severityIcon = AllIcons.General.BalloonError;
-        break;
-      case WARNING:
-        severityIcon = AllIcons.General.BalloonWarning;
-        break;
-      case INFO:
-        severityIcon = AllIcons.General.BalloonInformation;
-        break;
-      default:
-        severityIcon = null;
-        Fail.failure("Invalid severity");
-    }
-
-    final JLabel error =
-      waitUntilFound(robot(), new GenericTypeMatcher<JLabel>(JLabel.class) {
-        @Override
-        protected boolean isMatching(@NotNull JLabel component) {
-          return component.isShowing() && StringUtil.isNotEmpty(component.getText()) && component.getIcon() == severityIcon;
-        }
-      });
-    return error.getText();
   }
 }
