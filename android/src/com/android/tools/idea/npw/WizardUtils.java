@@ -15,25 +15,46 @@
  */
 package com.android.tools.idea.npw;
 
+import com.android.tools.idea.gradle.project.GradleProjectImporter;
+import com.android.tools.idea.gradle.project.NewProjectImportGradleSyncListener;
+import com.android.tools.idea.templates.Template;
+import com.android.tools.idea.templates.TemplateUtils;
+import com.android.tools.idea.templates.recipe.RenderingContext;
 import com.android.tools.idea.ui.validation.validators.PathValidator;
 import com.android.tools.idea.wizard.WizardConstants;
+import com.android.tools.idea.wizard.template.TemplateWizardState;
 import com.google.common.base.CharMatcher;
+import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
 import com.intellij.ide.RecentProjectsManager;
+import com.intellij.ide.startup.StartupManagerEx;
 import com.intellij.openapi.application.Application;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.application.PathManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.io.FileUtilRt;
+import com.intellij.pom.java.LanguageLevel;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.SystemProperties;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.util.List;
 import java.util.Locale;
+
+import static com.android.tools.idea.npw.FormFactorUtils.ATTR_MODULE_NAME;
+import static com.android.tools.idea.npw.NewModuleWizardState.ATTR_PROJECT_LOCATION;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_APP_TITLE;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_CREATE_ICONS;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_JAVA_VERSION;
 
 /**
  * Static utility methods used by the New Project/New Module wizards
@@ -43,6 +64,8 @@ import java.util.Locale;
 public class WizardUtils {
   private static final CharMatcher ILLEGAL_CHARACTER_MATCHER = CharMatcher.anyOf(WizardConstants.INVALID_FILENAME_CHARS);
   private static final int WINDOWS_PATH_LENGTH_LIMIT = 100;
+  private static final String ERROR_MSG_TITLE = "New Project Wizard";
+  private static final String UNABLE_TO_CREATE_DIR_FORMAT = "Unable to create directory '%1$s'.";
 
   /**
    * Remove spaces, switch to lower case, and remove any invalid characters. If the resulting name
@@ -120,6 +143,109 @@ public class WizardUtils {
       }
     }
     return ArrayUtil.EMPTY_FILE_ARRAY;
+  }
+
+  private static Logger getLog() {
+    return Logger.getInstance(WizardUtils.class);
+  }
+
+  public static void createProject(@NotNull final NewModuleWizardState wizardState, @NotNull Project project,
+                                   @Nullable AssetStudioAssetGenerator assetGenerator) {
+    List<String> errors = Lists.newArrayList();
+    try {
+      wizardState.populateDirectoryParameters();
+      String moduleName = wizardState.getString(ATTR_MODULE_NAME);
+      String projectName = wizardState.getString(ATTR_APP_TITLE);
+      File projectRoot = new File(wizardState.getString(ATTR_PROJECT_LOCATION));
+      File moduleRoot = new File(projectRoot, moduleName);
+      if (FileUtilRt.createDirectory(projectRoot)) {
+        if (wizardState.getBoolean(ATTR_CREATE_ICONS) && assetGenerator != null) {
+          assetGenerator.outputImagesIntoDefaultVariant(moduleRoot);
+        }
+        wizardState.updateParameters();
+        wizardState.updateDependencies();
+
+        // If this is a new project, instantiate the project-level files
+        if (wizardState instanceof NewProjectWizardState) {
+          Template projectTemplate = ((NewProjectWizardState)wizardState).myProjectTemplate;
+          // @formatter:off
+          final RenderingContext projectContext = RenderingContext.Builder.newContext(projectTemplate, project)
+            .withOutputRoot(projectRoot)
+            .withModuleRoot(moduleRoot)
+            .withParams(wizardState.myParameters)
+            .build();
+          // @formatter:on
+          projectTemplate.render(projectContext);
+          ConfigureAndroidProjectPath.setGradleWrapperExecutable(projectRoot);
+        }
+
+        final RenderingContext context = RenderingContext.Builder.newContext(wizardState.myTemplate, project)
+          .withOutputRoot(projectRoot).withModuleRoot(moduleRoot).withParams(wizardState.myParameters).build();
+        wizardState.myTemplate.render(context);
+        if (wizardState.getBoolean(NewModuleWizardState.ATTR_CREATE_ACTIVITY)) {
+          TemplateWizardState activityTemplateState = wizardState.getActivityTemplateState();
+          activityTemplateState.populateRelativePackage(null);
+          Template template = activityTemplateState.getTemplate();
+          assert template != null;
+          // @formatter:off
+          final RenderingContext activityContext = RenderingContext.Builder.newContext(template, project)
+            .withOutputRoot(moduleRoot)
+            .withModuleRoot(moduleRoot)
+            .withParams(activityTemplateState.myParameters)
+            .build();
+          // @formatter:on
+          template.render(activityContext);
+          context.getFilesToOpen().addAll(activityContext.getFilesToOpen());
+        }
+        if (ApplicationManager.getApplication().isUnitTestMode()) {
+          return;
+        }
+        GradleProjectImporter projectImporter = GradleProjectImporter.getInstance();
+
+        LanguageLevel initialLanguageLevel = null;
+        Object version = wizardState.hasAttr(ATTR_JAVA_VERSION) ? wizardState.get(ATTR_JAVA_VERSION) : null;
+        if (version != null) {
+          initialLanguageLevel = LanguageLevel.parse(version.toString());
+        }
+        projectImporter.importNewlyCreatedProject(projectName, projectRoot, new NewProjectImportGradleSyncListener() {
+          @Override
+          public void syncSucceeded(@NotNull final Project project) {
+            // Open files -- but wait until the Android facets are available, otherwise for example
+            // the layout editor won't add Design tabs to the file
+            StartupManagerEx manager = StartupManagerEx.getInstanceEx(project);
+            if (!manager.postStartupActivityPassed()) {
+              manager.registerPostStartupActivity(new Runnable() {
+                @Override
+                public void run() {
+                  openTemplateFiles(project);
+                }
+              });
+            }
+            else {
+              openTemplateFiles(project);
+            }
+          }
+
+          private boolean openTemplateFiles(Project project) {
+            return TemplateUtils.openEditors(project, context.getFilesToOpen(), true);
+          }
+        }, project, initialLanguageLevel);
+      } else {
+        errors.add(String.format(UNABLE_TO_CREATE_DIR_FORMAT, projectRoot.getPath()));
+      }
+    }
+    catch (Exception e) {
+      if (ApplicationManager.getApplication().isUnitTestMode()) {
+        throw new RuntimeException(e);
+      }
+      Messages.showErrorDialog(e.getMessage(), ERROR_MSG_TITLE);
+      getLog().error(e);
+    }
+    if (!errors.isEmpty()) {
+      String msg = errors.size() == 1 ? errors.get(0) : Joiner.on('\n').join(errors);
+      Messages.showErrorDialog(msg, ERROR_MSG_TITLE);
+      getLog().error(msg);
+    }
   }
 
   /**
