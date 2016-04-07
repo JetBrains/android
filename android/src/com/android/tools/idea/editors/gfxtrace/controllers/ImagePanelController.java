@@ -48,7 +48,7 @@ public abstract class ImagePanelController extends Controller {
     super(editor);
     myImagePanel.getEmptyText().setText(emptyText);
     LoadablePanel loading = new LoadablePanel(myImagePanel, LoadablePanel.Style.OPAQUE);
-    myPanel.add(loading.getContentLayer(), BorderLayout.CENTER);
+    myPanel.add(loading, BorderLayout.CENTER);
     myImageRequestController = new SingleInFlight(loading);
     myImagePanel.setImageRequestController(myImageRequestController);
   }
