@@ -26,7 +26,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleBuildMode
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.JListFixture;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;

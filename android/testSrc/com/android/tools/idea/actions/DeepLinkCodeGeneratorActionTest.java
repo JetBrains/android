@@ -19,7 +19,6 @@ import com.intellij.codeInsight.template.impl.TemplateManagerImpl;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
-import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.AndroidTestCase;
 
 public class DeepLinkCodeGeneratorActionTest extends AndroidTestCase {
