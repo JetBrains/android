@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.ui;
 
-import com.android.tools.idea.ui.FileTreeModel;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.containers.Stack;
 import org.jetbrains.android.AndroidTestCase;

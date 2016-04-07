@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.run.editor;
 
-import com.android.tools.idea.run.editor.DeepLinkChooserDialog;
 import com.intellij.codeInsight.template.impl.TemplateManagerImpl;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;

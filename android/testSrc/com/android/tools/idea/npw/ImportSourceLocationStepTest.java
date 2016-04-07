@@ -16,8 +16,6 @@
 package com.android.tools.idea.npw;
 
 import com.android.tools.idea.gradle.project.GradleModuleImportTest;
-import com.android.tools.idea.npw.ImportSourceLocationStep;
-import com.android.tools.idea.npw.NewModuleWizardState;
 import com.google.common.io.Files;
 import com.intellij.ide.util.projectWizard.WizardContext;
 import com.intellij.openapi.application.ApplicationManager;

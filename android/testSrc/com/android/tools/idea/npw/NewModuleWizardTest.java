@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.npw;
 
-import com.android.tools.idea.npw.*;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;

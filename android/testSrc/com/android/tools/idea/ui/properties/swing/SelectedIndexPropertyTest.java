@@ -21,7 +21,6 @@ import org.junit.Test;
 import javax.swing.*;
 
 import static org.fest.assertions.Assertions.assertThat;
-import static org.hamcrest.MatcherAssert.assertThat;
 
 public final class SelectedIndexPropertyTest {
   @Test
