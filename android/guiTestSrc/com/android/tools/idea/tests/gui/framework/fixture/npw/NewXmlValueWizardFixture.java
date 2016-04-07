@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.npw;
 
+import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.AbstractWizardFixture;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.JTextComponentFixture;
@@ -22,7 +23,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
-public class NewXmlValueWizardFixture extends NewAndroidComponentWizardFixture {
+public class NewXmlValueWizardFixture extends AbstractWizardFixture<NewXmlValueWizardFixture> {
   @NotNull
   public static NewXmlValueWizardFixture find(@NotNull Robot robot) {
     JDialog dialog = robot.finder().find(new GenericTypeMatcher<JDialog>(JDialog.class) {
@@ -36,7 +37,7 @@ public class NewXmlValueWizardFixture extends NewAndroidComponentWizardFixture {
 
   private NewXmlValueWizardFixture(@NotNull Robot robot,
                                    @NotNull JDialog target) {
-    super(robot, target);
+    super(NewXmlValueWizardFixture.class, robot, target);
   }
 
   public JTextComponentFixture getFileNameField() {
