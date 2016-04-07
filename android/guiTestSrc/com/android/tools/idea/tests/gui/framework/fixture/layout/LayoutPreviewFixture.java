@@ -139,7 +139,7 @@ public class LayoutPreviewFixture extends ToolWindowFixture implements LayoutFix
     List<RenderPreview> previews = previewManager.getPreviews();
     assertNotNull(previews);
 
-    List<String> previewTitles = new ArrayList<String>(titles.size());
+    List<String> previewTitles = new ArrayList<>(titles.size());
     for (RenderPreview preview : previews) {
       previewTitles.add(preview.getDisplayName());
     }

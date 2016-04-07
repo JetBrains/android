@@ -49,7 +49,7 @@ public final class ASGalleryTest extends AndroidTestCase {
     }
 
     ASGallery<ModelObject> asGallery =
-      new ASGallery<ModelObject>(
+      new ASGallery<>(
         JBList.createDefaultListModel(objects),
         new Function<ModelObject, Image>() {
           @Override

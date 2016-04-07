@@ -32,7 +32,7 @@ import static org.junit.Assert.assertNotNull;
 public class ProxySettingsDialogFixture extends IdeaDialogFixture<DialogWrapper> {
   @NotNull
   public static ProxySettingsDialogFixture find(@NotNull Robot robot) {
-    final Ref<DialogWrapper> wrapperRef = new Ref<DialogWrapper>();
+    final Ref<DialogWrapper> wrapperRef = new Ref<>();
     JDialog dialog = GuiTests.waitUntilShowing(robot, new GenericTypeMatcher<JDialog>(JDialog.class) {
       @Override
       protected boolean isMatching(@NotNull JDialog dialog) {

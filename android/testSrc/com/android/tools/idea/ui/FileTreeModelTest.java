@@ -115,8 +115,8 @@ public class FileTreeModelTest extends AndroidTestCase {
    * @return true iff both trees are identical in structure and contents
    */
   protected boolean nodeRepresentsFileTree(Node nodeRoot, File fileRoot) {
-    Stack<Node> nodeStack = new Stack<Node>(nodeRoot);
-    Stack<File> fileStack = new Stack<File>(fileRoot);
+    Stack<Node> nodeStack = new Stack<>(nodeRoot);
+    Stack<File> fileStack = new Stack<>(fileRoot);
 
     while(!fileStack.isEmpty()) {
       Node node = nodeStack.pop();
@@ -125,7 +125,7 @@ public class FileTreeModelTest extends AndroidTestCase {
       assertNotNull(node);
       assertEquals(file.getName(), node.name);
 
-      List<Node> sortedNodeChildren = new ArrayList<Node>(node.children);
+      List<Node> sortedNodeChildren = new ArrayList<>(node.children);
       Collections.sort(sortedNodeChildren, new Comparator<Node>() {
         @Override
         public int compare(Node o1, Node o2) {
@@ -141,7 +141,7 @@ public class FileTreeModelTest extends AndroidTestCase {
           return !pathname.isHidden();
         }
       });
-      List<File> sortedFileChildren = fileChildren == null ? new ArrayList<File>(0) : Arrays.asList(fileChildren);
+      List<File> sortedFileChildren = fileChildren == null ? new ArrayList<>(0) : Arrays.asList(fileChildren);
 
       Collections.sort(sortedFileChildren, new Comparator<File>() {
         @Override

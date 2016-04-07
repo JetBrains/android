@@ -39,7 +39,7 @@ public class SimpleEntityChecker<T extends AbstractSimpleGradleEditorEntity> ext
 
   @NotNull
   public static <T extends AbstractSimpleGradleEditorEntity> SimpleEntityChecker<T> create(@NotNull String targetDescription) {
-    return new SimpleEntityChecker<T>(targetDescription);
+    return new SimpleEntityChecker<>(targetDescription);
   }
 
   @Nullable

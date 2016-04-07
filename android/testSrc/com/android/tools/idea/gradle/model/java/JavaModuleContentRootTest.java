@@ -163,7 +163,7 @@ public class JavaModuleContentRootTest {
 
   private static class DomainObjectHashSet<T> extends HashSet<T> implements DomainObjectSet<T> {
     static <T> DomainObjectHashSet<T> newSet(@NotNull T...elements) {
-      return new DomainObjectHashSet<T>(elements);
+      return new DomainObjectHashSet<>(elements);
     }
 
     DomainObjectHashSet(@NotNull T...elements) {

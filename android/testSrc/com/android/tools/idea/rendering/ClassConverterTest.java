@@ -212,7 +212,7 @@ public class ClassConverterTest extends TestCase {
     classReader.accept(classNode, 0);
 
     assertEquals(3, classNode.methods.size());
-    final Set<String> methods = new HashSet<String>();
+    final Set<String> methods = new HashSet<>();
     classNode.accept(new ClassVisitor(ASM5) {
       @Override
       public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {

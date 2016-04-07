@@ -118,7 +118,7 @@ public class FileFixture {
     Collection<HighlightInfo> highlightInfos = execute(new GuiQuery<Collection<HighlightInfo>>() {
       @Override
       protected Collection<HighlightInfo> executeInEDT() throws Throwable {
-        CommonProcessors.CollectProcessor<HighlightInfo> processor = new CommonProcessors.CollectProcessor<HighlightInfo>();
+        CommonProcessors.CollectProcessor<HighlightInfo> processor = new CommonProcessors.CollectProcessor<>();
         DaemonCodeAnalyzerEx.processHighlights(document, myProject, severity, 0, document.getTextLength(), processor);
         return processor.getResults();
       }
@@ -147,7 +147,7 @@ public class FileFixture {
         Collection<HighlightInfo> highlightInfos = execute(new GuiQuery<Collection<HighlightInfo>>() {
           @Override
           protected Collection<HighlightInfo> executeInEDT() throws Throwable {
-            CommonProcessors.CollectProcessor<HighlightInfo> processor = new CommonProcessors.CollectProcessor<HighlightInfo>();
+            CommonProcessors.CollectProcessor<HighlightInfo> processor = new CommonProcessors.CollectProcessor<>();
             DaemonCodeAnalyzerEx.processHighlights(document, myProject, severity, 0, document.getTextLength(), processor);
             return processor.getResults();
           }
