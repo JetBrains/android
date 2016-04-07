@@ -22,6 +22,7 @@ import com.android.tools.idea.editors.gfxtrace.service.ErrDataUnavailable;
 import com.android.tools.idea.editors.gfxtrace.service.path.FieldPath;
 import com.android.tools.idea.editors.gfxtrace.service.path.MapIndexPath;
 import com.android.tools.idea.editors.gfxtrace.service.path.Path;
+import com.android.tools.idea.editors.gfxtrace.service.snippets.CanFollow;
 import com.android.tools.idea.editors.gfxtrace.service.snippets.KindredSnippets;
 import com.android.tools.idea.editors.gfxtrace.service.snippets.SnippetObject;
 import com.android.tools.rpclib.schema.Dynamic;
@@ -31,11 +32,14 @@ import com.android.tools.rpclib.schema.Type;
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.util.containers.IntArrayList;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -44,9 +48,10 @@ import javax.swing.event.TreeModelListener;
 import javax.swing.tree.TreeCellRenderer;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
+import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.*;
 import java.util.List;
 
 public class StateController extends TreeController implements GpuState.Listener {
@@ -57,7 +62,7 @@ public class StateController extends TreeController implements GpuState.Listener
   @NotNull private static final Logger LOG = Logger.getInstance(StateController.class);
   @NotNull private static final TypedValue ROOT_TYPE = new TypedValue(null, SnippetObject.symbol("state"));
 
-  private final StateTreeModel myModel = new StateTreeModel(new Node(ROOT_TYPE, null));
+  @NotNull private final StateTreeModel myModel = new StateTreeModel(new Node(ROOT_TYPE, null));
 
   private StateController(@NotNull GfxTraceEditor editor) {
     super(editor, GfxTraceEditor.SELECT_ATOM);
@@ -66,6 +71,101 @@ public class StateController extends TreeController implements GpuState.Listener
     myPanel.setBorder(BorderFactory.createTitledBorder(myScrollPane.getBorder(), "GPU State"));
     myScrollPane.setBorder(new EmptyBorder(0, 0, 0, 0));
     setModel(myModel);
+
+    MouseAdapter mouseHandler = new MouseAdapter() {
+      @Override
+      public void mouseMoved(MouseEvent event) {
+        TreePath treePath = myTree.getClosestPathForLocation(event.getX(), event.getY());
+        boolean showHand = false;
+        if (treePath != null) {
+          final Node node = (Node)treePath.getLastPathComponent();
+          if (node.canFollow()) {
+            showHand = canFollow(treePath, event.getX());
+            if (node.getFollowPath() == null) {
+              Path path = getPath(treePath);
+              // set empty path so we do not make any more calls to the server for this path
+              node.setFollowPath(Path.EMPTY);
+              Futures.addCallback(myEditor.getClient().follow(path), new FutureCallback<Path>() {
+                @Override
+                public void onSuccess(Path result) {
+                  node.setFollowPath(result);
+                }
+
+                @Override
+                public void onFailure(Throwable t) {
+                  LOG.warn("Error: " + t);
+                }
+              });
+            }
+          }
+        }
+
+        myTree.setCursor(showHand ? Cursor.getPredefinedCursor(Cursor.HAND_CURSOR) : Cursor.getDefaultCursor());
+      }
+
+      @Override
+      public void mouseExited(MouseEvent e) {
+        myTree.setCursor(Cursor.getDefaultCursor());
+      }
+
+      @Override
+      public void mouseClicked(MouseEvent event) {
+        TreePath treePath = myTree.getPathForLocation(event.getX(), event.getY());
+        if (canFollow(treePath, event.getX())) {
+          Path path = ((Node)treePath.getLastPathComponent()).getFollowPath();
+          if (path != null && path != Path.EMPTY) {
+            myEditor.activatePath(path, StateController.this);
+          }
+          else {
+            // this can happen if the server takes too long to respond, or responds with a error
+            LOG.warn("click, but we don't have a path :(");
+          }
+        }
+      }
+    };
+    myTree.addMouseListener(mouseHandler);
+    myTree.addMouseMotionListener(mouseHandler);
+  }
+
+  private boolean canFollow(@Nullable TreePath treePath, int mouseX) {
+    if (treePath == null) return false;
+    Node node = (Node)treePath.getLastPathComponent();
+    if (!node.canFollow()) return false;
+    Rectangle bounds = myTree.getPathBounds(treePath);
+    assert bounds != null; // can't be null, as our path is valid
+    return Render.getNodeFieldIndex(myTree, node, mouseX - bounds.x) == Render.STATE_VALUE_TAG;
+  }
+
+  @NotNull
+  private Path getPath(@NotNull TreePath treePath) {
+    Path parent = null;
+    Object[] nodePath = treePath.getPath();
+    for (Object node : nodePath) {
+      Object obj = ((Node)node).key.value.getObject();
+      if (node == nodePath[0]) {
+        // the root
+        assert "state".equals(obj);
+        parent = myEditor.getGpuState().getPath();
+      }
+      else if (obj instanceof String) {
+        FieldPath path = new FieldPath();
+        path.setName((String)obj);
+        path.setStruct(parent);
+        parent = path;
+      }
+      else if (obj instanceof Long || obj instanceof Dynamic) {
+        MapIndexPath path = new MapIndexPath();
+        path.setKey(obj);
+        path.setMap(parent);
+        parent = path;
+      }
+      else {
+        LOG.warn("unknown type: " + obj.getClass().getSimpleName());
+        break;
+      }
+    }
+    assert parent != null; // we should at least have a root in this path
+    return parent;
   }
 
   @Override
@@ -190,6 +290,11 @@ public class StateController extends TreeController implements GpuState.Listener
       TypedValue other = (TypedValue)obj;
       return Objects.equal(type, other.type) && Objects.equal(value, other.value);
     }
+
+    @Override
+    public String toString() {
+      return "TypedValue{type=" + type + ", value=" + value + '}';
+    }
   }
 
   public static class Node {
@@ -197,6 +302,7 @@ public class StateController extends TreeController implements GpuState.Listener
     public TypedValue value;
     private final List<Node> childrenByIndex = Lists.newArrayList();
     private final HashMap<TypedValue, Node> childrenByKey = Maps.newHashMap();
+    private @Nullable Path followPath;
 
     public Node(TypedValue key, TypedValue value) {
       this.key = key;
@@ -284,6 +390,24 @@ public class StateController extends TreeController implements GpuState.Listener
         }
       }
       return null;
+    }
+
+    @Override
+    public String toString() {
+      return key + " = " + value;
+    }
+
+    public boolean canFollow() {
+      return CanFollow.fromSnippets(value.value.getSnippets()) != null && Render.isValidParam(value.value);
+    }
+
+    @Nullable("if we have not made a request to the server for this path yet")
+    public Path getFollowPath() {
+      return followPath;
+    }
+
+    public void setFollowPath(@NotNull Path followPath) {
+      this.followPath = followPath;
     }
   }
 
@@ -382,6 +506,8 @@ public class StateController extends TreeController implements GpuState.Listener
     }
   }
 
+  @Override
+  @NotNull
   protected TreeCellRenderer getRenderer() {
     return new ColoredTreeCellRenderer() {
       @Override
