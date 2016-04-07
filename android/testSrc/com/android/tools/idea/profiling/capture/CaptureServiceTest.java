@@ -30,7 +30,6 @@ import org.jdom.Element;
 import org.jdom.input.SAXBuilder;
 import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.io.*;

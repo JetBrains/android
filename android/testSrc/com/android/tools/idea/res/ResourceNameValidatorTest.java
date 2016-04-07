@@ -20,8 +20,6 @@ import com.android.annotations.Nullable;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.ResourceNameValidator;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ListMultimap;

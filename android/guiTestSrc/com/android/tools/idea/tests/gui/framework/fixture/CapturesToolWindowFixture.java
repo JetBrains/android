@@ -18,11 +18,8 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 import com.android.tools.idea.profiling.capture.CaptureType;
 import com.android.tools.idea.profiling.capture.CaptureTypeService;
 import com.android.tools.idea.profiling.capture.FileCaptureType;
-import com.android.tools.idea.profiling.view.CapturesToolWindowFactory;
 import com.android.tools.idea.tests.gui.framework.Wait;
 import com.intellij.openapi.project.Project;
-import com.intellij.ui.LoadingNode;
-import com.intellij.ui.treeStructure.SimpleTree;
 import org.fest.swing.core.KeyPressInfo;
 import org.fest.swing.core.Robot;
 import org.fest.swing.exception.LocationUnavailableException;
@@ -30,7 +27,6 @@ import org.fest.swing.fixture.JTreeFixture;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import javax.swing.tree.TreeNode;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
 

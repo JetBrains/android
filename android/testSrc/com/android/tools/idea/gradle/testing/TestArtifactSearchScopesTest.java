@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.testing;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
-import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.templates.AndroidGradleArtifactsTestCase;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;

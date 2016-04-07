@@ -17,10 +17,7 @@ package com.android.tools.idea.ui.properties.expressions.bool;
 
 import com.android.tools.idea.ui.properties.BindingsManager;
 import com.android.tools.idea.ui.properties.core.BoolValueProperty;
-import com.android.tools.idea.ui.properties.core.ObjectProperty;
-import com.android.tools.idea.ui.properties.core.ObjectValueProperty;
 import com.android.tools.idea.ui.properties.core.StringValueProperty;
-import org.fest.assertions.Assertions;
 import org.junit.Test;
 
 import static com.android.tools.idea.ui.properties.BatchInvoker.INVOKE_IMMEDIATELY_STRATEGY;
