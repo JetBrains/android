@@ -78,7 +78,7 @@ public final class ModuleClassLoader extends RenderClassLoader {
   }
 
   private ModuleClassLoader(@NotNull LayoutLibrary library, @NotNull Module module) {
-    super(library.getClassLoader());
+    super(library.getClassLoader(), library.getApiLevel());
     myLibrary = library;
     myModuleReference = new WeakReference<>(module);
   }
