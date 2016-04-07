@@ -88,7 +88,7 @@ public class LoadablePanel extends JBLayeredPane implements SingleInFlight.Liste
     stopLoading(message, null);
   }
 
-  public void showLoadingError(@NotNull String message, @NotNull Component errorComponent) {
+  public void showLoadingError(@NotNull String message, @Nullable Component errorComponent) {
     stopLoading(message, errorComponent);
   }
 
