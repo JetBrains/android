@@ -20,7 +20,7 @@ import com.android.tools.idea.ui.properties.core.OptionalValueProperty;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
-import static org.fest.assertions.Assertions.assertThat;
+import static com.google.common.truth.Truth.assertThat;
 
 public final class ValueExpressionsTest {
 

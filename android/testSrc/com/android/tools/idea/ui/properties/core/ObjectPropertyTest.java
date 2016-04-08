@@ -19,7 +19,7 @@ import com.android.tools.idea.ui.properties.CountListener;
 import com.google.common.base.Objects;
 import org.junit.Test;
 
-import static org.fest.assertions.Assertions.assertThat;
+import static com.google.common.truth.Truth.assertThat;
 
 public final class ObjectPropertyTest {
 
