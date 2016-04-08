@@ -20,7 +20,7 @@ import org.junit.Test;
 import javax.swing.*;
 import java.awt.*;
 
-import static org.fest.assertions.Assertions.assertThat;
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.fail;
 
 public final class ProportionalLayoutTest {
@@ -160,7 +160,7 @@ public final class ProportionalLayoutTest {
 
     mockPackPanel(panel);
 
-    assertThat(panel.getMinimumSize().getWidth()).isEqualTo(30);
+    assertThat(panel.getMinimumSize().getWidth()).isEqualTo(30.0);
   }
 
   @Test
