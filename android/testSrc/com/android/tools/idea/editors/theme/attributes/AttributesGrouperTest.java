@@ -27,8 +27,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static org.fest.assertions.Assertions.assertThat;
-import static org.fest.assertions.Index.atIndex;
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -95,12 +94,8 @@ public class AttributesGrouperTest {
 
     // Group by Attribute Group
     List<TableLabel> tableLabels = AttributesGrouper.generateLabels(AttributesGrouper.GroupBy.GROUP, source, sink);
-    assertThat(tableLabels).hasSize(3);
     // Labels must be alphabetically sorted
-    assertThat(getTableNames(tableLabels))
-      .contains("Colors", atIndex(0))
-      .contains("Drawables", atIndex(1))
-      .contains("Styles", atIndex(2));
+    assertThat(getTableNames(tableLabels)).containsExactly("Colors", "Drawables", "Styles").inOrder();
     assertThat(tableLabels.get(0).getRowPosition()).isEqualTo(0);
     assertThat(tableLabels.get(1).getRowPosition()).isEqualTo(2); // Only 1 drawable
     assertThat(tableLabels.get(2).getRowPosition()).isEqualTo(3);
@@ -108,13 +103,8 @@ public class AttributesGrouperTest {
 
     // Group by Type
     tableLabels = AttributesGrouper.generateLabels(AttributesGrouper.GroupBy.TYPE, source, sink);
-    assertThat(tableLabels).hasSize(4);
     // Labels are sorted with an arbitrary order
-    assertThat(getTableNames(tableLabels))
-      .contains("Styles", atIndex(0))
-      .contains("Colors", atIndex(1))
-      .contains("Drawables", atIndex(2))
-      .contains("Everything Else", atIndex(3));
+    assertThat(getTableNames(tableLabels)).containsExactly("Styles", "Colors", "Drawables", "Everything Else").inOrder();
     assertThat(tableLabels.get(0).getRowPosition()).isEqualTo(0);
     assertThat(tableLabels.get(1).getRowPosition()).isEqualTo(1);
     assertThat(tableLabels.get(2).getRowPosition()).isEqualTo(3);
@@ -145,10 +135,7 @@ public class AttributesGrouperTest {
     );
     tableLabels = AttributesGrouper.generateLabels(AttributesGrouper.GroupBy.TYPE, source, sink);
     // Now we have one color so two labels should be generated
-    assertThat(tableLabels).hasSize(2);
-    assertThat(getTableNames(tableLabels))
-      .contains("Colors", atIndex(0))
-      .contains("Everything Else", atIndex(1));
+    assertThat(getTableNames(tableLabels)).containsExactly("Colors", "Everything Else").inOrder();
     assertThat(sink).hasSize(4);
   }
 }
