@@ -21,7 +21,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-import static org.fest.assertions.Assertions.assertThat;
+import static com.google.common.truth.Truth.assertThat;
 
 // Tests cases here are largely similar to the ones in GradleInvokerTest (comment '+' is used to marked the additional tasks here).
 // The different is mostly due to the difference of afterSyncTasks.
@@ -35,11 +35,12 @@ public class GradleInvokerWithArtifactTest extends AbstractGradleInvokerTest {
     myInvoker.addBeforeGradleInvocationTask(new GradleInvoker.BeforeGradleInvocationTask() {
       @Override
       public void execute(@NotNull List<String> tasks) {
-        assertThat(tasks).containsOnly(CLEAN,
-                                       qualifiedTaskName(SOURCE_GEN),
-                                       qualifiedTaskName(ANDROID_TEST_SOURCE_GEN),
-                                       qualifiedTaskName(MOCKABLE_ANDROID_JAR), // +
-                                       qualifiedTaskName(PREPARE_UNIT_TEST_DEPENDENCIES)); // +
+        assertThat(tasks).containsExactly(
+          CLEAN,
+          qualifiedTaskName(SOURCE_GEN),
+          qualifiedTaskName(ANDROID_TEST_SOURCE_GEN),
+          qualifiedTaskName(MOCKABLE_ANDROID_JAR), // +
+          qualifiedTaskName(PREPARE_UNIT_TEST_DEPENDENCIES)); // +
         // Make sure clean is first.
         assertEquals(CLEAN, tasks.get(0));
         assertEquals(BuildMode.CLEAN, getBuildMode());
@@ -52,10 +53,11 @@ public class GradleInvokerWithArtifactTest extends AbstractGradleInvokerTest {
     myInvoker.addBeforeGradleInvocationTask(new GradleInvoker.BeforeGradleInvocationTask() {
       @Override
       public void execute(@NotNull List<String> tasks) {
-        assertThat(tasks).containsOnly(qualifiedTaskName(SOURCE_GEN),
-                                                         qualifiedTaskName(ANDROID_TEST_SOURCE_GEN),
-                                                         qualifiedTaskName(MOCKABLE_ANDROID_JAR), // +
-                                                         qualifiedTaskName(PREPARE_UNIT_TEST_DEPENDENCIES)); // +
+        assertThat(tasks).containsExactly(
+          qualifiedTaskName(SOURCE_GEN),
+          qualifiedTaskName(ANDROID_TEST_SOURCE_GEN),
+          qualifiedTaskName(MOCKABLE_ANDROID_JAR), // +
+          qualifiedTaskName(PREPARE_UNIT_TEST_DEPENDENCIES)); // +
         assertEquals(BuildMode.SOURCE_GEN, getBuildMode());
       }
     });
@@ -66,13 +68,14 @@ public class GradleInvokerWithArtifactTest extends AbstractGradleInvokerTest {
     myInvoker.addBeforeGradleInvocationTask(new GradleInvoker.BeforeGradleInvocationTask() {
       @Override
       public void execute(@NotNull List<String> tasks) {
-        assertThat(tasks).containsOnly(qualifiedTaskName(SOURCE_GEN),
-                                       qualifiedTaskName(ANDROID_TEST_SOURCE_GEN),
-                                       qualifiedTaskName(MOCKABLE_ANDROID_JAR), // +
-                                       qualifiedTaskName(PREPARE_UNIT_TEST_DEPENDENCIES), // +
-                                       qualifiedTaskName(COMPILE_JAVA),
-                                       qualifiedTaskName(COMPILE_ANDROID_TEST_JAVA),
-                                       qualifiedTaskName(COMPILE_UNIT_TEST_JAVA)); // +
+        assertThat(tasks).containsExactly(
+          qualifiedTaskName(SOURCE_GEN),
+          qualifiedTaskName(ANDROID_TEST_SOURCE_GEN),
+          qualifiedTaskName(MOCKABLE_ANDROID_JAR), // +
+          qualifiedTaskName(PREPARE_UNIT_TEST_DEPENDENCIES), // +
+          qualifiedTaskName(COMPILE_JAVA),
+          qualifiedTaskName(COMPILE_ANDROID_TEST_JAVA),
+          qualifiedTaskName(COMPILE_UNIT_TEST_JAVA)); // +
         assertEquals(BuildMode.COMPILE_JAVA, getBuildMode());
       }
     });
@@ -83,14 +86,15 @@ public class GradleInvokerWithArtifactTest extends AbstractGradleInvokerTest {
     myInvoker.addBeforeGradleInvocationTask(new GradleInvoker.BeforeGradleInvocationTask() {
       @Override
       public void execute(@NotNull List<String> tasks) {
-        assertThat(tasks).containsOnly(CLEAN,
-                                       qualifiedTaskName(SOURCE_GEN),
-                                       qualifiedTaskName(ANDROID_TEST_SOURCE_GEN),
-                                       qualifiedTaskName(MOCKABLE_ANDROID_JAR), // +
-                                       qualifiedTaskName(PREPARE_UNIT_TEST_DEPENDENCIES), // +
-                                       qualifiedTaskName(COMPILE_JAVA),
-                                       qualifiedTaskName(COMPILE_ANDROID_TEST_JAVA),
-                                       qualifiedTaskName(COMPILE_UNIT_TEST_JAVA)); // +
+        assertThat(tasks).containsExactly(
+          CLEAN,
+          qualifiedTaskName(SOURCE_GEN),
+          qualifiedTaskName(ANDROID_TEST_SOURCE_GEN),
+          qualifiedTaskName(MOCKABLE_ANDROID_JAR), // +
+          qualifiedTaskName(PREPARE_UNIT_TEST_DEPENDENCIES), // +
+          qualifiedTaskName(COMPILE_JAVA),
+          qualifiedTaskName(COMPILE_ANDROID_TEST_JAVA),
+          qualifiedTaskName(COMPILE_UNIT_TEST_JAVA)); // +
         // Make sure clean is first.
         assertEquals(CLEAN, tasks.get(0));
         assertEquals(BuildMode.REBUILD, getBuildMode());
