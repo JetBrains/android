@@ -19,12 +19,12 @@ import com.android.builder.model.BaseArtifact;
 import com.android.builder.model.Variant;
 import com.android.tools.idea.gradle.structure.model.PsModelCollection;
 import com.google.common.collect.Maps;
-import com.intellij.util.containers.Predicate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.function.Consumer;
 
 public class PsAndroidArtifactCollection implements PsModelCollection<PsAndroidArtifact> {
   @NotNull private final PsVariant myParent;
@@ -56,8 +56,8 @@ public class PsAndroidArtifactCollection implements PsModelCollection<PsAndroidA
   }
 
   @Override
-  public void forEach(@NotNull Predicate<PsAndroidArtifact> function) {
-    myArtifactsByName.values().forEach(function::apply);
+  public void forEach(@NotNull Consumer<PsAndroidArtifact> consumer) {
+    myArtifactsByName.values().forEach(consumer);
   }
 
   @NotNull

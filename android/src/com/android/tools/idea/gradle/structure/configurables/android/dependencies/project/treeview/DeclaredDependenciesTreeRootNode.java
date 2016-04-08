@@ -48,13 +48,7 @@ class DeclaredDependenciesTreeRootNode extends AbstractRootNode<PsProject> {
     DeclaredDependencyCollector collector = new DeclaredDependencyCollector();
 
     PsProject project = getModels().get(0);
-    project.forEachModule(module -> {
-      if (module == null) {
-        return false;
-      }
-      collectDeclaredDependencies(module, collector);
-      return true;
-    });
+    project.forEachModule(module -> collectDeclaredDependencies(module, collector));
 
     List<AbstractDependencyNode> children = Lists.newArrayList();
     for (Map.Entry<LibraryDependencySpecs, List<PsLibraryDependency>> entry : collector.libraryDependenciesBySpec.entrySet()) {
@@ -74,13 +68,7 @@ class DeclaredDependenciesTreeRootNode extends AbstractRootNode<PsProject> {
   private static void collectDeclaredDependencies(@NotNull PsModule module, @NotNull DeclaredDependencyCollector collector) {
     if (module instanceof PsAndroidModule) {
       PsAndroidModule androidModule = (PsAndroidModule)module;
-      androidModule.forEachDeclaredDependency(dependency -> {
-        if (dependency == null) {
-          return false;
-        }
-        collector.add(dependency);
-        return true;
-      });
+      androidModule.forEachDeclaredDependency(collector::add);
     }
   }
 

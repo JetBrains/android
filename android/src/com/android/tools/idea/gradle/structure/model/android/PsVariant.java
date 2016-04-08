@@ -20,28 +20,32 @@ import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.structure.model.PsChildModel;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
-import com.intellij.util.containers.Predicate;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 import javax.swing.*;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class PsVariant extends PsChildModel implements PsAndroidModel {
   @NotNull private final String myName;
+  @NotNull private final String myBuildType;
   @NotNull private final List<String> myProductFlavors;
 
   @Nullable private final Variant myResolvedModel;
 
   private PsAndroidArtifactCollection myArtifactCollection;
 
-  PsVariant(@NotNull PsAndroidModule parent,
-            @NotNull String name,
-            @NotNull List<String> productFlavors,
-            @Nullable Variant resolvedModel) {
+  public PsVariant(@NotNull PsAndroidModule parent,
+                   @NotNull String name,
+                   @NotNull String buildType,
+                   @NotNull List<String> productFlavors,
+                   @Nullable Variant resolvedModel) {
     super(parent);
     myName = name;
+    myBuildType = buildType;
     myProductFlavors = productFlavors;
     myResolvedModel = resolvedModel;
   }
@@ -70,23 +74,32 @@ public class PsVariant extends PsChildModel implements PsAndroidModel {
     return myResolvedModel;
   }
 
+  @NotNull
+  public PsBuildType getBuildType() {
+    PsBuildType buildType = getParent().findBuildType(myBuildType);
+    assert buildType != null;
+    return buildType;
+  }
+
   @Nullable
   public PsAndroidArtifact findArtifact(@NotNull String name) {
     return getOrCreateArtifactCollection().findElement(name, PsAndroidArtifact.class);
   }
 
-  public void forEachArtifact(@NotNull Predicate<PsAndroidArtifact> function) {
-    getOrCreateArtifactCollection().forEach(function);
+  public void forEachArtifact(@NotNull Consumer<PsAndroidArtifact> consumer) {
+    getOrCreateArtifactCollection().forEach(consumer);
   }
 
   @NotNull
   private PsAndroidArtifactCollection getOrCreateArtifactCollection() {
-    if (myArtifactCollection == null) {
-      myArtifactCollection = new PsAndroidArtifactCollection(this);
-    }
-    return myArtifactCollection;
+    return myArtifactCollection == null ? myArtifactCollection = new PsAndroidArtifactCollection(this) : myArtifactCollection;
   }
 
+  public void forEachProductFlavor(@NotNull Consumer<PsProductFlavor> consumer) {
+    getParent().forEachProductFlavor(consumer);
+  }
+
+  @TestOnly
   @NotNull
   public List<String> getProductFlavors() {
     return ImmutableList.copyOf(myProductFlavors);

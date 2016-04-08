@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.structure.model.repositories.search;
 
 import com.android.builder.model.AndroidProject;
-import com.android.builder.model.Variant;
 import com.android.ide.common.repository.GradleCoordinate;
 import org.junit.Before;
 import org.junit.Test;
@@ -44,7 +43,7 @@ public class AndroidSdkRepositoryTest {
     myAndroidSdkPath = getAndroidSdkPath();
 
     AndroidProject androidProject = mock(AndroidProject.class);
-    when(androidProject.getVariants()).thenReturn(Collections.<Variant>emptyList());
+    when(androidProject.getVariants()).thenReturn(Collections.emptyList());
 
     myRepository = new AndroidSdkRepository(androidProject, myAndroidSdkPath);
   }
