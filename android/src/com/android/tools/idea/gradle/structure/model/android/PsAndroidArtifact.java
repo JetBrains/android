@@ -18,40 +18,50 @@ package com.android.tools.idea.gradle.structure.model.android;
 import com.android.builder.model.BaseArtifact;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.structure.model.PsChildModel;
+import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.util.List;
 
 import static com.android.builder.model.AndroidProject.*;
+import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.*;
 import static com.intellij.icons.AllIcons.Modules.TestRoot;
 import static com.intellij.icons.AllIcons.Nodes.Artifact;
+import static com.intellij.openapi.util.text.StringUtil.capitalize;
 import static icons.AndroidIcons.AndroidTestRoot;
 
 public class PsAndroidArtifact extends PsChildModel implements PsAndroidModel {
+  @NonNls private static final String COMPILE_SUFFIX = "Compile";
+
   @NotNull private final String myName;
   @NotNull private final String myResolvedName;
   @NotNull private final Icon myIcon;
 
   @Nullable private final BaseArtifact myResolvedModel;
 
-  PsAndroidArtifact(@NotNull PsVariant parent, @NotNull String resolvedName, @Nullable BaseArtifact resolvedModel) {
+  public PsAndroidArtifact(@NotNull PsVariant parent, @NotNull String resolvedName, @Nullable BaseArtifact resolvedModel) {
     super(parent);
     myResolvedName = resolvedName;
+
     Icon icon = Artifact;
     String name = "";
-    if (ARTIFACT_MAIN.equals(resolvedName)) {
-      icon = AllIcons.Modules.SourceRoot;
+    switch (resolvedName) {
+      case ARTIFACT_MAIN:
+        icon = AllIcons.Modules.SourceRoot;
+        break;
+      case ARTIFACT_ANDROID_TEST:
+        name = "AndroidTest";
+        icon = AndroidTestRoot;
+        break;
+      case ARTIFACT_UNIT_TEST:
+        name = "Test";
+        icon = TestRoot;
     }
-    if (ARTIFACT_ANDROID_TEST.equals(resolvedName)) {
-      name = "AndroidTest";
-      icon = AndroidTestRoot;
-    }
-    else if (ARTIFACT_UNIT_TEST.equals(resolvedName)) {
-      name = "Test";
-      icon = TestRoot;
-    }
+
     myName = name;
     myIcon = icon;
     myResolvedModel = resolvedModel;
@@ -95,5 +105,50 @@ public class PsAndroidArtifact extends PsChildModel implements PsAndroidModel {
   @Override
   public boolean isDeclared() {
     return false;
+  }
+
+  @NotNull
+  public List<String> getPossibleConfigurationNames() {
+    List<String> configurationNames = Lists.newArrayList();
+    switch (myResolvedName) {
+      case ARTIFACT_MAIN:
+        configurationNames.add(COMPILE);
+        break;
+      case ARTIFACT_UNIT_TEST:
+        configurationNames.add(TEST_COMPILE);
+        break;
+      case ARTIFACT_ANDROID_TEST:
+        configurationNames.add(ANDROID_TEST_COMPILE);
+    }
+
+    PsVariant variant = getParent();
+
+    String buildTypeName = variant.getBuildType().getName();
+    switch (myResolvedName) {
+      case ARTIFACT_MAIN:
+        configurationNames.add(buildTypeName + COMPILE_SUFFIX);
+        break;
+      case ARTIFACT_UNIT_TEST:
+        configurationNames.add("test" + capitalize(buildTypeName) + COMPILE_SUFFIX);
+    }
+
+    variant.forEachProductFlavor(productFlavor -> {
+      if (productFlavor == null) {
+        return false;
+      }
+      String productFlavorName = productFlavor.getName();
+      switch (myResolvedName) {
+        case ARTIFACT_MAIN:
+          configurationNames.add(productFlavorName + COMPILE_SUFFIX);
+          break;
+        case ARTIFACT_UNIT_TEST:
+          configurationNames.add("test" + capitalize(productFlavorName) + COMPILE_SUFFIX);
+          break;
+        case ARTIFACT_ANDROID_TEST:
+          configurationNames.add("androidTest" + capitalize(productFlavorName) + COMPILE_SUFFIX);
+      }
+      return true;
+    });
+    return configurationNames;
   }
 }
