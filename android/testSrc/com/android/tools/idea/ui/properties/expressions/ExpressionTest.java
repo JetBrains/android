@@ -23,7 +23,7 @@ import com.android.tools.idea.ui.properties.expressions.string.StringExpression;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
-import static org.fest.assertions.Assertions.assertThat;
+import static com.google.common.truth.Truth.assertThat;
 
 public final class ExpressionTest {
   @Test(expected = IllegalArgumentException.class)

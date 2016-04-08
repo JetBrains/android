@@ -21,7 +21,7 @@ import org.junit.Test;
 
 import java.util.Locale;
 
-import static org.fest.assertions.Assertions.assertThat;
+import static com.google.common.truth.Truth.assertThat;
 
 public final class ListExpressionsTest {
 
