@@ -177,6 +177,14 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
     return myModelVersion != null && androidModelSupportsDependencyGraph(myModelVersion);
   }
 
+  public boolean supportsShaders() {
+    return modelVersionIsAtLeast("2.1.0");
+  }
+
+  public boolean modelVersionIsAtLeast(@NotNull String revision) {
+    return myModelVersion != null && myModelVersion.compareIgnoringQualifiers(revision) >= 0;
+  }
+
   @Nullable
   public GradleVersion getModelVersion() {
     return myModelVersion;
