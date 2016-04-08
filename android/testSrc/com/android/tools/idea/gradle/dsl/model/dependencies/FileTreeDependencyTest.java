@@ -21,7 +21,7 @@ import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import java.io.IOException;
 import java.util.List;
 
-import static org.fest.assertions.Assertions.assertThat;
+import static com.google.common.truth.Truth.assertThat;
 
 /**
  * Tests for {@link DependenciesModel} and {@link FileTreeDependencyModel}.
@@ -40,7 +40,7 @@ public class FileTreeDependencyTest extends GradleFileModelTestCase {
 
     FileTreeDependencyModel dependency = dependencies.get(0);
     assertEquals("libs", dependency.dir());
-    assertThat(dependency.include()).containsOnly("*.jar");
+    assertThat(dependency.include()).containsExactly("*.jar");
   }
 
   public void testParseFileTreeWithDirAndIncludeAttributePattern() throws IOException {
@@ -56,7 +56,7 @@ public class FileTreeDependencyTest extends GradleFileModelTestCase {
 
     FileTreeDependencyModel dependency = dependencies.get(0);
     assertEquals("libs", dependency.dir());
-    assertThat(dependency.include()).containsOnly("*.jar");
+    assertThat(dependency.include()).containsExactly("*.jar");
   }
 
   public void testParseFileTreeWithDirAndExcludeAttributeList() throws IOException {
@@ -72,8 +72,8 @@ public class FileTreeDependencyTest extends GradleFileModelTestCase {
 
     FileTreeDependencyModel dependency = dependencies.get(0);
     assertEquals("libs", dependency.dir());
-    assertThat(dependency.include()).containsOnly("*.jar");
-    assertThat(dependency.exclude()).containsOnly("*.aar");
+    assertThat(dependency.include()).containsExactly("*.jar");
+    assertThat(dependency.exclude()).containsExactly("*.aar");
   }
 
   public void testParseFileTreeWithDirOnly() throws IOException {

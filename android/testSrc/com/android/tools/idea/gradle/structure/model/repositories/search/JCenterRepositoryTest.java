@@ -22,7 +22,7 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.util.List;
 
-import static org.fest.assertions.Assertions.assertThat;
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.*;
 
 /**
@@ -175,11 +175,12 @@ public class JCenterRepositoryTest {
     SearchResult result = new JCenterRepository().parse(responseReader);
     assertEquals(5, result.getTotalFound());
     List<String> data = result.getData();
-    assertThat(data).hasSize(5)
-                    .containsSequence("com.atlassian.guava:guava:15.0",
-                                      "com.atlassian.bundles:guava:8.1",
-                                      "io.janusproject.guava:guava:19.0.0",
-                                      "com.google.guava:guava:19.0",
-                                      "de.weltraumschaf.commons:guava:2.1.0");
+    assertThat(data).containsExactly(
+      "com.atlassian.guava:guava:15.0",
+      "com.atlassian.bundles:guava:8.1",
+      "io.janusproject.guava:guava:19.0.0",
+      "com.google.guava:guava:19.0",
+      "de.weltraumschaf.commons:guava:2.1.0")
+      .inOrder();
   }
 }

@@ -24,7 +24,7 @@ import java.awt.*;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 
-import static org.fest.assertions.Assertions.assertThat;
+import static com.google.common.truth.Truth.assertThat;
 
 @SuppressWarnings("InspectionUsingGrayColors")
 public class ColorUtilsTest extends AndroidTestCase {
@@ -88,11 +88,9 @@ public class ColorUtilsTest extends AndroidTestCase {
 
     Collection<Color>
       color = ColorUtils.getContrastColorsWithDescription(context, "colorPrimary").values();
-    assertThat(color)
-      .containsOnly(Color.decode("#EEEEEE"), Color.decode("#DDDDDD"));
+    assertThat(color).containsExactly(Color.decode("#EEEEEE"), Color.decode("#DDDDDD"));
     color = ColorUtils.getContrastColorsWithDescription(context, "colorPrimary").values();
-    assertThat(color)
-      .containsOnly(Color.decode("#EEEEEE"), Color.decode("#DDDDDD"));
+    assertThat(color).containsExactly(Color.decode("#EEEEEE"), Color.decode("#DDDDDD"));
 
     color = ColorUtils.getContrastColorsWithDescription(context, "").values();
     assertThat(color).isEmpty();
