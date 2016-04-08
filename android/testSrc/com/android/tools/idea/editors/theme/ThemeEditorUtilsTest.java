@@ -34,7 +34,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.PathUtil;
 import org.apache.commons.io.FileUtils;
-import org.fest.assertions.Index;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.uipreview.LayoutLibraryLoader;
 import org.jetbrains.annotations.NotNull;
@@ -47,7 +46,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static org.fest.assertions.Assertions.assertThat;
+import static com.google.common.truth.Truth.assertThat;
 
 public class ThemeEditorUtilsTest extends AndroidTestCase {
 
@@ -263,10 +262,6 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
   public void testThemeNamesListOrder() {
     myFixture.copyFileToProject("themeEditor/styles_alphabetical.xml", "res/values/styles.xml");
     List<String> themeNames = ThemeEditorUtils.getModuleThemeQualifiedNamesList(myModule);
-    assertThat(themeNames).hasSize(4)
-      .contains("aTheme", Index.atIndex(0))
-      .contains("BTheme", Index.atIndex(1))
-      .contains("cTheme", Index.atIndex(2))
-      .contains("DTheme", Index.atIndex(3));
+    assertThat(themeNames).containsExactly("aTheme", "BTheme", "cTheme", "DTheme").inOrder();
   }
 }
