@@ -47,11 +47,11 @@ public class AdapterPropertiesTest {
     assertThat(adapterProperty.inSync().get()).isTrue();
 
     doubleString.set("100.5");
-    assertThat(doubleValue.get()).isEqualTo(100.5);
+    assertThat(doubleValue.get()).isWithin(0.01).of(100.5);
     assertThat(adapterProperty.inSync().get()).isTrue();
 
     doubleString.set("not a double");
-    assertThat(doubleValue.get()).isEqualTo(100.5);
+    assertThat(doubleValue.get()).isWithin(0.01).of(100.5);
     assertThat(adapterProperty.inSync().get()).isFalse();
   }
 
