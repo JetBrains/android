@@ -23,8 +23,8 @@ import org.junit.Test;
 import java.util.Locale;
 
 import static com.android.tools.idea.ui.properties.BatchInvoker.INVOKE_IMMEDIATELY_STRATEGY;
+import static com.google.common.truth.Truth.assertThat;
 import static junit.framework.Assert.fail;
-import static org.fest.assertions.Assertions.assertThat;
 
 public class AdapterPropertiesTest {
 

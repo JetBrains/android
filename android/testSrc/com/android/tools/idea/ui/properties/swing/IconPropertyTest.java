@@ -21,7 +21,7 @@ import org.junit.Test;
 import javax.swing.*;
 import java.awt.*;
 
-import static org.fest.assertions.Assertions.assertThat;
+import static com.google.common.truth.Truth.assertThat;
 
 public final class IconPropertyTest {
   @Test

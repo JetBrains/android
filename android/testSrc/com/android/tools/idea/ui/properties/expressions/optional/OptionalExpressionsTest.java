@@ -19,7 +19,7 @@ import com.android.tools.idea.ui.properties.core.IntProperty;
 import com.android.tools.idea.ui.properties.core.IntValueProperty;
 import org.junit.Test;
 
-import static org.fest.assertions.Assertions.assertThat;
+import static com.google.common.truth.Truth.assertThat;
 
 public final class OptionalExpressionsTest {
   @Test

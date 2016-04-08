@@ -22,7 +22,7 @@ import org.junit.Test;
 
 import javax.swing.*;
 
-import static org.fest.assertions.Assertions.assertThat;
+import static com.google.common.truth.Truth.assertThat;
 
 /**
  * Note: This class skips testing {@link EditorComboBox}.
