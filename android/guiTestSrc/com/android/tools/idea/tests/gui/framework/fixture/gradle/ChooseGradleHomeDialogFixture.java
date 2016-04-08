@@ -23,7 +23,6 @@ import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.components.JBLabel;
 import org.fest.swing.core.ComponentFinder;
-import org.fest.swing.core.ComponentMatcher;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.core.matcher.JLabelMatcher;
@@ -56,15 +55,7 @@ public class ChooseGradleHomeDialogFixture extends ComponentFixture<ChooseGradle
           return false;
         }
         ComponentFinder finder = robot.finder();
-        finder.find(dialog, new ComponentMatcher() {
-          @Override
-          public boolean matches(Component c) {
-            if (c instanceof JBLabel) {
-              return "Gradle home:".equals(((JBLabel)c).getText());
-            }
-            return false;
-          }
-        });
+        finder.find(dialog, c -> (c instanceof JBLabel) && "Gradle home:".equals(((JBLabel)c).getText()));
         finder.findByType(dialog, TextFieldWithBrowseButton.class);
         return true;
       }

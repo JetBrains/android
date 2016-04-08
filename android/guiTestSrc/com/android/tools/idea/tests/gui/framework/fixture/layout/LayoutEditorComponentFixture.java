@@ -74,12 +74,7 @@ public class LayoutEditorComponentFixture {
    */
   @NotNull
   public String getTagName() {
-    return ApplicationManager.getApplication().runReadAction(new Computable<String>() {
-      @Override
-      public String compute() {
-        return myComponent.getTag().getName();
-      }
-    });
+    return ApplicationManager.getApplication().runReadAction((Computable<String>)() -> myComponent.getTag().getName());
   }
 
   @NotNull
@@ -140,12 +135,7 @@ public class LayoutEditorComponentFixture {
   }
 
   public void requireXml(String expected, boolean collapseSpaces) {
-    String xml = ApplicationManager.getApplication().runReadAction(new Computable<String>() {
-      @Override
-      public String compute() {
-        return myComponent.getTag().getText();
-      }
-    });
+    String xml = ApplicationManager.getApplication().runReadAction((Computable<String>)() -> myComponent.getTag().getText());
     if (collapseSpaces) {
       while (true) {
         String prev = xml;
