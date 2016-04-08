@@ -184,13 +184,11 @@ public class ModulesToImportDialogTest {
 
     assertNotNull(dialog);
 
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
-      @Override
-      public void run() {
+    ApplicationManager.getApplication().invokeLater(
+      () -> {
         dialog.setModal(false);
         dialog.show();
-      }
-    });
+      });
 
     return IdeaDialogFixture.find(guiTest.robot(), ModulesToImportDialog.class, new GenericTypeMatcher<JDialog>(JDialog.class) {
       @Override

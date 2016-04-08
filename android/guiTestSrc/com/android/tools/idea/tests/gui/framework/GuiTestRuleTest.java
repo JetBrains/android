@@ -69,28 +69,23 @@ public class GuiTestRuleTest {
       containsString("javax.swing.JDialog with title 'Surprise!'"),
       containsString("javax.swing.JDialog with title 'Click a button'")));
 
-    UIUtil.invokeLaterIfNeeded(new Runnable() {
-      @Override
-      public void run() {
+    UIUtil.invokeLaterIfNeeded(
+      () -> {
         final JOptionPane optionPane =
           new JOptionPane("Do you want another modal dialog?", JOptionPane.QUESTION_MESSAGE, JOptionPane.YES_NO_OPTION);
 
         final JDialog dialog = new JDialog((Frame)null, "Click a button", true);
         dialog.setContentPane(optionPane);
         optionPane.addPropertyChangeListener(
-          new PropertyChangeListener() {
-            @Override
-            public void propertyChange(PropertyChangeEvent e) {
-              String prop = e.getPropertyName();
-              if (dialog.isVisible() && (e.getSource() == optionPane) && (prop.equals(JOptionPane.VALUE_PROPERTY))) {
-                JOptionPane.showMessageDialog(optionPane, "Here's another modal dialog", "Surprise!", JOptionPane.INFORMATION_MESSAGE);
-              }
+          e -> {
+            String prop = e.getPropertyName();
+            if (dialog.isVisible() && (e.getSource() == optionPane) && (prop.equals(JOptionPane.VALUE_PROPERTY))) {
+              JOptionPane.showMessageDialog(optionPane, "Here's another modal dialog", "Surprise!", JOptionPane.INFORMATION_MESSAGE);
             }
           });
         dialog.pack();
         dialog.setVisible(true);
-      }
-    });
+      });
 
     JDialog dialog = waitUntilShowing(guiTest.robot(), new GenericTypeMatcher<JDialog>(JDialog.class) {
       @Override

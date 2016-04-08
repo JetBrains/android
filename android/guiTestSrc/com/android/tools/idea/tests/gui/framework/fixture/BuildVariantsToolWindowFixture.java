@@ -54,21 +54,18 @@ public class BuildVariantsToolWindowFixture extends ToolWindowFixture {
     final String moduleColumnText = "Module: '" + module + "'";
 
     JTableFixture table = new JTableFixture(myRobot, variantsTable);
-    JTableCellFixture moduleCell = table.cell(new TableCellFinder() {
-      @Override
-      @NotNull
-      public TableCell findCell(@NotNull JTable table, @NotNull JTableCellReader cellReader) {
-        int rowCount = table.getRowCount();
+    JTableCellFixture moduleCell = table.cell(
+      (jTable, cellReader) -> {
+        int rowCount = jTable.getRowCount();
         for (int i = 0; i < rowCount; i++) {
           int moduleColumnIndex = 0;
-          String currentModule = cellReader.valueAt(table, i, moduleColumnIndex);
+          String currentModule = cellReader.valueAt(jTable, i, moduleColumnIndex);
           if (moduleColumnText.equals(currentModule)) {
             return row(i).column(moduleColumnIndex);
           }
         }
         throw new AssertionError("Failed to find module '" + module + "' in 'Build Variants' view");
-      }
-    });
+      });
 
     TableCell variantCellCoordinates = row(moduleCell.row()).column(1);
     String selectedVariant = table.valueAt(variantCellCoordinates);
