@@ -64,8 +64,8 @@ class PsProductFlavorCollection implements PsModelCollection<PsProductFlavor> {
     myProductFlavorsByName.values().forEach(function::apply);
   }
 
-  @Nullable
   @Override
+  @Nullable
   public <S extends PsProductFlavor> S findElement(@NotNull String name, @NotNull Class<S> type) {
     if (PsProductFlavor.class.equals(type)) {
       return type.cast(myProductFlavorsByName.get(name));

@@ -15,23 +15,24 @@
  */
 package com.android.tools.idea.gradle.structure.model.android;
 
-import com.android.builder.model.ProductFlavor;
+import com.android.builder.model.BuildType;
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModel;
+import com.android.tools.idea.gradle.dsl.model.android.BuildTypeModel;
 import com.android.tools.idea.gradle.structure.model.PsChildModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class PsProductFlavor extends PsChildModel implements PsAndroidModel {
-  @Nullable private final ProductFlavor myResolvedModel;
-  @Nullable private final ProductFlavorModel myParsedModel;
+public class PsBuildType extends PsChildModel implements PsAndroidModel {
+  @Nullable private final BuildType myResolvedModel;
+  @Nullable private final BuildTypeModel myParsedModel;
 
   private String myName = "";
 
-  PsProductFlavor(@NotNull PsAndroidModule parent, @Nullable ProductFlavor resolvedModel, @Nullable ProductFlavorModel parsedModel) {
+  PsBuildType(@NotNull PsAndroidModule parent, @Nullable BuildType resolvedModel, @Nullable BuildTypeModel parsedModel) {
     super(parent);
     myResolvedModel = resolvedModel;
     myParsedModel = parsedModel;
+
     if (resolvedModel != null) {
       myName = resolvedModel.getName();
     }
@@ -42,8 +43,8 @@ public class PsProductFlavor extends PsChildModel implements PsAndroidModel {
 
   @Override
   @NotNull
-  public AndroidGradleModel getGradleModel() {
-    return getParent().getGradleModel();
+  public String getName() {
+    return myName;
   }
 
   @Override
@@ -53,24 +54,19 @@ public class PsProductFlavor extends PsChildModel implements PsAndroidModel {
   }
 
   @Override
-  @Nullable
-  public ProductFlavor getResolvedModel() {
-    return myResolvedModel;
-  }
-
-  @Override
   public boolean isDeclared() {
     return myParsedModel != null;
   }
 
+  @Nullable
   @Override
-  @NotNull
-  public String getName() {
-    return myName;
+  public BuildType getResolvedModel() {
+    return myResolvedModel;
   }
 
-  public void setName(@NotNull String name) {
-    myName = name;
-    setModified(true);
+  @Override
+  @NotNull
+  public AndroidGradleModel getGradleModel() {
+    return getParent().getGradleModel();
   }
 }

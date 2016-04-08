@@ -44,8 +44,9 @@ class PsVariantCollection implements PsModelCollection<PsVariant> {
           // TODO handle case when product flavor is not found.
         }
       }
+      String buildType = resolvedVariant.getBuildType();
 
-      PsVariant variant = new PsVariant(parent, resolvedVariant.getName(), productFlavors, resolvedVariant);
+      PsVariant variant = new PsVariant(parent, resolvedVariant.getName(), buildType, productFlavors, resolvedVariant);
       myVariantsByName.put(resolvedVariant.getName(), variant);
     }
   }
