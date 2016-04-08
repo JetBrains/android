@@ -353,12 +353,7 @@ public class GradleSyncTest {
 
     assertNotNull(treeStructureProvider);
     final List<AbstractTreeNode> changedNodes = Lists.newArrayList();
-    treeStructureProvider.addChangeListener(new AndroidTreeStructureProvider.ChangeListener() {
-      @Override
-      public void nodeChanged(@NotNull AbstractTreeNode parent, @NotNull Collection<AbstractTreeNode> newChildren) {
-        changedNodes.add(parent);
-      }
-    });
+    treeStructureProvider.addChangeListener((parent, newChildren) -> changedNodes.add(parent));
 
     ProjectViewFixture projectView = guiTest.ideFrame().getProjectView();
     ProjectViewFixture.PaneFixture projectPane = projectView.selectProjectPane();
