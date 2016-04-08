@@ -95,13 +95,11 @@ public class PropertyFixture {
     String value = tableDriver.value(getTable(), cell);
     return value == null ? "<null>" : value;
      */
-    return ApplicationManager.getApplication().runReadAction(new ThrowableComputable<String,Exception>() {
-      @Override
-      public String compute() throws Exception {
+    return ApplicationManager.getApplication().runReadAction(
+      (ThrowableComputable<String, Exception>)() -> {
         Object value = myProperty.getValue(myComponent.getComponent());
         return value == null ? "<null>" : value.toString();
-      }
-    });
+      });
   }
 
   public void requireXmlValue(@Nullable String expectedValue) {
