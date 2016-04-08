@@ -105,10 +105,6 @@ public abstract class ResourceEditorTab {
     return myFullPanel;
   }
 
-  public void setLocationSettingsVisible(boolean visible) {
-    myExpertPlaceholder.setVisible(visible);
-  }
-
   public void setLocationSettingsOpen(boolean open) {
     myExpertDecorator.setOn(open);
   }

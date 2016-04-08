@@ -523,11 +523,6 @@ public class CreateXmlResourcePanel {
   }
 
   @NotNull
-  public String getName() {
-    return myNameField.getText().trim();
-  }
-
-  @NotNull
   public String getValue() {
     return myValueField.getText().trim();
   }
