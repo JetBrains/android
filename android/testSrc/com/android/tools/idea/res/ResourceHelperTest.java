@@ -30,7 +30,7 @@ import java.util.List;
 import static com.android.tools.idea.res.ResourceHelper.getResourceName;
 import static com.android.tools.idea.res.ResourceHelper.getResourceUrl;
 import static com.android.tools.idea.res.ResourceHelper.resolveColor;
-import static org.fest.assertions.Assertions.assertThat;
+import static com.google.common.truth.Truth.assertThat;
 
 public class ResourceHelperTest extends AndroidTestCase {
   public void testIsFileBasedResourceType() throws Exception {

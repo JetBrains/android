@@ -25,7 +25,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 
-import static org.fest.assertions.Assertions.assertThat;
+import static com.google.common.truth.Truth.assertThat;
 
 @SuppressWarnings({"MismatchedQueryAndUpdateOfCollection", "WhileLoopReplaceableByForEach"})
 public final class ObservableListTest {
