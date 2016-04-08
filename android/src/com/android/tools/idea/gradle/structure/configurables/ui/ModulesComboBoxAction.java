@@ -54,13 +54,7 @@ public class ModulesComboBoxAction extends LabeledComboBoxAction {
       group.add(new ModuleAction(module));
     }
 
-    myContext.getProject().forEachModule(module -> {
-      if (module == null) {
-        return false;
-      }
-      group.add(new ModuleAction(module));
-      return true;
-    });
+    myContext.getProject().forEachModule(module -> group.add(new ModuleAction(module)));
     return group;
   }
 

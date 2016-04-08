@@ -51,20 +51,18 @@ public class ModuleDependencyNode extends AbstractDependencyNode<PsModuleDepende
     if (referred instanceof PsAndroidModule) {
       PsAndroidModule androidModule = (PsAndroidModule)referred;
       androidModule.forEachDependency(dependency -> {
-        if (dependency == null || !dependency.isDeclared()) {
-          return false; // Only show "declared" dependencies as top-level dependencies.
+        if (!dependency.isDeclared()) {
+          return; // Only show "declared" dependencies as top-level dependencies.
         }
         String moduleVariant = moduleDependency.getModuleVariant();
         if (!dependency.isIn(ARTIFACT_MAIN, moduleVariant)) {
-          return false; // Only show the dependencies in the main artifact.
+          return; // Only show the dependencies in the main artifact.
         }
 
         AbstractPsModelNode<?> child = AbstractDependencyNode.createNode(this, dependency);
         if (child != null) {
           myChildren.add(child);
-          return true;
         }
-        return false;
       });
     }
   }

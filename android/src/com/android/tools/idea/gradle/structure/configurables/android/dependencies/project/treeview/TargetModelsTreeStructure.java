@@ -144,12 +144,11 @@ public class TargetModelsTreeStructure extends AbstractBaseTreeStructure {
             // dependencies.
             PsVariant parentVariant = mainArtifact.getParent();
             parentVariant.forEachArtifact(artifact -> {
-              if (artifact == null || existingArtifacts.contains(artifact)) {
-                return false;
+              if (existingArtifacts.contains(artifact)) {
+                return;
               }
               AndroidArtifactNode artifactNode = new AndroidArtifactNode(moduleNode, artifact);
               artifactNodes.add(artifactNode);
-              return true;
             });
           }
         }

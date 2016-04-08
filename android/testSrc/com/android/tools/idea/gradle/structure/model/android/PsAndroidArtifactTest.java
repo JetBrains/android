@@ -16,17 +16,15 @@
 package com.android.tools.idea.gradle.structure.model.android;
 
 import com.google.common.collect.Lists;
-import com.intellij.util.containers.Predicate;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Consumer;
 
-import static com.android.builder.model.AndroidProject.ARTIFACT_ANDROID_TEST;
-import static com.android.builder.model.AndroidProject.ARTIFACT_MAIN;
-import static com.android.builder.model.AndroidProject.ARTIFACT_UNIT_TEST;
+import static com.android.builder.model.AndroidProject.*;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -57,8 +55,8 @@ public class PsAndroidArtifactTest {
 
     myVariant = new PsVariant(mock(PsAndroidModule.class), "", "", Collections.emptyList(), null) {
       @Override
-      public void forEachProductFlavor(@NotNull Predicate<PsProductFlavor> function) {
-        myProductFlavors.forEach(function::apply);
+      public void forEachProductFlavor(@NotNull Consumer<PsProductFlavor> consumer) {
+        myProductFlavors.forEach(consumer);
       }
 
       @Override

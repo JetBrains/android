@@ -24,7 +24,6 @@ import com.android.tools.idea.gradle.structure.model.android.*;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.intellij.util.containers.Predicate;
 import com.intellij.util.containers.SortedList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -55,15 +54,8 @@ class ResolvedDependenciesTreeRootNode extends AbstractRootNode<PsAndroidModule>
   @NotNull
   protected List<? extends AbstractPsModelNode> createChildren() {
     Map<String, PsVariant> variantsByName = Maps.newHashMap();
-    Predicate<PsVariant> function = variant -> {
-      if (variant == null) {
-        return false;
-      }
-      variantsByName.put(variant.getName(), variant);
-      return true;
-    };
     for (PsAndroidModule module : getModels()) {
-      module.forEachVariant(function);
+      module.forEachVariant(variant -> variantsByName.put(variant.getName(), variant));
     }
 
     PsAndroidModule androidModule = getModels().get(0);
@@ -144,9 +136,6 @@ class ResolvedDependenciesTreeRootNode extends AbstractRootNode<PsAndroidModule>
     Map<String, PsDependencyContainer> containerWithMainArtifact = Maps.newHashMap();
 
     module.forEachDependency(dependency -> {
-      if (dependency == null) {
-        return false;
-      }
       Set<PsDependencyContainer> containers = dependency.getContainers();
       for (PsDependencyContainer container : containers) {
         if (container.getArtifact().equals(ARTIFACT_MAIN)) {
@@ -159,7 +148,6 @@ class ResolvedDependenciesTreeRootNode extends AbstractRootNode<PsAndroidModule>
         }
         containerDependencies.add(dependency);
       }
-      return true;
     });
 
     List<List<PsDependencyContainer>> containerGroups = Lists.newArrayList();
@@ -263,8 +251,8 @@ class ResolvedDependenciesTreeRootNode extends AbstractRootNode<PsAndroidModule>
     Map<String, Map<String, List<PsAndroidDependency>>> dependenciesByVariantAndArtifact = Maps.newHashMap();
 
     module.forEachDependency(dependency -> {
-      if (dependency == null || !dependency.isDeclared()) {
-        return false; // Only show "declared" dependencies as top-level dependencies.
+      if (!dependency.isDeclared()) {
+        return; // Only show "declared" dependencies as top-level dependencies.
       }
       for (PsDependencyContainer container : dependency.getContainers()) {
         Map<String, List<PsAndroidDependency>> dependenciesByArtifact =
@@ -283,7 +271,6 @@ class ResolvedDependenciesTreeRootNode extends AbstractRootNode<PsAndroidModule>
 
         artifactDependencies.add(dependency);
       }
-      return true;
     });
 
     List<String> variantNames = Lists.newArrayList(dependenciesByVariantAndArtifact.keySet());

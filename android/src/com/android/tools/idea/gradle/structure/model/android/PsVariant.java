@@ -20,7 +20,6 @@ import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.structure.model.PsChildModel;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
-import com.intellij.util.containers.Predicate;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -28,6 +27,7 @@ import org.jetbrains.annotations.TestOnly;
 
 import javax.swing.*;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class PsVariant extends PsChildModel implements PsAndroidModel {
   @NotNull private final String myName;
@@ -86,8 +86,8 @@ public class PsVariant extends PsChildModel implements PsAndroidModel {
     return getOrCreateArtifactCollection().findElement(name, PsAndroidArtifact.class);
   }
 
-  public void forEachArtifact(@NotNull Predicate<PsAndroidArtifact> function) {
-    getOrCreateArtifactCollection().forEach(function);
+  public void forEachArtifact(@NotNull Consumer<PsAndroidArtifact> consumer) {
+    getOrCreateArtifactCollection().forEach(consumer);
   }
 
   @NotNull
@@ -95,8 +95,8 @@ public class PsVariant extends PsChildModel implements PsAndroidModel {
     return myArtifactCollection == null ? myArtifactCollection = new PsAndroidArtifactCollection(this) : myArtifactCollection;
   }
 
-  public void forEachProductFlavor(@NotNull Predicate<PsProductFlavor> function) {
-    getParent().forEachProductFlavor(function);
+  public void forEachProductFlavor(@NotNull Consumer<PsProductFlavor> consumer) {
+    getParent().forEachProductFlavor(consumer);
   }
 
   @TestOnly

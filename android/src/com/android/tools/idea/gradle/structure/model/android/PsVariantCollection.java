@@ -19,13 +19,13 @@ import com.android.builder.model.Variant;
 import com.android.tools.idea.gradle.structure.model.PsModelCollection;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.intellij.util.containers.Predicate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 class PsVariantCollection implements PsModelCollection<PsVariant> {
   @NotNull private final Map<String, PsVariant> myVariantsByName = Maps.newHashMap();
@@ -59,7 +59,7 @@ class PsVariantCollection implements PsModelCollection<PsVariant> {
   }
 
   @Override
-  public void forEach(@NotNull Predicate<PsVariant> function) {
-    myVariantsByName.values().forEach(function::apply);
+  public void forEach(@NotNull Consumer<PsVariant> consumer) {
+    myVariantsByName.values().forEach(consumer);
   }
 }
