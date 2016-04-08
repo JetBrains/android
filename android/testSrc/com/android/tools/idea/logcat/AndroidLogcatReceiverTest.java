@@ -24,7 +24,7 @@ import org.junit.Test;
 
 import java.io.StringWriter;
 
-import static org.fest.assertions.Assertions.assertThat;
+import static com.google.common.truth.Truth.assertThat;
 
 public class AndroidLogcatReceiverTest {
   private AndroidLogcatService.LogLineListener myLogLineListener;
