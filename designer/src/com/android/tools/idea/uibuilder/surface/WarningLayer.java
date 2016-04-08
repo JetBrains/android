@@ -41,12 +41,12 @@ public class WarningLayer extends Layer {
   }
 
   @Override
-  public boolean paint(@NotNull Graphics2D gc) {
+  public void paint(@NotNull Graphics2D gc) {
     myAnnotatedComponents.clear();
 
     LintAnnotationsModel lintModel = myScreenView.getModel().getLintAnnotationsModel();
     if (lintModel == null) {
-      return false;
+      return;
     }
 
     for (NlComponent component : lintModel.getComponentsWithIssues()) {
@@ -67,7 +67,6 @@ public class WarningLayer extends Layer {
       icon.paintIcon(null, gc, x + w - icon.getIconWidth() - PADDING, y + PADDING);
       myAnnotatedComponents.add(component);
     }
-    return false;
   }
 
   @Nullable
