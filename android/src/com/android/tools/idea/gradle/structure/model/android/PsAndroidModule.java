@@ -21,18 +21,19 @@ import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.PsParsedDependencies;
 import com.android.tools.idea.gradle.structure.model.PsProject;
 import com.intellij.openapi.module.Module;
-import com.intellij.util.containers.Predicate;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.util.function.Consumer;
 
 public class PsAndroidModule extends PsModule implements PsAndroidModel {
   @NotNull private final AndroidGradleModel myGradleModel;
 
   private PsParsedDependencies myParsedDependencies;
   private PsVariantCollection myVariantCollection;
+  private PsBuildTypeCollection myBuildTypeCollection;
   private PsProductFlavorCollection myProductFlavorCollection;
   private PsAndroidDependencyCollection myDependencyCollection;
 
@@ -44,8 +45,18 @@ public class PsAndroidModule extends PsModule implements PsAndroidModel {
     myGradleModel = gradleModel;
   }
 
-  public void forEachProductFlavor(@NotNull Predicate<PsProductFlavor> function) {
-    getOrCreateProductFlavorCollection().forEach(function);
+  @Nullable
+  public PsBuildType findBuildType(@NotNull String buildType) {
+    return getOrCreateBuildTypeCollection().findElement(buildType, PsBuildType.class);
+  }
+
+  @NotNull
+  private PsBuildTypeCollection getOrCreateBuildTypeCollection() {
+    return myBuildTypeCollection == null ? myBuildTypeCollection = new PsBuildTypeCollection(this) : myBuildTypeCollection;
+  }
+
+  public void forEachProductFlavor(@NotNull Consumer<PsProductFlavor> consumer) {
+    getOrCreateProductFlavorCollection().forEach(consumer);
   }
 
   @Nullable
@@ -55,14 +66,11 @@ public class PsAndroidModule extends PsModule implements PsAndroidModel {
 
   @NotNull
   private PsProductFlavorCollection getOrCreateProductFlavorCollection() {
-    if (myProductFlavorCollection == null) {
-      myProductFlavorCollection = new PsProductFlavorCollection(this);
-    }
-    return myProductFlavorCollection;
+    return myProductFlavorCollection == null ? myProductFlavorCollection = new PsProductFlavorCollection(this) : myProductFlavorCollection;
   }
 
-  public void forEachVariant(@NotNull Predicate<PsVariant> function) {
-    getOrCreateVariantCollection().forEach(function);
+  public void forEachVariant(@NotNull Consumer<PsVariant> con) {
+    getOrCreateVariantCollection().forEach(con);
   }
 
   @Nullable
@@ -72,22 +80,19 @@ public class PsAndroidModule extends PsModule implements PsAndroidModel {
 
   @NotNull
   private PsVariantCollection getOrCreateVariantCollection() {
-    if (myVariantCollection == null) {
-      myVariantCollection = new PsVariantCollection(this);
-    }
-    return myVariantCollection;
+    return myVariantCollection == null ? myVariantCollection = new PsVariantCollection(this) : myVariantCollection;
   }
 
-  public void forEachDeclaredDependency(@NotNull Predicate<PsAndroidDependency> function) {
-    getOrCreateDependencyCollection().forEachDeclaredDependency(function);
+  public void forEachDeclaredDependency(@NotNull Consumer<PsAndroidDependency> consumer) {
+    getOrCreateDependencyCollection().forEachDeclaredDependency(consumer);
   }
 
-  public void forEachDependency(@NotNull Predicate<PsAndroidDependency> function) {
-    getOrCreateDependencyCollection().forEach(function);
+  public void forEachDependency(@NotNull Consumer<PsAndroidDependency> consumer) {
+    getOrCreateDependencyCollection().forEach(consumer);
   }
 
-  public void forEachModuleDependency(@NotNull Predicate<PsModuleDependency> function) {
-    getOrCreateDependencyCollection().forEachModuleDependency(function);
+  public void forEachModuleDependency(@NotNull Consumer<PsModuleDependency> consumer) {
+    getOrCreateDependencyCollection().forEachModuleDependency(consumer);
   }
 
   @Nullable
@@ -102,18 +107,12 @@ public class PsAndroidModule extends PsModule implements PsAndroidModel {
 
   @NotNull
   private PsAndroidDependencyCollection getOrCreateDependencyCollection() {
-    if (myDependencyCollection == null) {
-      myDependencyCollection = new PsAndroidDependencyCollection(this);
-    }
-    return myDependencyCollection;
+    return myDependencyCollection == null ? myDependencyCollection = new PsAndroidDependencyCollection(this) : myDependencyCollection;
   }
 
   @NotNull
   public PsParsedDependencies getParsedDependencies() {
-    if (myParsedDependencies == null) {
-      myParsedDependencies = new PsParsedDependencies(getParsedModel());
-    }
-    return myParsedDependencies;
+    return myParsedDependencies == null ? myParsedDependencies = new PsParsedDependencies(getParsedModel()) : myParsedDependencies;
   }
 
   @Override
@@ -124,10 +123,7 @@ public class PsAndroidModule extends PsModule implements PsAndroidModel {
 
   @Override
   public Icon getIcon() {
-    if (myGradleModel.getAndroidProject().isLibrary()) {
-      return AndroidIcons.LibraryModule;
-    }
-    return AndroidIcons.AppModule;
+    return myGradleModel.getAndroidProject().isLibrary() ?  AndroidIcons.LibraryModule : AndroidIcons.AppModule;
   }
 
   @Override

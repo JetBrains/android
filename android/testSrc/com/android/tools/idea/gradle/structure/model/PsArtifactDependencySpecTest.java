@@ -36,6 +36,7 @@ public class PsArtifactDependencySpecTest extends IdeaTestCase {
       PsUISettings.getInstance().DECLARED_DEPENDENCIES_SHOW_GROUP_ID = myShowGroupId;
     }
     finally {
+      //noinspection ThrowFromFinallyBlock
       super.tearDown();
     }
   }

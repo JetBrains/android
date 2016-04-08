@@ -32,7 +32,6 @@ import java.util.List;
 import java.util.Map;
 
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
-import static com.android.builder.model.AndroidProject.*;
 
 public class PsParsedDependencies {
   // Key: module's Gradle path
@@ -73,20 +72,6 @@ public class PsParsedDependencies {
     return null;
   }
 
-  @Nullable
-  public static String guessArtifactName(@NotNull String configurationName) {
-    if (configurationName.endsWith("androidTestCompile") || configurationName.endsWith("AndroidTestCompile")) {
-      return ARTIFACT_ANDROID_TEST;
-    }
-    if (configurationName.endsWith("testCompile") || configurationName.endsWith("TestCompile")) {
-      return ARTIFACT_UNIT_TEST;
-    }
-    if (configurationName.endsWith("compile") || configurationName.endsWith("Compile")) {
-      return ARTIFACT_MAIN;
-    }
-    return null;
-  }
-
   @NotNull
   private static String getIdentifier(@NotNull MavenCoordinates coordinates) {
     List<String> segments = Lists.newArrayList(coordinates.getGroupId(), coordinates.getArtifactId());
@@ -109,8 +94,6 @@ public class PsParsedDependencies {
 
   public static boolean isDependencyInArtifact(@NotNull DependencyModel parsedDependency, @NotNull PsAndroidArtifact artifact) {
     String configurationName = parsedDependency.configurationName();
-    String guessedName = guessArtifactName(configurationName);
-    String artifactName = artifact.getResolvedName();
-    return artifactName.equals(guessedName);
+    return artifact.getPossibleConfigurationNames().contains(configurationName);
   }
 }
