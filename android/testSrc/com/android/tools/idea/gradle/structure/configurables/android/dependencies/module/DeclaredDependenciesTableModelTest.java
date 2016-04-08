@@ -27,11 +27,11 @@ import com.android.tools.idea.gradle.structure.model.android.PsLibraryDependency
 import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
 import com.intellij.testFramework.IdeaTestCase;
-import com.intellij.util.containers.Predicate;
 import com.intellij.util.ui.ColumnInfo;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.function.Consumer;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -62,6 +62,7 @@ public class DeclaredDependenciesTableModelTest extends IdeaTestCase {
       PsUISettings.getInstance().DECLARED_DEPENDENCIES_SHOW_GROUP_ID = myOriginalShowGroupId;
     }
     finally {
+      //noinspection ThrowFromFinallyBlock
       super.tearDown();
     }
   }
@@ -109,10 +110,8 @@ public class DeclaredDependenciesTableModelTest extends IdeaTestCase {
     }
 
     @Override
-    public void forEachDeclaredDependency(@NotNull Predicate<PsAndroidDependency> function) {
-      for (PsAndroidDependency dependency : myDeclaredDependencies) {
-        function.apply(dependency);
-      }
+    public void forEachDeclaredDependency(@NotNull Consumer<PsAndroidDependency> consumer) {
+      myDeclaredDependencies.forEach(consumer);
     }
   }
 }

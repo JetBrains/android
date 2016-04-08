@@ -15,19 +15,18 @@
  */
 package com.android.tools.idea.gradle.structure.model.android;
 
-
 import com.android.builder.model.BuildType;
 import com.android.builder.model.BuildTypeContainer;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.android.BuildTypeModel;
 import com.android.tools.idea.gradle.structure.model.PsModelCollection;
 import com.google.common.collect.Maps;
-import com.intellij.util.containers.Predicate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.function.Consumer;
 
 public class PsBuildTypeCollection implements PsModelCollection<PsBuildType> {
   @NotNull private final Map<String, PsBuildType> myBuildTypesByName = Maps.newHashMap();
@@ -70,7 +69,7 @@ public class PsBuildTypeCollection implements PsModelCollection<PsBuildType> {
   }
 
   @Override
-  public void forEach(@NotNull Predicate<PsBuildType> function) {
-    myBuildTypesByName.values().forEach(function::apply);
+  public void forEach(@NotNull Consumer<PsBuildType> consumer) {
+    myBuildTypesByName.values().forEach(consumer);
   }
 }

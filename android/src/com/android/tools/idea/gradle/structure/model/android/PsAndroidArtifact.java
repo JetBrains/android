@@ -133,9 +133,6 @@ public class PsAndroidArtifact extends PsChildModel implements PsAndroidModel {
     }
 
     variant.forEachProductFlavor(productFlavor -> {
-      if (productFlavor == null) {
-        return false;
-      }
       String productFlavorName = productFlavor.getName();
       switch (myResolvedName) {
         case ARTIFACT_MAIN:
@@ -147,7 +144,6 @@ public class PsAndroidArtifact extends PsChildModel implements PsAndroidModel {
         case ARTIFACT_ANDROID_TEST:
           configurationNames.add("androidTest" + capitalize(productFlavorName) + COMPILE_SUFFIX);
       }
-      return true;
     });
     return configurationNames;
   }

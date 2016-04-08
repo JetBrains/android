@@ -45,12 +45,7 @@ public class ArtifactRepositorySearchTest extends IdeaTestCase {
     final CountDownLatch lock = new CountDownLatch(1);
 
     ArtifactRepositorySearch.Callback callback = search.start(request);
-    callback.doWhenDone(new Runnable() {
-      @Override
-      public void run() {
-        lock.countDown();
-      }
-    });
+    callback.doWhenDone(lock::countDown);
     lock.await();
 
     List<SearchResult> results = callback.getSearchResults();

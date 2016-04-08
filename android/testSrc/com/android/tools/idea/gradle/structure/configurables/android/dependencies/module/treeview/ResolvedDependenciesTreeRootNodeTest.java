@@ -23,13 +23,13 @@ import com.android.tools.idea.gradle.structure.model.android.PsDependencyContain
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.module.Module;
-import com.intellij.util.containers.Predicate;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import static com.android.builder.model.AndroidProject.ARTIFACT_MAIN;
 import static com.android.builder.model.AndroidProject.ARTIFACT_UNIT_TEST;
@@ -186,10 +186,8 @@ public class ResolvedDependenciesTreeRootNodeTest {
     }
 
     @Override
-    public void forEachDependency(@NotNull Predicate<PsAndroidDependency> function) {
-      for (PsAndroidDependency dependency : myDependencies) {
-        function.apply(dependency);
-      }
+    public void forEachDependency(@NotNull Consumer<PsAndroidDependency> consumer) {
+      myDependencies.forEach(consumer);
     }
   }
 }

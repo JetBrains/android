@@ -22,12 +22,12 @@ import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModel;
 import com.android.tools.idea.gradle.structure.model.PsModelCollection;
 import com.google.common.collect.Maps;
-import com.intellij.util.containers.Predicate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.function.Consumer;
 
 class PsProductFlavorCollection implements PsModelCollection<PsProductFlavor> {
   @NotNull private final Map<String, PsProductFlavor> myProductFlavorsByName = Maps.newHashMap();
@@ -60,8 +60,8 @@ class PsProductFlavorCollection implements PsModelCollection<PsProductFlavor> {
   }
 
   @Override
-  public void forEach(@NotNull Predicate<PsProductFlavor> function) {
-    myProductFlavorsByName.values().forEach(function::apply);
+  public void forEach(@NotNull Consumer<PsProductFlavor> consumer) {
+    myProductFlavorsByName.values().forEach(consumer);
   }
 
   @Override

@@ -40,9 +40,6 @@ public class PsAndroidModuleAnalyzer extends PsModelAnalyzer<PsAndroidModule> {
   protected void doAnalyze(@NotNull PsAndroidModule module, @NotNull PsIssueCollection issueCollection) {
     PsModulePath modulePath = new PsModulePath(module);
     module.forEachDependency(dependency -> {
-      if (dependency == null) {
-        return false;
-      }
       if (dependency instanceof PsLibraryDependency && dependency.isDeclared()) {
         PsLibraryDependency libraryDependency = (PsLibraryDependency)dependency;
         PsNavigationPath path = new PsLibraryDependencyPath(myContext, libraryDependency);
@@ -73,7 +70,6 @@ public class PsAndroidModuleAnalyzer extends PsModelAnalyzer<PsAndroidModule> {
           issueCollection.add(issue);
         }
       }
-      return true;
     });
   }
 

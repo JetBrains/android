@@ -24,9 +24,7 @@ import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.util.containers.Predicate;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.Collection;
@@ -63,14 +61,8 @@ public class PsdAndroidModuleTest extends AndroidGradleTestCase {
 
   @NotNull
   private static List<PsProductFlavor> getProductFlavors(@NotNull PsAndroidModule module) {
-    final List<PsProductFlavor> productFlavors = Lists.newArrayList();
-    module.forEachProductFlavor(new Predicate<PsProductFlavor>() {
-      @Override
-      public boolean apply(@Nullable PsProductFlavor productFlavor) {
-        productFlavors.add(productFlavor);
-        return true;
-      }
-    });
+    List<PsProductFlavor> productFlavors = Lists.newArrayList();
+    module.forEachProductFlavor(productFlavors::add);
     return productFlavors;
   }
 
@@ -109,14 +101,8 @@ public class PsdAndroidModuleTest extends AndroidGradleTestCase {
 
   @NotNull
   private static List<PsVariant> getVariants(@NotNull PsAndroidModule module) {
-    final List<PsVariant> variants = Lists.newArrayList();
-    module.forEachVariant(new Predicate<PsVariant>() {
-      @Override
-      public boolean apply(@Nullable PsVariant variant) {
-        variants.add(variant);
-        return true;
-      }
-    });
+    List<PsVariant> variants = Lists.newArrayList();
+    module.forEachVariant(variants::add);
     return variants;
   }
 
@@ -128,7 +114,7 @@ public class PsdAndroidModuleTest extends AndroidGradleTestCase {
     assertNotNull(appModule);
 
     // Make sure 'app' has an artifact dependency with version not including a '+'
-    final GradleBuildModel buildModel = GradleBuildModel.get(appModule);
+    GradleBuildModel buildModel = GradleBuildModel.get(appModule);
     assertNotNull(buildModel);
     for (ArtifactDependencyModel dependency : buildModel.dependencies().artifacts("compile")) {
       if ("com.android.support".equals(dependency.group().value()) && "appcompat-v7".equals(dependency.name().value())) {
@@ -137,12 +123,7 @@ public class PsdAndroidModuleTest extends AndroidGradleTestCase {
       }
     }
 
-    runWriteCommandAction(resolvedProject, new Runnable() {
-      @Override
-      public void run() {
-        buildModel.applyChanges();
-      }
-    });
+    runWriteCommandAction(resolvedProject, buildModel::applyChanges);
 
     //noinspection ConstantConditions
     importProject(resolvedProject, resolvedProject.getName(), new File(resolvedProject.getBasePath()), null);
@@ -208,14 +189,8 @@ public class PsdAndroidModuleTest extends AndroidGradleTestCase {
 
   @NotNull
   private static List<PsAndroidDependency> getDeclaredDependencies(@NotNull PsAndroidModule module) {
-    final List<PsAndroidDependency> dependencies = Lists.newArrayList();
-    module.forEachDeclaredDependency(new Predicate<PsAndroidDependency>() {
-      @Override
-      public boolean apply(@Nullable PsAndroidDependency dependency) {
-        dependencies.add(dependency);
-        return true;
-      }
-    });
+    List<PsAndroidDependency> dependencies = Lists.newArrayList();
+    module.forEachDeclaredDependency(dependencies::add);
     return dependencies;
   }
 }
