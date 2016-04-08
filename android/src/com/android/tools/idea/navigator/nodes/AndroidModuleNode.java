@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.navigator.nodes;
 
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.navigator.AndroidProjectViewPane;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Lists;
@@ -54,10 +55,16 @@ public class AndroidModuleNode extends ProjectViewModuleNode {
   }
 
   @NotNull
+  private Module getModule() {
+    Module module = getValue();
+    assert module != null;
+    return module;
+  }
+
+  @NotNull
   @Override
   public Collection<AbstractTreeNode> getChildren() {
-    Module module = getValue();
-    AndroidFacet facet = AndroidFacet.getInstance(module);
+    AndroidFacet facet = AndroidFacet.getInstance(getModule());
     if (facet == null || facet.getAndroidModel() == null) {
       return super.getChildren();
     }
@@ -65,42 +72,54 @@ public class AndroidModuleNode extends ProjectViewModuleNode {
     return getChildren(facet, getSettings(), myProjectViewPane, AndroidProjectViewPane.getSourceProviders(facet));
   }
 
-  public static Collection<AbstractTreeNode> getChildren(AndroidFacet facet,
-                                                         ViewSettings settings,
-                                                         AndroidProjectViewPane pane,
-                                                         List<IdeaSourceProvider> providers) {
+  @NotNull
+  public static Collection<AbstractTreeNode> getChildren(@NotNull AndroidFacet facet,
+                                                         @NotNull ViewSettings settings,
+                                                         @NotNull AndroidProjectViewPane pane,
+                                                         @NotNull List<IdeaSourceProvider> providers) {
     Project project = facet.getModule().getProject();
     List<AbstractTreeNode> result = Lists.newArrayList();
 
-    HashMultimap<AndroidSourceType,VirtualFile> sourcesByType = getSourcesBySourceType(providers);
+    AndroidGradleModel androidGradleModel = AndroidGradleModel.get(facet);
+    HashMultimap<AndroidSourceType,VirtualFile> sourcesByType = getSourcesBySourceType(providers, androidGradleModel);
 
     for (AndroidSourceType sourceType : sourcesByType.keySet()) {
       if (sourceType == AndroidSourceType.MANIFEST) {
         result.add(new AndroidManifestsGroupNode(project, facet, settings, sourcesByType.get(sourceType)));
+        continue;
       }
-      else if (sourceType == AndroidSourceType.RES) {
+      if (sourceType == AndroidSourceType.RES) {
         result.add(new AndroidResFolderNode(project, facet, settings, sourcesByType.get(sourceType), pane));
+        continue;
       }
-      else {
-        result.add(new AndroidSourceTypeNode(project, facet, settings, sourceType, sourcesByType.get(sourceType), pane));
+      if (sourceType == AndroidSourceType.SHADERS) {
+        if (androidGradleModel == null || androidGradleModel.supportsShaders()) {
+          continue;
+        }
       }
+      result.add(new AndroidSourceTypeNode(project, facet, settings, sourceType, sourcesByType.get(sourceType), pane));
     }
 
     return result;
   }
 
-  private static HashMultimap<AndroidSourceType,VirtualFile> getSourcesBySourceType(List<IdeaSourceProvider> providers) {
+  @NotNull
+  private static HashMultimap<AndroidSourceType,VirtualFile> getSourcesBySourceType(@NotNull List<IdeaSourceProvider> providers,
+                                                                                    @Nullable AndroidGradleModel androidGradleModel) {
     HashMultimap<AndroidSourceType,VirtualFile> sourcesByType = HashMultimap.create();
 
     // Multiple source types can sometimes be present in the same source folder, e.g.:
     //    sourcesSets.main.java.srcDirs = sourceSets.main.aidl.srcDirs = ['src']
     // in such a case, we only want to show one of them. Source sets can be either proper or improper subsets. It is not entirely
-    // obvious there is a perfect solution here, but since this is not a common occurence, we resort to the easiest solution here:
+    // obvious there is a perfect solution here, but since this is not a common occurrence, we resort to the easiest solution here:
     // If a set of sources has partially been included as part of another source type's source set, then we simply don't include it
     // as part of this source type.
     Set<VirtualFile> allSources = Sets.newHashSet();
 
     for (AndroidSourceType sourceType : AndroidSourceType.values()) {
+      if (sourceType == AndroidSourceType.SHADERS && (androidGradleModel == null || !androidGradleModel.supportsShaders())) {
+        continue;
+      }
       Set<VirtualFile> sources = getSources(sourceType, providers);
       if (sources.isEmpty()) {
         continue;
@@ -135,7 +154,7 @@ public class AndroidModuleNode extends ProjectViewModuleNode {
   @Nullable
   @Override
   public Comparable getSortKey() {
-    return getValue().getName();
+    return getModule().getName();
   }
 
   @Nullable
@@ -147,8 +166,7 @@ public class AndroidModuleNode extends ProjectViewModuleNode {
   @Nullable
   @Override
   public String toTestString(@Nullable Queryable.PrintInfo printInfo) {
-    Module module = getValue();
-    return String.format("%1$s (Android)", module.getName());
+    return String.format("%1$s (Android)", getModule().getName());
   }
 
   @Override
