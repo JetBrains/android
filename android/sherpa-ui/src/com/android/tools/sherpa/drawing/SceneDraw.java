@@ -318,11 +318,13 @@ public class SceneDraw {
      * @param selectedWidget       the selected widget if any
      * @param selectedAnchor       the selected anchor if any
      * @param selectedResizeHandle the selected resize handle if any
+     * @param transparent          if true, it will only draw the widget decorations
      * @return true if we need to be repainted, false otherwise
      */
     private boolean paintWidgets(ViewTransform transform, Graphics2D g,
             WidgetContainer container, ConstraintWidget selectedWidget,
-            ConstraintAnchor selectedAnchor, ResizeHandle selectedResizeHandle) {
+            ConstraintAnchor selectedAnchor, ResizeHandle selectedResizeHandle,
+            boolean transparent) {
         if (container.getVisibility() == ConstraintWidget.GONE) {
             return false;
         }
@@ -332,13 +334,16 @@ public class SceneDraw {
         if (!decorator.isVisible()) {
             return needsRepaint;
         }
+        if (!transparent) {
+            decorator.onPaintBackground(transform, g);
+        }
         needsRepaint |= decorator.onPaint(transform, g);
         if (container == mWidgetsScene.getRoot()) {
             int xr = transform.getSwingX(container.getDrawX());
             int yr = transform.getSwingY(container.getDrawY());
             int wr = transform.getSwingDimension(container.getDrawWidth());
             int hr = transform.getSwingDimension(container.getDrawHeight());
-            if (mDrawOutsideShade) {
+            if (mDrawOutsideShade && !transparent) {
                 g.setColor(DarkBlueprintBackground);
                 g.fillRect(transform.getTranslateX(), transform.getTranslateY(), mViewWidth, yr);
                 g.fillRect(transform.getTranslateX(), yr + hr, mViewWidth, mViewHeight - yr - hr);
@@ -364,11 +369,14 @@ public class SceneDraw {
             }
             if (widget instanceof WidgetContainer) {
                 needsRepaint |= paintWidgets(transform, g, (WidgetContainer) widget,
-                        selectedWidget, selectedAnchor, selectedResizeHandle);
+                        selectedWidget, selectedAnchor, selectedResizeHandle, transparent);
             } else {
                 WidgetDecorator widgetDecorator =
                         getDecorator(widget, selectedWidget, selectedAnchor, selectedResizeHandle);
                 if (widgetDecorator.isVisible()) {
+                    if (!transparent) {
+                        widgetDecorator.onPaintBackground(transform, g);
+                    }
                     needsRepaint |= widgetDecorator.onPaint(transform, g);
                 }
             }
@@ -405,12 +413,14 @@ public class SceneDraw {
      * @param g
      * @param showAllConstraints
      * @param mouseInteraction
+     * @param transparent        if true, it will only draw the widget decorations
      * @return true if need to be called again (animation...)
      */
     public boolean paintWidgets(int width, int height,
             ViewTransform transform, Graphics2D g,
             boolean showAllConstraints,
-            MouseInteraction mouseInteraction) {
+            MouseInteraction mouseInteraction,
+            boolean transparent) {
 
         WidgetContainer root = mWidgetsScene.getRoot();
         if (root == null) {
@@ -461,7 +471,7 @@ public class SceneDraw {
             selectedWidget = mSelection.getFirstElement().widget;
         }
         needsRepaint |= paintWidgets(transform, g, mWidgetsScene.getRoot(), selectedWidget,
-                selectedAnchor, selectedResizeHandle);
+                selectedAnchor, selectedResizeHandle, transparent);
 
         // Then draw the constraints
         for (ConstraintWidget widget : mWidgetsScene.getWidgets()) {

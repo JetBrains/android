@@ -23,6 +23,7 @@ import com.android.tools.idea.uibuilder.model.NlModel;
 import com.intellij.util.ui.UIUtil;
 
 import java.awt.*;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 
 /** Responsible for painting a screen view */
@@ -35,22 +36,32 @@ public class ScreenViewLayer extends Layer {
   /** The scale at which we cached the scaled image  */
   private double myCachedScale;
 
+  private Rectangle mySizeRectangle = new Rectangle();
+  private Dimension myScreenViewSize = new Dimension();
+
   public ScreenViewLayer(@NotNull ScreenView screenView) {
     myScreenView = screenView;
   }
 
   @Override
-  public boolean paint(@NotNull Graphics2D g) {
+  public void paint(@NotNull Graphics2D g) {
+    myScreenViewSize = myScreenView.getSize(myScreenViewSize);
+
+    mySizeRectangle.setBounds(myScreenView.getX(), myScreenView.getY(), myScreenViewSize.width, myScreenViewSize.height);
+    Rectangle2D.intersect(mySizeRectangle, g.getClipBounds(), mySizeRectangle);
+    if (mySizeRectangle.isEmpty()) {
+      return;
+    }
+
     NlModel myModel = myScreenView.getModel();
     RenderResult renderResult = myModel.getRenderResult();
     if (renderResult != null && renderResult.getImage() != null) {
       BufferedImage originalImage = renderResult.getImage().getOriginalImage();
       if (UIUtil.isRetina() && paintHiDpi(g, originalImage)) {
-        return false;
+        return;
       }
       paintLoDpi(g, originalImage);
     }
-    return false;
   }
 
   public void paintLoDpi(@NotNull Graphics g, @NotNull BufferedImage originalImage) {

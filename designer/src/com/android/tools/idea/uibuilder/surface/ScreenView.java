@@ -79,17 +79,61 @@ public class ScreenView {
     return myModel.getRenderResult();
   }
 
-  @Nullable
-  public Dimension getPreferredSize() {
+  /**
+   * Returns the current size of the view. This is the same as {@link #getPreferredSize()} but accounts for the current zoom level.
+   * @param dimension optional existing {@link Dimension} instance to be reused. If not null, the values will be set and this instance
+   *                  returned.
+   */
+  @NotNull
+  @SwingCoordinate
+  public Dimension getSize(@Nullable Dimension dimension) {
+    if (dimension == null) {
+      dimension = new Dimension();
+    }
+
+    Dimension preferred = getPreferredSize(dimension);
+    double scale = mySurface.getScale();
+
+    dimension.setSize((int)(scale * preferred.width), (int)(scale * preferred.height));
+    return dimension;
+  }
+
+  /**
+   * Returns the current size of the view. This is the same as {@link #getPreferredSize()} but accounts for the current zoom level.
+   */
+  @NotNull
+  @SwingCoordinate
+  public Dimension getSize() {
+    return getSize(null);
+  }
+
+  /**
+   * Returns the current preferred size for the view.
+   * @param dimension optional existing {@link Dimension} instance to be reused. If not null, the values will be set and this instance
+   *                  returned.
+   */
+  @NotNull
+  public Dimension getPreferredSize(@Nullable Dimension dimension) {
+    if (dimension == null) {
+      dimension = new Dimension();
+    }
+
     Configuration configuration = getConfiguration();
     Device device = configuration.getDevice();
     State state = configuration.getDeviceState();
     if (device != null && state != null) {
       HardwareConfig config =
         new HardwareConfigHelper(device).setOrientation(state.getOrientation()).getConfig();
-      return new Dimension(config.getScreenWidth(), config.getScreenHeight());
+
+      dimension.setSize(config.getScreenWidth(), config.getScreenHeight());
     }
-    return null;
+
+    return dimension;
+  }
+
+  @NotNull
+  public Dimension getPreferredSize() {
+    return getPreferredSize(null);
   }
 
   public void switchDevice() {
