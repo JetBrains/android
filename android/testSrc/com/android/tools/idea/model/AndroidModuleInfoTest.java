@@ -41,7 +41,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
-import static org.fest.assertions.Assertions.assertThat;
+import static com.google.common.truth.Truth.assertThat;
 
 public class AndroidModuleInfoTest extends AndroidGradleTestCase {
   public void testManifestOnly() throws Exception {
@@ -128,7 +128,7 @@ public class AndroidModuleInfoTest extends AndroidGradleTestCase {
     myFixture.configureFromExistingVirtualFile(file);
 
     myFixture.complete(CompletionType.BASIC);
-    assertThat(myFixture.getLookupElementStrings()).containsOnly("defaultTheme");
+    assertThat(myFixture.getLookupElementStrings()).containsExactly("defaultTheme");
     // Check that there are no errors
     myFixture.testHighlighting();
   }

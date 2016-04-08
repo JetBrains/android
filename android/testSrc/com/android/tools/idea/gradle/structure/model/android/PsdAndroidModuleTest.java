@@ -33,8 +33,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
-import static org.fest.assertions.Assertions.assertThat;
 
 /**
  * Tests for {@link PsAndroidModule}.
@@ -89,22 +89,22 @@ public class PsdAndroidModuleTest extends AndroidGradleTestCase {
     PsVariant paidDebug = appModule.findVariant("paidDebug");
     assertNotNull(paidDebug);
     List<String> flavors = paidDebug.getProductFlavors();
-    assertThat(flavors).containsOnly("paid");
+    assertThat(flavors).containsExactly("paid");
 
     PsVariant paidRelease = appModule.findVariant("paidRelease");
     assertNotNull(paidRelease);
     flavors = paidRelease.getProductFlavors();
-    assertThat(flavors).containsOnly("paid");
+    assertThat(flavors).containsExactly("paid");
 
     PsVariant basicDebug = appModule.findVariant("basicDebug");
     assertNotNull(basicDebug);
     flavors = basicDebug.getProductFlavors();
-    assertThat(flavors).containsOnly("basic");
+    assertThat(flavors).containsExactly("basic");
 
     PsVariant basicRelease = appModule.findVariant("basicRelease");
     assertNotNull(basicRelease);
     flavors = basicRelease.getProductFlavors();
-    assertThat(flavors).containsOnly("basic");
+    assertThat(flavors).containsExactly("basic");
   }
 
   @NotNull
@@ -165,7 +165,7 @@ public class PsdAndroidModuleTest extends AndroidGradleTestCase {
 
     // Verify that the variants where appcompat is are properly registered.
     Set<String> variants = appCompatV7.getVariants();
-    assertThat(variants).containsOnly("paidDebug", "paidRelease", "basicDebug", "basicRelease");
+    assertThat(variants).containsExactly("paidDebug", "paidRelease", "basicDebug", "basicRelease");
 
     for (String variant : variants) {
       assertNotNull(module.findVariant(variant));
@@ -199,7 +199,7 @@ public class PsdAndroidModuleTest extends AndroidGradleTestCase {
 
     // Verify that the variants where appcompat is are properly registered.
     Set<String> variants = appCompatV7.getVariants();
-    assertThat(variants).containsOnly("paidDebug", "paidRelease", "basicDebug", "basicRelease");
+    assertThat(variants).containsExactly("paidDebug", "paidRelease", "basicDebug", "basicRelease");
 
     for (String variant : variants) {
       assertNotNull(appModule.findVariant(variant));
