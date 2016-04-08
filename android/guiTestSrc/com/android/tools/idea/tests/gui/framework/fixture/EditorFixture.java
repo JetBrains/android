@@ -456,20 +456,29 @@ public class EditorFixture {
   @NotNull
   public EditorFixture moveToLine(final int lineNumber) {
     assertThat(lineNumber).isAtLeast(0);
-    execute(new GuiTask() {
+    Point lineStartPoint = execute(new GuiQuery<Point>() {
       @Override
-      protected void executeInEDT() throws Throwable {
-        // TODO: Do this via mouse clicks!
+      protected Point executeInEDT() throws Throwable {
         FileEditorManager manager = FileEditorManager.getInstance(myFrame.getProject());
         Editor editor = manager.getSelectedTextEditor();
         if (editor != null) {
           Document document = editor.getDocument();
           int offset = document.getLineStartOffset(lineNumber);
-          editor.getCaretModel().moveToOffset(offset);
-          editor.getScrollingModel().scrollToCaret(ScrollType.MAKE_VISIBLE);
+          LogicalPosition position = editor.offsetToLogicalPosition(offset);
+          editor.getScrollingModel().scrollTo(position, ScrollType.MAKE_VISIBLE);
+          return editor.logicalPositionToXY(position);
         }
+        return null;
       }
     });
+
+    JComponent focusedEditor = getFocusedEditor();
+    if (focusedEditor != null && lineStartPoint != null) {
+      robot.click(focusedEditor, lineStartPoint);
+    }
+    else {
+      fail("Could not move to line " + lineNumber + " in the editor");
+    }
     return this;
   }
 
@@ -480,19 +489,27 @@ public class EditorFixture {
    */
   public EditorFixture moveTo(final int offset) {
     assertThat(offset).isAtLeast(0);
-    execute(new GuiTask() {
+    Point offsetPoint = execute(new GuiQuery<Point>() {
       @Override
-      protected void executeInEDT() throws Throwable {
-        // TODO: Do this via mouse clicks!
+      protected Point executeInEDT() throws Throwable {
         FileEditorManager manager = FileEditorManager.getInstance(myFrame.getProject());
         Editor editor = manager.getSelectedTextEditor();
         if (editor != null) {
-          editor.getCaretModel().moveToOffset(offset);
-          editor.getScrollingModel().scrollToCaret(ScrollType.MAKE_VISIBLE);
+          LogicalPosition position = editor.offsetToLogicalPosition(offset);
+          editor.getScrollingModel().scrollTo(position, ScrollType.MAKE_VISIBLE);
+          return editor.logicalPositionToXY(position);
         }
+        return null;
       }
     });
 
+    JComponent focusedEditor = getFocusedEditor();
+    if (focusedEditor != null && offsetPoint != null) {
+      robot.click(focusedEditor, offsetPoint);
+    }
+    else {
+      fail("Could not move to offset " + offset + " in the editor");
+    }
     return this;
   }
 
