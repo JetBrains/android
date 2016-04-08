@@ -19,7 +19,7 @@ import com.intellij.util.GCUtil;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
-import static org.fest.assertions.Assertions.assertThat;
+import static com.google.common.truth.Truth.assertThat;
 
 public final class ObservableValueTest {
 
@@ -63,7 +63,7 @@ public final class ObservableValueTest {
     mockValue.removeListener(listener);
 
     mockValue.fireInvalidated();
-    assertThat(listener.getCount()).isZero();
+    assertThat(listener.getCount()).isEqualTo(0);
   }
 
   /**

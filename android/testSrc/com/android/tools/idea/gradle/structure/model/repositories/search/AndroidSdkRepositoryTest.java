@@ -26,7 +26,7 @@ import java.io.IOException;
 import java.util.Collections;
 
 import static com.android.tools.idea.AndroidTestCaseHelper.getAndroidSdkPath;
-import static org.fest.assertions.Assertions.assertThat;
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
@@ -55,7 +55,7 @@ public class AndroidSdkRepositoryTest {
     assertNotNull(coordinate);
     assertEquals("com.android.support", coordinate.getGroupId());
     assertEquals("appcompat-v7", coordinate.getArtifactId());
-    assertThat(coordinate.getRevision()).isNotNull().isNotEmpty();
+    assertThat(coordinate.getRevision()).isNotEmpty();
   }
 
   @Test

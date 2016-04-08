@@ -23,7 +23,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.android.builder.model.AndroidProject.*;
-import static org.fest.assertions.Assertions.assertThat;
+import static com.google.common.truth.Truth.assertThat;
 
 /**
  * Tests for {@link ArtifactNameComparator}.
@@ -33,6 +33,6 @@ public class ArtifactNameComparatorTest {
   public void testCompare() {
     List<String> names = Lists.newArrayList(ARTIFACT_UNIT_TEST, ARTIFACT_MAIN, ARTIFACT_ANDROID_TEST);
     Collections.sort(names, ArtifactNameComparator.INSTANCE);
-    assertThat(names).containsSequence(ARTIFACT_MAIN, ARTIFACT_ANDROID_TEST, ARTIFACT_UNIT_TEST);
+    assertThat(names).containsExactly(ARTIFACT_MAIN, ARTIFACT_ANDROID_TEST, ARTIFACT_UNIT_TEST).inOrder();
   }
 }

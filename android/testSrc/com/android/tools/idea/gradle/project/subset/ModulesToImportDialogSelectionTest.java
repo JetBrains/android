@@ -27,8 +27,8 @@ import org.jetbrains.plugins.gradle.util.GradleConstants;
 import java.io.File;
 import java.util.List;
 
+import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.externalSystem.model.ProjectKeys.MODULE;
-import static org.fest.assertions.Assertions.assertThat;
 
 /**
  * Tests for {@link com.android.tools.idea.gradle.project.subset.ModulesToImportDialog.Selection}
@@ -43,7 +43,7 @@ public class ModulesToImportDialogSelectionTest extends TestCase {
 
     ModulesToImportDialog.Selection.save(modules, file);
     List<String> moduleNames = ModulesToImportDialog.Selection.load(file);
-    assertThat(moduleNames).containsOnly("project", "app");
+    assertThat(moduleNames).containsExactly("project", "app");
   }
 
   @NotNull

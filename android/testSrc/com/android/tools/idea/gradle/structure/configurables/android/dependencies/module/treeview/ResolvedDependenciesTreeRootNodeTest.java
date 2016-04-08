@@ -33,7 +33,7 @@ import java.util.Map;
 
 import static com.android.builder.model.AndroidProject.ARTIFACT_MAIN;
 import static com.android.builder.model.AndroidProject.ARTIFACT_UNIT_TEST;
-import static org.fest.assertions.Assertions.assertThat;
+import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -84,12 +84,12 @@ public class ResolvedDependenciesTreeRootNodeTest {
 
     List<PsDependencyContainer> group = Lists.newArrayList(container("v3", ARTIFACT_MAIN));
     List<PsAndroidDependency> dependencies = groups.get(group);
-    assertThat(dependencies).containsOnly(myD1);
+    assertThat(dependencies).containsExactly(myD1);
 
     group = Lists.newArrayList(container("v1", ARTIFACT_MAIN),
                                container("v2", ARTIFACT_MAIN));
     dependencies = groups.get(group);
-    assertThat(dependencies).containsOnly(myD1, myD2);
+    assertThat(dependencies).containsExactly(myD1, myD2);
   }
 
   @Test
@@ -122,19 +122,19 @@ public class ResolvedDependenciesTreeRootNodeTest {
 
     List<PsDependencyContainer> group = Lists.newArrayList(container("v1", ARTIFACT_MAIN));
     List<PsAndroidDependency> dependencies = groups.get(group);
-    assertThat(dependencies).containsOnly(myD2, myD3);
+    assertThat(dependencies).containsExactly(myD2, myD3);
 
     group = Lists.newArrayList(container("v1", ARTIFACT_UNIT_TEST));
     dependencies = groups.get(group);
-    assertThat(dependencies).containsOnly(myD1);
+    assertThat(dependencies).containsExactly(myD1);
 
     group = Lists.newArrayList(container("v2", ARTIFACT_MAIN));
     dependencies = groups.get(group);
-    assertThat(dependencies).containsOnly(myD2);
+    assertThat(dependencies).containsExactly(myD2);
 
     group = Lists.newArrayList(container("v2", ARTIFACT_UNIT_TEST));
     dependencies = groups.get(group);
-    assertThat(dependencies).containsOnly(myD1);
+    assertThat(dependencies).containsExactly(myD1);
   }
 
   @Test
@@ -164,12 +164,12 @@ public class ResolvedDependenciesTreeRootNodeTest {
     List<PsDependencyContainer> group = Lists.newArrayList(container("v1", ARTIFACT_MAIN),
                                                            container("v2", ARTIFACT_MAIN));
     List<PsAndroidDependency> dependencies = groups.get(group);
-    assertThat(dependencies).containsOnly(myD2);
+    assertThat(dependencies).containsExactly(myD2);
 
     group = Lists.newArrayList(container("v1", ARTIFACT_UNIT_TEST),
                                container("v2", ARTIFACT_UNIT_TEST));
     dependencies = groups.get(group);
-    assertThat(dependencies).containsOnly(myD1);
+    assertThat(dependencies).containsExactly(myD1);
   }
 
   @NotNull

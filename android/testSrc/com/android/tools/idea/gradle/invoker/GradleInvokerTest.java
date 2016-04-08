@@ -32,7 +32,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
-import static org.fest.assertions.Assertions.assertThat;
+import static com.google.common.truth.Truth.assertThat;
 
 /**
  * Tests for {@link GradleInvoker}.
@@ -100,7 +100,7 @@ public class GradleInvokerTest extends IdeaTestCase {
     myInvoker.addBeforeGradleInvocationTask(new GradleInvoker.BeforeGradleInvocationTask() {
       @Override
       public void execute(@NotNull List<String> tasks) {
-        assertThat(tasks).containsOnly("assembleTranslate");
+        assertThat(tasks).containsExactly("assembleTranslate");
         assertEquals(BuildMode.ASSEMBLE_TRANSLATE, getBuildMode());
       }
     });
@@ -111,9 +111,7 @@ public class GradleInvokerTest extends IdeaTestCase {
     myInvoker.addBeforeGradleInvocationTask(new GradleInvoker.BeforeGradleInvocationTask() {
       @Override
       public void execute(@NotNull List<String> tasks) {
-        assertThat(tasks).containsOnly(CLEAN,
-                                       qualifiedTaskName(SOURCE_GEN),
-                                       qualifiedTaskName(TEST_SOURCE_GEN));
+        assertThat(tasks).containsExactly(CLEAN, qualifiedTaskName(SOURCE_GEN), qualifiedTaskName(TEST_SOURCE_GEN));
         // Make sure clean is first.
         assertEquals(CLEAN, tasks.get(0));
         assertEquals(BuildMode.CLEAN, getBuildMode());
@@ -126,8 +124,7 @@ public class GradleInvokerTest extends IdeaTestCase {
     myInvoker.addBeforeGradleInvocationTask(new GradleInvoker.BeforeGradleInvocationTask() {
       @Override
       public void execute(@NotNull List<String> tasks) {
-        assertThat(tasks).containsOnly(qualifiedTaskName(SOURCE_GEN),
-                                       qualifiedTaskName(TEST_SOURCE_GEN));
+        assertThat(tasks).containsExactly(qualifiedTaskName(SOURCE_GEN), qualifiedTaskName(TEST_SOURCE_GEN));
         assertEquals(BuildMode.SOURCE_GEN, getBuildMode());
       }
     });
@@ -138,9 +135,7 @@ public class GradleInvokerTest extends IdeaTestCase {
     myInvoker.addBeforeGradleInvocationTask(new GradleInvoker.BeforeGradleInvocationTask() {
       @Override
       public void execute(@NotNull List<String> tasks) {
-        assertThat(tasks).containsOnly(CLEAN,
-                                       qualifiedTaskName(SOURCE_GEN),
-                                       qualifiedTaskName(TEST_SOURCE_GEN));
+        assertThat(tasks).containsExactly(CLEAN, qualifiedTaskName(SOURCE_GEN), qualifiedTaskName(TEST_SOURCE_GEN));
         assertEquals(BuildMode.SOURCE_GEN, getBuildMode());
       }
     });
@@ -153,7 +148,7 @@ public class GradleInvokerTest extends IdeaTestCase {
     myInvoker.addBeforeGradleInvocationTask(new GradleInvoker.BeforeGradleInvocationTask() {
       @Override
       public void execute(@NotNull List<String> tasks) {
-        assertThat(tasks).containsOnly(qualifiedTaskName(SOURCE_GEN));
+        assertThat(tasks).containsExactly(qualifiedTaskName(SOURCE_GEN));
         assertEquals(BuildMode.SOURCE_GEN, getBuildMode());
       }
     });
@@ -168,11 +163,12 @@ public class GradleInvokerTest extends IdeaTestCase {
       @Override
       public void execute(@NotNull List<String> tasks) {
         // Make sure all "after sync tasks" are run, for running unit tests.
-        assertThat(tasks).containsOnly(qualifiedTaskName(mockableJar),
-                                       qualifiedTaskName(SOURCE_GEN),
-                                       qualifiedTaskName(TEST_SOURCE_GEN),
-                                       qualifiedTaskName(COMPILE_JAVA),
-                                       qualifiedTaskName(COMPILE_TEST_JAVA));
+        assertThat(tasks).containsExactly(
+          qualifiedTaskName(mockableJar),
+          qualifiedTaskName(SOURCE_GEN),
+          qualifiedTaskName(TEST_SOURCE_GEN),
+          qualifiedTaskName(COMPILE_JAVA),
+          qualifiedTaskName(COMPILE_TEST_JAVA));
         assertEquals(BuildMode.COMPILE_JAVA, getBuildMode());
       }
     });
@@ -187,10 +183,11 @@ public class GradleInvokerTest extends IdeaTestCase {
       @Override
       public void execute(@NotNull List<String> tasks) {
         // Make sure all "after sync tasks" are run, for running unit tests.
-        assertThat(tasks).containsOnly(qualifiedTaskName(mockableJar),
-                                       qualifiedTaskName(SOURCE_GEN),
-                                       qualifiedTaskName(TEST_SOURCE_GEN),
-                                       qualifiedTaskName(COMPILE_TEST_JAVA));
+        assertThat(tasks).containsExactly(
+          qualifiedTaskName(mockableJar),
+          qualifiedTaskName(SOURCE_GEN),
+          qualifiedTaskName(TEST_SOURCE_GEN),
+          qualifiedTaskName(COMPILE_TEST_JAVA));
         // If using Jack, running :app:compileDebugSources would be a waste of time.
         assertDoesntContain(tasks, COMPILE_JAVA);
         assertEquals(BuildMode.COMPILE_JAVA, getBuildMode());
@@ -203,7 +200,7 @@ public class GradleInvokerTest extends IdeaTestCase {
     myInvoker.addBeforeGradleInvocationTask(new GradleInvoker.BeforeGradleInvocationTask() {
       @Override
       public void execute(@NotNull List<String> tasks) {
-        assertThat(tasks).containsOnly(qualifiedTaskName(ASSEMBLE));
+        assertThat(tasks).containsExactly(qualifiedTaskName(ASSEMBLE));
         assertEquals(BuildMode.ASSEMBLE, getBuildMode());
       }
     });
@@ -214,8 +211,7 @@ public class GradleInvokerTest extends IdeaTestCase {
     myInvoker.addBeforeGradleInvocationTask(new GradleInvoker.BeforeGradleInvocationTask() {
       @Override
       public void execute(@NotNull List<String> tasks) {
-        assertThat(tasks).containsOnly(qualifiedTaskName(ASSEMBLE),
-                                       qualifiedTaskName(ASSEMBLE_ANDROID_TEST));
+        assertThat(tasks).containsExactly(qualifiedTaskName(ASSEMBLE), qualifiedTaskName(ASSEMBLE_ANDROID_TEST));
         assertEquals(BuildMode.ASSEMBLE, getBuildMode());
       }
     });
@@ -230,12 +226,13 @@ public class GradleInvokerTest extends IdeaTestCase {
       @Override
       public void execute(@NotNull List<String> tasks) {
         // Make sure all "after sync tasks" are run, for running unit tests.
-        assertThat(tasks).containsOnly(CLEAN,
-                                       qualifiedTaskName(mockableJar),
-                                       qualifiedTaskName(SOURCE_GEN),
-                                       qualifiedTaskName(TEST_SOURCE_GEN),
-                                       qualifiedTaskName(COMPILE_JAVA),
-                                       qualifiedTaskName(COMPILE_TEST_JAVA));
+        assertThat(tasks).containsExactly(
+          CLEAN,
+          qualifiedTaskName(mockableJar),
+          qualifiedTaskName(SOURCE_GEN),
+          qualifiedTaskName(TEST_SOURCE_GEN),
+          qualifiedTaskName(COMPILE_JAVA),
+          qualifiedTaskName(COMPILE_TEST_JAVA));
         // Make sure clean is first.
         assertEquals(CLEAN, tasks.get(0));
         assertEquals(BuildMode.REBUILD, getBuildMode());

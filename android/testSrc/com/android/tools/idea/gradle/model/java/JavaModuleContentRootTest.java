@@ -32,8 +32,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
+import static com.google.common.truth.Truth.assertThat;
 import static org.easymock.EasyMock.*;
-import static org.fest.assertions.Assertions.assertThat;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
 
@@ -81,10 +81,10 @@ public class JavaModuleContentRootTest {
     JavaModuleContentRoot contentRoot = JavaModuleContentRoot.copy(originalContentRoot);
     assertNotNull(contentRoot);
     assertSame(contentRoot.getRootDirPath(), rootDirPath);
-    assertThat(contentRoot.getSourceDirPaths()).containsOnly(sourceDirPath);
-    assertThat(contentRoot.getGenSourceDirPaths()).containsOnly(genSourceDirPath);
-    assertThat(contentRoot.getTestDirPaths()).containsOnly(testDirPath);
-    assertThat(contentRoot.getGenTestDirPaths()).containsOnly(genTestDirPath);
+    assertThat(contentRoot.getSourceDirPaths()).containsExactly(sourceDirPath);
+    assertThat(contentRoot.getGenSourceDirPaths()).containsExactly(genSourceDirPath);
+    assertThat(contentRoot.getTestDirPaths()).containsExactly(testDirPath);
+    assertThat(contentRoot.getGenTestDirPaths()).containsExactly(genTestDirPath);
     assertThat(contentRoot.getResourceDirPaths()).isEmpty();
     assertThat(contentRoot.getTestResourceDirPaths()).isEmpty();
 
@@ -143,12 +143,12 @@ public class JavaModuleContentRootTest {
     JavaModuleContentRoot contentRoot = JavaModuleContentRoot.copy(originalContentRoot);
     assertNotNull(contentRoot);
     assertSame(contentRoot.getRootDirPath(), rootDirPath);
-    assertThat(contentRoot.getSourceDirPaths()).containsOnly(sourceDirPath);
-    assertThat(contentRoot.getGenSourceDirPaths()).containsOnly(genSourceDirPath);
-    assertThat(contentRoot.getTestDirPaths()).containsOnly(testDirPath);
-    assertThat(contentRoot.getGenTestDirPaths()).containsOnly(genTestDirPath);
-    assertThat(contentRoot.getResourceDirPaths()).containsOnly(resourceDirPath);
-    assertThat(contentRoot.getTestResourceDirPaths()).containsOnly(testResourceDirPath);
+    assertThat(contentRoot.getSourceDirPaths()).containsExactly(sourceDirPath);
+    assertThat(contentRoot.getGenSourceDirPaths()).containsExactly(genSourceDirPath);
+    assertThat(contentRoot.getTestDirPaths()).containsExactly(testDirPath);
+    assertThat(contentRoot.getGenTestDirPaths()).containsExactly(genTestDirPath);
+    assertThat(contentRoot.getResourceDirPaths()).containsExactly(resourceDirPath);
+    assertThat(contentRoot.getTestResourceDirPaths()).containsExactly(testResourceDirPath);
 
     verify(originalContentRoot, sourceDir, genSourceDir, testDir, genTestDir, resourceDir, testResourceDir);
   }
