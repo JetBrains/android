@@ -26,7 +26,7 @@ import org.junit.Test;
 
 import java.io.File;
 
-import static org.fest.assertions.Assertions.assertThat;
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.fail;
 
 public class PathValidatorTest {

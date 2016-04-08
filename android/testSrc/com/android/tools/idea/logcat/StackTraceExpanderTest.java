@@ -24,7 +24,7 @@ import org.junit.Test;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.fest.assertions.Assertions.assertThat;
+import static com.google.common.truth.Truth.assertThat;
 
 public class StackTraceExpanderTest {
   // From http://docs.oracle.com/javase/7/docs/api/java/lang/Throwable.html#printStackTrace%28%29
