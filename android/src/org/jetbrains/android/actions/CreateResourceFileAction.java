@@ -20,7 +20,6 @@ package org.jetbrains.android.actions;
 import com.android.builder.model.SourceProvider;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceFolderType;
-import com.android.resources.ResourceType;
 import com.google.common.collect.Maps;
 import com.intellij.CommonBundle;
 import com.intellij.openapi.actionSystem.*;
@@ -124,26 +123,6 @@ public class CreateResourceFileAction extends CreateResourceActionBase {
     }
     assert elements.length == 1 && elements[0] instanceof XmlFile;
     return (XmlFile)elements[0];
-  }
-
-  @Deprecated
-  @Nullable
-  public static XmlFile createFileResource(@NotNull AndroidFacet facet,
-                                           @NotNull final ResourceType resType,
-                                           @Nullable String resName,
-                                           @Nullable String rootElement,
-                                           @Nullable FolderConfiguration config,
-                                           boolean chooseResName,
-                                           @Nullable String dialogTitle) {
-    // THIS IS WRONG. You can't create resource folders from a ResourceType; you should use a ResourceFolderType.
-    // For example, a ResourceType.STRING has no corresponding resource folder; it should be ResourceFolderType.VALUES.
-    // However, I changed the type in this method to ResourceFolderType, and it cascaded down to a lot of references,
-    // which in turn were called by many other references, so I'm adding a conversion here; we should revisit
-    // this soon and switch to the correct type. (The correct method exists below; this method should be deleted.)
-    ResourceFolderType folderType = ResourceFolderType.getTypeByName(resType.getName());
-    assert folderType != null : resType;
-
-    return createFileResource(facet, folderType, resName, rootElement, config, chooseResName, dialogTitle, true);
   }
 
   @Nullable
