@@ -21,7 +21,7 @@ import com.android.tools.idea.ui.properties.core.DoubleValueProperty;
 import org.junit.Test;
 
 import static com.android.tools.idea.ui.properties.BatchInvoker.INVOKE_IMMEDIATELY_STRATEGY;
-import static org.fest.assertions.Assertions.assertThat;
+import static com.google.common.truth.Truth.assertThat;
 
 public final class DoubleExpressionsTest {
   @Test
@@ -228,6 +228,6 @@ public final class DoubleExpressionsTest {
 
     c.set(1001.0);
 
-    assertThat(sum.get()).isEqualTo(1111);
+    assertThat(sum.get()).isEqualTo(1111.0);
   }
 }
