@@ -296,12 +296,7 @@ public class LayoutEditorFixture extends ComponentFixture<LayoutEditorFixture, C
         @Override
         public void run() {
           SimpleColoredRenderer renderer = new SimpleColoredRenderer();
-          AttributeWrapper wrapper = new AttributeWrapper() {
-            @Override
-            public SimpleTextAttributes getAttribute(SimpleTextAttributes attributes) {
-              return SimpleTextAttributes.REGULAR_ATTRIBUTES;
-            }
-          };
+          AttributeWrapper wrapper = attributes -> SimpleTextAttributes.REGULAR_ATTRIBUTES;
           describe(renderer, wrapper, root, showSelected, 0);
           SimpleColoredComponent.ColoredIterator iterator = renderer.iterator();
           while (iterator.hasNext()) {
@@ -335,12 +330,7 @@ public class LayoutEditorFixture extends ComponentFixture<LayoutEditorFixture, C
           @Override
           protected void executeInEDT() throws Throwable {
             SimpleColoredRenderer renderer = new SimpleColoredRenderer();
-            AttributeWrapper wrapper = new AttributeWrapper() {
-              @Override
-              public SimpleTextAttributes getAttribute(SimpleTextAttributes attributes) {
-                return SimpleTextAttributes.REGULAR_ATTRIBUTES;
-              }
-            };
+            AttributeWrapper wrapper = attributes -> SimpleTextAttributes.REGULAR_ATTRIBUTES;
             if (componentTree.isRootVisible()) {
               describe(renderer, wrapper, componentTree, model, root, showSelected, 0);
             }
