@@ -21,12 +21,12 @@ import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.util.containers.Predicate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.util.List;
+import java.util.function.Consumer;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
 
@@ -90,8 +90,8 @@ public class PsProject extends PsModel {
     return myProject.getName();
   }
 
-  public void forEachModule(@NotNull Predicate<PsModule> function) {
-    myModules.forEach(function::apply);
+  public void forEachModule(@NotNull Consumer<PsModule> consumer) {
+    myModules.forEach(consumer);
   }
 
   @Override

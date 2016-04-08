@@ -28,7 +28,6 @@ import com.android.tools.idea.gradle.util.GradleUtil;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.module.Module;
-import com.intellij.util.containers.Predicate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -36,6 +35,7 @@ import java.io.File;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import static com.android.tools.idea.gradle.structure.model.pom.MavenPoms.findDependenciesInPomFile;
 
@@ -47,23 +47,11 @@ class PsAndroidDependencyCollection implements PsModelCollection<PsAndroidDepend
 
   PsAndroidDependencyCollection(@NotNull PsAndroidModule parent) {
     myParent = parent;
-    parent.forEachVariant(variant -> {
-      if (variant == null) {
-        return false;
-      }
-      addDependencies(variant);
-      return true;
-    });
+    parent.forEachVariant(this::addDependencies);
   }
 
   private void addDependencies(@NotNull PsVariant variant) {
-    variant.forEachArtifact(artifact -> {
-      if (artifact == null) {
-        return false;
-      }
-      collectDependencies(artifact);
-      return true;
-    });
+    variant.forEachArtifact(this::collectDependencies);
   }
 
   private void collectDependencies(@NotNull PsAndroidArtifact artifact) {
@@ -314,21 +302,21 @@ class PsAndroidDependencyCollection implements PsModelCollection<PsAndroidDepend
   }
 
   @Override
-  public void forEach(@NotNull Predicate<PsAndroidDependency> function) {
-    myLibraryDependenciesBySpec.values().forEach(function::apply);
-    myModuleDependenciesByGradlePath.values().forEach(function::apply);
+  public void forEach(@NotNull Consumer<PsAndroidDependency> consumer) {
+    myLibraryDependenciesBySpec.values().forEach(consumer);
+    myModuleDependenciesByGradlePath.values().forEach(consumer);
   }
 
-  public void forEachDeclaredDependency(@NotNull Predicate<PsAndroidDependency> function) {
+  public void forEachDeclaredDependency(@NotNull Consumer<PsAndroidDependency> consumer) {
     myLibraryDependenciesBySpec.values().stream()
                                         .filter(PsAndroidDependency::isDeclared)
-                                        .forEach(function::apply);
+                                        .forEach(consumer);
     myModuleDependenciesByGradlePath.values().stream()
                                              .filter(PsAndroidDependency::isDeclared)
-                                             .forEach(function::apply);
+                                             .forEach(consumer);
   }
 
-  public void forEachModuleDependency(@NotNull Predicate<PsModuleDependency> function) {
-    myModuleDependenciesByGradlePath.values().forEach(function::apply);
+  public void forEachModuleDependency(@NotNull Consumer<PsModuleDependency> consumer) {
+    myModuleDependenciesByGradlePath.values().forEach(consumer);
   }
 }

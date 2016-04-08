@@ -39,13 +39,7 @@ public class PsContext implements Disposable {
     myDaemonAnalyzer = new PsDaemonAnalyzer(this);
     myDaemonAnalyzer.reset();
 
-    myProject.forEachModule(module -> {
-      if (module == null) {
-        return false;
-      }
-      myDaemonAnalyzer.queueUpdate(module);
-      return true;
-    });
+    myProject.forEachModule(myDaemonAnalyzer::queueUpdate);
 
     Disposer.register(parentDisposable, this);
   }

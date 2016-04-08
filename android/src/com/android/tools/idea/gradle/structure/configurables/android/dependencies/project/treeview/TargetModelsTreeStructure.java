@@ -20,10 +20,8 @@ import com.android.tools.idea.gradle.structure.configurables.android.dependencie
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractBaseTreeStructure;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.SimpleNodeComparator;
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
-import com.android.tools.idea.gradle.structure.model.PsParsedDependencies;
 import com.android.tools.idea.gradle.structure.model.PsProject;
 import com.android.tools.idea.gradle.structure.model.android.*;
-import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -100,9 +98,9 @@ public class TargetModelsTreeStructure extends AbstractBaseTreeStructure {
           containersByModule.put(moduleName, containers);
         }
 
-        String artifactName = PsParsedDependencies.guessArtifactName(configurationName);
         for (PsDependencyContainer container : dependency.getContainers()) {
-          if (Objects.equal(artifactName, container.getArtifact())) {
+          PsAndroidArtifact artifact = container.findArtifact(module, false);
+          if (artifact != null && artifact.getPossibleConfigurationNames().contains(configurationName)) {
             containers.add(container);
           }
         }
@@ -146,12 +144,11 @@ public class TargetModelsTreeStructure extends AbstractBaseTreeStructure {
             // dependencies.
             PsVariant parentVariant = mainArtifact.getParent();
             parentVariant.forEachArtifact(artifact -> {
-              if (artifact == null || existingArtifacts.contains(artifact)) {
-                return false;
+              if (existingArtifacts.contains(artifact)) {
+                return;
               }
               AndroidArtifactNode artifactNode = new AndroidArtifactNode(moduleNode, artifact);
               artifactNodes.add(artifactNode);
-              return true;
             });
           }
         }
