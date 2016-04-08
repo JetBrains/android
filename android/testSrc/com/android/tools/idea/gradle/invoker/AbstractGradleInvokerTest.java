@@ -28,7 +28,7 @@ import java.util.List;
 
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
 import static com.android.builder.model.AndroidProject.ARTIFACT_UNIT_TEST;
-import static org.fest.assertions.Assertions.assertThat;
+import static com.google.common.truth.Truth.assertThat;
 
 public abstract class AbstractGradleInvokerTest extends AndroidGradleArtifactsTestCase {
   protected static final String SOURCE_GEN = "generateDebugSources";
@@ -73,7 +73,7 @@ public abstract class AbstractGradleInvokerTest extends AndroidGradleArtifactsTe
     myInvoker.addBeforeGradleInvocationTask(new GradleInvoker.BeforeGradleInvocationTask() {
       @Override
       public void execute(@NotNull List<String> tasks) {
-        assertThat(tasks).containsOnly("assembleTranslate");
+        assertThat(tasks).containsExactly("assembleTranslate");
         assertEquals(BuildMode.ASSEMBLE_TRANSLATE, getBuildMode());
       }
     });
@@ -91,10 +91,11 @@ public abstract class AbstractGradleInvokerTest extends AndroidGradleArtifactsTe
       @Override
       public void execute(@NotNull List<String> tasks) {
         // Make sure all "after sync tasks" are run, for running unit tests.
-        assertThat(tasks).containsOnly(qualifiedTaskName(MOCKABLE_ANDROID_JAR),
-                                       qualifiedTaskName(PREPARE_UNIT_TEST_DEPENDENCIES),
-                                       qualifiedTaskName(SOURCE_GEN),
-                                       qualifiedTaskName(COMPILE_UNIT_TEST_JAVA));
+        assertThat(tasks).containsExactly(
+          qualifiedTaskName(MOCKABLE_ANDROID_JAR),
+          qualifiedTaskName(PREPARE_UNIT_TEST_DEPENDENCIES),
+          qualifiedTaskName(SOURCE_GEN),
+          qualifiedTaskName(COMPILE_UNIT_TEST_JAVA));
         // If using Jack, running :app:compileDebugSources would be a waste of time.
         assertDoesntContain(tasks, COMPILE_JAVA);
         assertEquals(BuildMode.COMPILE_JAVA, getBuildMode());
@@ -107,7 +108,7 @@ public abstract class AbstractGradleInvokerTest extends AndroidGradleArtifactsTe
     myInvoker.addBeforeGradleInvocationTask(new GradleInvoker.BeforeGradleInvocationTask() {
       @Override
       public void execute(@NotNull List<String> tasks) {
-        assertThat(tasks).containsOnly(qualifiedTaskName(ASSEMBLE));
+        assertThat(tasks).containsExactly(qualifiedTaskName(ASSEMBLE));
         assertEquals(BuildMode.ASSEMBLE, getBuildMode());
       }
     });
@@ -118,8 +119,7 @@ public abstract class AbstractGradleInvokerTest extends AndroidGradleArtifactsTe
     myInvoker.addBeforeGradleInvocationTask(new GradleInvoker.BeforeGradleInvocationTask() {
       @Override
       public void execute(@NotNull List<String> tasks) {
-        assertThat(tasks).containsOnly(qualifiedTaskName(ASSEMBLE),
-                                       qualifiedTaskName(ASSEMBLE_ANDROID_TEST));
+        assertThat(tasks).containsExactly(qualifiedTaskName(ASSEMBLE), qualifiedTaskName(ASSEMBLE_ANDROID_TEST));
         assertEquals(BuildMode.ASSEMBLE, getBuildMode());
       }
     });

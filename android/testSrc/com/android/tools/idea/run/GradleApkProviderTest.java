@@ -27,8 +27,8 @@ import org.junit.runners.Parameterized;
 
 import java.util.*;
 
+import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
-import static org.fest.assertions.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -85,7 +85,7 @@ public class GradleApkProviderTest extends AndroidGradleArtifactsTestCase {
     loadProject("projects/runConfig/activity");
     GradleApkProvider provider = new GradleApkProvider(myAndroidFacet, false);
     Collection<ApkInfo> apks = provider.getApks(mock(IDevice.class));
-    assertThat(apks).isNotNull().hasSize(1);
+    assertThat(apks).hasSize(1);
 
     ApkInfo apk = getFirstItem(apks);
     assertNotNull(apk);
@@ -110,7 +110,7 @@ public class GradleApkProviderTest extends AndroidGradleArtifactsTestCase {
     GradleApkProvider provider = new GradleApkProvider(myAndroidFacet, true);
 
     Collection<ApkInfo> apks = provider.getApks(mock(IDevice.class));
-    assertThat(apks).isNotNull().hasSize(2);
+    assertThat(apks).hasSize(2);
 
     // Sort the APKs to keep test consistent.
     List<ApkInfo> apkList = new ArrayList<>(apks);

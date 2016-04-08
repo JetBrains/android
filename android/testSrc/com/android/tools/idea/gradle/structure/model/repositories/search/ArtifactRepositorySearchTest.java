@@ -21,7 +21,7 @@ import com.intellij.testFramework.IdeaTestCase;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
-import static org.fest.assertions.Assertions.assertThat;
+import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -54,6 +54,6 @@ public class ArtifactRepositorySearchTest extends IdeaTestCase {
     lock.await();
 
     List<SearchResult> results = callback.getSearchResults();
-    assertThat(results).containsOnly(result1, result2);
+    assertThat(results).containsExactly(result1, result2);
   }
 }
