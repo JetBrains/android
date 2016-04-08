@@ -42,8 +42,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.io.FileUtil.normalize;
-import static org.fest.assertions.Assertions.assertThat;
 
 /**
  * Tests for {@link AndroidJunitPatcher}.
@@ -173,7 +173,7 @@ public class AndroidJunitPatcherTest extends AndroidTestCase {
 
     myPatcher.patchJavaParameters(myModule, myJavaParameters);
     List<String> result = myJavaParameters.getClassPath().getPathList();
-    assertThat(result).excludes(alsoRealAndroidJar, myRealAndroidJar);
+    assertThat(result).containsNoneOf(alsoRealAndroidJar, myRealAndroidJar);
   }
 
   public void testMultipleMockableJars_oldModel() throws Exception {
@@ -187,7 +187,7 @@ public class AndroidJunitPatcherTest extends AndroidTestCase {
 
     List<String> pathList = classPath.getPathList();
     assertEquals(myMockableAndroidJar, Iterables.getLast(pathList));
-    assertThat(pathList).excludes(jar15, jar22);
+    assertThat(pathList).containsNoneOf(jar15, jar22);
   }
 
   @SuppressWarnings("ConstantConditions") // No risk of NPEs.
