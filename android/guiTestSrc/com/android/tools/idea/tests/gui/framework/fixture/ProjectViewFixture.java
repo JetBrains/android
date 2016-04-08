@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.Wait;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
@@ -26,6 +27,10 @@ import com.intellij.ide.projectView.impl.nodes.NamedLibraryElement;
 import com.intellij.ide.projectView.impl.nodes.NamedLibraryElementNode;
 import com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode;
 import com.intellij.ide.util.treeView.AbstractTreeStructure;
+import com.intellij.openapi.actionSystem.KeyboardShortcut;
+import com.intellij.openapi.actionSystem.Shortcut;
+import com.intellij.openapi.keymap.Keymap;
+import com.intellij.openapi.keymap.KeymapManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.Sdk;
@@ -41,13 +46,15 @@ import org.fest.swing.edt.GuiTask;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
+import java.awt.*;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.fest.reflect.core.Reflection.field;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 public class ProjectViewFixture extends ToolWindowFixture {
   ProjectViewFixture(@NotNull Project project, @NotNull Robot robot) {
@@ -58,36 +65,47 @@ public class ProjectViewFixture extends ToolWindowFixture {
   public PaneFixture selectProjectPane() {
     activate();
     final ProjectView projectView = ProjectView.getInstance(myProject);
-    Wait.minutes(2).expecting("ProjectView to be initialized")
-      .until(() -> field("isInitialized").ofType(boolean.class).in(projectView).get());
 
-    final String id = "ProjectPane";
-    GuiActionRunner.execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
-        projectView.changeView(id);
-      }
-    });
-    return new PaneFixture(projectView.getProjectViewPaneById(id));
+    if (!"ProjectView".equals(projectView.getCurrentViewId())) {
+      changePane(projectView, "Project");
+    }
+
+    return new PaneFixture(projectView.getCurrentProjectViewPane());
   }
 
   @NotNull
   public PaneFixture selectAndroidPane() {
     activate();
     final ProjectView projectView = ProjectView.getInstance(myProject);
-    Wait.minutes(2).expecting("ProjectView to be initialized")
-      .until(() -> field("isInitialized").ofType(boolean.class).in(projectView).get());
 
-    final String id = "AndroidView";
-    GuiActionRunner.execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
-        projectView.changeView(id);
-      }
-    });
-    AbstractProjectViewPane androidPane = projectView.getProjectViewPaneById(id);
-    Wait.minutes(2).expecting("Android pane to be selected").until(() -> androidPane.getSelectedElement() != null);
-    return new PaneFixture(androidPane);
+    if (!"AndroidView".equals(projectView.getCurrentViewId())) {
+      changePane(projectView, "Android");
+    }
+
+    return new PaneFixture(projectView.getCurrentProjectViewPane());
+  }
+
+  private void changePane(@NotNull ProjectView projectView, @NotNull String paneName) {
+    Keymap keymap = KeymapManager.getInstance().getActiveKeymap();
+    Shortcut[] shortcuts = keymap.getShortcuts("ShowContent");
+    assertNotNull(shortcuts);
+    assertThat(shortcuts).isNotEmpty();
+    Shortcut shortcut = shortcuts[0];
+    assertTrue(shortcut instanceof KeyboardShortcut);
+    KeyboardShortcut cs = (KeyboardShortcut)shortcut;
+
+    Component component = projectView.getCurrentProjectViewPane().getComponentToFocus();
+    myRobot.focusAndWaitForFocusGain(component);
+
+    KeyStroke firstKeyStroke = cs.getFirstKeyStroke();
+    myRobot.pressAndReleaseKey(firstKeyStroke.getKeyCode(), firstKeyStroke.getModifiers());
+
+    KeyStroke secondKeyStroke = cs.getSecondKeyStroke();
+    if (secondKeyStroke != null) {
+      myRobot.pressAndReleaseKey(secondKeyStroke.getKeyCode(), secondKeyStroke.getModifiers());
+    }
+
+    GuiTests.clickPopupMenuItem(paneName, component, myRobot);
   }
 
   public static class PaneFixture {

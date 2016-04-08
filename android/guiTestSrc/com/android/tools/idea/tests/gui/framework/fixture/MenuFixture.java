@@ -65,6 +65,7 @@ class MenuFixture {
 
   @NotNull
   private JMenuItem findActionMenuItem(final boolean pathIsRegex, @NotNull String... path) {
+    myRobot.waitForIdle(); // UI events can trigger modifications of the menu contents
     assertThat(path).isNotEmpty();
     int segmentCount = path.length;
 
