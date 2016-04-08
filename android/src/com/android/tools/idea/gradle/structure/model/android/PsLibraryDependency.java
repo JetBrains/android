@@ -124,9 +124,6 @@ public class PsLibraryDependency extends PsAndroidDependency {
   private void findRequestingModuleDependencies(@NotNull PsAndroidModule module, @NotNull Collection<String> found) {
     PsProject project = module.getParent();
     module.forEachModuleDependency(moduleDependency -> {
-      if (moduleDependency == null) {
-        return false;
-      }
       String gradlePath = moduleDependency.getGradlePath();
       PsModule foundModule = project.findModuleByGradlePath(gradlePath);
       if (foundModule instanceof PsAndroidModule) {
@@ -139,7 +136,6 @@ public class PsLibraryDependency extends PsAndroidDependency {
 
         findRequestingModuleDependencies(androidModule, found);
       }
-      return true;
     });
   }
 

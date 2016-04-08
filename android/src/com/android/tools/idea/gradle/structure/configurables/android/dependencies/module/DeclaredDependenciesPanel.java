@@ -131,18 +131,12 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel implem
     ListSelectionModel tableSelectionModel = myDependenciesTable.getSelectionModel();
     tableSelectionModel.setSelectionMode(MULTIPLE_INTERVAL_SELECTION);
 
+    myTableSelectionListener = e -> updateDetailsAndIssues();
+    tableSelectionModel.addListSelectionListener(myTableSelectionListener);
+
     if (!myDependenciesTable.getItems().isEmpty()) {
       myDependenciesTable.changeSelection(0, 0, false, false);
-      updateDetailsAndIssues();
     }
-    myTableSelectionListener = e -> {
-      PsAndroidDependency selected = getSelection();
-      if (selected != null) {
-        myEventDispatcher.getMulticaster().dependencySelected(selected);
-      }
-      updateDetailsAndIssues();
-    };
-    tableSelectionModel.addListSelectionListener(myTableSelectionListener);
 
     addHyperlinkFunctionality();
 
@@ -261,6 +255,7 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel implem
 
   void add(@NotNull SelectionListener listener) {
     myEventDispatcher.addListener(listener, this);
+    notifySelectionChanged();
   }
 
   @Override
@@ -295,18 +290,22 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel implem
   }
 
   private void updateDetailsAndIssues() {
-    Collection<PsAndroidDependency> selection = myDependenciesTable.getSelection();
-    PsAndroidDependency selected = null;
-    if (selection.size() == 1) {
-      selected = getFirstItem(selection);
-    }
+    notifySelectionChanged();
 
+    PsAndroidDependency selected = getSelection();
     super.updateDetails(selected);
     updateIssues(selected);
 
     History history = getHistory();
     if (history != null) {
       history.pushQueryPlace();
+    }
+  }
+
+  private void notifySelectionChanged() {
+    PsAndroidDependency selected = getSelection();
+    if (selected != null) {
+      myEventDispatcher.getMulticaster().dependencySelected(selected);
     }
   }
 
