@@ -84,6 +84,10 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
       "   app (androidTest)\n" +
       "    MainActivityTest.java\n" +
       "   Debug.java\n" +
+      "  renderscript\n" +
+      "   test.rs (main)\n" +
+      "  assets\n" +
+      "   raw.asset.txt (main)\n" +
       "  res\n" +
       "   drawable\n" +
       "    ic_launcher.png (2)\n" +
@@ -103,10 +107,6 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
       "     strings.xml\n" +
       "     strings.xml (debug)\n" +
       "    styles.xml\n" +
-      "  assets\n" +
-      "   raw.asset.txt (main)\n" +
-      "  rs\n" +
-      "   test.rs (main)\n" +
       " empty (non-Android)\n" +
       " javamodule (non-Android)\n" +
       "  java\n" +

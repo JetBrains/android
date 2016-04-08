@@ -15,7 +15,6 @@
  */
 package org.jetbrains.android.facet;
 
-import com.google.common.base.Function;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
@@ -24,17 +23,21 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Function;
 
 public enum AndroidSourceType {
+  // source roots
   MANIFEST("manifest", IdeaSourceProvider.MANIFEST_PROVIDER, AllIcons.Modules.SourceRoot),
   JAVA("java", IdeaSourceProvider.JAVA_PROVIDER, AllIcons.Modules.SourceRoot),
   JNI("jni", IdeaSourceProvider.JNI_PROVIDER, AllIcons.Modules.SourceRoot),
+  AIDL("aidl", IdeaSourceProvider.AIDL_PROVIDER, AllIcons.Modules.SourceRoot),
+  RENDERSCRIPT("renderscript", IdeaSourceProvider.RENDERSCRIPT_PROVIDER, AllIcons.Modules.SourceRoot),
+  SHADERS("shaders", IdeaSourceProvider.SHADERS_PROVIDER, AllIcons.Modules.SourceRoot),
+  // resource roots
+  ASSETS("assets", IdeaSourceProvider.ASSETS_PROVIDER, AllIcons.Modules.ResourcesRoot),
   JNILIBS("jniLibs", IdeaSourceProvider.JNI_LIBS_PROVIDER, AllIcons.Modules.ResourcesRoot),
   RES("res", IdeaSourceProvider.RES_PROVIDER, AllIcons.Modules.ResourcesRoot),
-  AIDL("aidl", IdeaSourceProvider.AIDL_PROVIDER, AllIcons.Modules.SourceRoot),
-  RESOURCES("resources", IdeaSourceProvider.RESOURCES_PROVIDER, AllIcons.Modules.ResourcesRoot),
-  ASSETS("assets", IdeaSourceProvider.ASSETS_PROVIDER, AllIcons.Modules.ResourcesRoot),
-  RS("rs", IdeaSourceProvider.RS_PROVIDER, AllIcons.Modules.SourceRoot);
+  RESOURCES("resources", IdeaSourceProvider.RESOURCES_PROVIDER, AllIcons.Modules.ResourcesRoot);
 
   private final String myName;
   private final Function<IdeaSourceProvider, List<VirtualFile>> mySourceExtractor;
