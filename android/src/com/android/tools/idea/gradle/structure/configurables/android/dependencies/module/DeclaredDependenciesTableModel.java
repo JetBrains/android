@@ -54,10 +54,7 @@ class DeclaredDependenciesTableModel extends ListTableModel<PsAndroidDependency>
     myContext = context;
     createAndSetColumnInfos();
     List<PsAndroidDependency> dependencies = Lists.newArrayList();
-    module.forEachDeclaredDependency(dependency -> {
-      dependencies.add(dependency);
-      return true;
-    });
+    module.forEachDeclaredDependency(dependencies::add);
     Collections.sort(dependencies, PsAndroidDependencyComparator.INSTANCE);
     setItems(dependencies);
   }
