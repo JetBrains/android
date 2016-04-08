@@ -227,14 +227,7 @@ public abstract class BasePerspectiveConfigurable extends MasterDetailsComponent
 
   private void createModuleNodes(@NotNull List<PsModule> extraTopModules) {
     extraTopModules.forEach(this::addConfigurableFor);
-
-    myContext.getProject().forEachModule(module -> {
-      if (module == null) {
-        return false;
-      }
-      addConfigurableFor(module);
-      return true;
-    });
+    myContext.getProject().forEachModule(this::addConfigurableFor);
   }
 
   private void addConfigurableFor(@NotNull PsModule module) {

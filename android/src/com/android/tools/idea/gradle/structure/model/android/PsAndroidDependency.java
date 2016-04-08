@@ -24,6 +24,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public abstract class PsAndroidDependency extends PsChildModel implements PsAndroidModel {
   @NotNull private final Set<PsDependencyContainer> myContainers = Sets.newHashSet();
@@ -60,9 +61,8 @@ public abstract class PsAndroidDependency extends PsChildModel implements PsAndr
   @NotNull
   public Set<String> getVariants() {
     Set<String> variants = Sets.newHashSet();
-    for (PsDependencyContainer container : myContainers) {
-      variants.add(container.getVariant());
-    }
+    variants.addAll(myContainers.stream().map(PsDependencyContainer::getVariant)
+                                         .collect(Collectors.toList()));
     return variants;
   }
 
