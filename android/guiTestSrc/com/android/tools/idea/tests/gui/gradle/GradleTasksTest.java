@@ -70,16 +70,14 @@ public class GradleTasksTest {
                                     "}");
     // Run that long-running task
     String taskName = "hello";
-    runTask(taskName, new Consumer<ExecutionToolWindowFixture.ContentFixture>() {
-      @Override
-      public void consume(final ExecutionToolWindowFixture.ContentFixture runContent) {
+    runTask(
+      taskName, runContent -> {
         for (int i = 0; i < 7; i++) {
           runContent.waitForOutput(new PatternTextMatcher(Pattern.compile(".*output entry " + i + ".*", DOTALL)), 2);
           assertTrue(runContent.isExecutionInProgress());
         }
         Wait.minutes(2).expecting("task execution to finish").until(() -> !runContent.isExecutionInProgress());
-      }
-    });
+      });
   }
 
   @Test
@@ -94,15 +92,13 @@ public class GradleTasksTest {
     guiTest.ideFrame().waitForGradleProjectSyncToFinish();
 
     final Pattern buildSuccessfulPattern = Pattern.compile(".*BUILD SUCCESSFUL.*", DOTALL);
-    runTask("build", new Consumer<ExecutionToolWindowFixture.ContentFixture>() {
-      @Override
-      public void consume(final ExecutionToolWindowFixture.ContentFixture runContent) {
+    runTask(
+      "build", runContent -> {
         boolean askedToStop = runContent.stop();
         assertTrue(askedToStop);
         Wait.seconds(30).expecting("'build' task to stop").until(
           () -> !runContent.isExecutionInProgress() && runContent.outputMatches(new NotMatchingPatternMatcher(buildSuccessfulPattern)));
-      }
-    });
+      });
   }
 
   private void openProjectAndAddToGradleConfig(@NotNull final String textToAdd) throws IOException {
@@ -114,12 +110,10 @@ public class GradleTasksTest {
     assertNotNull(buildFile);
     final Document document = getDocument(buildFile);
     assertNotNull(document);
-    runWriteCommandAction(guiTest.ideFrame().getProject(), new Runnable() {
-      @Override
-      public void run() {
+    runWriteCommandAction(
+      guiTest.ideFrame().getProject(), () -> {
         document.insertString(document.getTextLength(), textToAdd);
-      }
-    });
+      });
 
     guiTest.ideFrame().requestProjectSync();
     guiTest.ideFrame().waitForGradleProjectSyncToFinish();

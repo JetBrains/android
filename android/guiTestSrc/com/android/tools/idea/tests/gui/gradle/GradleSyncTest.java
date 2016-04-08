@@ -223,15 +223,13 @@ public class GradleSyncTest {
     execute(new GuiTask() {
       @Override
       protected void executeInEDT() throws Throwable {
-        runWriteCommandAction(guiTest.ideFrame().getProject(), new Runnable() {
-          @Override
-          public void run() {
+        runWriteCommandAction(
+          guiTest.ideFrame().getProject(), () -> {
             GradleBuildModel buildModel = GradleBuildModel.get(appModule);
             assertNotNull(buildModel);
             buildModel.dependencies().addModule(COMPILE, ":fakeLibrary");
             buildModel.applyChanges();
-          }
-        });
+          });
       }
     });
 
@@ -1358,11 +1356,8 @@ public class GradleSyncTest {
     execute(new GuiTask() {
       @Override
       protected void executeInEDT() throws Throwable {
-        ApplicationManager.getApplication().runWriteAction(new Runnable() {
-          @Override
-          public void run() {
-            IdeSdks.setJdkPath(tempJdkDirectory);
-          }
+        ApplicationManager.getApplication().runWriteAction(() -> {
+          IdeSdks.setJdkPath(tempJdkDirectory);
         });
       }
     });
@@ -1419,17 +1414,15 @@ public class GradleSyncTest {
     execute(new GuiTask() {
       @Override
       protected void executeInEDT() throws Throwable {
-        runWriteCommandAction(project, new Runnable() {
-          @Override
-          public void run() {
+        runWriteCommandAction(
+          project, () -> {
             GradleBuildModel buildModel = GradleBuildModel.get(appModule);
             assertNotNull(buildModel);
 
             String newDependency = "com.mapbox.mapboxsdk:mapbox-android-sdk:0.7.4@aar";
             buildModel.dependencies().addArtifact(COMPILE, newDependency);
             buildModel.applyChanges();
-          }
-        });
+          });
       }
     });
 
@@ -1457,12 +1450,10 @@ public class GradleSyncTest {
     execute(new GuiTask() {
       @Override
       protected void executeInEDT() throws Throwable {
-        runWriteCommandAction(project, new Runnable() {
-          @Override
-          public void run() {
+        runWriteCommandAction(
+          project, () -> {
             buildFile.setValue(BuildFileKey.COMPILE_SDK_VERSION, "Google Inc.:Google APIs:23");
-          }
-        });
+          });
       }
     });
 

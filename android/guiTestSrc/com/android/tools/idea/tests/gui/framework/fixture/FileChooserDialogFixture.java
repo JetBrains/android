@@ -76,11 +76,8 @@ public class FileChooserDialogFixture extends IdeaDialogFixture<FileChooserDialo
     execute(new GuiTask() {
       @Override
       protected void executeInEDT() throws Throwable {
-        fileSystemTree.select(file, new Runnable() {
-          @Override
-          public void run() {
-            fileSelected.set(true);
-          }
+        fileSystemTree.select(file, () -> {
+          fileSelected.set(true);
         });
       }
     });

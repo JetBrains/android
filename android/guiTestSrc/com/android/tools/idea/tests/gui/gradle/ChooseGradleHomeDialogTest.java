@@ -78,13 +78,11 @@ public class ChooseGradleHomeDialogTest {
     });
     assertNotNull(dialog);
 
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
-      @Override
-      public void run() {
+    ApplicationManager.getApplication().invokeLater(
+      () -> {
         dialog.setModal(false);
         dialog.show();
-      }
-    });
+      });
 
     return ChooseGradleHomeDialogFixture.find(guiTest.robot());
   }
