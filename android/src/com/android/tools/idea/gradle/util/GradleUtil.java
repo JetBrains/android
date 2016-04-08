@@ -170,41 +170,38 @@ public final class GradleUtil {
     final String existingJvmArgs = settings.getGradleVmOptions();
     settings.setGradleVmOptions(null);
     if (!isEmptyOrSpaces(existingJvmArgs)) {
-      invokeAndWaitIfNeeded(new Runnable() {
-        @Override
-        public void run() {
-          String jvmArgs = existingJvmArgs.trim();
-          final String msg =
-            String.format("Starting with version 1.3, Android Studio no longer supports IDE-specific Gradle JVM arguments.\n\n" +
-                          "Android Studio will now remove any stored Gradle JVM arguments.\n\n" +
-                          "Would you like to copy these JVM arguments:\n%1$s\n" +
-                          "to the project's gradle.properties file?\n\n" +
-                          "(Any existing JVM arguments in the gradle.properties file will be overwritten.)", jvmArgs);
+      invokeAndWaitIfNeeded((Runnable)() -> {
+        String jvmArgs = existingJvmArgs.trim();
+        final String msg =
+          String.format("Starting with version 1.3, Android Studio no longer supports IDE-specific Gradle JVM arguments.\n\n" +
+                        "Android Studio will now remove any stored Gradle JVM arguments.\n\n" +
+                        "Would you like to copy these JVM arguments:\n%1$s\n" +
+                        "to the project's gradle.properties file?\n\n" +
+                        "(Any existing JVM arguments in the gradle.properties file will be overwritten.)", jvmArgs);
 
-          int result = Messages.showYesNoDialog(project, msg, "Gradle Settings", Messages.getQuestionIcon());
-          if (result == Messages.YES) {
-            try {
-              GradleProperties gradleProperties = new GradleProperties(project);
-              gradleProperties.setJvmArgs(jvmArgs);
-              gradleProperties.save();
-            }
-            catch (IOException e) {
-              String err = String.format("Failed to copy JVM arguments '%1$s' to the project's gradle.properties file.", existingJvmArgs);
-              LOG.info(err, e);
-
-              String cause = e.getMessage();
-              if (isNotEmpty(cause)) {
-                err += String.format("<br>\nCause: %1$s", cause);
-              }
-
-              AndroidGradleNotification.getInstance(project).showBalloon("Gradle Settings", err, ERROR);
-            }
+        int result = Messages.showYesNoDialog(project, msg, "Gradle Settings", Messages.getQuestionIcon());
+        if (result == Messages.YES) {
+          try {
+            GradleProperties gradleProperties = new GradleProperties(project);
+            gradleProperties.setJvmArgs(jvmArgs);
+            gradleProperties.save();
           }
-          else {
-            String text =
-              String.format("JVM arguments<br>\n'%1$s'<br>\nwere not copied to the project's gradle.properties file.", existingJvmArgs);
-            AndroidGradleNotification.getInstance(project).showBalloon("Gradle Settings", text, WARNING);
+          catch (IOException e) {
+            String err = String.format("Failed to copy JVM arguments '%1$s' to the project's gradle.properties file.", existingJvmArgs);
+            LOG.info(err, e);
+
+            String cause = e.getMessage();
+            if (isNotEmpty(cause)) {
+              err += String.format("<br>\nCause: %1$s", cause);
+            }
+
+            AndroidGradleNotification.getInstance(project).showBalloon("Gradle Settings", err, ERROR);
           }
+        }
+        else {
+          String text =
+            String.format("JVM arguments<br>\n'%1$s'<br>\nwere not copied to the project's gradle.properties file.", existingJvmArgs);
+          AndroidGradleNotification.getInstance(project).showBalloon("Gradle Settings", text, WARNING);
         }
       });
     }
@@ -805,27 +802,24 @@ public final class GradleUtil {
    */
   @Nullable
   public static GradleVersion getAndroidGradleModelVersionFromBuildFile(@NotNull final Project project) {
-    final Ref<GradleVersion> modelVersionRef = new Ref<GradleVersion>();
+    final Ref<GradleVersion> modelVersionRef = new Ref<>();
 
-    processBuildModelsRecursively(project, new Processor<GradleBuildModel>() {
-      @Override
-      public boolean process(GradleBuildModel buildModel) {
-        DependenciesModel dependencies = buildModel.buildscript().dependencies();
-        for (ArtifactDependencyModel dependency : dependencies.artifacts(CLASSPATH)) {
-          if (isAndroidPlugin(dependency)) {
-            String versionValue = dependency.version().value();
-            if (versionValue != null) {
-              GradleVersion version = GradleVersion.tryParse(versionValue);
-              if (version != null) {
-                modelVersionRef.set(version);
-                return false; // we found the model version. Stop.
-              }
+    processBuildModelsRecursively(project, buildModel -> {
+      DependenciesModel dependencies = buildModel.buildscript().dependencies();
+      for (ArtifactDependencyModel dependency : dependencies.artifacts(CLASSPATH)) {
+        if (isAndroidPlugin(dependency)) {
+          String versionValue = dependency.version().value();
+          if (versionValue != null) {
+            GradleVersion version = GradleVersion.tryParse(versionValue);
+            if (version != null) {
+              modelVersionRef.set(version);
+              return false; // we found the model version. Stop.
             }
-            break;
           }
+          break;
         }
-        return true;
       }
+      return true;
     });
 
     GradleVersion gradleVersion = modelVersionRef.get();
@@ -1307,37 +1301,31 @@ public final class GradleUtil {
                                                   @Nullable String gradleVersion) {
     final List<GradleBuildModel> modelsToUpdate = Lists.newArrayList();
     final GradleVersion parsedPluginVersion = GradleVersion.parse(pluginVersion);
-    final Ref<Boolean> alreadyInCorrectVersion = new Ref<Boolean>(false);
+    final Ref<Boolean> alreadyInCorrectVersion = new Ref<>(false);
 
-    processBuildModelsRecursively(project, new Processor<GradleBuildModel>() {
-      @Override
-      public boolean process(GradleBuildModel buildModel) {
-        DependenciesModel dependencies = buildModel.buildscript().dependencies();
-        for (ArtifactDependencyModel dependency : dependencies.artifacts(CLASSPATH)) {
-          if (isAndroidPlugin(dependency)) {
-            String versionValue = dependency.version().value();
-            if (versionValue != null && parsedPluginVersion.compareTo(versionValue) == 0) {
-              alreadyInCorrectVersion.set(true);
-            }
-            else {
-              dependency.setVersion(parsedPluginVersion.toString());
-              modelsToUpdate.add(buildModel);
-            }
-            break;
+    processBuildModelsRecursively(project, buildModel -> {
+      DependenciesModel dependencies = buildModel.buildscript().dependencies();
+      for (ArtifactDependencyModel dependency : dependencies.artifacts(CLASSPATH)) {
+        if (isAndroidPlugin(dependency)) {
+          String versionValue = dependency.version().value();
+          if (versionValue != null && parsedPluginVersion.compareTo(versionValue) == 0) {
+            alreadyInCorrectVersion.set(true);
           }
+          else {
+            dependency.setVersion(parsedPluginVersion.toString());
+            modelsToUpdate.add(buildModel);
+          }
+          break;
         }
-        return true;
       }
+      return true;
     });
 
     boolean updateModels = !modelsToUpdate.isEmpty();
     if (updateModels) {
-      runWriteCommandAction(project, new Runnable() {
-        @Override
-        public void run() {
-          for (GradleBuildModel buildModel : modelsToUpdate) {
-            buildModel.applyChanges();
-          }
+      runWriteCommandAction(project, () -> {
+        for (GradleBuildModel buildModel : modelsToUpdate) {
+          buildModel.applyChanges();
         }
       });
     }
@@ -1369,26 +1357,20 @@ public final class GradleUtil {
   }
 
   public static void processBuildModelsRecursively(@NotNull final Project project, @NotNull final Processor<GradleBuildModel> processor) {
-    ApplicationManager.getApplication().runReadAction(new Runnable() {
-      @Override
-      public void run() {
-        VirtualFile baseDir = project.getBaseDir();
-        if (baseDir == null) {
-          // Unlikely to happen: this is default project.
-          return;
-        }
-
-        processFileRecursivelyWithoutIgnored(baseDir, new Processor<VirtualFile>() {
-          @Override
-          public boolean process(VirtualFile virtualFile) {
-            if (FN_BUILD_GRADLE.equals(virtualFile.getName())) {
-              GradleBuildModel buildModel = parseBuildFile(virtualFile, project);
-              return processor.process(buildModel);
-            }
-            return true;
-          }
-        });
+    ApplicationManager.getApplication().runReadAction(() -> {
+      VirtualFile baseDir = project.getBaseDir();
+      if (baseDir == null) {
+        // Unlikely to happen: this is default project.
+        return;
       }
+
+      processFileRecursivelyWithoutIgnored(baseDir, virtualFile -> {
+        if (FN_BUILD_GRADLE.equals(virtualFile.getName())) {
+          GradleBuildModel buildModel = parseBuildFile(virtualFile, project);
+          return processor.process(buildModel);
+        }
+        return true;
+      });
     });
   }
 
@@ -1425,12 +1407,9 @@ public final class GradleUtil {
     }
 
     if (!modelsToUpdate.isEmpty()) {
-      runWriteCommandAction(project, new Runnable() {
-        @Override
-        public void run() {
-          for (GradleBuildModel buildModel : modelsToUpdate) {
-            buildModel.applyChanges();
-          }
+      runWriteCommandAction(project, () -> {
+        for (GradleBuildModel buildModel : modelsToUpdate) {
+          buildModel.applyChanges();
         }
       });
     }
