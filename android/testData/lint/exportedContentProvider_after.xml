@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+          package="test.pkg">
+  <application android:icon="@mipmap/ic_launcher">
+    <provider
+            android:name="com.sample.provider.providerClass1"
+            android:authorities="com.sample.provider.providerData"
+            android:exported="false">
+    </provider>
+  </application>
+</manifest>
