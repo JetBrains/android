@@ -228,19 +228,22 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
       if (myScreenMode == ScreenMode.SCREEN_ONLY) {
         myLayers.add(new ScreenViewLayer(myScreenView));
         myLayers.add(new SelectionLayer(myScreenView));
+        myLayers.add(new ConstraintsLayer(this, myScreenView, true));
         myLayers.add(new WarningLayer(myScreenView));
       } else if (myScreenMode == ScreenMode.BOTH) {
         myBlueprintView = new ScreenView(this, model);
-        assert screenSize != null;
         myBlueprintView.setLocation(myScreenX + screenSize.width + 10, myScreenY);
         myLayers.add(new ScreenViewLayer(myScreenView));
         myLayers.add(new SelectionLayer(myScreenView));
+        myLayers.add(new ConstraintsLayer(this, myScreenView, true));
         myLayers.add(new WarningLayer(myScreenView));
         myLayers.add(new BlueprintLayer(myBlueprintView));
         myLayers.add(new SelectionLayer(myBlueprintView));
+        myLayers.add(new ConstraintsLayer(this, myBlueprintView, false));
       } else if (myScreenMode == ScreenMode.BLUEPRINT_ONLY) {
         myLayers.add(new BlueprintLayer(myScreenView));
         myLayers.add(new SelectionLayer(myScreenView));
+        myLayers.add(new ConstraintsLayer(this, myScreenView, false));
       } else {
         assert false : myScreenMode;
       }
@@ -276,18 +279,16 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
     if (myScreenView == null) {
       return;
     }
-    Dimension size = myScreenView.getPreferredSize();
+    Dimension size = myScreenView.getSize();
     if (size != null) {
       // TODO: Account for the size of the blueprint screen too? I should figure out if I can automatically make it jump
       // to the side or below based on the form factor and the available size
-      int scaledWidth = (int)(myScale * size.width);
-      int scaledHeight = (int)(myScale * size.height);
-      Dimension dimension = new Dimension(scaledWidth + 2 * DEFAULT_SCREEN_OFFSET_X,
-                                          scaledHeight + 2 * DEFAULT_SCREEN_OFFSET_Y);
+      Dimension dimension = new Dimension(size.width + 2 * DEFAULT_SCREEN_OFFSET_X,
+                                          size.height + 2 * DEFAULT_SCREEN_OFFSET_Y);
       myLayeredPane.setBounds(0, 0, dimension.width, dimension.height);
       myLayeredPane.setPreferredSize(dimension);
       myScrollPane.revalidate();
-      myProgressPanel.setBounds(myScreenX, myScreenY, scaledWidth, scaledHeight);
+      myProgressPanel.setBounds(myScreenX, myScreenY, size.width, size.height);
     } else {
       myProgressPanel.setBounds(0, 0, getWidth(), getHeight());
     }
@@ -466,24 +467,22 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
     if (myScreenView == null) {
       return;
     }
-    Dimension preferredSize = myScreenView.getPreferredSize();
-    if (preferredSize == null) {
+    Dimension screenViewSize = myScreenView.getSize();
+    if (screenViewSize == null) {
       return;
     }
-    int scaledScreenWidth = (int)(myScale * preferredSize.width);
-    int scaledScreenHeight = (int)(myScale * preferredSize.height);
 
     // Position primary screen
 
     int availableWidth = myScrollPane.getWidth();
     int availableHeight = myScrollPane.getHeight();
-    boolean stackVertically = isVerticalScreenConfig(availableWidth, availableHeight, preferredSize);
+    boolean stackVertically = isVerticalScreenConfig(availableWidth, availableHeight, screenViewSize);
 
     if (myCentered && availableWidth > 10 && availableHeight > 10) {
-      int requiredWidth = scaledScreenWidth;
+      int requiredWidth = screenViewSize.width;
       if (myScreenMode == ScreenMode.BOTH && !stackVertically) {
         requiredWidth += SCREEN_DELTA;
-        requiredWidth += scaledScreenWidth;
+        requiredWidth += screenViewSize.width;
       }
       if (requiredWidth < availableWidth) {
         myScreenX = (availableWidth - requiredWidth) / 2;
@@ -491,10 +490,10 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
         myScreenX = 0;
       }
 
-      int requiredHeight = scaledScreenHeight;
+      int requiredHeight = screenViewSize.height;
       if (myScreenMode == ScreenMode.BOTH && stackVertically) {
         requiredHeight += SCREEN_DELTA;
-        requiredHeight += scaledScreenHeight;
+        requiredHeight += screenViewSize.height;
       }
       if (requiredHeight < availableHeight) {
         myScreenY = (availableHeight - requiredHeight) / 2;
@@ -517,11 +516,11 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
 
       if (stackVertically) {
         // top/bottom stacking
-        myBlueprintView.setLocation(myScreenX, myScreenY + scaledScreenHeight + SCREEN_DELTA);
+        myBlueprintView.setLocation(myScreenX, myScreenY + screenViewSize.height + SCREEN_DELTA);
       }
       else {
         // left/right ordering
-        myBlueprintView.setLocation(myScreenX + scaledScreenWidth + SCREEN_DELTA, myScreenY);
+        myBlueprintView.setLocation(myScreenX + screenViewSize.width + SCREEN_DELTA, myScreenY);
       }
     }
   }
@@ -814,10 +813,9 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
 
       g2d.setComposite(oldComposite);
 
-      boolean needsRepaint = false;
       for (Layer layer : myLayers) {
         if (!layer.isHidden()) {
-          needsRepaint |= layer.paint(g2d);
+          layer.paint(g2d);
         }
       }
 
@@ -826,13 +824,9 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
       if (layers != null) {
         for (Layer layer : layers) {
           if (!layer.isHidden()) {
-            needsRepaint |= layer.paint(g2d);
+            layer.paint(g2d);
           }
         }
-      }
-
-      if (needsRepaint) {
-        repaint();
       }
     }
 
@@ -917,21 +911,18 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
       g2d.setColor(BOUNDS_RECT_COLOR);
       int x = myScreenX;
       int y = myScreenY;
-      Dimension preferredSize = myScreenView.getPreferredSize();
-      if (preferredSize == null) {
+      Dimension size = myScreenView.getSize();
+      if (size == null) {
         return;
       }
-      double scale = myScreenView.getScale();
-      int width = (int)(scale * preferredSize.width);
-      int height = (int)(scale * preferredSize.height);
 
       Stroke prevStroke = g2d.getStroke();
       g2d.setStroke(DASHED_STROKE);
 
-      g2d.drawLine(x - 1, y - BOUNDS_RECT_DELTA, x - 1, y + height + BOUNDS_RECT_DELTA);
-      g2d.drawLine(x - BOUNDS_RECT_DELTA, y - 1, x + width + BOUNDS_RECT_DELTA, y - 1);
-      g2d.drawLine(x + width, y - BOUNDS_RECT_DELTA, x + width, y + height + BOUNDS_RECT_DELTA);
-      g2d.drawLine(x - BOUNDS_RECT_DELTA, y + height, x + width + BOUNDS_RECT_DELTA, y + height);
+      g2d.drawLine(x - 1, y - BOUNDS_RECT_DELTA, x - 1, y + size.height + BOUNDS_RECT_DELTA);
+      g2d.drawLine(x - BOUNDS_RECT_DELTA, y - 1, x + size.width + BOUNDS_RECT_DELTA, y - 1);
+      g2d.drawLine(x + size.width, y - BOUNDS_RECT_DELTA, x + size.width, y + size.height + BOUNDS_RECT_DELTA);
+      g2d.drawLine(x - BOUNDS_RECT_DELTA, y + size.height, x + size.width + BOUNDS_RECT_DELTA, y + size.height);
 
       g2d.setStroke(prevStroke);
     }

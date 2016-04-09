@@ -404,12 +404,13 @@ public class ConstraintModel {
    * @param width              width of the canvas
    * @param height             height of the canvas
    * @param showAllConstraints flag to show or not all the existing constraints
+   * @param transparent        if true, the widgets will only paint the overlay, no background
    * @return true if we need to repaint
    */
-  public boolean paint(@NotNull Graphics2D gc, int width, int height, boolean showAllConstraints) {
+  public boolean paint(@NotNull Graphics2D gc, int width, int height, boolean showAllConstraints, boolean transparent) {
     Graphics2D g = (Graphics2D) gc.create();
     WidgetDecorator.setShowFakeUI(mShowFakeUI);
-    boolean ret = mySceneDraw.paintWidgets(width, height, myViewTransform, g, showAllConstraints, myMouseInteraction);
+    boolean ret = mySceneDraw.paintWidgets(width, height, myViewTransform, g, showAllConstraints, myMouseInteraction, transparent);
     g.dispose();
     return ret;
   }

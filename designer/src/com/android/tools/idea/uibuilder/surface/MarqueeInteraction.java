@@ -143,9 +143,8 @@ public class MarqueeInteraction extends Interaction {
     }
 
     @Override
-    public boolean paint(@NotNull Graphics2D gc) {
+    public void paint(@NotNull Graphics2D gc) {
       NlGraphics.drawFilledRect(NlDrawingStyle.SELECTION, gc, x, y, w, h);
-      return false;
     }
   }
 }

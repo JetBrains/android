@@ -181,11 +181,13 @@ public class ViewGroupHandler extends ViewHandler {
    * @param width width of the surface
    * @param height height of the surface
    * @param component the component to draw
+   * @param transparent if true, only draw component decorations
    *
    * @return true to indicate that we will need to be repainted
    */
   public boolean drawGroup(@NotNull Graphics2D gc, @NotNull ScreenView screenView,
-                           int width, int height, @NotNull NlComponent component) {
+                           int width, int height, @NotNull NlComponent component,
+                           boolean transparent) {
     // do nothing here, subclasses need to override this and handlesPainting() to be called
     return false;
   }

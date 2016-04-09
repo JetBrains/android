@@ -234,11 +234,10 @@ public class ResizeInteraction extends Interaction {
     }
 
     @Override
-    public boolean paint(@NotNull Graphics2D gc) {
+    public void paint(@NotNull Graphics2D gc) {
       if (myResizeHandler != null) {
         myResizeHandler.paint(new NlGraphics(gc, myScreenView));
       }
-      return false;
     }
   }
 }

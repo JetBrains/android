@@ -216,12 +216,14 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
    * @param width width of the surface
    * @param height height of the surface
    * @param component the component to draw
+   * @param transparent if true, it will only draw the widget decorations
    *
    * @return true to indicate that we will need to be repainted
    */
   @Override
   public boolean drawGroup(@NotNull Graphics2D gc, @NotNull ScreenView screenView,
-                           int width, int height, @NotNull NlComponent component) {
+                           int width, int height, @NotNull NlComponent component,
+                           boolean transparent) {
     boolean needsRepaint = false;
     int dpi = screenView.getConfiguration().getDensity().getDpiValue();
     int baseDpi = ConstraintModel.DEFAULT_DENSITY;
@@ -247,7 +249,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
 
     boolean showAllConstraints = false;
 
-    needsRepaint |= constraintModel.paint(gc, width, height, showAllConstraints);
+    needsRepaint |= constraintModel.paint(gc, width, height, showAllConstraints, transparent);
     return needsRepaint;
   }
 }

@@ -36,7 +36,7 @@ public class SelectionLayer extends Layer {
   }
 
   @Override
-  public boolean paint(@NotNull Graphics2D gc) {
+  public void paint(@NotNull Graphics2D gc) {
     SelectionModel model = myScreenView.getSelectionModel();
     ViewHandlerManager viewHandlerManager = ViewHandlerManager.get(
       myScreenView.getModel().getFacet());
@@ -61,7 +61,6 @@ public class SelectionLayer extends Layer {
                                   PIXEL_RADIUS, PIXEL_RADIUS);
       }
     }
-    return false;
   }
 
   /**
