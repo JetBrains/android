@@ -316,8 +316,6 @@ public class WidgetDecorator extends WidgetInteractionTargets {
      * @return true if we need to be called again (i.e. if we are animating)
      */
     public boolean onPaint(ViewTransform transform, Graphics2D g) {
-        onPaintBackground(transform, g);
-
         g.setColor(mFrameColor.getColor());
         if (mIsSelected) {
             updateShowAnchorsPolicy();
