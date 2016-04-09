@@ -201,6 +201,18 @@ public class AndroidLintTest extends AndroidTestCase {
                   "AndroidManifest.xml", "xml");
   }
 
+  public void testExportedContentProvider() throws Exception {
+    deleteManifest();
+    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintExportedContentProviderInspection(),
+                  "Set exported=\"false\"", "AndroidManifest.xml", "xml");
+  }
+
+  public void testExportedReceiver() throws Exception {
+    deleteManifest();
+    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintExportedReceiverInspection(),
+                  "Set permission attribute", "AndroidManifest.xml", "xml");
+  }
+
   public void testEditText() throws Exception {
     doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintTextFieldsInspection(),
                   AndroidBundle.message("android.lint.fix.add.input.type.attribute"),
@@ -743,6 +755,12 @@ public class AndroidLintTest extends AndroidTestCase {
       myFixture.copyFileToProject(BASE_PATH + "singleLineFalse.xml", "res/layout/singleLineFalse.xml"));
     final IntentionAction action = AndroidTestUtils.getIntentionAction(myFixture, "Replace singleLine=\"true\" with maxLines=\"1\"");
     assertNull(action);
+  }
+
+  public void testUnprotectedSmsBroadcastReceiver() throws Exception {
+    deleteManifest();
+    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintUnprotectedSMSBroadcastReceiverInspection(),
+                  "Set permission attribute", "AndroidManifest.xml", "xml");
   }
 
   public void testActivityRegistered() throws Exception {

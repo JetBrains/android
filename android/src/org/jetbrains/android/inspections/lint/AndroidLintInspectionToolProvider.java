@@ -223,6 +223,14 @@ public class AndroidLintInspectionToolProvider {
     public AndroidLintUnprotectedSMSBroadcastReceiverInspection() {
       super(AndroidBundle.message("android.lint.inspections.unprotected.smsbroadcast.receiver"), UnsafeBroadcastReceiverDetector.BROADCAST_SMS);
     }
+
+    @NotNull
+    @Override
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
+      return new AndroidLintQuickFix[] {
+        new SetAttributeQuickFix("Set permission attribute", ATTR_PERMISSION, "android.permission.BROADCAST_SMS")
+      };
+    }
   }
 
   public static class AndroidLintUnusedAttributeInspection extends AndroidLintInspectionBase {
@@ -732,7 +740,7 @@ public class AndroidLintInspectionToolProvider {
     public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
       return new AndroidLintQuickFix[]{
         new SetAttributeQuickFix(AndroidBundle.message("android.lint.fix.set.baseline.attribute"),
-                                 SdkConstants.ATTR_BASELINE_ALIGNED, "false")
+                                 SdkConstants.ATTR_BASELINE_ALIGNED, VALUE_FALSE)
       };
     }
   }
@@ -1557,6 +1565,14 @@ public class AndroidLintInspectionToolProvider {
     public AndroidLintExportedContentProviderInspection() {
       super(AndroidBundle.message("android.lint.inspections.exported.content.provider"), SecurityDetector.EXPORTED_PROVIDER);
     }
+
+    @NotNull
+    @Override
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
+      return new AndroidLintQuickFix[] {
+        new SetAttributeQuickFix("Set exported=\"false\"", ATTR_EXPORTED, VALUE_FALSE)
+      };
+    }
   }
   public static class AndroidLintExportedPreferenceActivityInspection extends AndroidLintInspectionBase {
     public AndroidLintExportedPreferenceActivityInspection() {
@@ -1566,6 +1582,14 @@ public class AndroidLintInspectionToolProvider {
   public static class AndroidLintExportedReceiverInspection extends AndroidLintInspectionBase {
     public AndroidLintExportedReceiverInspection() {
       super(AndroidBundle.message("android.lint.inspections.exported.receiver"), SecurityDetector.EXPORTED_RECEIVER);
+    }
+
+    @NotNull
+    @Override
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
+      return new AndroidLintQuickFix[] {
+        new SetAttributeQuickFix("Set permission attribute", ATTR_PERMISSION, null)
+      };
     }
   }
   public static class AndroidLintIconColorsInspection extends AndroidLintInspectionBase {
@@ -2301,7 +2325,7 @@ public class AndroidLintInspectionToolProvider {
                                     PREFIX_ANDROID + ATTRIBUTE_REQUIRED + "=\"" + false + "\""),
         };
       } else if (startElement.textMatches(NODE_USES_FEATURE)) {
-        return new AndroidLintQuickFix[]{new SetAttributeQuickFix("Set required=\"false\"", ATTRIBUTE_REQUIRED, String.valueOf(false)),};
+        return new AndroidLintQuickFix[]{new SetAttributeQuickFix("Set required=\"false\"", ATTRIBUTE_REQUIRED, VALUE_FALSE)};
       }
       return AndroidLintQuickFix.EMPTY_ARRAY;
     }
