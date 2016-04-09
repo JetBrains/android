@@ -51,7 +51,7 @@ class AddLibraryDependencyPanel extends JPanel implements Disposable {
     splitter.setFirstComponent(libraryDependencyPanel);
 
     if (myModule instanceof PsAndroidModule) {
-      myScopesForm = new AndroidScopesForm((PsAndroidModule)myModule);
+      myScopesForm = new AndroidDependencyScopesForm((PsAndroidModule)myModule);
       JPanel scopesPanel = myScopesForm.getPanel();
       scopesPanel.setBorder(createMainPanelBorder());
       splitter.setSecondComponent(scopesPanel);
