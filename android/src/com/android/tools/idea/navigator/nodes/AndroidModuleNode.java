@@ -93,7 +93,7 @@ public class AndroidModuleNode extends ProjectViewModuleNode {
         continue;
       }
       if (sourceType == AndroidSourceType.SHADERS) {
-        if (androidGradleModel == null || androidGradleModel.supportsShaders()) {
+        if (androidGradleModel == null || !androidGradleModel.supportsShaders()) {
           continue;
         }
       }
