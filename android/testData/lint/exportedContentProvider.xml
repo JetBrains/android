@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+          package="test.pkg">
+  <application android:icon="@mipmap/ic_launcher">
+    <<warning descr="Exported content providers can provide access to potentially sensitive data">pr<caret>ovider</warning>
+        android:name="com.sample.provider.providerClass1"
+        android:authorities="com.sample.provider.providerData">
+    </provider>
+  </application>
+</manifest>
