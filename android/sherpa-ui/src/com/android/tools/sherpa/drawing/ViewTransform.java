@@ -21,12 +21,13 @@ package com.android.tools.sherpa.drawing;
  * Used to draw from one coordinate system (android) to another (swing)
  */
 public class ViewTransform {
-    int dx;
-    int dy;
+    float dx;
+    float dy;
     float scale;
 
     /**
      * Return the corresponding swing coordinate in X given a X android coordinate
+     *
      * @param androidX the android coordinate
      * @return the swing coordinate
      */
@@ -35,7 +36,18 @@ public class ViewTransform {
     }
 
     /**
+     * Return the corresponding swing coordinate in X given a X android coordinate
+     *
+     * @param androidX the android coordinate in float
+     * @return the swing coordinate
+     */
+    public int getSwingFX(float androidX) {
+        return (int) (dx + androidX * scale);
+    }
+
+    /**
      * Return the corresponding swing coordinate in Y given a Y android coordinate
+     *
      * @param androidY the android coordinate
      * @return the swing coordinate
      */
@@ -44,7 +56,18 @@ public class ViewTransform {
     }
 
     /**
+     * Return the corresponding swing coordinate in Y given a Y android coordinate
+     *
+     * @param androidY the android coordinate in float
+     * @return the swing coordinate
+     */
+    public int getSwingFY(float androidY) {
+        return (int) (dy + androidY * scale);
+    }
+
+    /**
      * Return the corresponding swing dimension given an android dimension
+     *
      * @param androidDimension the android dimension
      * @return the swing dimension
      */
@@ -53,7 +76,38 @@ public class ViewTransform {
     }
 
     /**
+     * Return the corresponding swing dimension in float, given an android dimension
+     *
+     * @param androidDimension the android dimension (in float)
+     * @return the swing dimension (in float)
+     */
+    public float getSwingDimensionF(float androidDimension) {
+        return (androidDimension * scale);
+    }
+
+    /**
+     * Get the android dimension given a swing dimension value
+     *
+     * @param swingDimension the swing dimension
+     * @return the android dimension
+     */
+    public int getAndroidDimension(int swingDimension) {
+        return (int) (swingDimension / scale);
+    }
+
+    /**
+     * Get the android dimension given a swing dimension value (in float)
+     *
+     * @param swingDimension the swing dimension (in float)
+     * @return the android dimension (in float)
+     */
+    public float getAndroidDimensionF(float swingDimension) {
+        return (swingDimension / scale);
+    }
+
+    /**
      * Return the corresponding android X coordinate given a X swing coordinate
+     *
      * @param swingX the swing coordinate
      * @return the android coordinate
      */
@@ -63,6 +117,7 @@ public class ViewTransform {
 
     /**
      * Return the corresponding android X coordinate given a X swing coordinate in float
+     *
      * @param swingX the swing coordinate
      * @return the android coordinate
      */
@@ -72,6 +127,7 @@ public class ViewTransform {
 
     /**
      * Return the corresponding android Y coordinate given a Y swing coordinate
+     *
      * @param swingY the swing coordinate
      * @return the android coordinate
      */
@@ -81,6 +137,7 @@ public class ViewTransform {
 
     /**
      * Return the corresponding android Y coordinate given a Y swing coordinate in float
+     *
      * @param swingY the swing coordinate
      * @return the android coordinate
      */
@@ -90,19 +147,27 @@ public class ViewTransform {
 
     /**
      * Setter for the view translation
+     *
      * @param x translation in x
      * @param y translation in y
      */
-    public void setTranslate(int x, int y) { dx = x; dy = y; }
+    public void setTranslate(float x, float y) {
+        dx = x;
+        dy = y;
+    }
 
     /**
      * Setter for the view scale
+     *
      * @param scale
      */
-    public void setScale(float scale) { this.scale = scale; }
+    public void setScale(float scale) {
+        this.scale = scale;
+    }
 
     /**
      * Accessor for scale
+     *
      * @return scale factor
      */
     public float getScale() {
@@ -111,17 +176,43 @@ public class ViewTransform {
 
     /**
      * Accessor for the current translate x
+     *
      * @return translate x
      */
-    public int getTranslateX() {
+    public float getTranslateX() {
         return dx;
     }
 
     /**
      * Accessor for the current translate y
+     *
      * @return translate y
      */
-    public int getTranslateY() {
+    public float getTranslateY() {
         return dy;
+    }
+
+    /**
+     * Set the view transform given another view transform
+     *
+     * @param transform
+     */
+    public void set(ViewTransform transform) {
+        scale = transform.scale;
+        dx = transform.dx;
+        dy = transform.dy;
+    }
+
+    /**
+     * Compares this transform with another one
+     *
+     * @param transform the transform to compare ourselves to
+     * @return true if the transforms are equal
+     */
+    public boolean equalsTransform(ViewTransform transform) {
+        if (dx == transform.dx && dy == transform.dy && scale == transform.scale) {
+            return true;
+        }
+        return false;
     }
 }
