@@ -21,34 +21,51 @@ import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.android.tools.idea.gradle.structure.model.android.PsBuildType;
 import com.android.tools.idea.gradle.structure.model.android.PsProductFlavor;
 import com.google.android.collect.Lists;
+import com.google.common.base.Joiner;
 import com.intellij.ui.CheckboxTree;
 import com.intellij.ui.CheckboxTree.CheckboxTreeCellRenderer;
+import com.intellij.ui.CheckboxTreeAdapter;
 import com.intellij.ui.CheckboxTreeBase.CheckPolicy;
 import com.intellij.ui.CheckedTreeNode;
 import com.intellij.ui.ColoredTreeCellRenderer;
+import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
+import org.jdesktop.swingx.JXLabel;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.event.ChangeListener;
 import javax.swing.tree.DefaultMutableTreeNode;
+import java.awt.*;
 import java.util.Collections;
 import java.util.List;
 
+import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.*;
+import static com.intellij.openapi.util.text.StringUtil.capitalize;
 import static com.intellij.ui.SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES;
-import static com.intellij.util.ui.UIUtil.getTreeFont;
+import static com.intellij.util.ui.UIUtil.*;
 import static com.intellij.util.ui.tree.TreeUtil.expandAll;
+import static java.awt.Font.BOLD;
 
 class AndroidDependencyScopesForm implements ScopesForm {
-
   private JPanel myMainPanel;
-  private JTextField myScopesTextField;
+  private JXLabel myConfigurationNamesLabel;
   private JCheckBox myCompileCheckBox;
   private JCheckBox myAndroidTestsCheckBox;
   private JCheckBox myUnitTestsCheckBox;
   private JBScrollPane myVariantsScrollPane;
+  private JBLabel myScopesLabel;
+  private CheckboxTree myVariantsTree;
+
+  private final List<PsBuildType> myBuildTypes = Lists.newArrayList();
+  private final List<PsProductFlavor> myProductFlavors = Lists.newArrayList();
 
   AndroidDependencyScopesForm(@NotNull PsAndroidModule module) {
+    myConfigurationNamesLabel.setBorder(getTextFieldBorder());
+    myConfigurationNamesLabel.setBackground(getInactiveTextFieldBackgroundColor());
+
+    myScopesLabel.setFont(getLabelFont().deriveFont(BOLD));
+
     CheckboxTreeCellRenderer cellRenderer = new CheckboxTree.CheckboxTreeCellRenderer() {
       @Override
       public void customizeRenderer(JTree tree, Object value, boolean selected, boolean expanded, boolean leaf, int row, boolean hasFocus) {
@@ -67,22 +84,20 @@ class AndroidDependencyScopesForm implements ScopesForm {
       }
     };
 
-    List<PsBuildType> buildTypes = Lists.newArrayList();
     CheckedTreeNode buildTypesNode = new CheckedTreeNode("Build Types");
-    module.forEachBuildType(buildTypes::add);
-    Collections.sort(buildTypes, new PsModelNameComparator<>());
+    module.forEachBuildType(myBuildTypes::add);
+    Collections.sort(myBuildTypes, new PsModelNameComparator<>());
 
-    buildTypes.forEach(buildType -> {
+    myBuildTypes.forEach(buildType -> {
       CheckedTreeNode buildTypeNode = new CheckedTreeNode(buildType);
       buildTypesNode.add(buildTypeNode);
     });
 
-    List<PsProductFlavor> productFlavors = Lists.newArrayList();
     CheckedTreeNode productFlavorsNode = new CheckedTreeNode("Product Flavors");
-    module.forEachProductFlavor(productFlavors::add);
-    Collections.sort(productFlavors, new PsModelNameComparator<>());
+    module.forEachProductFlavor(myProductFlavors::add);
+    Collections.sort(myProductFlavors, new PsModelNameComparator<>());
 
-    productFlavors.forEach(productFlavor -> {
+    myProductFlavors.forEach(productFlavor -> {
       CheckedTreeNode productFlavorNode = new CheckedTreeNode(productFlavor);
       productFlavorsNode.add(productFlavorNode);
     });
@@ -91,17 +106,18 @@ class AndroidDependencyScopesForm implements ScopesForm {
     root.add(buildTypesNode);
     root.add(productFlavorsNode);
 
-    CheckboxTree variantsTree = new CheckboxTree(cellRenderer, root, new CheckPolicy(true, true, false, true));
-    variantsTree.setFont(getTreeFont());
-    myVariantsScrollPane.setViewportView(variantsTree);
+    myVariantsTree = new CheckboxTree(cellRenderer, root, new CheckPolicy(true, true, false, true));
+    myVariantsTree.setFont(getTreeFont());
+    myVariantsScrollPane.setViewportView(myVariantsTree);
 
-    expandAll(variantsTree);
+    expandAll(myVariantsTree);
 
     myCompileCheckBox.addChangeListener(e -> {
       if (myCompileCheckBox.isSelected()) {
         myAndroidTestsCheckBox.setSelected(true);
         myUnitTestsCheckBox.setSelected(true);
       }
+      updateConfigurationNames();
     });
 
     ChangeListener nonMainChangeListener = e -> {
@@ -109,9 +125,129 @@ class AndroidDependencyScopesForm implements ScopesForm {
       if (!checkBox.isSelected()) {
         myCompileCheckBox.setSelected(false);
       }
+      updateConfigurationNames();
     };
     myAndroidTestsCheckBox.addChangeListener(nonMainChangeListener);
     myUnitTestsCheckBox.addChangeListener(nonMainChangeListener);
+
+    myVariantsTree.addCheckboxTreeListener(new CheckboxTreeAdapter() {
+      @Override
+      public void nodeStateChanged(@NotNull CheckedTreeNode node) {
+        updateConfigurationNames();
+      }
+    });
+
+    updateConfigurationNames();
+  }
+
+  private void updateConfigurationNames() {
+    List<String> configurationNames = getConfigurationNames();
+    String text = "";
+    int configurationNameCount = configurationNames.size();
+    if (configurationNameCount == 1) {
+      text = configurationNames.get(0);
+    }
+    else if (configurationNameCount > 1) {
+      Collections.sort(configurationNames);
+      text = Joiner.on(", ").join(configurationNames);
+    }
+    myConfigurationNamesLabel.setText(text);
+  }
+
+  @NotNull
+  private List<String> getConfigurationNames() {
+    PsBuildType[] checkedBuildTypes = getCheckedNodes(PsBuildType.class);
+    boolean allBuildTypesChecked = checkedBuildTypes.length == myBuildTypes.size();
+
+    PsProductFlavor[] checkedProductFlavors = getCheckedNodes(PsProductFlavor.class);
+    boolean allProductFlavorsChecked = checkedProductFlavors.length == myProductFlavors.size();
+
+    if (myCompileCheckBox.isSelected()) {
+      if (allBuildTypesChecked && allProductFlavorsChecked) {
+        return Collections.singletonList(COMPILE);
+      }
+      List<String> configurationNames = Lists.newArrayList();
+      if (!allBuildTypesChecked) {
+        configurationNames.addAll(getCompileConfigurationNames(checkedBuildTypes));
+      }
+      if (!allProductFlavorsChecked) {
+        configurationNames.addAll(getCompileConfigurationNames(checkedProductFlavors));
+      }
+      return configurationNames;
+    }
+
+    List<String> configurationNames = Lists.newArrayList();
+
+    if (myAndroidTestsCheckBox.isSelected()) {
+      boolean debugBuildTypeChecked = false;
+      for (PsBuildType buildType : checkedBuildTypes) {
+        if (buildType.getName().equals("debug")) {
+          debugBuildTypeChecked = true;
+          break;
+        }
+      }
+      if (debugBuildTypeChecked) {
+        if (allProductFlavorsChecked) {
+          configurationNames.add(ANDROID_TEST_COMPILE);
+        }
+        else {
+          configurationNames.addAll(getAndroidTestConfigurationNames(checkedProductFlavors));
+        }
+      }
+    }
+
+    if (myUnitTestsCheckBox.isSelected()) {
+      if (allBuildTypesChecked && allProductFlavorsChecked) {
+        configurationNames.add(TEST_COMPILE);
+      }
+      else {
+        if (!allBuildTypesChecked) {
+          configurationNames.addAll(getUnitTestConfigurationNames(checkedBuildTypes));
+        }
+        if (!allProductFlavorsChecked) {
+          configurationNames.addAll(getUnitTestConfigurationNames(checkedProductFlavors));
+        }
+      }
+    }
+
+    return configurationNames;
+  }
+
+  @NotNull
+  private static List<String> getCompileConfigurationNames(@NotNull PsModel[] models) {
+    return getConfigurationNames(models, "", "Compile");
+  }
+
+  @NotNull
+  private static List<String> getAndroidTestConfigurationNames(@NotNull PsModel[] models) {
+    return getConfigurationNames(models, "androidTest", "Compile");
+  }
+
+  @NotNull
+  private static List<String> getUnitTestConfigurationNames(@NotNull PsModel[] models) {
+    return getConfigurationNames(models, "test", "Compile");
+  }
+
+  @NotNull
+  private static List<String> getConfigurationNames(@NotNull PsModel[] models, @NotNull String prefix, @NotNull String suffix) {
+    List<String> configurationNames = Lists.newArrayList();
+    for (PsModel model : models) {
+      StringBuilder buffer = new StringBuilder();
+      if (prefix.isEmpty()) {
+        buffer.append(model.getName());
+      }
+      else {
+        buffer.append(prefix).append(capitalize(model.getName()));
+      }
+      buffer.append(suffix);
+      configurationNames.add(buffer.toString());
+    }
+    return configurationNames;
+  }
+
+  @NotNull
+  private <T extends PsModel> T[] getCheckedNodes(@NotNull Class<T> nodeType) {
+    return myVariantsTree.getCheckedNodes(nodeType, null);
   }
 
   @Override
