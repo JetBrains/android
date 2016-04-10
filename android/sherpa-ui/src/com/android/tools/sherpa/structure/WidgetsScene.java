@@ -338,8 +338,7 @@ public class WidgetsScene {
         float dist =
                 (ConnectionDraw.CONNECTION_ANCHOR_SIZE + ConnectionDraw.CONNECTION_ANCHOR_SIZE) /
                         viewTransform.getScale();
-        candidate.distance =
-                ConnectionDraw.CONNECTION_ANCHOR_SIZE * ConnectionDraw.CONNECTION_ANCHOR_SIZE;
+        candidate.distance = viewTransform.getSwingDimensionF(30);
         // We first try to find an anchor in the current selection
         for (Selection.Element element : mSelection.getElements()) {
             ConstraintWidget widget = element.widget;
@@ -349,7 +348,7 @@ public class WidgetsScene {
             WidgetInteractionTargets widgetInteraction =
                     (WidgetInteractionTargets) widget.getCompanionWidget();
             widgetInteraction.updatePosition(viewTransform);
-            widgetInteraction.findClosestConnection(x, y, candidate, mousePress);
+            widgetInteraction.findClosestConnection(viewTransform, x, y, candidate, mousePress);
         }
 
         float slope = (dist * dist);
@@ -391,7 +390,7 @@ public class WidgetsScene {
             WidgetInteractionTargets widgetInteraction =
                     (WidgetInteractionTargets) widget.getCompanionWidget();
             widgetInteraction.updatePosition(viewTransform);
-            widgetInteraction.findClosestConnection(x, y, candidate, mousePress);
+            widgetInteraction.findClosestConnection(viewTransform, x, y, candidate, mousePress);
         }
 
         float slope = (dist * dist);
@@ -413,7 +412,7 @@ public class WidgetsScene {
             WidgetInteractionTargets widgetInteraction =
                     (WidgetInteractionTargets) widget.getCompanionWidget();
             widgetInteraction.updatePosition(viewTransform);
-            widgetInteraction.findClosestConnection(x, y, candidate, mousePress);
+            widgetInteraction.findClosestConnection(viewTransform, x, y, candidate, mousePress);
         }
         return candidate.anchorTarget;
     }
