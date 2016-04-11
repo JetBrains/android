@@ -25,8 +25,8 @@ import java.io.IOException;
 
 public final class TimingInfoPath extends Path {
   @Override
-  public StringBuilder stringPath(StringBuilder builder) {
-    return builder.append("TimingInfo(").append(myID).append(")");
+  public String getSegmentString() {
+    return "TimingInfo(" + myID + ')';
   }
 
   @Override
