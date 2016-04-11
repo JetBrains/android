@@ -39,6 +39,7 @@ import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import java.awt.*;
 import java.awt.event.ActionListener;
+import java.net.UnknownHostException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EventListener;
@@ -47,8 +48,10 @@ import java.util.List;
 import static com.android.ide.common.repository.GradleCoordinate.parseCoordinateString;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
+import static com.intellij.util.ui.UIUtil.getTreeFont;
 import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
 import static javax.swing.ListSelectionModel.SINGLE_SELECTION;
+import static org.jetbrains.android.util.AndroidUiUtil.setUpAsHtmlLabel;
 
 public class ArtifactRepositorySearchForm {
   @NotNull private final ArtifactRepositorySearch mySearch;
@@ -61,8 +64,9 @@ public class ArtifactRepositorySearchForm {
 
   private JButton mySearchButton;
 
-  private TableView<FoundArtifact> myResultsTable;
   private JBScrollPane myResultsScrollPane;
+  private TableView<FoundArtifact> myResultsTable;
+  private JEditorPane myErrorsPane;
 
   private JPanel myPanel;
 
@@ -74,7 +78,8 @@ public class ArtifactRepositorySearchForm {
     myArtifactNameTextField.getDocument().addDocumentListener(new DocumentAdapter() {
       @Override
       protected void textChanged(DocumentEvent e) {
-        mySearchButton.setEnabled(getArtifactName().length() >= 3);
+        clearResults();
+        showSearchStopped();
       }
     });
 
@@ -101,7 +106,6 @@ public class ArtifactRepositorySearchForm {
     myResultsTable.setAutoCreateRowSorter(true);
     myResultsTable.setShowGrid(false);
     myResultsTable.getTableHeader().setReorderingAllowed(false);
-    myResultsScrollPane.setViewportView(myResultsTable);
 
     myResultsTable.getSelectionModel().addListSelectionListener(e -> {
       Collection<FoundArtifact> selection = myResultsTable.getSelection();
@@ -113,6 +117,11 @@ public class ArtifactRepositorySearchForm {
       String selected = coordinate != null ? coordinate.toString() : null;
       myEventDispatcher.getMulticaster().selectionChanged(selected);
     });
+
+    myErrorsPane = new JEditorPane();
+    setUpAsHtmlLabel(myErrorsPane, getTreeFont());
+
+    myResultsScrollPane.setViewportView(myResultsTable);
 
     new TableSpeedSearch(myResultsTable);
   }
@@ -129,6 +138,22 @@ public class ArtifactRepositorySearchForm {
     callback.doWhenDone(() -> invokeLaterIfNeeded(() -> {
       List<FoundArtifact> foundArtifacts = Lists.newArrayList();
 
+      List<Exception> errors = callback.getErrors();
+      if (!errors.isEmpty()) {
+        showSearchStopped();
+
+        StringBuilder buffer = new StringBuilder();
+        buffer.append("<html><body><h2>Errors:</h2><ol>");
+        errors.forEach(e -> {
+          String message = getErrorMessage(e);
+          buffer.append("<li>").append(message).append("</li>");
+        });
+        buffer.append("</ol></body></html>");
+        myErrorsPane.setText(buffer.toString());
+        myResultsScrollPane.setViewportView(myErrorsPane);
+        return;
+      }
+
       for (SearchResult result : callback.getSearchResults()) {
         for (String coordinateText : result.getData()) {
           GradleCoordinate coordinate = parseCoordinateString(coordinateText);
@@ -140,19 +165,37 @@ public class ArtifactRepositorySearchForm {
 
       myResultsTable.getListTableModel().setItems(foundArtifacts);
       myResultsTable.updateColumnSizes();
-      myResultsTable.setPaintBusy(false);
-      myResultsTable.getEmptyText().setText("Nothing to show");
+      showSearchStopped();
       if (!foundArtifacts.isEmpty()) {
         myResultsTable.changeSelection(0, 0, false, false);
       }
       myResultsTable.requestFocusInWindow();
-
-      mySearchButton.setEnabled(true);
     }));
   }
 
   private void clearResults() {
     myResultsTable.getListTableModel().setItems(Collections.emptyList());
+    myErrorsPane.setText("");
+    myResultsScrollPane.setViewportView(myResultsTable);
+  }
+
+  private void showSearchStopped() {
+    mySearchButton.setEnabled(getArtifactName().length() >= 3);
+    myResultsTable.setPaintBusy(false);
+    myResultsTable.getEmptyText().setText("Nothing to show");
+  }
+
+  @NotNull
+  private static String getErrorMessage(@NotNull Exception error) {
+    if (error instanceof UnknownHostException) {
+      return "Failed to connect to host '" + error.getMessage() + "'. Please check your Internet connection.";
+    }
+
+    String msg = error.getMessage();
+    if (isNotEmpty(msg)) {
+      return msg;
+    }
+    return error.getClass().getName();
   }
 
   @NotNull

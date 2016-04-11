@@ -17,12 +17,20 @@ package com.android.tools.idea.gradle.structure.model.repositories.search;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.io.IOException;
-
-public interface ArtifactRepository {
+public abstract class ArtifactRepository {
   @NotNull
-  String getName();
+  public abstract String getName();
 
   @NotNull
-  SearchResult search(@NotNull SearchRequest request) throws IOException;
+  public final SearchResult search(@NotNull SearchRequest request) {
+    try {
+      return doSearch(request);
+    }
+    catch (Exception e) {
+      return new SearchResult(getName(), e);
+    }
+  }
+
+  @NotNull
+  protected abstract SearchResult doSearch(@NotNull SearchRequest request) throws Exception;
 }

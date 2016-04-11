@@ -23,15 +23,13 @@ import com.google.gson.JsonParser;
 import com.intellij.util.io.HttpRequests;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.IOException;
 import java.io.Reader;
-import java.net.UnknownHostException;
 import java.util.List;
 
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
-public class JCenterRepository implements ArtifactRepository {
+public class JCenterRepository extends ArtifactRepository {
   @Override
   @NotNull
   public String getName() {
@@ -40,17 +38,9 @@ public class JCenterRepository implements ArtifactRepository {
 
   @Override
   @NotNull
-  public SearchResult search(@NotNull SearchRequest request) throws IOException {
+  protected SearchResult doSearch(@NotNull SearchRequest request) throws Exception {
     String url = createRequestUrl(request);
-    return HttpRequests.request(url).accept("application/json").connect(request1 -> {
-      try {
-        return parse(request1.getReader());
-      }
-      catch (RuntimeException e) {
-        String msg = String.format("Failed to parse request '%1$s'", request1);
-        throw new IOException(msg, e);
-      }
-    });
+    return HttpRequests.request(url).accept("application/json").connect(request1 -> parse(request1.getReader()));
   }
 
   @VisibleForTesting

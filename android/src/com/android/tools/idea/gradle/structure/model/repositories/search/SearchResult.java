@@ -16,18 +16,30 @@
 package com.android.tools.idea.gradle.structure.model.repositories.search;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.util.Collections;
 import java.util.List;
 
 public class SearchResult {
   @NotNull private final String myRepositoryName;
   @NotNull private final List<String> myData;
+  @Nullable private final Exception myError;
   private final int myTotalFound;
 
+  SearchResult(@NotNull String repositoryName, @NotNull Exception error) {
+    this(repositoryName, Collections.emptyList(), error, 0);
+  }
+
   SearchResult(@NotNull String repositoryName, @NotNull List<String> data, int totalFound) {
-    this.myRepositoryName = repositoryName;
-    this.myData = data;
-    this.myTotalFound = totalFound;
+    this(repositoryName, data, null, totalFound);
+  }
+
+  private SearchResult(@NotNull String repositoryName, @NotNull List<String> data, @Nullable Exception error, int totalFound) {
+    myRepositoryName = repositoryName;
+    myData = data;
+    myError = error;
+    myTotalFound = totalFound;
   }
 
   @NotNull
@@ -38,6 +50,11 @@ public class SearchResult {
   @NotNull
   public List<String> getData() {
     return myData;
+  }
+
+  @Nullable
+  public Exception getError() {
+    return myError;
   }
 
   public int getTotalFound() {
