@@ -93,14 +93,9 @@ public abstract class GfxTraceCaptureAction extends ToggleAction {
 
           // Failed to restart adb as root.
           // Display message and abort.
-          EdtExecutor.INSTANCE.execute(new Runnable() {
-            @Override
-            public void run() {
-              Notifications.Bus.notify(
-                new Notification(NOTIFICATION_GROUP, NOTIFICATION_LAUNCH_REQUIRES_ROOT_TITLE, NOTIFICATION_LAUNCH_REQUIRES_ROOT_CONTENT,
-                                 NotificationType.ERROR));
-            }
-          });
+          Notifications.Bus.notify(
+            new Notification(NOTIFICATION_GROUP, NOTIFICATION_LAUNCH_REQUIRES_ROOT_TITLE, NOTIFICATION_LAUNCH_REQUIRES_ROOT_CONTENT,
+                             NotificationType.ERROR));
 
           future.set(null);
         }
