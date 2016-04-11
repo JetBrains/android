@@ -259,7 +259,7 @@ public class SceneDraw {
         }
         g.setColor(backgroundColor);
 
-        g.fillRect(transform.getTranslateX(), transform.getTranslateY(), w, h);
+        g.fillRect((int) transform.getTranslateX(), (int) transform.getTranslateY(), w, h);
 
         WidgetContainer root = mWidgetsScene.getRoot();
         if (root == null) {
@@ -345,9 +345,9 @@ public class SceneDraw {
             int hr = transform.getSwingDimension(container.getDrawHeight());
             if (mDrawOutsideShade && !transparent) {
                 g.setColor(DarkBlueprintBackground);
-                g.fillRect(transform.getTranslateX(), transform.getTranslateY(), mViewWidth, yr);
-                g.fillRect(transform.getTranslateX(), yr + hr, mViewWidth, mViewHeight - yr - hr);
-                g.fillRect(transform.getTranslateX(), yr, xr, hr);
+                g.fillRect((int) transform.getTranslateX(), (int) transform.getTranslateY(), mViewWidth, yr);
+                g.fillRect((int) transform.getTranslateX(), yr + hr, mViewWidth, mViewHeight - yr - hr);
+                g.fillRect((int) transform.getTranslateX(), yr, xr, hr);
                 g.fillRect(wr + xr, yr, mViewWidth - xr - wr, hr);
                 g.setStroke(SnapDraw.sLongDashedStroke);
                 g.setColor(BlueprintHighlightFrames);
@@ -391,14 +391,14 @@ public class SceneDraw {
      * @return the size of the anchor, in Dp
      */
     public static float getAnchorSize(float scale) {
-        float size = 6;
+        float size = 7;
         if (scale < 2f) {
-            size = 5;
+            size = 6;
             if (scale < 1.8f) {
-                size = 4;
+                size = 5;
             }
             if (scale < 1.4f) {
-                size = 3;
+                size = 4;
             }
         }
         return size;
