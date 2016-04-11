@@ -83,7 +83,6 @@ import java.util.regex.Pattern;
 
 public class ManifestPanel extends JPanel implements TreeSelectionListener {
 
-  private static final Color[] FILE_COLORS = new Color[] { JBColor.RED, JBColor.ORANGE, JBColor.YELLOW, JBColor.GREEN, JBColor.BLUE, JBColor.MAGENTA };
   private static final String SUGGESTION_MARKER = "Suggestion: ";
   private static final Pattern ADD_SUGGESTION_FORMAT = Pattern.compile(".*? 'tools:([\\w:]+)=\"([\\w:]+)\"' to \\<(\\w+)\\> element at [^:]+:(\\d+):(\\d+)-[\\d:]+ to override\\.", Pattern.DOTALL);
 
@@ -157,7 +156,8 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
 
           // on GTK theme the Tree.isFileColorsEnabled does not work, so we fall back to using the background
           if (UIUtil.isUnderGTKLookAndFeel()) {
-            setBackground(getBackgroundColorForXmlElement(node.getUserObject()));
+            // we need to make the colors saturated, but with alpha, so the selector and foreground text still work
+            setBackground(ColorUtil.withAlpha(harder(getBackgroundColorForXmlElement(node.getUserObject())), 0.2));
             setOpaque(true);
           }
 
@@ -294,15 +294,14 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
 
   @NotNull
   private Color getBackgroundColorForXmlElement(@NotNull XmlElement item) {
-    Color background = myTree.getBackground();
     List<? extends Actions.Record> records = getRecords(item);
     if (!records.isEmpty()) {
       File file = records.get(0).getActionLocation().getFile().getSourceFile();
       if (file != null) {
-        background = getFileColor(file);
+        return getFileColor(file);
       }
     }
-    return ColorUtil.withAlpha(background, 0.2);
+    return myTree.getBackground();
   }
 
   @NotNull
@@ -311,10 +310,11 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
       myFiles.add(file);
     }
     int index = myFiles.indexOf(file);
-    if (index < FILE_COLORS.length) {
-      return FILE_COLORS[index];
+    if (index == 0) {
+      // use white ONLY for default file.
+      return JBColor.WHITE;
     }
-    return JBColor.GRAY;
+    return AnnotationColors.BG_COLORS[(index - 1) * AnnotationColors.BG_COLORS_PRIME % AnnotationColors.BG_COLORS.length];
   }
 
   private boolean canRemove(@NotNull XmlElement node) {
@@ -704,6 +704,16 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
       }
     }
     return key;
+  }
+
+  /**
+   * @see ColorUtil#softer(Color)
+   */
+  @NotNull
+  public static Color harder(@NotNull Color color) {
+    if (color.getBlue() == color.getRed() && color.getRed() == color.getGreen()) return color;
+    final float[] hsb = Color.RGBtoHSB(color.getRed(), color.getGreen(), color.getBlue(), null);
+    return Color.getHSBColor(hsb[0], 1f, hsb[2]);
   }
 
   static class ManifestTreeNode extends DefaultMutableTreeNode {
