@@ -17,17 +17,15 @@ package com.android.tools.idea.structure.services.view;
 
 import com.android.tools.idea.structure.services.datamodel.FeatureData;
 import com.android.tools.idea.structure.services.datamodel.TutorialBundleData;
+import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.ui.BrowserHyperlinkListener;
+import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.html.HTMLDocument;
-import javax.swing.text.html.HTMLEditorKit;
 import java.awt.*;
 import java.awt.event.ActionListener;
-import java.io.IOException;
 
 /**
  * Introductory view for Firebase. Displays a welcome message as well as
@@ -47,6 +45,14 @@ public class TutorialChooser extends CardViewPanel {
     // TODO: Migrate this somewhere central.
     String font = getFont().getFamily();
 
+    JPanel header = new JPanel(new VerticalFlowLayout());
+    header.setOpaque(false);
+    JBLabel title = new JBLabel(bundle.getName());
+    title.setAlignmentX(0);
+    title.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
+    title.setIcon(bundle.getIcon());
+    header.add(title);
+
     // TODO: Figure out where extra padding is coming from.
     JTextPane welcome = new JTextPane();
     welcome.setOpaque(false);
@@ -54,23 +60,14 @@ public class TutorialChooser extends CardViewPanel {
     welcome.setEditable(false);
     welcome.setMargin(new Insets(0, 0, 0, 0));
     welcome.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, true);
-    HTMLDocument doc = (HTMLDocument)welcome.getDocument();
-    HTMLEditorKit editorKit = (HTMLEditorKit)welcome.getEditorKit();
     String text =
       "<html><head><style>.welcome { margin: 10px;}\nbody { font-family: " + font + "; margin: 0px;}</head><body><p class=\"welcome\">" +
-      bundle.getWelcome() + " <a href=\"" + bundle.getLearnMoreLink() + "\" target=\"_blank\">Learn more</a></p></body></html>";
-    try {
-      editorKit.insertHTML(doc, doc.getLength(), text, 0, 0, null);
-    }
-    catch (BadLocationException e) {
-      e.printStackTrace();
-    }
-    catch (IOException e) {
-      e.printStackTrace();
-    }
+      bundle.getWelcome() + "</p></body></html>";
+    welcome.setText(text);
     // Enable links opening in the default browser.
     welcome.addHyperlinkListener(BrowserHyperlinkListener.INSTANCE);
-    add(welcome, BorderLayout.NORTH);
+    header.add(welcome);
+    add(header, BorderLayout.NORTH);
 
     // NOTE: BoxLayout doesn't work because the sub elements are greedy and
     // there's no way to add a greedy filler with BoxLayout.
