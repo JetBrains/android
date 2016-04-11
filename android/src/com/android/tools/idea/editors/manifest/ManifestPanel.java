@@ -174,6 +174,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
         }
       }
     });
+    new TreeSpeedSearch(myTree);
 
     myPopup = new JPopupMenu();
     myRemoveItem = new JMenuItem("Remove");
