@@ -211,7 +211,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
     };
     myTree.addMouseListener(ml);
 
-    JBSplitter splitter = new JBSplitter();
+    JBSplitter splitter = new JBSplitter(0.66f);
     splitter.setFirstComponent(new JBScrollPane(myTree));
     splitter.setSecondComponent(new JBScrollPane(myDetails));
 
