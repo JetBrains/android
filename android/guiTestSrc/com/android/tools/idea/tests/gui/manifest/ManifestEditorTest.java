@@ -20,6 +20,7 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MergedManifestFixture;
+import com.intellij.ui.JBColor;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.fixture.JPopupMenuFixture;
 import org.fest.swing.fixture.JTreeFixture;
@@ -37,7 +38,7 @@ import static org.junit.Assert.*;
 @RunWith(GuiTestRunner.class)
 public class ManifestEditorTest {
 
-  private static final Color CURRENT_MANIFEST_COLOR = new Color(1f, 0f, 0f, 0.2f);
+  private static final Color CURRENT_MANIFEST_COLOR = JBColor.WHITE;
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
