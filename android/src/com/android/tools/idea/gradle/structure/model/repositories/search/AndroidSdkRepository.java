@@ -33,6 +33,7 @@ import java.util.List;
 
 import static com.android.ide.common.repository.GradleCoordinate.parseCoordinateString;
 import static com.android.tools.idea.templates.RepositoryUrlManager.*;
+import static com.google.common.base.Strings.nullToEmpty;
 
 public class AndroidSdkRepository extends ArtifactRepository {
   private final List<GradleCoordinate> myGradleCoordinates = Lists.newArrayList();
@@ -73,13 +74,14 @@ public class AndroidSdkRepository extends ArtifactRepository {
   @VisibleForTesting
   @Nullable
   static GradleCoordinate getLibraryCoordinate(@NotNull String libraryId, @NotNull File androidSdkPath, boolean preview) {
-    RepositoryUrlManager.RepositoryLibrary library = EXTRAS_REPOSITORY.get(libraryId);
+    RepositoryLibrary library = EXTRAS_REPOSITORY.get(libraryId);
     File metadataFile = new File(String.format(library.basePath, androidSdkPath, library.id), MAVEN_METADATA_FILE_NAME);
     String coordinateText = null;
     if (!metadataFile.exists()) {
       coordinateText = String.format(library.baseCoordinate, library.id, REVISION_ANY);
     }
     else {
+      //noinspection UnnecessarilyQualifiedStaticallyImportedElement
       RepositoryUrlManager urlManager = RepositoryUrlManager.get();
       String version = urlManager.getLatestVersionFromMavenMetadata(metadataFile, null, preview);
       if (version != null) {
@@ -98,16 +100,19 @@ public class AndroidSdkRepository extends ArtifactRepository {
   @Override
   @NotNull
   protected SearchResult doSearch(@NotNull SearchRequest request) {
-    List<String> data = Lists.newArrayList();
-    for (GradleCoordinate gradleCoordinate : myGradleCoordinates) {
-      if (!matches(gradleCoordinate.getGroupId(), request.getGroupId())) {
+    List<FoundArtifact> artifacts = Lists.newArrayList();
+    for (GradleCoordinate coordinate : myGradleCoordinates) {
+      if (!matches(coordinate.getGroupId(), request.getGroupId())) {
         continue;
       }
-      if (matches(gradleCoordinate.getArtifactId(), request.getArtifactName())) {
-        data.add(gradleCoordinate.toString());
+      if (matches(coordinate.getArtifactId(), request.getArtifactName())) {
+        String groupId = nullToEmpty(coordinate.getGroupId());
+        String name = nullToEmpty(coordinate.getArtifactId());
+        FoundArtifact artifact = new FoundArtifact(getName(), groupId, name, coordinate.getRevision());
+        artifacts.add(artifact);
       }
     }
-    return new SearchResult(getName(), data, data.size());
+    return new SearchResult(getName(), artifacts, artifacts.size());
   }
 
   private static boolean matches(@Nullable String s1, @Nullable String s2) {

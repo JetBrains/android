@@ -23,6 +23,7 @@ import org.junit.Test;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.List;
 
 import static com.android.tools.idea.AndroidTestCaseHelper.getAndroidSdkPath;
 import static com.google.common.truth.Truth.assertThat;
@@ -61,8 +62,9 @@ public class AndroidSdkRepositoryTest {
   public void testStartWithGroupId() throws IOException {
     SearchRequest request = new SearchRequest("support-annotations", "com.android.support", 0, 0);
     SearchResult result = myRepository.search(request);
-    assertThat(result.getData()).hasSize(1);
-    String entry = result.getData().get(0);
+    List<String> coordinates = result.getArtifactCoordinates();
+    assertThat(coordinates).hasSize(1);
+    String entry = coordinates.get(0);
     assertThat(entry).startsWith("com.android.support:support-annotations:");
   }
 
@@ -70,8 +72,9 @@ public class AndroidSdkRepositoryTest {
   public void testStartWithoutGroupId() throws IOException {
     SearchRequest request = new SearchRequest("support-annotations", null, 0, 0);
     SearchResult result = myRepository.search(request);
-    assertThat(result.getData()).hasSize(1);
-    String entry = result.getData().get(0);
+    List<String> coordinates = result.getArtifactCoordinates();
+    assertThat(coordinates).hasSize(1);
+    String entry = coordinates.get(0);
     assertThat(entry).startsWith("com.android.support:support-annotations:");
   }
 }

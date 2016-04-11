@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.structure.model.repositories.search;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -168,15 +169,25 @@ public class JCenterRepository extends ArtifactRepository {
     JsonArray array = parser.parse(response).getAsJsonArray();
 
     int totalFound = array.size();
-    List<String> data = Lists.newArrayListWithExpectedSize(totalFound);
+    List<FoundArtifact> artifacts = Lists.newArrayListWithExpectedSize(totalFound);
 
     for (int i = 0; i < totalFound; i++) {
-      JsonObject e = array.get(i).getAsJsonObject();
-      String name = e.getAsJsonPrimitive("name").getAsString();
-      String latestVersion = e.getAsJsonPrimitive("latest_version").getAsString();
-      data.add(name + GRADLE_PATH_SEPARATOR + latestVersion);
+      JsonObject root = array.get(i).getAsJsonObject();
+      String name = root.getAsJsonPrimitive("name").getAsString();
+
+      List<String> availableVerions = Lists.newArrayList();
+      JsonArray versions = root.getAsJsonArray("versions");
+      versions.forEach(element -> {
+        String version = element.getAsString();
+        availableVerions.add(version);
+      });
+
+      List<String> coordinate = Splitter.on(GRADLE_PATH_SEPARATOR).splitToList(name);
+      assert coordinate.size() == 2;
+
+      artifacts.add(new FoundArtifact(getName(), coordinate.get(0), coordinate.get(1), availableVerions));
     }
 
-    return new SearchResult(getName(), data, totalFound);
+    return new SearchResult(getName(), artifacts, totalFound);
   }
 }
