@@ -27,7 +27,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.ProjectViewFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.SelectRefactoringDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleBuildModelFixture;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -49,7 +48,6 @@ public class GradleRenameModuleTest {
   }
 
   @Test
-  @Ignore("http://android-jenkins/job/studio-ui-test/444/console => Sometime dead locks the Java VM")
   public void testRenameModule() throws IOException {
     guiTest.importSimpleApplication();
 
@@ -63,8 +61,8 @@ public class GradleRenameModuleTest {
 
     InputDialogFixture renameModuleDialog = InputDialogFixture.findByTitle(guiTest.robot(), "Rename Module");
     renameModuleDialog.enterTextAndClickOk("app2");
+    renameModuleDialog.waitUntilNotShowing();
 
-    guiTest.waitForBackgroundTasks();
     assertNotNull(guiTest.ideFrame().findModule("app2"));
     assertNull("Module 'app' should not exist", guiTest.ideFrame().findModule("app"));
   }
