@@ -427,25 +427,29 @@ public abstract class DynamicWizard implements ScopedStateStore.ScopedStoreListe
    * with a progress indicator. Subclasses should rarely need to override this method.
    */
   public void doFinishAction() {
-    if (myCurrentPath != null && !myCurrentPath.readyToLeavePath()) {
-      myHost.shakeWindow();
-      return;
-    }
-    myHost.close(DynamicWizardHost.CloseAction.FINISH);
+    if (!checkFinish()) return;
 
     ProgressManager.getInstance().runProcessWithProgressSynchronously(new Runnable() {
       @Override
       public void run() {
+        ProgressManager.getInstance().getProgressIndicator().setIndeterminate(true);
         try {
-          ProgressManager.getInstance().getProgressIndicator().setIndeterminate(true);
           doFinish();
         }
         catch (IOException e) {
-          e.printStackTrace();
+          LOG.error(e);
         }
       }
-
     }, getProgressTitle(), false, getProject(), getProgressParentComponent());
+  }
+
+  protected boolean checkFinish() {
+    if (myCurrentPath != null && !myCurrentPath.readyToLeavePath()) {
+      myHost.shakeWindow();
+      return false;
+    }
+    myHost.close(DynamicWizardHost.CloseAction.FINISH);
+    return true;
   }
 
   /**
