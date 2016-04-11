@@ -85,9 +85,11 @@ public class GuiTestRule implements TestRule {
     Object oldValue = e.getOldValue();
     if (oldValue instanceof Component && e.getNewValue() == null) {
       Window parentWindow = oldValue instanceof Window ? (Window)oldValue : SwingUtilities.getWindowAncestor((Component)oldValue);
-      Container parent = parentWindow.getParent();
-      if (parent != null && parent.isVisible()) {
-        parent.requestFocus();
+      if (parentWindow instanceof Dialog) {
+        Container parent = parentWindow.getParent();
+        if (parent != null && parent.isVisible()) {
+          parent.requestFocus();
+        }
       }
     }
   };
