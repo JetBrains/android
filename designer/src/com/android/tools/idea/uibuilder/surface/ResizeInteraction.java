@@ -90,7 +90,7 @@ public class ResizeInteraction extends Interaction {
     super.end(x, y, modifiers, canceled);
     moveTo(x, y, modifiers, !canceled);
     if (!canceled) {
-      myScreenView.getModel().renderImmediately();
+      myScreenView.getModel().notifyModified();
     }
   }
 

@@ -105,8 +105,6 @@ public class ConstraintModel {
 
         @Override
         public void modelRendered(@NotNull NlModel model) {
-          // TODO: Check things on render for now, but this ought not to be necessary
-          useNewModel(model, true);
         }
       };
     }

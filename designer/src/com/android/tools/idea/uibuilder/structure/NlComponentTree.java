@@ -374,16 +374,16 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   // ---- Implemented ModelListener ----
   @Override
   public void modelChanged(@NotNull NlModel model) {
-  }
-
-  @Override
-  public void modelRendered(@NotNull NlModel model) {
     UIUtil.invokeLaterIfNeeded(new Runnable() {
       @Override
       public void run() {
         updateHierarchy(false);
       }
     });
+  }
+
+  @Override
+  public void modelRendered(@NotNull NlModel model) {
   }
 
   // ---- Implemented DesignSurfaceListener ----

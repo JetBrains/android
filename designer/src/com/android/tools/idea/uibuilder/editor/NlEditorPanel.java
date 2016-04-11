@@ -89,9 +89,6 @@ public class NlEditorPanel extends JPanel implements DesignerEditorPanelFacade, 
     myContentSplitter.setDividerMouseZoneSize(Registry.intValue("ide.splitter.mouseZone"));
     myContentSplitter.setInnerComponent(contentPanel);
     add(myContentSplitter, BorderLayout.CENTER);
-
-    // When you're opening the layout editor we don't want to delay anything
-    model.requestRenderAsap();
   }
 
   static JComponent createToolbar(@NotNull DesignSurface surface) {
@@ -249,7 +246,6 @@ public class NlEditorPanel extends JPanel implements DesignerEditorPanelFacade, 
       SelectionModel selectionModel = screenView.getSelectionModel();
       NlModel model = screenView.getModel();
       model.delete(selectionModel.getSelection());
-      model.requestRender();
     }
 
     @Override
@@ -360,7 +356,7 @@ public class NlEditorPanel extends JPanel implements DesignerEditorPanelFacade, 
     @Override
     public void requestRender() {
       if (mySurface.getCurrentScreenView() != null) {
-        mySurface.getCurrentScreenView().getModel().requestRenderAsap();
+        mySurface.getCurrentScreenView().getModel().notifyModified();
       }
     }
 

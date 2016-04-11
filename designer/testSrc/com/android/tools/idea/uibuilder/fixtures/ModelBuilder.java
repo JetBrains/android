@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.fixtures;
 
+import com.android.tools.idea.uibuilder.SyncNlModel;
 import org.jetbrains.annotations.NotNull;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.uibuilder.model.NlModel;
@@ -62,33 +63,25 @@ public class ModelBuilder {
 
   public NlModel build() {
     // Creates a design-time version of a model
-    return WriteCommandAction.runWriteCommandAction(myFacet.getModule().getProject(), new Computable<NlModel>() {
-      @Override
-      public NlModel compute() {
-        String xml = toXml();
-        try {
-          TestCase.assertNotNull(xml, XmlUtils.parseDocument(xml, true));
-        }
-        catch (Exception e) {
-          TestCase.fail("Invalid XML created for the model (" + xml + ")");
-        }
-        XmlFile xmlFile = (XmlFile)myFixture.addFileToProject("res/layout/" + myName, xml);
-        XmlTag rootTag = xmlFile.getRootTag();
-        TestCase.assertNotNull(xml, rootTag);
-
-        List<ViewInfo> infos = Lists.newArrayList();
-        infos.add(myRoot.createViewInfo(null, rootTag));
-        XmlDocument document = xmlFile.getDocument();
-        TestCase.assertNotNull(document);
-        NlModel model = new NlModel(createSurface(), myFixture.getProject(), myFacet, xmlFile) {
-          @Override
-          public void requestRender() {
-            // Never do async rendering from these tests
-          }
-        };
-        model.updateHierarchy(infos);
-        return model;
+    return WriteCommandAction.runWriteCommandAction(myFacet.getModule().getProject(), (Computable<NlModel>)() -> {
+      String xml = toXml();
+      try {
+        TestCase.assertNotNull(xml, XmlUtils.parseDocument(xml, true));
       }
+      catch (Exception e) {
+        TestCase.fail("Invalid XML created for the model (" + xml + ")");
+      }
+      XmlFile xmlFile = (XmlFile)myFixture.addFileToProject("res/layout/" + myName, xml);
+      XmlTag rootTag = xmlFile.getRootTag();
+      TestCase.assertNotNull(xml, rootTag);
+
+      List<ViewInfo> infos = Lists.newArrayList();
+      infos.add(myRoot.createViewInfo(null, rootTag));
+      XmlDocument document = xmlFile.getDocument();
+      TestCase.assertNotNull(document);
+      NlModel model = SyncNlModel.create(createSurface(), myFixture.getProject(), myFacet, xmlFile);
+      model.updateHierarchy(infos);
+      return model;
     });
   }
 }

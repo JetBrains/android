@@ -58,7 +58,7 @@ public class ConstraintsLayer extends Layer {
 
     NlModel myModel = myScreenView.getModel();
     RenderResult renderResult = myModel.getRenderResult();
-    if (renderResult == null || renderResult.getImage() == null) {
+    if (renderResult == null) {
       return;
     }
 

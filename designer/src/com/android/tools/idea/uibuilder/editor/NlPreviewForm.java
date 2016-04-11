@@ -210,11 +210,13 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
       this.file = file;
       this.model = model;
       model.addListener(this);
-      model.requestRenderAsap(); // on file switches, render as soon as possible; the delay is for edits
+      model.render(); // on file switches, render as soon as possible; the delay is for edits
     }
 
     @Override
     public void modelChanged(@NotNull NlModel model) {
+      // This won't be called in the dispatch thread so, to avoid a 10ms delay in requestRender
+      model.render();
     }
 
     @Override
@@ -253,6 +255,8 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
         return false;
       }
       myPendingFile.invalidate();
+      // Set the model to null so the progressbar is displayed
+      mySurface.setModel(null);
     } else if (file == myFile) {
       return false;
     }
@@ -374,7 +378,12 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
       return;
     }
 
-    myInactiveFile = myFile;
+    if (myFile != null) {
+      myInactiveFile = myFile;
+    } else {
+      // The file might still be rendering
+      myInactiveFile = myPendingFile != null ? myPendingFile.file : null;
+    }
     setFile(null);
     isActive = false;
   }

@@ -139,8 +139,13 @@ public class ConstraintInteraction extends Interaction {
       }
     };
     action.execute();
+    /*
+    The model will automatically detect the modification when the XML is modified.
+    TODO: Add this back when we update directly the layout params as opposed to updating the XML.
+
     nlModel.notifyModified();
     myScreenView.getSurface().repaint();
+     */
   }
 
 }

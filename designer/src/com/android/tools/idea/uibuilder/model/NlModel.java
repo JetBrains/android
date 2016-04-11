@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.model;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.MergeCookie;
 import com.android.ide.common.rendering.api.ViewInfo;
@@ -32,6 +30,7 @@ import com.android.tools.idea.uibuilder.lint.LintAnnotationsModel;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.utils.XmlUtils;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -60,6 +59,8 @@ import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.Timer;
 import java.awt.*;
@@ -74,6 +75,8 @@ import java.util.*;
 import java.util.List;
 
 import static com.android.SdkConstants.*;
+import static com.intellij.util.ui.update.Update.HIGH_PRIORITY;
+import static com.intellij.util.ui.update.Update.LOW_PRIORITY;
 
 /**
  * Model for an XML file
@@ -99,6 +102,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   private int myRenderDelay = 10;
   private AndroidPreviewProgressIndicator myCurrentIndicator;
   private static final Object PROGRESS_LOCK = new Object();
+  private RenderTask myRenderTask;
 
   @NotNull
   public static NlModel create(@NotNull DesignSurface surface,
@@ -136,7 +140,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       ResourceNotificationManager manager = ResourceNotificationManager.getInstance(myFile.getProject());
       ResourceVersion version = manager.addListener(this, myFacet, myFile, myConfiguration);
       if (!version.equals(myRenderedVersion)) {
-        requestRender();
+        requestModelUpdate();
       }
     }
   }
@@ -146,6 +150,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    */
   public void deactivate() {
     if (myActive) {
+      getRenderingQueue().cancelAllUpdates();
       ResourceNotificationManager manager = ResourceNotificationManager.getInstance(myFile.getProject());
       manager.removeListener(this, myFacet, myFile, myConfiguration);
       myActive = false;
@@ -168,36 +173,13 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
   public void setLintAnnotationsModel(@Nullable LintAnnotationsModel model) {
     myLintAnnotationsModel = model;
-    requestRender();
+    ApplicationManager.getApplication().invokeLater(this::notifyListenersModelUpdateComplete);
   }
 
   /**
-   * Like {@link #requestRender()}, but tries to do it as quickly as possible (flushes rendering queue)
+   * Asynchronously inflates the model and updates the view hierarchy
    */
-  public void requestRenderAsap() {
-    requestRender();
-    getRenderingQueue().sendFlush();
-  }
-
-  /**
-   * Renders immediately and synchronously
-   */
-  public void renderImmediately() {
-    getRenderingQueue().cancelAllUpdates();
-    if (!ApplicationManager.getApplication().isReadAccessAllowed()) {
-      ApplicationManager.getApplication().runReadAction(new Runnable() {
-        @Override
-        public void run() {
-          requestRenderAsap();
-        }
-      });
-      return;
-    }
-
-    doRender();
-  }
-
-  public void requestRender() {
+  protected void requestModelUpdate() {
     ApplicationManager.getApplication().assertIsDispatchThread();
 
     synchronized (PROGRESS_LOCK) {
@@ -207,17 +189,17 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       }
     }
 
-    MergingUpdateQueue renderingQueue = getRenderingQueue();
-    renderingQueue.cancelAllUpdates();
-    renderingQueue.queue(new Update("render") {
+    getRenderingQueue().queue(new Update("model.update", HIGH_PRIORITY) {
       @Override
       public void run() {
         DumbService.getInstance(myFacet.getModule().getProject()).waitForSmartMode();
-        try {
-          doRender();
-        }
-        catch (Throwable e) {
-          Logger.getInstance(NlModel.class).error(e);
+        if (!myFacet.getModule().getProject().isDisposed()) {
+          try {
+            updateModel();
+          }
+          catch (Throwable e) {
+            Logger.getInstance(NlModel.class).error(e);
+          }
         }
 
         synchronized (PROGRESS_LOCK) {
@@ -230,7 +212,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
       @Override
       public boolean canEat(Update update) {
-        return true;
+        return equals(update);
       }
     });
   }
@@ -251,12 +233,10 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   private MergingUpdateQueue myRenderingQueue;
   private static final Object RENDERING_LOCK = new Object();
 
-
-  private void doRender() {
-    if (myFacet.getModule().getProject().isDisposed()) {
-      return;
-    }
-
+  /**
+   * Synchronously inflates the model and updates the view hierarchy
+   */
+  private void inflate() {
     Configuration configuration = myConfiguration;
     if (configuration == null) {
       return;
@@ -276,28 +256,108 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     synchronized (RENDERING_LOCK) {
       RenderService renderService = RenderService.get(myFacet);
       RenderLogger logger = renderService.createLogger();
-      final RenderTask task = renderService.createTask(myFile, configuration, logger, null);
-      if (task != null) {
+      if (myRenderTask != null) {
+        myRenderTask.dispose();
+      }
+      myRenderTask = renderService.createTask(myFile, configuration, logger, null);
+      if (myRenderTask != null) {
         if (!ToggleRenderModeAction.isRenderViewPort()) {
-          task.useDesignMode(myFile);
+          myRenderTask.useDesignMode(myFile);
         }
-        result = task.render();
-        task.dispose();
-      }
-      if (result == null) {
-        result = RenderResult.createBlank(myFile, logger);
-      }
-    }
+        result = myRenderTask.inflate();
+        if (result == null || !result.getRenderResult().isSuccess()) {
+          myRenderTask.dispose();
+          myRenderTask = null;
 
-    if (!getRenderingQueue().isEmpty()) {
-      return;
-    }
+          if (result == null) {
+            result = RenderResult.createBlank(myFile, logger);
+          }
+        }
+      }
 
-    myRenderResult = result;
-    updateHierarchy(result);
-    notifyListenersRenderComplete();
+      myRenderResult = result;
+      updateHierarchy(result);
+    }
   }
 
+  /**
+   * Synchronously update the model. This will inflate the layout and notify the listeners using
+   * {@link ModelListener#modelChanged(NlModel)}.
+   */
+  protected void updateModel() {
+    inflate();
+    notifyListenersModelUpdateComplete();
+  }
+
+  /**
+   * Renders the current model synchronously. Once the render is complete, the listeners {@link ModelListener#modelRendered(NlModel)}
+   * method will be called.
+   * <p/>
+   * If the layout hasn't been inflated before, this call will inflate the layout before rendering.
+   */
+  public void render() {
+    boolean notifyListeners = false;
+    synchronized (RENDERING_LOCK) {
+      boolean inflated = false;
+      if (myRenderTask == null) {
+        // Only in case that the layout hasn't been inflated before
+        inflate();
+        inflated = true;
+      }
+      if (myRenderTask != null) {
+        myRenderResult = myRenderTask.render();
+        // When the layout was inflated in this same call, we do not have to update the hierarchy again
+        if (!inflated) {
+          updateHierarchy(myRenderResult);
+        }
+        notifyListeners = true;
+      }
+    }
+
+    if (notifyListeners) {
+      notifyListenersRenderComplete();
+    }
+  }
+
+  /**
+   * Renders the current model asynchronously. Once the render is complete, the listeners {@link ModelListener#modelRendered(NlModel)}
+   * method will be called.
+   */
+  public void requestRender() {
+    // This method will be removed once we only do direct rendering (see RenderTask.render(Graphics2D))
+    // This update is low priority so the model updates take precedence
+    getRenderingQueue().queue(new Update("model.render", LOW_PRIORITY) {
+      @Override
+      public void run() {
+        if (myFacet.getModule().getProject().isDisposed()) {
+          return;
+        }
+
+        render();
+      }
+
+      @Override
+      public boolean canEat(Update update) {
+        return this.equals(update);
+      }
+    });
+  }
+
+  /**
+   * Method that paints the current layout to the given {@link Graphics2D} object.
+   */
+  public void paint(@NotNull Graphics2D graphics) {
+    synchronized (RENDERING_LOCK) {
+      if (myRenderTask != null) {
+        myRenderTask.render(graphics);
+      }
+    }
+  }
+
+  /**
+   * Adds a new {@link ModelListener}. If the listener already exists, this method will make sure that the listener is only
+   * added once.
+   */
   public void addListener(@NotNull ModelListener listener) {
     synchronized (myListeners) {
       myListeners.remove(listener); // prevent duplicate registration
@@ -311,18 +371,35 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     }
   }
 
-  private void notifyListenersRenderComplete() {
+  /**
+   * Calls all the listeners {@link ModelListener#modelChanged(NlModel)} method.
+   */
+  private void notifyListenersModelUpdateComplete() {
+    List<ModelListener> listeners;
     synchronized (myListeners) {
-      List<ModelListener> listeners = Lists.newArrayList(myListeners);
-      for (ModelListener listener : listeners) {
-        listener.modelRendered(this);
-      }
+      listeners = ImmutableList.copyOf(myListeners);
     }
+
+    listeners.forEach(listener -> listener.modelChanged(this));
+  }
+
+  /**
+   * Calls all the listeners {@link ModelListener#modelRendered(NlModel)} method.
+   */
+  private void notifyListenersRenderComplete() {
+    List<ModelListener> listeners;
+    synchronized (myListeners) {
+      listeners = ImmutableList.copyOf(myListeners);
+    }
+
+    listeners.forEach(listener -> listener.modelRendered(this));
   }
 
   @Nullable
   public RenderResult getRenderResult() {
-    return myRenderResult;
+    synchronized (RENDERING_LOCK) {
+      return myRenderResult;
+    }
   }
 
   @NotNull
@@ -668,6 +745,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     List<NlComponent> remaining = Lists.newArrayList(mySelectionModel.getSelection());
     remaining.removeAll(components);
     mySelectionModel.setSelection(remaining);
+    notifyModified();
   }
 
   private void handleDeletion(@NotNull Collection<NlComponent> components) {
@@ -899,6 +977,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       }
     };
     action.execute();
+    notifyModified();
   }
 
   private void handleAddition(@NotNull List<NlComponent> added,
@@ -1069,6 +1148,12 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   @Override
   public void dispose() {
     deactivate(); // ensure listeners are unregistered if necessary
+    synchronized (RENDERING_LOCK) {
+      if (myRenderTask != null) {
+        myRenderTask.dispose();
+        myRenderTask = null;
+      }
+    }
   }
 
   @Override
@@ -1080,7 +1165,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
   @Override
   public void resourcesChanged(@NotNull Set<ResourceNotificationManager.Reason> reason) {
-    requestRender();
+    notifyModified();
   }
 
   // ---- Implements ModificationTracker ----
@@ -1092,6 +1177,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
   public void notifyModified() {
     myModificationCount++;
+    requestModelUpdate();
   }
 
   private class AndroidPreviewProgressIndicator extends ProgressIndicatorBase {

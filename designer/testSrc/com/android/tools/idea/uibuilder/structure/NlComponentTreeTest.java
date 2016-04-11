@@ -149,7 +149,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
     newRelativeLayout.addChild(newAbsoluteLayout);
     newLinearLayout.addChild(newButton);
 
-    myTree.modelRendered(myModel);
+    myTree.modelChanged(myModel);
     UIUtil.dispatchAllInvocationEvents();
     assertEquals("<RelativeLayout>  [expanded]\n" +
                  "    <LinearLayout>\n" +
