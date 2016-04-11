@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.structure.model.repositories.search;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.intellij.util.io.HttpRequests;
 import org.jdom.Element;
@@ -30,7 +31,7 @@ import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
 import static com.intellij.openapi.util.JDOMUtil.load;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
-public class MavenCentralRepository implements ArtifactRepository {
+public class MavenCentralRepository extends ArtifactRepository {
   @Override
   @NotNull
   public String getName() {
@@ -39,8 +40,7 @@ public class MavenCentralRepository implements ArtifactRepository {
 
   @Override
   @NotNull
-  public SearchResult search(@NotNull SearchRequest request) throws IOException {
-    // This query searches for artifacts with name equal to the passed text.
+  protected SearchResult doSearch(@NotNull SearchRequest request) throws Exception {
     String url = createRequestUrl(request);
     return HttpRequests.request(url).accept("application/xml").connect(request1 -> {
       try {
@@ -100,7 +100,7 @@ public class MavenCentralRepository implements ArtifactRepository {
     </response>
     */
 
-    List<String> data = Lists.newArrayList();
+    List<FoundArtifact> artifacts = Lists.newArrayList();
     int totalFound = 0;
 
     Element root = load(response);
@@ -126,13 +126,16 @@ public class MavenCentralRepository implements ArtifactRepository {
             latestVersion = str.getTextTrim();
           }
           if (isNotEmpty(id) && isNotEmpty(latestVersion)) {
-            data.add(id + GRADLE_PATH_SEPARATOR + latestVersion);
+            List<String> coordinate = Splitter.on(GRADLE_PATH_SEPARATOR).splitToList(id);
+            assert coordinate.size() == 2;
+
+            artifacts.add(new FoundArtifact(getName(), coordinate.get(0), coordinate.get(1), latestVersion));
             break;
           }
         }
       }
     }
 
-    return new SearchResult(getName(), data, totalFound);
+    return new SearchResult(getName(), artifacts, totalFound);
   }
 }
