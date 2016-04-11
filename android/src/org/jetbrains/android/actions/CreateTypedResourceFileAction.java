@@ -177,7 +177,7 @@ public class CreateTypedResourceFileAction extends CreateResourceActionBase {
   }
 
   @NotNull
-  protected final List<String> getSortedAllowedTagNames(@NotNull AndroidFacet facet) {
+  public final List<String> getSortedAllowedTagNames(@NotNull AndroidFacet facet) {
     final List<String> result = new ArrayList<String>(getAllowedTagNames(facet));
     Collections.sort(result);
     return result;

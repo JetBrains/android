@@ -106,6 +106,7 @@ public interface NewResourceCreationHandler {
    * @param chooseFileName true if the user should still be able to choose the filename (even given a suggested filename).
    * @param chooseModule true if the user should choose the module
    * @param resDirectory pre-determined base res/ directory. Null if none.
+   * @param dataContext any context from the invocation (e.g., context from right-click on project panel). Null if no context.
    * @param validatorFactory creates a validator that's appropriate to the context, after the user fills in required fields.
    * @return a dialog
    */
@@ -120,6 +121,7 @@ public interface NewResourceCreationHandler {
     boolean chooseFileName,
     boolean chooseModule,
     @Nullable PsiDirectory resDirectory,
+    @Nullable DataContext dataContext,
     @NotNull CreateResourceFileDialogBase.ValidatorFactory validatorFactory);
 
   /**

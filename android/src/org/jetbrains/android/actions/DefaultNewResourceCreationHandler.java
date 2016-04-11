@@ -63,9 +63,10 @@ class DefaultNewResourceCreationHandler implements NewResourceCreationHandler {
     boolean chooseFileName,
     boolean chooseModule,
     @Nullable PsiDirectory resDirectory,
+    @Nullable DataContext dataContext,
     @NotNull CreateResourceFileDialogBase.ValidatorFactory validatorFactory) {
     return new CreateResourceFileDialog(facet, actions, folderType, filename, rootElement, folderConfiguration,
-                                        chooseFileName, chooseModule, resDirectory, validatorFactory);
+                                        chooseFileName, chooseModule, resDirectory, dataContext, validatorFactory);
   }
 
   @Override
