@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.structure.model.repositories.search;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.application.Application;
@@ -23,7 +22,6 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.ActionCallback;
 import net.jcip.annotations.NotThreadSafe;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.concurrent.Future;
@@ -64,26 +62,31 @@ public class ArtifactRepositorySearch {
   }
 
   public static class Callback extends ActionCallback {
-    private List<SearchResult> mySearchResults;
-    private List<Exception> myErrors;
+    @NotNull private final List<SearchResult> mySearchResults = Lists.newArrayList();
+    @NotNull private final List<Exception> myErrors = Lists.newArrayList();
 
-    void setDone(@NotNull List<SearchResult> searchResults, @NotNull List<Exception> myErrors) {
-      mySearchResults = ImmutableList.copyOf(searchResults);
-      myErrors = ImmutableList.copyOf(myErrors);
+    void setDone(@NotNull List<SearchResult> searchResults, @NotNull List<Exception> errors) {
+      searchResults.forEach(searchResult -> {
+        Exception error = searchResult.getError();
+        if (error != null) {
+          myErrors.add(error);
+          return;
+        }
+        mySearchResults.add(searchResult);
+      });
+      myErrors.addAll(errors);
       setDone();
     }
 
     @NotNull
     public List<SearchResult> getSearchResults() {
       checkIsDone();
-      assert mySearchResults != null;
       return mySearchResults;
     }
 
-    @Nullable
+    @NotNull
     public List<Exception> getErrors() {
       checkIsDone();
-      assert myErrors != null;
       return myErrors;
     }
 

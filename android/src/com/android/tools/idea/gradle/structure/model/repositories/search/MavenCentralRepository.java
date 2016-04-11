@@ -30,7 +30,7 @@ import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
 import static com.intellij.openapi.util.JDOMUtil.load;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
-public class MavenCentralRepository implements ArtifactRepository {
+public class MavenCentralRepository extends ArtifactRepository {
   @Override
   @NotNull
   public String getName() {
@@ -39,8 +39,7 @@ public class MavenCentralRepository implements ArtifactRepository {
 
   @Override
   @NotNull
-  public SearchResult search(@NotNull SearchRequest request) throws IOException {
-    // This query searches for artifacts with name equal to the passed text.
+  protected SearchResult doSearch(@NotNull SearchRequest request) throws Exception {
     String url = createRequestUrl(request);
     return HttpRequests.request(url).accept("application/xml").connect(request1 -> {
       try {

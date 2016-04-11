@@ -29,15 +29,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
 
 import static com.android.ide.common.repository.GradleCoordinate.parseCoordinateString;
-import static com.android.tools.idea.templates.RepositoryUrlManager.EXTRAS_REPOSITORY;
-import static com.android.tools.idea.templates.RepositoryUrlManager.MAVEN_METADATA_FILE_NAME;
-import static com.android.tools.idea.templates.RepositoryUrlManager.REVISION_ANY;
+import static com.android.tools.idea.templates.RepositoryUrlManager.*;
 
-public class AndroidSdkRepository implements ArtifactRepository {
+public class AndroidSdkRepository extends ArtifactRepository {
   private final List<GradleCoordinate> myGradleCoordinates = Lists.newArrayList();
 
   public AndroidSdkRepository(@Nullable AndroidProject androidProject) {
@@ -100,7 +97,7 @@ public class AndroidSdkRepository implements ArtifactRepository {
 
   @Override
   @NotNull
-  public SearchResult search(@NotNull SearchRequest request) throws IOException {
+  protected SearchResult doSearch(@NotNull SearchRequest request) {
     List<String> data = Lists.newArrayList();
     for (GradleCoordinate gradleCoordinate : myGradleCoordinates) {
       if (!matches(gradleCoordinate.getGroupId(), request.getGroupId())) {
@@ -110,7 +107,6 @@ public class AndroidSdkRepository implements ArtifactRepository {
         data.add(gradleCoordinate.toString());
       }
     }
-
     return new SearchResult(getName(), data, data.size());
   }
 
