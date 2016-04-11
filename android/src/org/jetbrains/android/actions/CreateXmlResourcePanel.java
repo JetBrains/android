@@ -19,6 +19,7 @@ import com.android.builder.model.SourceProvider;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.res.ResourceHelper;
+import com.intellij.application.options.ModulesComboBox;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -27,18 +28,13 @@ import com.intellij.openapi.fileChooser.actions.VirtualFileDeleteProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
-import com.intellij.application.options.ModulesComboBox;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiManager;
-import com.intellij.ui.AnActionButton;
-import com.intellij.ui.AnActionButtonRunnable;
-import com.intellij.ui.CheckBoxList;
-import com.intellij.ui.CollectionListModel;
-import com.intellij.ui.ToolbarDecorator;
+import com.intellij.ui.*;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.PlatformIcons;
@@ -54,12 +50,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author Eugene.Kudelevsky
@@ -91,38 +82,29 @@ public class CreateXmlResourcePanel {
 
   public CreateXmlResourcePanel(@NotNull Module module,
                                 @NotNull ResourceType resourceType,
+                                @NotNull ResourceFolderType folderType,
                                 @Nullable String predefinedName,
                                 @Nullable String predefinedValue,
                                 boolean chooseName,
-                                @Nullable VirtualFile defaultFile) {
-    this(module, resourceType, defaultFile, ResourceFolderType.VALUES);
-
-    if (chooseName) {
-      predefinedName = ResourceHelper.prependResourcePrefix(module, predefinedName);
-    }
-
-    if (!StringUtil.isEmpty(predefinedName)) {
-      if (chooseName) {
-        setChangeNameVisible(true);
-      }
-      myNameField.setText(predefinedName);
-    }
-    else {
-      setChangeNameVisible(true);
-    }
-
-    if (!StringUtil.isEmpty(predefinedValue)) {
-      myValueField.setText(predefinedValue);
-    }
-    else {
-      setChangeValueVisible(true);
-    }
-  }
-
-  public CreateXmlResourcePanel(@NotNull Module module, @NotNull ResourceType resourceType, @Nullable VirtualFile defaultFile,
-                                @NotNull ResourceFolderType folderType) {
+                                boolean chooseValue,
+                                @Nullable VirtualFile defaultFile,
+                                @Nullable VirtualFile contextFile) {
     setChangeNameVisible(false);
     setChangeValueVisible(false);
+    if (chooseName) {
+      setChangeNameVisible(true);
+      predefinedName = ResourceHelper.prependResourcePrefix(module, predefinedName);
+      if (!StringUtil.isEmpty(predefinedName)) {
+        myNameField.setText(predefinedName);
+      }
+    }
+
+    if (chooseValue) {
+      setChangeValueVisible(true);
+      if (!StringUtil.isEmpty(predefinedValue)) {
+        myValueField.setText(predefinedValue);
+      }
+    }
 
     myResourceType = resourceType;
     myFolderType = folderType;

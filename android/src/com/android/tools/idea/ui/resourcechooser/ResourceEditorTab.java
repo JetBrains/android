@@ -85,7 +85,10 @@ public abstract class ResourceEditorTab {
     myEditorPanel.add(centerPanel);
     myFullPanel.setBorder(new EmptyBorder(UIUtil.PANEL_SMALL_INSETS));
 
-    myLocationSettings = new CreateXmlResourcePanel(module, resourceType, null, folderType);
+    // There is no need to choose the resource name or value here (controlled by parent).
+    myLocationSettings = new CreateXmlResourcePanel(module, resourceType, folderType, "", "",
+                                                    false /* chooseName */, false /* chooseValue */,
+                                                    null, null);
 
     // if the resource name IS the filename, we don't need to allow changing the filename
     myLocationSettings.setChangeFileNameVisible(changeFileNameVisible);

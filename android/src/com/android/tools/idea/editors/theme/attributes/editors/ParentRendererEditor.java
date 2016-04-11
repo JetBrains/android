@@ -137,7 +137,7 @@ public class ParentRendererEditor extends TypedCellRendererEditor<ConfiguredThem
         Module module = myContext.getCurrentContextModule();
 
         CreateXmlResourceDialog
-          resourceDialog = new CreateXmlResourceDialog(module, ResourceType.STYLE, themeName, " ", false);
+          resourceDialog = new CreateXmlResourceDialog(module, ResourceType.STYLE, themeName, " ", false, null, null);
         resourceDialog.setTitle(String.format("Create Theme '%1$s' Variant", themeName));
         if (!resourceDialog.showAndGet()) {
           return;

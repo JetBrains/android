@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.actions;
 
+import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.intellij.CommonBundle;
 import com.intellij.openapi.fileTypes.StdFileTypes;
@@ -43,24 +44,17 @@ public class CreateXmlResourceDialog extends DialogWrapper {
 
   final CreateXmlResourcePanel myPanel;
 
-
-  public CreateXmlResourceDialog(@NotNull Module module,
-                                 @NotNull ResourceType resourceType,
-                                 @Nullable String predefinedName,
-                                 @Nullable String predefinedValue,
-                                 boolean chooseName) {
-    this(module, resourceType, predefinedName, predefinedValue, chooseName, null);
-  }
-
   public CreateXmlResourceDialog(@NotNull Module module,
                                  @NotNull ResourceType resourceType,
                                  @Nullable String predefinedName,
                                  @Nullable String predefinedValue,
                                  boolean chooseName,
-                                 @Nullable VirtualFile defaultFile) {
+                                 @Nullable VirtualFile defaultFile,
+                                 @Nullable VirtualFile contextFile) {
     super(module.getProject());
 
-    myPanel = new CreateXmlResourcePanel(module, resourceType, predefinedName, predefinedValue, chooseName, defaultFile);
+    myPanel = new CreateXmlResourcePanel(module, resourceType, ResourceFolderType.VALUES,
+                                         predefinedName, predefinedValue, chooseName, true, defaultFile, contextFile);
 
     init();
   }
