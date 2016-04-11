@@ -38,6 +38,9 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.util.containers.IntArrayList;
+import com.intellij.xml.breadcrumbs.BreadcrumbsComponent;
+import com.intellij.xml.breadcrumbs.BreadcrumbsItem;
+import com.intellij.xml.breadcrumbs.BreadcrumbsItemListener;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -59,10 +62,12 @@ public class StateController extends TreeController implements GpuState.Listener
     return new StateController(editor).myPanel;
   }
 
-  @NotNull private static final Logger LOG = Logger.getInstance(StateController.class);
-  @NotNull private static final TypedValue ROOT_TYPE = new TypedValue(null, SnippetObject.symbol("state"));
+  private static final @NotNull Logger LOG = Logger.getInstance(StateController.class);
+  private static final @NotNull TypedValue ROOT_TYPE = new TypedValue(null, SnippetObject.symbol("state"));
 
-  @NotNull private final StateTreeModel myModel = new StateTreeModel(new Node(ROOT_TYPE, null));
+  private final @NotNull StateTreeModel myModel = new StateTreeModel(new Node(ROOT_TYPE, null));
+
+  private @Nullable Path myLastSelectedBreadcrumb;
 
   private StateController(@NotNull GfxTraceEditor editor) {
     super(editor, GfxTraceEditor.SELECT_ATOM);
@@ -76,16 +81,15 @@ public class StateController extends TreeController implements GpuState.Listener
       @Override
       public void mouseMoved(MouseEvent event) {
         TreePath treePath = myTree.getClosestPathForLocation(event.getX(), event.getY());
-        boolean showHand = false;
+        Path followPath = null;
         if (treePath != null) {
           final Node node = (Node)treePath.getLastPathComponent();
           if (node.canFollow()) {
-            showHand = canFollow(treePath, event.getX());
-            if (node.getFollowPath() == null) {
-              Path path = getPath(treePath);
+            followPath = node.getFollowPath();
+            if (followPath == null) {
               // set empty path so we do not make any more calls to the server for this path
               node.setFollowPath(Path.EMPTY);
-              Futures.addCallback(myEditor.getClient().follow(path), new FutureCallback<Path>() {
+              Futures.addCallback(myEditor.getClient().follow(getPath(treePath)), new FutureCallback<Path>() {
                 @Override
                 public void onSuccess(Path result) {
                   node.setFollowPath(result);
@@ -97,15 +101,19 @@ public class StateController extends TreeController implements GpuState.Listener
                 }
               });
             }
+            // if the mouse if not over the correct bit of the link, do not show hand/statusbar text
+            if (!canFollow(treePath, event.getX())) {
+              followPath = null;
+            }
           }
         }
 
-        myTree.setCursor(showHand ? Cursor.getPredefinedCursor(Cursor.HAND_CURSOR) : Cursor.getDefaultCursor());
+        hoverHand(myTree, myEditor.getGpuState().getPath(), followPath);
       }
 
       @Override
       public void mouseExited(MouseEvent e) {
-        myTree.setCursor(Cursor.getDefaultCursor());
+        hoverHand(myTree, myEditor.getGpuState().getPath(), null);
       }
 
       @Override
@@ -125,6 +133,43 @@ public class StateController extends TreeController implements GpuState.Listener
     };
     myTree.addMouseListener(mouseHandler);
     myTree.addMouseMotionListener(mouseHandler);
+
+    final BreadcrumbsComponent<PathBreadcrumbsItem> breadcrumb = new BreadcrumbsComponent<>();
+    breadcrumb.addBreadcrumbsItemListener(new BreadcrumbsItemListener<PathBreadcrumbsItem>() {
+      @Override
+      public void itemSelected(@NotNull PathBreadcrumbsItem item, int modifiers) {
+        myLastSelectedBreadcrumb = item.getPath();
+        myEditor.activatePath(myLastSelectedBreadcrumb, StateController.this);
+      }
+
+      @Override
+      public void itemHovered(@Nullable PathBreadcrumbsItem item) {
+        hoverHand(breadcrumb, myEditor.getGpuState().getPath(), item == null ? null : item.getPath());
+      }
+    });
+    myPanel.add(breadcrumb, BorderLayout.NORTH);
+
+    myTree.addTreeSelectionListener(e -> {
+      if (e.isAddedPath()) {
+        TreePath treePath = e.getPath();
+        Path path = getPath(treePath);
+        // if we have just selected a item that was selected from the breadcrumb, we don't need to update them
+        if (!path.equals(myLastSelectedBreadcrumb)) {
+          Path root = myEditor.getGpuState().getPath();
+          List<PathBreadcrumbsItem> breadcrumbs = new ArrayList<>();
+          while (path != null) {
+            if (path == root) {
+              break;
+            }
+            breadcrumbs.add(new PathBreadcrumbsItem(path));
+            path = path.getParent();
+          }
+          Collections.reverse(breadcrumbs);
+          breadcrumb.setItems(breadcrumbs);
+          myLastSelectedBreadcrumb = null;
+        }
+      }
+    });
   }
 
   private boolean canFollow(@Nullable TreePath treePath, int mouseX) {
@@ -136,8 +181,7 @@ public class StateController extends TreeController implements GpuState.Listener
     return Render.getNodeFieldIndex(myTree, node, mouseX - bounds.x) == Render.STATE_VALUE_TAG;
   }
 
-  @NotNull
-  private Path getPath(@NotNull TreePath treePath) {
+  private @NotNull Path getPath(@NotNull TreePath treePath) {
     Path parent = null;
     Object[] nodePath = treePath.getPath();
     for (Object node : nodePath) {
@@ -264,6 +308,23 @@ public class StateController extends TreeController implements GpuState.Listener
       }
     }
     return result;
+  }
+
+  static class PathBreadcrumbsItem extends BreadcrumbsItem {
+    private final @NotNull Path myPath;
+
+    public PathBreadcrumbsItem(@NotNull Path path) {
+      myPath = path;
+    }
+
+    public @NotNull Path getPath() {
+      return myPath;
+    }
+
+    @Override
+    public @NotNull String getDisplayText() {
+      return myPath.getSegmentString();
+    }
   }
 
   public static class TypedValue {

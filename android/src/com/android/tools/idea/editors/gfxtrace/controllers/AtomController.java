@@ -370,7 +370,7 @@ public class AtomController extends TreeController implements AtomStream.Listene
 
       private void updateHovering(@NotNull DefaultMutableTreeNode node, @NotNull Rectangle bounds, int x, int y) {
         Object userObject = node.getUserObject();
-        myTree.setCursor(Cursor.getDefaultCursor());
+        hoverHand(myTree, myEditor.getAtomStream().getPath(), null);
 
         // Check if hovering the preview icon.
         if (userObject instanceof Group && shouldShowPreview((Group)userObject) && x < Group.THUMBNAIL_SIZE && y < Group.THUMBNAIL_SIZE) {
@@ -437,11 +437,9 @@ public class AtomController extends TreeController implements AtomStream.Listene
 
         if (followPath != Path.EMPTY) {
           node.hoveredParameter = index;
-          myTree.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         }
-        else {
-          myTree.setCursor(Cursor.getDefaultCursor());
-        }
+
+        hoverHand(myTree, myEditor.getAtomStream().getPath(), followPath);
         myTree.repaint();
       }
 

@@ -27,12 +27,17 @@ import java.io.IOException;
 
 public final class AtomPath extends Path {
   @Override
-  public StringBuilder stringPath(StringBuilder builder) {
-    return myAtoms.stringPath(builder).append("[").append(myIndex).append("]");
+  public String getSegmentString() {
+    return '[' + String.valueOf(myIndex) + ']';
   }
 
   @Override
-  public Path getParent() {
+  public void appendSegmentToPath(StringBuilder builder) {
+    builder.append(getSegmentString());
+  }
+
+  @Override
+  public AtomsPath getParent() {
     return myAtoms;
   }
 
