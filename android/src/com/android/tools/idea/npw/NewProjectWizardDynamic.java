@@ -239,6 +239,17 @@ public class NewProjectWizardDynamic extends DynamicWizard {
   }
 
   @Override
+  public void doFinishAction() {
+    if (!checkFinish()) return;
+    try {
+      doFinish();
+    }
+    catch (IOException e) {
+      LOG.error(e);
+    }
+  }
+
+  @Override
   protected void doFinish() throws IOException {
     final String location = myState.get(PROJECT_LOCATION_KEY);
     String name = myState.get(APPLICATION_NAME_KEY);
