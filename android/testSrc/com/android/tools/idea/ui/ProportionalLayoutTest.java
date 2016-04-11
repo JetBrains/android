@@ -160,7 +160,7 @@ public final class ProportionalLayoutTest {
 
     mockPackPanel(panel);
 
-    assertThat(panel.getMinimumSize().getWidth()).isEqualTo(30.0);
+    assertThat(panel.getMinimumSize().getWidth()).isWithin(0.1).of(30.0);
   }
 
   @Test
