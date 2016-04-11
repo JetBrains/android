@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.intellij.ui.EditorNotificationPanel;
 import com.intellij.ui.HyperlinkLabel;
 import org.fest.reflect.core.Reflection;
@@ -28,7 +29,7 @@ public class EditorNotificationPanelFixture extends JComponentFixture<EditorNoti
   }
 
   public void performAction(@NotNull final String label) {
-    HyperlinkLabel link = robot().finder().find(target(), new GenericTypeMatcher<HyperlinkLabel>(HyperlinkLabel.class) {
+    HyperlinkLabel link = GuiTests.waitUntilShowing(robot(), target(), new GenericTypeMatcher<HyperlinkLabel>(HyperlinkLabel.class) {
       @Override
       protected boolean isMatching(@NotNull HyperlinkLabel hyperlinkLabel) {
         // IntelliJ's HyperLinkLabel class does not expose the getText method (it is package private)
