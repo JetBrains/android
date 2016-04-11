@@ -23,7 +23,6 @@ import com.intellij.ide.wizard.Step;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.command.UndoConfirmationPolicy;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressManager;
@@ -178,14 +177,6 @@ public abstract class DynamicWizard implements ScopedStateStore.ScopedStoreListe
   }
 
   /**
-   * Do the checks needed before performing the finishing actions.
-   * @return false to abort, true to do the finishing actions.
-   */
-  public boolean canPerformFinishingActions() {
-    return true;
-  }
-
-  /**
    * Declare any finishing actions that will take place at the completion of the wizard. This will
    * be executed by a worker thread, under progress.
    */
@@ -334,17 +325,6 @@ public abstract class DynamicWizard implements ScopedStateStore.ScopedStoreListe
   }
 
   /**
-   * @return true iff the current step is the last one in the wizard (required or optional)
-   */
-  protected final boolean isLastStep() {
-    if (myCurrentPath != null) {
-      return !myPathListIterator.hasNext() && !myCurrentPath.hasNext();
-    } else {
-      return !myPathListIterator.hasNext();
-    }
-  }
-
-  /**
    * Commit the current step and move to the next step. Subclasses should rarely need to override
    * this method.
    */
@@ -468,10 +448,6 @@ public abstract class DynamicWizard implements ScopedStateStore.ScopedStoreListe
    */
   public void doCancelAction() {
     myHost.close(DynamicWizardHost.CloseAction.CANCEL);
-  }
-
-  protected UndoConfirmationPolicy getUndoConfirmationPolicy() {
-    return UndoConfirmationPolicy.DEFAULT;
   }
 
   @Nullable
@@ -673,9 +649,6 @@ public abstract class DynamicWizard implements ScopedStateStore.ScopedStoreListe
       if (path.isPathVisible() && !path.canPerformFinishingActions()) {
         return;
       }
-    }
-    if (!canPerformFinishingActions()) {
-      return;
     }
     for (AndroidStudioWizardPath path : myPaths) {
       if (path.isPathVisible()) {
