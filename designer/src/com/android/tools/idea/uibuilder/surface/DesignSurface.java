@@ -123,6 +123,7 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
     myLayeredPane.add(myGlassPane, JLayeredPane.DRAG_LAYER);
 
     myProgressPanel = new MyProgressPanel();
+    myProgressPanel.setName("Layout Editor Progress Panel");
     myLayeredPane.add(myProgressPanel, LAYER_PROGRESS);
 
     myScrollPane = new MyScrollPane();

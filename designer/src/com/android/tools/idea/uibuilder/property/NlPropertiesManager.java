@@ -111,6 +111,9 @@ public class NlPropertiesManager implements DesignSurfaceListener {
         UIUtil.invokeLaterIfNeeded(new Runnable() {
           @Override
           public void run() {
+            if (myProject.isDisposed()) {
+              return;
+            }
             myPropertiesPanel.setItems(component, properties, NlPropertiesManager.this);
             if (postUpdateRunnable != null) {
               postUpdateRunnable.run();
