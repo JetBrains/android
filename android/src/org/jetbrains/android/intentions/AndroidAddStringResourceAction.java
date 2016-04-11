@@ -19,7 +19,6 @@ package org.jetbrains.android.intentions;
 import com.android.ide.common.res2.ValueXmlHelper;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.res.ResourceHelper;
 import com.intellij.CommonBundle;
 import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.codeInsight.intention.AbstractIntentionAction;
@@ -204,8 +203,8 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
     }
     else {
       Module facetModule = facet.getModule();
-      boolean chooseName = resName != null || ResourceHelper.prependResourcePrefix(facetModule, null) != null;
-      final CreateXmlResourceDialog dialog = new CreateXmlResourceDialog(facetModule, type, resName, value, chooseName);
+      final CreateXmlResourceDialog dialog = new CreateXmlResourceDialog(facetModule, type, resName, value, true,
+                                                                         null, file.getVirtualFile());
       dialog.setTitle("Extract Resource");
       if (!dialog.showAndGet()) {
         return;

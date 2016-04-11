@@ -613,7 +613,8 @@ public class ChooseResourceDialog extends DialogWrapper {
       return;
     }
 
-    CreateXmlResourceDialog dialog = new CreateXmlResourceDialog(myModule, resourceType, null, null, true);
+    CreateXmlResourceDialog dialog = new CreateXmlResourceDialog(myModule, resourceType, null, null, true,
+                                                                 null, null);
     dialog.setTitle("New " + StringUtil.capitalize(resourceType.getDisplayName()) + " Value Resource");
     if (!dialog.showAndGet()) {
       return;
