@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
+import com.android.tools.idea.uibuilder.model.ModelListener;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.rendering.ImageUtils;
@@ -33,6 +34,8 @@ public class ScreenViewLayer extends Layer {
   @Nullable private BufferedImage myImage;
   /** Cached scaled image */
   @Nullable private BufferedImage myScaledImage;
+  /** Cached last render result */
+  @Nullable private RenderResult myLastRenderResult;
   /** The scale at which we cached the scaled image  */
   private double myCachedScale;
 
@@ -41,6 +44,37 @@ public class ScreenViewLayer extends Layer {
 
   public ScreenViewLayer(@NotNull ScreenView screenView) {
     myScreenView = screenView;
+  }
+
+  @Nullable
+  private static BufferedImage getRetinaScaledImage(@NotNull BufferedImage original, double scale) {
+    if (scale > 1.01) {
+      // When scaling up significantly, use normal painting logic; no need to pixel double into a
+      // double res image buffer!
+      return null;
+    }
+
+    // No scaling if very close to 1.0
+    if (Math.abs(scale - 1.0) > 0.01) {
+      double retinaScale = 2 * scale;
+      original = ImageUtils.scale(original, retinaScale, retinaScale);
+    }
+
+    return ImageUtils.convertToRetina(original);
+  }
+
+  private void setNewImage(@NotNull BufferedImage newImage, double newScale) {
+    myCachedScale = newScale;
+    myImage = newImage;
+    myScaledImage = null;
+
+    if (UIUtil.isRetina() && ImageUtils.supportsRetina()) {
+      myScaledImage = getRetinaScaledImage(newImage, newScale);
+    }
+    if (myScaledImage == null) {
+      // Fallback to normal scaling
+      myScaledImage = ImageUtils.scale(newImage, newScale, newScale);
+    }
   }
 
   @Override
@@ -53,58 +87,23 @@ public class ScreenViewLayer extends Layer {
       return;
     }
 
-    NlModel myModel = myScreenView.getModel();
-    RenderResult renderResult = myModel.getRenderResult();
-    if (renderResult != null && renderResult.getImage() != null) {
-      BufferedImage originalImage = renderResult.getImage().getOriginalImage();
-      if (UIUtil.isRetina() && paintHiDpi(g, originalImage)) {
-        return;
-      }
-      paintLoDpi(g, originalImage);
-    }
-  }
-
-  public void paintLoDpi(@NotNull Graphics g, @NotNull BufferedImage originalImage) {
-    double scale = myScreenView.getScale();
-    int x = myScreenView.getX();
-    int y = myScreenView.getY();
-
-    if (myScaledImage == null || myImage != originalImage || myCachedScale != scale) {
-      myImage = originalImage;
-      myCachedScale = scale;
-      myScaledImage = ImageUtils.scale(originalImage, scale, scale);
-    }
-    g.drawImage(myScaledImage, x, y, null);
-  }
-
-  public boolean paintHiDpi(@NotNull Graphics g, @NotNull BufferedImage originalImage) {
-    if (!ImageUtils.supportsRetina()) {
-      return false;
+    RenderResult renderResult = myScreenView.getModel().getRenderResult();
+    if (renderResult != null && renderResult.getImage() != null && renderResult != myLastRenderResult) {
+      myLastRenderResult = renderResult;
+      myImage = renderResult.getImage().getOriginalImage();
+      myScaledImage = null;
     }
 
-    /* No longer need to support custom tweaking of this
-    AndroidEditorSettings.GlobalState settings = AndroidEditorSettings.getInstance().getGlobalState();
-    if (!settings.isRetina()) {
-      return false;
+    if (myImage == null) {
+      return;
     }
-    */
 
     double scale = myScreenView.getScale();
-    if (scale > 1.01) {
-      // When scaling up significantly, use normal painting logic; no need to pixel double into a
-      // double res image buffer!
-      return false;
+    if (myScaledImage == null || myCachedScale != scale) {
+      setNewImage(myImage, scale);
     }
-    int x = myScreenView.getX();
-    int y = myScreenView.getY();
 
-    if (myScaledImage == null || myImage != originalImage || myCachedScale != scale) {
-      myImage = originalImage;
-      myCachedScale = scale;
-
-      BufferedImage image = myImage;
-
-      /* TODO: Not supporting wear yet
+    /* TODO: Not supporting wear yet
       Device device = myScreenView.getModel().getConfiguration().getDevice();
       if (HardwareConfigHelper.isRound(device)) {
         int imageType = image.getType();
@@ -124,20 +123,6 @@ public class ScreenViewLayer extends Layer {
       }
       */
 
-      // No scaling if very close to 1.0
-      double retinaScale = 2 * scale;
-      if (Math.abs(scale - 1.0) > 0.01) {
-        image = ImageUtils.scale(image, retinaScale, retinaScale);
-      }
-
-      myScaledImage = ImageUtils.convertToRetina(image);
-      if (myScaledImage == null) {
-        return false;
-      }
-    }
-
-    //noinspection ConstantConditions
-    UIUtil.drawImage(g, myScaledImage, x, y, null);
-    return true;
+    UIUtil.drawImage(g, myScaledImage, myScreenView.getX(), myScreenView.getY(), null);
   }
 }

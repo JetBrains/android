@@ -48,17 +48,15 @@ public class ScreenView {
     myModel.addListener(new ModelListener() {
       @Override
       public void modelRendered(@NotNull NlModel model) {
-        ApplicationManager.getApplication().invokeLater(new Runnable() {
-          @Override
-          public void run() {
-            mySurface.updateErrorDisplay(ScreenView.this, myModel.getRenderResult());
-            mySurface.repaint();
-          }
+        ApplicationManager.getApplication().invokeLater(() -> {
+          mySurface.updateErrorDisplay(ScreenView.this, myModel.getRenderResult());
+          mySurface.repaint();
         });
       }
 
       @Override
       public void modelChanged(@NotNull NlModel model) {
+        model.render();
       }
     });
     myModel.getSelectionModel().addListener(new SelectionListener() {

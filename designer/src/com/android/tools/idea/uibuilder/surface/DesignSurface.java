@@ -65,6 +65,7 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.*;
 
@@ -776,16 +777,16 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
     protected void paintComponent(@NotNull Graphics graphics) {
       super.paintComponent(graphics);
 
-      if (myScreenView == null) {
-        return;
-      }
-
       Graphics2D g2d = (Graphics2D)graphics;
       // (x,y) coordinates of the top left corner in the view port
       int tlx = myScrollPane.getHorizontalScrollBar().getValue();
       int tly = myScrollPane.getVerticalScrollBar().getValue();
 
       paintBackground(g2d, tlx, tly);
+
+      if (myScreenView == null) {
+        return;
+      }
 
       Composite oldComposite = g2d.getComposite();
 
@@ -1059,7 +1060,7 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
   @SuppressWarnings("FieldAccessedSynchronizedAndUnsynchronized")
   private final MyProgressPanel myProgressPanel;
 
-  public synchronized void registerIndicator(@NotNull ProgressIndicator indicator) {
+  public void registerIndicator(@NotNull ProgressIndicator indicator) {
     synchronized (myProgressIndicators) {
       myProgressIndicators.add(indicator);
       myProgressPanel.showProgressIcon();

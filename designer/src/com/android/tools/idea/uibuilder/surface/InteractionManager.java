@@ -541,7 +541,7 @@ public class InteractionManager {
       } else if (keyChar == 'r') {
         ScreenView screenView = mySurface.getScreenView(myLastMouseX, myLastMouseY);
         if (screenView != null) {
-          screenView.getModel().requestRender();
+          screenView.getModel().notifyModified();
         }
         mySurface.zoomIn();
       } else if (keyChar == '+') {

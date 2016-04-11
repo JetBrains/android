@@ -40,6 +40,7 @@ import com.android.tools.idea.rendering.multi.RenderPreviewMode;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.AssetRepositoryImpl;
 import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.swing.layoutlib.FakeImageFactory;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
@@ -49,6 +50,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.reference.SoftReference;
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
@@ -57,6 +59,7 @@ import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 import org.xmlpull.v1.XmlPullParserException;
 
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.Collections;
@@ -64,10 +67,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
 
-import static com.android.SdkConstants.APPCOMPAT_LIB_ARTIFACT;
-import static com.android.SdkConstants.HORIZONTAL_SCROLL_VIEW;
-import static com.android.SdkConstants.SCROLL_VIEW;
+import static com.android.SdkConstants.*;
 import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
 
 /**
@@ -130,6 +132,11 @@ public class RenderTask implements IImageFactory {
   private ResourceFolderType myFolderType;
 
   private boolean myProvideCookiesForIncludedViews = false;
+  private final FakeImageFactory myFakeImageFactory = new FakeImageFactory();
+  private RenderSession myRenderSession;
+  private IImageFactory myImageFactoryDelegate;
+  /** Cached {@link BufferedImage} that will be returned when direct rendering is not used. See {@link #render(Graphics2D)} */
+  private SoftReference<BufferedImage> myCachedImageReference;
 
   /**
    * Don't create this task directly; obtain via {@link com.android.tools.idea.rendering.RenderService}
@@ -233,6 +240,17 @@ public class RenderTask implements IImageFactory {
   public void dispose() {
     myLayoutlibCallback.setLogger(null);
     myLayoutlibCallback.setResourceResolver(null);
+    if (myRenderSession != null) {
+      try {
+        RenderService.runRenderAction(() -> {
+          myRenderSession.dispose();
+          myRenderSession = null;
+        });
+      }
+      catch (Exception ignored) {
+      }
+    }
+    myImageFactoryDelegate = null;
   }
 
   /**
@@ -439,6 +457,8 @@ public class RenderTask implements IImageFactory {
 
     params.setFlag(RenderParamsFlags.FLAG_KEY_ROOT_TAG, AndroidPsiUtils.getRootTagName(myPsiFile));
     params.setFlag(RenderParamsFlags.FLAG_KEY_RECYCLER_VIEW_SUPPORT, true);
+    params.setFlag(RenderParamsFlags.FLAG_KEY_DISABLE_BITMAP_CACHING, true);
+    params.setFlag(RenderParamsFlags.FLAG_DO_NOT_RENDER_ON_CREATE, true);
 
     // Request margin and baseline information.
     // TODO: Be smarter about setting this; start without it, and on the first request
@@ -535,8 +555,16 @@ public class RenderTask implements IImageFactory {
               retries++;
             }
 
+            if (session.getResult().isSuccess()) {
+              // Advance the frame time to display the material progress bars
+              // TODO: Expose this through the RenderTask API to allow callers to customize this value
+              long now = System.nanoTime();
+              session.setSystemBootTimeNanos(now);
+              session.setSystemTimeNanos(now);
+              session.setElapsedFrameTimeNanos(TimeUnit.MILLISECONDS.toNanos(500));
+            }
             RenderResult result = new RenderResult(RenderTask.this, session, myPsiFile, myLogger);
-            session.dispose();
+            myRenderSession = session;
             return result;
           }
           finally {
@@ -611,21 +639,61 @@ public class RenderTask implements IImageFactory {
     return null;
   }
 
+  /**
+   * Inflates the layout but does not render it.
+   * @return A {@link RenderResult} with the result of inflating the inflate call. The result might not contain a result bitmap.
+   */
   @Nullable
-  public RenderResult render(@NotNull final IImageFactory factory) {
+  public RenderResult inflate() {
     // During development only:
-    //assert !ApplicationManager.getApplication().isReadAccessAllowed() : "Do not hold read lock during render!";
+    //assert !ApplicationManager.getApplication().isReadAccessAllowed() : "Do not hold read lock during inflate!";
 
     if (myPsiFile == null) {
-      throw new IllegalStateException("render shouldn't be called on RenderTask without PsiFile");
+      throw new IllegalStateException("inflate shouldn't be called on RenderTask without PsiFile");
     }
 
     try {
-      return RenderService.runRenderAction(new Callable<RenderResult>() {
-        @Override
-        public RenderResult call() throws Exception {
-          return createRenderSession(factory);
+      return RenderService.runRenderAction(() -> createRenderSession((width, height) -> {
+        if (myImageFactoryDelegate != null) {
+          return myImageFactoryDelegate.getImage(width, height);
         }
+
+        return new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+      }));
+    }
+    catch (final Exception e) {
+      String message = e.getMessage();
+      if (message == null) {
+        message = e.toString();
+      }
+      myLogger.addMessage(RenderProblem.createPlain(ERROR, message, myRenderService.getProject(), myLogger.getLinkManager(), e));
+      return new RenderResult(this, null, myPsiFile, myLogger);
+    }
+  }
+
+  /**
+   * Renders the layout to the current {@link IImageFactory} set in {@link #myImageFactoryDelegate}
+   */
+  private RenderResult renderInner() {
+    // During development only:
+    //assert !ApplicationManager.getApplication().isReadAccessAllowed() : "Do not hold read lock during render!";
+
+    if (myRenderSession == null) {
+      RenderResult renderResult = inflate();
+      Result result = renderResult != null ? renderResult.getRenderResult() : null;
+      if (result == null || !result.isSuccess()) {
+        if (result != null) {
+          myLogger.error(null, result.getErrorMessage(), result.getException(), null);
+        }
+        return renderResult;
+      }
+    }
+    assert myPsiFile != null;
+
+    try {
+      return RenderService.runRenderAction(() -> {
+        myRenderSession.render();
+        return new RenderResult(this, myRenderSession, myPsiFile, myLogger);
       });
     }
     catch (final Exception e) {
@@ -634,16 +702,48 @@ public class RenderTask implements IImageFactory {
         message = e.toString();
       }
       myLogger.addMessage(RenderProblem.createPlain(ERROR, message, myRenderService.getProject(), myLogger.getLinkManager(), e));
-      return new RenderResult(RenderTask.this, null, myPsiFile, myLogger);
+      return new RenderResult(this, null, myPsiFile, myLogger);
     }
   }
 
   /**
-   * Run rendering with default IImageFactory implementation provided by RenderTask
+   * Method that renders the layout to a bitmap using the given {@link IImageFactory}. This render call will render the image to a
+   * bitmap that can be accessed via the returned {@link RenderResult}.
+   * <p/>
+   * If {@link #inflate()} hasn't been called before, this method will implicitly call it.
+   * @deprecated use {@link #render(Graphics2D)} instead
+   */
+  @Deprecated
+  @Nullable
+  public RenderResult render(@NotNull final IImageFactory factory) {
+    myImageFactoryDelegate = factory;
+
+    return renderInner();
+  }
+
+  /**
+   * Run rendering with default IImageFactory implementation provided by RenderTask. This render call will render the image to a bitmap
+   * that can be accessed via the returned {@link RenderResult}
+   * <p/>
+   * If {@link #inflate()} hasn't been called before, this method will implicitly call it.
+   * @deprecated use {@link #render(Graphics2D)} instead
    */
   @Nullable
   public RenderResult render() {
     return render(this);
+  }
+
+  /**
+   * Method that renders the layout to the given {@link Graphics2D}.
+   * <p/>
+   * If {@link #inflate()} hasn't been called before, this method will implicitly call it.
+   */
+  @Nullable
+  public RenderResult render(@NotNull final Graphics2D g) {
+    myFakeImageFactory.setGraphics(g);
+    myImageFactoryDelegate = myFakeImageFactory;
+
+    return renderInner();
   }
 
   @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
@@ -796,11 +896,16 @@ public class RenderTask implements IImageFactory {
 
   // ---- Implements IImageFactory ----
 
-  /** TODO: reuse image across subsequent render operations if the size is the same */
   @SuppressWarnings("UndesirableClassUsage") // Don't need Retina for layoutlib rendering; will scale down anyway
   @Override
   public BufferedImage getImage(int width, int height) {
-    return new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+    BufferedImage cached = myCachedImageReference != null ? myCachedImageReference.get() : null;
+    if (cached == null || cached.getWidth() != width || cached.getHeight() != height) {
+      cached = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+      myCachedImageReference = new SoftReference<>(cached);
+    }
+
+    return cached;
   }
 
   /**

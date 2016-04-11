@@ -122,7 +122,7 @@ public class DragDropInteraction extends Interaction {
     moveTo(x, y, modifiers, !canceled);
     myScreenView = myDesignSurface.getScreenView(x, y);
     if (myScreenView != null && !canceled) {
-      myScreenView.getModel().renderImmediately();
+      myScreenView.getModel().notifyModified();
     }
   }
 

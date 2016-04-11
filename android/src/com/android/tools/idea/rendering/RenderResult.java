@@ -72,7 +72,8 @@ public class RenderResult {
           shadowType = ShadowType.ARBITRARY;
         }
       }
-      myImage = new RenderedImage(configuration, image, alphaChannelImage, shadowType);
+      // image might be null if we only inflated the layout but we didn't call render
+      myImage = image != null ? new RenderedImage(configuration, image, alphaChannelImage, shadowType) : null;
     } else {
       myRootViews = null;
       mySystemRootViews = null;

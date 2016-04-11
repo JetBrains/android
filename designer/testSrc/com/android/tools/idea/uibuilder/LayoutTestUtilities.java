@@ -19,6 +19,7 @@ import com.android.resources.Density;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.fixtures.DropTargetDragEventBuilder;
 import com.android.tools.idea.uibuilder.fixtures.DropTargetDropEventBuilder;
+import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
 import com.android.tools.idea.uibuilder.fixtures.MouseEventBuilder;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.model.SelectionModel;
@@ -123,8 +124,8 @@ public class LayoutTestUtilities {
   }
 
   public static NlModel createModel(DesignSurface surface, AndroidFacet facet, XmlFile xmlFile) {
-    NlModel model = NlModel.create(surface, xmlFile.getProject(), facet, xmlFile);
-    model.renderImmediately();
+    NlModel model = SyncNlModel.create(surface, xmlFile.getProject(), facet, xmlFile);
+    model.notifyModified();
     return model;
   }
 
