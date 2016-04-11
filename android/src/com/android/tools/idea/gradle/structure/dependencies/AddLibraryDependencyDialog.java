@@ -16,24 +16,17 @@
 package com.android.tools.idea.gradle.structure.dependencies;
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.ResolvedDependenciesPanel;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.treeview.DependencySelection;
 import com.android.tools.idea.gradle.structure.model.PsModule;
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.intellij.openapi.ui.DialogWrapper;
-import com.intellij.openapi.ui.OnePixelDivider;
+import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.ui.JBSplitter;
-import com.intellij.ui.OnePixelSplitter;
-import com.intellij.ui.SideBorder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
 
-import static com.intellij.ui.SideBorder.BOTTOM;
+import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 
 public class AddLibraryDependencyDialog extends DialogWrapper {
   @NotNull private final PsModule myModule;
@@ -41,13 +34,12 @@ public class AddLibraryDependencyDialog extends DialogWrapper {
 
   private JPanel myPanel;
   private AddLibraryDependencyPanel myAddLibraryDependencyPanel;
-  private ResolvedDependenciesPanel myResolvedDependenciesPanel;
 
   public AddLibraryDependencyDialog(@NotNull PsModule module, @NotNull PsContext context) {
     super(module.getParent().getResolvedModel());
     myContext = context;
     myModule = module;
-    setTitle("Add Artifact Dependency");
+    setTitle("Add Library Dependency");
     init();
     getContentPanel().setBorder(BorderFactory.createEmptyBorder());
   }
@@ -63,32 +55,8 @@ public class AddLibraryDependencyDialog extends DialogWrapper {
   protected JComponent createCenterPanel() {
     if (myPanel == null) {
       myPanel = new JPanel(new BorderLayout());
-
-      JBSplitter splitter = new OnePixelSplitter(false, "psd.add.library.dependency.main.vertical.splitter.proportion", .65f);
-      splitter.setBorder(BorderFactory.createEmptyBorder());
-
       myAddLibraryDependencyPanel = new AddLibraryDependencyPanel(myModule);
-      splitter.setFirstComponent(myAddLibraryDependencyPanel);
-
-      if (myModule instanceof PsAndroidModule) {
-        PsAndroidModule androidModule = (PsAndroidModule)myModule;
-        myResolvedDependenciesPanel =
-          new ResolvedDependenciesPanel("Current Dependencies", androidModule, myContext, new DependencySelection() {
-            @Override
-            @Nullable
-            public PsAndroidDependency getSelection() {
-              return null;
-            }
-
-            @Override
-            public void setSelection(@Nullable PsAndroidDependency selection) {
-            }
-          }, null);
-        myResolvedDependenciesPanel.setBorder(new SideBorder(OnePixelDivider.BACKGROUND, BOTTOM));
-        splitter.setSecondComponent(myResolvedDependenciesPanel);
-      }
-
-      myPanel.add(splitter, BorderLayout.CENTER);
+      myPanel.add(myAddLibraryDependencyPanel, BorderLayout.CENTER);
     }
     return myPanel;
   }
@@ -108,8 +76,11 @@ public class AddLibraryDependencyDialog extends DialogWrapper {
     if (myAddLibraryDependencyPanel != null) {
       Disposer.dispose(myAddLibraryDependencyPanel);
     }
-    if (myResolvedDependenciesPanel != null) {
-      Disposer.dispose(myResolvedDependenciesPanel);
-    }
+  }
+
+  @Override
+  @Nullable
+  protected ValidationInfo doValidate() {
+    return myAddLibraryDependencyPanel.validateInput();
   }
 }

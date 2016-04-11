@@ -69,9 +69,7 @@ public class JCenterRepositoryTest {
                       "      \"com.atlassian.bundles:guava\"\n" +
                       "    ],\n" +
                       "    \"versions\": [\n" +
-                      "      \"8.1\",\n" +
-                      "      \"8.0\",\n" +
-                      "      \"1.0-actually-8.1\"\n" +
+                      "      \"8.1\"\n" +
                       "    ],\n" +
                       "    \"latest_version\": \"8.1\"\n" +
                       "  },\n" +
@@ -84,9 +82,7 @@ public class JCenterRepositoryTest {
                       "      \"io.janusproject.guava:guava\"\n" +
                       "    ],\n" +
                       "    \"versions\": [\n" +
-                      "      \"19.0.0\",\n" +
-                      "      \"17.0.2\",\n" +
-                      "      \"17.0\"\n" +
+                      "      \"19.0.0\"\n" +
                       "    ],\n" +
                       "    \"latest_version\": \"19.0.0\"\n" +
                       "  },\n" +
@@ -100,51 +96,12 @@ public class JCenterRepositoryTest {
                       "    ],\n" +
                       "    \"versions\": [\n" +
                       "      \"19.0\",\n" +
-                      "      \"19.0-rc3\",\n" +
-                      "      \"19.0-rc2\",\n" +
-                      "      \"19.0-rc1\",\n" +
                       "      \"18.0\",\n" +
-                      "      \"18.0-rc2\",\n" +
-                      "      \"18.0-rc1\",\n" +
-                      "      \"11.0.2-atlassian-02\",\n" +
                       "      \"17.0\",\n" +
-                      "      \"17.0-rc2\",\n" +
-                      "      \"17.0-rc1\",\n" +
-                      "      \"16.0.1\",\n" +
                       "      \"16.0\",\n" +
-                      "      \"16.0-rc1\",\n" +
                       "      \"15.0\",\n" +
-                      "      \"15.0-rc1\",\n" +
-                      "      \"14.0.1\",\n" +
                       "      \"14.0\",\n" +
-                      "      \"14.0-rc3\",\n" +
-                      "      \"14.0-rc2\",\n" +
-                      "      \"14.0-rc1\",\n" +
-                      "      \"13.0.1\",\n" +
-                      "      \"13.0\",\n" +
-                      "      \"13.0-final\",\n" +
-                      "      \"13.0-rc2\",\n" +
-                      "      \"13.0-rc1\",\n" +
-                      "      \"12.0.1\",\n" +
-                      "      \"12.0\",\n" +
-                      "      \"12.0-rc2\",\n" +
-                      "      \"12.0-rc1\",\n" +
-                      "      \"11.0.2-atlassian-01\",\n" +
-                      "      \"11.0.2\",\n" +
-                      "      \"11.0.1\",\n" +
-                      "      \"11.0\",\n" +
-                      "      \"11.0-rc1\",\n" +
-                      "      \"10.0.1\",\n" +
-                      "      \"10.0\",\n" +
-                      "      \"10.0-rc3\",\n" +
-                      "      \"10.0-rc2\",\n" +
-                      "      \"10.0-rc1\",\n" +
-                      "      \"r09\",\n" +
-                      "      \"r08\",\n" +
-                      "      \"r07\",\n" +
-                      "      \"r06\",\n" +
-                      "      \"r05\",\n" +
-                      "      \"r03\"\n" +
+                      "      \"13.0\"\n" +
                       "    ],\n" +
                       "    \"latest_version\": \"19.0\"\n" +
                       "  },\n" +
@@ -157,16 +114,7 @@ public class JCenterRepositoryTest {
                       "      \"de.weltraumschaf.commons:guava\"\n" +
                       "    ],\n" +
                       "    \"versions\": [\n" +
-                      "      \"2.1.0\",\n" +
-                      "      \"2.0.0\",\n" +
-                      "      \"1.1.3\",\n" +
-                      "      \"1.1.2\",\n" +
-                      "      \"1.0.0-beta\",\n" +
-                      "      \"1.0.0-alpha\",\n" +
-                      "      \"1.1.1\",\n" +
-                      "      \"1.1.0\",\n" +
-                      "      \"1.0.1\",\n" +
-                      "      \"1.0.0\"\n" +
+                      "      \"2.1.0\"\n" +
                       "    ],\n" +
                       "    \"latest_version\": \"2.1.0\"\n" +
                       "  }\n" +
@@ -174,13 +122,18 @@ public class JCenterRepositoryTest {
     Reader responseReader = new StringReader(response);
     SearchResult result = new JCenterRepository().parse(responseReader);
     assertEquals(5, result.getTotalFound());
-    List<String> data = result.getData();
-    assertThat(data).containsExactly(
+    List<String> coordinates = result.getArtifactCoordinates();
+    assertThat(coordinates).containsExactly(
       "com.atlassian.guava:guava:15.0",
       "com.atlassian.bundles:guava:8.1",
       "io.janusproject.guava:guava:19.0.0",
       "com.google.guava:guava:19.0",
-      "de.weltraumschaf.commons:guava:2.1.0")
-      .inOrder();
+      "com.google.guava:guava:18.0",
+      "com.google.guava:guava:17.0",
+      "com.google.guava:guava:16.0",
+      "com.google.guava:guava:15.0",
+      "com.google.guava:guava:14.0",
+      "com.google.guava:guava:13.0",
+      "de.weltraumschaf.commons:guava:2.1.0");
   }
 }

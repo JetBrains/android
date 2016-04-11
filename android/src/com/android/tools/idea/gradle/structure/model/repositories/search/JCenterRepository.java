@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.structure.model.repositories.search;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -23,14 +24,13 @@ import com.google.gson.JsonParser;
 import com.intellij.util.io.HttpRequests;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.IOException;
 import java.io.Reader;
 import java.util.List;
 
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
-public class JCenterRepository implements ArtifactRepository {
+public class JCenterRepository extends ArtifactRepository {
   @Override
   @NotNull
   public String getName() {
@@ -39,17 +39,9 @@ public class JCenterRepository implements ArtifactRepository {
 
   @Override
   @NotNull
-  public SearchResult search(@NotNull SearchRequest request) throws IOException {
+  protected SearchResult doSearch(@NotNull SearchRequest request) throws Exception {
     String url = createRequestUrl(request);
-    return HttpRequests.request(url).accept("application/json").connect(request1 -> {
-      try {
-        return parse(request1.getReader());
-      }
-      catch (RuntimeException e) {
-        String msg = String.format("Failed to parse request '%1$s'", request1);
-        throw new IOException(msg, e);
-      }
-    });
+    return HttpRequests.request(url).accept("application/json").connect(request1 -> parse(request1.getReader()));
   }
 
   @VisibleForTesting
@@ -177,15 +169,25 @@ public class JCenterRepository implements ArtifactRepository {
     JsonArray array = parser.parse(response).getAsJsonArray();
 
     int totalFound = array.size();
-    List<String> data = Lists.newArrayListWithExpectedSize(totalFound);
+    List<FoundArtifact> artifacts = Lists.newArrayListWithExpectedSize(totalFound);
 
     for (int i = 0; i < totalFound; i++) {
-      JsonObject e = array.get(i).getAsJsonObject();
-      String name = e.getAsJsonPrimitive("name").getAsString();
-      String latestVersion = e.getAsJsonPrimitive("latest_version").getAsString();
-      data.add(name + GRADLE_PATH_SEPARATOR + latestVersion);
+      JsonObject root = array.get(i).getAsJsonObject();
+      String name = root.getAsJsonPrimitive("name").getAsString();
+
+      List<String> availableVerions = Lists.newArrayList();
+      JsonArray versions = root.getAsJsonArray("versions");
+      versions.forEach(element -> {
+        String version = element.getAsString();
+        availableVerions.add(version);
+      });
+
+      List<String> coordinate = Splitter.on(GRADLE_PATH_SEPARATOR).splitToList(name);
+      assert coordinate.size() == 2;
+
+      artifacts.add(new FoundArtifact(getName(), coordinate.get(0), coordinate.get(1), availableVerions));
     }
 
-    return new SearchResult(getName(), data, totalFound);
+    return new SearchResult(getName(), artifacts, totalFound);
   }
 }

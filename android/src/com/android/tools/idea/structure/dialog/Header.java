@@ -29,16 +29,26 @@ import static com.intellij.ui.tabs.TabsUtil.getTabsHeight;
 import static com.intellij.util.ui.UIUtil.getLabelFont;
 
 public class Header extends JPanel {
+  @NotNull private final JLabel myTitleLabel;
+
   public Header(@NotNull String title) {
     super(new BorderLayout());
-    JLabel titleLabel = new JLabel(title);
-    titleLabel.setBorder(IdeBorderFactory.createEmptyBorder(2, 5, 2, 10));
-    titleLabel.setFont(getLabelFont(FontSize.SMALL));
-    add(titleLabel, BorderLayout.CENTER);
+    myTitleLabel = new JLabel(title);
+    myTitleLabel.setBorder(IdeBorderFactory.createEmptyBorder(2, 5, 2, 10));
+    myTitleLabel.setFont(getLabelFont(FontSize.SMALL));
+    add(myTitleLabel, BorderLayout.CENTER);
 
     setBackground(new JBColor(Gray._210, Gray._75)); // Taken from WelcomeScreenColors#CAPTION_BACKGROUND
     setForeground(new JBColor(JBColor.BLACK, Gray._197)); // Taken from WelcomeScreenColors#CAPTION_FOREGROUND
     setBorder(IdeBorderFactory.createBorder(SideBorder.BOTTOM));
+  }
+
+  public void setLabelFor(@NotNull Component c) {
+    myTitleLabel.setLabelFor(c);
+  }
+
+  public void setDisplayedMnemonic(char aChar) {
+    myTitleLabel.setDisplayedMnemonic(aChar);
   }
 
   @Override
