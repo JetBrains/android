@@ -215,9 +215,13 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
   }
 
   private static boolean installNeeded() {
+    // install needed if we have no version installed
+    if (!GapiPaths.isValid()) {
+      return true;
+    }
+    // OR we do have a version installed from the SDK manager, but it does not match our required version
     LocalPackage gapi = GapiPaths.getLocalPackage();
-    return !GapiPaths.isValid() || gapi == null ||
-           gapi.getVersion().getMajor() != GAPI_VERSION_MAJOR || gapi.getVersion().getMinor() < GAPI_VERSION_MINOR;
+    return gapi != null && (gapi.getVersion().getMajor() != GAPI_VERSION_MAJOR || gapi.getVersion().getMinor() < GAPI_VERSION_MINOR);
   }
 
   /**
