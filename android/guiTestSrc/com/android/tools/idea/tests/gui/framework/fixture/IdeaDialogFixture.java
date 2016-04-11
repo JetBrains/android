@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.android.tools.idea.tests.gui.framework.Wait;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.Ref;
 import org.fest.reflect.exception.ReflectionError;
@@ -109,5 +110,9 @@ public abstract class IdeaDialogFixture<T extends DialogWrapper> extends Compone
 
   public void close() {
     robot().close(target());
+  }
+
+  public void waitUntilNotShowing() {
+    Wait.seconds(15).expecting(target().getTitle() + " dialog to disappear").until(() -> !target().isShowing());
   }
 }
