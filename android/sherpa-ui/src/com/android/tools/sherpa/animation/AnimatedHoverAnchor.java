@@ -103,9 +103,9 @@ public class AnimatedHoverAnchor extends Animation {
         int t = transform.getSwingY(widget.getDrawY());
         int w = transform.getSwingDimension(widget.getDrawWidth());
         if (mIsBaseline) {
-            int extra = radius;
+            int extra = radius - 3;
             g.setColor(highlight);
-            g.setStroke(new BasicStroke(strokeWidth));
+            g.setStroke(new BasicStroke(strokeWidth -1));
             g.drawRoundRect(l,
                     t + transform.getSwingDimension(widget.getBaselineDistance()) - extra / 2,
                     w + 1, extra, radius, radius);

@@ -303,12 +303,14 @@ public class WidgetInteractionTargets {
      * Fill in the ConnectionCandidate structure with the closest anchor found at (x, y).
      * This function will not consider CENTER_X/CENTER_Y anchors.
      *
+     * @param viewTransform
      * @param x         x coordinate we are looking at
      * @param y         y coordinate we are looking at
      * @param candidate a structure containing the current best anchor candidate.
      * @param mousePress true if we are in mouse press
      */
-    public void findClosestConnection(float x, float y, ConnectionCandidate candidate,
+    public void findClosestConnection(ViewTransform viewTransform, float x, float y,
+            ConnectionCandidate candidate,
             boolean mousePress) {
         // FIXME: should use subclasses this
         if (mWidget instanceof Guideline) {
@@ -324,6 +326,7 @@ public class WidgetInteractionTargets {
             } else {
                 distance = (handle.getDrawY() - y) * (handle.getDrawY() - y);
             }
+            distance = viewTransform.getSwingDimensionF(distance);
             if (distance < candidate.distance) {
                 candidate.anchorTarget = anchor;
                 candidate.distance = distance;
@@ -354,6 +357,7 @@ public class WidgetInteractionTargets {
                     distance = (handle.getDrawX() - x) * (handle.getDrawX() - x) +
                             (handle.getDrawY() - y) * (handle.getDrawY() - y);
                 }
+                distance = viewTransform.getSwingDimensionF(distance);
                 if (distance < candidate.distance) {
                     candidate.anchorTarget = anchor;
                     candidate.distance = distance;
@@ -381,6 +385,7 @@ public class WidgetInteractionTargets {
                         distance = d * d;
                     }
                 }
+                distance = viewTransform.getSwingDimensionF(distance);
                 if (distance <= candidate.distance) {
                     if (candidate.anchorTarget == null
                             ||
