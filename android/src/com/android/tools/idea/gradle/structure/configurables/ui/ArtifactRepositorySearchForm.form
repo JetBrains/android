@@ -16,7 +16,7 @@
         </constraints>
         <properties>
           <componentStyle value="SMALL"/>
-          <text value="&amp;Artifact Name:"/>
+          <text value="&amp;Name:"/>
         </properties>
       </component>
       <component id="b924d" class="com.intellij.ui.components.JBTextField" binding="myArtifactNameTextField">
@@ -53,19 +53,17 @@
           <text value="&amp;Search"/>
         </properties>
       </component>
-      <scrollpane id="1ec2c" class="com.intellij.ui.components.JBScrollPane" binding="myResultsScrollPane">
+      <grid id="69f1e" binding="myResultsPanel" layout-manager="BorderLayout" hgap="0" vgap="0">
         <constraints>
-          <grid row="3" column="0" row-span="1" col-span="3" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false">
-            <preferred-size width="520" height="320"/>
-          </grid>
+          <grid row="3" column="0" row-span="1" col-span="3" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties/>
         <border type="none"/>
         <children/>
-      </scrollpane>
+      </grid>
       <component id="347dc" class="com.intellij.ui.components.JBLabel">
         <constraints>
-          <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
+          <grid row="2" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties/>
       </component>

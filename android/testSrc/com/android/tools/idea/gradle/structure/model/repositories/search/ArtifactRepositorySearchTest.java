@@ -37,8 +37,8 @@ public class ArtifactRepositorySearchTest extends IdeaTestCase {
     SearchResult result2 = mock(SearchResult.class);
 
     SearchRequest request = new SearchRequest("name", null, 50, 0);
-    when(repository1.search(request)).thenReturn(result1);
-    when(repository2.search(request)).thenReturn(result2);
+    when(repository1.doSearch(request)).thenReturn(result1);
+    when(repository2.doSearch(request)).thenReturn(result2);
 
     ArtifactRepositorySearch search = new ArtifactRepositorySearch(Lists.newArrayList(repository1, repository2));
 

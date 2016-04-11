@@ -13,24 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.model.repositories.search;
+package com.android.tools.idea.gradle.structure.dependencies;
 
 import org.jetbrains.annotations.NotNull;
 
-public abstract class ArtifactRepository {
+import javax.swing.*;
+import java.util.List;
+
+interface DependencyConfigurationsForm {
   @NotNull
-  public abstract String getName();
+  JPanel getPanel();
 
   @NotNull
-  public final SearchResult search(@NotNull SearchRequest request) {
-    try {
-      return doSearch(request);
-    }
-    catch (Exception e) {
-      return new SearchResult(getName(), e);
-    }
-  }
-
-  @NotNull
-  protected abstract SearchResult doSearch(@NotNull SearchRequest request) throws Exception;
+  List<String> getSelectedConfigurations();
 }

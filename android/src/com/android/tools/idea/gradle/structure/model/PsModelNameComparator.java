@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.dependencies;
+package com.android.tools.idea.gradle.structure.model;
 
-import org.jetbrains.annotations.NotNull;
+import java.util.Comparator;
 
-import javax.swing.*;
-
-interface ScopesForm {
-  @NotNull
-  JPanel getPanel();
+public class PsModelNameComparator<T extends PsModel> implements Comparator<T> {
+  @Override
+  public int compare(T m1, T m2) {
+    return m1.getName().compareTo(m2.getName());
+  }
 }

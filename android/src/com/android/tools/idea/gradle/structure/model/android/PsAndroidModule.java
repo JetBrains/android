@@ -50,6 +50,10 @@ public class PsAndroidModule extends PsModule implements PsAndroidModel {
     return getOrCreateBuildTypeCollection().findElement(buildType, PsBuildType.class);
   }
 
+  public void forEachBuildType(@NotNull Consumer<PsBuildType> consumer) {
+    getOrCreateBuildTypeCollection().forEach(consumer);
+  }
+
   @NotNull
   private PsBuildTypeCollection getOrCreateBuildTypeCollection() {
     return myBuildTypeCollection == null ? myBuildTypeCollection = new PsBuildTypeCollection(this) : myBuildTypeCollection;
