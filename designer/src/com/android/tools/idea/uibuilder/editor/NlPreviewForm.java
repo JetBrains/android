@@ -16,8 +16,6 @@
 package com.android.tools.idea.uibuilder.editor;
 
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.uibuilder.model.ModelListener;
@@ -45,7 +43,12 @@ import com.intellij.openapi.ui.ThreeComponentsSplitter;
 import com.intellij.openapi.util.registry.Registry;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
+import com.intellij.util.Alarm;
+import com.intellij.util.ui.update.MergingUpdateQueue;
+import com.intellij.util.ui.update.Update;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.util.Collections;
@@ -55,6 +58,8 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
   private final NlPreviewManager myManager;
   private final DesignSurface mySurface;
   private final ThreeComponentsSplitter myContentSplitter;
+  private final MergingUpdateQueue myRenderingQueue =
+    new MergingUpdateQueue("android.layout.preview.caret", 250/*ms*/, true, null, this, null, Alarm.ThreadToUse.SWING_THREAD);
   private boolean myUseInteractiveSelector = true;
   private boolean myIgnoreListener;
   private RenderResult myRenderResult;
@@ -84,6 +89,8 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
       public void modelChanged(@NotNull DesignSurface surface, @Nullable NlModel model) {
       }
     });
+
+    myRenderingQueue.setRestartTimerOnAdd(true);
 
     myContentSplitter = new ThreeComponentsSplitter();
 
@@ -159,8 +166,18 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
           try {
             myIgnoreListener = true;
             SelectionModel selectionModel = screenView.getSelectionModel();
-            selectionModel.setSelection(views != null ? views : Collections.<NlComponent>emptyList());
-            mySurface.repaint();
+            selectionModel.setSelection(views != null ? views : Collections.emptyList());
+            myRenderingQueue.queue(new Update("Preview update") {
+              @Override
+              public void run() {
+                mySurface.repaint();
+              }
+
+              @Override
+              public boolean canEat(Update update) {
+                return true;
+              }
+            });
           } finally {
             myIgnoreListener = false;
           }
@@ -245,7 +262,6 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
     } else {
       XmlFile xmlFile = (XmlFile)file;
       NlModel model = NlModel.create(mySurface, xmlFile.getProject(), facet, xmlFile);
-      model.setRenderDelay(800);
       myPendingFile = new Pending(xmlFile, model);
     }
     return true;
