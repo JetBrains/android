@@ -186,13 +186,12 @@ public class MavenCentralRepositoryTest {
     Reader responseReader = new StringReader(response);
     SearchResult result = new MavenCentralRepository().parse(responseReader);
     assertEquals(409, result.getTotalFound());
-    List<String> data = result.getData();
-    assertThat(data).containsExactly(
+    List<String> coordinates = result.getArtifactCoordinates();
+    assertThat(coordinates).containsExactly(
       "org.sonatype.spice.inject:guice-bean:1.3.4",
       "org.sonatype.spice.inject:guice-nexus:0.1.0",
       "be.fluid-it.com.squarespace.jersey2-guice:jersey2-guice:0.10-fix",
       "com.peterphi.std.guice:stdlib-guice-hibernate:8.5.1",
-      "com.peterphi.std.guice:stdlib-guice-webapp:8.5.1")
-      .inOrder();
+      "com.peterphi.std.guice:stdlib-guice-webapp:8.5.1");
   }
 }

@@ -19,23 +19,32 @@ import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.ui.OnePixelDivider;
+import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.SideBorder;
+import com.intellij.ui.components.JBLabel;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.border.Border;
 import java.awt.*;
+import java.util.*;
+import java.util.List;
 
+import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.ui.SideBorder.BOTTOM;
+import static com.intellij.util.ui.UIUtil.getButtonFont;
+import static com.intellij.util.ui.UIUtil.getTreeFont;
 import static javax.swing.BorderFactory.createCompoundBorder;
 import static javax.swing.BorderFactory.createEmptyBorder;
+import static org.jetbrains.android.util.AndroidUiUtil.setUpAsHtmlLabel;
 
 class AddLibraryDependencyPanel extends JPanel implements Disposable {
   @NotNull private final PsModule myModule;
   @NotNull private final LibraryDependencyForm myLibraryDependencyForm;
-  @NotNull private final ScopesForm myScopesForm;
+  @NotNull private final DependencyConfigurationsForm myScopesForm;
 
   AddLibraryDependencyPanel(@NotNull PsModule module) {
     super(new BorderLayout());
@@ -51,17 +60,18 @@ class AddLibraryDependencyPanel extends JPanel implements Disposable {
     splitter.setFirstComponent(libraryDependencyPanel);
 
     if (myModule instanceof PsAndroidModule) {
-      myScopesForm = new AndroidScopesForm((PsAndroidModule)myModule);
+      myScopesForm = new AndroidDependencyConfigurationsForm((PsAndroidModule)myModule);
       JPanel scopesPanel = myScopesForm.getPanel();
       scopesPanel.setBorder(createMainPanelBorder());
       splitter.setSecondComponent(scopesPanel);
     }
     else {
-      // TODO Implement "scopes" for Java modules
+      // TODO Implement "configurations" for Java modules
       myScopesForm = null;
     }
 
     add(splitter, BorderLayout.CENTER);
+    add(new TitlePanel(myModule), BorderLayout.NORTH);
   }
 
   @NotNull
@@ -74,8 +84,44 @@ class AddLibraryDependencyPanel extends JPanel implements Disposable {
     return myLibraryDependencyForm.getPreferredFocusedComponent();
   }
 
+  @Nullable
+  ValidationInfo validateInput() {
+    String selectedLibrary = myLibraryDependencyForm.getSelectedLibrary();
+    if (isEmpty(selectedLibrary)) {
+      return new ValidationInfo("Please specify the library to add as dependency", myLibraryDependencyForm.getPreferredFocusedComponent());
+    }
+    List<String> selectedConfigurations = myScopesForm.getSelectedConfigurations();
+    if (selectedConfigurations.isEmpty()) {
+      return new ValidationInfo("Please specify the configuration(s) for the library dependency");
+    }
+    return null;
+  }
+
   @Override
   public void dispose() {
     Disposer.dispose(myLibraryDependencyForm);
+  }
+
+  private static class TitlePanel extends JPanel {
+    TitlePanel(@NotNull PsModule module) {
+      super(new BorderLayout());
+      JBLabel titleLabel = new JBLabel();
+      titleLabel.setFont(getButtonFont().deriveFont(Font.BOLD));
+      titleLabel.setIcon(module.getIcon());
+      titleLabel.setText(String.format("Module '%1$s'", module.getName()));
+      add(titleLabel, BorderLayout.NORTH);
+
+      JEditorPane instructionsPane = new JEditorPane();
+      setUpAsHtmlLabel(instructionsPane, getTreeFont());
+      instructionsPane.setText("<html><body>To add a library dependency:<ol>" +
+                               "<li>Use the form below to find the library to add. This form uses the repositories specified in " +
+                               "the project's build files (e.g. Maven Central, JCenter, etc.)</li>" +
+                               "<li>Assign a configuration to the new dependency by selecting the scopes, build types and product " +
+                               "flavors where the dependency will be used.</li></ol></body></html>");
+      instructionsPane.setBorder(createEmptyBorder(5, 5, 2, 5));
+      add(instructionsPane, BorderLayout.CENTER);
+
+      setBorder(createEmptyBorder(5, 5, 5, 5));
+    }
   }
 }
