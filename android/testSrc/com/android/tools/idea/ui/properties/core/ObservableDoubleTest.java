@@ -25,12 +25,12 @@ public class ObservableDoubleTest {
   public void testInitialization() {
     {
       DoubleValueProperty doubleValue = new DoubleValueProperty(42.0);
-      assertThat(doubleValue.get()).isEqualTo(42.0);
+      assertThat(doubleValue.get()).isWithin(0.01).of(42.0);
     }
 
     {
       DoubleValueProperty doubleValue = new DoubleValueProperty();
-      assertThat(doubleValue.get()).isEqualTo(0.0);
+      assertThat(doubleValue.get()).isWithin(0.01).of(0.0);
     }
   }
 
@@ -38,14 +38,14 @@ public class ObservableDoubleTest {
   public void testSetValue() {
     DoubleValueProperty doubleValue = new DoubleValueProperty(0.0);
     doubleValue.set(-20.0);
-    assertThat(doubleValue.get()).isEqualTo(-20.0);
+    assertThat(doubleValue.get()).isWithin(0.01).of(-20.0);
   }
 
   @Test
   public void testIncrementValue() {
     DoubleValueProperty doubleValue = new DoubleValueProperty(3.0);
     doubleValue.increment();
-    assertThat(doubleValue.get()).isEqualTo(4.0);
+    assertThat(doubleValue.get()).isWithin(0.01).of(4.0);
   }
 
   @Test

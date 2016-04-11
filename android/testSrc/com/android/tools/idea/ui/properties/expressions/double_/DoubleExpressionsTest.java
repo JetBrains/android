@@ -218,16 +218,16 @@ public final class DoubleExpressionsTest {
 
     bindings.bind(sum, new com.android.tools.idea.ui.properties.expressions.double_.SumExpression(a, b, c));
 
-    assertThat(sum.get()).isEqualTo(6.0);
+    assertThat(sum.get()).isWithin(0.01).of(6.0);
 
     a.set(10.0);
     b.set(100.0);
     c.set(1000.0);
 
-    assertThat(sum.get()).isEqualTo(1110.0);
+    assertThat(sum.get()).isWithin(0.01).of(1110.0);
 
     c.set(1001.0);
 
-    assertThat(sum.get()).isEqualTo(1111.0);
+    assertThat(sum.get()).isWithin(0.01).of(1111.0);
   }
 }
