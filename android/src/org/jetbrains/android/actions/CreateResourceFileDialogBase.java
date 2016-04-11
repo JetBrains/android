@@ -42,6 +42,7 @@ public abstract class CreateResourceFileDialogBase extends DialogWrapper {
 
   /**
    * Get the name of the new resource file.
+   *
    * @return filename
    */
   @VisibleForTesting
@@ -56,9 +57,10 @@ public abstract class CreateResourceFileDialogBase extends DialogWrapper {
 
     /**
      * Create the validator, given the final chosen parameters
+     *
      * @param resourceDirectory the chosen res/ directory
-     * @param subdirName the chosen sub directory (e.g., color)
-     * @param rootElement the chosen root tag (e.g., <selector>)
+     * @param subdirName        the chosen sub directory (e.g., color)
+     * @param rootElement       the chosen root tag (e.g., <selector>)
      * @return a validator
      */
     @NotNull

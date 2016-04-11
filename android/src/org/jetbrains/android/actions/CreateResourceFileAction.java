@@ -112,9 +112,12 @@ public class CreateResourceFileAction extends CreateResourceActionBase {
                                            @Nullable FolderConfiguration config,
                                            boolean chooseResName,
                                            @Nullable String dialogTitle,
+                                           @Nullable PsiDirectory resDirectory,
+                                           @Nullable DataContext dataContext,
                                            boolean navigate) {
     final PsiElement[] elements = doCreateFileResource(facet, resType, resName, rootElement,
-                                                       config, chooseResName, dialogTitle, navigate);
+                                                       config, chooseResName, dialogTitle,
+                                                       resDirectory, dataContext, navigate);
     if (elements.length == 0) {
       return null;
     }
@@ -129,8 +132,11 @@ public class CreateResourceFileAction extends CreateResourceActionBase {
                                            @Nullable String rootElement,
                                            @Nullable FolderConfiguration config,
                                            boolean chooseResName,
-                                           @Nullable String dialogTitle) {
-    return createFileResource(facet, folderType, resName, rootElement, config, chooseResName, dialogTitle, true);
+                                           @Nullable String dialogTitle,
+                                           @Nullable PsiDirectory resDirectory,
+                                           @Nullable DataContext dataContext) {
+    return createFileResource(facet, folderType, resName, rootElement, config, chooseResName, dialogTitle,
+                              resDirectory, dataContext, true);
   }
 
   @NotNull
@@ -141,6 +147,8 @@ public class CreateResourceFileAction extends CreateResourceActionBase {
                                                    @Nullable FolderConfiguration config,
                                                    boolean chooseResName,
                                                    @Nullable String dialogTitle,
+                                                   @Nullable PsiDirectory resDirectory,
+                                                   @Nullable DataContext dataContext,
                                                    final boolean navigate) {
     final CreateResourceFileAction action = getInstance();
     final Project project = facet.getModule().getProject();
@@ -166,7 +174,7 @@ public class CreateResourceFileAction extends CreateResourceActionBase {
     NewResourceCreationHandler newResourceHandler = NewResourceCreationHandler.getInstance(project);
     final CreateResourceFileDialogBase dialog = newResourceHandler.createNewResourceFileDialog(
       facet, action.mySubactions.values(), resType, resName, rootElement,
-      config, chooseResName, true, null, validatorFactory);
+      config, chooseResName, true, resDirectory, dataContext, validatorFactory);
     if (dialogTitle != null) {
       dialog.setTitle(dialogTitle);
     }
@@ -196,7 +204,7 @@ public class CreateResourceFileAction extends CreateResourceActionBase {
     NewResourceCreationHandler newResourceHandler = NewResourceCreationHandler.getInstance(project);
     final CreateResourceFileDialogBase dialog = newResourceHandler.createNewResourceFileDialog(
       facet, mySubactions.values(), folderType, null, null, config, true,
-      false, findResourceDirectory(dataContext), createValidatorFactory(project));
+      false, findResourceDirectory(dataContext), dataContext, createValidatorFactory(project));
     if (!dialog.showAndGet()) {
       return PsiElement.EMPTY_ARRAY;
     }

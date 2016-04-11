@@ -27,6 +27,7 @@ import com.google.common.collect.Maps;
 import com.intellij.CommonBundle;
 import com.intellij.application.options.ModulesComboBox;
 import com.intellij.ide.actions.TemplateKindCombo;
+import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.psi.PsiDirectory;
@@ -52,6 +53,10 @@ import java.awt.event.ActionListener;
 import java.util.*;
 import java.util.List;
 
+/**
+ * Dialog to decide where and how to create a resource file of a given type
+ * (which base res/ directory, which subdirectory, and how to name the new file).
+ */
 public class CreateResourceFileDialog extends CreateResourceFileDialogBase {
   private JTextField myFileNameField;
   private TemplateKindCombo myResourceTypeCombo;
@@ -86,6 +91,7 @@ public class CreateResourceFileDialog extends CreateResourceFileDialogBase {
                                   boolean chooseFileName,
                                   boolean chooseModule,
                                   @Nullable PsiDirectory resDirectory,
+                                  @Nullable DataContext dataContext,
                                   @NotNull CreateResourceFileDialogBase.ValidatorFactory validatorFactory) {
     super(facet.getModule().getProject());
     Module module = facet.getModule();
@@ -275,6 +281,7 @@ public class CreateResourceFileDialog extends CreateResourceFileDialogBase {
 
   @VisibleForTesting
   @NotNull
+  @Override
   public String getFileName() {
     return myFileNameField.getText().trim();
   }

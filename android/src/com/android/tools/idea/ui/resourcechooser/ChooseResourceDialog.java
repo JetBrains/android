@@ -651,7 +651,8 @@ public class ChooseResourceDialog extends DialogWrapper {
 
     AndroidFacet facet = AndroidFacet.getInstance(myModule);
     assert facet != null;
-    XmlFile newFile = CreateResourceFileAction.createFileResource(facet, folderType, null, null, null, true, null);
+    XmlFile newFile = CreateResourceFileAction.createFileResource(facet, folderType, null, null, null, true, null,
+                                                                  null, null);
 
     if (newFile != null) {
       String name = newFile.getName();
