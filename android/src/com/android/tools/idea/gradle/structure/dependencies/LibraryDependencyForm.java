@@ -31,7 +31,6 @@ import com.android.tools.idea.gradle.structure.model.repositories.search.MavenCe
 import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
 import com.intellij.ui.components.JBLabel;
-import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,20 +38,22 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.List;
 
-import static com.intellij.util.ui.UIUtil.getButtonFont;
+import static com.google.common.base.Strings.emptyToNull;
+import static com.intellij.openapi.util.text.StringUtil.isEmpty;
+import static com.intellij.util.ui.UIUtil.getTextFieldBackground;
+import static com.intellij.util.ui.UIUtil.getTextFieldBorder;
 
 class LibraryDependencyForm implements Disposable {
   @NotNull private final ArtifactRepositorySearchForm mySearchForm;
 
   private JPanel myMainPanel;
-  private JBLabel myTitleLabel;
-  private JTextField myLibraryTextField;
+  private JBLabel myLibraryLabel;
   private JPanel mySearchPanelHost;
 
   LibraryDependencyForm(@NotNull PsModule module) {
-    myTitleLabel.setFont(getButtonFont().deriveFont(Font.BOLD));
-    myTitleLabel.setIcon(module.getIcon());
-    myTitleLabel.setText(String.format("Module '%1$s'", module.getName()));
+    myLibraryLabel.setBorder(getTextFieldBorder());
+    myLibraryLabel.setBackground(getTextFieldBackground());
+    myLibraryLabel.setText(" ");
 
     List<ArtifactRepository> repositories = Lists.newArrayList();
     GradleBuildModel parsedModel = module.getParsedModel();
@@ -76,11 +77,9 @@ class LibraryDependencyForm implements Disposable {
     repositories.add(new AndroidSdkRepository(androidProject));
 
     mySearchForm = new ArtifactRepositorySearchForm(repositories);
-    mySearchForm.add(new ArtifactRepositorySearchForm.SelectionListener() {
-      @Override
-      public void selectionChanged(@Nullable String selectedLibrary) {
-        myLibraryTextField.setText(selectedLibrary);
-      }
+    mySearchForm.add(selectedLibrary -> {
+      String text = isEmpty(selectedLibrary) ? " " : selectedLibrary;
+      myLibraryLabel.setText(text);
     }, this);
 
     mySearchPanelHost.add(mySearchForm.getPanel(), BorderLayout.CENTER);
@@ -94,6 +93,12 @@ class LibraryDependencyForm implements Disposable {
   @NotNull
   JPanel getPanel() {
     return myMainPanel;
+  }
+
+  @Nullable
+  String getSelectedLibrary() {
+    String text = myLibraryLabel.getText().trim();
+    return emptyToNull(text);
   }
 
   @Override

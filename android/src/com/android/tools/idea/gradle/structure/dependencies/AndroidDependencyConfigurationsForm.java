@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.structure.model.android.PsBuildType;
 import com.android.tools.idea.gradle.structure.model.android.PsProductFlavor;
 import com.google.android.collect.Lists;
 import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
 import com.intellij.ui.CheckboxTree;
 import com.intellij.ui.CheckboxTree.CheckboxTreeCellRenderer;
 import com.intellij.ui.CheckboxTreeAdapter;
@@ -31,40 +32,43 @@ import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import org.jdesktop.swingx.JXLabel;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.event.ChangeListener;
 import javax.swing.tree.DefaultMutableTreeNode;
-import java.awt.*;
 import java.util.Collections;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.*;
 import static com.intellij.openapi.util.text.StringUtil.capitalize;
+import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.ui.SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES;
 import static com.intellij.util.ui.UIUtil.*;
 import static com.intellij.util.ui.tree.TreeUtil.expandAll;
 import static java.awt.Font.BOLD;
 
-class AndroidDependencyScopesForm implements ScopesForm {
+class AndroidDependencyConfigurationsForm implements DependencyConfigurationsForm {
+  @NonNls private static final String SEPARATOR = ", ";
+
   private JPanel myMainPanel;
-  private JXLabel myConfigurationNamesLabel;
   private JCheckBox myCompileCheckBox;
   private JCheckBox myAndroidTestsCheckBox;
   private JCheckBox myUnitTestsCheckBox;
   private JBScrollPane myVariantsScrollPane;
   private JBLabel myScopesLabel;
   private CheckboxTree myVariantsTree;
+  private JXLabel myConfigurationNamesLabel;
 
   private final List<PsBuildType> myBuildTypes = Lists.newArrayList();
   private final List<PsProductFlavor> myProductFlavors = Lists.newArrayList();
 
-  AndroidDependencyScopesForm(@NotNull PsAndroidModule module) {
+  AndroidDependencyConfigurationsForm(@NotNull PsAndroidModule module) {
     myConfigurationNamesLabel.setBorder(getTextFieldBorder());
-    myConfigurationNamesLabel.setBackground(getInactiveTextFieldBackgroundColor());
+    myConfigurationNamesLabel.setBackground(getTextFieldBackground());
 
-    myScopesLabel.setFont(getLabelFont().deriveFont(BOLD));
+    myScopesLabel.setFont(getTreeFont().deriveFont(BOLD));
 
     CheckboxTreeCellRenderer cellRenderer = new CheckboxTree.CheckboxTreeCellRenderer() {
       @Override
@@ -149,7 +153,10 @@ class AndroidDependencyScopesForm implements ScopesForm {
     }
     else if (configurationNameCount > 1) {
       Collections.sort(configurationNames);
-      text = Joiner.on(", ").join(configurationNames);
+      text = Joiner.on(SEPARATOR).join(configurationNames);
+    }
+    if (isEmpty(text)) {
+      text = " ";
     }
     myConfigurationNamesLabel.setText(text);
   }
@@ -254,5 +261,15 @@ class AndroidDependencyScopesForm implements ScopesForm {
   @NotNull
   public JPanel getPanel() {
     return myMainPanel;
+  }
+
+  @Override
+  @NotNull
+  public List<String> getSelectedConfigurations() {
+    String text = myConfigurationNamesLabel.getText().trim();
+    if (text.isEmpty()) {
+      return Collections.emptyList();
+    }
+    return Splitter.on(SEPARATOR).omitEmptyStrings().trimResults().splitToList(text);
   }
 }

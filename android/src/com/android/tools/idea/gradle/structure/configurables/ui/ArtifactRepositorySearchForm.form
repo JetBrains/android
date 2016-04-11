@@ -16,7 +16,7 @@
         </constraints>
         <properties>
           <componentStyle value="SMALL"/>
-          <text value="&amp;Artifact Name:"/>
+          <text value="&amp;Name:"/>
         </properties>
       </component>
       <component id="b924d" class="com.intellij.ui.components.JBTextField" binding="myArtifactNameTextField">

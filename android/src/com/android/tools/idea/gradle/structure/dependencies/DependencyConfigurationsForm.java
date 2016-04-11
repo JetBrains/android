@@ -18,8 +18,12 @@ package com.android.tools.idea.gradle.structure.dependencies;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import java.util.List;
 
-interface ScopesForm {
+interface DependencyConfigurationsForm {
   @NotNull
   JPanel getPanel();
+
+  @NotNull
+  List<String> getSelectedConfigurations();
 }
