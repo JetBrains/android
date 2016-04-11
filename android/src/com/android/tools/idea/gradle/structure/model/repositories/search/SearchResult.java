@@ -15,15 +15,17 @@
  */
 package com.android.tools.idea.gradle.structure.model.repositories.search;
 
+import com.google.android.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 import java.util.Collections;
 import java.util.List;
 
 public class SearchResult {
   @NotNull private final String myRepositoryName;
-  @NotNull private final List<String> myData;
+  @NotNull private final List<FoundArtifact> myArtifacts;
   @Nullable private final Exception myError;
   private final int myTotalFound;
 
@@ -31,13 +33,13 @@ public class SearchResult {
     this(repositoryName, Collections.emptyList(), error, 0);
   }
 
-  SearchResult(@NotNull String repositoryName, @NotNull List<String> data, int totalFound) {
-    this(repositoryName, data, null, totalFound);
+  SearchResult(@NotNull String repositoryName, @NotNull List<FoundArtifact> artifacts, int totalFound) {
+    this(repositoryName, artifacts, null, totalFound);
   }
 
-  private SearchResult(@NotNull String repositoryName, @NotNull List<String> data, @Nullable Exception error, int totalFound) {
+  private SearchResult(@NotNull String repositoryName, @NotNull List<FoundArtifact> artifacts, @Nullable Exception error, int totalFound) {
     myRepositoryName = repositoryName;
-    myData = data;
+    myArtifacts = artifacts;
     myError = error;
     myTotalFound = totalFound;
   }
@@ -48,8 +50,8 @@ public class SearchResult {
   }
 
   @NotNull
-  public List<String> getData() {
-    return myData;
+  public List<FoundArtifact> getArtifacts() {
+    return myArtifacts;
   }
 
   @Nullable
@@ -59,5 +61,13 @@ public class SearchResult {
 
   public int getTotalFound() {
     return myTotalFound;
+  }
+
+  @TestOnly
+  @NotNull
+  public List<String> getArtifactCoordinates() {
+    List<String> coordinates = Lists.newArrayList();
+    myArtifacts.forEach(artifact -> coordinates.addAll(artifact.getCoordinates()));
+    return coordinates;
   }
 }

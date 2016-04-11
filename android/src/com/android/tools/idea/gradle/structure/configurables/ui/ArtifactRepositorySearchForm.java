@@ -15,17 +15,16 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui;
 
-import com.android.ide.common.repository.GradleCoordinate;
-import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepository;
-import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepositorySearch;
-import com.android.tools.idea.gradle.structure.model.repositories.search.SearchRequest;
-import com.android.tools.idea.gradle.structure.model.repositories.search.SearchResult;
+import com.android.tools.idea.gradle.structure.model.repositories.search.*;
+import com.android.tools.idea.structure.dialog.Header;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
 import com.intellij.ui.DocumentAdapter;
+import com.intellij.ui.JBSplitter;
+import com.intellij.ui.OnePixelSplitter;
 import com.intellij.ui.TableSpeedSearch;
 import com.intellij.ui.components.JBLabel;
-import com.intellij.ui.components.JBScrollPane;
+import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBTextField;
 import com.intellij.ui.table.TableView;
 import com.intellij.util.EventDispatcher;
@@ -45,8 +44,9 @@ import java.util.Collections;
 import java.util.EventListener;
 import java.util.List;
 
-import static com.android.ide.common.repository.GradleCoordinate.parseCoordinateString;
+import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+import static com.intellij.ui.ScrollPaneFactory.createScrollPane;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static com.intellij.util.ui.UIUtil.getTreeFont;
 import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
@@ -54,6 +54,9 @@ import static javax.swing.ListSelectionModel.SINGLE_SELECTION;
 import static org.jetbrains.android.util.AndroidUiUtil.setUpAsHtmlLabel;
 
 public class ArtifactRepositorySearchForm {
+  private static final String SEARCHING_EMPTY_TEXT = "Searching...";
+  private static final String NOTHING_TO_SHOW_EMPTY_TEXT = "Nothing to show";
+
   @NotNull private final ArtifactRepositorySearch mySearch;
 
   private JBLabel myArtifactNameLabel;
@@ -64,8 +67,10 @@ public class ArtifactRepositorySearchForm {
 
   private JButton mySearchButton;
 
-  private JBScrollPane myResultsScrollPane;
+  private JScrollPane myResultsScrollPane;
+  private JPanel myResultsPanel;
   private TableView<FoundArtifact> myResultsTable;
+  private AvailableVersionsPanel myVersionsPanel;
   private JEditorPane myErrorsPane;
 
   private JPanel myPanel;
@@ -108,27 +113,65 @@ public class ArtifactRepositorySearchForm {
     myResultsTable.getTableHeader().setReorderingAllowed(false);
 
     myResultsTable.getSelectionModel().addListSelectionListener(e -> {
-      Collection<FoundArtifact> selection = myResultsTable.getSelection();
-      FoundArtifact artifact = null;
-      if (selection.size() == 1) {
-        artifact = getFirstItem(selection);
+      FoundArtifact artifact = getSelection();
+      String version = null;
+
+      if (artifact != null) {
+        List<String> versions = artifact.getVersions();
+        myVersionsPanel.setVersions(versions);
+        version = versions.isEmpty() ? "" : versions.get(0);
       }
-      GradleCoordinate coordinate = artifact != null ? artifact.coordinate : null;
-      String selected = coordinate != null ? coordinate.toString() : null;
-      myEventDispatcher.getMulticaster().selectionChanged(selected);
+
+      notifySelectionChanged(artifact, version);
     });
 
     myErrorsPane = new JEditorPane();
     setUpAsHtmlLabel(myErrorsPane, getTreeFont());
 
+    myVersionsPanel = new AvailableVersionsPanel();
+
+    myResultsScrollPane = createScrollPane(myResultsTable);
     myResultsScrollPane.setViewportView(myResultsTable);
+
+    JBSplitter splitter = new OnePixelSplitter(false, 0.7f);
+    splitter.setFirstComponent(myResultsScrollPane);
+    splitter.setSecondComponent(myVersionsPanel);
+
+    myResultsPanel.add(splitter, BorderLayout.CENTER);
 
     new TableSpeedSearch(myResultsTable);
   }
 
+  @Nullable
+  private FoundArtifact getSelection() {
+    Collection<FoundArtifact> selection = myResultsTable.getSelection();
+    FoundArtifact artifact = null;
+    if (selection.size() == 1) {
+      artifact = getFirstItem(selection);
+    }
+    return artifact;
+  }
+
+  private void notifySelectionChanged(@Nullable FoundArtifact artifact, @Nullable String version) {
+    String selected = null;
+    if (artifact != null) {
+      String groupId = artifact.getGroupId();
+      String name = artifact.getName();
+
+      if (version == null) {
+        List<String> versions = artifact.getVersions();
+        version = versions.isEmpty() ? "" : versions.get(0);
+      }
+
+      selected = groupId + GRADLE_PATH_SEPARATOR + name + GRADLE_PATH_SEPARATOR + version;
+    }
+    myEventDispatcher.getMulticaster().selectionChanged(selected);
+  }
+
   private void performSearch() {
     mySearchButton.setEnabled(false);
-    myResultsTable.getEmptyText().setText("Searching...");
+    myResultsTable.getEmptyText().setText(SEARCHING_EMPTY_TEXT);
+    myVersionsPanel.setEmptyText(SEARCHING_EMPTY_TEXT);
     myResultsTable.setPaintBusy(true);
     clearResults();
 
@@ -155,12 +198,7 @@ public class ArtifactRepositorySearchForm {
       }
 
       for (SearchResult result : callback.getSearchResults()) {
-        for (String coordinateText : result.getData()) {
-          GradleCoordinate coordinate = parseCoordinateString(coordinateText);
-          if (coordinate != null) {
-            foundArtifacts.add(new FoundArtifact(coordinate, result.getRepositoryName()));
-          }
-        }
+        foundArtifacts.addAll(result.getArtifacts());
       }
 
       myResultsTable.getListTableModel().setItems(foundArtifacts);
@@ -181,8 +219,12 @@ public class ArtifactRepositorySearchForm {
 
   private void showSearchStopped() {
     mySearchButton.setEnabled(getArtifactName().length() >= 3);
+
     myResultsTable.setPaintBusy(false);
-    myResultsTable.getEmptyText().setText("Nothing to show");
+    myResultsTable.getEmptyText().setText(NOTHING_TO_SHOW_EMPTY_TEXT);
+
+    myVersionsPanel.clear();
+    myVersionsPanel.setEmptyText(NOTHING_TO_SHOW_EMPTY_TEXT);
   }
 
   @NotNull
@@ -234,7 +276,7 @@ public class ArtifactRepositorySearchForm {
         @Override
         @Nullable
         public String valueOf(FoundArtifact found) {
-          return found.coordinate.getGroupId();
+          return found.getGroupId();
         }
 
         @Override
@@ -249,7 +291,7 @@ public class ArtifactRepositorySearchForm {
         @Override
         @Nullable
         public String valueOf(FoundArtifact found) {
-          return found.coordinate.getArtifactId();
+          return found.getName();
         }
 
         @Override
@@ -260,42 +302,62 @@ public class ArtifactRepositorySearchForm {
           return "abcdefg";
         }
       };
-      ColumnInfo<FoundArtifact, String> version = new ColumnInfo<FoundArtifact, String>("Version") {
-        @Override
-        @Nullable
-        public String valueOf(FoundArtifact found) {
-          return found.coordinate.getRevision();
-        }
-
-        @Override
-        @NotNull
-        public String getPreferredStringValue() {
-          // Some text to provide a hint of what column width should be.
-          return "100.100.100";
-        }
-      };
       ColumnInfo<FoundArtifact, String> repository = new ColumnInfo<FoundArtifact, String>("Repository") {
         @Override
         @Nullable
         public String valueOf(FoundArtifact found) {
-          return found.repository;
+          return found.getRepositoryName();
         }
       };
-      setColumnInfos(new ColumnInfo[]{groupId, artifactName, version, repository});
-    }
-  }
-
-  private static class FoundArtifact {
-    @NotNull final GradleCoordinate coordinate;
-    @NotNull final String repository;
-
-    FoundArtifact(@NotNull GradleCoordinate coordinate, @NotNull String repository) {
-      this.coordinate = coordinate;
-      this.repository = repository;
+      setColumnInfos(new ColumnInfo[]{groupId, artifactName, /*version,*/ repository});
     }
   }
 
   public interface SelectionListener extends EventListener {
     void selectionChanged(@Nullable String selectedLibrary);
+  }
+
+  private class AvailableVersionsPanel extends JPanel {
+    private final JBList myVersionsList;
+    private final DefaultListModel<String> myVersionsListModel;
+
+    AvailableVersionsPanel() {
+      super(new BorderLayout());
+      myVersionsListModel = new DefaultListModel<>();
+      myVersionsList = new JBList(myVersionsListModel);
+      myVersionsList.setSelectionMode(SINGLE_SELECTION);
+      myVersionsList.addListSelectionListener(e -> {
+        FoundArtifact artifact = getSelection();
+        String version = null;
+        Object selected = myVersionsList.getSelectedValue();
+        if (selected instanceof String) {
+          version = (String)selected;
+        }
+        notifySelectionChanged(artifact, version);
+      });
+      JScrollPane scrollPane = createScrollPane(myVersionsList);
+      add(scrollPane, BorderLayout.CENTER);
+
+      Header titleLabel = new Header("Versions:");
+      titleLabel.setDisplayedMnemonic('V');
+      titleLabel.setLabelFor(myVersionsList);
+      add(titleLabel, BorderLayout.NORTH);
+    }
+
+    void setVersions(@NotNull List<String> versions) {
+      clear();
+      versions.forEach(myVersionsListModel::addElement);
+      if (!myVersionsListModel.isEmpty()) {
+        myVersionsList.getSelectionModel().setSelectionInterval(0, 0);
+      }
+    }
+
+    void setEmptyText(@NotNull String text) {
+      myVersionsList.getEmptyText().setText(text);
+    }
+
+    void clear() {
+      myVersionsListModel.clear();
+    }
   }
 }

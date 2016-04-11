@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.structure.model.repositories.search;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.intellij.util.io.HttpRequests;
 import org.jdom.Element;
@@ -99,7 +100,7 @@ public class MavenCentralRepository extends ArtifactRepository {
     </response>
     */
 
-    List<String> data = Lists.newArrayList();
+    List<FoundArtifact> artifacts = Lists.newArrayList();
     int totalFound = 0;
 
     Element root = load(response);
@@ -125,13 +126,16 @@ public class MavenCentralRepository extends ArtifactRepository {
             latestVersion = str.getTextTrim();
           }
           if (isNotEmpty(id) && isNotEmpty(latestVersion)) {
-            data.add(id + GRADLE_PATH_SEPARATOR + latestVersion);
+            List<String> coordinate = Splitter.on(GRADLE_PATH_SEPARATOR).splitToList(id);
+            assert coordinate.size() == 2;
+
+            artifacts.add(new FoundArtifact(getName(), coordinate.get(0), coordinate.get(1), latestVersion));
             break;
           }
         }
       }
     }
 
-    return new SearchResult(getName(), data, totalFound);
+    return new SearchResult(getName(), artifacts, totalFound);
   }
 }
