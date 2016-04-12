@@ -96,7 +96,11 @@ public class PsVariant extends PsChildModel implements PsAndroidModel {
   }
 
   public void forEachProductFlavor(@NotNull Consumer<PsProductFlavor> consumer) {
-    getParent().forEachProductFlavor(consumer);
+    PsAndroidModule module = getParent();
+    for (String name : myProductFlavors) {
+      PsProductFlavor productFlavor = module.findProductFlavor(name);
+      consumer.accept(productFlavor);
+    }
   }
 
   @TestOnly
