@@ -44,8 +44,8 @@ public class ConstraintDragHandler extends DragHandler {
     if (this.components.size() == 1) {
       NlComponent component = this.components.get(0);
 
-      int ax = ConstraintModel.getModel().pxToDp(x - this.layout.x - component.w / 2);
-      int ay = ConstraintModel.getModel().pxToDp(y - this.layout.y - component.h / 2);
+      int ax = ConstraintModel.getModel().pxToDp(x - this.layout.x - this.layout.getPadding().left - component.w / 2);
+      int ay = ConstraintModel.getModel().pxToDp(y - this.layout.y - this.layout.getPadding().top - component.h / 2);
       component.x = x;
       component.y = y;
       NlComponent root = component.getRoot();
