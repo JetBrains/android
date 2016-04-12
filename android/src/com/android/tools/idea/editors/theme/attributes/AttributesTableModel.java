@@ -288,6 +288,13 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
 
     @Override
     public Class<?> getCellClass(int column) {
+      // This could be called with a disposed module
+      // (e.g. theme editor table reloading while the project is closing)
+      // In that case, getting the resource resolver would fail
+      if (myContext.getCurrentContextModule().isDisposed()) {
+        return null;
+      }
+
       ResourceResolver resolver = myContext.getResourceResolver();
       if (resolver == null) {
         // The resolver might be null if the configuration doesn't have a theme selected
