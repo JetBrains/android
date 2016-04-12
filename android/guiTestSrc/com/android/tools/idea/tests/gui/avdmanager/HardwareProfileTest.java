@@ -18,7 +18,6 @@ package com.android.tools.idea.tests.gui.avdmanager;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.*;
-import com.android.tools.idea.ui.validation.Validator;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -69,22 +68,22 @@ public class HardwareProfileTest {
     ConfigureDeviceOptionsStepFixture deviceOptionsStep = hardwareProfileWizard.getConfigureDeviceOptionsStep();
 
     deviceOptionsStep.setDeviceName("\b");
-    assertThat(avdEditWizard.getValidationText(Validator.Severity.ERROR))
+    assertThat(deviceOptionsStep.getValidationText())
       .isEqualTo("Please write a name for the new device.");
 
     deviceOptionsStep.setDeviceName("My Device Test")
       .setScreenSize("5.2x");
-    assertThat(avdEditWizard.getValidationText(Validator.Severity.ERROR))
+    assertThat(deviceOptionsStep.getValidationText())
       .isEqualTo("Please enter a non-zero positive floating point value for the screen size.");
 
     deviceOptionsStep.setScreenSize("5.2")
       .setScreenResolutionX("0");
-    assertThat(avdEditWizard.getValidationText(Validator.Severity.ERROR))
+    assertThat(deviceOptionsStep.getValidationText())
       .isEqualTo("Please enter non-zero positive integer values for the screen resolution width.");
 
     deviceOptionsStep.setScreenResolutionX("1280")
       .setScreenResolutionY("0");
-    assertThat(avdEditWizard.getValidationText(Validator.Severity.ERROR))
+    assertThat(deviceOptionsStep.getValidationText())
       .isEqualTo("Please enter non-zero positive integer values for the screen resolution height.");
 
     hardwareProfileWizard.clickCancel();

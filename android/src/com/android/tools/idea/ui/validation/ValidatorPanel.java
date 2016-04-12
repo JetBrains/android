@@ -69,6 +69,7 @@ public final class ValidatorPanel extends JPanel implements Disposable {
     add(myRootPanel);
     myRootPanel.add(innerPanel);
 
+    myValidationLabel.setName("ValidationLabel");
     myValidationLabel.setText(BLANK);
 
     Disposer.register(parentDisposable, this);
