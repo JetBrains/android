@@ -168,7 +168,7 @@ public class TextWidget extends WidgetDecorator {
         if (mWidget.getVisibility() == ConstraintWidget.INVISIBLE) {
             g.setColor(new Color(255, 255, 255, 100));
         } else {
-            g.setColor(Color.WHITE);
+            g.setColor(mColorSet.getBlueprintText());
         }
         String string = getText();
         if (mToUpperCase) {
