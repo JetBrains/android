@@ -536,11 +536,8 @@ public class CreateXmlResourcePanel {
     if (module == null) {
       return null;
     }
-    AndroidFacet facet = AndroidFacet.getInstance(module);
-    if (facet == null) {
-      return null;
-    }
-    return facet.getPrimaryResourceDir();
+    PsiDirectory resDirectory = CreateResourceActionBase.getResourceDirectory(getSourceProvider(), module, true);
+    return resDirectory != null ? resDirectory.getVirtualFile() : null;
   }
 
   public JComponent getPanel() {
