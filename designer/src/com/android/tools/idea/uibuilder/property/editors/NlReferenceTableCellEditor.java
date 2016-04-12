@@ -27,7 +27,7 @@ public class NlReferenceTableCellEditor extends PTableCellEditor implements NlRe
   private final NlReferenceEditor myReferenceEditor;
 
   public NlReferenceTableCellEditor(@NotNull Project project) {
-    myReferenceEditor = NlReferenceEditor.create(project, this);
+    myReferenceEditor = NlReferenceEditor.createForTable(project, this);
   }
 
   @Override

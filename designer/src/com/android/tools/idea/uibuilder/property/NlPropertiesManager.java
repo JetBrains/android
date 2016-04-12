@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
+import com.android.tools.idea.uibuilder.model.ModelListener;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
@@ -36,7 +37,7 @@ import java.awt.*;
 import java.util.Collections;
 import java.util.List;
 
-public class NlPropertiesManager implements DesignSurfaceListener {
+public class NlPropertiesManager implements DesignSurfaceListener, ModelListener {
   public final static int UPDATE_DELAY_MSECS = 250;
 
   private final Project myProject;
@@ -44,6 +45,7 @@ public class NlPropertiesManager implements DesignSurfaceListener {
   private final NlPropertiesPanel myPropertiesPanel;
 
   @Nullable private DesignSurface mySurface;
+  @Nullable private ScreenView myScreenView;
 
   private MergingUpdateQueue myUpdateQueue;
 
@@ -65,12 +67,31 @@ public class NlPropertiesManager implements DesignSurfaceListener {
     }
 
     mySurface = designSurface;
-    if (mySurface != null) {
+    if (mySurface == null) {
+      setScreenView(null);
+    }
+    else {
       mySurface.addListener(this);
       ScreenView screenView = mySurface.getCurrentScreenView();
+      setScreenView(screenView);
       List<NlComponent> selection = screenView != null ?
-                                    screenView.getSelectionModel().getSelection() : Collections.<NlComponent>emptyList();
+                                    screenView.getSelectionModel().getSelection() : Collections.emptyList();
       componentSelectionChanged(mySurface, selection);
+    }
+  }
+
+  private void setScreenView(@Nullable ScreenView screenView) {
+    if (screenView == myScreenView) {
+      return;
+    }
+
+    if (myScreenView != null) {
+      myScreenView.getModel().removeListener(this);
+    }
+
+    myScreenView = screenView;
+    if (myScreenView != null) {
+      myScreenView.getModel().addListener(this);
     }
   }
 
@@ -103,29 +124,23 @@ public class NlPropertiesManager implements DesignSurfaceListener {
 
     // Obtaining the properties, especially the first time around on a big project
     // can take close to a second, so we do it on a separate thread..
-    ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
-      @Override
-      public void run() {
-        final List<NlPropertyItem> properties = NlProperties.getInstance().getProperties(component);
+    ApplicationManager.getApplication().executeOnPooledThread(() -> {
+      final List<NlPropertyItem> properties = NlProperties.getInstance().getProperties(component);
 
-        UIUtil.invokeLaterIfNeeded(new Runnable() {
-          @Override
-          public void run() {
-            if (myProject.isDisposed()) {
-              return;
-            }
-            myPropertiesPanel.setItems(component, properties, NlPropertiesManager.this);
-            if (postUpdateRunnable != null) {
-              postUpdateRunnable.run();
-            }
-          }
-        });
-      }
+      UIUtil.invokeLaterIfNeeded(() -> {
+        if (myProject.isDisposed()) {
+          return;
+        }
+        myPropertiesPanel.setItems(component, properties, this);
+        if (postUpdateRunnable != null) {
+          postUpdateRunnable.run();
+        }
+      });
     });
   }
 
   private void setEmptySelection() {
-    myPropertiesPanel.setItems(null, Collections.<NlPropertyItem>emptyList(), this);
+    myPropertiesPanel.setItems(null, Collections.emptyList(), this);
   }
 
   public void setValue(@NotNull NlProperty property, @NotNull String value) {
@@ -160,12 +175,7 @@ public class NlPropertiesManager implements DesignSurfaceListener {
     queue.queue(new Update("updateProperties") {
       @Override
       public void run() {
-        setSelectedComponent(firstComponent, new Runnable() {
-          @Override
-          public void run() {
-            myLoadingPanel.stopLoading();
-          }
-        });
+        setSelectedComponent(firstComponent, myLoadingPanel::stopLoading);
       }
 
       @Override
@@ -181,5 +191,14 @@ public class NlPropertiesManager implements DesignSurfaceListener {
 
   @Override
   public void modelChanged(@NotNull DesignSurface surface, @Nullable NlModel model) {
+  }
+
+  @Override
+  public void modelChanged(@NotNull NlModel model) {
+  }
+
+  @Override
+  public void modelRendered(@NotNull NlModel model) {
+    myPropertiesPanel.modelRendered();
   }
 }

@@ -79,12 +79,12 @@ public class FontInspectorComponent implements InspectorComponent {
     myAlignment = properties.get(ATTR_TEXT_ALIGNMENT);
     myColor = properties.get(ATTR_TEXT_COLOR);
 
-    EnumListener enumListener = new EnumListener();
+    NlEnumEditor.Listener enumListener = createEnumListener();
 
-    myStyleEditor = NlEnumEditor.createWithoutBrowseButton(enumListener);
-    myFontFamilyEditor = NlEnumEditor.createWithoutBrowseButton(enumListener);
-    myFontSizeEditor = NlEnumEditor.createWithoutBrowseButton(enumListener);
-    mySpacingEditor = NlEnumEditor.createWithoutBrowseButton(enumListener);
+    myStyleEditor = NlEnumEditor.createForInspector(enumListener);
+    myFontFamilyEditor = NlEnumEditor.createForInspector(enumListener);
+    myFontSizeEditor = NlEnumEditor.createForInspector(enumListener);
+    mySpacingEditor = NlEnumEditor.createForInspector(enumListener);
     myBoldEditor = new NlBooleanIconEditor(AndroidVectorIcons.EditorIcons.Bold);
     myItalicsEditor = new NlBooleanIconEditor(AndroidVectorIcons.EditorIcons.Italic);
     myAllCapsEditor = new NlBooleanIconEditor(AndroidVectorIcons.EditorIcons.AllCaps);
@@ -93,7 +93,7 @@ public class FontInspectorComponent implements InspectorComponent {
     myCenterEditor = new NlBooleanIconEditor(AndroidVectorIcons.EditorIcons.AlignCenter, TextAlignment.CENTER);
     myRightEditor = new NlBooleanIconEditor(AndroidVectorIcons.EditorIcons.AlignRight, TextAlignment.TEXT_END);
     myEndEditor = new NlBooleanIconEditor(AndroidVectorIcons.EditorIcons.AlignRight, TextAlignment.VIEW_END);
-    myColorEditor = NlReferenceEditor.createWithoutBrowseButton(propertiesManager.getProject(), new ReferenceListener());
+    myColorEditor = NlReferenceEditor.createForInspector(propertiesManager.getProject(), createReferenceListener());
 
     myTextStylePanel = new JPanel();
     myTextStylePanel.add(myBoldEditor.getComponent());
@@ -141,35 +141,39 @@ public class FontInspectorComponent implements InspectorComponent {
     myColorEditor.setProperty(myColor);
   }
 
-  private class EnumListener implements NlEnumEditor.Listener {
-    @Override
-    public void itemPicked(@NotNull NlEnumEditor source, @NotNull String value) {
-      if (source.getProperty() != null) {
-        myPropertiesManager.setValue(source.getProperty(), value);
+  private NlEnumEditor.Listener createEnumListener() {
+    return new NlEnumEditor.Listener() {
+      @Override
+      public void itemPicked(@NotNull NlEnumEditor source, @NotNull String value) {
+        if (source.getProperty() != null) {
+          myPropertiesManager.setValue(source.getProperty(), value);
+        }
       }
-    }
 
-    @Override
-    public void resourcePicked(@NotNull NlEnumEditor source, @NotNull String value) {
-      itemPicked(source, value);
-    }
+      @Override
+      public void resourcePicked(@NotNull NlEnumEditor source, @NotNull String value) {
+        itemPicked(source, value);
+      }
 
-    @Override
-    public void resourcePickerCancelled(@NotNull NlEnumEditor source) {
-    }
+      @Override
+      public void resourcePickerCancelled(@NotNull NlEnumEditor source) {
+      }
+    };
   }
 
-  private class ReferenceListener implements NlReferenceEditor.EditingListener {
-    @Override
-    public void stopEditing(@NotNull NlReferenceEditor source, @NotNull String value) {
-      if (source.getProperty() != null) {
-        myPropertiesManager.setValue(source.getProperty(), value);
-        source.setProperty(source.getProperty());
+  private NlReferenceEditor.EditingListener createReferenceListener() {
+    return new NlReferenceEditor.EditingListener() {
+      @Override
+      public void stopEditing(@NotNull NlReferenceEditor source, @NotNull String value) {
+        if (source.getProperty() != null) {
+          myPropertiesManager.setValue(source.getProperty(), value);
+          source.setProperty(source.getProperty());
+        }
       }
-    }
 
-    @Override
-    public void cancelEditing(@NotNull NlReferenceEditor editor) {
-    }
+      @Override
+      public void cancelEditing(@NotNull NlReferenceEditor editor) {
+      }
+    };
   }
 }
