@@ -30,6 +30,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.openapi.wm.ToolWindowManager;
+import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
 
 import java.util.List;
@@ -80,6 +81,7 @@ public class OpenDeveloperServicesSidePanelAction extends AnAction {
         if (toolWindow == null) {
           toolWindow = toolWindowManager.registerToolWindow(TOOL_WINDOW_TITLE, true, ToolWindowAnchor.RIGHT);
         }
+        toolWindow.setIcon(AndroidIcons.Assistant.Assist);
 
         factory.createToolWindowContent(thisProject, toolWindow);
 
