@@ -77,6 +77,7 @@ public class SceneDraw {
 
     private ConstraintAnchor mCurrentUnderneathAnchor;
     private boolean mMoveOnlyMode = false;
+    private boolean mApplyConstraints = true;
 
     /**
      * Base constructor
@@ -413,7 +414,9 @@ public class SceneDraw {
         mViewWidth = width;
         mViewHeight = height;
         root = root.getRootConstraintContainer();
-        root.layout();
+        if (mApplyConstraints) {
+            root.layout();
+        }
 
         // Adapt the anchor size
         ConnectionDraw.CONNECTION_ANCHOR_SIZE = (int) getAnchorSize(transform.getScale());
@@ -591,5 +594,14 @@ public class SceneDraw {
 
     public void setMoveOnlyMode(boolean moveOnlyMode) {
         mMoveOnlyMode = moveOnlyMode;
+    }
+
+    /**
+     * Enable or disable the application of constraints during painting
+     *
+     * @param applyConstraints
+     */
+    public void setApplyConstraints(boolean applyConstraints) {
+        this.mApplyConstraints = applyConstraints;
     }
 }
