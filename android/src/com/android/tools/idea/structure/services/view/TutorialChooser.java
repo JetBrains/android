@@ -18,7 +18,6 @@ package com.android.tools.idea.structure.services.view;
 import com.android.tools.idea.structure.services.datamodel.FeatureData;
 import com.android.tools.idea.structure.services.datamodel.TutorialBundleData;
 import com.intellij.openapi.ui.VerticalFlowLayout;
-import com.intellij.ui.BrowserHyperlinkListener;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import org.jetbrains.annotations.NotNull;
@@ -56,16 +55,8 @@ public class TutorialChooser extends CardViewPanel {
     // TODO: Figure out where extra padding is coming from.
     JTextPane welcome = new JTextPane();
     welcome.setOpaque(false);
-    welcome.setContentType("text/html");
-    welcome.setEditable(false);
-    welcome.setMargin(new Insets(0, 0, 0, 0));
-    welcome.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, true);
-    String text =
-      "<html><head><style>.welcome { margin: 10px;}\nbody { font-family: " + font + "; margin: 0px;}</head><body><p class=\"welcome\">" +
-      bundle.getWelcome() + "</p></body></html>";
-    welcome.setText(text);
-    // Enable links opening in the default browser.
-    welcome.addHyperlinkListener(BrowserHyperlinkListener.INSTANCE);
+    String text = "<p class=\"welcome\">" + bundle.getWelcome() + "</p>";
+    UIUtils.setHtml(welcome, text, ".welcome { margin: 10px;}");
     header.add(welcome);
     add(header, BorderLayout.NORTH);
 

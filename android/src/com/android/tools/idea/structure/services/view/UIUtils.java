@@ -15,10 +15,13 @@
  */
 package com.android.tools.idea.structure.services.view;
 
+import com.intellij.ui.BrowserHyperlinkListener;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.UI;
+import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.UIUtil;
 
+import javax.swing.*;
 import java.awt.*;
 
 
@@ -63,7 +66,6 @@ public class UIUtils {
     return UI.getColor("link.foreground");
   }
 
-
   public static Color getSuccessColor() {
     return SUCCESS_COLOR;
   }
@@ -94,6 +96,53 @@ public class UIUtils {
     glueConstraints.ipadx = 0;
     glueConstraints.ipady = 0;
     return glueConstraints;
+  }
+
+  public static void setHtml(JTextPane pane, String content) {
+    setHtml(pane, content, null, null);
+  }
+
+
+  public static void setHtml(JTextPane pane, String content, String css) {
+    setHtml(pane, content, css, null);
+  }
+
+  /**
+   * Sets html content on a {@code JTextPane} with default properties and convenience support for css and headers.
+   *
+   * @param pane The element to set the html content on.
+   * @param content The html body content, excluding the <body></body> tags.
+   * @param css Extra css to add. Example ".testClass { color: red}\n.anotherClass { border: 1px solid blue}".
+   * @param headers Extra header content to add. Example "<title>My Favorite!!</title>".
+   */
+  public static void setHtml(JTextPane pane, String content, String css, String headers) {
+    pane.setContentType("text/html");
+    // It's assumed that markup is for display purposes in our context.
+    pane.setEditable(false);
+    // Margins should be handled by the css in this case.
+    pane.setMargin(new Insets(0, 0, 0, 0));
+    pane.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, true);
+    // Enable links opening in the default browser.
+    pane.addHyperlinkListener(BrowserHyperlinkListener.INSTANCE);
+
+    // Use the label font as the default for markup so that it appears more consistent with non-html elements.
+    // TODO: Determine if the label font is the ideal font choice.
+    Font defaultFont = new JBLabel().getFont();
+
+    // HTMLBuilder has insufficient support for granular/structured css and header manipulation. The rest is just a more verbose way
+    // of emitting string constants like "<html>" which isn't useful.
+    // TODO: If we build up a larger set of css, break out into a constant or external file.
+    // TODO: Determine if we want to extract size or other font properties for use.
+    String text = "<html><head><style>body { font-family: " + defaultFont.getFamily() + "; margin: 0px;}";
+    if (css != null) {
+      text += "\n" + css;
+    }
+    text += "</style>";
+    if (headers != null) {
+      text += "\n" + css;
+    }
+    text += "</head><body>" + content + "</body></html>";
+    pane.setText(text);
   }
 
 }
