@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
 import com.android.SdkConstants;
+import com.android.tools.sherpa.drawing.BlueprintColorSet;
 import org.jetbrains.annotations.NotNull;
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.ModelListener;
@@ -160,7 +161,7 @@ public class ConstraintModel {
     mySelection.setSelectedAnchor(null);
     myWidgetsScene.setSelection(mySelection);
     myWidgetMotion = new WidgetMotion(myWidgetsScene, mySelection);
-    mySceneDraw = new SceneDraw(myWidgetsScene, mySelection,
+    mySceneDraw = new SceneDraw(new BlueprintColorSet(), myWidgetsScene, mySelection,
                                 myWidgetMotion, myWidgetResize);
     myMouseInteraction = new MouseInteraction(myViewTransform,
                                               myWidgetsScene, mySelection,
