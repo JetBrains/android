@@ -16,8 +16,6 @@
 package com.android.tools.idea.tests.gui.framework;
 
 import com.google.common.base.Strings;
-import com.intellij.ide.PrivacyPolicy;
-import com.intellij.openapi.util.Pair;
 import org.junit.AssumptionViolatedException;
 import org.junit.internal.runners.statements.Fail;
 import org.junit.runners.BlockJUnit4ClassRunner;
@@ -35,13 +33,6 @@ public class GuiTestRunner extends BlockJUnit4ClassRunner {
 
   public GuiTestRunner(Class<?> testClass) throws InitializationError {
     super(testClass);
-
-    // Automatically accept new Privacy Policy dialog
-    Pair<PrivacyPolicy.Version, String> policy = PrivacyPolicy.getContent();
-    if (!PrivacyPolicy.isVersionAccepted(policy.getFirst())) {
-      PrivacyPolicy.setVersionAccepted(policy.getFirst());
-    }
-
 
     // UI_TEST_MODE is set whenever we run UI tests on top of a Studio build. In that case, we
     // assume the classpath has been properly configured. Otherwise, if we're running from the
