@@ -30,5 +30,9 @@ public interface LaunchTasksProvider {
   @Nullable
   DebugConnectorTask getConnectDebuggerTask(@NotNull LaunchStatus launchStatus);
 
+  /** Returns whether this launch will start a new process on the device. Usually, this is true unless you are hot swapping.. */
   boolean createsNewProcess();
+
+  /** Returns whether the process handler should monitor the remote process and terminate itself when the process dies. */
+  boolean monitorRemoteProcess();
 }
