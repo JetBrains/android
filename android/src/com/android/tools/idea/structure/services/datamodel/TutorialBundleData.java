@@ -15,23 +15,37 @@
  */
 package com.android.tools.idea.structure.services.datamodel;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
 import java.util.List;
 
 /**
  * TODO document me
  */
 public interface TutorialBundleData {
+  @NotNull
   String getName();
 
+  @Nullable("Optionally rendered")
+  Icon getIcon();
+
+  @NotNull
   String getId();
 
+  @NotNull
   String getContentRoot();
 
+  @NotNull
   List<? extends FeatureData> getFeatures();
 
+  @Nullable("Optionally supported")
   Integer getMinPluginVersion();
 
+  @NotNull
   String getWelcome();
 
+  @Nullable("Optionally rendered")
   String getLearnMoreLink();
 }
