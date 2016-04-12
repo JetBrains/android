@@ -722,6 +722,10 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
                                                          boolean waitForDebugger,
                                                          @NotNull LaunchStatus launchStatus);
 
+  public boolean monitorRemoteProcess() {
+    return true;
+  }
+
   @NotNull
   public final DeviceCount getDeviceCount(boolean debug) {
     return DeviceCount.fromBoolean(supportMultipleDevices() && !debug);
