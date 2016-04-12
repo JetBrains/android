@@ -173,7 +173,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     }
     errors.addAll(getCurrentDeployTargetState().validate(facet));
 
-    errors.addAll(getApkProvider(facet).validate());
+    errors.addAll(getApkProvider(facet, getApplicationIdProvider(facet)).validate());
 
     errors.addAll(checkConfiguration(facet));
     AndroidDebuggerState androidDebuggerState = getAndroidDebuggerState(DEBUGGER_TYPE);
@@ -416,12 +416,13 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       processHandler = info.getProcessHandler();
     }
 
-    ApkProvider apkProvider = getApkProvider(facet);
+    ApplicationIdProvider applicationIdProvider = getApplicationIdProvider(facet);
+    ApkProvider apkProvider = getApkProvider(facet, applicationIdProvider);
     LaunchTasksProviderFactory providerFactory =
-      new AndroidLaunchTasksProviderFactory(this, env, facet, apkProvider, launchOptions, processHandler);
+      new AndroidLaunchTasksProviderFactory(this, env, facet, applicationIdProvider, apkProvider, launchOptions, processHandler);
 
     InstantRunStatsService.get(project).notifyBuildStarted();
-    return new AndroidRunState(env, getName(), module, apkProvider, getConsoleProvider(), deviceFutures.get(), providerFactory,
+    return new AndroidRunState(env, getName(), module, applicationIdProvider, getConsoleProvider(), deviceFutures.get(), providerFactory,
                                processHandler);
   }
 
@@ -711,13 +712,21 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   }
 
   @NotNull
-  protected abstract ApkProvider getApkProvider(@NotNull AndroidFacet facet);
+  protected ApplicationIdProvider getApplicationIdProvider(@NotNull AndroidFacet facet) {
+    if (facet.getAndroidModel() != null && facet.getAndroidModel() instanceof AndroidGradleModel) {
+      return new GradleApplicationIdProvider(facet);
+    }
+    return new NonGradleApplicationIdProvider(facet);
+  }
+
+  @NotNull
+  protected abstract ApkProvider getApkProvider(@NotNull AndroidFacet facet, @NotNull ApplicationIdProvider applicationIdProvider);
 
   @NotNull
   protected abstract ConsoleProvider getConsoleProvider();
 
   @Nullable
-  protected abstract LaunchTask getApplicationLaunchTask(@NotNull ApkProvider apkProvider,
+  protected abstract LaunchTask getApplicationLaunchTask(@NotNull ApplicationIdProvider applicationIdProvider,
                                                          @NotNull AndroidFacet facet,
                                                          boolean waitForDebugger,
                                                          @NotNull LaunchStatus launchStatus);
