@@ -30,10 +30,11 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import javax.swing.border.Border;
 import java.awt.*;
-import java.util.*;
+import java.net.UnknownHostException;
 import java.util.List;
 
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.ui.SideBorder.BOTTOM;
 import static com.intellij.util.ui.UIUtil.getButtonFont;
 import static com.intellij.util.ui.UIUtil.getTreeFont;
@@ -86,6 +87,15 @@ class AddLibraryDependencyPanel extends JPanel implements Disposable {
 
   @Nullable
   ValidationInfo validateInput() {
+    List<Exception> searchErrors = myLibraryDependencyForm.getSearchErrors();
+    if (!searchErrors.isEmpty()) {
+      StringBuilder buffer = new StringBuilder();
+      searchErrors.forEach(e -> {
+        buffer.append(getErrorMessage(e)).append("\n");
+      });
+      return new ValidationInfo(buffer.toString(), myLibraryDependencyForm.getPreferredFocusedComponent());
+    }
+
     String selectedLibrary = myLibraryDependencyForm.getSelectedLibrary();
     if (isEmpty(selectedLibrary)) {
       return new ValidationInfo("Please specify the library to add as dependency", myLibraryDependencyForm.getPreferredFocusedComponent());
@@ -95,6 +105,19 @@ class AddLibraryDependencyPanel extends JPanel implements Disposable {
       return new ValidationInfo("Please specify the configuration(s) for the library dependency");
     }
     return null;
+  }
+
+  @NotNull
+  private static String getErrorMessage(@NotNull Exception error) {
+    if (error instanceof UnknownHostException) {
+      return "Failed to connect to host '" + error.getMessage() + "'. Please check your Internet connection.";
+    }
+
+    String msg = error.getMessage();
+    if (isNotEmpty(msg)) {
+      return msg;
+    }
+    return error.getClass().getName();
   }
 
   @Override
