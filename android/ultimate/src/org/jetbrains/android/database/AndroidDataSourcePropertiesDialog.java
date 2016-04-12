@@ -76,12 +76,6 @@ public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigu
     myConfigurationPanel.setBorder(IdeBorderFactory.createEmptyBorder(10, 0, 0, 0));
     myNameField.setLabelText("Name:");
     myNameField.createComponent();
-    myNameField.setChangeListener(new Runnable() {
-      @Override
-      public void run() {
-        fireStateChanged();
-      }
-    });
 
     myDeviceComboBox.setRenderer(new DeviceRenderer.DeviceComboBoxRenderer() {
       @Override
