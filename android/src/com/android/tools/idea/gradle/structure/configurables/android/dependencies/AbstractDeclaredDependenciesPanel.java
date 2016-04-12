@@ -227,7 +227,7 @@ public abstract class AbstractDeclaredDependenciesPanel extends JPanel implement
       if (myModule == null) {
         return;
       }
-      AddLibraryDependencyDialog dialog = new AddLibraryDependencyDialog(myModule, myContext);
+      AddLibraryDependencyDialog dialog = new AddLibraryDependencyDialog(myModule);
       dialog.showAndGet();
     }
   }
