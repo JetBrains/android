@@ -76,4 +76,10 @@ public class HotSwapTasksProvider implements LaunchTasksProvider {
   public boolean createsNewProcess() {
     return false;
   }
+
+  @Override
+  public boolean monitorRemoteProcess() {
+    // The return value doesn't matter as this is only applicable if #createNewProcess() returned true
+    return true;
+  }
 }
