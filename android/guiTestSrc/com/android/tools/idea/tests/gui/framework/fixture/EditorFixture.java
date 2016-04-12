@@ -50,6 +50,7 @@ import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.RowIcon;
 import com.intellij.ui.components.JBList;
+import com.intellij.xml.breadcrumbs.BreadcrumbsComponent;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.driver.ComponentDriver;
@@ -474,6 +475,7 @@ public class EditorFixture {
 
     JComponent focusedEditor = getFocusedEditor();
     if (focusedEditor != null && lineStartPoint != null) {
+      waitUntilShowing(robot, matcherForType(BreadcrumbsComponent.class));
       robot.click(focusedEditor, lineStartPoint);
     }
     else {
@@ -505,6 +507,7 @@ public class EditorFixture {
 
     JComponent focusedEditor = getFocusedEditor();
     if (focusedEditor != null && offsetPoint != null) {
+      waitUntilShowing(robot, matcherForType(BreadcrumbsComponent.class));
       robot.click(focusedEditor, offsetPoint);
     }
     else {
