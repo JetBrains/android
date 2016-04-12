@@ -245,4 +245,9 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
   public boolean createsNewProcess() {
     return true;
   }
+
+  @Override
+  public boolean monitorRemoteProcess() {
+    return myRunConfig.monitorRemoteProcess();
+  }
 }
