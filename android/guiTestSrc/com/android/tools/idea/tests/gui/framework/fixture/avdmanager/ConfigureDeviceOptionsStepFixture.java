@@ -15,10 +15,8 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.avdmanager;
 
-import com.android.resources.Navigation;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.AbstractWizardStepFixture;
 import org.fest.swing.core.Robot;
-import org.fest.swing.fixture.JComboBoxFixture;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -49,49 +47,6 @@ public class ConfigureDeviceOptionsStepFixture extends AbstractWizardStepFixture
   @NotNull
   public ConfigureDeviceOptionsStepFixture setScreenResolutionY(String height) {
     replaceText(findTextFieldWithLabel("x"), height);
-    return this;
-  }
-
-  @NotNull
-  public ConfigureDeviceOptionsStepFixture selectHasHardwareButtons(boolean value) {
-    findCheckBoxWithLabel("Has Hardware Buttons").setSelected(value);
-    return this;
-  }
-
-  @NotNull
-  public ConfigureDeviceOptionsStepFixture selectHasHardwareKeyboard(boolean value) {
-    findCheckBoxWithLabel("Has Hardware Keyboard").setSelected(value);
-    return this;
-  }
-
-  @NotNull
-  public ConfigureDeviceOptionsStepFixture selectSupportsPortrait(boolean value) {
-    findCheckBoxWithLabel("Portrait").setSelected(value);
-    return this;
-  }
-
-  @NotNull
-  public ConfigureDeviceOptionsStepFixture selectSupportsLandscape(boolean value) {
-    findCheckBoxWithLabel("Landscape").setSelected(value);
-    return this;
-  }
-
-  @NotNull
-  public ConfigureDeviceOptionsStepFixture selectHasFrontCamera(boolean value) {
-    findCheckBoxWithLabel("Front-facing camera").setSelected(value);
-    return this;
-  }
-
-  @NotNull
-  public ConfigureDeviceOptionsStepFixture selectHasBackCamera(boolean value) {
-    findCheckBoxWithLabel("Back-facing camera").setSelected(value);
-    return this;
-  }
-
-  @NotNull
-  public ConfigureDeviceOptionsStepFixture setNavigation(@NotNull Navigation navigation) {
-    JComboBoxFixture fixture = findComboBoxWithLabel("Navigation Style");
-    fixture.selectItem(navigation.getShortDisplayValue());
     return this;
   }
 }
