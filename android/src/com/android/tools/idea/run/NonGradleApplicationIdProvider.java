@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,23 +15,28 @@
  */
 package com.android.tools.idea.run;
 
-import com.android.ddmlib.IDevice;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collection;
-import java.util.List;
-
 /**
- * An interface for providing information about the APKs to install on devices and/or emulators
- * during a run configuration execution.
+ * Application id provider for non-Gradle projects.
  */
-public interface ApkProvider {
-  /**
-   * @return The app and test APKs to install.
-   */
+public class NonGradleApplicationIdProvider implements ApplicationIdProvider {
   @NotNull
-  Collection<ApkInfo> getApks(@NotNull IDevice device) throws ApkProvisionException;
+  private final AndroidFacet myFacet;
 
+  public NonGradleApplicationIdProvider(@NotNull AndroidFacet facet) {
+    myFacet = facet;
+  }
+
+  @Override
   @NotNull
-  List<ValidationError> validate();
+  public String getPackageName() throws ApkProvisionException {
+    return ApkProviderUtil.computePackageName(myFacet);
+  }
+
+  @Override
+  public String getTestPackageName() throws ApkProvisionException {
+    return ApkProviderUtil.computePackageName(myFacet);
+  }
 }
