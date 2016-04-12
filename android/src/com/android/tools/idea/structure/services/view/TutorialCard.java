@@ -19,18 +19,13 @@ import com.android.tools.idea.structure.services.DeveloperServiceMap;
 import com.android.tools.idea.structure.services.datamodel.StepData;
 import com.android.tools.idea.structure.services.datamodel.TutorialData;
 import com.intellij.icons.AllIcons;
-import com.intellij.ui.BrowserHyperlinkListener;
 import com.intellij.ui.Gray;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.UIUtil;
 
 import javax.swing.*;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.html.HTMLDocument;
-import javax.swing.text.html.HTMLEditorKit;
 import java.awt.*;
 import java.awt.event.ActionListener;
-import java.io.IOException;
 
 /**
  * Generic view for tutorial content. Represents a single view in a collection
@@ -52,27 +47,14 @@ public class TutorialCard extends CardViewPanel {
     add(new HeaderNav(tutorial.getLabel(), myListener), BorderLayout.NORTH);
 
     TutorialDescription description = new TutorialDescription();
-    HTMLDocument doc = (HTMLDocument)description.getDocument();
-    HTMLEditorKit editorKit = (HTMLEditorKit)description.getEditorKit();
-    // TODO: Migrate common markup and css to a constant somewhere central.
-    String text = "<html><head><style>.description { margin: 10px;}\nbody { font-family: " +
-                  font +
-                  "; margin: 0px;}</head><body><p class=\"description\">" +
+    String text = "<p class=\"description\">" +
                   tutorial.getDescription() +
                   "<br><br><a href=\"" +
                   tutorial.getRemoteLink() +
                   "\" target=\"_blank\">" +
                   tutorial.getRemoteLinkLabel() +
-                  "</a></p></body></html>";
-    try {
-      editorKit.insertHTML(doc, doc.getLength(), text, 0, 0, null);
-    }
-    catch (BadLocationException e) {
-      e.printStackTrace();
-    }
-    catch (IOException e) {
-      e.printStackTrace();
-    }
+                  "</a></p>";
+    UIUtils.setHtml(description, text, ".description { margin: 10px;}");
 
     JPanel contents = new JPanel();
     contents.setLayout(new GridBagLayout());
@@ -123,14 +105,7 @@ public class TutorialCard extends CardViewPanel {
     TutorialDescription() {
       super();
       setOpaque(false);
-      setContentType("text/html");
-      setEditable(false);
-      setMargin(new Insets(0, 0, 0, 0));
-      putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, true);
       setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, UIUtils.getSeparatorColor()));
-
-      // Enable links opening in the default browser.
-      addHyperlinkListener(BrowserHyperlinkListener.INSTANCE);
     }
   }
 

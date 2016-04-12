@@ -54,10 +54,6 @@ public class FeatureEntryPoint extends JPanel {
     myDescription = feature.getDescription();
     myListener = listener;
 
-    // TODO: Migrate this somewhere central as the same font family should be used
-    // for everything except code display.
-    String fontFamily = getFont().getFamily();
-
     // Create encapsulating layout for ease of event handling, entire section
     // is clickable to toggle expansion of tutorials.
     setLayout(new BorderLayout());
@@ -117,7 +113,6 @@ public class FeatureEntryPoint extends JPanel {
     descriptionConstraints.gridheight = 1;
     descriptionConstraints.gridwidth = 1;
 
-    // TODO: Determine if this needs to be html.
     JTextPane descriptionPane = new JTextPane();
     // NOTE: When encapsulated in a scrollpane, content is not wrapping by
     // default. Setting preferred size addresses this (it expands width as
@@ -125,14 +120,7 @@ public class FeatureEntryPoint extends JPanel {
     // TODO: Determine how we can add a scroller to the service list without
     // breaking line wrapping.
     descriptionPane.setOpaque(false);
-    descriptionPane.setEditable(false);
-    descriptionPane.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, true);
-    descriptionPane.setContentType("text/html");
-    descriptionPane.setText("<html><head><style>body {font-family: " +
-                            fontFamily +
-                            ";}</style></head><body>" +
-                            myDescription +
-                            "</body></html>");
+    UIUtils.setHtml(descriptionPane, myDescription);
 
     mySummary.add(descriptionPane, descriptionConstraints);
     add(mySummary, BorderLayout.NORTH);
