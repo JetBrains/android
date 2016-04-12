@@ -225,7 +225,7 @@ public class WidgetsScene {
             if (!decorator.isVisible()) {
                 continue;
             }
-            if (widget instanceof WidgetContainer) {
+            if (widget instanceof ConstraintWidgetContainer) {
                 ConstraintWidget f = findWidget((ConstraintWidgetContainer) widget, x, y);
                 if (f != null) {
                     found = f;
