@@ -22,14 +22,10 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.components.JBLabel;
 
 import javax.swing.*;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.html.HTMLDocument;
-import javax.swing.text.html.HTMLEditorKit;
 import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -52,6 +48,7 @@ public class FeatureEntryPoint extends JPanel {
   private ActionListener myListener;
   private JLabel myArrow;
   private SummaryHandler mySummaryClickHandler = new SummaryHandler();
+
   public FeatureEntryPoint(FeatureData feature, ActionListener listener) {
     myLabel = feature.getName();
     myDescription = feature.getDescription();
@@ -98,10 +95,19 @@ public class FeatureEntryPoint extends JPanel {
     Font boldFont = new Font(font.getFontName(), Font.BOLD, font.getSize());
     serviceLabel.setFont(boldFont);
     serviceLabel.setText(myLabel);
+    Icon featureIcon = feature.getIcon();
+    if (featureIcon != null) {
+      serviceLabel.setIcon(featureIcon);
+    }
     mySummary.add(serviceLabel, labelConstraints);
 
     GridBagConstraints descriptionConstraints = new GridBagConstraints();
-    descriptionConstraints.insets = new Insets(0, 0, 0, 10);
+    int descriptionWidthOffset = 0;
+    // If an icon is present, shift the description to align with label text.
+    if (featureIcon != null) {
+      descriptionWidthOffset += featureIcon.getIconWidth();
+    }
+    descriptionConstraints.insets = new Insets(0, descriptionWidthOffset, 0, 10);
     descriptionConstraints.gridx = 1;
     descriptionConstraints.gridy = 1;
     descriptionConstraints.weightx = 1;
@@ -122,35 +128,24 @@ public class FeatureEntryPoint extends JPanel {
     descriptionPane.setEditable(false);
     descriptionPane.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, true);
     descriptionPane.setContentType("text/html");
-    // TODO: Abstract out html creation, possibly using HtmlBuilder and
-    // definitely using helpers/constants for reused properties such as fonts
-    // and common spacing.
-    HTMLDocument doc = (HTMLDocument)descriptionPane.getDocument();
-    HTMLEditorKit editorKit = (HTMLEditorKit)descriptionPane.getEditorKit();
-    try {
-      editorKit.insertHTML(doc, doc.getLength(), "<html><head><style>body {font-family: " +
-                                                 fontFamily +
-                                                 ";}</style></head><body>" +
-                                                 myDescription +
-                                                 "</body></html>", 0, 0, null);
-    }
-    // TODO: Follow up on handling of errors. We want to recover so that other
-    // sections may render + this may not preclude the name and tutorials
-    // showing up correctly. However, if this does occur, it should be
-    // handled as gracefully as possible.
-    catch (BadLocationException e) {
-      getLog().warn(e);
-    }
-    catch (IOException e) {
-      getLog().warn(e);
-    }
+    descriptionPane.setText("<html><head><style>body {font-family: " +
+                            fontFamily +
+                            ";}</style></head><body>" +
+                            myDescription +
+                            "</body></html>");
+
     mySummary.add(descriptionPane, descriptionConstraints);
     add(mySummary, BorderLayout.NORTH);
 
     myTutorialsList = new JPanel();
     myTutorialsList.setOpaque(false);
     myTutorialsList.setLayout(new BoxLayout(myTutorialsList, BoxLayout.Y_AXIS));
-    myTutorialsList.setBorder(BorderFactory.createEmptyBorder(5, 50, 5, 5));
+    int tutorialWidthOffset = 50;
+    // If an icon is present, the description is shifted, shift the tutorial list similarly.
+    if (featureIcon != null) {
+      tutorialWidthOffset += featureIcon.getIconWidth();
+    }
+    myTutorialsList.setBorder(BorderFactory.createEmptyBorder(5, tutorialWidthOffset, 5, 5));
     myTutorialsList.setVisible(false);
     for (TutorialData tutorial : feature.getTutorials()) {
       addTutorial(tutorial.getLabel(), tutorial.getKey());

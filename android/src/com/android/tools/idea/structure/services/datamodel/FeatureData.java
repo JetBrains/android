@@ -16,21 +16,30 @@
 package com.android.tools.idea.structure.services.datamodel;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
 import java.util.List;
 
 /**
  * TODO document me
  */
 public interface FeatureData {
+  @NotNull
   List<String> getResources();
 
+  @NotNull
   String getResourceRoot();
 
   @NotNull
   String getName();
 
+  @Nullable("Feature icons are optional")
+  Icon getIcon();
+
+  @NotNull
   String getDescription();
 
+  @NotNull
   List<? extends TutorialData> getTutorials();
 }
