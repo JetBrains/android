@@ -31,8 +31,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.util.function.Function;
 
 /**
  * A tab that goes inside the {@link EditResourcePanel}
@@ -46,7 +45,6 @@ public abstract class ResourceEditorTab {
   private JPanel myEditorPanel;
   private HideableDecorator myExpertDecorator;
 
-  private @NotNull ResourceNameValidator myValidator;
   private @NotNull CreateXmlResourcePanel myLocationSettings;
   private @NotNull ChooseResourceDialog.ResourceNameVisibility myResourceNameVisibility;
   private final @NotNull String myTabTitle;
@@ -85,23 +83,18 @@ public abstract class ResourceEditorTab {
     myEditorPanel.add(centerPanel);
     myFullPanel.setBorder(new EmptyBorder(UIUtil.PANEL_SMALL_INSETS));
 
+    Function<Module, ResourceNameValidator> nameValidatorFactory =
+      selectedModule -> ResourceNameValidator
+        .create(allowXmlFile, AppResourceRepository.getAppResources(selectedModule, true), resourceType, allowXmlFile);
     // There is no need to choose the resource name or value here (controlled by parent).
     myLocationSettings = new CreateXmlResourcePanel(module, resourceType, folderType, "", "",
                                                     false /* chooseName */, false /* chooseValue */,
-                                                    null, null);
+                                                    null, null, nameValidatorFactory);
 
     // if the resource name IS the filename, we don't need to allow changing the filename
     myLocationSettings.setChangeFileNameVisible(changeFileNameVisible);
 
     myExpertPanel.add(myLocationSettings.getPanel());
-    myLocationSettings.addModuleComboActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        myValidator = ResourceNameValidator.create(allowXmlFile, AppResourceRepository.getAppResources(getSelectedModule(), true), resourceType, allowXmlFile);
-      }
-    });
-
-    myValidator = ResourceNameValidator.create(allowXmlFile, AppResourceRepository.getAppResources(getSelectedModule(), true), resourceType, allowXmlFile);
   }
 
   @NotNull
@@ -149,7 +142,7 @@ public abstract class ResourceEditorTab {
 
   @NotNull
   public ResourceNameValidator getValidator() {
-    return myValidator;
+    return getLocationSettings().getResourceNameValidator();
   }
 
   @NotNull

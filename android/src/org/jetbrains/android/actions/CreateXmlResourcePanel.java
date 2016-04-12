@@ -19,6 +19,7 @@ import com.android.builder.model.SourceProvider;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.ResourceNameValidator;
 import com.intellij.application.options.ModulesComboBox;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
@@ -51,6 +52,7 @@ import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.*;
+import java.util.function.Function;
 
 /**
  * @author Eugene.Kudelevsky
@@ -79,6 +81,7 @@ public class CreateXmlResourcePanel {
   private final CheckBoxList myDirectoriesList;
   private VirtualFile myResourceDir;
   private ResourceFolderType myFolderType;
+  private ResourceNameValidator myResourceNameValidator;
 
   public CreateXmlResourcePanel(@NotNull Module module,
                                 @NotNull ResourceType resourceType,
@@ -88,7 +91,8 @@ public class CreateXmlResourcePanel {
                                 boolean chooseName,
                                 boolean chooseValue,
                                 @Nullable VirtualFile defaultFile,
-                                @Nullable VirtualFile contextFile) {
+                                @Nullable VirtualFile contextFile,
+                                @NotNull final Function<Module, ResourceNameValidator> nameValidatorFactory) {
     setChangeNameVisible(false);
     setChangeValueVisible(false);
     if (chooseName) {
@@ -180,11 +184,13 @@ public class CreateXmlResourcePanel {
     myDirectoriesPanel.add(decorator.createPanel());
 
     updateDirectories(true);
+    myResourceNameValidator = nameValidatorFactory.apply(getModule());
 
-    addModuleComboActionListener(new ActionListener() {
+    myModuleCombo.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
         updateDirectories(true);
+        myResourceNameValidator = nameValidatorFactory.apply(getModule());
       }
     });
 
@@ -232,10 +238,6 @@ public class CreateXmlResourcePanel {
     }
     assert root != null;
     return root;
-  }
-
-  public void addModuleComboActionListener(@NotNull ActionListener actionListener) {
-    myModuleCombo.addActionListener(actionListener);
   }
 
   public void resetFromFile(@NotNull VirtualFile file, @NotNull Project project) {
@@ -457,6 +459,11 @@ public class CreateXmlResourcePanel {
                                                                 myResourceType, directoryNames, fileName);
   }
 
+  @NotNull
+  public ResourceNameValidator getResourceNameValidator() {
+    return myResourceNameValidator;
+  }
+
   /**
    * @see CreateXmlResourceDialog#getPreferredFocusedComponent()
    */
@@ -559,4 +566,5 @@ public class CreateXmlResourcePanel {
     myModuleLabel.setVisible(isVisible);
     myModuleCombo.setVisible(isVisible);
   }
+
 }
