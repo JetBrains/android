@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.actions;
 
+import com.android.SdkConstants;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
@@ -172,10 +173,6 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
   protected boolean checkModules(@NotNull final Project project,
                                  @NotNull final AnalysisScope scope,
                                  @NotNull Map<Module, PsiFile> modules) {
-    RepositoryUrlManager manager = RepositoryUrlManager.get();
-    final String annotationsLibraryCoordinate = manager.getLibraryCoordinate(RepositoryUrlManager.SUPPORT_ANNOTATIONS);
-    final String appCompatLibraryCoordinate = manager.getLibraryCoordinate(RepositoryUrlManager.APP_COMPAT_ID_V7);
-
     final Set<Module> modulesWithoutAnnotations = new HashSet<Module>();
     final Set<Module> modulesWithLowVersion = new HashSet<Module>();
     for (Module module : modules.keySet()) {
@@ -193,7 +190,8 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
       if (dependenciesModel != null) {
         for (ArtifactDependencyModel dependency : dependenciesModel.artifacts(COMPILE)) {
           String notation = dependency.compactNotation().value();
-          if (notation.equals(annotationsLibraryCoordinate) || notation.equals(appCompatLibraryCoordinate)) {
+          if (notation.startsWith(SdkConstants.APPCOMPAT_LIB_ARTIFACT) ||
+              notation.startsWith(SdkConstants.ANNOTATIONS_LIB_ARTIFACT)) {
             dependencyFound = true;
             break;
           }
@@ -234,6 +232,8 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
         new WriteCommandAction(project, ADD_DEPENDENCY) {
           @Override
           protected void run(@NotNull final Result result) throws Throwable {
+            RepositoryUrlManager manager = RepositoryUrlManager.get();
+            String annotationsLibraryCoordinate = manager.getLibraryCoordinate(RepositoryUrlManager.SUPPORT_ANNOTATIONS);
             for (Module module : modulesWithoutAnnotations) {
               addDependency(module, annotationsLibraryCoordinate);
             }
