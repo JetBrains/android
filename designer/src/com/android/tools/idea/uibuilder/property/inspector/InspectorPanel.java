@@ -22,6 +22,7 @@ import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import net.miginfocom.swing.MigLayout;
@@ -30,12 +31,14 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 public class InspectorPanel extends JPanel {
   private static final boolean DEBUG_BOUNDS = false;
   private static final Color TITLE_COLOR = JBColor.BLUE;
+  private List<InspectorComponent> myInspectors = Collections.emptyList();
 
   public InspectorPanel() {
     super(new BorderLayout());
@@ -81,6 +84,12 @@ public class InspectorPanel extends JPanel {
     for (InspectorComponent inspector : inspectors) {
       inspector.attachToInspector(panel);
     }
+
+    myInspectors = inspectors;
+  }
+
+  public void refresh() {
+    ApplicationManager.getApplication().invokeLater(() -> myInspectors.stream().forEach(InspectorComponent::refresh));
   }
 
   @NotNull

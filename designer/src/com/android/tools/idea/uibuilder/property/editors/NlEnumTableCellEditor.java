@@ -28,7 +28,7 @@ public class NlEnumTableCellEditor extends PTableCellEditor implements NlEnumEdi
   private Object myValue;
 
   public NlEnumTableCellEditor() {
-    myEnumEditor = NlEnumEditor.create(this);
+    myEnumEditor = NlEnumEditor.createForTable(this);
   }
 
   @Override

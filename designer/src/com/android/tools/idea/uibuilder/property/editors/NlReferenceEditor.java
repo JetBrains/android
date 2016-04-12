@@ -32,7 +32,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.FixedSizeButton;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.ui.EditorTextField;
 import com.intellij.ui.TextFieldWithAutoCompletion;
 import com.intellij.ui.TextFieldWithAutoCompletionListProvider;
 import com.intellij.ui.UIBundle;
@@ -65,18 +64,18 @@ public class NlReferenceEditor {
   private final FixedSizeButton myBrowseButton;
 
   private NlProperty myProperty;
-  private String myValue;
+  private String myLastReadValue;
 
   public interface EditingListener {
     void stopEditing(@NotNull NlReferenceEditor editor, @NotNull String value);
     void cancelEditing(@NotNull NlReferenceEditor editor);
   }
 
-  public static NlReferenceEditor create(@NotNull Project project, @NotNull EditingListener listener) {
+  public static NlReferenceEditor createForTable(@NotNull Project project, @NotNull EditingListener listener) {
     return new NlReferenceEditor(project, listener, true);
   }
 
-  public static NlReferenceEditor createWithoutBrowseButton(@NotNull Project project, @NotNull EditingListener listener) {
+  public static NlReferenceEditor createForInspector(@NotNull Project project, @NotNull EditingListener listener) {
     return new NlReferenceEditor(project, listener, false);
   }
 
@@ -105,26 +104,40 @@ public class NlReferenceEditor {
     myTextFieldWithAutoCompletion.registerKeyboardAction(event -> stopEditing(myTextFieldWithAutoCompletion.getDocument().getText()),
                                                          KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0),
                                                          JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-    selectTextOnFocusGain(myTextFieldWithAutoCompletion);
+    myTextFieldWithAutoCompletion.registerKeyboardAction(event -> displayResourcePicker(),
+                                                         KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, InputEvent.ALT_MASK),
+                                                         JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+
+    myTextFieldWithAutoCompletion.addFocusListener(new FocusAdapter() {
+      @Override
+      public void focusGained(FocusEvent focusEvent) {
+        selectTextOnFocusGain(focusEvent);
+      }
+
+      @Override
+      public void focusLost(FocusEvent event) {
+        stopEditing(myTextFieldWithAutoCompletion.getDocument().getText());
+      }
+    });
 
     myBrowseButton.addActionListener(event -> displayResourcePicker());
   }
 
-  public static void selectTextOnFocusGain(EditorTextField textField) {
-    textField.addFocusListener(new FocusAdapter() {
-      @Override
-      public void focusGained(FocusEvent focusEvent) {
-        Object source = focusEvent.getSource();
-        if (source instanceof EditorComponentImpl && focusEvent instanceof CausedFocusEvent) {
-          CausedFocusEvent causedFocusEvent = (CausedFocusEvent)focusEvent;
-          EditorComponentImpl editorComponent = (EditorComponentImpl)source;
-          if (causedFocusEvent.getCause() == CausedFocusEvent.Cause.ACTIVATION) {
-            Editor editor = editorComponent.getEditor();
-            editor.getSelectionModel().setSelection(0, editor.getDocument().getTextLength());
-          }
-        }
+  private static void selectTextOnFocusGain(@NotNull FocusEvent focusEvent) {
+    Object source = focusEvent.getSource();
+    if (source instanceof EditorComponentImpl && focusEvent instanceof CausedFocusEvent) {
+      CausedFocusEvent causedFocusEvent = (CausedFocusEvent)focusEvent;
+      EditorComponentImpl editorComponent = (EditorComponentImpl)source;
+      if (causedFocusEvent.getCause() == CausedFocusEvent.Cause.ACTIVATION) {
+        Editor editor = editorComponent.getEditor();
+        editor.getSelectionModel().setSelection(0, editor.getDocument().getTextLength());
       }
-    });
+    }
+  }
+
+  public void setEnabled(boolean enabled) {
+    myTextFieldWithAutoCompletion.setEnabled(enabled);
+    myBrowseButton.setVisible(enabled && myIncludeBrowseButton);
   }
 
   public NlProperty getProperty() {
@@ -132,18 +145,23 @@ public class NlReferenceEditor {
   }
 
   public void setProperty(@NotNull NlProperty property) {
-    myProperty = property;
+    if (myProperty != property) {
+      myProperty = property;
+      myLastReadValue = null;
+
+      myBrowseButton.setVisible(myIncludeBrowseButton && hasResourceChooser(myProperty));
+      myCompletionProvider.updateCompletions(myProperty);
+    }
 
     Icon icon = NlDefaultRenderer.getIcon(myProperty);
     myLabel.setIcon(icon);
     myLabel.setVisible(icon != null);
 
-    myBrowseButton.setVisible(myIncludeBrowseButton && hasResourceChooser(myProperty));
-
     String propValue = StringUtil.notNullize(myProperty.getValue());
-    myValue = propValue;
-    myTextFieldWithAutoCompletion.setText(propValue);
-    myCompletionProvider.updateCompletions(myProperty);
+    if (!propValue.equals(myLastReadValue)) {
+      myLastReadValue = propValue;
+      myTextFieldWithAutoCompletion.setText(propValue);
+    }
   }
 
   public Component getComponent() {
@@ -151,7 +169,7 @@ public class NlReferenceEditor {
   }
 
   public Object getValue() {
-    return myValue;
+    return myTextFieldWithAutoCompletion.getDocument().getText();
   }
 
   private void cancelEditing() {
@@ -159,7 +177,7 @@ public class NlReferenceEditor {
   }
 
   private void stopEditing(@NotNull String newValue) {
-    myValue = newValue;
+    myProperty.setValue(newValue);
     myListener.stopEditing(this, newValue);
   }
 
