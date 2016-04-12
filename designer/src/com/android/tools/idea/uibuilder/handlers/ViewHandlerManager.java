@@ -170,104 +170,19 @@ public class ViewHandlerManager implements ProjectComponent {
   private ViewHandler createHandler(@NotNull String viewTag) {
     // Builtin view. Don't bother with reflection for the common cases.
     switch (viewTag) {
-      case FRAME_LAYOUT:
-      case IMAGE_SWITCHER:
-      case TEXT_SWITCHER:
-      case VIEW_SWITCHER:
-      case VIEW_FLIPPER:
-      case VIEW_ANIMATOR:
-      case GESTURE_OVERLAY_VIEW:
-      case NESTED_SCROLL_VIEW:
-        return new FrameLayoutHandler();
-      case APP_BAR_LAYOUT:
-        return new AppBarLayoutHandler();
-      case COORDINATOR_LAYOUT:
-        return new CoordinatorLayoutHandler();
-      case LINEAR_LAYOUT:
-      case FQCN_LINEAR_LAYOUT:
-        return new LinearLayoutHandler();
-      case TABLE_LAYOUT:
-        return new TableLayoutHandler();
-      case TABLE_ROW:
-        return new TableRowHandler();
-      case GRID_LAYOUT:
-        return new GridLayoutHandler();
-      case GRID_LAYOUT_V7:
-        return new GridLayoutV7Handler();
-      case RELATIVE_LAYOUT:
-      case FQCN_RELATIVE_LAYOUT:
-        case DIALER_FILTER:
-        return new RelativeLayoutHandler();
-      case CONSTRAINT_LAYOUT:
-        return new ConstraintLayoutHandler();
-      case TABLE_CONSTRAINT_LAYOUT:
-        return new ConstraintLayoutHandler();
-      case SCROLL_VIEW:
-        return new ScrollViewHandler();
-      case HORIZONTAL_SCROLL_VIEW:
-        return new HorizontalScrollViewHandler();
-      case IMAGE_BUTTON:
-        return new ImageButtonHandler();
-      case IMAGE_VIEW:
-        return new ImageViewHandler();
-      case ZOOM_BUTTON:
-        return new ZoomButtonHandler();
-      case VIEW_INCLUDE:
-        return new IncludeHandler();
-      case VIEW_FRAGMENT:
-        return new FragmentHandler();
-      case REQUEST_FOCUS:
-        return new RequestFocusHandler();
-      case VIEW_TAG:
-        return new ViewTagHandler();
-      case VIEW_STUB:
-        return new ViewStubHandler();
+      case ABSOLUTE_LAYOUT:
+        return new AbsoluteLayoutHandler();
       case ADAPTER_VIEW:
       case STACK_VIEW:
         return new AdapterViewHandler();
-      case ABSOLUTE_LAYOUT:
-        return new AbsoluteLayoutHandler();
-      case FLOATING_ACTION_BUTTON:
-        return new FloatingActionButtonHandler();
-      case PROGRESS_BAR:
-        return new ProgressBarHandler();
-      case TEXT_INPUT_LAYOUT:
-        return new TextInputLayoutHandler();
       case AD_VIEW:
         return new AdViewHandler();
-      case MAP_FRAGMENT:
-        return new MapFragmentHandler();
-      case MAP_VIEW:
-        return new MapViewHandler();
-      case CARD_VIEW:
-        return new CardViewHandler();
-      case RECYCLER_VIEW:
-        return new RecyclerViewHandler();
-      case TOOLBAR_V7:
-        return new ToolbarHandler();
-      case BROWSE_FRAGMENT:
-        return new BrowseFragmentHandler();
-      case DETAILS_FRAGMENT:
-        return new DetailsFragmentHandler();
-      case PLAYBACK_OVERLAY_FRAGMENT:
-        return new PlaybackOverlayFragmentHandler();
-      case SEARCH_FRAGMENT:
-        return new SearchFragmentHandler();
-      case TAB_HOST:
-        return new TabHostHandler();
-      case EXPANDABLE_LIST_VIEW:
-        // TODO: Find out why this fails to load by class name
-        return new ListViewHandler();
-      case SPINNER:
-        return new SpinnerHandler();
-      case CHRONOMETER:
-      case TEXT_CLOCK:
-      case QUICK_CONTACT_BADGE:
-        return STANDARD_HANDLER;
+      case APP_BAR_LAYOUT:
+        return new AppBarLayoutHandler();
       case AUTO_COMPLETE_TEXT_VIEW:
       case BUTTON:
-      case CHECK_BOX:
       case CHECKED_TEXT_VIEW:
+      case CHECK_BOX:
       case EDIT_TEXT:
       case MULTI_AUTO_COMPLETE_TEXT_VIEW:
       case RADIO_BUTTON:
@@ -275,10 +190,107 @@ public class ViewHandlerManager implements ProjectComponent {
       case TEXT_VIEW:
       case TOGGLE_BUTTON:
         return TEXT_HANDLER;
+      case BROWSE_FRAGMENT:
+        return new BrowseFragmentHandler();
+      case CARD_VIEW:
+        return new CardViewHandler();
+      case CHRONOMETER:
+      case QUICK_CONTACT_BADGE:
+      case TEXT_CLOCK:
+        return STANDARD_HANDLER;
+      case CONSTRAINT_LAYOUT:
+        return new ConstraintLayoutHandler();
+      case COORDINATOR_LAYOUT:
+        return new CoordinatorLayoutHandler();
+      case DETAILS_FRAGMENT:
+        return new DetailsFragmentHandler();
+      case DIALER_FILTER:
+      case FQCN_RELATIVE_LAYOUT:
+      case RELATIVE_LAYOUT:
+        return new RelativeLayoutHandler();
+      case EXPANDABLE_LIST_VIEW:
+        // TODO: Find out why this fails to load by class name
+        return new ListViewHandler();
+      case FLOATING_ACTION_BUTTON:
+        return new FloatingActionButtonHandler();
+      case FQCN_LINEAR_LAYOUT:
+      case LINEAR_LAYOUT:
+        return new LinearLayoutHandler();
+      case FRAME_LAYOUT:
+      case GESTURE_OVERLAY_VIEW:
+      case IMAGE_SWITCHER:
+      case NESTED_SCROLL_VIEW:
+      case TEXT_SWITCHER:
+      case VIEW_ANIMATOR:
+      case VIEW_FLIPPER:
+      case VIEW_SWITCHER:
+        return new FrameLayoutHandler();
+      case GRID_LAYOUT:
+        return new GridLayoutHandler();
+      case GRID_LAYOUT_V7:
+        return new GridLayoutV7Handler();
+      case HORIZONTAL_SCROLL_VIEW:
+        return new HorizontalScrollViewHandler();
+      case IMAGE_BUTTON:
+        return new ImageButtonHandler();
+      case IMAGE_VIEW:
+        return new ImageViewHandler();
+      case MAP_FRAGMENT:
+        return new MapFragmentHandler();
+      case MAP_VIEW:
+        return new MapViewHandler();
+      case PLAYBACK_OVERLAY_FRAGMENT:
+        return new PlaybackOverlayFragmentHandler();
+      case PROGRESS_BAR:
+        return new ProgressBarHandler();
+      case PreferenceTags.CHECK_BOX_PREFERENCE:
+        return new CheckBoxPreferenceHandler();
+      case PreferenceTags.EDIT_TEXT_PREFERENCE:
+        return new EditTextPreferenceHandler();
+      case PreferenceTags.LIST_PREFERENCE:
+        return new ListPreferenceHandler();
+      case PreferenceTags.MULTI_SELECT_LIST_PREFERENCE:
+        return new MultiSelectListPreferenceHandler();
+      case PreferenceTags.RINGTONE_PREFERENCE:
+        return new RingtonePreferenceHandler();
+      case PreferenceTags.SWITCH_PREFERENCE:
+        return new SwitchPreferenceHandler();
+      case RECYCLER_VIEW:
+        return new RecyclerViewHandler();
+      case REQUEST_FOCUS:
+        return new RequestFocusHandler();
+      case SCROLL_VIEW:
+        return new ScrollViewHandler();
+      case SEARCH_FRAGMENT:
+        return new SearchFragmentHandler();
       case SPACE:
       case SURFACE_VIEW:
       case TEXTURE_VIEW:
         return NO_PREVIEW_HANDLER;
+      case SPINNER:
+        return new SpinnerHandler();
+      case TABLE_CONSTRAINT_LAYOUT:
+        return new ConstraintLayoutHandler();
+      case TABLE_LAYOUT:
+        return new TableLayoutHandler();
+      case TABLE_ROW:
+        return new TableRowHandler();
+      case TAB_HOST:
+        return new TabHostHandler();
+      case TEXT_INPUT_LAYOUT:
+        return new TextInputLayoutHandler();
+      case TOOLBAR_V7:
+        return new ToolbarHandler();
+      case VIEW_FRAGMENT:
+        return new FragmentHandler();
+      case VIEW_INCLUDE:
+        return new IncludeHandler();
+      case VIEW_STUB:
+        return new ViewStubHandler();
+      case VIEW_TAG:
+        return new ViewTagHandler();
+      case ZOOM_BUTTON:
+        return new ZoomButtonHandler();
     }
 
     // Look for other handlers via reflection; first built into the IDE:
