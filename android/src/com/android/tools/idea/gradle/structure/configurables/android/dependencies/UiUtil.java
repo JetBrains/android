@@ -20,13 +20,10 @@ import com.intellij.ui.JBSplitter;
 import com.intellij.ui.OnePixelSplitter;
 import com.intellij.ui.TreeUIHelper;
 import com.intellij.ui.treeStructure.Tree;
-import com.intellij.util.containers.Convertor;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
-
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 
@@ -55,12 +52,9 @@ public final class UiUtil {
     TreeSelectionModel selectionModel = tree.getSelectionModel();
     selectionModel.setSelectionMode(DISCONTIGUOUS_TREE_SELECTION);
 
-    TreeUIHelper.getInstance().installTreeSpeedSearch(tree, new Convertor<TreePath, String>() {
-      @Override
-      public String convert(TreePath path) {
-        Object last = path.getLastPathComponent();
-        return last != null ? last.toString() : "";
-      }
+    TreeUIHelper.getInstance().installTreeSpeedSearch(tree, path -> {
+      Object last = path.getLastPathComponent();
+      return last != null ? last.toString() : "";
     }, true);
 
     JScrollPane scrollPane = createScrollPane(tree);
