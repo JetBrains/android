@@ -229,9 +229,11 @@ public class AddGradleDependencyTest {
 
   private static void addImport(@NotNull EditorFixture editor, @NotNull String classFqn) {
     String importStatement = createImportStatement(classFqn);
-    // Move caret to second line (first line has 'package' declaration).
-    editor.moveToLine(1);
-    editor.enterText("\n" + importStatement);
+    // Move caret to third line (first line has 'package' declaration, second is empty).
+    editor.moveToLine(2);
+    // Having the new line at the end, will trigger a code completion if the import line is later selected,
+    // otherwise we would need a delay of 300ish ms to be safe.
+    editor.enterText(importStatement + "\n");
   }
 
   private static void moveCaretToClassName(@NotNull EditorFixture editor, @NotNull String classFqn) {
