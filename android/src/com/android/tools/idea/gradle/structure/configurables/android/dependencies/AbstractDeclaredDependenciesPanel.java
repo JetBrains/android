@@ -20,6 +20,8 @@ import com.android.tools.idea.gradle.structure.configurables.android.dependencie
 import com.android.tools.idea.gradle.structure.configurables.issues.IssuesViewer;
 import com.android.tools.idea.gradle.structure.configurables.ui.EmptyPanel;
 import com.android.tools.idea.gradle.structure.dependencies.AddLibraryDependencyDialog;
+import com.android.tools.idea.gradle.structure.configurables.ui.ChooseModuleDialog;
+import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.android.tools.idea.structure.dialog.Header;
@@ -50,6 +52,7 @@ import java.awt.event.ActionListener;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import static com.intellij.ui.IdeBorderFactory.createEmptyBorder;
 import static com.intellij.ui.ScrollPaneFactory.createScrollPane;
@@ -225,9 +228,16 @@ public abstract class AbstractDeclaredDependenciesPanel extends JPanel implement
     @Override
     void execute() {
       if (myModule == null) {
+        Consumer<PsModule> onOkTask = this::showAddLibraryDependencyDialog;
+        ChooseModuleDialog dialog = new ChooseModuleDialog(myContext.getProject(), onOkTask, "Add Library Dependency");
+        dialog.showAndGet();
         return;
       }
-      AddLibraryDependencyDialog dialog = new AddLibraryDependencyDialog(myModule);
+      showAddLibraryDependencyDialog(myModule);
+    }
+
+    private void showAddLibraryDependencyDialog(@NotNull PsModule module) {
+      AddLibraryDependencyDialog dialog = new AddLibraryDependencyDialog(module);
       dialog.showAndGet();
     }
   }
