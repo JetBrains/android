@@ -20,7 +20,6 @@ import com.android.tools.sherpa.drawing.SceneDraw;
 import com.android.tools.sherpa.drawing.ViewTransform;
 import com.google.tnt.solver.widgets.ConstraintWidget;
 
-import java.awt.Canvas;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.FontMetrics;
@@ -157,6 +156,9 @@ public class ImageViewWidget extends WidgetDecorator {
     }
 
     public void onPaintBackground(ViewTransform transform, Graphics2D g) {
+        if (mColorSet == null) {
+            return;
+        }
         super.onPaintBackground(transform, g);
         int l = transform.getSwingX(mWidget.getDrawX());
         int t = transform.getSwingY(mWidget.getDrawY());
@@ -195,13 +197,13 @@ public class ImageViewWidget extends WidgetDecorator {
 
         Graphics2D clipGraphics = ((Graphics2D) g.create(tx, ty, w, h));
 
-        clipGraphics.setColor(ColorTheme.updateBrightness(SceneDraw.BlueprintBackground,0.8f));
+        clipGraphics.setColor(ColorTheme.updateBrightness(mColorSet.getBlueprintBackground(), 0.8f));
 
         shape = sClosedPath2D.createTransformedShape(mTransform);
         clipGraphics.fill(shape);
 
         shape = sPath2D.createTransformedShape(mTransform);
-        clipGraphics.setColor(SceneDraw.BlueprintText);
+        clipGraphics.setColor(mColorSet.getBlueprintText());
         clipGraphics.draw(shape);
 
         String text = "ImageView";
