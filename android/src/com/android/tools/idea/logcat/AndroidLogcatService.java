@@ -17,18 +17,21 @@ package com.android.tools.idea.logcat;
 
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.ddmlib.*;
+import com.android.ddmlib.logcat.LogCatHeader;
+import com.android.ddmlib.logcat.LogCatMessage;
+import com.android.ddmlib.logcat.LogCatTimestamp;
 import com.intellij.execution.impl.ConsoleBuffer;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.util.ArrayUtil;
 import com.intellij.util.containers.hash.HashMap;
 import net.jcip.annotations.ThreadSafe;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -43,12 +46,32 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
     return Logger.getInstance(AndroidLogcatService.class);
   }
 
+  private static class LogcatBuffer {
+    private int myBufferSize;
+    private LinkedList<LogCatMessage> myMessages = new LinkedList<LogCatMessage>();
+
+    public void addMessage(@NotNull LogCatMessage message) {
+      myMessages.add(message);
+      myBufferSize += message.getMessage().length();
+      if (ConsoleBuffer.useCycleBuffer()) {
+        while (myBufferSize > ConsoleBuffer.getCycleBufferSize()) {
+          myBufferSize -= myMessages.removeFirst().getMessage().length();
+        }
+      }
+    }
+
+    @NotNull
+    public List<LogCatMessage> getMessages() {
+      return myMessages;
+    }
+  }
+
   public interface LogLineListener {
-    void receiveLogLine(@NotNull String line);
+    void receiveLogLine(@NotNull LogCatMessage line);
   }
 
   @GuardedBy("myLock")
-  private final Map<IDevice, StringBuffer> myLogBuffers = new HashMap<IDevice, StringBuffer>();
+  private final Map<IDevice, LogcatBuffer> myLogBuffers = new HashMap<IDevice, LogcatBuffer>();
   private final Map<IDevice, AndroidLogcatReceiver> myLogReceivers = new HashMap<IDevice, AndroidLogcatReceiver>();
   private final Map<IDevice, List<LogLineListener>> myListeners = new HashMap<IDevice, List<LogLineListener>>();
   private final Object myLock = new Object();
@@ -65,28 +88,21 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
   private void startReceiving(@NotNull final IDevice device) {
     final LogLineListener logLineListener = new LogLineListener() {
       @Override
-      public void receiveLogLine(@NotNull final String line) {
+      public void receiveLogLine(@NotNull LogCatMessage line) {
         synchronized (myLock) {
           if (myListeners.containsKey(device)) {
             for (LogLineListener listener : myListeners.get(device)) {
               listener.receiveLogLine(line);
             }
           }
-          StringBuffer logBuffer = myLogBuffers.get(device).append(line).append("\n");
-          if (ConsoleBuffer.useCycleBuffer()) {
-            final int toRemove = logBuffer.length() - ConsoleBuffer.getCycleBufferSize();
-            if (toRemove > 0) {
-              logBuffer.delete(0, toRemove);
-            }
-          }
-          myLogBuffers.put(device, logBuffer);
+          myLogBuffers.get(device).addMessage(line);
         }
       }
     };
 
     final AndroidLogcatReceiver receiver = new AndroidLogcatReceiver(device, logLineListener);
 
-    myLogBuffers.put(device, new StringBuffer());
+    myLogBuffers.put(device, new LogcatBuffer());
     myLogReceivers.put(device, receiver);
 
     ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
@@ -97,7 +113,8 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
         }
         catch (Exception e) {
           getLog().info(e);
-          logLineListener.receiveLogLine(AndroidLogcatFormatter.formatMessage(Log.LogLevel.ERROR, e.getMessage()));
+          LogCatHeader dummyHeader = new LogCatHeader(Log.LogLevel.ERROR, 0, 0, "?", "Internal", LogCatTimestamp.ZERO);
+          logLineListener.receiveLogLine(new LogCatMessage(dummyHeader, e.getMessage()));
         }
       }
     });
@@ -120,16 +137,19 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
   /**
    * Add a listener which receives each line, unfiltered, that comes from the specified device. If {@code addOldLogs} is true,
    * this will also notify the listener of every log message received so far.
+   * Multi-line messages will be parsed into single lines and sent with the same header.
+   * For example, Log.d(tag, "Line1\nLine2") will be sent to listeners in two iterations,
+   * first: "Line1" with a header, second: "Line2" with the same header.
    * Listeners are invoked in a pooled thread, and they are triggered A LOT. You should be very careful if delegating this text
    * to a UI thread. For example, don't directly invoke a runnable on the UI thread per line, but consider batching many log lines first.
    */
   public void addListener(@NotNull IDevice device, @NotNull LogLineListener listener, boolean addOldLogs) {
     synchronized (myLock) {
       if (addOldLogs) {
-        StringBuffer logBuffer = myLogBuffers.get(device);
-        String[] lines = logBuffer != null ? logBuffer.toString().split("\n") : ArrayUtil.EMPTY_STRING_ARRAY;
-        for (String line : lines) {
-          listener.receiveLogLine(line);
+        if (myLogBuffers.containsKey(device)) {
+          for (LogCatMessage line : myLogBuffers.get(device).getMessages()) {
+            listener.receiveLogLine(line);
+          }
         }
       }
       if (!myListeners.containsKey(device)) {
