@@ -38,8 +38,10 @@ import java.util.Set;
  * potentially running on multiple connected devices after a launch of the app from Studio.
  *
  * It encodes the following behavior:
- *  - A stop action kills the processes
- *  - The process is assumed to have terminated if it has died in all the connected devices
+ *  - Provides an option to connect and monitor the processes running on the device(s).
+ *  - If the processes are being monitored, then:
+ *     - destroyProcess provides a way to kill the processes (typically, this is connected to the stop button in the UI).
+ *     - if all the process dies, then the handler terminates as well
  */
 public class AndroidProcessHandler extends DefaultDebugProcessHandler implements AndroidDebugBridge.IDeviceChangeListener,
                                                                                  AndroidDebugBridge.IClientChangeListener {
@@ -50,6 +52,8 @@ public class AndroidProcessHandler extends DefaultDebugProcessHandler implements
   private static final long TIMEOUT_MS = 10000;
 
   @NotNull private final String myApplicationId;
+  private final boolean myMonitoringRemoteProcess;
+
   @NotNull private final List<String> myDevices;
   @NotNull private final Set<Client> myClients;
 
@@ -57,12 +61,19 @@ public class AndroidProcessHandler extends DefaultDebugProcessHandler implements
   private boolean myNoKill;
 
   public AndroidProcessHandler(@NotNull String applicationId) {
+    this(applicationId, true);
+  }
+
+  public AndroidProcessHandler(@NotNull String applicationId, boolean monitorRemoteProcess) {
     myApplicationId = applicationId;
-    myDevices = new SmartList<String>();
+    myDevices = new SmartList<>();
     myClients = Sets.newHashSet();
 
-    AndroidDebugBridge.addClientChangeListener(this);
-    AndroidDebugBridge.addDeviceChangeListener(this);
+    myMonitoringRemoteProcess = monitorRemoteProcess;
+    if (myMonitoringRemoteProcess) {
+      AndroidDebugBridge.addClientChangeListener(this);
+      AndroidDebugBridge.addDeviceChangeListener(this);
+    }
   }
 
   public void addTargetDevice(@NotNull IDevice device) {
@@ -152,8 +163,10 @@ public class AndroidProcessHandler extends DefaultDebugProcessHandler implements
     myDevices.clear();
     myClients.clear();
 
-    AndroidDebugBridge.removeClientChangeListener(this);
-    AndroidDebugBridge.removeDeviceChangeListener(this);
+    if (myMonitoringRemoteProcess) {
+      AndroidDebugBridge.removeClientChangeListener(this);
+      AndroidDebugBridge.removeDeviceChangeListener(this);
+    }
   }
 
   @Override
