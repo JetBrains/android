@@ -49,18 +49,7 @@ public class SceneDraw {
 
     public static final int GRID_SPACING = 8; // Material Design 8dp grid
 
-    public static Color DarkBlueprintBackground = new Color(14, 45, 102);
-    public static Color DarkBlueprintBackgroundLines = new Color(26, 60, 122);
-    public static Color BlueprintBackground = new Color(24, 55, 112);
-    public static Color BlueprintBackgroundLines = new Color(26, 60, 122);
-    public static Color BlueprintConstraints = new Color(102, 129, 204);
-    public static Color BlueprintFrames = new Color(100, 152, 199);
-    public static Color BlueprintText = new Color(220, 220, 220);
-    public static Color BlueprintHighlightFrames = new Color(160, 216, 237);
-    public static Color BlueprintHighlightConstraints = new Color(165, 200, 221, 255);
-    public static Color BlueprintSnapGuides = new Color(220, 220, 220);
-    public static Color BlueprintSnapLightGuides = new Color(220, 220, 220, 128);
-    public static Color DarkBlueprintFrames = ColorTheme.updateBrightness(BlueprintFrames, 0.4f);
+    private ColorSet mColorSet;
 
     private boolean mDrawOutsideShade = false;
     private boolean mDrawResizeHandle = false;
@@ -82,23 +71,12 @@ public class SceneDraw {
 
     private AnimatedColor mCurrentAnimation = null;
 
-    private AnimatedColor mNormalToDark = new AnimatedColor(
-            SceneDraw.BlueprintBackground,
-            SceneDraw.DarkBlueprintBackground);
+    private AnimatedColor mNormalToDark;
 
-    private AnimatedColor mDarkToNormal = new AnimatedColor(
-            SceneDraw.DarkBlueprintBackground,
-            SceneDraw.BlueprintBackground);
+    private AnimatedColor mDarkToNormal;
 
     private ConstraintAnchor mCurrentUnderneathAnchor;
     private boolean mMoveOnlyMode = false;
-
-    public static void generateColors() {
-        BlueprintBackgroundLines = ColorTheme.updateBrightness(BlueprintBackground, 1.06f);
-        DarkBlueprintBackground = ColorTheme.updateBrightness(BlueprintBackground, 0.8f);
-        DarkBlueprintBackgroundLines = ColorTheme.updateBrightness(DarkBlueprintBackground, 1.06f);
-        DarkBlueprintFrames = ColorTheme.updateBrightness(BlueprintFrames, 0.8f);
-    }
 
     /**
      * Base constructor
@@ -108,8 +86,9 @@ public class SceneDraw {
      * @param motion    implement motion-related behaviours for the widgets
      *                  -- we use it simply to get the list of similar margins, etc.
      */
-    public SceneDraw(WidgetsScene list, Selection selection,
+    public SceneDraw(ColorSet colorSet, WidgetsScene list, Selection selection,
             WidgetMotion motion, WidgetResize resize) {
+        mColorSet = colorSet;
         mWidgetsScene = list;
         mSelection = selection;
         mWidgetMotion = motion;
@@ -117,7 +96,12 @@ public class SceneDraw {
         mAnimationCandidateAnchors.setLoop(true);
         mAnimationCandidateAnchors.setDuration(1000);
         mAnimationCreatedConstraints.setDuration(600);
-        generateColors();
+        mNormalToDark = new AnimatedColor(
+                mColorSet.getBlueprintBackground(),
+                mColorSet.getDarkBlueprintBackground());
+        mDarkToNormal = new AnimatedColor(
+                mColorSet.getDarkBlueprintBackground(),
+                mColorSet.getBlueprintBackground());
     }
 
     /**
@@ -249,7 +233,7 @@ public class SceneDraw {
             ConstraintAnchor selectedAnchor) {
         // We want to draw a grid (on GRID_SPACING) in blueprint mode.
         // TODO: use a tile bitmap instead
-        Color backgroundColor = SceneDraw.BlueprintBackground;
+        Color backgroundColor = mColorSet.getBlueprintBackground();
         boolean needsRepaint = false;
         if (mCurrentAnimation != null) {
             if (mCurrentAnimation.step()) {
@@ -344,17 +328,17 @@ public class SceneDraw {
             int wr = transform.getSwingDimension(container.getDrawWidth());
             int hr = transform.getSwingDimension(container.getDrawHeight());
             if (mDrawOutsideShade && !transparent) {
-                g.setColor(DarkBlueprintBackground);
+                g.setColor(mColorSet.getDarkBlueprintBackground());
                 g.fillRect((int) transform.getTranslateX(), (int) transform.getTranslateY(), mViewWidth, yr);
                 g.fillRect((int) transform.getTranslateX(), yr + hr, mViewWidth, mViewHeight - yr - hr);
                 g.fillRect((int) transform.getTranslateX(), yr, xr, hr);
                 g.fillRect(wr + xr, yr, mViewWidth - xr - wr, hr);
                 g.setStroke(SnapDraw.sLongDashedStroke);
-                g.setColor(BlueprintHighlightFrames);
+                g.setColor(mColorSet.getBlueprintHighlightFrames());
                 g.drawRect(xr, yr, wr, hr);
             }
             if (mDrawResizeHandle) {
-                g.setColor(BlueprintHighlightFrames);
+                g.setColor(mColorSet.getBlueprintHighlightFrames());
                 int resizeHandleSize = 10;
                 int gap = 8;
                 g.setStroke(new BasicStroke(3));
@@ -450,6 +434,7 @@ public class SceneDraw {
         // First, mark which widgets is selected.
         for (ConstraintWidget widget : mWidgetsScene.getWidgets()) {
             WidgetDecorator decorator = (WidgetDecorator) widget.getCompanionWidget();
+            decorator.setColorSet(mColorSet);
             if (mSelection.contains(widget)) {
                 decorator.setIsSelected(true);
             } else {
@@ -482,11 +467,11 @@ public class SceneDraw {
         }
 
         // Draw snap candidates
-        g.setColor(BlueprintSnapLightGuides);
+        g.setColor(mColorSet.getBlueprintSnapLightGuides());
         for (SnapCandidate candidate : mWidgetMotion.getSimilarMargins()) {
             SnapDraw.drawSnapIndicator(transform, g, candidate);
         }
-        g.setColor(BlueprintSnapGuides);
+        g.setColor(mColorSet.getBlueprintSnapGuides());
         for (SnapCandidate candidate : mWidgetMotion.getSnapCandidates()) {
             SnapDraw.drawSnapIndicator(transform, g, candidate);
         }
@@ -502,12 +487,12 @@ public class SceneDraw {
                     && anchor != selectedAnchor
                     && selectedAnchor.isValidConnection(anchor)
                     && selectedAnchor.isConnectionAllowed(anchor.getOwner())) {
-                g.setColor(BlueprintSnapGuides);
+                g.setColor(mColorSet.getBlueprintSnapGuides());
                 ConstraintHandle targetHandle = WidgetInteractionTargets.constraintHandle(anchor);
                 ConnectionDraw
                         .drawConnection(transform, g, selectedHandle, targetHandle, true, false);
             } else {
-                g.setColor(BlueprintSnapLightGuides);
+                g.setColor(mColorSet.getBlueprintSnapLightGuides());
                 ConnectionDraw
                         .drawConnection(transform, g, selectedHandle,
                                 mouseInteraction.getLastPoint());

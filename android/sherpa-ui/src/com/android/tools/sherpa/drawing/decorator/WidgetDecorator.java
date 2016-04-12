@@ -16,6 +16,7 @@
 
 package com.android.tools.sherpa.drawing.decorator;
 
+import com.android.tools.sherpa.drawing.ColorSet;
 import com.android.tools.sherpa.drawing.SceneDraw;
 import com.android.tools.sherpa.drawing.ViewTransform;
 import com.android.tools.sherpa.interaction.WidgetInteractionTargets;
@@ -47,14 +48,15 @@ public class WidgetDecorator extends WidgetInteractionTargets {
     private boolean mShowResizeHandles = false;
     private boolean mShowSizeIndicator = false;
     private boolean mShowPercentIndicator = false;
+    protected ColorSet mColorSet;
 
     private EnumSet<WidgetDraw.ANCHORS_DISPLAY> mDisplayAnchorsPolicy =
             EnumSet.of(WidgetDraw.ANCHORS_DISPLAY.NONE);
 
-    private final ColorTheme mBackgroundColor;
-    private final ColorTheme mFrameColor;
-    private final ColorTheme mTextColor;
-    private final ColorTheme mConstraintsColor;
+    private ColorTheme mBackgroundColor;
+    private ColorTheme mFrameColor;
+    private ColorTheme mTextColor;
+    private ColorTheme mConstraintsColor;
 
     private ColorTheme.Look mLook;
 
@@ -89,14 +91,23 @@ public class WidgetDecorator extends WidgetInteractionTargets {
      */
     public WidgetDecorator(ConstraintWidget widget) {
         super(widget);
+    }
 
+    public void setColorSet(ColorSet colorSet) {
+        if (mColorSet == colorSet) {
+            return;
+        }
+        mColorSet = colorSet;
+        if (mColorSet == null) {
+            return;
+        }
         // Setup the colors we use
 
-        Color background = SceneDraw.BlueprintBackground;
+        Color background = mColorSet.getBlueprintBackground();
         Color darkBackground = ColorTheme.updateBrightness(background, 0.8f);
-        Color frames = SceneDraw.BlueprintFrames;
-        Color text = SceneDraw.BlueprintText;
-        Color constraints = SceneDraw.BlueprintConstraints;
+        Color frames = mColorSet.getBlueprintFrames();
+        Color text = mColorSet.getBlueprintText();
+        Color constraints = mColorSet.getBlueprintConstraints();
         Color highlightedFrame = ColorTheme.updateBrightness(frames, 2f);
         Color highlighted = ColorTheme.fadeToColor(
                 ColorTheme.updateBrightness(constraints, 2f),
@@ -163,6 +174,9 @@ public class WidgetDecorator extends WidgetInteractionTargets {
      * @return true if animating
      */
     public boolean isAnimating() {
+        if (mColorSet == null) {
+            return false;
+        }
         if (mBackgroundColor.isAnimating()) {
             return true;
         }
@@ -291,6 +305,9 @@ public class WidgetDecorator extends WidgetInteractionTargets {
      * Apply the current look if needed
      */
     public void applyLook() {
+        if (mColorSet == null) {
+            return;
+        }
         if (mBackgroundColor.getLook() != mLook) {
             mBackgroundColor.setLook(mLook);
             mFrameColor.setLook(mLook);
@@ -316,6 +333,9 @@ public class WidgetDecorator extends WidgetInteractionTargets {
      * @return true if we need to be called again (i.e. if we are animating)
      */
     public boolean onPaint(ViewTransform transform, Graphics2D g) {
+        if (mColorSet == null) {
+            return false;
+        }
         g.setColor(mFrameColor.getColor());
         if (mIsSelected) {
             updateShowAnchorsPolicy();
@@ -350,6 +370,9 @@ public class WidgetDecorator extends WidgetInteractionTargets {
      * @param g         the graphics context
      */
     public void onPaintBackground(ViewTransform transform, Graphics2D g) {
+        if (mColorSet == null) {
+            return;
+        }
         if (!(mWidget instanceof ConstraintWidgetContainer)
                 && mWidget.getVisibility() == ConstraintWidget.VISIBLE) {
             int l = transform.getSwingX(mWidget.getDrawX());
@@ -380,6 +403,9 @@ public class WidgetDecorator extends WidgetInteractionTargets {
      * @param g         the graphics context
      */
     public void onPaintConstraints(ViewTransform transform, Graphics2D g) {
+        if (mColorSet == null) {
+            return;
+        }
         if (mWidget.getVisibility() == ConstraintWidget.GONE) {
             return;
         }
