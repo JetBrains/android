@@ -492,7 +492,8 @@ public class WidgetsScene {
         for (ConstraintAnchor anchor : oldContainer.getAnchors()) {
             if (anchor.isConnected()) {
                 newContainer.getAnchor(anchor.getType())
-                        .connect(anchor.getTarget(), anchor.getMargin(), anchor.getStrength());
+                        .connect(anchor.getTarget(), anchor.getMargin(),
+                                anchor.getStrength(), anchor.getConnectionCreator());
             }
         }
         for (ConstraintWidget child : newContainer.getChildren()) {
