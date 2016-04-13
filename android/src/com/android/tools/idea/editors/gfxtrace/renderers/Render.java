@@ -155,6 +155,8 @@ public final class Render {
                             @NotNull final SimpleColoredComponent component,
                             @NotNull SimpleTextAttributes attributes) {
     component.append(group.group.getName(), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
+    String range = "  (" + group.group.getRange().getStart() + " - " + group.group.getRange().getLast() + ")";
+    component.append(range, SimpleTextAttributes.GRAYED_ATTRIBUTES);
   }
 
   public static void render(@NotNull DynamicAtom atom,
