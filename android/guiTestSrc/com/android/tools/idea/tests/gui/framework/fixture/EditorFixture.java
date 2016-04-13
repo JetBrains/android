@@ -475,7 +475,6 @@ public class EditorFixture {
 
     JComponent focusedEditor = getFocusedEditor();
     if (focusedEditor != null && lineStartPoint != null) {
-      waitUntilShowing(robot, matcherForType(BreadcrumbsComponent.class));
       robot.click(focusedEditor, lineStartPoint);
     }
     else {
@@ -507,7 +506,6 @@ public class EditorFixture {
 
     JComponent focusedEditor = getFocusedEditor();
     if (focusedEditor != null && offsetPoint != null) {
-      waitUntilShowing(robot, matcherForType(BreadcrumbsComponent.class));
       robot.click(focusedEditor, offsetPoint);
     }
     else {
@@ -722,6 +720,7 @@ public class EditorFixture {
         }));
 
     myFrame.requestFocusIfLost();
+    robot.waitForIdle();
 
     return this;
   }
