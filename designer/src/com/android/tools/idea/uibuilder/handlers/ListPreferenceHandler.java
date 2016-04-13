@@ -15,22 +15,28 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import com.android.tools.idea.uibuilder.api.ElementBuilder;
+import com.android.tools.idea.uibuilder.api.XmlBuilder;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
+
+import static com.android.SdkConstants.ATTR_TITLE;
+import static com.android.SdkConstants.PreferenceAttributes.DEFAULT_VALUE;
+import static com.android.SdkConstants.PreferenceAttributes.KEY;
 
 final class ListPreferenceHandler extends PreferenceHandler {
   @Language("XML")
   @NotNull
   @Override
-  public String getXml(@NotNull String tag, @NotNull XmlType type) {
-    return new ElementBuilder(tag)
-      .addAndroidAttribute("defaultValue", 1)
-      .addAndroidAttribute("entries", "@array/list_preference_entries")
-      .addAndroidAttribute("entryValues", "@array/list_preference_entry_values")
-      .addAndroidAttribute("key", "")
-      .addAndroidAttribute("title", "List preference")
-      .build();
+  public String getXml(@NotNull String tagName, @NotNull XmlType xmlType) {
+    return new XmlBuilder()
+      .startTag(tagName)
+      .androidAttribute(DEFAULT_VALUE, 1)
+      .androidAttribute("entries", "@array/list_preference_entries")
+      .androidAttribute("entryValues", "@array/list_preference_entry_values")
+      .androidAttribute(KEY, "")
+      .androidAttribute(ATTR_TITLE, "List preference")
+      .endTag(tagName)
+      .toString();
   }
 }

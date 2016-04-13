@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import org.jetbrains.annotations.NotNull;
+import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
+import com.android.tools.idea.uibuilder.api.XmlBuilder;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import org.intellij.lang.annotations.Language;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Handler for the {@code <Spinner>} widget.
@@ -33,16 +35,20 @@ public final class SpinnerHandler extends ViewHandler {
     switch (xmlType) {
       case COMPONENT_CREATION:
       case DRAG_PREVIEW:
-        return "<Spinner\n" +
-               "  android:layout_width=\"match_parent\"\n" +
-               "  android:layout_height=\"wrap_content\">\n" +
-               "</Spinner>\n";
+        return new XmlBuilder()
+          .startTag(tagName)
+          .androidAttribute(SdkConstants.ATTR_LAYOUT_WIDTH, SdkConstants.VALUE_MATCH_PARENT)
+          .androidAttribute(SdkConstants.ATTR_LAYOUT_HEIGHT, SdkConstants.VALUE_WRAP_CONTENT)
+          .endTag(tagName)
+          .toString();
       case PREVIEW_ON_PALETTE:
-        return "<Spinner\n" +
-               "  android:layout_width=\"wrap_content\"\n" +
-               "  android:layout_height=\"wrap_content\"\n" +
-               "  android:entries=\"@android:array/postalAddressTypes\">\n" +
-               "</Spinner>\n";
+        return new XmlBuilder()
+          .startTag(tagName)
+          .androidAttribute(SdkConstants.ATTR_LAYOUT_WIDTH, SdkConstants.VALUE_WRAP_CONTENT)
+          .androidAttribute(SdkConstants.ATTR_LAYOUT_HEIGHT, SdkConstants.VALUE_WRAP_CONTENT)
+          .androidAttribute("entries", "@android:array/postalAddressTypes")
+          .endTag(tagName)
+          .toString();
       default:
         return super.getXml(tagName, xmlType);
     }

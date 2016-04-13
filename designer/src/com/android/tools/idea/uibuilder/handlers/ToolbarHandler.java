@@ -15,10 +15,15 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import org.jetbrains.annotations.NotNull;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
+import com.android.tools.idea.uibuilder.api.XmlBuilder;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import org.intellij.lang.annotations.Language;
+import org.jetbrains.annotations.NotNull;
+
+import static com.android.SdkConstants.*;
+import static com.android.SdkConstants.ImageViewAttributes.TINT;
+import static com.android.SdkConstants.ViewAttributes.MIN_HEIGHT;
 
 /**
  * Handler for the {@code <Toolbar>} widget from appcompat
@@ -31,50 +36,54 @@ public class ToolbarHandler extends ViewHandler {
   public String getXml(@NotNull String tagName, @NotNull XmlType xmlType) {
     switch (xmlType) {
       case COMPONENT_CREATION:
-        return String.format("<%1$s\n" +
-                             "  android:layout_width=\"match_parent\"\n" +
-                             "  android:layout_height=\"wrap_content\"\n" +
-                             "  android:background=\"?attr/colorPrimary\"\n" +
-                             "  android:theme=\"?attr/actionBarTheme\"\n" +
-                             "  android:minHeight=\"?attr/actionBarSize\">\n" +
-                             "</%1$s>\n", tagName);
+        return new XmlBuilder()
+          .startTag(tagName)
+          .androidAttribute(ATTR_LAYOUT_WIDTH, VALUE_MATCH_PARENT)
+          .androidAttribute(ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT)
+          .androidAttribute(ATTR_BACKGROUND, "?attr/colorPrimary")
+          .androidAttribute(ATTR_THEME, "?attr/actionBarTheme")
+          .androidAttribute(MIN_HEIGHT, "?attr/actionBarSize")
+          .endTag(tagName)
+          .toString();
       case PREVIEW_ON_PALETTE:
       case DRAG_PREVIEW:
-        return String.format("<%1$s\n" +
-                             "  android:layout_width=\"match_parent\"\n" +
-                             "  android:layout_height=\"wrap_content\"\n" +
-                             "  android:background=\"?attr/colorPrimary\"\n" +
-                             "  android:theme=\"?attr/actionBarTheme\"\n" +
-                             "  android:minHeight=\"?attr/actionBarSize\"\n" +
-                             "  app:contentInsetStart=\"0dp\"\n" +
-                             "  app:contentInsetLeft=\"0dp\">\n" +
-                             "\n" +
-                             "  <ImageButton\n" +
-                             "    android:src=\"?attr/homeAsUpIndicator\"\n" +
-                             "    android:layout_width=\"wrap_content\"\n" +
-                             "    android:layout_height=\"wrap_content\"\n" +
-                             "    android:tint=\"?attr/actionMenuTextColor\"\n" +
-                             "    android:style=\"?attr/toolbarNavigationButtonStyle\"\n" +
-                             "  />\n" +
-                             "  <TextView\n" +
-                             "    android:text=\"v7 Toolbar\"\n" +
-                             "    android:textAppearance=\"@style/TextAppearance.Widget.AppCompat.Toolbar.Title\"\n" +
-                             "    android:layout_width=\"wrap_content\"\n" +
-                             "    android:layout_height=\"wrap_content\"\n" +
-                             "    android:gravity=\"center_vertical\"\n" +
-                             "    android:ellipsize=\"end\"\n" +
-                             "    android:maxLines=\"1\"\n" +
-                             "  />\n" +
-                             "\n" +
-                             "  <ImageButton\n" +
-                             "    android:src=\"@drawable/abc_ic_menu_moreoverflow_mtrl_alpha\"\n" +
-                             "    android:layout_width=\"40dp\"\n" +
-                             "    android:layout_height=\"wrap_content\"\n" +
-                             "    android:layout_gravity=\"right\"\n" +
-                             "    android:style=\"?attr/toolbarNavigationButtonStyle\"\n" +
-                             "    android:tint=\"?attr/actionMenuTextColor\"\n" +
-                             "  />\n" +
-                             "</%1$s>\n", tagName);
+        // @formatter:off
+        return new XmlBuilder()
+          .startTag(tagName)
+          .androidAttribute(ATTR_LAYOUT_WIDTH, VALUE_MATCH_PARENT)
+          .androidAttribute(ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT)
+          .androidAttribute(ATTR_BACKGROUND, "?attr/colorPrimary")
+          .androidAttribute(ATTR_THEME, "?attr/actionBarTheme")
+          .androidAttribute(MIN_HEIGHT, "?attr/actionBarSize")
+          .attribute(APP_PREFIX, "contentInsetStart", "0dp")
+          .attribute(APP_PREFIX, "contentInsetLeft", "0dp")
+            .startTag(IMAGE_BUTTON)
+            .androidAttribute(ATTR_SRC, "?attr/homeAsUpIndicator")
+            .androidAttribute(ATTR_LAYOUT_WIDTH, VALUE_WRAP_CONTENT)
+            .androidAttribute(ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT)
+            .androidAttribute(TINT, "?attr/actionMenuTextColor")
+            .androidAttribute(ATTR_STYLE, "?attr/toolbarNavigationButtonStyle")
+            .endTag(IMAGE_BUTTON)
+            .startTag(TEXT_VIEW)
+            .androidAttribute(ATTR_TEXT, "v7 Toolbar")
+            .androidAttribute(ATTR_TEXT_APPEARANCE, "@style/TextAppearance.Widget.AppCompat.Toolbar.Title")
+            .androidAttribute(ATTR_LAYOUT_WIDTH, VALUE_WRAP_CONTENT)
+            .androidAttribute(ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT)
+            .androidAttribute(ATTR_GRAVITY, VALUE_CENTER_VERTICAL)
+            .androidAttribute("ellipsize", "end")
+            .androidAttribute("maxLines", 1)
+            .endTag(TEXT_VIEW)
+            .startTag(IMAGE_BUTTON)
+            .androidAttribute(ATTR_SRC, "@drawable/abc_ic_menu_moreoverflow_mtrl_alpha")
+            .androidAttribute(ATTR_LAYOUT_WIDTH, "40dp")
+            .androidAttribute(ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT)
+            .androidAttribute(ATTR_LAYOUT_GRAVITY, GRAVITY_VALUE_RIGHT)
+            .androidAttribute(ATTR_STYLE, "?attr/toolbarNavigationButtonStyle")
+            .androidAttribute(TINT, "?attr/actionMenuTextColor")
+            .endTag(IMAGE_BUTTON)
+          .endTag(tagName)
+          .toString();
+        // @formatter:on
       default:
         return super.getXml(tagName, xmlType);
     }
