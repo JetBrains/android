@@ -52,7 +52,7 @@ public class AvdListDialog extends FrameWrapper implements AvdUiAction.AvdInfoPr
     JPanel root = new JPanel(new BorderLayout());
     setComponent(root);
     JPanel northPanel = WizardStepHeaderPanel
-      .create(WizardConstants.ANDROID_NPW_HEADER_COLOR, AndroidIcons.Wizards.NewProjectMascotGreen, null, "Your Virtual Devices",
+      .create(myProject, WizardConstants.ANDROID_NPW_HEADER_COLOR, AndroidIcons.Wizards.NewProjectMascotGreen, null, "Your Virtual Devices",
               "Android Studio");
     root.add(northPanel, BorderLayout.NORTH);
     root.add(myAvdDisplayList, BorderLayout.CENTER);

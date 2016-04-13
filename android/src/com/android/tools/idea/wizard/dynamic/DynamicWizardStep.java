@@ -18,6 +18,7 @@ package com.android.tools.idea.wizard.dynamic;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.intellij.ide.wizard.CommitStepException;
 import com.intellij.ide.wizard.Step;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -118,6 +119,13 @@ public abstract class DynamicWizardStep extends ScopedDataBinder implements Step
       return myPath.getWizard();
     }
     return null;
+  }
+
+
+  @Nullable
+  private final Disposable getDisposable() {
+    DynamicWizard wizard = getWizard();
+    return (wizard != null ? wizard.getDisposable() : null);
   }
 
   /**
@@ -317,7 +325,7 @@ public abstract class DynamicWizardStep extends ScopedDataBinder implements Step
     ApplicationManager.getApplication().assertIsDispatchThread();
     if (myRootPane == null) {
       myRootPane = new JPanel(new BorderLayout());
-      myHeader = WizardStepHeaderPanel.create(getHeaderColor(), getWizardIcon(), getStepIcon(), getStepTitle(), getStepDescription());
+      myHeader = WizardStepHeaderPanel.create(getDisposable(), getHeaderColor(), getWizardIcon(), getStepIcon(), getStepTitle(), getStepDescription());
       myRootPane.add(myHeader, BorderLayout.NORTH);
       myRootPane.add(createStepBody(), BorderLayout.CENTER);
     }
