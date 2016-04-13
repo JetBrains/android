@@ -195,3 +195,12 @@ to be replayed to the new process handler so that the console still has all the 
  * Examine the build-info.xml file to figure out what actually happened (See `AndroidLaunchTasksProviderFactory`)
  * Determine the appropriate task to use based on the build result.
    * See `AndroidLaunchTasksProvider` and `HotswapTasksProvider`
+
+### Restarting the build
+
+Sometimes, we don't know until after the Gradle incremental build that the current change cannot be hot or cold swapped and needs a
+full build. In such a case, we end up relaunching the entire session, but note that we should make sure to not do a clean build, or prompt
+the user in any way. This is handled by calling `InstantRunUtils.setRestartSession`. Currently, this is invoked when:
+  * We generated hotswap patches, but we couldn't communicate with the app (there was an error while installing the patches).
+  * We generated coldswap patches, but we couldn't install them since run-as isn't working on this device (e.g. Samsung device).
+  * Build Info reports a verifier failure and doesn't generate any artifacts.
