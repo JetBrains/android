@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.structure.dependencies;
 
-import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.ValidationInfo;
@@ -26,18 +25,14 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.*;
 
-import static com.intellij.openapi.util.text.StringUtil.isEmpty;
-
 public class AddLibraryDependencyDialog extends DialogWrapper {
   @NotNull private final PsModule myModule;
-  @NotNull private final PsContext myContext;
 
   private JPanel myPanel;
   private AddLibraryDependencyPanel myAddLibraryDependencyPanel;
 
-  public AddLibraryDependencyDialog(@NotNull PsModule module, @NotNull PsContext context) {
+  public AddLibraryDependencyDialog(@NotNull PsModule module) {
     super(module.getParent().getResolvedModel());
-    myContext = context;
     myModule = module;
     setTitle("Add Library Dependency");
     init();
@@ -48,6 +43,11 @@ public class AddLibraryDependencyDialog extends DialogWrapper {
   @NotNull
   protected String getDimensionServiceKey() {
     return "psd.add.library.dependency.panel.dimension";
+  }
+
+  @Override
+  protected boolean postponeValidation() {
+    return false;
   }
 
   @Override

@@ -38,7 +38,6 @@ import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import java.awt.*;
 import java.awt.event.ActionListener;
-import java.net.UnknownHostException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EventListener;
@@ -48,10 +47,8 @@ import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.ui.ScrollPaneFactory.createScrollPane;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
-import static com.intellij.util.ui.UIUtil.getTreeFont;
 import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
 import static javax.swing.ListSelectionModel.SINGLE_SELECTION;
-import static org.jetbrains.android.util.AndroidUiUtil.setUpAsHtmlLabel;
 
 public class ArtifactRepositorySearchForm {
   private static final String SEARCHING_EMPTY_TEXT = "Searching...";
@@ -71,11 +68,11 @@ public class ArtifactRepositorySearchForm {
   private JPanel myResultsPanel;
   private TableView<FoundArtifact> myResultsTable;
   private AvailableVersionsPanel myVersionsPanel;
-  private JEditorPane myErrorsPane;
 
   private JPanel myPanel;
 
   @NotNull private final EventDispatcher<SelectionListener> myEventDispatcher = EventDispatcher.create(SelectionListener.class);
+  @NotNull private final List<Exception> mySearchErrors = Lists.newArrayList();
 
   public ArtifactRepositorySearchForm(@NotNull List<ArtifactRepository> repositories) {
     mySearch = new ArtifactRepositorySearch(repositories);
@@ -124,9 +121,6 @@ public class ArtifactRepositorySearchForm {
 
       notifySelectionChanged(artifact, version);
     });
-
-    myErrorsPane = new JEditorPane();
-    setUpAsHtmlLabel(myErrorsPane, getTreeFont());
 
     myVersionsPanel = new AvailableVersionsPanel();
 
@@ -184,16 +178,7 @@ public class ArtifactRepositorySearchForm {
       List<Exception> errors = callback.getErrors();
       if (!errors.isEmpty()) {
         showSearchStopped();
-
-        StringBuilder buffer = new StringBuilder();
-        buffer.append("<html><body><h2>Errors:</h2><ol>");
-        errors.forEach(e -> {
-          String message = getErrorMessage(e);
-          buffer.append("<li>").append(message).append("</li>");
-        });
-        buffer.append("</ol></body></html>");
-        myErrorsPane.setText(buffer.toString());
-        myResultsScrollPane.setViewportView(myErrorsPane);
+        mySearchErrors.addAll(errors);
         return;
       }
 
@@ -213,8 +198,8 @@ public class ArtifactRepositorySearchForm {
 
   private void clearResults() {
     myResultsTable.getListTableModel().setItems(Collections.emptyList());
-    myErrorsPane.setText("");
     myResultsScrollPane.setViewportView(myResultsTable);
+    mySearchErrors.clear();
   }
 
   private void showSearchStopped() {
@@ -225,19 +210,6 @@ public class ArtifactRepositorySearchForm {
 
     myVersionsPanel.clear();
     myVersionsPanel.setEmptyText(NOTHING_TO_SHOW_EMPTY_TEXT);
-  }
-
-  @NotNull
-  private static String getErrorMessage(@NotNull Exception error) {
-    if (error instanceof UnknownHostException) {
-      return "Failed to connect to host '" + error.getMessage() + "'. Please check your Internet connection.";
-    }
-
-    String msg = error.getMessage();
-    if (isNotEmpty(msg)) {
-      return msg;
-    }
-    return error.getClass().getName();
   }
 
   @NotNull
@@ -263,6 +235,11 @@ public class ArtifactRepositorySearchForm {
   @NotNull
   public JComponent getPreferredFocusedComponent() {
     return myArtifactNameTextField;
+  }
+
+  @NotNull
+  public List<Exception> getSearchErrors() {
+    return mySearchErrors;
   }
 
   private static class ResultsTableModel extends ListTableModel<FoundArtifact> {

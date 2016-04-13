@@ -101,6 +101,11 @@ class LibraryDependencyForm implements Disposable {
     return emptyToNull(text);
   }
 
+  @NotNull
+  List<Exception> getSearchErrors() {
+    return mySearchForm.getSearchErrors();
+  }
+
   @Override
   public void dispose() {
   }
