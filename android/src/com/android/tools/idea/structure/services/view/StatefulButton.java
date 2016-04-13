@@ -43,10 +43,10 @@ public class StatefulButton extends JPanel {
   private DeveloperService myDeveloperService;
 
   public StatefulButton(@NotNull ActionData action, @NotNull ActionListener listener, @NotNull DeveloperServiceMap serviceMap) {
-    super(new BorderLayout());
+    super(new FlowLayout(FlowLayout.LEADING));
     setBorder(BorderFactory.createEmptyBorder());
     setOpaque(false);
-    BorderLayout layout = (BorderLayout)getLayout();
+    FlowLayout layout = (FlowLayout)getLayout();
     layout.setVgap(0);
     layout.setHgap(0);
 
@@ -54,7 +54,7 @@ public class StatefulButton extends JPanel {
     myDeveloperService = serviceMap.get(actionArgument);
 
     myButton = new ActionButton(action, listener, this);
-    add(myButton, BorderLayout.NORTH);
+    add(myButton);
     // Initialize to hidden until state management is completed.
     myButton.setVisible(false);
 
@@ -67,7 +67,7 @@ public class StatefulButton extends JPanel {
     if (myStateManager != null) {
       myStateManager.init(myDeveloperService);
       myMessage = myStateManager.getStateDisplay(myDeveloperService, action.getSuccessMessage());
-      add(myMessage, BorderLayout.SOUTH);
+      add(myMessage);
       // Initialize to hidden until state management is completed.
       myMessage.setVisible(false);
 
