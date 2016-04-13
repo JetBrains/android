@@ -80,6 +80,10 @@ public class FeatureEntryPoint extends JPanel {
     myArrow.setIcon(AllIcons.Nodes.TreeRightArrow);
     mySummary.add(myArrow, arrowConstraints);
 
+    // Amount to horizontally offset contents to adjust for the presence
+    // of a feature icon.
+    int innerContentsOffset = 0;
+
     GridBagConstraints labelConstraints = new GridBagConstraints();
     labelConstraints.insets = new Insets(10, 0, 5, 10);
     labelConstraints.gridx = 1;
@@ -98,16 +102,12 @@ public class FeatureEntryPoint extends JPanel {
     Icon featureIcon = feature.getIcon();
     if (featureIcon != null) {
       serviceLabel.setIcon(featureIcon);
+      innerContentsOffset +=  featureIcon.getIconWidth() + serviceLabel.getIconTextGap();
     }
     mySummary.add(serviceLabel, labelConstraints);
 
     GridBagConstraints descriptionConstraints = new GridBagConstraints();
-    int descriptionWidthOffset = 0;
-    // If an icon is present, shift the description to align with label text.
-    if (featureIcon != null) {
-      descriptionWidthOffset += featureIcon.getIconWidth();
-    }
-    descriptionConstraints.insets = new Insets(0, descriptionWidthOffset, 0, 10);
+    descriptionConstraints.insets = new Insets(0, innerContentsOffset, 0, 10);
     descriptionConstraints.gridx = 1;
     descriptionConstraints.gridy = 1;
     descriptionConstraints.weightx = 1;
@@ -140,12 +140,7 @@ public class FeatureEntryPoint extends JPanel {
     myTutorialsList = new JPanel();
     myTutorialsList.setOpaque(false);
     myTutorialsList.setLayout(new BoxLayout(myTutorialsList, BoxLayout.Y_AXIS));
-    int tutorialWidthOffset = 50;
-    // If an icon is present, the description is shifted, shift the tutorial list similarly.
-    if (featureIcon != null) {
-      tutorialWidthOffset += featureIcon.getIconWidth();
-    }
-    myTutorialsList.setBorder(BorderFactory.createEmptyBorder(5, tutorialWidthOffset, 5, 5));
+    myTutorialsList.setBorder(BorderFactory.createEmptyBorder(5, 50 + innerContentsOffset, 5, 5));
     myTutorialsList.setVisible(false);
     for (TutorialData tutorial : feature.getTutorials()) {
       addTutorial(tutorial.getLabel(), tutorial.getKey());
