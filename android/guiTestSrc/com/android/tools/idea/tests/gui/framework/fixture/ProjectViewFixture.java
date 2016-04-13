@@ -38,6 +38,7 @@ import com.intellij.openapi.roots.JdkOrderEntry;
 import com.intellij.openapi.roots.LibraryOrSdkOrderEntry;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
+import com.intellij.util.ui.AsyncProcessIcon;
 import com.intellij.util.ui.tree.TreeUtil;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiActionRunner;
@@ -70,7 +71,9 @@ public class ProjectViewFixture extends ToolWindowFixture {
       changePane(projectView, "Project");
     }
 
-    return new PaneFixture(projectView.getCurrentProjectViewPane());
+    AbstractProjectViewPane projectViewPane = projectView.getCurrentProjectViewPane();
+    waitForProjectViewPaneToLoad(projectViewPane);
+    return new PaneFixture(projectViewPane);
   }
 
   @NotNull
@@ -82,7 +85,15 @@ public class ProjectViewFixture extends ToolWindowFixture {
       changePane(projectView, "Android");
     }
 
-    return new PaneFixture(projectView.getCurrentProjectViewPane());
+    AbstractProjectViewPane projectViewPane = projectView.getCurrentProjectViewPane();
+    waitForProjectViewPaneToLoad(projectViewPane);
+    return new PaneFixture(projectViewPane);
+  }
+
+  private void waitForProjectViewPaneToLoad(@NotNull AbstractProjectViewPane projectViewPane) {
+    AsyncProcessIcon asyncProgressIcon =
+      GuiTests.waitUntilFound(myRobot, projectViewPane.getTree(), GuiTests.matcherForType(AsyncProcessIcon.class));
+    Wait.minutes(2).expecting("Project view pane to finish loading").until(() -> !asyncProgressIcon.isRunning());
   }
 
   private void changePane(@NotNull ProjectView projectView, @NotNull String paneName) {
