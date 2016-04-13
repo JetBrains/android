@@ -15,12 +15,15 @@
  */
 package com.android.tools.idea.gradle.structure.dependencies;
 
+import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
+import com.android.tools.idea.gradle.structure.model.android.PsLibraryDependency;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.ui.OnePixelDivider;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.Ref;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.SideBorder;
 import com.intellij.ui.components.JBLabel;
@@ -30,10 +33,12 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import javax.swing.border.Border;
 import java.awt.*;
-import java.util.*;
+import java.net.UnknownHostException;
 import java.util.List;
+import java.util.Objects;
 
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.ui.SideBorder.BOTTOM;
 import static com.intellij.util.ui.UIUtil.getButtonFont;
 import static com.intellij.util.ui.UIUtil.getTreeFont;
@@ -86,15 +91,55 @@ class AddLibraryDependencyPanel extends JPanel implements Disposable {
 
   @Nullable
   ValidationInfo validateInput() {
+    List<Exception> searchErrors = myLibraryDependencyForm.getSearchErrors();
+    if (!searchErrors.isEmpty()) {
+      StringBuilder buffer = new StringBuilder();
+      searchErrors.forEach(e -> buffer.append(getErrorMessage(e)).append("\n"));
+      return new ValidationInfo(buffer.toString(), myLibraryDependencyForm.getPreferredFocusedComponent());
+    }
+
     String selectedLibrary = myLibraryDependencyForm.getSelectedLibrary();
     if (isEmpty(selectedLibrary)) {
       return new ValidationInfo("Please specify the library to add as dependency", myLibraryDependencyForm.getPreferredFocusedComponent());
     }
+    PsArtifactDependencySpec spec = PsArtifactDependencySpec.create(selectedLibrary);
+    if (spec != null && myModule instanceof PsAndroidModule) {
+      PsAndroidModule androidModule = (PsAndroidModule)myModule;
+      Ref<Boolean> found = new Ref<>(false);
+      androidModule.forEachDeclaredDependency(dependency -> {
+        if (dependency instanceof PsLibraryDependency) {
+          PsLibraryDependency libraryDependency = (PsLibraryDependency)dependency;
+          PsArtifactDependencySpec resolvedSpec = libraryDependency.getResolvedSpec();
+          if (Objects.equals(spec.group, resolvedSpec.group) && Objects.equals(spec.name, resolvedSpec.name)) {
+            found.set(true);
+          }
+        }
+      });
+
+      if (found.get()) {
+        String msg = String.format("Library '%1$s' is already a dependency", spec.name);
+        return new ValidationInfo(msg, myLibraryDependencyForm.getPreferredFocusedComponent());
+      }
+    }
+
     List<String> selectedConfigurations = myScopesForm.getSelectedConfigurations();
     if (selectedConfigurations.isEmpty()) {
       return new ValidationInfo("Please specify the configuration(s) for the library dependency");
     }
     return null;
+  }
+
+  @NotNull
+  private static String getErrorMessage(@NotNull Exception error) {
+    if (error instanceof UnknownHostException) {
+      return "Failed to connect to host '" + error.getMessage() + "'. Please check your Internet connection.";
+    }
+
+    String msg = error.getMessage();
+    if (isNotEmpty(msg)) {
+      return msg;
+    }
+    return error.getClass().getName();
   }
 
   @Override
