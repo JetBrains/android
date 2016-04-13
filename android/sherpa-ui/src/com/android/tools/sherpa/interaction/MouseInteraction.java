@@ -19,6 +19,7 @@ package com.android.tools.sherpa.interaction;
 import com.android.tools.sherpa.animation.AnimatedDestroyCircle;
 import com.android.tools.sherpa.animation.AnimatedDestroyLine;
 import com.android.tools.sherpa.drawing.SceneDraw;
+import com.android.tools.sherpa.drawing.SnapDraw;
 import com.android.tools.sherpa.drawing.ViewTransform;
 import com.android.tools.sherpa.drawing.decorator.WidgetDecorator;
 import com.android.tools.sherpa.structure.Selection;
@@ -63,6 +64,7 @@ public class MouseInteraction {
     private Snapshot mSnapshot = null;
 
     private boolean mUseDefinedMargin = true;
+    private boolean mAutoConnect = true;
 
     public static void setMargin(int margin) {
         sMargin = margin;
@@ -226,6 +228,24 @@ public class MouseInteraction {
         mUseDefinedMargin = useDefinedMargin;
     }
 
+    /**
+     * Getter returning true if we are in auto connect mode
+     *
+     * @return true if doing automatic connections
+     */
+    public boolean isAutoConnect() {
+        return mAutoConnect;
+    }
+
+    /**
+     * Setter for deciding to automatically connect elements when dragging them
+     *
+     * @param autoConnect set to true to automatically connect, false otherwise
+     */
+    public void setAutoConnect(boolean autoConnect) {
+        mAutoConnect = autoConnect;
+    }
+
     /*-----------------------------------------------------------------------*/
     // Mouse handling
     /*-----------------------------------------------------------------------*/
@@ -370,6 +390,24 @@ public class MouseInteraction {
      * @param y mouse y coordinate
      */
     public void mouseReleased(int x, int y) {
+
+        if (mAutoConnect) {
+            // Auto-connect to candidates
+            for (SnapCandidate candidate : mWidgetMotion.getSnapCandidates()) {
+                if (!candidate.source.isConnectionAllowed(candidate.target.getOwner())) {
+                    continue;
+                }
+                int margin = candidate.margin;
+                if (candidate.padding != 0) {
+                    margin = candidate.padding;
+                }
+                margin = Math.abs(margin);
+                candidate.source.getOwner().connect(
+                        candidate.source, candidate.target, margin,
+                        ConstraintAnchor.AUTO_CONSTRAINT_CREATOR);
+            }
+        }
+
         mWidgetMotion.mouseReleased();
         mWidgetResize.mouseReleased();
         mSceneDraw.mouseReleased();
@@ -473,6 +511,16 @@ public class MouseInteraction {
         switch (mMouseMode) {
             case MOVE: {
                 if (!mSelection.isEmpty()) {
+                    // Remove any constraints auto-created
+                    for (Selection.Element selection : mSelection.getElements()) {
+                        for (ConstraintAnchor anchor : selection.widget.getAnchors()) {
+                            if (anchor.isConnected()
+                                    && anchor.getConnectionCreator()
+                                    == ConstraintAnchor.AUTO_CONSTRAINT_CREATOR) {
+                                anchor.getOwner().resetAnchor(anchor);
+                            }
+                        }
+                    }
                     // Dragging the widget is no anchors or resize handles are selected
                     boolean snapPosition = mSelection.hasSingleElement();
                     if (!mSelection.hasSingleElement() && mSelection.getSelectionBounds() != null) {
@@ -560,7 +608,8 @@ public class MouseInteraction {
                             ConstraintWidget widget = mSelection.getSelectedAnchor().getOwner();
                             widget.connect(
                                     mSelection.getSelectedAnchor(),
-                                    mSelection.getConnectionCandidateAnchor(), margin, strength);
+                                    mSelection.getConnectionCandidateAnchor(), margin, strength,
+                                    ConstraintAnchor.USER_CREATOR);
                             mSelection.addModifiedWidget(widget);
                             mSelection.setLastConnectedAnchor(mSelection.getSelectedAnchor());
                         }

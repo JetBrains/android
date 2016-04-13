@@ -307,6 +307,7 @@ public class SnapPlacement {
             candidatePoint.x = parentX1;
             SnapCandidate candidate = createSnapCandidate(widget,
                     ConstraintAnchor.Type.LEFT, parentX1, 0);
+            candidate.padding = margin;
             snapCandidates.add(candidate);
             return true;
         }
@@ -314,6 +315,7 @@ public class SnapPlacement {
             candidatePoint.x = parentX2 - widget.getDrawWidth();
             SnapCandidate candidate = createSnapCandidate(widget,
                     ConstraintAnchor.Type.RIGHT, parentX2, 0);
+            candidate.padding = margin;
             snapCandidates.add(candidate);
             return true;
         }
@@ -342,6 +344,7 @@ public class SnapPlacement {
             candidatePoint.y = parentY1;
             SnapCandidate candidate = createSnapCandidate(widget,
                     ConstraintAnchor.Type.TOP, 0, parentY1);
+            candidate.padding = margin;
             snapCandidates.add(candidate);
             return true;
         }
@@ -349,6 +352,7 @@ public class SnapPlacement {
             candidatePoint.y = parentY2 - widget.getHeight();
             SnapCandidate candidate = createSnapCandidate(widget,
                     ConstraintAnchor.Type.BOTTOM, 0, parentY2);
+            candidate.padding = margin;
             snapCandidates.add(candidate);
             return true;
         }

@@ -28,4 +28,5 @@ public class SnapCandidate {
     public int margin;
     public int x;
     public int y;
+    public int padding;
 }
