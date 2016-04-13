@@ -18,6 +18,9 @@ package com.android.tools.idea.wizard.dynamic;
 import com.android.tools.idea.ui.ImageComponent;
 import com.android.tools.idea.ui.wizard.StudioWizardLayout;
 import com.android.tools.idea.wizard.WizardConstants;
+import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.JBColor;
 import com.intellij.uiDesigner.core.GridConstraints;
@@ -30,7 +33,6 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
 /**
@@ -62,26 +64,34 @@ public class WizardStepHeaderPanel extends JPanel {
                                null, null, null);
   }
 
-  public static WizardStepHeaderPanel create(@NotNull final JBColor headerColor, @Nullable Icon wizardIcon, @Nullable Icon stepIcon,
-                              @NotNull String title, @Nullable String description) {
+  public static WizardStepHeaderPanel create(@Nullable Disposable parent, @NotNull final JBColor headerColor, @Nullable Icon wizardIcon, @Nullable Icon stepIcon,
+                                             @NotNull String title, @Nullable String description) {
+    if (parent == null) {
+      // Ideally, the user should never pass in a null disposable, but we prepare a backup plan
+      // just in case. This framework is going away anyway, but if we ever need to port this code
+      // over to a new location, just be sure to require the disposable to be non-null.
+      parent = ApplicationManager.getApplication();
+    }
+
     final WizardStepHeaderPanel panel = new WizardStepHeaderPanel();
     panel.setBackground(headerColor);
     panel.setTitle(title);
     panel.setDescription(description);
     panel.setStepIcon(stepIcon);
     panel.setWizardIcon(wizardIcon);
-    UIManager.addPropertyChangeListener(new PropertyChangeListener() {
-      @Override
-      public void propertyChange(PropertyChangeEvent propertyChangeEvent) {
-        // Force an update of static JBColor.DARK. This is required to show the correct color after a LookAndFeel change.
-        JBColor.setDark(UIUtil.isUnderDarcula());
-        panel.setBackground(headerColor);
 
-        // The font size was not set correctly after a LookAndFeel change from Darcula to Standard.
-        Font font = UIManager.getFont("Label.font");
-        panel.myTitleLabel.setFont(new Font(font.getFontName(), font.getStyle(), 24));
-      }
-    });
+    PropertyChangeListener listener = propertyChangeEvent -> {
+      // Force an update of static JBColor.DARK. This is required to show the correct color after a LookAndFeel change.
+      JBColor.setDark(UIUtil.isUnderDarcula());
+      panel.setBackground(headerColor);
+
+      // The font size was not set correctly after a LookAndFeel change from Darcula to Standard.
+      Font font = UIManager.getFont("Label.font");
+      panel.myTitleLabel.setFont(new Font(font.getFontName(), font.getStyle(), 24));
+    };
+    UIManager.addPropertyChangeListener(listener);
+    Disposer.register(parent, () -> UIManager.removePropertyChangeListener(listener));
+
     return panel;
   }
 
