@@ -77,7 +77,7 @@ public class FeatureEntryPoint extends JPanel {
     arrowConstraints.gridwidth = 1;
     arrowConstraints.fill = GridBagConstraints.VERTICAL;
     myArrow = new JLabel();
-    myArrow.setIcon(AllIcons.Nodes.TreeExpandNode);
+    myArrow.setIcon(AllIcons.Nodes.TreeRightArrow);
     mySummary.add(myArrow, arrowConstraints);
 
     GridBagConstraints labelConstraints = new GridBagConstraints();
@@ -173,7 +173,7 @@ public class FeatureEntryPoint extends JPanel {
     getLog().debug("Toggled service summary view to expand state: " + myExpanded);
     // Update the related icon to show whether the service summary is in an
     // expanded state.
-    myArrow.setIcon(myExpanded ? AllIcons.Nodes.TreeCollapseNode : AllIcons.Nodes.TreeExpandNode);
+    myArrow.setIcon(myExpanded ? AllIcons.Nodes.TreeDownArrow : AllIcons.Nodes.TreeRightArrow);
     myTutorialsList.setVisible(myExpanded);
   }
 
