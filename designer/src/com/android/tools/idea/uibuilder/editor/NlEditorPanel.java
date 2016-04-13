@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.editor;
 
+import com.android.tools.idea.uibuilder.surface.DesignSurfaceListener;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.AndroidPsiUtils;
@@ -103,6 +104,23 @@ public class NlEditorPanel extends JPanel implements DesignerEditorPanelFacade, 
 
     JComponent editorToolbar = actionToolbar.getComponent();
     editorToolbar.setBorder(IdeBorderFactory.createBorder(SideBorder.BOTTOM));
+
+    // The toolbar depends on the current ScreenView for its content,
+    // so reload when the ScreenView changes.
+    surface.addListener(new DesignSurfaceListener() {
+      @Override
+      public void componentSelectionChanged(@NotNull DesignSurface surface, @NotNull List<NlComponent> newSelection) {
+      }
+
+      @Override
+      public void screenChanged(@NotNull DesignSurface surface, @Nullable ScreenView screenView) {
+        actionToolbar.updateActionsImmediately();
+      }
+
+      @Override
+      public void modelChanged(@NotNull DesignSurface surface, @Nullable NlModel model) {
+      }
+    });
 
     return editorToolbar;
   }
