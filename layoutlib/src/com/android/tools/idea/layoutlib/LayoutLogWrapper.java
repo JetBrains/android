@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 
-package com.android.tools.idea.rendering;
+package com.android.tools.idea.layoutlib;
 
+import com.android.annotations.NonNull;
 import com.android.ide.common.rendering.api.LayoutLog;
 import com.intellij.openapi.diagnostic.Logger;
 
 public class LayoutLogWrapper extends LayoutLog {
   private final Logger myLog;
 
-  public LayoutLogWrapper(Logger log) {
+  public LayoutLogWrapper(@NonNull Logger log) {
     myLog = log;
   }
 

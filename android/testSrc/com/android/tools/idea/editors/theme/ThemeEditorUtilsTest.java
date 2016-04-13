@@ -35,7 +35,7 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.PathUtil;
 import org.apache.commons.io.FileUtils;
 import org.jetbrains.android.AndroidTestCase;
-import org.jetbrains.android.uipreview.LayoutLibraryLoader;
+import com.android.tools.idea.layoutlib.LayoutLibraryLoader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
