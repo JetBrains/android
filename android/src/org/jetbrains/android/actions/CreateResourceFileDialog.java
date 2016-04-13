@@ -202,9 +202,8 @@ public class CreateResourceFileDialog extends CreateResourceFileDialogBase {
     }
     myModuleCombo.setSelectedModule(module);
 
-   CreateResourceActionBase.updateSourceSetCombo(mySourceSetLabel, mySourceSetCombo,
-                                                 modulesSet.size() == 1 ? AndroidFacet.getInstance(modulesSet.iterator().next()) : null,
-                                                 myResDirectory);
+    CreateResourceActionBase.updateSourceSetCombo(mySourceSetLabel, mySourceSetCombo,
+                                                  modulesSet.size() == 1 ? AndroidFacet.getInstance(modulesSet.iterator().next()) : null);
 
     myDeviceConfiguratorPanel.updateAll();
     myDeviceConfiguratorWrapper.add(myDeviceConfiguratorPanel, BorderLayout.CENTER);

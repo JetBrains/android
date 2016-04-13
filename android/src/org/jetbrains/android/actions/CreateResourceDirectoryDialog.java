@@ -111,7 +111,7 @@ public class CreateResourceDirectoryDialog extends CreateResourceDirectoryDialog
     }
 
     AndroidFacet facet = module != null ? AndroidFacet.getInstance(module) : null;
-    CreateResourceActionBase.updateSourceSetCombo(mySourceSetLabel, mySourceSetCombo, facet, myResDirectory);
+    CreateResourceActionBase.updateSourceSetCombo(mySourceSetLabel, mySourceSetCombo, facet);
 
     myDeviceConfiguratorPanel.updateAll();
     setOKActionEnabled(myDirectoryNameTextField.getText().length() > 0);

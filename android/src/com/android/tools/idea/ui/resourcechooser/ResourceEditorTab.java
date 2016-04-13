@@ -25,6 +25,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.HideableDecorator;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.actions.CreateXmlResourcePanel;
+import org.jetbrains.android.actions.NewResourceCreationHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -83,16 +84,14 @@ public abstract class ResourceEditorTab {
     myEditorPanel.add(centerPanel);
     myFullPanel.setBorder(new EmptyBorder(UIUtil.PANEL_SMALL_INSETS));
 
+    NewResourceCreationHandler newResourceHandler = NewResourceCreationHandler.getInstance(module.getProject());
     Function<Module, ResourceNameValidator> nameValidatorFactory =
       selectedModule -> ResourceNameValidator
         .create(allowXmlFile, AppResourceRepository.getAppResources(selectedModule, true), resourceType, allowXmlFile);
     // There is no need to choose the resource name or value here (controlled by parent).
-    myLocationSettings = new CreateXmlResourcePanel(module, resourceType, folderType, "", "",
-                                                    false /* chooseName */, false /* chooseValue */,
-                                                    null, null, nameValidatorFactory);
-
-    // if the resource name IS the filename, we don't need to allow changing the filename
-    myLocationSettings.setChangeFileNameVisible(changeFileNameVisible);
+    myLocationSettings = newResourceHandler.createNewResourceValuePanel(module, resourceType, folderType, "", "",
+                                                                        false /* chooseName */, false /* chooseValue */,
+                                                                        changeFileNameVisible, null, null, nameValidatorFactory);
 
     myExpertPanel.add(myLocationSettings.getPanel());
   }

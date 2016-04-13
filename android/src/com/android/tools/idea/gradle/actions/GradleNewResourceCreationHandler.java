@@ -17,10 +17,13 @@ package com.android.tools.idea.gradle.actions;
 
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceFolderType;
+import com.android.resources.ResourceType;
 import com.android.tools.idea.gradle.util.Projects;
+import com.android.tools.idea.res.ResourceNameValidator;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import org.jetbrains.android.actions.*;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -28,6 +31,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
+import java.util.function.Function;
 
 /**
  * Decides which create resource dialogs to use for Gradle projects.
@@ -70,7 +74,19 @@ public class GradleNewResourceCreationHandler implements NewResourceCreationHand
   }
 
   @Override
-  public CreateXmlResourcePanel createNewResourceValuePanel() {
-    return null;
+  public CreateXmlResourcePanel createNewResourceValuePanel(
+    @NotNull Module module,
+    @NotNull ResourceType resourceType,
+    @NotNull ResourceFolderType folderType,
+    @Nullable String resourceName,
+    @Nullable String resourceValue,
+    boolean chooseName,
+    boolean chooseValue,
+    boolean chooseFilename,
+    @Nullable VirtualFile defaultFile,
+    @Nullable VirtualFile contextFile,
+    @NotNull Function<Module, ResourceNameValidator> nameValidatorFactory) {
+    return new CreateXmlResourcePanelImpl(module, resourceType, folderType, resourceName, resourceValue,
+                                          chooseName, chooseValue, chooseFilename, defaultFile, contextFile, nameValidatorFactory);
   }
 }
