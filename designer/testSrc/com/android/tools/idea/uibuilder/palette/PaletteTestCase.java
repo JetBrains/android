@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.palette;
 
-import org.jetbrains.annotations.NotNull;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
+import com.android.tools.idea.uibuilder.api.XmlBuilder;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.tools.idea.uibuilder.handlers.TextViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
@@ -27,6 +27,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import icons.AndroidIcons;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.annotations.NotNull;
 import org.mockito.Mockito;
 
 import javax.swing.*;
@@ -80,16 +81,14 @@ public abstract class PaletteTestCase extends AndroidTestCase {
   private static final String SPINNER_XML =
     "<Spinner\n" +
     "  android:layout_width=\"match_parent\"\n" +
-    "  android:layout_height=\"wrap_content\">\n" +
-    "</Spinner>\n";
+    "  android:layout_height=\"wrap_content\" />\n";
 
   @Language("XML")
   private static final String SPINNER_PREVIEW_XML =
     "<Spinner\n" +
     "  android:layout_width=\"wrap_content\"\n" +
     "  android:layout_height=\"wrap_content\"\n" +
-    "  android:entries=\"@android:array/postalAddressTypes\">\n" +
-    "</Spinner>\n";
+    "  android:entries=\"@android:array/postalAddressTypes\" />\n";
 
   public void assertSpinner(@NotNull Palette.BaseItem item) {
     checkItem(item, SPINNER, "Spinner", AndroidIcons.Views.Spinner, SPINNER_XML, SPINNER_PREVIEW_XML,
@@ -288,8 +287,7 @@ public abstract class PaletteTestCase extends AndroidTestCase {
   private static final String LIST_VIEW_XML =
     "<ListView\n" +
     "  android:layout_width=\"match_parent\"\n" +
-    "  android:layout_height=\"match_parent\">\n" +
-    "</ListView>\n";
+    "  android:layout_height=\"match_parent\" />\n";
 
   @Language("XML")
   private static final String LIST_VIEW_PREVIEW_XML =
@@ -298,8 +296,7 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     "  android:layout_width=\"200dip\"\n" +
     "  android:layout_height=\"60dip\"\n" +
     "  android:divider=\"#333333\"\n" +
-    "  android:dividerHeight=\"1px\">\n" +
-    "</ListView>\n";
+    "  android:dividerHeight=\"1px\" />\n";
 
   public void assertListView(@NotNull Palette.BaseItem item) {
     checkItem(item, LIST_VIEW, "ListView", AndroidIcons.Views.ListView, LIST_VIEW_XML, LIST_VIEW_PREVIEW_XML, LIST_VIEW_PREVIEW_XML,
@@ -315,8 +312,7 @@ public abstract class PaletteTestCase extends AndroidTestCase {
   private static final String EXPANDABLE_LIST_VIEW_XML =
     "<ExpandableListView\n" +
     "  android:layout_width=\"match_parent\"\n" +
-    "  android:layout_height=\"match_parent\">\n" +
-    "</ExpandableListView>\n";
+    "  android:layout_height=\"match_parent\" />\n";
 
   @Language("XML")
   private static final String EXPANDABLE_LIST_VIEW_PREVIEW_XML =
@@ -325,8 +321,7 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     "  android:layout_width=\"200dip\"\n" +
     "  android:layout_height=\"60dip\"\n" +
     "  android:divider=\"#333333\"\n" +
-    "  android:dividerHeight=\"1px\">\n" +
-    "</ExpandableListView>\n";
+    "  android:dividerHeight=\"1px\" />\n";
 
   public void assertExpandableListView(@NotNull Palette.BaseItem item) {
     checkItem(item, EXPANDABLE_LIST_VIEW, "ExpandableListView", AndroidIcons.Views.ExpandableListView, EXPANDABLE_LIST_VIEW_XML,
@@ -354,8 +349,7 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     "    <TabWidget\n" +
     "      android:id=\"@android:id/tabs\"\n" +
     "      android:layout_width=\"match_parent\"\n" +
-    "      android:layout_height=\"wrap_content\">\n" +
-    "    </TabWidget>\n" +
+    "      android:layout_height=\"wrap_content\" />\n" +
     "    <FrameLayout\n" +
     "      android:id=\"@android:id/tabcontent\"\n" +
     "      android:layout_width=\"match_parent\"\n" +
@@ -398,10 +392,9 @@ public abstract class PaletteTestCase extends AndroidTestCase {
   @Language("XML")
   private static final String IMAGE_BUTTON_XML =
     "<ImageButton\n" +
-    "  android:src=\"@android:drawable/btn_star\"\n" +
-    "  android:layout_width=\"wrap_content\"\n" +
-    "  android:layout_height=\"wrap_content\">\n" +
-    "</ImageButton>\n";
+    "    android:src=\"@android:drawable/btn_star\"\n" +
+    "    android:layout_width=\"wrap_content\"\n" +
+    "    android:layout_height=\"wrap_content\" />\n";
 
   public void assertImageButton(@NotNull Palette.BaseItem item) {
     checkItem(item, IMAGE_BUTTON, "ImageButton", AndroidIcons.Views.ImageButton, IMAGE_BUTTON_XML, IMAGE_BUTTON_XML, IMAGE_BUTTON_XML,
@@ -412,10 +405,9 @@ public abstract class PaletteTestCase extends AndroidTestCase {
   @Language("XML")
   private static final String IMAGE_VIEW_XML =
     "<ImageView\n" +
-    "  android:src=\"@android:drawable/btn_star\"\n" +
-    "  android:layout_width=\"wrap_content\"\n" +
-    "  android:layout_height=\"wrap_content\">\n" +
-    "</ImageView>\n";
+    "    android:src=\"@android:drawable/btn_star\"\n" +
+    "    android:layout_width=\"wrap_content\"\n" +
+    "    android:layout_height=\"wrap_content\" />\n";
 
   public void assertImageView(@NotNull Palette.BaseItem item) {
     checkItem(item, IMAGE_VIEW, "ImageView", AndroidIcons.Views.ImageView, IMAGE_VIEW_XML, IMAGE_VIEW_XML, IMAGE_VIEW_XML, IN_PLATFORM,
@@ -519,10 +511,9 @@ public abstract class PaletteTestCase extends AndroidTestCase {
   @Language("XML")
   private static final String ZOOM_BUTTON_XML =
     "<ZoomButton\n" +
-    "  android:src=\"@android:drawable/btn_plus\"\n" +
-    "  android:layout_width=\"wrap_content\"\n" +
-    "  android:layout_height=\"wrap_content\">\n" +
-    "</ZoomButton>\n";
+    "    android:src=\"@android:drawable/btn_plus\"\n" +
+    "    android:layout_width=\"wrap_content\"\n" +
+    "    android:layout_height=\"wrap_content\" />\n";
 
   public void assertZoomButton(@NotNull Palette.BaseItem item) {
     checkItem(item, ZOOM_BUTTON, "ZoomButton", AndroidIcons.Views.ZoomButton, ZOOM_BUTTON_XML, ZOOM_BUTTON_XML, ZOOM_BUTTON_XML,
@@ -569,8 +560,7 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     "  android:layout_width=\"wrap_content\"\n" +
     "  android:layout_height=\"wrap_content\"\n" +
     "  android:clickable=\"true\"\n" +
-    "  app:fabSize=\"mini\">\n" +
-    "</android.support.design.widget.FloatingActionButton>\n";
+    "  app:fabSize=\"mini\" />\n";
 
   @Language("XML")
   private static final String FLOATING_ACTION_BUTTON_PREVIEW_XML =
@@ -579,8 +569,7 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     "  android:layout_width=\"wrap_content\"\n" +
     "  android:layout_height=\"wrap_content\"\n" +
     "  android:clickable=\"true\"\n" +
-    "  app:elevation=\"0dp\">\n" +
-    "</android.support.design.widget.FloatingActionButton>\n";
+    "  app:elevation=\"0dp\" />\n";
 
   public void assertFloatingActionButtonItem(@NotNull Palette.BaseItem item) {
     checkItem(item, FLOATING_ACTION_BUTTON, "FloatingActionButton", AndroidIcons.Views.FloatingActionButton, FLOATING_ACTION_BUTTON_XML,
@@ -611,8 +600,7 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     "  android:layout_height=\"wrap_content\"\n" +
     "  android:background=\"?attr/colorPrimary\"\n" +
     "  android:theme=\"?attr/actionBarTheme\"\n" +
-    "  android:minHeight=\"?attr/actionBarSize\">\n" +
-    "</android.support.v7.widget.Toolbar>\n";
+    "  android:minHeight=\"?attr/actionBarSize\" />\n";
 
   @Language("XML")
   private static final String TOOLBAR_PREVIEW_XML =
@@ -629,8 +617,7 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     "    android:layout_width=\"wrap_content\"\n" +
     "    android:layout_height=\"wrap_content\"\n" +
     "    android:tint=\"?attr/actionMenuTextColor\"\n" +
-    "    android:style=\"?attr/toolbarNavigationButtonStyle\"\n" +
-    "  />\n" +
+    "    android:style=\"?attr/toolbarNavigationButtonStyle\" />\n" +
     "  <TextView\n" +
     "    android:text=\"v7 Toolbar\"\n" +
     "    android:textAppearance=\"@style/TextAppearance.Widget.AppCompat.Toolbar.Title\"\n" +
@@ -638,16 +625,14 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     "    android:layout_height=\"wrap_content\"\n" +
     "    android:gravity=\"center_vertical\"\n" +
     "    android:ellipsize=\"end\"\n" +
-    "    android:maxLines=\"1\"\n" +
-    "  />\n" +
+    "    android:maxLines=\"1\" />\n" +
     "  <ImageButton\n" +
     "    android:src=\"@drawable/abc_ic_menu_moreoverflow_mtrl_alpha\"\n" +
     "    android:layout_width=\"40dp\"\n" +
     "    android:layout_height=\"wrap_content\"\n" +
     "    android:layout_gravity=\"right\"\n" +
     "    android:style=\"?attr/toolbarNavigationButtonStyle\"\n" +
-    "    android:tint=\"?attr/actionMenuTextColor\"\n" +
-    "  />\n" +
+    "    android:tint=\"?attr/actionMenuTextColor\" />\n" +
     "</android.support.v7.widget.Toolbar>\n";
 
   public void assertToolbarV7(@NotNull Palette.BaseItem item) {
@@ -703,11 +688,13 @@ public abstract class PaletteTestCase extends AndroidTestCase {
 
   private void assertLimitedHeightLayout(@NotNull Palette.BaseItem item, @NotNull String tag, @NotNull String expectedGradleCoordinate) {
     @Language("XML")
-    String xml = String.format(
-      "<%1$s\n" +
-      "  android:layout_width=\"match_parent\"\n" +
-      "  android:layout_height=\"wrap_content\">\n" +
-      "</%1$s>\n", tag);
+    String xml = new XmlBuilder()
+      .startTag(tag)
+      .androidAttribute(ATTR_LAYOUT_WIDTH, VALUE_MATCH_PARENT)
+      .androidAttribute(ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT)
+      .endTag(tag)
+      .toString();
+
     checkItem(item, tag, STANDARD_VIEW.getTitle(tag), STANDARD_LAYOUT.getIcon(tag), xml, NO_PREVIEW, NO_PREVIEW,
               expectedGradleCoordinate, NO_SCALE);
     checkComponent(createMockComponent(tag), STANDARD_VIEW.getTitle(tag), STANDARD_LAYOUT.getIcon(tag));
@@ -728,9 +715,9 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     assertEquals(expectedTag + ".Tag", expectedTag, item.getTagName());
     assertEquals(expectedTag + ".Title", expectedTitle, item.getTitle());
     assertEquals(expectedTag + ".Icon", expectedIcon, item.getIcon());
-    assertEquals(expectedTag + ".XML", expectedXml, formatXml(item.getXml()));
-    assertEquals(expectedTag + ".PreviewXML", expectedPreviewXml, formatXml(item.getPreviewXml()));
-    assertEquals(expectedTag + ".DesignPreviewXML", expectedDragPreviewXml, formatXml(item.getDragPreviewXml()));
+    assertEquals(expectedTag + ".XML", formatXml(expectedXml), formatXml(item.getXml()));
+    assertEquals(expectedTag + ".PreviewXML", formatXml(expectedPreviewXml), formatXml(item.getPreviewXml()));
+    assertEquals(expectedTag + ".DesignPreviewXML", formatXml(expectedDragPreviewXml), formatXml(item.getDragPreviewXml()));
     assertEquals(expectedTag + ".GradleCoordinate", expectedGradleCoordinate, item.getGradleCoordinate());
     assertEquals(expectedTag + ".PreviewScale", expectedScale, item.getPreviewScale());
   }

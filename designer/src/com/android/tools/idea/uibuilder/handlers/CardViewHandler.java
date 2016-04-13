@@ -15,11 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import org.jetbrains.annotations.NotNull;
+import com.android.tools.idea.uibuilder.api.XmlBuilder;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import org.intellij.lang.annotations.Language;
+import org.jetbrains.annotations.NotNull;
 
-import static com.android.SdkConstants.CARD_VIEW_LIB_ARTIFACT;
+import static com.android.SdkConstants.*;
 
 /**
  * Handler for the {@code <CardView>} widget.
@@ -32,10 +33,12 @@ public class CardViewHandler extends FrameLayoutHandler {
   public String getXml(@NotNull String tagName, @NotNull XmlType xmlType) {
     switch (xmlType) {
       case COMPONENT_CREATION:
-        return String.format("<%1$s\n" +
-                             "  android:layout_width=\"match_parent\"\n" +
-                             "  android:layout_height=\"wrap_content\">\n" +
-                             "</%1$s>\n", tagName);
+        return new XmlBuilder()
+          .startTag(tagName)
+          .androidAttribute(ATTR_LAYOUT_WIDTH, VALUE_MATCH_PARENT)
+          .androidAttribute(ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT)
+          .endTag(tagName)
+          .toString();
       default:
         return super.getXml(tagName, xmlType);
     }

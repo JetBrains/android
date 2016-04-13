@@ -15,13 +15,17 @@
  */
 package com.android.tools.idea.uibuilder.api;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import com.android.tools.idea.uibuilder.model.*;
-import org.intellij.lang.annotations.Language;
+import com.android.SdkConstants;
+import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
+import com.android.tools.idea.uibuilder.model.FillPolicy;
+import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.SegmentType;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.Interaction;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
+import org.intellij.lang.annotations.Language;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.util.List;
@@ -37,11 +41,12 @@ public class ViewGroupHandler extends ViewHandler {
   public String getXml(@NotNull String tagName, @NotNull XmlType xmlType) {
     switch (xmlType) {
       case COMPONENT_CREATION:
-        // Most layout managers are rendered by this simple XML.
-        return String.format("<%1$s\n" +
-                             "  android:layout_width=\"match_parent\"\n" +
-                             "  android:layout_height=\"match_parent\">\n" +
-                             "</%1$s>\n", tagName);
+        return new XmlBuilder()
+          .startTag(tagName)
+          .androidAttribute(SdkConstants.ATTR_LAYOUT_WIDTH, SdkConstants.VALUE_MATCH_PARENT)
+          .androidAttribute(SdkConstants.ATTR_LAYOUT_HEIGHT, SdkConstants.VALUE_MATCH_PARENT)
+          .endTag(tagName)
+          .toString();
       case PREVIEW_ON_PALETTE:
       case DRAG_PREVIEW:
         // Most layout managers will use their palette icon for previewing.
@@ -72,11 +77,10 @@ public class ViewGroupHandler extends ViewHandler {
    *                the children since this method is called before the deletion
    *                is performed)
    * @param deleted a nonempty list of children about to be deleted
-   * @return true if the children have been fully deleted by this participant; false
-   *         if normal deletion should resume. Note that even though an implementation may return
-   *         false from this method, that does not mean it did not perform any work. For example,
-   *         a RelativeLayout handler could remove constraints pointing to now deleted components,
-   *         but leave the overall deletion of the elements to the core designer.
+   * @return true if the children have been fully deleted by this participant; false if normal deletion should resume. Note that even though
+   * an implementation may return false from this method, that does not mean it did not perform any work. For example, a RelativeLayout
+   * handler could remove constraints pointing to now deleted components, but leave the overall deletion of the elements to the core
+   * designer.
    */
   public boolean deleteChildren(@NotNull NlComponent parent, @NotNull List<NlComponent> deleted) {
     return false;
@@ -85,9 +89,8 @@ public class ViewGroupHandler extends ViewHandler {
   /**
    * Creates a new complete interaction for this view
    *
-   * @param screenView  the associated screen view
-   * @param layout      the layout creating the interaction
-   *
+   * @param screenView the associated screen view
+   * @param layout     the layout creating the interaction
    * @return a new interaction, or null if this view does not handle full interactions and use other Handlers
    */
   @Nullable
@@ -102,7 +105,6 @@ public class ViewGroupHandler extends ViewHandler {
    * @param layout     the layout being dragged over/into
    * @param components the components being dragged
    * @param type       the <b>initial</b> type of drag, which can change along the way
-   *
    * @return a new drag handler, or null if this view does not accept children or does not allow them to be reconfigured
    */
   @Nullable
@@ -176,13 +178,12 @@ public class ViewGroupHandler extends ViewHandler {
   /**
    * Paint the component and its children on the given context
    *
-   * @param gc graphics context
-   * @param screenView the current screenview
-   * @param width width of the surface
-   * @param height height of the surface
-   * @param component the component to draw
+   * @param gc          graphics context
+   * @param screenView  the current screen view
+   * @param width       width of the surface
+   * @param height      height of the surface
+   * @param component   the component to draw
    * @param transparent if true, only draw component decorations
-   *
    * @return true to indicate that we will need to be repainted
    */
   public boolean drawGroup(@NotNull Graphics2D gc, @NotNull ScreenView screenView,

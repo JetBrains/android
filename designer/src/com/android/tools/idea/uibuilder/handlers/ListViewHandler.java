@@ -15,10 +15,13 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import org.jetbrains.annotations.NotNull;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
+import com.android.tools.idea.uibuilder.api.XmlBuilder;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import org.intellij.lang.annotations.Language;
+import org.jetbrains.annotations.NotNull;
+
+import static com.android.SdkConstants.*;
 
 /**
  * Handler for the {@code <ListView>} layout
@@ -32,13 +35,15 @@ public class ListViewHandler extends ViewGroupHandler {
     switch (xmlType) {
       case PREVIEW_ON_PALETTE:
       case DRAG_PREVIEW:
-        return String.format("<%1$s\n" +
-                             "  android:id=\"@+id/%1$s\"\n" +  // id must be present or the preview will be empty
-                             "  android:layout_width=\"200dip\"\n" +
-                             "  android:layout_height=\"60dip\"\n" +
-                             "  android:divider=\"#333333\"\n" +
-                             "  android:dividerHeight=\"1px\">\n" +
-                             "</%1$s>\n", tagName);
+        return new XmlBuilder()
+          .startTag(tagName)
+          .androidAttribute(ATTR_ID, NEW_ID_PREFIX + tagName)
+          .androidAttribute(ATTR_LAYOUT_WIDTH, "200dip")
+          .androidAttribute(ATTR_LAYOUT_HEIGHT, "60dip")
+          .androidAttribute("divider", "#333333")
+          .androidAttribute("dividerHeight", "1px")
+          .endTag(tagName)
+          .toString();
       default:
         return super.getXml(tagName, xmlType);
     }

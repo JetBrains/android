@@ -29,7 +29,7 @@ abstract class PreferenceHandler extends ViewHandler {
   @Language("XML")
   @NotNull
   @Override
-  public abstract String getXml(@NotNull String tag, @NotNull XmlType type);
+  public abstract String getXml(@NotNull String tagName, @NotNull XmlType xmlType);
 
   @Override
   public final boolean onCreate(@NotNull ViewEditor editor,
