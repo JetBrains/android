@@ -169,7 +169,9 @@ to be replayed to the new process handler so that the console still has all the 
  * Freeze swap (aka dex swap): app doesn't have to run, push changes via adb, then launch the process
 
 ### Pre Build
- * See ![flowchart](docs/IR-pre-build.png)
+
+![flowchart](docs/IR-pre-build.png)
+
  * First determines the previous device on which the launch took place.
  * Examines if the build on the device matches the build on disk
  * Examines if the app is still running
@@ -178,14 +180,18 @@ to be replayed to the new process handler so that the console still has all the 
  * See methods in [AndroidRunConfigurationBase](AndroidRunConfiguration.java): `getFastDeployDevices`, `setInstantRunBuildOptions`
 
 ### Build options
- * See ![flow](docs/IR-gradle-options.png)
+
+![flow](docs/IR-gradle-options.png)
+
  * The build step looks at all the information from the previous phase, and determines:
    * Which build task to execute (full build vs incremental build)
    * Set of flags to pass to Gradle
    * See `GradleInvokerOptions.create`
 
 ### Post Build
- * See ![flow](docs/IR-post-build.png)
+
+![flow](docs/IR-post-build.png)
+
  * Examine the build-info.xml file to figure out what actually happened (See `AndroidLaunchTasksProviderFactory`)
  * Determine the appropriate task to use based on the build result.
    * See `AndroidLaunchTasksProvider` and `HotswapTasksProvider`
