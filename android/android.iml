@@ -144,6 +144,6 @@
     </orderEntry>
     <orderEntry type="module" module-name="gradle" />
     <orderEntry type="module" module-name="gradle-tests" scope="TEST" />
-    <orderEntry type="library" name="layoutlib" level="project" />
+    <orderEntry type="module" module-name="layoutlib" />
   </component>
 </module>

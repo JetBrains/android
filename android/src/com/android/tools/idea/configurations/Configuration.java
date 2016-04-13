@@ -59,7 +59,7 @@ import java.util.List;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.configurations.ConfigurationListener.*;
-import static org.jetbrains.android.uipreview.LayoutLibraryLoader.USE_SDK_LAYOUTLIB;
+import static com.android.tools.idea.layoutlib.LayoutLibraryLoader.USE_SDK_LAYOUTLIB;
 
 /**
  * A {@linkplain Configuration} is a selection of device, orientation, theme,
