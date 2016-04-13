@@ -119,14 +119,13 @@ public abstract class CreateResourceActionBase extends AnAction {
     return null;
   }
 
-  public static void updateSourceSetCombo(@NotNull JComponent label, @NotNull JComboBox combo, @Nullable AndroidFacet facet,
-                                          @SuppressWarnings("UnusedParameters") @Nullable PsiDirectory resDirectory) {
+  public static void updateSourceSetCombo(@NotNull JComponent label, @NotNull JComboBox combo, @Nullable AndroidFacet facet) {
     // Ideally, if we're in the Project View and you select a file under main/res, we already know that
     // the resource folder is "res" and we pass it in here -- and we shouldn't ask the user for a source set.
     // However, in the Android Project view there is only a single "res" node, shared by multiple possible source
     // sets, so we *always* want to ask for the target source set there. We don't have a way to know which view
     // we're in here, so we default to always including the source set combo (if it's a Gradle project that is.)
-    if (/*resDirectory == null && */ facet != null && facet.requiresAndroidModel() && facet.getAndroidModel() != null) {
+    if (facet != null && facet.requiresAndroidModel() && facet.getAndroidModel() != null) {
       List<SourceProvider> providers = IdeaSourceProvider.getAllSourceProviders(facet);
       DefaultComboBoxModel model = new DefaultComboBoxModel();
       for (SourceProvider sourceProvider : providers) {

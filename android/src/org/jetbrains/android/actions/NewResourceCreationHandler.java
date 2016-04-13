@@ -17,22 +17,26 @@ package org.jetbrains.android.actions;
 
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceFolderType;
+import com.android.resources.ResourceType;
+import com.android.tools.idea.res.ResourceNameValidator;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
+import java.util.function.Function;
 
 /**
  * Extension point to decide what UI is appropriate to present for the Create New Android Resources flow.
  *
  * Different build systems may have have a different way of modeling resources, and therefore selecting the res/ directory
- * where a new resource should be placed. E.g., some build systems may have a single resource directory per {@link Module} 
+ * where a new resource should be placed. E.g., some build systems may have a single resource directory per {@link Module}
  * and {@link com.android.builder.model.SourceProvider}, while other build systems may not. This extension point allows
  * a build system to customize the UI.
  *
@@ -74,13 +78,13 @@ public interface NewResourceCreationHandler {
   /**
    * Return the UI to handle creating a new resource directory (e.g., menu-en).
    *
-   * @param project the project for the new resource
-   * @param module the module that's in context when invoked.  Null if unknown.
-   * @param resType the ResourceFolderType of the new resource, which may restrict the name of the new directory.
-   *                Null if unknown from invoking context.
-   * @param resDirectory the base res/ directory for the sub directory. NotNull if this has been decided from
-   *                     the context already, and null otherwise.
-   * @param dataContext any context from the invocation (e.g., context from right-click on project panel). Null if no context.
+   * @param project          the project for the new resource
+   * @param module           the module that's in context when invoked.  Null if unknown.
+   * @param resType          the ResourceFolderType of the new resource, which may restrict the name of the new directory.
+   *                         Null if unknown from invoking context.
+   * @param resDirectory     the base res/ directory for the sub directory. NotNull if this has been decided from
+   *                         the context already, and null otherwise.
+   * @param dataContext      any context from the invocation (e.g., context from right-click on project panel). Null if no context.
    * @param validatorFactory creates validator that's appropriate to the context, after the user fills in required fields.
    * @return a dialog
    */
@@ -96,18 +100,18 @@ public interface NewResourceCreationHandler {
   /**
    * Return the UI to handle creating a new resource file (e.g., activity_main.xml, within layout-large).
    *
-   * @param facet the facet that is in scope of the invoking context
-   * @param actions create resource of type subactions (each subaction holds knowledge of possible root elements, etc.)
-   * @param folderType pre-determined resource folder type. Null if the user should choose the type.
-   * @param filename pre-determined name for the new file. May be known and restricted due from quick-fix,
-   *                 or may simply be a suggestion. Null if there if not predefined or no suggestion.
-   * @param rootElement pre-determined or suggestion for root element. Null if none.
+   * @param facet               the facet that is in scope of the invoking context
+   * @param actions             create resource of type subactions (each subaction holds knowledge of possible root elements, etc.)
+   * @param folderType          pre-determined resource folder type. Null if the user should choose the type.
+   * @param filename            pre-determined name for the new file. May be known and restricted due from quick-fix,
+   *                            or may simply be a suggestion. Null if there if not predefined or no suggestion.
+   * @param rootElement         pre-determined or suggestion for root element. Null if none.
    * @param folderConfiguration pre-determined folder configuration. Null if none.
-   * @param chooseFileName true if the user should still be able to choose the filename (even given a suggested filename).
-   * @param chooseModule true if the user should choose the module
-   * @param resDirectory pre-determined base res/ directory. Null if none.
-   * @param dataContext any context from the invocation (e.g., context from right-click on project panel). Null if no context.
-   * @param validatorFactory creates a validator that's appropriate to the context, after the user fills in required fields.
+   * @param chooseFileName      true if the user should still be able to choose the filename (even given a suggested filename).
+   * @param chooseModule        true if the user should choose the module
+   * @param resDirectory        pre-determined base res/ directory. Null if none.
+   * @param dataContext         any context from the invocation (e.g., context from right-click on project panel). Null if no context.
+   * @param validatorFactory    creates a validator that's appropriate to the context, after the user fills in required fields.
    * @return a dialog
    */
   @NotNull
@@ -130,8 +134,30 @@ public interface NewResourceCreationHandler {
    * (with a color pallet) may be different than choosing a value for a new string,
    * and the embedder can be customized supply different surrounding UI.
    *
+   * @param module               the module that is in scope of the invoking context
+   * @param resourceType         the type of the new resource
+   * @param folderType           the folder type of the new resource
+   * @param resourceName         any pre-determined resource name or suggestion for the new resource. Null if none.
+   * @param resourceValue        any pre-determined resource value for the new resource. Null if none.
+   * @param chooseName           true if the user should choose the resource name. False if resourceName is fixed (e.g., for quick fix)
+   * @param chooseValue          true if the user should choose the resource value. False if already chosen by some other mechanism.
+   * @param chooseFilename       true if the user should choose the filename. False is already pre-determined and fixed.
+   * @param defaultFile          the XML file to place this new resource. Null if no suggestion.
+   * @param contextFile          file that is in scope of this invocation context.
+   * @param nameValidatorFactory creates a validator for the resource name, given the scope
+   *                             (e.g., prevents clashing with resources that are already defined in the scope)
    * @return a panel
    */
-  // TODO: figure out how the Value resource panel will work (upcoming CL).
-  CreateXmlResourcePanel createNewResourceValuePanel();
+  CreateXmlResourcePanel createNewResourceValuePanel(
+    @NotNull Module module,
+    @NotNull ResourceType resourceType,
+    @NotNull ResourceFolderType folderType,
+    @Nullable String resourceName,
+    @Nullable String resourceValue,
+    boolean chooseName,
+    boolean chooseValue,
+    boolean chooseFilename,
+    @Nullable VirtualFile defaultFile,
+    @Nullable VirtualFile contextFile,
+    @NotNull final Function<Module, ResourceNameValidator> nameValidatorFactory);
 }
