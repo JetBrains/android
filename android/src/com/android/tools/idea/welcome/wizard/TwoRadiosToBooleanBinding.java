@@ -23,6 +23,8 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 
 /**
  * Two-way binding for using dual radiobuttons to edit a boolean value.
@@ -51,14 +53,14 @@ public class TwoRadiosToBooleanBinding extends ScopedDataBinder.ComponentBinding
 
   @Override
   public void addActionListener(@NotNull final ActionListener listener, @NotNull final JPanel component) {
-    ActionListener actionListener = new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        ActionEvent event = new ActionEvent(component, e.getID(), e.getActionCommand(), e.getWhen(), e.getModifiers());
+    ItemListener itemListener = (ItemEvent e) -> {
+      if (e.getStateChange() == ItemEvent.SELECTED) {
+        String actionCommand = ((JRadioButton)e.getItem()).getActionCommand();
+        ActionEvent event = new ActionEvent(component, e.getID(), actionCommand);
         listener.actionPerformed(event);
       }
     };
-    myButtonTrue.addActionListener(actionListener);
-    myButtonFalse.addActionListener(actionListener);
+    myButtonTrue.addItemListener(itemListener);
+    myButtonFalse.addItemListener(itemListener);
   }
 }
