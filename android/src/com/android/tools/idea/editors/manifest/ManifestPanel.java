@@ -171,15 +171,19 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
           setIcon(null);
 
           if (node.getUserObject() instanceof XmlTag) {
-            append("<" + node.toString() + (expanded ? "" : " ... >"), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
+            append("<" + node.toString() + (expanded ? "" : " ... " + getCloseTag(node)), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
           }
           if (node.getUserObject() instanceof XmlAttribute) {
             // if we are the last child, add ">"
             ManifestTreeNode parent = node.getParent();
             assert parent != null; // can not be null if we are a XmlAttribute
-            append(node.toString() + (parent.lastAttribute() == node ? " >" : ""));
+            append(node.toString() + (parent.lastAttribute() == node ? " " + getCloseTag(node) : ""));
           }
         }
+      }
+
+      private String getCloseTag(ManifestTreeNode node) {
+        return node.hasXmlTagChildren() ? ">" : "/>";
       }
     });
     new TreeSpeedSearch(myTree);
@@ -834,6 +838,16 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
     public ManifestTreeNode lastAttribute() {
       XmlTag xmlTag = (XmlTag)getUserObject();
       return getChildAt(xmlTag.getAttributes().length - 1);
+    }
+
+    public boolean hasXmlTagChildren() {
+      XmlElement element = getUserObject();
+      if (element instanceof XmlAttribute) {
+        ManifestTreeNode parent = getParent();
+        assert parent != null; // can not be null if we are a XmlAttribute
+        return parent.hasXmlTagChildren();
+      }
+      return !((XmlTag)element).isEmpty();
     }
   }
 }
