@@ -19,12 +19,10 @@ package com.android.tools.sherpa.drawing.decorator;
 import com.android.tools.sherpa.drawing.ViewTransform;
 import com.google.tnt.solver.widgets.ConstraintWidget;
 
+import java.awt.Color;
 import java.awt.Graphics2D;
-import java.awt.image.BufferedImage;
 
 public class CheckboxWidget extends TextWidget {
-
-    private BufferedImage mImage;
 
     /**
      * Base constructor
@@ -36,20 +34,14 @@ public class CheckboxWidget extends TextWidget {
         super(widget, text);
     }
 
-    public String getImagePath() {
-        return "/blueprint_checkbox_on.png";
-    }
-
     @Override
     protected void wrapContent() {
         super.wrapContent();
         if (mWidget == null) {
             return;
         }
-        if (mImage == null) {
-            mImage = WidgetDecorator.loadImage(getImagePath());
-        }
-        int extra = mImage.getWidth() + 2 * mHorizontalPadding;
+
+        int extra = mWidget.getMinHeight() + 2 * mHorizontalPadding;
         mWidget.setMinWidth(mWidget.getMinWidth() + extra);
         mWidget.setMinHeight(mWidget.getMinHeight());
         mWidget.setDimension(0, 0);
@@ -62,12 +54,27 @@ public class CheckboxWidget extends TextWidget {
             int x = transform.getSwingX(mWidget.getDrawX());
             int y = transform.getSwingX(mWidget.getDrawY());
             int h = transform.getSwingDimension(mWidget.getDrawHeight());
-            int ih = transform.getSwingDimension(mImage.getHeight());
-            g.drawImage(mImage, x, y, h, h, null);
+            drawGraphic(g, x, y, h, transform);
         }
     }
 
+    public void drawGraphic(Graphics2D g, int x, int y, int h, ViewTransform transform) {
+        g.setColor(Color.WHITE);
+        int margin = 2;
+        x += margin;
+        y += margin;
+        h -= margin * 2;
+        g.drawRect(x, y, h, h);
+        margin = (int) transform.getSwingDimension(5);
+        x += margin;
+        y += margin;
+        h -= margin * 2;
+        g.drawLine(x, y + h / 2, x + h / 3, y + h);
+        g.drawLine(x + h / 3, y + h, x + h, y);
+    }
+
     protected void drawText(ViewTransform transform, Graphics2D g, int x, int y) {
-        super.drawText(transform, g, x + mImage.getWidth(), y);
+        int h = mWidget.getDrawHeight();
+        super.drawText(transform, g, x + h, y);
     }
 }
