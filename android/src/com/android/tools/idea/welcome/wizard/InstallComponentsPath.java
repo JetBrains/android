@@ -331,6 +331,10 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
       }
       DetailsTypes.PlatformDetailsType platformDetails = (DetailsTypes.PlatformDetailsType)details;
       AndroidVersion version = DetailsTypes.getAndroidVersion(platformDetails);
+      if (version.isPreview()) {
+        // We only want stable platforms
+        continue;
+      }
       if (max == null || version.compareTo(max) > 0) {
         latest = pkg;
         max = version;
