@@ -92,10 +92,10 @@ public class WidgetDraw {
         int midY = transform.getSwingY((int) (widget.getDrawY() + widget.getDrawHeight() / 2f));
 
         if (widget.getParent() instanceof ConstraintWidgetContainer) {
-            ConstraintWidgetContainer parent = (ConstraintWidgetContainer)widget.getParent();
+            ConstraintWidgetContainer parent = (ConstraintWidgetContainer) widget.getParent();
             if (widget instanceof Guideline) {
                 if (parent.isRoot()) {
-                    drawRootGuideline(transform, g, parent, (Guideline)widget, isSelected);
+                    drawRootGuideline(transform, g, parent, (Guideline) widget, isSelected);
                 }
                 return;
             }
@@ -116,9 +116,9 @@ public class WidgetDraw {
         boolean baselineAnchorIsConnected =
                 widget.getAnchor(ConstraintAnchor.Type.BASELINE).isConnected();
         boolean centerAnchorIsConnected =
-                    (leftAnchorIsConnected && rightAnchorIsConnected
+                (leftAnchorIsConnected && rightAnchorIsConnected
                         && leftAnchor.getTarget() == rightAnchor.getTarget())
-                    || (topAnchorIsConnected && bottomAnchorIsConnected
+                        || (topAnchorIsConnected && bottomAnchorIsConnected
                         && topAnchor.getTarget() == bottomAnchor.getTarget());
 
         // First, resize handles...
@@ -530,6 +530,7 @@ public class WidgetDraw {
         anchors.add(ConstraintAnchor.Type.RIGHT);
         anchors.add(ConstraintAnchor.Type.BOTTOM);
         anchors.add(ConstraintAnchor.Type.BASELINE);
+        Color currentColor = g.getColor();
         for (ConstraintAnchor.Type type : anchors) {
             ConstraintAnchor anchor = widget.getAnchor(type);
             if (anchor != null && anchor.isConnected()) {
@@ -541,6 +542,14 @@ public class WidgetDraw {
                 ConstraintHandle endHandle = WidgetInteractionTargets.constraintHandle(target);
                 if (startHandle == null || endHandle == null) {
                     continue;
+                }
+                if (startHandle.getAnchor().isConnected()
+                        && startHandle.getAnchor().getConnectionCreator()
+                        == ConstraintAnchor.AUTO_CONSTRAINT_CREATOR) {
+                    g.setColor(new Color(currentColor.getRed(), currentColor.getGreen(),
+                            currentColor.getBlue(), 60));
+                } else {
+                    g.setColor(currentColor);
                 }
                 ConnectionDraw.drawConnection(transform, g, startHandle, endHandle,
                         isSelected, showPercentIndicator);
