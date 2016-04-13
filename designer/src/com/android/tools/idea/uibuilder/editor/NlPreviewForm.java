@@ -59,6 +59,17 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
   private boolean myIgnoreListener;
   private RenderResult myRenderResult;
   private XmlFile myFile;
+  private boolean isActive = true;
+  /**
+   * When {@link #deactivate()} is called, the file will be saved here and the preview will not be rendered anymore.
+   * On {@link #activate()} the file will be restored to {@link #myFile} and the preview will be rendered again.
+   */
+  private XmlFile myInactiveFile;
+  /**
+   * Contains the file that is currently being loaded (it might take a while to get a preview rendered).
+   * Once the file is loaded, myPendingFile will be null.
+   */
+  private Pending myPendingFile;
   private TextEditor myEditor;
   private CaretModel myCaretModel;
 
@@ -181,6 +192,8 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
 
   @Override
   public void dispose() {
+    deactivate();
+    myInactiveFile = null;
     NlPaletteManager.get(myManager.getProject()).dispose(this);
   }
 
@@ -225,11 +238,18 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
     }
   }
 
-  private Pending myPendingFile;
-
   public boolean setFile(@Nullable PsiFile file) {
+    if (!isActive) {
+      // The form is not active so we just save the file to show once activate() is called
+      myInactiveFile = (XmlFile)file;
+
+      if (file != null) {
+        return false;
+      }
+    }
+
     if (myPendingFile != null) {
-      if (file == myPendingFile) {
+      if (file == myPendingFile.file) {
         return false;
       }
       myPendingFile.invalidate();
@@ -241,7 +261,7 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
     if (facet == null || file.getVirtualFile() == null) {
       myPendingFile = null;
       myFile = null;
-      setEditor(null);
+      setActiveModel(null);
     } else {
       XmlFile xmlFile = (XmlFile)file;
       NlModel model = NlModel.create(mySurface, xmlFile.getProject(), facet, xmlFile);
@@ -252,6 +272,7 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
   }
 
   public void setActiveModel(@Nullable NlModel model) {
+    myPendingFile = null;
     ScreenView currentScreenView = mySurface.getCurrentScreenView();
     if (currentScreenView != null) {
       currentScreenView.getModel().deactivate();
@@ -327,6 +348,35 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
       } catch (Exception ignore) {
       }
     }
+  }
+
+  /**
+   * Re-enables updates for this preview form. See {@link #deactivate()}
+   */
+  public void activate() {
+    if (isActive) {
+      return;
+    }
+
+    isActive = true;
+    if (myFile == null && myPendingFile == null) {
+      setFile(myInactiveFile);
+    }
+    myInactiveFile = null;
+  }
+
+  /**
+   * Disables the updates for this preview form. Any changes to resources or the layout won't update
+   * this preview until {@link #activate()} is called.
+   */
+  public void deactivate() {
+    if (!isActive) {
+      return;
+    }
+
+    myInactiveFile = myFile;
+    setFile(null);
+    isActive = false;
   }
 
   // ---- Implements DesignerEditorPanelFacade ----
