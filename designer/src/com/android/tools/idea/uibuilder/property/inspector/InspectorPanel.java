@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property.inspector;
 
+import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintInspectorProvider;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.uibuilder.property.NlProperty;
@@ -70,6 +71,7 @@ public class InspectorPanel extends JPanel {
     }
 
     InspectorProvider[] allProviders = new InspectorProvider[]{
+      new ConstraintInspectorProvider(),
       new IdInspectorProvider(),
       new FontInspectorProvider(),
     };
@@ -163,6 +165,6 @@ public class InspectorPanel extends JPanel {
    * Adds a custom panel that spans the entire width, just set the preferred height on the panel
    */
   public static void addPanel(@NotNull JPanel inspector, @NotNull JPanel panel) {
-    inspector.add(panel, "span 2, grow");
+    inspector.add(panel, "span 5, grow");
   }
 }
