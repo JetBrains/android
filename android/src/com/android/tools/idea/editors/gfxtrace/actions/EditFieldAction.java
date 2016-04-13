@@ -113,7 +113,23 @@ public class EditFieldAction extends AbstractAction {
         JSpinner spinner;
         // unsigned
         if (method == Method.Uint8 || method == Method.Uint16 || method == Method.Uint32 || method == Method.Uint64) {
-          spinner = new JSpinner(new SpinnerNumberModel((Number)value, Integer.valueOf(0), null, Integer.valueOf(1)));
+
+          // we need the class of zero to match the class of the number
+          Comparable<? extends Number> zero;
+          if (value instanceof Long) {
+            zero = Long.valueOf(0);
+          }
+          else if (value instanceof Integer) {
+            zero = Integer.valueOf(0);
+          }
+          else if (value instanceof Short) {
+            zero = Short.valueOf((short)0);
+          }
+          else {
+            zero = Byte.valueOf((byte)0);
+          }
+
+          spinner = new JSpinner(new SpinnerNumberModel((Number)value, zero, null, Integer.valueOf(1)));
         }
         else {
           // signed ints
