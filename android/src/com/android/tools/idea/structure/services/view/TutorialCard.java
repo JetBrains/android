@@ -105,6 +105,11 @@ public class TutorialCard extends CardViewPanel {
     contents.add(new FooterNav(), c);
 
     JBScrollPane contentsScroller = new JBScrollPane();
+    // HACK ALERT: For an unknown reason (possibly race condition calculating inner contents)
+    // this scrolls exceptionally slowly without an explicit increment. Using fixed values is not
+    // uncommon and the values appear to range by use (ranging from 10 to 20). Choosing a middling
+    // rate to account for typically long content.
+    contentsScroller.getVerticalScrollBar().setUnitIncrement(16);
     contentsScroller.setViewportView(contents);
     contentsScroller.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, UIUtils.getSeparatorColor()));
     contentsScroller.setViewportBorder(BorderFactory.createEmptyBorder());
