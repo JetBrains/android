@@ -78,7 +78,7 @@ public class AndroidRunState implements RunProfileState {
       applicationId = myApkProvider.getPackageName();
     }
     catch (ApkProvisionException e) {
-      throw new ExecutionException("Unable to obtain application id");
+      throw new ExecutionException("Unable to obtain application id", e);
     }
 
     // TODO: this class is independent of gradle, except for this hack
