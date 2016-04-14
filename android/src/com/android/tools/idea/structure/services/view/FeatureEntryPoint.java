@@ -95,6 +95,7 @@ public class FeatureEntryPoint extends JPanel {
     Font boldFont = new Font(font.getFontName(), Font.BOLD, font.getSize());
     serviceLabel.setFont(boldFont);
     serviceLabel.setText(myLabel);
+    serviceLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
     Icon featureIcon = feature.getIcon();
     if (featureIcon != null) {
       serviceLabel.setIcon(featureIcon);

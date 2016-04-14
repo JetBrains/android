@@ -158,7 +158,7 @@ public class TutorialCard extends CardViewPanel {
       setBorderPainted(false);
       setBorder(null);
       setOpaque(false);
-      setCursor(new Cursor(Cursor.HAND_CURSOR));
+      setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
       Font font = getFont();
       setFont(new Font(font.getFontName(), Font.BOLD, font.getSize()));
