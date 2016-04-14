@@ -21,9 +21,11 @@ import com.android.tools.sherpa.drawing.ViewTransform;
 import com.android.tools.sherpa.drawing.decorator.TextWidget;
 import com.android.tools.sherpa.drawing.decorator.WidgetDecorator;
 import com.android.tools.sherpa.interaction.MouseInteraction;
+import com.android.tools.sherpa.interaction.WidgetInteractionTargets;
 import com.android.tools.sherpa.interaction.WidgetMotion;
 import com.android.tools.sherpa.interaction.WidgetResize;
 import com.android.tools.sherpa.structure.Selection;
+import com.android.tools.sherpa.structure.WidgetCompanion;
 import com.android.tools.sherpa.structure.WidgetsScene;
 import com.google.tnt.solver.widgets.Animator;
 import com.google.tnt.solver.widgets.ConstraintAnchor;
@@ -162,7 +164,7 @@ public class SingleWidgetView extends JPanel {
       Animator.setAnimationEnabled(false);
 
       mRoot = new ConstraintWidgetContainer();
-      mRoot.setCompanionWidget(new WidgetDecorator(mRoot));
+      mRoot.setCompanionWidget(WidgetCompanion.create(mRoot));
       mRoot.setHorizontalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.ANY);
       mRoot.setVerticalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.ANY);
       mRoot.setOrigin(-1, -1);
@@ -222,7 +224,10 @@ public class SingleWidgetView extends JPanel {
       widget.setHeight(h);
       widget.updateDrawPosition();
       TextWidget decorator = new TextWidget(widget, str);
-      widget.setCompanionWidget(decorator);
+      WidgetCompanion companion = new WidgetCompanion();
+      companion.addDecorator(decorator);
+      companion.setWidgetInteractionTargets(new WidgetInteractionTargets(widget));
+      widget.setCompanionWidget(companion);
       decorator.setTextSize(h * 1.2f);
       decorator.applyDimensionBehaviour();
       decorator.setShowFakeUI(false);
