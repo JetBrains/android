@@ -41,40 +41,22 @@ public abstract class AbstractPsNodeTreeBuilder extends AbstractBaseTreeBuilder 
     super(tree, treeModel, treeStructure);
   }
 
-  public void collectNodesMatchingSelection(@Nullable MatchingNodeCollector collector) {
+  public void collectNodesMatchingCurrentSelection(@NotNull PsModel model, @NotNull MatchingNodeCollector collector) {
+    collectMatchingNodes(model, collector, false, false);
+  }
+
+  public void selectNodesMatchingCurrentSelection() {
     AbstractPsModelNode<?> node = getSelectedNode();
     if (node != null) {
       PsModel model = getFirstModel(node);
       if (model != null) {
-        collectMatchingNodes(model, collector, false, false);
-        return;
+        collectMatchingNodes(model, null, true, false);
       }
-    }
-    if (collector != null) {
-      collector.done(Collections.emptyList());
-    }
-  }
-
-  public void updateSelection() {
-    updateSelection(null);
-  }
-
-  public void updateSelection(@Nullable MatchingNodeCollector collector) {
-    AbstractPsModelNode<?> node = getSelectedNode();
-    if (node != null) {
-      PsModel model = getFirstModel(node);
-      if (model != null) {
-        collectMatchingNodes(model, collector, true, false);
-        return;
-      }
-    }
-    if (collector != null) {
-      collector.done(Collections.emptyList());
     }
   }
 
   @Nullable
-  private AbstractPsModelNode<?> getSelectedNode() {
+  public AbstractPsModelNode<?> getSelectedNode() {
     Set<Object> selectedElements = getSelectedElements();
     if (selectedElements.size() == 1) {
       Object selection = getFirstItem(selectedElements);
