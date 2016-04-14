@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
 import com.android.SdkConstants;
+import com.android.tools.sherpa.structure.WidgetCompanion;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
@@ -322,8 +323,8 @@ public class ConstraintUtilities {
     String marginAttribute = getConnectionAttributeMargin(anchor);
     if (anchor.isConnected() && attribute != null) {
       ConstraintWidget target = anchor.getTarget().getOwner();
-      WidgetDecorator decorator = (WidgetDecorator)target.getCompanionWidget();
-      NlComponent targetComponent = (NlComponent)decorator.getCompanionObject();
+      WidgetCompanion companion = (WidgetCompanion)target.getCompanionWidget();
+      NlComponent targetComponent = (NlComponent)companion.getWidgetModel();
       String targetId = SdkConstants.NEW_ID_PREFIX + targetComponent.ensureId();
       component.setAttribute(SdkConstants.SHERPA_URI, attribute, targetId);
       if (marginAttribute != null && anchor.getMargin() > 0) {
@@ -489,8 +490,8 @@ public class ConstraintUtilities {
       ConstraintWidget widget = widgetsScene.getWidget(componentFound.getTag());
       if (widgetSrc != null && widget != null) {
         int connectionCreator = 0;
-        WidgetDecorator decorator = (WidgetDecorator)widgetSrc.getCompanionWidget();
-        NlComponent component = (NlComponent)decorator.getCompanionObject();
+        WidgetCompanion companion = (WidgetCompanion)widgetSrc.getCompanionWidget();
+        NlComponent component = (NlComponent)companion.getWidgetModel();
         String creatorAttribute = getConnectionAttributeCreator(widgetSrc.getAnchor(constraintA));
         String creatorValue = component.getAttribute(SdkConstants.SHERPA_URI, creatorAttribute);
         if (creatorValue != null) {
