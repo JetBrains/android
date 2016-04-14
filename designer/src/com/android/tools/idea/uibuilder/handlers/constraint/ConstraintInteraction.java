@@ -15,18 +15,18 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
-import com.android.tools.sherpa.structure.WidgetCompanion;
-import org.jetbrains.annotations.NotNull;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.surface.Interaction;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.sherpa.structure.Selection;
+import com.android.tools.sherpa.structure.WidgetCompanion;
 import com.google.tnt.solver.widgets.ConstraintAnchor;
 import com.google.tnt.solver.widgets.ConstraintWidget;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.xml.XmlFile;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 
@@ -112,40 +112,40 @@ public class ConstraintInteraction extends Interaction {
 
     XmlFile file = nlModel.getFile();
 
-    String label = "Constraint";
-    WriteCommandAction action = new WriteCommandAction(project, label, file) {
-      @Override
-      protected void run(@NotNull Result result) throws Throwable {
-        ConstraintModel model = ConstraintModel.getModel();
-        model.updateModifiers(theModifiers);
-        model.mouseReleased(ax, ay);
+    ConstraintModel model = ConstraintModel.getModel();
+    model.updateModifiers(theModifiers);
+    model.mouseReleased(ax, ay);
 
-        Selection selection = model.getSelection();
-        if (selection != null) {
+    Selection selection = model.getSelection();
+    if (!selection.getModifiedWidgets().isEmpty()) {
+      WriteCommandAction action = new WriteCommandAction(project, "Constraint", file) {
+        @Override
+        protected void run(@NotNull Result result) throws Throwable {
+          Selection selection = model.getSelection();
           for (ConstraintWidget widget : selection.getModifiedWidgets()) {
             ConstraintUtilities.commitElement(widget, nlModel);
           }
+          selection.clearModifiedWidgets();
         }
-        selection.clearModifiedWidgets();
-        SelectionModel selectionModel = myScreenView.getSelectionModel();
-        selectionModel.clear();
-        ArrayList<NlComponent> components = new ArrayList<NlComponent>();
-        for (Selection.Element selectedElement : selection.getElements()) {
-          WidgetCompanion companion = (WidgetCompanion)selectedElement.widget.getCompanionWidget();
-          NlComponent component = (NlComponent)companion.getWidgetModel();
-          components.add(component);
-        }
-        selectionModel.setSelection(components);
-      }
-    };
-    action.execute();
+      };
+      action.execute();
+    }
+
+    SelectionModel selectionModel = myScreenView.getSelectionModel();
+    selectionModel.clear();
+    ArrayList<NlComponent> components = new ArrayList<>();
+    for (Selection.Element selectedElement : selection.getElements()) {
+      WidgetCompanion companion = (WidgetCompanion)selectedElement.widget.getCompanionWidget();
+      NlComponent component = (NlComponent)companion.getWidgetModel();
+      components.add(component);
+    }
+    selectionModel.setSelection(components);
     /*
     The model will automatically detect the modification when the XML is modified.
     TODO: Add this back when we update directly the layout params as opposed to updating the XML.
-
     nlModel.notifyModified();
-    myScreenView.getSurface().repaint();
      */
+    myScreenView.getSurface().repaint();
   }
 
 }
