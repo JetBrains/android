@@ -15,12 +15,21 @@
  */
 package org.jetbrains.android.actions;
 
+import com.android.ide.common.resources.configuration.FolderConfiguration;
+import com.android.resources.ResourceFolderType;
+import com.android.utils.HtmlBuilder;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
+import com.intellij.ui.JBColor;
+import com.intellij.ui.components.JBLabel;
+import org.jetbrains.android.uipreview.DeviceConfiguratorPanel;
+import org.jetbrains.android.uipreview.InvalidOptionValueException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
 
 /**
  * Interface for dialogs that create new resource subdirectories (e.g., layout-large).
@@ -51,5 +60,38 @@ public abstract class CreateResourceDirectoryDialogBase extends DialogWrapper {
      */
     @NotNull
     ElementCreatingValidator create(@NotNull PsiDirectory resourceDirectory);
+  }
+
+  @Nullable
+  @Override
+  protected String getHelpId() {
+    return "reference.new.resource.directory";
+  }
+
+  protected DeviceConfiguratorPanel setupDeviceConfigurationPanel(
+    final JComboBox resourceTypeComboBox,
+    final JTextField directoryNameTextField,
+    final JBLabel errorLabel) {
+    return new DeviceConfiguratorPanel() {
+      @Override
+      public void applyEditors() {
+        try {
+          doApplyEditors();
+          final FolderConfiguration config = this.getConfiguration();
+          final ResourceFolderType selectedResourceType = (ResourceFolderType)resourceTypeComboBox.getSelectedItem();
+          directoryNameTextField.setText(selectedResourceType != null ? config.getFolderName(selectedResourceType) : "");
+          errorLabel.setText("");
+        }
+        catch (InvalidOptionValueException e) {
+          errorLabel.setText(new HtmlBuilder()
+                               .openHtmlBody()
+                               .coloredText(JBColor.RED, e.getMessage())
+                               .closeHtmlBody()
+                               .getHtml());
+          directoryNameTextField.setText("");
+        }
+        setOKActionEnabled(directoryNameTextField.getText().length() > 0);
+      }
+    };
   }
 }

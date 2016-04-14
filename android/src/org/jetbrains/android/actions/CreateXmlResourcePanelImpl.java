@@ -207,22 +207,6 @@ public class CreateXmlResourcePanelImpl implements CreateXmlResourcePanel,
     myPanel.repaint();
   }
 
-  @Override
-  public void updateFilesCombo(List<VirtualFile> directories) {
-    final Object oldItem = myFileNameCombo.getEditor().getItem();
-    final Set<String> fileNameSet = new HashSet<>();
-
-    for (VirtualFile dir : directories) {
-      for (VirtualFile file : dir.getChildren()) {
-        fileNameSet.add(file.getName());
-      }
-    }
-    final List<String> fileNames = new ArrayList<>(fileNameSet);
-    Collections.sort(fileNames);
-    myFileNameCombo.setModel(new DefaultComboBoxModel(fileNames.toArray()));
-    myFileNameCombo.getEditor().setItem(oldItem);
-  }
-
   /**
    * @see CreateXmlResourceDialog#doValidate()
    */
@@ -361,6 +345,23 @@ public class CreateXmlResourcePanelImpl implements CreateXmlResourcePanel,
   private void setChangeModuleVisible(boolean isVisible) {
     myModuleLabel.setVisible(isVisible);
     myModuleCombo.setVisible(isVisible);
+  }
+
+  // Only public for CreateXmlResourceSubdirPanel.Parent
+  @Override
+  public void updateFilesCombo(List<VirtualFile> directories) {
+    final Object oldItem = myFileNameCombo.getEditor().getItem();
+    final Set<String> fileNameSet = new HashSet<>();
+
+    for (VirtualFile dir : directories) {
+      for (VirtualFile file : dir.getChildren()) {
+        fileNameSet.add(file.getName());
+      }
+    }
+    final List<String> fileNames = new ArrayList<>(fileNameSet);
+    Collections.sort(fileNames);
+    myFileNameCombo.setModel(new DefaultComboBoxModel(fileNames.toArray()));
+    myFileNameCombo.getEditor().setItem(oldItem);
   }
 
 }
