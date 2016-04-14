@@ -49,6 +49,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.model.BuildScriptClasspathModel;
 import org.jetbrains.plugins.gradle.model.ModuleExtendedModel;
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectResolverExtension;
+import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil;
 
 import java.io.File;
 import java.io.IOException;
@@ -104,7 +105,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
 
   @NotNull
   @Override
-  public ModuleData createModule(@NotNull IdeaModule gradleModule, @NotNull ProjectData projectData) {
+  public DataNode<ModuleData> createModule(@NotNull IdeaModule gradleModule, @NotNull DataNode<ProjectData> projectDataNode) {
     AndroidProject androidProject = resolverCtx.getExtraProject(gradleModule, AndroidProject.class);
     if (androidProject != null && !isSupportedVersion(androidProject)) {
       trackSyncError(ACTION_GRADLE_SYNC_UNSUPPORTED_ANDROID_MODEL_VERSION, androidProject.getModelVersion());
@@ -112,7 +113,12 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       String msg = getUnsupportedModelVersionErrorMsg(getModelVersion(androidProject));
       throw new IllegalStateException(msg);
     }
-    return nextResolver.createModule(gradleModule, projectData);
+    if (isAndroidGradleProject(gradleModule)) {
+      return GradleProjectResolverUtil.createMainModule(resolverCtx, gradleModule, projectDataNode);
+    }
+    else {
+      return nextResolver.createModule(gradleModule, projectDataNode);
+    }
   }
 
   @Override

@@ -70,6 +70,7 @@
     <orderEntry type="module" module-name="bootstrap" scope="TEST" />
     <orderEntry type="library" name="jcip" level="project" />
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
+    <orderEntry type="module" module-name="builder-model" />
     <orderEntry type="module" module-name="rpclib" />
     <orderEntry type="module" module-name="chartlib" />
     <orderEntry type="module-library">
@@ -111,5 +112,6 @@
         <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="module" module-name="gradle-tests" scope="TEST" />
   </component>
 </module>

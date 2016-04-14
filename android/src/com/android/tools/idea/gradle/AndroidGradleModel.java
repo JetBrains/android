@@ -20,11 +20,9 @@ import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.*;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.AndroidModel;
-import com.android.tools.idea.model.ClassJarProvider;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -36,7 +34,6 @@ import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
@@ -1075,17 +1072,5 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
   @Override
   public boolean getDataBindingEnabled() {
     return GradleUtil.dependsOn(this, SdkConstants.DATA_BINDING_LIB_ARTIFACT);
-  }
-
-  @Override
-  @NotNull
-  public ClassJarProvider getClassJarProvider() {
-    return new AndroidGradleClassJarProvider();
-  }
-
-  @Override
-  @Nullable
-  public Long getLastBuildTimestamp(@NotNull Project project) {
-    return PostProjectBuildTasksExecutor.getInstance(project).getLastBuildTimestamp();
   }
 }

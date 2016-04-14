@@ -35,17 +35,15 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotifica
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testFramework.IdeaTestCase;
 import org.gradle.tooling.ProjectConnection;
-import org.jetbrains.android.newProject.AndroidModuleBuilder;
 import org.jetbrains.plugins.gradle.model.ProjectImportAction;
 import org.jetbrains.plugins.gradle.service.project.BaseGradleProjectResolverExtension;
+import org.jetbrains.plugins.gradle.service.project.DefaultProjectResolverContext;
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverExtension;
 import org.jetbrains.plugins.gradle.service.project.ProjectResolverContext;
 
 import java.util.Collection;
 
-import static com.android.tools.idea.gradle.AndroidProjectKeys.ANDROID_MODEL;
-import static com.android.tools.idea.gradle.AndroidProjectKeys.GRADLE_MODEL;
-import static com.android.tools.idea.gradle.AndroidProjectKeys.NATIVE_ANDROID_MODEL;
+import static com.android.tools.idea.gradle.AndroidProjectKeys.*;
 import static com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType.RESOLVE_PROJECT;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getChildren;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
@@ -88,7 +86,7 @@ public class AndroidGradleProjectResolverIdeaTest extends IdeaTestCase {
     String projectPath = FileUtil.toSystemDependentName(myIdeaProject.getBuildFile().getParent());
     ExternalSystemTaskNotificationListener notificationListener = new ExternalSystemTaskNotificationListenerAdapter() {
     };
-    myResolverCtx = new ProjectResolverContext(id, projectPath, null, createMock(ProjectConnection.class), notificationListener, true);
+    myResolverCtx = new DefaultProjectResolverContext(id, projectPath, null, createMock(ProjectConnection.class), notificationListener, true);
     myResolverCtx.setModels(allModels);
 
     myProjectResolver = new AndroidGradleProjectResolver(createMock(ProjectImportErrorHandler.class));
@@ -122,7 +120,8 @@ public class AndroidGradleProjectResolverIdeaTest extends IdeaTestCase {
 
     try {
       ProjectData project = myProjectResolver.createProject();
-      myProjectResolver.createModule(myAndroidModule, project);
+      DataNode<ProjectData> projectDataNode = new DataNode<ProjectData>(ProjectKeys.PROJECT, project, null);
+      myProjectResolver.createModule(myAndroidModule, projectDataNode);
       fail();
     }
     catch (IllegalStateException e) {
@@ -134,8 +133,7 @@ public class AndroidGradleProjectResolverIdeaTest extends IdeaTestCase {
   public void testPopulateModuleContentRootsWithAndroidProject() {
     ProjectData project = myProjectResolver.createProject();
     DataNode<ProjectData> projectNode = new DataNode<ProjectData>(ProjectKeys.PROJECT, project, null);
-    ModuleData module = myProjectResolver.createModule(myAndroidModule, project);
-    DataNode<ModuleData> moduleDataNode = projectNode.createChild(ProjectKeys.MODULE, module);
+    DataNode<ModuleData> moduleDataNode = myProjectResolver.createModule(myAndroidModule, projectNode);
 
     myProjectResolver.populateModuleContentRoots(myAndroidModule, moduleDataNode);
 
@@ -157,8 +155,7 @@ public class AndroidGradleProjectResolverIdeaTest extends IdeaTestCase {
   public void testPopulateModuleContentRootsWithNativeAndroidProject() {
     ProjectData project = myProjectResolver.createProject();
     DataNode<ProjectData> projectNode = new DataNode<ProjectData>(ProjectKeys.PROJECT, project, null);
-    ModuleData module = myProjectResolver.createModule(myNativeAndroidModule, project);
-    DataNode<ModuleData> moduleDataNode = projectNode.createChild(ProjectKeys.MODULE, module);
+    DataNode<ModuleData> moduleDataNode = myProjectResolver.createModule(myNativeAndroidModule, projectNode);
 
     myProjectResolver.populateModuleContentRoots(myNativeAndroidModule, moduleDataNode);
 
@@ -184,8 +181,7 @@ public class AndroidGradleProjectResolverIdeaTest extends IdeaTestCase {
   public void testPopulateModuleContentRootsWithJavaProject() {
     ProjectData project = myProjectResolver.createProject();
     DataNode<ProjectData> projectNode = new DataNode<ProjectData>(ProjectKeys.PROJECT, project, null);
-    ModuleData module = myProjectResolver.createModule(myJavaUtilModule, project);
-    DataNode<ModuleData> moduleDataNode = projectNode.createChild(ProjectKeys.MODULE, module);
+    DataNode<ModuleData> moduleDataNode = myProjectResolver.createModule(myJavaUtilModule, projectNode);
 
     myProjectResolver.populateModuleContentRoots(myJavaUtilModule, moduleDataNode);
 

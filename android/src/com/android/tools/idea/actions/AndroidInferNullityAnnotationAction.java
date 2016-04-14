@@ -34,13 +34,10 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
-import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootModificationUtil;
 import com.intellij.openapi.ui.Messages;
@@ -48,8 +45,9 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Factory;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.*;
+import com.intellij.psi.PsiDocumentManager;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
 import com.intellij.refactoring.RefactoringBundle;
 import com.intellij.usageView.UsageInfo;
 import com.intellij.usageView.UsageViewUtil;
@@ -106,7 +104,7 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
       }));
     }
     else {
-      showUsageView(project, usageInfos, scope);
+      showUsageView(project, usageInfos, scope, this);
     }
   }
 
@@ -122,50 +120,6 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
       modules.put(module, file);
     }
     return modules;
-  }
-
-  // Intellij code from InferNullityAnnotationsAction.
-  private static UsageInfo[] findUsages(@NotNull final Project project,
-                                        @NotNull final AnalysisScope scope,
-                                        final int fileCount) {
-    final NullityInferrer inferrer = new NullityInferrer(false, project);
-    final PsiManager psiManager = PsiManager.getInstance(project);
-    final Runnable searchForUsages = new Runnable() {
-      @Override
-      public void run() {
-        scope.accept(new PsiElementVisitor() {
-          int myFileCount = 0;
-
-          @Override
-          public void visitFile(final PsiFile file) {
-            myFileCount++;
-            final VirtualFile virtualFile = file.getVirtualFile();
-            final FileViewProvider viewProvider = psiManager.findViewProvider(virtualFile);
-            final Document document = viewProvider == null ? null : viewProvider.getDocument();
-            if (document == null || virtualFile.getFileType().isBinary()) return; //do not inspect binary files
-            final ProgressIndicator progressIndicator = ProgressManager.getInstance().getProgressIndicator();
-            if (progressIndicator != null) {
-              progressIndicator.setText2(ProjectUtil.calcRelativeToProjectPath(virtualFile, project));
-              progressIndicator.setFraction(((double)myFileCount) / fileCount);
-            }
-            if (file instanceof PsiJavaFile) {
-              inferrer.collect(file);
-            }
-          }
-        });
-      }
-    };
-    if (ApplicationManager.getApplication().isDispatchThread()) {
-      if (!ProgressManager.getInstance().runProcessWithProgressSynchronously(searchForUsages, INFER_NULLITY_ANNOTATIONS, true, project)) {
-        return null;
-      }
-    } else {
-      searchForUsages.run();
-    }
-
-    final List<UsageInfo> usages = new ArrayList<UsageInfo>();
-    inferrer.collect(usages);
-    return usages.toArray(new UsageInfo[usages.size()]);
   }
 
   // For Android we need to check SDK version and possibly update the gradle project file
@@ -303,7 +257,10 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
   }
 
   // Intellij code from InferNullityAnnotationsAction.
-  private static void showUsageView(@NotNull Project project, final UsageInfo[] usageInfos, @NotNull AnalysisScope scope) {
+  private static void showUsageView(@NotNull Project project,
+                                    final UsageInfo[] usageInfos,
+                                    @NotNull AnalysisScope scope,
+                                    AndroidInferNullityAnnotationAction action) {
     final UsageTarget[] targets = UsageTarget.EMPTY_ARRAY;
     final Ref<Usage[]> convertUsagesRef = new Ref<Usage[]>();
     if (!ProgressManager.getInstance().runProcessWithProgressSynchronously(new Runnable() {
@@ -327,7 +284,7 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
     presentation.setShowCancelButton(true);
     presentation.setUsagesString(RefactoringBundle.message("usageView.usagesText"));
 
-    final UsageView usageView = UsageViewManager.getInstance(project).showUsages(targets, usages, presentation, rerunFactory(project, scope));
+    final UsageView usageView = UsageViewManager.getInstance(project).showUsages(targets, usages, presentation, rerunFactory(project, scope, action));
 
     final Runnable refactoringRunnable = applyRunnable(project, new Computable<UsageInfo[]>() {
       @Override
@@ -344,14 +301,16 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
 
   // Intellij code from InferNullityAnnotationsAction.
   @NotNull
-  private static Factory<UsageSearcher> rerunFactory(@NotNull final Project project, @NotNull final AnalysisScope scope) {
+  private static Factory<UsageSearcher> rerunFactory(@NotNull final Project project,
+                                                     @NotNull final AnalysisScope scope,
+                                                     AndroidInferNullityAnnotationAction action) {
     return new Factory<UsageSearcher>() {
       @Override
       public UsageSearcher create() {
         return new UsageInfoSearcherAdapter() {
           @Override
           protected UsageInfo[] findUsages() {
-            return AndroidInferNullityAnnotationAction.findUsages(project, scope, scope.getFileCount());
+            return action.findUsages(project, scope, scope.getFileCount());
           }
 
           @Override
