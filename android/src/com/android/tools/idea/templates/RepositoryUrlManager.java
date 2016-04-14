@@ -191,17 +191,16 @@ public class RepositoryUrlManager {
     SdkMavenRepository repository = SdkMavenRepository.getByGroupId(groupId);
     if (repository == null) {
       // Could it perhaps be in the offline repo? We distribute for example the constraint layout there for now
-      File path = EmbeddedDistributionPaths.findAndroidStudioLocalMavenRepoPath();
-      if (path != null && path.isDirectory()) {
-        GradleCoordinate max = SdkMavenRepository.getHighestInstalledVersion(groupId, artifactId, path, filterPrefix, includePreviews,
-                                                                             FileOpUtils.create());
-        if (max == null) {
-          return null;
+      List<File> paths = EmbeddedDistributionPaths.findAndroidStudioLocalMavenRepoPaths();
+      for (File path : paths) {
+        if (path != null && path.isDirectory()) {
+          GradleCoordinate max = SdkMavenRepository.getHighestInstalledVersion(groupId, artifactId, path, filterPrefix, includePreviews,
+                                                                               FileOpUtils.create());
+          if (max != null) {
+            return max.getRevision();
+          }
         }
-
-        return max.getRevision();
       }
-
       return null;
     }
     AndroidSdkData sdk = tryToChooseAndroidSdk();
