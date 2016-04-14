@@ -24,6 +24,7 @@ import com.android.tools.idea.uibuilder.property.editors.NlEnumEditor;
 import com.android.tools.idea.uibuilder.property.editors.NlReferenceEditor;
 import com.google.common.collect.ImmutableSet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.util.Map;
@@ -93,7 +94,7 @@ public class FontInspectorComponent implements InspectorComponent {
     myCenterEditor = new NlBooleanIconEditor(AndroidVectorIcons.EditorIcons.AlignCenter, TextAlignment.CENTER);
     myRightEditor = new NlBooleanIconEditor(AndroidVectorIcons.EditorIcons.AlignRight, TextAlignment.TEXT_END);
     myEndEditor = new NlBooleanIconEditor(AndroidVectorIcons.EditorIcons.AlignRight, TextAlignment.VIEW_END);
-    myColorEditor = NlReferenceEditor.createForInspector(propertiesManager.getProject(), createReferenceListener());
+    myColorEditor = NlReferenceEditor.createForInspectorWithBrowseButton(propertiesManager.getProject(), createReferenceListener());
 
     myTextStylePanel = new JPanel();
     myTextStylePanel.add(myBoldEditor.getComponent());
@@ -144,9 +145,19 @@ public class FontInspectorComponent implements InspectorComponent {
   private NlEnumEditor.Listener createEnumListener() {
     return new NlEnumEditor.Listener() {
       @Override
-      public void itemPicked(@NotNull NlEnumEditor source, @NotNull String value) {
+      public void itemPicked(@NotNull NlEnumEditor source, @Nullable String value) {
         if (source.getProperty() != null) {
           myPropertiesManager.setValue(source.getProperty(), value);
+          if (source == myStyleEditor) {
+            myFontFamily.setValue(null);
+            myFontSize.setValue(null);
+            mySpacing.setValue(null);
+            myTextStyle.setValue(null);
+            myTextAllCaps.setValue(null);
+            myAlignment.setValue(null);
+            myColor.setValue(null);
+            refresh();
+          }
         }
       }
 

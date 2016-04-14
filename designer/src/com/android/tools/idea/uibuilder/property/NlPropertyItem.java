@@ -139,13 +139,27 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
         if (resource != null) {
           if (resource.getValue() != null) {
             value = resource.getValue();
+            if (resource.isFramework()) {
+              value = addAndroidPrefix(value);
+            }
           }
           ResourceValue resolved = resolver.resolveResValue(resource);
           if (resolved != null && resolved.getValue() != null) {
             value = resolved.getValue();
+            if (resource.isFramework()) {
+              value = addAndroidPrefix(value);
+            }
           }
         }
       }
+    }
+    return value;
+  }
+
+  @NotNull
+  private static String addAndroidPrefix(@NotNull String value) {
+    if (value.startsWith("@") && !value.startsWith(SdkConstants.ANDROID_PREFIX)) {
+      return SdkConstants.ANDROID_PREFIX + value.substring(1);
     }
     return value;
   }
