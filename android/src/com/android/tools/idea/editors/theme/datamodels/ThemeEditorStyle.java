@@ -434,7 +434,7 @@ public class ThemeEditorStyle {
     // we should modify every FolderConfiguration, thus we set desiredApi to -1
     final int desiredApi = (parentApi <= minSdk) ? -1 : parentApi;
 
-    new WriteCommandAction.Simple(myManager.getProject(), "Updating Parent to " + qualifiedThemeName, null) {
+    new WriteCommandAction.Simple(myManager.getProject(), "Updating Parent to " + qualifiedThemeName) {
       @Override
       protected void run() {
         // Makes the command global even if only one xml file is modified
