@@ -26,7 +26,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiManager;
@@ -34,7 +33,6 @@ import com.intellij.refactoring.rename.DirectoryAsPackageRenameHandler;
 import com.intellij.refactoring.rename.RenameHandler;
 import org.fest.swing.edt.GuiQuery;
 import org.jetbrains.android.util.AndroidBundle;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -48,7 +46,6 @@ public class RenameTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
-  @Ignore("Left modal dialog showing with title 'Rename'")
   @Test
   public void sourceRoot() throws Exception {
     guiTest.importSimpleApplication();
@@ -71,13 +68,9 @@ public class RenameTest {
             renameDialog.setNewName(renameDialog.getNewName() + 1);
             // 'Rename dialog' show a warning asynchronously to the text change, that's why we wait here for the
             // warning to appear
-            final Ref<Boolean> ok = new Ref<>();
-            Wait.minutes(2).expecting("error text to appear")
-              .until(() -> {
-                ok.set(renameDialog.warningExists(AndroidBundle.message("android.refactoring.gradle.warning.rename.source.root")));
-                return ok.get();
-              });
-            assertTrue(ok.get());
+            Wait.seconds(30).expecting("error text to appear")
+              .until(() -> renameDialog.warningExists(AndroidBundle.message("android.refactoring.gradle.warning.rename.source.root")));
+            renameDialog.clickCancel();
             return;
           }
         }
