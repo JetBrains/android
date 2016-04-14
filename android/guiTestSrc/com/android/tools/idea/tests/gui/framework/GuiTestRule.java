@@ -61,7 +61,7 @@ import java.util.concurrent.TimeUnit;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
-import static org.junit.Assume.assumeTrue;
+import static com.google.common.truth.TruthJUnit.assume;
 
 public class GuiTestRule implements TestRule {
   private static final Timeout DEFAULT_TIMEOUT = new Timeout(5, TimeUnit.MINUTES);
@@ -121,7 +121,7 @@ public class GuiTestRule implements TestRule {
         @Override
         public void evaluate() throws Throwable {
           System.out.println("Starting " + description.getDisplayName());
-          assumeTrue("An IDE internal error occurred previously.", GuiTests.fatalErrorsFromIde().isEmpty());
+          assume().that(GuiTests.fatalErrorsFromIde()).named("IDE errors").isEmpty();
           assumeOnlyWelcomeFrameShowing();
           setUp();
           List<Throwable> errors = new ArrayList<>();
@@ -146,8 +146,7 @@ public class GuiTestRule implements TestRule {
     } catch (WaitTimedOutError e) {
       throw new AssumptionViolatedException("didn't find welcome frame", e);
     }
-    List<Window> windowsShowing = GuiTests.windowsShowing();
-    assumeTrue("windows showing: " + windowsShowing, windowsShowing.size() == 1);
+    assume().that(GuiTests.windowsShowing()).named("windows showing").hasSize(1);
   }
 
   private void setUp() {
