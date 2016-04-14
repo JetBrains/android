@@ -125,7 +125,7 @@ public class ManifestEditorTest {
     MergedManifestFixture mergedManifestFixture = editor.getMergedManifestEditor();
     JTreeFixture tree = mergedManifestFixture.getTree();
     // row 28 = "manifest/application/activity/android:name = com.android.mylibrary.MainActivity"
-    JPopupMenuFixture popup = tree.showPopupMenuAt(28);
+    JPopupMenuFixture popup = tree.showPopupMenuAt(22);
     popup.menuItem(new GenericTypeMatcher<JMenuItem>(JMenuItem.class) {
       @Override
       protected boolean isMatching(@NotNull JMenuItem component) {
