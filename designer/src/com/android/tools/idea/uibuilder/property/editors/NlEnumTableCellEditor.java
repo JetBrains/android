@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.property.editors;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.ptable.PTableCellEditor;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -41,7 +42,7 @@ public class NlEnumTableCellEditor extends PTableCellEditor implements NlEnumEdi
 
   @Override
   public Object getCellEditorValue() {
-    return NlEnumEditor.UNSET.equals(myValue) ? null : myValue;
+    return myValue;
   }
 
   @Override
@@ -50,7 +51,7 @@ public class NlEnumTableCellEditor extends PTableCellEditor implements NlEnumEdi
   }
 
   @Override
-  public void itemPicked(@NotNull NlEnumEditor source, @NotNull String value) {
+  public void itemPicked(@NotNull NlEnumEditor source, @Nullable String value) {
     myValue = value;
     stopCellEditing();
   }

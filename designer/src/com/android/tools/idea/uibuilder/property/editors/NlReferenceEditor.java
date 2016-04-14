@@ -79,6 +79,10 @@ public class NlReferenceEditor {
     return new NlReferenceEditor(project, listener, false);
   }
 
+  public static NlReferenceEditor createForInspectorWithBrowseButton(@NotNull Project project, @NotNull EditingListener listener) {
+    return new NlReferenceEditor(project, listener, true);
+  }
+
   private NlReferenceEditor(@NotNull Project project, @NotNull EditingListener listener, boolean includeBrowseButton) {
     myIncludeBrowseButton = includeBrowseButton;
     myListener = listener;

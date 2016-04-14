@@ -20,14 +20,10 @@ import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.editors.NlEnumEditor;
 import com.android.tools.idea.uibuilder.property.editors.NlReferenceEditor;
-import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.ui.components.JBTextField;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.Document;
 import java.util.Map;
 
 public class IdInspectorComponent implements InspectorComponent {
@@ -95,20 +91,10 @@ public class IdInspectorComponent implements InspectorComponent {
     }
   }
 
-  private static String getText(@NotNull JBTextField textField) {
-    Document doc = textField.getDocument();
-    try {
-      return doc.getText(0, doc.getLength());
-    }
-    catch (BadLocationException e) {
-      return "";
-    }
-  }
-
   private NlEnumEditor.Listener createEnumListener() {
     return new NlEnumEditor.Listener() {
       @Override
-      public void itemPicked(@NotNull NlEnumEditor source, @NotNull String value) {
+      public void itemPicked(@NotNull NlEnumEditor source, @Nullable String value) {
         NlProperty property = source == myWidthEditor ? myWidthAttr : myHeightAttr;
         myPropertiesManager.setValue(property, value);
       }
