@@ -36,7 +36,6 @@ import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.IdeActions;
-import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
@@ -196,9 +195,9 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
         TreePath treePath = myTree.getSelectionPath();
         final ManifestTreeNode node = (ManifestTreeNode)treePath.getLastPathComponent();
 
-        new WriteCommandAction<Void>(myFacet.getModule().getProject(), "Removing manifest tag", ManifestUtils.getMainManifest(myFacet)) {
+        new WriteCommandAction.Simple(myFacet.getModule().getProject(), "Removing manifest tag", ManifestUtils.getMainManifest(myFacet)) {
           @Override
-          protected void run(@NotNull Result<Void> result) throws Throwable {
+          protected void run() throws Throwable {
             ManifestUtils.toolsRemove(ManifestUtils.getMainManifest(myFacet), node.getUserObject());
           }
         }.execute();
@@ -561,9 +560,9 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
           link = new Runnable() {
             @Override
             public void run() {
-              new WriteCommandAction<Void>(facet.getModule().getProject(), "Apply manifest suggestion", buildFile.getPsiFile(), manifestOverlayPsiFile) {
+              new WriteCommandAction.Simple(facet.getModule().getProject(), "Apply manifest suggestion", buildFile.getPsiFile(), manifestOverlayPsiFile) {
                 @Override
-                protected void run(@NotNull Result<Void> result) throws Throwable {
+                protected void run() throws Throwable {
                   if (currentlyOpenFile != null) {
                     // We mark this action as affecting the currently open file, so the Undo is available in this editor
                     CommandProcessor.getInstance().addAffectedFiles(facet.getModule().getProject(), currentlyOpenFile);
@@ -592,9 +591,9 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
         link = new Runnable() {
           @Override
           public void run() {
-            new WriteCommandAction<Void>(facet.getModule().getProject(), "Apply manifest suggestion", buildFile.getPsiFile(), manifestOverlayPsiFile) {
+            new WriteCommandAction.Simple(facet.getModule().getProject(), "Apply manifest suggestion", buildFile.getPsiFile(), manifestOverlayPsiFile) {
               @Override
-              protected void run(@NotNull Result<Void> result) throws Throwable {
+              protected void run() throws Throwable {
                 if (currentlyOpenFile != null) {
                   // We mark this action as affecting the currently open file, so the Undo is available in this editor
                   CommandProcessor.getInstance().addAffectedFiles(facet.getModule().getProject(), currentlyOpenFile);
@@ -643,9 +642,9 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
   static void addToolsAttribute(final @NotNull XmlTag xmlTag, final @NotNull String attributeName, final @NotNull String attributeValue) {
     final XmlFile file = (XmlFile)xmlTag.getContainingFile();
     final Project project = file.getProject();
-    new WriteCommandAction<Void>(project, "Apply manifest suggestion", file) {
+    new WriteCommandAction.Simple(project, "Apply manifest suggestion", file) {
       @Override
-      protected void run(@NotNull Result<Void> result) throws Throwable {
+      protected void run() throws Throwable {
         ManifestUtils.addToolsAttribute(file, xmlTag, attributeName, attributeValue);
       }
     }.execute();
