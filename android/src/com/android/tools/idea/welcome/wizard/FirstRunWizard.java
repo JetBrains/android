@@ -18,8 +18,8 @@ package com.android.tools.idea.welcome.wizard;
 import com.android.SdkConstants;
 import com.android.repository.api.ProgressIndicator;
 import com.android.sdklib.repository.AndroidSdkHandler;
-import com.android.tools.idea.sdk.wizard.legacy.LicenseAgreementStep;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
+import com.android.tools.idea.sdk.wizard.legacy.LicenseAgreementStep;
 import com.android.tools.idea.welcome.config.AndroidFirstRunPersistentData;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.install.FirstRunWizardDefaults;
@@ -47,14 +47,12 @@ public class FirstRunWizard extends DynamicWizard {
    * Second attempt will close the wizard.
    */
   private final AtomicInteger myFinishClicks = new AtomicInteger(0);
-  private final SetupJdkPath myJdkPath;
   private InstallComponentsPath myComponentsPath;
 
   public FirstRunWizard(@NotNull DynamicWizardHost host,
                         @NotNull FirstRunWizardMode mode) {
     super(null, null, WIZARD_TITLE, host);
     myMode = mode;
-    myJdkPath = new SetupJdkPath(mode);
     setTitle(WIZARD_TITLE);
   }
 
@@ -72,7 +70,6 @@ public class FirstRunWizard extends DynamicWizard {
       }
       addPath(new SingleStepPath(new FirstRunWelcomeStep(sdkExists)));
     }
-    addPath(myJdkPath);
     if (myMode == FirstRunWizardMode.NEW_INSTALL) {
       if (initialSdkLocation.getPath().isEmpty()) {
         // We don't have a default path specified, have to do custom install.
@@ -153,8 +150,7 @@ public class FirstRunWizard extends DynamicWizard {
      */
     @Override
     public boolean isStepVisible() {
-      return myFinishClicks.get() == 1 &&
-             (myJdkPath.shouldDownloadingComponentsStepBeShown() || myComponentsPath.shouldDownloadingComponentsStepBeShown());
+      return myFinishClicks.get() == 1 && myComponentsPath.shouldDownloadingComponentsStepBeShown();
     }
   }
 }
