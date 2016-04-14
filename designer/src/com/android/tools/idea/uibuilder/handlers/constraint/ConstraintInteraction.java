@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
+import com.android.tools.sherpa.structure.WidgetCompanion;
 import org.jetbrains.annotations.NotNull;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.surface.Interaction;
@@ -130,8 +131,8 @@ public class ConstraintInteraction extends Interaction {
         selectionModel.clear();
         ArrayList<NlComponent> components = new ArrayList<NlComponent>();
         for (Selection.Element selectedElement : selection.getElements()) {
-          WidgetDecorator decorator = (WidgetDecorator)selectedElement.widget.getCompanionWidget();
-          NlComponent component = (NlComponent)decorator.getCompanionObject();
+          WidgetCompanion companion = (WidgetCompanion)selectedElement.widget.getCompanionWidget();
+          NlComponent component = (NlComponent)companion.getWidgetModel();
           components.add(component);
         }
         selectionModel.setSelection(components);
@@ -149,8 +150,8 @@ public class ConstraintInteraction extends Interaction {
    * @param model the model to save to
    */
   private void commitElement(@NotNull ConstraintWidget widget, @NotNull NlModel model) {
-    WidgetDecorator decorator = (WidgetDecorator)widget.getCompanionWidget();
-    NlComponent component = (NlComponent) decorator.getCompanionObject();
+    WidgetCompanion companion = (WidgetCompanion)widget.getCompanionWidget();
+    NlComponent component = (NlComponent)companion.getWidgetModel();
     for (NlComponent c : model.getComponents()) {
       if (c.getId() != null && c.getId().equalsIgnoreCase(component.getId())) {
         component = c;

@@ -16,18 +16,15 @@
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
 import com.android.SdkConstants;
-import com.android.tools.sherpa.drawing.BlueprintColorSet;
+import com.android.tools.sherpa.drawing.*;
+import com.android.tools.sherpa.drawing.decorator.*;
+import com.android.tools.sherpa.interaction.WidgetInteractionTargets;
+import com.android.tools.sherpa.structure.WidgetCompanion;
 import org.jetbrains.annotations.NotNull;
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.ModelListener;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
-import com.android.tools.sherpa.drawing.SceneDraw;
-import com.android.tools.sherpa.drawing.ViewTransform;
-import com.android.tools.sherpa.drawing.decorator.CheckboxWidget;
-import com.android.tools.sherpa.drawing.decorator.RadiobuttonWidget;
-import com.android.tools.sherpa.drawing.decorator.WidgetDecorator;
-import com.android.tools.sherpa.drawing.decorator.TextWidget;
 import com.android.tools.sherpa.interaction.MouseInteraction;
 import com.android.tools.sherpa.interaction.WidgetMotion;
 import com.android.tools.sherpa.interaction.WidgetResize;
@@ -68,6 +65,8 @@ public class ConstraintModel {
 
   private static Lock ourLock = new ReentrantLock();
   private boolean mShowFakeUI = false;
+  private ColorSet mBlueprintColorSet = new BlueprintColorSet();
+  private ColorSet mAndroidColorSet = new AndroidColorSet();
 
   //////////////////////////////////////////////////////////////////////////////
   // Static functions
@@ -274,8 +273,8 @@ public class ConstraintModel {
       widget = myWidgetsScene.getWidget(component.getTag());
     } else {
       for (ConstraintWidget w : myWidgetsScene.getWidgets()) {
-        WidgetDecorator decorator = (WidgetDecorator)w.getCompanionWidget();
-        NlComponent c = (NlComponent)decorator.getCompanionObject();
+        WidgetCompanion companion = (WidgetCompanion)w.getCompanionWidget();
+        NlComponent c = (NlComponent)companion.getWidgetModel();
         if (component == c) {
           widget = w;
           break;
@@ -297,28 +296,17 @@ public class ConstraintModel {
           widget = new ConstraintWidget();
         }
       }
-      WidgetDecorator decorator = null;
-      if (component.getTagName().equalsIgnoreCase(SdkConstants.TEXT_VIEW)) {
-        String text = component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT);
-        decorator = new TextWidget(widget, text);
-      }
-      if (component.getTagName().equalsIgnoreCase(SdkConstants.BUTTON)) {
-        String text = component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT);
-        decorator = new TextWidget(widget, text);
-      }
-      if (component.getTagName().equalsIgnoreCase(SdkConstants.RADIO_BUTTON)) {
-        String text = component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT);
-        decorator = new TextWidget(widget, text);
-      }
-      if (component.getTagName().equalsIgnoreCase(SdkConstants.CHECK_BOX)) {
-        String text = component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT);
-        decorator = new TextWidget(widget, text);
-      }
-      if (decorator == null) {
-        decorator = new WidgetDecorator(widget);
-      }
-      decorator.setCompanionObject(component);
-      widget.setCompanionWidget(decorator);
+      WidgetDecorator blueprintDecorator = createDecorator(component, widget);
+      WidgetDecorator androidDecorator = createDecorator(component, widget);
+      blueprintDecorator.setStyle(WidgetDecorator.BLUEPRINT_STYLE);
+      androidDecorator.setStyle(WidgetDecorator.ANDROID_STYLE);
+      WidgetCompanion companion = new WidgetCompanion();
+      companion.addDecorator(blueprintDecorator);
+      companion.addDecorator(androidDecorator);
+      companion.setWidgetInteractionTargets(new WidgetInteractionTargets(widget));
+      companion.setWidgetModel(component);
+
+      widget.setCompanionWidget(companion);
       widget.setDebugName(component.getId());
       myWidgetsScene.setWidget(component.getTag(), widget);
     }
@@ -326,6 +314,36 @@ public class ConstraintModel {
     for (NlComponent child : component.getChildren()) {
       createSolverWidgetFromComponent(child);
     }
+  }
+
+  /**
+   * Return a new instance of WidgetDecorator given a component and its ConstraintWidget
+   * @param component the component we want to decorate
+   * @param widget the ConstraintWidget associated
+   * @return a new WidgetDecorator instance
+   */
+  private WidgetDecorator createDecorator(NlComponent component, ConstraintWidget widget) {
+    WidgetDecorator decorator = null;
+    if (component.getTagName().equalsIgnoreCase(SdkConstants.TEXT_VIEW)) {
+      String text = component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT);
+      decorator = new TextWidget(widget, text);
+    }
+    if (component.getTagName().equalsIgnoreCase(SdkConstants.BUTTON)) {
+      String text = component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT);
+      decorator = new ButtonWidget(widget, text);
+    }
+    if (component.getTagName().equalsIgnoreCase(SdkConstants.RADIO_BUTTON)) {
+      String text = component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT);
+      decorator = new RadiobuttonWidget(widget, text);
+    }
+    if (component.getTagName().equalsIgnoreCase(SdkConstants.CHECK_BOX)) {
+      String text = component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT);
+      decorator = new CheckboxWidget(widget, text);
+    }
+    if (decorator == null) {
+      decorator = new WidgetDecorator(widget);
+    }
+    return decorator;
   }
 
   /**
@@ -411,6 +429,13 @@ public class ConstraintModel {
   public boolean paint(@NotNull Graphics2D gc, int width, int height, boolean showAllConstraints, boolean transparent) {
     Graphics2D g = (Graphics2D) gc.create();
     WidgetDecorator.setShowFakeUI(mShowFakeUI);
+    if (transparent) {
+      mySceneDraw.setColorSet(mAndroidColorSet);
+      mySceneDraw.setCurrentStyle(WidgetDecorator.ANDROID_STYLE);
+    } else {
+      mySceneDraw.setColorSet(mBlueprintColorSet);
+      mySceneDraw.setCurrentStyle(WidgetDecorator.BLUEPRINT_STYLE);
+    }
     boolean ret = mySceneDraw.paintWidgets(width, height, myViewTransform, g, showAllConstraints, myMouseInteraction, transparent);
     g.dispose();
     return ret;

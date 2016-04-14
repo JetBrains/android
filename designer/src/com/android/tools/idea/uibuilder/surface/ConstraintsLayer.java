@@ -121,7 +121,7 @@ public class ConstraintsLayer extends Layer {
     if (handler != null && handler instanceof ViewGroupHandler) {
       ViewGroupHandler viewGroupHandler = (ViewGroupHandler)handler;
       if (viewGroupHandler.handlesPainting()) {
-        return viewGroupHandler.drawGroup(gc, myScreenView, myWidth, myHeight, component, true);
+        return viewGroupHandler.drawGroup(gc, myScreenView, myWidth, myHeight, component, showOnSelection);
       }
     }
 
