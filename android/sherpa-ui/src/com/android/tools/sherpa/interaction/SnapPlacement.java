@@ -18,6 +18,8 @@ package com.android.tools.sherpa.interaction;
 
 import com.android.tools.sherpa.drawing.SceneDraw;
 import com.android.tools.sherpa.drawing.ViewTransform;
+import com.android.tools.sherpa.drawing.decorator.WidgetDecorator;
+import com.android.tools.sherpa.structure.WidgetCompanion;
 import com.google.tnt.solver.widgets.ConstraintAnchor;
 import com.google.tnt.solver.widgets.ConstraintWidget;
 import com.google.tnt.solver.widgets.Guideline;
@@ -68,8 +70,9 @@ public class SnapPlacement {
             // do nothing, as movement is constrained
         } else {
             widget.setDrawX(candidatePoint.x);
+            WidgetCompanion widgetCompanion = (WidgetCompanion) widget.getCompanionWidget();
             WidgetInteractionTargets widgetInteraction =
-                    (WidgetInteractionTargets) widget.getCompanionWidget();
+                    widgetCompanion.getWidgetInteractionTargets();
             widgetInteraction.updatePosition(transform);
 
             if (!checkHorizontalMarginsSnap(snapCandidates, widget, candidatePoint,
@@ -106,8 +109,9 @@ public class SnapPlacement {
             // do nothing, as movement is constrained
         } else {
             widget.setDrawY(candidatePoint.y);
+            WidgetCompanion widgetCompanion = (WidgetCompanion) widget.getCompanionWidget();
             WidgetInteractionTargets widgetInteraction =
-                    (WidgetInteractionTargets) widget.getCompanionWidget();
+                    widgetCompanion.getWidgetInteractionTargets();
             widgetInteraction.updatePosition(transform);
 
             if (!checkVerticalMarginsSnap(snapCandidates, widget, candidatePoint,
