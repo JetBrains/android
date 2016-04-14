@@ -41,22 +41,13 @@ public abstract class AbstractPsNodeTreeBuilder extends AbstractBaseTreeBuilder 
     super(tree, treeModel, treeStructure);
   }
 
-  public void updateSelection() {
-    updateSelection(null);
-  }
-
-  public void updateSelection(@Nullable MatchingNodeCollector collector) {
-    Set<Object> selectedElements = getSelectedElements();
-    if (selectedElements.size() == 1) {
-      Object selection = getFirstItem(selectedElements);
-      if (selection instanceof AbstractPsModelNode) {
-        AbstractPsModelNode<?> node = (AbstractPsModelNode)selection;
-        List<?> models = node.getModels();
-        Object model = models.get(0);
-        if (model instanceof PsModel) {
-          selectMatchingNodes((PsModel)model, collector, false);
-          return;
-        }
+  public void collectNodesMatchingSelection(@Nullable MatchingNodeCollector collector) {
+    AbstractPsModelNode<?> node = getSelectedNode();
+    if (node != null) {
+      PsModel model = getFirstModel(node);
+      if (model != null) {
+        collectMatchingNodes(model, collector, false, false);
+        return;
       }
     }
     if (collector != null) {
@@ -64,11 +55,54 @@ public abstract class AbstractPsNodeTreeBuilder extends AbstractBaseTreeBuilder 
     }
   }
 
-  public void selectMatchingNodes(@NotNull PsModel model, boolean scroll) {
-    selectMatchingNodes(model, null, scroll);
+  public void updateSelection() {
+    updateSelection(null);
   }
 
-  private void selectMatchingNodes(@NotNull PsModel model, @Nullable MatchingNodeCollector collector, boolean scroll) {
+  public void updateSelection(@Nullable MatchingNodeCollector collector) {
+    AbstractPsModelNode<?> node = getSelectedNode();
+    if (node != null) {
+      PsModel model = getFirstModel(node);
+      if (model != null) {
+        collectMatchingNodes(model, collector, true, false);
+        return;
+      }
+    }
+    if (collector != null) {
+      collector.done(Collections.emptyList());
+    }
+  }
+
+  @Nullable
+  private AbstractPsModelNode<?> getSelectedNode() {
+    Set<Object> selectedElements = getSelectedElements();
+    if (selectedElements.size() == 1) {
+      Object selection = getFirstItem(selectedElements);
+      if (selection instanceof AbstractPsModelNode) {
+        return (AbstractPsModelNode)selection;
+      }
+    }
+    return null;
+  }
+
+  @Nullable
+  private static PsModel getFirstModel(@NotNull AbstractPsModelNode<?> node) {
+    List<?> models = node.getModels();
+    Object model = models.get(0);
+    if (model instanceof PsModel) {
+      return (PsModel)model;
+    }
+    return null;
+  }
+
+  public void selectMatchingNodes(@NotNull PsModel model, boolean scroll) {
+    collectMatchingNodes(model, null, true, scroll);
+  }
+
+  private void collectMatchingNodes(@NotNull PsModel model,
+                                    @Nullable MatchingNodeCollector collector,
+                                    boolean selectMatch,
+                                    boolean scroll) {
     getInitialized().doWhenDone(() -> {
       List<AbstractPsModelNode> toSelect = Lists.newArrayList();
       accept(AbstractPsModelNode.class, new TreeVisitor<AbstractPsModelNode>() {
@@ -84,7 +118,17 @@ public abstract class AbstractPsNodeTreeBuilder extends AbstractBaseTreeBuilder 
         }
       });
 
+      if (!selectMatch) {
+        if (collector != null) {
+          collector.done(collector.matchingNodes);
+        }
+        return;
+      }
+
       if (isDisposed()) {
+        if (collector != null) {
+          collector.done(Collections.emptyList());
+        }
         return;
       }
       // Expand the parents of all selected nodes, so they can be visible to the user.
