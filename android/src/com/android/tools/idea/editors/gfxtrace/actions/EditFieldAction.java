@@ -24,6 +24,10 @@ import com.android.tools.rpclib.schema.*;
 import com.android.tools.swing.util.FloatFilter;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.command.CommandProcessor;
+import com.intellij.openapi.command.UndoConfirmationPolicy;
+import com.intellij.openapi.command.undo.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -50,16 +54,19 @@ public class EditFieldAction extends AbstractAction {
   @Override
   public void actionPerformed(ActionEvent e) {
     final Container parent = myGfxTraceEditor.getComponent();
-    int result = JOptionPane.showOptionDialog(parent, myEditor, "Edit " + myNode.atom.getFieldInfo(myFieldIndex).getName(),
+    final String title = "Edit " + myNode.atom.getFieldInfo(myFieldIndex).getName();
+    int result = JOptionPane.showOptionDialog(parent, myEditor, title,
                                               JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE,
                                               null, null, null);
     if (result == JOptionPane.OK_OPTION) {
       Object value = getEditorValue(myEditor);
-      Path path = myNode.getFieldPath(myGfxTraceEditor.getAtomStream().getPath(), myFieldIndex);
-      Futures.addCallback(myGfxTraceEditor.getClient().set(path, value), new FutureCallback<Path>() {
+      final Path oldPath = myNode.getFieldPath(myGfxTraceEditor.getAtomStream().getPath(), myFieldIndex);
+
+      Futures.addCallback(myGfxTraceEditor.getClient().set(oldPath, value), new FutureCallback<Path>() {
         @Override
-        public void onSuccess(Path result) {
-          myGfxTraceEditor.activatePath(result, this);
+        public void onSuccess(Path newPath) {
+          // CommandProcessor#executeCommand NEEDS to be called from UI Thread
+          ApplicationManager.getApplication().invokeLater(() -> new ActivatePathCommand(title, oldPath, newPath).execute());
         }
 
         @Override
@@ -67,6 +74,54 @@ public class EditFieldAction extends AbstractAction {
           JOptionPane.showMessageDialog(parent, "Error: " + t);
         }
       });
+    }
+  }
+
+  class ActivatePathCommand implements Runnable, UndoableAction {
+
+    private String myName;
+    private Path myOldPath;
+    private Path myNewPath;
+
+    ActivatePathCommand(String name, Path oldPath, Path newPath) {
+      myName = name;
+      myOldPath = oldPath;
+      myNewPath = newPath;
+    }
+
+    public void execute() {
+      // create an action that can be undone
+      CommandProcessor.getInstance()
+        .executeCommand(myGfxTraceEditor.getProject(), this, myName, null, UndoConfirmationPolicy.DO_NOT_REQUEST_CONFIRMATION);
+    }
+
+    @Override
+    public void run() {
+      // do the action
+      myGfxTraceEditor.activatePath(myNewPath, EditFieldAction.this);
+      // setup what will happen for undo and redo of this action
+      UndoManager.getInstance(myGfxTraceEditor.getProject()).undoableActionPerformed(this);
+    }
+
+    @Override
+    public void undo() throws UnexpectedUndoException {
+      myGfxTraceEditor.activatePath(myOldPath, EditFieldAction.this);
+    }
+
+    @Override
+    public void redo() throws UnexpectedUndoException {
+      myGfxTraceEditor.activatePath(myNewPath, EditFieldAction.this);
+    }
+
+    @Override
+    public @Nullable DocumentReference[] getAffectedDocuments() {
+      return null;
+    }
+
+    @Override
+    public boolean isGlobal() {
+      // if i do not touch any files with a change then we HAVE to mark it as global or it does not show up in the menu
+      return true;
     }
   }
 
