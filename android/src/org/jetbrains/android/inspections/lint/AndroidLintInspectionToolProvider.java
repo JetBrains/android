@@ -839,6 +839,12 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
+  public static class AndroidLintWearableBindListenerInspection extends AndroidLintInspectionBase {
+    public AndroidLintWearableBindListenerInspection() {
+      super(AndroidBundle.message("android.lint.inspections.wearable.bind.listener"), ManifestDetector.WEARABLE_BIND_LISTENER);
+    }
+  }
+
   public static class AndroidLintMergeRootFrameInspection extends AndroidLintInspectionBase {
     public AndroidLintMergeRootFrameInspection() {
       super(AndroidBundle.message("android.lint.inspections.merge.root.frame"), MergeRootFrameLayoutDetector.ISSUE);
