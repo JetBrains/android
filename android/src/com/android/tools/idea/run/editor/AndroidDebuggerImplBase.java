@@ -97,7 +97,7 @@ public abstract class AndroidDebuggerImplBase<S extends AndroidDebuggerState> im
 
   @Override
   @NotNull
-  public String getAmStartOptions(@NotNull AndroidVersion version) {
+  public String getAmStartOptions(@NotNull S state, @NotNull AndroidVersion version) {
     return "";
   }
 }

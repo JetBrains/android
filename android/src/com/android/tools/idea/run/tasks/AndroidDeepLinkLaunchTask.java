@@ -17,6 +17,7 @@ package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.run.ConsolePrinter;
+import com.android.tools.idea.run.activity.StartActivityFlagsProvider;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.stats.UsageTracker;
 import org.jetbrains.annotations.NotNull;
@@ -27,17 +28,14 @@ import java.util.concurrent.TimeUnit;
 public class AndroidDeepLinkLaunchTask implements LaunchTask {
   @NotNull private final String myApplicationId;
   @NotNull private final String myDeepLink;
-  private final boolean myWaitForDebugger;
-  @NotNull private final String myExtraAmOptions;
+  @NotNull StartActivityFlagsProvider myStartActivityFlagsProvider;
 
   public AndroidDeepLinkLaunchTask(@NotNull String applicationId,
                                    @NotNull String deepLink,
-                                   boolean waitForDebugger,
-                                   @NotNull String extraAmOptions) {
+                                   @NotNull StartActivityFlagsProvider startActivityFlagsProvider) {
     myApplicationId = applicationId;
     myDeepLink = deepLink;
-    myWaitForDebugger = waitForDebugger;
-    myExtraAmOptions = extraAmOptions;
+    myStartActivityFlagsProvider = startActivityFlagsProvider;
   }
 
   @NotNull
@@ -61,17 +59,15 @@ public class AndroidDeepLinkLaunchTask implements LaunchTask {
     ShellCommandLauncher.execute("setprop log.tag.AppIndexApi VERBOSE", device, launchStatus, printer, 5, TimeUnit.SECONDS);
 
     // Launch deeplink
-    String command = getLaunchDeepLinkCommand(myDeepLink, myApplicationId, myWaitForDebugger, myExtraAmOptions);
+    String command = getLaunchDeepLinkCommand(myDeepLink, myApplicationId, myStartActivityFlagsProvider.getFlags(device));
     return ShellCommandLauncher.execute(command, device, launchStatus, printer, 5, TimeUnit.SECONDS);
   }
 
   @NotNull
   public static String getLaunchDeepLinkCommand(@NotNull String deepLink,
                                                 @Nullable String packageId,
-                                                boolean waitForDebugger,
                                                 @NotNull String extraFlags) {
     return "am start" +
-           (waitForDebugger ? " -D" : "") +
            " -a android.intent.action.VIEW" +
            " -c android.intent.category.BROWSABLE" +
            " -d " + deepLink +

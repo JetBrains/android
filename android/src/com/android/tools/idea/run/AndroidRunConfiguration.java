@@ -15,13 +15,17 @@
  */
 package com.android.tools.idea.run;
 
+import com.android.ddmlib.IDevice;
 import com.android.tools.idea.fd.InstantRunManager;
 import com.android.tools.idea.fd.InstantRunSettings;
 import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.run.activity.DefaultStartActivityFlagsProvider;
+import com.android.tools.idea.run.activity.StartActivityFlagsProvider;
 import com.android.tools.idea.run.editor.*;
 import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.google.common.base.Predicates;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.Executor;
@@ -197,13 +201,11 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
     LaunchOptionState state = getLaunchOptionState(MODE);
     assert state != null;
 
+    final StartActivityFlagsProvider startActivityFlagsProvider = new DefaultStartActivityFlagsProvider(
+      getAndroidDebugger(), getAndroidDebuggerState(), waitForDebugger, ACTIVITY_EXTRA_FLAGS);
+
     try {
-      return state.getLaunchTask(apkProvider.getPackageName(),
-                                 facet,
-                                 waitForDebugger,
-                                 getAndroidDebugger(),
-                                 ACTIVITY_EXTRA_FLAGS,
-                                 getProfilerState());
+      return state.getLaunchTask(apkProvider.getPackageName(), facet, startActivityFlagsProvider, getProfilerState());
     }
     catch (ApkProvisionException e) {
       Logger.getInstance(AndroidRunConfiguration.class).error(e);

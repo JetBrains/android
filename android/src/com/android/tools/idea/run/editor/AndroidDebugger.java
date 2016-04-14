@@ -66,5 +66,5 @@ public interface AndroidDebugger<S extends AndroidDebuggerState> {
   }
 
   @NotNull
-  String getAmStartOptions(@NotNull AndroidVersion version);
+  String getAmStartOptions(@NotNull S state, @NotNull AndroidVersion version);
 }
