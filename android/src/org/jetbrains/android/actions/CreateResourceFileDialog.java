@@ -156,7 +156,7 @@ public class CreateResourceFileDialog extends CreateResourceFileDialogBase {
     }
     myModuleCombo.setSelectedModule(module);
 
-    CreateResourceActionBase.updateSourceSetCombo(mySourceSetLabel, mySourceSetCombo,
+    CreateResourceDialogUtils.updateSourceSetCombo(mySourceSetLabel, mySourceSetCombo,
                                                   modulesSet.size() == 1 ? AndroidFacet.getInstance(modulesSet.iterator().next()) : null);
 
     myDeviceConfiguratorPanel.updateAll();
@@ -294,7 +294,7 @@ public class CreateResourceFileDialog extends CreateResourceFileDialogBase {
       return myResDirectory;
     }
     Module module = getSelectedModule();
-    return CreateResourceActionBase.getResourceDirectory(getSourceProvider(), module, true);
+    return CreateResourceDialogUtils.getResourceDirectory(getSourceProvider(), module, true);
   }
 
   @NotNull
@@ -306,7 +306,7 @@ public class CreateResourceFileDialog extends CreateResourceFileDialogBase {
 
   @Nullable
   private SourceProvider getSourceProvider() {
-    return CreateResourceActionBase.getSourceProvider(mySourceSetCombo);
+    return CreateResourceDialogUtils.getSourceProvider(mySourceSetCombo);
   }
 
   @NotNull

@@ -59,7 +59,8 @@ public class CreateResourceDirectoryAction extends CreateResourceActionBase {
 
     NewResourceCreationHandler newResourceHandler = NewResourceCreationHandler.getInstance(project);
     CreateResourceDirectoryDialogBase dialog = newResourceHandler.createNewResourceDirectoryDialog(
-      project, LangDataKeys.MODULE.getData(dataContext), folderType, findResourceDirectory(dataContext), dataContext,
+      project, LangDataKeys.MODULE.getData(dataContext), folderType,
+      CreateResourceDialogUtils.findResourceDirectory(dataContext), dataContext,
       resDirectory -> new MyInputValidator(project, resDirectory));
     dialog.setTitle(AndroidBundle.message("new.resource.dir.dialog.title"));
     if (!dialog.showAndGet()) {

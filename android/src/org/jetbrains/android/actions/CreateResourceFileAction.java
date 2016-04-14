@@ -204,7 +204,7 @@ public class CreateResourceFileAction extends CreateResourceActionBase {
     NewResourceCreationHandler newResourceHandler = NewResourceCreationHandler.getInstance(project);
     final CreateResourceFileDialogBase dialog = newResourceHandler.createNewResourceFileDialog(
       facet, mySubactions.values(), folderType, null, null, config, true,
-      false, findResourceDirectory(dataContext), dataContext, createValidatorFactory(project));
+      false, CreateResourceDialogUtils.findResourceDirectory(dataContext), dataContext, createValidatorFactory(project));
     if (!dialog.showAndGet()) {
       return PsiElement.EMPTY_ARRAY;
     }

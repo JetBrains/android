@@ -116,7 +116,7 @@ public class CreateXmlResourcePanelImpl implements CreateXmlResourcePanel,
     }
 
     ApplicationManager.getApplication().assertReadAccessAllowed();
-    CreateResourceActionBase.updateSourceSetCombo(mySourceSetLabel, mySourceSetCombo,
+    CreateResourceDialogUtils.updateSourceSetCombo(mySourceSetLabel, mySourceSetCombo,
                                                   modulesSet.size() == 1 ? AndroidFacet.getInstance(modulesSet.iterator().next()) : null);
 
     if (defaultFile == null) {
@@ -302,7 +302,7 @@ public class CreateXmlResourcePanelImpl implements CreateXmlResourcePanel,
 
   @Nullable
   private SourceProvider getSourceProvider() {
-    return CreateResourceActionBase.getSourceProvider(mySourceSetCombo);
+    return CreateResourceDialogUtils.getSourceProvider(mySourceSetCombo);
   }
 
   @Override
@@ -318,7 +318,7 @@ public class CreateXmlResourcePanelImpl implements CreateXmlResourcePanel,
     if (module == null) {
       return null;
     }
-    PsiDirectory resDirectory = CreateResourceActionBase.getResourceDirectory(getSourceProvider(), module, true);
+    PsiDirectory resDirectory = CreateResourceDialogUtils.getResourceDirectory(getSourceProvider(), module, true);
     return resDirectory != null ? resDirectory.getVirtualFile() : null;
   }
 
