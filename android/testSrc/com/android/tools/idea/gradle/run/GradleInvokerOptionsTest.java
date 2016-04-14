@@ -74,8 +74,10 @@ public class GradleInvokerOptionsTest {
 
   @Test
   public void userGoalsHaveNoInstantRunOptions() throws Exception {
+    GradleInvokerOptions.BuildOptions buildOptions = new GradleInvokerOptions.BuildOptions(myDevices);
+
     GradleInvokerOptions options =
-      GradleInvokerOptions.create(GradleInvoker.TestCompileType.NONE, null, myTasksProvider, ourRunAsSupported, "foo", null);
+      GradleInvokerOptions.create(GradleInvoker.TestCompileType.NONE, buildOptions, myTasksProvider, ourRunAsSupported, "foo", null);
 
     assertEquals(options.tasks, Collections.singletonList("foo"));
     assertTrue("Command line arguments aren't set for user goals", options.commandLineArguments.isEmpty());
@@ -86,11 +88,31 @@ public class GradleInvokerOptionsTest {
     List<String> tasks = Collections.singletonList("compileUnitTest");
     when(myTasksProvider.getUnitTestTasks(BuildMode.COMPILE_JAVA)).thenReturn(tasks);
 
+    GradleInvokerOptions.BuildOptions buildOptions = new GradleInvokerOptions.BuildOptions(myDevices);
+
     GradleInvokerOptions options =
-      GradleInvokerOptions.create(GradleInvoker.TestCompileType.JAVA_TESTS, null, myTasksProvider, ourRunAsSupported, null, null);
+      GradleInvokerOptions.create(GradleInvoker.TestCompileType.JAVA_TESTS, buildOptions, myTasksProvider, ourRunAsSupported, null, null);
 
     assertEquals(tasks, options.tasks);
     assertTrue("Command line arguments aren't set for unit test tasks", options.commandLineArguments.isEmpty());
+  }
+
+  @Test
+  public void buildWithoutInstantRun() throws Exception {
+    when(myDevice.getVersion()).thenReturn(new AndroidVersion(20, null));
+    when(myDevice.getDensity()).thenReturn(640);
+    when(myDevice.getAbis()).thenReturn(ImmutableList.of(Abi.ARMEABI, Abi.X86));
+
+    GradleInvokerOptions.BuildOptions buildOptions = new GradleInvokerOptions.BuildOptions(myDevices);
+
+    GradleInvokerOptions options =
+      GradleInvokerOptions.create(GradleInvoker.TestCompileType.NONE, buildOptions, myTasksProvider,
+                                  ourRunAsSupported, null, null);
+
+    assertTrue(options.commandLineArguments.contains("-Pandroid.injected.build.api=20"));
+    assertTrue(options.commandLineArguments.contains("-Pandroid.injected.build.abi=armeabi,x86"));
+    assertTrue(options.commandLineArguments.contains("-Pandroid.injected.build.density=xxxhdpi"));
+    assertEquals(ASSEMBLE_TASKS, options.tasks);
   }
 
   @Test
