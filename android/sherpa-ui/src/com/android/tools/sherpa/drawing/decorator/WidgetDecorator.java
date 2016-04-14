@@ -39,7 +39,10 @@ import java.util.EnumSet;
 /**
  * Base class for painting a widget in blueprint mode
  */
-public class WidgetDecorator extends WidgetInteractionTargets {
+public class WidgetDecorator {
+
+    public static final int BLUEPRINT_STYLE = 0;
+    public static final int ANDROID_STYLE = 1;
 
     private static boolean sShowAllConstraints = false;
     private static boolean sShowTextUI = false;
@@ -60,7 +63,8 @@ public class WidgetDecorator extends WidgetInteractionTargets {
 
     private ColorTheme.Look mLook;
 
-    private Object mCompanionObject = null;
+    protected final ConstraintWidget mWidget;
+    private int mStyle;
 
     /**
      * Utility function to load an image from the resources
@@ -90,7 +94,7 @@ public class WidgetDecorator extends WidgetInteractionTargets {
      * @param widget the widget we are decorating
      */
     public WidgetDecorator(ConstraintWidget widget) {
-        super(widget);
+        mWidget = widget;
     }
 
     public void setColorSet(ColorSet colorSet) {
@@ -130,24 +134,6 @@ public class WidgetDecorator extends WidgetInteractionTargets {
                 constraints,
                 constraints,
                 highlighted);
-    }
-
-    /**
-     * Setter for a companion object
-     *
-     * @param object a companion object
-     */
-    public void setCompanionObject(Object object) {
-        mCompanionObject = object;
-    }
-
-    /**
-     * Getter for a companion object
-     *
-     * @return the companion object
-     */
-    public Object getCompanionObject() {
-        return mCompanionObject;
     }
 
     /**
@@ -344,11 +330,9 @@ public class WidgetDecorator extends WidgetInteractionTargets {
             mShowSizeIndicator = false;
         }
 
-        updatePosition(transform);
-
         WidgetDraw.drawWidgetFrame(transform, g, mWidget,
                 mDisplayAnchorsPolicy, mShowResizeHandles,
-                mShowSizeIndicator, mIsSelected);
+                mShowSizeIndicator, mIsSelected, mStyle);
 
         if (!WidgetDecorator.isShowFakeUI()) {
             if (mWidget.getVisibility() == ConstraintWidget.INVISIBLE) {
@@ -584,4 +568,11 @@ public class WidgetDecorator extends WidgetInteractionTargets {
     public void mouseRelease(int x, int y, ViewTransform transform, Selection selection) {
     }
 
+    public int getStyle() {
+        return mStyle;
+    }
+
+    public void setStyle(int style) {
+        mStyle = style;
+    }
 }

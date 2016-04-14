@@ -80,7 +80,7 @@ public class WidgetsScene {
      */
     public void createGroupFromWidgets(ArrayList<ConstraintWidget> widgets) {
         ConstraintWidgetContainer container = new ConstraintWidgetContainer();
-        container.setCompanionWidget(new WidgetDecorator(container));
+        container.setCompanionWidget(WidgetCompanion.create(container));
         createContainerFromWidgets(widgets, container, createContainerName("group"));
     }
 
@@ -171,7 +171,8 @@ public class WidgetsScene {
         ConstraintWidget found = null;
         ArrayList<ConstraintWidget> selection = mSelection.getWidgets();
         for (ConstraintWidget widget : selection) {
-            WidgetDecorator decorator = (WidgetDecorator) widget.getCompanionWidget();
+            WidgetCompanion companion = (WidgetCompanion) widget.getCompanionWidget();
+            WidgetDecorator decorator = companion.getWidgetDecorator(WidgetDecorator.BLUEPRINT_STYLE);
             if (!decorator.isVisible()) {
                 continue;
             }
@@ -201,10 +202,12 @@ public class WidgetsScene {
      * @return a widget if found, null otherwise
      */
     public ConstraintWidget findWidget(ConstraintWidgetContainer container, float x, float y) {
-        WidgetDecorator containerDecorator = (WidgetDecorator) container.getCompanionWidget();
+        WidgetCompanion companion = (WidgetCompanion) container.getCompanionWidget();
+        WidgetDecorator containerDecorator = companion.getWidgetDecorator(WidgetDecorator.BLUEPRINT_STYLE);
         if (!containerDecorator.isVisible()) {
             return null;
         }
+
         ConstraintWidget found = null;
         if (container == getRoot()) {
             // First, check the current selection
@@ -221,8 +224,9 @@ public class WidgetsScene {
             found = container;
         }
         for (ConstraintWidget widget : container.getChildren()) {
-            WidgetDecorator decorator = (WidgetDecorator) widget.getCompanionWidget();
-            if (!decorator.isVisible()) {
+            WidgetCompanion widgetCompanion = (WidgetCompanion) widget.getCompanionWidget();
+            WidgetDecorator widgetDecorator = widgetCompanion.getWidgetDecorator(WidgetDecorator.BLUEPRINT_STYLE);
+            if (!widgetDecorator.isVisible()) {
                 continue;
             }
             if (widget instanceof ConstraintWidgetContainer) {
@@ -258,7 +262,8 @@ public class WidgetsScene {
         ArrayList<ConstraintWidget> found = new ArrayList<ConstraintWidget>();
         Rectangle area = new Rectangle(x, y, width, height);
         for (ConstraintWidget widget : container.getChildren()) {
-            WidgetDecorator decorator = (WidgetDecorator) widget.getCompanionWidget();
+            WidgetCompanion companion = (WidgetCompanion) widget.getCompanionWidget();
+            WidgetDecorator decorator = companion.getWidgetDecorator(WidgetDecorator.BLUEPRINT_STYLE);
             if (!decorator.isVisible()) {
                 continue;
             }
@@ -281,12 +286,12 @@ public class WidgetsScene {
      */
     private ResizeHandle findResizeHandleInWidget(ConstraintWidget widget,
             float x, float y, ViewTransform transform) {
-        WidgetDecorator decorator = (WidgetDecorator) widget.getCompanionWidget();
+        WidgetCompanion companion = (WidgetCompanion) widget.getCompanionWidget();
+        WidgetDecorator decorator = companion.getWidgetDecorator(WidgetDecorator.BLUEPRINT_STYLE);
         if (!decorator.isVisible()) {
             return null;
         }
-        WidgetInteractionTargets widgetInteraction =
-                (WidgetInteractionTargets) widget.getCompanionWidget();
+        WidgetInteractionTargets widgetInteraction = companion.getWidgetInteractionTargets();
         widgetInteraction.updatePosition(transform);
         ResizeHandle handle = widgetInteraction.findResizeHandle(x, y);
         if (handle != null) {
@@ -345,8 +350,8 @@ public class WidgetsScene {
             if (!checkGuidelines && (widget instanceof Guideline)) {
                 continue;
             }
-            WidgetInteractionTargets widgetInteraction =
-                    (WidgetInteractionTargets) widget.getCompanionWidget();
+            WidgetCompanion companion = (WidgetCompanion) widget.getCompanionWidget();
+            WidgetInteractionTargets widgetInteraction = companion.getWidgetInteractionTargets();
             widgetInteraction.updatePosition(viewTransform);
             widgetInteraction.findClosestConnection(viewTransform, x, y, candidate, mousePress);
         }
@@ -387,8 +392,8 @@ public class WidgetsScene {
             if (!checkGuidelines && (widget instanceof Guideline)) {
                 continue;
             }
-            WidgetInteractionTargets widgetInteraction =
-                    (WidgetInteractionTargets) widget.getCompanionWidget();
+            WidgetCompanion companion = (WidgetCompanion) widget.getCompanionWidget();
+            WidgetInteractionTargets widgetInteraction = companion.getWidgetInteractionTargets();
             widgetInteraction.updatePosition(viewTransform);
             widgetInteraction.findClosestConnection(viewTransform, x, y, candidate, mousePress);
         }
@@ -405,12 +410,12 @@ public class WidgetsScene {
             if (!checkGuidelines && (widget instanceof Guideline)) {
                 continue;
             }
-            WidgetDecorator decorator = (WidgetDecorator) widget.getCompanionWidget();
+            WidgetCompanion companion = (WidgetCompanion) widget.getCompanionWidget();
+            WidgetDecorator decorator = companion.getWidgetDecorator(WidgetDecorator.BLUEPRINT_STYLE);
             if (!decorator.isVisible()) {
                 continue;
             }
-            WidgetInteractionTargets widgetInteraction =
-                    (WidgetInteractionTargets) widget.getCompanionWidget();
+            WidgetInteractionTargets widgetInteraction = companion.getWidgetInteractionTargets();
             widgetInteraction.updatePosition(viewTransform);
             widgetInteraction.findClosestConnection(viewTransform, x, y, candidate, mousePress);
         }
@@ -477,7 +482,7 @@ public class WidgetsScene {
             ConstraintWidgetContainer newContainer) {
         ConstraintWidgetContainer parent = (ConstraintWidgetContainer) oldContainer.getParent();
         if (newContainer.getCompanionWidget() == null) {
-            newContainer.setCompanionWidget(new WidgetDecorator(newContainer));
+            newContainer.setCompanionWidget(WidgetCompanion.create(newContainer));
         }
         newContainer.setOrigin(oldContainer.getX(), oldContainer.getY());
         newContainer.setDimension(oldContainer.getWidth(), oldContainer.getHeight());
@@ -553,7 +558,7 @@ public class WidgetsScene {
                 ConstraintWidgetContainer.createContainer(containerInstance, name, widgets, 8);
         if (container != null) {
             if (container.getCompanionWidget() == null) {
-                container.setCompanionWidget(new WidgetDecorator(container));
+                container.setCompanionWidget(WidgetCompanion.create(container));
             }
             parent.add(container);
             mWidgets.put(container.getDebugName(), container);
@@ -773,8 +778,8 @@ public class WidgetsScene {
     public void updatePositions(ViewTransform viewTransform) {
         for (ConstraintWidget widget : mWidgets.values()) {
             widget.updateDrawPosition();
-            WidgetInteractionTargets widgetInteraction =
-                    (WidgetInteractionTargets) widget.getCompanionWidget();
+            WidgetCompanion companion = (WidgetCompanion) widget.getCompanionWidget();
+            WidgetInteractionTargets widgetInteraction = companion.getWidgetInteractionTargets();
             widgetInteraction.updatePosition(viewTransform);
         }
     }

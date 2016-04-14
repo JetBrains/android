@@ -17,6 +17,7 @@
 package com.android.tools.sherpa.interaction;
 
 import com.android.tools.sherpa.drawing.ViewTransform;
+import com.android.tools.sherpa.structure.WidgetCompanion;
 import com.android.tools.sherpa.structure.WidgetsScene;
 import com.android.tools.sherpa.structure.Selection;
 import com.google.tnt.solver.widgets.Animator;
@@ -137,7 +138,8 @@ public class WidgetMotion {
             candidatePoint.x = widget.origin.x;
         }
         widget.widget.setDrawOrigin(candidatePoint.x, candidatePoint.y);
-        WidgetInteractionTargets widgetInteraction = (WidgetInteractionTargets) widget.widget.getCompanionWidget();
+        WidgetCompanion widgetCompanion = (WidgetCompanion) widget.widget.getCompanionWidget();
+        WidgetInteractionTargets widgetInteraction = widgetCompanion.getWidgetInteractionTargets();
         widgetInteraction.updatePosition(transform);
 
         mSimilarMargins.clear();

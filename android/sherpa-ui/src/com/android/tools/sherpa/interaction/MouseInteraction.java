@@ -23,6 +23,7 @@ import com.android.tools.sherpa.drawing.SnapDraw;
 import com.android.tools.sherpa.drawing.ViewTransform;
 import com.android.tools.sherpa.drawing.decorator.WidgetDecorator;
 import com.android.tools.sherpa.structure.Selection;
+import com.android.tools.sherpa.structure.WidgetCompanion;
 import com.android.tools.sherpa.structure.WidgetsScene;
 import com.google.tnt.solver.widgets.ConstraintAnchor;
 import com.google.tnt.solver.widgets.ConstraintWidget;
@@ -348,7 +349,8 @@ public class MouseInteraction {
 
         // give a chance to widgets to respond to a mouse press even if out of bounds
         for (ConstraintWidget w : mWidgetsScene.getWidgets()) {
-            WidgetDecorator decorator = (WidgetDecorator) w.getCompanionWidget();
+            WidgetCompanion widgetCompanion = (WidgetCompanion) w.getCompanionWidget();
+            WidgetDecorator decorator = widgetCompanion.getWidgetDecorator(WidgetDecorator.BLUEPRINT_STYLE);
             ConstraintWidget widgetHit = decorator.mousePressed(x, y, mViewTransform, mSelection);
             if (widgetHit != null && widget == null) {
                 widget = widgetHit;
@@ -478,7 +480,8 @@ public class MouseInteraction {
 
         // give a chance to widgets to respond to a mouse press
         for (Selection.Element selection : mSelection.getElements()) {
-            WidgetDecorator decorator = (WidgetDecorator) selection.widget.getCompanionWidget();
+            WidgetCompanion widgetCompanion = (WidgetCompanion) selection.widget.getCompanionWidget();
+            WidgetDecorator decorator = widgetCompanion.getWidgetDecorator(WidgetDecorator.BLUEPRINT_STYLE);
             decorator.mouseRelease(x, y, mViewTransform, mSelection);
         }
 
