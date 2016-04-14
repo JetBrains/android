@@ -34,6 +34,6 @@ public class ResourceFoldingBuilderTest extends AndroidTestCase {
     final String fileName = getTestName(true) + extension;
     final VirtualFile file = myFixture.copyFileToProject("/folding/" + fileName, "src/p1/p2/" + fileName);
 
-    myFixture.testFoldingWithCollapseStatus(file.getPath(), file.getPath());
+    myFixture.testFoldingWithCollapseStatus(file.getPath());
   }
 }

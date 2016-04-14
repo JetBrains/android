@@ -60,6 +60,7 @@ import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
+import com.intellij.util.SmartList;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -202,7 +203,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
       ProjectManagerEx projectManager = ProjectManagerEx.getInstanceEx();
       Project[] openProjects = projectManager.getOpenProjects();
       if (openProjects.length > 0) {
-        PlatformTestCase.closeAndDisposeProjectAndCheckThatNoOpenProjects(openProjects[0]);
+        PlatformTestCase.closeAndDisposeProjectAndCheckThatNoOpenProjects(openProjects[0], new SmartList<>());
       }
     }
     finally {

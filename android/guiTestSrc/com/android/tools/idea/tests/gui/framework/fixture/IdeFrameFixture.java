@@ -458,7 +458,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
       public boolean test() {
         if (buildMode == SOURCE_GEN) {
           PostProjectBuildTasksExecutor tasksExecutor = PostProjectBuildTasksExecutor.getInstance(project);
-          if (tasksExecutor.getLastBuildTimestamp() != null) {
+          if (tasksExecutor.getLastBuildTimestamp() > -1) {
             // This will happen when creating a new project. Source generation happens before the IDE frame is found and build listeners
             // are created. It is fairly safe to assume that source generation happened if we have a timestamp for a "last performed build".
             return true;

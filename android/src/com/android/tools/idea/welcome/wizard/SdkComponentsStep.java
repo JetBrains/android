@@ -365,7 +365,6 @@ public class SdkComponentsStep extends FirstRunWizardStep {
                   new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
                                       GridConstraints.SIZEPOLICY_FIXED, null, null, null, indent * 2));
       AccessibleContextUtil.setName(myPanel, myCheckBox);
-      AccessibleContextUtil.setDescription(myPanel, myTableModel.getComponentDescription(row));
     }
 
     private Border getCellBorder(JTable table, boolean isSelectedFocus) {

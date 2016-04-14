@@ -36,9 +36,9 @@ public class AndroidDeviceRenderer extends ColoredListCellRenderer<DevicePickerE
   }
 
   @Override
-  public Component getListCellRendererComponent(JList list, Object value, int index, boolean selected, boolean hasFocus) {
-    if (value instanceof DevicePickerEntry && ((DevicePickerEntry)value).isMarker()) {
-      String marker = ((DevicePickerEntry)value).getMarker();
+  public Component getListCellRendererComponent(JList<? extends DevicePickerEntry> list, DevicePickerEntry value, int index, boolean selected, boolean hasFocus) {
+    if (value != null && value.isMarker()) {
+      String marker = value.getMarker();
       assert marker != null : "device picker marker entry doesn't have a descriptive string";
 
       if (value == DevicePickerEntry.NONE) {
@@ -53,7 +53,7 @@ public class AndroidDeviceRenderer extends ColoredListCellRenderer<DevicePickerE
   }
 
   @Override
-  protected void customizeCellRenderer(JList list, DevicePickerEntry entry, int index, boolean selected, boolean hasFocus) {
+  protected void customizeCellRenderer(@NotNull JList list, DevicePickerEntry entry, int index, boolean selected, boolean hasFocus) {
     AndroidDevice device = entry.getAndroidDevice();
     assert device != null;
 

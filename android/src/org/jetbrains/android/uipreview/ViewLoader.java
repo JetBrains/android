@@ -519,18 +519,8 @@ public class ViewLoader {
   private void loadAndParseRClass(@NotNull String className) throws ClassNotFoundException, InconvertibleClassError {
     Class<?> aClass = myLoadedClasses.get(className);
     if (aClass == null) {
-      final ModuleClassLoader moduleClassLoader = getModuleClassLoader();
-      final boolean isClassLoaded = moduleClassLoader.isClassLoaded(className);
-      aClass = moduleClassLoader.loadClass(className);
+      aClass = getModuleClassLoader().loadClass(className);
 
-      if (!isClassLoaded && aClass != null) {
-        // This is the first time we've found the resources. The dynamic R classes generated for aar libraries are now stale and must be
-        // regenerated. Clear the ModuleClassLoader and reload the R class.
-        myLoadedClasses.clear();
-        ModuleClassLoader.clearCache(myModule);
-        myModuleClassLoader = null;
-        aClass = getModuleClassLoader().loadClass(className);
-      }
       if (aClass != null) {
         myLoadedClasses.put(className, aClass);
         myLogger.setHasLoadedClasses(true);

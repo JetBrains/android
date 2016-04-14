@@ -25,7 +25,7 @@ import com.intellij.openapi.options.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectBundle;
 import com.intellij.openapi.project.ProjectManager;
-import com.intellij.openapi.roots.ui.configuration.ConfigurationErrorsComponent;
+import com.intellij.openapi.roots.ui.configuration.ErrorPaneConfigurable;
 import com.intellij.openapi.roots.ui.configuration.ModulesConfigurator;
 import com.intellij.openapi.roots.ui.configuration.SidePanel;
 import com.intellij.openapi.roots.ui.configuration.projectRoot.BaseStructureConfigurable;
@@ -78,7 +78,7 @@ public class ProjectStructureConfigurable extends BaseConfigurable
   private SidePanel mySidePanel;
   private JPanel myNotificationPanel;
   private JComponent myToolbarComponent;
-  private ConfigurationErrorsComponent myErrorsComponent;
+  private ErrorPaneConfigurable myErrorsComponent;
   private JComponent myToFocus;
 
   private boolean myUiInitialized;
@@ -288,8 +288,8 @@ public class ProjectStructureConfigurable extends BaseConfigurable
     mySplitter.setSecondComponent(myDetails);
 
     component.add(mySplitter, BorderLayout.CENTER);
-    myErrorsComponent = new ConfigurationErrorsComponent(myProject);
-    component.add(myErrorsComponent, BorderLayout.SOUTH);
+    myErrorsComponent = new ErrorPaneConfigurable(myProject, myContext, null);
+    component.add(myErrorsComponent.createComponent(), BorderLayout.SOUTH);
 
     myUiInitialized = true;
 

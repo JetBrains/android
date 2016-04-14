@@ -15,12 +15,16 @@
  */
 package com.android.tools.idea.gradle.stubs.android;
 
+import com.android.annotations.NonNull;
 import com.android.builder.model.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 public class ProductFlavorStub implements ProductFlavor {
   @NotNull private final String myName;
@@ -109,6 +113,12 @@ public class ProductFlavorStub implements ProductFlavor {
   @Override
   @Nullable
   public String getTestInstrumentationRunner() {
+    throw new UnsupportedOperationException();
+  }
+
+  @NonNull
+  @Override
+  public Map<String, String> getTestInstrumentationRunnerArguments() {
     throw new UnsupportedOperationException();
   }
 

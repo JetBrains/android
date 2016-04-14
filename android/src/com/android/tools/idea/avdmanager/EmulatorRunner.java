@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.avdmanager;
 
-import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.ISystemImage;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.run.ExternalToolRunner;
@@ -60,7 +59,7 @@ public class EmulatorRunner extends ExternalToolRunner {
     // Override the default process killing behavior:
     // The emulator process should not be killed forcibly since it would leave stale lock files around.
     // We want to preserve the behavior that once an emulator is launched, that process runs even if the IDE is closed
-    return new EmulatorProcessHandler(process, commandLine);
+    return new EmulatorProcessHandler(process);
   }
 
   @Override
