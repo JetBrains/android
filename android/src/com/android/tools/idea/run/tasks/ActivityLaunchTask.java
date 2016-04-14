@@ -18,7 +18,7 @@ package com.android.tools.idea.run.tasks;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.activity.AndroidActivityLauncher;
-import com.android.tools.idea.run.editor.AndroidDebugger;
+import com.android.tools.idea.run.activity.StartActivityFlagsProvider;
 import com.android.tools.idea.run.util.LaunchStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -27,18 +27,12 @@ import java.util.concurrent.TimeUnit;
 
 public abstract class ActivityLaunchTask implements LaunchTask {
   @NotNull private final String myApplicationId;
-  private final boolean myWaitForDebugger;
-  @Nullable private final AndroidDebugger myAndroidDebugger;
-  @NotNull private final String myExtraAmOptions;
+  @NotNull private final StartActivityFlagsProvider myStartActivityFlagsProvider;
 
   public ActivityLaunchTask(@NotNull String applicationId,
-                            boolean waitForDebugger,
-                            @Nullable AndroidDebugger androidDebugger,
-                            @NotNull String extraAmOptions) {
+                            @NotNull StartActivityFlagsProvider startActivityFlagsProvider) {
     myApplicationId = applicationId;
-    myWaitForDebugger = waitForDebugger;
-    myAndroidDebugger = androidDebugger;
-    myExtraAmOptions = extraAmOptions;
+    myStartActivityFlagsProvider = startActivityFlagsProvider;
   }
 
   @NotNull
@@ -60,13 +54,7 @@ public abstract class ActivityLaunchTask implements LaunchTask {
     }
 
     final String activityPath = AndroidActivityLauncher.getLauncherActivityPath(myApplicationId, activityName);
-
-    String extraAmOptions = myExtraAmOptions;
-    if (myWaitForDebugger && myAndroidDebugger != null) {
-      extraAmOptions += (extraAmOptions.isEmpty() ? "" : " ") + myAndroidDebugger.getAmStartOptions(device.getVersion());
-    }
-
-    String command = AndroidActivityLauncher.getStartActivityCommand(activityPath, myWaitForDebugger, extraAmOptions);
+    String command = AndroidActivityLauncher.getStartActivityCommand(activityPath, myStartActivityFlagsProvider.getFlags(device));
     return ShellCommandLauncher.execute(command, device, launchStatus, printer, 5, TimeUnit.SECONDS);
   }
 

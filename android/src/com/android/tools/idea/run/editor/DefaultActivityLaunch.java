@@ -17,10 +17,7 @@ package com.android.tools.idea.run.editor;
 
 import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.run.ValidationError;
-import com.android.tools.idea.run.activity.ActivityLocator;
-import com.android.tools.idea.run.activity.DefaultActivityLocator;
-import com.android.tools.idea.run.activity.MavenDefaultActivityLocator;
-import com.android.tools.idea.run.activity.StaticActivityLocator;
+import com.android.tools.idea.run.activity.*;
 import com.android.tools.idea.run.tasks.DefaultActivityLaunchTask;
 import com.android.tools.idea.run.tasks.LaunchTask;
 import com.google.common.collect.ImmutableList;
@@ -40,12 +37,9 @@ public class DefaultActivityLaunch extends LaunchOption<DefaultActivityLaunch.St
     @Override
     public LaunchTask getLaunchTask(@NotNull String applicationId,
                                     @NotNull AndroidFacet facet,
-                                    boolean waitForDebugger,
-                                    @Nullable AndroidDebugger androidDebugger,
-                                    @NotNull String extraAmOptions,
+                                    @NotNull StartActivityFlagsProvider startActivityFlagsProvider,
                                     @NotNull ProfilerState profilerState) {
-      return new DefaultActivityLaunchTask(applicationId, getActivityLocatorForLaunch(profilerState, facet), waitForDebugger,
-                                           androidDebugger, extraAmOptions);
+      return new DefaultActivityLaunchTask(applicationId, getActivityLocatorForLaunch(profilerState, facet), startActivityFlagsProvider);
     }
 
     @NotNull
