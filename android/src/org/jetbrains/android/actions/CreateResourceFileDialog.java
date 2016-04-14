@@ -23,7 +23,6 @@ import com.android.resources.ResourceConstants;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.res.ResourceNameValidator;
-import com.google.common.collect.Maps;
 import com.intellij.CommonBundle;
 import com.intellij.application.options.ModulesComboBox;
 import com.intellij.ide.actions.TemplateKindCombo;
@@ -39,7 +38,6 @@ import com.intellij.util.PlatformIcons;
 import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.DeviceConfiguratorPanel;
-import org.jetbrains.android.uipreview.InvalidOptionValueException;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
@@ -48,10 +46,9 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.util.*;
+import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Dialog to decide where and how to create a resource file of a given type
@@ -77,13 +74,12 @@ public class CreateResourceFileDialog extends CreateResourceFileDialogBase {
   private ElementCreatingValidator myValidator;
   private CreateResourceFileDialogBase.ValidatorFactory myValidatorFactory;
 
-  private final Map<ResourceFolderType, CreateTypedResourceFileAction> myResType2ActionMap = Maps.newEnumMap(ResourceFolderType.class);
   private final DeviceConfiguratorPanel myDeviceConfiguratorPanel;
   private final AndroidFacet myFacet;
   private PsiDirectory myResDirectory;
 
   public CreateResourceFileDialog(@NotNull AndroidFacet facet,
-                                  Collection<CreateTypedResourceFileAction> actions,
+                                  @NotNull Collection<CreateTypedResourceFileAction> actions,
                                   @Nullable ResourceFolderType folderType,
                                   @Nullable String filename,
                                   @Nullable String rootElement,
@@ -102,58 +98,16 @@ public class CreateResourceFileDialog extends CreateResourceFileDialogBase {
     myResTypeLabel.setLabelFor(myResourceTypeCombo);
     myResourceTypeCombo.registerUpDownHint(myFileNameField);
     myUpDownHint.setIcon(PlatformIcons.UP_DOWN_ARROWS);
-    CreateTypedResourceFileAction[] actionArray = actions.toArray(new CreateTypedResourceFileAction[actions.size()]);
+    String selectedTemplate = setupSubActions(actions, myResourceTypeCombo, folderType);
 
-    Arrays.sort(actionArray, new Comparator<CreateTypedResourceFileAction>() {
-      @Override
-      public int compare(CreateTypedResourceFileAction a1, CreateTypedResourceFileAction a2) {
-        return a1.toString().compareTo(a2.toString());
-      }
-    });
-    String selectedTemplate = null;
-
-    for (CreateTypedResourceFileAction action : actionArray) {
-      ResourceFolderType resType = action.getResourceFolderType();
-      assert !myResType2ActionMap.containsKey(resType);
-      myResType2ActionMap.put(resType, action);
-      myResourceTypeCombo.addItem(action.toString(), null, resType.getName());
-
-      if (folderType != null && folderType == resType) {
-        selectedTemplate = resType.getName();
-      }
-    }
-
-    myDeviceConfiguratorPanel = new DeviceConfiguratorPanel() {
-      @Override
-      public void applyEditors() {
-        try {
-          doApplyEditors();
-          final FolderConfiguration config = myDeviceConfiguratorPanel.getConfiguration();
-          final CreateTypedResourceFileAction selectedAction = getSelectedAction();
-          myErrorLabel.setText("");
-          myDirectoryNameTextField.setText("");
-          if (selectedAction != null) {
-            final ResourceFolderType resFolderType = selectedAction.getResourceFolderType();
-            myDirectoryNameTextField.setText(config.getFolderName(resFolderType));
-          }
-        }
-        catch (InvalidOptionValueException e) {
-          myErrorLabel.setText("<html><body><font color=\"red\">" + e.getMessage() + "</font></body></html>");
-          myDirectoryNameTextField.setText("");
-        }
-        updateOkAction();
-      }
-    };
+    myDeviceConfiguratorPanel = setupDeviceConfigurationPanel(myDirectoryNameTextField, myResourceTypeCombo, myErrorLabel);
     if (folderConfiguration != null) {
       myDeviceConfiguratorPanel.init(folderConfiguration);
     }
 
-    myResourceTypeCombo.getComboBox().addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        myDeviceConfiguratorPanel.applyEditors();
-        updateRootElementTextField();
-      }
+    myResourceTypeCombo.getComboBox().addActionListener(e -> {
+      myDeviceConfiguratorPanel.applyEditors();
+      updateRootElementTextField();
     });
 
     if (folderType != null && selectedTemplate != null) {
@@ -188,7 +142,7 @@ public class CreateResourceFileDialog extends CreateResourceFileDialogBase {
       myFileNameField.setText(filename);
     }
 
-    final Set<Module> modulesSet = new HashSet<Module>();
+    final Set<Module> modulesSet = new HashSet<>();
     modulesSet.add(module);
     for (AndroidFacet depFacet : AndroidUtils.getAllAndroidDependencies(module, true)) {
       modulesSet.add(depFacet.getModule());
@@ -225,18 +179,14 @@ public class CreateResourceFileDialog extends CreateResourceFileDialogBase {
         validateName();
       }
     });
-    myResourceTypeCombo.getComboBox().addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent actionEvent) {
-        validateName();
-      }
-    });
+    myResourceTypeCombo.getComboBox().addActionListener(actionEvent -> validateName());
     if (validateImmediately) {
       validateName();
     }
   }
 
-  private void updateOkAction() {
+  @Override
+  protected void updateOkAction() {
     boolean enabled = myDirectoryNameTextField.getText().length() > 0;
     enabled = enabled && getNameError(myFileNameField.getText()) == null;
     setOKActionEnabled(enabled);
@@ -262,11 +212,11 @@ public class CreateResourceFileDialog extends CreateResourceFileDialogBase {
   }
 
   private void updateRootElementTextField() {
-    final CreateTypedResourceFileAction action = getSelectedAction();
+    final CreateTypedResourceFileAction action = getSelectedAction(myResourceTypeCombo);
 
     if (action != null) {
       final List<String> allowedTagNames = action.getSortedAllowedTagNames(myFacet);
-      myRootElementField = new TextFieldWithAutoCompletion<String>(
+      myRootElementField = new TextFieldWithAutoCompletion<>(
         myFacet.getModule().getProject(), new TextFieldWithAutoCompletion.StringsCompletionProvider(allowedTagNames, null), true, null);
       myRootElementField.setEnabled(allowedTagNames.size() > 1);
       myRootElementField.setText(!action.isChooseTagName()
@@ -288,7 +238,7 @@ public class CreateResourceFileDialog extends CreateResourceFileDialogBase {
   @Override
   protected void doOKAction() {
     String fileName = myFileNameField.getText().trim();
-    final CreateTypedResourceFileAction action = getSelectedAction();
+    final CreateTypedResourceFileAction action = getSelectedAction(myResourceTypeCombo);
     assert action != null;
 
     if (fileName.length() == 0) {
@@ -393,17 +343,4 @@ public class CreateResourceFileDialog extends CreateResourceFileDialogBase {
     return myDirectoryNameTextField;
   }
 
-  @Nullable
-  @Override
-  protected String getHelpId() {
-    return "reference.new.resource.file";
-  }
-
-  private CreateTypedResourceFileAction getSelectedAction() {
-    ResourceFolderType folderType = ResourceFolderType.getFolderType(myResourceTypeCombo.getSelectedName());
-    if (folderType == null) {
-      return null;
-    }
-    return myResType2ActionMap.get(folderType);
-  }
 }

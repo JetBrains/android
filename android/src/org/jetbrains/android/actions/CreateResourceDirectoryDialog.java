@@ -76,24 +76,7 @@ public class CreateResourceDirectoryDialog extends CreateResourceDirectoryDialog
       }
     });
 
-    myDeviceConfiguratorPanel = new DeviceConfiguratorPanel() {
-      @Override
-      public void applyEditors() {
-        try {
-          doApplyEditors();
-          final FolderConfiguration config = myDeviceConfiguratorPanel.getConfiguration();
-          final ResourceFolderType selectedResourceType = (ResourceFolderType)myResourceTypeComboBox.getSelectedItem();
-          myDirectoryNameTextField.setText(selectedResourceType != null ? config.getFolderName(selectedResourceType) : "");
-          myErrorLabel.setText("");
-        }
-        catch (InvalidOptionValueException e) {
-          myErrorLabel.setText("<html><body><font color=\"red\">" + e.getMessage() + "</font></body></html>");
-          myDirectoryNameTextField.setText("");
-        }
-        setOKActionEnabled(myDirectoryNameTextField.getText().length() > 0);
-      }
-    };
-
+    myDeviceConfiguratorPanel = setupDeviceConfigurationPanel(myResourceTypeComboBox, myDirectoryNameTextField, myErrorLabel);
     myDeviceConfiguratorWrapper.add(myDeviceConfiguratorPanel, BorderLayout.CENTER);
     myResourceTypeComboBox.addActionListener(new ActionListener() {
       @Override
@@ -135,13 +118,6 @@ public class CreateResourceDirectoryDialog extends CreateResourceDirectoryDialog
     if (myValidator.checkInput(dirName) && myValidator.canClose(dirName)) {
       super.doOKAction();
     }
-  }
-
-
-  @Nullable
-  @Override
-  protected String getHelpId() {
-    return "reference.new.resource.directory";
   }
 
   @Override
