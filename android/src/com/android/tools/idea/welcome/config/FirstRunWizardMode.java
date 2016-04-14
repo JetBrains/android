@@ -41,18 +41,9 @@ public enum FirstRunWizardMode {
     return getInstallerData().hasValidSdkLocation();
   }
 
-  public boolean hasValidJdkLocation() {
-    return getInstallerData().hasValidJdkLocation();
-  }
-
   @Nullable
   public String getInstallerTimestamp() {
     return getInstallerData().getTimestamp();
-  }
-
-  @Nullable
-  public File getJavaDir() {
-    return getInstallerData().getJavaDir();
   }
 
   @Nullable
