@@ -158,9 +158,17 @@ class IntellijLintProject extends Project {
     Graph<Module> graph = ApplicationManager.getApplication().runReadAction(new Computable<Graph<Module>>() {
       @Override
       public Graph<Module> compute() {
-        return ModuleManager.getInstance(module.getProject()).moduleGraph();
+        com.intellij.openapi.project.Project project = module.getProject();
+        if (project.isDisposed()) {
+          return null;
+        }
+        return ModuleManager.getInstance(project).moduleGraph();
       }
     });
+
+    if (graph == null) {
+      return null;
+    }
 
     Set<AndroidFacet> facets = Sets.newHashSet();
     HashSet<Module> seen = Sets.newHashSet();
