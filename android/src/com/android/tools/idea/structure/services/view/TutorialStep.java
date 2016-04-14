@@ -18,23 +18,18 @@ package com.android.tools.idea.structure.services.view;
 import com.android.tools.idea.structure.services.DeveloperServiceMap;
 import com.android.tools.idea.structure.services.datamodel.StepData;
 import com.android.tools.idea.structure.services.datamodel.StepElementData;
-import com.intellij.ui.BrowserHyperlinkListener;
 import com.intellij.ui.components.JBScrollPane;
 
 import javax.swing.*;
 import javax.swing.border.AbstractBorder;
-import javax.swing.text.BadLocationException;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
-import javax.swing.text.html.HTMLDocument;
-import javax.swing.text.html.HTMLEditorKit;
 import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.geom.Area;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.RoundRectangle2D;
-import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -69,27 +64,9 @@ public class TutorialStep extends JPanel {
         case SECTION:
           // TODO: Make a custom inner class to handle this.
           JTextPane section = new JTextPane();
-          section.setEditable(false);
           section.setOpaque(false);
           section.setBorder(BorderFactory.createEmptyBorder());
-          section.setContentType("text/html");
-          section.setMargin(new Insets(0, 0, 0, 0));
-          section.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, true);
-          HTMLDocument doc = (HTMLDocument)section.getDocument();
-          HTMLEditorKit editorKit = (HTMLEditorKit)section.getEditorKit();
-          String text = "<html><head><style>body { font-family: " + getFont().getFamily() + "; margin: 0px;}</head><body>" +
-                        element.getSection() + "</body></html>";
-          try {
-            editorKit.insertHTML(doc, doc.getLength(), text, 0, 0, null);
-          }
-          catch (BadLocationException e) {
-            e.printStackTrace();
-          }
-          catch (IOException e) {
-            e.printStackTrace();
-          }
-          // Enable links opening in the default browser.
-          section.addHyperlinkListener(BrowserHyperlinkListener.INSTANCE);
+          UIUtils.setHtml(section, element.getSection());
           myContents.add(section);
           break;
         case ACTION:
