@@ -48,10 +48,10 @@ public class ComponentVersionCheckTest extends GuiTestCase {
     String metadata = "<compatibility version='1'>\n" +
                       "  <check failureType='error'>\n" +
                       "    <component name='gradle' version='[2.4, +)'>\n" +
-                      "      <requires name='android-gradle-plugin' version='[1.2.0, +]'>\n" +
+                      "      <requires name='android-gradle-plugin' version='[1.5.0, +]'>\n" +
                       "        <failureMsg>\n" +
                       "           <![CDATA[\n" +
-                      "Please use Android Gradle plugin 1.2.0 or newer.\n" +
+                      "Please use Android Gradle plugin 1.5.0 or newer.\n" +
                       "]]>\n" +
                       "        </failureMsg>\n" +
                       "      </requires>\n" +
@@ -61,14 +61,14 @@ public class ComponentVersionCheckTest extends GuiTestCase {
     VersionCompatibilityService.getInstance().reloadMetadataForTesting(metadata);
     myProjectFrame = importSimpleApplication();
 
-    myProjectFrame.updateAndroidModelVersion("1.0.0")
-                  .requestProjectSync().waitForGradleProjectSyncToFinish();
+    myProjectFrame.updateGradleWrapperVersion("2.4").updateAndroidGradlePluginVersion("1.3.0").requestProjectSync()
+      .waitForGradleProjectSyncToFinish();
 
     ContentFixture syncMessages = myProjectFrame.getMessagesToolWindow().getGradleSyncContent();
-    MessageFixture message = syncMessages.findMessage(ERROR, firstLineStartingWith("Gradle 2.4 requires Android Gradle plugin 1.2.0"));
+    MessageFixture message = syncMessages.findMessage(ERROR, firstLineStartingWith("Gradle 2.4 requires Android Gradle plugin 1.5.0"));
 
     String text = message.getText();
-    assertThat(text).as("custom failure message").contains("Please use Android Gradle plugin 1.2.0 or newer.");
+    assertThat(text).as("custom failure message").contains("Please use Android Gradle plugin 1.5.0 or newer.");
 
     message.findHyperlink("Fix plugin version and sync project");
   }
@@ -79,11 +79,11 @@ public class ComponentVersionCheckTest extends GuiTestCase {
     String metadata = "<compatiblity version='1'>\n" +
                       "  <check failureType='warning'>\n" +
                       "    <component name='buildFile:android/buildToolsVersion' version='[19, +)'>\n" +
-                      "      <requires name='android-gradle-plugin' version='[1.3.0, +)'>\n" +
+                      "      <requires name='android-gradle-plugin' version='[1.5.0, +)'>\n" +
                       "        <failureMsg>\n" +
                       "        <![CDATA[\n" +
                       "The project will not build.\\n\n" +
-                      "Please use Android Gradle plugin 1.3.0 or newer.\n" +
+                      "Please use Android Gradle plugin 1.5.0 or newer.\n" +
                       "]]>\n" +
                       "        </failureMsg>\n" +
                       "      </requires>\n" +
@@ -93,11 +93,15 @@ public class ComponentVersionCheckTest extends GuiTestCase {
     VersionCompatibilityService.getInstance().reloadMetadataForTesting(metadata);
     myProjectFrame = importSimpleApplication();
 
+    myProjectFrame.updateGradleWrapperVersion("2.4").updateAndroidGradlePluginVersion("1.3.0").requestProjectSync()
+      .waitForGradleProjectSyncToFinish();
+
     ContentFixture syncMessages = myProjectFrame.getMessagesToolWindow().getGradleSyncContent();
-    MessageFixture message = syncMessages.findMessage(WARNING, firstLineStartingWith("'buildToolsVersion' 19.1.0 requires Android Gradle plugin 1.3.0"));
+    MessageFixture message =
+      syncMessages.findMessage(WARNING, firstLineStartingWith("'buildToolsVersion' 19.1.0 requires Android Gradle plugin 1.5.0"));
 
     String text = message.getText();
     assertThat(text).as("custom failure message").contains("The project will not build.")
-                                                 .contains("Please use Android Gradle plugin 1.3.0 or newer.");
+      .contains("Please use Android Gradle plugin 1.5.0 or newer.");
   }
 }

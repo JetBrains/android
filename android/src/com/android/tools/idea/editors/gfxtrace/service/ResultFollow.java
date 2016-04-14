@@ -45,7 +45,7 @@ final class ResultFollow implements BinaryObject {
   public BinaryClass klass() { return Klass.INSTANCE; }
 
 
-  private static final Entity ENTITY = new Entity("service","resultFollow","","");
+  private static final Entity ENTITY = new Entity("service", "resultFollow", "", "");
 
   static {
     ENTITY.setFields(new Field[]{

@@ -19,13 +19,6 @@ package org.jetbrains.android.dom.animation;
 import com.intellij.util.xml.DefinesXml;
 import org.jetbrains.android.dom.AndroidDomElement;
 
-/**
- * Created by IntelliJ IDEA.
- * User: Eugene.Kudelevsky
- * Date: Mar 23, 2009
- * Time: 4:29:39 PM
- * To change this template use File | Settings | File Templates.
- */
 @DefinesXml
 public interface AnimationElement extends AndroidDomElement {
 }

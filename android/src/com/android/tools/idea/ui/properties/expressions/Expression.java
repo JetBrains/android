@@ -15,30 +15,34 @@
  */
 package com.android.tools.idea.ui.properties.expressions;
 
-import com.android.tools.idea.ui.properties.AbstractObservable;
+import com.android.tools.idea.ui.properties.AbstractObservableValue;
 import com.android.tools.idea.ui.properties.InvalidationListener;
-import com.android.tools.idea.ui.properties.Observable;
+import com.android.tools.idea.ui.properties.ObservableValue;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * An expression is an observable value that wraps another observable value, modifying the result
  * before passing it on.
- *
+ * <p/>
  * Child class constructors should make sure they call {@code super} with all target observables,
  * as this will ensure invalidation notifications propagate correctly.
  */
-public abstract class Expression extends AbstractObservable implements Observable {
+public abstract class Expression<T> extends AbstractObservableValue<T> implements ObservableValue<T> {
 
   @SuppressWarnings("FieldCanBeLocal") // must be local to avoid weak garbage collection
   private final InvalidationListener myListener = new InvalidationListener() {
     @Override
-    public void onInvalidated(@NotNull Observable sender) {
+    public void onInvalidated(@NotNull ObservableValue<?> sender) {
       notifyInvalidated();
     }
   };
 
-  protected Expression(Observable... values) {
-    for (Observable value : values) {
+  protected Expression(ObservableValue... values) {
+    if (values.length == 0) {
+      throw new IllegalArgumentException("Can't create an expression without any target observables");
+    }
+
+    for (ObservableValue value : values) {
       value.addWeakListener(myListener);
     }
   }

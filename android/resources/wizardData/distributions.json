@@ -3,7 +3,7 @@
   "name": "Gingerbread",
   "version": "2.3",
   "apiLevel": 10,
-  "distributionPercentage": 0.029,
+  "distributionPercentage": 0.027,
   "url": "https://developer.android.com/about/versions/android-2.3.3.html",
   "descriptionBlocks" :[
                            {
@@ -25,7 +25,7 @@
   "name": "Ice Cream Sandwich",
   "version": "4.0",
   "apiLevel": 15,
-  "distributionPercentage": 0.035,
+  "distributionPercentage": 0.025,
   "url": "https://developer.android.com/about/versions/android-4.0.html",
   "descriptionBlocks" : [
                           {
@@ -74,7 +74,7 @@
   "name": "Jelly Bean",
   "version": "4.1",
   "apiLevel": 16,
-  "distributionPercentage": 0.116,
+  "distributionPercentage": 0.088,
   "url": "https://developer.android.com/about/versions/android-4.1.html",
   "descriptionBlocks" : [
                           {
@@ -123,7 +123,7 @@
   "name": "Jelly Bean",
   "version": "4.2",
   "apiLevel": 17,
-  "distributionPercentage": 0.146,
+  "distributionPercentage": 0.117,
   "url": "https://developer.android.com/about/versions/android-4.2.html",
   "descriptionBlocks" : [
                           {
@@ -156,7 +156,7 @@
   "name": "Jelly Bean",
   "version": "4.3",
   "apiLevel": 18,
-  "distributionPercentage": 0.043,
+  "distributionPercentage": 0.034,
   "url": "https://developer.android.com/about/versions/android-4.3.html",
   "descriptionBlocks" : [
                           {
@@ -213,7 +213,7 @@
   "name": "KitKat",
   "version": "4.4",
   "apiLevel": 19,
-  "distributionPercentage": 0.382,
+  "distributionPercentage": 0.355,
   "url": "https://developer.android.com/about/versions/android-4.4.html",
   "descriptionBlocks" : [
                             {
@@ -254,7 +254,7 @@
   "name": "Lollipop",
   "version": "5.0",
   "apiLevel": 21,
-  "distributionPercentage": 0.222,
+  "distributionPercentage": 0.17,
   "url": "https://developer.android.com/about/versions/android-5.0.html",
   "descriptionBlocks" : [
 
@@ -311,5 +311,59 @@
                                 "body": "Declarable required features<br>User permissions"
                             }
                         ]
+},
+{
+  "name": "Lollipop",
+  "version": "5.1",
+  "apiLevel": 22,
+  "distributionPercentage": 0.171,
+  "url": "https://developer.android.com/about/versions/android-5.1.html",
+  "descriptionBlocks" : [
+                          {
+                            "title": "Wireless & Connectivity",
+                            "body": "Multiple SIM Card Support<br>Carrier Provisioning"
+                          },
+                          {
+                            "title": "API Change",
+                            "body": "Deprecated HTTP Classes"
+                          }
+  ]
+},
+{
+  "name": "Marshmallow",
+  "version": "6.0",
+  "apiLevel": 23,
+  "distributionPercentage": 0.012,
+  "url": "https://developer.android.com/about/versions/marshmallow/android-6.0.html",
+  "descriptionBlocks" : [
+                          {
+                            "title": "Security",
+                            "body": "Fingerprint Authentication<br>Confirm Credential"
+                          },
+                          {
+                            "title": "System",
+                            "body": "App Linking<br>Adoptable Storage Devices"
+                          },
+                          {
+                            "title": "Multimedia",
+                            "body": "4K Display Mode<br>Support for MIDI<br>Create digital audio capture and playback objects<br>APIs to associate audio and input devices<br>List of all audio devices<br>Updated video processing APIs<br>Flashlight API<br>Reprocessing Camera2 API<br>Updated ImageWriter objects and Image Reader class"
+                          },
+                          {
+                            "title": "User Input",
+                            "body": "Voice Interactions<br>Assist API<br>Bluetooth Stylus Support"
+                          },
+                          {
+                            "title": "User Interface",
+                            "body": "Themeable ColorStateLists"
+                          },
+                          {
+                            "title": "Wireless & Connectivity",
+                            "body": "Hotspot 2.0<br>Improved Bluetooth Low Energy Scanning"
+                          },
+                          {
+                            "title": "Android for Work",
+                            "body": "Controls for Corporate-Owned, Single-Use devices<br>Silent install and uninstall of apps by Device Owner<br>Silent enterprise certificate access<br>Auto-acceptance of system updates<br>Delegated certificate installation<br>Data usage tracking<br>Runtime permission management<br>Work status notification"
+                          }
+  ]
 }
 ]

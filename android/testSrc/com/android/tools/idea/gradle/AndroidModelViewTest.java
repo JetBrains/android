@@ -184,7 +184,7 @@ public class AndroidModelViewTest extends TestCase {
     assertNotNull(reproxyProject);
 
     AndroidGradleModel androidModel = mock(AndroidGradleModel.class);
-    when(androidModel.getProxyAndroidProject()).thenReturn(reproxyProject);
+    when(androidModel.waitForAndGetProxyAndroidProject()).thenReturn(reproxyProject);
     ModuleNodeBuilder nodeBuilder = new ModuleNodeBuilder("test", androidModel, projectBasePath);
     DefaultMutableTreeNode node = nodeBuilder.getNode();
     assertTrue(node.getChildCount() > 0);
@@ -248,7 +248,7 @@ public class AndroidModelViewTest extends TestCase {
     assertNotNull(reproxyProject);
 
     AndroidGradleModel androidModel = mock(AndroidGradleModel.class);
-    when(androidModel.getProxyAndroidProject()).thenReturn(reproxyProject);
+    when(androidModel.waitForAndGetProxyAndroidProject()).thenReturn(reproxyProject);
     ModuleNodeBuilder nodeBuilder = new ModuleNodeBuilder("test", androidModel, projectBasePath);
     DefaultMutableTreeNode node = nodeBuilder.getNode();
     assertTrue(node.getChildCount() > 0);
@@ -300,7 +300,7 @@ public class AndroidModelViewTest extends TestCase {
     assertNotNull(reproxyProject);
 
     AndroidGradleModel androidModel = mock(AndroidGradleModel.class);
-    when(androidModel.getProxyAndroidProject()).thenReturn(reproxyProject);
+    when(androidModel.waitForAndGetProxyAndroidProject()).thenReturn(reproxyProject);
     ModuleNodeBuilder nodeBuilder = new ModuleNodeBuilder("test", androidModel, projectBasePath);
     DefaultMutableTreeNode node = nodeBuilder.getNode();
     assertTrue(node.getChildCount() > 0);
@@ -349,7 +349,7 @@ public class AndroidModelViewTest extends TestCase {
     assertNotNull(reproxyProject);
 
     AndroidGradleModel androidModel = mock(AndroidGradleModel.class);
-    when(androidModel.getProxyAndroidProject()).thenReturn(reproxyProject);
+    when(androidModel.waitForAndGetProxyAndroidProject()).thenReturn(reproxyProject);
     when(androidModel.getVariantNames()).thenReturn(ImmutableList.of("dummyVariant"));
     List<SourceProvider> mockSourceProviders =
       ImmutableList.of(createMockSourceProvider("src1"), createMockSourceProvider("src2"), createMockSourceProvider("src3"));

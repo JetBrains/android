@@ -60,7 +60,9 @@ public class AndroidSdkUtilsTest extends IdeaTestCase {
   }
 
   @Override
-  protected void checkForSettingsDamage(@NotNull List<Throwable> exceptions) { }
+  protected void checkForSettingsDamage(@NotNull List<Throwable> exceptions) {
+    // for this test we don't care for this check
+  }
 
   public void testFindSuitableAndroidSdkWhenNoSdkSet() {
     Sdk sdk = AndroidSdkUtils.findSuitableAndroidSdk("android-22");

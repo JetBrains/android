@@ -20,7 +20,6 @@ import com.google.common.base.Charsets;
 import com.google.common.collect.Maps;
 import com.google.common.io.Files;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.ui.Gray;
 import com.intellij.util.RetinaImage;
 import com.intellij.util.ui.JBUI;
@@ -81,7 +80,7 @@ public class GutterIconCache {
   }
 
   @Nullable
-  private static Icon createIcon(@NotNull  String path) {
+  private static Icon createIcon(@NotNull String path) {
     if (path.endsWith(DOT_XML)) {
       return createXmlIcon(path);
     } else {
@@ -132,7 +131,7 @@ public class GutterIconCache {
   }
 
   @Nullable
-  private static Icon createBitmapIcon(@NotNull  String path) {
+  private static Icon createBitmapIcon(@NotNull String path) {
     try {
       BufferedImage image = ImageIO.read(new File(path));
       if (image != null) {
@@ -184,7 +183,9 @@ public class GutterIconCache {
         return new ImageIcon(image);
       }
     }
-    catch (IOException e) {
+    catch (Throwable e) {
+      // Not just IOExceptions here; for example, we've seen
+      // IllegalArgumentEx @ ...... < PNGImageReader:1479 < ... ImageIO.read
       LOG.warn(String.format("Could not read icon image %1$s", path), e);
     }
 

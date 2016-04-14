@@ -15,25 +15,23 @@
  */
 package com.android.tools.idea.gradle.project;
 
-import com.android.SdkConstants;
 import com.android.builder.model.AndroidProject;
-import com.android.sdklib.repository.FullRevision;
-import com.google.common.base.Strings;
-import com.intellij.openapi.diagnostic.Logger;
+import com.android.ide.common.repository.GradleVersion;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-final class GradleModelVersionCheck {
-  private static final Logger LOG = Logger.getInstance(GradleModelVersionCheck.class);
+import static com.android.SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION;
+import static com.google.common.base.Strings.isNullOrEmpty;
 
-  static final FullRevision MINIMUM_SUPPORTED_VERSION = FullRevision.parseRevision(SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION);
+final class GradleModelVersionCheck {
+  static final GradleVersion MINIMUM_SUPPORTED_VERSION = GradleVersion.parse(GRADLE_PLUGIN_MINIMUM_VERSION);
 
   static boolean isSupportedVersion(@NotNull AndroidProject androidProject) {
     return isSupportedVersion(androidProject, MINIMUM_SUPPORTED_VERSION);
   }
 
-  static boolean isSupportedVersion(@NotNull AndroidProject androidProject, @NotNull FullRevision minimumSupportedVersion) {
-    FullRevision version = getModelVersion(androidProject);
+  static boolean isSupportedVersion(@NotNull AndroidProject androidProject, @NotNull GradleVersion minimumSupportedVersion) {
+    GradleVersion version = getModelVersion(androidProject);
     if (version != null) {
       return version.compareTo(minimumSupportedVersion) >= 0;
     }
@@ -41,21 +39,16 @@ final class GradleModelVersionCheck {
   }
 
   @Nullable
-  static FullRevision getModelVersion(@NotNull AndroidProject androidProject) {
+  static GradleVersion getModelVersion(@NotNull AndroidProject androidProject) {
     String modelVersion = androidProject.getModelVersion();
-    if (Strings.isNullOrEmpty(modelVersion)) {
+    if (isNullOrEmpty(modelVersion)) {
       return null;
     }
     int snapshotIndex = modelVersion.indexOf("-");
     if (snapshotIndex != -1) {
       modelVersion = modelVersion.substring(0, snapshotIndex);
     }
-    try {
-      return FullRevision.parseRevision(modelVersion);
-    } catch (NumberFormatException e) {
-      LOG.info(String.format("Unable to parse Gradle model version '%1$s'", modelVersion), e);
-      return null;
-    }
+    return GradleVersion.tryParse(modelVersion);
   }
 
   private GradleModelVersionCheck() {

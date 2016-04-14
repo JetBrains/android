@@ -17,6 +17,9 @@ package com.android.tools.idea.gradle.customizer.android;
 
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
+import com.android.tools.idea.run.AndroidRunConfiguration;
+import com.android.tools.idea.run.AndroidRunConfigurationType;
+import com.android.tools.idea.run.TargetSelectionMode;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.RunConfiguration;
@@ -24,14 +27,12 @@ import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsPr
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.android.facet.AndroidFacet;
-import com.android.tools.idea.run.AndroidRunConfiguration;
-import com.android.tools.idea.run.AndroidRunConfigurationType;
-import com.android.tools.idea.run.TargetSelectionMode;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
+import static com.android.tools.idea.gradle.util.Facets.findFacet;
 import static org.jetbrains.android.util.AndroidUtils.addRunConfiguration;
 
 /**
@@ -42,9 +43,10 @@ public class RunConfigModuleCustomizer implements ModuleCustomizer<AndroidGradle
   public void customizeModule(@NotNull Project project,
                               @NotNull Module module,
                               @NotNull IdeModifiableModelsProvider modelsProvider,
-                              @Nullable AndroidGradleModel androidProject) {
-    if (androidProject != null) {
-      AndroidFacet facet = AndroidFacet.getInstance(module);
+                              @Nullable AndroidGradleModel androidModel) {
+    if (androidModel != null) {
+      AndroidFacet facet = findFacet(module, modelsProvider, AndroidFacet.ID);
+
       if (facet != null && !facet.isLibraryProject()) {
         RunManager runManager = RunManager.getInstance(project);
         ConfigurationFactory configurationFactory = AndroidRunConfigurationType.getInstance().getFactory();

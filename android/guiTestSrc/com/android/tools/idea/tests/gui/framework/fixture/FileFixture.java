@@ -114,7 +114,14 @@ public class FileFixture {
   }
 
   @NotNull
-  public FileFixture requireCodeAnalysisHighlightCount(@NotNull final HighlightSeverity severity, int expected) {
+  public FileFixture requireCodeAnalysisHighlightCount(@NotNull HighlightSeverity severity, int expected) {
+    Collection<HighlightInfo> highlightInfos = getHighlightInfos(severity);
+    assertThat(highlightInfos).hasSize(expected);
+    return this;
+  }
+
+  @NotNull
+  public Collection<HighlightInfo> getHighlightInfos(@NotNull final HighlightSeverity severity) {
     waitUntilErrorAnalysisFinishes();
 
     final Document document = getNotNullDocument();
@@ -126,9 +133,8 @@ public class FileFixture {
         return processor.getResults();
       }
     });
-
-    assertThat(highlightInfos).hasSize(expected);
-    return this;
+    assert highlightInfos != null;
+    return highlightInfos;
   }
 
   @NotNull

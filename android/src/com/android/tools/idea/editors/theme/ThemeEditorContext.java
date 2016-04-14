@@ -18,7 +18,7 @@ package com.android.tools.idea.editors.theme;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
-import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
+import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -50,7 +50,7 @@ public class ThemeEditorContext implements Disposable {
   /**
    * Stores ThemeEditorStyle currently being edited
    */
-  private @Nullable ThemeEditorStyle myCurrentTheme;
+  private @Nullable ConfiguredThemeEditorStyle myCurrentTheme;
 
   // Field is initialized in method called from constructor which checker doesn't see, warning could be ignored
   @SuppressWarnings("NullableProblems")
@@ -109,12 +109,12 @@ public class ThemeEditorContext implements Disposable {
     return myConfiguration.getModule();
   }
 
-  public void setCurrentTheme(@Nullable ThemeEditorStyle currentTheme) {
+  public void setCurrentTheme(@Nullable ConfiguredThemeEditorStyle currentTheme) {
     myCurrentTheme = currentTheme;
   }
 
   @Nullable
-  public ThemeEditorStyle getCurrentTheme() {
+  public ConfiguredThemeEditorStyle getCurrentTheme() {
     return myCurrentTheme;
   }
 

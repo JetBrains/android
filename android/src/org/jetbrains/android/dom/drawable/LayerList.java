@@ -16,13 +16,12 @@
 package org.jetbrains.android.dom.drawable;
 
 import com.intellij.util.xml.DefinesXml;
+import org.jetbrains.android.dom.Styleable;
 
 import java.util.List;
 
-/**
- * @author Eugene.Kudelevsky
- */
 @DefinesXml
+@Styleable("LayerDrawable")
 public interface LayerList extends DrawableDomElement {
   List<LayerListItem> getItems();
 }

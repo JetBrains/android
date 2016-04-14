@@ -15,14 +15,12 @@
  */
 package com.android.tools.idea.welcome.wizard;
 
-import com.android.sdklib.repository.descriptors.PkgType;
-import com.android.tools.idea.sdk.remote.RemotePkgInfo;
+import com.android.repository.api.RemotePackage;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.dynamic.DynamicWizard;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardHost;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Multimap;
 import com.google.common.util.concurrent.Atomics;
 import com.intellij.ide.IdeBundle;
 import com.intellij.ide.ui.UISettings;
@@ -36,6 +34,7 @@ import com.intellij.openapi.ui.OptionAction;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.wm.WelcomeScreen;
+import com.intellij.openapi.wm.impl.welcomeScreen.FlatWelcomeFrame;
 import com.intellij.openapi.wm.impl.welcomeScreen.NewWelcomeScreen;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.util.ui.JBUI;
@@ -57,7 +56,7 @@ import java.util.concurrent.atomic.AtomicReference;
 public class FirstRunWizardHost extends JPanel implements WelcomeScreen, DynamicWizardHost {
   private static final Insets BUTTON_MARGINS = new Insets(2, 16, 2, 16);
   @NotNull private final FirstRunWizardMode myMode;
-  @NotNull private final Multimap<PkgType, RemotePkgInfo> myRemotePackages;
+  @NotNull private final Map<String, RemotePackage> myRemotePackages;
 
   private Action myCancelAction = new CancelAction();
   private Action myPreviousAction = new PreviousAction();
@@ -66,6 +65,8 @@ public class FirstRunWizardHost extends JPanel implements WelcomeScreen, Dynamic
 
   private FirstRunWizard myWizard;
   private JFrame myFrame;
+  private Dimension myFrameSize;
+  private String myFrameTitle;
   private String myTitle;
   private Dimension myPreferredWindowSize = JBUI.size(800, 600);
   private Map<Action, JButton> myActionToButtonMap = Maps.newHashMap();
@@ -73,7 +74,7 @@ public class FirstRunWizardHost extends JPanel implements WelcomeScreen, Dynamic
   private boolean myIsActive;
 
   public FirstRunWizardHost(@NotNull FirstRunWizardMode mode,
-                            @NotNull Multimap<PkgType, RemotePkgInfo> remotePackages) {
+                            @NotNull Map<String, RemotePackage> remotePackages) {
     super(new BorderLayout());
     myMode = mode;
     myRemotePackages = remotePackages;
@@ -106,6 +107,8 @@ public class FirstRunWizardHost extends JPanel implements WelcomeScreen, Dynamic
   @Override
   public void setupFrame(JFrame frame) {
     myFrame = frame;
+    myFrameSize = frame.getSize();
+    myFrameTitle = frame.getTitle();
     if (myTitle != null) {
       frame.setTitle(myTitle);
     }
@@ -149,9 +152,16 @@ public class FirstRunWizardHost extends JPanel implements WelcomeScreen, Dynamic
     myIsActive = false;
     if (action == CloseAction.FINISH || action == CloseAction.CANCEL) {
       setDefaultButton(null);
-      NewWelcomeScreen welcomeScreen = new NewWelcomeScreen();
+      // Delegating to the default WelcomeScreen. We support both "Flat" and "New", until
+      // the "ide.new.welcome.screen.force" system property is not needed anymore.
+      WelcomeScreen welcomeScreen =
+        (myFrame instanceof FlatWelcomeFrame) ? ((FlatWelcomeFrame)myFrame).createWelcomeScreen() : new NewWelcomeScreen();
       Disposer.register(getDisposable(), welcomeScreen);
       myFrame.setContentPane(welcomeScreen.getWelcomePanel());
+      if (myFrameSize != null)
+        myFrame.setSize(myFrameSize);
+      if (myFrameTitle != null)
+        myFrame.setTitle(myFrameTitle);
       welcomeScreen.setupFrame(myFrame);
     }
     else if (action == CloseAction.EXIT) {

@@ -24,7 +24,6 @@ import com.android.tools.idea.gradle.messages.Message;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
-import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.application.RunResult;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -38,7 +37,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
-import com.intellij.openapi.roots.ModuleRootManager;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -49,8 +47,9 @@ import java.util.Map;
 
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.PROJECT_STRUCTURE_ISSUES;
 import static com.android.tools.idea.gradle.messages.Message.Type.ERROR;
+import static com.android.tools.idea.gradle.util.Facets.findFacet;
 
-public class JavaProjectDataService extends AbstractProjectDataService<JavaProject,Void> {
+public class JavaProjectDataService extends AbstractProjectDataService<JavaProject, Void> {
   private static final Logger LOG = Logger.getInstance(JavaProjectDataService.class);
 
   private final List<ModuleCustomizer<JavaProject>> myCustomizers =
@@ -71,15 +70,17 @@ public class JavaProjectDataService extends AbstractProjectDataService<JavaProje
     if (!toImport.isEmpty()) {
       try {
         doImport(toImport, project, modelsProvider);
-      } catch (Throwable e) {
+      }
+      catch (Throwable e) {
         LOG.error(String.format("Failed to set up Java modules in project '%1$s'", project.getName()), e);
         GradleSyncState.getInstance(project).syncFailed(e.getMessage());
       }
     }
   }
 
-  private void doImport(final Collection<DataNode<JavaProject>> toImport, final Project project, final IdeModifiableModelsProvider modelsProvider)
-    throws Throwable {
+  private void doImport(final Collection<DataNode<JavaProject>> toImport,
+                        final Project project,
+                        final IdeModifiableModelsProvider modelsProvider) throws Throwable {
     RunResult result = new WriteCommandAction.Simple(project) {
       @Override
       protected void run() throws Throwable {
@@ -110,16 +111,17 @@ public class JavaProjectDataService extends AbstractProjectDataService<JavaProje
     return javaProjectsByModuleName;
   }
 
-  private void customizeModule(@NotNull Module module, @NotNull IdeModifiableModelsProvider modelsProvider, @NotNull JavaProject javaProject) {
+  private void customizeModule(@NotNull Module module,
+                               @NotNull IdeModifiableModelsProvider modelsProvider,
+                               @NotNull JavaProject javaProject) {
     if (javaProject.isAndroidProjectWithoutVariants()) {
       // See https://code.google.com/p/android/issues/detail?id=170722
       ProjectSyncMessages messages = ProjectSyncMessages.getInstance(module.getProject());
-      String[] text = {
-        String.format("The module '%1$s' is an Android project without build variants, and cannot be built.", module.getName()),
-        "Please fix the module's configuration in the build.gradle file and sync the project again.",
-      };
+      String[] text =
+        {String.format("The module '%1$s' is an Android project without build variants, and cannot be built.", module.getName()),
+          "Please fix the module's configuration in the build.gradle file and sync the project again.",};
       messages.add(new Message(PROJECT_STRUCTURE_ISSUES, ERROR, text));
-      cleanUpAndroidModuleWithoutVariants(module);
+      cleanUpAndroidModuleWithoutVariants(module, modelsProvider);
       // No need to setup source folders, dependencies, etc. Since the Android project does not have variants, and because this can
       // happen due to a project configuration error and there is a lot of module configuration missng, there is no point on even trying.
       return;
@@ -130,24 +132,20 @@ public class JavaProjectDataService extends AbstractProjectDataService<JavaProje
     }
   }
 
-  private static void cleanUpAndroidModuleWithoutVariants(@NotNull Module module) {
+  private static void cleanUpAndroidModuleWithoutVariants(@NotNull Module module, @NotNull IdeModifiableModelsProvider modelsProvider) {
     // Remove Android facet, otherwise the IDE will try to build the module, and fail. The facet may have been added in a previous
     // successful commit.
-    AndroidFacet facet = AndroidFacet.getInstance(module);
+    AndroidFacet facet = findFacet(module, modelsProvider, AndroidFacet.ID);
     if (facet != null) {
-      ModifiableFacetModel facetModel = FacetManager.getInstance(module).createModifiableModel();
+      ModifiableFacetModel facetModel = modelsProvider.getModifiableFacetModel(module);
       facetModel.removeFacet(facet);
-      facetModel.commit();
     }
 
     // Clear all source and exclude folders.
-    ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(module);
-    ModifiableRootModel rootModel = moduleRootManager.getModifiableModel();
+    ModifiableRootModel rootModel = modelsProvider.getModifiableRootModel(module);
     for (ContentEntry contentEntry : rootModel.getContentEntries()) {
       contentEntry.clearSourceFolders();
       contentEntry.clearExcludeFolders();
     }
-
-    rootModel.commit();
   }
 }

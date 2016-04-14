@@ -23,8 +23,10 @@ public final class Factory {
     Image.register();
     ImageInfo.register();
     FmtATCRGBAEXPLICITALPHAAMD.register();
+    FmtATCRGBAINTERPOLATEDALPHAAMD.register();
     FmtATCRGBAMD.register();
     FmtAlpha.register();
+    FmtD24S8.register();
     FmtETC1RGB8.register();
     FmtETC2RGB8.register();
     FmtETC2RGBA8EAC.register();
@@ -38,6 +40,8 @@ public final class Factory {
     FmtRGBA4444.register();
     FmtRGBA5551.register();
     FmtRGBAF32.register();
+    FmtRGBF32.register();
+    FmtRed.register();
     //<<<End:Java.FactoryBody:2>>>
   }
 }

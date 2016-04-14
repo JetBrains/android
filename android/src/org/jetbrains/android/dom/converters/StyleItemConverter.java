@@ -30,13 +30,6 @@ import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * Created by IntelliJ IDEA.
- * User: Eugene.Kudelevsky
- * Date: Aug 11, 2009
- * Time: 6:19:55 PM
- * To change this template use File | Settings | File Templates.
- */
 public class StyleItemConverter extends WrappingConverter {
   @Nullable
   private static ResolvingConverter findConverterForAttribute(String nsPrefix,

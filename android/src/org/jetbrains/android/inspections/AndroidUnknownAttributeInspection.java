@@ -16,7 +16,7 @@
 package org.jetbrains.android.inspections;
 
 import com.android.SdkConstants;
-import com.android.resources.ResourceType;
+import com.android.resources.ResourceFolderType;
 import com.intellij.codeInspection.*;
 import com.intellij.lang.ASTNode;
 import com.intellij.psi.PsiElement;
@@ -26,7 +26,6 @@ import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlChildRole;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.util.containers.HashSet;
 import com.intellij.util.xml.DomFileDescription;
 import org.jetbrains.android.dom.AndroidAnyAttributeDescriptor;
 import org.jetbrains.android.dom.AndroidResourceDomFileDescription;
@@ -39,15 +38,12 @@ import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidUnknownAttributeInspection extends LocalInspectionTool {
-  private static volatile Set<String> ourSupportedResourceTypes;
+  private static volatile Set<ResourceFolderType> ourSupportedResourceTypes;
 
   @Nls
   @NotNull
@@ -87,21 +83,21 @@ public class AndroidUnknownAttributeInspection extends LocalInspectionTool {
   }
 
   static boolean isMyFile(@NotNull AndroidFacet facet, XmlFile file) {
-    String resourceType = facet.getLocalResourceManager().getFileResourceType(file);
+    String resourceFolderName = facet.getLocalResourceManager().getFileResourceType(file);
+    ResourceFolderType resourceType = resourceFolderName == null ? null : ResourceFolderType.getTypeByName(resourceFolderName);
     if (resourceType != null) {
       if (ourSupportedResourceTypes == null) {
-        ourSupportedResourceTypes = new HashSet<String>();
+        ourSupportedResourceTypes = EnumSet.noneOf(ResourceFolderType.class);
         for (DomFileDescription description : DomFileDescription.EP_NAME.getExtensions()) {
           if (description instanceof AndroidResourceDomFileDescription) {
-            String[] resourceTypes = ((AndroidResourceDomFileDescription)description).getResourceTypes();
-            Collections.addAll(ourSupportedResourceTypes, resourceTypes);
+            ourSupportedResourceTypes.add(((AndroidResourceDomFileDescription)description).getResourceType());
           }
         }
       }
       if (!ourSupportedResourceTypes.contains(resourceType)) {
         return false;
       }
-      if (ResourceType.XML.getName().equals(resourceType)) {
+      if (ResourceFolderType.XML.equals(resourceType)) {
         final XmlTag rootTag = file.getRootTag();
         return rootTag != null && AndroidXmlResourcesUtil.isSupportedRootTag(facet, rootTag.getName());
       }

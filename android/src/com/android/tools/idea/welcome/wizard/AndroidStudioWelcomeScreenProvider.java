@@ -15,22 +15,22 @@
  */
 package com.android.tools.idea.welcome.wizard;
 
-import com.android.sdklib.repository.descriptors.PkgType;
+import com.android.repository.api.RemotePackage;
+import com.android.repository.api.RepoManager;
 import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.idea.sdk.SdkState;
-import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkAddonsListConstants;
+import com.android.tools.idea.sdkv2.StudioDownloader;
+import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
+import com.android.tools.idea.sdkv2.StudioSettingsController;
 import com.android.tools.idea.welcome.config.AndroidFirstRunPersistentData;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.config.InstallerData;
-import com.google.common.collect.ImmutableMultimap;
-import com.google.common.collect.Multimap;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.Atomics;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.wm.WelcomeScreen;
 import com.intellij.openapi.wm.WelcomeScreenProvider;
 import com.intellij.util.net.HttpConfigurable;
@@ -43,6 +43,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -56,7 +57,7 @@ public final class AndroidStudioWelcomeScreenProvider implements WelcomeScreenPr
   /**
    * Analyzes system state and decides if and how the wizard should be invoked.
    *
-   * @return one of the {@link com.android.tools.idea.welcome.config.FirstRunWizardMode} constants or {@code null} if wizard is not needed.
+   * @return one of the {@link FirstRunWizardMode} constants or {@code null} if wizard is not needed.
    */
   @Nullable
   public static FirstRunWizardMode getWizardMode() {
@@ -81,7 +82,7 @@ public final class AndroidStudioWelcomeScreenProvider implements WelcomeScreenPr
   private static boolean isHandoff(AndroidFirstRunPersistentData persistentData) {
     if (InstallerData.exists()) {
       if (!persistentData.isSdkUpToDate() || !persistentData.isSameTimestamp(InstallerData.get().getTimestamp())) {
-        return true;
+        return InstallerData.get().isCurrentVersion();
       }
     }
     return false;
@@ -158,7 +159,7 @@ public final class AndroidStudioWelcomeScreenProvider implements WelcomeScreenPr
   @Nullable
   @Override
   public WelcomeScreen createWelcomeScreen(JRootPane rootPane) {
-    Multimap<PkgType, RemotePkgInfo> remotePackages = fetchPackages();
+    Map<String, RemotePackage> remotePackages = fetchPackages();
     FirstRunWizardMode wizardMode = getWizardMode();
     assert wizardMode != null; // This means isAvailable was false! Why are we even called?
     //noinspection AssignmentToStaticFieldFromInstanceMethod
@@ -167,20 +168,23 @@ public final class AndroidStudioWelcomeScreenProvider implements WelcomeScreenPr
   }
 
   @NotNull
-  private static Multimap<PkgType, RemotePkgInfo> fetchPackages() {
+  private static Map<String, RemotePackage> fetchPackages() {
     ConnectionState connectionState = checkInternetConnection();
     switch (connectionState) {
       case OK:
         break;
       case NO_CONNECTION:
-        return ImmutableMultimap.of();
+        return ImmutableMap.of();
       default:
         throw new IllegalArgumentException(connectionState.name());
     }
 
-    SdkState state = SdkState.getInstance(AndroidSdkUtils.tryToChooseAndroidSdk());
-    state.loadSynchronously(SdkState.DEFAULT_EXPIRATION_PERIOD_MS, false, null, null, null, true);
-    return state.getPackages().getRemotePkgInfos();
+    StudioLoggerProgressIndicator logger = new StudioLoggerProgressIndicator(AndroidStudioWelcomeScreenProvider.class);
+    RepoManager mgr = AndroidSdkUtils.tryToChooseSdkHandler().getSdkManager(logger);
+    mgr.loadSynchronously(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, logger, new StudioDownloader(),
+                          StudioSettingsController.getInstance());
+
+    return mgr.getPackages().getRemotePackages();
   }
 
   @Override

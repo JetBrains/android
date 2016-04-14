@@ -15,10 +15,18 @@
  */
 package com.android.tools.idea.gradle.customizer.dependency;
 
+import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
+import com.android.tools.idea.gradle.util.Facets;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.DependencyScope;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 /**
  * An IDEA module's dependency on another IDEA module.
@@ -39,6 +47,33 @@ public class ModuleDependency extends Dependency {
   public ModuleDependency(@NotNull String gradlePath, @NotNull DependencyScope scope) {
     super(scope);
     myGradlePath = gradlePath;
+  }
+
+  @Nullable
+  public Module getModule(@NotNull IdeModifiableModelsProvider modelsProvider) {
+    for (Module module : modelsProvider.getModules()) {
+      AndroidGradleFacet gradleFacet = Facets.findFacet(module, modelsProvider, AndroidGradleFacet.TYPE_ID);
+      if (gradleFacet != null && hasEqualPath(gradleFacet)) {
+        return module;
+      }
+    }
+    return null;
+  }
+
+  @Nullable
+  public Module getModule(@NotNull Project project) {
+    for (Module module : ModuleManager.getInstance(project).getModules()) {
+      AndroidGradleFacet gradleFacet = AndroidGradleFacet.getInstance(module);
+      if (gradleFacet != null && hasEqualPath(gradleFacet)) {
+        return module;
+      }
+    }
+    return null;
+  }
+
+  private boolean hasEqualPath(@NotNull AndroidGradleFacet facet) {
+    String gradlePath = facet.getConfiguration().GRADLE_PROJECT_PATH;
+    return isNotEmpty(gradlePath) && gradlePath.equals(getGradlePath());
   }
 
   @NotNull

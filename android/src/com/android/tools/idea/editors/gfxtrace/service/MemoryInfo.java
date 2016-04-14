@@ -75,7 +75,7 @@ public final class MemoryInfo implements BinaryObject {
   public BinaryClass klass() { return Klass.INSTANCE; }
 
 
-  private static final Entity ENTITY = new Entity("service","MemoryInfo","","");
+  private static final Entity ENTITY = new Entity("service", "MemoryInfo", "", "");
 
   static {
     ENTITY.setFields(new Field[]{

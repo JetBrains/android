@@ -36,7 +36,7 @@ import java.io.Reader;
 
 public class DbParserDefinition implements ParserDefinition {
 
-  private static final IFileElementType FILE_ELEMENT_TYPE = new IFileElementType(Language.findInstance(DbLanguage.class));
+  private static final IFileElementType FILE_ELEMENT_TYPE = new IFileElementType(DbLanguage.INSTANCE);
   private static final TokenSet WHITE_SPACES = TokenSet.create(TokenType.WHITE_SPACE);
 
   @NotNull

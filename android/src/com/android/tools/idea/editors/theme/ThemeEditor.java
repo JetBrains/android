@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.editors.theme;
 
-import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
+import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
 import com.intellij.ProjectTopics;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.ide.structureView.StructureViewBuilder;
@@ -56,8 +56,8 @@ public class ThemeEditor extends UserDataHolderBase implements FileEditor {
         ApplicationManager.getApplication().invokeLater(new Runnable() {
           @Override
           public void run() {
-            ThemeEditorStyle theme = null;
-            ThemeEditorStyle subStyle = null;
+            ConfiguredThemeEditorStyle theme = null;
+            ConfiguredThemeEditorStyle subStyle = null;
 
             // If the currently selected module has been disposed we set everything to null to force a full reload.
             // The current module can be disposed if, for example, it's renamed.
@@ -101,8 +101,8 @@ public class ThemeEditor extends UserDataHolderBase implements FileEditor {
   @NotNull
   @Override
   public FileEditorState getState(@NotNull FileEditorStateLevel fileEditorStateLevel) {
-    ThemeEditorStyle theme = myComponent.getSelectedTheme();
-    ThemeEditorStyle subStyle = myComponent.getCurrentSubStyle();
+    ConfiguredThemeEditorStyle theme = myComponent.getSelectedTheme();
+    ConfiguredThemeEditorStyle subStyle = myComponent.getCurrentSubStyle();
     return new ThemeEditorState(theme == null ? null : theme.getQualifiedName(),
                                 subStyle == null ? null : subStyle.getQualifiedName(),
                                 myComponent.getProportion(),

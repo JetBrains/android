@@ -21,7 +21,6 @@ import com.android.tools.rpclib.schema.*;
 import org.jetbrains.annotations.NotNull;
 
 import com.android.tools.rpclib.binary.BinaryClass;
-import com.android.tools.rpclib.binary.BinaryID;
 import com.android.tools.rpclib.binary.BinaryObject;
 import com.android.tools.rpclib.binary.Decoder;
 import com.android.tools.rpclib.binary.Encoder;
@@ -40,7 +39,7 @@ final class FmtRGBAF32 extends Format {
   public BinaryClass klass() { return Klass.INSTANCE; }
 
 
-  private static final Entity ENTITY = new Entity("image","fmtRGBAF32","","");
+  private static final Entity ENTITY = new Entity("image", "fmtRGBAF32", "", "");
 
   static {
     ENTITY.setFields(new Field[]{
@@ -61,12 +60,10 @@ final class FmtRGBAF32 extends Format {
 
     @Override
     public void encode(@NotNull Encoder e, BinaryObject obj) throws IOException {
-      FmtRGBAF32 o = (FmtRGBAF32)obj;
     }
 
     @Override
     public void decode(@NotNull Decoder d, BinaryObject obj) throws IOException {
-      FmtRGBAF32 o = (FmtRGBAF32)obj;
     }
     //<<<End:Java.KlassBody:2>>>
   }

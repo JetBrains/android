@@ -16,18 +16,11 @@
 
 package org.jetbrains.android.dom.menu;
 
-import com.android.resources.ResourceType;
+import com.android.resources.ResourceFolderType;
 import org.jetbrains.android.dom.AndroidResourceDomFileDescription;
 
-/**
- * Created by IntelliJ IDEA.
- * User: Eugene.Kudelevsky
- * Date: Mar 27, 2009
- * Time: 2:44:03 PM
- * To change this template use File | Settings | File Templates.
- */
 public class MenuDomFileDescription extends AndroidResourceDomFileDescription<Menu> {
   public MenuDomFileDescription() {
-    super(Menu.class, "menu", ResourceType.MENU.getName());
+    super(Menu.class, "menu", ResourceFolderType.MENU);
   }
 }

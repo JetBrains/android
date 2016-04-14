@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.updater.configure;
 
-import com.android.tools.idea.sdk.remote.UpdatablePkgInfo;
+
+import com.android.repository.api.UpdatablePackage;
 
 import javax.swing.*;
 import java.util.Set;
@@ -28,16 +29,14 @@ import java.util.Set;
 class BuildToolsSummaryTreeNode extends UpdaterTreeNode {
   PlatformDetailsTreeNode myMaxVersionNode;
   Set<UpdaterTreeNode> myBuildToolsNodes;
-  boolean myIncludePreview;
 
-  public BuildToolsSummaryTreeNode(Set<UpdaterTreeNode> buildToolsNodes, boolean includePreview) {
+  public BuildToolsSummaryTreeNode(Set<UpdaterTreeNode> buildToolsNodes) {
     myBuildToolsNodes = buildToolsNodes;
     for (UpdaterTreeNode node : myBuildToolsNodes) {
       if (myMaxVersionNode == null || node.compareTo(myMaxVersionNode) > 0) {
         myMaxVersionNode = (PlatformDetailsTreeNode)node;
       }
     }
-    myIncludePreview = includePreview;
   }
 
   @Override
@@ -96,13 +95,13 @@ class BuildToolsSummaryTreeNode extends UpdaterTreeNode {
       return "Not Installed";
     } else {
       String revision;
-      UpdatablePkgInfo p = myMaxVersionNode.getItem();
-      if (p.hasRemote(myIncludePreview)) {
-        revision = p.getRemote(myIncludePreview).getPkgDesc().getPreciseRevision().toString();
+      UpdatablePackage p = myMaxVersionNode.getItem();
+      if (p.hasRemote()) {
+        revision = p.getRemote().getVersion().toString();
       }
       else {
         assert false;
-        revision = p.getLocalInfo().getDesc().getPreciseRevision().toString();
+        revision = p.getLocal().getVersion().toString();
       }
       return "Update Available: " + revision;
     }

@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.invoker;
 
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.project.BuildSettings;
+import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.google.common.collect.Sets;
 import com.intellij.facet.FacetManager;
@@ -31,6 +32,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
+import static org.fest.assertions.Assertions.assertThat;
 
 /**
  * Tests for {@link GradleInvoker}.
@@ -47,6 +49,8 @@ public class GradleInvokerTest extends IdeaTestCase {
   private String myModuleGradlePath;
   private AndroidFacet myAndroidFacet;
   private GradleInvoker myInvoker;
+
+  private boolean myOriginalLoadAllTestArtifactsValue;
 
   @Override
   protected void setUp() throws Exception {
@@ -81,17 +85,27 @@ public class GradleInvokerTest extends IdeaTestCase {
     myAndroidFacet.getProperties().COMPILE_JAVA_TEST_TASK_NAME = COMPILE_TEST_JAVA;
     myAndroidFacet.getProperties().ASSEMBLE_TASK_NAME = ASSEMBLE;
     myAndroidFacet.getProperties().ASSEMBLE_TEST_TASK_NAME = ASSEMBLE_ANDROID_TEST;
+
+    myOriginalLoadAllTestArtifactsValue = GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS;
+    GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS = false;
   }
 
   @Override
-  protected void checkForSettingsDamage(@NotNull List<Throwable> exceptions) { }
+  public void tearDown() throws Exception {
+    GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS = myOriginalLoadAllTestArtifactsValue;
+    super.tearDown();
+  }
+
+  @Override
+  protected void checkForSettingsDamage(@NotNull List<Throwable> exceptions) {
+    // for this test we don't care for this check
+  }
 
   public void testAssembleTranslate() throws Exception {
     myInvoker.addBeforeGradleInvocationTask(new GradleInvoker.BeforeGradleInvocationTask() {
       @Override
       public void execute(@NotNull List<String> tasks) {
-        assertEquals(1, tasks.size());
-        assertEquals("assembleTranslate", tasks.get(0));
+        assertThat(tasks).containsOnly("assembleTranslate");
         assertEquals(BuildMode.ASSEMBLE_TRANSLATE, getBuildMode());
       }
     });
@@ -102,7 +116,9 @@ public class GradleInvokerTest extends IdeaTestCase {
     myInvoker.addBeforeGradleInvocationTask(new GradleInvoker.BeforeGradleInvocationTask() {
       @Override
       public void execute(@NotNull List<String> tasks) {
-        assertSameElements(tasks, CLEAN, qualifiedTaskName(SOURCE_GEN), qualifiedTaskName(TEST_SOURCE_GEN));
+        assertThat(tasks).containsOnly(CLEAN,
+                                       qualifiedTaskName(SOURCE_GEN),
+                                       qualifiedTaskName(TEST_SOURCE_GEN));
         // Make sure clean is first.
         assertEquals(CLEAN, tasks.get(0));
         assertEquals(BuildMode.CLEAN, getBuildMode());
@@ -115,12 +131,25 @@ public class GradleInvokerTest extends IdeaTestCase {
     myInvoker.addBeforeGradleInvocationTask(new GradleInvoker.BeforeGradleInvocationTask() {
       @Override
       public void execute(@NotNull List<String> tasks) {
-        assertEquals(2, tasks.size());
-        assertSameElements(tasks, qualifiedTaskName(SOURCE_GEN), qualifiedTaskName(TEST_SOURCE_GEN));
+        assertThat(tasks).containsOnly(qualifiedTaskName(SOURCE_GEN),
+                                       qualifiedTaskName(TEST_SOURCE_GEN));
         assertEquals(BuildMode.SOURCE_GEN, getBuildMode());
       }
     });
-    myInvoker.generateSources();
+    myInvoker.generateSources(false);
+  }
+
+  public void testGenerateSourcesWithClean() throws Exception {
+    myInvoker.addBeforeGradleInvocationTask(new GradleInvoker.BeforeGradleInvocationTask() {
+      @Override
+      public void execute(@NotNull List<String> tasks) {
+        assertThat(tasks).containsOnly(CLEAN,
+                                       qualifiedTaskName(SOURCE_GEN),
+                                       qualifiedTaskName(TEST_SOURCE_GEN));
+        assertEquals(BuildMode.SOURCE_GEN, getBuildMode());
+      }
+    });
+    myInvoker.generateSources(true);
   }
 
   public void testGenerateSourcesWithoutTestSourceGen() throws Exception {
@@ -129,11 +158,11 @@ public class GradleInvokerTest extends IdeaTestCase {
     myInvoker.addBeforeGradleInvocationTask(new GradleInvoker.BeforeGradleInvocationTask() {
       @Override
       public void execute(@NotNull List<String> tasks) {
-        assertSameElements(tasks, qualifiedTaskName(SOURCE_GEN));
+        assertThat(tasks).containsOnly(qualifiedTaskName(SOURCE_GEN));
         assertEquals(BuildMode.SOURCE_GEN, getBuildMode());
       }
     });
-    myInvoker.generateSources();
+    myInvoker.generateSources(false);
   }
 
   public void testCompileJava() throws Exception {
@@ -143,17 +172,16 @@ public class GradleInvokerTest extends IdeaTestCase {
     myInvoker.addBeforeGradleInvocationTask(new GradleInvoker.BeforeGradleInvocationTask() {
       @Override
       public void execute(@NotNull List<String> tasks) {
-        assertSameElements(tasks,
-                           // Make sure all "after sync tasks" are run, for running unit tests.
-                           qualifiedTaskName(mockableJar),
-                           qualifiedTaskName(SOURCE_GEN),
-                           qualifiedTaskName(TEST_SOURCE_GEN),
-                           qualifiedTaskName(COMPILE_JAVA),
-                           qualifiedTaskName(COMPILE_TEST_JAVA));
+        // Make sure all "after sync tasks" are run, for running unit tests.
+        assertThat(tasks).containsOnly(qualifiedTaskName(mockableJar),
+                                       qualifiedTaskName(SOURCE_GEN),
+                                       qualifiedTaskName(TEST_SOURCE_GEN),
+                                       qualifiedTaskName(COMPILE_JAVA),
+                                       qualifiedTaskName(COMPILE_TEST_JAVA));
         assertEquals(BuildMode.COMPILE_JAVA, getBuildMode());
       }
     });
-    myInvoker.compileJava(new Module[] { myModule }, GradleInvoker.TestCompileType.NONE);
+    myInvoker.compileJava(new Module[]{myModule}, GradleInvoker.TestCompileType.NONE);
   }
 
   public void testCompileJava_forUnitTests() throws Exception {
@@ -163,25 +191,24 @@ public class GradleInvokerTest extends IdeaTestCase {
     myInvoker.addBeforeGradleInvocationTask(new GradleInvoker.BeforeGradleInvocationTask() {
       @Override
       public void execute(@NotNull List<String> tasks) {
-        assertSameElements(tasks,
-                           // Make sure all "after sync tasks" are run, for running unit tests.
-                           qualifiedTaskName(mockableJar),
-                           qualifiedTaskName(SOURCE_GEN),
-                           qualifiedTaskName(TEST_SOURCE_GEN),
-                           qualifiedTaskName(COMPILE_TEST_JAVA));
+        // Make sure all "after sync tasks" are run, for running unit tests.
+        assertThat(tasks).containsOnly(qualifiedTaskName(mockableJar),
+                                       qualifiedTaskName(SOURCE_GEN),
+                                       qualifiedTaskName(TEST_SOURCE_GEN),
+                                       qualifiedTaskName(COMPILE_TEST_JAVA));
         // If using Jack, running :app:compileDebugSources would be a waste of time.
         assertDoesntContain(tasks, COMPILE_JAVA);
         assertEquals(BuildMode.COMPILE_JAVA, getBuildMode());
       }
     });
-    myInvoker.compileJava(new Module[] { myModule }, GradleInvoker.TestCompileType.JAVA_TESTS);
+    myInvoker.compileJava(new Module[]{myModule}, GradleInvoker.TestCompileType.JAVA_TESTS);
   }
 
   public void testAssemble() throws Exception {
     myInvoker.addBeforeGradleInvocationTask(new GradleInvoker.BeforeGradleInvocationTask() {
       @Override
       public void execute(@NotNull List<String> tasks) {
-        assertSameElements(tasks, qualifiedTaskName(ASSEMBLE));
+        assertThat(tasks).containsOnly(qualifiedTaskName(ASSEMBLE));
         assertEquals(BuildMode.ASSEMBLE, getBuildMode());
       }
     });
@@ -192,7 +219,8 @@ public class GradleInvokerTest extends IdeaTestCase {
     myInvoker.addBeforeGradleInvocationTask(new GradleInvoker.BeforeGradleInvocationTask() {
       @Override
       public void execute(@NotNull List<String> tasks) {
-        assertSameElements(tasks, qualifiedTaskName(ASSEMBLE), qualifiedTaskName(ASSEMBLE_ANDROID_TEST));
+        assertThat(tasks).containsOnly(qualifiedTaskName(ASSEMBLE),
+                                       qualifiedTaskName(ASSEMBLE_ANDROID_TEST));
         assertEquals(BuildMode.ASSEMBLE, getBuildMode());
       }
     });
@@ -206,14 +234,13 @@ public class GradleInvokerTest extends IdeaTestCase {
     myInvoker.addBeforeGradleInvocationTask(new GradleInvoker.BeforeGradleInvocationTask() {
       @Override
       public void execute(@NotNull List<String> tasks) {
-        assertSameElements(tasks,
-                           CLEAN,
-                           // Make sure all "after sync tasks" are run, for running unit tests.
-                           qualifiedTaskName(mockableJar),
-                           qualifiedTaskName(SOURCE_GEN),
-                           qualifiedTaskName(TEST_SOURCE_GEN),
-                           qualifiedTaskName(COMPILE_JAVA),
-                           qualifiedTaskName(COMPILE_TEST_JAVA));
+        // Make sure all "after sync tasks" are run, for running unit tests.
+        assertThat(tasks).containsOnly(CLEAN,
+                                       qualifiedTaskName(mockableJar),
+                                       qualifiedTaskName(SOURCE_GEN),
+                                       qualifiedTaskName(TEST_SOURCE_GEN),
+                                       qualifiedTaskName(COMPILE_JAVA),
+                                       qualifiedTaskName(COMPILE_TEST_JAVA));
         // Make sure clean is first.
         assertEquals(CLEAN, tasks.get(0));
         assertEquals(BuildMode.REBUILD, getBuildMode());

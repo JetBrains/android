@@ -43,7 +43,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class MergedManifestInfo extends ManifestInfo {
   @NotNull private final Module myModule;
-  @NotNull private final AndroidFacet myFacet;
+  @NotNull private final AndroidFacet myAndroidFacet;
 
   private Set<VirtualFile> myManifestFiles = Sets.newConcurrentHashSet();
   private final AtomicLong myLastChecked = new AtomicLong(0);
@@ -53,12 +53,9 @@ public class MergedManifestInfo extends ManifestInfo {
     "This class does not perform a proper manifest merge algorithm, and so the requested information "
     + "isn't available. Consider querying the Gradle model or obtain the information from the primary manifest.";
 
-  MergedManifestInfo(@NotNull Module module) {
-    AndroidFacet facet = AndroidFacet.getInstance(module);
-    assert facet != null;
-
-    myModule = module;
-    myFacet = facet;
+  MergedManifestInfo(@NotNull AndroidFacet facet) {
+    myModule = facet.getModule();
+    myAndroidFacet = facet;
   }
 
   @NotNull
@@ -72,7 +69,6 @@ public class MergedManifestInfo extends ManifestInfo {
 
     return allManifests;
   }
-
 
   @Override
   public void clear() {
@@ -155,7 +151,7 @@ public class MergedManifestInfo extends ManifestInfo {
     boolean needsRefresh = false;
 
     // needs a refresh if the list of manifests changed due to a variant change or a sync with new build script
-    final Set<VirtualFile> currentManifests = getAllManifests(myFacet);
+    final Set<VirtualFile> currentManifests = getAllManifests(myAndroidFacet);
     if (!currentManifests.equals(myManifestFiles)) {
       needsRefresh = true;
     }

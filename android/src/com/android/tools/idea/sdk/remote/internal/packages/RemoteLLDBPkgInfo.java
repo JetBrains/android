@@ -15,15 +15,14 @@
  */
 package com.android.tools.idea.sdk.remote.internal.packages;
 
-import com.android.SdkConstants;
-import com.android.annotations.NonNull;
-import com.android.sdklib.SdkManager;
+import com.android.repository.Revision;
 import com.android.sdklib.repository.descriptors.PkgDesc;
+import com.android.sdklib.repository.local.LocalLLDBPkgInfo;
 import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkSource;
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Node;
 
-import java.io.File;
 import java.util.Map;
 
 /**
@@ -36,18 +35,24 @@ public class RemoteLLDBPkgInfo extends RemotePkgInfo {
     mPkgDesc = PkgDesc.Builder.newLLDB(getRevision())
       .setListDisplay("LLDB")
       .setDescriptionShort("LLDB")
+      .setLicense(getLicense())
       .create();
   }
 
-  @NonNull
+  @NotNull
   @Override
   public String installId() {
     return mPkgDesc.getInstallId();
   }
 
-  @NonNull
   @Override
-  public File getInstallFolder(String osSdkRoot, SdkManager sdkManager) {
-    return new File(osSdkRoot, SdkConstants.FD_LLDB);
+  public boolean hasCompatibleArchive() {
+    Revision rev = getRevision();
+    if (rev.getMajor() != LocalLLDBPkgInfo.PINNED_REVISION.getMajor() ||
+        rev.getMinor() != LocalLLDBPkgInfo.PINNED_REVISION.getMinor()) {
+      return false;
+    }
+
+    return super.hasCompatibleArchive();
   }
 }

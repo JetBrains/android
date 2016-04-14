@@ -26,11 +26,9 @@ import java.util.Enumeration;
  */
 class ParentTreeNode extends UpdaterTreeNode {
   private AndroidVersion myVersion;
-  private final String myVersionName;
 
-  public ParentTreeNode(AndroidVersion version, String versionName) {
+  public ParentTreeNode(AndroidVersion version) {
     myVersion = version;
-    myVersionName = versionName;
   }
 
   @Override
@@ -41,14 +39,17 @@ class ParentTreeNode extends UpdaterTreeNode {
       UpdaterTreeNode child = (UpdaterTreeNode)children.nextElement();
       if (child.getInitialState() == NodeStateHolder.SelectedState.MIXED) {
         return NodeStateHolder.SelectedState.MIXED;
-      } else if (child.getInitialState() == NodeStateHolder.SelectedState.INSTALLED) {
+      }
+      else if (child.getInitialState() == NodeStateHolder.SelectedState.INSTALLED) {
         hasInstalled = true;
-      } else {
+      }
+      else {
         hasNotInstalled = true;
       }
     }
-    return hasInstalled ? (hasNotInstalled ? NodeStateHolder.SelectedState.MIXED : NodeStateHolder.SelectedState.INSTALLED)
-                        : NodeStateHolder.SelectedState.NOT_INSTALLED;
+    return hasInstalled
+           ? (hasNotInstalled ? NodeStateHolder.SelectedState.MIXED : NodeStateHolder.SelectedState.INSTALLED)
+           : NodeStateHolder.SelectedState.NOT_INSTALLED;
   }
 
   @Override
@@ -66,9 +67,11 @@ class ParentTreeNode extends UpdaterTreeNode {
     }
     if (foundInstalled && foundNotInstalled) {
       return NodeStateHolder.SelectedState.MIXED;
-    } else if (foundInstalled) {
+    }
+    else if (foundInstalled) {
       return NodeStateHolder.SelectedState.INSTALLED;
-    } else {
+    }
+    else {
       return NodeStateHolder.SelectedState.NOT_INSTALLED;
     }
   }
@@ -100,7 +103,8 @@ class ParentTreeNode extends UpdaterTreeNode {
                                 boolean leaf,
                                 int row,
                                 boolean hasFocus) {
-    renderer.getTextRenderer().append(SummaryTreeNode.getDescription(myVersion, myVersionName), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
+    renderer.getTextRenderer()
+      .append(SummaryTreeNode.getDescription(myVersion), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
   }
 
   @Override

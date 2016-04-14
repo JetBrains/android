@@ -151,6 +151,14 @@ public class DeviceInfo {
       return null;
     }
 
+    public String getDisplayName() {
+      int lastDot = myName.lastIndexOf('.');
+      if (lastDot >= 0 && lastDot < myName.length() - 1) {
+       return myName.substring(lastDot + 1);
+      }
+      return myName;
+    }
+
     @Override
     public int compareTo(Package other) {
       return myName.compareTo(other.myName);

@@ -15,26 +15,24 @@
  */
 package com.android.tools.idea.updater.configure;
 
-import com.android.sdklib.repository.FullRevision;
+import com.android.repository.Revision;
 import com.intellij.util.ui.ColumnInfo;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
-
 /**
- * ColumnInfo that shows the {@link PreciseRevision} of a package.
+ * ColumnInfo that shows the {@link Revision} of a package.
  */
-class VersionColumnInfo extends ColumnInfo<UpdaterTreeNode, FullRevision> {
+class VersionColumnInfo extends ColumnInfo<UpdaterTreeNode, Revision> {
   VersionColumnInfo() {
     super("Version");
   }
 
   @Nullable
   @Override
-  public FullRevision valueOf(UpdaterTreeNode node) {
+  public Revision valueOf(UpdaterTreeNode node) {
     if (!(node instanceof PlatformDetailsTreeNode)) {
       return null;
     }
-    return ((PlatformDetailsTreeNode)node).getItemDesc().getPreciseRevision();
+    return ((PlatformDetailsTreeNode)node).getPackage().getVersion();
   }
 }

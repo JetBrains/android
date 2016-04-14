@@ -16,9 +16,12 @@
 package com.android.tools.idea.gradle.project;
 
 import com.android.builder.model.*;
-import com.android.sdklib.repository.FullRevision;
+import com.android.ide.common.repository.GradleVersion;
+import com.android.tools.idea.fd.InstantRunGradleUtils;
+import com.android.tools.idea.fd.InstantRunSettings;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.stats.UsageTracker;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
@@ -58,27 +61,55 @@ class ProjectStructureUsageTracker {
     AndroidGradleModel appModel = null;
     AndroidGradleModel libModel = null;
 
+    int appCount = 0;
+    int libCount = 0;
+
     for (Module module : modules) {
       AndroidGradleModel androidModel = AndroidGradleModel.get(module);
       if (androidModel != null) {
         AndroidProject androidProject = androidModel.getAndroidProject();
         if (androidProject.isLibrary()) {
           libModel = androidModel;
+          libCount++;
           continue;
         }
         appModel = androidModel;
+        appCount++;
         trackExternalDependenciesInAndroidApp(androidProject);
       }
     }
 
     // Ideally we would like to get data from an "app" module, but if the project does not have one (which would be unusual, we can use
     // an Android library one.)
-    AndroidGradleModel target = appModel != null ? appModel : libModel;
-    if (target != null) {
-      AndroidProject androidProject = target.getAndroidProject();
-      FullRevision gradleVersion = getGradleVersion(myProject);
-      UsageTracker.getInstance().trackGradleArtifactVersions(target.getApplicationId(), androidProject.getModelVersion(),
-                                                             gradleVersion != null ? gradleVersion.toString() : "<Not Found>");
+    AndroidGradleModel model = appModel != null ? appModel : libModel;
+    if (model != null) {
+      String appId = model.getApplicationId();
+      AndroidProject androidProject = model.getAndroidProject();
+      GradleVersion gradleVersion = getGradleVersion(myProject);
+
+      ImmutableMap<String, String> irSettings = ImmutableMap.<String, String>builder()
+        .put("userEnabledIr", Boolean.toString(InstantRunSettings.isInstantRunEnabled()))
+        .put("modelSupportsIr", Boolean.toString(InstantRunGradleUtils.modelSupportsInstantRun(model)))
+        .put("variantSupportsIr", Boolean.toString(InstantRunGradleUtils.variantSupportsInstantRun(model)))
+        .build();
+      UsageTracker.getInstance().trackGradleArtifactVersions(appId,
+                                                             androidProject.getModelVersion(),
+                                                             gradleVersion != null ? gradleVersion.toString() : "<Not Found>",
+                                                             irSettings);
+      UsageTracker.getInstance().trackModuleCount(appId, modules.length, appCount, libCount);
+
+      for (Module module : modules) {
+        AndroidGradleModel androidModel = AndroidGradleModel.get(module);
+        if (androidModel != null) {
+          UsageTracker.getInstance().trackAndroidModule(appId,
+                                                        module.getName(),
+                                                        androidModel.isLibrary(),
+                                                        androidModel.getAndroidProject().getSigningConfigs().size(),
+                                                        androidModel.getBuildTypeNames().size(),
+                                                        androidModel.getProductFlavorNames().size(),
+                                                        androidModel.getAndroidProject().getFlavorDimensions().size());
+        }
+      }
     }
   }
 

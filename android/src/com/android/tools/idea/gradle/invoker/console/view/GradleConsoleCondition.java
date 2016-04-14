@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.invoker.console.view;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Condition;
 
-import static com.android.tools.idea.gradle.project.GradleModuleImporter.isGradleProject;
+import static com.android.tools.idea.gradle.util.Projects.canImportAsGradleProject;
 import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
 import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
 
@@ -28,6 +28,6 @@ import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidS
 public class GradleConsoleCondition implements Condition<Project> {
   @Override
   public boolean value(Project project) {
-    return isAndroidStudio() && project != null && (isBuildWithGradle(project) || isGradleProject(project.getBaseDir()));
+    return isAndroidStudio() && project != null && (isBuildWithGradle(project) || canImportAsGradleProject(project.getBaseDir()));
   }
 }

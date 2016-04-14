@@ -34,7 +34,7 @@ final class CallGetCaptures implements BinaryObject {
   public BinaryClass klass() { return Klass.INSTANCE; }
 
 
-  private static final Entity ENTITY = new Entity("service","callGetCaptures","","");
+  private static final Entity ENTITY = new Entity("service", "callGetCaptures", "", "");
 
   static {
     ENTITY.setFields(new Field[]{
@@ -55,12 +55,10 @@ final class CallGetCaptures implements BinaryObject {
 
     @Override
     public void encode(@NotNull Encoder e, BinaryObject obj) throws IOException {
-      CallGetCaptures o = (CallGetCaptures)obj;
     }
 
     @Override
     public void decode(@NotNull Decoder d, BinaryObject obj) throws IOException {
-      CallGetCaptures o = (CallGetCaptures)obj;
     }
     //<<<End:Java.KlassBody:2>>>
   }

@@ -16,10 +16,12 @@
 package org.jetbrains.android.dom.transition;
 
 import com.intellij.util.xml.DefinesXml;
+import org.jetbrains.android.dom.Styleable;
 
 import java.util.List;
 
 @DefinesXml
+@Styleable("TransitionTarget")
 public interface Targets extends TransitionDomElement {
   List<Target> getTargets();
 }

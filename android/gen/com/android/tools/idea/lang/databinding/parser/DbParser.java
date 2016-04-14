@@ -9,9 +9,10 @@ import com.intellij.psi.tree.IElementType;
 import com.intellij.lang.ASTNode;
 import com.intellij.psi.tree.TokenSet;
 import com.intellij.lang.PsiParser;
+import com.intellij.lang.LightPsiParser;
 
 @SuppressWarnings({"SimplifiableIfStatement", "UnusedAssignment"})
-public class DbParser implements PsiParser {
+public class DbParser implements PsiParser, LightPsiParser {
 
   public ASTNode parse(IElementType t, PsiBuilder b) {
     parseLight(t, b);
@@ -67,6 +68,9 @@ public class DbParser implements PsiParser {
     else if (t == EXPRESSION_LIST) {
       r = expressionList(b, 0);
     }
+    else if (t == FIELD_NAME) {
+      r = fieldName(b, 0);
+    }
     else if (t == ID_EXPR) {
       r = idExpr(b, 0);
     }
@@ -87,6 +91,9 @@ public class DbParser implements PsiParser {
     }
     else if (t == METHOD_EXPR) {
       r = expr(b, 0, 15);
+    }
+    else if (t == METHOD_NAME) {
+      r = methodName(b, 0);
     }
     else if (t == MUL_EXPR) {
       r = expr(b, 0, 11);
@@ -128,7 +135,7 @@ public class DbParser implements PsiParser {
   }
 
   protected boolean parse_root_(IElementType t, PsiBuilder b, int l) {
-    return bindingSyntax(b, l + 1);
+    return dataBindingExpression(b, l + 1);
   }
 
   public static final TokenSet[] EXTENDS_SETS_ = new TokenSet[] {
@@ -152,25 +159,6 @@ public class DbParser implements PsiParser {
     if (!r) r = consumeToken(b, MINUS);
     exit_section_(b, m, null, r);
     return r;
-  }
-
-  /* ********************************************************** */
-  // expr defaults?
-  static boolean bindingSyntax(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "bindingSyntax")) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = expr(b, l + 1, -1);
-    r = r && bindingSyntax_1(b, l + 1);
-    exit_section_(b, m, null, r);
-    return r;
-  }
-
-  // defaults?
-  private static boolean bindingSyntax_1(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "bindingSyntax_1")) return false;
-    defaults(b, l + 1);
-    return true;
   }
 
   /* ********************************************************** */
@@ -254,6 +242,25 @@ public class DbParser implements PsiParser {
   }
 
   /* ********************************************************** */
+  // expr defaults?
+  static boolean dataBindingExpression(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "dataBindingExpression")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = expr(b, l + 1, -1);
+    r = r && dataBindingExpression_1(b, l + 1);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  // defaults?
+  private static boolean dataBindingExpression_1(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "dataBindingExpression_1")) return false;
+    defaults(b, l + 1);
+    return true;
+  }
+
+  /* ********************************************************** */
   // ',' 'default' '=' constantValue
   public static boolean defaults(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "defaults")) return false;
@@ -317,6 +324,18 @@ public class DbParser implements PsiParser {
   }
 
   /* ********************************************************** */
+  // IDENTIFIER
+  public static boolean fieldName(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "fieldName")) return false;
+    if (!nextTokenIs(b, IDENTIFIER)) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeToken(b, IDENTIFIER);
+    exit_section_(b, m, FIELD_NAME, r);
+    return r;
+  }
+
+  /* ********************************************************** */
   // '<=' | '>=' | '<' | '>'
   static boolean ineqComparisonOp(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "ineqComparisonOp")) return false;
@@ -357,14 +376,26 @@ public class DbParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // '*' | '/'
+  // IDENTIFIER
+  public static boolean methodName(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "methodName")) return false;
+    if (!nextTokenIs(b, IDENTIFIER)) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeToken(b, IDENTIFIER);
+    exit_section_(b, m, METHOD_NAME, r);
+    return r;
+  }
+
+  /* ********************************************************** */
+  // '*' | '/' | '%'
   static boolean mulOp(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "mulOp")) return false;
-    if (!nextTokenIs(b, "", ASTERISK, DIV)) return false;
     boolean r;
     Marker m = enter_section_(b);
     r = consumeToken(b, ASTERISK);
     if (!r) r = consumeToken(b, DIV);
+    if (!r) r = consumeToken(b, PERC);
     exit_section_(b, m, null, r);
     return r;
   }
@@ -736,13 +767,13 @@ public class DbParser implements PsiParser {
     return r;
   }
 
-  // '.' IDENTIFIER '(' expressionList? ')'
+  // '.' methodName '(' expressionList? ')'
   private static boolean methodExpr_0(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "methodExpr_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
     r = consumeTokenSmart(b, DOT);
-    r = r && consumeToken(b, IDENTIFIER);
+    r = r && methodName(b, l + 1);
     r = r && consumeToken(b, LPARENTH);
     r = r && methodExpr_0_3(b, l + 1);
     r = r && consumeToken(b, RPARENTH);
@@ -757,13 +788,13 @@ public class DbParser implements PsiParser {
     return true;
   }
 
-  // '.' IDENTIFIER
+  // '.' fieldName
   private static boolean dotExpr_0(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "dotExpr_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
     r = consumeTokenSmart(b, DOT);
-    r = r && consumeToken(b, IDENTIFIER);
+    r = r && fieldName(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
   }

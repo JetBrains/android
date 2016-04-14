@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.model.ext;
 
+import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
 import org.jetbrains.annotations.NotNull;
 
@@ -25,11 +26,10 @@ import org.jetbrains.annotations.NotNull;
  * <a href="https://docs.gradle.org/current/userguide/writing_build_scripts.html#sec:extra_properties">Extra Properties</a>.
  * </p>
  */
-public final class ExtModel {
-  @NotNull private final ExtDslElement myDslElement;
+public final class ExtModel extends GradleDslBlockModel {
 
   public ExtModel(@NotNull ExtDslElement dslElement) {
-    myDslElement = dslElement;
+    super(dslElement);
   }
 
   public <T> T getProperty(@NotNull String property, @NotNull Class<T> clazz) {

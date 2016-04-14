@@ -105,7 +105,7 @@ public class DumpHprofAction extends AbstractClientAction {
     }
 
     @Override
-    public void clientChanged(Client client, int changeMask) {
+    public void clientChanged(final Client client, int changeMask) {
       if (changeMask == Client.CHANGE_HPROF && client == myClient) {
         assert !ApplicationManager.getApplication().isDispatchThread();
 
@@ -124,7 +124,8 @@ public class DumpHprofAction extends AbstractClientAction {
                 public void run() {
                   try {
                     final CaptureService service = CaptureService.getInstance(myProject);
-                    CaptureHandle handle = service.startCaptureFile(HprofCaptureType.class);
+                    String name = service.getSuggestedName(client);
+                    CaptureHandle handle = service.startCaptureFile(HprofCaptureType.class, name);
                     service.appendDataCopy(handle, data.data);
                     service.finalizeCaptureFileAsynchronous(handle, new FutureCallback<Capture>() {
                       @Override

@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.gradle.customizer.android;
 
-import com.android.builder.model.BaseArtifact;
+import com.android.builder.model.JavaArtifact;
 import com.android.builder.model.Variant;
+import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.customizer.AbstractCompileOutputModuleCustomizer;
 import com.android.tools.idea.gradle.variant.view.BuildVariantModuleCustomizer;
@@ -41,22 +42,23 @@ public class CompilerOutputModuleCustomizer extends AbstractCompileOutputModuleC
   public void customizeModule(@NotNull Project project,
                               @NotNull Module module,
                               @NotNull IdeModifiableModelsProvider modelsProvider,
-                              @Nullable AndroidGradleModel androidProject) {
-    if (androidProject == null) {
+                              @Nullable AndroidGradleModel androidModel) {
+    if (androidModel == null) {
       return;
     }
-    String modelVersion = androidProject.getAndroidProject().getModelVersion();
-    if (isEmpty(modelVersion)) {
+    GradleVersion modelVersion = androidModel.getModelVersion();
+    if (modelVersion == null) {
       // We are dealing with old model that does not have 'class' folder.
       return;
     }
-    Variant selectedVariant = androidProject.getSelectedVariant();
+    Variant selectedVariant = androidModel.getSelectedVariant();
     File mainClassesFolder = selectedVariant.getMainArtifact().getClassesFolder();
-    BaseArtifact testArtifact = androidProject.findSelectedTestArtifact(selectedVariant);
-    File testClassesFolder = testArtifact == null ? null : testArtifact.getClassesFolder();
 
-    final ModifiableRootModel ideaModuleModel = modelsProvider.getModifiableRootModel(module);
-    setOutputPaths(ideaModuleModel, mainClassesFolder, testClassesFolder);
+    ModifiableRootModel moduleModel = modelsProvider.getModifiableRootModel(module);
+    JavaArtifact testArtifact = androidModel.getUnitTestArtifactInSelectedVariant();
+
+    File testClassesFolder = testArtifact == null ? null : testArtifact.getClassesFolder();
+    setOutputPaths(moduleModel, mainClassesFolder, testClassesFolder);
   }
 
   @Override

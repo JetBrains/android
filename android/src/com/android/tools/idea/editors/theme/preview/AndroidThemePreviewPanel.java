@@ -16,6 +16,7 @@
 package com.android.tools.idea.editors.theme.preview;
 
 
+import com.android.ide.common.rendering.api.Features;
 import com.android.ide.common.rendering.api.MergeCookie;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.resources.Density;
@@ -429,6 +430,7 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext, Disp
 
       ThemePreviewBuilder builder = new ThemePreviewBuilder()
         .setBackgroundColor(getBackground()).addAllComponents(ThemePreviewBuilder.AVAILABLE_BASE_COMPONENTS)
+        .addNavigationBar(configuration.supports(Features.THEME_PREVIEW_NAVIGATION_BAR))
         .addAllComponents(myCustomComponents)
         .addComponentFilter(new ThemePreviewBuilder.SearchFilter(mySearchTerm))
         .addComponentFilter(new ThemePreviewBuilder.ApiLevelFilter(minApiLevel))
@@ -565,7 +567,7 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext, Disp
   @Override
   public void setConfiguration(@NotNull Configuration configuration) {
     // This method is used in the layout editor to support the multi-preview. The theme editor doesn't support it.
-    throw new UnsupportedOperationException("Configuration can not be changed on AndroidThemePreviewPanel");
+    // We only support the drop down
   }
 
   @Override

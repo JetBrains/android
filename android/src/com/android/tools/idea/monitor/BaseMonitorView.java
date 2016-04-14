@@ -22,9 +22,10 @@ import com.android.tools.chartlib.TimelineComponent;
 import com.android.tools.idea.ddms.DeviceContext;
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.intellij.ide.util.PropertiesComponent;
-import com.intellij.openapi.actionSystem.ActionGroup;
+import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComponentWithActions;
+import com.intellij.openapi.util.Key;
 import com.intellij.ui.BrowserHyperlinkListener;
 import com.intellij.ui.ColorUtil;
 import com.intellij.ui.components.JBLayeredPane;
@@ -42,8 +43,12 @@ import java.util.PriorityQueue;
 
 public abstract class BaseMonitorView<T extends DeviceSampler>
   implements HierarchyListener, TimelineEventListener, DeviceContext.DeviceSelectionListener {
-  @NotNull private static final String PAUSED_KEY = ".paused";
+  public static final Key<BaseMonitorView> MONITOR_VIEW_KEY = Key.create("MONITOR_VIEW_KEY");
+
   @NotNull private static final String PAUSED_LABEL = "This monitor is disabled.";
+  @NotNull private static final String PAUSED_KEY = ".paused";
+  @NotNull private static final String POSITION_KEY = ".position";
+  @NotNull private static final String MINIMIZED_KEY = ".minimized";
   @NotNull private static final Integer OVERLAY_LAYER = JLayeredPane.DEFAULT_LAYER + 10;
   @NotNull private static final Color BACKGROUND_COLOR = UIUtil.getTextFieldBackground();
 
@@ -60,6 +65,8 @@ public abstract class BaseMonitorView<T extends DeviceSampler>
   @NotNull private JTextPane myOverlayText;
   @NotNull private HashMap<String, ZOrderedOverlayText> myOverlayLookup;
   @NotNull private PriorityQueue<ZOrderedOverlayText> myVisibleOverlays;
+  private int myPosition;
+  private boolean myIsMinimized;
 
   private static class ZOrderedOverlayText {
     @NotNull private String myText;
@@ -137,6 +144,9 @@ public abstract class BaseMonitorView<T extends DeviceSampler>
 
     addOverlayText(PAUSED_LABEL, PAUSED_LABEL_PRIORITY);
     performPausing(getPausedSetting());
+
+    myPosition = getPositionSetting();
+    myIsMinimized = getIsMinimizedSetting();
   }
 
   @Override
@@ -188,13 +198,31 @@ public abstract class BaseMonitorView<T extends DeviceSampler>
   /**
    * Pauses and records the state in the project properties.
    */
-  public void setPaused(boolean paused) {
-    performPausing(paused);
-    PropertiesComponent.getInstance(myProject).setValue(getMonitorName() + PAUSED_KEY, Boolean.toString(paused));
+  public void setIsPaused(boolean isPaused) {
+    performPausing(isPaused);
+    setProperty(PAUSED_KEY, Boolean.toString(isPaused), Boolean.toString(getPreferredPausedState()));
   }
 
-  public boolean isPaused() {
+  public boolean getIsPaused() {
     return mySampler.getIsPaused();
+  }
+
+  public void setIsMinimized(boolean minimized) {
+    setProperty(MINIMIZED_KEY, Boolean.toString(minimized), Boolean.toString(false));
+    myIsMinimized = minimized;
+  }
+
+  public boolean getIsMinimized() {
+    return myIsMinimized;
+  }
+
+  public void setPosition(int position) {
+    setProperty(POSITION_KEY, Integer.toString(position), Integer.toString(getDefaultPosition()));
+    myPosition = position;
+  }
+
+  public int getPosition() {
+    return myPosition;
   }
 
   @Override
@@ -220,10 +248,21 @@ public abstract class BaseMonitorView<T extends DeviceSampler>
   }
 
   @NotNull
+  public abstract String getTitleName();
+
+  @NotNull
+  public abstract Icon getTitleIcon();
+
+  @NotNull
   public abstract String getMonitorName();
 
   @NotNull
   public abstract String getDescription();
+
+  @NotNull
+  public Color getViewBackgroundColor() {
+    return myTimelineComponent.getBackground();
+  }
 
   /**
    * Registers the given text in the list of possible strings usable in the overlay.
@@ -275,11 +314,33 @@ public abstract class BaseMonitorView<T extends DeviceSampler>
     return false;
   }
 
+  protected abstract int getDefaultPosition();
+
   /**
    * Gets whether the paused state has been set in the project. If not, returns the preferred paused state of this monitor.
    */
   private boolean getPausedSetting() {
-    return PropertiesComponent.getInstance(myProject).getBoolean(getMonitorName() + PAUSED_KEY, getPreferredPausedState());
+    return getBooleanProperty(PAUSED_KEY, getPreferredPausedState());
+  }
+
+  private int getPositionSetting() {
+    return getIntProperty(POSITION_KEY, getDefaultPosition());
+  }
+
+  private boolean getIsMinimizedSetting() {
+    return getBooleanProperty(MINIMIZED_KEY, false);
+  }
+
+  private void setProperty(@NotNull String propertyId, @NotNull String propertyValue, @NotNull String defaultValue) {
+    PropertiesComponent.getInstance(myProject).setValue(getMonitorName() + propertyId, propertyValue, defaultValue);
+  }
+
+  private boolean getBooleanProperty(@NotNull String propertyId, boolean defaultValue) {
+    return PropertiesComponent.getInstance(myProject).getBoolean(getMonitorName() + propertyId, defaultValue);
+  }
+
+  private int getIntProperty(@NotNull String propertyId, int defaultValue) {
+    return PropertiesComponent.getInstance(myProject).getInt(getMonitorName() + propertyId, defaultValue);
   }
 
   /**

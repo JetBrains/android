@@ -108,40 +108,8 @@ public interface ITaskMonitor extends ILogger {
   int getProgress();
 
   /**
-   * Returns true if the user requested to cancel the operation.
-   * It is up to the task thread to pool this and exit as soon
-   * as possible.
-   */
-  boolean isCancelRequested();
-
-  /**
    * Creates a sub-monitor that will use up to tickCount on the progress bar.
    * tickCount must be 1 or more.
    */
   ITaskMonitor createSubMonitor(int tickCount);
-
-  /**
-   * Display a yes/no question dialog box.
-   * <p/>
-   * Implementations MUST allow this to be called from any thread, e.g. by
-   * making sure the dialog is opened synchronously in the ui thread.
-   *
-   * @param title   The title of the dialog box
-   * @param message The error message
-   * @return true if YES was clicked.
-   */
-  boolean displayPrompt(final String title, final String message);
-
-  /**
-   * Launch an interface which asks for user credentials. Implementations
-   * MUST allow this to be called from any thread, e.g. by making sure the
-   * dialog is opened synchronously in the UI thread.
-   *
-   * @param title   The title of the dialog box.
-   * @param message The message to be displayed as an instruction.
-   * @return Returns the user provided credentials. Some fields may be blank if the user
-   * did not provide any input.
-   * If operation is <b>canceled</b> by user the return value must be <b>null</b>.
-   */
-  UserCredentials displayLoginCredentialsPrompt(String title, String message);
 }

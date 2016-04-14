@@ -16,7 +16,7 @@
 package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.IAndroidTarget;
+import com.android.sdklib.ISystemImage;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.utils.HtmlBuilder;
@@ -59,9 +59,8 @@ public class AvdSummaryAction extends AvdUiAction {
     if (info.getStatus() != AvdInfo.AvdStatus.OK) {
       htmlBuilder.addHtml("<br>Error: ").add(info.getErrorMessage());
     } else {
-      IAndroidTarget target = info.getTarget();
-      AndroidVersion version = target.getVersion();
-      htmlBuilder.addHtml("<br>Target: ").add(String.format("%1$s (API level %2$s)", target.getName(), version.getApiString()));
+      AndroidVersion version = info.getAndroidVersion();
+      htmlBuilder.addHtml("<br>Target: ").add(String.format("%1$s (API level %2$s)", info.getTag(), version.getApiString()));
 
       // display some extra values.
       Map<String, String> properties = info.getProperties();
@@ -92,7 +91,6 @@ public class AvdSummaryAction extends AvdUiAction {
       copy.remove(AvdManager.AVD_INI_SKIN_PATH);
       copy.remove(AvdManager.AVD_INI_SDCARD_SIZE);
       copy.remove(AvdManager.AVD_INI_SDCARD_PATH);
-      copy.remove(AvdManager.AVD_INI_IMAGES_1);
       copy.remove(AvdManager.AVD_INI_IMAGES_2);
 
       if (copy.size() > 0) {
@@ -103,7 +101,7 @@ public class AvdSummaryAction extends AvdUiAction {
     }
     htmlBuilder.closeHtmlBody();
     String[] options = {"Copy to Clipboard and Close", "Close"};
-    int i = Messages.showDialog((Project)null, htmlBuilder.getHtml(), "Details for " + info.getName(),
+    int i = Messages.showDialog(getProject(), htmlBuilder.getHtml(), "Details for " + info.getName(),
                                 options, 0, AllIcons.General.InformationDialog);
     if (i == 0) {
       CopyPasteManager.getInstance().setContents(new StringSelection(StringUtil.stripHtml(htmlBuilder.getHtml(), true)));

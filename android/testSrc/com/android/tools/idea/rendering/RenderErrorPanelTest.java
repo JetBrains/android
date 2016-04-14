@@ -420,13 +420,11 @@ public class RenderErrorPanelTest extends AndroidTestCase {
     };
 
     String html = getRenderOutput(myFixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"), operation);
-    String current = ClassConverter.getCurrentJdkVersion();
 
     String incompatible = "";
     String modules = "";
     if (RenderErrorPanel.isBuiltByJdk7OrHigher(myModule)) {
-      incompatible = "" +
-                     "The following modules are built with incompatible JDK:<BR/>" +
+      incompatible = "The following modules are built with incompatible JDK:<BR/>" +
                      myModule.getName() + "<BR/>";
       modules = "<A HREF=\"runnable:1\">Change Java SDK to 1.6</A><BR/>";
     }
@@ -435,9 +433,9 @@ public class RenderErrorPanelTest extends AndroidTestCase {
       "<html><body><A HREF=\"action:close\"></A><font style=\"font-weight:bold; color:#005555;\">Rendering Problems</font><BR/>" +
       "Preview might be incorrect: unsupported class version.<BR/>" +
       "Tip: You need to run the IDE with the highest JDK version that you are compiling custom views with. " +
-      "One or more views have been compiled with JDK 1.8, but you are running the IDE on JDK " + current + ". Running on a higher " +
-      "JDK is necessary such that these classes can be run in the layout renderer. (Or, extract your custom views into a " +
-      "library which you compile with a lower JDK version.)<BR/>" +
+      "For example, if you are compiling with sourceCompatibility 1.7, you must run the IDE with JDK 1.7. " +
+      "Running on a higher JDK is necessary such that these classes can be run in the layout renderer. (Or, extract your custom views " +
+      "into a library which you compile with a lower JDK version.)<BR/>" +
       "<BR/>" +
       "If you have just accidentally built your code with a later JDK, try to <A HREF=\"action:build\">build</A> the project.<BR/>" +
       "<BR/>" +

@@ -4,7 +4,9 @@
     <constraints>
       <xy x="20" y="20" width="500" height="460"/>
     </constraints>
-    <properties/>
+    <properties>
+      <preferredSize width="600" height="400"/>
+    </properties>
     <border type="none"/>
     <children>
       <grid id="3d0a3" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
@@ -35,6 +37,12 @@
         <border type="none"/>
         <children/>
       </scrollpane>
+      <grid id="11b24" binding="myNotificationPanel" layout-manager="BorderLayout" hgap="0" vgap="0">
+        <constraints border-constraint="North"/>
+        <properties/>
+        <border type="none"/>
+        <children/>
+      </grid>
     </children>
   </grid>
 </form>

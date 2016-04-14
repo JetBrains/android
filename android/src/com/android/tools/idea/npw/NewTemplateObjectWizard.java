@@ -423,7 +423,7 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateW
 
   protected void updateAssetSetStep(@Nullable TemplateMetadata chosenTemplateMetadata) {
     if (chosenTemplateMetadata != null && chosenTemplateMetadata.getIconType() != null) {
-      myAssetSetStep.finalizeAssetType(chosenTemplateMetadata.getIconType());
+      myAssetSetStep.finalizeAssetType(AssetStudioAssetGenerator.AssetType.of(chosenTemplateMetadata.getIconType()));
       myWizardState.put(ATTR_ICON_NAME, chosenTemplateMetadata.getIconName());
       myAssetSetStep.setVisible(true);
     }

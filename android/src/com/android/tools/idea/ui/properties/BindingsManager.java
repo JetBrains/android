@@ -15,19 +15,13 @@
  */
 package com.android.tools.idea.ui.properties;
 
-import com.android.tools.idea.ui.properties.exceptions.BindingCycleException;
 import com.android.tools.idea.ui.properties.expressions.bool.BooleanExpressions;
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Queues;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ModalityState;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Queue;
 
 /**
  * Class which manages associations between source and destination values, updating the destination
@@ -41,87 +35,38 @@ import java.util.Queue;
  * values on the dispatch thread to avoid undefined behavior.
  */
 public final class BindingsManager {
-  /**
-   * Ensure bindings aren't registered in a way that causes an infinite loop. Valid update loops
-   * usually settle within 2 or 3 steps.
-   */
-  private static final int MAX_CYCLE_COUNT = 10;
-
-  /**
-   * A strategy on how to invoke a binding update. Instead of invoking immediately, we often want
-   * to postpone the invocation, as that will allow us to avoid doing expensive updates on
-   * redundant, intermediate changes, e.g. a repaint will happen if width and/or height changes,
-   * and we only want to repaint once if both width and height are changed on the same frame.
-   */
-  public interface InvokeStrategy {
-    void invoke(@NotNull Runnable runnable);
-  }
-
-  /**
-   * Useful invoke strategy when developing an IDEA Plugin.
-   */
-  public static final InvokeStrategy APPLICATION_INVOKE_LATER_STRATEGY = new InvokeStrategy() {
-    @Override
-    public void invoke(@NotNull Runnable runnable) {
-      ApplicationManager.getApplication().invokeLater(runnable, ModalityState.any());
-    }
-  };
-
-  /**
-   * Useful invoke strategy when working on a Swing application.
-   */
-  public static final InvokeStrategy SWING_INVOKE_LATER_STRATEGY = new InvokeStrategy() {
-    @Override
-    public void invoke(@NotNull Runnable runnable) {
-      //noinspection SSBasedInspection
-      SwingUtilities.invokeLater(runnable);
-    }
-  };
-
-  /**
-   * Useful invoke strategy for testing, when you don't care about delaying your binding updates.
-   */
-  public static final InvokeStrategy INVOKE_IMMEDIATELY_STRATEGY = new InvokeStrategy() {
-    @Override
-    public void invoke(@NotNull Runnable runnable) {
-      runnable.run();
-    }
-  };
 
   private final List<OneWayBinding<?>> myOneWayBindings = Lists.newArrayList();
   private final List<TwoWayBinding<?>> myTwoWayBindings = Lists.newArrayList();
-  private final Queue<DestUpdater> myUpdaters = Queues.newArrayDeque();
-  private final Queue<DestUpdater> myDeferredUpdaters = Queues.newArrayDeque();
 
-  private boolean myUpdateInProgress;
-  private int myCycleCount;
-
-  private final InvokeStrategy myInvokeStrategy;
+  private final BatchInvoker myInvoker;
 
   public BindingsManager() {
-    this(ApplicationManager.getApplication() != null ? APPLICATION_INVOKE_LATER_STRATEGY : SWING_INVOKE_LATER_STRATEGY);
+    myInvoker = new BatchInvoker();
   }
 
-  public BindingsManager(InvokeStrategy invokeStrategy) {
-    myInvokeStrategy = invokeStrategy;
+  public BindingsManager(@NotNull BatchInvoker.Strategy invokeStrategy) {
+    myInvoker = new BatchInvoker(invokeStrategy);
   }
 
   /**
    * Binds one value to another. Whenever the source value changes, the destination value will
    * be updated to reflect it.
    * <p/>
-   * Setting a bound value is allowed but discouraged, as it will be overwritten as soon as the
-   * target value changes, and this may be hard to debug. If you are careful and know what you're
-   * doing, this can still be useful - for example, you might also wish to add a listener
-   * to the bound value and, detecting an external change, release the binding.
+   * If you ever rebind a value, its old binding will be discarded.
+   * <p/>
+   * Use {@link #bind(SettableValue, ObservableValue, ObservableValue)} instead if you need to
+   * break bindings conditionally.
    */
   public <T> void bind(@NotNull SettableValue<T> dest, @NotNull ObservableValue<T> src) {
-    bind(dest, src, BooleanExpressions.TRUE);
+    bind(dest, src, BooleanExpressions.alwaysTrue());
   }
 
   /**
    * Like {@link #bind(SettableValue, ObservableValue)}, but takes an additional observable boolean
    * which, while set to false, disables the binding.
+   * <p/>
+   * If you ever rebind a value, its old binding will be discarded.
    * <p/>
    * This can be useful for UI fields that are initially linked to each other but which may break
    * that link later on.
@@ -177,6 +122,21 @@ public final class BindingsManager {
   }
 
   /**
+   * Releases all two-way bindings registered via {@link #bindTwoWay(SettableValue, SettableValue)}
+   * where either the first or second properties match the input value.
+   */
+  public <T> void releaseTwoWay(@NotNull SettableValue<T> value) {
+    Iterator<TwoWayBinding<?>> i = myTwoWayBindings.iterator();
+    while (i.hasNext()) {
+      TwoWayBinding<?> binding = i.next();
+      if (binding.myLhs == value || binding.myRhs == value) {
+        binding.dispose();
+        i.remove();
+      }
+    }
+  }
+
+  /**
    * Release all bindings (one-way and two-way) registered with this bindings manager.
    */
   public void releaseAll() {
@@ -191,63 +151,15 @@ public final class BindingsManager {
     myTwoWayBindings.clear();
   }
 
-  private void enqueueUpdater(@NotNull DestUpdater updater) {
-    if (myUpdateInProgress) {
-      if (!myDeferredUpdaters.contains(updater)) {
-        myDeferredUpdaters.add(updater);
-      }
-      return;
-    }
-
-    // Prepare to run an update if we're the first update request. Any other requests that are made
-    // before the update runs will get lumped in with it.
-    boolean shouldInvoke = myUpdaters.isEmpty();
-    if (!myUpdaters.contains(updater)) {
-      myUpdaters.add(updater);
-    }
-
-    if (shouldInvoke) {
-      invokeUpdate();
-    }
-  }
-
-  private void invokeUpdate() {
-    myInvokeStrategy.invoke(new Runnable() {
-      @Override
-      public void run() {
-        myUpdateInProgress = true;
-        for (DestUpdater updater : myUpdaters) {
-          updater.update();
-        }
-        myUpdaters.clear();
-        myUpdateInProgress = false;
-
-        if (!myDeferredUpdaters.isEmpty()) {
-          myCycleCount++;
-          if (myCycleCount > MAX_CYCLE_COUNT) {
-            throw new BindingCycleException();
-          }
-
-          myUpdaters.addAll(myDeferredUpdaters);
-          myDeferredUpdaters.clear();
-          invokeUpdate(); // Call self again with any bindings invalidated by this last cycle
-        }
-        else {
-          myCycleCount = 0;
-        }
-      }
-    });
-  }
-
-  private class OneWayBinding<T> extends InvalidationListener {
+  private final class OneWayBinding<T> implements InvalidationListener {
     private final SettableValue<T> myDest;
     private final ObservableValue<T> mySrc;
     private final ObservableValue<Boolean> myEnabled;
 
     @Override
-    protected void onInvalidated(@NotNull Observable sender) {
+    public void onInvalidated(@NotNull ObservableValue<?> sender) {
       if (myEnabled.get()) {
-        enqueueUpdater(new DestUpdater<T>(myDest, mySrc));
+        myInvoker.enqueue(new DestUpdater<T>(myDest, mySrc));
       }
     }
 
@@ -269,19 +181,19 @@ public final class BindingsManager {
     }
   }
 
-  private class TwoWayBinding<T> {
+  private final class TwoWayBinding<T> {
     private final SettableValue<T> myLhs;
     private final SettableValue<T> myRhs;
     private final InvalidationListener myLeftChangedListener = new InvalidationListener() {
       @Override
-      public void onInvalidated(@NotNull Observable sender) {
-        enqueueUpdater(new DestUpdater<T>(myRhs, myLhs));
+      public void onInvalidated(@NotNull ObservableValue<?> sender) {
+        myInvoker.enqueue(new DestUpdater<T>(myRhs, myLhs));
       }
     };
     private final InvalidationListener myRightChangedListener = new InvalidationListener() {
       @Override
-      public void onInvalidated(@NotNull Observable sender) {
-        enqueueUpdater(new DestUpdater<T>(myLhs, myRhs));
+      public void onInvalidated(@NotNull ObservableValue<?> sender) {
+        myInvoker.enqueue(new DestUpdater<T>(myLhs, myRhs));
       }
     };
 
@@ -306,7 +218,7 @@ public final class BindingsManager {
    * value on request. This class is used by both {@link OneWayBinding} and {@link TwoWayBinding}
    * to enqueue an update after they detect a change.
    */
-  private static final class DestUpdater<T> {
+  private static final class DestUpdater<T> implements Runnable {
     private final SettableValue<T> myDest;
     private final ObservableValue<T> mySrc;
 
@@ -315,7 +227,8 @@ public final class BindingsManager {
       mySrc = src;
     }
 
-    public void update() {
+    @Override
+    public void run() {
       myDest.set(mySrc.get());
     }
 

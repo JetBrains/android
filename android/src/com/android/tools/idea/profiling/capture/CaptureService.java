@@ -16,6 +16,7 @@
 package com.android.tools.idea.profiling.capture;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.ddmlib.Client;
 import com.android.tools.idea.stats.UsageTracker;
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Multimap;
@@ -38,6 +39,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -83,6 +85,27 @@ public class CaptureService {
       }
     }
     return set;
+  }
+
+  /**
+   * Returns the suggested capture name for the given project and client.
+   * The returned suggested name uses the client's description if the client and description are
+   * not null, otherwise the suggested name uses the project name. The suggested name is always
+   * suffixed with the current data and time.
+   *
+   * @param client the current client.
+   * @return the suggested capture name.
+   */
+  @NotNull
+  public String getSuggestedName(@Nullable Client client) {
+    String timestamp = new SimpleDateFormat("yyyy.MM.dd_HH.mm").format(new Date());
+    if (client != null) {
+      String name = client.getClientData().getClientDescription();
+      if (name != null && name.length() > 0) {
+        return name + "_" + timestamp;
+      }
+    }
+    return myProject.getName() + "_" + timestamp;
   }
 
   public void update() {
@@ -153,10 +176,11 @@ public class CaptureService {
    * MUST be called on event dispatch thread.
    *
    * @param clazz the type of file file to create
+   * @param name  the name of the capture file. This will be appended with a unique number if a capture with the name already exists.
    * @return the handle for working with this file asynchronously
    * @throws IOException when there is an error opening the file
    */
-  public CaptureHandle startCaptureFile(@NotNull Class<? extends CaptureType> clazz) throws IOException {
+  public CaptureHandle startCaptureFile(@NotNull Class<? extends CaptureType> clazz, @NotNull String name) throws IOException {
     ApplicationManager.getApplication().assertIsDispatchThread();
 
     if (myAsyncWriterDelegate == null) {
@@ -164,7 +188,7 @@ public class CaptureService {
       ApplicationManager.getApplication().executeOnPooledThread(myAsyncWriterDelegate);
     }
 
-    CaptureHandle handle = startCaptureFileSynchronous(clazz);
+    CaptureHandle handle = startCaptureFileSynchronous(clazz, name);
     myOpenCaptureHandles.add(handle);
     return handle;
   }
@@ -264,6 +288,17 @@ public class CaptureService {
   }
 
   /**
+   * captureExists checks to see if a capture with the specified name already exists.
+   *
+   * @param name the capture name to test for existence.
+   * @return true if a capture with the specified name already exists.
+   */
+  public boolean captureExists(String name) throws IOException {
+    VirtualFile dir = createCapturesDirectory();
+    return dir.findChild(name) != null;
+  }
+
+  /**
    * Queues closing the file and perform post-close task on the async writer thread.
    * <p/>
    * MUST be called on EDT.
@@ -301,12 +336,13 @@ public class CaptureService {
    *
    * @param clazz the type of file to create
    * @param data  the data to write to the file
+   * @param name  the name of the capture file. This will be appended with a unique number if a capture with the name already exists.
    * @return the {@link Capture} to work with
    * @throws IOException when there is an error with opening, writing, or closing the file
    */
   @NotNull
-  public Capture createCapture(Class<? extends CaptureType> clazz, byte[] data) throws IOException {
-    CaptureHandle captureHandle = startCaptureFileSynchronous(clazz);
+  public Capture createCapture(Class<? extends CaptureType> clazz, byte[] data, @NotNull String name) throws IOException {
+    CaptureHandle captureHandle = startCaptureFileSynchronous(clazz, name);
     try {
       appendDataSynchronous(captureHandle, data);
     }
@@ -336,9 +372,12 @@ public class CaptureService {
 
   /**
    * Synchronously opens a new file associated with the {@link CaptureType} for writing.
+   *
+   * @param name the name of the capture file. This will be appended with a unique number if a capture with the name already exists.
    */
   @NotNull
-  private CaptureHandle startCaptureFileSynchronous(@NotNull Class<? extends CaptureType> clazz) throws IOException {
+  private CaptureHandle startCaptureFileSynchronous(@NotNull Class<? extends CaptureType> clazz, @Nullable final String name)
+    throws IOException {
     ApplicationManager.getApplication().assertIsDispatchThread();
 
     final CaptureType type = CaptureTypeService.getInstance().getType(clazz);
@@ -350,11 +389,35 @@ public class CaptureService {
       @Override
       public File compute() throws IOException {
         VirtualFile dir = createCapturesDirectory();
-        return new File(dir.createChildData(null, type.createCaptureFileName()).getPath());
+        return new File(dir.createChildData(null, getCaptureFileName(name, type.getCaptureExtension())).getPath());
       }
     });
 
     return new CaptureHandle(file, type);
+  }
+
+  /**
+   * Returns the filename of a capture based on its name and extension.
+   * If the capture file name is already taken by an existing capture then it is suffixed with a unique number.
+   *
+   * @param name      the capture name.
+   * @param extension the capture file extension including the '.' prefix.
+   * @return the unique capture file name.
+   */
+  @NotNull
+  private String getCaptureFileName(@Nullable String name, @NotNull String extension) throws IOException {
+    // Try the name unaltered.
+    String filename = name + extension;
+    if (!captureExists(filename)) {
+      return filename;
+    }
+    // Name taken. Add a number suffix.
+    for (int i = 1; true; i++) {
+      filename = String.format("%s-%d%s", name, i, extension);
+      if (!captureExists(filename)) {
+        return filename;
+      }
+    }
   }
 
   /**

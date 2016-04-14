@@ -15,19 +15,18 @@
  */
 package com.android.tools.idea.gradle;
 
-import com.android.tools.idea.gradle.stubs.android.AndroidArtifactStub;
-import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
-import com.android.tools.idea.gradle.stubs.android.VariantStub;
+import com.android.tools.idea.gradle.stubs.android.*;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 
 /**
- * Factory of {@link com.android.builder.model.AndroidProject}s for testing purposes. The created projects mimic the structure of the
- * sample projects distributed with the Android Gradle plug-in.
+ * Factory of {@link com.android.builder.model.AndroidProject}s and {@link com.android.builder.model.NativeAndroidProject}s for testing
+ * purposes. The created projects mimic the structure of the sample projects distributed with the Android Gradle plug-in.
  */
 public final class TestProjects {
   private static final String BASIC_PROJECT_NAME = "basic";
+  private static final String NATIVE_PROJECT_NAME = "name";
 
   private TestProjects() {
   }
@@ -56,18 +55,18 @@ public final class TestProjects {
     VariantStub debugVariant = androidProject.addVariant("debug");
 
     AndroidArtifactStub mainArtifactInfo = debugVariant.getMainArtifact();
-    mainArtifactInfo.addGeneratedSourceFolder("build/source/aidl/debug");
-    mainArtifactInfo.addGeneratedSourceFolder("build/source/buildConfig/debug");
-    mainArtifactInfo.addGeneratedSourceFolder("build/source/r/debug");
-    mainArtifactInfo.addGeneratedSourceFolder("build/source/rs/debug");
-    mainArtifactInfo.addGeneratedResourceFolder("build/res/rs/debug");
+    mainArtifactInfo.addGeneratedSourceFolder("build/generated/source/aidl/debug");
+    mainArtifactInfo.addGeneratedSourceFolder("build/generated/source/buildConfig/debug");
+    mainArtifactInfo.addGeneratedSourceFolder("build/generated/source/r/debug");
+    mainArtifactInfo.addGeneratedSourceFolder("build/generated/source/rs/debug");
+    mainArtifactInfo.addGeneratedResourceFolder("build/generated/res/rs/debug");
 
     AndroidArtifactStub testArtifactInfo = debugVariant.getInstrumentTestArtifact();
-    testArtifactInfo.addGeneratedSourceFolder("build/source/aidl/test");
-    testArtifactInfo.addGeneratedSourceFolder("build/source/buildConfig/test");
-    testArtifactInfo.addGeneratedSourceFolder("build/source/r/test");
-    testArtifactInfo.addGeneratedSourceFolder("build/source/rs/test");
-    testArtifactInfo.addGeneratedResourceFolder("build/res/rs/test");
+    testArtifactInfo.addGeneratedSourceFolder("build/generated/source/aidl/test");
+    testArtifactInfo.addGeneratedSourceFolder("build/generated/source/buildConfig/test");
+    testArtifactInfo.addGeneratedSourceFolder("build/generated/source/r/test");
+    testArtifactInfo.addGeneratedSourceFolder("build/generated/source/rs/test");
+    testArtifactInfo.addGeneratedResourceFolder("build/generated/res/rs/test");
   }
 
   @NotNull
@@ -78,18 +77,18 @@ public final class TestProjects {
     VariantStub f1faDebugVariant = project.addVariant("f1fa-debug", "debug");
 
     AndroidArtifactStub mainArtifactInfo = f1faDebugVariant.getMainArtifact();
-    mainArtifactInfo.addGeneratedSourceFolder("build/source/aidl/f1fa/debug");
-    mainArtifactInfo.addGeneratedSourceFolder("build/source/buildConfig/f1fa/debug");
-    mainArtifactInfo.addGeneratedSourceFolder("build/source/r/f1fa/debug");
-    mainArtifactInfo.addGeneratedSourceFolder("build/source/rs/f1fa/debug");
-    mainArtifactInfo.addGeneratedResourceFolder("build/res/rs/f1fa/debug");
+    mainArtifactInfo.addGeneratedSourceFolder("build/generated/source/aidl/f1fa/debug");
+    mainArtifactInfo.addGeneratedSourceFolder("build/generated/source/buildConfig/f1fa/debug");
+    mainArtifactInfo.addGeneratedSourceFolder("build/generated/source/r/f1fa/debug");
+    mainArtifactInfo.addGeneratedSourceFolder("build/generated/source/rs/f1fa/debug");
+    mainArtifactInfo.addGeneratedResourceFolder("build/generated/res/rs/f1fa/debug");
 
     AndroidArtifactStub testArtifactInfo = f1faDebugVariant.getInstrumentTestArtifact();
-    testArtifactInfo.addGeneratedSourceFolder("build/source/aidl/f1fa/test");
-    testArtifactInfo.addGeneratedSourceFolder("build/source/buildConfig/f1fa/test");
-    testArtifactInfo.addGeneratedSourceFolder("build/source/r/f1fa/test");
-    testArtifactInfo.addGeneratedSourceFolder("build/source/rs/f1fa/test");
-    testArtifactInfo.addGeneratedResourceFolder("build/res/rs/f1fa/test");
+    testArtifactInfo.addGeneratedSourceFolder("build/generated/source/aidl/f1fa/test");
+    testArtifactInfo.addGeneratedSourceFolder("build/generated/source/buildConfig/f1fa/test");
+    testArtifactInfo.addGeneratedSourceFolder("build/generated/source/r/f1fa/test");
+    testArtifactInfo.addGeneratedSourceFolder("build/generated/source/rs/f1fa/test");
+    testArtifactInfo.addGeneratedResourceFolder("build/generated/res/rs/f1fa/test");
 
     f1faDebugVariant.addProductFlavors("f1", "fa");
 
@@ -97,5 +96,31 @@ public final class TestProjects {
     project.addProductFlavor("fa");
 
     return project;
+  }
+
+  @NotNull
+  public static NativeAndroidProjectStub createNativeProject() {
+    NativeAndroidProjectStub nativeAndroidProject = new NativeAndroidProjectStub(NATIVE_PROJECT_NAME);
+    createNativeProject(nativeAndroidProject);
+    return nativeAndroidProject;
+  }
+
+  @NotNull
+  public static NativeAndroidProjectStub createNativeProject(@NotNull File parentDir) {
+    return createNativeProject(parentDir, NATIVE_PROJECT_NAME);
+  }
+
+  @NotNull
+  public static NativeAndroidProjectStub createNativeProject(@NotNull File parentDir, @NotNull String name) {
+    NativeAndroidProjectStub nativeAndroidProject = new NativeAndroidProjectStub(parentDir, name);
+    createNativeProject(nativeAndroidProject);
+    return nativeAndroidProject;
+  }
+
+  private static void createNativeProject(@NotNull NativeAndroidProjectStub nativeAndroidProjectStub) {
+    NativeArtifactStub artifactStub = nativeAndroidProjectStub.addNativeArtifact("lib");
+    artifactStub.addExportedHeaders("src/main/headers/");
+    artifactStub.addSourceFolder("src/main/xyz/");
+    artifactStub.addSourceFile("src/main/abc/foo.c");
   }
 }

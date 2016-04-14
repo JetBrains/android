@@ -17,7 +17,7 @@ package com.android.tools.idea.editors.theme;
 
 import com.android.ide.common.rendering.api.ItemResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
-import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
+import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.utils.Pair;
 import com.google.common.collect.*;
@@ -74,7 +74,7 @@ public class ColorUtils {
     }
 
     ImmutableSet.Builder<ItemResourceValue> contrastItemsBuilder = ImmutableSet.builder();
-    ThemeEditorStyle currentTheme = context.getCurrentTheme();
+    ConfiguredThemeEditorStyle currentTheme = context.getCurrentTheme();
     assert currentTheme != null;
 
     for (String contrastColor : contrastColorSet) {

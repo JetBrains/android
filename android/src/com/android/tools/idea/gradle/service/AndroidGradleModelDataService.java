@@ -16,21 +16,17 @@
 package com.android.tools.idea.gradle.service;
 
 import com.android.builder.model.AndroidProject;
-import com.android.sdklib.repository.FullRevision;
-import com.android.sdklib.repository.FullRevision.PreviewComparison;
-import com.android.sdklib.repository.PreciseRevision;
+import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.AndroidProjectKeys;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
 import com.android.tools.idea.gradle.customizer.android.*;
+import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.messages.Message;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
-import com.android.tools.idea.gradle.parser.BuildFileKey;
-import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.android.tools.idea.gradle.project.AndroidGradleNotification;
-import com.android.tools.idea.gradle.service.notification.hyperlink.FixGradleModelVersionHyperlink;
+import com.android.tools.idea.gradle.service.notification.hyperlink.FixAndroidGradlePluginVersionHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenUrlHyperlink;
 import com.android.tools.idea.sdk.IdeSdks;
@@ -67,7 +63,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-import static com.android.sdklib.repository.PreciseRevision.parseRevision;
+import static com.android.tools.idea.gradle.AndroidProjectKeys.ANDROID_MODEL;
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.EXTRA_GENERATED_SOURCES;
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.UNHANDLED_SYNC_ISSUE_TYPE;
 import static com.android.tools.idea.gradle.messages.Message.Type.INFO;
@@ -84,7 +80,7 @@ import static java.util.Collections.sort;
 /**
  * Service that sets an Android SDK and facets to the modules of a project that has been imported from an Android-Gradle project.
  */
-public class AndroidGradleModelDataService extends AbstractProjectDataService<AndroidGradleModel,Void> {
+public class AndroidGradleModelDataService extends AbstractProjectDataService<AndroidGradleModel, Void> {
   private static final Logger LOG = Logger.getInstance(AndroidGradleModelDataService.class);
 
   private final List<ModuleCustomizer<AndroidGradleModel>> myCustomizers;
@@ -104,14 +100,14 @@ public class AndroidGradleModelDataService extends AbstractProjectDataService<An
   @NotNull
   @Override
   public Key<AndroidGradleModel> getTargetDataKey() {
-    return AndroidProjectKeys.ANDROID_MODEL;
+    return ANDROID_MODEL;
   }
 
   /**
    * Sets an Android SDK and facets to the modules of a project that has been imported from an Android-Gradle project.
    *
-   * @param toImport    contains the Android-Gradle project.
-   * @param project     IDEA project to configure.
+   * @param toImport contains the Android-Gradle project.
+   * @param project  IDEA project to configure.
    */
   @Override
   public void importData(@NotNull Collection<DataNode<AndroidGradleModel>> toImport,
@@ -147,7 +143,7 @@ public class AndroidGradleModelDataService extends AbstractProjectDataService<An
         Map<String, AndroidGradleModel> androidModelsByModuleName = indexByModuleName(toImport);
 
         Charset ideEncoding = EncodingProjectManager.getInstance(project).getDefaultCharset();
-        FullRevision oneDotTwoModelVersion = new PreciseRevision(1, 2, 0);
+        GradleVersion oneDotTwoModelVersion = new GradleVersion(1, 2, 0);
 
         String nonMatchingModelEncodingFound = null;
         String modelVersionWithLayoutRenderingIssue = null;
@@ -158,25 +154,25 @@ public class AndroidGradleModelDataService extends AbstractProjectDataService<An
         for (Module module : modelsProvider.getModules()) {
           AndroidGradleModel androidModel = androidModelsByModuleName.get(module.getName());
 
-          customizeModule(module, project, androidModel, modelsProvider);
+          customizeModule(module, project, modelsProvider, androidModel);
           if (androidModel != null) {
-            AndroidProject delegate = androidModel.getAndroidProject();
+            AndroidProject androidProject = androidModel.getAndroidProject();
 
-            checkBuildToolsCompatibility(module, delegate, modulesUsingBuildTools23rc1);
+            checkBuildToolsCompatibility(module, androidProject, modulesUsingBuildTools23rc1);
 
             // Verify that if Gradle is 2.4 (or newer,) the model is at least version 1.2.0.
-            if (modelVersionWithLayoutRenderingIssue == null && hasLayoutRenderingIssue(delegate)) {
-              modelVersionWithLayoutRenderingIssue = delegate.getModelVersion();
+            if (modelVersionWithLayoutRenderingIssue == null && hasLayoutRenderingIssue(androidProject)) {
+              modelVersionWithLayoutRenderingIssue = androidProject.getModelVersion();
             }
 
-            FullRevision modelVersion = parseRevision(delegate.getModelVersion());
-            boolean isModelVersionOneDotTwoOrNewer = modelVersion.compareTo(oneDotTwoModelVersion, PreviewComparison.IGNORE) >= 0;
+            GradleVersion modelVersion = GradleVersion.parse(androidProject.getModelVersion());
+            boolean isModelVersionOneDotTwoOrNewer = modelVersion.compareIgnoringQualifiers(oneDotTwoModelVersion) >= 0;
 
             // Verify that the encoding in the model is the same as the encoding in the IDE's project settings.
             Charset modelEncoding = null;
             if (isModelVersionOneDotTwoOrNewer) {
               try {
-                modelEncoding = Charset.forName(delegate.getJavaCompileOptions().getEncoding());
+                modelEncoding = Charset.forName(androidProject.getJavaCompileOptions().getEncoding());
               }
               catch (UnsupportedCharsetException ignore) {
                 // It's not going to happen.
@@ -258,12 +254,9 @@ public class AndroidGradleModelDataService extends AbstractProjectDataService<An
     if (isOneDotThreeOrLater(project)) {
       return;
     }
-    GradleBuildFile buildFile = GradleBuildFile.get(module);
-    if (buildFile != null) {
-      Object value = buildFile.getValue(BuildFileKey.BUILD_TOOLS_VERSION);
-      if ("23.0.0 rc1".equals(value)) {
-        moduleNames.add(module.getName());
-      }
+    GradleBuildModel buildModel = GradleBuildModel.get(module);
+    if (buildModel != null && "23.0.0 rc1".equals(buildModel.android().buildToolsVersion())) {
+      moduleNames.add(module.getName());
     }
   }
 
@@ -292,11 +285,9 @@ public class AndroidGradleModelDataService extends AbstractProjectDataService<An
 
   private static void setIdeEncodingAndAddEncodingMismatchMessage(@NotNull String newEncoding, @NotNull Project project) {
     EncodingProjectManager encodings = EncodingProjectManager.getInstance(project);
-    String[] text = {
-      String.format("The project encoding (%1$s) has been reset to the encoding specified in the Gradle build files (%2$s).",
-                    encodings.getDefaultCharset().displayName(), newEncoding),
-      "Mismatching encodings can lead to serious bugs."
-    };
+    String[] text = {String.format("The project encoding (%1$s) has been reset to the encoding specified in the Gradle build files (%2$s).",
+                                   encodings.getDefaultCharset().displayName(), newEncoding),
+      "Mismatching encodings can lead to serious bugs."};
     encodings.setDefaultCharsetName(newEncoding);
     NotificationHyperlink openDocHyperlink = new OpenUrlHyperlink("http://tools.android.com/knownissues/encoding", "More Info...");
     ProjectSyncMessages.getInstance(project).add(new Message(UNHANDLED_SYNC_ISSUE_TYPE, INFO, text), openDocHyperlink);
@@ -304,13 +295,12 @@ public class AndroidGradleModelDataService extends AbstractProjectDataService<An
 
   private static void addLayoutRenderingIssueMessage(String modelVersion, @NotNull Project project) {
     // See https://code.google.com/p/android/issues/detail?id=170841
-    NotificationHyperlink quickFix = new FixGradleModelVersionHyperlink(false);
-    NotificationHyperlink openDocHyperlink = new OpenUrlHyperlink("https://code.google.com/p/android/issues/detail?id=170841",
-                                                                  "More Info...");
-    String[] text = {
-      String.format("Using an obsolete version of the Gradle plugin (%1$s); this can lead to layouts not rendering correctly.",
-                    modelVersion)
-    };
+    NotificationHyperlink quickFix = new FixAndroidGradlePluginVersionHyperlink(false);
+    NotificationHyperlink openDocHyperlink =
+      new OpenUrlHyperlink("https://code.google.com/p/android/issues/detail?id=170841", "More Info...");
+    String[] text =
+      {String.format("Using an obsolete version of the Gradle plugin (%1$s); this can lead to layouts not rendering correctly.",
+                     modelVersion)};
     ProjectSyncMessages.getInstance(project).add(new Message(UNHANDLED_SYNC_ISSUE_TYPE, WARNING, text), openDocHyperlink, quickFix);
   }
 
@@ -326,8 +316,8 @@ public class AndroidGradleModelDataService extends AbstractProjectDataService<An
 
   private void customizeModule(@NotNull Module module,
                                @NotNull Project project,
-                               @Nullable AndroidGradleModel androidModel,
-                               IdeModifiableModelsProvider modelsProvider) {
+                               @NotNull IdeModifiableModelsProvider modelsProvider,
+                               @Nullable AndroidGradleModel androidModel) {
     for (ModuleCustomizer<AndroidGradleModel> customizer : myCustomizers) {
       customizer.customizeModule(project, module, modelsProvider, androidModel);
     }

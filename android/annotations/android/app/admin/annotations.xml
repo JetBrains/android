@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root>
-  <item name="android.app.admin.DevicePolicyManager android.os.Bundle getApplicationRestrictions(android.content.ComponentName, java.lang.String) 0">
+  <item name="android.app.admin.DeviceAdminInfo android.content.ComponentName getComponent()">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.admin.DevicePolicyManager android.os.Bundle getApplicationRestrictions(android.content.ComponentName, java.lang.String) 0">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.app.admin.DevicePolicyManager android.os.UserHandle createAndInitializeUser(android.content.ComponentName, java.lang.String, java.lang.String, android.content.ComponentName, android.os.Bundle) 0">
     <annotation name="android.support.annotation.NonNull" />
@@ -41,6 +44,15 @@
   </item>
   <item name="android.app.admin.DevicePolicyManager boolean installKeyPair(android.content.ComponentName, java.security.PrivateKey, java.security.cert.Certificate, java.lang.String) 0">
     <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.app.admin.DevicePolicyManager boolean installKeyPair(android.content.ComponentName, java.security.PrivateKey, java.security.cert.Certificate, java.lang.String) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.admin.DevicePolicyManager boolean installKeyPair(android.content.ComponentName, java.security.PrivateKey, java.security.cert.Certificate, java.lang.String) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.admin.DevicePolicyManager boolean installKeyPair(android.content.ComponentName, java.security.PrivateKey, java.security.cert.Certificate, java.lang.String) 3">
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.app.admin.DevicePolicyManager boolean isAdminActive(android.content.ComponentName) 0">
     <annotation name="android.support.annotation.NonNull" />
@@ -187,7 +199,7 @@
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.app.admin.DevicePolicyManager void setApplicationRestrictions(android.content.ComponentName, java.lang.String, android.os.Bundle) 0">
-    <annotation name="android.support.annotation.NonNull" />
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.app.admin.DevicePolicyManager void setAutoTimeRequired(android.content.ComponentName, boolean) 0">
     <annotation name="android.support.annotation.NonNull" />

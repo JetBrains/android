@@ -46,9 +46,9 @@ import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
  * Gallery of Android activity templates.
  */
 public class ActivityGalleryStep extends DynamicWizardStepWithDescription {
-  @SuppressWarnings("unchecked")
-  public static final Key<TemplateEntry[]> KEY_TEMPLATES =
+  private static final Key<TemplateEntry[]> KEY_TEMPLATES =
     ScopedStateStore.createKey("template.list", ScopedStateStore.Scope.STEP, TemplateEntry[].class);
+
   private final FormFactorUtils.FormFactor myFormFactor;
   private final Key<TemplateEntry> myCurrentSelectionKey;
   private final boolean myShowSkipEntry;
@@ -78,7 +78,7 @@ public class ActivityGalleryStep extends DynamicWizardStepWithDescription {
           return template.get().getTitle();
         }
         else {
-          return getNoTemplateEntryName();
+          return "Add No Activity";
         }
       }
     });
@@ -102,10 +102,6 @@ public class ActivityGalleryStep extends DynamicWizardStepWithDescription {
     JPanel panel = new JPanel(new JBCardLayout());
     panel.add("only card", new JBScrollPane(myGallery));
     return panel;
-  }
-
-  protected String getNoTemplateEntryName() {
-    return "Add No Activity";
   }
 
   @Override
@@ -178,9 +174,12 @@ public class ActivityGalleryStep extends DynamicWizardStepWithDescription {
     TemplateEntry[] list = templateListProvider.deriveValue(myState, AddAndroidActivityPath.KEY_IS_LAUNCHER, null);
     myGallery.setModel(JBList.createDefaultListModel((Object[])wrapInOptionals(list)));
     myState.put(KEY_TEMPLATES, list);
-    if (list.length > 0) {
-      myState.put(myCurrentSelectionKey, list[0]);
+
+    if (list.length != 0) {
+      int i = indexOfTemplateWithTitle(list, "Empty Activity");
+      myState.put(myCurrentSelectionKey, list[i == -1 ? 0 : i]);
     }
+
     register(myCurrentSelectionKey, myGallery, new ComponentBinding<TemplateEntry, ASGallery<Optional<TemplateEntry>>>() {
       @Override
       public void setValue(TemplateEntry newValue, @NotNull ASGallery<Optional<TemplateEntry>> component) {
@@ -229,6 +228,16 @@ public class ActivityGalleryStep extends DynamicWizardStepWithDescription {
     return model;
   }
 
+  private static int indexOfTemplateWithTitle(@NotNull TemplateEntry[] entries, @NotNull String title) {
+    for (int i = 0; i < entries.length; i++) {
+      if (title.equals(entries[i].getMetadata().getTitle())) {
+        return i;
+      }
+    }
+
+    return -1;
+  }
+
   @Override
   public JComponent getPreferredFocusedComponent() {
     return myGallery;
@@ -243,7 +252,7 @@ public class ActivityGalleryStep extends DynamicWizardStepWithDescription {
   @NotNull
   @Override
   protected String getStepTitle() {
-    return "Add an activity to " + myFormFactor.id;
+    return "Add an Activity to " + myFormFactor.id;
   }
 
   @Nullable

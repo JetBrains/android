@@ -16,10 +16,6 @@
 package com.android.tools.idea.npw;
 
 import com.android.builder.model.SourceProvider;
-import com.android.tools.idea.npw.AddAndroidActivityPath;
-import com.android.tools.idea.npw.FormFactorUtils;
-import com.android.tools.idea.npw.TemplateEntry;
-import com.android.tools.idea.npw.TemplateParameterStep2;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.wizard.dynamic.DynamicWizard;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardPath;
@@ -34,7 +30,7 @@ import org.w3c.dom.Document;
 
 import java.io.File;
 
-import static com.android.tools.idea.npw.ParameterDefaultValueComputerTest.getParameterObject;
+import static com.android.tools.idea.templates.ParameterValueResolverTest.getParameterObject;
 
 public final class TemplateParameterStep2Test extends LightIdeaTestCase {
   private static final String METADATA_XML = "<?xml version=\"1.0\"?>\n" +

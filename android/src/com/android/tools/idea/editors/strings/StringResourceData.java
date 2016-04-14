@@ -16,6 +16,7 @@
 package com.android.tools.idea.editors.strings;
 
 import com.android.SdkConstants;
+import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.tools.idea.configurations.LocaleMenuAction;
 import com.android.tools.idea.rendering.Locale;
@@ -82,8 +83,17 @@ public class StringResourceData {
 
   @NotNull
   public static String resourceToString(@NotNull ResourceItem item) {
-    XmlTag tag = ((PsiResourceItem)item).getTag();
-    return tag == null ? "" : XmlTagUtils.unescape(tag).trim();
+    if (item instanceof PsiResourceItem) {
+      XmlTag tag = ((PsiResourceItem)item).getTag();
+      return tag == null ? "" : XmlTagUtils.unescape(tag).trim();
+    }
+    else {
+      // TODO This is a hack to prevent ClassCastExceptions from ResourceItems that aren't PsiResourceItems (like resources defined in
+      // Gradle files). This disables apostrophe unescaping for those resources and reverts to the old behavior. Undo this hack when the
+      // final escaping solution is in place.
+      ResourceValue value = item.getResourceValue(false);
+      return value == null ? "" : value.getRawXmlValue().trim();
+    }
   }
 
   @Nullable

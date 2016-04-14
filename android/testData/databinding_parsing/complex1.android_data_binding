@@ -1,0 +1,1 @@
+myvar instanceof MyClass ? var1.val1 << var2 : var3.method ?? @dimen/val

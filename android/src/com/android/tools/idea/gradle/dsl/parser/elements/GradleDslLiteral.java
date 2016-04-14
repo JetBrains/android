@@ -22,51 +22,91 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
-import org.jetbrains.plugins.groovy.lang.psi.api.auxiliary.GrListOrMap;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrArgumentList;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrNamedArgument;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrApplicationStatement;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrAssignmentExpression;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrCommandArgumentList;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrClosableBlock;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrString;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrStringInjection;
 import org.jetbrains.plugins.groovy.lang.psi.util.GrStringUtil;
 
 import java.util.Collection;
 
+import static com.intellij.openapi.util.text.StringUtil.*;
 import static com.intellij.psi.util.PsiTreeUtil.getChildOfType;
 
 /**
  * Represents a {@link GrLiteral} element.
  */
-public final class GradleDslLiteral extends GradleDslElement {
-  @Nullable private GrLiteral myLiteral;
+public final class GradleDslLiteral extends GradleDslExpression {
   @Nullable private Object myUnsavedValue;
 
   public GradleDslLiteral(@NotNull GradleDslElement parent, @NotNull String name) {
-    super(parent, null, name);
+    super(parent, null, name, null);
   }
 
   public GradleDslLiteral(@NotNull GradleDslElement parent,
                           @NotNull GroovyPsiElement psiElement,
                           @NotNull String name,
                           @NotNull GrLiteral literal) {
-    super(parent, psiElement, name);
-    myLiteral = literal;
+    super(parent, psiElement, name, literal);
   }
 
   @Nullable
-  GrLiteral getLiteral() {
-    return myLiteral;
+  public GrLiteral getLiteral() {
+    return (GrLiteral)myExpression;
   }
 
+  @Override
   @Nullable
   public Object getValue() {
     if (myUnsavedValue != null) {
       return myUnsavedValue;
     }
 
-    if (myLiteral != null) {
-      return myLiteral.getValue();
+    if (myExpression == null) {
+      return null;
+    }
+
+    Object value = ((GrLiteral)myExpression).getValue();
+    if (value != null) {
+      return value;
+    }
+
+    if (myExpression instanceof GrString) { // String literal with variables. ex: compileSdkVersion = "$ANDROID-${VERSION}"
+      String literalText = myExpression.getText();
+      if (isQuotedString(literalText)) {
+        literalText = unquoteString(literalText);
+      }
+
+      GrStringInjection[] injections = ((GrString)myExpression).getInjections();
+      for (GrStringInjection injection : injections) {
+        String variableName = null;
+
+        GrClosableBlock closableBlock = injection.getClosableBlock();
+        if (closableBlock != null) {
+          String blockText  = closableBlock.getText();
+          variableName = blockText.substring(1, blockText.length() - 1);
+        }
+        else {
+          GrExpression expression = injection.getExpression();
+          if (expression != null) {
+            variableName = expression.getText();
+          }
+        }
+
+        if (!isEmpty(variableName)) {
+          GradleDslExpression resolvedLiteral = resolveReference(variableName, GradleDslExpression.class);
+          if (resolvedLiteral != null) {
+            Object resolvedValue = resolvedLiteral.getValue();
+            if (resolvedValue != null) {
+              literalText = literalText.replace(injection.getText(), resolvedValue.toString());
+            }
+          }
+        }
+      }
+      return literalText;
     }
     return null;
   }
@@ -75,6 +115,7 @@ public final class GradleDslLiteral extends GradleDslElement {
    * Returns the value of type {@code clazz} when the the {@link GrLiteral} element contains the value of that type,
    * or {@code null} otherwise.
    */
+  @Override
   @Nullable
   public <T> T getValue(@NotNull Class<T> clazz) {
     Object value = getValue();
@@ -84,6 +125,7 @@ public final class GradleDslLiteral extends GradleDslElement {
     return null;
   }
 
+  @Override
   public void setValue(@NotNull Object value) {
     myUnsavedValue = value;
     setModified(true);
@@ -95,8 +137,6 @@ public final class GradleDslLiteral extends GradleDslElement {
     return value != null ? value.toString() : super.toString();
   }
 
-
-
   @Override
   @NotNull
   protected Collection<GradleDslElement> getChildren() {
@@ -106,7 +146,7 @@ public final class GradleDslLiteral extends GradleDslElement {
   @Override
   @Nullable
   public GroovyPsiElement create() {
-    if (!(myParent instanceof GradleDslLiteralMap)) {
+    if (!(myParent instanceof GradleDslExpressionMap)) {
       return super.create();
     }
     // This is a value in the map element we need to create a named argument for it.
@@ -123,12 +163,18 @@ public final class GradleDslLiteral extends GradleDslElement {
 
     GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(newLiteral.getProject());
     GrNamedArgument namedArgument = factory.createNamedArgument(myName, newLiteral);
-    PsiElement added = addToParent(parentPsiElement, namedArgument);
+    PsiElement added;
+    if (parentPsiElement instanceof GrArgumentList) {
+      added = ((GrArgumentList)parentPsiElement).addNamedArgument(namedArgument);
+    }
+    else {
+      added = parentPsiElement.addAfter(namedArgument, parentPsiElement.getLastChild());
+    }
     if (added instanceof GrNamedArgument) {
       GrNamedArgument addedNameArgument = (GrNamedArgument)added;
       GrLiteral literal = getChildOfType(addedNameArgument, GrLiteral.class);
       if (literal != null) {
-        myLiteral = literal;
+        myExpression = literal;
         setModified(false);
         return getPsiElement();
       }
@@ -138,42 +184,12 @@ public final class GradleDslLiteral extends GradleDslElement {
 
   @Override
   protected void delete() {
-    if(myLiteral == null) {
+    if(myExpression == null) {
       return;
     }
-    PsiElement parent = myLiteral.getParent();
-    myLiteral.delete();
-    if (parent instanceof GrAssignmentExpression) {
-      parent.delete(); // Delete the empty assignment statement without any value.
-    }
-    if (parent instanceof GrCommandArgumentList) {
-      deleteIfEmpty((GrCommandArgumentList)parent);
-    }
-    else if (parent instanceof GrListOrMap) {
-      deleteIfEmpty((GrListOrMap)parent);
-    }
-  }
-
-  private static void deleteIfEmpty(@NotNull GrCommandArgumentList commandArgumentList) {
-    if (commandArgumentList.getAllArguments().length > 0) {
-      return;
-    }
-    PsiElement parent = commandArgumentList.getParent();
-    commandArgumentList.delete();
-    if (parent instanceof GrApplicationStatement) {
-      parent.delete(); // Delete the empty application statement without any arguments.
-    }
-  }
-
-  private static void deleteIfEmpty(@NotNull GrListOrMap listOrMap) {
-    if ((listOrMap.isMap() && listOrMap.getNamedArguments().length > 0) || (!listOrMap.isMap() && listOrMap.getInitializers().length > 0) ) {
-      return;
-    }
-    PsiElement parent = listOrMap.getParent();
-    listOrMap.delete();
-    if (parent instanceof GrAssignmentExpression) {
-      parent.delete(); // Delete the empty assignment statement without any arguments.
-    }
+    PsiElement parent = myExpression.getParent();
+    myExpression.delete();
+    deleteIfEmpty(parent);
   }
 
   @Override
@@ -187,16 +203,16 @@ public final class GradleDslLiteral extends GradleDslElement {
     if (newLiteral == null) {
       return;
     }
-    if (myLiteral != null) {
-      PsiElement replace = myLiteral.replace(newLiteral);
+    if (myExpression != null) {
+      PsiElement replace = myExpression.replace(newLiteral);
       if (replace instanceof GrLiteral) {
-        myLiteral = (GrLiteral)replace;
+        myExpression = (GrLiteral)replace;
       }
     }
     else {
-      PsiElement added = addToParent(psiElement, newLiteral);
+      PsiElement added = psiElement.addAfter(newLiteral, psiElement.getLastChild());
       if (added instanceof GrLiteral) {
-        myLiteral = (GrLiteral)added;
+        myExpression = (GrLiteral)added;
       }
     }
   }
@@ -237,21 +253,5 @@ public final class GradleDslLiteral extends GradleDslElement {
       return null;
     }
     return (GrLiteral)newExpression;
-  }
-
-  private static PsiElement addToParent(PsiElement parent, PsiElement child) {
-    GrCommandArgumentList argumentList = null;
-    if (parent instanceof GrApplicationStatement) {
-      argumentList = ((GrApplicationStatement)parent).getArgumentList();
-    }
-    else if (parent instanceof GrCommandArgumentList) {
-      argumentList = (GrCommandArgumentList)parent;
-    }
-    if (argumentList != null && DUMMY_ARGUMENT_LIST.equals(argumentList.getText())) {
-      GroovyPsiElement[] arguments = argumentList.getAllArguments();
-      assert arguments.length == 1;
-      return arguments[0].replace(child);
-    }
-    return parent.addAfter(child, parent.getLastChild());
   }
 }

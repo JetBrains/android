@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.messages;
 import com.android.builder.model.SyncIssue;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.SdkMavenRepository;
-import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.tools.idea.gradle.GradleModel;
 import com.android.tools.idea.gradle.customizer.dependency.DependencySetupErrors;
 import com.android.tools.idea.gradle.customizer.dependency.DependencySetupErrors.MissingModule;
@@ -27,11 +26,14 @@ import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.compatibility.VersionCompatibilityService;
 import com.android.tools.idea.gradle.project.compatibility.VersionCompatibilityService.VersionIncompatibilityMessage;
 import com.android.tools.idea.gradle.project.subset.ProjectSubset;
+import com.android.tools.idea.gradle.service.notification.errors.UnsupportedGradleVersionErrorHandler;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenFileHyperlink;
-import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
-import com.android.tools.idea.startup.AndroidStudioInitializer;
 import com.android.tools.idea.gradle.structure.editors.AndroidProjectSettingsService;
+import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
+import com.android.tools.idea.startup.AndroidStudioInitializer;
+import com.android.tools.idea.wizard.model.ModelWizardDialog;
+import com.google.common.base.Verify;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.components.ServiceManager;
@@ -45,26 +47,30 @@ import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
+import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.Navigatable;
 import com.intellij.pom.NonNavigatable;
+import com.intellij.psi.tree.IElementType;
+import com.intellij.util.Function;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
+import org.jetbrains.plugins.groovy.lang.lexer.GroovyLexer;
+import org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.*;
 import static com.android.tools.idea.gradle.service.notification.errors.AbstractSyncErrorHandler.updateNotification;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
-import static com.android.tools.idea.gradle.util.GradleUtil.findDependency;
 import static com.android.tools.idea.gradle.util.Projects.*;
 import static com.intellij.openapi.externalSystem.service.notification.NotificationSource.PROJECT_SYNC;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
-import static com.intellij.openapi.util.text.StringUtil.join;
+import static com.intellij.openapi.util.text.StringUtil.*;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static com.intellij.util.ArrayUtil.toStringArray;
 
@@ -124,12 +130,12 @@ public class ProjectSyncMessages {
       }
       switch (syncIssue.getType()) {
         case SyncIssue.TYPE_UNRESOLVED_DEPENDENCY:
-          reportUnresolvedDependency(syncIssue.getData(), module, buildFile);
+          reportUnresolvedDependency(Verify.verifyNotNull(syncIssue.getData()), module, buildFile);
           break;
         default:
           String group = UNHANDLED_SYNC_ISSUE_TYPE;
           String text = syncIssue.getMessage();
-          Message.Type severity = syncIssue.getType() == SyncIssue.SEVERITY_ERROR ? Message.Type.ERROR : Message.Type.WARNING;
+          Message.Type severity = syncIssue.getSeverity() == SyncIssue.SEVERITY_ERROR ? Message.Type.ERROR : Message.Type.WARNING;
 
           Message msg;
           if (buildFile != null) {
@@ -138,13 +144,24 @@ public class ProjectSyncMessages {
           else {
             msg = new Message(group, severity, NonNavigatable.INSTANCE, text);
           }
-          add(msg);
+
+          List<NotificationHyperlink> hyperlinks = getHyperlinks(myProject, text);
+          add(msg, hyperlinks.toArray(new NotificationHyperlink[hyperlinks.size()]));
       }
     }
 
     if (hasSyncErrors) {
       setHasSyncErrors(myProject, true);
     }
+  }
+
+  @NotNull
+  private static List<NotificationHyperlink> getHyperlinks(@NotNull Project project, @NotNull String message) {
+    String version = UnsupportedGradleVersionErrorHandler.getSupportedGradleVersion(message);
+    if (isNotEmpty(version)) {
+      return UnsupportedGradleVersionErrorHandler.getQuickFixHyperlinks(project, version);
+    }
+    return Collections.emptyList();
   }
 
   public void reportUnresolvedDependencies(@NotNull Collection<String> unresolvedDependencies, @NotNull Module module) {
@@ -226,6 +243,38 @@ public class ProjectSyncMessages {
     }
     add(msg, hyperlinks.toArray(new NotificationHyperlink[hyperlinks.size()]));
   }
+
+
+  @Nullable
+  private static TextRange findDependency(@NotNull final String dependency, @NotNull String contents) {
+    return findStringLiteral(dependency, contents, new Function<Pair<String, GroovyLexer>, TextRange>() {
+      @Override
+      public TextRange fun(Pair<String, GroovyLexer> pair) {
+        GroovyLexer lexer = pair.getSecond();
+        return TextRange.create(lexer.getTokenStart() + 1, lexer.getTokenEnd() - 1);
+      }
+    });
+  }
+
+  @Nullable
+  private static <T> T findStringLiteral(@NotNull String textToSearchPrefix,
+                                         @NotNull String fileContents,
+                                         @NotNull Function<Pair<String, GroovyLexer>, T> consumer) {
+    GroovyLexer lexer = new GroovyLexer();
+    lexer.start(fileContents);
+    while (lexer.getTokenType() != null) {
+      IElementType type = lexer.getTokenType();
+      if (type == GroovyTokenTypes.mSTRING_LITERAL) {
+        String text = unquoteString(lexer.getTokenText());
+        if (text.startsWith(textToSearchPrefix)) {
+          return consumer.fun(Pair.create(text, lexer));
+        }
+      }
+      lexer.advance();
+    }
+    return null;
+  }
+
 
   public void reportDependencySetupErrors() {
     DependencySetupErrors setupErrors = getDependencySetupErrors(myProject);
@@ -366,13 +415,14 @@ public class ProjectSyncMessages {
 
     @Override
     protected void execute(@NotNull Project project) {
-      List<IPkgDesc> requested = Lists.newArrayList();
-      requested.add(myRepository.getPackageDescription());
-      SdkQuickfixWizard wizard = new SdkQuickfixWizard(project, null, requested);
-      wizard.init();
-      wizard.setTitle("Install Missing Components");
-      if (wizard.showAndGet()) {
-        GradleProjectImporter.getInstance().requestProjectSync(project, null);
+      List<String> requested = Lists.newArrayList();
+      requested.add(myRepository.getPackageId());
+      ModelWizardDialog dialog = SdkQuickfixUtils.createDialogForPaths(project, requested);
+      if (dialog != null) {
+        dialog.setTitle("Install Missing Components");
+        if (dialog.showAndGet()) {
+          GradleProjectImporter.getInstance().requestProjectSync(project, null);
+        }
       }
     }
   }

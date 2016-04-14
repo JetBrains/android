@@ -17,7 +17,7 @@ package com.android.tools.idea.editors.theme;
 
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
+import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.AndroidTestCase;
 
@@ -30,11 +30,11 @@ public class ThemeEditorComponentTest extends AndroidTestCase {
 
     ThemeResolver themeResolver = new ThemeResolver(configuration);
 
-    ThemeEditorStyle theme1 = themeResolver.getTheme("Theme.Theme1");
+    ConfiguredThemeEditorStyle theme1 = themeResolver.getTheme("Theme.Theme1");
     assertNotNull(theme1);
-    ThemeEditorStyle theme2 = themeResolver.getTheme("Theme.Theme2");
+    ConfiguredThemeEditorStyle theme2 = themeResolver.getTheme("Theme.Theme2");
     assertNotNull(theme2);
-    ThemeEditorStyle theme3 = themeResolver.getTheme("Theme.Theme3");
+    ConfiguredThemeEditorStyle theme3 = themeResolver.getTheme("Theme.Theme3");
     assertNotNull(theme3);
 
     assertEquals(ThemeEditorComponent.ALT_PREVIEW_BACKGROUND,

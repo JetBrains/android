@@ -30,6 +30,7 @@ import org.jdom.Element;
 import org.jdom.input.SAXBuilder;
 import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.io.*;
@@ -77,7 +78,7 @@ public class CaptureServiceTest extends IdeaTestCase {
     File testHprofFile = new File(testDataPath, toSystemDependentName("guiTests/CapturesApplication/captures/snapshot.hprof"));
     byte[] testFileBytes = readFully(testHprofFile);
 
-    Capture capture = service.createCapture(HprofCaptureType.class, testFileBytes);
+    Capture capture = service.createCapture(HprofCaptureType.class, testFileBytes, "snapshot");
     capture.getFile().refresh(false, false);
 
     String capturePath = capture.getFile().getCanonicalPath();
@@ -97,7 +98,7 @@ public class CaptureServiceTest extends IdeaTestCase {
     File testHprofFile = new File(testDataPath, toSystemDependentName("guiTests/CapturesApplication/captures/snapshot.hprof"));
     byte[] testFileBytes = readFully(testHprofFile);
 
-    CaptureHandle handle = service.startCaptureFile(HprofCaptureType.class);
+    CaptureHandle handle = service.startCaptureFile(HprofCaptureType.class, "snapshot");
     for (int i = 0; i < testFileBytes.length; i += 1024 * 1024) {
       service.appendData(handle, Arrays.copyOfRange(testFileBytes, i, i + Math.min(1024 * 1024, testFileBytes.length - i)));
     }
@@ -155,6 +156,12 @@ public class CaptureServiceTest extends IdeaTestCase {
 
     @NotNull
     @Override
+    public String getCaptureExtension() {
+      return ".capture";
+    }
+
+    @NotNull
+    @Override
     protected Capture createCapture(@NotNull VirtualFile file) {
       return new Capture(file, this);
     }
@@ -163,12 +170,6 @@ public class CaptureServiceTest extends IdeaTestCase {
     @Override
     public FileEditor createEditor(@NotNull Project project, @NotNull VirtualFile file) {
       return null;
-    }
-
-    @NotNull
-    @Override
-    public String createCaptureFileName() {
-      return "1234";
     }
   }
 }

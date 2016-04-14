@@ -17,7 +17,7 @@ package com.android.tools.idea.ui.properties.demo;
 
 import com.android.tools.idea.ui.properties.BindingsManager;
 import com.android.tools.idea.ui.properties.InvalidationListener;
-import com.android.tools.idea.ui.properties.Observable;
+import com.android.tools.idea.ui.properties.ObservableValue;
 import com.android.tools.idea.ui.properties.core.BoolProperty;
 import com.android.tools.idea.ui.properties.core.StringProperty;
 import com.android.tools.idea.ui.properties.expressions.string.FormatExpression;
@@ -94,7 +94,7 @@ public final class SyncFieldsDemo {
     // Listen to activityText - if it is changed by the user and not its binding, break syncing!
     activityText.addListener(new InvalidationListener() {
       @Override
-      protected void onInvalidated(@NotNull Observable sender) {
+      public void onInvalidated(@NotNull ObservableValue<?> sender) {
         isSynced.set(activityText.get().equals(activityNameExpression.get()));
       }
     });

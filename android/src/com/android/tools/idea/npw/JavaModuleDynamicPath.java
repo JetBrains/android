@@ -54,7 +54,7 @@ public class JavaModuleDynamicPath extends DynamicWizardPath implements NewModul
 
     myDisposable = disposable;
     TemplateManager instance = TemplateManager.getInstance();
-    myMetadata = instance.getTemplate(Template.CATEGORY_APPLICATION, JAVA_LIBRARY);
+    myMetadata = instance.getTemplateMetadata(Template.CATEGORY_APPLICATION, JAVA_LIBRARY);
     assert myMetadata != null;
     File templateFile = instance.getTemplateFile(Template.CATEGORY_APPLICATION, JAVA_LIBRARY);
     assert templateFile != null;

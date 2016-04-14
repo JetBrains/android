@@ -28,7 +28,7 @@ import java.awt.event.ComponentListener;
  * {@link ObservableProperty} that wraps a Swing component and exposes its visibility state.
  */
 public final class VisibleProperty extends BoolProperty implements ComponentListener {
-  private final JComponent myComponent;
+  @NotNull private final JComponent myComponent;
 
   public VisibleProperty(@NotNull JComponent component) {
     myComponent = component;

@@ -15,11 +15,7 @@
  */
 package com.android.tools.idea.gradle.stubs.android;
 
-import com.android.annotations.NonNull;
-import com.android.builder.model.ApiVersion;
-import com.android.builder.model.ClassField;
-import com.android.builder.model.ProductFlavor;
-import com.android.builder.model.SigningConfig;
+import com.android.builder.model.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -116,12 +112,6 @@ public class ProductFlavorStub implements ProductFlavor {
     throw new UnsupportedOperationException();
   }
 
-  @NonNull
-  @Override
-  public Map<String, String> getTestInstrumentationRunnerArguments() {
-    throw new UnsupportedOperationException();
-  }
-
   @Override
   @Nullable
   public Boolean getTestHandleProfiling() {
@@ -147,9 +137,9 @@ public class ProductFlavorStub implements ProductFlavor {
   }
 
   @Override
-  @Nullable
-  public Set<String> getGeneratedDensities() {
-    return null;
+  @NotNull
+  public VectorDrawablesOptions getVectorDrawables() {
+    throw new UnsupportedOperationException();
   }
 
   @Override

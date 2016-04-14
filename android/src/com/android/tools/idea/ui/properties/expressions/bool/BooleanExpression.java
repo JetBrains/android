@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.ui.properties.expressions.bool;
 
-import com.android.tools.idea.ui.properties.Observable;
 import com.android.tools.idea.ui.properties.ObservableValue;
 import com.android.tools.idea.ui.properties.core.ObservableBool;
 import com.android.tools.idea.ui.properties.expressions.Expression;
@@ -24,9 +23,9 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Base class for boolean expressions, providing a default implementation for the {@link ObservableBool} interface.
  */
-public abstract class BooleanExpression extends Expression implements ObservableBool {
+public abstract class BooleanExpression extends Expression<Boolean> implements ObservableBool {
 
-  protected BooleanExpression(Observable... values) {
+  protected BooleanExpression(ObservableValue... values) {
     super(values);
   }
 

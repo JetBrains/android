@@ -20,12 +20,14 @@ import com.intellij.util.xml.DefinesXml;
 import com.intellij.util.xml.Required;
 import org.jetbrains.android.dom.AndroidAttributeValue;
 import org.jetbrains.android.dom.AndroidResourceType;
+import org.jetbrains.android.dom.Styleable;
 import org.jetbrains.android.dom.converters.ResourceReferenceConverter;
 import org.jetbrains.android.dom.resources.ResourceValue;
 
 import java.util.List;
 
 @DefinesXml
+@Styleable("AnimatedVectorDrawable")
 public interface AnimatedVector extends DrawableDomElement {
   @Convert(ResourceReferenceConverter.class)
   @AndroidResourceType("drawable")

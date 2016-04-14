@@ -18,7 +18,6 @@ package com.android.tools.idea.npw;
 import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.templates.Parameter;
 import com.android.tools.idea.templates.TemplateMetadata;
-import com.android.tools.idea.ui.TextFieldWithLaunchBrowserButton;
 import com.android.tools.idea.wizard.template.TemplateWizardState;
 import com.android.tools.idea.wizard.template.TemplateWizardStep;
 import com.google.common.annotations.VisibleForTesting;
@@ -117,7 +116,6 @@ public class TemplateParameterStep extends TemplateWizardStep {
             myPreferredFocusComponent = comboBox;
           }
           break;
-        case CUSTOM:
         case STRING:
           myParamContainer.add(label, c);
           c.setHSizePolicy(GridConstraints.SIZEPOLICY_WANT_GROW);
@@ -133,26 +131,6 @@ public class TemplateParameterStep extends TemplateWizardStep {
           if (myPreferredFocusComponent == null) {
             myPreferredFocusComponent = textField;
             textField.selectAll();
-          }
-          break;
-        case EXTERNAL:
-          final String url = parameter.sourceUrl;
-          if (url == null) {
-            break;
-          }
-
-          myParamContainer.add(label, c);
-          c.setHSizePolicy(GridConstraints.SIZEPOLICY_WANT_GROW);
-          TextFieldWithLaunchBrowserButton externalField = new TextFieldWithLaunchBrowserButton(url);
-          c.setColumn(1);
-          c.setColSpan(2);
-
-          register(parameter.id, externalField);
-
-          myParamContainer.add(externalField, c);
-          if (myPreferredFocusComponent == null) {
-            myPreferredFocusComponent = externalField;
-            externalField.getTextField().selectAll();
           }
           break;
       }

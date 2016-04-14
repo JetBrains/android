@@ -30,7 +30,6 @@ import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Pair;
 import org.jetbrains.android.facet.AndroidFacet;
-import com.android.tools.idea.run.AndroidDebugRunner;
 import com.android.tools.idea.run.AndroidSessionInfo;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
@@ -103,7 +102,7 @@ public class AndroidEnableAdbServiceAction extends ToggleAction {
 
       for (ProcessHandler process : processes) {
         if (!process.isProcessTerminated()) {
-          final AndroidSessionInfo info = process.getUserData(AndroidDebugRunner.ANDROID_SESSION_INFO);
+          final AndroidSessionInfo info = process.getUserData(AndroidSessionInfo.KEY);
           if (info != null) {
             pairs.add(Pair.create(process, info.getDescriptor()));
           }

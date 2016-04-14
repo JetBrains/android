@@ -22,4 +22,5 @@ import org.jetbrains.annotations.NotNull;
 public interface DeviceNameRendererEx {
   boolean isApplicable(@NotNull IDevice device);
   void render(@NotNull IDevice device, @NotNull ColoredTextContainer component);
+  @NotNull String getName(@NotNull IDevice device);
 }

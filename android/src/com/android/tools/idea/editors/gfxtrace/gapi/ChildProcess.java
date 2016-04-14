@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.editors.gfxtrace.gapi;
 
-import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.google.common.util.concurrent.SettableFuture;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -26,7 +25,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public abstract class ChildProcess {
-  @NotNull private static final Logger LOG = Logger.getInstance(GfxTraceEditor.class);
+  @NotNull private static final Logger LOG = Logger.getInstance(ChildProcess.class);
   @NotNull private static final Pattern PORT_PATTERN = Pattern.compile("^Bound on port '(\\d+)'$", 0);
   private final String myName;
   private Thread myServerThread;
@@ -111,7 +110,7 @@ public abstract class ChildProcess {
     myServerThread.interrupt();
   }
 
-  private class OutputHandler extends Thread implements Closeable {
+  protected class OutputHandler extends Thread implements Closeable {
     private final BufferedReader reader;
     private final boolean warn;
 

@@ -1,0 +1,245 @@
+<?xml version="1.0"?>
+<!--
+ * Copyright (C) 2013 The Android Open Source Project
+ *
+ * Licensed under the Apache License, version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+-->
+<sdk:sdk-addon
+    xmlns:sdk="http://schemas.android.com/sdk/android/addon/7">
+
+    <!-- Define a couple of licenses. These will be referenced by uses-license later. -->
+
+    <sdk:license type="text" id="license1">
+        This is the license
+        for this platform.
+    </sdk:license>
+
+    <sdk:license id="license2">
+        Licenses are only of type 'text' right now, so this is implied.
+    </sdk:license>
+
+    <!-- Inner elements must be either platform, add-on, doc or tool.
+         There can be 0 or more of each, in any order. -->
+
+    <sdk:add-on>
+        <sdk:list-display>My First Add-on for API 5, rev 0</sdk:list-display>
+
+        <sdk:name-id>My_First_add-on</sdk:name-id>
+        <sdk:name-display>My First add-on</sdk:name-display>
+
+        <sdk:vendor-id>John_Doe</sdk:vendor-id>
+        <sdk:vendor-display>John Doe</sdk:vendor-display>
+
+        <sdk:api-level>1</sdk:api-level>
+        <sdk:revision>1</sdk:revision>
+        <sdk:uses-license ref="license2" />
+        <sdk:description>Some optional description</sdk:description>
+        <sdk:desc-url>http://www.example.com/myfirstaddon</sdk:desc-url>
+        <sdk:archives>
+            <sdk:archive>
+                <sdk:size>65536</sdk:size>
+                <sdk:checksum type="sha1">2822ae37115ebf13412bbef91339ee0d9454525e</sdk:checksum>
+                <sdk:url>http://www.example.com/add-ons/first.zip</sdk:url>
+            </sdk:archive>
+        </sdk:archives>
+        <!-- The libs node is mandatory, however it can be empty. -->
+        <sdk:libs>
+            <sdk:lib>
+                <sdk:name>android.blah.somelib</sdk:name>
+                <sdk:description>The description for this library.</sdk:description>
+            </sdk:lib>
+            <sdk:lib>
+                <!-- sdk:description is optional, name is not -->
+                <sdk:name>com.android.mymaps</sdk:name>
+            </sdk:lib>
+        </sdk:libs>
+        <sdk:layoutlib>
+            <sdk:api>5</sdk:api>
+            <sdk:revision>0</sdk:revision>
+        </sdk:layoutlib>
+    </sdk:add-on>
+
+    <sdk:add-on>
+        <sdk:name-id>My_Second_add-on</sdk:name-id>
+        <sdk:name-display>My Second add-on</sdk:name-display>
+
+        <sdk:vendor-id>John_Deer</sdk:vendor-id>
+        <sdk:vendor-display>John Deer</sdk:vendor-display>
+
+        <sdk:list-display>My Second Add-on for API 2.r42</sdk:list-display>
+
+        <sdk:api-level>2</sdk:api-level>
+        <sdk:revision>42</sdk:revision>
+        <sdk:archives>
+            <sdk:archive>
+                <sdk:host-os>windows</sdk:host-os>
+                <sdk:host-bits>64</sdk:host-bits>
+                <sdk:size>65536</sdk:size>
+                <sdk:checksum type="sha1">2822ae37115ebf13412bbef91339ee0d9454525e</sdk:checksum>
+                <sdk:url>distrib/second-42-win.zip</sdk:url>
+            </sdk:archive>
+            <sdk:archive>
+                <sdk:host-os>linux</sdk:host-os>
+                <sdk:host-bits>64</sdk:host-bits>
+                <sdk:size>65536</sdk:size>
+                <sdk:checksum type="sha1">2822ae37115ebf13412bbef91339ee0d9454525e</sdk:checksum>
+                <sdk:url>distrib/second-42-linux.tar.bz2</sdk:url>
+            </sdk:archive>
+        </sdk:archives>
+        <sdk:libs>
+            <sdk:lib>
+                <sdk:name>android.blah.somelib</sdk:name>
+                <sdk:description>The description for this library.</sdk:description>
+            </sdk:lib>
+            <sdk:lib>
+                <sdk:name>com.android.mymaps</sdk:name>
+            </sdk:lib>
+        </sdk:libs>
+        <sdk:uses-license ref="license2" />
+        <!-- No layoutlib element in this package. It's optional. -->
+    </sdk:add-on>
+
+    <sdk:add-on>
+        <sdk:name-id>no_libs</sdk:name-id>
+        <sdk:name-display>This add-on has no libraries</sdk:name-display>
+
+        <sdk:vendor-id>Joe_Bar</sdk:vendor-id>
+        <sdk:vendor-display>Joe Bar</sdk:vendor-display>
+
+        <!-- No list-display element. It is optional. -->
+
+        <sdk:uses-license ref="license2" />
+        <sdk:api-level>4</sdk:api-level>
+        <sdk:revision>3</sdk:revision>
+        <sdk:archives>
+            <sdk:archive>
+                <sdk:size>65536</sdk:size>
+                <sdk:checksum type="sha1">2822ae37115ebf13412bbef91339ee0d9454525e</sdk:checksum>
+                <sdk:url>distrib/imnotanarchiveimadoctorjim.zip</sdk:url>
+            </sdk:archive>
+        </sdk:archives>
+        <!-- The libs node is mandatory, however it can be empty. -->
+        <sdk:libs />
+        <sdk:layoutlib>
+            <sdk:api>3</sdk:api>
+            <sdk:revision>42</sdk:revision>
+        </sdk:layoutlib>
+    </sdk:add-on>
+
+    <sdk:extra>
+        <sdk:name-display>Random name, not an id!</sdk:name-display>
+
+        <sdk:vendor-id>cyclop</sdk:vendor-id>
+        <sdk:vendor-display>The big bus</sdk:vendor-display>
+
+        <!-- No list-display element. It is optional. -->
+
+        <sdk:path>usb_driver</sdk:path>
+        <sdk:uses-license ref="license2" />
+        <sdk:revision>
+            <sdk:major>43</sdk:major>
+            <sdk:minor>42</sdk:minor>
+            <sdk:micro>41</sdk:micro>
+        </sdk:revision>
+        <sdk:archives>
+            <sdk:archive>
+                <sdk:host-os>windows</sdk:host-os>
+                <sdk:host-bits>32</sdk:host-bits>
+                <sdk:size>65536</sdk:size>
+                <sdk:checksum type="sha1">2822ae37115ebf13412bbef91339ee0d9454525e</sdk:checksum>
+                <sdk:url>distrib/extraduff.zip</sdk:url>
+            </sdk:archive>
+        </sdk:archives>
+        <sdk:description>An Extra package for the USB driver, it will install in $SDK/usb_driver</sdk:description>
+        <sdk:desc-url>http://www.example.com/extra.html</sdk:desc-url>
+        <sdk:min-tools-rev>
+            <sdk:major>3</sdk:major>
+            <sdk:minor>2</sdk:minor>
+            <sdk:micro>1</sdk:micro>
+            <sdk:preview>42</sdk:preview>
+        </sdk:min-tools-rev>
+        <sdk:obsolete/>
+    </sdk:extra>
+
+    <sdk:extra>
+        <sdk:name-display>Yet another extra, by Android</sdk:name-display>
+
+        <sdk:vendor-id>android_vendor</sdk:vendor-id>
+        <sdk:vendor-display>Android Vendor</sdk:vendor-display>
+
+        <sdk:list-display>Another extra with min-API 42</sdk:list-display>
+
+        <sdk:path>extra_api_dep</sdk:path>
+        <sdk:uses-license ref="license2" />
+        <sdk:revision>
+            <sdk:major>2</sdk:major>
+            <sdk:micro>1</sdk:micro>
+        </sdk:revision>
+        <sdk:archives>
+            <sdk:archive>
+                <sdk:host-os>windows</sdk:host-os>
+                <sdk:host-bits>64</sdk:host-bits>
+                <sdk:jvm-bits>32</sdk:jvm-bits>
+                <sdk:min-jvm-version>1.7</sdk:min-jvm-version>
+                <sdk:size>65536</sdk:size>
+                <sdk:checksum type="sha1">2822ae37115ebf13412bbef91339ee0d9454525e</sdk:checksum>
+                <sdk:url>distrib/extra_mega_duff.zip</sdk:url>
+            </sdk:archive>
+        </sdk:archives>
+        <sdk:description>Some extra package that has a min-api-level of 42</sdk:description>
+        <sdk:desc-url>http://www.example.com/extra.html</sdk:desc-url>
+        <sdk:min-tools-rev>
+            <sdk:major>3</sdk:major>
+        </sdk:min-tools-rev>
+        <sdk:min-api-level>42</sdk:min-api-level>
+        <sdk:project-files>
+            <sdk:path>v8/veggies_8.jar</sdk:path>
+            <sdk:path>root.jar</sdk:path>
+            <sdk:path>dir1/dir 2 with space/mylib.jar</sdk:path>
+        </sdk:project-files>
+        <sdk:old-paths>path1;old_path2;oldPath3</sdk:old-paths>
+    </sdk:extra>
+
+    <sdk:extra>
+        <sdk:name-display>. -..- - .-. .-</sdk:name-display>
+
+        <sdk:list-display>Extra '____' for API _$1_, by _%2_</sdk:list-display>
+
+        <sdk:vendor-id>____</sdk:vendor-id>
+        <sdk:vendor-display>____</sdk:vendor-display>
+
+        <sdk:path>____</sdk:path>
+        <sdk:uses-license ref="license2" />
+        <sdk:revision>
+            <sdk:major>2</sdk:major>
+        </sdk:revision>
+        <sdk:archives>
+            <sdk:archive>
+                <sdk:size>65536</sdk:size>
+                <sdk:checksum type="sha1">2822ae37115ebf13412bbef91339ee0d9454525e</sdk:checksum>
+                <sdk:url>distrib/extra_mega_duff.zip</sdk:url>
+            </sdk:archive>
+        </sdk:archives>
+        <sdk:description>Some extra package that has a min-api-level of 42</sdk:description>
+        <sdk:desc-url>http://www.example.com/extra.html</sdk:desc-url>
+        <sdk:min-tools-rev>
+            <sdk:major>3</sdk:major>
+            <!-- no minor, assumed to be 0 -->
+            <sdk:micro>1</sdk:micro>
+        </sdk:min-tools-rev>
+        <sdk:min-api-level>42</sdk:min-api-level>
+        <sdk:obsolete></sdk:obsolete>
+        <!-- No project-files element in this package. -->
+    </sdk:extra>
+
+</sdk:sdk-addon>

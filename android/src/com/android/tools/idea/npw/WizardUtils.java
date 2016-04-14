@@ -15,9 +15,10 @@
  */
 package com.android.tools.idea.npw;
 
-import com.android.annotations.VisibleForTesting;
+import com.android.tools.idea.ui.validation.validators.PathValidator;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.google.common.base.CharMatcher;
+import com.intellij.ide.RecentProjectsManager;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.application.PathManager;
@@ -27,17 +28,21 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.ArrayUtil;
+import com.intellij.util.SystemProperties;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.util.Locale;
 
 /**
  * Static utility methods used by the New Project/New Module wizards
+ *
+ * TODO: Post wizard migration: Rename this to NpwUtils(?)
  */
 public class WizardUtils {
   private static final CharMatcher ILLEGAL_CHARACTER_MATCHER = CharMatcher.anyOf(WizardConstants.INVALID_FILENAME_CHARS);
-  public static final int WINDOWS_PATH_LENGTH_LIMIT = 100;
+  private static final int WINDOWS_PATH_LENGTH_LIMIT = 100;
 
   /**
    * Remove spaces, switch to lower case, and remove any invalid characters. If the resulting name
@@ -45,7 +50,7 @@ public class WizardUtils {
    */
   @NotNull
   public static String computeModuleName(@NotNull String appName, @Nullable Project project) {
-    String moduleName = appName.toLowerCase().replaceAll(WizardConstants.INVALID_FILENAME_CHARS, "");
+    String moduleName = appName.toLowerCase(Locale.US).replaceAll(WizardConstants.INVALID_FILENAME_CHARS, "");
     moduleName = moduleName.replaceAll("\\s", "");
 
     if (!isUniqueModuleName(moduleName, project)) {
@@ -59,10 +64,27 @@ public class WizardUtils {
   }
 
   /**
+   * @deprecated Use {@link com.android.tools.idea.ui.wizard.WizardUtils#getProjectLocationParent()} instead.
+   * TODO: Post wizard migration: delete
+   */
+  @NotNull
+  public static File getProjectLocationParent() {
+    String parent = RecentProjectsManager.getInstance().getLastProjectCreationLocation();
+
+    if (parent == null) {
+      String child = ApplicationNamesInfo.getInstance().getFullProductName().replace(" ", "") + "Projects";
+      return new File(SystemProperties.getUserHome(), child);
+    }
+    else {
+      return new File(parent.replace('/', File.separatorChar));
+    }
+  }
+
+  /**
    * @return true if the given module name is unique inside the given project. Returns true if the given
    * project is null.
    */
-  public static boolean isUniqueModuleName(@NotNull String moduleName, @Nullable Project project) {
+  private static boolean isUniqueModuleName(@NotNull String moduleName, @Nullable Project project) {
     if (project == null) {
       return true;
     }
@@ -85,6 +107,9 @@ public class WizardUtils {
    * @param dir the directory to list
    * @return the children, or empty if it has no children, is not a directory,
    * etc.
+   *
+   * @deprecated
+   * TODO: Post wizard migration: delete
    */
   @NotNull
   public static File[] listFiles(@Nullable File dir) {
@@ -99,6 +124,9 @@ public class WizardUtils {
 
   /**
    * A Validation Result for Wizard Validations, contains a status and a message
+   *
+   * @deprecated Use {@link PathValidator} instead.
+   * TODO: Post wizard migration: delete
    */
   public static class ValidationResult {
     public enum Status {
@@ -113,11 +141,10 @@ public class WizardUtils {
       WHITESPACE("%1$s should not contain whitespace, as this can cause problems with the NDK tools."),
       NON_ASCII_CHARS_WARNING("Your %1$s contains non-ASCII characters, which can cause problems. Proceed with caution."),
       NON_ASCII_CHARS_ERROR("Your %1$s contains non-ASCII characters."),
-      PATH_NOT_WRITEABLE("The path '%2$s' is not writeable. Please choose a new location."),
+      PATH_NOT_WRITABLE("The path '%2$s' is not writable. Please choose a new location."),
       PROJECT_LOC_IS_FILE("There must not already be a file at the %1$s."),
       NON_EMPTY_DIR("A non-empty directory already exists at the specified %1$s. Existing files may be overwritten. Proceed with caution."),
       PROJECT_IS_FILE_SYSTEM_ROOT("The %1$s can not be at the filesystem root"),
-      IS_UNDER_ANDROID_STUDIO_ROOT("Path points to a location within Android Studio installation directory"),
       PARENT_NOT_DIR("The %1$s's parent directory must be a directory, not a plain file"),
       INSIDE_ANDROID_STUDIO("The %1$s is inside %2$s install location"),
       PATH_TOO_LONG("The %1$s is too long");
@@ -154,15 +181,16 @@ public class WizardUtils {
       return new ValidationResult(Status.ERROR, message, field, params);
     }
 
-    @Nullable
-    @VisibleForTesting
-    Message getMessage() {
-      return myMessage;
-    }
-
-    @VisibleForTesting
-    Object[] getMessageParams() {
-      return myMessageParams;
+    @NotNull
+    private static ValidationResult pathNotWritable(@NotNull WritableCheckMode mode, @NotNull String field, @NotNull File file) {
+      switch (mode) {
+        case NOT_WRITABLE_IS_ERROR:
+          return error(Message.PATH_NOT_WRITABLE, field, file.getPath());
+        case NOT_WRITABLE_IS_WARNING:
+          return warn(Message.PATH_NOT_WRITABLE, field, file.getPath());
+        default:
+          throw new IllegalArgumentException(mode.toString());
+      }
     }
 
     public String getFormattedMessage() {
@@ -196,17 +224,17 @@ public class WizardUtils {
   }
 
   @NotNull
-  public static ValidationResult validateLocation(@Nullable String projectLocation,
-                                                  @NotNull String fieldName,
-                                                  boolean checkEmpty) {
-    return validateLocation(projectLocation, fieldName, checkEmpty, true);
+  public static ValidationResult validateLocation(@Nullable String projectLocation, @NotNull String fieldName, boolean checkEmpty) {
+    return validateLocation(projectLocation, fieldName, checkEmpty, WritableCheckMode.NOT_WRITABLE_IS_ERROR);
   }
+
+  public enum WritableCheckMode {DO_NOT_CHECK, NOT_WRITABLE_IS_ERROR, NOT_WRITABLE_IS_WARNING}
 
   @NotNull
   public static ValidationResult validateLocation(@Nullable String projectLocation,
                                                   @NotNull String fieldName,
                                                   boolean checkEmpty,
-                                                  boolean checkWriteable) {
+                                                  @NotNull WritableCheckMode writableCheckMode) {
     ValidationResult warningResult = null;
     if (projectLocation == null || projectLocation.isEmpty()) {
       return ValidationResult.error(ValidationResult.Message.NO_LOCATION_SPECIFIED, fieldName);
@@ -223,7 +251,7 @@ public class WizardUtils {
         char illegalChar = filename.charAt(ILLEGAL_CHARACTER_MATCHER.indexIn(filename));
         return ValidationResult.error(ValidationResult.Message.ILLEGAL_CHARACTER, fieldName, illegalChar, filename);
       }
-      if (WizardConstants.INVALID_WINDOWS_FILENAMES.contains(filename.toLowerCase())) {
+      if (WizardConstants.INVALID_WINDOWS_FILENAMES.contains(filename.toLowerCase(Locale.US))) {
         return ValidationResult.error(ValidationResult.Message.ILLEGAL_FILENAME, fieldName, filename);
       }
       if (CharMatcher.WHITESPACE.matchesAnyOf(filename)) {
@@ -238,12 +266,18 @@ public class WizardUtils {
         }
       }
       // Check that we can write to that location: make sure we can write into the first extant directory in the path.
-      if (checkWriteable && !testFile.exists() && testFile.getParentFile() != null && testFile.getParentFile().exists()) {
-        if (!testFile.getParentFile().canWrite()) {
-          return ValidationResult.error(ValidationResult.Message.PATH_NOT_WRITEABLE, fieldName, testFile.getParentFile().getPath());
-        }
+      File parent = testFile.getParentFile();
+
+      if (!writableCheckMode.equals(WritableCheckMode.DO_NOT_CHECK) &&
+          !testFile.exists() &&
+          parent != null &&
+          parent.exists() &&
+          !parent.canWrite()) {
+        // TODO Passing NOT_WRITABLE_IS_ERROR here is a hack. Stop depending on this code and use PathValidator.
+        return ValidationResult.pathNotWritable(WritableCheckMode.NOT_WRITABLE_IS_ERROR, fieldName, parent);
       }
-      testFile = testFile.getParentFile();
+
+      testFile = parent;
     }
 
     if (SystemInfo.isWindows && projectLocation.length() > WINDOWS_PATH_LENGTH_LIMIT) {
@@ -260,8 +294,9 @@ public class WizardUtils {
     if (file.getParentFile().exists() && !file.getParentFile().isDirectory()) {
       return ValidationResult.error(ValidationResult.Message.PARENT_NOT_DIR, fieldName);
     }
-    if (checkWriteable && file.exists() && !file.canWrite()) {
-      return ValidationResult.error(ValidationResult.Message.PATH_NOT_WRITEABLE, fieldName, file.getPath());
+
+    if (!writableCheckMode.equals(WritableCheckMode.DO_NOT_CHECK) && file.exists() && !file.canWrite()) {
+      return ValidationResult.pathNotWritable(writableCheckMode, fieldName, file);
     }
 
     String installLocation = PathManager.getHomePathFor(Application.class);

@@ -22,7 +22,7 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * An expression which returns a sum of all {@link ObservableValue} arguments.
+ * An expression which returns a sum of all {@link ObservableValue<Integer>} arguments.
  */
 public final class SumExpression extends IntExpression {
   private final List<ObservableValue<Integer>> myValues;

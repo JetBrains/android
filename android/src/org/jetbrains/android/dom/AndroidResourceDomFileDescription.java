@@ -17,52 +17,44 @@
 package org.jetbrains.android.dom;
 
 import com.android.SdkConstants;
+import com.android.resources.ResourceFolderType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Computable;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomFileDescription;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.android.util.AndroidUtils;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * Created by IntelliJ IDEA.
- * User: Eugene.Kudelevsky
- * Date: Mar 27, 2009
- * Time: 2:30:41 PM
- * To change this template use File | Settings | File Templates.
- */
 public abstract class AndroidResourceDomFileDescription<T extends DomElement> extends DomFileDescription<T> {
-  private final String[] myResourceTypes;
+  protected final ResourceFolderType myResourceType;
 
   public AndroidResourceDomFileDescription(final Class<T> rootElementClass,
                                            @NonNls final String rootTagName,
-                                           @Nullable String... resourceTypes) {
+                                           @NotNull ResourceFolderType resourceType) {
     super(rootElementClass, rootTagName);
-    myResourceTypes = resourceTypes;
+    myResourceType = resourceType;
   }
 
   @Override
   public boolean isMyFile(@NotNull final XmlFile file, @Nullable Module module) {
-    return doIsMyFile(file, myResourceTypes);
+    return doIsMyFile(file, myResourceType);
   }
 
-  public static boolean doIsMyFile(final XmlFile file, final String[] resourceTypes) {
+  public static boolean doIsMyFile(final XmlFile file, final ResourceFolderType resourceType) {
     return ApplicationManager.getApplication().runReadAction(new Computable<Boolean>() {
       @Override
       public Boolean compute() {
         if (file.getProject().isDisposed()) {
           return false;
         }
-        for (String resourceType : resourceTypes) {
-          if (AndroidResourceUtil.isInResourceSubdirectory(file, resourceType)) {
-            return AndroidFacet.getInstance(file) != null;
-          }
+        if (AndroidResourceUtil.isInResourceSubdirectory(file, resourceType.getName())) {
+          return AndroidFacet.getInstance(file) != null;
         }
         return false;
       }
@@ -75,7 +67,7 @@ public abstract class AndroidResourceDomFileDescription<T extends DomElement> ex
   }
 
   @NotNull
-  public String[] getResourceTypes() {
-    return myResourceTypes;
+  public ResourceFolderType getResourceType() {
+    return myResourceType;
   }
 }

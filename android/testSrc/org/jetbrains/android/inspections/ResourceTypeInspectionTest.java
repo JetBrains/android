@@ -19,12 +19,12 @@ import com.android.SdkConstants;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.startup.ExternalAnnotationsSupport;
 import com.google.common.collect.Lists;
-import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.codeInspection.InspectionProfileEntry;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.vfs.encoding.EncodingProjectManager;
 import com.intellij.util.ArrayUtil;
 import com.siyeh.ig.LightInspectionTestCase;
 import org.intellij.lang.annotations.Language;
@@ -39,6 +39,8 @@ import java.util.List;
 
 @SuppressWarnings("StatementWithEmptyBody")
 public class ResourceTypeInspectionTest extends LightInspectionTestCase {
+
+  private String myOldCharset;
 
   @Override
   protected void setUp() throws Exception {
@@ -84,6 +86,18 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
                                "    <uses-permission android:name=\"my.dangerous.P2\" />\n" +
                                "\n" +
                                "</manifest>\n");
+    myOldCharset = EncodingProjectManager.getInstance(getProject()).getDefaultCharsetName();
+    EncodingProjectManager.getInstance(getProject()).setDefaultCharsetName("UTF-8");
+  }
+
+  @Override
+  public void tearDown() throws Exception {
+    try {
+      EncodingProjectManager.getInstance(getProject()).setDefaultCharsetName(myOldCharset);
+    }
+    finally{
+      super.tearDown();
+    }
   }
 
   public void testTypes() {
@@ -197,6 +211,9 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
             "        view.setLayoutDirection(View.LAYOUT_DIRECTION_RTL); // OK\n" +
             "        view.setLayoutDirection(/*Must be one of: View.LAYOUT_DIRECTION_LTR, View.LAYOUT_DIRECTION_RTL, View.LAYOUT_DIRECTION_INHERIT, View.LAYOUT_DIRECTION_LOCALE*/View.TEXT_ALIGNMENT_TEXT_START/**/); // Error\n" +
             "        view.setLayoutDirection(/*Must be one of: View.LAYOUT_DIRECTION_LTR, View.LAYOUT_DIRECTION_RTL, View.LAYOUT_DIRECTION_INHERIT, View.LAYOUT_DIRECTION_LOCALE*/View.LAYOUT_DIRECTION_RTL | View.LAYOUT_DIRECTION_RTL/**/); // Error\n" +
+            "\n" +
+            "        // Regression test for http://b.android.com/197184\n" +
+            "        view.setLayoutDirection/*'setLayoutDirection(int)' in 'android.view.View' cannot be applied to '(int, int)'*/(View.LAYOUT_DIRECTION_RTL, View.LAYOUT_DIRECTION_LTR)/**/; // ERROR\n" +
             "    }\n" +
             "\n" +
             "    @TargetApi(Build.VERSION_CODES.KITKAT)\n" +
@@ -212,11 +229,54 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
             "        Object ok5 = context.bindService(intent, connection, flags1);\n" +
             "\n" +
             "        Object error1 = context.bindService(intent, connection,\n" +
-            "                /*Must be one or more of: Context.BIND_AUTO_CREATE, Context.BIND_DEBUG_UNBIND, Context.BIND_NOT_FOREGROUND, Context.BIND_ABOVE_CLIENT, Context.BIND_ALLOW_OOM_MANAGEMENT, Context.BIND_WAIVE_PRIORITY, Context.BIND_IMPORTANT, Context.BIND_ADJUST_WITH_ACTIVITY*/Context.BIND_ABOVE_CLIENT | Context.CONTEXT_IGNORE_SECURITY/**/);\n" +
+            "                Context.BIND_ABOVE_CLIENT | /*Must be one or more of: Context.BIND_AUTO_CREATE, Context.BIND_DEBUG_UNBIND, Context.BIND_NOT_FOREGROUND, Context.BIND_ABOVE_CLIENT, Context.BIND_ALLOW_OOM_MANAGEMENT, Context.BIND_WAIVE_PRIORITY, Context.BIND_IMPORTANT, Context.BIND_ADJUST_WITH_ACTIVITY*/Context.CONTEXT_IGNORE_SECURITY/**/);\n" +
             "        int flags2 = Context.BIND_ABOVE_CLIENT | Context.CONTEXT_IGNORE_SECURITY;\n" +
             "        Object error2 = context.bindService(intent, connection, /*Must be one or more of: Context.BIND_AUTO_CREATE, Context.BIND_DEBUG_UNBIND, Context.BIND_NOT_FOREGROUND, Context.BIND_ABOVE_CLIENT, Context.BIND_ALLOW_OOM_MANAGEMENT, Context.BIND_WAIVE_PRIORITY, Context.BIND_IMPORTANT, Context.BIND_ADJUST_WITH_ACTIVITY*/flags2/**/);\n" +
             "    }\n" +
             "}\n");
+  }
+
+  /**
+   * Test @IntDef when applied to multiple elements like arrays or varargs.
+   */
+  public void testIntDefMultiple() {
+    doCheck("import android.support.annotation.IntDef;\n" +
+            "\n" +
+            "public class X {\n" +
+            "    private static final int VALUE_A = 0;\n" +
+            "    private static final int VALUE_B = 1;\n" +
+            "\n" +
+            "    private static int[] VALID_ARRAY = {VALUE_A, VALUE_B};\n" +
+            "    private static int[] INVALID_ARRAY = {VALUE_A, 0, VALUE_B};\n" +
+            "    private static int[] INVALID_ARRAY2 = {10};\n" +
+            "\n" +
+            "    @IntDef({VALUE_A, VALUE_B})\n" +
+            "    public @interface MyIntDef {}\n" +
+            "\n" +
+            "    @MyIntDef\n" +
+            "    public int a = 0;\n" +
+            "\n" +
+            "    @MyIntDef\n" +
+            "    public int[] b;\n" +
+            "\n" +
+            "    public void testCall() {\n" +
+            "        restrictedArray(new int[]{VALUE_A}); // OK\n" +
+            "        restrictedArray(new int[]{VALUE_A, VALUE_B}); // OK\n" +
+            "        restrictedArray(new int[]{VALUE_A, /*Must be one of: X.VALUE_A, X.VALUE_B*/0/**/, VALUE_B}); // ERROR;\n" +
+            "        restrictedArray(VALID_ARRAY); // OK\n" +
+            "        restrictedArray(/*Must be one of: X.VALUE_A, X.VALUE_B*/INVALID_ARRAY/**/); // ERROR\n" +
+            "        restrictedArray(/*Must be one of: X.VALUE_A, X.VALUE_B*/INVALID_ARRAY2/**/); // ERROR\n" +
+            "\n" +
+            "        restrictedEllipsis(VALUE_A); // OK\n" +
+            "        restrictedEllipsis(VALUE_A, VALUE_B); // OK\n" +
+            "        restrictedEllipsis(VALUE_A, /*Must be one of: X.VALUE_A, X.VALUE_B*/0/**/, VALUE_B); // ERROR\n" +
+            "        restrictedEllipsis(/*Must be one of: X.VALUE_A, X.VALUE_B*/0/**/); // ERROR\n" +
+            "    }\n" +
+            "\n" +
+            "    private void restrictedEllipsis(@MyIntDef int... test) {}\n" +
+            "\n" +
+            "    private void restrictedArray(@MyIntDef int[] test) {}\n" +
+            "}");
   }
 
   public void testFlow() {
@@ -407,8 +467,8 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
             "        printMax(/*Length must be at most 8 (was 9)*/\"123456789\"/**/); // ERROR\n" +
             "        printAtMost(1 << 2); // OK\n" +
             "        printMax(\"123456\" + \"\"); //OK\n" +
-            "        printAtMost(/*Value must be ≤ 7 (was 8)*/1 << 2 + 1/**/); // ERROR\n" +
-            "        printAtMost(/*Value must be ≤ 7 (was 32)*/1 << 5/**/); // ERROR\n" +
+            "        printAtMost(/*Value must be \u2264 7 (was 8)*/1 << 2 + 1/**/); // ERROR\n" +
+            "        printAtMost(/*Value must be \u2264 7 (was 32)*/1 << 5/**/); // ERROR\n" +
             "        printMax(/*Length must be at most 8 (was 11)*/\"123456\" + \"45678\"/**/); //ERROR\n" +
             "\n" +
             "        printRange(/*Length must be at least 4 and at most 6 (was 3)*/\"123\"/**/); // ERROR\n" +
@@ -459,29 +519,29 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
             "    }\n" +
             "\n" +
             "    public void testIntRange() {\n" +
-            "        printAtLeast(/*Value must be ≥ 4 (was 3)*/3/**/); // ERROR\n" +
+            "        printAtLeast(/*Value must be \u2265 4 (was 3)*/3/**/); // ERROR\n" +
             "        printAtLeast(4); // OK\n" +
             "        printAtLeast(5); // OK\n" +
             "\n" +
             "        printAtMost(5); // OK\n" +
             "        printAtMost(6); // OK\n" +
             "        printAtMost(7); // OK\n" +
-            "        printAtMost(/*Value must be ≤ 7 (was 8)*/8/**/); // ERROR\n" +
+            "        printAtMost(/*Value must be \u2264 7 (was 8)*/8/**/); // ERROR\n" +
             "\n" +
-            "        printBetween(/*Value must be ≥ 4 and ≤ 7 (was 3)*/3/**/); // ERROR\n" +
+            "        printBetween(/*Value must be \u2265 4 and \u2264 7 (was 3)*/3/**/); // ERROR\n" +
             "        printBetween(4); // OK\n" +
             "        printBetween(5); // OK\n" +
             "        printBetween(6); // OK\n" +
             "        printBetween(7); // OK\n" +
-            "        printBetween(/*Value must be ≥ 4 and ≤ 7 (was 8)*/8/**/); // ERROR\n" +
+            "        printBetween(/*Value must be \u2265 4 and \u2264 7 (was 8)*/8/**/); // ERROR\n" +
             "        int value = 8;\n" +
-            "        printBetween(/*Value must be ≥ 4 and ≤ 7 (was 8)*/value/**/); // ERROR\n" +
-            "        printBetween(/*Value must be ≥ 4 and ≤ 7 (was -7)*/-7/**/);\n" +
-            "        printIndirect(/*Value must be ≥ -1 and ≤ 42 (was -2)*/-2/**/);\n" +
+            "        printBetween(/*Value must be \u2265 4 and \u2264 7 (was 8)*/value/**/); // ERROR\n" +
+            "        printBetween(/*Value must be \u2265 4 and \u2264 7 (was -7)*/-7/**/);\n" +
+            "        printIndirect(/*Value must be \u2265 -1 and \u2264 42 (was -2)*/-2/**/);\n" +
             "    }\n" +
             "\n" +
             "    public void testFloatRange() {\n" +
-            "        printAtLeastInclusive(/*Value must be ≥ 2.5 (was 2.49f)*/2.49f/**/); // ERROR\n" +
+            "        printAtLeastInclusive(/*Value must be \u2265 2.5 (was 2.49f)*/2.49f/**/); // ERROR\n" +
             "        printAtLeastInclusive(2.5f); // OK\n" +
             "        printAtLeastInclusive(2.6f); // OK\n" +
             "\n" +
@@ -493,29 +553,29 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
             "        printAtMostInclusive(6.8f); // OK\n" +
             "        printAtMostInclusive(6.9f); // OK\n" +
             "        printAtMostInclusive(7.0f); // OK\n" +
-            "        printAtMostInclusive(/*Value must be ≤ 7.0 (was 7.1f)*/7.1f/**/); // ERROR\n" +
+            "        printAtMostInclusive(/*Value must be \u2264 7.0 (was 7.1f)*/7.1f/**/); // ERROR\n" +
             "\n" +
             "        printAtMostExclusive(6.9f); // OK\n" +
             "        printAtMostExclusive(6.99f); // OK\n" +
             "        printAtMostExclusive(/*Value must be < 7.0 (was 7.0f)*/7.0f/**/); // ERROR\n" +
             "        printAtMostExclusive(/*Value must be < 7.0 (was 7.1f)*/7.1f/**/); // ERROR\n" +
             "\n" +
-            "        printBetweenFromInclusiveToInclusive(/*Value must be ≥ 2.5 and ≤ 5.0 (was 2.4f)*/2.4f/**/); // ERROR\n" +
+            "        printBetweenFromInclusiveToInclusive(/*Value must be \u2265 2.5 and \u2264 5.0 (was 2.4f)*/2.4f/**/); // ERROR\n" +
             "        printBetweenFromInclusiveToInclusive(2.5f); // OK\n" +
             "        printBetweenFromInclusiveToInclusive(3f); // OK\n" +
             "        printBetweenFromInclusiveToInclusive(5.0f); // OK\n" +
-            "        printBetweenFromInclusiveToInclusive(/*Value must be ≥ 2.5 and ≤ 5.0 (was 5.1f)*/5.1f/**/); // ERROR\n" +
+            "        printBetweenFromInclusiveToInclusive(/*Value must be \u2265 2.5 and \u2264 5.0 (was 5.1f)*/5.1f/**/); // ERROR\n" +
             "\n" +
-            "        printBetweenFromExclusiveToInclusive(/*Value must be > 2.5 and ≤ 5.0 (was 2.4f)*/2.4f/**/); // ERROR\n" +
-            "        printBetweenFromExclusiveToInclusive(/*Value must be > 2.5 and ≤ 5.0 (was 2.5f)*/2.5f/**/); // ERROR\n" +
+            "        printBetweenFromExclusiveToInclusive(/*Value must be > 2.5 and \u2264 5.0 (was 2.4f)*/2.4f/**/); // ERROR\n" +
+            "        printBetweenFromExclusiveToInclusive(/*Value must be > 2.5 and \u2264 5.0 (was 2.5f)*/2.5f/**/); // ERROR\n" +
             "        printBetweenFromExclusiveToInclusive(5.0f); // OK\n" +
-            "        printBetweenFromExclusiveToInclusive(/*Value must be > 2.5 and ≤ 5.0 (was 5.1f)*/5.1f/**/); // ERROR\n" +
+            "        printBetweenFromExclusiveToInclusive(/*Value must be > 2.5 and \u2264 5.0 (was 5.1f)*/5.1f/**/); // ERROR\n" +
             "\n" +
-            "        printBetweenFromInclusiveToExclusive(/*Value must be ≥ 2.5 and < 5.0 (was 2.4f)*/2.4f/**/); // ERROR\n" +
+            "        printBetweenFromInclusiveToExclusive(/*Value must be \u2265 2.5 and < 5.0 (was 2.4f)*/2.4f/**/); // ERROR\n" +
             "        printBetweenFromInclusiveToExclusive(2.5f); // OK\n" +
             "        printBetweenFromInclusiveToExclusive(3f); // OK\n" +
             "        printBetweenFromInclusiveToExclusive(4.99f); // OK\n" +
-            "        printBetweenFromInclusiveToExclusive(/*Value must be ≥ 2.5 and < 5.0 (was 5.0f)*/5.0f/**/); // ERROR\n" +
+            "        printBetweenFromInclusiveToExclusive(/*Value must be \u2265 2.5 and < 5.0 (was 5.0f)*/5.0f/**/); // ERROR\n" +
             "\n" +
             "        printBetweenFromExclusiveToExclusive(/*Value must be > 2.5 and < 5.0 (was 2.4f)*/2.4f/**/); // ERROR\n" +
             "        printBetweenFromExclusiveToExclusive(/*Value must be > 2.5 and < 5.0 (was 2.5f)*/2.5f/**/); // ERROR\n" +
@@ -524,6 +584,62 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
             "        printBetweenFromExclusiveToExclusive(/*Value must be > 2.5 and < 5.0 (was 5.0f)*/5.0f/**/); // ERROR\n" +
             "    }\n" +
             "}\n");
+  }
+
+  /**
+   * Test @IntRange and @FloatRange support annotation applied to arrays and vargs.
+   */
+  public void testRangesMultiple() {
+    doCheck("import android.support.annotation.FloatRange;\n" +
+            "import android.support.annotation.IntRange;\n" +
+            "\n" +
+            "public class X {\n" +
+            "    private static float[] VALID_FLOAT_ARRAY = new float[] {10.0f, 12.0f, 15.0f};\n" +
+            "    private static float[] INVALID_FLOAT_ARRAY = new float[] {10.0f, 12.0f, 5.0f};\n" +
+            "\n" +
+            "    private static int[] VALID_INT_ARRAY = new int[] {15, 120, 500};\n" +
+            "    private static int[] INVALID_INT_ARRAY = new int[] {15, 120, 5};\n" +
+            "\n" +
+            "    @FloatRange(from = 10.0, to = 15.0)\n" +
+            "    public float[] a;\n" +
+            "\n" +
+            "    @IntRange(from = 10, to = 500)\n" +
+            "    public int[] b;\n" +
+            "\n" +
+            "    public void testCall() {\n" +
+            "        a = new float[2];\n" +
+            "        a[0] = /*Value must be \u2265 10.0 and \u2264 15.0 (was 5f)*/5f/**/; // ERROR\n" +
+            "        a[1] = 14f; // OK\n" +
+            "        varargsFloat(15.0f, 10.0f, /*Value must be \u2265 10.0 and \u2264 15.0 (was 5.0f)*/5.0f/**/); // ERROR\n" +
+            "        restrictedFloatArray(VALID_FLOAT_ARRAY); // OK\n" +
+            "        restrictedFloatArray(/*Value must be \u2265 10.0 and \u2264 15.0*/INVALID_FLOAT_ARRAY/**/); // ERROR\n" +
+            "        restrictedFloatArray(new float[]{10.5f, 14.5f}); // OK\n" +
+            "        restrictedFloatArray(/*Value must be \u2265 10.0 and \u2264 15.0*/new float[]{12.0f, 500.0f}/**/); // ERROR\n" +
+            "\n" +
+            "\n" +
+            "        b = new int[2];\n" +
+            "        b[0] = /*Value must be \u2265 10 and \u2264 500 (was 5)*/5/**/; // ERROR\n" +
+            "        b[1] = 100; // OK\n" +
+            "        varargsInt(15, 10, /*Value must be \u2265 10 and \u2264 500 (was 510)*/510/**/); // ERROR\n" +
+            "        restrictedIntArray(VALID_INT_ARRAY); // OK\n" +
+            "        restrictedIntArray(/*Value must be \u2265 10 and \u2264 500*/INVALID_INT_ARRAY/**/); // ERROR\n" +
+            "        restrictedIntArray(new int[]{50, 500}); // OK\n" +
+            "        restrictedIntArray(/*Value must be \u2265 10 and \u2264 500*/new int[]{0, 500}/**/); // ERROR\n" +
+            "    }\n" +
+            "\n" +
+            "    public void restrictedIntArray(@IntRange(from = 10, to = 500) int[] a) {\n" +
+            "    }\n" +
+            "\n" +
+            "    public void varargsInt(@IntRange(from = 10, to = 500) int... a) {\n" +
+            "    }\n" +
+            "\n" +
+            "    public void varargsFloat(@FloatRange(from = 10.0, to = 15.0) float... a) {\n" +
+            "    }\n" +
+            "\n" +
+            "    public void restrictedFloatArray(@FloatRange(from = 10.0, to = 15.0) float[] a) {\n" +
+            "    }\n" +
+            "}\n" +
+            "\n");
   }
 
   public void testColorInt() {
@@ -919,6 +1035,26 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
             "        public void paint() {\n" +
             "        }\n" +
             "    }\n" +
+            "    @some.pkg.UnrelatedNameEndsWithThread\n" +
+            "    public static void test1(View view) {\n" +
+            "        view.paint();\n" +
+            "    }\n" +
+            "\n" +
+            "    @UiThread\n" +
+            "    public static void test2(View view) {\n" +
+            "        test1(view);\n" +
+            "    }\n" +
+            "\n" +
+            "    @UiThread\n" +
+            "    public static void test3(View view) {\n" +
+            "        TestClass.test4();\n" +
+            "    }\n" +
+            "\n" +
+            "    @some.pkg.UnrelatedNameEndsWithThread\n" +
+            "    public static class TestClass {\n" +
+            "        public static void test4() {\n" +
+            "        }\n" +
+            "    }\n" +
             "\n" +
             "    public static class CustomView extends View {\n" +
             "    }\n" +
@@ -940,6 +1076,40 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
             "        }\n" +
             "    }\n" +
             "}\n");
+  }
+
+  /**
+   * Test that the parent class annotations are not inherited by the static methods declared in a child class. In the example below,
+   * android.view.View is annotated with the UiThread annotation. The test checks that workerThreadMethod does not inherit that annotation.
+   */
+  public void testStaticWrongThread() {
+    doCheck("package test.pkg;\n" +
+            "\n" +
+            "import android.content.Context;\n" +
+            "import android.os.AsyncTask;\n" +
+            "import android.support.annotation.WorkerThread;\n" +
+            "import android.view.View;\n" +
+            "\n" +
+            "public class X extends View {\n" +
+            "    public X(Context context) {\n" +
+            "        super(context);\n" +
+            "    }\n" +
+            "\n" +
+            "    class MyAsyncTask extends AsyncTask<Long, Void, Boolean> {\n" +
+            "        @Override\n" +
+            "        protected Boolean doInBackground(Long... sizes) {\n" +
+            "            return workedThreadMethod();\n" +
+            "        }\n" +
+            "\n" +
+            "        @Override\n" +
+            "        protected void onPostExecute(Boolean isEnoughFree) {\n" +
+            "        }\n" +
+            "    }\n" +
+            "\n" +
+            "    public static boolean workedThreadMethod() {\n" +
+            "        return true;\n" +
+            "    }\n" +
+            "}");
   }
 
   public void testCombinedIntDefAndIntRange() throws Exception {
@@ -968,9 +1138,9 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
             "    }\n" +
             "\n" +
             "    public void test() {\n" +
-            "        setDuration(/*Must be one of: X.LENGTH_INDEFINITE, X.LENGTH_SHORT, X.LENGTH_LONG or value must be ≥ 10 (was 500)*/UNRELATED/**/); /// ERROR: Not right intdef, even if it's in the right number range\n" +
-            "        setDuration(/*Must be one of: X.LENGTH_INDEFINITE, X.LENGTH_SHORT, X.LENGTH_LONG or value must be ≥ 10 (was -5)*/-5/**/); // ERROR (not right int def or value\n" +
-            "        setDuration(/*Must be one of: X.LENGTH_INDEFINITE, X.LENGTH_SHORT, X.LENGTH_LONG or value must be ≥ 10 (was 8)*/8/**/); // ERROR (not matching number range)\n" +
+            "        setDuration(/*Must be one of: X.LENGTH_INDEFINITE, X.LENGTH_SHORT, X.LENGTH_LONG or value must be \u2265 10 (was 500)*/UNRELATED/**/); /// ERROR: Not right intdef, even if it's in the right number range\n" +
+            "        setDuration(/*Must be one of: X.LENGTH_INDEFINITE, X.LENGTH_SHORT, X.LENGTH_LONG or value must be \u2265 10 (was -5)*/-5/**/); // ERROR (not right int def or value\n" +
+            "        setDuration(/*Must be one of: X.LENGTH_INDEFINITE, X.LENGTH_SHORT, X.LENGTH_LONG or value must be \u2265 10 (was 8)*/8/**/); // ERROR (not matching number range)\n" +
             "        setDuration(8000); // OK (@IntRange applies)\n" +
             "        setDuration(LENGTH_INDEFINITE); // OK (@IntDef)\n" +
             "        setDuration(LENGTH_LONG); // OK (@IntDef)\n" +
@@ -1046,6 +1216,182 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
             "        boolean ok1 = this.getDay() == /*Must be one of: X.SUNDAY, X.MONDAY*/\"Any String\"/**/;\n" +
             "        boolean ok2 = this.getDay().equals(MONDAY);\n" +
             "        boolean wrong1 = this.getDay().equals(/*Must be one of: X.SUNDAY, X.MONDAY*/\"Any String\"/**/);\n" +
+            "    }\n" +
+            "}\n");
+  }
+
+  public void testColorAndDrawable() throws Exception {
+    // Regression test for https://code.google.com/p/android/issues/detail?id=197411
+    doCheck("\n" +
+            "package test.pkg;\n" +
+            "\n" +
+            "import android.app.Activity;\n" +
+            "import android.support.annotation.ColorRes;\n" +
+            "import android.support.annotation.DrawableRes;\n" +
+            "import android.widget.TextView;\n" +
+            "\n" +
+            "public class X extends Activity {\n" +
+            "    @ColorRes int getSwipeColor() {\n" +
+            "        return android.R.color.black;\n" +
+            "    }\n" +
+            "\n" +
+            "    @DrawableRes int getDrawableIcon() {\n" +
+            "        return android.R.drawable.ic_delete;\n" +
+            "    }\n" +
+            "    \n" +
+            "    public void test(TextView view) {\n" +
+            "        getResources().getColor(getSwipeColor()); // OK: color to color\n" +
+            "        view.setBackgroundResource(getSwipeColor()); // OK: color promotes to drawable\n" +
+            "        getResources().getColor(/*Expected resource of type color*/getDrawableIcon()/**/); // Not OK: drawable doesn't promote to color\n" +
+            "    }\n" +
+            "}\n");
+  }
+
+  public void testSuppressNames() throws Exception {
+    doCheck("package test.pkg;\n" +
+            "\n" +
+            "import android.support.annotation.BinderThread;\n" +
+            "import android.support.annotation.CheckResult;\n" +
+            "import android.support.annotation.ColorInt;\n" +
+            "import android.support.annotation.ColorRes;\n" +
+            "import android.support.annotation.FloatRange;\n" +
+            "import android.support.annotation.IntDef;\n" +
+            "import android.support.annotation.IntRange;\n" +
+            "import android.support.annotation.RequiresPermission;\n" +
+            "import android.support.annotation.Size;\n" +
+            "import android.support.annotation.StringRes;\n" +
+            "import android.support.annotation.UiThread;\n" +
+            "\n" +
+            "import java.lang.annotation.Retention;\n" +
+            "import java.lang.annotation.RetentionPolicy;\n" +
+            "\n" +
+            "import static android.Manifest.permission.ACCESS_COARSE_LOCATION;\n" +
+            "import static android.Manifest.permission.ACCESS_FINE_LOCATION;\n" +
+            "\n" +
+            "@SuppressWarnings(\"unused\")\n" +
+            "public class X {\n" +
+            "\n" +
+            "    @ColorInt private int colorInt;\n" +
+            "    @ColorRes private int colorRes;\n" +
+            "    @StringRes private int stringRes;\n" +
+            "\n" +
+            "    @BinderThread\n" +
+            "    public void testOk() {\n" +
+            "        setColor(colorRes); // OK\n" +
+            "        setColorInt(colorInt); // OK\n" +
+            "        printBetween(5); // OK\n" +
+            "        printBetweenFromInclusiveToInclusive(3.0f); // OK\n" +
+            "        printMinMultiple(new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 }); // OK\n" +
+            "        int result = checkMe(); // OK\n" +
+            "        setDuration(LENGTH_LONG); // OK\n" +
+            "    }\n" +
+            "\n" +
+            "    @BinderThread\n" +
+            "    public void testErrors() {\n" +
+            "        setColor(/*Expected resource of type color*/colorInt/**/); // ERROR\n" +
+            "        setColorInt(/*Should pass resolved color instead of resource id here: `getResources().getColor(colorRes)`*/colorRes/**/); // ERROR\n" +
+            "        printBetween(/*Value must be ≥ 4 and ≤ 7 (was 1)*/1/**/); // ERROR\n" +
+            "        printBetweenFromInclusiveToInclusive(/*Value must be ≥ 2.5 and ≤ 5.0 (was 1.0f)*/1.0f/**/); // ERROR\n" +
+            "        printMinMultiple(/*Size must be at least 4 and a multiple of 3 (was 8)*/new int[] { 1, 2, 3, 4, 5, 6, 7, 8 }/**/); // ERROR\n" +
+            "        /*The result of 'checkMe' is not used*/checkMe()/**/; // ERROR\n" +
+            "        /*Missing permissions required by X.requiresPermission: android.permission.ACCESS_FINE_LOCATION or android.permission.ACCESS_COARSE_LOCATION*/requiresPermission()/**/; // ERROR\n" +
+            "        /*Method requiresUiThread must be called from the UI thread, currently inferred thread is binder*/requiresUiThread()/**/; // ERROR\n" +
+            "        setDuration(/*Must be one of: X.LENGTH_INDEFINITE, X.LENGTH_SHORT, X.LENGTH_LONG*/5/**/); // ERROR\n" +
+            "    }\n" +
+            "\n" +
+            "    @BinderThread\n" +
+            "    public void testSuppressedViaComment() {\n" +
+            "        //noinspection ResourceType\n" +
+            "        setColor(colorInt); // ERROR\n" +
+            "        //noinspection ResourceAsColor\n" +
+            "        setColorInt(colorRes); // ERROR\n" +
+            "        //noinspection Range\n" +
+            "        printBetween(1); // ERROR\n" +
+            "        //noinspection Range\n" +
+            "        printBetweenFromInclusiveToInclusive(1.0f); // ERROR\n" +
+            "        //noinspection Range\n" +
+            "        printMinMultiple(new int[] { 1, 2, 3, 4, 5, 6, 7, 8 }); // ERROR\n" +
+            "        //noinspection CheckResult\n" +
+            "        checkMe(); // ERROR\n" +
+            "        //noinspection MissingPermission\n" +
+            "        requiresPermission(); // ERROR\n" +
+            "        //noinspection WrongThread\n" +
+            "        requiresUiThread(); // ERROR\n" +
+            "        //noinspection WrongConstant\n" +
+            "        setDuration(5); // ERROR\n" +
+            "    }\n" +
+            "\n" +
+            "    @BinderThread\n" +
+            "    public void testSuppressedViaOldInspectionName() {\n" +
+            "        //noinspection ResourceType\n" +
+            "        setColor(colorInt); // SUPPRESSED\n" +
+            "        //noinspection ResourceType\n" +
+            "        setColorInt(colorRes); // SUPPRESSED\n" +
+            "        //noinspection ResourceType\n" +
+            "        printBetween(1); // SUPPRESSED\n" +
+            "        //noinspection ResourceType\n" +
+            "        printBetweenFromInclusiveToInclusive(1.0f); // SUPPRESSED\n" +
+            "        //noinspection ResourceType\n" +
+            "        printMinMultiple(new int[] { 1, 2, 3, 4, 5, 6, 7, 8 }); // SUPPRESSED\n" +
+            "        //noinspection ResourceType\n" +
+            "        checkMe(); // SUPPRESSED\n" +
+            "        //noinspection ResourceType\n" +
+            "        requiresPermission(); // SUPPRESSED\n" +
+            "        //noinspection ResourceType\n" +
+            "        requiresUiThread(); // SUPPRESSED\n" +
+            "        //noinspection ResourceType\n" +
+            "        setDuration(5); // SUPPRESSED\n" +
+            "    }\n" +
+            "\n" +
+            "    @SuppressWarnings({\"ResourceAsColor\", \"Range\", \"CheckResult\", \"MissingPermission\", \"WrongThread\", \"WrongConstant\"})\n" +
+            "    @BinderThread\n" +
+            "    public void testSuppressedViaAnnotation() {\n" +
+            "        setColorInt(colorRes); // SUPPRESSED\n" +
+            "        printBetween(1); // SUPPRESSED\n" +
+            "        printBetweenFromInclusiveToInclusive(1.0f); // SUPPRESSED\n" +
+            "        printMinMultiple(new int[] { 1, 2, 3, 4, 5, 6, 7, 8 }); // SUPPRESSED\n" +
+            "        checkMe(); // SUPPRESSED\n" +
+            "        requiresPermission(); // SUPPRESSED\n" +
+            "        requiresUiThread(); // SUPPRESSED\n" +
+            "        setDuration(5); // SUPPRESSED\n" +
+            "    }\n" +
+            "\n" +
+            "    @SuppressWarnings(\"ResourceType\")\n" +
+            "    @BinderThread\n" +
+            "    public void testSuppressedViaOldAnnotation() {\n" +
+            "        setColorInt(colorRes); // SUPPRESSED\n" +
+            "        printBetween(1); // SUPPRESSED\n" +
+            "        printBetweenFromInclusiveToInclusive(1.0f); // SUPPRESSED\n" +
+            "        printMinMultiple(new int[] { 1, 2, 3, 4, 5, 6, 7, 8 }); // SUPPRESSED\n" +
+            "        checkMe(); // SUPPRESSED\n" +
+            "        requiresPermission(); // SUPPRESSED\n" +
+            "        requiresUiThread(); // SUPPRESSED\n" +
+            "        setDuration(5); // SUPPRESSED\n" +
+            "    }\n" +
+            "\n" +
+            "\n" +
+            "    private void setColor(@ColorRes int color) { }\n" +
+            "    private void setColorInt(@ColorInt int color) { }\n" +
+            "    public void printBetween(@IntRange(from=4,to=7) int arg) { }\n" +
+            "    public void printMinMultiple(@Size(min=4,multiple=3) int[] arg) { }\n" +
+            "    public void printBetweenFromInclusiveToInclusive(@FloatRange(from=2.5,to=5.0) float arg) { }\n" +
+            "    @CheckResult\n" +
+            "    public int checkMe() { return 0; }\n" +
+            "\n" +
+            "    @RequiresPermission(anyOf = {ACCESS_FINE_LOCATION, ACCESS_COARSE_LOCATION})\n" +
+            "    public void requiresPermission() { }\n" +
+            "\n" +
+            "    @UiThread\n" +
+            "    public void requiresUiThread() { }\n" +
+            "\n" +
+            "    @IntDef({LENGTH_INDEFINITE, LENGTH_SHORT, LENGTH_LONG})\n" +
+            "    @Retention(RetentionPolicy.SOURCE)\n" +
+            "    public @interface Duration {}\n" +
+            "\n" +
+            "    public static final int LENGTH_INDEFINITE = -2;\n" +
+            "    public static final int LENGTH_SHORT = -1;\n" +
+            "    public static final int LENGTH_LONG = 0;\n" +
+            "    public void setDuration(@Duration int duration) {\n" +
             "    }\n" +
             "}\n");
   }
@@ -1191,6 +1537,26 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
                     "public @interface AnyRes {\n" +
                     "}";
     classes.add(header + anyRes);
+
+    @Language("JAVA")
+    String unrelatedThread = "package some.pkg;\n" +
+                             "import java.lang.annotation.*;\n" +
+                             "import static java.lang.annotation.ElementType.*;\n" +
+                             "import static java.lang.annotation.RetentionPolicy.*;\n" +
+                             "@Retention(SOURCE)\n" +
+                             "@Target({METHOD,CONSTRUCTOR,TYPE})\n" +
+                             "public @interface UnrelatedNameEndsWithThread {\n" +
+                             "}";
+    classes.add(unrelatedThread);
+
+    @Language("JAVA")
+    String checkResult = "@Retention(SOURCE)\n" +
+                       "@Target({METHOD})\n" +
+                       "public @interface CheckResult {\n" +
+                       "}\n";
+    classes.add(header + checkResult);
+
+
     return ArrayUtil.toStringArray(classes);
   }
 
@@ -1220,13 +1586,6 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
 
     // Now delegate to the real test implementation (it won't find comments to replace with <warning>)
     super.doTest(newText.toString());
-  }
-
-  protected void checkQuickFix(@NotNull String quickFixName, @NotNull String expected) {
-    final IntentionAction quickFix = myFixture.getAvailableIntention(quickFixName);
-    assertNotNull(quickFix);
-    myFixture.launchAction(quickFix);
-    myFixture.checkResult(expected);
   }
 
   @Nullable

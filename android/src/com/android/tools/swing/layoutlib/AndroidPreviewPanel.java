@@ -56,6 +56,39 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable {
   // the current task to do another invalidate once it has finished the current one.
   private final AtomicBoolean myRunningInvalidates = new AtomicBoolean(false);
   private final AtomicBoolean myPendingInvalidates = new AtomicBoolean(false);
+  private final Runnable myInvalidateRunnable = new Runnable() {
+    @Override
+    public void run() {
+      ILayoutPullParser parser = new DomPullParser(myDocument.getDocumentElement());
+      try {
+        synchronized (myGraphicsLayoutRendererLock) {
+          // The previous GraphicsLayoutRenderer needs to be disposed before we create a new one since there is static state that
+          // can not be shared.
+          if (myGraphicsLayoutRenderer != null) {
+            myGraphicsLayoutRenderer.dispose();
+            myGraphicsLayoutRenderer = null;
+          }
+        }
+
+        GraphicsLayoutRenderer graphicsLayoutRenderer = GraphicsLayoutRenderer
+          .create(myConfiguration, parser, getBackground(), false/*hasHorizontalScroll*/, true/*hasVerticalScroll*/);
+        graphicsLayoutRenderer.setScale(myScale);
+        // We reset the height so that it can be recomputed to the needed value.
+        graphicsLayoutRenderer.setSize(getWidth(), 1);
+
+        synchronized (myGraphicsLayoutRendererLock) {
+          myGraphicsLayoutRenderer = graphicsLayoutRenderer;
+        }
+      }
+      catch (UnsupportedLayoutlibException e) {
+        notifyUnsupportedLayoutlib();
+      }
+      catch (InitializationException e) {
+        LOG.error(e);
+      }
+    }
+  };
+
   private class InvalidateTask extends SwingWorker<Void, Void> {
     @Override
     protected Void doInBackground() throws Exception {
@@ -64,37 +97,7 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable {
         myPendingInvalidates.set(false);
 
         // We can only inflate views when the project has been indexed
-        myDumbService.runReadActionInSmartMode(new Runnable() {
-          @Override
-          public void run() {
-            ILayoutPullParser parser = new DomPullParser(myDocument.getDocumentElement());
-            try {
-              synchronized (myGraphicsLayoutRendererLock) {
-                // The previous GraphicsLayoutRenderer needs to be disposed before we create a new one since there is static state that
-                // can not shared.
-                if (myGraphicsLayoutRenderer != null) {
-                  myGraphicsLayoutRenderer.dispose();
-                  myGraphicsLayoutRenderer = null;
-                }
-              }
-
-              GraphicsLayoutRenderer graphicsLayoutRenderer = GraphicsLayoutRenderer
-                .create(myConfiguration, parser, getBackground(), false/*hasHorizontalScroll*/, true/*hasVerticalScroll*/);
-              graphicsLayoutRenderer.setScale(myScale);
-              graphicsLayoutRenderer.setSize(getWidth(), getHeight());
-
-              synchronized (myGraphicsLayoutRendererLock) {
-                myGraphicsLayoutRenderer = graphicsLayoutRenderer;
-              }
-            }
-            catch (UnsupportedLayoutlibException e) {
-              notifyUnsupportedLayoutlib();
-            }
-            catch (InitializationException e) {
-              LOG.error(e);
-            }
-          }
-        });
+        myDumbService.runReadActionInSmartMode(myInvalidateRunnable);
 
         myRunningInvalidates.set(false);
       } while (myPendingInvalidates.get());

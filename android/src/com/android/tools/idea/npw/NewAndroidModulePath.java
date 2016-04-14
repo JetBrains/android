@@ -192,7 +192,7 @@ public final class NewAndroidModulePath implements WizardPath {
     File moduleTemplate =
       new File(TemplateManager.getTemplateRootFolder(), FileUtil.join(Template.CATEGORY_PROJECTS, WizardConstants.MODULE_TEMPLATE_NAME));
     TemplateManager manager = TemplateManager.getInstance();
-    TemplateMetadata metadata = manager.getTemplate(moduleTemplate);
+    TemplateMetadata metadata = manager.getTemplateMetadata(moduleTemplate);
 
     assert metadata != null;
 

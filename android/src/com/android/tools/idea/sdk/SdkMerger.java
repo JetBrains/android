@@ -15,17 +15,12 @@
  */
 package com.android.tools.idea.sdk;
 
-import com.android.sdklib.SdkManager;
-import com.android.sdklib.repository.FullRevision;
-import com.android.sdklib.repository.MajorRevision;
-import com.android.sdklib.repository.descriptors.IPkgDesc;
-import com.android.sdklib.repository.descriptors.PkgType;
-import com.android.sdklib.repository.local.LocalPkgInfo;
-import com.android.sdklib.repository.local.LocalSdk;
-import com.android.tools.idea.rendering.LogWrapper;
-import com.android.utils.ILogger;
+import com.android.repository.api.LocalPackage;
+import com.android.repository.api.RepoPackage;
+import com.android.sdklib.repositoryv2.AndroidSdkHandler;
+import com.android.tools.idea.sdkv2.RepoProgressIndicatorAdapter;
+import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.util.io.FileUtil;
@@ -35,14 +30,13 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.EnumSet;
 import java.util.Map;
 
 public class SdkMerger {
   private static final Logger LOG = Logger.getInstance(SdkMerger.class);
 
   public static void mergeSdks(@NotNull File srcDir, @NotNull File destDir, @Nullable ProgressIndicator indicator) {
-    Collection<MergeablePackage> packages = compareSdks(srcDir, destDir);
+    Collection<MergeablePackage> packages = compareSdks(srcDir, destDir, indicator);
     int numPackages = packages.size();
     int i = 0;
     for (MergeablePackage pkg : packages) {
@@ -51,11 +45,11 @@ public class SdkMerger {
           return;
         }
         indicator.setFraction((double)i++ / numPackages);
-        indicator.setText(String.format("Copying SDK package %1s", pkg.srcPkg.getDesc().getInstallId()));
+        indicator.setText(String.format("Copying SDK package %1s", pkg.srcPkg.getPath()));
       }
       if (pkg.destPkg != null) {
         // Destination package exists but is older; delete the old and replace with the new.
-        File destPkgDir = pkg.destPkg.getLocalDir();
+        File destPkgDir = pkg.destPkg.getLocation();
         try {
           FileUtil.delete(destPkgDir);
         }
@@ -64,74 +58,73 @@ public class SdkMerger {
         }
       }
       try {
-        FileUtil.copyDir(pkg.srcPkg.getLocalDir(),
-                         pkg.srcPkg.getDesc().getCanonicalInstallFolder(pkg.destLocation));
+        FileUtil.copyDir(pkg.srcPkg.getLocation(),
+                         new File(pkg.destLocation, pkg.srcPkg.getPath().replaceAll(RepoPackage.PATH_SEPARATOR + "", File.separator)));
       }
       catch (IOException e) {
-        LOG.error("Unable to copy package " + pkg.srcPkg.getDesc().getInstallId(), e);
+        LOG.error("Unable to copy package " + pkg.srcPkg.getPath(), e);
       }
     }
     if (indicator != null) {
       indicator.setFraction(1.0);
     }
-  }
 
-  public static boolean hasMergeableContent(@NotNull File srcDir, @NotNull File destDir) {
-    return !compareSdks(srcDir, destDir).isEmpty();
+    // Dest dir is changed, refresh.
+    com.android.repository.api.ProgressIndicator repoProgress = getRepoProgress(indicator);
+    AndroidSdkHandler.getInstance(destDir).getSdkManager(repoProgress).loadSynchronously(0, repoProgress, null, null);
   }
 
   @NotNull
-  private static Collection<MergeablePackage> compareSdks(@NotNull File srcDir, @NotNull File destDir) {
+  public static com.android.repository.api.ProgressIndicator getRepoProgress(@Nullable ProgressIndicator indicator) {
+    com.android.repository.api.ProgressIndicator repoProgress;
+    if (indicator == null) {
+      repoProgress = new StudioLoggerProgressIndicator(SdkMerger.class);
+    }
+    else {
+      repoProgress = new RepoProgressIndicatorAdapter(indicator);
+    }
+    return repoProgress;
+  }
+
+  public static boolean hasMergeableContent(@NotNull File srcDir, @NotNull File destDir) {
+    return !compareSdks(srcDir, destDir, null).isEmpty();
+  }
+
+  @NotNull
+  private static Collection<MergeablePackage> compareSdks(@NotNull File srcDir,
+                                                          @NotNull File destDir,
+                                                          @Nullable ProgressIndicator progress) {
+    com.android.repository.api.ProgressIndicator repoProgress = getRepoProgress(progress);
     Collection<MergeablePackage> results = Lists.newArrayList();
 
-    ILogger logger = new LogWrapper(LOG);
-    SdkManager destManager = SdkManager.createManager(destDir.getPath(), logger);
-    SdkManager srcManager = SdkManager.createManager(srcDir.getPath(), logger);
-    if (srcManager == null || destManager == null) {
-      return results;
-    }
-    LocalSdk srcSdk = srcManager.getLocalSdk();
-    LocalSdk destSdk = destManager.getLocalSdk();
-    LocalPkgInfo[] srcPkgs = srcSdk.getPkgsInfos(EnumSet.allOf(PkgType.class));
+    AndroidSdkHandler srcHandler = AndroidSdkHandler.getInstance(srcDir);
+    AndroidSdkHandler destHandler = AndroidSdkHandler.getInstance(destDir);
 
-    File destLocation = destSdk.getLocation();
-    if (destLocation == null) {
-      return results;
-    }
 
-    Map<String, LocalPkgInfo> destPackages = Maps.newHashMap();
-    for (LocalPkgInfo pkg : destSdk.getPkgsInfos(EnumSet.allOf(PkgType.class))) {
-      destPackages.put(pkg.getDesc().getInstallId(), pkg);
-    }
+    Map<String, ? extends LocalPackage> srcPackages = srcHandler.getSdkManager(repoProgress).getPackages().getLocalPackages();
+    Map<String, ? extends LocalPackage> destPackages = destHandler.getSdkManager(repoProgress).getPackages().getLocalPackages();
 
-    for (LocalPkgInfo srcPkg : srcPkgs) {
-      IPkgDesc srcPkgDesc = srcPkg.getDesc();
-      LocalPkgInfo destPkg = destPackages.get(srcPkg.getDesc().getInstallId());
+    for (LocalPackage srcPkg : srcPackages.values()) {
+      LocalPackage destPkg = destPackages.get(srcPkg.getPath());
       if (destPkg != null) {
-        IPkgDesc destPkgDesc = destPkg.getDesc();
-        FullRevision srcFullRevision = srcPkgDesc.getFullRevision();
-        FullRevision destFullRevision = destPkgDesc.getFullRevision();
-        MajorRevision srcMajorRevision = srcPkgDesc.getMajorRevision();
-        MajorRevision destMajorRevision = destPkgDesc.getMajorRevision();
-        if ((srcFullRevision != null && destFullRevision != null && srcFullRevision.compareTo(destFullRevision) > 0) ||
-            (srcMajorRevision != null && destMajorRevision != null && srcMajorRevision.compareTo(destMajorRevision) > 0)) {
+        if (srcPkg.getVersion().compareTo(destPkg.getVersion()) > 0) {
           // Package exists in destination but is old; replace it.
-          results.add(new MergeablePackage(srcPkg, destPkg, destLocation));
+          results.add(new MergeablePackage(srcPkg, destPkg, destDir));
         }
       } else {
         // Package doesn't exist in destination; copy it over.
-        results.add(new MergeablePackage(srcPkg, null, destLocation));
+        results.add(new MergeablePackage(srcPkg, null, destDir));
       }
     }
     return results;
   }
 
   private static class MergeablePackage {
-    @NotNull private final LocalPkgInfo srcPkg;
-    @Nullable private final LocalPkgInfo destPkg;
+    @NotNull private final LocalPackage srcPkg;
+    @Nullable private final LocalPackage destPkg;
     @NotNull private final File destLocation;
 
-    private MergeablePackage(@NotNull LocalPkgInfo srcPkg, @Nullable LocalPkgInfo destPkg, @NotNull File destLocation) {
+    private MergeablePackage(@NotNull LocalPackage srcPkg, @Nullable LocalPackage destPkg, @NotNull File destLocation) {
       this.srcPkg = srcPkg;
       this.destPkg = destPkg;
       this.destLocation = destLocation;

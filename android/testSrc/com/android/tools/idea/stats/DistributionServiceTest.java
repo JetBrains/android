@@ -32,6 +32,7 @@ import org.mockito.stubbing.Answer;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -42,20 +43,27 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class DistributionServiceTest extends AndroidTestCase {
   private static final String DISTRIBUTION_FILE_NAME = "testDistributions.json";
-  private static File myDistributionFile;
-  private static DownloadableFileDescription myDescription;
   private static final File CACHE_PATH = new File(PathManager.getTempPath(), "distributionServiceTest");
+
+  private URL myDistributionFileUrl;
+
+  private File myDistributionFile;
+  private DownloadableFileDescription myDescription;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    myDistributionFile = new File(DistributionServiceTest.class.getResource(DISTRIBUTION_FILE_NAME).toURI());
-    myDescription = new DownloadableFileDescriptionImpl(DistributionServiceTest.class.getResource(DISTRIBUTION_FILE_NAME).toString(),
-                                                        DISTRIBUTION_FILE_NAME, "json");
+    myDistributionFileUrl = getClass().getResource(DISTRIBUTION_FILE_NAME);
+
+    myDistributionFile = new File(myDistributionFileUrl.toURI());
+    myDescription = new DownloadableFileDescriptionImpl(myDistributionFileUrl.toString(), DISTRIBUTION_FILE_NAME, "json");
+
     File[] files = CACHE_PATH.listFiles();
     if (files != null) {
-      for (File f : CACHE_PATH.listFiles()) {
-        f.delete();
+      for (File file : files) {
+        if (!file.delete()) {
+          throw new RuntimeException();
+        }
       }
     }
   }
@@ -67,19 +75,20 @@ public class DistributionServiceTest extends AndroidTestCase {
     FileDownloader downloader = Mockito.mock(FileDownloader.class);
     Mockito.when(downloader.download(Matchers.any(File.class)))
       .thenReturn(ImmutableList.of(Pair.create(myDistributionFile, myDescription)));
-    DistributionService service = new DistributionService(downloader, CACHE_PATH);
+    DistributionService service = new DistributionService(downloader, CACHE_PATH, myDistributionFileUrl);
     assertEquals(0.7, service.getSupportedDistributionForApiLevel(16), 0.0001);
   }
 
   /**
    * Test that we don't download on every request
+   *
    * @throws Exception
    */
   public void testCache() throws Exception {
     FileDownloader downloader = Mockito.mock(FileDownloader.class);
     Mockito.when(downloader.download(Matchers.any(File.class)))
       .thenReturn(ImmutableList.of(Pair.create(myDistributionFile, myDescription)));
-    DistributionService service = new DistributionService(downloader, CACHE_PATH);
+    DistributionService service = new DistributionService(downloader, CACHE_PATH, myDistributionFileUrl);
     service.getSupportedDistributionForApiLevel(19);
     service.getDistributionForApiLevel(21);
     Mockito.verify(downloader).download(Matchers.any(File.class));
@@ -99,7 +108,7 @@ public class DistributionServiceTest extends AndroidTestCase {
         return ImmutableList.of(Pair.create(myDistributionFile, myDescription));
       }
     });
-    final DistributionService service = new DistributionService(downloader, CACHE_PATH);
+    final DistributionService service = new DistributionService(downloader, CACHE_PATH, myDistributionFileUrl);
     service.refresh(new Runnable() {
       @Override
       public void run() {
@@ -133,7 +142,7 @@ public class DistributionServiceTest extends AndroidTestCase {
         return ImmutableList.of(Pair.create(myDistributionFile, myDescription));
       }
     });
-    final DistributionService service = new DistributionService(downloader, CACHE_PATH);
+    DistributionService service = new DistributionService(downloader, CACHE_PATH, myDistributionFileUrl);
     final AtomicBoolean check = new AtomicBoolean(false);
     service.refresh(new Runnable() {
       @Override
@@ -169,7 +178,8 @@ public class DistributionServiceTest extends AndroidTestCase {
   public void testFailure() throws Exception {
     FileDownloader downloader = Mockito.mock(FileDownloader.class);
     Mockito.when(downloader.download(Matchers.any(File.class))).thenThrow(new RuntimeException("expected exception"));
-    DistributionService service = new DistributionService(downloader, CACHE_PATH);
+
+    DistributionService service = new DistributionService(downloader, CACHE_PATH, myDistributionFileUrl);
     final FutureResult<Boolean> result = new FutureResult<Boolean>();
     service.refresh(new Runnable() {
       @Override
@@ -183,7 +193,7 @@ public class DistributionServiceTest extends AndroidTestCase {
       }
     });
     assertTrue(result.get(5, TimeUnit.SECONDS));
-    assertEquals(.631, service.getSupportedDistributionForApiLevel(19), 0.0001);
+    assertEquals(0.4, service.getSupportedDistributionForApiLevel(17), 0.001);
   }
 
   /**
@@ -192,14 +202,21 @@ public class DistributionServiceTest extends AndroidTestCase {
   public void testFallbackToPrevious() throws Exception {
     File newFile = new File(CACHE_PATH, "distributions_2.json");
     FileUtil.copy(new File(getClass().getResource("testPreviousDistributions.json").toURI()), newFile);
-    newFile.setLastModified(20000);
+
+    if (!newFile.setLastModified(20000)) {
+      fail();
+    }
+
     File oldFile = new File(CACHE_PATH, "distributions.json");
     FileUtil.copy(new File(getClass().getResource("testPreviousDistributions2.json").toURI()), oldFile);
-    oldFile.setLastModified(10000);
+
+    if (!oldFile.setLastModified(10000)) {
+      fail();
+    }
 
     FileDownloader downloader = Mockito.mock(FileDownloader.class);
     Mockito.when(downloader.download(Matchers.any(File.class))).thenThrow(new RuntimeException("expected exception"));
-    DistributionService service = new DistributionService(downloader, CACHE_PATH);
+    DistributionService service = new DistributionService(downloader, CACHE_PATH, myDistributionFileUrl);
     final FutureResult<Boolean> result = new FutureResult<Boolean>();
     service.refresh(new Runnable() {
       @Override

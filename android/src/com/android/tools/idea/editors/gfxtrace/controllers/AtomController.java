@@ -17,7 +17,9 @@ package com.android.tools.idea.editors.gfxtrace.controllers;
 
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
-import com.android.tools.idea.editors.gfxtrace.LoadingCallback;
+import com.android.tools.idea.editors.gfxtrace.JBLoadingPanelWrapper;
+import com.android.tools.idea.editors.gfxtrace.UiCallback;
+import com.android.tools.idea.editors.gfxtrace.renderers.Render;
 import com.android.tools.idea.editors.gfxtrace.renderers.RenderUtils;
 import com.android.tools.idea.editors.gfxtrace.renderers.TreeRenderer;
 import com.android.tools.idea.editors.gfxtrace.service.RenderSettings;
@@ -34,7 +36,11 @@ import com.android.tools.idea.editors.gfxtrace.widgets.LoadingIndicator;
 import com.android.tools.idea.editors.gfxtrace.widgets.Repaintables;
 import com.android.tools.idea.logcat.RegexFilterComponent;
 import com.android.tools.rpclib.binary.BinaryObject;
+import com.android.tools.rpclib.futures.SingleInFlight;
+import com.android.tools.rpclib.rpccore.Rpc;
+import com.android.tools.rpclib.rpccore.RpcException;
 import com.google.common.base.Objects;
+import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -59,6 +65,8 @@ import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.Enumeration;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -72,14 +80,63 @@ public class AtomController extends TreeController {
   @NotNull private static final Logger LOG = Logger.getInstance(GfxTraceEditor.class);
   private final PathStore<AtomsPath> myAtomsPath = new PathStore<AtomsPath>();
   private final PathStore<DevicePath> myRenderDevice = new PathStore<DevicePath>();
+  private final SingleInFlight myAtomRequestController = new SingleInFlight(new JBLoadingPanelWrapper(myLoadingPanel));
 
   public static class Node {
     public final long index;
     public final Atom atom;
+    public int hoveredParameter = -1;
+
+    // Follow paths index by atom.fieldIndex. Null means don't know if followable and empty path means it's not followable.
+    private Path[] followPaths;
 
     public Node(long index, Atom atom) {
       this.index = index;
       this.atom = atom;
+      this.followPaths = new Path[atom.getFieldCount()];
+      // The extras are never followable.
+      if (atom.getExtrasIndex() >= 0) {
+        followPaths[atom.getExtrasIndex()] = Path.EMPTY;
+      }
+    }
+
+    public Path getFollowPath(int parameter) {
+      synchronized (followPaths) {
+        return parameter >= 0 && parameter < followPaths.length && followPaths[parameter] != null ? followPaths[parameter] : Path.EMPTY;
+      }
+    }
+
+    /**
+     * Determines whether the given parameter is followable. Will invoke onUpdate if it is and {@link #getFollowPath(int)} changes from
+     * returning an empty path to returning a non-empty path.
+     */
+    public void computeFollowPath(@NotNull ServiceClient client,
+                                  @NotNull AtomsPath atomsPath,
+                                  final int parameter,
+                                  final Runnable onUpdate) {
+      synchronized (followPaths) {
+        if (parameter >= 0 && parameter < followPaths.length && followPaths[parameter] == null) {
+          followPaths[parameter] = Path.EMPTY;
+
+          Path path = atomsPath.index(index).field(atom.getFieldInfo(parameter).getName());
+          Futures.addCallback(client.follow(path), new FutureCallback<Path>() {
+            @Override
+            public void onSuccess(Path result) {
+              synchronized (followPaths) {
+                followPaths[parameter] = result;
+              }
+              if (onUpdate != null) {
+                onUpdate.run();
+              }
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+              // TODO: we're working on figuring out how to better do this. For now, ignore all follow errors.
+            }
+          });
+        }
+      }
     }
   }
 
@@ -88,7 +145,7 @@ public class AtomController extends TreeController {
     public static final int PREVIEW_SIZE = JBUI.scale(200);
 
     private static final RenderSettings THUMBNAIL_SETTINGS =
-      new RenderSettings().setMaxWidth(PREVIEW_SIZE).setMaxHeight(PREVIEW_SIZE).setWireframeMode(WireframeMode.noWireframe());
+      new RenderSettings().setMaxWidth(PREVIEW_SIZE).setMaxHeight(PREVIEW_SIZE).setWireframeMode(WireframeMode.NoWireframe);
 
     public final AtomGroup group;
     public final Atom lastLeaf;
@@ -127,7 +184,7 @@ public class AtomController extends TreeController {
     }
   }
 
-  @NotNull private RegexFilterComponent mySearchField = new RegexFilterComponent(AtomController.class.getName(), 10, false);
+  @NotNull private RegexFilterComponent mySearchField = new RegexFilterComponent(AtomController.class.getName(), 10);
 
   private AtomController(@NotNull GfxTraceEditor editor) {
     super(editor, GfxTraceEditor.LOADING_CAPTURE);
@@ -151,7 +208,7 @@ public class AtomController extends TreeController {
         else if (object instanceof Memory) {
           Memory memory = (Memory)object;
           myEditor.activatePath(
-            myAtomsPath.getPath().index(memory.index).memoryAfter(PoolID.applicationPool(), memory.observation.getRange()),
+            myAtomsPath.getPath().index(memory.index).memoryAfter(PoolID.ApplicationPool, memory.observation.getRange()),
             AtomController.this);
         }
       }
@@ -168,27 +225,28 @@ public class AtomController extends TreeController {
       private static final int PREVIEW_HOVER_DELAY_MS = 500;
       private final ScheduledExecutorService scheduler = ConcurrencyUtil.newSingleScheduledThreadExecutor("PreviewHover");
       private Group lastHoverGroup;
+      private Node lastHoverNode;
       private Future<?> lastScheduledFuture = Futures.immediateFuture(null);
       private Balloon lastShownBalloon;
 
       @Override
       public void mouseEntered(MouseEvent event) {
-        updateHoveringGroupFor(event.getX(), event.getY());
+        updateHovering(event.getX(), event.getY());
       }
 
       @Override
       public void mouseExited(MouseEvent event) {
-        setHoveringGroup(null, 0, 0);
+        clearHovering();
       }
 
       @Override
       public void mouseMoved(MouseEvent event) {
-        updateHoveringGroupFor(event.getX(), event.getY());
+        updateHovering(event.getX(), event.getY());
       }
 
       @Override
       public void mouseWheelMoved(MouseWheelEvent event) {
-        setHoveringGroup(null, 0, 0);
+        clearHovering();
 
         // Bubble the event.
         JScrollPane ancestor = (JBScrollPane)SwingUtilities.getAncestorOfClass(JBScrollPane.class, myTree);
@@ -202,29 +260,58 @@ public class AtomController extends TreeController {
         // Update the hover position after the scroll.
         Point location = new Point(MouseInfo.getPointerInfo().getLocation());
         SwingUtilities.convertPointFromScreen(location, myTree);
-        updateHoveringGroupFor(location.x, location.y);
+        updateHovering(location.x, location.y);
       }
 
-      private void updateHoveringGroupFor(int mouseX, int mouseY) {
+      private void updateHovering(int mouseX, int mouseY) {
         TreePath path = myTree.getClosestPathForLocation(mouseX, mouseY);
         if (path != null) {
-          Object userObject = ((DefaultMutableTreeNode)path.getLastPathComponent()).getUserObject();
-          if (userObject instanceof AtomController.Group) {
-            Group group = (Group)userObject;
-            if (shouldShowPreview(group)) {
-              Rectangle bounds = myTree.getPathBounds(path);
-              int x = mouseX - bounds.x, y = mouseY - bounds.y;
-              if (x >= 0 && y >= 0 && x < Group.THUMBNAIL_SIZE && y < Group.THUMBNAIL_SIZE) {
-                setHoveringGroup(group, bounds.x + Group.THUMBNAIL_SIZE, bounds.y + Group.THUMBNAIL_SIZE / 2);
-                return;
-              }
+          Rectangle bounds = myTree.getPathBounds(path);
+          if (bounds != null) {
+            int x = mouseX - bounds.x, y = mouseY - bounds.y;
+            if (x >= 0 && x < bounds.width && y >= 0 && y < bounds.height) {
+              updateHovering((DefaultMutableTreeNode)path.getLastPathComponent(), bounds, x, y);
+              return;
             }
           }
         }
-        setHoveringGroup(null, 0, 0);
+        clearHovering();
       }
 
-      private synchronized void setHoveringGroup(final Group group, final int x, final int y) {
+      private void updateHovering(@NotNull DefaultMutableTreeNode node, @NotNull Rectangle bounds, int x, int y) {
+        Object userObject = node.getUserObject();
+        myTree.setCursor(Cursor.getDefaultCursor());
+
+        // Check if hovering the preview icon.
+        if (userObject instanceof Group && shouldShowPreview((Group)userObject) && x < Group.THUMBNAIL_SIZE && y < Group.THUMBNAIL_SIZE) {
+          setHoveringGroup((Group)userObject, bounds.x + Group.THUMBNAIL_SIZE, bounds.y + Group.THUMBNAIL_SIZE / 2);
+          setHoveringNode(null, 0);
+        }
+        else {
+          setHoveringGroup(null, 0, 0);
+
+          // Check if hovering an atom parameter.
+          int index = -1;
+          if (userObject instanceof Node) {
+            TreeRenderer renderer = (TreeRenderer)myTree.getCellRenderer();
+            renderer.getTreeCellRendererComponent(myTree, node, false, false, false, 0, false);
+            index = Render.getAtomParameterIndex(renderer, x);
+          }
+          if (index >= 0) {
+            setHoveringNode((Node)userObject, index);
+          }
+          else {
+            setHoveringNode(null, 0);
+          }
+        }
+      }
+
+      private void clearHovering() {
+        setHoveringGroup(null, 0, 0);
+        setHoveringNode(null, 0);
+      }
+
+      private synchronized void setHoveringGroup(@Nullable final Group group, final int x, final int y) {
         if (group != lastHoverGroup) {
           lastScheduledFuture.cancel(true);
           lastHoverGroup = group;
@@ -241,6 +328,33 @@ public class AtomController extends TreeController {
           lastShownBalloon.hide();
           lastShownBalloon = null;
         }
+      }
+
+      private void setHoveringNode(@Nullable Node node, int index) {
+        if (node != lastHoverNode && lastHoverNode != null) {
+          lastHoverNode.hoveredParameter = -1;
+        }
+        lastHoverNode = node;
+
+        Path followPath = Path.EMPTY;
+        if (node != null) {
+          node.computeFollowPath(myEditor.getClient(), myAtomsPath.getPath(), index, new Runnable() {
+            @Override
+            public void run() {
+              myTree.repaint();
+            }
+          });
+          followPath = node.getFollowPath(index);
+        }
+
+        if (followPath != Path.EMPTY) {
+          node.hoveredParameter = index;
+          myTree.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        }
+        else {
+          myTree.setCursor(Cursor.getDefaultCursor());
+        }
+        myTree.repaint();
       }
 
       private void hover(final Group group, final int x, final int y) {
@@ -273,12 +387,12 @@ public class AtomController extends TreeController {
 
         public PreviewPanel(final ListenableFuture<FetchedImage> imageFuture) {
           if (imageFuture.isDone()) {
-            image = Futures.getUnchecked(imageFuture).icon.getImage();
+            image = Futures.getUnchecked(imageFuture).image;
           } else {
             imageFuture.addListener(new Runnable() {
               @Override
               public void run() {
-                image = Futures.getUnchecked(imageFuture).icon.getImage();
+                image = Futures.getUnchecked(imageFuture).image;
                 Balloon parent = lastShownBalloon;
                 if (parent != null) {
                   parent.revalidate();
@@ -303,6 +417,19 @@ public class AtomController extends TreeController {
             LoadingIndicator.scheduleForRedraw(Repaintables.forComponent(this));
           } else {
             RenderUtils.drawImage(this, g, image, 0, 0, getWidth(), getHeight());
+          }
+        }
+      }
+
+      @Override
+      public void mouseClicked(MouseEvent event) {
+        TreePath path = myTree.getPathForLocation(event.getX(), event.getY());
+        if (path != null && path.getLastPathComponent() instanceof DefaultMutableTreeNode &&
+            ((DefaultMutableTreeNode)path.getLastPathComponent()).getUserObject() instanceof Node) {
+          Node node = (Node)((DefaultMutableTreeNode)path.getLastPathComponent()).getUserObject();
+          // The user was hovering over a parameter, fire off the path activation event on click.
+          if (node.hoveredParameter >= 0) {
+            myEditor.activatePath(node.getFollowPath(node.hoveredParameter), AtomController.this);
           }
         }
       }
@@ -347,8 +474,7 @@ public class AtomController extends TreeController {
                   LoadingIndicator.paint(tree, g, x, y, Group.THUMBNAIL_SIZE, Group.THUMBNAIL_SIZE);
                   LoadingIndicator.scheduleForRedraw(Repaintables.forComponent(tree));
                 } else {
-                  ImageIcon icon = image.icon;
-                  RenderUtils.drawImage(tree, g, icon.getImage(), x, y, Group.THUMBNAIL_SIZE, Group.THUMBNAIL_SIZE);
+                  RenderUtils.drawImage(tree, g, image.image, x, y, Group.THUMBNAIL_SIZE, Group.THUMBNAIL_SIZE);
                 }
               }
 
@@ -481,18 +607,23 @@ public class AtomController extends TreeController {
 
     if (updateAtoms && myAtomsPath.getPath() != null) {
       myTree.getEmptyText().setText("");
-      myLoadingPanel.startLoading();
-      final ListenableFuture<AtomList> atomF = myEditor.getClient().get(myAtomsPath.getPath());
-      final ListenableFuture<AtomGroup> hierarchyF = myEditor.getClient().get(myAtomsPath.getPath().getCapture().hierarchy());
-      Futures.addCallback(Futures.allAsList(atomF, hierarchyF), new LoadingCallback<java.util.List<BinaryObject>>(LOG, myLoadingPanel) {
+      ListenableFuture<AtomList> atomF = myEditor.getClient().get(myAtomsPath.getPath());
+      ListenableFuture<AtomGroup> hierarchyF = myEditor.getClient().get(myAtomsPath.getPath().getCapture().hierarchy());
+      Rpc.listen(
+          Futures.allAsList(atomF, hierarchyF), LOG, myAtomRequestController, new UiCallback<List<BinaryObject>, DefaultMutableTreeNode>() {
         @Override
-        public void onSuccess(@Nullable final java.util.List<BinaryObject> all) {
-          myLoadingPanel.stopLoading();
+        protected DefaultMutableTreeNode onRpcThread(Rpc.Result<List<BinaryObject>> result) throws RpcException, ExecutionException {
+          List<BinaryObject> all = result.get();
           DefaultMutableTreeNode root = new DefaultMutableTreeNode("Stream", true);
           ((AtomGroup)all.get(1)).addChildren(root, (AtomList)all.get(0));
+          return root;
+        }
+
+        @Override
+        protected void onUiThread(DefaultMutableTreeNode root) {
           setRoot(root);
         }
-      }, EdtExecutor.INSTANCE);
+      });
     }
   }
 }

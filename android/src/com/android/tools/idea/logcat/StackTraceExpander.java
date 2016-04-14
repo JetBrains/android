@@ -76,17 +76,6 @@ class StackTraceExpander {
     reset();
   }
 
-  /**
-   * Returns the result of calling {@link #process(String)} on a line of input.
-   *
-   * Note that most of the time, one call to {@link #process(String)} results in one line of
-   * processed output, but occasionally, in the case of elided lines (e.g. "... 3 more"), one input
-   * line is expanded into multiple processed lines.
-   */
-  public List<String> getProcessedLines() {
-    return myProcessedLines;
-  }
-
   public void reset() {
     myIsInTrace = false;
     myProcessedLines.clear();
@@ -108,36 +97,42 @@ class StackTraceExpander {
    *
    * You should process each line of logcat output through this method and echo the result out to
    * the console.
+   *
+   * @return one or more processed lines. Note that most of the time, one call results in one line
+   * of processed output, but occasionally, in the case of elided lines (e.g. "... 3 more"), one
+   * input line is expanded into multiple processed lines.
    */
-  public void process(@NotNull String line) {
+  @NotNull
+  public List<String> process(@NotNull String line) {
     myProcessedLines.clear();
 
     String stackLine = getStackLine(line);
     if (stackLine != null) {
       handleStackTraceLine(stackLine);
-      return;
+      return myProcessedLines;
     }
 
     if (!myIsInTrace) {
       // If this line isn't the start of a stack trace, and we aren't currently in a stack trace,
       // then this has to be a normal line. Let's save time by avoiding all later checks.
       handleNormalLine(line);
-      return;
+      return myProcessedLines;
     }
 
     String causeLine = getCauseLine(line);
     if (causeLine != null) {
       handleCausedByLine(causeLine);
-      return;
+      return myProcessedLines;
     }
 
     int elidedCount = getElidedFrameCount(line);
     if (elidedCount > 0) {
       handleElidedLine(line, elidedCount);
-      return;
+      return myProcessedLines;
     }
 
     handleNormalLine(line);
+    return myProcessedLines;
   }
 
   @VisibleForTesting(visibility = VisibleForTesting.Visibility.PRIVATE)

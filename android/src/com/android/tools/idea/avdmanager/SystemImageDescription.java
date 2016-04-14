@@ -15,11 +15,17 @@
  */
 package com.android.tools.idea.avdmanager;
 
+import com.android.annotations.NonNull;
+import com.android.repository.Revision;
+import com.android.repository.api.RemotePackage;
+import com.android.repository.api.RepoPackage;
+import com.android.repository.impl.meta.TypeDetails;
 import com.android.sdklib.*;
-import com.android.sdklib.repository.descriptors.IPkgDesc;
-import com.android.sdklib.repository.descriptors.IPkgDescAddon;
-import com.android.sdklib.repository.descriptors.IdDisplay;
 import com.android.sdklib.repository.descriptors.PkgType;
+import com.android.sdklib.repositoryv2.IdDisplay;
+import com.android.sdklib.repositoryv2.meta.DetailsTypes;
+import com.android.sdklib.repositoryv2.targets.PlatformTarget;
+import com.android.sdklib.repositoryv2.targets.SystemImage;
 import com.google.common.base.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -30,32 +36,36 @@ import java.io.File;
  * Information on a system image. Used internally by the avd manager.
  */
 public final class SystemImageDescription {
-  private IAndroidTarget myTarget;
   private ISystemImage mySystemImage;
-  private IPkgDesc myRemotePackage;
+  private RemotePackage myRemotePackage;
 
-  public SystemImageDescription(IAndroidTarget target, ISystemImage systemImage) {
-    this.myTarget = target;
-    this.mySystemImage = systemImage;
+  public SystemImageDescription(@NotNull ISystemImage systemImage) {
+    mySystemImage = systemImage;
   }
 
-  public SystemImageDescription(IPkgDesc remotePackage, IAndroidTarget target) {
+  public SystemImageDescription(@NotNull RemotePackage remotePackage) {
     this.myRemotePackage = remotePackage;
-    this.myTarget = target;
+
+    assert hasSystemImage(remotePackage);
+    mySystemImage = new RemoteSystemImage(remotePackage);
   }
 
-  static boolean hasSystemImage(IPkgDesc desc) {
-    if (desc.getType().equals(PkgType.PKG_SYS_IMAGE) ||
-        desc.getType().equals(PkgType.PKG_ADDON_SYS_IMAGE)) {
+  static boolean hasSystemImage(RepoPackage p) {
+    TypeDetails details = p.getTypeDetails();
+    if (!(details instanceof DetailsTypes.ApiDetailsType)) {
+      return false;
+    }
+    int apiLevel = ((DetailsTypes.ApiDetailsType)details).getApiLevel();
+    if (details instanceof DetailsTypes.SysImgDetailsType) {
       return true;
     }
     // Platforms up to 13 included a bundled system image
-    if (desc.getType().equals(PkgType.PKG_PLATFORM) && desc.getAndroidVersion().getApiLevel() <= 13) {
+    if (details instanceof DetailsTypes.PlatformDetailsType && apiLevel <= 13) {
       return true;
     }
     // Google APIs addons up to 18 included a bundled system image
-    if (desc.getType().equals(PkgType.PKG_ADDON) && desc.hasVendor() && desc.getVendor().getId().equals("google") &&
-        ((IPkgDescAddon)desc).getName().getId().equals("google_apis") && desc.getAndroidVersion().getApiLevel() <= 18) {
+    if (details instanceof DetailsTypes.AddonDetailsType && ((DetailsTypes.AddonDetailsType)details).getVendor().getId().equals("google") &&
+        ((DetailsTypes.AddonDetailsType)details).getTag().getId().equals("google_apis") && apiLevel <= 18) {
       return true;
     }
 
@@ -64,7 +74,7 @@ public final class SystemImageDescription {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(myTarget, mySystemImage, myRemotePackage);
+    return Objects.hashCode(mySystemImage, myRemotePackage);
   }
 
   @Override
@@ -73,22 +83,16 @@ public final class SystemImageDescription {
       return false;
     }
     SystemImageDescription other = (SystemImageDescription)obj;
-    return Objects.equal(myTarget, other.myTarget) && Objects.equal(mySystemImage, other.mySystemImage) &&
+    return Objects.equal(mySystemImage, other.mySystemImage) &&
            Objects.equal(myRemotePackage, other.myRemotePackage);
   }
 
   @Nullable
   public AndroidVersion getVersion() {
-    if (myTarget != null) {
-      return myTarget.getVersion();
-    }
-    else if (myRemotePackage != null) {
-      return myRemotePackage.getAndroidVersion();
-    }
-    return null;
+    return mySystemImage.getAndroidVersion();
   }
 
-  public IPkgDesc getRemotePackage() {
+  public RepoPackage getRemotePackage() {
     return myRemotePackage;
   }
 
@@ -98,76 +102,136 @@ public final class SystemImageDescription {
 
   @NotNull
   public String getAbiType() {
-    if (mySystemImage != null) {
-      return mySystemImage.getAbiType();
-    }
-    PkgType type = myRemotePackage.getType();
-    if (type == PkgType.PKG_SYS_IMAGE || type == PkgType.PKG_ADDON_SYS_IMAGE) {
-      return myRemotePackage.getPath();
-    }
-    else if (type == PkgType.PKG_PLATFORM || type == PkgType.PKG_ADDON) {
-      // Bundled images don't specify the abi, but in practice they're all arm.
-      return "armeabi";
-    }
-    else {
-      return "";
-    }
+    return mySystemImage.getAbiType();
   }
 
   @NotNull
   public IdDisplay getTag() {
-    if (mySystemImage != null) {
-      return mySystemImage.getTag();
-    }
-    // for normal system images, the tag will be e.g. google_apis. Bundled images don't have a tag; instead use the name.
-    if (myRemotePackage.getType() == PkgType.PKG_ADDON) {
-      return ((IPkgDescAddon)myRemotePackage).getName();
-    }
-    IdDisplay tag = myRemotePackage.getTag();
-    if (tag != null) {
-      return tag;
-    }
-    return SystemImage.DEFAULT_TAG;
+    return mySystemImage.getTag();
   }
 
   public String getName() {
-    if (getVersion() != null) {
-      return String.format("Android %s", SdkVersionInfo.getVersionString(getVersion().getFeatureLevel()));
-    }
-    return "Unknown platform";
+    return String.format("Android %s", SdkVersionInfo.getVersionString(getVersion().getFeatureLevel()));
   }
 
   public String getVendor() {
-    if (myTarget != null) {
-      return myTarget.getVendor();
-    }
-    if (mySystemImage != null && mySystemImage.getAddonVendor() != null) {
+    if (mySystemImage.getAddonVendor() != null) {
       return mySystemImage.getAddonVendor().getDisplay();
     }
-    if (myRemotePackage != null) {
-      IdDisplay vendor = myRemotePackage.getVendor();
-      if (vendor != null) {
-        return vendor.getDisplay();
-      }
-    }
-    return "";
+    return PlatformTarget.PLATFORM_VENDOR;
   }
 
   public String getVersionName() {
-    if (myTarget != null) {
-      return myTarget.getVersionName();
-    }
-    return "";
+    return SdkVersionInfo.getVersionString(mySystemImage.getAndroidVersion().getApiLevel());
   }
 
-  public IAndroidTarget getTarget() {
-    return myTarget;
+  @Nullable
+  Revision getRevision() {
+    return mySystemImage.getRevision();
   }
 
   public File[] getSkins() {
-    if (myTarget != null) {
-      return myTarget.getSkins();
+    return mySystemImage.getSkins();
+  }
+
+  public ISystemImage getSystemImage() {
+    return mySystemImage;
+  }
+
+  private static class RemoteSystemImage implements ISystemImage {
+    private final RemotePackage myRemotePackage;
+    private final IdDisplay myTag;
+    private final IdDisplay myVendor;
+    private final String myAbi;
+    private final AndroidVersion myAndroidVersion;
+
+    public RemoteSystemImage(RemotePackage p) {
+      myRemotePackage = p;
+
+      TypeDetails details = myRemotePackage.getTypeDetails();
+      assert details instanceof DetailsTypes.ApiDetailsType;
+      myAndroidVersion = DetailsTypes.getAndroidVersion((DetailsTypes.ApiDetailsType)details);
+
+      IdDisplay tag = null;
+      IdDisplay vendor = null;
+      String abi = "armeabi";
+
+      if (details instanceof DetailsTypes.AddonDetailsType) {
+        tag = ((DetailsTypes.AddonDetailsType)details).getTag();
+        vendor = ((DetailsTypes.AddonDetailsType)details).getVendor();
+      }
+      if (details instanceof DetailsTypes.SysImgDetailsType) {
+        tag = ((DetailsTypes.SysImgDetailsType)details).getTag();
+        vendor = ((DetailsTypes.SysImgDetailsType)details).getVendor();
+        abi = ((DetailsTypes.SysImgDetailsType)details).getAbi();      }
+      myTag = tag != null ? tag : SystemImage.DEFAULT_TAG;
+      myVendor = vendor;
+      myAbi = abi;
+
     }
-    return new File[0];
+
+    @NonNull
+    @Override
+    public File getLocation() {
+      assert false : "Can't get location for remote image";
+      return new File("");
+    }
+
+    @NonNull
+    @Override
+    public IdDisplay getTag() {
+      return myTag;
+    }
+
+    @com.android.annotations.Nullable
+    @Override
+    public IdDisplay getAddonVendor() {
+      return myVendor;
+    }
+
+    @NonNull
+    @Override
+    public String getAbiType() {
+      return myAbi;
+    }
+
+    @NonNull
+    @Override
+    public File[] getSkins() {
+      return new File[0];
+    }
+
+    @NonNull
+    @Override
+    public Revision getRevision() {
+      return myRemotePackage.getVersion();
+    }
+
+    @Override
+    public AndroidVersion getAndroidVersion() {
+      return myAndroidVersion;
+    }
+
+    @Override
+    public int compareTo(ISystemImage o) {
+      if (o instanceof RemoteSystemImage) {
+        return myRemotePackage.compareTo(((RemoteSystemImage)o).myRemotePackage);
+      }
+      return 1;
+    }
+
+    @Override
+    public int hashCode() {
+      return myRemotePackage.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (!(o instanceof RemoteSystemImage)) {
+        return false;
+      }
+      RemoteSystemImage other = (RemoteSystemImage) o;
+      return myRemotePackage.equals(other.myRemotePackage);
+    }
   }
 }

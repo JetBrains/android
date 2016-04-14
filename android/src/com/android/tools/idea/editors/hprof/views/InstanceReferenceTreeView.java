@@ -90,7 +90,7 @@ public final class InstanceReferenceTreeView implements DataProvider {
         }
         else {
           Instance instance = (Instance)node.getUserObject();
-          return instance.getHardReferences().size() > 0 || instance.getSoftReferences() != null;
+          return instance.getHardReverseReferences().size() > 0 || instance.getSoftReverseReferences() != null;
         }
       }
     };
@@ -371,12 +371,12 @@ public final class InstanceReferenceTreeView implements DataProvider {
       return;
     }
 
-    List<Instance> sortedReferences = new ArrayList<Instance>(instance.getHardReferences());
+    List<Instance> sortedReferences = new ArrayList<Instance>(instance.getHardReverseReferences());
     Collections.sort(sortedReferences, DEPTH_COMPARATOR);
 
     List<Instance> sortedSoftReferences;
-    if (instance.getSoftReferences() != null) {
-      sortedSoftReferences = new ArrayList<Instance>(instance.getSoftReferences());
+    if (instance.getSoftReverseReferences() != null) {
+      sortedSoftReferences = new ArrayList<Instance>(instance.getSoftReverseReferences());
       Collections.sort(sortedSoftReferences, DEPTH_COMPARATOR);
       sortedReferences.addAll(sortedSoftReferences); // Soft references should always appear after hard references.
     }

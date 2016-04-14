@@ -69,8 +69,13 @@ public class AndroidIcons {
 
   public static final Icon AppModule = load("/icons/appModule.png");
   public static final Icon LibraryModule = load("/icons/libraryModule.png");
+  public static final Icon AndroidTestRoot = load("/icons/androidTestRoot.png");
 
   public static final Icon GreyQuestionMark = load("/icons/grey_question.png"); // 23x23
+
+  public static class ProjectStructure {
+    public static final Icon UnknownLibrary = load("/icons/psd/unknownLibrary.png");
+  }
 
   // Form factors
   public static class FormFactors {
@@ -143,6 +148,7 @@ public class AndroidIcons {
      */
     public static final Icon LogcatAutoFilterSelectedPid = load("/icons/ddms/logcat_filter_pid.png"); // 16x16
     public static final Icon RealDevice = load("/icons/ddms/real_device.png"); // 16x16
+    public static final Icon EmulatorDevice = load("/icons/ddms/emulator_device.png"); // 16x16
     public static final Icon ScreenCapture = load("/icons/ddms/screen_capture.png"); // 16x16
     public static final Icon StartMethodProfiling = load("/icons/ddms/start_method_profiling.png"); // 16x16
     public static final Icon Threads = load("/icons/ddms/threads.png"); // 16x16
@@ -150,12 +156,16 @@ public class AndroidIcons {
   }
 
   public static class Wizards {
+    public static final Icon StudioProductIcon = load("/icons/wizards/studio_product.png"); // 60x60
     public static final Icon NewModuleSidePanel = load("/icons/wizards/newModule.png"); // 143x627
     public static final Icon NewProjectSidePanel = load("/icons/wizards/newProject.png"); // 143x627
     public static final Icon DefaultTemplate = load("/icons/wizards/defaultTemplate.png"); //512x512
     public static final Icon DefaultTemplate256 = load("/icons/wizards/defaultTemplate256.png"); // 256x256
     public static final Icon GithubIcon = load("/icons/wizards/github_icon.png"); // 256x256
-    public static final Icon NewProjectMascot = load("/icons/wizards/welcome.png"); // 60x60
+    /**
+     * @deprecated Name is bad - this icon is used outside of project creation. Migrate to StudioProductIcon.
+     * TODO: Post wizard migration: delete constant and welcome_green.png
+     */
     public static final Icon NewProjectMascotGreen = load("/icons/wizards/welcome_green.png"); // 60x60
   }
 
@@ -171,6 +181,18 @@ public class AndroidIcons {
     public static final Icon Wear = load("/icons/nele/wear.png");
     public static final Icon Tv = load("/icons/nele/tv.png");
     public static final Icon Theme = load("/icons/nele/theme.png");
+  }
+
+  public static class RunIcons {
+    public static final Icon Attach = load("/icons/run/attach.png");
+
+    public static final Icon Debug = load("/icons/run/debug.png");
+    public static final Icon DebugReattach = load("/icons/run/debug2.png");
+
+    public static final Icon Play = load("/icons/run/play.png");
+    public static final Icon Replay = load("/icons/run/play2.png");
+    public static final Icon Restart = load("/icons/run/restart.png");
+    public static final Icon CleanRerun = load("/icons/run/clean_rerun.png");
   }
 
   public static class Views {
@@ -299,5 +321,6 @@ public class AndroidIcons {
     public static final Icon WireframeOverlay = load("/icons/gfxtrace/wireframe_overlay.png"); // 16x16
     public static final Icon WireframeAll = load("/icons/gfxtrace/wireframe_all.png"); // 16x16
     public static final Icon FlipVertically = load("/icons/gfxtrace/flip_vertically.png"); // 16x16
+    public static final Icon Opacity = load("/icons/gfxtrace/opacity.png"); // 16x16
   }
 }

@@ -19,8 +19,10 @@ import com.intellij.facet.Facet;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.FacetTypeId;
 import com.intellij.facet.ModifiableFacetModel;
+import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 
@@ -55,6 +57,23 @@ public final class Facets {
         modifiableFacetModel.removeFacet(facet);
       }
     }
+  }
+
+  /**
+   * Tries to find a particular facet of a module from FacetManager, if can't find, fallback to find the modifying facet from
+   * modelsProvider.
+   */
+  @Nullable
+  public static <T extends Facet> T findFacet(@NotNull Module module,
+                                              @NotNull IdeModifiableModelsProvider modelsProvider,
+                                              @NotNull FacetTypeId<T> typeId) {
+    T facet = FacetManager.getInstance(module).getFacetByType(typeId);
+    if (facet == null) {
+      // facet may be present, but not visible if ModifiableFacetModel has not been committed yet (e.g. in the case of a new project.)
+      ModifiableFacetModel facetModel = modelsProvider.getModifiableFacetModel(module);
+      facet = facetModel.getFacetByType(typeId);
+    }
+    return facet;
   }
 }
 

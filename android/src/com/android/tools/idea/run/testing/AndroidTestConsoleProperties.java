@@ -13,21 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.android.tools.idea.run.testing;
 
 import com.intellij.execution.Executor;
+import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.testframework.sm.runner.SMTRunnerConsoleProperties;
+import com.intellij.execution.testframework.sm.runner.SMTestLocator;
+import org.jetbrains.annotations.NotNull;
 
 /**
- * Created by IntelliJ IDEA.
- * User: Eugene.Kudelevsky
- * Date: Aug 28, 2009
- * Time: 1:20:40 PM
- * To change this template use File | Settings | File Templates.
+ * @author Eugene.Kudelevsky
+ * @since Aug 28, 2009
  */
 public class AndroidTestConsoleProperties extends SMTRunnerConsoleProperties {
-  public AndroidTestConsoleProperties(final AndroidTestRunConfiguration configuration, Executor executor) {
+  public AndroidTestConsoleProperties(@NotNull RunConfiguration configuration, @NotNull Executor executor) {
     super(configuration, "Android", executor);
+  }
+
+  @Override
+  public SMTestLocator getTestLocator() {
+    return AndroidTestLocationProvider.INSTANCE;
   }
 }

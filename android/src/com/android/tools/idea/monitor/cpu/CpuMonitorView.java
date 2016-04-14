@@ -15,20 +15,22 @@
  */
 package com.android.tools.idea.monitor.cpu;
 
+import com.android.tools.idea.actions.BrowserHelpAction;
 import com.android.tools.idea.ddms.DeviceContext;
 import com.android.tools.idea.ddms.actions.ToggleMethodProfilingAction;
 import com.android.tools.idea.monitor.BaseMonitorView;
 import com.android.tools.idea.monitor.TimelineEventListener;
 import com.android.tools.idea.monitor.actions.RecordingAction;
-import com.android.tools.idea.stats.UsageTracker;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Separator;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.UIUtil;
+import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 
+import javax.swing.*;
 import java.awt.*;
 
 public class CpuMonitorView extends BaseMonitorView<CpuSampler> implements TimelineEventListener, DeviceContext.DeviceSelectionListener {
@@ -64,8 +66,27 @@ public class CpuMonitorView extends BaseMonitorView<CpuSampler> implements Timel
     group.add(new Separator());
     group.add(new ToggleMethodProfilingAction(myProject, myDeviceContext));
     //group.add(new MyThreadDumpAction()); // thread dump -> systrace
+    group.add(new Separator());
+    group.add(new BrowserHelpAction("CPU monitor", "http://developer.android.com/r/studio-ui/am-cpu.html"));
 
     return group;
+  }
+
+  @NotNull
+  @Override
+  public String getTitleName() {
+    return "CPU";
+  }
+
+  @NotNull
+  @Override
+  public Icon getTitleIcon() {
+    return AndroidIcons.CpuMonitor;
+  }
+
+  @Override
+  protected int getDefaultPosition() {
+    return 1;
   }
 
   @NotNull

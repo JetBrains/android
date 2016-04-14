@@ -15,16 +15,13 @@
  */
 package com.android.tools.idea.updater.configure;
 
+import com.android.repository.impl.meta.TypeDetails;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.SdkVersionInfo;
-import com.android.sdklib.internal.repository.updater.PkgItem;
-import com.android.sdklib.repository.descriptors.PkgType;
+import com.android.sdklib.repositoryv2.meta.DetailsTypes;
 import com.google.common.collect.Sets;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.util.Collection;
 import java.util.Set;
 
 /**
@@ -37,7 +34,6 @@ class SummaryTreeNode extends UpdaterTreeNode {
   private Set<UpdaterTreeNode> myAllChildren;
   private Set<UpdaterTreeNode> myIncludedChildren = Sets.newHashSet();
   private UpdaterTreeNode myPrimaryChild;
-  private final String myVersionName;
 
   /**
    * Factory method to create SummaryTreeNodes.
@@ -47,7 +43,7 @@ class SummaryTreeNode extends UpdaterTreeNode {
    * @param versionName The version name to be shown in the UI.
    * @return A new SummaryTreeNode, or null if none of the children are actually included.
    */
-  public static SummaryTreeNode createNode(AndroidVersion version, Set<UpdaterTreeNode> children, @Nullable String versionName) {
+  public static SummaryTreeNode createNode(AndroidVersion version, Set<UpdaterTreeNode> children) {
     Set<UpdaterTreeNode> includedChildren = Sets.newHashSet();
     UpdaterTreeNode primaryChild = null;
     for (UpdaterTreeNode child : children) {
@@ -60,18 +56,17 @@ class SummaryTreeNode extends UpdaterTreeNode {
     }
 
     if (!includedChildren.isEmpty()) {
-      return new SummaryTreeNode(version, children, includedChildren, primaryChild, versionName);
+      return new SummaryTreeNode(version, children, includedChildren, primaryChild);
     }
     return null;
   }
 
   protected SummaryTreeNode(AndroidVersion version, Set<UpdaterTreeNode> children, Set<UpdaterTreeNode> includedChildren,
-                            UpdaterTreeNode primaryChild, @Nullable String versionName) {
+                            UpdaterTreeNode primaryChild) {
     myVersion = version;
     myAllChildren = children;
     myIncludedChildren = includedChildren;
     myPrimaryChild = primaryChild;
-    myVersionName = versionName;
   }
 
   @Override
@@ -120,7 +115,7 @@ class SummaryTreeNode extends UpdaterTreeNode {
 
   @Override
   public void customizeRenderer(Renderer renderer, JTree tree, boolean selected, boolean expanded, boolean leaf, int row, boolean hasFocus) {
-    renderer.getTextRenderer().append(getDescription(myVersion, myVersionName));
+    renderer.getTextRenderer().append(getDescription(myVersion));
   }
 
   public AndroidVersion getVersion() {
@@ -175,10 +170,10 @@ class SummaryTreeNode extends UpdaterTreeNode {
     boolean foundUpdate = false;
     for (UpdaterTreeNode child : myAllChildren) {
       if (child.getInitialState() != NodeStateHolder.SelectedState.NOT_INSTALLED) {
-        PkgType type = ((PlatformDetailsTreeNode)child).getItemDesc().getType();
-        if (type == PkgType.PKG_SOURCE) {
+        TypeDetails details = ((PlatformDetailsTreeNode)child).getPackage().getTypeDetails();
+        if (details instanceof DetailsTypes.SourceDetailsType) {
           foundSources = true;
-        } else if (type == PkgType.PKG_PLATFORM) {
+        } else if (details instanceof DetailsTypes.PlatformDetailsType) {
           foundPlatform = true;
         }
         if (child.getInitialState() == NodeStateHolder.SelectedState.MIXED) {
@@ -189,7 +184,8 @@ class SummaryTreeNode extends UpdaterTreeNode {
     if (foundUpdate) {
       return "Update available";
     }
-    if (foundPlatform && foundSources) {
+    if (foundPlatform && (foundSources || myVersion.getApiLevel() < 14)) {
+      // APIs before 14 don't have separate sources
       return "Installed";
     }
     if (foundPlatform || foundSources) {
@@ -202,7 +198,7 @@ class SummaryTreeNode extends UpdaterTreeNode {
     return myPrimaryChild;
   }
 
-  public static String getDescription(AndroidVersion version, @Nullable String versionName) {
+  public static String getDescription(AndroidVersion version) {
     StringBuilder result = new StringBuilder();
     result.append("Android ");
     if (version.isPreview()) {
@@ -210,12 +206,11 @@ class SummaryTreeNode extends UpdaterTreeNode {
       result.append(" Preview");
     }
     else {
-      if (versionName == null) {
-        result.append(SdkVersionInfo.getVersionString(version.getApiLevel()));
-      } else {
-        result.append(versionName);
-      }
+      result.append(SdkVersionInfo.getVersionString(version.getFeatureLevel()));
       String codeName = version.getCodename();
+      if (codeName == null) {
+        codeName = SdkVersionInfo.getCodeName(version.getFeatureLevel());
+      }
       if (codeName != null) {
         result.append(" (");
         result.append(codeName);

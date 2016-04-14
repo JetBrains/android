@@ -47,10 +47,12 @@ public final class BitmapEvaluatorProvider implements BitmapDecoder.BitmapDataPr
   @NotNull private ObjectReference myBitmap;
 
   public BitmapEvaluatorProvider(@NotNull Value bitmap, @NotNull EvaluationContextImpl evaluationContext) {
+    myEvaluationContext = evaluationContext;
+
     // retrieve the bitmap from bitmap drawables
     String fqcn = bitmap.type().name();
     if (BitmapDecoder.BITMAP_DRAWABLE_FQCN.equals(fqcn)) {
-      Value actualBitmap = getBitmapFromDrawable();
+      Value actualBitmap = getBitmapFromDrawable((ObjectReference)bitmap);
       if (actualBitmap == null) {
         throw new RuntimeException("Unable to obtain bitmap from drawable");
       }
@@ -62,8 +64,6 @@ public final class BitmapEvaluatorProvider implements BitmapDecoder.BitmapDataPr
     else {
       myBitmap = (ObjectReference)bitmap;
     }
-
-    myEvaluationContext = evaluationContext;
   }
 
   @Override
@@ -207,14 +207,14 @@ public final class BitmapEvaluatorProvider implements BitmapDecoder.BitmapDataPr
   }
 
   @Nullable
-  private Value getBitmapFromDrawable() {
+  private Value getBitmapFromDrawable(@NotNull ObjectReference bitmapDrawable) {
     try {
       DebugProcessImpl debugProcess = myEvaluationContext.getDebugProcess();
-      Method getBitmapMethod = DebuggerUtils.findMethod(myBitmap.referenceType(), "getBitmap", "()Landroid/graphics/Bitmap;");
+      Method getBitmapMethod = DebuggerUtils.findMethod(bitmapDrawable.referenceType(), "getBitmap", "()Landroid/graphics/Bitmap;");
       if (getBitmapMethod == null) {
         return null;
       }
-      return debugProcess.invokeMethod(myEvaluationContext, myBitmap, getBitmapMethod, Collections.emptyList());
+      return debugProcess.invokeMethod(myEvaluationContext, bitmapDrawable, getBitmapMethod, Collections.emptyList());
     }
     catch (EvaluateException ignored) {
       return null;

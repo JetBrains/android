@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.templates;
 
-import com.android.sdklib.repository.FullRevision;
+import com.android.repository.Revision;
 import freemarker.template.*;
 
 import java.util.List;
@@ -31,8 +31,8 @@ public class FmCompareVersionsMethod implements TemplateMethodModelEx {
             throw new TemplateModelException("Wrong arguments");
         }
 
-        FullRevision lhs = FullRevision.parseRevision(args.get(0).toString());
-        FullRevision rhs = FullRevision.parseRevision(args.get(1).toString());
+        Revision lhs = Revision.parseRevision(args.get(0).toString());
+        Revision rhs = Revision.parseRevision(args.get(1).toString());
 
         return new SimpleNumber(lhs.compareTo(rhs));
     }

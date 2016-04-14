@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.compatibility;
 
-import com.android.sdklib.repository.FullRevision;
-import com.android.sdklib.repository.FullRevision.PreviewComparison;
-import com.android.sdklib.repository.PreciseRevision;
+import com.android.ide.common.repository.GradleVersion;
 import com.google.common.base.Splitter;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -41,11 +39,11 @@ class VersionRange {
   @NonNls private static final char END_EXCLUSIVE = ')';
 
   @NotNull private final String myMinVersion;
-  @Nullable private final FullRevision myMinRevision;
+  @Nullable private final GradleVersion myParsedMinVersion;
   private final boolean myMinVersionInclusive;
 
-  @Nullable private final FullRevision myMaxRevision;
   @Nullable private final String myMaxVersion;
+  @Nullable private final GradleVersion myParsedMaxVersion;
   private final boolean myMaxVersionInclusive;
 
   @NotNull
@@ -85,48 +83,36 @@ class VersionRange {
 
   private VersionRange(@NotNull String minVersion, boolean minVersionInclusive, @Nullable String maxVersion, boolean maxVersionInclusive) {
     myMinVersion = minVersion;
-    myMinRevision = asRevision(minVersion);
+    myParsedMinVersion = GradleVersion.tryParse(minVersion);
     myMinVersionInclusive = minVersionInclusive;
     myMaxVersion = maxVersion;
-    myMaxRevision = asRevision(maxVersion);
+    myParsedMaxVersion = maxVersion != null ? GradleVersion.tryParse(maxVersion) : null;
     myMaxVersionInclusive = maxVersionInclusive;
   }
 
   boolean contains(@NotNull String value) {
-    if (myMinRevision != null) {
+    if (myParsedMinVersion != null) {
       boolean contains = false;
-      FullRevision revision = asRevision(value);
-      if (revision != null) {
+      GradleVersion version = GradleVersion.tryParse(value);
+      if (version != null) {
         if (myMinVersionInclusive) {
-          contains = revision.compareTo(myMinRevision, PreviewComparison.IGNORE) >= 0;
+          contains = version.compareIgnoringQualifiers(myParsedMinVersion) >= 0;
         }
         else {
-          contains = revision.compareTo(myMinRevision, PreviewComparison.IGNORE) > 0;
+          contains = version.compareIgnoringQualifiers(myParsedMinVersion) > 0;
         }
-        if (contains && myMaxRevision != null) {
+        if (contains && myParsedMaxVersion != null) {
           if (myMaxVersionInclusive) {
-            contains = revision.compareTo(myMaxRevision, PreviewComparison.IGNORE) <= 0;
+            contains = version.compareIgnoringQualifiers(myParsedMaxVersion) <= 0;
           }
           else {
-            contains = revision.compareTo(myMaxRevision, PreviewComparison.IGNORE) < 0;
+            contains = version.compareIgnoringQualifiers(myParsedMaxVersion) < 0;
           }
         }
       }
       return contains;
     }
     return value.equals(myMinVersion) || value.equals(myMaxVersion);
-  }
-
-  @Nullable
-  private static FullRevision asRevision(@Nullable String version) {
-    if (version != null) {
-      try {
-        return PreciseRevision.parseRevision(version);
-      }
-      catch (NumberFormatException ignored) {
-      }
-    }
-    return null;
   }
 
   @NotNull

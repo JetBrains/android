@@ -263,10 +263,8 @@ public class RecipeMergeUtils {
           }
         })
         .merge();
-      if (mergeReport.getMergedDocument().isPresent()) {
-        return XmlPrettyPrinter
-          .prettyPrint(mergeReport.getMergedDocument().get().getXml(), createXmlFormatPreferences(), XmlFormatStyle.MANIFEST, "\n",
-                       mergeText.endsWith("\n"));
+      if (mergeReport.getResult().isSuccess()) {
+        return mergeReport.getMergedDocument(MergingReport.MergedManifestKind.MERGED);
       }
       return null;
     }

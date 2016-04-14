@@ -3,6 +3,8 @@ package org.jetbrains.android.inspections.lint;
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.rendering.PsiProjectListener;
+import com.android.tools.lint.checks.DeprecationDetector;
+import com.android.tools.lint.checks.GradleDetector;
 import com.android.tools.lint.client.api.IssueRegistry;
 import com.android.tools.lint.client.api.LintDriver;
 import com.android.tools.lint.client.api.LintRequest;
@@ -50,8 +52,6 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.GroovyFileType;
 
 import javax.swing.*;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -66,6 +66,12 @@ import static com.android.tools.lint.detector.api.TextFormat.RAW;
  */
 public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State> {
   static final boolean INCLUDE_IDEA_SUPPRESS_ACTIONS = false;
+
+  @Nullable
+  @Override
+  public State collectInformation(@NotNull PsiFile file, @NotNull Editor editor, boolean hasErrors) {
+    return collectInformation(file);
+  }
 
   @Override
   public State collectInformation(@NotNull PsiFile file) {
@@ -250,9 +256,23 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
             for (IntentionAction intention : inspection.getIntentions(startElement, endElement)) {
               annotation.registerFix(intention);
             }
-            annotation.registerFix(new SuppressLintIntentionAction(key.getID(), startElement));
+
+            String id = key.getID();
+            if (IntellijLintIssueRegistry.CUSTOM_ERROR == issue
+                || IntellijLintIssueRegistry.CUSTOM_WARNING == issue) {
+              Issue original = IntellijLintClient.findCustomIssue(message);
+              if (original != null) {
+                id = original.getId();
+              }
+            }
+
+            annotation.registerFix(new SuppressLintIntentionAction(id, startElement));
             annotation.registerFix(new MyDisableInspectionFix(key));
             annotation.registerFix(new MyEditInspectionToolsSettingsAction(key, inspection));
+
+            if (issue == DeprecationDetector.ISSUE || issue == GradleDetector.DEPRECATED) {
+              annotation.setHighlightType(ProblemHighlightType.LIKE_DEPRECATED);
+            }
 
             if (INCLUDE_IDEA_SUPPRESS_ACTIONS) {
               final SuppressQuickFix[] suppressActions = inspection.getBatchSuppressActions(startElement);
@@ -291,55 +311,14 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
       severity = HighlightSeverity.WARNING;
     }
 
-    // Attempt to mark up as HTML? Only if available
-    Method createHtmlAnnotation = getCreateHtmlAnnotation();
-    if (createHtmlAnnotation != null) {
-      // Based on LocalInspectionsPass#createHighlightInfo
-      String link = " <a "
-          +"href=\"#lint/" + issue.getId() + "\""
-          + (UIUtil.isUnderDarcula() ? " color=\"7AB4C9\" " : "")
-          +">" + DaemonBundle.message("inspection.extended.description")
-          +"</a> " + getShowMoreShortCut();
-      String tooltip = XmlStringUtil.wrapInHtml(RAW.convertTo(message, HTML) + link);
+    String link = " <a "
+        +"href=\"#lint/" + issue.getId() + "\""
+        + (UIUtil.isUnderDarcula() ? " color=\"7AB4C9\" " : "")
+        +">" + DaemonBundle.message("inspection.extended.description")
+        +"</a> " + getShowMoreShortCut();
+    String tooltip = XmlStringUtil.wrapInHtml(RAW.convertTo(message, HTML) + link);
 
-      try {
-        return (Annotation)createHtmlAnnotation.invoke(holder, severity, range, message, tooltip);
-      }
-      catch (IllegalAccessException ignored) {
-        ourCreateHtmlAnnotationMethod = null;
-        //noinspection AssignmentToStaticFieldFromInstanceMethod
-        ourCreateHtmlAnnotationMethodFailed = true;
-      }
-      catch (InvocationTargetException e) {
-        ourCreateHtmlAnnotationMethod = null;
-        //noinspection AssignmentToStaticFieldFromInstanceMethod
-        ourCreateHtmlAnnotationMethodFailed = true;
-      }
-    }
-
-    return holder.createAnnotation(severity, range, message);
-  }
-
-  private static boolean ourCreateHtmlAnnotationMethodFailed;
-  private static Method ourCreateHtmlAnnotationMethod;
-
-  @Nullable
-  private static Method getCreateHtmlAnnotation() {
-    if (ourCreateHtmlAnnotationMethod != null) {
-      return ourCreateHtmlAnnotationMethod;
-    }
-    if (ourCreateHtmlAnnotationMethodFailed) {
-      return null;
-    } else {
-      ourCreateHtmlAnnotationMethodFailed = true;
-      try {
-        ourCreateHtmlAnnotationMethod = AnnotationHolder.class.getMethod("createAnnotation", HighlightSeverity.class,
-                                                                        TextRange.class, String.class, String.class);
-      }
-      catch (NoSuchMethodException ignore) {
-      }
-      return ourCreateHtmlAnnotationMethod;
-    }
+    return holder.createAnnotation(severity, range, message, tooltip);
   }
 
   // Based on similar code in the LocalInspectionsPass constructor

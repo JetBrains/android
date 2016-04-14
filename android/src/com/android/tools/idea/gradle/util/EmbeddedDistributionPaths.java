@@ -38,8 +38,16 @@ public class EmbeddedDistributionPaths {
     }
     else {
       // Development build
-      String relativePath = toSystemDependentName("/../../prebuilts/tools/common/offline-m2");
-      repoPath = new File(toCanonicalPath(toSystemDependentName(PathManager.getHomePath()) + relativePath));
+      String studioCustomRepo = System.getenv("STUDIO_CUSTOM_REPO");
+      if (studioCustomRepo != null) {
+        repoPath = new File(toCanonicalPath(toSystemDependentName(studioCustomRepo)));
+        if (!repoPath.isDirectory()) {
+          throw new IllegalArgumentException("Invalid path in STUDIO_CUSTOM_REPO environment variable");
+        }
+      } else {
+        String relativePath = toSystemDependentName("/../../prebuilts/tools/common/offline-m2");
+        repoPath = new File(toCanonicalPath(toSystemDependentName(PathManager.getHomePath()) + relativePath));
+      }
     }
     LOG.info("Looking for embedded Maven repo at '" + repoPath.getPath() + "'");
     return repoPath.isDirectory() ? repoPath : null;

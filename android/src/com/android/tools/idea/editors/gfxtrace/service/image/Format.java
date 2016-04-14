@@ -51,4 +51,12 @@ public abstract class Format implements BinaryObject {
   public String toString() {
     return getClass().getSimpleName();
   }
+
+  public String getDisplayName() {
+    String result = klass().entity().getName();
+    if (result.toLowerCase().startsWith("fmt")) {
+      result = result.substring(3);
+    }
+    return result;
+  }
 }

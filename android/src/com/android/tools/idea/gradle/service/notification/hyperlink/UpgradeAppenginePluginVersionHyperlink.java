@@ -15,56 +15,51 @@
  */
 package com.android.tools.idea.gradle.service.notification.hyperlink;
 
-import com.android.ide.common.repository.GradleCoordinate;
-import com.android.sdklib.repository.FullRevision;
+import com.android.ide.common.repository.GradleVersion;
+import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.service.repo.ExternalRepository;
-import com.android.tools.idea.gradle.util.GradleUtil;
 import com.intellij.openapi.components.ServiceManager;
-import com.intellij.openapi.editor.Document;
-import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Computable;
-import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
+
+import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 
 /**
  * https://code.google.com/p/android/issues/detail?id=80441
  */
 public class UpgradeAppenginePluginVersionHyperlink extends NotificationHyperlink {
+  public static final GradleVersion DEFAULT_APPENGINE_PLUGIN_VERSION = GradleVersion.parse("1.9.17");
 
-  private static final String DEFAULT_APPENGINE_PLUGIN_VERSION = "1.9.17";
-  public static final String APPENGINE_PLUGIN_GROUP_ID = "com.google.appengine";
-  public static final String APPENGINE_PLUGIN_ARTIFACT_ID = "gradle-appengine-plugin";
-  public static final String APPENGINE_PLUGIN_NAME = APPENGINE_PLUGIN_GROUP_ID + ":" + APPENGINE_PLUGIN_ARTIFACT_ID + ":";
-  public static final GradleCoordinate REFERENCE_APPENGINE_COORDINATE =
-    GradleCoordinate.parseCoordinateString(APPENGINE_PLUGIN_NAME + DEFAULT_APPENGINE_PLUGIN_VERSION);
+  @NonNls public static final String APPENGINE_PLUGIN_GROUP_ID = "com.google.appengine";
+  @NonNls public static final String APPENGINE_PLUGIN_ARTIFACT_ID = "gradle-appengine-plugin";
 
-  @NotNull private final VirtualFile myConfigToCorrect;
+  @NotNull private final ArtifactDependencyModel myDependency;
+  @NotNull private final GradleBuildModel myBuildModel;
 
-  public UpgradeAppenginePluginVersionHyperlink(@NotNull VirtualFile configToCorrect) {
+  public UpgradeAppenginePluginVersionHyperlink(@NotNull ArtifactDependencyModel dependency, @NotNull GradleBuildModel buildModel) {
     super("gradle.plugin.appengine.version.upgrade", AndroidBundle.message("android.gradle.link.appengine.outdated"));
-    myConfigToCorrect = configToCorrect;
+    myDependency = dependency;
+    myBuildModel = buildModel;
   }
 
   @Override
   protected void execute(@NotNull Project project) {
-    FileDocumentManager fileDocumentManager = FileDocumentManager.getInstance();
-    final Document document = fileDocumentManager.getDocument(myConfigToCorrect);
-    if (document == null) {
-      return;
+    ExternalRepository repository = ServiceManager.getService(ExternalRepository.class);
+    GradleVersion latest = repository.getLatest(APPENGINE_PLUGIN_GROUP_ID, APPENGINE_PLUGIN_ARTIFACT_ID);
+    if (latest == null) {
+      latest = DEFAULT_APPENGINE_PLUGIN_VERSION;
     }
-    boolean updated = GradleUtil.updateGradleDependencyVersion(project, document, APPENGINE_PLUGIN_NAME, new Computable<String>() {
+    myDependency.setVersion(latest.toString());
+    runWriteCommandAction(project, new Runnable() {
       @Override
-      public String compute() {
-        ExternalRepository repository = ServiceManager.getService(ExternalRepository.class);
-        FullRevision latest = repository.getLatest(APPENGINE_PLUGIN_GROUP_ID, APPENGINE_PLUGIN_ARTIFACT_ID);
-        return latest == null ? DEFAULT_APPENGINE_PLUGIN_VERSION : latest.toString();
+      public void run() {
+        myBuildModel.applyChanges();
       }
     });
-    if (updated) {
-      GradleProjectImporter.getInstance().requestProjectSync(project, null);
-    }
+    GradleProjectImporter.getInstance().requestProjectSync(project, null);
   }
 }

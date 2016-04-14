@@ -17,6 +17,7 @@ package com.android.tools.idea.editors.gfxtrace.widgets;
 
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.ui.JBColor;
+import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.StatusText;
@@ -44,6 +45,7 @@ public class ImagePanel extends JPanel {
   private static final int SCROLL_AMOUNT = 15;
 
   @NotNull private final ImageComponent myImage;
+  @NotNull private final JBLabel myStatus = new JBLabel();
 
   public ImagePanel() {
     super(new BorderLayout());
@@ -54,18 +56,51 @@ public class ImagePanel extends JPanel {
     scrollPane.getHorizontalScrollBar().setUnitIncrement(20);
     scrollPane.setBorder(BorderFactory.createLineBorder(JBColor.border()));
     add(scrollPane, BorderLayout.CENTER);
+    add(myStatus, BorderLayout.SOUTH);
     setFocusable(true);
+
+    MouseAdapter mouseHandler = new MouseAdapter() {
+      @Override
+      public void mouseEntered(MouseEvent e) {
+        update(e.getX(), e.getY());
+      }
+
+      @Override
+      public void mouseExited(MouseEvent e) {
+        myStatus.setText(" ");
+      }
+
+      @Override
+      public void mouseMoved(MouseEvent e) {
+        update(e.getX(), e.getY());
+      }
+
+      @Override
+      public void mouseDragged(MouseEvent e) {
+        update(e.getX(), e.getY());
+      }
+
+      private void update(int x, int y) {
+        myImage.getPixel(x, y).formatTo(myStatus);
+      }
+    };
+    scrollPane.getViewport().addMouseListener(mouseHandler);
+    scrollPane.getViewport().addMouseMotionListener(mouseHandler);
   }
 
   public void addToolbarActions(DefaultActionGroup group, boolean enableVerticalFlip) {
     myImage.addToolbarActions(group, enableVerticalFlip);
   }
 
+  public void clearImage() {
+    myImage.clearImage();
+  }
+
   public StatusText getEmptyText() {
     return myImage.getEmptyText();
   }
 
-  public void setImage(Image image) {
+  public void setImage(BufferedImage image) {
     myImage.setImage(image);
   }
 
@@ -80,9 +115,11 @@ public class ImagePanel extends JPanel {
 
     private final JViewport parent;
     private final StatusText emptyText;
-    private Image image = EMPTY_IMAGE;
+    private BufferedImage image = EMPTY_IMAGE;
+    private BufferedImage opaqueImage = null;
     private double zoom;
     private boolean drawCheckerBoard = true;
+    private boolean transparent = true;
     private boolean flipped = false;
 
     public ImageComponent(JBScrollPane scrollPane) {
@@ -190,12 +227,19 @@ public class ImagePanel extends JPanel {
       return emptyText;
     }
 
-    public void setImage(Image image) {
+    public void clearImage() {
+      this.image = EMPTY_IMAGE;
+      revalidate();
+      repaint();
+    }
+
+    public void setImage(BufferedImage image) {
       if (this.image == EMPTY_IMAGE) {
         // Ignore any zoom actions that might have happened before the first real image was shown.
         zoomToFit();
       }
       this.image = (image == null) ? EMPTY_IMAGE : image;
+      this.opaqueImage = null;
       revalidate();
       repaint();
     }
@@ -226,6 +270,18 @@ public class ImagePanel extends JPanel {
         }
       });
       group.add(new Separator());
+      group.add(new ToggleAction("Toggle Transparency", "Enable/disable image transparency", AndroidIcons.GfxTrace.Opacity) {
+        @Override
+        public boolean isSelected(AnActionEvent e) {
+          return transparent;
+        }
+
+        @Override
+        public void setSelected(AnActionEvent e, boolean state) {
+          transparent = state;
+          repaint();
+        }
+      });
       group.add(new ToggleAction("Show Checkerboard", "Toggle the checkerboard background", ImagesIcons.ToggleTransparencyChessboard) {
         @Override
         public boolean isSelected(AnActionEvent e) {
@@ -236,6 +292,13 @@ public class ImagePanel extends JPanel {
         public void setSelected(AnActionEvent e, boolean state) {
           drawCheckerBoard = state;
           repaint();
+        }
+
+        @Override
+        public void update(@NotNull AnActionEvent e) {
+          super.update(e);
+          Presentation presentation = e.getPresentation();
+          presentation.setEnabled(transparent);
         }
       });
       if (enableVerticalFlip) {
@@ -252,6 +315,27 @@ public class ImagePanel extends JPanel {
           }
         });
       }
+    }
+
+    public Pixel getPixel(int x, int y) {
+      if (this.image == EMPTY_IMAGE) {
+        return Pixel.OUT_OF_BOUNDS;
+      }
+
+      double scale = (zoom == ZOOM_FIT) ? getFitRatio() : zoom;
+      int w = (int)(image.getWidth(this) * scale), h = (int)(image.getHeight(this) * scale);
+
+      Point pos = parent.getViewPosition();
+      pos.translate(x - (getWidth() - w) / 2, y - (getHeight() - h) / 2);
+      if (pos.x < 0 || pos.x >= w || pos.y < 0 || pos.y >= h) {
+        return Pixel.OUT_OF_BOUNDS;
+      }
+
+      // Use OpenGL coordinates: origin at bottom left. While XY will be as shown (possibly flipped), UV stays constant to the origin
+      // of the image used as a texture.
+      int pixelX = (int)(pos.x / scale), pixelY = (int)(pos.y / scale);
+      float u = (pos.x + 0.5f) / w, v = (pos.y + 0.5f) / h; // This is actually flipped v.
+      return new Pixel(pixelX, image.getHeight() - pixelY - 1, u, flipped ? v : 1 - v , image.getRGB(pixelX, pixelY));
     }
 
     @Override
@@ -273,7 +357,7 @@ public class ImagePanel extends JPanel {
       int w = (int)(image.getWidth(this) * scale), h = (int)(image.getHeight(this) * scale);
       int x = (getWidth() - w) / 2, y = (getHeight() - h) / 2;
 
-      if (drawCheckerBoard) {
+      if (drawCheckerBoard && transparent) {
         ((Graphics2D)g).setPaint(CHECKER_PAINT);
         g.fillRect(x, y, w, h);
       }
@@ -282,7 +366,20 @@ public class ImagePanel extends JPanel {
       if (flipped) {
         ((Graphics2D)g).transform(new AffineTransform(1, 0, 0, -1, 0, getHeight() - 1));
       }
-      g.drawImage(image, x, y, w, h, this);
+      if (transparent) {
+        g.drawImage(image, x, y, w, h, this);
+      }
+      else {
+        if (opaqueImage == null) {
+          //noinspection UndesirableClassUsage
+          opaqueImage = new BufferedImage(image.getWidth(this), image.getHeight(this), BufferedImage.TYPE_3BYTE_BGR);
+          Graphics2D opaqueG = opaqueImage.createGraphics();
+          opaqueG.setComposite(AlphaComposite.Src);
+          opaqueG.drawImage(image, 0, 0, this);
+          opaqueG.dispose();
+        }
+        g.drawImage(opaqueImage, x, y, w, h, this);
+      }
       ((Graphics2D)g).setTransform(transform);
       BORDER.paintBorder(this, g, x - BORDER_SIZE, y - BORDER_SIZE, w + 2 * BORDER_SIZE, h + 2 * BORDER_SIZE);
     }
@@ -435,6 +532,31 @@ public class ImagePanel extends JPanel {
       public int getTransparency() {
         return Transparency.OPAQUE;
       }
+    }
+  }
+
+  private static class Pixel {
+    public static final Pixel OUT_OF_BOUNDS = new Pixel(-1, -1, -1, -1, 0) {
+      @Override
+      public void formatTo(JBLabel label) {
+        label.setText(" ");
+      }
+    };
+
+    public final int x, y;
+    public final float u, v;
+    public final int rgba;
+
+    public Pixel(int x, int y, float u, float v, int rgba) {
+      this.x = x;
+      this.y = y;
+      this.u = u;
+      this.v = v;
+      this.rgba = rgba;
+    }
+
+    public void formatTo(JBLabel label) {
+      label.setText(String.format("X: %d, Y: %d, U: %05f, V: %05f, ARGB: %08x", x, y, u, v, rgba));
     }
   }
 }

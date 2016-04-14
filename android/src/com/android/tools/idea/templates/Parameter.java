@@ -20,11 +20,16 @@ import com.android.builder.model.SourceProvider;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.npw.assetstudio.AssetStudioUtils;
+import com.android.tools.idea.npw.project.AndroidProjectPaths;
 import com.android.tools.idea.rendering.AppResourceRepository;
 import com.android.tools.idea.rendering.ResourceFolderRegistry;
 import com.android.tools.idea.rendering.ResourceFolderRepository;
 import com.android.tools.idea.rendering.ResourceNameValidator;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -46,7 +51,6 @@ import org.w3c.dom.Element;
 
 import java.io.File;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 import static com.android.tools.idea.templates.Template.*;
 
@@ -55,38 +59,24 @@ import static com.android.tools.idea.templates.Template.*;
  * human-readable information to be displayed in the UI, and type and validation specifications that can be used in the UI to assist in
  * data entry.
  */
-public class Parameter {
-  private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.templates.Parameter");
-  private static final Set<String> typeValues = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
+public final class Parameter {
+  private static final String URI_AUTHORITY_REGEX = "[a-zA-Z][a-zA-Z0-9-_.]*(:\\d+)?";
+  private static Logger getLog() { return Logger.getInstance(Parameter.class); }
 
   public enum Type {
     STRING,
     BOOLEAN,
     ENUM,
-    SEPARATOR,
-    EXTERNAL,
-    CUSTOM;
-    // TODO: Numbers?
+    SEPARATOR;
 
-    public static Type get(String name) {
+    public static Type get(@NotNull String name) {
+      name = name.toUpperCase(Locale.US);
       try {
-        if (typeValues.isEmpty()) {
-          for(Type t : Type.values()) {
-            typeValues.add(t.name().toUpperCase(Locale.US));
-          }
-        }
-
-        String upperCaseName = name.toUpperCase(Locale.US);
-        if (!typeValues.contains(upperCaseName)) {
-          return Type.CUSTOM;
-        }
-        return Type.valueOf(upperCaseName);
-      } catch (IllegalArgumentException e) {
-        LOG.error("Unexpected template type '" + name + "'");
-        LOG.error("Expected one of :");
-        for (Type s : Type.values()) {
-          LOG.error("  " + s.name().toLowerCase(Locale.US));
-        }
+        return valueOf(name);
+      }
+      catch (IllegalArgumentException e) {
+        getLog().error(String.format("Unexpected template type: %1$s.\nExpected one of: (%2$s)", name,
+                                     Joiner.on(',').join(Constraint.values())));
       }
 
       return STRING;
@@ -155,21 +145,19 @@ public class Parameter {
     SOURCE_SET_FOLDER,
 
     /** The associated value should represent a valid string resource name */
-    STRING;
+    STRING,
 
-    public static Constraint get(String name) {
+    /** */
+    URI_AUTHORITY;
+
+    public static Constraint get(@NotNull String name) {
+      name = name.toUpperCase(Locale.US);
       try {
-        return Constraint.valueOf(name.toUpperCase(Locale.US));
-      } catch (IllegalArgumentException e) {
-        LOG.error("Unexpected template constraint '" + name + "'");
-        if (name.indexOf(',') != -1) {
-          LOG.error("Use | to separate constraints");
-        } else {
-          LOG.error("Expected one of :");
-          for (Constraint s : Constraint.values()) {
-            LOG.error("  " + s.name().toLowerCase(Locale.US));
-          }
-        }
+        return valueOf(name);
+      }
+      catch (IllegalArgumentException e) {
+        getLog().error(String.format("Unexpected template constraint: %1$s.\nExpected one or more of: (%2$s)", name,
+                                     Joiner.on('|').join(Constraint.values())));
       }
 
       return NONEMPTY;
@@ -178,7 +166,7 @@ public class Parameter {
 
   public static final EnumSet<Constraint> TYPE_CONSTRAINTS = EnumSet
     .of(Constraint.ACTIVITY, Constraint.APILEVEL, Constraint.CLASS, Constraint.PACKAGE, Constraint.APP_PACKAGE, Constraint.MODULE,
-        Constraint.LAYOUT, Constraint.DRAWABLE, Constraint.ID, Constraint.SOURCE_SET_FOLDER, Constraint.STRING);
+        Constraint.LAYOUT, Constraint.DRAWABLE, Constraint.ID, Constraint.SOURCE_SET_FOLDER, Constraint.STRING, Constraint.URI_AUTHORITY);
 
   /** The template defining the parameter */
   public final TemplateMetadata template;
@@ -223,12 +211,6 @@ public class Parameter {
   @Nullable
   public final String enabled;
 
-  /**
-   * A URL for externally sourced values.
-   */
-  @Nullable
-  public final String sourceUrl;
-
   /** Help for the parameter, if any */
   @Nullable
   public final String help;
@@ -241,16 +223,12 @@ public class Parameter {
   @NotNull
   public final EnumSet<Constraint> constraints;
 
-  /** The dsl name of the type that will be created in the ui for the user to enter this parameter.
-   *  This should correspond to a name registered by an ExternalWizardParameterFactory extension. */
-  public String externalTypeName;
-
   Parameter(@NotNull TemplateMetadata template, @NotNull Element parameter) {
     this.template = template;
     element = parameter;
 
-    String typeName = parameter.getAttribute(Template.ATTR_TYPE);
-    assert typeName != null && !typeName.isEmpty() : Template.ATTR_TYPE;
+    String typeName = parameter.getAttribute(ATTR_TYPE);
+    assert typeName != null && !typeName.isEmpty() : ATTR_TYPE;
     type = Type.get(typeName);
 
     id = parameter.getAttribute(ATTR_ID);
@@ -258,28 +236,15 @@ public class Parameter {
     suggest = parameter.getAttribute(ATTR_SUGGEST);
     visibility = parameter.getAttribute(ATTR_VISIBILITY);
     enabled = parameter.getAttribute(ATTR_ENABLED);
-    sourceUrl = type == Type.EXTERNAL ? parameter.getAttribute(ATTR_SOURCE_URL) : null;
     name = parameter.getAttribute(ATTR_NAME);
     help = parameter.getAttribute(ATTR_HELP);
-    if (type == Type.CUSTOM) {
-      externalTypeName = typeName;
-    }
-    else {
-      externalTypeName = null;
-    }
     String constraintString = parameter.getAttribute(ATTR_CONSTRAINTS);
     if (constraintString != null && !constraintString.isEmpty()) {
-      EnumSet<Constraint> constraintSet = null;
+      List<Constraint> constraintsList = Lists.newArrayListWithExpectedSize(1);
       for (String s : Splitter.on('|').omitEmptyStrings().split(constraintString)) {
-        Constraint constraint = Constraint.get(s);
-        if (constraintSet == null) {
-          constraintSet = EnumSet.of(constraint);
-        } else {
-          constraintSet = EnumSet.copyOf(constraintSet);
-          constraintSet.add(constraint);
-        }
+        constraintsList.add(Constraint.get(s));
       }
-      constraints = constraintSet;
+      constraints = EnumSet.copyOf(constraintsList);
     } else {
       constraints = EnumSet.noneOf(Constraint.class);
     }
@@ -293,10 +258,8 @@ public class Parameter {
   public String validate(@Nullable Project project, @Nullable Module module, @Nullable SourceProvider provider,
                          @Nullable String packageName, @Nullable Object value, Set<Object> relatedValues) {
     switch (type) {
-      case EXTERNAL:
-      case CUSTOM:
       case STRING:
-        return getErrorMessageForStringType(project, module, provider, packageName, value.toString(), relatedValues);
+        return getErrorMessageForStringType(project, module, provider, packageName, String.valueOf(value), relatedValues);
       case BOOLEAN:
       case ENUM:
       case SEPARATOR:
@@ -314,7 +277,7 @@ public class Parameter {
    * @return An error message detailing why the given value is invalid.
    */
   @Nullable
-  protected String getErrorMessageForStringType(@Nullable Project project, @Nullable Module module, @Nullable SourceProvider provider,
+  private String getErrorMessageForStringType(@Nullable Project project, @Nullable Module module, @Nullable SourceProvider provider,
                                                 @Nullable String packageName, @Nullable String value, @Nullable Set<Object> relatedValues) {
     Collection<Constraint> violations = validateStringType(project, module, provider, packageName, value, relatedValues);
 
@@ -322,50 +285,50 @@ public class Parameter {
       return "Please specify " + name;
 
     } else if (violations.contains(Constraint.ACTIVITY)) {
-      return name + " is not a valid activity name";
+      return name + " is not set to a valid activity name";
 
     } else if (violations.contains(Constraint.APILEVEL)) {
       // TODO: validity check
     } else if (violations.contains(Constraint.CLASS)) {
-      return name + " is not a valid class name";
+      return name + " is not set to a valid class name";
 
     } else if (violations.contains(Constraint.PACKAGE)) {
-      return name + " is not a valid package name";
+      return name + " is not set to a valid package name";
 
     } else if (violations.contains(Constraint.MODULE)) {
-      return name + " is not a valid module name";
+      return name + " is not set to a valid module name";
 
     } else if (violations.contains(Constraint.APP_PACKAGE) && value != null) {
       String message = AndroidUtils.validateAndroidPackageName(value);
       if (message != null) {
-        return  message;
+        return message;
 
       }
     } else if (violations.contains(Constraint.LAYOUT) && value != null) {
       String resourceNameError = ResourceNameValidator.create(false, ResourceFolderType.LAYOUT).getErrorText(value);
       if (resourceNameError != null) {
-        return name + " is not a valid resource name. " + resourceNameError;
+        return name + " is not set to a valid resource name. " + resourceNameError;
 
       }
     } else if (violations.contains(Constraint.DRAWABLE)) {
       String resourceNameError = ResourceNameValidator.create(false, ResourceFolderType.DRAWABLE).getErrorText(value);
       if (resourceNameError != null) {
-        return name + " is not a valid resource name. " + resourceNameError;
+        return name + " is not set to a valid resource name. " + resourceNameError;
 
       }
     } else if (violations.contains(Constraint.ID)) {
-      return name + " is not a valid id.";
+      return name + " is not set to a valid id.";
 
     } else if (violations.contains(Constraint.STRING)) {
       String resourceNameError = ResourceNameValidator.create(false, ResourceFolderType.VALUES).getErrorText(value);
       if (resourceNameError != null) {
-        return name + " is not a valid resource name. " + resourceNameError;
+        return name + " is not set to a valid resource name. " + resourceNameError;
 
       }
     } else if (violations.contains(Constraint.VALUES)) {
       String resourceNameError = ResourceNameValidator.create(false, ResourceFolderType.VALUES).getErrorText(value);
       if (resourceNameError != null) {
-        return name + " is not a valid resource name. " + resourceNameError;
+        return name + " is not set to a valid resource name. " + resourceNameError;
       }
     }
 
@@ -377,6 +340,10 @@ public class Parameter {
 
     }
 
+    if (violations.contains(Constraint.URI_AUTHORITY)) {
+      return name + " must be a valid URI authority";
+    }
+
     return null;
   }
 
@@ -385,14 +352,15 @@ public class Parameter {
    * @return All constraints of this parameter that are violated by the proposed value.
    */
   @NotNull
-  protected Collection<Constraint> validateStringType(@Nullable Project project,
-                                                      @Nullable Module module,
-                                                      @Nullable SourceProvider provider,
-                                                      @Nullable String packageName,
-                                                      @Nullable String value,
-                                                      @Nullable Set<Object> relatedValues) {
-    GlobalSearchScope searchScope = module != null ? GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module) :
-                                    GlobalSearchScope.EMPTY_SCOPE;
+  @VisibleForTesting
+  Collection<Constraint> validateStringType(@Nullable Project project,
+                                            @Nullable Module module,
+                                            @Nullable SourceProvider provider,
+                                            @Nullable String packageName,
+                                            @Nullable String value,
+                                            @Nullable Set<Object> relatedValues) {
+    GlobalSearchScope searchScope =
+      module != null ? GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module) : GlobalSearchScope.EMPTY_SCOPE;
 
     Set<Constraint> violations = Sets.newHashSet();
     if (value == null || value.isEmpty()) {
@@ -410,7 +378,8 @@ public class Parameter {
       }
       if (project != null) {
         PsiClass aClass = JavaPsiFacade.getInstance(project).findClass(fqName, searchScope);
-        PsiClass activityClass = JavaPsiFacade.getInstance(project).findClass(SdkConstants.CLASS_ACTIVITY, GlobalSearchScope.allScope(project));
+        PsiClass activityClass =
+          JavaPsiFacade.getInstance(project).findClass(SdkConstants.CLASS_ACTIVITY, GlobalSearchScope.allScope(project));
         exists = aClass != null && activityClass != null && aClass.isInheritor(activityClass, true);
       }
     }
@@ -430,7 +399,7 @@ public class Parameter {
         violations.add(Constraint.PACKAGE);
       }
       if (project != null) {
-        exists = existsPackage(project, searchScope, provider, value);
+        exists = existsPackage(project, provider, value);
       }
     }
     if (constraints.contains(Constraint.MODULE)) {
@@ -445,7 +414,7 @@ public class Parameter {
         violations.add(Constraint.APP_PACKAGE);
       }
       if (project != null) {
-        exists = existsPackage(project, searchScope, provider, value);
+        exists = existsPackage(project, provider, value);
       }
     }
     if (constraints.contains(Constraint.LAYOUT)) {
@@ -453,16 +422,18 @@ public class Parameter {
       if (resourceNameError != null) {
         violations.add(Constraint.LAYOUT);
       }
-      exists = provider != null ? existsResourceFile(provider, module, ResourceFolderType.LAYOUT, ResourceType.LAYOUT, value) :
-               existsResourceFile(module, ResourceType.LAYOUT, value);
+      exists = provider != null
+               ? existsResourceFile(provider, module, ResourceFolderType.LAYOUT, ResourceType.LAYOUT, value)
+               : existsResourceFile(module, ResourceType.LAYOUT, value);
     }
     if (constraints.contains(Constraint.DRAWABLE)) {
       String resourceNameError = ResourceNameValidator.create(false, ResourceFolderType.DRAWABLE).getErrorText(value);
       if (resourceNameError != null) {
         violations.add(Constraint.DRAWABLE);
       }
-      exists = provider != null ? existsResourceFile(provider, module, ResourceFolderType.DRAWABLE, ResourceType.DRAWABLE, value) :
-               existsResourceFile(module, ResourceType.DRAWABLE, value);
+      exists = provider != null
+               ? existsResourceFile(provider, module, ResourceFolderType.DRAWABLE, ResourceType.DRAWABLE, value)
+               : existsResourceFile(module, ResourceType.DRAWABLE, value);
     }
     if (constraints.contains(Constraint.ID)) {
       // TODO: validity and existence check
@@ -509,8 +480,16 @@ public class Parameter {
 
     if (constraints.contains(Constraint.UNIQUE) && exists) {
       violations.add(Constraint.UNIQUE);
-    } else if (constraints.contains(Constraint.EXISTS) && !exists) {
+    }
+    else if (constraints.contains(Constraint.EXISTS) && !exists) {
       violations.add(Constraint.EXISTS);
+    }
+
+    if (constraints.contains(Constraint.URI_AUTHORITY)) {
+      if (!value.matches(URI_AUTHORITY_REGEX + "(;" + URI_AUTHORITY_REGEX + ")*" )) {
+        violations.add(Constraint.URI_AUTHORITY);
+
+      }
     }
     return violations;
   }
@@ -527,6 +506,10 @@ public class Parameter {
     return AndroidUtils.isValidJavaPackageName(value) && value.indexOf('.') != -1;
   }
 
+  /**
+   * @deprecated Replaced by {@link AssetStudioUtils#resourceExists(AndroidFacet, ResourceType, String)}
+   * TODO: After Wizard migration, delete this
+   */
   public static boolean existsResourceFile(@Nullable Module module, @NotNull ResourceType resourceType, @Nullable String name) {
     if (name == null || name.isEmpty() || module == null) {
       return false;
@@ -539,6 +522,10 @@ public class Parameter {
     return false;
   }
 
+  /**
+   * @deprecated Replaced by {@link AssetStudioUtils#resourceExists(AndroidProjectPaths, ResourceFolderType, String)}
+   * TODO: After Wizard migration, delete this
+   */
   public static boolean existsResourceFile(@Nullable SourceProvider sourceProvider, @Nullable Module module,
                                            @NotNull ResourceFolderType resourceFolderType, @NotNull ResourceType resourceType,
                                            @Nullable String name) {
@@ -563,6 +550,10 @@ public class Parameter {
     return false;
   }
 
+  /**
+   * @deprecated Replaced by {@link AssetStudioUtils#resourceExists(AndroidProjectPaths, ResourceFolderType, String)}
+   * TODO: After Wizard migration, delete this
+   */
   public static boolean existsResourceFile(File resDir, ResourceFolderType resourceType, String name) {
     File[] resTypes = resDir.listFiles();
     if (resTypes != null) {
@@ -611,8 +602,7 @@ public class Parameter {
     }
   }
 
-  public static boolean existsPackage(@Nullable Project project, @NotNull GlobalSearchScope searchScope,
-                                      @Nullable SourceProvider sourceProvider, @NotNull String packageName) {
+  private static boolean existsPackage(@Nullable Project project, @Nullable SourceProvider sourceProvider, @NotNull String packageName) {
     if (project == null) {
       return false;
     }

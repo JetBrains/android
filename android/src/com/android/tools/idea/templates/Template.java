@@ -90,7 +90,6 @@ public class Template {
   public static final String ATTR_CONSTRAINTS = "constraints";
   public static final String ATTR_VISIBILITY = "visibility";
   public static final String ATTR_ENABLED = "enabled";
-  public static final String ATTR_SOURCE_URL = "href";
   public static final String CATEGORY_ACTIVITIES = "activities";
   public static final String CATEGORY_PROJECTS = "gradle-projects";
   public static final String CATEGORY_OTHER = "other";
@@ -202,10 +201,6 @@ public class Template {
           break;
         case SEPARATOR:
           break;
-        case EXTERNAL:
-          break;
-        case CUSTOM:
-          break;
       }
     }
     convertApisToInt(args);
@@ -214,7 +209,7 @@ public class Template {
   public static void convertApisToInt(@NotNull Map<String, Object> args) {
     convertToInt(ATTR_BUILD_API, args);
     convertToInt(ATTR_MIN_API_LEVEL, args);
-    convertToInt(TemplateMetadata.ATTR_TARGET_API, args);
+    convertToInt(ATTR_TARGET_API, args);
   }
 
   private static void convertToInt(@NotNull String key, @NotNull Map<String, Object> args) {
@@ -363,7 +358,7 @@ public class Template {
   @Nullable
   public TemplateMetadata getMetadata() {
     if (myMetadata == null) {
-      myMetadata = TemplateManager.getInstance().getTemplate(myTemplateRoot);
+      myMetadata = TemplateManager.getInstance().getTemplateMetadata(myTemplateRoot);
     }
 
     return myMetadata;

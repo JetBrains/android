@@ -18,9 +18,6 @@ package org.jetbrains.android.dom;
 
 import com.android.SdkConstants;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidAnimatorDomTest extends AndroidDomTest {
   public AndroidAnimatorDomTest() {
     super(false, "dom/animator");
@@ -61,5 +58,48 @@ public class AndroidAnimatorDomTest extends AndroidDomTest {
 
   public void testAttributeValues() throws Throwable {
     toTestCompletion("av.xml", "av_after.xml");
+  }
+
+  // An example of state list animator is highlighted without errors
+  public void testSelectorAnimationHighlighting() throws Throwable {
+    doTestHighlighting("selectorAnimationHighlighting.xml");
+  }
+
+  // <selector> top-level tag in anim resource files is completed
+  public void testSelectorTagCompletion() throws Throwable {
+    toTestCompletion("selector_tag_completion.xml", "selector_tag_completion_after.xml");
+  }
+
+  // Inside <selector> tag, <item> tags are completed
+  public void testItemTagCompletion() throws Throwable {
+    toTestCompletion("item_tag_completion.xml", "item_tag_completion_after.xml");
+  }
+
+  // Inside <item> tag, "state_" attributes are completed
+  public void testItemAttributeCompletion() throws Throwable {
+    toTestCompletion("item_attribute_completion.xml", "item_attribute_completion_after.xml");
+  }
+
+  // <objectAnimator> is completed as a possible subtag of <item> tag
+  public void testItemContentsCompletion() throws Throwable {
+    toTestCompletion("item_contents_completion.xml", "item_contents_completion_after.xml");
+  }
+
+  // <objectAnimator> is recognized as root tag
+  public void testObjectAnimatorHighlighting() throws Throwable {
+    doTestHighlighting("object_animator_root.xml");
+  }
+
+  // <animator> is recognized as root tag
+  public void testAnimatorHighlighting() throws Throwable {
+    doTestHighlighting("animator_root.xml");
+  }
+
+  // <propertyValuesHolder> and <keyframe> tags are recognized
+  public void testKeyframeHighlighting() throws Throwable {
+    // This test contents is commented out because it fails due to test SDK not having
+    // "Keyframe" styleable
+    // TODO: update test SDK to make this test pass
+    //doTestHighlighting("keyframes.xml");
   }
 }

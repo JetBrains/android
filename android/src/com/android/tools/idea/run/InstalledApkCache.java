@@ -90,8 +90,7 @@ public class InstalledApkCache implements Disposable {
    * last update time could not be determined.
    */
   @Nullable
-  @VisibleForTesting
-  String getLastUpdateTime(@NotNull IDevice device, @NotNull String pkgName) {
+  public String getLastUpdateTime(@NotNull IDevice device, @NotNull String pkgName) {
     boolean deviceHasPackage = false;
     myDiagnosticOutput = null;
 

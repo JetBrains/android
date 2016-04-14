@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.updater.configure;
 
+import com.android.sdklib.repositoryv2.AndroidSdkHandler;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurableProvider;
 import org.jetbrains.annotations.Nullable;

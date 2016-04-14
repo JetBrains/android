@@ -17,13 +17,8 @@ package com.android.tools.idea.gradle.service.notification.hyperlink;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
-import com.android.tools.idea.gradle.util.GradleUtil;
 import com.intellij.openapi.externalSystem.service.notification.EditableNotificationMessageElement;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.vfs.VfsUtil;
-import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.DistributionType;
@@ -31,7 +26,9 @@ import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 
 import javax.swing.event.HyperlinkEvent;
 import java.io.File;
-import java.io.IOException;
+
+import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
+import static com.android.tools.idea.gradle.util.GradleUtil.*;
 
 /**
  * Fixes the Gradle version in a project's Gradle wrapper.
@@ -40,11 +37,19 @@ public class FixGradleVersionInWrapperHyperlink extends NotificationHyperlink {
   @NotNull private final File myWrapperPropertiesFile;
   @NotNull private final String myGradleVersion;
 
+  /**
+   * Creates a new {@link FixGradleVersionInWrapperHyperlink} if the given project is using the Gradle wrapper.
+   *
+   * @param project the given project.
+   * @param gradleVersion the version of Gradle to set. If {@code null}, this method will use {@link SdkConstants#GRADLE_LATEST_VERSION}.
+   * @return the created hyperlink, or {@code null} if the project is not using the Gradle wrapper.
+   */
   @Nullable
-  public static NotificationHyperlink createIfProjectUsesGradleWrapper(@NotNull Project project) {
-    File wrapperPropertiesFile = GradleUtil.findWrapperPropertiesFile(project);
+  public static NotificationHyperlink createIfProjectUsesGradleWrapper(@NotNull Project project, @Nullable String gradleVersion) {
+    File wrapperPropertiesFile = findWrapperPropertiesFile(project);
     if (wrapperPropertiesFile != null) {
-      return new FixGradleVersionInWrapperHyperlink(wrapperPropertiesFile, SdkConstants.GRADLE_LATEST_VERSION);
+      String version = gradleVersion != null ? gradleVersion : GRADLE_LATEST_VERSION;
+      return new FixGradleVersionInWrapperHyperlink(wrapperPropertiesFile, version);
     }
     return null;
   }
@@ -57,40 +62,26 @@ public class FixGradleVersionInWrapperHyperlink extends NotificationHyperlink {
 
   @Override
   protected void execute(@NotNull Project project) {
-    updateGradleVersion(project, myWrapperPropertiesFile, myGradleVersion);
-    GradleProjectSettings settings = GradleUtil.getGradleProjectSettings(project);
-    if (settings != null) {
-      settings.setDistributionType(DistributionType.DEFAULT_WRAPPED);
-    }
-    GradleProjectImporter.getInstance().requestProjectSync(project, null);
+    updateGradleDistributionUrl(project, myWrapperPropertiesFile, myGradleVersion);
+    setDistributionTypeAndSync(project);
   }
 
   @Override
   public boolean executeIfClicked(@NotNull Project project, @NotNull HyperlinkEvent event) {
     // we need HyperlinkEvent for the link deactivation after the fix apply
-    final boolean updated = updateGradleVersion(project, myWrapperPropertiesFile, myGradleVersion);
+    boolean updated = updateGradleDistributionUrl(project, myWrapperPropertiesFile, myGradleVersion);
     if (updated) {
       EditableNotificationMessageElement.disableLink(event);
+      setDistributionTypeAndSync(project);
     }
     return updated;
   }
 
-  static boolean updateGradleVersion(@NotNull Project project, @NotNull File wrapperPropertiesFile, @NotNull String gradleVersion) {
-    try {
-      boolean updated = GradleUtil.updateGradleDistributionUrl(gradleVersion, wrapperPropertiesFile);
-      if (updated) {
-        VirtualFile virtualFile = VfsUtil.findFileByIoFile(wrapperPropertiesFile, true);
-        if (virtualFile != null) {
-          virtualFile.refresh(false, false);
-        }
-        return true;
-      }
+  private static void setDistributionTypeAndSync(@NotNull Project project) {
+    GradleProjectSettings settings = getGradleProjectSettings(project);
+    if (settings != null) {
+      settings.setDistributionType(DistributionType.DEFAULT_WRAPPED);
     }
-    catch (IOException e) {
-      String msg = String.format("Unable to update Gradle wrapper to use Gradle %1$s\n", gradleVersion);
-      msg += e.getMessage();
-      Messages.showErrorDialog(project, msg, ERROR_MSG_TITLE);
-    }
-    return false;
+    GradleProjectImporter.getInstance().requestProjectSync(project, null);
   }
 }

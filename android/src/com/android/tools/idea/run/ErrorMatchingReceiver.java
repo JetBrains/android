@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.run;
 
+import com.android.tools.idea.run.util.LaunchStatus;
 import org.jetbrains.android.util.AndroidOutputReceiver;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -34,13 +34,13 @@ public class ErrorMatchingReceiver extends AndroidOutputReceiver {
   private static final Pattern TYPED_ERROR = Pattern.compile("Error\\s+[Tt]ype\\s+(\\d+).*");
   private static final String ERROR_PREFIX = "Error";
 
-  @NotNull private final AtomicBoolean myStopped;
+  @NotNull private final LaunchStatus myLaunchStatus;
   private int errorType = NO_ERROR;
   private String failureMessage = null;
   private final StringBuilder output = new StringBuilder();
 
-  public ErrorMatchingReceiver(@NotNull AtomicBoolean stopped) {
-    myStopped = stopped;
+  public ErrorMatchingReceiver(@NotNull LaunchStatus launchStatus) {
+    myLaunchStatus = launchStatus;
   }
 
   @Override
@@ -72,7 +72,7 @@ public class ErrorMatchingReceiver extends AndroidOutputReceiver {
 
   @Override
   public boolean isCancelled() {
-    return myStopped.get();
+    return myLaunchStatus.isLaunchTerminated();
   }
 
   public boolean hasError() {

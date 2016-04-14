@@ -18,13 +18,13 @@
   <problem>
     <file>MyActivity.java</file>
     <line>23</line>
-    <description><html>Call requires API level 11 (current min is 1): android.app.Activity#getActionBar</html></description>
+    <description>&lt;html&gt;Call requires API level 11 (current min is 1): android.app.Activity#getActionBar&lt;/html&gt;</description>
   </problem>
 
   <problem>
     <file>MyActivity.java</file>
     <line>24</line>
-    <description><html>Call requires API level 14 (current min is 1): android.widget.GridLayout#GridLayout</html></description>
+    <description>&lt;html&gt;Call requires API level 14 (current min is 1): android.widget.GridLayout#GridLayout&lt;/html&gt;</description>
   </problem>
 
   <!-- Missing getActionBar() call on line 26 -->
@@ -32,13 +32,13 @@
   <problem>
     <file>MyActivity.java</file>
     <line>27</line>
-    <description><html>Call requires API level 14 (current min is 1): android.widget.GridLayout#getAlignmentMode</html></description>
+    <description>&lt;html&gt;Call requires API level 14 (current min is 1): android.widget.GridLayout#getAlignmentMode&lt;/html&gt;</description>
   </problem>
 
   <problem>
     <file>MyActivity.java</file>
     <line>28</line>
-    <description><html>Call requires API level 14 (current min is 1): android.widget.GridLayout#setRowOrderPreserved</html></description>
+    <description>&lt;html&gt;Call requires API level 14 (current min is 1): android.widget.GridLayout#setRowOrderPreserved&lt;/html&gt;</description>
   </problem>
 
 </problems>

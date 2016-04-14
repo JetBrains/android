@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.updater.configure;
 
-import com.android.tools.idea.sdk.remote.UpdatablePkgInfo;
+import com.android.repository.api.UpdatablePackage;
 import com.google.common.collect.Sets;
 import com.intellij.ui.dualView.TreeTableView;
 import com.intellij.ui.treeStructure.treetable.ListTreeTableModelOnColumns;
@@ -23,12 +23,14 @@ import com.intellij.ui.treeStructure.treetable.TreeColumnInfo;
 import com.intellij.util.ui.AsyncProcessIcon;
 import com.intellij.util.ui.ColumnInfo;
 import com.intellij.util.ui.tree.TreeUtil;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.Set;
@@ -42,15 +44,17 @@ public class ToolComponentsPanel {
   private JPanel myToolsPanel;
   private TreeTableView myToolsDetailTable;
   private JPanel myToolsLoadingPanel;
-  private AsyncProcessIcon myToolsLoadingIcon;
-  private JPanel myRootPanel;
-  private Set<UpdatablePkgInfo> myToolsPackages = Sets.newTreeSet(new Comparator<UpdatablePkgInfo>() {
+  @SuppressWarnings("unused") private AsyncProcessIcon myToolsLoadingIcon;
+  @SuppressWarnings("unused") private JPanel myRootPanel;
+  private final Set<UpdatablePackage> myToolsPackages = Sets.newTreeSet(new Comparator<UpdatablePackage>() {
     @Override
-    public int compare(UpdatablePkgInfo o1, UpdatablePkgInfo o2) {
-      return o1.getPkgDesc(myIncludePreview).getListDescription().compareTo(o2.getPkgDesc(myIncludePreview).getListDescription());
+    public int compare(UpdatablePackage o1, UpdatablePackage o2) {
+      // Since we won't have added these packages if they don't have something we care about.
+      //noinspection ConstantConditions
+      return o1.getRepresentative().getDisplayName().compareTo(o2.getRepresentative().getDisplayName());
     }
   });
-  private Set<UpdatablePkgInfo> myBuildToolsPackages = Sets.newTreeSet();
+  private final Set<UpdatablePackage> myBuildToolsPackages = Sets.newTreeSet();
 
   private UpdaterTreeNode myToolsDetailsRootNode;
   private UpdaterTreeNode myToolsSummaryRootNode;
@@ -85,7 +89,7 @@ public class ToolComponentsPanel {
     myStates.clear();
 
     Set<UpdaterTreeNode> buildToolsNodes = Sets.newHashSet();
-    UpdaterTreeNode buildToolsParent = new ParentTreeNode(null, null) {
+    UpdaterTreeNode buildToolsParent = new ParentTreeNode(null) {
       @Override
       public void customizeRenderer(Renderer renderer,
                                     JTree tree,
@@ -97,24 +101,24 @@ public class ToolComponentsPanel {
         renderer.getTextRenderer().append("Android SDK Build Tools");
       }
     };
-    for (UpdatablePkgInfo info : myBuildToolsPackages) {
+    for (UpdatablePackage info : myBuildToolsPackages) {
       NodeStateHolder holder = new NodeStateHolder(info);
       myStates.add(holder);
-      UpdaterTreeNode node = new PlatformDetailsTreeNode(holder, myIncludePreview, myModificationListener);
+      UpdaterTreeNode node = new PlatformDetailsTreeNode(holder, myModificationListener);
       buildToolsParent.add(node);
       buildToolsNodes.add(node);
     }
     myToolsDetailsRootNode.add(buildToolsParent);
 
-    myToolsSummaryRootNode.add(new BuildToolsSummaryTreeNode(buildToolsNodes, myIncludePreview));
+    myToolsSummaryRootNode.add(new BuildToolsSummaryTreeNode(buildToolsNodes));
 
-    for (UpdatablePkgInfo info : myToolsPackages) {
+    for (UpdatablePackage info : myToolsPackages) {
       NodeStateHolder holder = new NodeStateHolder(info);
       myStates.add(holder);
-      UpdaterTreeNode node = new PlatformDetailsTreeNode(holder, myIncludePreview, myModificationListener);
+      UpdaterTreeNode node = new PlatformDetailsTreeNode(holder, myModificationListener);
       myToolsDetailsRootNode.add(node);
-      if (!info.getPkgDesc(myIncludePreview).isObsolete()) {
-        myToolsSummaryRootNode.add(new PlatformDetailsTreeNode(holder, myIncludePreview, myModificationListener));
+      if (!info.getRepresentative().obsolete()) {
+        myToolsSummaryRootNode.add(new PlatformDetailsTreeNode(holder, myModificationListener));
       }
     }
     refreshModified();
@@ -126,9 +130,11 @@ public class ToolComponentsPanel {
     TreeUtil.expandAll(myToolsSummaryTable.getTree());
   }
 
-  public void setPackages(Set<UpdatablePkgInfo> toolsPackages, Set<UpdatablePkgInfo> buildToolsPackages) {
-    myBuildToolsPackages = buildToolsPackages;
-    myToolsPackages = toolsPackages;
+  public void setPackages(@NotNull Set<UpdatablePackage> toolsPackages, @NotNull Set<UpdatablePackage> buildToolsPackages) {
+    myBuildToolsPackages.clear();
+    myToolsPackages.clear();
+    myBuildToolsPackages.addAll(buildToolsPackages);
+    myToolsPackages.addAll(toolsPackages);
     updateToolsItems();
   }
 
@@ -189,12 +195,5 @@ public class ToolComponentsPanel {
 
   public void clearState() {
     myStates.clear();
-  }
-
-  /**
-   * After changing whether previews are included, setPackages() must be called again with appropriately filtered packages.
-   */
-  public void setIncludePreview(boolean includePreview) {
-    myIncludePreview = includePreview;
   }
 }

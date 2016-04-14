@@ -16,18 +16,20 @@
 package com.android.tools.idea.editors.gfxtrace;
 
 import com.android.ddmlib.*;
-import com.android.tools.chartlib.EventData;
 import com.android.tools.idea.editors.gfxtrace.gapi.GapiPaths;
-import com.android.tools.idea.monitor.gpu.GpuMonitorView;
 import com.android.tools.idea.profiling.capture.Capture;
 import com.android.tools.idea.profiling.capture.CaptureHandle;
 import com.android.tools.idea.profiling.capture.CaptureService;
+import com.android.tools.idea.run.AndroidRunConfigurationBase;
+import com.android.tools.idea.run.editor.ProfilerState;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.MoreExecutors;
+import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
@@ -37,27 +39,61 @@ import java.net.SocketTimeoutException;
 import java.util.regex.Pattern;
 
 public class GfxTracer {
+  private static final long UPDATE_FREQUENCY_MS = 500;
+
   @NotNull private static final Logger LOG = Logger.getInstance(GfxTracer.class);
   @NotNull private static final String PRELOAD_LIB = "/data/local/tmp/libgapii.so";
   @NotNull private static final int GAPII_PORT = 9286;
   @NotNull private static final String GAPII_ABSTRACT_PORT = "gapii";
+  private static final int GAPII_PROTOCOL_VERSION = 3;
+  private static final int GAPII_FLAG_DISABLE_PRECOMPILED_SHADERS = 0x00000001;
 
   @NotNull private static final Pattern ENFORCING_PATTERN = Pattern.compile("^Enforcing$", Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
-  @NotNull private static final Pattern PERMISSIVE_PATTERN = Pattern.compile("^Permissive$", Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
+  @NotNull private static final Pattern PERMISSIVE_PATTERN = Pattern.compile("^Permissive$|^Disabled$", Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
 
   @NotNull private final IDevice myDevice;
   @NotNull final CaptureService myCaptureService;
   @NotNull final CaptureHandle myCapture;
-  @NotNull final EventData myEvents;
+  @NotNull final Listener myListener;
 
   private volatile boolean myStopped = false;
 
+
   // Options holds the flags used to control the capture mode.
   public static class Options {
-    // If true, then a framebuffer-observation will be made after every end-of-frame.
+    // The trace file name to output.
+    public String myTraceName;
+    // If non-zero, then a framebuffer-observation will be made after every N end-of-frames.
     public int myObserveFrameFrequency = 0;
-    // If true, then a framebuffer-observation will be made after every draw call.
+    // If non-zero, then a framebuffer-observation will be made after every N draw calls.
     public int myObserveDrawFrequency = 0;
+    // If true then GAPII will pretend the driver does not support precompiled shaders.
+    public boolean myDisablePrecompiledShaders = false;
+
+    /**
+     * Returns the default trace {@link Options} given the {@link RunConfiguration} settings.
+     */
+    public static Options fromRunConfiguration(@Nullable RunConfiguration config) {
+      Options options = new Options();
+      if (config != null && config instanceof AndroidRunConfigurationBase) {
+        ProfilerState state = ((AndroidRunConfigurationBase)config).getProfilerState();
+        options.myDisablePrecompiledShaders = state.GAPID_DISABLE_PCS;
+      }
+      return options;
+    }
+  }
+
+  /**
+   * Listener is the interface used to report trace status.
+   */
+  public interface Listener {
+    void onAction(@NotNull String name);
+
+    void onProgress(long sizeInBytes);
+
+    void onStopped();
+
+    void onError(@NotNull String error);
   }
 
   public static GfxTracer launch(@NotNull final Project project,
@@ -65,8 +101,8 @@ public class GfxTracer {
                                  @NotNull final DeviceInfo.Package pkg,
                                  @NotNull final DeviceInfo.Activity act,
                                  @NotNull final Options options,
-                                 @NotNull EventData events) {
-    final GfxTracer tracer = new GfxTracer(project, device, events);
+                                 @NotNull final Listener listener) {
+    final GfxTracer tracer = new GfxTracer(project, device, options, listener);
     ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
       @Override
       public void run() {
@@ -79,8 +115,8 @@ public class GfxTracer {
   public static GfxTracer listen(@NotNull final Project project,
                                  @NotNull final IDevice device,
                                  @NotNull final Options options,
-                                 @NotNull EventData events) {
-    final GfxTracer tracer = new GfxTracer(project, device, events);
+                                 @NotNull final Listener listener) {
+    final GfxTracer tracer = new GfxTracer(project, device, options, listener);
     ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
       @Override
       public void run() {
@@ -90,12 +126,12 @@ public class GfxTracer {
     return tracer;
   }
 
-  private GfxTracer(@NotNull Project project, @NotNull IDevice device, @NotNull EventData events) {
+  private GfxTracer(@NotNull Project project, @NotNull IDevice device, @NotNull final Options options, @NotNull Listener listener) {
     myCaptureService = CaptureService.getInstance(project);
     myDevice = device;
-    myEvents = events;
+    myListener = listener;
     try {
-      myCapture = myCaptureService.startCaptureFile(GfxTraceCaptureType.class);
+      myCapture = myCaptureService.startCaptureFile(GfxTraceCaptureType.class, options.myTraceName);
     }
     catch (IOException e) {
       throw new RuntimeException(e);
@@ -103,8 +139,8 @@ public class GfxTracer {
   }
 
   private void launchAndCapture(@NotNull final DeviceInfo.Package pkg, @NotNull final DeviceInfo.Activity act, @NotNull Options options) {
-    EventData.Event event = myEvents.start(System.currentTimeMillis(), GpuMonitorView.EVENT_LAUNCH);
     try {
+      myListener.onAction("Launching application...");
       String abi = pkg.myABI;
       if (abi == null) {
         // Package has no preferential ABI. Use device ABI instead.
@@ -146,7 +182,6 @@ public class GfxTracer {
         try {
           // Launch the app with the spy enabled
           captureAdbShell(myDevice, "am start -S -W -n " + component);
-          event.stop(System.currentTimeMillis());
           capture(options);
         }
         finally {
@@ -166,16 +201,12 @@ public class GfxTracer {
     catch (Exception e) {
       throw new RuntimeException(e);
     }
-    finally {
-      if (event.to == -1) {
-        event.stop(System.currentTimeMillis());
-      }
-    }
   }
 
   private void capture(@NotNull Options options) {
+    boolean gotData = false;
     try {
-      captureFromDevice(options);
+      gotData = captureFromDevice(options);
     }
     catch (RuntimeException e) {
       throw e;
@@ -184,41 +215,67 @@ public class GfxTracer {
       throw new RuntimeException(e);
     }
     finally {
-      // Hand the trace back to the capture system
-      ApplicationManager.getApplication().invokeLater(new Runnable() {
-        @Override
-        public void run() {
-          myCaptureService.finalizeCaptureFileAsynchronous(myCapture, new FutureCallback<Capture>() {
-            @Override
-            public void onSuccess(Capture capture) {
-              capture.getFile().refresh(true, false);
-              myCaptureService.notifyCaptureReady(capture);
-            }
+      if (gotData) {
+        // Hand the trace back to the capture system
+        ApplicationManager.getApplication().invokeLater(new Runnable() {
+          @Override
+          public void run() {
+            myCaptureService.finalizeCaptureFileAsynchronous(myCapture, new FutureCallback<Capture>() {
+              @Override
+              public void onSuccess(Capture capture) {
+                capture.getFile().refresh(true, false);
+                myCaptureService.notifyCaptureReady(capture);
+              }
 
-            @Override
-            public void onFailure(Throwable t) {
-              LOG.error(t.getMessage());
-            }
-          }, MoreExecutors.sameThreadExecutor());
-        }
-      });
+              @Override
+              public void onFailure(Throwable t) {
+                LOG.error(t.getMessage());
+              }
+            }, MoreExecutors.sameThreadExecutor());
+          }
+        });
+      }
+      else {
+        // Discard the empty capture.
+        ApplicationManager.getApplication().invokeLater(new Runnable() {
+          @Override
+          public void run() {
+            myCaptureService.cancelCaptureFile(myCapture);
+          }
+        });
+      }
     }
   }
 
-  private void captureFromDevice(@NotNull Options options)
+  /**
+   * captureFromDevice attempts to connect to graphics interceptor running on {@link #myDevice}.
+   *
+   * @param options the options to use for the trace.
+   * @return true if some data was captured, otherwise false.
+   */
+  private boolean captureFromDevice(@NotNull Options options)
     throws AdbCommandRejectedException, IOException, TimeoutException, InterruptedException {
     try {
       myDevice.createForward(GAPII_PORT, GAPII_ABSTRACT_PORT, IDevice.DeviceUnixSocketNamespace.ABSTRACT);
-      captureFromSocket("localhost", GAPII_PORT, options);
+      return captureFromSocket("localhost", GAPII_PORT, options);
     }
     finally {
       myDevice.removeForward(GAPII_PORT, GAPII_ABSTRACT_PORT, IDevice.DeviceUnixSocketNamespace.ABSTRACT);
     }
   }
 
-  private void captureFromSocket(String host, int port, @NotNull Options options) throws IOException, InterruptedException {
+  /**
+   * captureFromSocket attempts to connect to graphics interceptor on the specified address.
+   *
+   * @param host    the host address of the interceptor.
+   * @param port    the port address of the interceptor.
+   * @param options the options to use for the trace.
+   * @return true if some data was captured, otherwise false.
+   */
+  private boolean captureFromSocket(String host, int port, @NotNull Options options) throws IOException, InterruptedException {
+    myListener.onAction("Connecting to application...");
     Socket socket = null;
-    EventData.Event event = null;
+    long lastUpdateMS = 0;
     long total = 0;
     byte[] buffer = new byte[4096];
     try {
@@ -233,10 +290,15 @@ public class GfxTracer {
         }
         len = copyBlock(socket, myCapture, buffer);
         if (len > 0) {
-          if (event == null) {
-            event = myEvents.start(System.currentTimeMillis(), GpuMonitorView.EVENT_TRACING);
+          if (total == 0) {
+            myListener.onAction("Tracing...");
           }
           total += len;
+          long nowMS = System.currentTimeMillis();
+          if (nowMS - lastUpdateMS > UPDATE_FREQUENCY_MS) {
+            myListener.onProgress(total);
+            lastUpdateMS = nowMS;
+          }
         }
         else if (len < 0) {
           socket.close();
@@ -246,46 +308,51 @@ public class GfxTracer {
             Thread.sleep(500);
           }
           else {
-            myStopped = true;
+            stop();
           }
         }
       }
     }
     finally {
-      if (event != null) {
-        event.stop(System.currentTimeMillis());
-      }
       if (socket != null) {
         socket.close();
       }
     }
+    return total > 0;
   }
 
   private static void sendHeader(@NotNull Socket socket, @NotNull Options options) throws IOException {
-    // The GAPII header version 1 is defined as:
+    // The GAPII header version 3 is defined as:
     //
     // struct ConnectionHeader {
     //   uint8_t  mMagic[4];                     // 's', 'p', 'y', '0'
-    //   uint32_t mVersion;                      // 2
-    //   uint32_t  mObserveFrameFrequency;      // non-zero == enabled
-    //   uint32_t  mObserveDrawFrequency; // non-zero == enabled
+    //   uint32_t mVersion;                      // 3
+    //   uint32_t  mObserveFrameFrequency;       // non-zero == enabled
+    //   uint32_t  mObserveDrawFrequency;        // non-zero == enabled
+    //   uint32_t  mFlags;                       // bitfield
     // };
     //
     // All fields are encoded little-endian with no compression, regardless of
     // architecture. All changes must be kept in sync with:
     //   platform/tools/gpu/cc/gapii/connection_header.h
+
+    int flags = 0;
+    if (options.myDisablePrecompiledShaders) {
+      flags |= GAPII_FLAG_DISABLE_PRECOMPILED_SHADERS;
+    }
+
     OutputStream out = socket.getOutputStream();
-    byte[] b = new byte[16];
+    byte[] b = new byte[20];
     // magic
     b[0] = 's';
     b[1] = 'p';
     b[2] = 'y';
     b[3] = '0';
     // version
-    b[4] = 2;
-    b[5] = 0;
-    b[6] = 0;
-    b[7] = 0;
+    b[4] = (byte)(GAPII_PROTOCOL_VERSION >> 0);
+    b[5] = (byte)(GAPII_PROTOCOL_VERSION >> 8);
+    b[6] = (byte)(GAPII_PROTOCOL_VERSION >> 16);
+    b[7] = (byte)(GAPII_PROTOCOL_VERSION >> 24);
     // mObserveFrameFrequency
     b[8] = (byte)(options.myObserveFrameFrequency >> 0);
     b[9] = (byte)(options.myObserveFrameFrequency >> 8);
@@ -296,12 +363,19 @@ public class GfxTracer {
     b[13] = (byte)(options.myObserveDrawFrequency >> 8);
     b[14] = (byte)(options.myObserveDrawFrequency >> 16);
     b[15] = (byte)(options.myObserveDrawFrequency >> 24);
+    // mFlags
+    b[16] = (byte)(flags >> 0);
+    b[17] = (byte)(flags >> 8);
+    b[18] = (byte)(flags >> 16);
+    b[19] = (byte)(flags >> 24);
+
     out.write(b);
     out.flush();
   }
 
   public void stop() {
     myStopped = true;
+    myListener.onStopped();
   }
 
   private static int copyBlock(Socket socket, CaptureHandle capture, byte[] buffer) throws IOException {

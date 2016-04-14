@@ -64,7 +64,7 @@ public final class TimingInfo implements BinaryObject {
   public BinaryClass klass() { return Klass.INSTANCE; }
 
 
-  private static final Entity ENTITY = new Entity("service","TimingInfo","","");
+  private static final Entity ENTITY = new Entity("service", "TimingInfo", "", "");
 
   static {
     ENTITY.setFields(new Field[]{

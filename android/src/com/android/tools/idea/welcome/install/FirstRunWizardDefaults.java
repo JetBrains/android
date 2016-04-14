@@ -17,7 +17,6 @@ package com.android.tools.idea.welcome.install;
 
 import com.android.SdkConstants;
 import com.android.sdklib.devices.Storage;
-import com.android.sdklib.repository.FullRevision;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;

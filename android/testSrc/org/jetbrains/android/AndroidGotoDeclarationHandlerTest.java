@@ -16,13 +16,16 @@
 package org.jetbrains.android;
 
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationAction;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
-import com.intellij.usageView.UsageInfo;
+import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
+import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import org.jetbrains.android.dom.AndroidValueResourcesTest;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
+import java.util.List;
 
 /**
  * Note: There are some additional tests for goto declaration in {@link AndroidValueResourcesTest} such
@@ -35,11 +38,38 @@ import java.util.Collection;
 public class AndroidGotoDeclarationHandlerTest extends AndroidTestCase {
   private static final String BASE_PATH = "/gotoDeclaration/";
 
+  @Override
+  protected void configureAdditionalModules(@NotNull TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder,
+                                            @NotNull List<MyAdditionalModuleData> modules) {
+    addModuleWithAndroidFacet(projectBuilder, modules, "lib", true);
+  }
+
   public void testGotoString() throws Exception {
     myFixture.copyFileToProject("R.java", "gen/p1/p2/R.java");
     myFixture.copyFileToProject(BASE_PATH + "strings.xml", "res/values/strings.xml");
     myFixture.copyFileToProject(BASE_PATH + "layout.xml", "res/layout/layout.xml");
     VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "GotoString.java", "src/p1/p2/GotoString.java");
+    assertEquals("values/strings.xml:2:\n" +
+                 "  <string name=\"hello\">hello</string>\n" +
+                 "               ~|~~~~~~              \n",
+                 describeElements(getDeclarationsFrom(file))
+    );
+  }
+
+  public void testGotoImportedString() throws Exception {
+    Module libModule = myAdditionalModules.get(0);
+    // Remove the current lib manifest (has wrong package name) and copy a manifest with proper package into the lib module.
+    deleteManifest(libModule);
+    myFixture.copyFileToProject("util/lib/AndroidManifest.xml", "additionalModules/lib/AndroidManifest.xml");
+    // Copy an empty R class with the proper package into the lib module.
+    myFixture.copyFileToProject("util/lib/R.java", "additionalModules/lib/gen/p1/p2/lib/R.java");
+    // Add some lib string resources.
+    myFixture.copyFileToProject(BASE_PATH + "strings.xml", "additionalModules/lib/res/values/strings.xml");
+    myFixture.copyFileToProject(BASE_PATH + "layout.xml", "additionalModules/lib/res/layout/layout.xml");
+    // Remove the manifest from the main module.
+    deleteManifest(myModule);
+
+    VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "ImportedGotoString.java", "src/p1/p2/ImportedGotoString.java");
     assertEquals("values/strings.xml:2:\n" +
                  "  <string name=\"hello\">hello</string>\n" +
                  "               ~|~~~~~~              \n",

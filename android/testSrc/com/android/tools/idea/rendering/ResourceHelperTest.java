@@ -15,16 +15,21 @@
  */
 package com.android.tools.idea.rendering;
 
+import com.android.ide.common.rendering.api.RenderResources;
+import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.google.common.collect.ImmutableMap;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import org.jetbrains.android.AndroidTestCase;
 
 import java.awt.*;
+import java.util.List;
 
 import static com.android.tools.idea.rendering.ResourceHelper.getResourceName;
 import static com.android.tools.idea.rendering.ResourceHelper.getResourceUrl;
+import static com.android.tools.idea.rendering.ResourceHelper.resolveColor;
 import static org.fest.assertions.Assertions.assertThat;
 
 public class ResourceHelperTest extends AndroidTestCase {
@@ -112,6 +117,21 @@ public class ResourceHelperTest extends AndroidTestCase {
     c = ResourceHelper.parseColor("#08123456");
     assert c != null;
     assertEquals(0x08123456, c.getRGB());
+
+    // Test that spaces are correctly trimmed
+    c = ResourceHelper.parseColor("#0f4 ");
+    assert c != null;
+    assertEquals(0xff00ff44, c.getRGB());
+
+    c = ResourceHelper.parseColor(" #1237");
+    assert c != null;
+    assertEquals(0x11223377, c.getRGB());
+
+    c = ResourceHelper.parseColor("#123456\n\n ");
+    assert c != null;
+    assertEquals(0xff123456, c.getRGB());
+
+    assertNull(ResourceHelper.parseColor("#123 456"));
   }
 
   public void testColorToString() {
@@ -192,5 +212,33 @@ public class ResourceHelperTest extends AndroidTestCase {
     stateList.addState(selected);
     stateList.addState(notFocused);
     assertThat(stateList.getDisabledStates()).containsExactly(selected, notFocused);
+  }
+
+  public void testGetCompletionFromTypes() {
+    myFixture.copyFileToProject("resourceHelper/values.xml", "res/values/values.xml");
+    myFixture.copyFileToProject("resourceHelper/my_state_list.xml", "res/color/my_state_list.xml");
+
+    List<String> colorOnly = ResourceHelper.getCompletionFromTypes(myFacet, new ResourceType[]{ResourceType.COLOR});
+    List<String> drawableOnly = ResourceHelper.getCompletionFromTypes(myFacet, new ResourceType[]{ResourceType.DRAWABLE});
+    List<String> colorAndDrawable =
+      ResourceHelper.getCompletionFromTypes(myFacet, new ResourceType[]{ResourceType.COLOR, ResourceType.DRAWABLE});
+    List<String> dimenOnly = ResourceHelper.getCompletionFromTypes(myFacet, new ResourceType[]{ResourceType.DIMEN});
+
+    assertThat(colorOnly).containsExactly("@android:color/primary_text_dark", "@color/myColor1", "@color/myColor2", "@color/my_state_list");
+    assertThat(drawableOnly)
+      .containsExactly("@android:color/primary_text_dark", "@color/myColor1", "@color/myColor2", "@android:drawable/menuitem_background");
+    assertThat(colorAndDrawable)
+      .containsExactly("@android:color/primary_text_dark", "@color/myColor1", "@color/myColor2", "@color/my_state_list",
+                       "@android:drawable/menuitem_background");
+    assertThat(dimenOnly).containsExactly("@dimen/myAlpha", "@dimen/myDimen");
+  }
+
+  public void testResolveEmptyStatelist() {
+    VirtualFile file = myFixture.copyFileToProject("resourceHelper/empty_state_list.xml", "res/color/empty_state_list.xml");
+    RenderResources rr = myFacet.getConfigurationManager().getConfiguration(file).getResourceResolver();
+    assertNotNull(rr);
+    ResourceValue rv = rr.getProjectResource(ResourceType.COLOR, "empty_state_list");
+    assertNotNull(rv);
+    assertNull(resolveColor(rr, rv, myModule.getProject()));
   }
 }

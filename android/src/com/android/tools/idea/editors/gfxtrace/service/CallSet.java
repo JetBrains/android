@@ -56,7 +56,7 @@ final class CallSet implements BinaryObject {
   public BinaryClass klass() { return Klass.INSTANCE; }
 
 
-  private static final Entity ENTITY = new Entity("service","callSet","","");
+  private static final Entity ENTITY = new Entity("service", "callSet", "", "");
 
   static {
     ENTITY.setFields(new Field[]{

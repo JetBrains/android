@@ -19,16 +19,15 @@ package com.android.tools.idea.sdk.remote;
 import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
-import com.android.sdklib.SdkManager;
-import com.android.sdklib.io.IFileOp;
-import com.android.sdklib.repository.FullRevision;
-import com.android.sdklib.repository.License;
+import com.android.repository.Revision;
+import com.android.repository.api.License;
+import com.android.repository.api.RepoManager;
+import com.android.repository.impl.meta.CommonFactory;
+import com.android.repository.io.FileOp;
 import com.android.sdklib.repository.PkgProps;
-import com.android.sdklib.repository.PreciseRevision;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.local.LocalPkgInfo;
 import com.android.tools.idea.sdk.remote.internal.ITaskMonitor;
-import com.android.tools.idea.sdk.remote.internal.archives.ArchFilter;
 import com.android.tools.idea.sdk.remote.internal.archives.Archive;
 import com.android.tools.idea.sdk.remote.internal.packages.RemotePackageParserUtils;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkRepoConstants;
@@ -85,7 +84,7 @@ public abstract class RemotePkgInfo implements Comparable<RemotePkgInfo> {
   protected final String mListDisplay;
   protected final String mDescription;
   protected final String mDescUrl;
-  protected PreciseRevision mRevision;
+  protected Revision mRevision;
 
   protected final Archive[] mArchives;
   protected final SdkSource mSource;
@@ -105,7 +104,7 @@ public abstract class RemotePkgInfo implements Comparable<RemotePkgInfo> {
     mArchives = parseArchives(RemotePackageParserUtils.findChildElement(packageNode, SdkRepoConstants.NODE_ARCHIVES));
     mRevision =
       RemotePackageParserUtils
-        .parsePreciseRevisionElement(RemotePackageParserUtils.findChildElement(packageNode, SdkRepoConstants.NODE_REVISION));
+        .parseRevisionElement(RemotePackageParserUtils.findChildElement(packageNode, SdkRepoConstants.NODE_REVISION));
   }
 
   /**
@@ -158,11 +157,11 @@ public abstract class RemotePkgInfo implements Comparable<RemotePkgInfo> {
    */
   public void saveProperties(@NonNull Properties props) {
     if (mLicense != null) {
-      String license = mLicense.getLicense();
+      String license = mLicense.getValue();
       if (license != null && license.length() > 0) {
         props.setProperty(PkgProps.PKG_LICENSE, license);
       }
-      String licenseRef = mLicense.getLicenseRef();
+      String licenseRef = mLicense.getId();
       if (licenseRef != null && licenseRef.length() > 0) {
         props.setProperty(PkgProps.PKG_LICENSE_REF, licenseRef);
       }
@@ -197,7 +196,11 @@ public abstract class RemotePkgInfo implements Comparable<RemotePkgInfo> {
       Node ref = usesLicense.getAttributes().getNamedItem(SdkRepoConstants.ATTR_REF);
       if (ref != null) {
         String licenseRef = ref.getNodeValue();
-        return new License(licenses.get(licenseRef), licenseRef);
+        CommonFactory f = (CommonFactory)RepoManager.getCommonModule().createLatestFactory();
+        License l = f.createLicenseType();
+        l.setId(licenseRef);
+        l.setValue(licenses.get(licenseRef));
+        return l;
       }
     }
     return null;
@@ -260,7 +263,7 @@ public abstract class RemotePkgInfo implements Comparable<RemotePkgInfo> {
    * Returns the revision for this package.
    */
   @NonNull
-  public FullRevision getRevision() {
+  public Revision getRevision() {
     return mRevision;
   }
 
@@ -386,56 +389,6 @@ public abstract class RemotePkgInfo implements Comparable<RemotePkgInfo> {
     return getPkgDesc().getDescriptionShort();
   }
 
-  /**
-   * Computes a potential installation folder if an archive of this package were
-   * to be installed right away in the given SDK root.
-   * <p/>
-   * Some types of packages install in a fix location, for example docs and tools.
-   * In this case the returned folder may already exist with a different archive installed
-   * at the desired location. <br/>
-   * For other packages types, such as add-on or platform, the folder name is only partially
-   * relevant to determine the content and thus a real check will be done to provide an
-   * existing or new folder depending on the current content of the SDK.
-   * <p/>
-   * Note that the installer *will* create all directories returned here just before
-   * installation so this method must not attempt to create them.
-   *
-   * @param osSdkRoot  The OS path of the SDK root folder.
-   * @param sdkManager An existing SDK manager to list current platforms and addons.
-   * @return A new {@link File} corresponding to the directory to use to install this package.
-   */
-  @NonNull
-  public abstract File getInstallFolder(String osSdkRoot, SdkManager sdkManager);
-
-
-  /**
-   * Hook called right before an archive is installed. The archive has already
-   * been downloaded successfully and will be installed in the directory specified by
-   * <var>installFolder</var> when this call returns.
-   * <p/>
-   * The hook lets the package decide if installation of this specific archive should
-   * be continue. The installer will still install the remaining packages if possible.
-   * <p/>
-   * The base implementation always return true.
-   * <p/>
-   * Note that the installer *will* create all directories specified by
-   * {@link #getInstallFolder} just before installation, so they must not be
-   * created here. This is also called before the previous install dir is removed
-   * so the previous content is still there during upgrade.
-   *
-   * @param archive       The archive that will be installed
-   * @param monitor       The {@link ITaskMonitor} to display errors.
-   * @param osSdkRoot     The OS path of the SDK root folder.
-   * @param installFolder The folder where the archive will be installed. Note that this
-   *                      is <em>not</em> the folder where the archive was temporary
-   *                      unzipped. The installFolder, if it exists, contains the old
-   *                      archive that will soon be replaced by the new one.
-   * @return True if installing this archive shall continue, false if it should be skipped.
-   */
-  public boolean preInstallHook(Archive archive, ITaskMonitor monitor, String osSdkRoot, File installFolder) {
-    // Nothing to do in base class.
-    return true;
-  }
 
   /**
    * Hook called right after a file has been unzipped (during an install).
@@ -445,11 +398,11 @@ public abstract class RemotePkgInfo implements Comparable<RemotePkgInfo> {
    *
    * @param archive      The archive that is being installed.
    * @param monitor      The {@link ITaskMonitor} to display errors.
-   * @param fileOp       The {@link IFileOp} used by the archive installer.
+   * @param fileOp       The {@link FileOp} used by the archive installer.
    * @param unzippedFile The file that has just been unzipped in the install temp directory.
    * @param zipEntry     The {@link ZipArchiveEntry} that has just been unzipped.
    */
-  public void postUnzipFileHook(Archive archive, ITaskMonitor monitor, IFileOp fileOp, File unzippedFile, ZipArchiveEntry zipEntry) {
+  public void postUnzipFileHook(Archive archive, ITaskMonitor monitor, FileOp fileOp, File unzippedFile, ZipArchiveEntry zipEntry) {
 
     // if needed set the permissions.
     if (sUsingUnixPerm && fileOp.isFile(unzippedFile)) {
@@ -520,18 +473,18 @@ public abstract class RemotePkgInfo implements Comparable<RemotePkgInfo> {
     }
 
     // check they are the same item, ignoring the preview bit.
-    if (!sameItemAs(localPkg, FullRevision.PreviewComparison.IGNORE)) {
+    if (!sameItemAs(localPkg, Revision.PreviewComparison.IGNORE)) {
       return UpdateInfo.INCOMPATIBLE;
     }
 
     // a preview cannot update a non-preview
     // TODO(jbakermalone): review this logic
-    if (getRevision().isPreview() && !localPkg.getDesc().getFullRevision().isPreview()) {
+    if (getRevision().isPreview() && !localPkg.getDesc().getRevision().isPreview()) {
       return UpdateInfo.INCOMPATIBLE;
     }
 
     // check revision number
-    if (localPkg.getDesc().getFullRevision().compareTo(this.getRevision()) < 0) {
+    if (localPkg.getDesc().getRevision().compareTo(this.getRevision()) < 0) {
       return UpdateInfo.UPDATE;
     }
 
@@ -548,14 +501,14 @@ public abstract class RemotePkgInfo implements Comparable<RemotePkgInfo> {
    * @param pkg the package to compare.
    * @return true if the item as equivalent.
    */
-  protected boolean sameItemAs(LocalPkgInfo pkg, FullRevision.PreviewComparison comparePreview) {
+  protected boolean sameItemAs(LocalPkgInfo pkg, Revision.PreviewComparison comparePreview) {
     IPkgDesc desc = getPkgDesc();
     IPkgDesc other = pkg.getDesc();
     return Objects.equal(desc.getPath(), other.getPath()) &&
            Objects.equal(desc.getTag(), other.getTag()) &&
            Objects.equal(desc.getAndroidVersion(), other.getAndroidVersion()) &&
            Objects.equal(desc.getVendor(), other.getVendor()) &&
-           (comparePreview == FullRevision.PreviewComparison.IGNORE ||
-            desc.getFullRevision().isPreview() == other.getFullRevision().isPreview());
+           (comparePreview == Revision.PreviewComparison.IGNORE ||
+            desc.getRevision().isPreview() == other.getRevision().isPreview());
   }
 }

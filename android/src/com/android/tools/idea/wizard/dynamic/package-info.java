@@ -24,5 +24,7 @@
  * Data is passed along the wizard from step to step via a
  * {@link com.android.tools.idea.wizard.dynamic.ScopedStateStore}, which is a hashtable of data,
  * essentially.
+ * <p/>
+ * TODO: Post wizard migration: delete this package
  */
 package com.android.tools.idea.wizard.dynamic;

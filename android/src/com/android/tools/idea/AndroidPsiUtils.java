@@ -231,26 +231,30 @@ public class AndroidPsiUtils {
 
   @NotNull
   public static ResourceReferenceType getResourceReferenceType(PsiReferenceExpression element) {
-    PsiExpression exp = element.getQualifierExpression();
-    if (!(exp instanceof PsiReferenceExpression)) {
+    PsiElement resolvedElement = element.resolve();
+    if (resolvedElement == null) {
       return ResourceReferenceType.NONE;
     }
 
-    exp = ((PsiReferenceExpression)exp).getQualifierExpression();
-    if (!(exp instanceof PsiReferenceExpression)) {
+    // Examples of valid resources references are my.package.R.string.app_name or my.package.R.color.my_black
+    // First parent is the resource type - eg string or color, etc
+    PsiElement elementType = resolvedElement.getParent();
+    if (!(elementType instanceof PsiClass)) {
       return ResourceReferenceType.NONE;
     }
 
-    PsiReferenceExpression ref = (PsiReferenceExpression)exp;
-    if (R_CLASS.equals(ref.getReferenceName())) {
-      PsiExpression qualifierExpression = ref.getQualifierExpression();
-      if (qualifierExpression instanceof PsiReferenceExpression &&
-          ANDROID_PKG.equals(((PsiReferenceExpression)qualifierExpression).getReferenceName())) {
+    // Second parent is the package
+    PsiElement elementPackage = elementType.getParent();
+    if (!(elementPackage instanceof PsiClass)) {
+      return ResourceReferenceType.NONE;
+    }
+
+    if (R_CLASS.equals(((PsiClass)elementPackage).getName())) {
+      PsiElement elemParent3 = elementPackage.getParent();
+      if (elemParent3 instanceof PsiClassOwner &&
+          ANDROID_PKG.equals(((PsiClassOwner)elemParent3).getPackageName())) {
         return ResourceReferenceType.FRAMEWORK;
       } else {
-        // TODO: Check resolved type to make sure it's not a class with android.R imported?
-        // Not super important since we actively discourage importing android.R directly
-        // via lint checks and the AndroidImportFilter preventing it from happening automatically
         return ResourceReferenceType.APP;
       }
     }
@@ -269,11 +273,17 @@ public class AndroidPsiUtils {
                                  (PsiReferenceExpression)resourceRefElement :
                                  (PsiReferenceExpression)resourceRefElement.getParent();
 
-    PsiExpression qualifierExpression = exp.getQualifierExpression();
-    if (qualifierExpression == null) {
+    PsiElement resolvedElement = exp.resolve();
+    if (resolvedElement == null) {
       return null;
     }
-    return ResourceType.getEnum(qualifierExpression.getLastChild().getText());
+
+    PsiElement elemParent = resolvedElement.getParent();
+    if (!(elemParent instanceof PsiClass)) {
+      return null;
+    }
+
+    return ResourceType.getEnum(((PsiClass)elemParent).getName());
   }
 
   /**

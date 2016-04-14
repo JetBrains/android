@@ -17,13 +17,10 @@
 package com.android.tools.idea.sdk.remote.internal.packages;
 
 import com.android.SdkConstants;
-import com.android.annotations.NonNull;
+import com.android.repository.Revision;
+import com.android.repository.io.FileOp;
 import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.SdkManager;
-import com.android.sdklib.io.IFileOp;
-import com.android.sdklib.repository.FullRevision;
-import com.android.sdklib.repository.IDescription;
-import com.android.sdklib.repository.MajorRevision;
+import com.android.sdklib.AndroidVersionHelper;
 import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.sdk.remote.internal.ITaskMonitor;
@@ -31,6 +28,7 @@ import com.android.tools.idea.sdk.remote.internal.archives.Archive;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkRepoConstants;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkSource;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Node;
 
 import java.io.File;
@@ -40,7 +38,7 @@ import java.util.Properties;
 /**
  * Represents a source XML node in an SDK repository.
  */
-public class RemoteSourcePkgInfo extends RemotePkgInfo implements IAndroidVersionProvider {
+public class RemoteSourcePkgInfo extends RemotePkgInfo {
 
   /**
    * Creates a new source package from the attributes and elements of the given XML node.
@@ -62,7 +60,7 @@ public class RemoteSourcePkgInfo extends RemotePkgInfo implements IAndroidVersio
     }
     AndroidVersion version = new AndroidVersion(apiLevel, codeName);
 
-    PkgDesc.Builder pkgDescBuilder = PkgDesc.Builder.newSource(version, new MajorRevision(getRevision()));
+    PkgDesc.Builder pkgDescBuilder = PkgDesc.Builder.newSource(version, getRevision());
     pkgDescBuilder.setDescriptionShort(createShortDescription(mListDisplay, getRevision(), version, isObsolete()));
     pkgDescBuilder.setDescriptionUrl(getDescUrl());
     pkgDescBuilder.setListDisplay(createListDescription(mListDisplay, version, isObsolete()));
@@ -78,14 +76,13 @@ public class RemoteSourcePkgInfo extends RemotePkgInfo implements IAndroidVersio
   @Override
   public void saveProperties(Properties props) {
     super.saveProperties(props);
-    getPkgDesc().getAndroidVersion().saveProperties(props);
+    AndroidVersionHelper.saveProperties(getPkgDesc().getAndroidVersion(), props);
   }
 
   /**
    * Returns the android version of this package.
    */
-  @Override
-  @NonNull
+  @NotNull
   public AndroidVersion getAndroidVersion() {
     return getPkgDesc().getAndroidVersion();
   }
@@ -121,7 +118,7 @@ public class RemoteSourcePkgInfo extends RemotePkgInfo implements IAndroidVersio
   /**
    * Returns a short description for an {@link IDescription}.
    */
-  private static String createShortDescription(String listDisplay, FullRevision revision, AndroidVersion version, boolean obsolete) {
+  private static String createShortDescription(String listDisplay, Revision revision, AndroidVersion version, boolean obsolete) {
     if (!listDisplay.isEmpty()) {
       return String.format("%1$s, revision %2$s%3$s", listDisplay, revision.toShortString(), obsolete ? " (Obsolete)" : "");
     }
@@ -138,28 +135,11 @@ public class RemoteSourcePkgInfo extends RemotePkgInfo implements IAndroidVersio
   }
 
   /**
-   * Computes a potential installation folder if an archive of this package were
-   * to be installed right away in the given SDK root.
-   * <p/>
-   * A sources package is typically installed in SDK/sources/platform.
-   *
-   * @param osSdkRoot  The OS path of the SDK root folder.
-   * @param sdkManager An existing SDK manager to list current platforms and addons.
-   * @return A new {@link File} corresponding to the directory to use to install this package.
-   */
-  @Override
-  public File getInstallFolder(String osSdkRoot, SdkManager sdkManager) {
-    File folder = new File(osSdkRoot, SdkConstants.FD_PKG_SOURCES);
-    folder = new File(folder, "android-" + getPkgDesc().getAndroidVersion().getApiString());    //$NON-NLS-1$
-    return folder;
-  }
-
-  /**
    * Set all the files from a source package as read-only
    * so that users don't end up modifying sources by mistake in Eclipse.
    */
   @Override
-  public void postUnzipFileHook(Archive archive, ITaskMonitor monitor, IFileOp fileOp, File unzippedFile, ZipArchiveEntry zipEntry) {
+  public void postUnzipFileHook(Archive archive, ITaskMonitor monitor, FileOp fileOp, File unzippedFile, ZipArchiveEntry zipEntry) {
     super.postUnzipFileHook(archive, monitor, fileOp, unzippedFile, zipEntry);
 
     if (fileOp.isFile(unzippedFile) && !SdkConstants.FN_SOURCE_PROP.equals(unzippedFile.getName())) {

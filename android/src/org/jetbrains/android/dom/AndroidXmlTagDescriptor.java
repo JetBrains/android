@@ -39,13 +39,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
-/**
- * Created by IntelliJ IDEA.
- * User: Eugene.Kudelevsky
- * Date: Sep 4, 2009
- * Time: 7:34:33 PM
- * To change this template use File | Settings | File Templates.
- */
 public class AndroidXmlTagDescriptor implements XmlElementDescriptor, PsiPresentableMetaData {
   private final XmlElementDescriptor myParentDescriptor;
   private final PsiClass myDeclarationClass;

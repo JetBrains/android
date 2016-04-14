@@ -28,7 +28,7 @@ import java.awt.event.ActionListener;
  */
 public final class SelectedIndexProperty extends IntProperty implements ActionListener {
 
-  private JComboBox myComboBox;
+  @NotNull private JComboBox myComboBox;
 
   public SelectedIndexProperty(@NotNull JComboBox comboBox) {
     myComboBox = comboBox;

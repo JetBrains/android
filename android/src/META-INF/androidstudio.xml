@@ -28,10 +28,16 @@
     <!-- TODO: For now, restrict the Android project view pane to only be available in Android Studio. Once the bugs
     are sorted out, we can move it into the Android plugin (so that it gets included in IntelliJ). -->
     <projectViewPane implementation="com.android.tools.idea.navigator.AndroidProjectViewPane"/>
+
     <welcomeScreen implementation="com.android.tools.idea.welcome.wizard.AndroidStudioWelcomeScreenProvider"/>
+    <applicationService serviceImplementation="com.android.tools.idea.welcome.config.AndroidFirstRunPersistentData" />
   </extensions>
 
   <actions>
+    <action id="Android.CleanRun" class="com.android.tools.idea.run.ReRunAction">
+      <add-to-group group-id="RunMenu" anchor="before" relative-to-action="Stop" />
+      <add-to-group group-id="ToolbarRunGroup" anchor="before" relative-to-action="Stop" />
+    </action>
 
     <action id="AndroidAddRTLSupport" class="com.android.tools.idea.actions.AndroidAddRtlSupportAction"
             text="Add RTL Support Where Possible..." description="Add right-to-left (RTL) support where possible">
@@ -55,17 +61,6 @@
     <applicationService serviceInterface="org.jetbrains.plugins.gradle.service.GradleInstallationManager"
                         serviceImplementation="com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager"
                         overrides="true"/>
-
-    <projectService serviceInterface="org.jetbrains.plugins.gradle.settings.GradleSettings"
-                        serviceImplementation="com.android.tools.idea.gradle.project.AndroidStudioGradleSettings"
-                        overrides="true"/>
   </extensions>
-
-  <application-components>
-    <component>
-      <interface-class>com.android.tools.idea.welcome.config.AndroidFirstRunPersistentData</interface-class>
-      <implementation-class>com.android.tools.idea.welcome.config.AndroidFirstRunPersistentData</implementation-class>
-    </component>
-  </application-components>
 
 </idea-plugin>

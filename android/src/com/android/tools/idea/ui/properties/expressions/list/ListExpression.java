@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.ui.properties.expressions.list;
 
-import com.android.tools.idea.ui.properties.ObservableValue;
 import com.android.tools.idea.ui.properties.collections.ObservableList;
 import com.android.tools.idea.ui.properties.expressions.Expression;
 
@@ -27,7 +26,7 @@ import java.util.List;
  * @param <S> The type of the elements in the source list
  * @param <D> The type of the elements in the final destination list
  */
-public abstract class ListExpression<S, D> extends Expression implements ObservableValue<List<? extends D>> {
+public abstract class ListExpression<S, D> extends Expression<List<? extends D>> {
   protected ListExpression(ObservableList<? extends S> sourceList) {
     super(sourceList);
   }

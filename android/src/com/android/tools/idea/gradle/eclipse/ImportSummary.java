@@ -19,7 +19,7 @@ package com.android.tools.idea.gradle.eclipse;
 import com.android.annotations.NonNull;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.repository.GradleCoordinate;
-import com.android.sdklib.repository.FullRevision;
+import com.android.repository.Revision;
 import com.android.utils.SdkUtils;
 import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
@@ -234,7 +234,7 @@ public class ImportSummary {
       boolean replaced = myGuessedDependencyVersions.remove(jar.getName());
       if (replaced) {
         myGuessedDependencyVersions.add(jar.getName() + " => version " +
-                                        dependency.getFullRevision() + " in " + dependency.toString());
+                                        dependency.getRevision() + " in " + dependency.toString());
       }
       myLastGuessedJar = null;
     }
@@ -432,7 +432,7 @@ public class ImportSummary {
       sb.append(MSG_MISSING_GOOGLE_REPOSITORY_2);
     }
 
-    if (FullRevision.parseRevision(myImporter.getBuildToolsVersion()).getMajor() < 19) {
+    if (Revision.parseRevision(myImporter.getBuildToolsVersion()).getMajor() < 19) {
       sb.append(MSG_BUILD_TOOLS_VERSION);
     }
 

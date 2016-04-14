@@ -134,7 +134,7 @@ public final class Device implements BinaryObject {
   public BinaryClass klass() { return Klass.INSTANCE; }
 
 
-  private static final Entity ENTITY = new Entity("service","Device","","");
+  private static final Entity ENTITY = new Entity("service", "Device", "", "");
 
   static {
     ENTITY.setFields(new Field[]{

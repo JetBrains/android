@@ -15,11 +15,18 @@
  */
 package com.android.tools.idea.run;
 
-import com.android.annotations.NonNull;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
-import com.intellij.ui.ColoredTextContainer;
+import com.android.sdklib.IAndroidTarget;
+import com.android.sdklib.devices.Abi;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.intellij.openapi.project.Project;
+import com.intellij.ui.SimpleColoredComponent;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.EnumSet;
+import java.util.List;
 
 /**
  * An {@link AndroidDevice} represents either a connected {@link IDevice}, or the
@@ -36,13 +43,41 @@ public interface AndroidDevice {
   @NotNull
   AndroidVersion getVersion();
 
+  /** Returns the device display density. */
+  int getDensity();
+
+  /** Returns the list of (sorted by most preferred first) ABIs supported by this device. */
+  @NotNull
+  List<Abi> getAbis();
+
   /** Returns a unique serial number */
   @NotNull
   String getSerial();
 
   /** Returns whether this device supports the given hardware feature. */
-  boolean supportsFeature(@NonNull IDevice.HardwareFeature feature);
+  boolean supportsFeature(@NotNull IDevice.HardwareFeature feature);
 
-  /** Renders the device name to the given component. */
-  void renderName(@NotNull ColoredTextContainer component);
+  /** Returns the device name. */
+  @NotNull
+  String getName();
+
+  /** Renders the device name and misc. info to the given component. */
+  void renderName(@NotNull SimpleColoredComponent renderer, boolean isCompatible, @Nullable String searchPrefix);
+
+  /** Returns the {@link IDevice} corresponding to this device, launching it if necessary. */
+  @NotNull
+  ListenableFuture<IDevice> launch(@NotNull Project project);
+
+  /**
+   * Returns the {@link IDevice} corresponding to this device if it is running or has been launched.
+   * Throws {@link IllegalStateException} if the device is not running and hasn't been launched.
+   */
+  @NotNull
+  ListenableFuture<IDevice> getLaunchedDevice();
+
+  /** Check if this device can run an application with given requirements. */
+  @NotNull
+  LaunchCompatibility canRun(@NotNull AndroidVersion minSdkVersion,
+                             @NotNull IAndroidTarget projectTarget,
+                             @NotNull EnumSet<IDevice.HardwareFeature> requiredFeatures);
 }

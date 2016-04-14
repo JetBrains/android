@@ -86,7 +86,7 @@ public final class ThumbnailPath extends Path {
   public BinaryClass klass() { return Klass.INSTANCE; }
 
 
-  private static final Entity ENTITY = new Entity("path","Thumbnail","","");
+  private static final Entity ENTITY = new Entity("path", "Thumbnail", "", "");
 
   static {
     ENTITY.setFields(new Field[]{

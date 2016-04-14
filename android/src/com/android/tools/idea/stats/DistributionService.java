@@ -16,7 +16,8 @@
 package com.android.tools.idea.stats;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.sdklib.repository.FullRevision;
+import com.android.annotations.concurrency.GuardedBy;
+import com.android.repository.Revision;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.gson.*;
@@ -61,15 +62,24 @@ public class DistributionService {
   private static final String FILE_PATTERN =
     FileUtil.getNameWithoutExtension(STATS_FILENAME) + "(_[0-9]+)?\\." + FileUtilRt.getExtension(STATS_FILENAME);
 
-  private List<Distribution> myDistributions = null;
-  private long myRefreshTime;
-  private long myAttemptTime;
-  private final FileDownloader myDownloader;
-  private final List<Runnable> mySuccesses = Lists.newLinkedList();
-  private final List<Runnable> myFailures = Lists.newArrayList();
   private final Object myLock = new Object();
-  private final File myCachePath;
+  @SuppressWarnings("FieldAccessedSynchronizedAndUnsynchronized")
+  @GuardedBy("myLock")
+  private List<Distribution> myDistributions;
+  @GuardedBy("myLock")
+  private final List<Runnable> mySuccesses = Lists.newLinkedList();
+  @GuardedBy("myLock")
+  private final List<Runnable> myFailures = Lists.newArrayList();
+  @GuardedBy("myLock")
   private volatile boolean myRunning = false;
+  @GuardedBy("myLock")
+  private long myAttemptTime;
+  @GuardedBy("myLock")
+  private long myRefreshTime;
+
+  @NotNull private final FileDownloader myDownloader;
+  @NotNull private final File myCachePath;
+  @NotNull private final URL myFallback;
 
   private static DistributionService ourInstance;
 
@@ -78,17 +88,15 @@ public class DistributionService {
       DownloadableFileDescription description = DownloadableFileService.getInstance().createFileDescription(STATS_URL, STATS_FILENAME);
       FileDownloader downloader =
         DownloadableFileService.getInstance().createDownloader(ImmutableList.of(description), "Distribution Stats");
-      ourInstance = new DistributionService(downloader, CACHE_PATH);
+      ourInstance = new DistributionService(downloader, CACHE_PATH, FALLBACK_URL);
     }
     return ourInstance;
   }
 
   @Nullable
   public List<Distribution> getDistributions() {
-    if (myDistributions == null) {
-      return null;
-    }
-    return ImmutableList.copyOf(myDistributions);
+    // No lock is required here since this read must be atomic according to the Java language spec
+    return myDistributions;
   }
 
   /**
@@ -97,11 +105,12 @@ public class DistributionService {
    */
   public double getSupportedDistributionForApiLevel(int apiLevel) {
     refreshSynchronously();
-    if (myDistributions == null) {
+    List<Distribution> distributions = getDistributions();
+    if (distributions == null) {
       return -1;
     }
     double unsupportedSum = 0;
-    for (Distribution d : myDistributions) {
+    for (Distribution d : distributions) {
       if (d.getApiLevel() >= apiLevel) {
         break;
       }
@@ -117,7 +126,11 @@ public class DistributionService {
   @Nullable
   public Distribution getDistributionForApiLevel(int apiLevel) {
     refreshSynchronously();
-    for (Distribution d : myDistributions) {
+    List<Distribution> distributions = getDistributions();
+    if (distributions == null) {
+      return null;
+    }
+    for (Distribution d : distributions) {
       if (d.getApiLevel() == apiLevel) {
         return d;
       }
@@ -142,8 +155,7 @@ public class DistributionService {
   }
 
   /**
-   * Loads the latest distributions asynchronously. Tries to load from {@link STATS_URL}. Failing that
-   * they will be loaded from {@link FALLBACK_URL}.
+   * Loads the latest distributions asynchronously. Tries to load from STATS_URL. Failing that they will be loaded from FALLBACK_URL.
    * Callbacks will be run in a worker thread; you must invokeLater yourself if they need to make UI changes.
    *
    * @param success Callback to be run if the remote distributions are loaded successfully.
@@ -218,7 +230,7 @@ public class DistributionService {
     finally {
       synchronized (myLock) {
         if (myDistributions == null) {
-          loadFromFile(FALLBACK_URL);
+          loadFromFile(myFallback);
           runContinuations(myFailures);
         }
         else {
@@ -273,15 +285,17 @@ public class DistributionService {
   }
 
   @VisibleForTesting(visibility = VisibleForTesting.Visibility.PRIVATE)
-  DistributionService(FileDownloader downloader, File cachePath) {
+  DistributionService(@NotNull FileDownloader downloader, @NotNull File cachePath, @NotNull URL fallback) {
     myDownloader = downloader;
     myCachePath = cachePath;
+    myFallback = fallback;
   }
 
-  private void loadFromFile(URL url) {
+  private void loadFromFile(@NotNull URL url) {
     try {
       String jsonString = ResourceUtil.loadText(url);
-      myDistributions = loadDistributionsFromJson(jsonString);
+      List<Distribution> distributions = loadDistributionsFromJson(jsonString);
+      myDistributions = distributions != null ? ImmutableList.copyOf(distributions) : null;
     }
     catch (IOException e) {
       LOG.error("Error while trying to load distributions file", e);
@@ -290,12 +304,12 @@ public class DistributionService {
 
   @Nullable
   private static List<Distribution> loadDistributionsFromJson(String jsonString) {
-    Type fullRevisionType = new TypeToken<FullRevision>() {
+    Type fullRevisionType = new TypeToken<Revision>() {
     }.getType();
-    GsonBuilder gsonBuilder = new GsonBuilder().registerTypeAdapter(fullRevisionType, new JsonDeserializer<FullRevision>() {
+    GsonBuilder gsonBuilder = new GsonBuilder().registerTypeAdapter(fullRevisionType, new JsonDeserializer<Revision>() {
       @Override
-      public FullRevision deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
-        return FullRevision.parseRevision(json.getAsString());
+      public Revision deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+        return Revision.parseRevision(json.getAsString());
       }
     });
     Gson gson = gsonBuilder.create();

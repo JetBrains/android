@@ -15,15 +15,12 @@
  */
 package com.android.tools.idea.sdk.remote.internal.packages;
 
-import com.android.SdkConstants;
-import com.android.annotations.NonNull;
-import com.android.sdklib.SdkManager;
 import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkSource;
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Node;
 
-import java.io.File;
 import java.util.Map;
 
 /**
@@ -36,18 +33,14 @@ public class RemoteNdkPkgInfo extends RemotePkgInfo {
     mPkgDesc = PkgDesc.Builder.newNdk(getRevision())
       .setListDisplay("Android NDK")
       .setDescriptionShort("Android NDK")
+      .setLicense(getLicense())
       .create();
   }
 
-  @NonNull
+  @NotNull
   @Override
   public String installId() {
     return mPkgDesc.getInstallId();
   }
 
-  @NonNull
-  @Override
-  public File getInstallFolder(String osSdkRoot, SdkManager sdkManager) {
-    return new File(osSdkRoot, SdkConstants.FD_NDK);
-  }
 }

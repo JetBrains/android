@@ -1,5 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root>
+  <item name="android.util.Log boolean isLoggable(java.lang.String, int) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.util.Log.ASSERT, android.util.Log.ERROR, android.util.Log.WARN, android.util.Log.INFO, android.util.Log.DEBUG, android.util.Log.VERBOSE}" />
+    </annotation>
+  </item>
+  <item name="android.util.Log int println(int, java.lang.String, java.lang.String) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.util.Log.ASSERT, android.util.Log.ERROR, android.util.Log.WARN, android.util.Log.INFO, android.util.Log.DEBUG, android.util.Log.VERBOSE}" />
+    </annotation>
+  </item>
   <item name="android.util.TypedValue resourceId">
     <annotation name="android.support.annotation.AnyRes" />
   </item>

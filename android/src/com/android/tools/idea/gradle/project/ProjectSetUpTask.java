@@ -19,7 +19,6 @@ import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.project.subset.ProjectSubset;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
@@ -70,14 +69,8 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
     Runnable runnable = new Runnable() {
       @Override
       public void run() {
-        boolean isTest = ApplicationManager.getApplication().isUnitTestMode();
-        if (!isTest || !GradleProjectImporter.ourSkipSetupFromTest) {
-          if (myProjectIsNew) {
-            open(myProject);
-          }
-          if (!isTest) {
-            myProject.save();
-          }
+        if (myProjectIsNew && (!ApplicationManager.getApplication().isUnitTestMode() || !GradleProjectImporter.ourSkipSetupFromTest)) {
+          open(myProject);
         }
 
         if (myProjectIsNew) {
@@ -85,7 +78,7 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
           // of when the project is opened. When 'projectOpened' is called, the project is not fully configured, and it does not look
           // like it is Gradle-based, resulting in listeners (e.g. modules added events) not being registered. Here we force the
           // listeners to be registered.
-          AndroidGradleProjectComponent projectComponent = ServiceManager.getService(myProject, AndroidGradleProjectComponent.class);
+          AndroidGradleProjectComponent projectComponent = AndroidGradleProjectComponent.getInstance(myProject);
           projectComponent.configureGradleProject();
         }
         if (mySyncListener != null) {

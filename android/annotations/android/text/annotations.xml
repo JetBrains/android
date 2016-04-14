@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root>
+  <item name="android.text.SpannableStringBuilder T[] getSpans(int, int, java.lang.Class&lt;T&gt;) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.text.StaticLayout.Builder android.text.StaticLayout.Builder setBreakStrategy(int) 0">
     <annotation name="android.support.annotation.IntDef">
       <val name="value" val="{android.text.Layout.BREAK_STRATEGY_SIMPLE, android.text.Layout.BREAK_STRATEGY_HIGH_QUALITY, android.text.Layout.BREAK_STRATEGY_BALANCED}" />

@@ -1,7 +1,32 @@
-{
+/*
+ * Copyright (C) 2015 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
+// This file defines the grammar and most of the tokens for data-binding expressions
+// used inside layout files.
+// To code from this bnf file, install the grammar-kit plugin first.
+// After edits, generate the lexer (only if tokens changed).
+//   - right click anywhere and "Generate Lexer Code" and overwrite _DbLexer.flex
+//   - Open the flex file and re-add the custom tokens that only exist in flex file
+//       Use "git diff" to make sure only changes you intended are in the flex file.
+//   - Run runflex.sh to generate _DbLexer.java
+//
+// After lexer, to generate the parser, right click on file and click "Generate Parser Code".
+{
   parserClass="com.android.tools.idea.lang.databinding.parser.DbParser"
-  extends="com.intellij.extapi.psi.ASTWrapperPsiElement"
+  extends="com.android.tools.idea.lang.databinding.DataBindingPsiElement"
 
   psiClassPrefix="PsiDb"
   psiImplClassSuffix="Impl"
@@ -71,8 +96,9 @@
     COMMA=','
     DOT='.'
 
-    // Some more tokens are written directly in the flex file.
+    // Some more tokens are written directly in the flex file. Follow instructions above to make sure that they are not overridden.
   ]
+
 }
 
 dataBindingExpression ::= expr defaults?
@@ -91,7 +117,7 @@ expr
   |   ineqComparisonExpr   //  '<=', '<' etc.
   |   bitShiftExpr
   |   addExpr              //  '+' and '-'
-  |   mulExpr              //  '*' and '/'
+  |   mulExpr              //  '*' and '/' and '%'
   |   negationExpr         //  '!' and '~'
   |   signChangeExpr
   |   castExpr
@@ -120,9 +146,9 @@ mulExpr ::= expr mulOp expr
 negationExpr ::= negationOp expr
 signChangeExpr ::= signOp expr
 castExpr ::= '(' type ')' expr
-methodExpr ::= expr '.' IDENTIFIER '(' expressionList? ')'
+methodExpr ::= expr '.' methodName '(' expressionList? ')'
 bracketExpr ::= expr '[' expr ']'
-dotExpr ::= expr '.' IDENTIFIER
+dotExpr ::= expr '.' fieldName
 resourcesExpr ::= RESOURCE_REFERENCE resourceParameters?
 classExtractionExpr ::= (type|'void') '.' 'class'
 literalExpr ::= literal
@@ -134,7 +160,7 @@ private ineqComparisonOp ::= '<=' | '>=' | '<' | '>'
 private bitShiftOp ::= '<<' | '>>>' | '>>'
 private addOp ::= '+' | '-'
 private signOp ::= '+' | '-'
-private mulOp ::= '*' | '/'
+private mulOp ::= '*' | '/' | '%'
 private negationOp ::= '~' | '!'
 
 expressionList ::= expr (',' expr)*
@@ -152,6 +178,9 @@ private literal
 typeArguments ::= '<' type (',' type)* '>'
 
 type ::= primitiveType ('[' ']')* | classOrInterfaceType ('[' ']')*
+
+methodName ::= IDENTIFIER
+fieldName ::= IDENTIFIER
 
 classOrInterfaceType ::= IDENTIFIER typeArguments? ('.' IDENTIFIER typeArguments? )*
 

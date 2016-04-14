@@ -16,14 +16,15 @@
 package com.android.tools.idea.gradle.project;
 
 import com.android.builder.model.AndroidProject;
+import com.android.builder.model.NativeAndroidProject;
+import com.android.ide.common.repository.GradleVersion;
+import com.android.repository.Revision;
+import com.android.repository.api.ProgressIndicator;
 import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
-import com.android.sdklib.repository.FullRevision;
-import com.android.sdklib.repository.descriptors.IPkgDesc;
-import com.android.sdklib.repository.descriptors.PkgDesc;
-import com.android.sdklib.repository.descriptors.PkgType;
-import com.android.sdklib.repository.local.LocalSdk;
+import com.android.sdklib.repositoryv2.AndroidSdkHandler;
+import com.android.sdklib.repositoryv2.meta.DetailsTypes;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.customizer.android.DependenciesModuleCustomizer;
@@ -32,18 +33,19 @@ import com.android.tools.idea.gradle.messages.Message;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider;
-import com.android.tools.idea.gradle.service.notification.hyperlink.InstallPlatformHyperlink;
-import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
-import com.android.tools.idea.gradle.service.notification.hyperlink.OpenAndroidSdkManagerHyperlink;
-import com.android.tools.idea.gradle.service.notification.hyperlink.OpenUrlHyperlink;
+import com.android.tools.idea.gradle.service.notification.hyperlink.*;
+import com.android.tools.idea.gradle.testing.TestArtifactSearchScopes;
 import com.android.tools.idea.gradle.variant.conflict.Conflict;
 import com.android.tools.idea.gradle.variant.conflict.ConflictSet;
 import com.android.tools.idea.gradle.variant.profiles.ProjectProfileSelectionDialog;
 import com.android.tools.idea.rendering.ProjectResourceRepository;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.VersionCheck;
-import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
+import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
+import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
 import com.android.tools.idea.templates.TemplateManager;
+import com.android.tools.idea.wizard.model.ModelWizardDialog;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -57,10 +59,13 @@ import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.impl.RunManagerImpl;
 import com.intellij.execution.junit.JUnitConfigurationType;
 import com.intellij.openapi.application.ApplicationInfo;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
+import com.intellij.openapi.module.ModifiableModuleModel;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -68,14 +73,13 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
 import com.intellij.openapi.roots.libraries.Library;
-import com.intellij.openapi.roots.libraries.LibraryTable;
 import com.intellij.openapi.roots.libraries.ui.OrderRoot;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.NonNavigatable;
-import com.intellij.util.ExceptionUtil;
 import com.intellij.util.SystemProperties;
+import com.intellij.util.ui.UIUtil;
+import org.jetbrains.android.AndroidPlugin;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkData;
@@ -85,16 +89,18 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.util.*;
 
-import static com.android.SdkConstants.FN_ANNOTATIONS_JAR;
-import static com.android.SdkConstants.FN_FRAMEWORK_LIBRARY;
+import static com.android.SdkConstants.*;
+import static com.android.builder.model.AndroidProject.GENERATION_ORIGINAL;
 import static com.android.tools.idea.gradle.customizer.AbstractDependenciesModuleCustomizer.pathToUrl;
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.FAILED_TO_SET_UP_SDK;
+import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.UNHANDLED_SYNC_ISSUE_TYPE;
+import static com.android.tools.idea.gradle.messages.Message.Type.ERROR;
 import static com.android.tools.idea.gradle.project.LibraryAttachments.getStoredLibraryAttachments;
 import static com.android.tools.idea.gradle.project.ProjectDiagnostics.findAndReportStructureIssues;
 import static com.android.tools.idea.gradle.project.ProjectJdkChecks.hasCorrectJdkVersion;
 import static com.android.tools.idea.gradle.service.notification.errors.AbstractSyncErrorHandler.FAILED_TO_SYNC_GRADLE_PROJECT_ERROR_GROUP_FORMAT;
-import static com.android.tools.idea.gradle.util.GradleUtil.findSourceJarForLibrary;
-import static com.android.tools.idea.gradle.util.GradleUtil.getAndroidProject;
+import static com.android.tools.idea.gradle.util.FilePaths.getJarFromJarUrl;
+import static com.android.tools.idea.gradle.util.GradleUtil.*;
 import static com.android.tools.idea.gradle.util.Projects.*;
 import static com.android.tools.idea.gradle.variant.conflict.ConflictResolution.solveSelectionConflicts;
 import static com.android.tools.idea.gradle.variant.conflict.ConflictSet.findConflicts;
@@ -103,13 +109,12 @@ import static com.android.tools.idea.startup.ExternalAnnotationsSupport.attachJd
 import static com.intellij.notification.NotificationType.INFORMATION;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static com.intellij.openapi.roots.OrderRootType.SOURCES;
+import static com.intellij.openapi.util.io.FileUtil.delete;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
-import static com.intellij.openapi.vfs.StandardFileSystems.JAR_PROTOCOL_PREFIX;
-import static com.intellij.util.io.URLUtil.JAR_SEPARATOR;
+import static com.intellij.util.ExceptionUtil.rethrowAllAsUnchecked;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.*;
 
 public class PostProjectSetupTasksExecutor {
-
   /**
    * Whether a message indicating that "a new SDK Tools version is available" is already shown.
    */
@@ -121,12 +126,14 @@ public class PostProjectSetupTasksExecutor {
   private static boolean ourCheckedExpiration;
 
   private static final boolean DEFAULT_GENERATE_SOURCES_AFTER_SYNC = true;
+  private static final boolean DEFAULT_CLEAN_PROJECT_AFTER_SYNC = false;
   private static final boolean DEFAULT_USING_CACHED_PROJECT_DATA = false;
   private static final long DEFAULT_LAST_SYNC_TIMESTAMP = -1;
 
   @NotNull private final Project myProject;
 
   private volatile boolean myGenerateSourcesAfterSync = DEFAULT_GENERATE_SOURCES_AFTER_SYNC;
+  private boolean myCleanProjectAfterSync = DEFAULT_CLEAN_PROJECT_AFTER_SYNC;
   private volatile boolean myUsingCachedProjectData = DEFAULT_USING_CACHED_PROJECT_DATA;
   private volatile long myLastSyncTimestamp = DEFAULT_LAST_SYNC_TIMESTAMP;
 
@@ -164,13 +171,25 @@ public class PostProjectSetupTasksExecutor {
       return;
     }
 
-    new ExternalDependenciesUsageTracker(myProject).trackExternalDependenciesInAndroidApps();
+    if (shouldForcePluginVersionUpgrade() || myProject.isDisposed()) {
+      return;
+    }
+
+    new ProjectStructureUsageTracker(myProject).trackProjectStructure();
 
     executeProjectChanges(myProject, new Runnable() {
       @Override
       public void run() {
-        attachSourcesToLibraries();
-        adjustModuleStructures();
+        IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(myProject);
+        try {
+          attachSourcesToLibraries(modelsProvider);
+          adjustModuleStructures(modelsProvider);
+          modelsProvider.commit();
+        }
+        catch (Throwable t) {
+          modelsProvider.dispose();
+          rethrowAllAsUnchecked(t);
+        }
         ensureValidSdks();
       }
     });
@@ -184,48 +203,176 @@ public class PostProjectSetupTasksExecutor {
 
     ProjectResourceRepository.moduleRootsChanged(myProject);
 
+    if (GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS) {
+      TestArtifactSearchScopes.initializeScopes(myProject);
+      //FileColorConfigurationUtil.createAndroidTestFileColorConfigurationIfNotExist(myProject);
+      // Before sync, android test files are just considered as normal test file which has different FileColor configuration.
+      // If there is any opening tab for android test file, the tab color will not change unless we refresh it.
+      //UISettings.getInstance().fireUISettingsChanged();
+    }
+
     // For Android Studio, use "Gradle-Aware Make" to run JUnit tests.
     // For IDEA, use regular "Make".
     String taskName = isAndroidStudio() ? MakeBeforeRunTaskProvider.TASK_NAME : ExecutionBundle.message("before.launch.compile.step");
     setMakeStepInJunitRunConfigurations(taskName);
     updateGradleSyncState();
 
+    if (shouldRecommendPluginVersionUpgrade()) {
+      boolean upgrade = new PluginVersionRecommendedUpdateDialog(myProject).showAndGet();
+      if (upgrade) {
+        if (updateGradlePluginVersionAndNotifyFailure(myProject, GRADLE_PLUGIN_LATEST_VERSION, GRADLE_LATEST_VERSION, false)) {
+          // plugin version updated and a project sync was requested. No need to continue.
+          return;
+        }
+      }
+    }
+
     if (myGenerateSourcesAfterSync) {
-      GradleProjectBuilder.getInstance(myProject).generateSourcesOnly();
+      GradleProjectBuilder.getInstance(myProject).generateSourcesOnly(myCleanProjectAfterSync);
     }
 
     // set default value back.
     myGenerateSourcesAfterSync = DEFAULT_GENERATE_SOURCES_AFTER_SYNC;
+    myCleanProjectAfterSync = DEFAULT_CLEAN_PROJECT_AFTER_SYNC;
 
     TemplateManager.getInstance().refreshDynamicTemplateMenu(myProject);
+
+    disposeModulesMarkedForRemoval();
   }
 
-  private void adjustModuleStructures() {
-    final IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(myProject);
+  private boolean shouldForcePluginVersionUpgrade() {
+    AndroidProject androidProject = getAppAndroidProject(myProject);
+    if (androidProject != null) {
+      logProjectVersion(androidProject);
+      GradleVersion current = GradleVersion.parse(androidProject.getModelVersion());
+      String latest = GRADLE_PLUGIN_LATEST_VERSION;
+      if (isNonExperimentalPlugin(androidProject) && isForcedPluginVersionUpgradeNecessary(current, latest)) {
+        updateGradleSyncState(); // Update the sync state before starting a new one.
+
+        boolean update = new PluginVersionForcedUpdateDialog(myProject).showAndGet();
+        if (update) {
+          updateGradlePluginVersionAndNotifyFailure(myProject, latest, null, true);
+          return true;
+        }
+        else {
+          String[] text = {
+            "The project is using an incompatible version of the Android Gradle plugin.",
+            "Please update your project to use version " + GRADLE_PLUGIN_LATEST_VERSION + "."
+          };
+          Message msg = new Message(UNHANDLED_SYNC_ISSUE_TYPE, ERROR, text);
+          NotificationHyperlink quickFix = new SearchInBuildFilesHyperlink(GRADLE_PLUGIN_NAME);
+          ProjectSyncMessages.getInstance(myProject).add(msg, quickFix);
+          invalidateLastSync(myProject, "Failed");
+          return true;
+        }
+      }
+    }
+    else {
+      Logger.getInstance(PostProjectSetupTasksExecutor.class).warn("Unable to obtain application's Android Project");
+    }
+    return false;
+  }
+
+  @VisibleForTesting
+  static boolean isForcedPluginVersionUpgradeNecessary(@NotNull GradleVersion current, @NotNull String latest) {
+    if (current.getPreviewType() != null) {
+      // current is a "preview" (alpha, beta, etc.)
+      return current.compareTo(latest) < 0;
+    }
+    return false;
+  }
+
+  private boolean shouldRecommendPluginVersionUpgrade() {
+    if (ApplicationManager.getApplication().isUnitTestMode() || AndroidPlugin.isGuiTestingMode()) {
+      return false;
+    }
+    AndroidProject androidProject = getAppAndroidProject(myProject);
+    if (androidProject != null) {
+      logProjectVersion(androidProject);
+      if (isNonExperimentalPlugin(androidProject)) {
+        GradleVersion latest = GradleVersion.parse(GRADLE_PLUGIN_LATEST_VERSION);
+        String current = androidProject.getModelVersion();
+        return latest.compareTo(current) > 0;
+      }
+    }
+    return false;
+  }
+
+  private static boolean isNonExperimentalPlugin(@NotNull AndroidProject androidProject) {
+    try {
+      // only true for non experimental plugin 2.0.0-betaX (or whenever the getPluginGeneration() was added)
+      return androidProject.getPluginGeneration() == GENERATION_ORIGINAL;
+    } catch (Throwable t) {
+      // happens for 2.0.0-alphaX, 1.5.x or for experimental plugins on those versions
+      return true;
+    }
+  }
+
+  @Nullable
+  private static AndroidProject getAppAndroidProject(@NotNull Project project) {
+    for (Module module : ModuleManager.getInstance(project).getModules()) {
+      AndroidProject androidProject = getAndroidProject(module);
+      if (androidProject != null && !androidProject.isLibrary()) {
+        return androidProject;
+      }
+    }
+    return null;
+  }
+
+  private void disposeModulesMarkedForRemoval() {
+    final Collection<Module> modulesToDispose = getModulesToDisposePostSync(myProject);
+    if (modulesToDispose == null || modulesToDispose.isEmpty()) {
+      return;
+    }
+    ApplicationManager.getApplication().runWriteAction(new Runnable() {
+      @Override
+      public void run() {
+        ModuleManager moduleManager = ModuleManager.getInstance(myProject);
+        List<File> imlFilesToRemove = Lists.newArrayList();
+        ModifiableModuleModel moduleModel = moduleManager.getModifiableModel();
+        try {
+          for (Module module : modulesToDispose) {
+            File imlFile = new File(toSystemDependentName(module.getModuleFilePath()));
+            imlFilesToRemove.add(imlFile);
+            moduleModel.disposeModule(module);
+          }
+        }
+        finally {
+          setModulesToDisposePostSync(myProject, null);
+          moduleModel.commit();
+        }
+        for (File imlFile : imlFilesToRemove) {
+          if (imlFile.isFile()) {
+            delete(imlFile);
+          }
+        }
+      }
+    });
+  }
+
+  private void adjustModuleStructures(@NotNull IdeModifiableModelsProvider modelsProvider) {
     Set<Sdk> androidSdks = Sets.newHashSet();
 
-    try {
-      for (Module module : modelsProvider.getModules()) {
-        ModifiableRootModel model = modelsProvider.getModifiableRootModel(module);
-        adjustInterModuleDependencies(module, modelsProvider);
+    for (Module module : modelsProvider.getModules()) {
+      ModifiableRootModel model = modelsProvider.getModifiableRootModel(module);
+      adjustInterModuleDependencies(module, modelsProvider);
 
-        Sdk sdk = model.getSdk();
-        if (sdk != null) {
-          if (isAndroidSdk(sdk)) {
-            androidSdks.add(sdk);
-          }
-          continue;
+      Sdk sdk = model.getSdk();
+      if (sdk != null) {
+        if (isAndroidSdk(sdk)) {
+          androidSdks.add(sdk);
         }
-
-        Sdk jdk = IdeSdks.getJdk();
-        model.setSdk(jdk);
+        continue;
       }
 
-      modelsProvider.commit();
-    }
-    catch (Throwable t) {
-      modelsProvider.dispose();
-      ExceptionUtil.rethrowAllAsUnchecked(t);
+      NativeAndroidProject nativeAndroidProject = getNativeAndroidProject(module);
+      if (nativeAndroidProject != null) {
+        // Native modules does not need any jdk entry.
+        continue;
+      }
+
+      Sdk jdk = IdeSdks.getJdk();
+      model.setSdk(jdk);
     }
 
     for (Sdk sdk : androidSdks) {
@@ -276,18 +423,17 @@ public class PostProjectSetupTasksExecutor {
     sdkModificator.commitChanges();
   }
 
-  private void attachSourcesToLibraries() {
-    LibraryTable libraryTable = ProjectLibraryTable.getInstance(myProject);
+  private void attachSourcesToLibraries(@NotNull IdeModifiableModelsProvider modelsProvider) {
     LibraryAttachments storedLibraryAttachments = getStoredLibraryAttachments(myProject);
 
-    for (Library library : libraryTable.getLibraries()) {
+    for (Library library : modelsProvider.getAllLibraries()) {
       Set<String> sourcePaths = Sets.newHashSet();
 
       for (VirtualFile file : library.getFiles(SOURCES)) {
         sourcePaths.add(file.getUrl());
       }
 
-      Library.ModifiableModel libraryModel = library.getModifiableModel();
+      Library.ModifiableModel libraryModel = modelsProvider.getModifiableLibraryModel(library);
 
       // Find the source attachment based on the location of the library jar file.
       for (VirtualFile classFile : library.getFiles(CLASSES)) {
@@ -304,7 +450,6 @@ public class PostProjectSetupTasksExecutor {
       if (storedLibraryAttachments != null) {
         storedLibraryAttachments.addUrlsTo(libraryModel);
       }
-      libraryModel.commit();
     }
     if (storedLibraryAttachments != null) {
       storedLibraryAttachments.removeFromProject();
@@ -317,21 +462,6 @@ public class PostProjectSetupTasksExecutor {
     // null.
     File jarFilePath = getJarFromJarUrl(jarFile.getUrl());
     return jarFilePath != null ? findSourceJarForLibrary(jarFilePath) : null;
-  }
-
-
-  @Nullable
-  private static File getJarFromJarUrl(@NotNull String url) {
-    // URLs for jar file start with "jar://" and end with "!/".
-    if (!url.startsWith(JAR_PROTOCOL_PREFIX)) {
-      return null;
-    }
-    String path = url.substring(JAR_PROTOCOL_PREFIX.length());
-    int index = path.lastIndexOf(JAR_SEPARATOR);
-    if (index != -1) {
-      path = path.substring(0, index);
-    }
-    return new File(toSystemDependentName(path));
   }
 
   private void findAndShowVariantConflicts() {
@@ -388,8 +518,8 @@ public class PostProjectSetupTasksExecutor {
       return;
     }
 
-    String fullVersion = ApplicationInfo.getInstance().getFullVersion();
-    if (fullVersion.contains("Preview") || fullVersion.contains("Beta") || fullVersion.contains("RC")) {
+    String ideVersion = ApplicationInfo.getInstance().getFullVersion();
+    if (ideVersion.contains("Preview") || ideVersion.contains("Beta") || ideVersion.contains("RC")) {
       // Expire preview builds two months after their build date (which is going to be roughly six weeks after release; by
       // then will definitely have updated the build
       Calendar expirationDate = (Calendar)ApplicationInfo.getInstance().getBuildDate().clone();
@@ -399,13 +529,19 @@ public class PostProjectSetupTasksExecutor {
       if (now.after(expirationDate)) {
         OpenUrlHyperlink hyperlink = new OpenUrlHyperlink("http://tools.android.com/download/studio/", "Show Available Versions");
         String message =
-          String.format("This preview build (%1$s) is old; please update to a newer preview or a stable version", fullVersion);
+          String.format("This preview build (%1$s) is old; please update to a newer preview or a stable version.", ideVersion);
         AndroidGradleNotification.getInstance(project).showBalloon("Old Preview Build", message, INFORMATION, hyperlink);
         // If we show an expiration message, don't also show a second balloon regarding available SDKs
         ourNewSdkVersionToolsInfoAlreadyShown = true;
       }
     }
     ourCheckedExpiration = true;
+  }
+
+  private static void logProjectVersion(@NotNull AndroidProject androidProject) {
+    String message = String.format("Gradle model version: %1$s, latest version for IDE: %2$s",
+                                   androidProject.getModelVersion(), GRADLE_PLUGIN_LATEST_VERSION);
+    Logger.getInstance(PostProjectSetupTasksExecutor.class).info(message);
   }
 
   private void ensureValidSdks() {
@@ -424,9 +560,11 @@ public class PostProjectSetupTasksExecutor {
           if (additionalData != null && sdkData != null) {
             IAndroidTarget target = additionalData.getBuildTarget(sdkData);
             if (target == null) {
-              LocalSdk localSdk = sdkData.getLocalSdk();
-              localSdk.clearLocalPkg(EnumSet.of(PkgType.PKG_PLATFORM));
-              target = localSdk.getTargetFromHashString(additionalData.getBuildTargetHashString());
+              AndroidSdkHandler sdkHandler = sdkData.getSdkHandler();
+              ProgressIndicator logger = new StudioLoggerProgressIndicator(getClass());
+              sdkHandler.getSdkManager(logger).loadSynchronously(0, logger, null, null);
+              target =
+                sdkHandler.getAndroidTargetManager(logger).getTargetFromHashString(additionalData.getBuildTargetHashString(), logger);
             }
             if (target != null) {
               SdkModificator sdkModificator = sdk.getSdkModificator();
@@ -529,7 +667,7 @@ public class PostProjectSetupTasksExecutor {
     if (!versionsToInstall.isEmpty()) {
       String group = String.format(FAILED_TO_SYNC_GRADLE_PROJECT_ERROR_GROUP_FORMAT, myProject.getName());
       String text = "Missing Android platform(s) detected: " + Joiner.on(", ").join(missingPlatforms);
-      Message msg = new Message(group, Message.Type.ERROR, text);
+      Message msg = new Message(group, ERROR, text);
       messages.add(msg, new InstallPlatformHyperlink(versionsToInstall.toArray(new AndroidVersion[versionsToInstall.size()])));
     }
   }
@@ -587,13 +725,55 @@ public class PostProjectSetupTasksExecutor {
       GradleSyncState.getInstance(myProject).syncSkipped(lastSyncTimestamp);
     }
 
+    persistAndroidGradleModelData(myUsingCachedProjectData);
+
     // set default value back.
     myUsingCachedProjectData = DEFAULT_USING_CACHED_PROJECT_DATA;
     myLastSyncTimestamp = DEFAULT_LAST_SYNC_TIMESTAMP;
   }
 
-  public void setGenerateSourcesAfterSync(boolean generateSourcesAfterSync) {
+  private void persistAndroidGradleModelData(final boolean usingCachedProjectData) {
+    if (ApplicationManager.getApplication().isUnitTestMode()) {
+      return;
+    }
+
+    ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
+      @Override
+      public void run() {
+        if (!usingCachedProjectData) {
+          // Wait for the proxy operations to complete in a pooled thread (to avoid the UI freeze) and
+          // then save the project to persist the model data.
+          // See https://code.google.com/p/android/issues/detail?id=196206 for more details.
+          for (Module module : ModuleManager.getInstance(myProject).getModules()) {
+            AndroidGradleModel androidGradleModel = AndroidGradleModel.get(module);
+            if (androidGradleModel != null) {
+              androidGradleModel.waitForProxyAndroidProject();
+            }
+          }
+        }
+
+        UIUtil.invokeLaterIfNeeded(new Runnable() {
+          @Override
+          public void run() {
+            // The model data is not persisted if the project.save() was already executed between the sync completion and now.
+            // TODO: Investigate it further and update it to always persist the model data here.
+            myProject.save();
+          }
+        });
+      }
+    });
+  }
+
+  /**
+   * Indicates whether the IDE should generate sources after project sync.
+   *
+   * @param generateSourcesAfterSync {@code true} if sources should be generated after sync, {@code false otherwise}.
+   * @param cleanProjectAfterSync    if {@code true}, the project should be cleaned before generating sources. This value is ignored if
+   *                                 {@code generateSourcesAfterSync} is {@code false}.
+   */
+  public void setGenerateSourcesAfterSync(boolean generateSourcesAfterSync, boolean cleanProjectAfterSync) {
     myGenerateSourcesAfterSync = generateSourcesAfterSync;
+    myCleanProjectAfterSync = cleanProjectAfterSync;
   }
 
   public void setLastSyncTimestamp(long lastSyncTimestamp) {
@@ -605,24 +785,23 @@ public class PostProjectSetupTasksExecutor {
   }
 
   private static class InstallSdkToolsHyperlink extends NotificationHyperlink {
-    @NotNull private final FullRevision myVersion;
+    @NotNull private final Revision myVersion;
 
-    InstallSdkToolsHyperlink(@NotNull FullRevision version) {
+    InstallSdkToolsHyperlink(@NotNull Revision version) {
       super("install.build.tools", "Install Tools " + version);
       myVersion = version;
     }
 
     @Override
     protected void execute(@NotNull Project project) {
-      List<IPkgDesc> requested = Lists.newArrayList();
+      List<String> requested = Lists.newArrayList();
       if (myVersion.getMajor() == 23) {
-        FullRevision minBuildToolsRev = new FullRevision(20, 0, 0);
-        requested.add(PkgDesc.Builder.newPlatformTool(minBuildToolsRev).create());
+        Revision minBuildToolsRev = new Revision(20, 0, 0);
+        requested.add(DetailsTypes.getBuildToolsPath(minBuildToolsRev));
       }
-      requested.add(PkgDesc.Builder.newTool(myVersion, myVersion).create());
-      SdkQuickfixWizard wizard = new SdkQuickfixWizard(project, null, requested);
-      wizard.init();
-      if (wizard.showAndGet()) {
+      requested.add(FD_TOOLS);
+      ModelWizardDialog dialog = SdkQuickfixUtils.createDialogForPaths(project, requested);
+      if (dialog != null && dialog.showAndGet()) {
         GradleProjectImporter.getInstance().requestProjectSync(project, null);
       }
     }

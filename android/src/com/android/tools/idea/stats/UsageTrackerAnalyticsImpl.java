@@ -17,16 +17,24 @@ package com.android.tools.idea.stats;
 
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableMap.Builder;
 import com.google.common.hash.Hashing;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Map;
+
 public class UsageTrackerAnalyticsImpl extends UsageTracker {
   private static final ExtensionPointName<UsageUploader> EP_NAME = ExtensionPointName.create("com.android.tools.idea.stats.tracker");
 
   private static final String GLOGS_CATEGORY_LIBCOUNT = "gradlelibs";
+  private static final String GLOGS_CATEGORY_MODUDLE_COUNT = "gradlemodules";
+  private static final String GLOGS_CATEGORY_ANDROID_MODUDLE = "gradleAndroidModule";
   private static final String GLOGS_CATEGORY_VERSIONS = "gradleVersions";
+  private static final String GLOGS_CATEGORY_LEGACY_IDEA_ANDROID_PROJECT = "legacyIdeaAndroidProject";
+  private static final String GLOGS_CATEGORY_INSTANT_RUN = "irstats2";
+  private static final String GLOGS_CATEGORY_INSTANT_RUN_TIMINGS = "irtimings";
 
   private final UsageUploader myUploader;
 
@@ -67,17 +75,92 @@ public class UsageTrackerAnalyticsImpl extends UsageTracker {
   }
 
   @Override
-  public void trackGradleArtifactVersions(@NotNull String applicationId,
-                                          @NotNull String androidPluginVersion,
-                                          @NotNull String gradleVersion) {
+  public void trackModuleCount(@NotNull String applicationId, int total, int appModuleCount, int libModuleCount) {
     if (!trackingEnabled()) {
       return;
     }
-    myUploader.trackEvent(GLOGS_CATEGORY_VERSIONS,
+
+    // @formatter:off
+    myUploader.trackEvent(GLOGS_CATEGORY_MODUDLE_COUNT,
                           ImmutableMap.of(
                             "appId", anonymize(applicationId),
-                            "pluginVer", androidPluginVersion,
-                            "gradleVer", gradleVersion));
+                            "total", String.valueOf(total),
+                            "apps", String.valueOf(appModuleCount),
+                            "libs", String.valueOf(libModuleCount)));
+    // @formatter:on
+  }
+
+  @Override
+  public void trackAndroidModule(@NotNull String applicationId,
+                                 @NotNull String moduleName,
+                                 boolean isLibrary,
+                                 int signingConfigCount,
+                                 int buildTypeCount,
+                                 int flavorCount,
+                                 int flavorDimension) {
+    if (!trackingEnabled()) {
+      return;
+    }
+    Builder<String, String> builder = ImmutableMap.builder();
+
+    builder.put("appId", anonymize(applicationId));
+    builder.put("moduleName", anonymize(moduleName));
+    builder.put("isLibrary", String.valueOf(isLibrary));
+    builder.put("buildTypeCount", String.valueOf(buildTypeCount));
+    builder.put("flavorCount", String.valueOf(flavorCount));
+    builder.put("flavorDimension", String.valueOf(flavorDimension));
+
+    myUploader.trackEvent(GLOGS_CATEGORY_ANDROID_MODUDLE, builder.build());
+  }
+
+  @Override
+  public void trackGradleArtifactVersions(@NotNull String applicationId,
+                                          @NotNull String androidPluginVersion,
+                                          @NotNull String gradleVersion,
+                                          @NotNull Map<String, String> instantRunSettings) {
+    if (!trackingEnabled()) {
+      return;
+    }
+
+    // @formatter:off
+    ImmutableMap<String, String> params = ImmutableMap.<String,String>builder()
+      .put("appId", anonymize(applicationId))
+      .put("pluginVer", androidPluginVersion)
+      .put("gradleVer", gradleVersion)
+      .putAll(instantRunSettings)
+      .build();
+    myUploader.trackEvent(GLOGS_CATEGORY_VERSIONS, params);
+    // @formatter:on
+  }
+
+  @Override
+  public void trackLegacyIdeaAndroidProject(@NotNull String applicationId) {
+    if (!trackingEnabled()) {
+      return;
+    }
+    // @formatter:off
+    myUploader.trackEvent(GLOGS_CATEGORY_LEGACY_IDEA_ANDROID_PROJECT,
+                          ImmutableMap.of(
+                            "appId", anonymize(applicationId)));
+    // @formatter:on
+  }
+
+  @Override
+  public void trackInstantRunStats(@NotNull Map<String, String> kv) {
+    if (!trackingEnabled()) {
+      return;
+    }
+
+    myUploader.trackEvent(GLOGS_CATEGORY_INSTANT_RUN, kv);
+  }
+
+  @Override
+  public void trackInstantRunTimings(@NotNull Map<String, String> kv) {
+    if (!trackingEnabled()) {
+      return;
+    }
+
+    myUploader.trackEvent(GLOGS_CATEGORY_INSTANT_RUN_TIMINGS, kv);
   }
 
   @NotNull

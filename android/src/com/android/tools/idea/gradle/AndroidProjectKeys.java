@@ -18,10 +18,9 @@ package com.android.tools.idea.gradle;
 import com.android.tools.idea.gradle.service.AndroidGradleModelDataService;
 import com.android.tools.idea.gradle.service.GradleModelDataService;
 import com.intellij.openapi.externalSystem.model.Key;
-import com.intellij.openapi.externalSystem.model.ProjectKeys;
 import org.jetbrains.annotations.NotNull;
 
-import static com.intellij.openapi.externalSystem.model.ProjectKeys.PROJECT;
+import static com.intellij.openapi.externalSystem.model.ProjectKeys.LIBRARY_DEPENDENCY;
 
 /**
  * These keys determine the order in which the {@code ProjectDataService}s are invoked. The order is:
@@ -36,11 +35,10 @@ import static com.intellij.openapi.externalSystem.model.ProjectKeys.PROJECT;
  * "Gradle path" of each project module. This path is necessary when setting up inter-module dependencies.
  */
 public final class AndroidProjectKeys {
-
   // some of android ModuleCustomizer's should be run after core external system services
   // e.g. DependenciesModuleCustomizer - after core LibraryDependencyDataService,
   // since android dependencies can be removed because there is no respective LibraryDependencyData in the imported data from gradle
-  private static final int PROCESSING_AFTER_BUILTIN_SERVICES = ProjectKeys.LIBRARY_DEPENDENCY.getProcessingWeight() + 1;
+  private static final int PROCESSING_AFTER_BUILTIN_SERVICES = LIBRARY_DEPENDENCY.getProcessingWeight() + 1;
 
   @NotNull
   public static final Key<GradleModel> GRADLE_MODEL = Key.create(GradleModel.class, PROCESSING_AFTER_BUILTIN_SERVICES);
@@ -49,7 +47,11 @@ public final class AndroidProjectKeys {
   public static final Key<AndroidGradleModel> ANDROID_MODEL = Key.create(AndroidGradleModel.class, GRADLE_MODEL.getProcessingWeight() + 10);
 
   @NotNull
-  public static final Key<JavaProject> JAVA_PROJECT = Key.create(JavaProject.class, ANDROID_MODEL.getProcessingWeight() + 10);
+  public static final Key<NativeAndroidGradleModel> NATIVE_ANDROID_MODEL =
+    Key.create(NativeAndroidGradleModel.class, ANDROID_MODEL.getProcessingWeight() + 10);
+
+  @NotNull
+  public static final Key<JavaProject> JAVA_PROJECT = Key.create(JavaProject.class, NATIVE_ANDROID_MODEL.getProcessingWeight() + 10);
 
   @NotNull
   public static final Key<ImportedModule> IMPORTED_MODULE = Key.create(ImportedModule.class, JAVA_PROJECT.getProcessingWeight() + 10);

@@ -19,19 +19,20 @@ import com.android.tools.idea.ui.properties.collections.ObservableList;
 import com.android.tools.idea.ui.properties.core.BoolValueProperty;
 import com.android.tools.idea.ui.properties.core.IntValueProperty;
 import com.android.tools.idea.ui.properties.core.StringValueProperty;
-import com.android.tools.idea.ui.properties.expressions.list.AbstractMapExpression;
+import com.android.tools.idea.ui.properties.expressions.list.MapExpression;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
 import java.util.Arrays;
 
+import static com.android.tools.idea.ui.properties.BatchInvoker.INVOKE_IMMEDIATELY_STRATEGY;
 import static org.fest.assertions.Assertions.assertThat;
 
 public final class BindingsManagerTest {
 
   @Test
   public void oneWayBindingAffectedByTarget() throws Exception {
-    BindingsManager bindings = new BindingsManager(BindingsManager.INVOKE_IMMEDIATELY_STRATEGY);
+    BindingsManager bindings = new BindingsManager(INVOKE_IMMEDIATELY_STRATEGY);
     IntValueProperty property1 = new IntValueProperty(10);
     IntValueProperty property2 = new IntValueProperty(20);
 
@@ -48,7 +49,7 @@ public final class BindingsManagerTest {
 
   @Test
   public void twoWayBindingsAffectEachOther() throws Exception {
-    BindingsManager bindings = new BindingsManager(BindingsManager.INVOKE_IMMEDIATELY_STRATEGY);
+    BindingsManager bindings = new BindingsManager(INVOKE_IMMEDIATELY_STRATEGY);
     IntValueProperty property1 = new IntValueProperty(10);
     IntValueProperty property2 = new IntValueProperty(20);
 
@@ -64,7 +65,7 @@ public final class BindingsManagerTest {
 
   @Test
   public void mapBindingsUpdateDestinationList() throws Exception {
-    BindingsManager bindings = new BindingsManager(BindingsManager.INVOKE_IMMEDIATELY_STRATEGY);
+    BindingsManager bindings = new BindingsManager(INVOKE_IMMEDIATELY_STRATEGY);
 
     ObservableList<Integer> numericList = new ObservableList<Integer>();
     for (int i = 1; i <= 5; i++) {
@@ -74,7 +75,7 @@ public final class BindingsManagerTest {
     CountListener listener = new CountListener();
     stringList.addListener(listener);
 
-    bindings.bind(stringList, new AbstractMapExpression<Integer, String>(numericList) {
+    bindings.bind(stringList, new MapExpression<Integer, String>(numericList) {
       @NotNull
       @Override
       protected String transform(@NotNull Integer srcElement) {
@@ -98,7 +99,7 @@ public final class BindingsManagerTest {
 
   @Test
   public void releaseDisconnectsOneWayBindings() throws Exception {
-    BindingsManager bindings = new BindingsManager(BindingsManager.INVOKE_IMMEDIATELY_STRATEGY);
+    BindingsManager bindings = new BindingsManager(INVOKE_IMMEDIATELY_STRATEGY);
     StringValueProperty property1 = new StringValueProperty("A");
     StringValueProperty property2 = new StringValueProperty("B");
 
@@ -113,7 +114,7 @@ public final class BindingsManagerTest {
 
   @Test
   public void releaseTwoWayDisconnectsTwoWayBindings() throws Exception {
-    BindingsManager bindings = new BindingsManager(BindingsManager.INVOKE_IMMEDIATELY_STRATEGY);
+    BindingsManager bindings = new BindingsManager(INVOKE_IMMEDIATELY_STRATEGY);
     StringValueProperty property1 = new StringValueProperty("First");
     StringValueProperty property2 = new StringValueProperty("Second");
 
@@ -130,12 +131,33 @@ public final class BindingsManagerTest {
   }
 
   @Test
+  public void releaseTwoWayWithOneArgDisconnectsAllMatchingBindings() throws Exception {
+    BindingsManager bindings = new BindingsManager(INVOKE_IMMEDIATELY_STRATEGY);
+    StringValueProperty property1 = new StringValueProperty("First");
+    StringValueProperty property2 = new StringValueProperty("Second");
+    StringValueProperty property3 = new StringValueProperty("Third");
+
+    bindings.bindTwoWay(property1, property2);
+    bindings.bindTwoWay(property3, property2);
+    assertThat(property1.get()).isEqualTo("Second");
+    assertThat(property3.get()).isEqualTo("Second");
+
+    bindings.releaseTwoWay(property2);
+
+    property1.set("Property1");
+    assertThat(property2.get()).isEqualTo("Second");
+
+    property3.set("Property3");
+    assertThat(property2.get()).isEqualTo("Second");
+  }
+
+  @Test
   public void releaseDisconnectsListBindings() throws Exception {
-    BindingsManager bindings = new BindingsManager(BindingsManager.INVOKE_IMMEDIATELY_STRATEGY);
+    BindingsManager bindings = new BindingsManager(INVOKE_IMMEDIATELY_STRATEGY);
     ObservableList<String> dest = new ObservableList<String>();
     ObservableList<Integer> src = new ObservableList<Integer>();
 
-    bindings.bind(dest, new AbstractMapExpression<Integer, String>(src) {
+    bindings.bind(dest, new MapExpression<Integer, String>(src) {
       @NotNull
       @Override
       protected String transform(@NotNull Integer srcElement) {
@@ -154,7 +176,7 @@ public final class BindingsManagerTest {
 
   @Test
   public void releaseAllDisconnectsOneWayBindings() throws Exception {
-    BindingsManager bindings = new BindingsManager(BindingsManager.INVOKE_IMMEDIATELY_STRATEGY);
+    BindingsManager bindings = new BindingsManager(INVOKE_IMMEDIATELY_STRATEGY);
     StringValueProperty property1 = new StringValueProperty("A");
     StringValueProperty property2 = new StringValueProperty("B");
 
@@ -169,7 +191,7 @@ public final class BindingsManagerTest {
 
   @Test
   public void releaseAllDisconnectsTwoWayBindings() throws Exception {
-    BindingsManager bindings = new BindingsManager(BindingsManager.INVOKE_IMMEDIATELY_STRATEGY);
+    BindingsManager bindings = new BindingsManager(INVOKE_IMMEDIATELY_STRATEGY);
     StringValueProperty property1 = new StringValueProperty("First");
     StringValueProperty property2 = new StringValueProperty("Second");
 
@@ -187,11 +209,11 @@ public final class BindingsManagerTest {
 
   @Test
   public void releaseAllDisconnectsListBindings() throws Exception {
-    BindingsManager bindings = new BindingsManager(BindingsManager.INVOKE_IMMEDIATELY_STRATEGY);
+    BindingsManager bindings = new BindingsManager(INVOKE_IMMEDIATELY_STRATEGY);
     ObservableList<String> dest = new ObservableList<String>();
     ObservableList<Integer> src = new ObservableList<Integer>();
 
-    bindings.bind(dest, new AbstractMapExpression<Integer, String>(src) {
+    bindings.bind(dest, new MapExpression<Integer, String>(src) {
       @NotNull
       @Override
       protected String transform(@NotNull Integer srcElement) {
@@ -210,7 +232,7 @@ public final class BindingsManagerTest {
 
   @Test
   public void twoWayBindingsCanBeChained() {
-    BindingsManager bindings = new BindingsManager(BindingsManager.INVOKE_IMMEDIATELY_STRATEGY);
+    BindingsManager bindings = new BindingsManager(INVOKE_IMMEDIATELY_STRATEGY);
     IntValueProperty a = new IntValueProperty();
     IntValueProperty b = new IntValueProperty();
     IntValueProperty c = new IntValueProperty();
@@ -236,7 +258,7 @@ public final class BindingsManagerTest {
 
   @Test
   public void oneWayBindingsCanBeEnabledConditionally() {
-    BindingsManager bindings = new BindingsManager(BindingsManager.INVOKE_IMMEDIATELY_STRATEGY);
+    BindingsManager bindings = new BindingsManager(INVOKE_IMMEDIATELY_STRATEGY);
     IntValueProperty srcProperty = new IntValueProperty(10);
     IntValueProperty destProperty = new IntValueProperty(-5);
     BoolValueProperty bindingEnabled = new BoolValueProperty(true);
@@ -261,68 +283,5 @@ public final class BindingsManagerTest {
 
     srcProperty.set(50);
     assertThat(destProperty.get()).isEqualTo(50);
-  }
-
-  @Test
-  public void testInvokeStrategyOneStepAtATime() throws Exception {
-    TestInvokeStrategy testInvokeStrategy = new TestInvokeStrategy();
-    BindingsManager bindings = new BindingsManager(testInvokeStrategy);
-
-    IntValueProperty a = new IntValueProperty();
-    IntValueProperty b = new IntValueProperty();
-    IntValueProperty c = new IntValueProperty();
-    IntValueProperty d = new IntValueProperty();
-
-    bindings.bind(a, b);
-    bindings.bind(b, c);
-    bindings.bind(c, d);
-
-    // Binding properties sets them all to invalid. Update here to validate them.
-    testInvokeStrategy.updateOneStep();
-    assertThat(a.get()).isEqualTo(0);
-    assertThat(b.get()).isEqualTo(0);
-    assertThat(c.get()).isEqualTo(0);
-    assertThat(d.get()).isEqualTo(0);
-
-    d.set(10);
-    assertThat(a.get()).isEqualTo(0);
-    assertThat(b.get()).isEqualTo(0);
-    assertThat(c.get()).isEqualTo(0);
-    assertThat(d.get()).isEqualTo(10);
-
-    testInvokeStrategy.updateOneStep();
-    assertThat(a.get()).isEqualTo(0);
-    assertThat(b.get()).isEqualTo(0);
-    assertThat(c.get()).isEqualTo(10);
-    assertThat(d.get()).isEqualTo(10);
-
-    testInvokeStrategy.updateOneStep();
-    assertThat(a.get()).isEqualTo(0);
-    assertThat(b.get()).isEqualTo(10);
-    assertThat(c.get()).isEqualTo(10);
-    assertThat(d.get()).isEqualTo(10);
-
-    testInvokeStrategy.updateOneStep();
-    assertThat(a.get()).isEqualTo(10);
-    assertThat(b.get()).isEqualTo(10);
-    assertThat(c.get()).isEqualTo(10);
-    assertThat(d.get()).isEqualTo(10);
-  }
-
-  private static final class TestInvokeStrategy implements BindingsManager.InvokeStrategy {
-    private Runnable myQueuedRunnable;
-
-    @Override
-    public void invoke(@NotNull Runnable runnable) {
-      myQueuedRunnable = runnable;
-    }
-
-    public void updateOneStep() {
-      if (myQueuedRunnable != null) {
-        Runnable local = myQueuedRunnable;
-        myQueuedRunnable = null;
-        local.run();
-      }
-    }
   }
 }

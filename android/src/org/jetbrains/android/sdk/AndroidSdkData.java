@@ -16,13 +16,12 @@
 
 package org.jetbrains.android.sdk;
 
+import com.android.repository.api.ProgressIndicator;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.DeviceManager;
-import com.android.sdklib.repository.descriptors.PkgType;
-import com.android.sdklib.repository.local.LocalPkgInfo;
-import com.android.sdklib.repository.local.LocalPlatformPkgInfo;
-import com.android.sdklib.repository.local.LocalSdk;
+import com.android.sdklib.repositoryv2.AndroidSdkHandler;
+import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.module.Module;
@@ -34,13 +33,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.EnumSet;
-import java.util.List;
+import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
 
 import static com.android.SdkConstants.FD_PLATFORM_TOOLS;
-import static com.android.SdkConstants.FD_TOOLS;
 import static com.android.tools.idea.sdk.IdeSdks.isValidAndroidSdkPath;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.targetHasId;
@@ -52,13 +49,12 @@ import static org.jetbrains.android.util.AndroidCommonUtils.parsePackageRevision
 public class AndroidSdkData {
   private final Map<IAndroidTarget, SoftReference<AndroidTargetData>> myTargetDataByTarget = Maps.newHashMap();
 
-  private final LocalSdk myLocalSdk;
   private final DeviceManager myDeviceManager;
 
   private final int myPlatformToolsRevision;
-  private final int mySdkToolsRevision;
 
   private static final ConcurrentMap<String/* sdk path */, SoftReference<AndroidSdkData>> ourCache = Maps.newConcurrentMap();
+  private AndroidSdkHandler mySdkHandler;
 
   @Nullable
   public static AndroidSdkData getSdkData(@NotNull File sdkLocation) {
@@ -88,7 +84,7 @@ public class AndroidSdkData {
       return null;
     }
 
-    AndroidSdkData sdkData = new AndroidSdkData(new LocalSdk(canonicalLocation));
+    AndroidSdkData sdkData = new AndroidSdkData(canonicalLocation);
     ourCache.put(canonicalPath, new SoftReference<AndroidSdkData>(sdkData));
     return sdkData;
   }
@@ -122,18 +118,17 @@ public class AndroidSdkData {
     return getSdkData(module.getProject());
   }
 
-  private AndroidSdkData(@NotNull LocalSdk localSdk) {
-    myLocalSdk = localSdk;
+  private AndroidSdkData(@NotNull File localSdk) {
+    mySdkHandler = AndroidSdkHandler.getInstance(localSdk);
     File location = getLocation();
     String locationPath = location.getPath();
     myPlatformToolsRevision = parsePackageRevision(locationPath, FD_PLATFORM_TOOLS);
-    mySdkToolsRevision = parsePackageRevision(locationPath, FD_TOOLS);
     myDeviceManager = DeviceManager.createInstance(location, new MessageBuildingSdkLog());
   }
 
   @NotNull
   public File getLocation() {
-    File location = myLocalSdk.getLocation();
+    File location = mySdkHandler.getLocation();
 
     // The LocalSdk should always have been initialized.
     assert location != null;
@@ -148,28 +143,34 @@ public class AndroidSdkData {
 
   @Nullable
   public BuildToolInfo getLatestBuildTool() {
-    return myLocalSdk.getLatestBuildTool();
+    return mySdkHandler.getLatestBuildTool(new StudioLoggerProgressIndicator(getClass()));
   }
 
   @NotNull
   public IAndroidTarget[] getTargets() {
-    return myLocalSdk.getTargets();
+    Collection<IAndroidTarget> targets = getTargetCollection();
+    return targets.toArray(new IAndroidTarget[targets.size()]);
+  }
+
+  @NotNull
+  private Collection<IAndroidTarget> getTargetCollection() {
+    ProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
+    return mySdkHandler.getAndroidTargetManager(progress).getTargets(progress);
   }
 
   @NotNull
   public IAndroidTarget[] getTargets(boolean includeAddOns) {
-    if (includeAddOns) {
-      return myLocalSdk.getTargets();
-    }
-    List<IAndroidTarget> result = Lists.newArrayList();
-    LocalPkgInfo[] pkgsInfos = myLocalSdk.getPkgsInfos(EnumSet.of(PkgType.PKG_PLATFORM));
-    for (LocalPkgInfo info : pkgsInfos) {
-      if (info instanceof LocalPlatformPkgInfo) {
-        IAndroidTarget target = ((LocalPlatformPkgInfo) info).getAndroidTarget();
-        if (target != null) {
+    Collection<IAndroidTarget> targets = getTargetCollection();
+    Collection<IAndroidTarget> result = Lists.newArrayList();
+    if (!includeAddOns) {
+      for (IAndroidTarget target : targets) {
+        if (target.isPlatform()) {
           result.add(target);
         }
       }
+    }
+    else {
+      result.addAll(targets);
     }
     return result.toArray(new IAndroidTarget[result.size()]);
   }
@@ -198,15 +199,12 @@ public class AndroidSdkData {
 
   @Nullable
   public IAndroidTarget findTargetByHashString(@NotNull String hashString) {
-    return myLocalSdk.getTargetFromHashString(hashString);
+    ProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
+    return mySdkHandler.getAndroidTargetManager(progress).getTargetFromHashString(hashString, progress);
   }
 
   public int getPlatformToolsRevision() {
     return myPlatformToolsRevision;
-  }
-
-  public int getSdkToolsRevision() {
-    return mySdkToolsRevision;
   }
 
   @Override
@@ -223,11 +221,6 @@ public class AndroidSdkData {
   }
 
   @NotNull
-  public LocalSdk getLocalSdk() {
-    return myLocalSdk;
-  }
-
-  @NotNull
   public DeviceManager getDeviceManager() {
     return myDeviceManager;
   }
@@ -241,5 +234,10 @@ public class AndroidSdkData {
       myTargetDataByTarget.put(target, new SoftReference<AndroidTargetData>(targetData));
     }
     return targetData;
+  }
+
+  @NotNull
+  public AndroidSdkHandler getSdkHandler() {
+    return mySdkHandler;
   }
 }

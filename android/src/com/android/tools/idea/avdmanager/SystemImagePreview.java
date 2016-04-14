@@ -16,7 +16,8 @@
 package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.SdkVersionInfo;
-import com.android.sdklib.repository.descriptors.IdDisplay;
+import com.android.sdklib.repositoryv2.IdDisplay;
+import com.android.sdklib.repositoryv2.targets.SystemImage;
 import com.android.tools.idea.npw.ChooseApiLevelDialog;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
@@ -38,7 +39,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 
 /**
- * Displays information about a {@link com.android.sdklib.SystemImage}, including its
+ * Displays information about a {@link SystemImage}, including its
  * launch graphic, platform and API level, and target CPU architecture.
  */
 public class SystemImagePreview {
@@ -53,6 +54,7 @@ public class SystemImagePreview {
   private JPanel myMainPanel;
   private JSeparator mySeparator;
   private HaxmAlert myHaxmAlert;
+  private JBLabel myRecommendedExplanation;
   private SystemImageDescription myImageDescription;
   private Disposable myDisposable;
   ApiLevelHyperlinkListener myApiLevelListener = new ApiLevelHyperlinkListener();
@@ -117,6 +119,10 @@ public class SystemImagePreview {
       myVendor.setText("<html>" + vendorName + "</html>");
       myAbi.setText(myImageDescription.getAbiType());
     }
+  }
+
+  public void showExplanationForRecommended(boolean show) {
+    myRecommendedExplanation.setVisible(show);
   }
 
   /**

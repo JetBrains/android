@@ -15,19 +15,16 @@
  */
 package org.jetbrains.android.dom.layout;
 
-import com.android.resources.ResourceType;
+import com.android.resources.ResourceFolderType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.android.dom.AndroidResourceDomFileDescription;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * @author yole
- */
 public class LayoutDomFileDescription<T extends LayoutElement> extends AndroidResourceDomFileDescription<T> {
   public LayoutDomFileDescription(@NotNull Class<T> rootElementClass, @NotNull String rootTagName) {
-    super(rootElementClass, rootTagName, ResourceType.LAYOUT.getName());
+    super(rootElementClass, rootTagName, ResourceFolderType.LAYOUT);
   }
 
   @Override
@@ -39,7 +36,7 @@ public class LayoutDomFileDescription<T extends LayoutElement> extends AndroidRe
     return ApplicationManager.getApplication().runReadAction(new Computable<Boolean>() {
       @Override
       public Boolean compute() {
-        return AndroidResourceDomFileDescription.doIsMyFile(file, new String[]{ResourceType.LAYOUT.getName()});
+        return AndroidResourceDomFileDescription.doIsMyFile(file, ResourceFolderType.LAYOUT);
       }
     });
   }

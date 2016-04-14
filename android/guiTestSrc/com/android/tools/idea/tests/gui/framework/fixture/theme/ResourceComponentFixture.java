@@ -45,6 +45,11 @@ public class ResourceComponentFixture extends JPanelFixture {
   }
 
   @NotNull
+  public EditorTextFieldFixture getTextField() {
+    return EditorTextFieldFixture.find(robot(), target());
+  }
+
+  @NotNull
   private SwatchComponentFixture getValueComponent() {
     return SwatchComponentFixture.find(robot(), target());
   }
