@@ -386,6 +386,7 @@
     <facetType implementation="com.android.tools.idea.gradle.facet.AndroidGradleFacetType"/>
     <facetType implementation="com.android.tools.idea.gradle.facet.NativeAndroidGradleFacetType"/>
     <facetType implementation="com.android.tools.idea.gradle.facet.JavaGradleFacetType"/>
+    <facetType implementation="com.android.tools.idea.apk.AndroidApkFacetType"/>
     <framework.detector implementation="org.jetbrains.android.facet.AndroidFrameworkDetector"/>
     <fileTemplateGroup implementation="org.jetbrains.android.AndroidFileTemplateProvider"/>
 
