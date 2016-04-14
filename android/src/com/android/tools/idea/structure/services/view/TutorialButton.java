@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.structure.services.view;
 
+import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
 
@@ -31,17 +32,14 @@ import java.awt.event.ActionListener;
 public class TutorialButton extends NavigationButton {
 
   public TutorialButton(String label, String key, ActionListener listener) {
-    super(label, key, listener);
-
+    // Render the button as a link to conform with the document-style presentation. We're using a button rather than a link with a
+    // click handler to retain built-in accessibility benefits of a button.
+    super("<html><body><a href=\"#\">" + label + "</a></body></html>", key, listener);
+    setHorizontalAlignment(SwingConstants.LEFT);
     setMargin(new Insets(50, 10, 10, 10));
     setContentAreaFilled(false);
     setBorderPainted(false);
     setBorder(null);
     setOpaque(false);
-
-    Font font = getFont();
-    setFont(new Font(font.getFontName(), Font.BOLD, font.getSize()));
-    setForeground(UIUtils.getLinkColor());
-    setCursor(new Cursor(Cursor.HAND_CURSOR));
   }
 }

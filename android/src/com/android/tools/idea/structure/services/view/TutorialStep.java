@@ -130,14 +130,15 @@ public class TutorialStep extends JPanel {
    * display characteristics. It's unclear if a form can be leveraged for this.
    */
   private void initStepNumber() {
+    // Get standard label font.
+    Font font = new JLabel().getFont();
     JTextPane stepNumber = new JTextPane();
     stepNumber.setEditable(false);
     stepNumber.setText(myIndex + "");
-    Font font = stepNumber.getFont();
     Font boldFont = new Font(font.getFontName(), Font.BOLD, 11);
     stepNumber.setFont(boldFont);
     stepNumber.setOpaque(false);
-    // TODO: Get correct color from UX.
+    stepNumber.setForeground(UIUtils.getLinkColor());
     stepNumber.setBorder(new NumberBorder());
     Dimension size = new Dimension(20, 20);
     stepNumber.setSize(size);
@@ -162,7 +163,7 @@ public class TutorialStep extends JPanel {
   }
 
   /**
-   * A custom border used to create a circle around a specificly sized step number.
+   * A custom border used to create a circle around a specifically sized step number.
    * TODO: Adjust values further to match specs.
    */
   class NumberBorder extends AbstractBorder {
@@ -179,7 +180,7 @@ public class TutorialStep extends JPanel {
         corner.subtract(new Area(round));
         g2.fill(corner);
       }
-      g2.setColor(new Color(182, 194, 225));
+      g2.setColor(UIUtils.getLinkColor());
       g2.draw(round);
       g2.dispose();
     }
@@ -228,7 +229,7 @@ public class TutorialStep extends JPanel {
     public void setCode(String text) {
       // {@code escapeXml} is sufficient as we merely want to prevent the contents as being interpreted as html, not deal with the myriad of
       // html entities.
-      UIUtils.setHtml(this, "<pre>" + StringUtil.escapeXml(text) + "</pre>");
+      UIUtils.setHtml(this, "<pre>" + StringUtil.escapeXml(text) + "</pre>", "pre {padding: 0 5px 0 5px;");
     }
   }
 
