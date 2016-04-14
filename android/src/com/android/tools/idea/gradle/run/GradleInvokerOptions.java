@@ -80,12 +80,18 @@ public class GradleInvokerOptions {
 
     GradleInvoker.TestCompileType testCompileType = getTestCompileType(configuration);
 
-    InstantRunBuildOptions instantRunBuildOptions = null;
+    BuildOptions buildOptions = null;
 
-    if (configuration instanceof AndroidRunConfigurationBase) {
-      if (((AndroidRunConfigurationBase)configuration).supportsInstantRun()) {
-        instantRunBuildOptions = InstantRunBuildOptions.createAndReset(modules[0], env);
-      }
+    List<AndroidDevice> targetDevices = getTargetDevices(env);
+
+    if (configuration instanceof AndroidRunConfigurationBase &&
+        ((AndroidRunConfigurationBase)configuration).supportsInstantRun() &&
+        InstantRunUtils.isInstantRunEnabled(env) &&
+        InstantRunSettings.isInstantRunEnabled()) {
+      buildOptions = InstantRunBuildOptions.createAndReset(modules[0], env, targetDevices);
+      InstantRunManager.LOG.info(buildOptions.toString());
+    } else {
+      buildOptions = new BuildOptions(targetDevices);
     }
 
     List<String> cmdLineArgs = null;
@@ -109,17 +115,13 @@ public class GradleInvokerOptions {
       }
     }
 
-    if (instantRunBuildOptions != null) {
-      InstantRunManager.LOG.info(instantRunBuildOptions.toString());
-    }
-
-    return create(testCompileType, instantRunBuildOptions, new GradleModuleTasksProvider(modules), RunAsValidityService.getInstance(),
+    return create(testCompileType, buildOptions, new GradleModuleTasksProvider(modules), RunAsValidityService.getInstance(),
                   userGoal, cmdLineArgs);
   }
 
   @VisibleForTesting()
   static GradleInvokerOptions create(@NotNull GradleInvoker.TestCompileType testCompileType,
-                                     @Nullable InstantRunBuildOptions instantRunBuildOptions,
+                                     @NotNull BuildOptions buildOptions,
                                      @NotNull GradleTasksProvider gradleTasksProvider,
                                      @NotNull RunAsValidator runAsValidator,
                                      @Nullable String userGoal,
@@ -140,22 +142,26 @@ public class GradleInvokerOptions {
       cmdLineArgs.addAll(additionalArguments);
     }
 
-    // Inject instant run attributes
-    // Note that these are specifically not injected for the unit or instrumentation tests
-    if (testCompileType == GradleInvoker.TestCompileType.NONE && instantRunBuildOptions != null) {
-      boolean incrementalBuild = canBuildIncrementally(instantRunBuildOptions, runAsValidator);
+    cmdLineArgs.addAll(getDeviceSpecificArguments(buildOptions.devices));
 
-      cmdLineArgs.add(getInstantDevProperty(instantRunBuildOptions, incrementalBuild));
-      cmdLineArgs.addAll(getDeviceSpecificArguments(instantRunBuildOptions.devices));
-      if (instantRunBuildOptions.coldSwapEnabled) {
-        cmdLineArgs.add("-Pandroid.injected.coldswap.mode=" + instantRunBuildOptions.coldSwapMode.value);
-      }
+    if (buildOptions instanceof InstantRunBuildOptions) {
+      // Inject instant run attributes
+      // Note that these are specifically not injected for the unit or instrumentation tests
+      InstantRunBuildOptions instantRunBuildOptions = (InstantRunBuildOptions)buildOptions;
+      if (testCompileType == GradleInvoker.TestCompileType.NONE) {
+        boolean incrementalBuild = canBuildIncrementally(instantRunBuildOptions, runAsValidator);
 
-      if (instantRunBuildOptions.cleanBuild) {
-        tasks.addAll(gradleTasksProvider.getCleanAndGenerateSourcesTasks());
-      }
-      else if (incrementalBuild) {
-        return new GradleInvokerOptions(gradleTasksProvider.getIncrementalDexTasks(), null, cmdLineArgs);
+        cmdLineArgs.add(getInstantDevProperty(instantRunBuildOptions, incrementalBuild));
+        if (instantRunBuildOptions.coldSwapEnabled) {
+          cmdLineArgs.add("-Pandroid.injected.coldswap.mode=" + instantRunBuildOptions.coldSwapMode.value);
+        }
+
+        if (instantRunBuildOptions.cleanBuild) {
+          tasks.addAll(gradleTasksProvider.getCleanAndGenerateSourcesTasks());
+        }
+        else if (incrementalBuild) {
+          return new GradleInvokerOptions(gradleTasksProvider.getIncrementalDexTasks(), null, cmdLineArgs);
+        }
       }
     }
 
@@ -304,7 +310,14 @@ public class GradleInvokerOptions {
     return deviceFutures == null ? Collections.<AndroidDevice>emptyList() : deviceFutures.getDevices();
   }
 
-  static class InstantRunBuildOptions {
+  static class BuildOptions {
+    @NotNull public final List<AndroidDevice> devices;
+    BuildOptions(@NotNull List<AndroidDevice> devices) {
+      this.devices = devices;
+    }
+  }
+
+  static class InstantRunBuildOptions extends BuildOptions {
     public final boolean cleanBuild;
     public final boolean needsFullBuild;
     public final boolean isAppRunning;
@@ -312,7 +325,6 @@ public class GradleInvokerOptions {
     public final boolean coldSwapEnabled;
     public final ColdSwapMode coldSwapMode;
     @NotNull private final FileChangeListener.Changes fileChanges;
-    @NotNull public final List<AndroidDevice> devices;
 
     InstantRunBuildOptions(boolean cleanBuild,
                            boolean needsFullBuild,
@@ -322,6 +334,7 @@ public class GradleInvokerOptions {
                            @NotNull ColdSwapMode coldSwapMode,
                            @NotNull FileChangeListener.Changes changes,
                            @NotNull List<AndroidDevice> devices) {
+      super(devices);
       this.cleanBuild = cleanBuild;
       this.needsFullBuild = needsFullBuild;
       this.isAppRunning = isAppRunning;
@@ -329,17 +342,10 @@ public class GradleInvokerOptions {
       this.coldSwapEnabled = coldSwapEnabled;
       this.coldSwapMode = coldSwapMode;
       this.fileChanges = changes;
-      this.devices = devices;
     }
 
     @Nullable
-    static InstantRunBuildOptions createAndReset(@NotNull Module module, @NotNull ExecutionEnvironment env) {
-      if (!InstantRunUtils.isInstantRunEnabled(env) ||
-          !InstantRunSettings.isInstantRunEnabled()) {
-        return null;
-      }
-
-      List<AndroidDevice> targetDevices = getTargetDevices(env);
+    static InstantRunBuildOptions createAndReset(@NotNull Module module, @NotNull ExecutionEnvironment env, List<AndroidDevice> targetDevices) {
       if (targetDevices.size() != 1 ||  // IR only supports launching on 1 device
           !InstantRunGradleUtils.getIrSupportStatus(module, targetDevices.get(0).getVersion()).success) {
         return null;
