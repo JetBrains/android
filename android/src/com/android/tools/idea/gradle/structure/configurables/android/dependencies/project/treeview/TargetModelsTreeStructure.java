@@ -16,24 +16,25 @@
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.project.treeview;
 
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractDependencyNode;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AndroidArtifactNode;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractBaseTreeStructure;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.SimpleNodeComparator;
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsProject;
 import com.android.tools.idea.gradle.structure.model.android.*;
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
+import com.google.common.collect.Multimap;
 import com.intellij.openapi.util.Pair;
 import com.intellij.ui.treeStructure.SimpleNode;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import javax.swing.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
-import static com.android.builder.model.AndroidProject.ARTIFACT_MAIN;
-import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 public class TargetModelsTreeStructure extends AbstractBaseTreeStructure {
@@ -53,31 +54,18 @@ public class TargetModelsTreeStructure extends AbstractBaseTreeStructure {
     // Key: module name, Value: pair of module and version of the dependency used in the module.
     Map<String, Pair<PsAndroidModule, String>> modules = Maps.newHashMap();
 
-    // Key: module name, Value: dependency containers (variant/artifact combo) per module.
-    Map<String, Set<PsDependencyContainer>> containersByModule = Maps.newHashMap();
+    // Key: module name, Value: configuration names.
+    Multimap<String, Configuration> configurationNamesByModule = HashMultimap.create();
 
     // From the list of AbstractDependencyNode:
     //  1. Extract modules (to show them as top-level nodes)
     //  2. Extract variants/artifact (i.e. PsDependencyContainer) per module (to show them as children nodes of the module nodes)
-    for (AbstractDependencyNode<? extends PsAndroidDependency> node : dependencyNodes) {
-      AbstractDependencyNode<? extends PsAndroidDependency> declared = getTopParent(node);
+    dependencyNodes.forEach(node -> {
+      List<AbstractDependencyNode<? extends PsAndroidDependency>> declaredDependencyNodes = getDeclaredDependencyNodeHierarchy(node);
 
+      // Create the module and version used.
+      Map<String, String> versionByModule = Maps.newHashMap();
       for (PsAndroidDependency dependency : node.getModels()) {
-        String version = "";
-        PsAndroidModule module = dependency.getParent();
-
-        String configurationName = dependency.getConfigurationName();
-        if (isEmpty(configurationName) || node != declared) {
-          // This is a transitive dependency. Need to find the dependency that brought it. Then we used this newly found dependency
-          // to get the module that declared it and the configuration name used.
-          PsAndroidDependency declaredDependency = getDeclaredDependency(declared);
-          configurationName = declaredDependency.getConfigurationName();
-          module = declaredDependency.getParent();
-        }
-        assert isNotEmpty(configurationName);
-
-        String moduleName = module.getName();
-
         if (dependency instanceof PsLibraryDependency) {
           PsLibraryDependency libraryDependency = (PsLibraryDependency)dependency;
           PsArtifactDependencySpec spec = libraryDependency.getDeclaredSpec();
@@ -85,27 +73,54 @@ public class TargetModelsTreeStructure extends AbstractBaseTreeStructure {
             spec = libraryDependency.getResolvedSpec();
           }
           // For library dependencies we display the version of the library being used.
-          version = spec.version;
-        }
-        Pair<PsAndroidModule, String> existing = modules.get(moduleName);
-        if (existing == null || isEmpty(existing.getSecond())) {
-          modules.put(moduleName, Pair.create(module, version));
-        }
-
-        Set<PsDependencyContainer> containers = containersByModule.get(moduleName);
-        if (containers == null) {
-          containers = Sets.newHashSet();
-          containersByModule.put(moduleName, containers);
-        }
-
-        for (PsDependencyContainer container : dependency.getContainers()) {
-          PsAndroidArtifact artifact = container.findArtifact(module, false);
-          if (artifact != null && artifact.getPossibleConfigurationNames().contains(configurationName)) {
-            containers.add(container);
-          }
+          PsAndroidModule module = dependency.getParent();
+          versionByModule.put(module.getName(), spec.version);
         }
       }
-    }
+
+      AbstractDependencyNode<? extends PsAndroidDependency> topParentNode = declaredDependencyNodes.get(declaredDependencyNodes.size() - 1);
+      for (PsAndroidDependency dependency : topParentNode.getModels()) {
+        PsAndroidModule module = dependency.getParent();
+        String moduleName = module.getName();
+        Pair<PsAndroidModule, String> existing = modules.get(moduleName);
+        if (existing == null) {
+          modules.put(moduleName, Pair.create(module, versionByModule.get(moduleName)));
+        }
+      }
+
+      declaredDependencyNodes.forEach(declaredDependencyNode -> {
+        List<PsAndroidDependency> declaredDependencies = getDeclaredDependencies(declaredDependencyNode);
+
+        declaredDependencies.forEach(declaredDependency -> {
+          String configurationName = declaredDependency.getConfigurationName();
+          assert configurationName != null;
+          PsAndroidModule module = declaredDependency.getParent();
+          String moduleName = module.getName();
+
+          for (PsDependencyContainer container : declaredDependency.getContainers()) {
+            PsAndroidArtifact artifact = container.findArtifact(module, false);
+            if (artifact != null && artifact.getPossibleConfigurationNames().contains(configurationName)) {
+              boolean transitive = declaredDependencyNode != node;
+
+              Collection<Configuration> configurations = configurationNamesByModule.get(moduleName);
+              boolean found = false;
+              for (Configuration configuration : configurations) {
+                if (configuration.getName().equals(configurationName)) {
+                  configuration.addTransitive(transitive);
+                  found = true;
+                  break;
+                }
+              }
+
+              if (!found) {
+                Icon icon = artifact.getIcon();
+                configurationNamesByModule.put(moduleName, new Configuration(configurationName, icon, transitive));
+              }
+            }
+          }
+        });
+      });
+    });
 
     // Now we create the tree nodes.
     List<TargetAndroidModuleNode> children = Lists.newArrayList();
@@ -114,48 +129,13 @@ public class TargetModelsTreeStructure extends AbstractBaseTreeStructure {
       PsAndroidModule module = moduleAndVersion.getFirst();
       TargetAndroidModuleNode moduleNode = new TargetAndroidModuleNode(myRootNode, module, moduleAndVersion.getSecond());
 
-      List<AndroidArtifactNode> artifactNodes = Lists.newArrayList();
+      List<Configuration> configurations = Lists.newArrayList(configurationNamesByModule.get(module.getName()));
+      Collections.sort(configurations);
 
-      Set<PsDependencyContainer> containers = containersByModule.get(module.getName());
-      if (containers != null) {
-        // Key: variant name, Value: artifacts.
-        Map<String, Set<PsAndroidArtifact>> containersByVariant = Maps.newHashMap();
+      List<TargetConfigurationNode> nodes = Lists.newArrayList();
+      configurations.forEach(configuration -> nodes.add(new TargetConfigurationNode(configuration)));
 
-        for (PsDependencyContainer container : containers) {
-          PsAndroidArtifact artifact = container.findArtifact(module, true);
-
-          String variant = container.getVariant();
-          Set<PsAndroidArtifact> existingArtifacts = containersByVariant.get(variant);
-          if (existingArtifacts == null) {
-            existingArtifacts = Sets.newHashSet();
-            containersByVariant.put(variant, existingArtifacts);
-          }
-          existingArtifacts.add(artifact);
-
-          AndroidArtifactNode artifactNode = new AndroidArtifactNode(moduleNode, artifact);
-          artifactNodes.add(artifactNode);
-        }
-
-        for (String variant : containersByVariant.keySet()) {
-          Set<PsAndroidArtifact> existingArtifacts = containersByVariant.get(variant);
-          PsAndroidArtifact mainArtifact = findMainArtifact(existingArtifacts);
-          if (mainArtifact != null) {
-            // The dependency is declared in the main artifact. Both test artifacts should be added as well, since they inherit the
-            // dependencies.
-            PsVariant parentVariant = mainArtifact.getParent();
-            parentVariant.forEachArtifact(artifact -> {
-              if (existingArtifacts.contains(artifact)) {
-                return;
-              }
-              AndroidArtifactNode artifactNode = new AndroidArtifactNode(moduleNode, artifact);
-              artifactNodes.add(artifactNode);
-            });
-          }
-        }
-
-        Collections.sort(artifactNodes, new SimpleNodeComparator<>());
-        moduleNode.setChildren(artifactNodes);
-      }
+      moduleNode.setChildren(nodes);
       children.add(moduleNode);
     }
 
@@ -164,39 +144,34 @@ public class TargetModelsTreeStructure extends AbstractBaseTreeStructure {
   }
 
   @NotNull
-  private static AbstractDependencyNode<? extends PsAndroidDependency> getTopParent(AbstractDependencyNode<?> node) {
+  private static List<AbstractDependencyNode<? extends PsAndroidDependency>> getDeclaredDependencyNodeHierarchy(AbstractDependencyNode<?> node) {
+    List<AbstractDependencyNode<? extends PsAndroidDependency>> nodes = Lists.newArrayList();
+    if (node.isDeclared()) {
+      nodes.add(node);
+    }
     SimpleNode current = node;
     while (true) {
       SimpleNode parent = current.getParent();
-      if (parent instanceof AbstractDependencyNode) {
-        current = parent;
-        continue;
+      if (parent instanceof AbstractDependencyNode && ((AbstractDependencyNode)parent).isDeclared()) {
+        nodes.add((AbstractDependencyNode<? extends PsAndroidDependency>)parent);
       }
-      return (AbstractDependencyNode<? extends PsAndroidDependency>)current;
+      else if (parent == null) {
+        break;
+      }
+      current = parent;
     }
+    return nodes;
   }
 
   @NotNull
-  private static PsAndroidDependency getDeclaredDependency(AbstractDependencyNode<? extends PsAndroidDependency> node) {
-    PsAndroidDependency found = null;
+  private static List<PsAndroidDependency> getDeclaredDependencies(AbstractDependencyNode<? extends PsAndroidDependency> node) {
+    List<PsAndroidDependency> dependencies = Lists.newArrayList();
     for (PsAndroidDependency dependency : node.getModels()) {
       String configurationName = dependency.getConfigurationName();
       if (isNotEmpty(configurationName)) {
-        found = dependency;
-        break;
+        dependencies.add(dependency);
       }
     }
-    assert found != null;
-    return found;
-  }
-
-  @Nullable
-  private static PsAndroidArtifact findMainArtifact(@NotNull Collection<PsAndroidArtifact> artifacts) {
-    for (PsAndroidArtifact artifact : artifacts) {
-      if (artifact.getResolvedName().equals(ARTIFACT_MAIN)) {
-        return artifact;
-      }
-    }
-    return null;
+    return dependencies;
   }
 }
