@@ -165,6 +165,45 @@ public class ConstraintUtilities {
   }
 
   /**
+   * Return the corresponding creator attribute for the given anchor
+   *
+   * @param anchor the anchor we want to use
+   * @return the creator attribute
+   */
+  @Nullable
+  static String getConnectionAttributeCreator(@Nullable ConstraintAnchor anchor) {
+    if (anchor != null) {
+      switch (anchor.getType()) {
+        case LEFT: {
+          return SdkConstants.ATTR_LAYOUT_LEFT_CREATOR;
+        }
+        case TOP: {
+          return SdkConstants.ATTR_LAYOUT_TOP_CREATOR;
+        }
+        case RIGHT: {
+          return SdkConstants.ATTR_LAYOUT_RIGHT_CREATOR;
+        }
+        case BOTTOM: {
+          return SdkConstants.ATTR_LAYOUT_BOTTOM_CREATOR;
+        }
+        case BASELINE: {
+          return SdkConstants.ATTR_LAYOUT_BASELINE_CREATOR;
+        }
+        case CENTER: {
+          return SdkConstants.ATTR_LAYOUT_CENTER_CREATOR;
+        }
+        case CENTER_X: {
+          return SdkConstants.ATTR_LAYOUT_CENTER_X_CREATOR;
+        }
+        case CENTER_Y: {
+          return SdkConstants.ATTR_LAYOUT_CENTER_Y_CREATOR;
+        }
+      }
+    }
+    return null;
+  }
+
+  /**
    * Reset potential attributes related to the given anchor type
    *
    * @param component  the component we work on
@@ -177,6 +216,7 @@ public class ConstraintUtilities {
         component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_LEFT_MARGIN, null);
         component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_LEFT_TO_LEFT_OF, null);
         component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_LEFT_TO_RIGHT_OF, null);
+        component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_LEFT_CREATOR, null);
         break;
       }
       case TOP: {
@@ -184,6 +224,7 @@ public class ConstraintUtilities {
         component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_TOP_MARGIN, null);
         component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF, null);
         component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_TOP_TO_BOTTOM_OF, null);
+        component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_TOP_CREATOR, null);
         break;
       }
       case RIGHT: {
@@ -191,6 +232,7 @@ public class ConstraintUtilities {
         component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_RIGHT_MARGIN, null);
         component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_RIGHT_TO_LEFT_OF, null);
         component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_RIGHT_TO_RIGHT_OF, null);
+        component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_RIGHT_CREATOR, null);
         break;
       }
       case BOTTOM: {
@@ -198,10 +240,12 @@ public class ConstraintUtilities {
         component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BOTTOM_MARGIN, null);
         component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF, null);
         component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF, null);
+        component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BOTTOM_CREATOR, null);
         break;
       }
       case BASELINE: {
         component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF, null);
+        component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BASELINE_CREATOR, null);
       }
       break;
     }
@@ -286,6 +330,7 @@ public class ConstraintUtilities {
         String margin = String.format(SdkConstants.VALUE_N_DP, anchor.getMargin());
         component.setAttribute(SdkConstants.SHERPA_URI, marginAttribute, margin);
       }
+      component.setAttribute(SdkConstants.SHERPA_URI, getConnectionAttributeCreator(anchor), "" + anchor.getConnectionCreator());
     }
   }
 
@@ -443,7 +488,12 @@ public class ConstraintUtilities {
     if (componentFound != null) {
       ConstraintWidget widget = widgetsScene.getWidget(componentFound.getTag());
       if (widgetSrc != null && widget != null) {
-        widgetSrc.connect(constraintA, widget, constraintB);
+        int connectionCreator = 0;
+        WidgetDecorator decorator = (WidgetDecorator)widgetSrc.getCompanionWidget();
+        NlComponent component = (NlComponent)decorator.getCompanionObject();
+        connectionCreator = Integer.parseInt(
+          component.getAttribute(SdkConstants.SHERPA_URI, getConnectionAttributeCreator(widgetSrc.getAnchor(constraintA))));
+        widgetSrc.connect(constraintA, widget, constraintB, connectionCreator);
       }
     }
   }
