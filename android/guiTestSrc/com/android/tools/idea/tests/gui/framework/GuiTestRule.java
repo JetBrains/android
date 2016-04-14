@@ -386,6 +386,7 @@ public class GuiTestRule implements TestRule {
       // and registers it with GradleSyncState. This keeps adding more and more listeners, and the new recent listeners are only updated
       // with gradle State when that State changes. This means the listeners may have outdated info.
       myIdeFrameFixture = IdeFrameFixture.find(robot(), getProjectPath(), null);
+      myIdeFrameFixture.requestFocusIfLost();
     }
     return myIdeFrameFixture;
   }
