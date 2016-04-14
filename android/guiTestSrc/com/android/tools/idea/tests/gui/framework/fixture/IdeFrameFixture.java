@@ -922,6 +922,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
         }
       }
     });
+    Wait.seconds(30).expecting("a component to have the focus").until(() -> target().getFocusOwner() != null);
   }
 
   /////////////////////////////////////////////////////////////////
