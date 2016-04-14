@@ -24,7 +24,7 @@ import com.android.tools.idea.templates.StringEvaluator;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
-import com.android.tools.idea.ui.ComboBoxItemWithApiTag;
+import com.android.tools.idea.ui.ApiComboBoxItem;
 import com.android.tools.idea.ui.ImageComponent;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.template.TemplateWizardState;
@@ -165,7 +165,7 @@ public class RasterAssetSetStep extends CommonAssetSetStep {
     myBackgroundColor.setSelectedColor(Color.WHITE);
 
     for (String font : GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames()) {
-      myFontFamily.addItem(new ComboBoxItemWithApiTag(font, font, 1, 1));
+      myFontFamily.addItem(new ApiComboBoxItem(font, font, 1, 1));
       if (font.equals(myTemplateState.get(ATTR_FONT))) {
         myFontFamily.setSelectedIndex(myFontFamily.getItemCount() - 1);
       }
@@ -385,7 +385,7 @@ public class RasterAssetSetStep extends CommonAssetSetStep {
     mySelectedAssetType = type;
     myTemplateState.put(ATTR_ASSET_TYPE, type.name());
     for (int i = 0; i < myAssetTypeComboBox.getItemCount(); ++i) {
-      if (((ComboBoxItemWithApiTag)myAssetTypeComboBox.getItemAt(i)).id.equals(type.name())) {
+      if (((ApiComboBoxItem)myAssetTypeComboBox.getItemAt(i)).getData().equals(type.name())) {
         myAssetTypeComboBox.setSelectedIndex(i);
         break;
       }

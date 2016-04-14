@@ -16,20 +16,22 @@
 package com.android.tools.idea.welcome.install;
 
 import com.android.SdkConstants;
+import com.android.repository.Revision;
+import com.android.repository.api.RemotePackage;
+import com.android.repository.io.FileOpUtils;
 import com.android.sdklib.devices.Storage;
-import com.android.sdklib.repository.FullRevision;
-import com.android.sdklib.repository.NoPreviewRevision;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
-import com.android.sdklib.repository.descriptors.IdDisplay;
 import com.android.sdklib.repository.descriptors.PkgDesc;
-import com.android.sdklib.repository.descriptors.PkgType;
-import com.android.tools.idea.sdk.remote.RemotePkgInfo;
+import com.android.sdklib.repositoryv2.AndroidSdkHandler;
+import com.android.sdklib.repositoryv2.IdDisplay;
+import com.android.tools.idea.avdmanager.AccelerationErrorCode;
+import com.android.tools.idea.avdmanager.AvdManagerConnection;
+import com.android.tools.idea.avdmanager.ElevatedCommandLine;
 import com.android.tools.idea.welcome.wizard.HaxmInstallSettingsStep;
 import com.android.tools.idea.welcome.wizard.ProgressStep;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStep;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Multimap;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.Platform;
 import com.intellij.execution.configurations.GeneralCommandLine;
@@ -47,15 +49,16 @@ import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.*;
-import java.lang.management.ManagementFactory;
-import java.lang.management.OperatingSystemMXBean;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
+import java.io.File;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static com.android.tools.idea.avdmanager.AccelerationErrorCode.ALREADY_INSTALLED;
+import static com.android.tools.idea.avdmanager.AccelerationErrorCode.CANNOT_INSTALL_ON_THIS_OS;
 
 /**
  * Intel® HAXM installable component
@@ -64,79 +67,69 @@ public final class Haxm extends InstallableComponent {
   // In UI we cannot use longs, so we need to pick a unit other then byte
   public static final Storage.Unit UI_UNITS = Storage.Unit.MiB;
   public static final Logger LOG = Logger.getInstance(Haxm.class);
-  public static final IdDisplay ID_INTEL = new IdDisplay("intel", "");
+  public static final IdDisplay ID_INTEL = IdDisplay.create("intel", "");
   public static final String COMPONENT_PATH = "Hardware_Accelerated_Execution_Manager";
+  public static final String REPO_PACKAGE_PATH = "extras;intel;" + COMPONENT_PATH;
   public static final String RUNNING_INTEL_HAXM_INSTALLER_MESSAGE = "Running Intel® HAXM installer";
   private static final ScopedStateStore.Key<Integer> KEY_EMULATOR_MEMORY_MB =
     ScopedStateStore.createKey("emulator.memory", ScopedStateStore.Scope.PATH, Integer.class);
-  private static long myMemorySize = -1;
   private final ScopedStateStore.Key<Boolean> myIsCustomInstall;
   private ProgressStep myProgressStep;
+  private static AccelerationErrorCode ourInitialCheck;
 
   /**
-   * Returns the version of haxm installed, as reported by the silent installer.
-   * Note this is different from the haxm installer version as reported by the sdk manager
-   * (e.g. sdk manager currently shows version 5.2, but haxm installer reports 1.1.1).
-   * @param sdk Path to the android sdk
-   * @return the version of haxm that is currently installed
-   * @throws WizardException If haxm is not currently installed, or there is a problem running the installer.
+   * Return true if it is possible to install Haxm on the current machine without any other configuration changes.
    */
-  public static FullRevision getInstalledVersion(@NotNull File sdk) throws WizardException {
-    GeneralCommandLine command;
-    String path = FileUtil.join(SdkConstants.FD_EXTRAS, ID_INTEL.getId(), COMPONENT_PATH);
-    File sourceLocation = new File(sdk, path);
-
-    if (SystemInfo.isMac) {
-      command = addVersionParameters(getMacHaxmCommandLine(sourceLocation));
-    }
-    else if (SystemInfo.isWindows) {
-      command = addVersionParameters(getWindowsHaxmCommandLine(sourceLocation));
-    }
-    else {
-      assert !canRun();
-      throw new IllegalStateException("Unsupported OS");
-    }
-    try {
-      CapturingAnsiEscapesAwareProcessHandler process = new CapturingAnsiEscapesAwareProcessHandler(command);
-      return FullRevision.parseRevision(process.runProcess().getStdout());
-    }
-    catch (NumberFormatException e) {
-      LOG.warn("Invalid HAXM version found.", e);
-      return new FullRevision(0);
-    }
-    catch (ExecutionException e) {
-      throw new WizardException("Failed to get HAXM version", e);
-    }
-  }
-
   public static boolean canRun() {
-    // TODO HAXM is disabled on Windows as headless installer currently fails to request admin access as needed.
-    if (((Boolean.getBoolean("install.haxm") && SystemInfo.isWindows) || SystemInfo.isMac) &&
-        isSupportedProcessor()) {
-      return getMemorySize() >= Storage.Unit.GiB.getNumberOfBytes();
+    if (ourInitialCheck == null) {
+      ourInitialCheck = checkHaxmInstallation();
     }
-    else {
-      return false;
+    switch (ourInitialCheck) {
+      case NO_EMULATOR_INSTALLED:
+      case UNKNOWN_ERROR:
+        // We don't know if we can install Haxm. Assume we can if this is Windows or Mac:
+        return SystemInfo.isMac || SystemInfo.isWindows;
+      case NOT_ENOUGH_MEMORY:
+      case ALREADY_INSTALLED:
+        return false;
+      default:
+        switch (ourInitialCheck.getSolution()) {
+          case INSTALL_HAXM:
+          case REINSTALL_HAXM:
+            return true;
+          default:
+            return false;
+        }
     }
   }
 
-  private static boolean isSupportedProcessor() {
-    if (SystemInfo.isMac) {
-      return true;
-    } else if (SystemInfo.isWindows) {
-      String id = System.getenv().get("PROCESSOR_IDENTIFIER");
-      if (id != null && id.contains("GenuineIntel")) {
-        return true;
-      }
+  /**
+   * Check the status of the Haxm installation.<br/>
+   * If Haxm is installed we return the error code:
+   * <ul><li>{@link AccelerationErrorCode#ALREADY_INSTALLED}</li></ul>
+   * Other possible error conditions:
+   * <ul>
+   *   <li>On an OS other than Windows and Mac</li>
+   *   <li>On Windows (until we fix the headless installer to use an admin account)</li>
+   *   <li>If the CPU is not an Intel processor</li>
+   *   <li>If there is not enough memory available</li>
+   *   <li>If the CPU is not an Intel processor</li>
+   *   <li>BIOS is not setup correctly</li>
+   * </ul>
+   * For some of these error conditions the user may rectify the problem and install Haxm later.
+   */
+  public static AccelerationErrorCode checkHaxmInstallation() {
+    if (!SystemInfo.isWindows && !SystemInfo.isMac) {
+      return CANNOT_INSTALL_ON_THIS_OS;
     }
-    return false;
+    AvdManagerConnection manager = AvdManagerConnection.getDefaultAvdManagerConnection();
+    return manager.checkAcceration();
   }
-
-
 
   public Haxm(@NotNull ScopedStateStore store, ScopedStateStore.Key<Boolean> isCustomInstall) {
     super(store, "Performance (Intel ® HAXM)", 2306867, "Enables a hardware-assisted virtualization engine (hypervisor) to speed up " +
-                                                        "Android app emulation on your development computer. (Recommended)");
+                                                        "Android app emulation on your development computer. (Recommended)",
+          FileOpUtils.create());
     myIsCustomInstall = isCustomInstall;
   }
 
@@ -147,19 +140,8 @@ public final class Haxm extends InstallableComponent {
    * @return cl
    */
   @NotNull
-  private GeneralCommandLine addInstallParameters(@NotNull GeneralCommandLine cl, int memorySize) {
+  private static GeneralCommandLine addInstallParameters(@NotNull GeneralCommandLine cl, int memorySize) {
     cl.addParameters("-m", String.valueOf(memorySize));
-    return cl;
-  }
-
-  /**
-   * Modifies cl with parameters used to check the haxm version and returns it.
-   * @param cl The command line for the base command. Modified in-place by this method.
-   * @return cl
-   */
-  @NotNull
-  private static GeneralCommandLine addVersionParameters(@NotNull GeneralCommandLine cl) {
-    cl.addParameters("-v");
     return cl;
   }
 
@@ -188,54 +170,16 @@ public final class Haxm extends InstallableComponent {
   @NotNull
   private static GeneralCommandLine getWindowsHaxmCommandLine(File source) {
     File batFile = new File(source, "silent_install.bat");
-    return new GeneralCommandLine(batFile.getAbsolutePath()).withWorkDirectory(source);
+    return new ElevatedCommandLine(batFile.getAbsolutePath()).withWorkDirectory(source);
   }
-
-
 
   private static int getRecommendedMemoryAllocation() {
-    return FirstRunWizardDefaults.getRecommendedHaxmMemory(getMemorySize());
-  }
-
-  public static long getMemorySize() {
-    if (myMemorySize < 0) {
-      myMemorySize = checkMemorySize();
-    }
-    return myMemorySize;
-  }
-
-  private static long checkMemorySize() {
-    OperatingSystemMXBean osMXBean = ManagementFactory.getOperatingSystemMXBean();
-    // This is specific to JDKs derived from Oracle JDK (including OpenJDK and Apple JDK among others).
-    // Other then this, there's no standard way of getting memory size
-    // without adding 3rd party libraries or using native code.
-    try {
-      Class<?> oracleSpecificMXBean = Class.forName("com.sun.management.OperatingSystemMXBean");
-      Method getPhysicalMemorySizeMethod = oracleSpecificMXBean.getMethod("getTotalPhysicalMemorySize");
-      Object result = getPhysicalMemorySizeMethod.invoke(osMXBean);
-      if (result instanceof Number) {
-        return ((Number)result).longValue();
-      }
-    }
-    catch (ClassNotFoundException e) {
-      // Unsupported JDK
-    }
-    catch (NoSuchMethodException e) {
-      // Unsupported JDK
-    }
-    catch (InvocationTargetException e) {
-      LOG.error(e); // Shouldn't happen (unsupported JDK?)
-    }
-    catch (IllegalAccessException e) {
-      LOG.error(e); // Shouldn't happen (unsupported JDK?)
-    }
-    // Maximum memory allocatable to emulator - 32G. Only used if non-Oracle JRE.
-    return 32L * Storage.Unit.GiB.getNumberOfBytes();
+    return FirstRunWizardDefaults.getRecommendedHaxmMemory(AvdManagerConnection.getMemorySize());
   }
 
   @NotNull
   private static IPkgDesc createExtra(@NotNull IdDisplay vendor, @NotNull String path) {
-    return PkgDesc.Builder.newExtra(vendor, path, "", null, new NoPreviewRevision(FullRevision.MISSING_MAJOR_REV)).create();
+    return PkgDesc.Builder.newExtra(vendor, path, "", null, new Revision(Revision.MISSING_MAJOR_REV)).create();
   }
 
   @Override
@@ -251,24 +195,39 @@ public final class Haxm extends InstallableComponent {
   }
 
   @Override
-  public void configure(@NotNull InstallContext installContext, @NotNull File sdk) {
-    if (!canRun()) {
-      Logger.getInstance(getClass()).error(
-        String.format("Tried to install HAXM on %s OS with %s memory size", Platform.current().name(), String.valueOf(getMemorySize())));
-      installContext.print("Unable to install Intel HAXM\n", ConsoleViewContentType.ERROR_OUTPUT);
+  public void configure(@NotNull InstallContext installContext, @NotNull AndroidSdkHandler sdkHandler) {
+    AccelerationErrorCode error = checkHaxmInstallation();
+    if (error == ALREADY_INSTALLED) {
       return;
     }
-    try {
-      GeneralCommandLine commandLine = getInstallCommandLine(sdk);
-      runInstaller(installContext, commandLine);
-    }
-    catch (WizardException e) {
-      String message = e.getMessage();
-      if (!StringUtil.endsWithLineBreak(message)) {
-        message += "\n";
-      }
-      installContext.print(message, ConsoleViewContentType.ERROR_OUTPUT);
-      LOG.error(e);
+    switch (error.getSolution()) {
+      case INSTALL_HAXM:
+      case REINSTALL_HAXM:
+        try {
+          GeneralCommandLine commandLine = getInstallCommandLine(sdkHandler.getLocation());
+          runInstaller(installContext, commandLine);
+        }
+        catch (WizardException e) {
+          LOG.error(String.format("Tried to install HAXM on %s OS with %s memory size",
+                                  Platform.current().name(), String.valueOf(AvdManagerConnection.getMemorySize())));
+          installContext.print("Unable to install Intel HAXM\n", ConsoleViewContentType.ERROR_OUTPUT);
+          String message = e.getMessage();
+          if (!StringUtil.endsWithLineBreak(message)) {
+            message += "\n";
+          }
+          installContext.print(message, ConsoleViewContentType.ERROR_OUTPUT);
+          LOG.error(e);
+        }
+        break;
+
+      case NONE:
+        String message = String.format("Unable to install Intel HAXM\n%1$s\n%2$s\n", error.getProblem(), error.getSolutionMessage());
+        installContext.print(message, ConsoleViewContentType.ERROR_OUTPUT);
+        break;
+
+      default:
+        // Different error that is unrelated to the installation of Haxm
+        break;
     }
   }
 
@@ -341,7 +300,7 @@ public final class Haxm extends InstallableComponent {
 
   @NotNull
   @Override
-  public Collection<IPkgDesc> getRequiredSdkPackages(@Nullable Multimap<PkgType, RemotePkgInfo> remotePackages) {
-    return ImmutableList.of(createExtra(ID_INTEL, COMPONENT_PATH));
+  public Collection<String> getRequiredSdkPackages(@Nullable Map<String, RemotePackage> remotePackages) {
+    return ImmutableList.of(REPO_PACKAGE_PATH);
   }
 }

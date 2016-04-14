@@ -23,7 +23,11 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 
-final public class FmtLuminanceAlpha extends Format {
+final public class FmtLuminanceAlpha extends Format {  @Override
+  public String getDisplayName() {
+    return "LUMINANCE_ALPHA";
+  }
+
   //<<<Start:Java.ClassBody:1>>>
 
   // Constructs a default-initialized {@link FmtLuminanceAlpha}.
@@ -34,7 +38,7 @@ final public class FmtLuminanceAlpha extends Format {
   public BinaryClass klass() { return Klass.INSTANCE; }
 
 
-  private static final Entity ENTITY = new Entity("image","fmtLuminanceAlpha","","");
+  private static final Entity ENTITY = new Entity("image", "fmtLuminanceAlpha", "", "");
 
   static {
     ENTITY.setFields(new Field[]{
@@ -55,12 +59,10 @@ final public class FmtLuminanceAlpha extends Format {
 
     @Override
     public void encode(@NotNull Encoder e, BinaryObject obj) throws IOException {
-      FmtLuminanceAlpha o = (FmtLuminanceAlpha)obj;
     }
 
     @Override
     public void decode(@NotNull Decoder d, BinaryObject obj) throws IOException {
-      FmtLuminanceAlpha o = (FmtLuminanceAlpha)obj;
     }
     //<<<End:Java.KlassBody:2>>>
   }

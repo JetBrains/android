@@ -56,11 +56,7 @@ public final class StringsWriteUtilsTest extends AndroidTestCase {
 
   public void testSetItemTextXliff() {
     StringsWriteUtils.setItemText(myProject, getResourceItem("key2", Locale.create("fr")), "<xliff:g>L'Étranger</xliff:g>");
-
-    // TODO Prevent this reformatting
-    String expected = "<xliff:g>L\\'Étranger</xliff:g>";
-
-    assertEquals(expected, getText("values-fr/strings.xml", "key2"));
+    assertEquals("<xliff:g>L\\'Étranger</xliff:g>", getText("values-fr/strings.xml", "key2"));
   }
 
   public void testCreateItem() {
@@ -75,11 +71,7 @@ public final class StringsWriteUtilsTest extends AndroidTestCase {
 
   public void testCreateItemXliff() {
     StringsWriteUtils.createItem(myFacet, myResourceDirectory, Locale.create("fr"), "key11", "<xliff:g>L'Étranger</xliff:g>", true);
-
-    // TODO Prevent this reformatting
-    String expected = "<xliff:g>L\\'Étranger</xliff:g>";
-
-    assertEquals(expected, getText("values-fr/strings.xml", "key11"));
+    assertEquals("<xliff:g>L\\'Étranger</xliff:g>", getText("values-fr/strings.xml", "key11"));
   }
 
   private ResourceItem getResourceItem(String name, Locale locale) {

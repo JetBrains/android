@@ -20,7 +20,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.ISystemImage;
-import com.android.sdklib.repository.descriptors.IdDisplay;
+import com.android.sdklib.repositoryv2.IdDisplay;
 import com.android.tools.idea.model.ManifestInfo.ActivityAttributes;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.intellij.openapi.application.ApplicationManager;
@@ -279,16 +279,6 @@ public class ManifestInfoTest extends AndroidTestCase {
     }
 
     @Override
-    public ISystemImage getSystemImage(@NotNull IdDisplay tag, @NotNull String abiType) {
-      return null;
-    }
-
-    @Override
-    public ISystemImage[] getSystemImages() {
-      return new ISystemImage[0];
-    }
-
-    @Override
     public String getLocation() {
       return null;
     }
@@ -344,16 +334,6 @@ public class ManifestInfoTest extends AndroidTestCase {
     }
 
     @Override
-    public Integer getProperty(String name, Integer defaultValue) {
-      return null;
-    }
-
-    @Override
-    public Boolean getProperty(String name, Boolean defaultValue) {
-      return null;
-    }
-
-    @Override
     public int getRevision() {
       return 0;
     }
@@ -362,11 +342,6 @@ public class ManifestInfoTest extends AndroidTestCase {
     @Override
     public File[] getSkins() {
       return null;
-    }
-
-    @Override
-    public int getUsbVendorId() {
-      return 0;
     }
 
     @Override

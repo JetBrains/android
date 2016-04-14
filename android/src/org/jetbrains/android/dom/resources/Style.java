@@ -24,13 +24,6 @@ import org.jetbrains.android.dom.converters.ParentStyleConverter;
 
 import java.util.List;
 
-/**
- * Created by IntelliJ IDEA.
- * User: Eugene.Kudelevsky
- * Date: Jun 5, 2009
- * Time: 6:00:43 PM
- * To change this template use File | Settings | File Templates.
- */
 public interface Style extends ResourceElement {
   List<StyleItem> getItems();
 

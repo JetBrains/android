@@ -40,7 +40,7 @@ final class FmtRGBA5551 extends Format {
   public BinaryClass klass() { return Klass.INSTANCE; }
 
 
-  private static final Entity ENTITY = new Entity("image","fmtRGBA5551","","");
+  private static final Entity ENTITY = new Entity("image", "fmtRGBA5551", "", "");
 
   static {
     ENTITY.setFields(new Field[]{
@@ -61,12 +61,10 @@ final class FmtRGBA5551 extends Format {
 
     @Override
     public void encode(@NotNull Encoder e, BinaryObject obj) throws IOException {
-      FmtRGBA5551 o = (FmtRGBA5551)obj;
     }
 
     @Override
     public void decode(@NotNull Decoder d, BinaryObject obj) throws IOException {
-      FmtRGBA5551 o = (FmtRGBA5551)obj;
     }
     //<<<End:Java.KlassBody:2>>>
   }

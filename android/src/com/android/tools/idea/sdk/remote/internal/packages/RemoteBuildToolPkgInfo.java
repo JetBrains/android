@@ -17,11 +17,8 @@
 package com.android.tools.idea.sdk.remote.internal.packages;
 
 import com.android.SdkConstants;
-import com.android.sdklib.SdkManager;
-import com.android.sdklib.repository.FullRevision;
-import com.android.sdklib.repository.FullRevision.PreviewComparison;
-import com.android.sdklib.repository.IDescription;
-import com.android.sdklib.repository.PreciseRevision;
+import com.android.repository.Revision;
+import com.android.repository.Revision.PreviewComparison;
 import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.sdklib.repository.local.LocalBuildToolPkgInfo;
 import com.android.sdklib.repository.local.LocalPkgInfo;
@@ -30,7 +27,6 @@ import com.android.tools.idea.sdk.remote.internal.sources.SdkSource;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Node;
 
-import java.io.File;
 import java.util.Map;
 
 /**
@@ -86,52 +82,18 @@ public class RemoteBuildToolPkgInfo extends RemotePkgInfo {
       return String.format("%1$s%2$s", listDisplay, obsolete ? " (Obsolete)" : "");
     }
 
-    return String.format("Android SDK Build-tools%1$s", obsolete ? " (Obsolete)" : "");
+    return String.format("Android SDK Build-Tools%1$s", obsolete ? " (Obsolete)" : "");
   }
 
   /**
    * Returns a short description for an {@link IDescription}.
    */
-  private static String createShortDescription(String listDisplay, FullRevision revision, boolean obsolete) {
+  private static String createShortDescription(String listDisplay, Revision revision, boolean obsolete) {
     if (!listDisplay.isEmpty()) {
       return String.format("%1$s, revision %2$s%3$s", listDisplay, revision.toShortString(), obsolete ? " (Obsolete)" : "");
     }
 
     return String.format("Android SDK Build-tools, revision %1$s%2$s", revision.toShortString(), obsolete ? " (Obsolete)" : "");
-  }
-
-  /**
-   * Computes a potential installation folder if an archive of this package were
-   * to be installed right away in the given SDK root.
-   * <p/>
-   * A build-tool package is typically installed in SDK/build-tools/revision.
-   * Revision spaces are replaced by underscores for ease of use in command-line.
-   * Preview versions will have -preview appended. The RC number is not included.
-   *
-   * @param osSdkRoot  The OS path of the SDK root folder.
-   * @param sdkManager An existing SDK manager to list current platforms and addons.
-   * @return A new {@link File} corresponding to the directory to use to install this package.
-   */
-  @NotNull
-  @Override
-  public File getInstallFolder(String osSdkRoot, SdkManager sdkManager) {
-    File folder = new File(osSdkRoot, SdkConstants.FD_BUILD_TOOLS);
-    StringBuilder sb = new StringBuilder();
-
-    PreciseRevision revision = getPkgDesc().getPreciseRevision();
-    int[] version = revision.toIntArray(false);
-    for (int i = 0; i < version.length; i++) {
-      sb.append(version[i]);
-      if (i != version.length - 1) {
-        sb.append('.');
-      }
-    }
-    if (getPkgDesc().getPreciseRevision().isPreview()) {
-      sb.append(PkgDesc.PREVIEW_SUFFIX);
-    }
-
-    folder = new File(folder, sb.toString());
-    return folder;
   }
 
   @Override
@@ -140,7 +102,7 @@ public class RemoteBuildToolPkgInfo extends RemotePkgInfo {
     // so 2 build tools with 2 different revisions are not the same item.
     if (pkg instanceof LocalBuildToolPkgInfo) {
       LocalBuildToolPkgInfo rhs = (LocalBuildToolPkgInfo)pkg;
-      return rhs.getDesc().getFullRevision().compareTo(getRevision(), comparePreview) == 0;
+      return rhs.getDesc().getRevision().compareTo(getRevision(), comparePreview) == 0;
     }
     return false;
   }

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.folding;
 
+import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.AndroidTestCase;
 
 public class ResourceFoldingBuilderTest extends AndroidTestCase {
@@ -24,9 +25,15 @@ public class ResourceFoldingBuilderTest extends AndroidTestCase {
   public void testJavaDimens() throws Throwable { performTest(".java"); }
   public void testXmlString() throws Throwable { performTest(".xml"); }
   public void testPlurals() throws Throwable { performTest(".java"); }
+  public void testStaticImports() throws Throwable { performTest(".java"); }
 
   private void performTest(String extension) throws Throwable {
-    myFixture.copyFileToProject(getTestDataPath() + "/folding/values.xml", "res/values/values.xml");
-    myFixture.testFoldingWithCollapseStatus(getTestDataPath() + "/folding/" + getTestName(true) + extension);
+    myFixture.copyFileToProject("/R.java", "src/p1/p2/R.java");
+    myFixture.copyFileToProject("/folding/values.xml", "res/values/values.xml");
+
+    final String fileName = getTestName(true) + extension;
+    final VirtualFile file = myFixture.copyFileToProject("/folding/" + fileName, "src/p1/p2/" + fileName);
+
+    myFixture.testFoldingWithCollapseStatus(file.getPath(), file.getPath());
   }
 }

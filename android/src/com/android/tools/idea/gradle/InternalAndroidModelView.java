@@ -110,7 +110,7 @@ public class InternalAndroidModelView {
           AndroidGradleModel androidModel = AndroidGradleModel.get(module);
           if (androidModel != null) {
             DefaultMutableTreeNode moduleNode = new DefaultMutableTreeNode(module.getName());
-            AndroidProject androidProject = androidModel.getProxyAndroidProject();
+            AndroidProject androidProject = androidModel.waitForAndGetProxyAndroidProject();
             addProxyObject(moduleNode, androidProject);
             rootNode.add(moduleNode);
           }

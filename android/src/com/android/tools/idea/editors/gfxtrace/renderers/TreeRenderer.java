@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.editors.gfxtrace.renderers;
 
+import com.android.tools.idea.editors.gfxtrace.controllers.StateController;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.SimpleTextAttributes;
 import org.jetbrains.annotations.NotNull;
@@ -38,8 +39,14 @@ public class TreeRenderer extends ColoredTreeCellRenderer {
                                     boolean leaf,
                                     int row,
                                     boolean hasFocus) {
-    assert (value != null && value instanceof DefaultMutableTreeNode);
-    DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode)value;
-    render(treeNode.getUserObject(), this, SimpleTextAttributes.REGULAR_ATTRIBUTES);
+    if (value instanceof DefaultMutableTreeNode) {
+      DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode)value;
+      render(treeNode.getUserObject(), this, SimpleTextAttributes.REGULAR_ATTRIBUTES);
+    }
+    else if (value instanceof StateController.Node) {
+      render(value, this, SimpleTextAttributes.REGULAR_ATTRIBUTES);
+    } else {
+      assert false;
+    }
   }
 }

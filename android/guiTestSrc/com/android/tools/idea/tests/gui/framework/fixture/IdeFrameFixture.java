@@ -21,20 +21,19 @@ import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
+import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.build.GradleBuildContext;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.util.BuildMode;
-import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.project.AndroidProjectBuildNotifications;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.Tab;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdManagerDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleBuildModelFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleProjectEventListener;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleToolWindowFixture;
-import com.google.common.base.Charsets;
+import com.android.tools.idea.tests.gui.framework.ndk.MiscUtils;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import com.google.common.io.Files;
 import com.intellij.codeInspection.ui.InspectionTree;
 import com.intellij.ide.RecentProjectsManager;
 import com.intellij.ide.actions.ShowSettingsUtilImpl;
@@ -63,6 +62,7 @@ import com.intellij.openapi.wm.impl.IdeFrameImpl;
 import com.intellij.openapi.wm.impl.welcomeScreen.WelcomeFrame;
 import com.intellij.ui.EditorNotificationPanel;
 import com.intellij.util.ThreeState;
+import com.intellij.xdebugger.impl.ui.tree.nodes.XDebuggerTreeNode;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.core.matcher.JButtonMatcher;
@@ -70,6 +70,7 @@ import org.fest.swing.core.matcher.JLabelMatcher;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.timing.Condition;
+import org.fest.swing.timing.Timeout;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -79,24 +80,23 @@ import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 import javax.swing.*;
+import javax.swing.tree.TreeNode;
 import java.awt.*;
+import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.FD_GRADLE;
-import static com.android.SdkConstants.FN_BUILD_GRADLE;
 import static com.android.tools.idea.gradle.util.BuildMode.COMPILE_JAVA;
 import static com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN;
 import static com.android.tools.idea.gradle.util.GradleUtil.*;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
 import static com.android.tools.idea.tests.gui.framework.fixture.LibraryPropertiesDialogFixture.showPropertiesDialog;
-import static com.google.common.io.Files.write;
 import static com.intellij.ide.impl.ProjectUtil.closeAndDispose;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
@@ -123,7 +123,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
       @Override
       protected boolean isMatching(@NotNull IdeFrameImpl frame) {
         Project project = frame.getProject();
-        if (project != null && projectPath.getPath().equals(project.getBasePath())) {
+        if (project != null && toSystemIndependentName(projectPath.getPath()).equals(project.getBasePath())) {
           return projectName == null || projectName.equals(project.getName());
         }
         return false;
@@ -458,7 +458,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
       public boolean test() {
         if (buildMode == SOURCE_GEN) {
           PostProjectBuildTasksExecutor tasksExecutor = PostProjectBuildTasksExecutor.getInstance(project);
-          if (tasksExecutor.getLastBuildTimestamp() > -1) {
+          if (tasksExecutor.getLastBuildTimestamp() != null) {
             // This will happen when creating a new project. Source generation happens before the IDE frame is found and build listeners
             // are created. It is fairly safe to assume that source generation happened if we have a timestamp for a "last performed build".
             return true;
@@ -505,7 +505,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     Runnable failTask = new Runnable() {
       @Override
       public void run() {
-        throw new RuntimeException(failure);
+        throw new ExternalSystemException(failure);
       }
     };
     ApplicationManager.getApplication().putUserData(EXECUTE_BEFORE_PROJECT_SYNC_TASK_IN_GUI_TEST_KEY, failTask);
@@ -527,8 +527,19 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
         return isNotEmpty(runConfigurationComboBox.getText());
       }
     }, SHORT_TIMEOUT);
-    findActionButtonByActionId("Android.SyncProject").click();
+
+    waitForBackgroundTasksToFinish();
+    findGradleSyncAction().waitUntilEnabledAndShowing();
+    // TODO figure out why in IDEA 15 even though an action is enabled, visible and showing, clicking it (via UI testing infrastructure)
+    // does not work consistently
+    GradleProjectImporter.getInstance().requestProjectSync(getProject(), null);
+
     return this;
+  }
+
+  @NotNull
+  private ActionButtonFixture findGradleSyncAction() {
+    return findActionButtonByActionId("Android.SyncProject");
   }
 
   @NotNull
@@ -583,6 +594,8 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
         return syncFinished;
       }
     }, LONG_TIMEOUT);
+
+    findGradleSyncAction().waitUntilEnabledAndShowing();
 
     if (myGradleProjectEventListener.hasSyncError()) {
       RuntimeException syncError = myGradleProjectEventListener.getSyncError();
@@ -775,7 +788,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   @NotNull
   public GradleProjectSettings getGradleSettings() {
-    GradleProjectSettings settings = GradleUtil.getGradleProjectSettings(getProject());
+    GradleProjectSettings settings = getGradleProjectSettings(getProject());
     assertNotNull(settings);
     return settings;
   }
@@ -844,7 +857,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
       @Override
       public boolean test() {
         for (Frame frame : Frame.getFrames()) {
-          if (frame instanceof WelcomeFrame && frame.isShowing()) {
+          if (frame == WelcomeFrame.getInstance() && frame.isShowing()) {
             return true;
           }
         }
@@ -890,20 +903,14 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   @NotNull
-  public IdeFrameFixture updateAndroidModelVersion(@NotNull String version) throws IOException {
-    File buildFile = new File(getProjectPath(), FN_BUILD_GRADLE);
-    assertThat(buildFile).isFile();
-
-    String contents = Files.toString(buildFile, Charsets.UTF_8);
-    Pattern pattern = Pattern.compile("classpath ['\"]com.android.tools.build:gradle:(.+)['\"]");
-    Matcher matcher = pattern.matcher(contents);
-    if (matcher.find()) {
-      contents = contents.substring(0, matcher.start(1)) + version + contents.substring(matcher.end(1));
-      write(contents, buildFile, Charsets.UTF_8);
-    }
-    else {
-      fail("Cannot find declaration of Android plugin");
-    }
+  public IdeFrameFixture updateAndroidGradlePluginVersion(@NotNull final String version) throws IOException {
+    execute(new GuiTask() {
+      @Override
+      protected void executeInEDT() throws Throwable {
+        boolean updated = updateGradlePluginVersion(getProject(), version, null);
+        assertTrue("Android Gradle plugin version was not updated", updated);
+      }
+    });
     return this;
   }
 
@@ -940,7 +947,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     new ReadAction() {
       @Override
       protected void run(@NotNull Result result) throws Throwable {
-        buildModelRef.set(GradleBuildModel.parseBuildFile(buildFile, getProject(), ""));
+        buildModelRef.set(GradleBuildModel.parseBuildFile(buildFile, getProject()));
       }
     }.execute();
     GradleBuildModel buildModel = buildModelRef.get();
@@ -954,7 +961,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     }
   }
 
-  private void selectApp(@NotNull String appName) {
+  public void selectApp(@NotNull String appName) {
     final ActionButtonFixture runButton = findRunApplicationButton();
     Container actionToolbarContainer = execute(new GuiQuery<Container>() {
       @Override
@@ -966,5 +973,137 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
     ComboBoxActionFixture comboBoxActionFixture = ComboBoxActionFixture.findComboBox(robot(), actionToolbarContainer);
     comboBoxActionFixture.selectItem(appName);
+    robot().pressAndReleaseKey(KeyEvent.VK_ENTER);
+    robot().waitForIdle();
+  }
+
+  /////////////////////////////////////////////////////////////////
+  ////     Methods to help control debugging under a test.  ///////
+  /////////////////////////////////////////////////////////////////
+
+  public void resumeProgram() {
+    MiscUtils.invokeMenuPathOnRobotIdle(this, "Run", "Resume Program");
+  }
+
+  public void stepOver() {
+    MiscUtils.invokeMenuPathOnRobotIdle(this, "Run", "Step Over");
+  }
+
+  public void stepInto() {
+    MiscUtils.invokeMenuPathOnRobotIdle(this, "Run", "Step Into");
+  }
+
+  public void stepOut() {
+    MiscUtils.invokeMenuPathOnRobotIdle(this, "Run", "Step Out");
+  }
+
+  /**
+   * Toggles breakpoints at the line numbers in {@code lines} of the source file with basename {@code fileBaseName}. This will work only
+   * if the fileBasename is unique in the project that's open on Android Studio.
+   */
+  public void toggleBreakPoints(String fileBasename, int[] lines) {
+    // We open the file twice to bring the editor into focus. Idea 1.15 has this bug where opening a file doesn't automatically bring its
+    // editor window into focus.
+    MiscUtils.openFile(this, fileBasename);
+    MiscUtils.openFile(this, fileBasename);
+    for (int line : lines) {
+      MiscUtils.navigateToLine(this, line);
+      MiscUtils.invokeMenuPathOnRobotIdle(this, "Run", "Toggle Line Breakpoint");
+    }
+  }
+
+  // Recursively prints out the debugger tree rooted at {@code node} into {@code builder} with an indent of
+  // "{@code level} * {@code numIndentSpaces}" whitespaces. Each node is printed on a separate line. The indent level for every child node
+  // is 1 more than their parent.
+  private static void printNode(XDebuggerTreeNode node, StringBuilder builder, int level, int numIndentSpaces) {
+    int numIndent = level;
+    if (builder.length() > 0) {
+      builder.append(System.getProperty("line.separator"));
+    }
+    for (int i = 0; i < level * numIndentSpaces; ++i) {
+      builder.append(' ');
+    }
+    builder.append(node.getText().toString());
+    Enumeration<XDebuggerTreeNode> children = node.children();
+    while (children.hasMoreElements()) {
+      printNode(children.nextElement(), builder, level + 1, numIndentSpaces);
+    }
+  }
+
+  /**
+   * Prints out the debugger tree rooted at {@code root}.
+   */
+  @NotNull
+  public static String printDebuggerTree(XDebuggerTreeNode root) {
+    StringBuilder builder = new StringBuilder();
+    printNode(root, builder, 0, 2);
+    return builder.toString();
+  }
+
+  @NotNull
+  private static String[] debuggerTreeRootToChildrenTexts(XDebuggerTreeNode treeRoot) {
+    List<? extends TreeNode> children = treeRoot.getChildren();
+    String[] childrenTexts = new String[children.size()];
+    int i = 0;
+    for (TreeNode child : children) {
+      childrenTexts[i] = ((XDebuggerTreeNode)child).getText().toString();
+      ++i;
+    }
+    return childrenTexts;
+  }
+
+  /**
+   * Returns the subset of {@code expectedPatterns} which do not match any of the children (just the first level children, not recursive) of
+   * {@code treeRoot} .
+   */
+  @NotNull
+  public static List<String> getUnmatchedTerminalVariableValues(String[] expectedPatterns, XDebuggerTreeNode treeRoot) {
+    String[] childrenTexts = debuggerTreeRootToChildrenTexts(treeRoot);
+    List<String> unmatchedPatterns = Lists.newArrayList();
+    for (String expectedPattern : expectedPatterns) {
+      boolean matched = false;
+      for (String childText : childrenTexts) {
+        if (childText.matches(expectedPattern)) {
+          matched = true;
+          break;
+        }
+      }
+      if (!matched) {
+        unmatchedPatterns.add(expectedPattern);
+      }
+    }
+    return unmatchedPatterns;
+  }
+
+  /**
+   * Returns the appropriate pattern to look for a variable named {@code name} with the type {@code type} and value {@code value} appearing
+   * in the Variables window in Android Studio.
+   */
+  @NotNull
+  public static String variableToSearchPattern(String name, String type, String value) {
+    return String.format("%s = \\{%s\\} %s", name, type, value);
+  }
+
+  public boolean verifyVariablesAtBreakpoint(String[] expectedVariablePatterns, String debugConfigName, long tryUntilMillis) {
+    DebugToolWindowFixture debugToolWindowFixture = new DebugToolWindowFixture(this);
+    final ExecutionToolWindowFixture.ContentFixture contentFixture = debugToolWindowFixture.findContent(debugConfigName);
+
+    contentFixture.clickDebuggerTreeRoot();
+    // Wait for the debugger tree to appear.
+    pause(new Condition("Looking for debugger tree.") {
+      @Override
+      public boolean test() {
+        return contentFixture.getDebuggerTreeRoot() != null;
+      }
+    }, Timeout.timeout(tryUntilMillis));
+
+    // Get the debugger tree and print it.
+    XDebuggerTreeNode debuggerTreeRoot = contentFixture.getDebuggerTreeRoot();
+    if (debuggerTreeRoot == null) {
+      return false;
+    }
+
+    List<String> unmatchedPatterns = getUnmatchedTerminalVariableValues(expectedVariablePatterns, debuggerTreeRoot);
+    return unmatchedPatterns.isEmpty();
   }
 }

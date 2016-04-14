@@ -5,9 +5,6 @@ import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class ViewLayoutDomFileDescription extends LayoutDomFileDescription<LayoutViewElement> {
   public ViewLayoutDomFileDescription() {
     super(LayoutViewElement.class, "view");

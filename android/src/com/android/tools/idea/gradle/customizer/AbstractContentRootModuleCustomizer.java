@@ -45,24 +45,24 @@ public abstract class AbstractContentRootModuleCustomizer<T> implements ModuleCu
       return;
     }
 
-    final ModifiableRootModel ideaModuleModel = modelsProvider.getModifiableRootModel(module);
-    for (ContentEntry contentEntry : ideaModuleModel.getContentEntries()) {
-      ideaModuleModel.removeContentEntry(contentEntry);
+    final ModifiableRootModel moduleModel = modelsProvider.getModifiableRootModel(module);
+    for (ContentEntry contentEntry : moduleModel.getContentEntries()) {
+      moduleModel.removeContentEntry(contentEntry);
     }
 
-    Collection<ContentEntry> contentEntries = findOrCreateContentEntries(ideaModuleModel, externalProjectModel);
+    Collection<ContentEntry> contentEntries = findOrCreateContentEntries(moduleModel, externalProjectModel);
     List<RootSourceFolder> orphans = Lists.newArrayList();
-    setUpContentEntries(ideaModuleModel, contentEntries, externalProjectModel, orphans);
+    setUpContentEntries(moduleModel, contentEntries, externalProjectModel, orphans);
 
     for (RootSourceFolder orphan : orphans) {
       File path = orphan.getPath();
-      ContentEntry contentEntry = ideaModuleModel.addContentEntry(pathToIdeaUrl(path));
+      ContentEntry contentEntry = moduleModel.addContentEntry(pathToIdeaUrl(path));
       addSourceFolder(contentEntry, path, orphan.getType(), orphan.isGenerated());
     }
   }
 
   @NotNull
-  protected abstract Collection<ContentEntry> findOrCreateContentEntries(@NotNull ModifiableRootModel ideaModuleModel,
+  protected abstract Collection<ContentEntry> findOrCreateContentEntries(@NotNull ModifiableRootModel moduleModel,
                                                                          @NotNull T externalProjectModel);
 
   protected abstract void setUpContentEntries(@NotNull ModifiableRootModel ideaModuleModel,

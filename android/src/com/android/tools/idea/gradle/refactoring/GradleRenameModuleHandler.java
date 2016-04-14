@@ -15,11 +15,14 @@
  */
 package com.android.tools.idea.gradle.refactoring;
 
-import com.android.tools.idea.gradle.dsl.dependencies.ModuleDependency;
+import com.android.tools.idea.gradle.dsl.model.GradleSettingsModel;
+import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
+import com.android.tools.idea.gradle.dsl.model.dependencies.ModuleDependencyModel;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
-import com.android.tools.idea.gradle.parser.GradleSettingsFile;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
+import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.intellij.ide.IdeBundle;
 import com.intellij.ide.TitledHandler;
@@ -31,8 +34,10 @@ import com.intellij.openapi.command.undo.BasicUndoableAction;
 import com.intellij.openapi.command.undo.UndoManager;
 import com.intellij.openapi.command.undo.UnexpectedUndoException;
 import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.module.ModifiableModuleModel;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.module.ModuleWithNameAlreadyExists;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.InputValidator;
 import com.intellij.openapi.ui.Messages;
@@ -43,12 +48,12 @@ import com.intellij.refactoring.RefactoringBundle;
 import com.intellij.refactoring.rename.RenameHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
+import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
 import static com.android.tools.idea.gradle.parser.GradleSettingsFile.getModuleGradlePath;
 import static com.android.tools.idea.gradle.util.Projects.isGradleProjectModule;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
@@ -122,8 +127,8 @@ public class GradleRenameModuleHandler implements RenameHandler, TitledHandler {
     public boolean canClose(@NotNull final String inputString) {
       final Project project = myModule.getProject();
 
-      final GradleSettingsFile settingsFile = GradleSettingsFile.get(project);
-      if (settingsFile == null) {
+      final GradleSettingsModel settingsModel = GradleSettingsModel.get(project);
+      if (settingsModel == null) {
         Messages.showErrorDialog(project, "settings.gradle file not found", IdeBundle.message("title.rename.module"));
         return true;
       }
@@ -135,7 +140,7 @@ public class GradleRenameModuleHandler implements RenameHandler, TitledHandler {
         return true;
       }
 
-      String oldModuleGradlePath = getModuleGradlePath(myModule);
+      final String oldModuleGradlePath = getModuleGradlePath(myModule);
       if (oldModuleGradlePath == null) {
         return true;
       }
@@ -145,9 +150,13 @@ public class GradleRenameModuleHandler implements RenameHandler, TitledHandler {
       for (Module module : ModuleManager.getInstance(project).getModules()) {
         GradleBuildModel buildModel = GradleBuildModel.get(module);
         if (buildModel != null) {
-          for (ModuleDependency dependency : buildModel.dependencies().toModules()) {
-            if (oldModuleGradlePath.equals(dependency.getPath())) {
-              dependency.setName(inputString);
+          DependenciesModel dependenciesModel =  buildModel.dependencies();
+          if (dependenciesModel != null) {
+            for (ModuleDependencyModel dependency : dependenciesModel.modules()) {
+              // TODO consider the case that dependency.path() is not started with :
+              if (oldModuleGradlePath.equals(dependency.path())) {
+                dependency.setPath(getNewPath(dependency.path(), inputString));
+              }
             }
           }
           if (buildModel.isModified()) {
@@ -157,19 +166,31 @@ public class GradleRenameModuleHandler implements RenameHandler, TitledHandler {
       }
 
       String msg = IdeBundle.message("command.renaming.module", myModule.getName());
-      WriteCommandAction<Boolean> action = new WriteCommandAction<Boolean>(project, msg, settingsFile.getPsiFile()) {
+      WriteCommandAction<Boolean> action = new WriteCommandAction<Boolean>(project, msg) {
         @Override
           protected void run(@NotNull Result<Boolean> result) throws Throwable {
             result.setResult(true);
 
-            GrLiteral moduleReference = settingsFile.findModuleReference(myModule);
-            if (moduleReference == null) {
+            if (!settingsModel.modulePaths().contains(oldModuleGradlePath)) {
               Messages.showErrorDialog(project, "Can't find module '" + myModule.getName() + "' in settings.gradle",
                                        IdeBundle.message("title.rename.module"));
               reset(modifiedBuildModels);
               return;
             }
 
+            // Rename module
+            ModifiableModuleModel modifiableModel = ModuleManager.getInstance(project).getModifiableModel();
+            try {
+              modifiableModel.renameModule(myModule, inputString);
+            }
+            catch (ModuleWithNameAlreadyExists moduleWithNameAlreadyExists) {
+              Messages.showErrorDialog(project, IdeBundle.message("error.module.already.exists", inputString),
+                                       IdeBundle.message("title.rename.module"));
+              reset(modifiedBuildModels);
+              return;
+            }
+
+            settingsModel.replaceModulePath(oldModuleGradlePath, getNewPath(oldModuleGradlePath, inputString));
             // Rename the directory
             try {
               moduleRoot.rename(this, inputString);
@@ -181,13 +202,13 @@ public class GradleRenameModuleHandler implements RenameHandler, TitledHandler {
               return;
             }
 
-            // Rename the reference in settings.gradle
-            moduleReference.updateText(moduleReference.getText().replace(myModule.getName(), inputString));
+            modifiableModel.commit();
 
             // Rename all references in build.gradle
             for (GradleBuildModel buildModel : modifiedBuildModels) {
               buildModel.applyChanges();
             }
+            settingsModel.applyChanges();
 
             UndoManager.getInstance(project).undoableActionPerformed(new BasicUndoableAction() {
               @Override
@@ -210,6 +231,22 @@ public class GradleRenameModuleHandler implements RenameHandler, TitledHandler {
       }
       return false;
     }
+  }
+
+  private static String getNewPath(@NotNull String oldPath, @NotNull String newName)  {
+    String newPath;
+    // Keep empty spaces, needed when putting the path back together
+    List<String> segments = Splitter.on(GRADLE_PATH_SEPARATOR).splitToList(oldPath);
+    List<String> modifiableSegments = Lists.newArrayList(segments);
+    int segmentCount = modifiableSegments.size();
+    if (segmentCount == 0) {
+      newPath = GRADLE_PATH_SEPARATOR + newName.trim();
+    }
+    else {
+      modifiableSegments.set(segmentCount - 1, newName);
+      newPath = Joiner.on(GRADLE_PATH_SEPARATOR).join(modifiableSegments);
+    }
+    return newPath;
   }
 
   private static void reset(@NotNull List<GradleBuildModel> buildModels) {

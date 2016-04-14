@@ -15,19 +15,29 @@
  */
 package com.android.tools.idea.run;
 
+import com.android.tools.idea.fd.InstantRunManager;
+import com.android.tools.idea.fd.InstantRunSettings;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.run.editor.*;
+import com.android.tools.idea.run.tasks.LaunchTask;
+import com.android.tools.idea.run.util.LaunchStatus;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Maps;
+import com.intellij.execution.ExecutionException;
 import com.intellij.execution.Executor;
 import com.intellij.execution.JavaExecutionUtil;
 import com.intellij.execution.configurations.ConfigurationFactory;
+import com.intellij.execution.configurations.JavaRunConfigurationModule;
 import com.intellij.execution.configurations.RefactoringListenerProvider;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.filters.TextConsoleBuilder;
 import com.intellij.execution.filters.TextConsoleBuilderFactory;
 import com.intellij.execution.junit.RefactoringListeners;
+import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.ui.ConsoleView;
+import com.intellij.openapi.Disposable;
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.SettingsEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.DefaultJDOMExternalizer;
@@ -152,12 +162,25 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
 
   @NotNull
   @Override
-  protected ConsoleView attachConsole(AndroidRunningState state, Executor executor) {
-    Project project = getConfigurationModule().getProject();
-    final TextConsoleBuilder builder = TextConsoleBuilderFactory.getInstance().createBuilder(project);
-    ConsoleView console = builder.getConsole();
-    console.attachToProcess(state.getProcessHandler());
-    return console;
+  protected ConsoleProvider getConsoleProvider() {
+    return new ConsoleProvider() {
+      @NotNull
+      @Override
+      public ConsoleView createAndAttach(@NotNull Disposable parent,
+                                         @NotNull ProcessHandler handler,
+                                         @NotNull Executor executor) throws ExecutionException {
+        Project project = getConfigurationModule().getProject();
+        final TextConsoleBuilder builder = TextConsoleBuilderFactory.getInstance().createBuilder(project);
+        ConsoleView console = builder.getConsole();
+        console.attachToProcess(handler);
+        return console;
+      }
+    };
+  }
+
+  @Override
+  public boolean supportsInstantRun() {
+    return true;
   }
 
   @Override
@@ -165,12 +188,24 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
     return true;
   }
 
-  @NotNull
+  @Nullable
   @Override
-  protected AndroidApplicationLauncher getApplicationLauncher(@NotNull AndroidFacet facet) {
+  protected LaunchTask getApplicationLaunchTask(@NotNull ApkProvider apkProvider,
+                                                @NotNull AndroidFacet facet,
+                                                boolean waitForDebugger,
+                                                @NotNull LaunchStatus launchStatus) {
     LaunchOptionState state = getLaunchOptionState(MODE);
     assert state != null;
-    return state.getLauncher(facet, ACTIVITY_EXTRA_FLAGS);
+
+    try {
+      String applicationId = apkProvider.getPackageName();
+      return state.getLaunchTask(applicationId, facet, waitForDebugger, ACTIVITY_EXTRA_FLAGS);
+    }
+    catch (ApkProvisionException e) {
+      Logger.getInstance(AndroidRunConfiguration.class).error(e);
+      launchStatus.terminateLaunch("Unable to identify application id");
+      return null;
+    }
   }
 
   public void setLaunchActivity(@NotNull String activityName) {

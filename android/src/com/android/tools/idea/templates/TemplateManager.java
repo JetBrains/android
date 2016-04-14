@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.templates;
 
-import com.android.sdklib.repository.FullRevision;
+import com.android.repository.Revision;
 import com.android.tools.idea.actions.NewAndroidComponentAction;
 import com.android.tools.idea.npw.NewAndroidActivityWizard;
 import com.android.utils.XmlUtils;
@@ -74,7 +74,7 @@ public class TemplateManager {
   private static final String TEMPLATE_ZIP_NAME = "templates.zip";
 
   /**
-   * Cache for {@link #getTemplate(File)}
+   * Cache for {@link #getTemplateMetadata(File)}
    */
   private Map<File, TemplateMetadata> myTemplateMap;
 
@@ -339,18 +339,18 @@ public class TemplateManager {
   private List<File> getHighestVersionedTemplateRoot(@NotNull File artifactNameRoot) {
     List<File> templateDirectories = Lists.newArrayList();
     File highestVersionDir = null;
-    FullRevision highestVersionNumber = null;
+    Revision highestVersionNumber = null;
     for (File versionDir : listFiles(artifactNameRoot)) {
       if (!versionDir.isDirectory() || versionDir.isHidden()) {
         continue;
       }
       // Find the highest version of this AAR
-      FullRevision revision;
+      Revision revision;
       try {
-        revision = FullRevision.parseRevision(versionDir.getName());
+        revision = Revision.parseRevision(versionDir.getName());
       } catch (NumberFormatException e) {
         // Revision was not parse-able, consider it to be the lowest version revision
-        revision = FullRevision.NOT_SPECIFIED;
+        revision = Revision.NOT_SPECIFIED;
       }
       if (highestVersionNumber == null || revision.compareTo(highestVersionNumber) > 0) {
         highestVersionNumber = revision;
@@ -460,7 +460,7 @@ public class TemplateManager {
       if (EXCLUDED_TEMPLATES.contains(templateName)) {
         continue;
       }
-      TemplateMetadata metadata = getTemplate(myCategoryTable.get(category, templateName));
+      TemplateMetadata metadata = getTemplateMetadata(myCategoryTable.get(category, templateName));
       NewAndroidComponentAction templateAction = new NewAndroidComponentAction(category, templateName, metadata);
       String actionId = ACTION_ID_PREFIX + category + templateName;
       am.unregisterAction(actionId);
@@ -510,7 +510,7 @@ public class TemplateManager {
   }
 
   private void addTemplateToTable(@NotNull File newTemplate) {
-    TemplateMetadata newMetadata = getTemplate(newTemplate);
+    TemplateMetadata newMetadata = getTemplateMetadata(newTemplate);
     if (newMetadata != null) {
       String title = newMetadata.getTitle();
       if (title == null || (newMetadata.getCategory() == null &&
@@ -533,8 +533,8 @@ public class TemplateManager {
    * the same, most recently modified
    */
   private int compareTemplates(@NotNull File file1, @NotNull File file2) {
-    TemplateMetadata template1 = getTemplate(file1);
-    TemplateMetadata template2 = getTemplate(file2);
+    TemplateMetadata template1 = getTemplateMetadata(file1);
+    TemplateMetadata template2 = getTemplateMetadata(file2);
 
     if (template1 == null) {
       return 1;
@@ -556,16 +556,27 @@ public class TemplateManager {
     return getCategoryTable().get(category, templateName);
   }
 
+  /**
+   * Convenience method for calling {@link #getTemplateMetadata(File)} by category rather than by
+   * direct file path.
+   */
   @Nullable
-  public TemplateMetadata getTemplate(@Nullable String category, @Nullable String templateName) {
+  public TemplateMetadata getTemplateMetadata(@Nullable String category, @Nullable String templateName) {
     File templateDir = getTemplateFile(category, templateName);
-    return templateDir != null ? getTemplate(templateDir) : null;
+    return templateDir != null ? getTemplateMetadata(templateDir) : null;
   }
 
+  /**
+   * Given a root path, parse the target template.xml file found there and return the Android data
+   * contained within. This data will be cached and reused on subsequent requests.
+   *
+   * @return The Android metadata contained in the template.xml file, or {@code null} if there was
+   * any problem collecting it, such as a parse failure or invalid path, etc.
+   */
   @Nullable
-  public TemplateMetadata getTemplate(@NotNull File templateDir) {
+  public TemplateMetadata getTemplateMetadata(@NotNull File templateRoot) {
     if (myTemplateMap != null) {
-      TemplateMetadata metadata = myTemplateMap.get(templateDir);
+      TemplateMetadata metadata = myTemplateMap.get(templateRoot);
       if (metadata != null) {
         return metadata;
       }
@@ -575,13 +586,13 @@ public class TemplateManager {
     }
 
     try {
-      File templateFile = new File(templateDir, TEMPLATE_XML_NAME);
+      File templateFile = new File(templateRoot, TEMPLATE_XML_NAME);
       if (templateFile.isFile()) {
         String xml = Files.toString(templateFile, Charsets.UTF_8);
         Document doc = XmlUtils.parseDocumentSilently(xml, true);
         if (doc != null && doc.getDocumentElement() != null) {
           TemplateMetadata metadata = new TemplateMetadata(doc);
-          myTemplateMap.put(templateDir, metadata);
+          myTemplateMap.put(templateRoot, metadata);
           return metadata;
         }
       }

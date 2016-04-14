@@ -8,6 +8,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
+import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
@@ -15,6 +16,8 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.resourceManagers.SystemResourceManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import static org.jetbrains.android.inspections.lint.SuppressLintIntentionAction.ensureNamespaceImported;
 
 /**
  * @author Eugene.Kudelevsky
@@ -24,13 +27,19 @@ class SetAttributeQuickFix implements AndroidLintQuickFix {
   private final String myName;
   private final String myAttributeName;
   private final String myValue;
+  private final String myNamespace;
 
   // 'null' value means asking
   SetAttributeQuickFix(@NotNull String name, @NotNull String attributeName, @Nullable String value) {
+    this(name, attributeName, SdkConstants.ANDROID_URI, value);
+  }
+
+  SetAttributeQuickFix(@NotNull String name, @NotNull String attributeName, @Nullable String namespace, @Nullable String value) {
     super();
     myName = name;
     myAttributeName = attributeName;
     myValue = value;
+    myNamespace = namespace;
   }
 
   @NotNull
@@ -54,7 +63,17 @@ class SetAttributeQuickFix implements AndroidLintQuickFix {
         return;
       }
     }
-    final XmlAttribute attribute = tag.setAttribute(myAttributeName, SdkConstants.NS_RESOURCES, "");
+
+    if (myNamespace != null) {
+      XmlFile file = PsiTreeUtil.getParentOfType(tag, XmlFile.class);
+      if (file != null) {
+        ensureNamespaceImported(startElement.getProject(), file, myNamespace);
+      }
+    }
+
+    final XmlAttribute attribute = myNamespace != null
+      ? tag.setAttribute(myAttributeName, myNamespace, "")
+      :tag.setAttribute(myAttributeName, "");
 
     if (attribute != null) {
       if (value != null) {
@@ -116,6 +135,8 @@ class SetAttributeQuickFix implements AndroidLintQuickFix {
     if (tag == null) {
       return false;
     }
-    return tag.getAttribute(myAttributeName, SdkConstants.NS_RESOURCES) == null;
+    return myNamespace != null
+      ? tag.getAttribute(myAttributeName, myNamespace) == null
+      : tag.getAttribute(myAttributeName) == null;
   }
 }

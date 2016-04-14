@@ -50,13 +50,6 @@ import java.util.*;
 
 import static org.jetbrains.android.util.AndroidUtils.findSourceRoot;
 
-/**
- * Created by IntelliJ IDEA.
- * User: Eugene.Kudelevsky
- * Date: Aug 31, 2009
- * Time: 4:49:30 PM
- * To change this template use File | Settings | File Templates.
- */
 public class AndroidResourceFilesListener extends BulkFileListener.Adapter implements Disposable {
   private static final Key<String> CACHED_PACKAGE_KEY = Key.create("ANDROID_RESOURCE_LISTENER_CACHED_PACKAGE");
 

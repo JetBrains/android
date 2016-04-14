@@ -81,7 +81,7 @@ public class TemplateWizardProjectTemplateFactory extends ProjectTemplatesFactor
           project == null && !WizardConstants.MODULE_TEMPLATE_NAME.equals(templateName)) {
         continue;
       }
-      TemplateMetadata metadata = manager.getTemplate(template);
+      TemplateMetadata metadata = manager.getTemplateMetadata(template);
       if (metadata == null || !metadata.isSupported()) {
         continue;
       }
@@ -94,7 +94,13 @@ public class TemplateWizardProjectTemplateFactory extends ProjectTemplatesFactor
     private final TemplateMetadata myTemplateMetadata;
 
     private AndroidProjectTemplate(File templateFile, TemplateMetadata metadata, Project project, Disposable parentDisposable) {
-      super(new TemplateWizardModuleBuilder(templateFile, metadata, project, null, new ArrayList<ModuleWizardStep>(), parentDisposable, true));
+      super(new TemplateWizardModuleBuilder(templateFile,
+                                            metadata,
+                                            project,
+                                            null,
+                                            new ArrayList<ModuleWizardStep>(),
+                                            parentDisposable,
+                                            true));
       myTemplateMetadata = metadata;
     }
 

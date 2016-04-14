@@ -20,7 +20,6 @@ import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.ContentRootSourcePaths;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.google.common.collect.Lists;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
@@ -30,6 +29,7 @@ import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.SourceFolder;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.util.ExceptionUtil;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
@@ -38,6 +38,7 @@ import java.util.List;
 
 import static com.android.builder.model.AndroidProject.ARTIFACT_ANDROID_TEST;
 import static com.android.tools.idea.gradle.TestProjects.createBasicProject;
+import static com.intellij.openapi.vfs.VfsUtilCore.urlToPath;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static java.util.Collections.sort;
 
@@ -71,10 +72,14 @@ public class ContentRootModuleCustomizerTest extends IdeaTestCase {
 
   @Override
   protected void tearDown() throws Exception {
-    if (myAndroidProject != null) {
-      myAndroidProject.dispose();
+    try {
+      if (myAndroidProject != null) {
+        myAndroidProject.dispose();
+      }
     }
-    super.tearDown();
+    finally {
+      super.tearDown();
+    }
   }
 
   private void addContentEntry() {
@@ -94,19 +99,17 @@ public class ContentRootModuleCustomizerTest extends IdeaTestCase {
   }
 
   public void testCustomizeModule() throws Exception {
-    ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(myModule);
     final IdeModifiableModelsProviderImpl modelsProvider = new IdeModifiableModelsProviderImpl(myProject);
     try {
       myCustomizer.customizeModule(myProject, myModule, modelsProvider, myAndroidModel);
+      modelsProvider.commit();
     }
-    finally {
-      ApplicationManager.getApplication().runWriteAction(new Runnable() {
-        @Override
-        public void run() {
-          modelsProvider.commit();
-        }
-      });
+    catch (Throwable t) {
+      modelsProvider.dispose();
+      ExceptionUtil.rethrowAllAsUnchecked(t);
     }
+
+    ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(myModule);
     ContentEntry contentEntry = moduleRootManager.getContentEntries()[0];
 
     SourceFolder[] sourceFolders = contentEntry.getSourceFolders();
@@ -114,9 +117,8 @@ public class ContentRootModuleCustomizerTest extends IdeaTestCase {
 
     for (SourceFolder folder : sourceFolders) {
       if (!folder.isTestSource()) {
-        VirtualFile file = folder.getFile();
-        assertNotNull(file);
-        sourcePaths.add(file.getPath());
+        String path = urlToPath(folder.getUrl());
+        sourcePaths.add(path);
       }
     }
 

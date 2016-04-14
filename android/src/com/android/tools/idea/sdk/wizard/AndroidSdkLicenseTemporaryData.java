@@ -15,14 +15,25 @@
  */
 package com.android.tools.idea.sdk.wizard;
 
-import com.android.sdklib.repository.License;
+import com.android.repository.api.License;
+import com.android.repository.api.RepoManager;
+import com.android.repository.impl.meta.CommonFactory;
 
 /**
  * This class will only exist until we get full SDK manager integration
+ * @deprecated
  */
 public class AndroidSdkLicenseTemporaryData {
 
-  public static final License HARDCODED_ANDROID_SDK_LICENSE = new License("License\n" +
+  public static License getLicense(boolean preview) {
+    CommonFactory f = (CommonFactory)RepoManager.getCommonModule().createLatestFactory();
+    License l = f.createLicenseType();
+    l.setValue(preview ? HARDCODED_ANDROID_PREVIEW_SDK_LICENSE : HARDCODED_ANDROID_SDK_LICENSE);
+    l.setId(preview ? "Android SDK Preview License" : "Android SDK License");
+    return l;
+  }
+
+  public static final String HARDCODED_ANDROID_SDK_LICENSE = "License\n" +
         "To get started with the Android SDK, you must agree to the following terms and conditions.\n" +
         "\n" +
         "This is the Android SDK License Agreement (the \"License Agreement\").\n" +
@@ -151,9 +162,9 @@ public class AndroidSdkLicenseTemporaryData {
         "\n" +
         "14.7 The License Agreement, and your relationship with Google under the License Agreement, shall be governed by the laws of the State of California without regard to its conflict of laws provisions. You and Google agree to submit to the exclusive jurisdiction of the courts located within the county of Santa Clara, California to resolve any legal matter arising from the License Agreement. Notwithstanding this, you agree that Google shall still be allowed to apply for injunctive remedies (or an equivalent type of urgent legal relief) in any jurisdiction.\n" +
         "\n" +
-        "June 2014.", "Android SDK License");
+        "June 2014.";
 
-  public static final License HARDCODED_ANDROID_PREVIEW_SDK_LICENSE = new License("License\n" +
+  public static final String HARDCODED_ANDROID_PREVIEW_SDK_LICENSE = "License\n" +
           "To get started with the Android SDK Preview, you must agree to the following terms and conditions.\n" +
           "As described below, please note that this is a preview version of the Android SDK, subject to change, that you use at your own risk.  The Android SDK Preview is not a stable release, and may contain errors and defects that can result in serious damage to your computer systems, devices and data.\n" +
           "\n" +
@@ -287,5 +298,5 @@ public class AndroidSdkLicenseTemporaryData {
           "\n" +
           "14.7 The License Agreement, and your relationship with Google under the License Agreement, shall be governed by the laws of the State of California without regard to its conflict of laws provisions. You and Google agree to submit to the exclusive jurisdiction of the courts located within the county of Santa Clara, California to resolve any legal matter arising from the License Agreement. Notwithstanding this, you agree that Google shall still be allowed to apply for injunctive remedies (or an equivalent type of urgent legal relief) in any jurisdiction.\n" +
           "\n" +
-          "June 2014.", "Android SDK Preview License");
+          "June 2014.";
 }

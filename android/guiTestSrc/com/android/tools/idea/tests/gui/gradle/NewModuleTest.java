@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.gradle;
 
+import com.android.tools.idea.npw.ModuleTemplate;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
@@ -40,10 +41,18 @@ import static org.junit.Assert.*;
  */
 @BelongsToTestGroups({TestGroup.TEST_SUPPORT})
 public class NewModuleTest extends GuiTestCase {
+
   @Test @IdeGuiTest
   public void testNewModuleOldGradle() throws Exception {
     myProjectFrame = importSimpleApplication();
-    myProjectFrame.updateAndroidModelVersion("1.0.0");
+    // That's the oldest combination we support:
+    myProjectFrame.updateAndroidGradlePluginVersion("1.0.0");
+    myProjectFrame.updateGradleWrapperVersion("2.2.1");
+
+    EditorFixture editor = myProjectFrame.getEditor();
+    editor.open("app/build.gradle");
+    editor.moveTo(editor.findOffset("use", "Library", false));
+    editor.invokeAction(EditorFixture.EditorAction.DELETE_LINE);
 
     myProjectFrame.requestProjectSync();
     myProjectFrame.waitForGradleProjectSyncToFinish();
@@ -52,17 +61,14 @@ public class NewModuleTest extends GuiTestCase {
     Dialog dialog = myRobot.finder().find(DialogMatcher.withTitle("Create New Module"));
     DialogFixture dialogFixture = new DialogFixture(myRobot, dialog);
 
-    selectItemInGallery(dialog, 1);
+    selectItemInGallery(dialog, 1, "Android Library");
     findAndClickButton(dialogFixture, "Next");
-    findAndClickButton(dialogFixture, "Next");
-    selectItemInGallery(dialog, 0);
     myProjectFrame.waitForBackgroundTasksToFinish();
     findAndClickButtonWhenEnabled(dialogFixture, "Finish");
 
     myProjectFrame.waitForGradleProjectSyncToFinish();
 
     // Sync worked, so that's good. Just make sure we didn't generate "testCompile" in build.gradle
-    EditorFixture editor = myProjectFrame.getEditor();
     editor.open("mylibrary/build.gradle");
     assertEquals(-1, editor.findOffset("test", "Compile", true));
 
@@ -71,12 +77,17 @@ public class NewModuleTest extends GuiTestCase {
     assertNull(projectDir.findFileByRelativePath("mylibrary/src/test"));
   }
 
-  private void selectItemInGallery(@NotNull Dialog dialog, final int selectedIndex) {
+  private void selectItemInGallery(@NotNull Dialog dialog,
+                                   final int selectedIndex,
+                                   @NotNull final String expectedName) {
     final ASGallery gallery = myRobot.finder().findByType(dialog, ASGallery.class);
     execute(new GuiTask() {
       @Override
       protected void executeInEDT() throws Throwable {
         gallery.setSelectedIndex(selectedIndex);
+        ModuleTemplate selected = (ModuleTemplate)gallery.getSelectedElement();
+        assertNotNull(selected);
+        assertEquals(expectedName, selected.getName());
       }
     });
   }

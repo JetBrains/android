@@ -18,7 +18,6 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurableGroup;
-import com.intellij.openapi.options.ex.ProjectConfigurablesGroup;
 import com.intellij.openapi.options.newEditor.SettingsDialog;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.treeStructure.CachingSimpleNode;
@@ -53,10 +52,6 @@ public class IdeSettingsDialogFixture extends IdeaDialogFixture<SettingsDialog> 
 
   @NotNull
   public List<String> getProjectSettingsNames() {
-    return getSettingsNames(ProjectConfigurablesGroup.class);
-  }
-
-  private List<String> getSettingsNames(@NotNull Class<? extends ConfigurableGroup> groupType) {
     List<String> names = Lists.newArrayList();
     JPanel optionsEditor = field("myEditor").ofType(JPanel.class).in(getDialogWrapper()).get();
     assertNotNull(optionsEditor);
@@ -70,16 +65,11 @@ public class IdeSettingsDialogFixture extends IdeaDialogFixture<SettingsDialog> 
 
     ConfigurableGroup[] groups = field("myGroups").ofType(ConfigurableGroup[].class).in(root).get();
     assertNotNull(groups);
-    ConfigurableGroup group = null;
     for (ConfigurableGroup current : groups) {
-      if (groupType.isInstance(current)) {
-        group = current;
-        break;
+      Configurable[] configurables = current.getConfigurables();
+      for (Configurable configurable : configurables) {
+        names.add(configurable.getDisplayName());
       }
-    }
-    assertNotNull(group);
-    for (Configurable configurable : group.getConfigurables()) {
-      names.add(configurable.getDisplayName());
     }
     return names;
   }

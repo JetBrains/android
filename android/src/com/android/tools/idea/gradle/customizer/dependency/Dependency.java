@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.customizer.dependency;
 
 import com.android.builder.model.*;
 import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.roots.DependencyScope;
@@ -90,22 +91,34 @@ public abstract class Dependency {
   }
 
   @NotNull
-  public static DependencySet extractFrom(@NotNull AndroidGradleModel androidProject) {
+  public static DependencySet extractFrom(@NotNull AndroidGradleModel androidModel) {
     DependencySet dependencies = new DependencySet();
 
-    BaseArtifact testArtifact = androidProject.findSelectedTestArtifactInSelectedVariant();
-    if (testArtifact != null) {
-      populate(dependencies, testArtifact, TEST);
+    if (GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS) {
+      for (BaseArtifact testArtifact : androidModel.getTestArtifactsInSelectedVariant()) {
+        populate(dependencies, testArtifact, TEST);
+      }
+    } else {
+      BaseArtifact testArtifact = androidModel.findSelectedTestArtifactInSelectedVariant();
+      if (testArtifact != null) {
+        populate(dependencies, testArtifact, TEST);
+      }
     }
-    AndroidArtifact mainArtifact = androidProject.getMainArtifact();
+
+    AndroidArtifact mainArtifact = androidModel.getMainArtifact();
     populate(dependencies, mainArtifact, COMPILE);
 
     return dependencies;
   }
 
-  private static void populate(@NotNull DependencySet dependencies,
-                               @NotNull BaseArtifact artifact,
-                               @NotNull DependencyScope scope) {
+  @NotNull
+  public static DependencySet extractFrom(@NotNull BaseArtifact artifact, @NotNull DependencyScope scope) {
+    DependencySet dependencies = new DependencySet();
+    populate(dependencies, artifact, scope);
+    return dependencies;
+  }
+
+  private static void populate(@NotNull DependencySet dependencies, @NotNull BaseArtifact artifact, @NotNull DependencyScope scope) {
     addJavaLibraries(dependencies, artifact.getDependencies().getJavaLibraries(), scope);
 
     Set<File> unique = Sets.newHashSet();

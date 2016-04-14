@@ -16,19 +16,22 @@
 package com.android.tools.idea.monitor.network;
 
 import com.android.ddmlib.Client;
+import com.android.tools.idea.actions.BrowserHelpAction;
 import com.android.tools.idea.ddms.DeviceContext;
 import com.android.tools.idea.monitor.BaseMonitorView;
 import com.android.tools.idea.monitor.actions.RecordingAction;
-import com.android.tools.idea.stats.UsageTracker;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.actionSystem.Separator;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.UIUtil;
+import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
 import java.awt.*;
 import java.util.concurrent.Future;
 
@@ -41,7 +44,7 @@ public class NetworkMonitorView extends BaseMonitorView<NetworkSampler> implemen
   private static final Color BACKGROUND_COLOR = UIUtil.getTextFieldBackground();
   private static final String MISSING_LABEL = "Network monitoring is not available on your device.";
   private static final String STARTING_LABEL =
-    "Starting... If it is not finished within seconds, the device may not be properly connected, please reconnect.";
+    "Starting... If this doesn't finish within seconds, the device may not be properly connected. Please reconnect.";
 
   private Future<?> checkStatsFileFuture;
 
@@ -52,9 +55,8 @@ public class NetworkMonitorView extends BaseMonitorView<NetworkSampler> implemen
     // TODO: Change the initial unit to B/s after fixing the window frozen problem.
     myTimelineComponent.configureUnits("KB/s");
     myTimelineComponent.configureStream(0, "Rx", new JBColor(0xff8000, 0xff8000));
-    myTimelineComponent.configureStream(1, "Tx", new JBColor(0xffcc99, 0xffcc99));
+    myTimelineComponent.configureStream(1, "Tx", new JBColor(0xffcc99, 0xffcc99), true);
     myTimelineComponent.setBackground(BACKGROUND_COLOR);
-    myTimelineComponent.setStackStreams(false);
 
     // Some system images do not have the network stats file, it is a bug; we show a label before the bug is fixed.
     addOverlayText(MISSING_LABEL, PAUSED_LABEL_PRIORITY - 1);
@@ -69,6 +71,8 @@ public class NetworkMonitorView extends BaseMonitorView<NetworkSampler> implemen
   public ActionGroup getToolbarActions() {
     DefaultActionGroup group = new DefaultActionGroup();
     group.add(new RecordingAction(this));
+    group.add(new Separator());
+    group.add(new BrowserHelpAction("Network monitor", "http://developer.android.com/r/studio-ui/am-network.html"));
     return group;
   }
 
@@ -104,6 +108,23 @@ public class NetworkMonitorView extends BaseMonitorView<NetworkSampler> implemen
         }
       });
     }
+  }
+
+  @NotNull
+  @Override
+  public String getTitleName() {
+    return "Network";
+  }
+
+  @NotNull
+  @Override
+  public Icon getTitleIcon() {
+    return AndroidIcons.NetworkMonitor;
+  }
+
+  @Override
+  protected int getDefaultPosition() {
+    return 2;
   }
 
   @NotNull

@@ -16,31 +16,27 @@
 package com.android.tools.idea.ui.properties.expressions.bool;
 
 import com.android.tools.idea.ui.properties.ObservableValue;
+import com.android.tools.idea.ui.properties.core.BoolValueProperty;
 import com.android.tools.idea.ui.properties.core.ObservableBool;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Collection;
 
 /**
  * Miscellaneous convenience methods which, when imported statically, can provide readability to
  * chained expressions.
  */
 public final class BooleanExpressions {
-  public static final ObservableBool TRUE = new BooleanExpression() {
-    @NotNull
-    @Override
-    public Boolean get() {
-      return true;
-    }
-  };
 
-  public static final ObservableBool FALSE = new BooleanExpression() {
-    @NotNull
-    @Override
-    public Boolean get() {
-      return false;
-    }
-  };
+  public static ObservableBool alwaysTrue() { return new BoolValueProperty(true); }
+
+  public static ObservableBool alwaysFalse() { return new BoolValueProperty(false); }
 
   public static ObservableBool any(ObservableValue<Boolean>... values) {
+    return new AnyExpression(values);
+  }
+
+  public static ObservableBool any(Collection<? extends ObservableValue<Boolean>> values) {
     return new AnyExpression(values);
   }
 

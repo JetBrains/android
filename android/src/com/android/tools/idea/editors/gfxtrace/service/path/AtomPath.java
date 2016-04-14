@@ -49,7 +49,11 @@ public final class AtomPath extends Path {
   }
 
   public MemoryRangePath memoryAfter(PoolID pool, MemoryRange range) {
-    return new MemoryRangePath().setAfter(this).setPool(pool.value).setAddress(range.getBase()).setSize(range.getSize());
+    return new MemoryRangePath().setAfter(this).setPool(pool.getValue()).setAddress(range.getBase()).setSize(range.getSize());
+  }
+
+  public FieldPath field(String name) {
+    return new FieldPath().setStruct(this).setName(name);
   }
 
   //<<<Start:Java.ClassBody:1>>>
@@ -82,7 +86,7 @@ public final class AtomPath extends Path {
   public BinaryClass klass() { return Klass.INSTANCE; }
 
 
-  private static final Entity ENTITY = new Entity("path","Atom","","");
+  private static final Entity ENTITY = new Entity("path", "Atom", "", "");
 
   static {
     ENTITY.setFields(new Field[]{

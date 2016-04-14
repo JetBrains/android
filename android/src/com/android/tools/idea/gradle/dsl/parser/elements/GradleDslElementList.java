@@ -37,10 +37,12 @@ public class GradleDslElementList extends GradleDslElement {
   }
 
   public void addParsedElement(@NotNull GradleDslElement element) {
+    element.myParent = this;
     myElements.add(element);
   }
 
   public void addNewElement(@NotNull GradleDslElement element) {
+    element.myParent = this;
     myToBeAddedElements.add(element);
     setModified(true);
   }
@@ -127,5 +129,10 @@ public class GradleDslElementList extends GradleDslElement {
   protected void reset() {
     myToBeAddedElements.clear();
     myToBeRemovedElements.clear();
+    for (GradleDslElement element : myElements) {
+      if (element.isModified()) {
+        element.resetState();
+      }
+    }
   }
 }

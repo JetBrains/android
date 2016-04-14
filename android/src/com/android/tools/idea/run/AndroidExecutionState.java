@@ -24,12 +24,22 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 
 public interface AndroidExecutionState {
+
   @Nullable
   Collection<IDevice> getDevices();
 
   @Nullable
   ConsoleView getConsoleView();
 
+  /**
+   * The ID of the run configuration that produced this state. This is used to correlate existing execution states to run
+   * configurations.
+   */
+  int getRunConfigurationId();
+
+  /**
+   * A human friendly name of the type of run configuration that produced this state.
+   */
   @NotNull
-  AndroidRunConfigurationBase getConfiguration();
+  String getRunConfigurationTypeId();
 }

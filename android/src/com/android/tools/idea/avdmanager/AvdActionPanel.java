@@ -74,8 +74,14 @@ public class AvdActionPanel extends JPanel implements AvdUiAction.AvdInfoProvide
     int visibleActionCount = 0;
     boolean errorState = false;
     if (avdInfo.getStatus() != AvdInfo.AvdStatus.OK) {
-      if (AvdManagerConnection.isAvdRepairable(avdInfo.getStatus())) {
-        RepairAvdAction action = new RepairAvdAction(this);
+      AvdUiAction action = null;
+      if (AvdManagerConnection.isSystemImageDownloadProblem(avdInfo.getStatus())) {
+        action = new InstallSystemImageAction(this);
+      }
+      else if (AvdManagerConnection.isAvdRepairable(avdInfo.getStatus())) {
+        action = new RepairAvdAction(this);
+      }
+      if (action != null) {
         FocusableHyperlinkLabel repairAction = new FocusableHyperlinkLabel(action.getText(), action.getIcon());
         add(repairAction);
         repairAction.addHyperlinkListener(action);

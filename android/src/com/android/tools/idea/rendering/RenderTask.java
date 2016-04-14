@@ -812,7 +812,10 @@ public class RenderTask implements IImageFactory {
         if (file instanceof XmlFile) {
           XmlTag root = ((XmlFile)file).getRootTag();
           if (root != null) {
-            return root.getName();
+            root = LayoutPsiPullParser.getRootTag(root);
+            if (root != null) {
+              return root.getName();
+            }
           }
         }
 

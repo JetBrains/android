@@ -16,7 +16,7 @@
 
 package com.android.tools.idea.sdk.remote.internal.packages;
 
-import com.android.sdklib.repository.FullRevision;
+import com.android.repository.Revision;
 import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkSource;
 import org.w3c.dom.Node;
@@ -52,7 +52,7 @@ public abstract class RemoteMinToolsPkgInfo extends RemotePkgInfo implements IMi
      * or {@link #MIN_TOOLS_REV_NOT_SPECIFIED} if there is no such requirement.
      */
     @Override
-    public FullRevision getMinToolsRevision() {
+    public Revision getMinToolsRevision() {
         return mMinToolsMixin.getMinToolsRevision();
     }
 

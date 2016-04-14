@@ -17,18 +17,8 @@
     <orderEntry type="module" module-name="xml" />
     <orderEntry type="module" module-name="dom-openapi" />
     <orderEntry type="module" module-name="platform-impl" />
-    <orderEntry type="module-library" scope="TEST">
-      <library>
-        <CLASSES>
-          <root url="jar://$MODULE_DIR$/../android/lib/mockito-all-1.9.5.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MODULE_DIR$/../android/lib/mockito-all-1.9.5.jar!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
     <orderEntry type="module" module-name="java-impl" />
     <orderEntry type="module" module-name="lang-impl" />
+    <orderEntry type="library" scope="TEST" name="mockito" level="project" />
   </component>
 </module>

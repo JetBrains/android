@@ -43,8 +43,10 @@ import org.fest.swing.edt.GuiTask;
 import org.fest.swing.fixture.ContainerFixture;
 import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.timing.Condition;
-import org.fest.swing.timing.Pause;
 import org.fest.swing.timing.Timeout;
+import org.hamcrest.BaseMatcher;
+import org.hamcrest.Description;
+import org.hamcrest.Matcher;
 import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -67,6 +69,7 @@ import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static java.util.concurrent.TimeUnit.MINUTES;
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.fest.swing.finder.WindowFinder.findFrame;
@@ -77,6 +80,7 @@ import static org.jetbrains.android.AndroidPlugin.setGuiTestingMode;
 import static org.junit.Assert.*;
 
 public final class GuiTests {
+  public static final Timeout THIRTY_SEC_TIMEOUT = timeout(30, SECONDS);
   public static final Timeout SHORT_TIMEOUT = timeout(2, MINUTES);
   public static final Timeout LONG_TIMEOUT = timeout(5, MINUTES);
 
@@ -167,6 +171,8 @@ public final class GuiTests {
 
               System.out.println(String.format("Setting JDK: '%1$s'", jdkPath.getPath()));
               IdeSdks.setJdkPath(jdkPath);
+
+              System.out.println();
             }
           });
         }
@@ -336,13 +342,17 @@ public final class GuiTests {
   }
 
   /**
-   * Clicks an IntelliJ/Studio popup menu item with the given label
+   * Clicks an IntelliJ/Studio popup menu item with the given label prefix
    *
-   * @param labelPrefix the target menu item label
+   * @param labelPrefix the target menu item label prefix
    * @param component a component in the same window that the popup menu is associated with
    * @param robot the robot to drive it with
    */
   public static void clickPopupMenuItem(@NotNull String labelPrefix, @NotNull Component component, @NotNull Robot robot) {
+    clickPopupMenuItemMatching(new PrefixMatcher(labelPrefix), component, robot);
+  }
+
+  public static void clickPopupMenuItemMatching(@NotNull Matcher<String> labelMatcher, @NotNull Component component, @NotNull Robot robot) {
     // IntelliJ doesn't seem to use a normal JPopupMenu, so this won't work:
     //    JPopupMenu menu = myRobot.findActivePopupMenu();
     // Instead, it uses a JList (technically a JBList), which is placed somewhere
@@ -370,14 +380,14 @@ public final class GuiTests {
       if (elementAt instanceof PopupFactoryImpl.ActionItem) {
         PopupFactoryImpl.ActionItem item = (PopupFactoryImpl.ActionItem)elementAt;
         String s = item.getText();
-        if (s.startsWith(labelPrefix)) {
+        if (labelMatcher.matches(s)) {
           new JListFixture(robot, list).clickItem(i);
           return;
         }
         items.add(s);
       } else { // For example package private class IntentionActionWithTextCaching used in quickfix popups
         String s = elementAt.toString();
-        if (s.startsWith(labelPrefix)) {
+        if (labelMatcher.matches(s)) {
           new JListFixture(robot, list).clickItem(i);
           return;
         }
@@ -388,7 +398,7 @@ public final class GuiTests {
     if (items.isEmpty()) {
       fail("Could not find any menu items in popup");
     }
-    fail("Did not find menu item with prefix '" + labelPrefix + "' among " + on(", ").join(items));
+    fail("Did not find menu item '" + labelMatcher + "' among " + on(", ").join(items));
   }
 
   /** Returns the root container containing the given component */
@@ -420,12 +430,12 @@ public final class GuiTests {
   public static void findAndClickButtonWhenEnabled(@NotNull ContainerFixture<? extends Container> container, @NotNull final String text) {
     Robot robot = container.robot();
     final JButton button = findButton(container, text, robot);
-    Pause.pause(new Condition("Wait for button " + text + " to be enabled.") {
+    pause(new Condition("Wait for button " + text + " to be enabled.") {
       @Override
       public boolean test() {
-        return button.isEnabled();
+        return button.isEnabled() && button.isVisible() && button.isShowing();
       }
-    });
+    }, SHORT_TIMEOUT);
     robot.click(button);
   }
 
@@ -537,6 +547,25 @@ public final class GuiTests {
     @Override
     public void projectOpened(Project project) {
       myNotified = true;
+    }
+  }
+
+  private static class PrefixMatcher extends BaseMatcher<String> {
+
+    private final String prefix;
+
+    public PrefixMatcher(String prefix) {
+      this.prefix = prefix;
+    }
+
+    @Override
+    public boolean matches(Object item) {
+      return item instanceof String && ((String)item).startsWith(prefix);
+    }
+
+    @Override
+    public void describeTo(Description description) {
+      description.appendText("with prefix '" + prefix +"'");
     }
   }
 }

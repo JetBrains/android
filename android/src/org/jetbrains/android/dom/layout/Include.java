@@ -23,13 +23,6 @@ import org.jetbrains.android.dom.AndroidResourceType;
 import org.jetbrains.android.dom.converters.ResourceReferenceConverter;
 import org.jetbrains.android.dom.resources.ResourceValue;
 
-/**
- * Created by IntelliJ IDEA.
- * User: Eugene.Kudelevsky
- * Date: Jul 30, 2009
- * Time: 10:45:03 PM
- * To change this template use File | Settings | File Templates.
- */
 public interface Include extends LayoutElement {
   /*@Required*/
   @AndroidResourceType("id")

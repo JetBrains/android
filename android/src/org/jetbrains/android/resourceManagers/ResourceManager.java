@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.resourceManagers;
 
+import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.google.common.collect.ImmutableSet;
@@ -236,22 +237,29 @@ public abstract class ResourceManager {
   }
 
   @Nullable
-  public String getFileResourceType(@NotNull final PsiFile file) {
-    return ApplicationManager.getApplication().runReadAction(new Computable<String>() {
+  public ResourceFolderType getFileResourceFolderType(@NotNull final PsiFile file) {
+    return ApplicationManager.getApplication().runReadAction(new Computable<ResourceFolderType>() {
       @Nullable
       @Override
-      public String compute() {
+      public ResourceFolderType compute() {
         PsiDirectory dir = file.getContainingDirectory();
-        if (dir == null) return null;
+        if (dir == null) {
+          return null;
+        }
+
         PsiDirectory possibleResDir = dir.getParentDirectory();
         if (possibleResDir == null || !isResourceDir(possibleResDir.getVirtualFile())) {
           return null;
         }
-        String type = AndroidCommonUtils.getResourceTypeByDirName(dir.getName());
-        if (type == null) return null;
-        return type;
+        return ResourceFolderType.getFolderType(dir.getName());
       }
     });
+  }
+
+  @Nullable
+  public String getFileResourceType(@NotNull final PsiFile file) {
+    final ResourceFolderType folderType = getFileResourceFolderType(file);
+    return folderType == null ? null : folderType.getName();
   }
 
   @NotNull

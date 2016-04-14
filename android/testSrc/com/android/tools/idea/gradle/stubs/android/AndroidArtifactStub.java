@@ -20,6 +20,7 @@ import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.AndroidArtifactOutput;
 import com.android.builder.model.ClassField;
 import com.android.builder.model.NativeLibrary;
+import com.android.builder.model.InstantRun;
 import com.android.tools.idea.gradle.stubs.FileStructure;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
@@ -99,6 +100,11 @@ public class AndroidArtifactStub extends BaseArtifactStub implements AndroidArti
   @Override
   @NotNull
   public Map<String, ClassField> getResValues() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public InstantRun getInstantRun() {
     throw new UnsupportedOperationException();
   }
 

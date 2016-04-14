@@ -15,14 +15,15 @@
  */
 package com.android.tools.idea.rendering;
 
+import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.ide.common.res2.DataBindingResourceItem;
 import com.android.ide.common.res2.DataBindingResourceType;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.xml.XmlTag;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.Arrays;
 import java.util.Map;
 
 /**
@@ -41,8 +42,20 @@ public class PsiDataBindingResourceItem extends DataBindingResourceItem {
     }
   }
 
+  /**
+   * Use {@link #getTypeDeclaration()} to get the type instead of this method.
+   */
   public String getExtra(String name) {
     return myData.get(name);
+  }
+
+  /**
+   * Same as sanitized the output of {@link #getExtra(String)} with {@link SdkConstants#ATTR_TYPE}.
+   */
+  @Nullable
+  public String getTypeDeclaration() {
+    String type = getExtra(SdkConstants.ATTR_TYPE);
+    return type == null ? null : type.replace('$', '.');
   }
 
   public XmlTag getXmlTag() {

@@ -18,7 +18,6 @@ package com.android.tools.idea.sdk.remote.internal.archives;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
-import com.android.sdklib.repository.IDescription;
 import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkSource;
 
@@ -33,9 +32,8 @@ import java.util.Properties;
  * which represent the downloadable bits.
  * <p/>
  * Packages are offered by a {@link SdkSource} (a download site).
- * The {@link ArchiveInstaller} takes care of downloading, unpacking and installing an archive.
  */
-public class Archive implements IDescription, Comparable<Archive> {
+public class Archive implements Comparable<Archive> {
 
   private final String mUrl;
   private final long mSize;
@@ -167,40 +165,8 @@ public class Archive implements IDescription, Comparable<Archive> {
   /**
    * Generates a short description for this archive.
    */
-  @Override
   public String getShortDescription() {
     return String.format("Archive for %1$s", getOsDescription());
-  }
-
-  /**
-   * Generates a longer description for this archive.
-   */
-  @Override
-  public String getLongDescription() {
-    return String.format("%1$s\n%2$s\n%3$s", getShortDescription(), getSizeDescription(), getSha1Description());
-  }
-
-  public String getSizeDescription() {
-    long size = getSize();
-    String sizeStr;
-    if (size < 1024) {
-      sizeStr = String.format("%d Bytes", size);
-    }
-    else if (size < 1024 * 1024) {
-      sizeStr = String.format("%d KiB", Math.round(size / 1024.0));
-    }
-    else if (size < 1024 * 1024 * 1024) {
-      sizeStr = String.format("%.1f MiB", Math.round(10.0 * size / (1024 * 1024.0)) / 10.0);
-    }
-    else {
-      sizeStr = String.format("%.1f GiB", Math.round(10.0 * size / (1024 * 1024 * 1024.0)) / 10.0);
-    }
-
-    return String.format("Size: %1$s", sizeStr);
-  }
-
-  public String getSha1Description() {
-    return String.format("SHA1: %1$s", getChecksum());
   }
 
   /**

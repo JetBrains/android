@@ -14,9 +14,10 @@
   ~ limitations under the License.
   -->
 <component>
-  <version major="1" minor="5" micro="0" patch="4" full="{0}.{1}" eap="false" />
+  <version major="2" minor="0" micro="0" patch="20" full="{0}.{1}" eap="false" />
   <company name="Google" url="http://developer.android.com"/>
-  <build number="__BUILD_NUMBER__" date="__BUILD_DATE__"/>
+  <build number="__BUILD_NUMBER__" date="__BUILD_DATE__" apiVersion="AI-143.1821.5"/>
+  <install-over minbuild="0.1" maxbuild="999.999999" version="0"/>
   <logo url="/artwork/studio_splash.png" textcolor="cccccc" progressColor="90c653" progressY="238" progressTailIcon="/community_progress_tail.png"/>
   <about url="/artwork/studio_about.png" foreground="cccccc"/>
   <icon size128="/artwork/icon_AS_128.png" size32="/artwork/icon_AS.png" size16="/artwork/icon_AS_small.png" size32opaque="/artwork/icon_AS_white.png" size12="/artwork/toolWindowProject_AS.png" ico="artwork/androidstudio.ico"/>

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.npw;
 
-import com.android.tools.idea.npw.AddAndroidActivityPath;
+import com.android.tools.idea.npw.template.ConfigureTemplateParametersStep;
 import com.android.tools.idea.wizard.dynamic.DynamicWizard;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.command.UndoConfirmationPolicy;
@@ -25,11 +25,12 @@ import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.awt.*;
 import java.io.File;
 
 /**
  * Wizard for creating a new Android activity.
+ *
+ * @deprecated Replaced by {@link ConfigureTemplateParametersStep}
  */
 public final class NewAndroidActivityWizard extends DynamicWizard {
   @Nullable private final VirtualFile myTargetFile;

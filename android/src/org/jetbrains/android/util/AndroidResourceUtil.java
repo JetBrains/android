@@ -31,8 +31,10 @@ import com.intellij.ide.fileTemplates.FileTemplateManager;
 import com.intellij.ide.fileTemplates.FileTemplateUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
+import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -55,6 +57,9 @@ import com.intellij.util.graph.Graph;
 import org.jetbrains.android.AndroidFileTemplateProvider;
 import org.jetbrains.android.actions.CreateTypedResourceFileAction;
 import org.jetbrains.android.augment.AndroidPsiElementFinder;
+import org.jetbrains.android.dom.AndroidDomElement;
+import org.jetbrains.android.dom.color.ColorSelector;
+import org.jetbrains.android.dom.drawable.DrawableSelector;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.dom.resources.Item;
 import org.jetbrains.android.dom.resources.ResourceElement;
@@ -70,6 +75,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
+import static com.android.SdkConstants.ATTR_TYPE;
+import static com.android.SdkConstants.TAG_ITEM;
 import static com.android.resources.ResourceType.ATTR;
 import static com.android.resources.ResourceType.STYLEABLE;
 
@@ -527,8 +534,8 @@ public class AndroidResourceUtil {
     final List<VirtualFile> dirs = new ArrayList<VirtualFile>();
 
     for (VirtualFile resourcesDir : resourceDirs) {
-      if (resourcesDir == null) {
-        return dirs;
+      if (resourcesDir == null || !resourcesDir.isValid()) {
+        continue;
       }
       if (resourceType == null) {
         ContainerUtil.addAll(dirs, resourcesDir.getChildren());
@@ -646,6 +653,12 @@ public class AndroidResourceUtil {
     return false;
   }
 
+  public static boolean isResourceFile(@NotNull VirtualFile file, @NotNull AndroidFacet facet) {
+    final VirtualFile parent = file.getParent();
+    final VirtualFile resDir = parent != null ? parent.getParent() : null;
+    return resDir != null && facet.getLocalResourceManager().isResourceDir(resDir);
+  }
+
   public static boolean isResourceDirectory(@NotNull PsiDirectory directory) {
     PsiDirectory dir = directory;
     // check facet settings
@@ -683,13 +696,11 @@ public class AndroidResourceUtil {
       final PsiJavaFile javaFile = (PsiJavaFile)file;
 
       final Manifest manifest = facet.getManifest();
-      if (manifest == null) {
-        return false;
-      }
-
-      final String manifestPackage = manifest.getPackage().getValue();
-      if (manifestPackage != null && javaFile.getPackageName().equals(manifestPackage)) {
-        return true;
+      if (manifest != null) {
+        final String manifestPackage = manifest.getPackage().getValue();
+        if (manifestPackage != null && javaFile.getPackageName().equals(manifestPackage)) {
+          return true;
+        }
       }
 
       for (String aPackage : AndroidUtils.getDepLibsPackages(facet.getModule())) {
@@ -851,11 +862,23 @@ public class AndroidResourceUtil {
     return true;
   }
 
+  /**
+   * Sets a new value for a color.
+   * @param facet {@link AndroidFacet} instance
+   * @param colorName the name of the color to be modified
+   * @param newValue the new color value
+   * @param fileName the color values file name
+   * @param dirNames list of values directories where the color should be changed
+   * @param useGlobalCommand if true, the undo will be registered globally. This allows the command to be undone from anywhere in the IDE
+   *                         and not only the XML editor
+   * @return true if the color value was changed
+   */
   public static boolean changeColorResource(@NotNull AndroidFacet facet,
                                             @NotNull final String colorName,
                                             @NotNull final String newValue,
                                             @NotNull String fileName,
-                                            @NotNull List<String> dirNames) {
+                                            @NotNull List<String> dirNames,
+                                            final boolean useGlobalCommand) {
     if (dirNames.isEmpty()) {
       return false;
     }
@@ -883,7 +906,7 @@ public class AndroidResourceUtil {
     }
 
     List<PsiFile> psiFiles = Lists.newArrayListWithExpectedSize(resFiles.size());
-    Project project = facet.getModule().getProject();
+    final Project project = facet.getModule().getProject();
     PsiManager manager = PsiManager.getInstance(project);
     for (VirtualFile file : resFiles) {
       PsiFile psiFile = manager.findFile(file);
@@ -895,6 +918,10 @@ public class AndroidResourceUtil {
     WriteCommandAction<Boolean> action = new WriteCommandAction<Boolean>(project, "Change Color Resource", files) {
       @Override
       protected void run(@NotNull Result<Boolean> result) throws Throwable {
+        if (useGlobalCommand) {
+          CommandProcessor.getInstance().markCurrentCommandAsGlobal(project);
+        }
+
         result.setResult(false);
         for (Resources resources : resourcesElements) {
           for (ScalarResourceElement colorElement : resources.getColors()) {
@@ -1141,6 +1168,29 @@ public class AndroidResourceUtil {
     return !ReadonlyStatusHandler.getInstance(project).ensureFilesWritable(files).hasReadonlyFiles();
   }
 
+  /**
+   * Returns the type of the ResourceItem based on a node's attributes.
+   * @param node the node
+   * @return the ResourceType or null if it could not be inferred.
+   */
+  @Nullable
+  public static ResourceType getType(@NotNull XmlTag node) {
+    String nodeName = node.getLocalName();
+    String typeString = null;
+
+    if (TAG_ITEM.equals(nodeName)) {
+      String attribute = node.getAttributeValue(ATTR_TYPE);
+      if (attribute != null) {
+        typeString = attribute;
+      }
+    } else {
+      // the type is the name of the node.
+      typeString = nodeName;
+    }
+
+    return typeString == null ? null : ResourceType.getEnum(typeString);
+  }
+
   public static class MyReferredResourceFieldInfo {
     private final String myClassName;
     private final String myFieldName;
@@ -1215,8 +1265,15 @@ public class AndroidResourceUtil {
   }
 
   @NotNull
-  public static String getFieldNameByResourceName(@NotNull String fieldName) {
-    return fieldName.replace('.', '_').replace('-', '_').replace(':', '_');
+  public static String getFieldNameByResourceName(@NotNull String styleName) {
+    for (int i = 0, n = styleName.length(); i < n; i++) {
+      char c = styleName.charAt(i);
+      if (c == '.' || c == '-' || c == ':') {
+        return styleName.replace('.', '_').replace('-', '_').replace(':', '_');
+      }
+    }
+
+    return styleName;
   }
 
   /**
@@ -1294,4 +1351,78 @@ public class AndroidResourceUtil {
 
     return foundFiles ? files : null;
   }
+
+  public static void updateStateList(@NotNull Module module, final @NotNull ResourceHelper.StateList stateList, @NotNull List<VirtualFile> files) {
+    Project project = module.getProject();
+    if (!ensureFilesWritable(project, files)) {
+      return;
+    }
+
+    List<PsiFile> psiFiles = Lists.newArrayListWithCapacity(files.size());
+    PsiManager manager = PsiManager.getInstance(project);
+    for (VirtualFile file : files) {
+      PsiFile psiFile = manager.findFile(file);
+      if (psiFile != null) {
+        psiFiles.add(psiFile);
+      }
+    }
+
+    final List<AndroidDomElement> selectors = Lists.newArrayListWithCapacity(files.size());
+
+    Class<? extends AndroidDomElement> selectorClass;
+
+    if (stateList.getFolderType() == ResourceFolderType.COLOR) {
+      selectorClass = ColorSelector.class;
+    }
+    else {
+      selectorClass = DrawableSelector.class;
+    }
+    for (VirtualFile file : files) {
+      final AndroidDomElement selector = AndroidUtils.loadDomElement(module, file, selectorClass);
+      if (selector == null) {
+        AndroidUtils.reportError(project, file.getName() + " is not a statelist file");
+        return;
+      }
+      selectors.add(selector);
+    }
+
+    new WriteCommandAction.Simple(project, "Change State List", psiFiles.toArray(new PsiFile[psiFiles.size()])) {
+      @Override
+      protected void run() {
+        for (AndroidDomElement selector : selectors) {
+          XmlTag tag = selector.getXmlTag();
+          for (XmlTag subtag : tag.getSubTags()) {
+            subtag.delete();
+          }
+          for (ResourceHelper.StateListState state : stateList.getStates()) {
+            XmlTag child = tag.createChildTag(SdkConstants.TAG_ITEM, tag.getNamespace(), null, false);
+            child = tag.addSubTag(child, false);
+
+            Map<String, Boolean> attributes = state.getAttributes();
+            for (String attributeName : attributes.keySet()) {
+              child.setAttribute(attributeName, SdkConstants.ANDROID_URI, attributes.get(attributeName).toString());
+            }
+
+            if (!StringUtil.isEmpty(state.getAlpha())) {
+              child.setAttribute("alpha", SdkConstants.ANDROID_URI, state.getAlpha());
+            }
+
+            if (selector instanceof ColorSelector) {
+              child.setAttribute(SdkConstants.ATTR_COLOR, SdkConstants.ANDROID_URI, state.getValue());
+            }
+            else if (selector instanceof DrawableSelector) {
+              child.setAttribute(SdkConstants.ATTR_DRAWABLE, SdkConstants.ANDROID_URI, state.getValue());
+            }
+          }
+        }
+
+        // The following is necessary since layoutlib will look on disk for the color state list file.
+        // So as soon as a color state list is modified, the change needs to be saved on disk
+        // for the correct values to be used in the theme editor preview.
+        // TODO: Remove this once layoutlib can get color state lists from PSI instead of disk
+        FileDocumentManager.getInstance().saveAllDocuments();
+      }
+    }.execute();
+  }
+
 }

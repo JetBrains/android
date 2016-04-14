@@ -6,9 +6,6 @@ import com.intellij.util.xml.Convert;
 import com.intellij.util.xml.GenericAttributeValue;
 import org.jetbrains.android.dom.converters.ViewClassConverter;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public interface View extends LayoutViewElement {
   @Attribute("class")
   @Convert(ViewClassConverter.class)

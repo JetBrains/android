@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.JavaModel;
 import com.android.tools.idea.gradle.JavaProject;
 import com.android.tools.idea.gradle.customizer.AbstractDependenciesModuleCustomizer;
 import com.android.tools.idea.gradle.customizer.dependency.DependencySetupErrors;
+import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.facet.JavaGradleFacet;
 import com.android.tools.idea.gradle.facet.JavaGradleFacetConfiguration;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
@@ -40,7 +41,7 @@ import java.io.File;
 import java.util.Collections;
 import java.util.List;
 
-import static com.android.tools.idea.gradle.util.Projects.isGradleProjectModule;
+import static com.android.tools.idea.gradle.util.Facets.findFacet;
 import static com.intellij.openapi.roots.DependencyScope.COMPILE;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static java.util.Collections.singletonList;
@@ -73,7 +74,11 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
 
     JavaGradleFacet facet = setAndGetJavaGradleFacet(module, modelsProvider);
     File buildFolderPath = javaProject.getBuildFolderPath();
-    if (!isGradleProjectModule(module)) {
+
+    AndroidGradleFacet gradleFacet = findFacet(module, modelsProvider, AndroidGradleFacet.TYPE_ID);
+    if (gradleFacet != null) {
+      // This is an actual Gradle module, because it has the AndroidGradleFacet. Top-level modules in a multi-module project usually don't
+      // have this facet.
       JavaModel javaModel = new JavaModel(unresolved, buildFolderPath);
       facet.setJavaModel(javaModel);
     }
@@ -97,7 +102,7 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
 
     final ModifiableRootModel moduleModel = modelsProvider.getModifiableRootModel(module);
     if (found != null) {
-      AndroidFacet androidFacet = AndroidFacet.getInstance(found);
+      AndroidFacet androidFacet = findFacet(found, modelsProvider, AndroidFacet.ID);
       if (androidFacet == null) {
         ModuleOrderEntry orderEntry = moduleModel.addModuleOrderEntry(found);
         orderEntry.setExported(true);
@@ -107,7 +112,7 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
       }
       return;
     }
-    setupErrors.addMissingModule(moduleName, moduleModel.getModule().getName(), null);
+    setupErrors.addMissingModule(moduleName, module.getName(), null);
   }
 
   private void updateDependency(@NotNull Module module,
@@ -147,22 +152,16 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
   }
 
   @NotNull
-  private static JavaGradleFacet setAndGetJavaGradleFacet(Module module, IdeModifiableModelsProvider modelsProvider) {
-    JavaGradleFacet facet = JavaGradleFacet.getInstance(module);
+  private static JavaGradleFacet setAndGetJavaGradleFacet(@NotNull Module module, @NotNull IdeModifiableModelsProvider modelsProvider) {
+    JavaGradleFacet facet = findFacet(module, modelsProvider, JavaGradleFacet.TYPE_ID);
     if (facet != null) {
       return facet;
     }
 
-    // Module does not have Android-Gradle facet. Create one and add it.
     FacetManager facetManager = FacetManager.getInstance(module);
     ModifiableFacetModel model = modelsProvider.getModifiableFacetModel(module);
-    try {
-      facet = facetManager.createFacet(JavaGradleFacet.getFacetType(), JavaGradleFacet.NAME, null);
-      model.addFacet(facet);
-    }
-    finally {
-      model.commit();
-    }
+    facet = facetManager.createFacet(JavaGradleFacet.getFacetType(), JavaGradleFacet.NAME, null);
+    model.addFacet(facet);
     return facet;
   }
 }

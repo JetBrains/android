@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.service.repo;
 
 import com.android.annotations.Nullable;
-import com.android.sdklib.repository.FullRevision;
+import com.android.ide.common.repository.GradleVersion;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -49,7 +49,7 @@ public class ExternalRepository {
 
   private static final Logger LOG = Logger.getInstance(ExternalRepository.class);
 
-  private final ConcurrentMap<Pair<String/*group*/, String/*artifact*/>, FullRevision> myLatestVersionCache = Maps.newConcurrentMap();
+  private final ConcurrentMap<Pair<String/*group*/, String/*artifact*/>, GradleVersion> myLatestVersionCache = Maps.newConcurrentMap();
 
   /**
    * Current implementation is rather straightforward, i.e. it's not expected that this service is used from a number of places
@@ -60,7 +60,7 @@ public class ExternalRepository {
   private final AtomicBoolean myRequestInProgress = new AtomicBoolean();
 
   @Nullable
-  public FullRevision getLatest(@NotNull String groupId, @NotNull String artifactId) {
+  public GradleVersion getLatest(@NotNull String groupId, @NotNull String artifactId) {
     return myLatestVersionCache.get(Pair.create(groupId, artifactId));
   }
 
@@ -121,8 +121,8 @@ public class ExternalRepository {
       return;
     }
     try {
-      FullRevision revision = FullRevision.parseRevision(latest.getText());
-      myLatestVersionCache.put(Pair.create(groupId, artifactId), revision);
+      GradleVersion version = GradleVersion.parse(latest.getText());
+      myLatestVersionCache.put(Pair.create(groupId, artifactId), version);
     }
     catch (NumberFormatException e) {
       LOG.warn(String.format("Can't check the latest version for artifact '%s:%s'. Reason: artifact metadata info downloaded from " +

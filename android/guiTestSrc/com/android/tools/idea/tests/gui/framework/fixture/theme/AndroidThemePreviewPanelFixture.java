@@ -17,9 +17,7 @@ package com.android.tools.idea.tests.gui.framework.fixture.theme;
 
 import com.android.tools.idea.editors.theme.preview.AndroidThemePreviewPanel;
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.SearchTextFieldFixture;
 import com.android.tools.swing.layoutlib.AndroidPreviewPanel;
-import com.intellij.ui.SearchTextField;
 import org.fest.swing.core.Robot;
 import org.fest.swing.exception.ComponentLookupException;
 import org.jetbrains.annotations.NotNull;
@@ -50,11 +48,6 @@ public class AndroidThemePreviewPanelFixture extends ComponentFixture<AndroidThe
     catch (ComponentLookupException e) {
       throw new AssertionError("The theme editor preview is not showing");
     }
-  }
-
-  @NotNull
-  public SearchTextFieldFixture getSearchTextField() {
-    return new SearchTextFieldFixture(robot(), robot().finder().findByType(target(), SearchTextField.class));
   }
 
   /**

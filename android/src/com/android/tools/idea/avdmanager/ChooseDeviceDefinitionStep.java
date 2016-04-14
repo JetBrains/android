@@ -35,7 +35,7 @@ import static com.android.tools.idea.avdmanager.AvdWizardConstants.IS_IN_EDIT_MO
 public class ChooseDeviceDefinitionStep extends DynamicWizardStepWithDescription implements DeviceUiAction.DeviceProvider {
   private JPanel myPanel;
   private DeviceDefinitionList myDeviceDefinitionList;
-  private DeviceDefinitionPreview myDeviceDefinitionPreview;
+  private com.android.tools.idea.avdmanager.legacy.DeviceDefinitionPreview myDeviceDefinitionPreview;
   private JButton myEditDeviceButton;
   private JPanel myEditButtonContainer;
 
@@ -47,7 +47,7 @@ public class ChooseDeviceDefinitionStep extends DynamicWizardStepWithDescription
     super(parentDisposable);
     setBodyComponent(myPanel);
     FormScalingUtil.scaleComponentTree(this.getClass(), createStepBody());
-
+    myDeviceDefinitionList.setParentProvider(this);
     myDeviceDefinitionList.addSelectionListener(new DeviceDefinitionList.DeviceDefinitionSelectionListener() {
       @Override
       public void onDeviceSelectionChanged(@Nullable Device selectedDevice) {
@@ -140,4 +140,5 @@ public class ChooseDeviceDefinitionStep extends DynamicWizardStepWithDescription
   protected String getStepDescription() {
     return "Choose a device definition";
   }
+
 }

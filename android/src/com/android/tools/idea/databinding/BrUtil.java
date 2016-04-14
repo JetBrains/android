@@ -63,7 +63,7 @@ public class BrUtil {
     return String.valueOf(Character.toLowerCase(firstChar)) + propertyName.subSequence(1, propertyName.length());
   }
 
-  static boolean isGetter(PsiMethod psiMethod) {
+  public static boolean isGetter(PsiMethod psiMethod) {
     String name = psiMethod.getName();
     return prefixes(name, "get") &&
            Character.isJavaIdentifierStart(name.charAt(3)) &&
@@ -71,7 +71,7 @@ public class BrUtil {
            !PsiType.VOID.equals(psiMethod.getReturnType()) ;
   }
 
-  static boolean isSetter(PsiMethod psiMethod) {
+  public static boolean isSetter(PsiMethod psiMethod) {
     String name = psiMethod.getName();
     return prefixes(name, "set") &&
            Character.isJavaIdentifierStart(name.charAt(3)) &&
@@ -79,7 +79,7 @@ public class BrUtil {
            PsiType.VOID.equals(psiMethod.getReturnType());
   }
 
-  static boolean isBooleanGetter(PsiMethod psiMethod) {
+  public static boolean isBooleanGetter(PsiMethod psiMethod) {
     String name = psiMethod.getName();
     return prefixes(name, "is") &&
            Character.isJavaIdentifierStart(name.charAt(2)) &&

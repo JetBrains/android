@@ -16,7 +16,11 @@
 
 package com.android.tools.idea.stats;
 
+import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.updateSettings.impl.UpdateChecker;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,6 +50,10 @@ public class LegacySdkStatsService {
   private static final long PING_INTERVAL_MSEC = 86400 * 1000;  // 1 day
 
   private static final boolean DEBUG = System.getenv("ANDROID_DEBUG_PING") != null; //$NON-NLS-1$
+
+  private static final boolean UNIT_TEST_MODE = ApplicationManager.getApplication() == null;
+  private static final String INSTALLATION_ID =
+    UNIT_TEST_MODE ? "unit-test" : UpdateChecker.getInstallationUID(PropertiesComponent.getInstance());
 
   private DdmsPreferenceStore mStore = new DdmsPreferenceStore();
 
@@ -106,14 +114,8 @@ public class LegacySdkStatsService {
     // Record the time of the attempt, whether or not it succeeds.
     mStore.setPingTime(app, now);
 
-    // Send the ping itself in the background (don't block if the
-    // network is down or slow or confused).
-    long id = mStore.getPingId();
-    if (id == 0) {
-      id = mStore.generateNewPingId();
-    }
     try {
-      URL url = createPingUrl(nApp, nVersion, id, extras);
+      URL url = createPingUrl(nApp, nVersion, INSTALLATION_ID, extras);
       actuallySendPing(url);
     } catch (Exception e) {
       LOG.warn("AndroidSdk.SendPing failed", e);
@@ -165,7 +167,7 @@ public class LegacySdkStatsService {
    */
   protected URL createPingUrl(@NotNull String app,
                               @NotNull String version,
-                              long id,
+                              @NotNull String id,
                               @Nullable Map<String, String> extras)
           throws UnsupportedEncodingException, MalformedURLException {
 
@@ -189,7 +191,7 @@ public class LegacySdkStatsService {
     URL url = new URL("http",                                                 //$NON-NLS-1$
                       "tools.google.com",                                     //$NON-NLS-1$
                       "/service/update?as=androidsdk_" + app +                //$NON-NLS-1$
-                      "&id=" + Long.toHexString(id) +                     //$NON-NLS-1$
+                      "&id=" + id +                                           //$NON-NLS-1$
                       "&version=" + version +                             //$NON-NLS-1$
                       "&os=" + osName +                                   //$NON-NLS-1$
                       "&osa=" + osArch +                                  //$NON-NLS-1$

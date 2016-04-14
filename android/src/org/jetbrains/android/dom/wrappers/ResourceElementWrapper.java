@@ -19,13 +19,6 @@ package org.jetbrains.android.dom.wrappers;
 import com.intellij.psi.PsiElement;
 import com.intellij.navigation.NavigationItem;
 
-/**
- * Created by IntelliJ IDEA.
- * User: Eugene.Kudelevsky
- * Date: Aug 7, 2009
- * Time: 11:01:10 PM
- * To change this template use File | Settings | File Templates.
- */
 public interface ResourceElementWrapper extends PsiElement, NavigationItem {
   PsiElement getWrappee();
 }

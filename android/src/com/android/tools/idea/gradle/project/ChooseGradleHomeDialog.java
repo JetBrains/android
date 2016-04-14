@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.gradle.project;
 
-import com.android.sdklib.repository.FullRevision;
-import com.android.sdklib.repository.PreciseRevision;
+import com.android.ide.common.repository.GradleVersion;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.externalSystem.model.settings.LocationSettingType;
@@ -140,10 +139,10 @@ public class ChooseGradleHomeDialog extends DialogWrapper {
     if (isNotEmpty(myMinimumGradleVersion)) {
       // When we reach this point we know the path entered is a valid Gradle home path. Now we need to verify the version of Gradle at that
       // location is equal or greater than the one in myMinimumGradleVersion.
-      FullRevision minimum = PreciseRevision.parseRevision(myMinimumGradleVersion);
+      GradleVersion minimum = GradleVersion.parse(myMinimumGradleVersion);
 
       File enteredGradleHomePath = getGradleHomePath(getEnteredGradleHomePath());
-      FullRevision gradleVersion = getGradleVersion(enteredGradleHomePath);
+      GradleVersion gradleVersion = getGradleVersion(enteredGradleHomePath);
 
       if (gradleVersion == null) {
         return newPathIsInvalidInfo("Unable to detect Gradle version");

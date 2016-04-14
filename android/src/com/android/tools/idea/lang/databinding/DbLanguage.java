@@ -17,9 +17,6 @@ package com.android.tools.idea.lang.databinding;
 
 import com.intellij.lang.Language;
 
-/**
- * Created by deepanshu on 4/28/15.
- */
 public class DbLanguage extends Language {
 
   public static final DbLanguage INSTANCE = new DbLanguage();

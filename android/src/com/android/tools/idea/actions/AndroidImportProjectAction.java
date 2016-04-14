@@ -19,6 +19,7 @@ import com.android.SdkConstants;
 import com.android.tools.idea.gradle.eclipse.AdtImportProvider;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.google.common.collect.Lists;
+import com.intellij.icons.AllIcons;
 import com.intellij.ide.actions.OpenProjectFileChooserDescriptor;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.ide.util.newProjectWizard.AddModuleWizard;
@@ -38,6 +39,7 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.wm.impl.welcomeScreen.NewWelcomeScreen;
 import com.intellij.projectImport.ProjectImportProvider;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -50,7 +52,7 @@ import java.util.List;
 
 import static com.android.tools.idea.gradle.eclipse.GradleImport.isEclipseProjectDir;
 import static com.android.tools.idea.gradle.project.AdtModuleImporter.isAdtProjectLocation;
-import static com.android.tools.idea.gradle.project.GradleModuleImporter.isGradleProject;
+import static com.android.tools.idea.gradle.util.Projects.canImportAsGradleProject;
 import static com.android.tools.idea.gradle.project.ProjectImportUtil.findImportTarget;
 import static com.intellij.ide.impl.NewProjectUtil.createFromWizard;
 import static com.intellij.openapi.project.Project.DIRECTORY_STORE_FOLDER;
@@ -83,6 +85,13 @@ public class AndroidImportProjectAction extends AnAction {
 
   public AndroidImportProjectAction(@NotNull String text) {
     super(text);
+  }
+
+  @Override
+  public void update(@NotNull AnActionEvent e) {
+    if (NewWelcomeScreen.isNewWelcomeScreen(e)) {
+      e.getPresentation().setIcon(AllIcons.Welcome.ImportProject);
+    }
   }
 
   @Override
@@ -173,7 +182,7 @@ public class AndroidImportProjectAction extends AnAction {
                                      "(which for example will contain\nan AndroidManifest.xml file) and try again.", file.getPath());
       Messages.showErrorDialog(message, "Import Project");
     }
-    else if (isGradleProject(target)) {
+    else if (canImportAsGradleProject(target)) {
       GradleProjectImporter gradleImporter = GradleProjectImporter.getInstance();
       gradleImporter.importProject(file);
     }

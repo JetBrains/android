@@ -28,6 +28,7 @@ import javax.swing.*;
 public class DbFileType extends LanguageFileType {
 
   public static final DbFileType INSTANCE = new DbFileType();
+  public static final String EXT = "android_data_binding";
 
   /**
    * Creates a language file type for the specified language.
@@ -51,7 +52,7 @@ public class DbFileType extends LanguageFileType {
   @NotNull
   @Override
   public String getDefaultExtension() {
-    return "android_data_binding";
+    return EXT;
   }
 
   @Nullable

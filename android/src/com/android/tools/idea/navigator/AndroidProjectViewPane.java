@@ -17,9 +17,11 @@ package com.android.tools.idea.navigator;
 
 import com.android.tools.idea.navigator.nodes.AndroidViewProjectNode;
 import com.android.tools.idea.navigator.nodes.DirectoryGroupNode;
+import com.android.tools.idea.navigator.nodes.FileGroupNode;
 import com.google.common.collect.Lists;
 import com.intellij.ide.SelectInTarget;
 import com.intellij.ide.impl.ProjectPaneSelectInTarget;
+import com.intellij.ide.impl.ProjectViewSelectInTarget;
 import com.intellij.ide.projectView.BaseProjectTreeBuilder;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.AbstractProjectViewPSIPane;
@@ -40,6 +42,7 @@ import com.intellij.openapi.roots.GeneratedSourcesFilter;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
 import com.intellij.psi.search.GlobalSearchScope;
 import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -94,7 +97,22 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
 
   @Override
   public SelectInTarget createSelectInTarget() {
-    return new ProjectPaneSelectInTarget(myProject);
+    return new ProjectViewSelectInTarget(myProject) {
+      @Override
+      public String toString() {
+        return getTitle();
+      }
+
+      @Override
+      public String getMinorViewId() {
+        return getId();
+      }
+
+      @Override
+      public float getWeight() {
+        return AndroidProjectViewPane.this.getWeight();
+      }
+    };
   }
 
   @Override
@@ -206,6 +224,19 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
 
     if (CommonDataKeys.VIRTUAL_FILE_ARRAY.is(dataId)) {
       NodeDescriptor selectedDescriptor = getSelectedDescriptor();
+      if (selectedDescriptor instanceof FileGroupNode) {
+        PsiFile[] files = ((FileGroupNode)selectedDescriptor).getFiles();
+        if (files.length > 0) {
+          List<VirtualFile> virtualFiles = Lists.newArrayListWithExpectedSize(files.length);
+          for (PsiFile file : files) {
+            if (file.isValid()) {
+              virtualFiles.add(file.getVirtualFile());
+            }
+          }
+          return virtualFiles.toArray(new VirtualFile[virtualFiles.size()]);
+        }
+      }
+
       if (selectedDescriptor instanceof DirectoryGroupNode) {
         PsiDirectory[] directories = ((DirectoryGroupNode)selectedDescriptor).getDirectories();
         if (directories.length > 0) {
@@ -232,6 +263,13 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
       }
 
       NodeDescriptor selectedDescriptor = getSelectedDescriptor();
+      if (selectedDescriptor instanceof FileGroupNode) {
+        PsiFile[] files = ((FileGroupNode)selectedDescriptor).getFiles();
+        if (files.length > 0) {
+          return files[0];
+        }
+      }
+
       if (selectedDescriptor instanceof DirectoryGroupNode) {
         PsiDirectory[] directories = ((DirectoryGroupNode)selectedDescriptor).getDirectories();
         if (directories.length > 0) {

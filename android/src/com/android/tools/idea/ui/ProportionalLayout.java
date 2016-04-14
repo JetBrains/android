@@ -32,12 +32,15 @@ import java.util.Map;
  * about weights, {@link ProportionalLayout} works by setting column definitions up front. A column
  * can be fixed, fit-to-size, or proportional. When a layout is requested, fixed and fit-to-size
  * columns are calculated first, and all remaining space is split by the proportional columns.
- * Rows, in contrast, are always fit-to-size.
+ * Rows, in contrast, are always fit to their height (although a vertical gap can be specified).
+ * Invisible components are skipped over when performing the layout.
  * <p/>
- * When you register components with a panel using this layout, you need to associate it with a
- * constraint telling it which row and column it should fit within. You should only associate one
- * element per cell, and (unless that cell is sized to fit) the element will be stretched to fully
- * contain the cell.
+ * When you register components with a panel using this layout, you must associate it with a
+ * {@link ProportionalLayout.Constraint} telling it which row and column it should fit within.
+ * You should usually associate one element per cell, and (unless that cell is sized to fit) the
+ * element will be stretched to fully contain the cell. You can additionally specify an element
+ * that spans across multiple columns, but be aware that such elements are skipped when calculating
+ * the layout.
  * <p/>
  * Columns are pre-allocated, so it is an error to specify a cell whose column index is out of
  * bounds. However, rows are unbounded - you can add a component at row 0 and then another at row
@@ -45,6 +48,8 @@ import java.util.Map;
  * layout (meaning sparse layouts are collapsed).
  */
 public final class ProportionalLayout implements LayoutManager2 {
+
+  public static final int DEFAULT_GAP = 10;
 
   /**
    * A definition for a single column, indicating how its width will be calculated during a layout.
@@ -107,10 +112,26 @@ public final class ProportionalLayout implements LayoutManager2 {
   public static final class Constraint {
     private final int myRow;
     private final int myCol;
+    private final int myColSpan;
 
+    /**
+     * Create a constraint to fit this component into a grid cell.
+     */
     public Constraint(int row, int col) {
+      this(row, col, 1);
+    }
+
+    /**
+     * Create a constraint which can live across multiple cells. Note that components which span
+     * across multiple cells aren't included in fit-to-width layout calculations.
+     */
+    public Constraint(int row, int col, int colSpan) {
+      if (colSpan < 1) {
+        throw new IllegalArgumentException("ProportionalLayout column span must be greater than 0");
+      }
       myRow = row;
       myCol = col;
+      myColSpan = colSpan;
     }
 
     public int getRow() {
@@ -120,6 +141,17 @@ public final class ProportionalLayout implements LayoutManager2 {
     public int getCol() {
       return myCol;
     }
+
+    public int getColSpan() {
+      return myColSpan;
+    }
+  }
+
+  /**
+   * @see #fromString(String, int)
+   */
+  public static ProportionalLayout fromString(@NotNull String columnDefinitions) throws IllegalArgumentException {
+    return fromString(columnDefinitions, DEFAULT_GAP);
   }
 
   /**
@@ -136,7 +168,7 @@ public final class ProportionalLayout implements LayoutManager2 {
    * "75*,25*"      - Same as above
    * "50px,*,100px" - First column gets 50 pixels, last column gets 100, middle gets remaining
    */
-  public static ProportionalLayout fromString(@NotNull String columnDefinitions) throws IllegalArgumentException {
+  public static ProportionalLayout fromString(@NotNull String columnDefinitions, int vGap) throws IllegalArgumentException {
     List<String> splits = Lists.newArrayList(Splitter.on(',').split(columnDefinitions));
     int numColumns = splits.size();
 
@@ -167,29 +199,31 @@ public final class ProportionalLayout implements LayoutManager2 {
       throw new IllegalArgumentException(String.format("Bad column definition: \"%s\"", columnDefinitions));
     }
 
-    return new ProportionalLayout(definitions);
+    return new ProportionalLayout(vGap, definitions);
   }
 
   private final ColumnDefinition[] myDefinitions;
   private final float[] myPercentages;
+  private final int myVGap; // Vertical gap between rows
 
   private final Map<Component, Constraint> myConstraints = Maps.newHashMap();
 
-  public ProportionalLayout(ColumnDefinition... definitions) {
+  public ProportionalLayout(int vGap, ColumnDefinition... definitions) {
+    myVGap = vGap;
     myDefinitions = definitions;
     myPercentages = new float[myDefinitions.length];
 
-    float total = 0;
-    for (ColumnDefinition constraint : myDefinitions) {
-      if (constraint.getType() == Type.Proportional) {
-        total += constraint.getValue();
+    float totalProportionalWidth = 0;
+    for (ColumnDefinition column : myDefinitions) {
+      if (column.getType() == Type.Proportional) {
+        totalProportionalWidth += column.getValue();
       }
     }
-    if (total > 0) {
+    if (totalProportionalWidth > 0) {
       for (int i = 0; i < myDefinitions.length; i++) {
-        ColumnDefinition constraint = definitions[i];
-        if (constraint.getType() == Type.Proportional) {
-          myPercentages[i] = constraint.getValue() / total;
+        ColumnDefinition column = definitions[i];
+        if (column.getType() == Type.Proportional) {
+          myPercentages[i] = column.getValue() / totalProportionalWidth;
         }
       }
     }
@@ -201,6 +235,16 @@ public final class ProportionalLayout implements LayoutManager2 {
 
   @Override
   public void addLayoutComponent(Component comp, Object constraint) {
+    if (constraint == null || !(constraint instanceof Constraint)) {
+      throw new IllegalArgumentException("Children of ProportionalLayouts must be added with a property constraint");
+    }
+
+    Constraint typedConstraint = (Constraint)constraint;
+    if (typedConstraint.myCol + typedConstraint.myColSpan > myDefinitions.length) {
+      throw new IllegalArgumentException(String.format("Component added with invalid column span. col: %1$d, span: %2$d, num cols: %3$d",
+                                                       typedConstraint.myCol, typedConstraint.myColSpan, myDefinitions.length));
+    }
+
     myConstraints.put(comp, (Constraint)constraint);
   }
 
@@ -240,9 +284,9 @@ public final class ProportionalLayout implements LayoutManager2 {
     int[] heights;
 
     for (int i = 0; i < myDefinitions.length; i++) {
-      ColumnDefinition defn = myDefinitions[i];
-      if (defn.getType() == Type.Fixed) {
-        widths[i] = defn.getValue();
+      ColumnDefinition column = myDefinitions[i];
+      if (column.getType() == Type.Fixed) {
+        widths[i] = column.getValue();
       }
     }
 
@@ -263,17 +307,20 @@ public final class ProportionalLayout implements LayoutManager2 {
 
       for (int i = 0; i < componentCount; i++) {
         Component comp = parent.getComponent(i);
+        if (!comp.isVisible()) continue;
+
         Dimension d = comp.getPreferredSize();
 
         int row = myConstraints.get(comp).getRow();
         heights[row] = Math.max(heights[row], d.height);
 
         int col = myConstraints.get(comp).getCol();
-        ColumnDefinition defn = myDefinitions[col];
-        if (defn.getType() == Type.Fit) {
+        int colspan = myConstraints.get(comp).getColSpan();
+        ColumnDefinition column = myDefinitions[col];
+        if (column.getType() == Type.Fit && colspan == 1) {
           widths[col] = Math.max(widths[col], d.width);
         }
-        else if (defn.getType() == Type.Proportional) {
+        else if (column.getType() == Type.Proportional) {
           // Calculate how much total leftover space would be needed to fit this cell
           // after it takes its percentage cut
           int desiredSpace = Math.round(d.width / myPercentages[col]);
@@ -283,6 +330,7 @@ public final class ProportionalLayout implements LayoutManager2 {
 
       int h = 0;
       for (int height : heights) {
+        if (h > 0 && height > 0) h += myVGap;
         h += height;
       }
       int w = maxDesiredSpace;
@@ -298,9 +346,9 @@ public final class ProportionalLayout implements LayoutManager2 {
     int[] widths = new int[myDefinitions.length];
     int[] heights;
     for (int i = 0; i < myDefinitions.length; i++) {
-      ColumnDefinition defn = myDefinitions[i];
-      if (defn.getType() == Type.Fixed) {
-        widths[i] = defn.getValue();
+      ColumnDefinition column = myDefinitions[i];
+      if (column.getType() == Type.Fixed) {
+        widths[i] = column.getValue();
       }
     }
 
@@ -318,20 +366,23 @@ public final class ProportionalLayout implements LayoutManager2 {
 
       for (int i = 0; i < componentCount; i++) {
         Component comp = parent.getComponent(i);
+        if (!comp.isVisible()) continue;
         Dimension d = comp.getMinimumSize();
 
         int row = myConstraints.get(comp).getRow();
         heights[row] = Math.max(heights[row], d.height);
 
         int col = myConstraints.get(comp).getCol();
-        ColumnDefinition defn = myDefinitions[col];
-        if (defn.getType() == Type.Fit) {
+        int colspan = myConstraints.get(comp).getColSpan();
+        ColumnDefinition column = myDefinitions[col];
+        if (column.getType() == Type.Fit && colspan == 1) {
           widths[col] = Math.max(widths[col], d.width);
         }
       }
 
       int h = 0;
       for (int height : heights) {
+        if (h > 0 && height > 0) h += myVGap;
         h += height;
       }
       int w = 0;
@@ -352,9 +403,9 @@ public final class ProportionalLayout implements LayoutManager2 {
     int[] rowHs;
 
     for (int i = 0; i < myDefinitions.length; i++) {
-      ColumnDefinition defn = myDefinitions[i];
-      if (defn.getType() == Type.Fixed) {
-        colWs[i] = defn.getValue();
+      ColumnDefinition column = myDefinitions[i];
+      if (column.getType() == Type.Fixed) {
+        colWs[i] = column.getValue();
       }
     }
 
@@ -373,14 +424,16 @@ public final class ProportionalLayout implements LayoutManager2 {
 
       for (int i = 0; i < componentCount; i++) {
         Component comp = parent.getComponent(i);
+        if (!comp.isVisible()) continue;
         Dimension d = comp.getMinimumSize();
 
         int row = myConstraints.get(comp).getRow();
         rowHs[row] = Math.max(rowHs[row], d.height);
 
         int col = myConstraints.get(comp).getCol();
-        ColumnDefinition defn = myDefinitions[col];
-        if (defn.getType() == Type.Fit) {
+        int colspan = myConstraints.get(comp).getColSpan();
+        ColumnDefinition column = myDefinitions[col];
+        if (column.getType() == Type.Fit && colspan == 1) {
           colWs[col] = Math.max(colWs[col], d.width);
         }
       }
@@ -401,6 +454,9 @@ public final class ProportionalLayout implements LayoutManager2 {
       rowYs[0] = insets.top;
       for (int i = 1; i < rowYs.length; i++) {
         rowYs[i] = rowYs[i - 1] + rowHs[i - 1];
+        if (rowHs[i] > 0 && rowYs[i] > insets.top) {
+          rowYs[i] += myVGap;
+        }
       }
 
       colXs[0] = insets.left;
@@ -410,9 +466,16 @@ public final class ProportionalLayout implements LayoutManager2 {
 
       for (int i = 0; i < componentCount; i++) {
         Component comp = parent.getComponent(i);
+        if (!comp.isVisible()) continue;
         int col = myConstraints.get(comp).getCol();
+        int colspan = myConstraints.get(comp).getColSpan();
         int row = myConstraints.get(comp).getRow();
-        comp.setBounds(colXs[col], rowYs[row], colWs[col], rowHs[row]);
+
+        int totalWidth = 0;
+        for (int currCol = col; currCol < col + colspan; currCol++) {
+          totalWidth += colWs[currCol];
+        }
+        comp.setBounds(colXs[col], rowYs[row], totalWidth, rowHs[row]);
       }
     }
   }

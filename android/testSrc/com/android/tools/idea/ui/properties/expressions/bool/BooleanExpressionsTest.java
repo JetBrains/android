@@ -17,18 +17,21 @@ package com.android.tools.idea.ui.properties.expressions.bool;
 
 import com.android.tools.idea.ui.properties.BindingsManager;
 import com.android.tools.idea.ui.properties.core.BoolValueProperty;
+import com.android.tools.idea.ui.properties.core.ObjectProperty;
+import com.android.tools.idea.ui.properties.core.ObjectValueProperty;
 import com.android.tools.idea.ui.properties.core.StringValueProperty;
 import org.fest.assertions.Assertions;
 import org.junit.Test;
 
+import static com.android.tools.idea.ui.properties.BatchInvoker.INVOKE_IMMEDIATELY_STRATEGY;
 import static org.fest.assertions.Assertions.assertThat;
 
 public final class BooleanExpressionsTest {
 
   @Test
   public void testInvariants() throws Exception {
-    Assertions.assertThat(BooleanExpressions.TRUE.get()).isTrue();
-    Assertions.assertThat(BooleanExpressions.FALSE.get()).isFalse();
+    assertThat(BooleanExpressions.alwaysTrue().get()).isTrue();
+    assertThat(BooleanExpressions.alwaysFalse().get()).isFalse();
   }
 
   @Test
@@ -36,7 +39,7 @@ public final class BooleanExpressionsTest {
 
     BoolValueProperty srcValue = new BoolValueProperty(true);
     BoolValueProperty destValue = new BoolValueProperty();
-    BindingsManager bindings = new BindingsManager(BindingsManager.INVOKE_IMMEDIATELY_STRATEGY);
+    BindingsManager bindings = new BindingsManager(INVOKE_IMMEDIATELY_STRATEGY);
     bindings.bind(destValue, BooleanExpressions.not(srcValue));
 
     assertThat(srcValue.get()).isTrue();
@@ -52,7 +55,7 @@ public final class BooleanExpressionsTest {
     BoolValueProperty srcValue1 = new BoolValueProperty();
     BoolValueProperty srcValue2 = new BoolValueProperty();
     BoolValueProperty destValue = new BoolValueProperty();
-    BindingsManager bindings = new BindingsManager(BindingsManager.INVOKE_IMMEDIATELY_STRATEGY);
+    BindingsManager bindings = new BindingsManager(INVOKE_IMMEDIATELY_STRATEGY);
 
     bindings.bind(destValue, srcValue1.and(srcValue2));
 
@@ -84,7 +87,7 @@ public final class BooleanExpressionsTest {
     BoolValueProperty srcValue1 = new BoolValueProperty();
     BoolValueProperty srcValue2 = new BoolValueProperty();
     BoolValueProperty destValue = new BoolValueProperty();
-    BindingsManager bindings = new BindingsManager(BindingsManager.INVOKE_IMMEDIATELY_STRATEGY);
+    BindingsManager bindings = new BindingsManager(INVOKE_IMMEDIATELY_STRATEGY);
 
     bindings.bind(destValue, srcValue1.or(srcValue2));
 
@@ -112,12 +115,30 @@ public final class BooleanExpressionsTest {
   }
 
   @Test
+  public void testIsEqualToExpression() throws Exception {
+
+    StringValueProperty srcValue = new StringValueProperty("Initial Value");
+    BoolValueProperty destValue = new BoolValueProperty();
+    BindingsManager bindings = new BindingsManager(INVOKE_IMMEDIATELY_STRATEGY);
+
+    bindings.bind(destValue, srcValue.isEqualTo("Modified Value"));
+
+    assertThat(destValue.get()).isFalse();
+
+    srcValue.set("Modified Value");
+    assertThat(destValue.get()).isTrue();
+
+    srcValue.set("Final Value");
+    assertThat(destValue.get()).isFalse();
+  }
+
+  @Test
   public void testAnyExpression() throws Exception {
     BoolValueProperty srcValue1 = new BoolValueProperty();
     BoolValueProperty srcValue2 = new BoolValueProperty();
     BoolValueProperty srcValue3 = new BoolValueProperty();
     BoolValueProperty destValue = new BoolValueProperty();
-    BindingsManager bindings = new BindingsManager(BindingsManager.INVOKE_IMMEDIATELY_STRATEGY);
+    BindingsManager bindings = new BindingsManager(INVOKE_IMMEDIATELY_STRATEGY);
 
     bindings.bind(destValue, BooleanExpressions.any(srcValue1, srcValue2, srcValue3));
 
@@ -171,7 +192,7 @@ public final class BooleanExpressionsTest {
   public void testIsEmptyStringExpression() throws Exception {
     StringValueProperty srcValue = new StringValueProperty();
     BoolValueProperty destValue = new BoolValueProperty();
-    BindingsManager bindings = new BindingsManager(BindingsManager.INVOKE_IMMEDIATELY_STRATEGY);
+    BindingsManager bindings = new BindingsManager(INVOKE_IMMEDIATELY_STRATEGY);
 
     bindings.bind(destValue, srcValue.isEmpty());
     assertThat(destValue.get()).isTrue();

@@ -15,19 +15,19 @@
  */
 package com.android.tools.idea.npw;
 
-import com.android.tools.idea.npw.ConfigureAndroidProjectStep;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
-import junit.framework.TestCase;
+import org.junit.Test;
 
 import static com.android.tools.idea.wizard.WizardConstants.APPLICATION_NAME_KEY;
 import static com.android.tools.idea.wizard.WizardConstants.COMPANY_DOMAIN_KEY;
+import static org.junit.Assert.assertEquals;
 
-public class ConfigureAndroidProjectStepTest extends TestCase {
-
-  public void testPackageNameDeriverSantizesCompanyDomainKey() throws Exception {
+public final class ConfigureAndroidProjectStepTest {
+  @Test
+  public void packageNameDeriverSantizesCompanyDomainKey() {
     ScopedStateStore state = new ScopedStateStore(ScopedStateStore.Scope.WIZARD, null, null);
     ScopedStateStore stepState = new ScopedStateStore(ScopedStateStore.Scope.STEP, state, null);
-    stepState.put(APPLICATION_NAME_KEY,"My&App");
+    stepState.put(APPLICATION_NAME_KEY, "My&App");
     stepState.put(COMPANY_DOMAIN_KEY, "sub.exa-mple.com");
 
     assertEquals("com.exa_mple.sub.myapp", ConfigureAndroidProjectStep.PACKAGE_NAME_DERIVER.deriveValue(stepState, null, null));
@@ -39,7 +39,10 @@ public class ConfigureAndroidProjectStepTest extends TestCase {
     assertEquals("com.allcaps.test.myapp", ConfigureAndroidProjectStep.PACKAGE_NAME_DERIVER.deriveValue(stepState, null, null));
   }
 
-  public void testNameToPackageReturnsSanitizedPackageName() {
+  @Test
+  public void nameToPackageReturnsSanitizedPackageName() {
+    assertEquals("", ConfigureAndroidProjectStep.nameToPackage("#"));
+    assertEquals("aswitch", ConfigureAndroidProjectStep.nameToPackage("switch"));
     assertEquals("myapplication", ConfigureAndroidProjectStep.nameToPackage("#My $AppLICATION"));
     assertEquals("myapplication", ConfigureAndroidProjectStep.nameToPackage("My..\u2603..APPLICATION"));
   }

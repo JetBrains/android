@@ -18,12 +18,6 @@ package com.android.tools.idea.npw;
 
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.wizard.WizardConstants;
-import com.intellij.ide.RecentProjectsManager;
-import com.intellij.openapi.application.ApplicationNamesInfo;
-import com.intellij.util.SystemProperties;
-import org.jetbrains.annotations.NotNull;
-
-import java.io.File;
 
 import static com.android.tools.idea.templates.Template.CATEGORY_PROJECTS;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
@@ -46,7 +40,7 @@ public class NewProjectWizardState extends NewModuleWizardState {
 
     put(ATTR_IS_LIBRARY_MODULE, false);
     put(ATTR_IS_LAUNCHER, true);
-    put(ATTR_PROJECT_LOCATION, getProjectFileDirectory());
+    put(ATTR_PROJECT_LOCATION, WizardUtils.getProjectLocationParent().getPath());
     put(ATTR_APP_TITLE, APPLICATION_NAME);
     final int DEFAULT_MIN = 9;
     put(ATTR_MIN_API_LEVEL, DEFAULT_MIN);
@@ -56,19 +50,5 @@ public class NewProjectWizardState extends NewModuleWizardState {
     setParameterDefaults();
 
     updateParameters();
-  }
-
-  /**
-   * Returns the default directory where new projects should go.
-   */
-  @NotNull
-  public static String getProjectFileDirectory() {
-    final String lastProjectLocation = RecentProjectsManager.getInstance().getLastProjectCreationLocation();
-    if (lastProjectLocation != null) {
-      return lastProjectLocation.replace('/', File.separatorChar);
-    }
-    final String userHome = SystemProperties.getUserHome();
-    String productName = ApplicationNamesInfo.getInstance().getFullProductName();
-    return userHome.replace('/', File.separatorChar) + File.separator + productName.replace(" ", "") + "Projects";
   }
 }

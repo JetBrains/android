@@ -9,7 +9,7 @@ import android.net.Uri;
 import android.os.IBinder;
 
 public class MyDerived extends MyActivity {
-  private static class MyInner extends Service {
+  public static class MyInner extends Service {
     @Override
     public IBinder onBind(Intent intent) {
       return null;
@@ -17,7 +17,7 @@ public class MyDerived extends MyActivity {
   }
   private abstract static class MyInner2 extends ContentProvider {
   }
-  private static class MyInner3 extends ContentProvider {
+  public static class MyInner3 extends ContentProvider {
     @Override
     public boolean onCreate() {
       return false;
@@ -46,6 +46,20 @@ public class MyDerived extends MyActivity {
     @Override
     public int update(Uri uri, ContentValues contentValues, String s, String[] strings) {
       return 0;
+    }
+  }
+  /** This service shouldn't be reported as it's abstract */
+  public abstract static class MyInnerAbstractService extends Service {
+    @Override
+    public IBinder onBind(Intent intent) {
+      return null;
+    }
+  }
+  /** This service shouldn't be reported as it's private */
+  private static class MyInnerPrivateService extends Service {
+    @Override
+    public IBinder onBind(Intent intent) {
+      return null;
     }
   }
 }

@@ -15,16 +15,17 @@
  */
 package com.android.tools.idea.run.editor;
 
-import com.android.tools.idea.run.AndroidApplicationLauncher;
 import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.run.ValidationError;
 import com.android.tools.idea.run.activity.ActivityLocator;
-import com.android.tools.idea.run.activity.AndroidActivityLauncher;
 import com.android.tools.idea.run.activity.SpecificActivityLocator;
+import com.android.tools.idea.run.tasks.LaunchTask;
+import com.android.tools.idea.run.tasks.SpecificActivityLaunchTask;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -34,9 +35,13 @@ public class SpecificActivityLaunch extends LaunchOption<SpecificActivityLaunch.
   public static final class State extends LaunchOptionState {
     public String ACTIVITY_CLASS = "";
 
+    @Nullable
     @Override
-    public AndroidApplicationLauncher getLauncher(@NotNull AndroidFacet facet, @NotNull String extraAmOptions) {
-      return new AndroidActivityLauncher(getActivityLocator(facet), extraAmOptions);
+    public LaunchTask getLaunchTask(@NotNull String applicationId,
+                                    @NotNull AndroidFacet facet,
+                                    boolean waitForDebugger,
+                                    @NotNull String extraAmOptions) {
+      return new SpecificActivityLaunchTask(applicationId, ACTIVITY_CLASS, waitForDebugger, extraAmOptions);
     }
 
     @NotNull

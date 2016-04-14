@@ -20,7 +20,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * {@link InvalidationListener} that counts how many times it was triggered - useful for testing.
  */
-public final class CountListener extends InvalidationListener {
+public final class CountListener implements InvalidationListener {
   private int count;
 
   public int getCount() {
@@ -28,7 +28,7 @@ public final class CountListener extends InvalidationListener {
   }
 
   @Override
-  protected void onInvalidated(@NotNull Observable sender) {
+  public void onInvalidated(@NotNull ObservableValue<?> sender) {
     count++;
   }
 }

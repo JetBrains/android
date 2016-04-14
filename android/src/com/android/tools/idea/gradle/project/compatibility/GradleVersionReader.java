@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.compatibility;
 
-import com.android.sdklib.repository.FullRevision;
+import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.intellij.openapi.module.Module;
@@ -39,7 +39,7 @@ class GradleVersionReader implements ComponentVersionReader {
   @Override
   @Nullable
   public String getComponentVersion(@NotNull Module module) {
-    FullRevision gradleVersion = getGradleVersion(module.getProject());
+    GradleVersion gradleVersion = getGradleVersion(module.getProject());
     return gradleVersion != null ? gradleVersion.toString() : null;
   }
 

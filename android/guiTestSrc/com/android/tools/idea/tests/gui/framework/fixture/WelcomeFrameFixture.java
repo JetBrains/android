@@ -15,49 +15,43 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
-import com.intellij.openapi.wm.impl.welcomeScreen.WelcomeFrame;
+import com.intellij.openapi.wm.impl.welcomeScreen.FlatWelcomeFrame;
 import org.fest.swing.core.Robot;
 import org.fest.swing.exception.ComponentLookupException;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 
-public class WelcomeFrameFixture extends ComponentFixture<WelcomeFrameFixture, WelcomeFrame> {
+public class WelcomeFrameFixture extends ComponentFixture<WelcomeFrameFixture, FlatWelcomeFrame> {
   @NotNull
   public static WelcomeFrameFixture find(@NotNull Robot robot) {
     for (Frame frame : Frame.getFrames()) {
-      if (frame instanceof WelcomeFrame && frame.isShowing()) {
-        return new WelcomeFrameFixture(robot, (WelcomeFrame)frame);
+      if (frame instanceof FlatWelcomeFrame && frame.isShowing()) {
+        return new WelcomeFrameFixture(robot, (FlatWelcomeFrame)frame);
       }
     }
     throw new ComponentLookupException("Unable to find 'Welcome' window");
   }
 
-  private WelcomeFrameFixture(@NotNull Robot robot, @NotNull WelcomeFrame target) {
+  private WelcomeFrameFixture(@NotNull Robot robot, @NotNull FlatWelcomeFrame target) {
     super(WelcomeFrameFixture.class, robot, target);
   }
 
   @NotNull
-  public WelcomeFrameFixture clickNewProjectButton() {
-    findActionButtonByActionId("WelcomeScreen.CreateNewProject").click();
+  public WelcomeFrameFixture createNewProject() {
+    findActionLinkByActionId("WelcomeScreen.CreateNewProject").click();
     return this;
   }
 
   @NotNull
-  public WelcomeFrameFixture clickImportProjectButton() {
-    findActionButtonByActionId("WelcomeScreen.ImportProject").click();
+  public WelcomeFrameFixture importProject() {
+    findActionLinkByActionId("WelcomeScreen.ImportProject").click();
     return this;
   }
 
   @NotNull
-  public WelcomeFrameFixture clickOpenProjectButton() {
-    findActionButtonByActionId("WelcomeScreen.OpenProject").click();
-    return this;
-  }
-
-  @NotNull
-  private ActionButtonFixture findActionButtonByActionId(String actionId) {
-    return ActionButtonFixture.findByActionId(actionId, robot(), target());
+  private ActionLinkFixture findActionLinkByActionId(String actionId) {
+    return ActionLinkFixture.findByActionId(actionId, robot(), target());
   }
 
   @NotNull

@@ -16,12 +16,11 @@
 package com.android.tools.idea.gradle.project;
 
 import com.android.builder.model.AndroidProject;
+import com.android.builder.model.NativeAndroidProject;
 import com.android.builder.model.Variant;
-import com.android.sdklib.repository.FullRevision;
-import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.GradleModel;
-import com.android.tools.idea.gradle.ImportedModule;
-import com.android.tools.idea.gradle.JavaProject;
+import com.android.ide.common.repository.GradleVersion;
+import com.android.repository.Revision;
+import com.android.tools.idea.gradle.*;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
@@ -39,7 +38,6 @@ import com.intellij.openapi.externalSystem.util.ExternalSystemConstants;
 import com.intellij.openapi.externalSystem.util.Order;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
-import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.KeyValue;
 import com.intellij.util.containers.ContainerUtil;
 import org.gradle.tooling.model.GradleProject;
@@ -51,7 +49,6 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.model.BuildScriptClasspathModel;
 import org.jetbrains.plugins.gradle.model.ModuleExtendedModel;
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectResolverExtension;
-import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil;
 
 import java.io.File;
 import java.io.IOException;
@@ -64,12 +61,12 @@ import static com.android.tools.idea.gradle.AndroidProjectKeys.*;
 import static com.android.tools.idea.gradle.project.GradleModelVersionCheck.getModelVersion;
 import static com.android.tools.idea.gradle.project.GradleModelVersionCheck.isSupportedVersion;
 import static com.android.tools.idea.gradle.project.ProjectImportErrorHandler.trackSyncError;
-import static com.android.tools.idea.gradle.project.SdkSync.syncIdeAndProjectAndroidSdks;
 import static com.android.tools.idea.gradle.service.notification.errors.UnsupportedModelVersionErrorHandler.READ_MIGRATION_GUIDE_MSG;
 import static com.android.tools.idea.gradle.service.notification.errors.UnsupportedModelVersionErrorHandler.UNSUPPORTED_MODEL_VERSION_ERROR_PREFIX;
 import static com.android.tools.idea.gradle.service.notification.hyperlink.SyncProjectWithExtraCommandLineOptionsHyperlink.EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY;
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.ANDROID_HOME_JVM_ARG;
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty;
+import static com.android.tools.idea.gradle.util.GradleBuilds.BUILD_SRC_FOLDER_NAME;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.GradleUtil.addLocalMavenRepoInitScriptCommandLineOption;
 import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
@@ -91,8 +88,7 @@ import static org.jetbrains.android.AndroidPlugin.isGuiTestingMode;
 @Order(ExternalSystemConstants.UNORDERED)
 public class AndroidGradleProjectResolver extends AbstractProjectResolverExtension {
   /** Default test artifact selected when importing a project. */
-  private static final String DEFAULT_TEST_ARTIFACT = AndroidProject.ARTIFACT_ANDROID_TEST;
-  private static final Key<Boolean> IS_ANDROID_PROJECT_KEY = Key.create("IS_ANDROID_PROJECT_KEY");
+  private static final String DEFAULT_TEST_ARTIFACT = ARTIFACT_ANDROID_TEST;
 
   @NotNull private final ProjectImportErrorHandler myErrorHandler;
 
@@ -108,7 +104,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
 
   @NotNull
   @Override
-  public DataNode<ModuleData> createModule(@NotNull IdeaModule gradleModule, @NotNull DataNode<ProjectData> projectDataNode) {
+  public ModuleData createModule(@NotNull IdeaModule gradleModule, @NotNull ProjectData projectData) {
     AndroidProject androidProject = resolverCtx.getExtraProject(gradleModule, AndroidProject.class);
     if (androidProject != null && !isSupportedVersion(androidProject)) {
       trackSyncError(ACTION_GRADLE_SYNC_UNSUPPORTED_ANDROID_MODEL_VERSION, androidProject.getModelVersion());
@@ -116,12 +112,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       String msg = getUnsupportedModelVersionErrorMsg(getModelVersion(androidProject));
       throw new IllegalStateException(msg);
     }
-    if (isAndroidGradleProject()) {
-      return GradleProjectResolverUtil.createMainModule(resolverCtx, gradleModule, projectDataNode);
-    }
-    else {
-      return nextResolver.createModule(gradleModule, projectDataNode);
-    }
+    return nextResolver.createModule(gradleModule, projectData);
   }
 
   @Override
@@ -135,7 +126,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       buildScript = gradleProject.getBuildScript();
     } catch (UnsupportedOperationException ignore) {}
 
-    if (buildScript == null || !isAndroidGradleProject()) {
+    if (buildScript == null || !isAndroidGradleProject(gradleModule)) {
       nextResolver.populateModuleContentRoots(gradleModule, ideModule);
       return;
     }
@@ -163,8 +154,17 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       }
     }
 
+    NativeAndroidProject nativeAndroidProject = resolverCtx.getExtraProject(gradleModule, NativeAndroidProject.class);
+    if (androidProject == null && nativeAndroidProject != null) {
+      // For a hybrid app which contains both java and native code, the information about the native code is present in both AndroidProject
+      // and NativeAndroidProject. Until we figure out the correct way to handle that, using the NativeAndroidProject only for the pure
+      // native modules and will be falling back to the information in AndroidProject model for hybrid modules.
+      ideModule.createChild(NATIVE_ANDROID_MODEL, new NativeAndroidGradleModel(GRADLE_SYSTEM_ID, gradleModule.getName(), moduleRootDirPath,
+                                                                               nativeAndroidProject));
+    }
+
     File gradleSettingsFile = new File(moduleRootDirPath, FN_SETTINGS_GRADLE);
-    if (gradleSettingsFile.isFile() && androidProject == null) {
+    if (gradleSettingsFile.isFile() && androidProject == null && nativeAndroidProject == null) {
       // This is just a root folder for a group of Gradle projects. We don't set an IdeaGradleProject so the JPS builder won't try to
       // compile it using Gradle. We still need to create the module to display files inside it.
       createJavaProject(gradleModule, ideModule, false);
@@ -178,7 +178,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     GradleModel gradleModel = GradleModel.create(gradleModule.getName(), gradleProject, buildFilePath, gradleVersion);
     ideModule.createChild(GRADLE_MODEL, gradleModel);
 
-    if (androidProject == null || androidProjectWithoutVariants) {
+    if (nativeAndroidProject == null && (androidProject == null || androidProjectWithoutVariants)) {
       // This is a Java lib module.
       createJavaProject(gradleModule, ideModule, androidProjectWithoutVariants);
     }
@@ -194,7 +194,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
 
   @Override
   public void populateModuleCompileOutputSettings(@NotNull IdeaModule gradleModule, @NotNull DataNode<ModuleData> ideModule) {
-    if (!isAndroidGradleProject()) {
+    if (!isAndroidGradleProject(gradleModule)) {
       nextResolver.populateModuleCompileOutputSettings(gradleModule, ideModule);
     }
   }
@@ -203,26 +203,31 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   public void populateModuleDependencies(@NotNull IdeaModule gradleModule,
                                          @NotNull DataNode<ModuleData> ideModule,
                                          @NotNull DataNode<ProjectData> ideProject) {
-    if (!isAndroidGradleProject()) {
+    if (!isAndroidGradleProject(gradleModule)) {
       // For plain Java projects (non-Gradle) we let the framework populate dependencies
       nextResolver.populateModuleDependencies(gradleModule, ideModule, ideProject);
     }
   }
 
-  // Indicates it is an "Android" project if at least one module has an AndroidProject.
-  private boolean isAndroidGradleProject() {
-    Boolean isAndroidGradleProject = resolverCtx.getUserData(IS_ANDROID_PROJECT_KEY);
-    if (isAndroidGradleProject != null) {
-      return isAndroidGradleProject;
+  // Indicates it is an "Android" project if at least one module has an AndroidProject or NativeAndroidProjct.
+  private boolean isAndroidGradleProject(@NotNull IdeaModule gradleModule) {
+    if (!resolverCtx.findModulesWithModel(AndroidProject.class).isEmpty() ||
+        !resolverCtx.findModulesWithModel(NativeAndroidProject.class).isEmpty()) {
+      return true;
     }
-    isAndroidGradleProject = resolverCtx.hasModulesWithModel(AndroidProject.class);
-    return resolverCtx.putUserDataIfAbsent(IS_ANDROID_PROJECT_KEY, isAndroidGradleProject);
+    if (BUILD_SRC_FOLDER_NAME.equals(gradleModule.getGradleProject().getName()) && isAndroidStudio()) {
+      // For now, we will "buildSrc" to be considered part of an Android project. We need changes in IDEA to make this distinction better.
+      // Currently, when processing "buildSrc" we don't have access to the rest of modules in the project, making it impossible to tell
+      // if the project has at least one Android module.
+      return true;
+    }
+    return false;
   }
 
   @Override
   @NotNull
   public Set<Class> getExtraProjectModelClasses() {
-    return Sets.<Class>newHashSet(AndroidProject.class);
+    return Sets.<Class>newHashSet(AndroidProject.class, NativeAndroidProject.class);
   }
 
   @Override
@@ -235,12 +240,6 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
         application.putUserData(AndroidPlugin.EXECUTE_BEFORE_PROJECT_SYNC_TASK_IN_GUI_TEST_KEY, null);
         task.run();
       }
-    }
-    if (isAndroidStudio()) {
-      LocalProperties localProperties = getLocalProperties();
-      // Ensure that Android Studio and the project (local.properties) point to the same Android SDK home. If they are not the same, we'll
-      // ask the user to choose one and updates either the IDE's default SDK or project's SDK based on the user's choice.
-      syncIdeAndProjectAndroidSdks(localProperties);
     }
   }
 
@@ -355,7 +354,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   }
 
   @NotNull
-  private static String getUnsupportedModelVersionErrorMsg(@Nullable FullRevision modelVersion) {
+  private static String getUnsupportedModelVersionErrorMsg(@Nullable GradleVersion modelVersion) {
     StringBuilder builder = new StringBuilder();
     builder.append(UNSUPPORTED_MODEL_VERSION_ERROR_PREFIX);
     String recommendedVersion = String.format("The recommended version is %1$s.", GRADLE_PLUGIN_RECOMMENDED_VERSION);
@@ -407,7 +406,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     // Android module jars
     addIfNotNull(getJarPathForClass(getClass()), classPath);
     // Android sdklib jar
-    addIfNotNull(getJarPathForClass(FullRevision.class), classPath);
+    addIfNotNull(getJarPathForClass(Revision.class), classPath);
     // Android common jar
     addIfNotNull(getJarPathForClass(AndroidGradleSettings.class), classPath);
     // Android gradle model jar

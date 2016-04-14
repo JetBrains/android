@@ -18,9 +18,7 @@ package com.android.tools.idea.sdk.remote.internal.packages;
 
 import com.android.SdkConstants;
 import com.android.annotations.Nullable;
-import com.android.sdklib.SdkManager;
-import com.android.sdklib.repository.FullRevision;
-import com.android.sdklib.repository.IDescription;
+import com.android.repository.Revision;
 import com.android.sdklib.repository.PkgProps;
 import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.tools.idea.sdk.remote.RemotePkgInfo;
@@ -55,7 +53,7 @@ public class RemoteToolPkgInfo extends RemotePkgInfo implements IMinPlatformTool
    * The minimal revision of the platform-tools package required by this package
    * or {@link #MIN_PLATFORM_TOOLS_REV_INVALID} if the value was missing.
    */
-  private final FullRevision mMinPlatformToolsRevision;
+  private final Revision mMinPlatformToolsRevision;
 
   /**
    * Creates a new tool package from the attributes and elements of the given XML node.
@@ -71,7 +69,7 @@ public class RemoteToolPkgInfo extends RemotePkgInfo implements IMinPlatformTool
     super(source, packageNode, nsUri, licenses);
 
     mMinPlatformToolsRevision = RemotePackageParserUtils
-      .parsePreciseRevisionElement(RemotePackageParserUtils.findChildElement(packageNode, SdkRepoConstants.NODE_MIN_PLATFORM_TOOLS_REV));
+      .parseRevisionElement(RemotePackageParserUtils.findChildElement(packageNode, SdkRepoConstants.NODE_MIN_PLATFORM_TOOLS_REV));
 
     if (mMinPlatformToolsRevision.equals(MIN_PLATFORM_TOOLS_REV_INVALID)) {
       // This revision number is mandatory starting with sdk-repository-3.xsd
@@ -93,7 +91,7 @@ public class RemoteToolPkgInfo extends RemotePkgInfo implements IMinPlatformTool
   }
 
   @Override
-  public FullRevision getMinPlatformToolsRevision() {
+  public Revision getMinPlatformToolsRevision() {
     return mMinPlatformToolsRevision;
   }
 
@@ -125,27 +123,12 @@ public class RemoteToolPkgInfo extends RemotePkgInfo implements IMinPlatformTool
   /**
    * Returns a short description for an {@link IDescription}.
    */
-  private static String createShortDescription(String listDisplay, FullRevision revision, boolean obsolete) {
+  private static String createShortDescription(String listDisplay, Revision revision, boolean obsolete) {
     if (!listDisplay.isEmpty()) {
       return String.format("%1$s, revision %2$s%3$s", listDisplay, revision.toShortString(), obsolete ? " (Obsolete)" : "");
     }
 
     return String.format("Android SDK Tools, revision %1$s%2$s", revision.toShortString(), obsolete ? " (Obsolete)" : "");
-  }
-
-  /**
-   * Computes a potential installation folder if an archive of this package were
-   * to be installed right away in the given SDK root.
-   * <p/>
-   * A "tool" package should always be located in SDK/tools.
-   *
-   * @param osSdkRoot  The OS path of the SDK root folder.
-   * @param sdkManager An existing SDK manager to list current platforms and addons.
-   * @return A new {@link File} corresponding to the directory to use to install this package.
-   */
-  @Override
-  public File getInstallFolder(String osSdkRoot, SdkManager sdkManager) {
-    return new File(osSdkRoot, SdkConstants.FD_TOOLS);
   }
 
   @Override

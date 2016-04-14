@@ -22,7 +22,7 @@ import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.ResourceUrl;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
+import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
 import com.android.tools.lint.checks.ApiLookup;
 import com.google.common.base.Strings;
 import com.intellij.openapi.diagnostic.Logger;
@@ -96,10 +96,8 @@ public class ResolutionUtils {
    */
   @NotNull
   public static String getNameFromQualifiedName(@NotNull String qualifiedName) {
-    if (qualifiedName.startsWith(SdkConstants.PREFIX_ANDROID)) {
-      return qualifiedName.substring(SdkConstants.PREFIX_ANDROID.length());
-    }
-    return qualifiedName;
+    int colonIndex = qualifiedName.indexOf(':');
+    return colonIndex != -1 ? qualifiedName.substring(colonIndex + 1) : qualifiedName;
   }
 
   /**
@@ -149,16 +147,16 @@ public class ResolutionUtils {
   }
 
   /**
-   * Constructs a {@link ThemeEditorStyle} instance for a theme with the given name and source module, using the passed resolver.
+   * Constructs a {@link ConfiguredThemeEditorStyle} instance for a theme with the given name and source module, using the passed resolver.
    */
   @Nullable
-  public static ThemeEditorStyle getStyle(@NotNull Configuration configuration, @NotNull ResourceResolver resolver, @NotNull final String qualifiedStyleName, @Nullable Module module) {
+  public static ConfiguredThemeEditorStyle getStyle(@NotNull Configuration configuration, @NotNull ResourceResolver resolver, @NotNull final String qualifiedStyleName, @Nullable Module module) {
     final StyleResourceValue style = getStyleResourceValue(resolver, qualifiedStyleName);
-    return style == null ? null : new ThemeEditorStyle(configuration, style, module);
+    return style == null ? null : new ConfiguredThemeEditorStyle(configuration, style, module);
   }
 
   @Nullable
-  public static ThemeEditorStyle getStyle(@NotNull Configuration configuration, @NotNull final String qualifiedStyleName, @Nullable Module module) {
+  public static ConfiguredThemeEditorStyle getStyle(@NotNull Configuration configuration, @NotNull final String qualifiedStyleName, @Nullable Module module) {
     ResourceResolver resolver = configuration.getResourceResolver();
     assert resolver != null;
 

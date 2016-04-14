@@ -21,7 +21,8 @@ import com.android.prefs.AndroidLocation;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
-import com.google.common.base.Predicate;
+import com.android.tools.idea.avdmanager.AvdEditWizard;
+import com.android.tools.idea.avdmanager.AvdListDialog;
 import com.google.common.collect.ImmutableList;
 import com.intellij.CommonBundle;
 import com.intellij.openapi.diagnostic.Logger;
@@ -31,13 +32,13 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Computable;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.AvdsNotSupportedException;
 import org.jetbrains.android.sdk.AvdManagerLog;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 public class EmulatorTargetChooser {
@@ -53,7 +54,7 @@ public class EmulatorTargetChooser {
   }
 
   @Nullable
-  public DeviceTarget getTarget(@NotNull ConsolePrinter printer, @NotNull DeviceCount deviceCount, boolean debug) {
+  public DeviceFutures getDevices(@NotNull DeviceCount deviceCount) {
     TargetDeviceFilter deviceFilter = new TargetDeviceFilter.EmulatorFilter(myFacet, myAvd);
     Collection<IDevice> runningDevices = DeviceSelectionUtils.chooseRunningDevice(myFacet, deviceFilter, deviceCount);
     if (runningDevices == null) {
@@ -61,7 +62,7 @@ public class EmulatorTargetChooser {
       return null;
     }
     if (!runningDevices.isEmpty()) {
-      return DeviceTarget.forDevices(runningDevices);
+      return DeviceFutures.forDevices(runningDevices);
     }
 
     // We need to launch an emulator.
@@ -70,17 +71,22 @@ public class EmulatorTargetChooser {
       // The user canceled.
       return null;
     }
-    myFacet.launchEmulator(avd);
 
-    // Wait for an AVD to come up with name matching the one we just launched.
-    Predicate<IDevice> avdNameFilter = new Predicate<IDevice>() {
-      @Override
-      public boolean apply(IDevice device) {
-        return device.isEmulator() && avd.equals(device.getAvdName());
-      }
-    };
+    AvdManager manager = myFacet.getAvdManagerSilently();
+    if (manager == null) {
+      LOG.warn("Could not obtain AVD Manager.");
+      return null;
+    }
 
-    return DeviceTarget.forFuture(DeviceReadyListener.getReadyDevice(avdNameFilter, printer));
+    AvdInfo avdInfo = manager.getAvd(avd, true);
+    if (avdInfo == null) {
+      LOG.warn("Unable to obtain info for AVD: " + avd);
+      return null;
+    }
+
+    LaunchableAndroidDevice androidDevice = new LaunchableAndroidDevice(avdInfo);
+    androidDevice.launch(myFacet.getModule().getProject()); // LAUNCH EMULATOR
+    return new DeviceFutures(Collections.<AndroidDevice>singletonList(androidDevice));
   }
 
   @Nullable
@@ -92,7 +98,7 @@ public class EmulatorTargetChooser {
       return avds[0].getName();
     }
     final Project project = myFacet.getModule().getProject();
-    AvdManager manager = null;
+    AvdManager manager;
     try {
       manager = myFacet.getAvdManager(new AvdManagerLog() {
         @Override
@@ -105,10 +111,6 @@ public class EmulatorTargetChooser {
           }
         }
       });
-    }
-    catch (AvdsNotSupportedException e) {
-      // can't be
-      LOG.error(e);
     }
     catch (final AndroidLocation.AndroidLocationException e) {
       LOG.info(e);
@@ -125,15 +127,16 @@ public class EmulatorTargetChooser {
     return UIUtil.invokeAndWaitIfNeeded(new Computable<String>() {
       @Override
       public String compute() {
-        CreateAvdDialog dialog = new CreateAvdDialog(project, myFacet, finalManager, true, true);
-        dialog.show();
-        if (dialog.getExitCode() == DialogWrapper.OK_EXIT_CODE) {
-          AvdInfo createdAvd = dialog.getCreatedAvd();
-          if (createdAvd != null) {
-            return createdAvd.getName();
-          }
+        int result = Messages.showDialog(project, "To run using the emulator, you must have an AVD defined.", "Define AVD",
+                                         new String[]{"Cancel", "Create AVD"}, 1, null);
+        AvdInfo createdAvd = null;
+        if (result == 1) {
+          AvdEditWizard dialog = new AvdEditWizard(null, project, null, null, true);
+          dialog.init();
+          dialog.show();
+          createdAvd = dialog.getCreatedAvd();
         }
-        return null;
+        return createdAvd == null ? null : createdAvd.getName();
       }
     });
   }

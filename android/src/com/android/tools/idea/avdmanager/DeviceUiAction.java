@@ -16,6 +16,7 @@
 package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.devices.Device;
+import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -36,6 +37,9 @@ public abstract class DeviceUiAction implements Action {
     void refreshDevices();
     void setDevice(@Nullable Device device);
     void selectDefaultDevice();
+
+    @Nullable
+    Project getProject();
   }
 
   public DeviceUiAction(@NotNull DeviceProvider provider, @NotNull String text) {

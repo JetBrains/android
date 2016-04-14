@@ -37,13 +37,12 @@ import java.io.IOException;
 /** Loader which loads in a {@link com.android.ide.common.resources.FrameworkResources} */
 public class FrameworkResourceLoader {
   private static final Logger LOG = Logger.getInstance(FrameworkResourceLoader.class);
-  private static boolean ourNeedLocales;
 
   private FrameworkResourceLoader() {
   }
 
   @Nullable
-  public static FrameworkResources load(@NotNull IAndroidTarget myTarget) throws IOException {
+  public static FrameworkResources load(@NotNull IAndroidTarget myTarget, boolean withLocale) throws IOException {
     final ILogger logger = new LogWrapper(LOG);
     final File resFolder = myTarget.getFile(IAndroidTarget.RESOURCES);
     if (!resFolder.isDirectory()) {
@@ -51,26 +50,23 @@ public class FrameworkResourceLoader {
       return null;
     }
 
-    return loadPlatformResources(resFolder, logger);
+    return loadPlatformResources(resFolder, logger, withLocale);
   }
 
-  private static FrameworkResources loadPlatformResources(File resFolder, ILogger log) throws IOException {
+  private static FrameworkResources loadPlatformResources(File resFolder, ILogger log, boolean withLocale) throws IOException {
     final IAbstractFolder resFolderWrapper = new BufferingFolderWrapper(resFolder);
-    final FrameworkResources resources = new IdeFrameworkResources(resFolderWrapper);
+    final FrameworkResources resources = new IdeFrameworkResources(resFolderWrapper, withLocale);
     resources.ensureInitialized();
     resources.loadPublicResources(log);
     return resources;
   }
 
-  public static void requestLocales(boolean needLocales) {
-    ourNeedLocales = needLocales;
-  }
-
   public static class IdeFrameworkResources extends FrameworkResources {
-    private boolean mySkippedLocales;
+    private boolean myWithLocales;
 
-    public IdeFrameworkResources(@NonNull IAbstractFolder resFolder) {
+    public IdeFrameworkResources(@NonNull IAbstractFolder resFolder, boolean withLocale) {
       super(resFolder);
+      myWithLocales = withLocale;
     }
 
     private boolean myCleared = true;
@@ -83,13 +79,13 @@ public class FrameworkResourceLoader {
     }
 
     public synchronized boolean getSkippedLocales() {
-      return mySkippedLocales;
+      return !myWithLocales;
     }
 
     @Override
     public synchronized boolean ensureInitialized() {
       if (myCleared && !myInitializing) {
-        mySkippedLocales = !ourNeedLocales;
+
 
         ScanningContext context = new ScanningContext(this);
         myInitializing = true;
@@ -105,7 +101,7 @@ public class FrameworkResourceLoader {
             }
 
             // Skip locale-specific folders
-            if (mySkippedLocales && resFolderName.startsWith("values-")) {
+            if (!myWithLocales && resFolderName.startsWith("values-")) {
               // Can I find out which resources we use in layoutlib?
               // Can I find out which ones we *expose* through public? I should filter JUST those!
               // I guess I could cache this stuff...?

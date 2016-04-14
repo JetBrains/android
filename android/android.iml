@@ -53,6 +53,7 @@
       </library>
     </orderEntry>
     <orderEntry type="module" module-name="external-system-api" />
+    <orderEntry type="module" module-name="gradle" />
     <orderEntry type="module" module-name="external-system-impl" />
     <orderEntry type="library" name="gson" level="project" />
     <orderEntry type="module" module-name="jetgroovy" />
@@ -63,12 +64,12 @@
     <orderEntry type="module" module-name="testutils" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="Eclipse" level="project" />
     <orderEntry type="module" module-name="properties-psi-api" />
+    <orderEntry type="library" name="asm4" level="project" />
     <orderEntry type="library" scope="TEST" name="fest" level="project" />
     <orderEntry type="module" module-name="platform-main" scope="TEST" />
     <orderEntry type="module" module-name="bootstrap" scope="TEST" />
     <orderEntry type="library" name="jcip" level="project" />
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
-    <orderEntry type="module" module-name="builder-model" />
     <orderEntry type="module" module-name="rpclib" />
     <orderEntry type="module" module-name="chartlib" />
     <orderEntry type="module-library">
@@ -95,35 +96,20 @@
     </orderEntry>
     <orderEntry type="module" module-name="diff-impl" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="Mocks" level="project" />
+    <orderEntry type="library" scope="TEST" name="hamcrest" level="project" />
+    <orderEntry type="library" name="jgraphx-3.4.0.1" level="project" />
+    <orderEntry type="module" module-name="repository" />
+    <orderEntry type="module" module-name="instant-run-client" />
+    <orderEntry type="module" module-name="instant-run-common" />
+    <orderEntry type="library" name="jna" level="project" />
     <orderEntry type="module-library">
-      <library name="Gradle">
+      <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../plugins/gradle/lib/gradle-tooling-api-2.12.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../plugins/gradle/lib/gradle-core-2.12.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../plugins/gradle/lib/gradle-model-core-2.12.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../plugins/gradle/lib/gradle-model-groovy-2.12.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../plugins/gradle/lib/gradle-messaging-2.12.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../plugins/gradle/lib/gradle-wrapper-2.12.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../plugins/gradle/lib/gradle-base-services-2.12.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../plugins/gradle/lib/gradle-base-services-groovy-2.12.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../plugins/gradle/lib/gradle-native-2.12.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../plugins/gradle/lib/gradle-resources-2.12.jar!/" />
+          <root url="jar://$MODULE_DIR$/lib/data-binding.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MODULE_DIR$/../../plugins/gradle/lib/gradle-2.12-src.zip!/gradle-2.12/subprojects/tooling-api/src/main/java" />
-          <root url="jar://$MODULE_DIR$/../../plugins/gradle/lib/gradle-2.12-src.zip!/gradle-2.12/subprojects/core/src/main/groovy" />
-          <root url="jar://$MODULE_DIR$/../../plugins/gradle/lib/gradle-2.12-src.zip!/gradle-2.12/subprojects/messaging/src/main/java" />
-          <root url="jar://$MODULE_DIR$/../../plugins/gradle/lib/gradle-2.12-src.zip!/gradle-2.12/subprojects/wrapper/src/main/java" />
-          <root url="jar://$MODULE_DIR$/../../plugins/gradle/lib/gradle-2.12-src.zip!/gradle-2.12/subprojects/base-services/src/main/java" />
-          <root url="jar://$MODULE_DIR$/../../plugins/gradle/lib/gradle-2.12-src.zip!/gradle-2.12/subprojects/base-services-groovy/src/main/groovy" />
-          <root url="jar://$MODULE_DIR$/../../plugins/gradle/lib/gradle-2.12-src.zip!/gradle-2.12/subprojects/native/src/main/java" />
-          <root url="jar://$MODULE_DIR$/../../plugins/gradle/lib/gradle-2.12-src.zip!/gradle-2.12/subprojects/resources/src/main/java" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="module" module-name="gradle" />
-    <orderEntry type="library" name="hamcrest" level="project" />
-    <orderEntry type="module" module-name="gradle-tests" scope="TEST" />
   </component>
 </module>

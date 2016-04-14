@@ -56,5 +56,9 @@ public interface PathListener {
     public MemoryRangePath findMemoryPath() {
       return findPathOfType(MemoryRangePath.class);
     }
+
+    public StatePath findStatePath() {
+      return findPathOfType(StatePath.class);
+    }
   }
 }

@@ -26,43 +26,43 @@ public final class ObservableValueTest {
   @Test
   public void listenerIsTriggeredOnInvalidation() throws Exception {
     CountListener listener = new CountListener();
-    MockObservable mockObservable = new MockObservable();
-    mockObservable.addListener(listener);
+    MockObservableValue mockValue = new MockObservableValue();
+    mockValue.addListener(listener);
     
     assertThat(listener.getCount()).isEqualTo(0);
 
-    mockObservable.fireInvalidated();
+    mockValue.fireInvalidated();
     assertThat(listener.getCount()).isEqualTo(1);
 
-    mockObservable.fireInvalidated();
+    mockValue.fireInvalidated();
     assertThat(listener.getCount()).isEqualTo(2);
   }
 
   @Test
   public void removeListenerPreventsFurtherCallbacks() throws Exception {
     CountListener listener = new CountListener();
-    MockObservable mockObservable = new MockObservable();
-    mockObservable.addListener(listener);
+    MockObservableValue mockValue = new MockObservableValue();
+    mockValue.addListener(listener);
 
     assertThat(listener.getCount()).isEqualTo(0);
 
-    mockObservable.fireInvalidated();
+    mockValue.fireInvalidated();
     assertThat(listener.getCount()).isEqualTo(1);
 
-    mockObservable.removeListener(listener);
+    mockValue.removeListener(listener);
 
-    mockObservable.fireInvalidated();
+    mockValue.fireInvalidated();
     assertThat(listener.getCount()).isEqualTo(1);
   }
 
   @Test
   public void weakListenersCanBeRemovedManually() throws Exception {
     CountListener listener = new CountListener();
-    MockObservable mockObservable = new MockObservable();
-    mockObservable.addWeakListener(listener);
-    mockObservable.removeListener(listener);
+    MockObservableValue mockValue = new MockObservableValue();
+    mockValue.addWeakListener(listener);
+    mockValue.removeListener(listener);
 
-    mockObservable.fireInvalidated();
+    mockValue.fireInvalidated();
     assertThat(listener.getCount()).isZero();
   }
 
@@ -74,16 +74,16 @@ public final class ObservableValueTest {
   public void weakListenerIsRemovedAutomaticallyByGc() throws Exception {
     final MutableInt strongCount = new MutableInt();
     final MutableInt weakCount = new MutableInt();
-    MockObservable mockObservable = new MockObservable();
-    mockObservable.addListener(new InvalidationListener() {
+    MockObservableValue mockValue = new MockObservableValue();
+    mockValue.addListener(new InvalidationListener() {
       @Override
-      protected void onInvalidated(@NotNull Observable sender) {
+      public void onInvalidated(@NotNull ObservableValue<?> sender) {
         strongCount.value++;
       }
     });
-    mockObservable.addWeakListener(new InvalidationListener() {
+    mockValue.addWeakListener(new InvalidationListener() {
       @Override
-      protected void onInvalidated(@NotNull Observable sender) {
+      public void onInvalidated(@NotNull ObservableValue<?> sender) {
         weakCount.value++;
       }
     });
@@ -91,20 +91,26 @@ public final class ObservableValueTest {
     assertThat(strongCount.value).isEqualTo(0);
     assertThat(weakCount.value).isEqualTo(0);
 
-    mockObservable.fireInvalidated();
+    mockValue.fireInvalidated();
     assertThat(strongCount.value).isEqualTo(1);
     assertThat(weakCount.value).isEqualTo(1);
 
     GCUtil.tryForceGC();
 
-    mockObservable.fireInvalidated();
+    mockValue.fireInvalidated();
     assertThat(strongCount.value).isEqualTo(2);
     assertThat(weakCount.value).isEqualTo(1);
   }
 
-  private static final class MockObservable extends AbstractObservable {
+  private static final class MockObservableValue extends AbstractObservableValue {
     public void fireInvalidated() {
       notifyInvalidated();
+    }
+
+    @NotNull
+    @Override
+    public Object get() {
+      throw new UnsupportedOperationException(); // Not used in this test
     }
   }
 

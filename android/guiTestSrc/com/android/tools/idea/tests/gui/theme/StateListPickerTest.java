@@ -21,11 +21,14 @@ import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.ChooseResourceDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.*;
+import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.data.TableCell;
 import org.fest.swing.fixture.FontFixture;
 import org.fest.swing.fixture.JTableCellFixture;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
+import javax.swing.*;
 import java.io.IOException;
 
 import static com.android.tools.idea.tests.gui.framework.TestGroup.THEME;
@@ -42,7 +45,7 @@ public class StateListPickerTest extends GuiTestCase {
   @IdeGuiTest
   public void testStateList() throws IOException {
     myProjectFrame = importProjectAndWaitForProjectSyncToFinish("StateListApplication");
-    ThemeEditorFixture themeEditor = ThemeEditorTestUtils.openThemeEditor(myProjectFrame);
+    ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(myProjectFrame);
     ThemeEditorTableFixture themeEditorTable = themeEditor.getPropertiesTable();
 
     TableCell cell = row(7).column(0);
@@ -58,6 +61,13 @@ public class StateListPickerTest extends GuiTestCase {
     resourceComponent.getSwatchButton().click();
 
     final ChooseResourceDialogFixture dialog = ChooseResourceDialogFixture.find(myRobot);
+    dialog.clickNewResource().menuItem(new GenericTypeMatcher<JMenuItem>(JMenuItem.class) {
+      @Override
+      protected boolean isMatching(@NotNull JMenuItem component) {
+        return "New color File...".equals(component.getText());
+      }
+    }).click();
+
     StateListPickerFixture stateListPicker = dialog.getStateListPicker();
     java.util.List<StateListComponentFixture> states = stateListPicker.getStateComponents();
     assertThat(states).hasSize(4);

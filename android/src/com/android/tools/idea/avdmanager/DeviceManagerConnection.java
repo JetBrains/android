@@ -19,17 +19,14 @@ import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.DeviceManager;
 import com.android.sdklib.devices.DeviceParser;
 import com.android.sdklib.devices.DeviceWriter;
-import com.android.sdklib.repository.local.LocalSdk;
 import com.android.tools.idea.rendering.LogWrapper;
 import com.android.utils.ILogger;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.containers.WeakHashMap;
-import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -51,27 +48,27 @@ public class DeviceManagerConnection {
   private static final Logger IJ_LOG = Logger.getInstance(AvdManagerConnection.class);
   private static final ILogger SDK_LOG = new LogWrapper(IJ_LOG);
   private static final DeviceManagerConnection NULL_CONNECTION = new DeviceManagerConnection(null);
-  private static Map<LocalSdk, DeviceManagerConnection> ourCache = new WeakHashMap<LocalSdk, DeviceManagerConnection>();
+  private static Map<File, DeviceManagerConnection> ourCache = new WeakHashMap<File, DeviceManagerConnection>();
   private DeviceManager ourDeviceManager;
-  @Nullable private LocalSdk mySdk;
+  @Nullable private File mySdkPath;
 
-  public DeviceManagerConnection(@Nullable LocalSdk sdk) {
-    mySdk = sdk;
+  public DeviceManagerConnection(@Nullable File sdkPath) {
+    mySdkPath = sdkPath;
   }
 
   @NotNull
-  public static DeviceManagerConnection getDeviceManagerConnection(@NotNull LocalSdk sdk) {
-    if (!ourCache.containsKey(sdk)) {
-      ourCache.put(sdk, new DeviceManagerConnection(sdk));
+  public static DeviceManagerConnection getDeviceManagerConnection(@NotNull File sdkPath) {
+    if (!ourCache.containsKey(sdkPath)) {
+      ourCache.put(sdkPath, new DeviceManagerConnection(sdkPath));
     }
-    return ourCache.get(sdk);
+    return ourCache.get(sdkPath);
   }
 
   @NotNull
   public static DeviceManagerConnection getDefaultDeviceManagerConnection() {
-    AndroidSdkData androidSdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
-    if (androidSdkData != null) {
-      return getDeviceManagerConnection(androidSdkData.getLocalSdk());
+    File sdkPath = AndroidSdkUtils.tryToChooseSdkHandler().getLocation();
+    if (sdkPath != null) {
+      return getDeviceManagerConnection(sdkPath);
     }
     else {
       return NULL_CONNECTION;
@@ -84,11 +81,11 @@ public class DeviceManagerConnection {
    */
   private boolean initIfNecessary() {
     if (ourDeviceManager == null) {
-      if (mySdk == null) {
+      if (mySdkPath == null) {
         IJ_LOG.error("No installed SDK found!");
         return false;
       }
-      ourDeviceManager = DeviceManager.createInstance(mySdk.getLocation(), SDK_LOG);
+      ourDeviceManager = DeviceManager.createInstance(mySdkPath, SDK_LOG);
     }
     return true;
   }
@@ -104,6 +101,16 @@ public class DeviceManagerConnection {
     return Lists.newArrayList(ourDeviceManager.getDevices(DeviceManager.ALL_DEVICES));
   }
 
+  /**
+   * @return the device identified by device name and manufacturer or null if not found.
+   */
+  @Nullable
+  public Device getDevice(@NotNull String id, @NotNull String manufacturer) {
+    if (!initIfNecessary()) {
+      return null;
+    }
+    return ourDeviceManager.getDevice(id, manufacturer);
+  }
 
   /**
    * Calculate an ID for a device (optionally from a given ID) which does not clash

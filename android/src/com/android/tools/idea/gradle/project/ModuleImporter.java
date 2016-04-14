@@ -38,11 +38,12 @@ public abstract class ModuleImporter {
   private static final Key<ModuleImporter> KEY_CURRENT_IMPORTER = new Key<ModuleImporter>("com.android.tools.currentImporter");
   private static final ModuleImporter NONE = new ModuleImporter() {
     @Override
-    public boolean isStepVisible(ModuleWizardStep step) {
+    public boolean isStepVisible(@NotNull ModuleWizardStep step) {
       return false;
     }
 
     @Override
+    @NotNull
     public List<? extends ModuleWizardStep> createWizardSteps() {
       return Collections.emptyList();
     }
@@ -58,12 +59,13 @@ public abstract class ModuleImporter {
     }
 
     @Override
-    public boolean canImport(VirtualFile importSource) {
+    public boolean canImport(@NotNull VirtualFile importSource) {
       return false;
     }
 
     @Override
-    public Set<ModuleToImport> findModules(VirtualFile importSource) {
+    @NotNull
+    public Set<ModuleToImport> findModules(@NotNull VirtualFile importSource) {
       return Collections.emptySet();
     }
   };
@@ -87,7 +89,7 @@ public abstract class ModuleImporter {
    */
   // TODO: Consider creating an extension point
   @NotNull
-  private static ModuleImporter[] createImporters(WizardContext context) {
+  private static ModuleImporter[] createImporters(@NotNull WizardContext context) {
     ModuleImporter[] importers = {new AdtModuleImporter(context), new GradleModuleImporter(context)};
     context.putUserData(KEY_IMPORTERS, importers);
     return importers;
@@ -96,11 +98,13 @@ public abstract class ModuleImporter {
   /**
    * @return "headless" importers - that don't always need UI.
    */
-  public static ModuleImporter[] getAllImporters(Project destinationProject) {
+  @NotNull
+  public static ModuleImporter[] getAllImporters(@NotNull Project destinationProject) {
     return new ModuleImporter[] {new GradleModuleImporter(destinationProject)};
   }
 
-  public static ModuleImporter getImporter(WizardContext context) {
+  @NotNull
+  public static ModuleImporter getImporter(@NotNull WizardContext context) {
     ModuleImporter importer = context.getUserData(KEY_CURRENT_IMPORTER);
     if (importer != null) {
       return importer;
@@ -120,19 +124,21 @@ public abstract class ModuleImporter {
     return NONE;
   }
 
-  public static void setImporter(WizardContext context, @Nullable ModuleImporter importer) {
+  public static void setImporter(@NotNull WizardContext context, @Nullable ModuleImporter importer) {
     context.putUserData(KEY_CURRENT_IMPORTER, importer);
   }
 
-  public abstract boolean isStepVisible(ModuleWizardStep step);
+  public abstract boolean isStepVisible(@NotNull ModuleWizardStep step);
 
+  @NotNull
   public abstract List<? extends ModuleWizardStep> createWizardSteps();
 
   public abstract void importProjects(@Nullable Map<String, VirtualFile> projects);
 
   public abstract boolean isValid();
 
-  public abstract boolean canImport(VirtualFile importSource);
+  public abstract boolean canImport(@NotNull VirtualFile importSource);
 
-  public abstract Set<ModuleToImport> findModules(VirtualFile importSource) throws IOException;
+  @NotNull
+  public abstract Set<ModuleToImport> findModules(@NotNull VirtualFile importSource) throws IOException;
 }

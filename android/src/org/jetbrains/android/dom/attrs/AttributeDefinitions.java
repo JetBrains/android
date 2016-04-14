@@ -5,9 +5,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Set;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public interface AttributeDefinitions {
   @Nullable
   StyleableDefinition getStyleableByName(@NotNull String name);
@@ -20,7 +17,4 @@ public interface AttributeDefinitions {
 
   @Nullable
   String getAttrGroupByName(@NotNull String name);
-
-  @NotNull
-  StyleableDefinition[] getStateStyleables();
 }

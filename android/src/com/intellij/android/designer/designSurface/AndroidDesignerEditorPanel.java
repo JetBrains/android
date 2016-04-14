@@ -15,18 +15,20 @@
  */
 package com.intellij.android.designer.designSurface;
 
+import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.RenderSession;
 import com.android.ide.common.rendering.api.SessionParams;
 import com.android.ide.common.rendering.api.ViewInfo;
-import com.android.sdklib.SdkVersionInfo;
 import com.android.resources.Density;
 import com.android.sdklib.IAndroidTarget;
+import com.android.sdklib.SdkVersionInfo;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.*;
 import com.android.tools.idea.rendering.*;
 import com.android.tools.idea.rendering.multi.RenderPreviewManager;
 import com.android.tools.idea.rendering.multi.RenderPreviewMode;
+import com.google.common.collect.Queues;
 import com.google.common.primitives.Ints;
 import com.intellij.android.designer.componentTree.AndroidTreeDecorator;
 import com.intellij.android.designer.designSurface.graphics.DrawingStyle;
@@ -56,6 +58,7 @@ import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.SystemInfo;
@@ -79,6 +82,7 @@ import org.jetbrains.android.refactoring.AndroidInlineIncludeAction;
 import org.jetbrains.android.refactoring.AndroidInlineStyleReferenceAction;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.uipreview.RenderingException;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -88,9 +92,7 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
+import java.util.*;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -99,6 +101,7 @@ import static com.android.tools.idea.configurations.ConfigurationListener.MASK_A
 import static com.android.tools.idea.configurations.ConfigurationListener.MASK_RENDERING;
 import static com.android.tools.idea.rendering.RenderErrorPanel.SIZE_ERROR_PANEL_DYNAMICALLY;
 import static com.intellij.designer.designSurface.ZoomType.FIT_INTO;
+import static com.intellij.designer.designSurface.ZoomType.FIT;
 import static org.jetbrains.android.facet.ResourceFolderManager.ResourceFolderListener;
 
 /**
@@ -135,7 +138,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
 
   /** Zoom level (1 = 100%). TODO: Persist this setting across IDE sessions (on a per file basis) */
   private double myZoom = 1;
-  private ZoomType myZoomMode = ZoomType.FIT_INTO;
+  private ZoomType myZoomMode = FIT_INTO;
   private RenderPreviewManager myPreviewManager;
   private final HoverOverlay myHover = new HoverOverlay(this);
   private final List<Overlay> myOverlays = Arrays.asList(myHover, new IncludeOverlay(this));
@@ -402,10 +405,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
         updateInspections();
 
         if (RenderPreviewMode.getCurrent() != RenderPreviewMode.NONE) {
-          RenderPreviewManager previewManager = getPreviewManager(true);
-          if (previewManager != null) {
-            previewManager.renderPreviews();
-          }
+          getPreviewManager(true).renderPreviews();
         }
 
         runnable.run();
@@ -413,10 +413,49 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
     });
   }
 
+  /**
+   * Method that checks if a given {@link RenderedViewHierarchy} is likely to contain a custom view.
+   */
+  private static boolean hasCustomViews(@Nullable RenderedViewHierarchy hierarchy) {
+    if (hierarchy == null) {
+      return false;
+    }
+
+    Deque<RenderedView> views = Queues.newArrayDeque(hierarchy.getRoots());
+    List<RenderedView> includedViews = hierarchy.getIncludedRoots();
+    if (includedViews != null) {
+      views.addAll(includedViews);
+    }
+
+    while (!views.isEmpty()) {
+      RenderedView renderedView = views.pop();
+      String className = renderedView.view.getClassName();
+      if (!StringUtil.startsWith(className, SdkConstants.ANDROID_PKG_PREFIX) && !StringUtil.startsWith(className, "com.android.")) {
+        // This is probably a custom view
+        return true;
+      }
+      views.addAll(renderedView.getChildren());
+    }
+
+    return false;
+  }
+
   private void createRenderer(final ThrowableConsumer<RenderResult, Throwable> runnable) {
     disposeRenderer();
     if (myConfiguration == null) {
       return;
+    }
+
+    DumbService dumbService = DumbService.getInstance(getProject());
+    if (dumbService.isDumb()) {
+      dumbService.runWhenSmart(new Runnable() {
+        @Override
+        public void run() {
+          if (myActive && hasCustomViews(getViewHierarchy())) {
+            updateRenderer(false);
+          }
+        }
+      });
     }
 
     mySessionAlarm.addRequest(new Runnable() {
@@ -617,10 +656,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
         }
 
         if (RenderPreviewMode.getCurrent() != RenderPreviewMode.NONE) {
-          RenderPreviewManager previewManager = getPreviewManager(true);
-          if (previewManager != null) {
-            previewManager.renderPreviews();
-          }
+          getPreviewManager(true).renderPreviews();
         }
       }
     });
@@ -736,11 +772,14 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
       myVariantChanged = false;
       updateRenderer(true);
     } else if (myRootComponent != null && myRootView != null) {
+      RenderPreviewManager previewManager = getPreviewManager(false);
+      if (previewManager != null) {
+        // The "current preview mode" may have changed while previewing a different file
+        previewManager.recomputePreviews(false);
+      }
+
       if (RenderPreviewMode.getCurrent() != RenderPreviewMode.NONE) {
-        RenderPreviewManager previewManager = getPreviewManager(true);
-        if (previewManager != null) {
-          previewManager.renderPreviews();
-        }
+        getPreviewManager(true).renderPreviews();
       }
     }
     myConfigurationDirty = 0;
@@ -829,13 +868,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
       return "";
     }
 
-    String name = SdkVersionInfo.getAndroidName(since);
-
-    if (name == null) {
-      name = String.format("API %1$d", since);
-    }
-
-    return name;
+    return SdkVersionInfo.getAndroidName(since);
   }
 
   @Override
@@ -1031,7 +1064,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
   private static final double ZOOM_FACTOR = 1.2;
 
   public boolean isZoomToFit() {
-    return myZoomMode == ZoomType.FIT || myZoomMode == ZoomType.FIT_INTO;
+    return myZoomMode == FIT || myZoomMode == FIT_INTO;
   }
 
   @Override
@@ -1050,7 +1083,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
       double imageHeight = bounds.getHeight();
       if (imageHeight > 0) {
         zoom = Math.min(myMaxWidth / imageWidth, myMaxHeight / imageHeight);
-        if (myZoomMode == ZoomType.FIT_INTO && zoom > 1) {
+        if (myZoomMode == FIT_INTO && zoom > 1) {
           zoom = 1;
         }
       }
@@ -1383,7 +1416,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
 
   @Override
   public boolean hasAlphaChannel() {
-    return !myRootView.getShowDropShadow();
+    return myRootView == null || !myRootView.getShowDropShadow();
   }
 
   @Override
@@ -1394,7 +1427,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
 
   @Override
   public void updateLayout() {
-    zoom(ZoomType.FIT_INTO);
+    zoom(FIT_INTO);
     Component component = getComponent();
     if (component instanceof JComponent) {
       JComponent jc = (JComponent)component;
@@ -1491,7 +1524,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
 
   @Override
   public void zoomFit(boolean onlyZoomOut, boolean allowZoomIn) {
-    zoom(allowZoomIn ? ZoomType.FIT : ZoomType.FIT_INTO);
+    zoom(allowZoomIn ? FIT : FIT_INTO);
   }
 
   @Override
@@ -1505,7 +1538,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
     return true;
   }
 
-  @Nullable
+  @Contract("true -> !null")
   @Override
   public RenderPreviewManager getPreviewManager(boolean createIfNecessary) {
     if (myPreviewManager == null && createIfNecessary) {

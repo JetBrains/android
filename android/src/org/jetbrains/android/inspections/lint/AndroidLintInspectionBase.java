@@ -21,7 +21,6 @@ import com.intellij.psi.*;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.containers.HashMap;
-import com.intellij.xml.CommonXmlStrings;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
@@ -31,8 +30,7 @@ import org.jetbrains.annotations.TestOnly;
 import java.io.File;
 import java.util.*;
 
-import static com.android.tools.lint.detector.api.TextFormat.HTML;
-import static com.android.tools.lint.detector.api.TextFormat.RAW;
+import static com.android.tools.lint.detector.api.TextFormat.*;
 import static com.intellij.xml.CommonXmlStrings.HTML_END;
 import static com.intellij.xml.CommonXmlStrings.HTML_START;
 
@@ -164,7 +162,12 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
       // We need to have explicit <html> and </html> tags around the text; inspection infrastructure
       // such as the {@link com.intellij.codeInspection.ex.DescriptorComposer} will call
       // {@link com.intellij.xml.util.XmlStringUtil.isWrappedInHtml}. See issue 177283 for uses.
-      final String formattedMessage = HTML_START + RAW.convertTo(originalMessage, HTML) + HTML_END;
+      // Note that we also need to use HTML with unicode characters here, since the HTML display
+      // in the inspections view does not appear to support numeric code character entities.
+      String formattedMessage = HTML_START + RAW.convertTo(originalMessage, HTML_WITH_UNICODE) + HTML_END;
+
+      // The inspections UI does not correctly handle
+
       final TextRange range = problemData.getTextRange();
 
       if (range.getStartOffset() == range.getEndOffset()) {

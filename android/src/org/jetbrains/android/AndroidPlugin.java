@@ -65,26 +65,8 @@ public class AndroidPlugin implements ApplicationComponent {
   }
 
   public static class GuiTestSuiteState {
-    private boolean myOpenProjectWizardAlreadyTested;
-    private boolean myImportProjectWizardAlreadyTested;
     private boolean mySkipSdkMerge;
     private boolean myUseCachedGradleModelOnly;
-
-    public boolean isOpenProjectWizardAlreadyTested() {
-      return myOpenProjectWizardAlreadyTested;
-    }
-
-    public void setOpenProjectWizardAlreadyTested(boolean openProjectWizardAlreadyTested) {
-      myOpenProjectWizardAlreadyTested = openProjectWizardAlreadyTested;
-    }
-
-    public boolean isImportProjectWizardAlreadyTested() {
-      return myImportProjectWizardAlreadyTested;
-    }
-
-    public void setImportProjectWizardAlreadyTested(boolean importProjectWizardAlreadyTested) {
-      myImportProjectWizardAlreadyTested = importProjectWizardAlreadyTested;
-    }
 
     public boolean isSkipSdkMerge() {
       return mySkipSdkMerge;

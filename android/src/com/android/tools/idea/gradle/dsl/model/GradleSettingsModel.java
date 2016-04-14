@@ -15,17 +15,23 @@
  */
 package com.android.tools.idea.gradle.dsl.model;
 
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslFile;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslElement;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.util.List;
 
+import static com.android.SdkConstants.FN_BUILD_GRADLE;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleSettingsFile;
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
+import static com.intellij.openapi.util.io.FileUtil.filesEqual;
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
 public class GradleSettingsModel extends GradleFileModel {
   private static final String INCLUDE = "include";
@@ -53,17 +59,26 @@ public class GradleSettingsModel extends GradleFileModel {
    *
    * <p>For example, the path a:b or :a:b represents the module in the directory $projectDir/a/b.
    */
-  @Nullable
+  @NotNull
   public List<String> modulePaths() {
-    return myGradleDslFile.getListProperty(INCLUDE, String.class);
+    List<String> result = Lists.newArrayList();
+    result.add(":"); // Indicates the root module.
+
+    List<String> includePaths = myGradleDslFile.getListProperty(INCLUDE, String.class);
+    if (includePaths == null) {
+      return result;
+    }
+
+    for (String includePath : includePaths) {
+      result.add(standardiseModulePath(includePath));
+    }
+    return result;
   }
 
   @NotNull
   public GradleSettingsModel addModulePath(@NotNull String modulePath) {
-    if (!modulePath.startsWith(":")) {
-      modulePath = ":" + modulePath;
-    }
-    myGradleDslFile.addToListProperty(INCLUDE, modulePath);
+    modulePath = standardiseModulePath(modulePath);
+    myGradleDslFile.addToNewLiteralList(INCLUDE, modulePath);
     return this;
   }
 
@@ -71,9 +86,9 @@ public class GradleSettingsModel extends GradleFileModel {
   public GradleSettingsModel removeModulePath(@NotNull String modulePath) {
     // Try to remove the module path whether it has ":" prefix or not.
     if (!modulePath.startsWith(":")) {
-      myGradleDslFile.removeFromListProperty(INCLUDE, ":" + modulePath);
+      myGradleDslFile.removeFromExpressionList(INCLUDE, ":" + modulePath);
     }
-    myGradleDslFile.removeFromListProperty(INCLUDE, modulePath);
+    myGradleDslFile.removeFromExpressionList(INCLUDE, modulePath);
     return this;
   }
 
@@ -84,10 +99,126 @@ public class GradleSettingsModel extends GradleFileModel {
       newModulePath = ":" + newModulePath;
     }
     if (!oldModulePath.startsWith(":")) {
-      myGradleDslFile.replaceInListProperty(INCLUDE, ":" + oldModulePath, newModulePath);
+      myGradleDslFile.replaceInExpressionList(INCLUDE, ":" + oldModulePath, newModulePath);
     }
-    myGradleDslFile.replaceInListProperty(INCLUDE, oldModulePath, newModulePath);
+    myGradleDslFile.replaceInExpressionList(INCLUDE, oldModulePath, newModulePath);
     return this;
+  }
+
+  @Nullable
+  public File moduleDirectory(String modulePath) {
+    modulePath = standardiseModulePath(modulePath);
+
+    if (!modulePaths().contains(modulePath)) {
+      return null;
+    }
+
+    File rootDirPath = getBaseDirPath(myGradleDslFile.getProject());
+    if (modulePath.equals(":")) {
+      return rootDirPath;
+    }
+
+    String projectKey = "project('" + modulePath + "')";
+    ProjectPropertiesDslElement projectProperties = myGradleDslFile.getProperty(projectKey, ProjectPropertiesDslElement.class);
+    if (projectProperties != null) {
+      File projectDir = projectProperties.projectDir();
+      if (projectDir != null) {
+        return projectDir;
+      }
+    }
+
+    File parentDir;
+    if (modulePath.lastIndexOf(':') == 0) {
+      parentDir = rootDirPath;
+    }
+    else {
+      String parentModule = parentModule(modulePath);
+      if (parentModule == null) {
+        return null;
+      }
+      parentDir = moduleDirectory(parentModule);
+    }
+    String moduleName = modulePath.substring(modulePath.lastIndexOf(':') + 1);
+    return new File(parentDir, moduleName);
+  }
+
+  @Nullable
+  public String moduleWithDirectory(@NotNull File moduleDir) {
+    for (String modulePath : modulePaths()) {
+      if (filesEqual(moduleDir, moduleDirectory(modulePath))) {
+        return modulePath;
+      }
+    }
+    return null;
+  }
+
+  @Nullable
+  public GradleBuildModel moduleModel(@NotNull String modulePath) {
+    File buildFilePath = buildFile(modulePath);
+    if (buildFilePath == null) {
+      return null;
+    }
+    VirtualFile buildFile = findFileByIoFile(buildFilePath, true);
+    if (buildFile == null) {
+      return null;
+    }
+    return GradleBuildModel.parseBuildFile(buildFile, myGradleDslFile.getProject(), modulePath.substring(modulePath.lastIndexOf(":") + 1));
+  }
+
+  @Nullable
+  public String parentModule(@NotNull String modulePath) {
+    modulePath = standardiseModulePath(modulePath);
+
+    List<String> allModulePaths = modulePaths();
+    if (!allModulePaths.contains(modulePath)) {
+      return null;
+    }
+
+    if (modulePath.equals(":")) {
+      return null;
+    }
+
+    int lastPathElementIndex = modulePath.lastIndexOf(':');
+    String parentModulePath = lastPathElementIndex == 0 ? ":" : modulePath.substring(0, lastPathElementIndex);
+
+    if (allModulePaths.contains(parentModulePath)) {
+      return parentModulePath;
+    }
+    return null;
+  }
+
+  @Nullable
+  public GradleBuildModel getParentModuleModel(@NotNull String modulePath) {
+    String parentModule = parentModule(modulePath);
+    if (parentModule == null) {
+      return null;
+    }
+    return moduleModel(parentModule);
+  }
+
+  @Nullable
+  public File buildFile(@NotNull String modulePath) {
+    File moduleDirectory = moduleDirectory(modulePath);
+    if (moduleDirectory == null) {
+      return null;
+    }
+
+    String buildFileName = null;
+    String projectKey = "project('" + modulePath + "')";
+    ProjectPropertiesDslElement projectProperties = myGradleDslFile.getProperty(projectKey, ProjectPropertiesDslElement.class);
+    if (projectProperties != null) {
+      buildFileName = projectProperties.buildFileName();
+    }
+
+    if (buildFileName == null) {
+      buildFileName = FN_BUILD_GRADLE;
+    }
+
+    return new File(moduleDirectory, buildFileName);
+  }
+
+  private static String standardiseModulePath(@NotNull String modulePath) {
+    return modulePath.startsWith(":") ? modulePath : ":" + modulePath;
   }
 
   private static class GradleSettingsDslFile extends GradleDslFile {
@@ -96,12 +227,12 @@ public class GradleSettingsModel extends GradleFileModel {
     }
 
     @Override
-    public void addDslElement(@NotNull String property, @NotNull GradleDslElement element) {
+    public void addParsedElement(@NotNull String property, @NotNull GradleDslElement element) {
       if (property.equals(INCLUDE)) {
-        addToDslLiteralList(property, element);
+        addToParsedExpressionList(property, element);
         return;
       }
-      super.addDslElement(property, element);
+      super.addParsedElement(property, element);
     }
   }
 }

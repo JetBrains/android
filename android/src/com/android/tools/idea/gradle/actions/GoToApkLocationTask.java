@@ -67,19 +67,27 @@ public class GoToApkLocationTask implements GradleInvoker.AfterGradleInvocationT
 
   @Override
   public void execute(@NotNull GradleInvocationResult result) {
-    File apkPath = getExistingApkPath();
-    AndroidGradleNotification notification = AndroidGradleNotification.getInstance(myProject);
-    if (result.isBuildSuccessful()) {
-      if (ShowFilePathAction.isSupported()) {
-        notification.showBalloon(myNotificationTitle, "APK(s) generated successfully.", INFORMATION, new GoToPathHyperlink(apkPath));
-        return;
+    try {
+      File apkPath = getExistingApkPath();
+      AndroidGradleNotification notification = AndroidGradleNotification.getInstance(myProject);
+      if (result.isBuildSuccessful()) {
+        if (ShowFilePathAction.isSupported()) {
+          notification.showBalloon(myNotificationTitle, "APK(s) generated successfully.", INFORMATION, new GoToPathHyperlink(apkPath));
+        }
+        else {
+          String msg = String.format("APK(s) location is\n%1$s.", apkPath.getPath());
+          notification.showBalloon(myNotificationTitle, msg, INFORMATION);
+        }
       }
-      String msg = String.format("APK(s) location is\n%1$s.", apkPath.getPath());
-      notification.showBalloon(myNotificationTitle, msg, INFORMATION);
-      return;
+      else {
+        String msg = "Errors while building APK. You can find the errors in the 'Messages' view.";
+        notification.showBalloon(myNotificationTitle, msg, ERROR);
+      }
     }
-    String msg = "Errors while building APK. You can find the errors in the 'Messages' view.";
-    notification.showBalloon(myNotificationTitle, msg, ERROR);
+    finally {
+      // See https://code.google.com/p/android/issues/detail?id=195369
+      GradleInvoker.getInstance(myProject).removeAfterGradleInvocationTask(this);
+    }
   }
 
   private File getExistingApkPath() {

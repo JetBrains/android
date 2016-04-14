@@ -19,8 +19,10 @@ import com.android.annotations.Nullable;
 import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.*;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.ddms.DevicePropertyUtil;
+import com.android.tools.idea.fd.InstantRunManager;
+import com.android.tools.idea.fd.InstantRunSettings;
 import com.android.tools.idea.gradle.structure.editors.AndroidProjectSettingsService;
+import com.android.tools.idea.run.util.LaunchStatus;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
@@ -64,18 +66,17 @@ public class ApkInstaller {
   public boolean uploadAndInstallApk(@NotNull IDevice device,
                                      @NotNull String packageName,
                                      @NotNull File localFile,
-                                     @NotNull AtomicBoolean cancelInstallation) {
+                                     @NotNull LaunchStatus launchStatus) {
     if (!needsInstall(device, localFile, packageName)) {
       return true;
     }
 
-    myPrinter.stdout("Installing APK: " + localFile);
     String remotePath = "/data/local/tmp/" + packageName;
-    myPrinter.stdout("Uploading file to: " + remotePath);
+    myPrinter.stdout("$ adb push " + localFile + " " + remotePath);
 
     try {
       device.pushFile(localFile.getPath(), remotePath);
-      boolean installed = installApp(device, remotePath, packageName, cancelInstallation);
+      boolean installed = installApp(device, remotePath, packageName, launchStatus);
       if (installed) {
         myInstalledApkCache.setInstalled(device, localFile, packageName);
       }
@@ -102,7 +103,6 @@ public class ApkInstaller {
 
     myPrinter.stdout("No apk changes detected since last installation, skipping installation of " + localFile.getPath());
     if (myLaunchOptions.isForceStopRunningApp()) {
-      myPrinter.stdout("Force stopping package: " + packageName);
       forceStopPackageSilently(device, packageName, true);
     }
 
@@ -111,7 +111,7 @@ public class ApkInstaller {
 
   private void forceStopPackageSilently(@NotNull IDevice device, @NotNull String packageName, boolean ignoreErrors) {
     String command = "am force-stop " + packageName;
-    myPrinter.stdout(AndroidRunningState.DEVICE_COMMAND_PREFIX + command);
+    myPrinter.stdout("$ adb shell " + command);
     try {
       device.executeShellCommand(command, new NullOutputReceiver(), 1, TimeUnit.SECONDS);
     }
@@ -125,14 +125,12 @@ public class ApkInstaller {
   private boolean installApp(@NotNull IDevice device,
                              @NotNull String remotePath,
                              @NotNull String packageName,
-                             @NotNull AtomicBoolean cancelInstallation) throws IOException, AdbCommandRejectedException, TimeoutException {
-    myPrinter.stdout("Installing " + packageName);
-
+                             @NotNull LaunchStatus launchStatus) throws IOException, AdbCommandRejectedException, TimeoutException {
     InstallResult result = null;
     boolean retry = true;
 
-    while (!cancelInstallation.get() && retry) {
-      result = installApp(device, remotePath, cancelInstallation);
+    while (!launchStatus.isLaunchTerminated() && retry) {
+      result = installApp(device, remotePath, launchStatus);
       if (result.installOutput != null) {
         if (result.failureCode == InstallResult.FailureCode.NO_ERROR) {
           myPrinter.stdout(result.installOutput);
@@ -198,7 +196,7 @@ public class ApkInstaller {
   }
 
   private String validateSdkVersion(@NotNull IDevice device) {
-    AndroidVersion deviceVersion = DevicePropertyUtil.getDeviceVersion(device);
+    AndroidVersion deviceVersion = device.getVersion();
     AndroidVersion minSdkVersion = myFacet.getAndroidModuleInfo().getRuntimeMinSdkVersion();
     if (!deviceVersion.canRun(minSdkVersion)) {
       myPrinter.stderr("Device API level: " + deviceVersion.toString()); // Log the device version to console for easy reference.
@@ -233,7 +231,7 @@ public class ApkInstaller {
   }
 
   private boolean uninstallPackage(@NotNull IDevice device, @NotNull String packageName) {
-    myPrinter.stdout(AndroidRunningState.DEVICE_COMMAND_PREFIX + "pm uninstall " + packageName);
+    myPrinter.stdout("$ adb shell pm uninstall " + packageName);
     String output;
     try {
       output = device.uninstallPackage(packageName);
@@ -249,13 +247,13 @@ public class ApkInstaller {
     return true;
   }
 
-  private InstallResult installApp(@NotNull IDevice device, @NotNull String remotePath, AtomicBoolean cancelInstallation)
+  private InstallResult installApp(@NotNull IDevice device, @NotNull String remotePath, LaunchStatus launchStatus)
     throws AdbCommandRejectedException, TimeoutException, IOException {
 
-    ErrorMatchingReceiver receiver = new ErrorMatchingReceiver(cancelInstallation);
+    ErrorMatchingReceiver receiver = new ErrorMatchingReceiver(launchStatus);
 
     String command = getPmInstallCommand(remotePath, myLaunchOptions.getPmInstallOptions());
-    myPrinter.stdout(AndroidRunningState.DEVICE_COMMAND_PREFIX + command);
+    myPrinter.stdout("$ adb shell " + command);
     try {
       device.executeShellCommand(command, receiver);
     }

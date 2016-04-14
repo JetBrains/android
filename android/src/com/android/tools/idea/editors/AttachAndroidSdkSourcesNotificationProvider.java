@@ -15,11 +15,9 @@
  */
 package com.android.tools.idea.editors;
 
-import com.android.sdklib.repository.FullRevision;
-import com.android.sdklib.repository.MajorRevision;
-import com.android.sdklib.repository.descriptors.IPkgDesc;
-import com.android.sdklib.repository.descriptors.PkgDesc;
-import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
+import com.android.sdklib.repositoryv2.meta.DetailsTypes;
+import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
+import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.collect.Lists;
 import com.intellij.ProjectTopics;
 import com.intellij.codeEditor.JavaEditorFileSwapper;
@@ -102,12 +100,11 @@ public class AttachAndroidSdkSourcesNotificationProvider extends EditorNotificat
       panel.createActionLabel("Download", new Runnable() {
         @Override
         public void run() {
-          List<IPkgDesc> requested = Lists.newArrayList();
-          requested.add(PkgDesc.Builder.newSource(platform.getApiVersion(), new MajorRevision(FullRevision.NOT_SPECIFIED)).create());
+          List<String> requested = Lists.newArrayList();
+          requested.add(DetailsTypes.getSourcesPath(platform.getApiVersion()));
 
-          SdkQuickfixWizard wizard = new SdkQuickfixWizard(myProject, null, requested);
-          wizard.init();
-          if (wizard.showAndGet()) {
+          ModelWizardDialog dialog = SdkQuickfixUtils.createDialogForPaths(myProject, requested);
+          if (dialog != null && dialog.showAndGet()) {
             updateSdkSourceRoot(sdk);
           }
         }

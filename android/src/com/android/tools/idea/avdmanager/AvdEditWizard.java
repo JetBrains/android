@@ -15,14 +15,16 @@
  */
 package com.android.tools.idea.avdmanager;
 
+import com.android.repository.io.FileOp;
+import com.android.repository.io.FileOpUtils;
 import com.android.resources.ScreenOrientation;
-import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.ISystemImage;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.DeviceManager;
 import com.android.sdklib.devices.Storage;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
+import com.android.sdklib.internal.avd.GpuMode;
 import com.android.sdklib.internal.avd.HardwareProperties;
 import com.android.tools.idea.ddms.screenshot.DeviceArtDescriptor;
 import com.android.tools.idea.wizard.dynamic.*;
@@ -37,11 +39,15 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.text.StringUtil;
+import org.jetbrains.android.sdk.AndroidSdkData;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -56,8 +62,9 @@ public class AvdEditWizard extends DynamicWizard {
   @Nullable private final AvdInfo myAvdInfo;
   private final boolean myForceCreate;
   private final JComponent myParent;
+  private AvdInfo myCreatedAvd;
 
-  public AvdEditWizard(@NotNull JComponent parent,
+  public AvdEditWizard(@Nullable JComponent parent,
                        @Nullable Project project,
                        @Nullable Module module,
                        @Nullable AvdInfo avdInfo,
@@ -74,7 +81,7 @@ public class AvdEditWizard extends DynamicWizard {
     if (myAvdInfo != null) {
       fillExistingInfo(myAvdInfo);
       if (myForceCreate) {
-        String displayName = myAvdInfo.getProperties().get(AvdWizardConstants.DISPLAY_NAME_KEY.name);
+        String displayName = myAvdInfo.getProperties().get(DISPLAY_NAME_KEY.name);
         getState().put(DISPLAY_NAME_KEY, String.format("Copy of %1$s", displayName));
       }
     }
@@ -102,7 +109,6 @@ public class AvdEditWizard extends DynamicWizard {
     state.put(BACK_CAMERA_KEY, DEFAULT_CAMERA);
     state.put(INTERNAL_STORAGE_KEY, DEFAULT_INTERNAL_STORAGE);
     state.put(IS_IN_EDIT_MODE_KEY, false);
-    state.put(USE_HOST_GPU_KEY, true);
     state.put(DISPLAY_SD_SIZE_KEY, new Storage(100, Storage.Unit.MiB));
     state.put(DISPLAY_USE_EXTERNAL_SD_KEY, false);
   }
@@ -123,17 +129,16 @@ public class AvdEditWizard extends DynamicWizard {
       }
     }
     state.put(DEVICE_DEFINITION_KEY, selectedDevice);
-    IAndroidTarget target = avdInfo.getTarget();
-    if (target != null) {
-      ISystemImage selectedImage = target.getSystemImage(avdInfo.getTag(), avdInfo.getAbiType());
-      if (selectedImage != null) {
-        SystemImageDescription systemImageDescription = new SystemImageDescription(target, selectedImage);
-        state.put(SYSTEM_IMAGE_KEY, systemImageDescription);
-      }
+    ISystemImage selectedImage = avdInfo.getSystemImage();
+    if (selectedImage != null) {
+      SystemImageDescription systemImageDescription = new SystemImageDescription(selectedImage);
+      state.put(SYSTEM_IMAGE_KEY, systemImageDescription);
     }
 
     Map<String, String> properties = avdInfo.getProperties();
 
+    state.put(CPU_CORES_KEY, StringUtil.parseInt(properties.get(CPU_CORES_KEY.name), 1));
+    state.put(RANCHU_KEY, properties.containsKey(CPU_CORES_KEY.name));
     state.put(RAM_STORAGE_KEY, getStorageFromIni(properties.get(RAM_STORAGE_KEY.name)));
     state.put(VM_HEAP_STORAGE_KEY, getStorageFromIni(properties.get(VM_HEAP_STORAGE_KEY.name)));
     state.put(INTERNAL_STORAGE_KEY, getStorageFromIni(properties.get(INTERNAL_STORAGE_KEY.name)));
@@ -170,7 +175,10 @@ public class AvdEditWizard extends DynamicWizard {
       state.put(SCALE_SELECTION_KEY, AvdScaleFactor.findByValue(scale));
     }
     state.put(USE_HOST_GPU_KEY, fromIniString(properties.get(USE_HOST_GPU_KEY.name)));
-    state.put(USE_SNAPSHOT_KEY, fromIniString(properties.get(USE_SNAPSHOT_KEY.name)));
+    String mode = properties.get(HOST_GPU_MODE_KEY.name);
+    if (mode != null) {
+      state.put(HOST_GPU_MODE_KEY, GpuMode.fromGpuSetting(mode));
+    }
     state.put(FRONT_CAMERA_KEY, properties.get(FRONT_CAMERA_KEY.name));
     state.put(BACK_CAMERA_KEY, properties.get(BACK_CAMERA_KEY.name));
     state.put(NETWORK_LATENCY_KEY, properties.get(NETWORK_LATENCY_KEY.name));
@@ -251,6 +259,9 @@ public class AvdEditWizard extends DynamicWizard {
     Map<String, String> hardwareProperties = DeviceManager.getHardwareProperties(device);
     Map<String, Object> userEditedProperties = myState.flatten();
 
+    // Skin is handled separately below.
+    userEditedProperties.remove(AvdManager.AVD_INI_SKIN_PATH);
+
     // Remove the SD card setting that we're not using
     String sdCard = null;
 
@@ -293,7 +304,7 @@ public class AvdEditWizard extends DynamicWizard {
       @Override
       public String transformEntry(String key, Object value) {
         if (value instanceof Storage) {
-          if (key.equals(AvdWizardConstants.RAM_STORAGE_KEY.name) || key.equals(AvdWizardConstants.VM_HEAP_STORAGE_KEY.name)) {
+          if (key.equals(RAM_STORAGE_KEY.name) || key.equals(VM_HEAP_STORAGE_KEY.name)) {
             return toIniString((Storage)value, true);
           }
           else {
@@ -312,6 +323,9 @@ public class AvdEditWizard extends DynamicWizard {
         else if (value instanceof Double) {
           return toIniString((Double)value);
         }
+        else if (value instanceof GpuMode) {
+          return ((GpuMode)value).getGpuSetting();
+        }
         else {
           return value.toString();
         }
@@ -320,7 +334,7 @@ public class AvdEditWizard extends DynamicWizard {
 
     File skinFile = myState.get(CUSTOM_SKIN_FILE_KEY);
     if (skinFile == null) {
-      skinFile = resolveSkinPath(device.getDefaultHardware().getSkinFile(), systemImageDescription);
+      skinFile = resolveSkinPath(device.getDefaultHardware().getSkinFile(), systemImageDescription, FileOpUtils.create());
     }
     File backupSkinFile = myState.get(BACKUP_SKIN_FILE_KEY);
     if (backupSkinFile != null) {
@@ -328,16 +342,13 @@ public class AvdEditWizard extends DynamicWizard {
     }
 
     // Add defaults if they aren't already set differently
-    if (!hardwareProperties.containsKey(AvdManager.AVD_INI_SKIN_DYNAMIC)) {
-      hardwareProperties.put(AvdManager.AVD_INI_SKIN_DYNAMIC, toIniString(true));
-    }
     if (!hardwareProperties.containsKey(HardwareProperties.HW_KEYBOARD)) {
       hardwareProperties.put(HardwareProperties.HW_KEYBOARD, toIniString(false));
     }
 
     boolean isCircular = device.isScreenRound();
 
-    String tempAvdName = myState.get(AvdWizardConstants.AVD_ID_KEY);
+    String tempAvdName = myState.get(AVD_ID_KEY);
     if (tempAvdName == null || tempAvdName.isEmpty()) {
       tempAvdName = calculateAvdName(myAvdInfo, hardwareProperties, device, myForceCreate);
     }
@@ -345,15 +356,15 @@ public class AvdEditWizard extends DynamicWizard {
 
     // If we're editing an AVD and we downgrade a system image, wipe the user data with confirmation
     if (myAvdInfo != null && !myForceCreate) {
-      IAndroidTarget target = myAvdInfo.getTarget();
-      if (target != null) {
+      ISystemImage image = myAvdInfo.getSystemImage();
+      if (image != null) {
 
-        int oldApiLevel = target.getVersion().getFeatureLevel();
+        int oldApiLevel = image.getAndroidVersion().getFeatureLevel();
         int newApiLevel = systemImageDescription.getVersion().getFeatureLevel();
-        final String oldApiName = target.getVersion().getApiString();
+        final String oldApiName = image.getAndroidVersion().getApiString();
         final String newApiName = systemImageDescription.getVersion().getApiString();
         if (oldApiLevel > newApiLevel ||
-            (oldApiLevel == newApiLevel && target.getVersion().isPreview() && !systemImageDescription.getVersion().isPreview())) {
+            (oldApiLevel == newApiLevel && image.getAndroidVersion().isPreview() && !systemImageDescription.getVersion().isPreview())) {
           final AtomicReference<Boolean> shouldContinue = new AtomicReference<Boolean>();
           ApplicationManager.getApplication().invokeAndWait(new Runnable() {
             @Override
@@ -377,8 +388,13 @@ public class AvdEditWizard extends DynamicWizard {
     }
 
     AvdManagerConnection connection = AvdManagerConnection.getDefaultAvdManagerConnection();
-    connection.createOrUpdateAvd(myForceCreate ? null : myAvdInfo, avdName, device, systemImageDescription, orientation, isCircular, sdCard,
+    myCreatedAvd = connection.createOrUpdateAvd(myForceCreate ? null : myAvdInfo, avdName, device, systemImageDescription, orientation, isCircular, sdCard,
                                         skinFile, hardwareProperties, false);
+  }
+
+  @Nullable
+  public AvdInfo getCreatedAvd() {
+    return myCreatedAvd;
   }
 
   @NotNull
@@ -403,11 +419,11 @@ public class AvdEditWizard extends DynamicWizard {
    * @return The resolved path.
    */
   @Nullable
-  public static File resolveSkinPath(@Nullable File path, @Nullable SystemImageDescription image) {
+  public static File resolveSkinPath(@Nullable File path, @Nullable SystemImageDescription image, @NotNull FileOp fop) {
     if (path == null || path.getPath().isEmpty()) {
       return path;
     }
-    if (path.equals(NO_SKIN)) {
+    if (FileUtil.filesEqual(path, NO_SKIN)) {
       return NO_SKIN;
     }
     if (!path.isAbsolute()) {
@@ -419,10 +435,31 @@ public class AvdEditWizard extends DynamicWizard {
           }
         }
       }
+      AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
+      File dest = null;
+      if (sdkData != null) {
+        File sdkDir = sdkData.getLocation();
+        File sdkSkinDir = new File(sdkDir, "skins");
+        dest = new File(sdkSkinDir, path.getPath());
+        if (fop.exists(dest)) {
+          return dest;
+        }
+      }
+
       File resourceDir = DeviceArtDescriptor.getBundledDescriptorsFolder();
       if (resourceDir != null) {
         File resourcePath = new File(resourceDir, path.getPath());
-        if (resourcePath.exists()) {
+        if (fop.exists(resourcePath)) {
+          if (dest != null) {
+            try {
+              FileOpUtils.recursiveCopy(resourcePath, dest.getParentFile(), fop);
+              return new File(dest, path.getPath());
+            }
+            catch (IOException e) {
+              LOG.warn(String.format("Failed to copy skin directory to %1$s, using studio-relative path %2$s",
+                                     dest, resourcePath));
+            }
+          }
           return resourcePath;
         }
       }
@@ -500,6 +537,7 @@ public class AvdEditWizard extends DynamicWizard {
     return String.format("%1$d%2$s", storage.getSizeAsUnit(unit), unitString);
   }
 
+
   /**
    * Encode the given value as a string that can be placed in the AVD's INI file.
    */
@@ -508,6 +546,9 @@ public class AvdEditWizard extends DynamicWizard {
     return b ? "yes" : "no";
   }
 
+  /**
+   * Decode the given value from an AVD's INI file.
+   */
   private static boolean fromIniString(@Nullable String s) {
     return "yes".equals(s);
   }

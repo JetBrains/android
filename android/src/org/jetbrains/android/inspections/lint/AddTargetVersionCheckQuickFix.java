@@ -110,7 +110,7 @@ class AddTargetVersionCheckQuickFix implements AndroidLintQuickFix {
       editor.getCaretModel().moveToOffset(textRange.getEndOffset() + newText.length());
       editor.getScrollingModel().scrollToCaret(ScrollType.RELATIVE);
 
-      if (owner != null && !ApplicationManager.getApplication().isUnitTestMode()) { // Unit tests: "JavaDummyHolder" doesn't work
+      if (owner != null && owner.isValid() && !ApplicationManager.getApplication().isUnitTestMode()) { // Unit tests: "JavaDummyHolder" doesn't work
         JavaCodeStyleManager.getInstance(project).shortenClassReferences(owner);
       }
     }

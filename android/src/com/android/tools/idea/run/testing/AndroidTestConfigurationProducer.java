@@ -16,8 +16,9 @@
 
 package com.android.tools.idea.run.testing;
 
-import com.android.builder.model.AndroidProject;
 import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
+import com.android.tools.idea.gradle.testing.TestArtifactSearchScopes;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.run.AndroidRunConfigurationType;
 import com.android.tools.idea.run.TargetSelectionMode;
@@ -33,10 +34,8 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiMethod;
-import com.intellij.psi.PsiPackage;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.*;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
@@ -168,9 +167,34 @@ public class AndroidTestConfigurationProducer extends JavaRunConfigurationProduc
 
     // TODO: Resolve direct AndroidGradleModel dep (b/22596984)
     AndroidGradleModel androidModel = AndroidGradleModel.get(facet);
-    if (androidModel != null && !androidModel.getSelectedTestArtifactName().equals(AndroidProject.ARTIFACT_ANDROID_TEST)) {
+
+    if (androidModel != null) {
       // Only suggest the android test run configuration if it makes sense for the selected test artifact.
-      return false;
+      if (androidModel.getAndroidTestArtifactInSelectedVariant() == null) {
+        return false;
+      }
+
+      if (GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS) {
+        TestArtifactSearchScopes testScopes = TestArtifactSearchScopes.get(module);
+        if (testScopes == null) {
+          return false;
+        }
+        VirtualFile virtualFile = null;
+        if (element instanceof PsiDirectory) {
+          virtualFile = ((PsiDirectory)element).getVirtualFile();
+        } else {
+          PsiFile psiFile = element.getContainingFile();
+          if (psiFile != null) {
+            virtualFile = psiFile.getVirtualFile();
+          }
+        }
+        if (virtualFile == null) {
+          return false;
+        }
+        if (!testScopes.isAndroidTestSource(virtualFile)) {
+          return false;
+        }
+      }
     }
 
     setupInstrumentationTestRunner(configuration, facet);

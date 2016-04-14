@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.editors.theme;
 
-import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceResolver;
@@ -30,46 +29,31 @@ import com.android.tools.idea.editors.theme.ui.ResourceComponent;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.swing.ui.SwatchComponent;
-import com.google.common.base.Joiner;
-import com.google.common.base.Objects;
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
-import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.editor.event.DocumentEvent;
+import com.intellij.openapi.editor.event.DocumentListener;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.JBPopupMenu;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiManager;
-import com.intellij.psi.xml.XmlTag;
-import com.intellij.ui.DocumentAdapter;
-import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.JBUI;
-import org.jetbrains.android.dom.AndroidDomElement;
-import org.jetbrains.android.dom.color.ColorSelector;
-import org.jetbrains.android.dom.drawable.DrawableSelector;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.android.uipreview.ChooseResourceDialog;
-import org.jetbrains.android.util.AndroidResourceUtil;
-import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.event.DocumentEvent;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.util.List;
-import java.util.Map;
 
 public class StateListPicker extends JPanel {
   private static final String API_ERROR_TEXT = "This resource requires at least an API level of %d";
@@ -80,46 +64,60 @@ public class StateListPicker extends JPanel {
 
   private final Module myModule;
   private final Configuration myConfiguration;
-  private final ResourceHelper.StateList myStateList;
-  private final List<StateComponent> myStateComponents;
-  private @Nullable final RenderTask myRenderTask;
+  private @Nullable ResourceHelper.StateList myStateList;
+  private List<StateComponent> myStateComponents;
+  private final @NotNull RenderTask myRenderTask;
 
   private boolean myIsBackgroundStateList;
-  /** If not null, it contains colors to compare with the state list items colors to find out any possible contrast problems,
+  /** If not empty, it contains colors to compare with the state list items colors to find out any possible contrast problems,
    *  and descriptions to use in case there is a problem. */
   private @NotNull ImmutableMap<String, Color> myContrastColorsWithDescription = ImmutableMap.of();
 
-  public StateListPicker(@NotNull ResourceHelper.StateList stateList,
+  public StateListPicker(@Nullable ResourceHelper.StateList stateList,
                          @NotNull Module module,
                          @NotNull Configuration configuration) {
-    myStateList = stateList;
+
     myModule = module;
     myConfiguration = configuration;
-    myStateComponents = Lists.newArrayListWithCapacity(stateList.getStates().size());
     myRenderTask = DrawableRendererEditor.configureRenderTask(module, configuration);
     setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+    if (stateList != null) {
+      setStateList(stateList);
+    }
+  }
 
+  public void setStateList(@NotNull ResourceHelper.StateList stateList) {
+    myStateList = stateList;
+    myStateComponents = Lists.newArrayListWithCapacity(myStateList.getStates().size());
+    removeAll();
+    if (myStateList.getStates().isEmpty()) {
+      add(new JLabel("Empty " + myStateList.getType() + " StateList"));
+    }
     for (final ResourceHelper.StateListState state : myStateList.getStates()) {
       final StateComponent stateComponent = createStateComponent(state);
-      stateComponent.addValueActionListener(new ValueActionListener(state, stateComponent));
-      stateComponent.addAlphaActionListener(new AlphaActionListener(state, stateComponent));
       add(stateComponent);
     }
+    revalidate();
+    repaint();
   }
 
   @NotNull
   private StateComponent createStateComponent(@NotNull ResourceHelper.StateListState state) {
-    final StateComponent stateComponent = new StateComponent();
+    final StateComponent stateComponent = new StateComponent(myModule.getProject());
     myStateComponents.add(stateComponent);
 
     String stateValue = state.getValue();
     String alphaValue = state.getAlpha();
-    updateComponent(stateComponent, stateValue, alphaValue);
+
+    stateComponent.addValueActionListener(new ValueActionListener(state, stateComponent));
+    stateComponent.addAlphaActionListener(new AlphaActionListener(state, stateComponent));
+
+    stateComponent.setValueText(stateValue);
+    stateComponent.setAlphaValue(alphaValue);
 
     stateComponent.setAlphaVisible(!StringUtil.isEmpty(alphaValue));
 
-    String stateDescription = Joiner.on(", ").join(state.getAttributesNames(true));
-    stateComponent.setNameText(stateDescription);
+    stateComponent.setNameText(state.getDescription());
     stateComponent.setComponentPopupMenu(createAlphaPopupMenu(state, stateComponent));
 
     return stateComponent;
@@ -131,18 +129,19 @@ public class StateListPicker extends JPanel {
     JBPopupMenu popupMenu = new JBPopupMenu();
     final JMenuItem deleteAlpha = new JMenuItem("Delete alpha");
     popupMenu.add(deleteAlpha);
-    deleteAlpha.setVisible(state.getAlpha() != null);
+    deleteAlpha.setVisible(!StringUtil.isEmpty(state.getAlpha()));
 
     final JMenuItem createAlpha = new JMenuItem("Create alpha");
     popupMenu.add(createAlpha);
-    createAlpha.setVisible(state.getAlpha() == null);
+    createAlpha.setVisible(StringUtil.isEmpty(state.getAlpha()));
 
     deleteAlpha.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
         stateComponent.getAlphaComponent().setVisible(false);
+        stateComponent.setAlphaValue(null);
         state.setAlpha(null);
-        updateComponent(stateComponent, state.getValue(), state.getAlpha());
+        updateIcon(stateComponent);
         deleteAlpha.setVisible(false);
         createAlpha.setVisible(true);
       }
@@ -156,7 +155,7 @@ public class StateListPicker extends JPanel {
           return;
         }
         listener.actionPerformed(new ActionEvent(stateComponent.getAlphaComponent(), ActionEvent.ACTION_PERFORMED, null));
-        if (state.getAlpha() != null) {
+        if (!StringUtil.isEmpty(state.getAlpha())) {
           stateComponent.getAlphaComponent().setVisible(true);
           createAlpha.setVisible(false);
           deleteAlpha.setVisible(true);
@@ -167,81 +166,9 @@ public class StateListPicker extends JPanel {
     return popupMenu;
   }
 
-  public void updateStateList(@NotNull List<VirtualFile> files) {
-    Project project = myModule.getProject();
-    if (!AndroidResourceUtil.ensureFilesWritable(project, files)) {
-      return;
-    }
-
-    List<PsiFile> psiFiles = Lists.newArrayListWithCapacity(files.size());
-    PsiManager manager = PsiManager.getInstance(project);
-    for (VirtualFile file : files) {
-      PsiFile psiFile = manager.findFile(file);
-      if (psiFile != null) {
-        psiFiles.add(psiFile);
-      }
-    }
-
-    final List<AndroidDomElement> selectors = Lists.newArrayListWithCapacity(files.size());
-
-    Class<? extends AndroidDomElement> selectorClass;
-    if (myStateList.getType() == ResourceFolderType.COLOR) {
-      selectorClass = ColorSelector.class;
-    }
-    else {
-      selectorClass = DrawableSelector.class;
-    }
-    for (VirtualFile file : files) {
-      final AndroidDomElement selector = AndroidUtils.loadDomElement(myModule, file, selectorClass);
-      if (selector == null) {
-        AndroidUtils.reportError(project, file.getName() + " is not a statelist file");
-        return;
-      }
-      selectors.add(selector);
-    }
-
-    new WriteCommandAction.Simple(project, "Change State List", psiFiles.toArray(new PsiFile[psiFiles.size()])) {
-      @Override
-      protected void run() {
-        for (AndroidDomElement selector : selectors) {
-          XmlTag tag = selector.getXmlTag();
-          for (XmlTag subtag : tag.getSubTags()) {
-            subtag.delete();
-          }
-          for (ResourceHelper.StateListState state : myStateList.getStates()) {
-            XmlTag child = tag.createChildTag(SdkConstants.TAG_ITEM, tag.getNamespace(), null, false);
-            child = tag.addSubTag(child, false);
-
-            Map<String, Boolean> attributes = state.getAttributes();
-            for (String attributeName : attributes.keySet()) {
-              child.setAttribute(attributeName, SdkConstants.ANDROID_URI, attributes.get(attributeName).toString());
-            }
-
-            if (!StringUtil.isEmpty(state.getAlpha())) {
-              child.setAttribute("alpha", SdkConstants.ANDROID_URI, state.getAlpha());
-            }
-
-            if (selector instanceof ColorSelector) {
-              child.setAttribute(SdkConstants.ATTR_COLOR, SdkConstants.ANDROID_URI, state.getValue());
-            }
-            else if (selector instanceof DrawableSelector) {
-              child.setAttribute(SdkConstants.ATTR_DRAWABLE, SdkConstants.ANDROID_URI, state.getValue());
-            }
-          }
-        }
-
-        // The following is necessary since layoutlib will look on disk for the color state list file.
-        // So as soon as a color state list is modified, the change needs to be saved on disk
-        // for the correct values to be used in the theme editor preview.
-        // TODO: Remove this once layoutlib can get color state lists from PSI instead of disk
-        FileDocumentManager.getInstance().saveAllDocuments();
-      }
-    }.execute();
-  }
-
   /**
-   * Returns a {@Link ValidationInfo} specifying which of the state list component has a value which is a framework value,
-   * but either does not exist, or is private;
+   * Returns a {@Link ValidationInfo} in the case one of the state list state has a value that does not resolve to a valid resource,
+   * or a value that is a private framework value.
    */
   @Nullable("if there is no error")
   public ValidationInfo getFrameworkResourceError() {
@@ -313,7 +240,12 @@ public class StateListPicker extends JPanel {
     myIsBackgroundStateList = isBackgroundStateList;
   }
 
-  class ValueActionListener extends DocumentAdapter implements ActionListener {
+  @Nullable
+  public ResourceHelper.StateList getStateList() {
+    return myStateList;
+  }
+
+  class ValueActionListener implements ActionListener, DocumentListener {
     private final ResourceHelper.StateListState myState;
     private final StateComponent myComponent;
 
@@ -323,10 +255,31 @@ public class StateListPicker extends JPanel {
     }
 
     @Override
-    protected void textChanged(DocumentEvent e) {
+    public void beforeDocumentChange(DocumentEvent e) {
+      AndroidFacet facet = AndroidFacet.getInstance(myModule);
+      assert facet != null;
+      assert myStateList != null;
+      List<String> completionStrings = ResourceHelper.getCompletionFromTypes(facet, myStateList.getFolderType() == ResourceFolderType.COLOR
+                                                                                    ? GraphicalResourceRendererEditor.COLORS_ONLY
+                                                                                    : GraphicalResourceRendererEditor.DRAWABLES_ONLY);
+      myComponent.getResourceComponent().setCompletionStrings(completionStrings);
+    }
+
+    /**
+     * @see AlphaActionListener#documentChanged(DocumentEvent)
+     */
+    @Override
+    public void documentChanged(DocumentEvent e) {
       myState.setValue(myComponent.getResourceValue());
-      updateComponent(myComponent, myComponent.getResourceValue(), myComponent.getAlphaValue());
-      myComponent.repaint();
+      // This is run inside a WriteAction and updateIcon may need an APP_RESOURCES_LOCK from AndroidFacet.
+      // To prevent a potential deadlock, we call updateIcon in another thread.
+      SwingUtilities.invokeLater(new Runnable() {
+        @Override
+        public void run() {
+          updateIcon(myComponent);
+          myComponent.repaint();
+        }
+      });
     }
 
     @Override
@@ -339,16 +292,22 @@ public class StateListPicker extends JPanel {
       String nameSuggestion = attributeValueUrl != null ? attributeValueUrl.name : attributeValue;
 
       ResourceType[] allowedTypes;
-      if (myStateList.getType() == ResourceFolderType.COLOR) {
+      assert myStateList != null;
+      if (myStateList.getFolderType() == ResourceFolderType.COLOR) {
         allowedTypes = GraphicalResourceRendererEditor.COLORS_ONLY;
       }
       else {
         allowedTypes = GraphicalResourceRendererEditor.DRAWABLES_ONLY;
       }
 
+      ChooseResourceDialog.ResourceNameVisibility resourceNameVisibility = ChooseResourceDialog.ResourceNameVisibility.FORCE;
+      if (nameSuggestion.startsWith("#")) {
+        nameSuggestion = null;
+        resourceNameVisibility = ChooseResourceDialog.ResourceNameVisibility.SHOW;
+      }
+
       final ChooseResourceDialog dialog =
-        new ChooseResourceDialog(myModule, myConfiguration, allowedTypes, attributeValue, isFrameworkValue,
-                                 ChooseResourceDialog.ResourceNameVisibility.FORCE, nameSuggestion);
+        new ChooseResourceDialog(myModule, allowedTypes, attributeValue, isFrameworkValue, resourceNameVisibility, nameSuggestion);
 
       if (!myContrastColorsWithDescription.isEmpty()) {
         dialog
@@ -358,12 +317,9 @@ public class StateListPicker extends JPanel {
       dialog.show();
 
       if (dialog.isOK()) {
-        myState.setValue(dialog.getResourceName());
-        AndroidFacet facet = AndroidFacet.getInstance(myModule);
-        if (facet != null) {
-          facet.refreshResources();
-        }
-        updateComponent(myComponent, myState.getValue(), myState.getAlpha());
+        String resourceName = dialog.getResourceName();
+        myState.setValue(resourceName);
+        myComponent.setValueText(resourceName);
 
         // If a resource was overridden, it may affect several states of the state list.
         // Thus we need to repaint all components.
@@ -372,7 +328,7 @@ public class StateListPicker extends JPanel {
     }
   }
 
-  private class AlphaActionListener extends DocumentAdapter implements ActionListener {
+  private class AlphaActionListener implements ActionListener, DocumentListener {
     private final ResourceHelper.StateListState myState;
     private final StateComponent myComponent;
 
@@ -382,10 +338,27 @@ public class StateListPicker extends JPanel {
     }
 
     @Override
-    protected void textChanged(DocumentEvent e) {
+    public void beforeDocumentChange(DocumentEvent e) {
+      AndroidFacet facet = AndroidFacet.getInstance(myModule);
+      assert facet != null;
+      myComponent.getAlphaComponent().setCompletionStrings(ResourceHelper.getCompletionFromTypes(facet, DIMENSIONS_ONLY));
+    }
+
+    /**
+     * @see ValueActionListener#documentChanged(DocumentEvent)
+     */
+    @Override
+    public void documentChanged(DocumentEvent e) {
       myState.setAlpha(myComponent.getAlphaValue());
-      updateComponent(myComponent, myComponent.getResourceValue(), myComponent.getAlphaValue());
-      myComponent.repaint();
+      // This is run inside a WriteAction and updateIcon may need an APP_RESOURCES_LOCK from AndroidFacet.
+      // To prevent a potential deadlock, we call updateIcon in another thread.
+      SwingUtilities.invokeLater(new Runnable() {
+        @Override
+        public void run() {
+          updateIcon(myComponent);
+          myComponent.repaint();
+        }
+      });
     }
 
     @Override
@@ -404,11 +377,9 @@ public class StateListPicker extends JPanel {
       dialog.show();
 
       if (dialog.isOK()) {
-        myState.setAlpha(dialog.getResourceName());
-        AndroidFacet facet = AndroidFacet.getInstance(myModule);
-        assert facet != null;
-        facet.refreshResources();
-        updateComponent(myComponent, myState.getValue(), myState.getAlpha());
+        String resourceName = dialog.getResourceName();
+        myState.setAlpha(resourceName);
+        myComponent.setAlphaValue(resourceName);
 
         // If a resource was overridden, it may affect several states of the state list.
         // Thus we need to repaint all components.
@@ -417,22 +388,18 @@ public class StateListPicker extends JPanel {
     }
   }
 
-  private void updateComponent(@NotNull StateComponent component, @NotNull String resourceName, @Nullable String alphaValue) {
-    if (!Objects.equal(resourceName, component.getResourceValue())) {
-      component.setValueText(resourceName);
-    }
-    if (!Objects.equal(alphaValue, component.getAlphaValue())) {
-      component.setAlphaValue(alphaValue);
-    }
+  private void updateIcon(@NotNull StateComponent component) {
     component.showAlphaError(false);
 
     ResourceResolver resourceResolver = myConfiguration.getResourceResolver();
     assert resourceResolver != null;
 
+    String resourceName = component.getResourceValue();
+
     ResourceValue resValue = resourceResolver.findResValue(resourceName, false);
     resValue = resourceResolver.resolveResValue(resValue);
 
-    if (resValue != null && resValue.getResourceType() != ResourceType.COLOR && myRenderTask != null) {
+    if (resValue != null && resValue.getResourceType() != ResourceType.COLOR) {
       List<BufferedImage> images = myRenderTask.renderDrawableAllStates(resValue);
       if (images.isEmpty()) {
         component.setValueIcon(SwatchComponent.WARNING_ICON);
@@ -458,6 +425,8 @@ public class StateListPicker extends JPanel {
       }
       component.showStack(colors.size() > 1);
 
+      String alphaValue = component.getAlphaValue();
+
       if (!StringUtil.isEmpty(alphaValue)) {
         try {
           float alpha = Float.parseFloat(ResourceHelper.resolveStringValue(resourceResolver, alphaValue));
@@ -478,7 +447,7 @@ public class StateListPicker extends JPanel {
 
   private void repaintAllComponents() {
     for (StateComponent component : myStateComponents) {
-      updateComponent(component, component.getResourceValue(), component.getAlphaValue());
+      updateIcon(component);
       component.repaint();
     }
   }
@@ -489,22 +458,20 @@ public class StateListPicker extends JPanel {
     private final JBLabel myAlphaErrorLabel;
     private AlphaActionListener myAlphaActionListener;
 
-    public StateComponent() {
+    public StateComponent(@NotNull Project project) {
       super(BoxLayout.PAGE_AXIS);
 
-      myResourceComponent = new ResourceComponent();
+      myResourceComponent = new ResourceComponent(project, true);
       add(myResourceComponent);
       myResourceComponent
         .setMaximumSize(new Dimension(myResourceComponent.getMaximumSize().width, myResourceComponent.getPreferredSize().height));
       myResourceComponent.setVariantComboVisible(false);
 
-      myAlphaComponent = new SwatchComponent();
-      myAlphaComponent.setBackground(JBColor.WHITE);
-      myAlphaComponent.setForeground(null);
+      myAlphaComponent = new SwatchComponent(project, true);
       add(myAlphaComponent);
 
       Font font = StateListPicker.this.getFont();
-      setFont(font.deriveFont(font.getSize() * ThemeEditorConstants.ATTRIBUTES_FONT_SCALE));
+      setFont(ThemeEditorUtils.scaleFontForAttribute(font));
       myAlphaComponent.setMaximumSize(new Dimension(myAlphaComponent.getMaximumSize().width, myAlphaComponent.getPreferredSize().height));
 
       Box alphaErrorComponent = new Box(BoxLayout.LINE_AXIS);

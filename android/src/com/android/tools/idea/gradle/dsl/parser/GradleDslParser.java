@@ -18,24 +18,49 @@ package com.android.tools.idea.gradle.dsl.parser;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.CompileOptionsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorsDslElement;
+import com.android.tools.idea.gradle.dsl.parser.build.BuildScriptDslElement;
+import com.android.tools.idea.gradle.dsl.parser.build.SubProjectsDslElement;
+import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
+import com.android.tools.idea.gradle.dsl.parser.repositories.FlatDirRepositoryDslElement;
+import com.android.tools.idea.gradle.dsl.parser.repositories.MavenCredentialsDslElement;
+import com.android.tools.idea.gradle.dsl.parser.repositories.MavenRepositoryDslElement;
+import com.android.tools.idea.gradle.dsl.parser.repositories.RepositoriesDslElement;
+import com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslElement;
 import com.google.common.base.Splitter;
+import com.google.common.collect.Lists;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyElementVisitor;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
 import org.jetbrains.plugins.groovy.lang.psi.api.auxiliary.GrListOrMap;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrArgumentList;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrNamedArgument;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrClosableBlock;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.*;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrMethodCallExpression;
+import org.jetbrains.plugins.groovy.lang.psi.api.types.GrCodeReferenceElement;
 
 import java.util.List;
 
+import static com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement.ANDROID_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorsDslElement.PRODUCT_FLAVORS_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.build.BuildScriptDslElement.BUILDSCRIPT_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.build.SubProjectsDslElement.SUBPROJECTS_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement.DEPENDENCIES_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.elements.BaseCompileOptionsDslElement.COMPILE_OPTIONS_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement.EXT_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.repositories.FlatDirRepositoryDslElement.FLAT_DIR_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.repositories.MavenCredentialsDslElement.CREDENTIALS_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.repositories.MavenRepositoryDslElement.JCENTER_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.repositories.MavenRepositoryDslElement.MAVEN_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.repositories.RepositoriesDslElement.REPOSITORIES_BLOCK_NAME;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.psi.util.PsiTreeUtil.*;
 
@@ -44,16 +69,18 @@ import static com.intellij.psi.util.PsiTreeUtil.*;
  *
  * <p>It parses any general application statements or assigned statements in the .gradle file directly and stores them as key value pairs
  * in the {@link GradleBuildModel}. For every closure block section like {@code android{}}, it will create block elements like
- * {@link AndroidModel}. See {@link #getElement(List, GradlePropertiesDslElement)} for all the block elements currently supported
+ * {@link AndroidModel}. See {@link #getBlockElement(List, GradlePropertiesDslElement)} for all the block elements currently supported
  * by this parser.
  */
 public final class GradleDslParser {
   public static boolean parse(@NotNull GroovyPsiElement psiElement, @NotNull GradleDslFile gradleDslFile) {
     if (psiElement instanceof GrMethodCallExpression) {
       return parse((GrMethodCallExpression)psiElement, (GradlePropertiesDslElement)gradleDslFile);
-    } else if (psiElement instanceof GrAssignmentExpression) {
+    }
+    else if (psiElement instanceof GrAssignmentExpression) {
       return parse((GrAssignmentExpression)psiElement, (GradlePropertiesDslElement)gradleDslFile);
-    } else if (psiElement instanceof GrApplicationStatement) {
+    }
+    else if (psiElement instanceof GrApplicationStatement) {
       return parse((GrApplicationStatement)psiElement, (GradlePropertiesDslElement)gradleDslFile);
     }
     return false;
@@ -65,25 +92,58 @@ public final class GradleDslParser {
       return false;
     }
 
+    String name = referenceExpression.getText();
+    if (isEmpty(name)) {
+      return false;
+    }
+
+    GradleDslExpression expressionElement = getExpressionElement(dslElement, expression, name, expression);
+    if (expressionElement instanceof GradleDslMethodCall && ((GradleDslMethodCall)expressionElement).getArguments().size() > 0) {
+      dslElement.addParsedElement(name, expressionElement);
+      // This element is a method call with arguments. This element may also contain a closure along with it, but as of now we do not have
+      // a use case to understand closure associated with a method call with arguments. So, just process the method arguments and return.
+      // ex: compile("dependency") {}
+      return true;
+    }
+
     GrClosableBlock[] closureArguments = expression.getClosureArguments();
     if (closureArguments.length == 0) {
+      if (expressionElement instanceof GradleDslMethodCall && ((GradleDslMethodCall)expressionElement).getArguments().isEmpty()) {
+        dslElement.addParsedElement(name, expressionElement);
+        // This element is a pure method call, i.e a method call with no arguments and no closure arguments.
+        // ex: jcenter()
+        return true;
+      }
       return false;
     }
 
+    // Now this element is pure block element, i.e a method call with no argument but just a closure argument. So, here just process the
+    // closure and treat it as a block element.
+    // ex: android {}
     GrClosableBlock closableBlock = closureArguments[0];
-    String blockName = referenceExpression.getText();
-    if (isEmpty(blockName) ) {
-      return false;
+    List<GradlePropertiesDslElement> blockElements = Lists.newArrayList(); // The block elements this closure needs to be applied.
+
+    if (dslElement instanceof GradleDslFile && name.equals("allprojects")) {
+      // The "allprojects" closure needs to be applied to this project and all it's sub projects.
+      blockElements.add(dslElement);
+      // After applying the allprojects closure to this project, process it as subprojects section to also pass the same properties to
+      // subprojects.
+      name = "subprojects";
     }
 
-    List<String> nameSegments = Splitter.on('.').splitToList(blockName);
-    GradlePropertiesDslElement blockElement = getElement(nameSegments, dslElement);
-    if (blockElement == null) {
-      return false;
+    List<String> nameSegments = Splitter.on('.').splitToList(name);
+    GradlePropertiesDslElement blockElement = getBlockElement(nameSegments, dslElement);
+    if (blockElement != null) {
+      blockElement.setPsiElement(closableBlock);
+      blockElements.add(blockElement);
     }
 
-    blockElement.setPsiElement(closableBlock);
-    parse(closableBlock, blockElement);
+    if (blockElements.isEmpty()) {
+      return false;
+    }
+    for (GradlePropertiesDslElement element : blockElements) {
+      parse(closableBlock, element);
+    }
     return true;
   }
 
@@ -130,10 +190,11 @@ public final class GradleDslParser {
 
     List<String> nameSegments = Splitter.on('.').splitToList(name);
     if (nameSegments.size() > 1) {
-      GradlePropertiesDslElement nestedElement = getElement(nameSegments.subList(0, nameSegments.size() - 1), blockElement);
+      GradlePropertiesDslElement nestedElement = getBlockElement(nameSegments.subList(0, nameSegments.size() - 1), blockElement);
       if (nestedElement != null) {
         blockElement = nestedElement;
-      } else {
+      }
+      else {
         return false;
       }
     }
@@ -142,21 +203,20 @@ public final class GradleDslParser {
     GradleDslElement propertyElement = null;
     if (arguments.length == 1) {
       GroovyPsiElement element = arguments[0];
-      if (element instanceof GrLiteral) { // ex: compileSdkVersion 23
-        propertyElement = new GradleDslLiteral(blockElement, argumentList, propertyName, (GrLiteral)element);
+      if (element instanceof GrExpression) {
+        propertyElement = getExpressionElement(blockElement, argumentList, propertyName, (GrExpression)element);
       }
-      else if (element instanceof GrNamedArgument) { // ex: manifestPlaceholders activityLabel:"defaultName"
-        GrNamedArgument namedArgument = (GrNamedArgument)element;
-        propertyElement = new GradleDslLiteralMap(blockElement, argumentList, propertyName, namedArgument);
+      else if (element instanceof GrNamedArgument) {// ex: manifestPlaceholders activityLabel:"defaultName"
+        propertyElement = getExpressionMap(blockElement, argumentList, propertyName, (GrNamedArgument)element);
       }
     }
     else {
-      if (arguments[0] instanceof GrLiteral) { // ex: proguardFiles 'proguard-android.txt', 'proguard-rules.pro'
-        GrLiteral[] literals = new GrLiteral[arguments.length];
-        for (int i = 0; i < arguments.length; i++) {
-          literals[i] = (GrLiteral)arguments[i];
+      if (arguments[0] instanceof GrExpression) { // ex: proguardFiles 'proguard-android.txt', 'proguard-rules.pro'
+        GrExpression[] expressions = new GrExpression[arguments.length];
+        for (int i = 0; i < expressions.length; i++) {
+          expressions[i] = (GrExpression)arguments[i];
         }
-        propertyElement = new GradleDslLiteralList(blockElement, argumentList, propertyName, literals);
+        propertyElement = getExpressionList(blockElement, argumentList, propertyName, expressions);
       }
       else if (arguments[0] instanceof GrNamedArgument) {
         // ex: manifestPlaceholders activityLabel1:"defaultName1", activityLabel2:"defaultName2"
@@ -164,14 +224,14 @@ public final class GradleDslParser {
         for (int i = 0; i < arguments.length; i++) {
           namedArguments[i] = (GrNamedArgument)arguments[i];
         }
-        propertyElement = new GradleDslLiteralMap(blockElement, argumentList, propertyName, namedArguments);
+        propertyElement = getExpressionMap(blockElement, argumentList, propertyName, namedArguments);
       }
     }
     if (propertyElement == null) {
       return false;
     }
 
-    blockElement.addDslElement(propertyName, propertyElement);
+    blockElement.addParsedElement(propertyName, propertyElement);
     return true;
   }
 
@@ -189,51 +249,271 @@ public final class GradleDslParser {
 
     List<String> nameSegments = Splitter.on('.').splitToList(name);
     if (nameSegments.size() > 1) {
-      GradlePropertiesDslElement nestedElement = getElement(nameSegments.subList(0, nameSegments.size() - 1), blockElement);
+      GradlePropertiesDslElement nestedElement = getBlockElement(nameSegments.subList(0, nameSegments.size() - 1), blockElement);
       if (nestedElement != null) {
         blockElement = nestedElement;
-      } else {
+      }
+      else {
         return false;
       }
     }
 
-    String propertyName = nameSegments.get(nameSegments.size() - 1);
-    GradleDslElement propertyElement = null;
+    String propertyName = nameSegments.get(nameSegments.size() - 1).trim();
     GrExpression right = assignment.getRValue();
-    if (right instanceof GrLiteral) { // ex: compileSdkVersion = "android-23"
-      propertyElement = new GradleDslLiteral(blockElement, assignment, propertyName, (GrLiteral)right);
+    if (right == null) {
+      return false;
     }
-    else if (right instanceof GrListOrMap) {
+
+    GradleDslElement propertyElement;
+    if (right instanceof GrListOrMap) {
       GrListOrMap listOrMap = (GrListOrMap)right;
       if (listOrMap.isMap()) { // ex: manifestPlaceholders = [activityLabel1:"defaultName1", activityLabel2:"defaultName2"]
-        propertyElement = new GradleDslLiteralMap(blockElement, propertyName, listOrMap);
+        propertyElement = getExpressionMap(blockElement, listOrMap, propertyName, listOrMap.getNamedArguments());
       }
       else { // ex: proguardFiles = ['proguard-android.txt', 'proguard-rules.pro']
-        propertyElement = new GradleDslLiteralList(blockElement, propertyName, listOrMap);
+        propertyElement = getExpressionList(blockElement, listOrMap, propertyName, listOrMap.getInitializers());
       }
     }
+    else {
+      propertyElement = getExpressionElement(blockElement, assignment, propertyName, right);
+    }
+
     if (propertyElement == null) {
       return false;
     }
 
-    blockElement.setDslElement(propertyName, propertyElement);
+    blockElement.setParsedElement(propertyName, propertyElement);
     return true;
   }
 
-  private static GradlePropertiesDslElement getElement(@NotNull List<String> qualifiedName,
-                                                       @NotNull GradlePropertiesDslElement parentElement) {
+  @Nullable
+  private static GradleDslExpression getExpressionElement(@NotNull GradleDslElement parentElement,
+                                                          @NotNull GroovyPsiElement psiElement,
+                                                          @NotNull String propertyName,
+                                                          @NotNull GrExpression propertyExpression) {
+    if (propertyExpression instanceof GrLiteral) { // ex: compileSdkVersion 23 or compileSdkVersion = "android-23"
+      return new GradleDslLiteral(parentElement, psiElement, propertyName, (GrLiteral)propertyExpression);
+    }
+
+    if (propertyExpression instanceof GrReferenceExpression) { // ex: compileSdkVersion SDK_VERSION or sourceCompatibility = VERSION_1_5
+      return new GradleDslReference(parentElement, psiElement, propertyName, (GrReferenceExpression)propertyExpression);
+    }
+
+    if (propertyExpression instanceof GrMethodCallExpression) { // ex: compile project("someProject")
+      GrMethodCallExpression methodCall = (GrMethodCallExpression)propertyExpression;
+      GrReferenceExpression callReferenceExpression = getChildOfType(methodCall, GrReferenceExpression.class);
+      if (callReferenceExpression != null) {
+        String referenceName = callReferenceExpression.getText();
+        if (!isEmpty(referenceName)) {
+          GrArgumentList argumentList = methodCall.getArgumentList();
+          if (argumentList.getAllArguments().length > 0) {
+            return getMethodCall(parentElement, methodCall, referenceName, argumentList);
+          }
+          else {
+            return new GradleDslMethodCall(parentElement, methodCall, referenceName);
+          }
+        }
+      }
+    }
+
+    if (propertyExpression instanceof GrNewExpression) {
+      GrNewExpression newExpression = (GrNewExpression)propertyExpression;
+      GrCodeReferenceElement referenceElement = newExpression.getReferenceElement();
+      if (referenceElement != null) {
+        String objectName = referenceElement.getText();
+        if (!isEmpty(objectName)) {
+          GrArgumentList argumentList = newExpression.getArgumentList();
+          if (argumentList != null) {
+            if (argumentList.getAllArguments().length > 0) {
+              return getNewExpression(parentElement, newExpression, objectName, argumentList);
+            }
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  @NotNull
+  static GradleDslMethodCall getMethodCall(@NotNull GradleDslElement parentElement,
+                                           @NotNull GrMethodCallExpression psiElement,
+                                           @NotNull String propertyName,
+                                           @NotNull GrArgumentList argumentList) {
+    GradleDslMethodCall methodCall = new GradleDslMethodCall(parentElement, psiElement, propertyName);
+
+    for (GrExpression expression : argumentList.getExpressionArguments()) {
+      if (expression instanceof GrListOrMap) {
+        GrListOrMap listOrMap = (GrListOrMap)expression;
+        if (listOrMap.isMap()) {
+          methodCall.addParsedExpressionMap(getExpressionMap(methodCall, expression, propertyName, listOrMap.getNamedArguments()));
+        }
+        else {
+          for (GrExpression grExpression : listOrMap.getInitializers()) {
+            GradleDslExpression dslExpression = getExpressionElement(methodCall, expression, propertyName, grExpression);
+            if (dslExpression != null) {
+              methodCall.addParsedExpression(dslExpression);
+            }
+          }
+        }
+      }
+      else {
+        GradleDslExpression dslExpression = getExpressionElement(methodCall, expression, propertyName, expression);
+        if (dslExpression != null) {
+          methodCall.addParsedExpression(dslExpression);
+        }
+      }
+    }
+
+    GrNamedArgument[] namedArguments = argumentList.getNamedArguments();
+    if (namedArguments.length > 0) {
+      methodCall.addParsedExpressionMap(getExpressionMap(methodCall, argumentList, propertyName, namedArguments));
+    }
+
+    return methodCall;
+  }
+
+  @NotNull
+  static GradleDslNewExpression getNewExpression(@NotNull GradleDslElement parentElement,
+                                                 @NotNull GrNewExpression psiElement,
+                                                 @NotNull String propertyName,
+                                                 @NotNull GrArgumentList argumentList) {
+    GradleDslNewExpression newExpression = new GradleDslNewExpression(parentElement, psiElement, propertyName);
+
+    for (GrExpression expression : argumentList.getExpressionArguments()) {
+      if (expression instanceof GrListOrMap) {
+        GrListOrMap listOrMap = (GrListOrMap)expression;
+        if (!listOrMap.isMap()) {
+          for (GrExpression grExpression : listOrMap.getInitializers()) {
+            GradleDslExpression dslExpression = getExpressionElement(newExpression, expression, propertyName, grExpression);
+            if (dslExpression != null) {
+              newExpression.addParsedExpression(dslExpression);
+            }
+          }
+        }
+      }
+      else {
+        GradleDslExpression dslExpression = getExpressionElement(newExpression, expression, propertyName, expression);
+        if (dslExpression != null) {
+          newExpression.addParsedExpression(dslExpression);
+        }
+      }
+    }
+
+    return newExpression;
+  }
+
+  @NotNull
+  private static GradleDslExpressionList getExpressionList(@NotNull GradleDslElement parentElement,
+                                                           @NotNull GroovyPsiElement listPsiElement, // GrArgumentList or GrListOrMap
+                                                           @NotNull String propertyName,
+                                                           @NotNull GrExpression... propertyExpressions) {
+    GradleDslExpressionList expressionList = new GradleDslExpressionList(parentElement, listPsiElement, propertyName);
+    for (GrExpression expression : propertyExpressions) {
+      GradleDslExpression expressionElement = getExpressionElement(expressionList, listPsiElement, propertyName, expression);
+      if (expressionElement != null) {
+        expressionList.addParsedExpression(expressionElement);
+      }
+    }
+    return expressionList;
+  }
+
+  @NotNull
+  private static GradleDslExpressionMap getExpressionMap(@NotNull GradleDslElement parentElement,
+                                                         @NotNull GroovyPsiElement mapPsiElement, // GrArgumentList or GrListOrMap
+                                                         @NotNull String propertyName,
+                                                         @NotNull GrNamedArgument... namedArguments) {
+    GradleDslExpressionMap expressionMap = new GradleDslExpressionMap(parentElement, mapPsiElement, propertyName);
+    for (GrNamedArgument namedArgument : namedArguments) {
+      String argName = namedArgument.getLabelName();
+      if (isEmpty(argName)) {
+        continue;
+      }
+      GrExpression valueExpression = namedArgument.getExpression();
+      if (valueExpression == null) {
+        continue;
+      }
+      GradleDslElement valueElement = getExpressionElement(expressionMap, mapPsiElement, argName, valueExpression);
+      if (valueElement == null && valueExpression instanceof GrListOrMap) {
+        GrListOrMap listOrMap = (GrListOrMap)valueExpression;
+        if (listOrMap.isMap()) {
+          valueElement = getExpressionMap(expressionMap, listOrMap, argName, listOrMap.getNamedArguments());
+        }
+        else { // ex: flatDir name: "libs", dirs: ["libs1", "libs2"]
+          valueElement = getExpressionList(expressionMap, listOrMap, argName, listOrMap.getInitializers());
+        }
+      }
+      if (valueElement != null) {
+        expressionMap.setParsedElement(argName, valueElement);
+      }
+    }
+    return expressionMap;
+  }
+
+  private static GradlePropertiesDslElement getBlockElement(@NotNull List<String> qualifiedName,
+                                                            @NotNull GradlePropertiesDslElement parentElement) {
     GradlePropertiesDslElement resultElement = parentElement;
     for (String nestedElementName : qualifiedName) {
+      nestedElementName = nestedElementName.trim();
       GradleDslElement element = resultElement.getPropertyElement(nestedElementName);
       if (element == null) {
         GradlePropertiesDslElement newElement;
-        if (resultElement instanceof GradleDslFile) {
-          if (ExtDslElement.NAME.equals(nestedElementName)) {
+        if (resultElement instanceof GradleDslFile || resultElement instanceof SubProjectsDslElement) {
+          if (EXT_BLOCK_NAME.equals(nestedElementName)) {
             newElement = new ExtDslElement(resultElement);
           }
-          else if (AndroidDslElement.NAME.equals(nestedElementName)) {
+          else if (ANDROID_BLOCK_NAME.equals(nestedElementName)) {
             newElement = new AndroidDslElement(resultElement);
-          } else {
+          }
+          else if (DEPENDENCIES_BLOCK_NAME.equals(nestedElementName)) {
+            newElement = new DependenciesDslElement(resultElement);
+          }
+          else if (SUBPROJECTS_BLOCK_NAME.equals(nestedElementName)) {
+            newElement = new SubProjectsDslElement(resultElement);
+          }
+          else if (BUILDSCRIPT_BLOCK_NAME.equals(nestedElementName)) {
+            newElement = new BuildScriptDslElement(resultElement);
+          }
+          else if (REPOSITORIES_BLOCK_NAME.equals(nestedElementName)) {
+            newElement = new RepositoriesDslElement(resultElement);
+          }
+          else {
+            String projectKey = ProjectPropertiesDslElement.getStandardProjectKey(nestedElementName);
+            if (projectKey != null) {
+              nestedElementName = projectKey;
+              newElement = new ProjectPropertiesDslElement(resultElement, nestedElementName);
+            }
+            else {
+              return null;
+            }
+          }
+        }
+        else if (resultElement instanceof BuildScriptDslElement) {
+          if (DEPENDENCIES_BLOCK_NAME.equals(nestedElementName)) {
+            newElement = new DependenciesDslElement(resultElement);
+          }
+          else if (REPOSITORIES_BLOCK_NAME.equals(nestedElementName)) {
+            newElement = new RepositoriesDslElement(resultElement);
+          }
+          else {
+            return null;
+          }
+        }
+        else if (resultElement instanceof RepositoriesDslElement) {
+          if (MAVEN_BLOCK_NAME.equals(nestedElementName) || JCENTER_BLOCK_NAME.equals(nestedElementName)) {
+            newElement = new MavenRepositoryDslElement(resultElement, nestedElementName);
+          }
+          else if (FLAT_DIR_BLOCK_NAME.equals(nestedElementName)) {
+            newElement = new FlatDirRepositoryDslElement(resultElement);
+          }
+          else {
+            return null;
+          }
+        }
+        else if (resultElement instanceof MavenRepositoryDslElement) {
+          if (CREDENTIALS_BLOCK_NAME.equals(nestedElementName)) {
+            newElement = new MavenCredentialsDslElement(resultElement);
+          }
+          else {
             return null;
           }
         }
@@ -241,8 +521,11 @@ public final class GradleDslParser {
           if ("defaultConfig".equals(nestedElementName)) {
             newElement = new ProductFlavorDslElement(resultElement, nestedElementName);
           }
-          else if (ProductFlavorsDslElement.NAME.equals(nestedElementName)) {
+          else if (PRODUCT_FLAVORS_BLOCK_NAME.equals(nestedElementName)) {
             newElement = new ProductFlavorsDslElement(resultElement);
+          }
+          else if (COMPILE_OPTIONS_BLOCK_NAME.equals(nestedElementName)) {
+            newElement = new CompileOptionsDslElement(resultElement);
           }
           else {
             return null;
@@ -251,18 +534,18 @@ public final class GradleDslParser {
         else if (resultElement instanceof ProductFlavorsDslElement) {
           newElement = new ProductFlavorDslElement(resultElement, nestedElementName);
         }
-        else if (resultElement instanceof ProductFlavorDslElement
-                 && ("manifestPlaceholders".equals(nestedElementName) || "testInstrumentationRunnerArguments".equals(nestedElementName))){
-          newElement = new GradleDslLiteralMap(resultElement, nestedElementName);
+        else if (resultElement instanceof ProductFlavorDslElement &&
+                 ("manifestPlaceholders".equals(nestedElementName) || "testInstrumentationRunnerArguments".equals(nestedElementName))) {
+          newElement = new GradleDslExpressionMap(resultElement, nestedElementName);
         }
         else {
           return null;
         }
-        resultElement.setDslElement(nestedElementName, newElement);
+        resultElement.setParsedElement(nestedElementName, newElement);
         resultElement = newElement;
       }
       else if (element instanceof GradlePropertiesDslElement) {
-        resultElement = (GradlePropertiesDslElement) element;
+        resultElement = (GradlePropertiesDslElement)element;
       }
       else {
         return null;

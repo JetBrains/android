@@ -18,6 +18,7 @@ package org.jetbrains.android.dom;
 
 import com.android.SdkConstants;
 import com.android.resources.ResourceType;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.JavaPsiFacade;
@@ -68,6 +69,12 @@ public class AndroidDomUtil {
   private static final FragmentClassConverter FRAGMENT_CLASS_CONVERTER = new FragmentClassConverter();
 
   private static final ToolsAttributeDefinitionsImpl TOOLS_ATTRIBUTE_DEFINITIONS = new ToolsAttributeDefinitionsImpl();
+
+  // List of available font families extracted from framework's fonts.xml
+  // Used to provide completion for values of android:fontFamily attribute
+  // https://android.googlesource.com/platform/frameworks/base/+/android-6.0.0_r5/data/fonts/fonts.xml
+  public static final List<String> AVAILABLE_FAMILIES = ImmutableList
+    .of("sans-serif", "sans-serif-condensed", "serif", "monospace", "serif-monospace", "casual", "cursive", "sans-serif-smallcaps");
 
   static {
     // This section adds additional resource type registrations where the attrs metadata is lacking. For
@@ -149,6 +156,9 @@ public class AndroidDomUtil {
       if (resourceTypes.contains(ResourceType.COLOR.getName())) {
         resourceTypes.add(ResourceType.DRAWABLE.getName());
       }
+      if (resourceTypes.contains(ResourceType.DRAWABLE.getName())) {
+        resourceTypes.add(ResourceType.MIPMAP.getName());
+      }
       if (resourceTypes.size() == 0) {
         resourceTypes.addAll(AndroidResourceUtil.getNames(AndroidResourceUtil.REFERRABLE_RESOURCE_TYPES));
       }
@@ -206,6 +216,9 @@ public class AndroidDomUtil {
     String[] values = attr.getValues();
     boolean containsUnsupportedFormats = false;
 
+    if ("fontFamily".equals(attr.getName())) {
+      compositeBuilder.addConverter(new StaticEnumConverter(AVAILABLE_FAMILIES).setContainsAllValues(false));
+    }
     for (AttributeFormat format : formats) {
       ResolvingConverter<String> converter = getStringConverter(format, values);
       if (converter != null) {
@@ -379,7 +392,7 @@ public class AndroidDomUtil {
     }
 
     final ResourceValue resValue = attribute.getValue();
-    if (resValue == null || (localOnly && resValue.getPackage() != null)) {
+    if (resValue == null || (localOnly && resValue.getNamespace() != null)) {
       return null;
     }
 

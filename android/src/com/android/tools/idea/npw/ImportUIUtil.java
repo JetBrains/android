@@ -61,6 +61,9 @@ public class ImportUIUtil {
     return Joiner.on(", ").join(Iterables.limit(names, Math.min(size - 1, 2)));
   }
 
+  /**
+   * @deprecated Replaced by {@link com.android.tools.idea.ui.wizard.WizardUtils#toHtmlString(String)}
+   */
   @Nullable
   public static String makeHtmlString(@Nullable String templateDescription) {
     if (!StringUtil.isEmpty(templateDescription) && !templateDescription.startsWith("<html>")) {

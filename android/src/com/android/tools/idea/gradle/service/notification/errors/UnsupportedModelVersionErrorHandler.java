@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.gradle.service.notification.errors;
 
-import com.android.tools.idea.gradle.service.notification.hyperlink.FixGradleModelVersionHyperlink;
-import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.gradle.service.notification.hyperlink.FixAndroidGradlePluginVersionHyperlink;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.project.Project;
@@ -42,7 +41,7 @@ public class UnsupportedModelVersionErrorHandler extends AbstractSyncErrorHandle
     String msg = error.getMessage();
     if (msg.startsWith(UNSUPPORTED_MODEL_VERSION_ERROR_PREFIX)) {
       boolean openMigrationGuide = msg.contains(READ_MIGRATION_GUIDE_MSG);
-      updateNotification(notification, project, msg, new FixGradleModelVersionHyperlink(openMigrationGuide));
+      updateNotification(notification, project, msg, new FixAndroidGradlePluginVersionHyperlink(openMigrationGuide));
       return true;
     }
     return false;

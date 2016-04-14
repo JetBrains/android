@@ -6,7 +6,7 @@
         android:name=".MainActivity"
         android:label="@string/app_name" >
         <!-- ATTENTION: This intent was auto-generated. Follow instructions at
-          https://g.co/AppIndexing/AndroidStudio to publish your Android app deep links. -->
+          https://g.co/AppIndexing/AndroidStudio to publish your URLs. -->
         <intent-filter>
             <action android:name="android.intent.action.VIEW"/>
             <category android:name="android.intent.category.DEFAULT"/>

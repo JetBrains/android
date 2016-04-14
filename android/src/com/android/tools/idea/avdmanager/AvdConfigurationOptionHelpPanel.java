@@ -105,13 +105,13 @@ public class AvdConfigurationOptionHelpPanel extends JPanel {
     put(NETWORK_LATENCY_KEY, "Network Latency").
     put(FRONT_CAMERA_KEY, "Front Camera").
     put(BACK_CAMERA_KEY, "Back Camera").
-    put(USE_HOST_GPU_KEY, "Use Host GPU").
-    put(USE_SNAPSHOT_KEY, "Enable Snapshot").
+    put(HOST_GPU_MODE_KEY, "Graphics Rendering").
     put(CUSTOM_SKIN_FILE_KEY, "Custom Device Frame").
     put(DISPLAY_NAME_KEY, "AVD Name").
     put(HAS_HARDWARE_KEYBOARD_KEY, "Enable keyboard input").
     put(AVD_ID_KEY, "AVD Id").
     put(DEVICE_FRAME_KEY, "Enable device frame").
+    put(CPU_CORES_KEY, "Number of cores").
     build();
 
   private static Map<ScopedStateStore.Key<?>, String> DESCRIPTIONS = ImmutableMap.<ScopedStateStore.Key<?>, String>builder().
@@ -141,12 +141,11 @@ public class AvdConfigurationOptionHelpPanel extends JPanel {
     put(BACK_CAMERA_KEY, "None - no camera installed for AVD<br>" +
                          "Emulated - use a simulated camera<br>" +
                          "Device -  use host computer webcam or built-in camera").
-    put(USE_HOST_GPU_KEY, "This enables the emulator graphics to run faster by using your computer's graphics card for " +
-                          "OpenGL ES graphics rendering.  (Recommended for better emulator experience)").
-    put(USE_SNAPSHOT_KEY, "Helps improve emulator re-start performance.  Start the AVD from the AVD manager and check" +
-                          " Launch from snapshot and Save to snapshot. This way, when you close the emulator, a snapshot" +
-                          " of the AVD state is saved and used to quickly re-launch the AVD next time. " +
-                          " Note this will make the emulator slow to close.").
+    put(HOST_GPU_MODE_KEY, "Choose how the graphics should be rendered in the emulator.<br><br>" +
+                           "<b>Hardware</b><br>Use your computer's graphics card for faster rendering.<br><br>" +
+                           "<b>Software</b><br>Emulate the graphics in software, use this to work around issues with your " +
+                           "computer's graphics card.<br><br>" +
+                           "<b>Auto</b><br>Let the emulator decide the best option based on knowledge about your graphics card.").
     put(CUSTOM_SKIN_FILE_KEY, "A collection of images and configuration data that indicates how to populate the window. Each skin can have " +
                               "several \"layouts\" (e.g. \"landscape\" and \"portrait\") corresponding to different orientation " +
                               "/ physical configurations of the emulated device.").
@@ -156,6 +155,7 @@ public class AvdConfigurationOptionHelpPanel extends JPanel {
     put(AVD_ID_KEY, "Identification name used to save an AVD on disk. This AVD name can also be used with Android command line tools.").
     put(DEVICE_FRAME_KEY, "Enable a frame around the Android emulator window that mimics the look of a real " +
                           "Android device. Click on Show Advanced Settings for more options.").
+    put(CPU_CORES_KEY, "Select the number of CPU cores for the emulator to use.").
     build();
 
   /**

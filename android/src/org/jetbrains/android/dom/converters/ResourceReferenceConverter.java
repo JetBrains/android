@@ -15,7 +15,6 @@
  */
 package org.jetbrains.android.dom.converters;
 
-import com.android.SdkConstants;
 import com.android.resources.ResourceType;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.codeInsight.completion.PrioritizedLookupElement;
@@ -58,7 +57,7 @@ import static org.jetbrains.android.util.AndroidUtils.SYSTEM_RESOURCE_PACKAGE;
 public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue>
   implements CustomReferenceConverter<ResourceValue>, AttributeValueDocumentationProvider {
   private static final ImmutableSet<String> TOP_PRIORITY_VALUES =
-    ImmutableSet.of(SdkConstants.VALUE_MATCH_PARENT, SdkConstants.VALUE_WRAP_CONTENT);
+    ImmutableSet.of(VALUE_MATCH_PARENT, VALUE_WRAP_CONTENT);
   private final List<String> myResourceTypes;
   private ResolvingConverter<String> myAdditionalConverter;
   private boolean myAdditionalConverterSoft = false;
@@ -145,7 +144,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
 
     // hack to check if it is a real id attribute
     if (recommendedTypes.contains(ResourceType.ID.getName()) && recommendedTypes.size() == 1) {
-      result.add(ResourceValue.reference(SdkConstants.NEW_ID_PREFIX));
+      result.add(ResourceValue.reference(NEW_ID_PREFIX));
     }
 
     XmlElement element = context.getXmlElement();
@@ -166,7 +165,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
       }
       final char prefix = myWithPrefix || startsWithRefChar ? '@' : 0;
 
-      if (value.startsWith(SdkConstants.NEW_ID_PREFIX)) {
+      if (value.startsWith(NEW_ID_PREFIX)) {
         addVariantsForIdDeclaration(result, facet, prefix, value);
       }
 
@@ -394,6 +393,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
   @Override
   public ResourceValue fromString(@Nullable @NonNls String s, ConvertContext context) {
     if (s == null) return null;
+    if (s.startsWith(PREFIX_BINDING_EXPR)) return ResourceValue.INVALID;
     ResourceValue parsed = ResourceValue.parse(s, true, myWithPrefix, true);
     final ResolvingConverter<String> additionalConverter = getAdditionalConverter(context);
 
@@ -470,7 +470,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
     if (myWithExplicitResourceType || !element.isReference()) {
       return element.toString();
     }
-    return ResourceValue.referenceTo(element.getPrefix(), element.getPackage(), null,
+    return ResourceValue.referenceTo(element.getPrefix(), element.getNamespace(), null,
                                      element.getResourceName()).toString();
   }
 
@@ -486,7 +486,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
         if (value != null) {
           ResourceValue resourceValue = ResourceValue.parse(value, false, myWithPrefix, true);
           if (resourceValue != null) {
-            String aPackage = resourceValue.getPackage();
+            String aPackage = resourceValue.getNamespace();
             ResourceType resType = resourceValue.getType();
             if (resType == null && myResourceTypes.size() == 1) {
               resType = ResourceType.getEnum(myResourceTypes.get(0));
@@ -536,7 +536,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
           // is a reference to R.id.foo, but
           //    android:id="@+id/foo"
           // is not; it's the place we're defining it.
-          if (resValue.getPackage() == null && "+id".equals(resType)
+          if (resValue.getNamespace() == null && "+id".equals(resType)
               && element != null && element.getParent() instanceof XmlAttribute) {
             XmlAttribute attribute = (XmlAttribute)element.getParent();
             if (ATTR_ID.equals(attribute.getLocalName()) && ANDROID_URI.equals(attribute.getNamespace())) {

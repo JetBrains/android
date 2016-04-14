@@ -45,6 +45,7 @@ import com.intellij.psi.xml.*;
 import com.intellij.util.ArrayUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidTargetData;
+import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -413,7 +414,9 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
       ListMultimap<String, ResourceItem> map = getMap(ResourceType.ID, true);
       for (Map.Entry<String, XmlTag> entry : pendingResourceIds.entrySet()) {
         String id = entry.getKey();
-        map.put(id, new PsiResourceItem(id, ResourceType.ID, entry.getValue(), file));
+        PsiResourceItem remainderItem = new PsiResourceItem(id, ResourceType.ID, entry.getValue(), file);
+        items.add(remainderItem);
+        map.put(id, remainderItem);
       }
     }
   }
@@ -487,7 +490,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
         for (XmlTag tag : subTags) {
           String name = tag.getAttributeValue(ATTR_NAME);
           if (name != null) {
-            ResourceType type = getType(tag);
+            ResourceType type = AndroidResourceUtil.getType(tag);
             if (type != null) {
               ListMultimap<String, ResourceItem> map = getMap(type, true);
               ResourceItem item = new PsiResourceItem(name, type, tag, file);
@@ -528,33 +531,6 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
     }
 
     return added;
-  }
-
-  /**
-   * Returns the type of the ResourceItem based on a node's attributes.
-   * @param node the node
-   * @return the ResourceType or null if it could not be inferred.
-   */
-  @Nullable
-  private static ResourceType getType(XmlTag node) {
-    String nodeName = node.getLocalName();
-    String typeString = null;
-
-    if (TAG_ITEM.equals(nodeName)) {
-      String attribute = node.getAttributeValue(ATTR_TYPE);
-      if (attribute != null) {
-        typeString = attribute;
-      }
-    } else {
-      // the type is the name of the node.
-      typeString = nodeName;
-    }
-
-    if (typeString != null) {
-      return ResourceType.getEnum(typeString);
-    }
-
-    return null;
   }
 
   private boolean isResourceFolder(@Nullable PsiElement parent) {
@@ -895,7 +871,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                 if (resourceFile != null) {
                   String name = tag.getAttributeValue(ATTR_NAME);
                   if (name != null) {
-                    ResourceType type = getType(tag);
+                    ResourceType type = AndroidResourceUtil.getType(tag);
                     if (type == ResourceType.DECLARE_STYLEABLE) {
                       // Can't handle declare styleable additions incrementally yet; need to update paired attr items
                       rescan(psiFile, folderType);
@@ -908,20 +884,19 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                       resourceFile.addItems(Collections.singletonList(item));
                       myGeneration++;
                       invalidateItemCaches(type);
+                      return;
                     }
                   }
-
-                  return;
                 }
               }
 
               // See if you just added a new item inside a <style> or <array> or <declare-styleable> etc
               XmlTag parentTag = tag.getParentTag();
               if (parentTag != null && ResourceType.getEnum(parentTag.getName()) != null) {
-                // Yes just invalidate the corresponding style value
-                ResourceItem style = findValueResourceItem(parentTag, psiFile);
-                if (style instanceof PsiResourceItem) {
-                  if (((PsiResourceItem)style).recomputeValue()) {
+                // Yes just invalidate the corresponding cached value
+                ResourceItem parentItem = findValueResourceItem(parentTag, psiFile);
+                if (parentItem instanceof PsiResourceItem) {
+                  if (((PsiResourceItem)parentItem).recomputeValue()) {
                     myGeneration++;
                   }
                   return;
@@ -1053,14 +1028,14 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
               if (parent instanceof XmlTag) {
                 XmlTag parentTag = (XmlTag)parent;
                 if (ResourceType.getEnum(parentTag.getName()) != null) {
-                  // Yes just invalidate the corresponding style value
-                  ResourceItem style = findValueResourceItem(parentTag, psiFile);
-                  if (style instanceof PsiResourceItem) {
-                    if (((PsiResourceItem)style).recomputeValue()) {
+                  // Yes just invalidate the corresponding cached value
+                  ResourceItem resourceItem = findValueResourceItem(parentTag, psiFile);
+                  if (resourceItem instanceof PsiResourceItem) {
+                    if (((PsiResourceItem)resourceItem).recomputeValue()) {
                       myGeneration++;
                     }
 
-                    if (style.getType() == ResourceType.ATTR) {
+                    if (resourceItem.getType() == ResourceType.ATTR) {
                       parentTag = parentTag.getParentTag();
                       if (parentTag != null && parentTag.getName().equals(ResourceType.DECLARE_STYLEABLE.getName())) {
                         ResourceItem declareStyleable = findValueResourceItem(parentTag, psiFile);
@@ -1093,7 +1068,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                     name = tag.getAttributeValue(ATTR_NAME);
                   }
                   if (name != null) {
-                    ResourceType type = getType(tag);
+                    ResourceType type = AndroidResourceUtil.getType(tag);
                     if (type != null) {
                       ListMultimap<String, ResourceItem> map = myItems.get(type);
                       if (map == null) {
@@ -1350,10 +1325,10 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
               if (parent instanceof XmlTag) {
                 XmlTag parentTag = (XmlTag)parent;
                 if (ResourceType.getEnum(parentTag.getName()) != null) {
-                  // Yes just invalidate the corresponding style value
-                  ResourceItem style = findValueResourceItem(parentTag, psiFile);
-                  if (style instanceof PsiResourceItem) {
-                    if (((PsiResourceItem)style).recomputeValue()) {
+                  // Yes just invalidate the corresponding cached value
+                  ResourceItem resourceItem = findValueResourceItem(parentTag, psiFile);
+                  if (resourceItem instanceof PsiResourceItem) {
+                    if (((PsiResourceItem)resourceItem).recomputeValue()) {
                       myGeneration++;
                     }
                     return;
@@ -1394,7 +1369,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                 // scenarios.
                 if (isItemElement(xmlTag) && attributeName.equals(ATTR_NAME)) {
                   // Edited the name of the item: replace it
-                  ResourceType type = getType(xmlTag);
+                  ResourceType type = AndroidResourceUtil.getType(xmlTag);
                   if (type != null) {
                     String oldName = event.getOldChild().getText();
                     String newName = event.getNewChild().getText();
@@ -1439,9 +1414,9 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                     if (parentTag != null && ResourceType.getEnum(parentTag.getName()) != null) {
                       // <style>, or <plurals>, or <array>, or <string-array>, ...
                       // Edited the attribute value of an item that is wrapped in a <style> tag: invalidate parent cached value
-                      ResourceItem style = findValueResourceItem(parentTag, psiFile);
-                      if (style instanceof PsiResourceItem) {
-                        if (((PsiResourceItem)style).recomputeValue()) {
+                      ResourceItem resourceItem = findValueResourceItem(parentTag, psiFile);
+                      if (resourceItem instanceof PsiResourceItem) {
+                        if (((PsiResourceItem)resourceItem).recomputeValue()) {
                           myGeneration++;
                         }
                         return;
@@ -1656,6 +1631,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
 
     @Override
     public void childrenChanged(@NotNull PsiTreeChangeEvent event) {
+      PsiElement parent = event.getParent();
       // Called after children have changed. There are typically individual childMoved, childAdded etc
       // calls that we hook into for more specific details. However, there are some events we don't
       // catch using those methods, and for that we have the below handling.
@@ -1664,12 +1640,20 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
         // However, we sometimes get some surprising (=bogus) events where the parent and the child
         // are the same, and in those cases there may be other child events we need to process
         // so fall through and process the whole file
-        if (event.getParent() != event.getChild()) {
+        if (parent != event.getChild()) {
           return;
         }
       }
-      else if (event.getNewChild() == null && event.getOldChild() == null && event.getOldParent() == null && event.getNewParent() == null
-        && event.getParent() instanceof PsiFile) {
+      else if (event.getNewChild() == null &&
+               event.getOldChild() == null &&
+               event.getOldParent() == null &&
+               event.getNewParent() == null &&
+               parent instanceof PsiFile) {
+        return;
+      }
+
+      if (parent != null && parent.getChildren().length == 1 && parent.getChildren()[0] instanceof PsiWhiteSpace) {
+        // This event is just adding white spaces
         return;
       }
 
@@ -1805,7 +1789,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
 
   @Nullable
   private ResourceItem findValueResourceItem(XmlTag tag, PsiFile file, String name) {
-    ResourceType type = getType(tag);
+    ResourceType type = AndroidResourceUtil.getType(tag);
     return findResourceItem(type, file, name, tag);
   }
 

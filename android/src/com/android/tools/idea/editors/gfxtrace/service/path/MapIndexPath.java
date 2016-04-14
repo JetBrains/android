@@ -65,7 +65,7 @@ public final class MapIndexPath extends Path {
   public BinaryClass klass() { return Klass.INSTANCE; }
 
 
-  private static final Entity ENTITY = new Entity("path","MapIndex","","");
+  private static final Entity ENTITY = new Entity("path", "MapIndex", "", "");
 
   static {
     ENTITY.setFields(new Field[]{

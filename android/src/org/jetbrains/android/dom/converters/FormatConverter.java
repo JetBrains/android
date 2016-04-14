@@ -31,13 +31,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * Created by IntelliJ IDEA.
-* User: Eugene.Kudelevsky
-* Date: Mar 30, 2009
-* Time: 6:54:02 PM
-* To change this template use File | Settings | File Templates.
-*/
 public class FormatConverter extends DelimitedListConverter<AttributeFormat> {
   public FormatConverter() {
     super("|");

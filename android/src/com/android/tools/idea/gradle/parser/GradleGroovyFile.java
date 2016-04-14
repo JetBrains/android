@@ -167,6 +167,7 @@ class GradleGroovyFile {
         onPsiFileAvailable();
       }
     };
+
     if (myProject.isInitialized()) {
       ApplicationManager.getApplication().runReadAction(runnable);
     }

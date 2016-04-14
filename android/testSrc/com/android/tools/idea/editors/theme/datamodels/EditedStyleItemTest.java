@@ -33,7 +33,7 @@ public class EditedStyleItemTest extends AndroidTestCase {
     Configuration configuration = myFacet.getConfigurationManager().getConfiguration(myLayout);
 
     // We just get a theme that we use as fake source to pass to the ConfiguredItemResourceValue constructor
-    ThemeEditorStyle fakeTheme = ResolutionUtils.getStyle(configuration, "android:Theme", null);
+    ConfiguredThemeEditorStyle fakeTheme = ResolutionUtils.getStyle(configuration, "android:Theme", null);
     assertNotNull(fakeTheme);
 
     //noinspection ConstantConditions

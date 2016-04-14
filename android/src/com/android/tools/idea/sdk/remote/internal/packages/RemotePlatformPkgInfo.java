@@ -16,28 +16,23 @@
 
 package com.android.tools.idea.sdk.remote.internal.packages;
 
-import com.android.SdkConstants;
-import com.android.annotations.NonNull;
-import com.android.sdklib.AndroidTargetHash;
-import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.IAndroidTarget;
-import com.android.sdklib.SdkManager;
-import com.android.sdklib.repository.FullRevision;
-import com.android.sdklib.repository.MajorRevision;
+import com.android.repository.Revision;
+import com.android.sdklib.*;
 import com.android.sdklib.repository.PkgProps;
 import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkRepoConstants;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkSource;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Node;
 
-import java.io.File;
 import java.util.Map;
 import java.util.Properties;
 
 /**
  * Represents a platform XML node in an SDK repository.
  */
-public class RemotePlatformPkgInfo extends RemoteMinToolsPkgInfo implements IAndroidVersionProvider {
+public class RemotePlatformPkgInfo extends RemoteMinToolsPkgInfo {
 
   /**
    * The version, a string, for platform packages.
@@ -73,7 +68,7 @@ public class RemotePlatformPkgInfo extends RemoteMinToolsPkgInfo implements IAnd
 
     mLayoutlibVersion = new LayoutlibVersionMixin(packageNode);
 
-    PkgDesc.Builder pkgDescBuilder = PkgDesc.Builder.newPlatform(version, new MajorRevision(getRevision()), getMinToolsRevision());
+    PkgDesc.Builder pkgDescBuilder = PkgDesc.Builder.newPlatform(version, getRevision(), getMinToolsRevision());
     pkgDescBuilder
       .setDescriptionShort(createShortDescription(mListDisplay, getRevision(), mVersionName, version, isObsolete()));
     pkgDescBuilder.setDescriptionUrl(getDescUrl());
@@ -92,7 +87,7 @@ public class RemotePlatformPkgInfo extends RemoteMinToolsPkgInfo implements IAnd
   public void saveProperties(Properties props) {
     super.saveProperties(props);
 
-    getAndroidVersion().saveProperties(props);
+    AndroidVersionHelper.saveProperties(getAndroidVersion(), props);
     mLayoutlibVersion.saveProperties(props);
 
     if (mVersionName != null) {
@@ -110,8 +105,7 @@ public class RemotePlatformPkgInfo extends RemoteMinToolsPkgInfo implements IAnd
   /**
    * Returns the package version, for platform, add-on and doc packages.
    */
-  @Override
-  @NonNull
+  @NotNull
   public AndroidVersion getAndroidVersion() {
     return getPkgDesc().getAndroidVersion();
   }
@@ -152,7 +146,7 @@ public class RemotePlatformPkgInfo extends RemoteMinToolsPkgInfo implements IAnd
    * Returns a short description for an {@link IDescription}.
    */
   private static String createShortDescription(String listDisplay,
-                                               FullRevision revision,
+                                               Revision revision,
                                                String versionName,
                                                AndroidVersion version,
                                                boolean obsolete) {
@@ -172,34 +166,6 @@ public class RemotePlatformPkgInfo extends RemoteMinToolsPkgInfo implements IAnd
     }
 
     return s;
-  }
-
-  /**
-   * Computes a potential installation folder if an archive of this package were
-   * to be installed right away in the given SDK root.
-   * <p/>
-   * A platform package is typically installed in SDK/platforms/android-"version".
-   * However if we can find a different directory under SDK/platform that already
-   * has this platform version installed, we'll use that one.
-   *
-   * @param osSdkRoot  The OS path of the SDK root folder.
-   * @param sdkManager An existing SDK manager to list current platforms and addons.
-   * @return A new {@link File} corresponding to the directory to use to install this package.
-   */
-  @Override
-  public File getInstallFolder(String osSdkRoot, SdkManager sdkManager) {
-
-    // First find if this platform is already installed. If so, reuse the same directory.
-    for (IAndroidTarget target : sdkManager.getTargets()) {
-      if (target.isPlatform() && target.getVersion().equals(getAndroidVersion())) {
-        return new File(target.getLocation());
-      }
-    }
-
-    File platforms = new File(osSdkRoot, SdkConstants.FD_PLATFORMS);
-    File folder = new File(platforms, String.format("android-%s", getAndroidVersion().getApiString())); //$NON-NLS-1$
-
-    return folder;
   }
 
   @Override
@@ -241,5 +207,10 @@ public class RemotePlatformPkgInfo extends RemoteMinToolsPkgInfo implements IAnd
       return false;
     }
     return true;
+  }
+
+  @Nullable
+  public LayoutlibVersion getLayoutLibVersion() {
+    return mLayoutlibVersion.getLayoutlibVersion();
   }
 }

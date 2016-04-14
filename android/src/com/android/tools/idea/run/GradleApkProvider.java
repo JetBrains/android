@@ -18,7 +18,6 @@ package com.android.tools.idea.run;
 import com.android.build.OutputFile;
 import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.AndroidArtifactOutput;
-import com.android.builder.model.BaseArtifact;
 import com.android.builder.model.Variant;
 import com.android.ddmlib.IDevice;
 import com.android.ide.common.build.SplitOutputMatcher;
@@ -36,8 +35,8 @@ import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -45,7 +44,8 @@ import java.util.Set;
  * Provides the information on APKs to install for run configurations in Gradle projects.
  */
 public class GradleApkProvider implements ApkProvider {
-  private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.run.GradleApkProvider");
+  private static final Logger LOG = Logger.getInstance(GradleApkProvider.class);
+
   /** Default suffix for test packages (as added by Android Gradle plugin) */
   private static final String DEFAULT_TEST_PACKAGE_SUFFIX = ".test";
 
@@ -61,12 +61,14 @@ public class GradleApkProvider implements ApkProvider {
   @Override
   @NotNull
   public Collection<ApkInfo> getApks(@NotNull IDevice device) throws ApkProvisionException {
-    // TODO: Resolve direct AndroidGradleModel dep (b/22596984)
     AndroidGradleModel androidModel = AndroidGradleModel.get(myFacet);
-    assert androidModel != null; // This is a Gradle project, there must be an AndroidGradleModel.
+    if (androidModel == null) {
+      LOG.warn("Android model is null. Sync might have failed");
+      return Collections.emptyList();
+    }
     Variant selectedVariant = androidModel.getSelectedVariant();
 
-    List<ApkInfo> apkList = new ArrayList<ApkInfo>();
+    List<ApkInfo> apkList = Lists.newArrayList();
 
     // install apk (note that variant.getOutputFile() will point to a .aar in the case of a library)
     if (!androidModel.getAndroidProject().isLibrary()) {
@@ -75,9 +77,9 @@ public class GradleApkProvider implements ApkProvider {
     }
 
     if (myTest) {
-      BaseArtifact testArtifactInfo = androidModel.findSelectedTestArtifactInSelectedVariant();
-      if (testArtifactInfo instanceof AndroidArtifact) {
-        AndroidArtifactOutput output = GradleUtil.getOutput((AndroidArtifact)testArtifactInfo);
+      AndroidArtifact testArtifactInfo = androidModel.getAndroidTestArtifactInSelectedVariant();
+      if (testArtifactInfo != null) {
+        AndroidArtifactOutput output = GradleUtil.getOutput(testArtifactInfo);
         File testApk = output.getMainOutputFile().getOutputFile();
         String testPackageName = getTestPackageName();
         assert testPackageName != null; // Cannot be null if initialized.

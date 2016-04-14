@@ -23,7 +23,9 @@ import com.android.tools.idea.editors.theme.ThemeEditorComponent;
 import com.android.tools.idea.editors.theme.preview.AndroidThemePreviewPanel;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.SearchTextFieldFixture;
 import com.google.common.collect.ImmutableList;
+import com.intellij.ui.SearchTextField;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.JComboBoxFixture;
@@ -70,6 +72,11 @@ public class ThemeEditorFixture extends ComponentFixture<ThemeEditorFixture, The
   public AndroidThemePreviewPanelFixture getThemePreviewPanel() {
     return new AndroidThemePreviewPanelFixture(robot(), robot().finder()
       .findByType(this.target().getFirstComponent(), AndroidThemePreviewPanel.class));
+  }
+
+  @NotNull
+  public SearchTextFieldFixture getSearchTextField() {
+    return new SearchTextFieldFixture(robot(), robot().finder().findByType(this.target().getFirstComponent(), SearchTextField.class));
   }
 
   @NotNull

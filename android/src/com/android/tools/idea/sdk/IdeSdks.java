@@ -15,10 +15,14 @@
  */
 package com.android.tools.idea.sdk;
 
+import com.android.SdkConstants;
+import com.android.repository.api.LocalPackage;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.sdklib.repository.local.LocalPkgInfo;
+import com.android.sdklib.repositoryv2.AndroidSdkHandler;
+import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
 import com.google.common.collect.Lists;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
@@ -73,7 +77,11 @@ public final class IdeSdks {
       sdkHome = sdk.getHomePath();
     }
     if (sdkHome != null) {
-      return new File(toSystemDependentName(sdkHome));
+      File candidate = new File(toSystemDependentName(sdkHome));
+      // Check if the sdk home is still valid. See https://code.google.com/p/android/issues/detail?id=197401 for more details.
+      if (isValidAndroidSdkPath(candidate)) {
+        return candidate;
+      }
     }
 
     // There is a possible case that android sdk which path was applied previously (setAndroidSdkPath()) didn't have any
@@ -90,16 +98,11 @@ public final class IdeSdks {
     return null;
   }
 
+  @Nullable
   public static File getAndroidNdkPath() {
-    AndroidSdkData data = AndroidSdkUtils.tryToChooseAndroidSdk();
-    if (data == null) {
-      return null;
-    }
-    LocalPkgInfo[] ndk = data.getLocalSdk().getPkgsInfos(PkgType.PKG_NDK);
-    if (ndk.length == 0) {
-      return null;
-    }
-    return ndk[0].getLocalDir();
+    AndroidSdkHandler sdkHandler = tryToChooseSdkHandler();
+    LocalPackage ndk = sdkHandler.getLocalPackage(SdkConstants.FD_NDK, new StudioLoggerProgressIndicator(IdeSdks.class));
+    return ndk == null ? null : ndk.getLocation();
   }
 
   @Nullable

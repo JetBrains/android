@@ -24,9 +24,10 @@ import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.AndroidPsiUtils;
+import com.android.tools.idea.databinding.DataBindingUtil;
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.lang.databinding.DbUtil;
 import com.android.tools.lint.detector.api.LintUtils;
+import com.google.common.base.Joiner;
 import com.google.common.collect.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -46,6 +47,9 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.ColorUtil;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.resourceManagers.ResourceManager;
+import org.jetbrains.android.uipreview.ChooseResourceDialog;
+import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -431,6 +435,11 @@ public class ResourceHelper {
     if (stateList != null) {
       List<StateListState> states = stateList.getStates();
 
+      if (states.isEmpty()) {
+        // In the case of an empty selector, we don't want to crash.
+        return null;
+      }
+
       // Getting the last color of the state list, because it's supposed to be the simplest / fallback one
       StateListState state = states.get(states.size() - 1);
 
@@ -462,6 +471,22 @@ public class ResourceHelper {
   @NotNull
   public static List<Color> resolveMultipleColors(@NotNull RenderResources resources, @Nullable ResourceValue value,
                                                   @NotNull Project project) {
+    return resolveMultipleColors(resources, value, project, 0);
+  }
+
+  /**
+   * Tries to resolve colors from given resource value. When state list is encountered all
+   * possibilities are explored.
+   */
+  @NotNull
+  private static List<Color> resolveMultipleColors(@NotNull RenderResources resources, @Nullable ResourceValue value,
+                                                  @NotNull Project project, int depth) {
+
+    if (depth >= MAX_RESOURCE_INDIRECTION) {
+      LOG.warn("too deep " + value);
+      return Collections.emptyList();
+    }
+
     if (value != null) {
       value = resources.resolveResValue(value);
     }
@@ -477,7 +502,7 @@ public class ResourceHelper {
         List<Color> stateColors;
         ResourceValue resolvedStateResource = resources.findResValue(state.getValue(), false);
         if (resolvedStateResource != null) {
-          stateColors = resolveMultipleColors(resources, resolvedStateResource, project);
+          stateColors = resolveMultipleColors(resources, resolvedStateResource, project, depth + 1);
         }
         else {
           Color color = parseColor(state.getValue());
@@ -534,16 +559,22 @@ public class ResourceHelper {
    */
   @Nullable
   public static StateList resolveStateList(@NotNull RenderResources renderResources,
-                                           @NotNull ResourceValue value,
+                                           @NotNull ResourceValue resourceValue,
                                            @NotNull Project project) {
-    if (value.getValue().startsWith(PREFIX_RESOURCE_REF)) {
-      final ResourceValue resValue = renderResources.findResValue(value.getValue(), value.isFramework());
+    String value = resourceValue.getValue();
+    if (value == null) {
+      // Not all ResourceValue instances have values (e.g. StyleResourceValue)
+      return null;
+    }
+
+    if (value.startsWith(PREFIX_RESOURCE_REF)) {
+      final ResourceValue resValue = renderResources.findResValue(value, resourceValue.isFramework());
       if (resValue != null) {
         return resolveStateList(renderResources, resValue, project);
       }
     }
     else {
-      VirtualFile virtualFile = LocalFileSystem.getInstance().findFileByPath(value.getValue());
+      VirtualFile virtualFile = LocalFileSystem.getInstance().findFileByPath(value);
       if (virtualFile != null) {
         PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(project, virtualFile);
         if (psiFile instanceof XmlFile) {
@@ -552,7 +583,7 @@ public class ResourceHelper {
           if (rootTag != null && TAG_SELECTOR.equals(rootTag.getName())) {
             StateList stateList = new StateList(psiFile.getName(), psiFile.getContainingDirectory().getName());
             for (XmlTag subTag : rootTag.findSubTags(TAG_ITEM)) {
-              final StateListState stateListState = createStateListState(subTag, value.isFramework());
+              final StateListState stateListState = createStateListState(subTag, resourceValue.isFramework());
               if (stateListState == null) {
                 return null;
               }
@@ -584,7 +615,7 @@ public class ResourceHelper {
       if (value == null) {
         continue;
       }
-      if (SdkConstants.ATTR_COLOR.equals(name) || SdkConstants.ATTR_DRAWABLE.equals(name)) {
+      if (ATTR_COLOR.equals(name) || ATTR_DRAWABLE.equals(name)) {
         ResourceUrl url = ResourceUrl.parse(value, isFramework);
         stateValue = url != null ? url.toString() : value;
       }
@@ -608,7 +639,8 @@ public class ResourceHelper {
    */
   @SuppressWarnings("UseJBColor")
   @Nullable
-  public static Color parseColor(String s) {
+  public static Color parseColor(@Nullable String s) {
+    s = StringUtil.trim(s);
     if (StringUtil.isEmpty(s)) {
       return null;
     }
@@ -647,15 +679,14 @@ public class ResourceHelper {
    * Converts a color to hex-string representation, including alpha channel.
    * If alpha is FF then the output is #RRGGBB with no alpha component.
    */
-  public static String colorToString(Color color) {
+  @NotNull
+  public static String colorToString(@NotNull Color color) {
     long longColor = (color.getRed() << 16) | (color.getGreen() << 8) | color.getBlue();
     if (color.getAlpha() != 0xFF) {
       longColor |= (long)color.getAlpha() << 24;
       return String.format("#%08x", longColor);
     }
-    else {
-      return String.format("#%06x", longColor);
-    }
+    return String.format("#%06x", longColor);
   }
 
   private static long extend(long nibble) {
@@ -691,6 +722,10 @@ public class ResourceHelper {
       }
     }
 
+    if (result == null) {
+      return null;
+    }
+
     final File file = new File(result);
     return file.isFile() ? file : null;
   }
@@ -715,7 +750,7 @@ public class ResourceHelper {
     int depth = 0;
     while (value != null && depth < MAX_RESOURCE_INDIRECTION) {
       if (value.startsWith(PREFIX_BINDING_EXPR)) {
-        value = DbUtil.getBindingExprDefault(value);
+        value = DataBindingUtil.getBindingExprDefault(value);
         if (value == null) {
           return null;
         }
@@ -780,6 +815,41 @@ public class ResourceHelper {
   }
 
   /**
+   * Returns the list of all resource names that can be used as a value for one of the {@link ResourceType} in completionTypes
+   */
+  @NotNull
+  public static List<String> getCompletionFromTypes(@NotNull AndroidFacet facet, @NotNull ResourceType[] completionTypes) {
+    ResourceManager systemManager = facet.getResourceManager(AndroidUtils.SYSTEM_RESOURCE_PACKAGE);
+    ResourceManager localManager = facet.getResourceManager(null);
+    ImmutableList.Builder<String> resourceNamesList = ImmutableList.builder();
+    EnumSet<ResourceType> types = Sets.newEnumSet(Arrays.asList(completionTypes), ResourceType.class);
+
+    boolean completionTypesContainsColor = types.contains(ResourceType.COLOR);
+    if (types.contains(ResourceType.DRAWABLE)) {
+      // The Drawable type accepts colors as value but not color state lists.
+      types.add(ResourceType.COLOR);
+    }
+
+    for (ResourceType type : types) {
+      // If type == ResourceType.COLOR, we want to include file resources (i.e. color state lists) only in the case where
+      // color was present in completionTypes, and not if we added it because of the presence of ResourceType.DRAWABLES.
+      // For any other ResourceType, we always include file resources.
+      boolean includeFileResources = (type != ResourceType.COLOR) || completionTypesContainsColor;
+      ChooseResourceDialog.ResourceGroup group = new ChooseResourceDialog.ResourceGroup(SdkConstants.ANDROID_NS_NAME, type, systemManager, includeFileResources);
+      for (ChooseResourceDialog.ResourceItem item : group.getItems()) {
+        resourceNamesList.add(item.getResourceUrl());
+      }
+
+      group = new ChooseResourceDialog.ResourceGroup(null, type, localManager, includeFileResources);
+      for (ChooseResourceDialog.ResourceItem item : group.getItems()) {
+        resourceNamesList.add(item.getResourceUrl());
+      }
+    }
+
+    return resourceNamesList.build();
+  }
+
+  /**
    * Stores the information contained in a resource state list.
    */
   public static class StateList {
@@ -804,8 +874,19 @@ public class ResourceHelper {
     }
 
     @NotNull
-    public ResourceFolderType getType() {
+    public ResourceFolderType getFolderType() {
       return ResourceFolderType.getFolderType(myDirName);
+    }
+
+    /**
+     * @return the type of statelist, can be {@link ResourceType#COLOR} or {@link ResourceType#DRAWABLE}
+     */
+    @NotNull
+    public ResourceType getType() {
+      final ResourceFolderType resFolderType = getFolderType();
+      final ResourceType resType = ResourceType.getEnum(resFolderType.getName());
+      assert resType != null;
+      return resType;
     }
 
     @NotNull
@@ -909,7 +990,7 @@ public class ResourceHelper {
       myValue = value;
     }
 
-    public void setAlpha(String alpha) {
+    public void setAlpha(@Nullable String alpha) {
       myAlpha = alpha;
     }
 
@@ -983,6 +1064,11 @@ public class ResourceHelper {
         }
       }
       return false;
+    }
+
+    @NotNull
+    public String getDescription() {
+      return Joiner.on(", ").join(getAttributesNames(true));
     }
   }
 }

@@ -21,7 +21,7 @@ import com.android.tools.idea.structure.services.DeveloperServiceMetadata;
 import com.android.tools.idea.structure.services.ServiceContext;
 import com.android.tools.idea.ui.properties.BindingsManager;
 import com.android.tools.idea.ui.properties.InvalidationListener;
-import com.android.tools.idea.ui.properties.Observable;
+import com.android.tools.idea.ui.properties.ObservableValue;
 import com.android.tools.idea.ui.properties.swing.SelectedProperty;
 import com.android.tools.idea.ui.properties.swing.VisibleProperty;
 import com.android.utils.HtmlBuilder;
@@ -89,7 +89,7 @@ public final class DeveloperServicePanel extends EditorPanel {
 
     enabledCheckboxSelected.addListener(new InvalidationListener() {
       @Override
-      protected void onInvalidated(@NotNull Observable sender) {
+      public void onInvalidated(@NotNull ObservableValue<?> sender) {
         if (enabledCheckboxSelected.get()) {
           // User just selected a service which was previous uninstalled
           myService.getContext().beginEditing();

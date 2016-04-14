@@ -36,6 +36,7 @@
 
     <style name="DarkActionBar" parent="android:Widget.Holo.ActionBar">
         <item name="android:background">@android:color/transparent</item>
+        <item name="android:textColor">#008</item>
     </style>
 
     <integer name="card_flip_time_full">300</integer>
@@ -73,5 +74,11 @@
         <item>10</item>
         <item>20</item>
     </integer-array>
+
+    <array name="my_colors">
+        <item>#FFFF0000</item>
+        <item>#FF00FF00</item>
+        <item>#FF0000FF</item>
+    </array>
 
 </resources>

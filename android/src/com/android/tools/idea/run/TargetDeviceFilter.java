@@ -59,11 +59,10 @@ public abstract class TargetDeviceFilter implements Predicate<IDevice> {
         Logger.getInstance(EmulatorFilter.class).warn("Target Android platform not set for module: " + myFacet.getModule().getName());
         return false;
       } else {
-        LaunchCompatibility compatibility = LaunchCompatibility.canRunOnDevice(AndroidModuleInfo.get(myFacet).getRuntimeMinSdkVersion(),
-                                                                               androidPlatform.getTarget(),
-                                                                               EnumSet.noneOf(IDevice.HardwareFeature.class),
-                                                                               new ConnectedAndroidDevice(device, null),
-                                                                               null);
+        AndroidDevice connectedDevice = new ConnectedAndroidDevice(device, null);
+        LaunchCompatibility compatibility = connectedDevice.canRun(AndroidModuleInfo.get(myFacet).getRuntimeMinSdkVersion(),
+                                                                   androidPlatform.getTarget(),
+                                                                   EnumSet.noneOf(IDevice.HardwareFeature.class));
         return compatibility.isCompatible() != ThreeState.NO;
       }
     }

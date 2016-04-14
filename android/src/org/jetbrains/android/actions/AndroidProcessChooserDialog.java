@@ -21,35 +21,27 @@ import com.android.ddmlib.ClientData;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.ddms.adb.AdbService;
 import com.android.tools.idea.model.AndroidModel;
-import com.intellij.debugger.DebuggerManagerEx;
-import com.intellij.debugger.impl.DebuggerSession;
+import com.android.tools.idea.run.AndroidProcessHandler;
+import com.android.tools.idea.run.editor.AndroidDebugger;
+import com.google.common.collect.Lists;
 import com.intellij.execution.*;
-import com.intellij.execution.configurations.ConfigurationFactory;
-import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.execution.process.ProcessHandler;
-import com.intellij.execution.remote.RemoteConfiguration;
-import com.intellij.execution.remote.RemoteConfigurationType;
-import com.intellij.execution.ui.RunContentDescriptor;
+import com.intellij.execution.process.ProcessOutputTypes;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.openapi.wm.ToolWindowManager;
-import com.intellij.openapi.wm.WindowManager;
 import com.intellij.psi.XmlRecursiveElementVisitor;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlElement;
+import com.intellij.ui.CollectionComboBoxModel;
 import com.intellij.ui.DoubleClickListener;
 import com.intellij.ui.JBDefaultTreeCellRenderer;
 import com.intellij.ui.TreeSpeedSearch;
 import com.intellij.ui.components.JBCheckBox;
-import com.intellij.ui.content.Content;
 import com.intellij.ui.treeStructure.Tree;
-import com.intellij.util.NotNullFunction;
 import com.intellij.util.containers.HashSet;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.tree.TreeUtil;
@@ -73,10 +65,8 @@ import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.Collection;
-import java.util.Collections;
+import java.util.*;
 import java.util.List;
-import java.util.Set;
 
 /**
  * @author Eugene.Kudelevsky
@@ -85,12 +75,12 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
   @NonNls private static final String DEBUGGABLE_PROCESS_PROPERTY = "DEBUGGABLE_PROCESS";
   @NonNls private static final String SHOW_ALL_PROCESSES_PROPERTY = "SHOW_ALL_PROCESSES";
   @NonNls private static final String DEBUGGABLE_DEVICE_PROPERTY = "DEBUGGABLE_DEVICE";
-  @NonNls private static final String RUN_CONFIGURATION_NAME_PATTERN = "Android Debugger (%s)";
 
   private final Project myProject;
   private JPanel myContentPanel;
   private Tree myProcessTree;
   private JBCheckBox myShowAllProcessesCheckBox;
+  private JComboBox myDebuggerTypeCombo;
 
   private String myLastSelectedDevice;
   private String myLastSelectedProcess;
@@ -145,6 +135,16 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
         updateTree();
       }
     });
+
+    List<AndroidDebugger> androidDebuggers = Lists.newLinkedList();
+    for (AndroidDebugger androidDebugger: AndroidDebugger.EP_NAME.getExtensions()) {
+      if (androidDebugger.supportsProject(myProject)) {
+        androidDebuggers.add(androidDebugger);
+      }
+    }
+
+    myDebuggerTypeCombo.setModel(new CollectionComboBoxModel(androidDebuggers));
+    myDebuggerTypeCombo.setRenderer(new AndroidDebugger.Renderer());
 
     myProcessTree.addTreeSelectionListener(new TreeSelectionListener() {
       @Override
@@ -451,9 +451,7 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
     properties.setValue(DEBUGGABLE_PROCESS_PROPERTY, getPersistableName(selectedClient));
     properties.setValue(SHOW_ALL_PROCESSES_PROPERTY, Boolean.toString(myShowAllProcessesCheckBox.isSelected()));
 
-    final String debugPort = Integer.toString(selectedClient.getDebuggerListenPort());
-
-    closeOldSessionAndRun(debugPort);
+    closeOldSessionAndRun(selectedClient);
   }
 
   @Override
@@ -461,99 +459,32 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
     return "AndroidProcessChooserDialog";
   }
 
-  private void closeOldSessionAndRun(final String debugPort) {
-    final String configurationName = getRunConfigurationName(debugPort);
+  private void closeOldSessionAndRun(@NotNull Client client) {
+    // Disconnect any active run sessions to the same client
+    terminateRunSessions(client);
+    runSession(client);
+  }
 
-    Collection<RunContentDescriptor> descriptors = null;
-    Project[] openProjects = ProjectManager.getInstance().getOpenProjects();
-    Project targetProject = null;
+  private void terminateRunSessions(@NotNull Client selectedClient) {
+    int pid = selectedClient.getClientData().getPid();
 
-    // Scan through open project to find if this port has been opened in any session.
-    for (Project project : openProjects) {
-      targetProject = project;
-
-      // First check the titles of the run configurations.
-      descriptors = ExecutionHelper.findRunningConsoleByTitle(targetProject, new NotNullFunction<String, Boolean>() {
-        @NotNull
-        @Override
-        public Boolean fun(String title) {
-          return configurationName.equals(title);
-        }
-      });
-
-      // If it can't find a matching title, check the debugger sessions.
-      if (descriptors.isEmpty()) {
-        for (DebuggerSession session : DebuggerManagerEx.getInstanceEx(targetProject).getSessions()) {
-          if (debugPort.trim().equals(session.getProcess().getConnection().getAddress().trim()) && session.getXDebugSession() != null) {
-            descriptors = Collections.singletonList(session.getXDebugSession().getRunContentDescriptor());
-            break;
-          }
-        }
-      }
-
-      if (!descriptors.isEmpty()) {
-        break;
-      }
-    }
-
-    if (descriptors != null && !descriptors.isEmpty()) {
-      final RunContentDescriptor descriptor = descriptors.iterator().next();
-      final ProcessHandler processHandler = descriptor.getProcessHandler();
-      final Content content = descriptor.getAttachedContent();
-
-      if (processHandler != null && content != null) {
-        final Executor executor = DefaultDebugExecutor.getDebugExecutorInstance();
-
-        if (processHandler.isProcessTerminated()) {
-          ExecutionManager.getInstance(targetProject).getContentManager().removeRunContent(executor, descriptor);
-        }
-        else {
-          if (targetProject != myProject) {
-            // Bring window frame to front if the found tool window is not for the active project.
-            JFrame targetFrame = WindowManager.getInstance().getFrame(targetProject);
-            boolean alwaysOnTop = targetFrame.isAlwaysOnTop();
-
-            targetFrame.setExtendedState(Frame.NORMAL);
-            targetFrame.setAlwaysOnTop(true);
-            targetFrame.toFront();
-            targetFrame.requestFocus();
-            targetFrame.setAlwaysOnTop(alwaysOnTop);
-          }
-          content.getManager().setSelectedContent(content);
-          ToolWindow window = ToolWindowManager.getInstance(targetProject).getToolWindow(executor.getToolWindowId());
-          window.activate(null, false, true);
-          return;
+    // find if there are any active run sessions to the same client, and terminate them if so
+    for (ProcessHandler handler : ExecutionManager.getInstance(myProject).getRunningProcesses()) {
+      if (handler instanceof AndroidProcessHandler) {
+        Client client = ((AndroidProcessHandler)handler).getClient(selectedClient.getDevice());
+        if (client != null && client.getClientData().getPid() == pid) {
+          ((AndroidProcessHandler)handler).setNoKill();
+          handler.detachProcess();
+          handler.notifyTextAvailable("Disconnecting run session: a new debug session will be established.\n", ProcessOutputTypes.STDOUT);
+          break;
         }
       }
     }
-
-    runSession(debugPort);
   }
 
-  private void runSession(String debugPort) {
-    final RunnerAndConfigurationSettings settings = createRunConfiguration(myProject, debugPort);
-    ProgramRunnerUtil.executeConfiguration(myProject, settings, DefaultDebugExecutor.getDebugExecutorInstance());
-  }
-
-  private static RunnerAndConfigurationSettings createRunConfiguration(Project project, String debugPort) {
-    final RemoteConfigurationType remoteConfigurationType = RemoteConfigurationType.getInstance();
-
-    final ConfigurationFactory factory = remoteConfigurationType.getFactory();
-    final RunnerAndConfigurationSettings runSettings =
-      RunManager.getInstance(project).createRunConfiguration(getRunConfigurationName(debugPort), factory);
-    final RemoteConfiguration configuration = (RemoteConfiguration)runSettings.getConfiguration();
-
-    configuration.HOST = "localhost";
-    configuration.PORT = debugPort;
-    configuration.USE_SOCKET_TRANSPORT = true;
-    configuration.SERVER_MODE = false;
-
-    return runSettings;
-  }
-
-  @NotNull
-  private static String getRunConfigurationName(String debugPort) {
-    return String.format(RUN_CONFIGURATION_NAME_PATTERN, debugPort);
+  private void runSession(@NotNull Client client) {
+    AndroidDebugger androidDebugger = (AndroidDebugger)myDebuggerTypeCombo.getSelectedItem();
+    androidDebugger.attachToClient(myProject, client);
   }
 
   @Nullable

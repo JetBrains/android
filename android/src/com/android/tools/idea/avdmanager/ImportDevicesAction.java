@@ -50,7 +50,7 @@ public class ImportDevicesAction extends DeviceUiAction {
     File parentPath = homePath == null ? new File("/") : new File(homePath);
     VirtualFile parent = LocalFileSystem.getInstance().findFileByIoFile(parentPath);
     VirtualFile[] files =
-      FileChooserFactory.getInstance().createFileChooser(descriptor, null, null).choose(parent, null);
+      FileChooserFactory.getInstance().createFileChooser(descriptor, myProvider.getProject(), null).choose(parent, null);
     List<Device> importedDevices = Lists.newArrayList();
     for (VirtualFile vf : files) {
       for (Device d : DeviceManagerConnection.getDevicesFromFile(VfsUtilCore.virtualToIoFile(vf))) {

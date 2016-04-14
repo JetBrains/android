@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw;
 
+import com.android.tools.idea.npw.template.TemplateHandle;
 import com.android.tools.idea.templates.Parameter;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateMetadata;
@@ -31,6 +32,8 @@ import java.util.Collection;
 
 /**
  * UI information about individual template.
+ *
+ * @deprecated Replaced by {@link TemplateHandle}
  */
 public class TemplateEntry {
   private final File myTemplate;

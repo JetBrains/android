@@ -16,34 +16,28 @@
 
 package com.android.tools.idea.sdk.remote.internal.packages;
 
-import com.android.SdkConstants;
-import com.android.annotations.NonNull;
+import com.android.repository.Revision;
 import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.IAndroidTarget;
-import com.android.sdklib.SdkManager;
-import com.android.sdklib.repository.FullRevision;
-import com.android.sdklib.repository.MajorRevision;
+import com.android.sdklib.AndroidVersionHelper;
 import com.android.sdklib.repository.PkgProps;
-import com.android.sdklib.repository.descriptors.IPkgDescAddon;
-import com.android.sdklib.repository.descriptors.IdDisplay;
 import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.sdklib.repository.local.LocalAddonPkgInfo;
 import com.android.sdklib.repository.local.LocalPkgInfo;
+import com.android.sdklib.repositoryv2.IdDisplay;
 import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkAddonConstants;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkRepoConstants;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkSource;
-import com.android.utils.Pair;
 import com.google.common.base.Objects;
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Node;
 
-import java.io.File;
 import java.util.*;
 
 /**
  * Represents an add-on XML node in an SDK repository.
  */
-public class RemoteAddonPkgInfo extends RemotePkgInfo implements IAndroidVersionProvider {
+public class RemoteAddonPkgInfo extends RemotePkgInfo {
 
   /**
    * The helper handling the layoutlib version.
@@ -180,7 +174,7 @@ public class RemoteAddonPkgInfo extends RemotePkgInfo implements IAndroidVersion
     mLayoutlibVersion = new LayoutlibVersionMixin(packageNode);
 
     PkgDesc.Builder pkgDescBuilder = PkgDesc.Builder
-      .newAddon(androidVersion, new MajorRevision(getRevision()), new IdDisplay(vendorId, vendorDisp), new IdDisplay(nameId, nameDisp));
+      .newAddon(androidVersion, getRevision(), IdDisplay.create(vendorId, vendorDisp), IdDisplay.create(nameId, nameDisp));
     pkgDescBuilder.setDescriptionShort(createShortDescription(mListDisplay, getRevision(), nameDisp, androidVersion, isObsolete()));
     pkgDescBuilder.setDescriptionUrl(getDescUrl());
     pkgDescBuilder.setListDisplay(createListDescription(mListDisplay, nameDisp, isObsolete()));
@@ -198,11 +192,11 @@ public class RemoteAddonPkgInfo extends RemotePkgInfo implements IAndroidVersion
   public void saveProperties(Properties props) {
     super.saveProperties(props);
 
-    getAndroidVersion().saveProperties(props);
+    AndroidVersionHelper.saveProperties(getAndroidVersion(), props);
     mLayoutlibVersion.saveProperties(props);
 
-    props.setProperty(PkgProps.ADDON_NAME_ID, ((IPkgDescAddon)getPkgDesc()).getName().getId());
-    props.setProperty(PkgProps.ADDON_NAME_DISPLAY, ((IPkgDescAddon)getPkgDesc()).getName().getDisplay());
+    props.setProperty(PkgProps.ADDON_NAME_ID, getPkgDesc().getName().getId());
+    props.setProperty(PkgProps.ADDON_NAME_DISPLAY, getPkgDesc().getName().getDisplay());
     props.setProperty(PkgProps.ADDON_VENDOR_ID, getPkgDesc().getVendor().getId());
     props.setProperty(PkgProps.ADDON_VENDOR_DISPLAY, getPkgDesc().getVendor().getDisplay());
   }
@@ -241,8 +235,7 @@ public class RemoteAddonPkgInfo extends RemotePkgInfo implements IAndroidVersion
    * <p/>
    * An add-on has the same {@link AndroidVersion} as the platform it depends on.
    */
-  @Override
-  @NonNull
+  @NotNull
   public AndroidVersion getAndroidVersion() {
     return getPkgDesc().getAndroidVersion();
   }
@@ -250,7 +243,7 @@ public class RemoteAddonPkgInfo extends RemotePkgInfo implements IAndroidVersion
   /**
    * Returns the libs defined in this add-on. Can be an empty array but not null.
    */
-  @NonNull
+  @NotNull
   public Lib[] getLibs() {
     return mLibs;
   }
@@ -261,10 +254,10 @@ public class RemoteAddonPkgInfo extends RemotePkgInfo implements IAndroidVersion
    * <p/>
    * {@inheritDoc}
    */
-  @NonNull
+  @NotNull
   @Override
   public String installId() {
-    return encodeAddonName(((IPkgDescAddon)getPkgDesc()).getName().getId(), getPkgDesc().getVendor().getId(), getAndroidVersion());
+    return encodeAddonName(getPkgDesc().getName().getId(), getPkgDesc().getVendor().getId(), getAndroidVersion());
   }
 
   /**
@@ -283,7 +276,7 @@ public class RemoteAddonPkgInfo extends RemotePkgInfo implements IAndroidVersion
    * Returns a short description for an {@link IDescription}.
    */
   private static String createShortDescription(String listDisplay,
-                                               FullRevision revision,
+                                               Revision revision,
                                                String displayName,
                                                AndroidVersion version,
                                                boolean obsolete) {
@@ -293,55 +286,6 @@ public class RemoteAddonPkgInfo extends RemotePkgInfo implements IAndroidVersion
 
     return String.format("%1$s, Android API %2$s, revision %3$s%4$s", displayName, version.getApiString(), revision.toShortString(),
                          obsolete ? " (Obsolete)" : "");
-  }
-
-  /**
-   * Computes a potential installation folder if an archive of this package were
-   * to be installed right away in the given SDK root.
-   * <p/>
-   * An add-on package is typically installed in SDK/add-ons/"addon-name"-"api-level".
-   * The name needs to be sanitized to be acceptable as a directory name.
-   * However if we can find a different directory under SDK/add-ons that already
-   * has this add-ons installed, we'll use that one.
-   *
-   * @param osSdkRoot  The OS path of the SDK root folder.
-   * @param sdkManager An existing SDK manager to list current platforms and addons.
-   * @return A new {@link File} corresponding to the directory to use to install this package.
-   */
-  @Override
-  public File getInstallFolder(String osSdkRoot, SdkManager sdkManager) {
-    File addons = new File(osSdkRoot, SdkConstants.FD_ADDONS);
-
-    IdDisplay name = ((IPkgDescAddon)getPkgDesc()).getName();
-    IdDisplay vendor = getPkgDesc().getVendor();
-
-    // First find if this add-on is already installed. If so, reuse the same directory.
-    for (IAndroidTarget target : sdkManager.getTargets()) {
-      if (!target.isPlatform() && target.getVersion().equals(getAndroidVersion())) {
-        // Starting with addon-4.xsd, the addon source.properties differentiate
-        // between ids and display strings. However the addon target which relies
-        // on the manifest.ini does not so we need to cover both cases.
-        // TODO fix when we get rid of manifest.ini for addons
-        if ((target.getName().equals(name.getId()) && target.getVendor().equals(vendor.getId())) ||
-            (target.getName().equals(name.getDisplay()) && target.getVendor().equals(vendor.getDisplay()))) {
-          return new File(target.getLocation());
-        }
-      }
-    }
-
-    // Compute a folder directory using the addon declared name and vendor strings.
-    String dir = encodeAddonName(name.getId(), vendor.getId(), getAndroidVersion());
-
-    for (int i = 0; i < 100; i++) {
-      String dir2 = i == 0 ? dir : String.format("%s-%d", dir, i); //$NON-NLS-1$
-      File folder = new File(addons, dir2);
-      if (!folder.exists()) {
-        return folder;
-      }
-    }
-
-    // We shouldn't really get here. I mean, seriously, we tried hard enough.
-    return null;
   }
 
   private static String encodeAddonName(String nameId, String vendorId, AndroidVersion version) {
@@ -354,14 +298,14 @@ public class RemoteAddonPkgInfo extends RemotePkgInfo implements IAndroidVersion
   }
 
   @Override
-  public boolean sameItemAs(LocalPkgInfo pkg, FullRevision.PreviewComparison previewComparison) {
+  public boolean sameItemAs(LocalPkgInfo pkg, Revision.PreviewComparison previewComparison) {
     if (pkg instanceof LocalAddonPkgInfo) {
       LocalAddonPkgInfo localPkg = (LocalAddonPkgInfo)pkg;
 
-      String nameId = ((IPkgDescAddon)getPkgDesc()).getName().getId();
+      String nameId = getPkgDesc().getName().getId();
 
       // check they are the same add-on.
-      if (Objects.equal(nameId, ((IPkgDescAddon)localPkg.getDesc()).getName()) &&
+      if (Objects.equal(nameId, localPkg.getDesc().getName()) &&
           getAndroidVersion().equals(localPkg.getDesc().getAndroidVersion())) {
         // Check the vendor-id field.
         if (getPkgDesc().getVendor().equals(localPkg.getDesc().getVendor())) {
@@ -379,7 +323,7 @@ public class RemoteAddonPkgInfo extends RemotePkgInfo implements IAndroidVersion
     int result = super.hashCode();
     result = prime * result + ((mLayoutlibVersion == null) ? 0 : mLayoutlibVersion.hashCode());
     result = prime * result + Arrays.hashCode(mLibs);
-    String name = ((IPkgDescAddon)getPkgDesc()).getName().getDisplay();
+    String name = getPkgDesc().getName().getDisplay();
     result = prime * result + ((name == null) ? 0 : name.hashCode());
     result = prime * result + (getPkgDesc().hasVendor() ? 0 : getPkgDesc().getVendor().hashCode());
     result = prime * result + getAndroidVersion().hashCode();

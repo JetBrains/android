@@ -26,7 +26,7 @@ import static com.android.ddmlib.DdmConstants.DOT_TRACE;
 
 public class VmTraceCaptureType extends FileCaptureType {
   protected VmTraceCaptureType() {
-    super("Method Tracing", AndroidIcons.Ddms.StartMethodProfiling, "Trace_", DOT_TRACE);
+    super("Method Tracing", AndroidIcons.Ddms.StartMethodProfiling, DOT_TRACE);
   }
 
   @NotNull

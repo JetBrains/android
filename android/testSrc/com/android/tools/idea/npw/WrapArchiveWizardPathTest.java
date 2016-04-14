@@ -75,7 +75,7 @@ import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 public final class WrapArchiveWizardPathTest extends AndroidTestBase {
   public static final String LIB_DIR_NAME = "lib";
-  public static final String LIBS_DEPENDENCY = "compile fileTree(dir: '" + LIB_DIR_NAME + "', include: ['*.jar'])";
+  public static final String LIBS_DEPENDENCY = "compile fileTree(include: ['*.jar'], dir: '" + LIB_DIR_NAME + "')";
   public static final String LIBRARY_JAR_NAME = "library.jar";
   private static final String TOP_LEVEL_BUILD_GRADLE = "buildscript {\n" +
                                                        "    repositories {\n" +
