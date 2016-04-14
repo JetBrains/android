@@ -16,15 +16,9 @@
 package com.android.tools.idea.editors.manifest;
 
 import com.android.SdkConstants;
-import com.android.builder.model.BuildTypeContainer;
-import com.android.builder.model.ProductFlavorContainer;
-import com.android.builder.model.SourceProvider;
-import com.android.builder.model.Variant;
-import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
@@ -41,9 +35,7 @@ import org.jetbrains.android.inspections.lint.SuppressLintIntentionAction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
