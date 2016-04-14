@@ -109,7 +109,7 @@ public class ResolvedDependenciesPanel extends ToolWindowPanel implements Depend
 
     myTreeBuilder = new ResolvedDependenciesTreeBuilder(module, myTree, treeModel, dependencySelection, this);
 
-    JScrollPane scrollPane = setUp(myTree);
+    JScrollPane scrollPane = setUp(myTreeBuilder);
     add(scrollPane, BorderLayout.CENTER);
 
     TreeSelectionListener treeSelectionListener = e -> {
