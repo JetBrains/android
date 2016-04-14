@@ -18,7 +18,6 @@ package com.android.tools.idea.monitor;
 import com.android.tools.idea.ddms.DeviceContext;
 import com.android.tools.idea.monitor.cpu.CpuMonitorView;
 import com.android.tools.idea.monitor.gpu.GpuMonitorView;
-import com.android.tools.idea.monitor.profilerclient.ProfilerClient;
 import com.android.tools.idea.monitor.memory.MemoryMonitorView;
 import com.android.tools.idea.monitor.network.NetworkMonitorView;
 import com.intellij.execution.ui.RunnerLayoutUi;
