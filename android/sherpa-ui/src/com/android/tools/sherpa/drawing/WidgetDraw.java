@@ -20,6 +20,7 @@ import com.android.tools.sherpa.drawing.decorator.WidgetDecorator;
 import com.android.tools.sherpa.interaction.ConstraintHandle;
 import com.android.tools.sherpa.interaction.ResizeHandle;
 import com.android.tools.sherpa.interaction.WidgetInteractionTargets;
+import com.android.tools.sherpa.structure.WidgetCompanion;
 import com.google.tnt.solver.widgets.ConstraintAnchor;
 import com.google.tnt.solver.widgets.ConstraintTableLayout;
 import com.google.tnt.solver.widgets.ConstraintWidget;
@@ -72,11 +73,12 @@ public class WidgetDraw {
      * @param showAnchors       determinate how to display the Constraints anchors points
      * @param showResizeHandles pass true to show Resize handles
      * @param isSelected        if the widget is currently selected
+     * @param widgetStyle       current widget style
      */
     public static void drawWidgetFrame(ViewTransform transform, Graphics2D g,
             ConstraintWidget widget,
             EnumSet<ANCHORS_DISPLAY> showAnchors, boolean showResizeHandles,
-            boolean showSizeIndicator, boolean isSelected) {
+            boolean showSizeIndicator, boolean isSelected, int widgetStyle) {
         g.setStroke(SnapDraw.sNormalStroke);
         int l = transform.getSwingX(widget.getDrawX());
         int t = transform.getSwingY(widget.getDrawY());
@@ -177,7 +179,8 @@ public class WidgetDraw {
 
         int anchorInnerMargin = 3;
 
-        WidgetDecorator decorator = (WidgetDecorator) widget.getCompanionWidget();
+        WidgetCompanion widgetCompanion = (WidgetCompanion) widget.getCompanionWidget();
+        WidgetDecorator decorator = widgetCompanion.getWidgetDecorator(widgetStyle);
         Color backgroundColor = decorator.getBackgroundColor();
         if (!(widget instanceof ConstraintWidgetContainer) && widget.getBaselineDistance() > 0) {
             int baselineY = transform

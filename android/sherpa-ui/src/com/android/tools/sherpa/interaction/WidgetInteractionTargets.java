@@ -17,6 +17,7 @@
 package com.android.tools.sherpa.interaction;
 
 import com.android.tools.sherpa.drawing.ViewTransform;
+import com.android.tools.sherpa.structure.WidgetCompanion;
 import com.google.tnt.solver.widgets.ConnectionCandidate;
 import com.google.tnt.solver.widgets.ConstraintAnchor;
 import com.google.tnt.solver.widgets.ConstraintWidget;
@@ -58,7 +59,7 @@ public class WidgetInteractionTargets {
 
     protected ArrayList<ConstraintHandle> mConstraintHandles = new ArrayList<ConstraintHandle>();
 
-    protected final ConstraintWidget mWidget;
+    private final ConstraintWidget mWidget;
 
     /**
      * Base constructor
@@ -294,9 +295,9 @@ public class WidgetInteractionTargets {
         if (widget.getCompanionWidget() == null) {
             return null;
         }
-        WidgetInteractionTargets interaction =
-                (WidgetInteractionTargets) widget.getCompanionWidget();
-        return interaction.getConstraintHandle(anchor);
+        WidgetCompanion widgetCompanion = (WidgetCompanion) widget.getCompanionWidget();
+        WidgetInteractionTargets widgetInteraction = widgetCompanion.getWidgetInteractionTargets();
+        return widgetInteraction.getConstraintHandle(anchor);
     }
 
     /**
