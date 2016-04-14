@@ -491,9 +491,12 @@ public class ConstraintUtilities {
         int connectionCreator = 0;
         WidgetDecorator decorator = (WidgetDecorator)widgetSrc.getCompanionWidget();
         NlComponent component = (NlComponent)decorator.getCompanionObject();
-        connectionCreator = Integer.parseInt(
-          component.getAttribute(SdkConstants.SHERPA_URI, getConnectionAttributeCreator(widgetSrc.getAnchor(constraintA))));
-        widgetSrc.connect(constraintA, widget, constraintB, connectionCreator);
+        String creatorAttribute = getConnectionAttributeCreator(widgetSrc.getAnchor(constraintA));
+        String creatorValue = component.getAttribute(SdkConstants.SHERPA_URI, creatorAttribute);
+        if (creatorValue != null) {
+          connectionCreator = Integer.parseInt(creatorValue);
+        }
+        widgetSrc.connect(constraintA, widget, constraintB, 0, ConstraintAnchor.Strength.STRONG, connectionCreator);
       }
     }
   }
