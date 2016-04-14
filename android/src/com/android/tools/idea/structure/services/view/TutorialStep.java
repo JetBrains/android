@@ -18,6 +18,7 @@ package com.android.tools.idea.structure.services.view;
 import com.android.tools.idea.structure.services.DeveloperServiceMap;
 import com.android.tools.idea.structure.services.datamodel.StepData;
 import com.android.tools.idea.structure.services.datamodel.StepElementData;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.components.JBScrollPane;
 
 import javax.swing.*;
@@ -74,7 +75,7 @@ public class TutorialStep extends JPanel {
           break;
         case CODE:
           CodePane code = new CodePane();
-          code.setText(element.getCode());
+          code.setCode(element.getCode());
           NaturalHeightScrollPane codeScroller = new NaturalHeightScrollPane(code);
           myContents.add(codeScroller);
           break;
@@ -206,16 +207,28 @@ public class TutorialStep extends JPanel {
   private class CodePane extends JTextPane {
 
     public CodePane() {
+      super();
       setEditable(false);
       setOpaque(false);
       setMargin(new Insets(5, 5, 5, 5));
       setFont(new Font(Font.MONOSPACED, Font.PLAIN, 10));
+      setContentType("text/html");
     }
 
     // Always scroll horizontally, avoids text wrapping.
     @Override
     public boolean getScrollableTracksViewportWidth() {
       return false;
+    }
+
+    /**
+     * Alternative to {@code setText} that formats appropriately as markup. Prior implementations as plain text did not honor wrapping
+     * rules. Note that this is not overriding {@code setText} as {@code UIUtils.setHtml} calls that internally which would cause a loop.
+     */
+    public void setCode(String text) {
+      // {@code escapeXml} is sufficient as we merely want to prevent the contents as being interpreted as html, not deal with the myriad of
+      // html entities.
+      UIUtils.setHtml(this, "<pre>" + StringUtil.escapeXml(text) + "</pre>");
     }
   }
 
