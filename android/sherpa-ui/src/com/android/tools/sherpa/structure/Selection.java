@@ -452,7 +452,7 @@ public class Selection {
             b = Math.max(w.getDrawBottom(), b);
         }
         ConstraintWidget bounds = new ConstraintWidget(l, t, r - l, b - t);
-        bounds.setCompanionWidget(new WidgetDecorator(bounds));
+        bounds.setCompanionWidget(WidgetCompanion.create(bounds));
         mBounds = new Element(bounds);
         updateOriginFromBounds();
     }
