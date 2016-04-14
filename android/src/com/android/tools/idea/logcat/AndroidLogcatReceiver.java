@@ -18,6 +18,7 @@ package com.android.tools.idea.logcat;
 
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.logcat.LogCatHeader;
+import com.android.ddmlib.logcat.LogCatMessage;
 import com.android.ddmlib.logcat.LogCatMessageParser;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.text.StringUtil;
@@ -103,19 +104,13 @@ final class AndroidLogcatReceiver extends AndroidOutputReceiver implements Dispo
         processAnyDelayedNewlines(myActiveHeader);
       }
       for (String processedLine : myStackTraceExpander.process(line)) {
-        writeLineToLog(myActiveHeader, processedLine);
+        notifyLine(myActiveHeader, processedLine);
       }
     }
   }
 
-  private void writeLineToLog(@NotNull LogCatHeader header, @NotNull String line) {
-    if (myLineIndex == 0) {
-      line = AndroidLogcatFormatter.formatMessageFull(header, line);
-    }
-    else {
-      line = AndroidLogcatFormatter.formatContinuation(line);
-    }
-    myLogLineListener.receiveLogLine(line);
+  private void notifyLine(@NotNull LogCatHeader header, @NotNull String line) {
+    myLogLineListener.receiveLogLine(new LogCatMessage(header, line));
     myLineIndex++;
   }
 
@@ -124,7 +119,7 @@ final class AndroidLogcatReceiver extends AndroidOutputReceiver implements Dispo
       return;
     }
     for (int i = 0; i < myDelayedNewlineCount; i++) {
-      writeLineToLog(header, "");
+      notifyLine(header, "");
     }
     myDelayedNewlineCount = 0;
   }

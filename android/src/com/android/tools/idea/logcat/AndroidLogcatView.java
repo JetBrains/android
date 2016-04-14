@@ -18,6 +18,8 @@ package com.android.tools.idea.logcat;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.ClientData;
 import com.android.ddmlib.IDevice;
+import com.android.ddmlib.logcat.LogCatHeader;
+import com.android.ddmlib.logcat.LogCatMessage;
 import com.android.tools.idea.actions.BrowserHelpAction;
 import com.android.tools.idea.ddms.DeviceContext;
 import com.intellij.diagnostic.logging.LogConsoleBase;
@@ -70,6 +72,7 @@ public abstract class AndroidLogcatView implements Disposable {
 
   private volatile IDevice myDevice;
   private final AndroidLogConsole myLogConsole;
+  private final FormattedLogLineReceiver myFormattedLogLineReceiver;
   private final AndroidLogFilterModel myLogFilterModel;
 
   private final IDevice myPreselectedDevice;
@@ -93,7 +96,7 @@ public abstract class AndroidLogcatView implements Disposable {
         }
         if (forceReconnect) {
           if (myDevice != null) {
-            AndroidLogcatService.getInstance().removeListener(myDevice, myLogConsole);
+            AndroidLogcatService.getInstance().removeListener(myDevice, myFormattedLogLineReceiver);
           }
           myDevice = null;
         }
@@ -169,6 +172,12 @@ public abstract class AndroidLogcatView implements Disposable {
 
     AndroidLogcatFormatter logFormatter = new AndroidLogcatFormatter(AndroidLogcatPreferences.getInstance(project));
     myLogConsole = new AndroidLogConsole(project, myLogFilterModel, logFormatter);
+    myFormattedLogLineReceiver = new FormattedLogLineReceiver() {
+      @Override
+      protected void receiveFormattedLogLine(@NotNull String line) {
+        myLogConsole.addLogLine(line);
+      }
+    };
 
     if (preselectedDevice == null && deviceContext != null) {
       DeviceContext.DeviceSelectionListener deviceSelectionListener =
@@ -315,14 +324,14 @@ public abstract class AndroidLogcatView implements Disposable {
     if (myDevice != device) {
       AndroidLogcatService androidLogcatService = AndroidLogcatService.getInstance();
       if (myDevice != null) {
-        androidLogcatService.removeListener(myDevice, myLogConsole);
+        androidLogcatService.removeListener(myDevice, myFormattedLogLineReceiver);
       }
       ConsoleView console = myLogConsole.getConsole();
       if (console != null) {
         console.clear();
       }
       myDevice = device;
-      androidLogcatService.addListener(myDevice, myLogConsole, true);
+      androidLogcatService.addListener(myDevice, myFormattedLogLineReceiver, true);
     }
   }
 
@@ -450,9 +459,9 @@ public abstract class AndroidLogcatView implements Disposable {
     }
   }
 
-  final class AndroidLogConsole extends LogConsoleBase implements AndroidLogcatService.LogLineListener {
-      private final RegexFilterComponent myRegexFilterComponent = new RegexFilterComponent("LOG_FILTER_HISTORY", 5);
-      private final AndroidLogcatPreferences myPreferences;
+  final class AndroidLogConsole extends LogConsoleBase{
+    private final RegexFilterComponent myRegexFilterComponent = new RegexFilterComponent("LOG_FILTER_HISTORY", 5);
+    private final AndroidLogcatPreferences myPreferences;
 
     public AndroidLogConsole(Project project, AndroidLogFilterModel logFilterModel, LogFormatter logFormatter) {
       super(project, null, "", false, logFilterModel, GlobalSearchScope.allScope(project), logFormatter);
@@ -493,9 +502,8 @@ public abstract class AndroidLogcatView implements Disposable {
       return myRegexFilterComponent;
     }
 
-    @Override
-    public void receiveLogLine(@NotNull String line) {
-      addMessage(line);
+    public void addLogLine(@NotNull String line) {
+      super.addMessage(line);
     }
 
     /**

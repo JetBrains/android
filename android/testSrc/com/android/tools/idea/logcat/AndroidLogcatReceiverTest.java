@@ -17,6 +17,8 @@
 package com.android.tools.idea.logcat;
 
 import com.android.ddmlib.IDevice;
+import com.android.ddmlib.logcat.LogCatHeader;
+import com.android.ddmlib.logcat.LogCatMessage;
 import org.easymock.EasyMock;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
@@ -44,17 +46,17 @@ public class AndroidLogcatReceiverTest {
 
   @Before
   public void setUp() {
-    myLogLineListener = new AndroidLogcatService.LogLineListener() {
+    myLogLineListener = new FormattedLogLineReceiver() {
       private final StringWriter myInnerWriter = new StringWriter();
+
+      @Override
+      protected void receiveFormattedLogLine(@NotNull String line) {
+        myInnerWriter.append(line).append('\n');
+      }
 
       @Override
       public String toString() {
         return myInnerWriter.getBuffer().toString();
-      }
-
-      @Override
-      public void receiveLogLine(@NotNull String line) {
-        myInnerWriter.append(line).append('\n');
       }
     };
     myReceiver = new AndroidLogcatReceiver(createMockDevice(), myLogLineListener);

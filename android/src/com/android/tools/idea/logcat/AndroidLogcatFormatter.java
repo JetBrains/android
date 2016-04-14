@@ -147,14 +147,6 @@ public final class AndroidLogcatFormatter extends DefaultLogFormatter {
   }
 
   /**
-   * Construct a fake logcat message at the specified level.
-   */
-  public static String formatMessage(@NotNull Log.LogLevel level, @NotNull String message) {
-    LogCatHeader fakeHeader = new LogCatHeader(level, 0, 0, "?", "Internal", LogCatTimestamp.ZERO);
-    return formatMessageFull(fakeHeader, message);
-  }
-
-  /**
    * Parse a message that was encoded using {@link #formatMessageFull(LogCatHeader, String)}
    */
   @NotNull
