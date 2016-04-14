@@ -84,7 +84,7 @@ class TargetModulesPanel extends ToolWindowPanel {
 
     myTreeBuilder = new TargetModelsTreeBuilder(myContext.getProject(), myTree, treeModel);
 
-    JScrollPane scrollPane = setUp(myTree);
+    JScrollPane scrollPane = setUp(myTreeBuilder);
     add(scrollPane, BorderLayout.CENTER);
 
     myHyperlinkSupport = new NodeHyperlinkSupport<>(myTree, TargetAndroidModuleNode.class, myContext, false);

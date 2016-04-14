@@ -15,18 +15,15 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies;
 
+import com.android.tools.idea.gradle.structure.configurables.ui.treeview.TreeBuilderSpeedSearch;
+import com.intellij.ide.util.treeView.AbstractTreeBuilder;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.OnePixelSplitter;
-import com.intellij.ui.TreeUIHelper;
-import com.intellij.ui.treeStructure.Tree;
-import com.intellij.util.containers.Convertor;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
-
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 
@@ -49,19 +46,15 @@ public final class UiUtil {
   }
 
   @NotNull
-  public static JScrollPane setUp(@NotNull Tree tree) {
+  public static JScrollPane setUp(@NotNull AbstractTreeBuilder treeBuilder) {
+    JTree tree = treeBuilder.getUi().getTree();
+
     tree.setExpandsSelectedPaths(true);
     tree.setRootVisible(false);
     TreeSelectionModel selectionModel = tree.getSelectionModel();
     selectionModel.setSelectionMode(DISCONTIGUOUS_TREE_SELECTION);
 
-    TreeUIHelper.getInstance().installTreeSpeedSearch(tree, new Convertor<TreePath, String>() {
-      @Override
-      public String convert(TreePath path) {
-        Object last = path.getLastPathComponent();
-        return last != null ? last.toString() : "";
-      }
-    }, true);
+    TreeBuilderSpeedSearch.installTo(treeBuilder);
 
     JScrollPane scrollPane = createScrollPane(tree);
     scrollPane.setBorder(IdeBorderFactory.createEmptyBorder());
@@ -69,18 +62,11 @@ public final class UiUtil {
   }
 
   public static boolean isMetaOrCtrlKeyPressed(@NotNull KeyEvent e) {
-    int keyCode = e.getKeyCode();
-    if (isMac) {
-      return keyCode == VK_META;
-    }
-    return keyCode == VK_CONTROL;
+    return e.getKeyCode() == (isMac ? VK_META : VK_CONTROL);
   }
 
   public static boolean isMetaOrCtrlKeyPressed(@NotNull MouseEvent e) {
     int modifiers = e.getModifiers();
-    if (isMac) {
-      return isSet(modifiers, META_MASK);
-    }
-    return isSet(modifiers, CTRL_MASK);
+    return isSet(modifiers, isMac ? META_MASK : CTRL_MASK);
   }
 }
