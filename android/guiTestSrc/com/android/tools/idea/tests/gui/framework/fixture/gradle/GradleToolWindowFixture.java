@@ -23,6 +23,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.treeStructure.Tree;
 import org.fest.swing.core.Robot;
+import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
 import org.jetbrains.annotations.NotNull;
 
@@ -62,25 +63,25 @@ public class GradleToolWindowFixture extends ToolWindowFixture {
 
     Object root = tasksTree.getModel().getRoot();
     final TreePath treePath = findTaskPath((DefaultMutableTreeNode)root, taskName);
-    final Point locationOnScreen = new Point();
 
-    execute(new GuiTask() {
+    Point clickLocation = execute(new GuiQuery<Point>() {
       @Override
-      protected void executeInEDT() throws Throwable {
+      protected Point executeInEDT() throws Throwable {
         // We store screen location here because it shows weird (negative) values after 'scrollPathToVisible()' is called.
-        locationOnScreen.setLocation(tasksTree.getLocationOnScreen());
+        Point locationOnScreen = tasksTree.getLocationOnScreen();
         tasksTree.expandPath(treePath.getParentPath());
         tasksTree.scrollPathToVisible(treePath);
+        Rectangle bounds = tasksTree.getPathBounds(treePath);
+        assertNotNull(bounds);
+        bounds.translate(0, bounds.height / 2); // Make sure we are not under the horizontal scroll bar
+        tasksTree.scrollRectToVisible(bounds);
+        Rectangle visibleRect = tasksTree.getVisibleRect();
+        return new Point(locationOnScreen.x + bounds.x + bounds.width / 2 - visibleRect.x,
+                         locationOnScreen.y + bounds.y - visibleRect.y);
       }
     });
 
-    Rectangle bounds = tasksTree.getPathBounds(treePath);
-    assertNotNull(bounds);
-    bounds.translate(0, bounds.height / 2); // Make sure we are not under the horizontal scroll bar
-    tasksTree.scrollRectToVisible(bounds);
-    Rectangle visibleRect = tasksTree.getVisibleRect();
-    Point clickLocation = new Point(locationOnScreen.x + bounds.x + bounds.width / 2 - visibleRect.x,
-                                    locationOnScreen.y + bounds.y - visibleRect.y);
+    assertNotNull(clickLocation);
     myRobot.click(clickLocation, LEFT_BUTTON, 2);
   }
 
