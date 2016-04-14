@@ -112,10 +112,9 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel {
 
     getContentsPanel().add(createActionsPanel(), BorderLayout.NORTH);
 
-    JScrollPane scrollPane = setUp(myTree);
-    getContentsPanel().add(scrollPane, BorderLayout.CENTER);
-
     myTreeBuilder = new DeclaredDependenciesTreeBuilder(myContext.getProject(), myTree, treeModel);
+    JScrollPane scrollPane = setUp(myTreeBuilder);
+    getContentsPanel().add(scrollPane, BorderLayout.CENTER);
 
     TreeSelectionListener treeSelectionListener = e -> {
       NodeSelectionDetector detector = new NodeSelectionDetector();
@@ -123,7 +122,7 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel {
       if (!myIgnoreTreeSelectionEvents) {
         AbstractDependencyNode<? extends PsAndroidDependency> selection = getSelection();
         myIgnoreTreeSelectionEvents = true;
-        myTreeBuilder.updateSelection(new MatchingNodeCollector() {
+        myTreeBuilder.collectNodesMatchingSelection(new MatchingNodeCollector() {
           @Override
           protected void done(@NotNull List<AbstractPsModelNode> matchingNodes) {
             matchingNodes.forEach(detector::add);
