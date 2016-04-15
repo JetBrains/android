@@ -15,11 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.editor;
 
-import com.android.tools.idea.uibuilder.surface.DesignSurfaceListener;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.AndroidPsiUtils;
-import com.android.tools.idea.configurations.*;
+import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.configurations.RenderContext;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderedViewHierarchy;
 import com.android.tools.idea.rendering.multi.RenderPreviewManager;
@@ -37,7 +35,9 @@ import com.intellij.ide.CopyProvider;
 import com.intellij.ide.CutProvider;
 import com.intellij.ide.DeleteProvider;
 import com.intellij.ide.PasteProvider;
-import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.DataProvider;
+import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -46,10 +46,10 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.registry.Registry;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlFile;
-import com.intellij.ui.IdeBorderFactory;
-import com.intellij.ui.SideBorder;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -81,73 +81,16 @@ public class NlEditorPanel extends JPanel implements DesignerEditorPanelFacade, 
     // The {@link LightFillLayout} provides the UI for the minimized forms of the {@link LightToolWindow}
     // used for the palette and the structure/properties panes.
     JPanel contentPanel = new JPanel(new LightFillLayout());
-    JComponent toolbar = createToolbar(mySurface);
-    contentPanel.add(toolbar);
+    final NlActionsToolbar actionsToolbar = new NlActionsToolbar(mySurface);
+    actionsToolbar.setModel(model);
+    contentPanel.add(actionsToolbar.getToolbarComponent());
     contentPanel.add(mySurface);
+    List<NlComponent> components = model.getComponents();
 
     myContentSplitter.setDividerWidth(0);
     myContentSplitter.setDividerMouseZoneSize(Registry.intValue("ide.splitter.mouseZone"));
     myContentSplitter.setInnerComponent(contentPanel);
     add(myContentSplitter, BorderLayout.CENTER);
-  }
-
-  static JComponent createToolbar(@NotNull DesignSurface surface) {
-    RenderContext context = new NlRenderContext(surface);
-    ActionGroup group = createActions(context, surface);
-
-    ActionManager actionManager = ActionManager.getInstance();
-    ActionToolbar actionToolbar = actionManager.createActionToolbar("NeleToolbarId", group, true);
-    actionToolbar.setLayoutPolicy(ActionToolbar.WRAP_LAYOUT_POLICY);
-
-    JComponent editorToolbar = actionToolbar.getComponent();
-    editorToolbar.setBorder(IdeBorderFactory.createBorder(SideBorder.BOTTOM));
-
-    // The toolbar depends on the current ScreenView for its content,
-    // so reload when the ScreenView changes.
-    surface.addListener(new DesignSurfaceListener() {
-      @Override
-      public void componentSelectionChanged(@NotNull DesignSurface surface, @NotNull List<NlComponent> newSelection) {
-      }
-
-      @Override
-      public void screenChanged(@NotNull DesignSurface surface, @Nullable ScreenView screenView) {
-        actionToolbar.updateActionsImmediately();
-      }
-
-      @Override
-      public void modelChanged(@NotNull DesignSurface surface, @Nullable NlModel model) {
-      }
-    });
-
-    return editorToolbar;
-  }
-
-  private static DefaultActionGroup createActions(RenderContext configurationHolder, DesignSurface surface) {
-    DefaultActionGroup group = new DefaultActionGroup();
-
-    OrientationMenuAction orientationAction = new OrientationMenuAction(configurationHolder);
-    group.add(orientationAction);
-    group.addSeparator();
-
-    DeviceMenuAction deviceAction = new DeviceMenuAction(configurationHolder);
-    group.add(deviceAction);
-
-    TargetMenuAction targetMenuAction = new TargetMenuAction(configurationHolder);
-    group.add(targetMenuAction);
-
-    ThemeMenuAction themeAction = new ThemeMenuAction(configurationHolder);
-    group.add(themeAction);
-
-    LocaleMenuAction localeAction = new LocaleMenuAction(configurationHolder);
-    group.add(localeAction);
-
-    ConfigurationMenuAction configAction = new ConfigurationMenuAction(configurationHolder);
-    group.add(configAction);
-
-    ZoomMenuAction zoomAction = new ZoomMenuAction(surface);
-    group.add(zoomAction);
-
-    return group;
   }
 
   @Nullable
@@ -334,7 +277,7 @@ public class NlEditorPanel extends JPanel implements DesignerEditorPanelFacade, 
    * and old layout editors, we no longer needs this level of indirection to let the configuration actions
    * talk to multiple different editor implementations, and the render actions can directly address DesignSurface.
    */
-  private static class NlRenderContext implements RenderContext {
+  static class NlRenderContext implements RenderContext {
     @NotNull private final DesignSurface mySurface;
 
     public NlRenderContext(@NotNull DesignSurface surface) {
