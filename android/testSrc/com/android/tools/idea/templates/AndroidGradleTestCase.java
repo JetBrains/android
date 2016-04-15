@@ -467,7 +467,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     }
   }
 
-  public void assertBuildsCleanly(Project project, boolean allowWarnings, String... extraArgs) throws Exception {
+  public ProcessOutput build(Project project, String... extraArgs) throws Exception {
     File base = virtualToIoFile(project.getBaseDir());
     File gradlew = new File(base, GRADLE_WRAPPER_EXECUTABLE_NAME);
     assertTrue(gradlew.exists());
@@ -490,6 +490,11 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
                                  "[stderr]\n" +
                                  processOutput.getStderr() + "\n");
     }
+    return processOutput;
+  }
+
+  public void assertBuildsCleanly(Project project, boolean allowWarnings, String... extraArgs) throws Exception {
+    ProcessOutput processOutput = build(project, extraArgs);
     String errors = processOutput.getStderr();
     String output = processOutput.getStdout();
     int exitCode = processOutput.getExitCode();
