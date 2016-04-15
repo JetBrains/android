@@ -71,19 +71,9 @@ public class GradleApkProviderTest extends AndroidGradleArtifactsTestCase {
   }
 
   @Test
-  public void testGetPackageName() throws Exception {
-    loadProject("projects/runConfig/activity");
-    GradleApkProvider provider = new GradleApkProvider(myAndroidFacet, false);
-    // See testData/Projects/runConfig/activity/build.gradle
-    assertEquals("from.gradle.debug", provider.getPackageName());
-    // Without a specific test package name from the Gradle file, we just get a test prefix.
-    assertEquals("from.gradle.debug.test", provider.getTestPackageName());
-  }
-
-  @Test
   public void testGetApks() throws Exception {
     loadProject("projects/runConfig/activity");
-    GradleApkProvider provider = new GradleApkProvider(myAndroidFacet, false);
+    GradleApkProvider provider = new GradleApkProvider(myAndroidFacet, new GradleApplicationIdProvider(myAndroidFacet), false);
     Collection<ApkInfo> apks = provider.getApks(mock(IDevice.class));
     assertThat(apks).hasSize(1);
 
@@ -95,19 +85,9 @@ public class GradleApkProviderTest extends AndroidGradleArtifactsTestCase {
   }
 
   @Test
-  public void testGetPackageNameForTest() throws Exception {
-    loadProject("projects/runConfig/activity");
-    GradleApkProvider provider = new GradleApkProvider(myAndroidFacet, true);
-    // See testData/Projects/runConfig/activity/build.gradle
-    assertEquals("from.gradle.debug", provider.getPackageName());
-    // Without a specific test package name from the Gradle file, we just get a test prefix.
-    assertEquals("from.gradle.debug.test", provider.getTestPackageName());
-  }
-
-  @Test
   public void testGetApksForTest() throws Exception {
     loadProject("projects/runConfig/activity");
-    GradleApkProvider provider = new GradleApkProvider(myAndroidFacet, true);
+    GradleApkProvider provider = new GradleApkProvider(myAndroidFacet, new GradleApplicationIdProvider(myAndroidFacet), true);
 
     Collection<ApkInfo> apks = provider.getApks(mock(IDevice.class));
     assertThat(apks).hasSize(2);

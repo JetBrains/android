@@ -35,6 +35,7 @@ public class AndroidLaunchTasksProviderFactory implements LaunchTasksProviderFac
   private final AndroidRunConfigurationBase myRunConfig;
   private final ExecutionEnvironment myEnv;
   private final AndroidFacet myFacet;
+  private final ApplicationIdProvider myApplicationIdProvider;
   private final ApkProvider myApkProvider;
   private final LaunchOptions myLaunchOptions;
   private final ProcessHandler myPreviousSessionProcessHandler;
@@ -42,12 +43,14 @@ public class AndroidLaunchTasksProviderFactory implements LaunchTasksProviderFac
   public AndroidLaunchTasksProviderFactory(@NotNull AndroidRunConfigurationBase runConfig,
                                            @NotNull ExecutionEnvironment env,
                                            @NotNull AndroidFacet facet,
+                                           @NotNull ApplicationIdProvider applicationIdProvider,
                                            @NotNull ApkProvider apkProvider,
                                            @NotNull LaunchOptions launchOptions,
                                            @Nullable ProcessHandler processHandler) {
     myRunConfig = runConfig;
     myEnv = env;
     myFacet = facet;
+    myApplicationIdProvider = applicationIdProvider;
     myApkProvider = apkProvider;
     myLaunchOptions = launchOptions;
     myPreviousSessionProcessHandler = processHandler;
@@ -76,7 +79,7 @@ public class AndroidLaunchTasksProviderFactory implements LaunchTasksProviderFac
           return new NoChangesTasksProvider(myFacet);
         }
         else if (canHotSwap(buildInfo)) {
-          return new HotSwapTasksProvider(myRunConfig, myEnv, myFacet, myApkProvider, myLaunchOptions);
+          return new HotSwapTasksProvider(myRunConfig, myEnv, myFacet, myApplicationIdProvider, myLaunchOptions);
         }
       }
       else {
@@ -84,7 +87,7 @@ public class AndroidLaunchTasksProviderFactory implements LaunchTasksProviderFac
       }
     }
 
-    return new AndroidLaunchTasksProvider(myRunConfig, myEnv, myFacet, myApkProvider, myLaunchOptions);
+    return new AndroidLaunchTasksProvider(myRunConfig, myEnv, myFacet, myApplicationIdProvider, myApkProvider, myLaunchOptions);
   }
 
   /** Returns whether the build results indicate that we can perform a hot swap */
