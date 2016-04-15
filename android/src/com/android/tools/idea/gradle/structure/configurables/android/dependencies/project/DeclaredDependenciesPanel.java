@@ -120,26 +120,31 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel {
       NodeSelectionDetector detector = new NodeSelectionDetector();
 
       if (!myIgnoreTreeSelectionEvents) {
-        AbstractDependencyNode<? extends PsAndroidDependency> selection = getSelection();
-        myIgnoreTreeSelectionEvents = true;
-        myTreeBuilder.collectNodesMatchingSelection(new MatchingNodeCollector() {
-          @Override
-          protected void done(@NotNull List<AbstractPsModelNode> matchingNodes) {
-            matchingNodes.forEach(detector::add);
-            myIgnoreTreeSelectionEvents = false;
+        List<AbstractDependencyNode<? extends PsAndroidDependency>> selection = getMatchingSelection();
+        PsAndroidDependency selected = !selection.isEmpty() ? selection.get(0).getModels().get(0) : null;
 
-            List<AbstractDependencyNode<? extends PsAndroidDependency>> singleSelection = Collections.emptyList();
-            if (selection != null) {
-              singleSelection = detector.getSingleTypeSelection();
+        if (selected == null) {
+          notifySelectionChanged(Collections.emptyList());
+        }
+        else {
+          myTreeBuilder.collectNodesMatchingCurrentSelection(selected, new MatchingNodeCollector() {
+            @Override
+            protected void done(@NotNull List<AbstractPsModelNode> matchingNodes) {
+              matchingNodes.forEach(detector::add);
+
+              List<AbstractDependencyNode<? extends PsAndroidDependency>> singleSelection = Collections.emptyList();
+              if (!selection.isEmpty()) {
+                singleSelection = detector.getSingleTypeSelection();
+              }
+              notifySelectionChanged(singleSelection);
             }
-            notifySelectionChanged(singleSelection);
-          }
-        });
+          });
+        }
 
-        PsAndroidDependency selected = selection != null ? selection.getModels().get(0) : null;
         updateDetails(selected);
         updateIssues(selection);
       }
+      myIgnoreTreeSelectionEvents = false;
     };
     myTree.addTreeSelectionListener(treeSelectionListener);
     myTree.addMouseListener(new PopupHandler() {
@@ -154,26 +159,37 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel {
     myHyperlinkSupport = new NodeHyperlinkSupport<>(myTree, ModuleDependencyNode.class, myContext, true);
   }
 
-  private void updateIssues(@Nullable AbstractDependencyNode<? extends PsAndroidDependency> selection) {
+  @SuppressWarnings("unchecked")
+  @NotNull
+  private List<AbstractDependencyNode<? extends PsAndroidDependency>> getMatchingSelection() {
+    Set<AbstractDependencyNode> selection = myTreeBuilder.getSelectedElements(AbstractDependencyNode.class);
+    if (!selection.isEmpty()) {
+      AbstractDependencyNode<? extends PsAndroidDependency> first = getFirstItem(selection);
+      assert first != null;
+      PsAndroidDependency model = first.getModels().get(0);
+
+      List<AbstractDependencyNode<? extends PsAndroidDependency>> matchingSelection = Lists.newArrayList();
+      for (AbstractDependencyNode<? extends PsAndroidDependency> node : selection) {
+        if (!node.matches(model)) {
+          return Collections.emptyList();
+        }
+        matchingSelection.add(node);
+      }
+      return matchingSelection;
+    }
+    return Collections.emptyList();
+  }
+
+  private void updateIssues(@NotNull List<AbstractDependencyNode<? extends PsAndroidDependency>> selection) {
     List<PsIssue> issues = Lists.newArrayList();
 
-    if (selection != null) {
-      for (PsAndroidDependency selected : selection.getModels()) {
-        issues.addAll(myContext.getDaemonAnalyzer().getIssues().findIssues(selected, null));
+    for (AbstractDependencyNode<? extends PsAndroidDependency> node : selection) {
+      for (PsAndroidDependency dependency : node.getModels()) {
+        issues.addAll(myContext.getDaemonAnalyzer().getIssues().findIssues(dependency, null));
       }
     }
 
     myIssuesViewer.display(issues);
-  }
-
-  @Nullable
-  private AbstractDependencyNode<? extends PsAndroidDependency> getSelection() {
-    Set<AbstractDependencyNode> selectedElements = myTreeBuilder.getSelectedElements(AbstractDependencyNode.class);
-    if (selectedElements.size() == 1) {
-      //noinspection unchecked
-      return getFirstItem(selectedElements);
-    }
-    return null;
   }
 
   private void notifySelectionChanged(@NotNull List<AbstractDependencyNode<? extends PsAndroidDependency>> selected) {
@@ -208,6 +224,21 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel {
   @NotNull
   protected List<AnAction> getExtraToolbarActions() {
     List<AnAction> actions = Lists.newArrayList();
+
+    actions.add(new SelectNodesMatchingCurrentSelectionAction() {
+      @Override
+      public void actionPerformed(AnActionEvent e) {
+        myIgnoreTreeSelectionEvents = true;
+        super.actionPerformed(e);
+      }
+
+      @Override
+      @NotNull
+      protected AbstractPsNodeTreeBuilder getTreeBuilder() {
+        return myTreeBuilder;
+      }
+    });
+    actions.add(new Separator());
 
     actions.add(new AbstractBaseExpandAllAction(myTree, Expandall) {
       @Override
