@@ -17,6 +17,7 @@ package com.android.tools.idea.run.editor;
 
 import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.run.ValidationError;
+import com.android.tools.idea.run.activity.StartActivityFlagsProvider;
 import com.android.tools.idea.run.tasks.AndroidDeepLinkLaunchTask;
 import com.android.tools.idea.run.tasks.LaunchTask;
 import com.google.common.collect.ImmutableList;
@@ -37,11 +38,9 @@ public class DeepLinkLaunch extends LaunchOption<DeepLinkLaunch.State> {
     @Override
     public LaunchTask getLaunchTask(@NotNull String applicationId,
                                     @NotNull AndroidFacet facet,
-                                    boolean waitForDebugger,
-                                    @Nullable AndroidDebugger androidDebugger,
-                                    @NotNull String extraAmOptions,
+                                    @NotNull StartActivityFlagsProvider startActivityFlagsProvider,
                                     @NotNull ProfilerState profilerState) {
-      return new AndroidDeepLinkLaunchTask(applicationId, DEEP_LINK, waitForDebugger, extraAmOptions);
+      return new AndroidDeepLinkLaunchTask(applicationId, DEEP_LINK, startActivityFlagsProvider);
     }
 
     @NotNull
