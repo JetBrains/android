@@ -134,8 +134,7 @@ public class AndroidModuleInfoTest extends AndroidGradleTestCase {
   }
 
   public void testManifestMerger() throws Exception {
-    // we have to pass true to doing a build as lib Manifests are only available after a build
-    loadProject("projects/moduleInfo/manifestMerger", true);
+    loadProject("projects/moduleInfo/manifestMerger");
     assertNotNull(myAndroidFacet);
     assertEquals(1, AndroidUtils.getAllAndroidDependencies(myAndroidFacet.getModule(), true).size());
 
