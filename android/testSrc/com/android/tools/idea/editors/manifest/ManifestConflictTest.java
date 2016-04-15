@@ -16,13 +16,21 @@
 package com.android.tools.idea.editors.manifest;
 
 import com.android.manifmerger.MergingReport;
+import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.rendering.HtmlLinkManager;
 import com.android.tools.idea.templates.AndroidGradleTestCase;
 import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.options.ConfigurationException;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.LocalFileSystem;
+import org.jetbrains.annotations.NotNull;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.Semaphore;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -32,7 +40,8 @@ public class ManifestConflictTest extends AndroidGradleTestCase {
   private static final Pattern LINK_PATTERN = Pattern.compile("\\<a.*? href=\"(.*?)\".*?\\>", Pattern.CASE_INSENSITIVE);
 
   public void testResolveAttributeConflict() throws Exception {
-    loadProject("projects/manifestConflict/attribute");
+    loadProjectAndWaitForProjectSyncToFinish("projects/manifestConflict/attribute");
+    build(); // TODO THIS LINE SHOULD NOT BE NEEDED, AS EXPLODED AAR FILES SHOULD ALREADY BE AVAILABLE AFTER SYNC, BUT THEY ARE NOT???
     String[] errors = getErrorHtml();
     assertEquals(1, errors.length);
     clickLink(errors[0], 0);
@@ -40,7 +49,7 @@ public class ManifestConflictTest extends AndroidGradleTestCase {
   }
 
   public void testResolveBuildPackageConflict() throws Exception {
-    loadProject("projects/manifestConflict/buildPackage");
+    loadProjectAndWaitForProjectSyncToFinish("projects/manifestConflict/buildPackage");
     String[] errors = getErrorHtml();
     assertEquals(1, errors.length);
     clickLink(errors[0], 0);
@@ -48,7 +57,7 @@ public class ManifestConflictTest extends AndroidGradleTestCase {
   }
 
   public void testResolveFlavorPackageConflict() throws Exception {
-    loadProject("projects/manifestConflict/flavorPackage");
+    loadProjectAndWaitForProjectSyncToFinish("projects/manifestConflict/flavorPackage");
     String[] errors = getErrorHtml();
     assertEquals(1, errors.length);
     clickLink(errors[0], 0);
@@ -56,11 +65,34 @@ public class ManifestConflictTest extends AndroidGradleTestCase {
   }
 
   public void testResolveMinSdkConflict() throws Exception {
-    loadProject("projects/manifestConflict/minSdk");
+    loadProjectAndWaitForProjectSyncToFinish("projects/manifestConflict/minSdk");
+    build(); // TODO THIS LINE SHOULD NOT BE NEEDED, AS EXPLODED AAR FILES SHOULD ALREADY BE AVAILABLE AFTER SYNC, BUT THEY ARE NOT???
     String[] errors = getErrorHtml();
     assertEquals(1, errors.length);
     clickLink(errors[0], 0);
     assertEquals(0, getErrorHtml().length);
+  }
+
+  private void loadProjectAndWaitForProjectSyncToFinish(String relativePath) throws IOException, ConfigurationException, InterruptedException {
+    Semaphore semaphore = new Semaphore(0);
+    loadProject(relativePath, false, new GradleSyncListener.Adapter() {
+      @Override
+      public void syncSucceeded(@NotNull Project project) {
+        semaphore.release();
+      }
+
+      @Override
+      public void syncFailed(@NotNull Project project, @NotNull String errorMessage) {
+        semaphore.release();
+      }
+    });
+    semaphore.acquire();
+  }
+
+  private void build() throws Exception {
+    Project project = myFixture.getProject();
+    build(project);
+    LocalFileSystem.getInstance().refreshFiles(Collections.singletonList(project.getBaseDir()));
   }
 
   private void clickLink(String errorHtml, int i) {
