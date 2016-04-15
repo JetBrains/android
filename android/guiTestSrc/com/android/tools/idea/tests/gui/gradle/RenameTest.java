@@ -40,7 +40,7 @@ import org.junit.runner.RunWith;
 import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.junit.Assert.*;
 
-@RunIn(TestGroup.TEST_SUPPORT)
+@RunIn(TestGroup.PROJECT_SUPPORT)
 @RunWith(GuiTestRunner.class)
 public class RenameTest {
 
