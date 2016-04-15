@@ -40,8 +40,7 @@ public class ManifestConflictTest extends AndroidGradleTestCase {
   private static final Pattern LINK_PATTERN = Pattern.compile("\\<a.*? href=\"(.*?)\".*?\\>", Pattern.CASE_INSENSITIVE);
 
   public void testResolveAttributeConflict() throws Exception {
-    loadProjectAndWaitForProjectSyncToFinish("projects/manifestConflict/attribute");
-    build(); // TODO THIS LINE SHOULD NOT BE NEEDED, AS EXPLODED AAR FILES SHOULD ALREADY BE AVAILABLE AFTER SYNC, BUT THEY ARE NOT???
+    loadProject("projects/manifestConflict/attribute");
     String[] errors = getErrorHtml();
     assertEquals(1, errors.length);
     clickLink(errors[0], 0);
@@ -49,7 +48,7 @@ public class ManifestConflictTest extends AndroidGradleTestCase {
   }
 
   public void testResolveBuildPackageConflict() throws Exception {
-    loadProjectAndWaitForProjectSyncToFinish("projects/manifestConflict/buildPackage");
+    loadProject("projects/manifestConflict/buildPackage");
     String[] errors = getErrorHtml();
     assertEquals(1, errors.length);
     clickLink(errors[0], 0);
@@ -57,7 +56,7 @@ public class ManifestConflictTest extends AndroidGradleTestCase {
   }
 
   public void testResolveFlavorPackageConflict() throws Exception {
-    loadProjectAndWaitForProjectSyncToFinish("projects/manifestConflict/flavorPackage");
+    loadProject("projects/manifestConflict/flavorPackage");
     String[] errors = getErrorHtml();
     assertEquals(1, errors.length);
     clickLink(errors[0], 0);
@@ -65,34 +64,11 @@ public class ManifestConflictTest extends AndroidGradleTestCase {
   }
 
   public void testResolveMinSdkConflict() throws Exception {
-    loadProjectAndWaitForProjectSyncToFinish("projects/manifestConflict/minSdk");
-    build(); // TODO THIS LINE SHOULD NOT BE NEEDED, AS EXPLODED AAR FILES SHOULD ALREADY BE AVAILABLE AFTER SYNC, BUT THEY ARE NOT???
+    loadProject("projects/manifestConflict/minSdk");
     String[] errors = getErrorHtml();
     assertEquals(1, errors.length);
     clickLink(errors[0], 0);
     assertEquals(0, getErrorHtml().length);
-  }
-
-  private void loadProjectAndWaitForProjectSyncToFinish(String relativePath) throws IOException, ConfigurationException, InterruptedException {
-    Semaphore semaphore = new Semaphore(0);
-    loadProject(relativePath, false, new GradleSyncListener.Adapter() {
-      @Override
-      public void syncSucceeded(@NotNull Project project) {
-        semaphore.release();
-      }
-
-      @Override
-      public void syncFailed(@NotNull Project project, @NotNull String errorMessage) {
-        semaphore.release();
-      }
-    });
-    semaphore.acquire();
-  }
-
-  private void build() throws Exception {
-    Project project = myFixture.getProject();
-    build(project);
-    LocalFileSystem.getInstance().refreshFiles(Collections.singletonList(project.getBaseDir()));
   }
 
   private void clickLink(String errorHtml, int i) {
