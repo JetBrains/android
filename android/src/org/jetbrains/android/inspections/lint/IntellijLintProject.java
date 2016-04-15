@@ -898,13 +898,13 @@ class IntellijLintProject extends Project {
         String compileTarget = androidModel.getAndroidProject().getCompileTarget();
         AndroidVersion version = AndroidTargetHash.getPlatformVersion(compileTarget);
         if (version != null) {
-          return version.getApiLevel();
+          return version.getFeatureLevel();
         }
       }
 
       AndroidPlatform platform = AndroidPlatform.getInstance(myFacet.getModule());
       if (platform != null) {
-        return platform.getApiLevel();
+        return platform.getApiVersion().getFeatureLevel();
       }
 
       return super.getBuildSdk();
