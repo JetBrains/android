@@ -26,28 +26,55 @@ import java.awt.Color;
 public class AndroidColorSet extends ColorSet {
 
     public AndroidColorSet() {
-        BlueprintBackground = Color.white;
-        BlueprintFrames = Color.black;
-        BlueprintConstraints = Color.blue;
-        BlueprintText = Color.black;
-        BlueprintHighlightFrames = Color.blue;
-        BlueprintSnapGuides = Color.red;
-        BlueprintSnapLightGuides = Color.orange;
-        InspectorTrackBackgroundColor = new Color(228, 228, 238);
-        InspectorTrackColor = new Color(208, 208, 218);
-        InspectorHighlightsStrokeColor = new Color(160, 160, 180, 128);
 
-        DarkBlueprintBackground = ColorTheme.updateBrightness(BlueprintBackground, 0.8f);
-        DarkBlueprintBackgroundLines =
-                ColorTheme.updateBrightness(DarkBlueprintBackground, 1.06f);
-        DarkBlueprintFrames = ColorTheme.updateBrightness(BlueprintFrames, 0.8f);
+        mDrawBackground = false;
+        mDrawWidgetInfos = false;
 
-        BlueprintBackgroundLines = ColorTheme.updateBrightness(BlueprintBackground, 1.06f);
+        // Base colors
 
-        InspectorBackgroundColor =
-                ColorTheme.fadeToColor(BlueprintBackground, Color.WHITE, 0.1f);
-        InspectorFillColor = ColorTheme
-                .fadeToColor(ColorTheme.updateBrightness(BlueprintBackground, 1.3f),
+        mBackground = Color.white;
+        mFrames = Color.lightGray;
+        mConstraints = Color.blue;
+        mText = Color.black;
+        mSnapGuides = Color.red;
+
+        // Subdued colors
+
+        mSubduedConstraints = Color.blue;
+        mSubduedBackground = Color.white;
+        mSubduedText = Color.black;
+        mSubduedFrames = Color.black;
+
+        // Highlight colors
+
+        mHighlightedBackground = Color.white;
+        mHighlightedFrames = Color.blue;
+        mHighlightedSnapGuides = Color.orange;
+        mHighlightedConstraints = Color.cyan;
+
+        // Selected colors
+
+        mSelectedBackground = Color.white;
+        mSelectedFrames = Color.blue;
+        mSelectedConstraints = Color.blue;
+
+        // Anchor colors
+
+        mAnchorCircle = Color.black;
+        mAnchorCreationCircle = Color.white;
+        mAnchorDisconnectionCircle = new Color(180, 0, 0);
+        mAnchorConnectionCircle = new Color(10, 130, 10);
+
+        // Inspector colors
+
+        mInspectorTrackBackgroundColor = new Color(228, 228, 238);
+        mInspectorTrackColor = new Color(208, 208, 218);
+        mInspectorHighlightsStrokeColor = new Color(160, 160, 180, 128);
+
+        mInspectorBackgroundColor =
+                ColorTheme.fadeToColor(mBackground, Color.WHITE, 0.1f);
+        mInspectorFillColor = ColorTheme
+                .fadeToColor(ColorTheme.updateBrightness(mBackground, 1.3f),
                         Color.WHITE, 0.1f);
     }
 }

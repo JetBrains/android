@@ -22,67 +22,107 @@ import java.awt.Color;
  * Holds a set of colors for drawing a scene
  */
 public class ColorSet {
-    protected Color BlueprintBackground;
-    protected Color BlueprintBackgroundLines;
 
-    protected Color BlueprintFrames;
-    protected Color BlueprintConstraints;
-    protected Color BlueprintText;
-    protected Color BlueprintHighlightFrames;
+    protected boolean mDrawBackground = true;
+    protected boolean mDrawWidgetInfos = true;
 
-    protected Color BlueprintSnapGuides;
-    protected Color BlueprintSnapLightGuides;
+    protected Color mBackground;
+    protected Color mFrames;
+    protected Color mConstraints;
+    protected Color mText;
+    protected Color mSnapGuides;
 
-    protected Color DarkBlueprintBackground;
-    protected Color DarkBlueprintBackgroundLines;
-    protected Color DarkBlueprintFrames;
+    protected Color mSubduedText;
+    protected Color mSubduedBackground;
+    protected Color mSubduedFrames;
+    protected Color mSubduedConstraints;
 
-    protected Color InspectorBackgroundColor;
-    protected Color InspectorFillColor;
+    protected Color mHighlightedBackground;
+    protected Color mHighlightedFrames;
+    protected Color mHighlightedSnapGuides;
+    protected Color mHighlightedConstraints;
 
-    protected Color InspectorTrackBackgroundColor;
-    protected Color InspectorTrackColor;
-    protected Color InspectorHighlightsStrokeColor;
+    protected Color mSelectedBackground;
+    protected Color mSelectedFrames;
+    protected Color mSelectedConstraints;
 
+    protected Color mInspectorBackgroundColor;
+    protected Color mInspectorFillColor;
 
-    public ColorSet() {
+    protected Color mInspectorTrackBackgroundColor;
+    protected Color mInspectorTrackColor;
+    protected Color mInspectorHighlightsStrokeColor;
+
+    protected Color mAnchorCircle;
+    protected Color mAnchorCreationCircle;
+    protected Color mAnchorDisconnectionCircle;
+    protected Color mAnchorConnectionCircle;
+
+    public Color getAnchorCircle() { return mAnchorCircle; }
+
+    public Color getAnchorCreationCircle() { return mAnchorCreationCircle; }
+
+    public Color getAnchorDisconnectionCircle() { return mAnchorDisconnectionCircle; }
+
+    public Color getAnchorConnectionCircle() { return mAnchorConnectionCircle; }
+
+    public Color getSubduedText() { return mSubduedText; }
+
+    public Color getSelectedFrames() { return mSelectedFrames; }
+
+    public Color getBackground() { return mBackground; }
+
+    public Color getFrames() { return mFrames; }
+
+    public Color getConstraints() { return mConstraints; }
+
+    public Color getText() { return mText; }
+
+    public Color getHighlightedFrames() { return mHighlightedFrames; }
+
+    public Color getSnapGuides() { return mSnapGuides; }
+
+    public Color getHighlightedSnapGuides() { return mHighlightedSnapGuides; }
+
+    public Color getInspectorStroke() { return mFrames; }
+
+    public Color getSubduedBackground() {
+        return mSubduedBackground;
     }
 
-    public Color getBlueprintBackground() { return BlueprintBackground; }
+    public Color getSubduedConstraints() { return mSubduedConstraints; }
 
-    public Color getBlueprintFrames() { return BlueprintFrames; }
-
-    public Color getBlueprintConstraints() { return BlueprintConstraints; }
-
-    public Color getBlueprintText() { return BlueprintText; }
-
-    public Color getBlueprintHighlightFrames() { return BlueprintHighlightFrames; }
-
-    public Color getBlueprintSnapGuides() { return BlueprintSnapGuides; }
-
-    public Color getBlueprintSnapLightGuides() { return BlueprintSnapLightGuides; }
-
-    public Color getInspectorStroke() { return BlueprintFrames; }
-
-    public Color getDarkBlueprintBackground() {
-        return DarkBlueprintBackground;
+    public Color getSubduedFrames() {
+        return mSubduedFrames;
     }
 
-    public Color getDarkBlueprintBackgroundLines() {
-        return DarkBlueprintBackgroundLines;
+    public Color getHighlightedBackground() { return mHighlightedBackground; }
+
+    public Color getSelectedBackground() { return mSelectedBackground; }
+
+    public Color getSelectedConstraints() { return mSelectedConstraints; }
+
+    public Color getInspectorBackgroundColor() { return mInspectorBackgroundColor; }
+
+    public Color getInspectorFillColor() { return mInspectorFillColor; }
+
+    public Color getInspectorTrackBackgroundColor() { return mInspectorTrackBackgroundColor; }
+
+    public Color getInspectorTrackColor() { return mInspectorTrackColor; }
+
+    public Color getInspectorHighlightsStrokeColor() { return mInspectorHighlightsStrokeColor; }
+
+    public Color getHighlightedConstraints() { return mHighlightedConstraints; }
+
+    public void setHighlightedConstraints(Color highlightedConstraints) {
+        mHighlightedConstraints = highlightedConstraints;
     }
 
-    public Color getDarkBlueprintFrames() {
-        return DarkBlueprintFrames;
+    public boolean drawWidgetInfos() {
+        return mDrawWidgetInfos;
     }
 
-    public Color getInspectorBackgroundColor() { return InspectorBackgroundColor; }
-
-    public Color getInspectorFillColor() { return InspectorFillColor; }
-
-    public Color getInspectorTrackBackgroundColor() { return InspectorTrackBackgroundColor; }
-
-    public Color getInspectorTrackColor() { return InspectorTrackColor; }
-
-    public Color getInspectorHighlightsStrokeColor() { return InspectorHighlightsStrokeColor; }
+    public boolean drawBackground() {
+        return mDrawBackground;
+    }
 }

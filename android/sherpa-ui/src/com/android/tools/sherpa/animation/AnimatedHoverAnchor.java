@@ -1,5 +1,6 @@
 package com.android.tools.sherpa.animation;
 
+import com.android.tools.sherpa.drawing.ColorSet;
 import com.android.tools.sherpa.drawing.SceneDraw;
 import com.android.tools.sherpa.drawing.ViewTransform;
 import com.android.tools.sherpa.interaction.ConstraintHandle;
@@ -19,27 +20,34 @@ import java.awt.geom.Ellipse2D;
  */
 public class AnimatedHoverAnchor extends Animation {
 
+    private final ColorSet mColorSet;
     private ConstraintHandle mAnchor;
     private boolean mIsBaseline = false;
     private boolean mConnected = false;
     protected Color mColor = Color.white;
-    protected Color mBackgroundColor = new Color(24, 55, 112);
-    private Color mConnectionColor = new Color(10, 130, 10);
     private ConstraintAnchor mOriginalTarget;
     private static Font sFont = new Font("Helvetica", Font.PLAIN, 12);
+    private Color mFrame;
 
     /**
      * Constructor, create a new AnimatedCircle at the given anchor's position
      *
+     * @param colorSet
      * @param anchor ConstraintAnchor we animate on
      */
-    public AnimatedHoverAnchor(ConstraintHandle anchor) {
+    public AnimatedHoverAnchor(ColorSet colorSet, ConstraintHandle anchor) {
         mAnchor = anchor;
+        mColorSet = colorSet;
         mOriginalTarget = mAnchor.getAnchor().getTarget();
+        mFrame = mColorSet.getAnchorCircle();
         if (mAnchor.getAnchor().isConnected()) {
-            mColor = new Color(180, 0, 0);
+            mColor = mColorSet.getAnchorDisconnectionCircle();
+            mFrame = mColor;
             mConnected = true;
+        } else {
+            mColor = mColorSet.getAnchorCreationCircle();
         }
+
         if (mAnchor.getAnchor().getType() == ConstraintAnchor.Type.BASELINE) {
             mIsBaseline = true;
         }
@@ -90,12 +98,14 @@ public class AnimatedHoverAnchor extends Animation {
         int x = transform.getSwingX(mAnchor.getDrawX());
         int y = transform.getSwingY(mAnchor.getDrawY());
         double progress = getProgress();
-        int alpha = getPulsatingAlpha(progress);
+        int alpha = 255 - getPulsatingAlpha(progress);
         int anchorSize = (int) SceneDraw.getAnchorSize(transform.getScale());
         int radius = anchorSize + 4;
         int strokeWidth = 4;
         boolean isNewConnection = mAnchor.getAnchor().getTarget() != null
                 && mOriginalTarget != mAnchor.getAnchor().getTarget();
+        Color frame =
+                new Color(mFrame.getRed(), mFrame.getGreen(), mFrame.getBlue(), alpha);
         Color highlight =
                 new Color(mColor.getRed(), mColor.getGreen(), mColor.getBlue(), alpha);
         ConstraintWidget widget = mAnchor.getOwner();
@@ -117,10 +127,13 @@ public class AnimatedHoverAnchor extends Animation {
             }
             Ellipse2D.Float circle = new Ellipse2D.Float(x - radius, y - radius,
                     radius * 2, radius * 2);
+            g.setColor(frame);
+            g.setStroke(new BasicStroke(strokeWidth));
+            g.draw(circle);
             if (isNewConnection) {
-                g.setColor(mBackgroundColor);
+                g.setColor(mColorSet.getBackground());
                 g.fill(circle);
-                g.setColor(mConnectionColor);
+                g.setColor(mColorSet.getAnchorConnectionCircle());
                 radius -= 4;
                 Ellipse2D.Float innerCircle = new Ellipse2D.Float(x - radius, y - radius,
                         radius * 2, radius * 2);
@@ -131,7 +144,7 @@ public class AnimatedHoverAnchor extends Animation {
                         radius * 2, radius * 2);
                 g.setColor(highlight);
             }
-            g.setStroke(new BasicStroke(strokeWidth));
+            g.setStroke(new BasicStroke(strokeWidth - 1));
             g.draw(circle);
         }
         g.setFont(sFont);
@@ -141,6 +154,9 @@ public class AnimatedHoverAnchor extends Animation {
         int textHeight = fm.getMaxAscent() + fm.getMaxDescent();
         int tx = l + w / 2 - textWidth / 2;
         int ty = t - 8 - textHeight;
+        g.setColor(Color.black);
+        g.drawString(text, tx + 1, ty + 1);
+        g.setColor(mColor);
         g.drawString(text, tx, ty);
     }
 }
