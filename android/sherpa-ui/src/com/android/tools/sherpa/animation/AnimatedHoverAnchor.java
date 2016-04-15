@@ -28,6 +28,7 @@ public class AnimatedHoverAnchor extends Animation {
     private ConstraintAnchor mOriginalTarget;
     private static Font sFont = new Font("Helvetica", Font.PLAIN, 12);
     private Color mFrame;
+    private Color mTooltipColor = new Color(0, 0, 0, 70);
 
     /**
      * Constructor, create a new AnimatedCircle at the given anchor's position
@@ -154,6 +155,10 @@ public class AnimatedHoverAnchor extends Animation {
         int textHeight = fm.getMaxAscent() + fm.getMaxDescent();
         int tx = l + w / 2 - textWidth / 2;
         int ty = t - 8 - textHeight;
+        g.setColor(mTooltipColor);
+        int padding = 10;
+        g.fillRoundRect(tx - padding, ty - fm.getMaxAscent() - padding,
+                textWidth + 2*padding, textHeight + 2*padding, 8, 8);
         g.setColor(Color.black);
         g.drawString(text, tx + 1, ty + 1);
         g.setColor(mColor);
