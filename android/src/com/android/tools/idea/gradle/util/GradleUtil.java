@@ -88,7 +88,8 @@ import static com.android.tools.idea.gradle.eclipse.GradleImport.escapeGroovyStr
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.UNHANDLED_SYNC_ISSUE_TYPE;
 import static com.android.tools.idea.gradle.service.notification.hyperlink.SearchInBuildFilesHyperlink.searchInBuildFiles;
 import static com.android.tools.idea.gradle.util.BuildMode.ASSEMBLE_TRANSLATE;
-import static com.android.tools.idea.gradle.util.EmbeddedDistributionPaths.*;
+import static com.android.tools.idea.gradle.util.EmbeddedDistributionPaths.findAndroidStudioLocalMavenRepoPaths;
+import static com.android.tools.idea.gradle.util.EmbeddedDistributionPaths.findEmbeddedGradleDistributionPath;
 import static com.android.tools.idea.gradle.util.GradleBuilds.ENABLE_TRANSLATION_JVM_ARG;
 import static com.android.tools.idea.gradle.util.Projects.*;
 import static com.android.tools.idea.gradle.util.PropertiesUtil.getProperties;
@@ -917,20 +918,16 @@ public final class GradleUtil {
 
   public static void addLocalMavenRepoInitScriptCommandLineOption(@NotNull List<String> args) {
     if (isAndroidStudio() || ApplicationManager.getApplication().isUnitTestMode()) {
-      File repoPath = findAndroidStudioLocalMavenRepoPath();
-      if (repoPath != null && repoPath.isDirectory()) {
-        addLocalMavenRepoInitScriptCommandLineOption(args, repoPath);
-      }
+      List<File> repoPaths = findAndroidStudioLocalMavenRepoPaths();
+      addLocalMavenRepoInitScriptCommandLineOption(args, repoPaths);
     }
   }
 
   public static void addProfilerClassPathInitScriptCommandLineOption(@NotNull List<String> args) {
-    File file = findAdditionalGradlePluginsLocation();
-    String path = escapeGroovyStringLiteral(new File(file, "profiler-plugin.jar").getPath());
     String contents = "allprojects {\n" +
                       "  buildscript {\n" +
                       "    dependencies {\n" +
-                      "      classpath files('" + path + "')\n" +
+                      "      classpath 'com.android.tools:studio-profiler-plugin:1.0'\n" +
                       "    }\n" +
                       "  }\n" +
                       "}\n";
@@ -938,16 +935,22 @@ public final class GradleUtil {
     addInitScriptCommandLineOption("asPerfClassPath", contents, args);
   }
 
-  private static void addLocalMavenRepoInitScriptCommandLineOption(@NotNull List<String> args, @NotNull File repoPath) {
-    String path = escapeGroovyStringLiteral(repoPath.getPath());
+  private static void addLocalMavenRepoInitScriptCommandLineOption(@NotNull List<String> args, @NotNull List<File> repoPaths) {
+    if (repoPaths.isEmpty()) {
+      return;
+    }
+
+    String paths = "";
+    for (File file : repoPaths) {
+      String path = escapeGroovyStringLiteral(file.getPath());
+      paths += "      maven { url '" + path + "'}\n";
+    }
     String contents = "allprojects {\n" +
                       "  buildscript {\n" +
-                      "    repositories {\n" +
-                      "      maven { url '" + path + "'}\n" +
+                      "    repositories {\n" + paths +
                       "    }\n" +
                       "  }\n" +
-                      "  repositories {\n" +
-                      "    maven { url '" + path + "'}\n" +
+                      "  repositories {\n" + paths +
                       "  }\n" +
                       "}\n";
     addInitScriptCommandLineOption("asLocalRepo", contents, args);
