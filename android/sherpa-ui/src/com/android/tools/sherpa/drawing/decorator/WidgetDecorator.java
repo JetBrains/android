@@ -17,9 +17,7 @@
 package com.android.tools.sherpa.drawing.decorator;
 
 import com.android.tools.sherpa.drawing.ColorSet;
-import com.android.tools.sherpa.drawing.SceneDraw;
 import com.android.tools.sherpa.drawing.ViewTransform;
-import com.android.tools.sherpa.interaction.WidgetInteractionTargets;
 import com.android.tools.sherpa.structure.Selection;
 import com.android.tools.sherpa.drawing.WidgetDraw;
 import com.google.tnt.solver.widgets.ConstraintAnchor;
@@ -58,7 +56,7 @@ public class WidgetDecorator {
 
     private ColorTheme mBackgroundColor;
     private ColorTheme mFrameColor;
-    private ColorTheme mTextColor;
+    protected ColorTheme mTextColor;
     private ColorTheme mConstraintsColor;
 
     private ColorTheme.Look mLook;
@@ -107,33 +105,34 @@ public class WidgetDecorator {
         }
         // Setup the colors we use
 
-        Color background = mColorSet.getBlueprintBackground();
-        Color darkBackground = ColorTheme.updateBrightness(background, 0.8f);
-        Color frames = mColorSet.getBlueprintFrames();
-        Color text = mColorSet.getBlueprintText();
-        Color constraints = mColorSet.getBlueprintConstraints();
-        Color highlightedFrame = ColorTheme.updateBrightness(frames, 2f);
-        Color highlighted = ColorTheme.fadeToColor(
-                ColorTheme.updateBrightness(constraints, 2f),
-                Color.white, 0.7f);
+        // ColorTheme:
+        // subdued
+        // normal
+        // highlighted
+        // selected
         mBackgroundColor = new ColorTheme(
-                ColorTheme.fadeToColor(background, darkBackground, 0.4f),
-                background, // normal
-                ColorTheme.updateBrightness(background, 1.1f),
-                ColorTheme.updateBrightness(background, 1.3f));
+                mColorSet.getSubduedBackground(),
+                mColorSet.getBackground(),
+                mColorSet.getHighlightedBackground(),
+                mColorSet.getSelectedBackground());
+
         mFrameColor = new ColorTheme(
-                ColorTheme.fadeToColor(frames, darkBackground, 0.6f),
-                frames, // normal
-                ColorTheme.updateBrightness(frames, 1.2f),
-                highlightedFrame);
+                mColorSet.getSubduedFrames(),
+                mColorSet.getFrames(),
+                mColorSet.getHighlightedFrames(),
+                mColorSet.getSelectedFrames());
+
         mTextColor = new ColorTheme(
-                ColorTheme.fadeToColor(text, darkBackground, 0.6f),
-                text, text, text);
+                mColorSet.getSubduedText(),
+                mColorSet.getText(),
+                mColorSet.getText(),
+                mColorSet.getText());
+
         mConstraintsColor = new ColorTheme(
-                ColorTheme.updateBrightness(constraints, 0.7f),
-                constraints,
-                constraints,
-                highlighted);
+                mColorSet.getSubduedConstraints(),
+                mColorSet.getConstraints(),
+                mColorSet.getConstraints(),
+                mColorSet.getSelectedConstraints());
     }
 
     /**
@@ -322,6 +321,7 @@ public class WidgetDecorator {
         if (mColorSet == null) {
             return false;
         }
+        onPaintBackground(transform, g);
         g.setColor(mFrameColor.getColor());
         if (mIsSelected) {
             updateShowAnchorsPolicy();
@@ -334,7 +334,7 @@ public class WidgetDecorator {
                 mDisplayAnchorsPolicy, mShowResizeHandles,
                 mShowSizeIndicator, mIsSelected, mStyle);
 
-        if (!WidgetDecorator.isShowFakeUI()) {
+        if (!WidgetDecorator.isShowFakeUI() && mColorSet.drawWidgetInfos()) {
             if (mWidget.getVisibility() == ConstraintWidget.INVISIBLE) {
                 Color c = mTextColor.getColor();
                 g.setColor(new Color(c.getRed(), c.getGreen(), c.getBlue(), 100));
@@ -355,6 +355,9 @@ public class WidgetDecorator {
      */
     public void onPaintBackground(ViewTransform transform, Graphics2D g) {
         if (mColorSet == null) {
+            return;
+        }
+        if (!mColorSet.drawBackground()) {
             return;
         }
         if (!(mWidget instanceof ConstraintWidgetContainer)

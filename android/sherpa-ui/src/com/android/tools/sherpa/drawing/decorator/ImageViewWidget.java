@@ -16,7 +16,6 @@
 
 package com.android.tools.sherpa.drawing.decorator;
 
-import com.android.tools.sherpa.drawing.SceneDraw;
 import com.android.tools.sherpa.drawing.ViewTransform;
 import com.google.tnt.solver.widgets.ConstraintWidget;
 
@@ -197,13 +196,13 @@ public class ImageViewWidget extends WidgetDecorator {
 
         Graphics2D clipGraphics = ((Graphics2D) g.create(tx, ty, w, h));
 
-        clipGraphics.setColor(ColorTheme.updateBrightness(mColorSet.getBlueprintBackground(), 0.8f));
+        clipGraphics.setColor(ColorTheme.updateBrightness(mColorSet.getBackground(), 0.8f));
 
         shape = sClosedPath2D.createTransformedShape(mTransform);
         clipGraphics.fill(shape);
 
         shape = sPath2D.createTransformedShape(mTransform);
-        clipGraphics.setColor(mColorSet.getBlueprintText());
+        clipGraphics.setColor(mColorSet.getText());
         clipGraphics.draw(shape);
 
         String text = "ImageView";

@@ -107,11 +107,11 @@ public class SceneDraw {
         }
         mColorSet = set;
         mNormalToDark = new AnimatedColor(
-                mColorSet.getBlueprintBackground(),
-                mColorSet.getDarkBlueprintBackground());
+                mColorSet.getBackground(),
+                mColorSet.getSubduedBackground());
         mDarkToNormal = new AnimatedColor(
-                mColorSet.getDarkBlueprintBackground(),
-                mColorSet.getBlueprintBackground());
+                mColorSet.getSubduedBackground(),
+                mColorSet.getBackground());
     }
 
     /**
@@ -240,7 +240,7 @@ public class SceneDraw {
             ConstraintAnchor selectedAnchor) {
         // We want to draw a grid (on GRID_SPACING) in blueprint mode.
         // TODO: use a tile bitmap instead
-        Color backgroundColor = mColorSet.getBlueprintBackground();
+        Color backgroundColor = mColorSet.getBackground();
         boolean needsRepaint = false;
         if (mCurrentAnimation != null) {
             if (mCurrentAnimation.step()) {
@@ -310,13 +310,11 @@ public class SceneDraw {
      * @param selectedWidget       the selected widget if any
      * @param selectedAnchor       the selected anchor if any
      * @param selectedResizeHandle the selected resize handle if any
-     * @param transparent          if true, it will only draw the widget decorations
      * @return true if we need to be repainted, false otherwise
      */
     private boolean paintWidgets(ViewTransform transform, Graphics2D g,
             WidgetContainer container, ConstraintWidget selectedWidget,
-            ConstraintAnchor selectedAnchor, ResizeHandle selectedResizeHandle,
-            boolean transparent) {
+            ConstraintAnchor selectedAnchor, ResizeHandle selectedResizeHandle) {
         if (container.getVisibility() == ConstraintWidget.GONE) {
             return false;
         }
@@ -328,27 +326,24 @@ public class SceneDraw {
         }
         WidgetCompanion companion = (WidgetCompanion) container.getCompanionWidget();
         companion.getWidgetInteractionTargets().updatePosition(transform);
-        if (!transparent) {
-            decorator.onPaintBackground(transform, g);
-        }
         needsRepaint |= decorator.onPaint(transform, g);
         if (container == mWidgetsScene.getRoot()) {
             int xr = transform.getSwingX(container.getDrawX());
             int yr = transform.getSwingY(container.getDrawY());
             int wr = transform.getSwingDimension(container.getDrawWidth());
             int hr = transform.getSwingDimension(container.getDrawHeight());
-            if (mDrawOutsideShade && !transparent) {
-                g.setColor(mColorSet.getDarkBlueprintBackground());
+            if (mDrawOutsideShade && mColorSet.drawBackground()) {
+                g.setColor(mColorSet.getSubduedBackground());
                 g.fillRect((int) transform.getTranslateX(), (int) transform.getTranslateY(), mViewWidth, yr);
                 g.fillRect((int) transform.getTranslateX(), yr + hr, mViewWidth, mViewHeight - yr - hr);
                 g.fillRect((int) transform.getTranslateX(), yr, xr, hr);
                 g.fillRect(wr + xr, yr, mViewWidth - xr - wr, hr);
                 g.setStroke(SnapDraw.sLongDashedStroke);
-                g.setColor(mColorSet.getBlueprintHighlightFrames());
+                g.setColor(mColorSet.getHighlightedFrames());
                 g.drawRect(xr, yr, wr, hr);
             }
             if (mDrawResizeHandle) {
-                g.setColor(mColorSet.getBlueprintHighlightFrames());
+                g.setColor(mColorSet.getHighlightedFrames());
                 int resizeHandleSize = 10;
                 int gap = 8;
                 g.setStroke(new BasicStroke(3));
@@ -363,16 +358,13 @@ public class SceneDraw {
             }
             if (widget instanceof WidgetContainer) {
                 needsRepaint |= paintWidgets(transform, g, (WidgetContainer) widget,
-                        selectedWidget, selectedAnchor, selectedResizeHandle, transparent);
+                        selectedWidget, selectedAnchor, selectedResizeHandle);
             } else {
                 WidgetDecorator widgetDecorator =
                         getDecorator(widget, selectedWidget, selectedAnchor, selectedResizeHandle);
                 if (widgetDecorator.isVisible()) {
                     WidgetCompanion widgetCompanion = (WidgetCompanion) widget.getCompanionWidget();
                     widgetCompanion.getWidgetInteractionTargets().updatePosition(transform);
-                    if (!transparent) {
-                        widgetDecorator.onPaintBackground(transform, g);
-                    }
                     needsRepaint |= widgetDecorator.onPaint(transform, g);
                 }
             }
@@ -472,7 +464,7 @@ public class SceneDraw {
             selectedWidget = mSelection.getFirstElement().widget;
         }
         needsRepaint |= paintWidgets(transform, g, mWidgetsScene.getRoot(), selectedWidget,
-                selectedAnchor, selectedResizeHandle, transparent);
+                selectedAnchor, selectedResizeHandle);
 
         // Then draw the constraints
         for (ConstraintWidget widget : mWidgetsScene.getWidgets()) {
@@ -484,11 +476,11 @@ public class SceneDraw {
         }
 
         // Draw snap candidates
-        g.setColor(mColorSet.getBlueprintSnapLightGuides());
+        g.setColor(mColorSet.getHighlightedSnapGuides());
         for (SnapCandidate candidate : mWidgetMotion.getSimilarMargins()) {
             SnapDraw.drawSnapIndicator(transform, g, candidate);
         }
-        g.setColor(mColorSet.getBlueprintSnapGuides());
+        g.setColor(mColorSet.getSnapGuides());
         for (SnapCandidate candidate : mWidgetMotion.getSnapCandidates()) {
             SnapDraw.drawSnapIndicator(transform, g, candidate);
         }
@@ -504,12 +496,12 @@ public class SceneDraw {
                     && anchor != selectedAnchor
                     && selectedAnchor.isValidConnection(anchor)
                     && selectedAnchor.isConnectionAllowed(anchor.getOwner())) {
-                g.setColor(mColorSet.getBlueprintSnapGuides());
+                g.setColor(mColorSet.getSelectedConstraints());
                 ConstraintHandle targetHandle = WidgetInteractionTargets.constraintHandle(anchor);
                 ConnectionDraw
                         .drawConnection(transform, g, selectedHandle, targetHandle, true, false);
             } else {
-                g.setColor(mColorSet.getBlueprintSnapLightGuides());
+                g.setColor(mColorSet.getHighlightedConstraints());
                 ConnectionDraw
                         .drawConnection(transform, g, selectedHandle,
                                 mouseInteraction.getLastPoint());
@@ -598,7 +590,7 @@ public class SceneDraw {
             if (mCurrentUnderneathAnchor != null) {
                 ConstraintHandle constraintHandle =
                         WidgetInteractionTargets.constraintHandle(mCurrentUnderneathAnchor);
-                mAnimationCurrentAnchor = new AnimatedHoverAnchor(constraintHandle);
+                mAnimationCurrentAnchor = new AnimatedHoverAnchor(mColorSet, constraintHandle);
                 mChoreographer.addAnimation(mAnimationCurrentAnchor);
             } else {
                 mAnimationCurrentAnchor = null;

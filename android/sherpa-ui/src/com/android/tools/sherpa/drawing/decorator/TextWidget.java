@@ -165,10 +165,12 @@ public class TextWidget extends WidgetDecorator {
         int scaleSize = transform.getSwingDimension(originalSize);
         g.setFont(mFont.deriveFont((float) scaleSize));
         FontMetrics fontMetrics = g.getFontMetrics();
+
         if (mWidget.getVisibility() == ConstraintWidget.INVISIBLE) {
-            g.setColor(new Color(255, 255, 255, 100));
+            Color c = mTextColor.getColor();
+            g.setColor(new Color(c.getRed(), c.getGreen(), c.getBlue(), 100));
         } else {
-            g.setColor(mColorSet.getBlueprintText());
+            g.setColor(mTextColor.getColor());
         }
         String string = getText();
         if (mToUpperCase) {

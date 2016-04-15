@@ -26,28 +26,56 @@ import java.awt.Color;
 public class BlueprintColorSet extends ColorSet {
 
     public BlueprintColorSet() {
-        BlueprintBackground = new Color(24, 55, 112);
-        BlueprintFrames = new Color(100, 152, 199);
-        BlueprintConstraints = new Color(102, 129, 204);
-        BlueprintText = new Color(220, 220, 220);
-        BlueprintHighlightFrames = new Color(160, 216, 237);
-        BlueprintSnapGuides = new Color(220, 220, 220);
-        BlueprintSnapLightGuides = new Color(220, 220, 220, 128);
-        InspectorTrackBackgroundColor = new Color(228, 228, 238);
-        InspectorTrackColor = new Color(208, 208, 218);
-        InspectorHighlightsStrokeColor = new Color(160, 160, 180, 128);
 
-        DarkBlueprintBackground = ColorTheme.updateBrightness(BlueprintBackground, 0.8f);
-        DarkBlueprintBackgroundLines =
-                ColorTheme.updateBrightness(DarkBlueprintBackground, 1.06f);
-        DarkBlueprintFrames = ColorTheme.updateBrightness(BlueprintFrames, 0.8f);
+        mDrawBackground = true;
 
-        BlueprintBackgroundLines = ColorTheme.updateBrightness(BlueprintBackground, 1.06f);
+        // Base colors
 
-        InspectorBackgroundColor =
-                ColorTheme.fadeToColor(BlueprintBackground, Color.WHITE, 0.1f);
-        InspectorFillColor = ColorTheme
-                .fadeToColor(ColorTheme.updateBrightness(BlueprintBackground, 1.3f),
+        mBackground = new Color(24, 55, 112);
+        mFrames = new Color(100, 152, 199);
+        mConstraints = new Color(102, 129, 204);
+        mText = new Color(220, 220, 220);
+        mSnapGuides = new Color(220, 220, 220);
+
+        // Subdued colors
+
+        mSubduedConstraints = ColorTheme.updateBrightness(mConstraints, 0.7f);
+        mSubduedBackground = ColorTheme.updateBrightness(mBackground, 0.8f);
+        mSubduedText = ColorTheme.fadeToColor(mText, mSubduedBackground, 0.6f);
+        mSubduedFrames = ColorTheme.updateBrightness(mFrames, 0.8f);
+
+        // Light colors
+
+        mHighlightedBackground = ColorTheme.updateBrightness(mBackground, 1.1f);
+        mHighlightedFrames = ColorTheme.updateBrightness(mFrames, 1.2f);
+        mHighlightedSnapGuides = new Color(220, 220, 220, 128);
+        mHighlightedConstraints = ColorTheme.updateBrightness(mConstraints, 1.2f);
+
+        // Selected colors
+
+        mSelectedBackground = ColorTheme.updateBrightness(mBackground, 1.3f);
+        mSelectedFrames = ColorTheme.updateBrightness(mFrames, 2f);
+        mSelectedConstraints = ColorTheme.fadeToColor(
+                ColorTheme.updateBrightness(mConstraints, 2f),
+                Color.white, 0.7f);
+
+        // Anchor colors
+
+        mAnchorCircle = Color.white;
+        mAnchorCreationCircle = Color.white;
+        mAnchorDisconnectionCircle = new Color(180, 0, 0);
+        mAnchorConnectionCircle = new Color(10, 130, 10);
+
+        // Inspector colors
+
+        mInspectorTrackBackgroundColor = new Color(228, 228, 238);
+        mInspectorTrackColor = new Color(208, 208, 218);
+        mInspectorHighlightsStrokeColor = new Color(160, 160, 180, 128);
+
+        mInspectorBackgroundColor =
+                ColorTheme.fadeToColor(mBackground, Color.WHITE, 0.1f);
+        mInspectorFillColor = ColorTheme
+                .fadeToColor(ColorTheme.updateBrightness(mBackground, 1.3f),
                         Color.WHITE, 0.1f);
     }
 }
