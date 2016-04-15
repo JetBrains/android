@@ -71,7 +71,7 @@ public class NonGradleApkProviderDependenciesTest extends AndroidTestCase {
       }
     }
 
-    NonGradleApkProvider provider = new NonGradleApkProvider(myFacet, null);
+    NonGradleApkProvider provider = new NonGradleApkProvider(myFacet, new NonGradleApplicationIdProvider(myFacet), null);
 
     Collection<ApkInfo> apks = provider.getApks(device);
     assertNotNull(apks);
