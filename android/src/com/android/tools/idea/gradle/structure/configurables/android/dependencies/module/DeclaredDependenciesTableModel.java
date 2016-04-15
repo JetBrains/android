@@ -81,7 +81,7 @@ class DeclaredDependenciesTableModel extends ListTableModel<PsAndroidDependency>
       }
     };
 
-    ColumnInfo<PsAndroidDependency, String> scopeColumnInfo = new ColumnInfo<PsAndroidDependency, String>("Configuration") {
+    ColumnInfo<PsAndroidDependency, String> scopeColumnInfo = new ColumnInfo<PsAndroidDependency, String>("Scope") {
       @Override
       @Nullable
       public String valueOf(PsAndroidDependency dependency) {
