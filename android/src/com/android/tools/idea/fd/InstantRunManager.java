@@ -16,7 +16,6 @@
 package com.android.tools.idea.fd;
 
 import com.android.SdkConstants;
-import com.android.annotations.NonNull;
 import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.AndroidArtifactOutput;
 import com.android.builder.model.SourceProvider;
@@ -26,8 +25,6 @@ import com.android.ide.common.packaging.PackagingUtils;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.fd.client.*;
-import com.android.tools.fd.client.InstantRunClient.FileTransfer;
-import com.android.tools.fd.runtime.ApplicationPatch;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.run.*;
@@ -231,12 +228,6 @@ public final class InstantRunManager implements ProjectComponent {
     String deviceBuildTimestamp = getInstantRunClient(module).getDeviceBuildTimestamp(device);
     LOG.info(String.format("Build timestamps: Local: %1$s, Device: %2$s", localTimestamp, deviceBuildTimestamp));
     return localTimestamp.equals(deviceBuildTimestamp);
-  }
-
-  public static boolean apiLevelsMatch(@NotNull IDevice device, @NotNull Module module) {
-    AndroidGradleModel model = InstantRunGradleUtils.getAppModel(module);
-    InstantRunBuildInfo buildInfo = model == null ? null : InstantRunGradleUtils.getBuildInfo(model);
-    return buildInfo != null && buildInfo.getFeatureLevel() == device.getVersion().getFeatureLevel();
   }
 
   /**
@@ -472,20 +463,6 @@ public final class InstantRunManager implements ProjectComponent {
     }
 
     return updateMode == UpdateMode.COLD_SWAP;
-
-  }
-
-  @NonNull
-  private static List<ApplicationPatch> getApplicationPatches(List<FileTransfer> files) {
-    List<ApplicationPatch> changes = new ArrayList<ApplicationPatch>(files.size());
-    for (FileTransfer file : files) {
-      try {
-        changes.add(file.getPatch());
-      } catch (IOException e) {
-        LOG.warn("Couldn't read file " + file);
-      }
-    }
-    return changes;
   }
 
   private void refreshDebugger(@NotNull String packageName) {
