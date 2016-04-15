@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.jetbrains.android.uipreview;
+package com.android.tools.idea.layoutlib;
 
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.LayoutLibrary;
@@ -24,8 +24,6 @@ import com.android.layoutlib.bridge.Bridge;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.internal.project.ProjectProperties;
-import com.android.tools.idea.rendering.LayoutLogWrapper;
-import com.android.tools.idea.rendering.LogWrapper;
 import com.android.utils.ILogger;
 import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.diagnostic.Logger;
@@ -33,7 +31,6 @@ import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.BufferingFileWrapper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -63,26 +60,26 @@ public class LayoutLibraryLoader {
     final VirtualFile fontFolder = LocalFileSystem.getInstance().findFileByPath(fontFolderPath);
     if (fontFolder == null || !fontFolder.isDirectory()) {
       throw new RenderingException(
-        AndroidBundle.message("android.directory.cannot.be.found.error", FileUtil.toSystemDependentName(fontFolderPath)));
+        LayoutlibBundle.message("android.directory.cannot.be.found.error", FileUtil.toSystemDependentName(fontFolderPath)));
     }
 
     final String platformFolderPath = target.isPlatform() ? target.getLocation() : target.getParent().getLocation();
     final File platformFolder = new File(platformFolderPath);
     if (!platformFolder.isDirectory()) {
       throw new RenderingException(
-        AndroidBundle.message("android.directory.cannot.be.found.error", FileUtil.toSystemDependentName(platformFolderPath)));
+        LayoutlibBundle.message("android.directory.cannot.be.found.error", FileUtil.toSystemDependentName(platformFolderPath)));
     }
 
     final File buildProp = new File(platformFolder, SdkConstants.FN_BUILD_PROP);
     if (!buildProp.isFile()) {
       throw new RenderingException(
-        AndroidBundle.message("android.file.not.exist.error", FileUtil.toSystemDependentName(buildProp.getPath())));
+        LayoutlibBundle.message("android.file.not.exist.error", FileUtil.toSystemDependentName(buildProp.getPath())));
     }
 
     if (!SystemInfo.isJavaVersionAtLeast("1.8") && target.getVersion().getFeatureLevel() >= 24) {
       // From N, we require to be running in Java 8
-      throw new UnsupportedJavaRuntimeException(AndroidBundle.message("android.layout.preview.unsupported.jdk",
-                                                                      SdkVersionInfo.getCodeName(target.getVersion().getFeatureLevel())));
+      throw new UnsupportedJavaRuntimeException(LayoutlibBundle.message("android.layout.preview.unsupported.jdk",
+                                                                        SdkVersionInfo.getCodeName(target.getVersion().getFeatureLevel())));
     }
 
     LayoutLibrary library;
@@ -92,13 +89,13 @@ public class LayoutLibraryLoader {
       final VirtualFile resFolder = LocalFileSystem.getInstance().findFileByPath(resFolderPath);
       if (resFolder == null || !resFolder.isDirectory()) {
         throw new RenderingException(
-          AndroidBundle.message("android.directory.cannot.be.found.error", FileUtil.toSystemDependentName(resFolderPath)));
+          LayoutlibBundle.message("android.directory.cannot.be.found.error", FileUtil.toSystemDependentName(resFolderPath)));
       }
 
       final String layoutLibJarPath = FileUtil.toSystemIndependentName((target.getPath(IAndroidTarget.LAYOUT_LIB)));
       final VirtualFile layoutLibJar = LocalFileSystem.getInstance().findFileByPath(layoutLibJarPath);
       if (layoutLibJar == null || layoutLibJar.isDirectory()) {
-        throw new RenderingException(AndroidBundle.message("android.file.not.exist.error", FileUtil.toSystemDependentName(layoutLibJarPath)));
+        throw new RenderingException(LayoutlibBundle.message("android.file.not.exist.error", FileUtil.toSystemDependentName(layoutLibJarPath)));
       }
 
       library = LayoutLibrary.load(layoutLibJar.getPath(), logger, ApplicationNamesInfo.getInstance().getFullProductName());

@@ -23,9 +23,8 @@ import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
-import org.jetbrains.android.uipreview.UnsupportedJavaRuntimeException;
+import com.android.tools.idea.layoutlib.UnsupportedJavaRuntimeException;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Document;
 
