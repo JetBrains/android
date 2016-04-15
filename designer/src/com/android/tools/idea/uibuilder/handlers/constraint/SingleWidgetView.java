@@ -253,7 +253,7 @@ public class SingleWidgetView extends JPanel {
                                           rootMargin, getWidth(), getHeight(), null);
 
       redraw |= mSceneDraw.paintWidgets(getWidth(), getHeight(),
-                                        mViewTransform, g, true, mMouseInteraction, false);
+                                        mViewTransform, g, true, mMouseInteraction);
       return redraw;
     }
 

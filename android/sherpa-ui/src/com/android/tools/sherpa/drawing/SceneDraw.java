@@ -401,14 +401,12 @@ public class SceneDraw {
      * @param g
      * @param showAllConstraints
      * @param mouseInteraction
-     * @param transparent        if true, it will only draw the widget decorations
      * @return true if need to be called again (animation...)
      */
     public boolean paintWidgets(int width, int height,
             ViewTransform transform, Graphics2D g,
             boolean showAllConstraints,
-            MouseInteraction mouseInteraction,
-            boolean transparent) {
+            MouseInteraction mouseInteraction) {
 
         WidgetContainer root = mWidgetsScene.getRoot();
         if (root == null) {

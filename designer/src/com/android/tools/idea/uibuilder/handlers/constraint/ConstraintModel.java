@@ -423,20 +423,20 @@ public class ConstraintModel {
    * @param width              width of the canvas
    * @param height             height of the canvas
    * @param showAllConstraints flag to show or not all the existing constraints
-   * @param transparent        if true, the widgets will only paint the overlay, no background
+   * @param isAndroidSurface   android surface (layoutlib)
    * @return true if we need to repaint
    */
-  public boolean paint(@NotNull Graphics2D gc, int width, int height, boolean showAllConstraints, boolean transparent) {
+  public boolean paint(@NotNull Graphics2D gc, int width, int height, boolean showAllConstraints, boolean isAndroidSurface) {
     Graphics2D g = (Graphics2D) gc.create();
     WidgetDecorator.setShowFakeUI(mShowFakeUI);
-    if (transparent) {
+    if (isAndroidSurface) {
       mySceneDraw.setColorSet(mAndroidColorSet);
       mySceneDraw.setCurrentStyle(WidgetDecorator.ANDROID_STYLE);
     } else {
       mySceneDraw.setColorSet(mBlueprintColorSet);
       mySceneDraw.setCurrentStyle(WidgetDecorator.BLUEPRINT_STYLE);
     }
-    boolean ret = mySceneDraw.paintWidgets(width, height, myViewTransform, g, showAllConstraints, myMouseInteraction, transparent);
+    boolean ret = mySceneDraw.paintWidgets(width, height, myViewTransform, g, showAllConstraints, myMouseInteraction);
     g.dispose();
     return ret;
   }
