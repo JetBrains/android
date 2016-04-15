@@ -131,7 +131,6 @@ public class GeneratedCodeMatchTest extends AndroidGradleTestCase {
     String javaHome = System.getenv().get("JAVA7_HOME");
     assertTrue("this test requires java 7+", StringUtil.isNotEmpty(javaHome));
     assertBuildsCleanly(getProject(), true, "-Dorg.gradle.java.home=" + javaHome);
-    LocalFileSystem.getInstance().refreshFiles(Collections.singletonList(myFixture.getProject().getBaseDir()), false, true, null);
   }
 
   @NotNull
