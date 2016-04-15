@@ -31,7 +31,7 @@ import java.util.List;
 
 public class AndroidApkFacetConfiguration implements FacetConfiguration {
   @NonNls public String APK_PATH;
-  @NonNls public List<String> SYMBOL_PATH = new ArrayList<>();
+  @NonNls public List<String> SYMBOL_PATHS = new ArrayList<>();
 
   @Override
   public FacetEditorTab[] createEditorTabs(FacetEditorContext editorContext, FacetValidatorsManager validatorsManager) {
