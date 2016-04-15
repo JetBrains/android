@@ -17,7 +17,6 @@ package com.android.tools.idea.structure.services.view;
 
 import com.android.tools.idea.structure.services.AssistActionStateManager;
 import com.android.tools.idea.structure.services.DeveloperService;
-import com.android.tools.idea.structure.services.DeveloperServiceMap;
 import com.android.tools.idea.structure.services.StatefulButtonNotifier;
 import com.android.tools.idea.structure.services.datamodel.ActionData;
 import com.intellij.openapi.module.Module;
@@ -42,7 +41,7 @@ public class StatefulButton extends JPanel {
   private AssistActionStateManager myStateManager;
   private DeveloperService myDeveloperService;
 
-  public StatefulButton(@NotNull ActionData action, @NotNull ActionListener listener, @NotNull DeveloperServiceMap serviceMap) {
+  public StatefulButton(@NotNull ActionData action, @NotNull ActionListener listener, @NotNull DeveloperService service) {
     super(new FlowLayout(FlowLayout.LEADING));
     setBorder(BorderFactory.createEmptyBorder());
     setOpaque(false);
@@ -50,8 +49,7 @@ public class StatefulButton extends JPanel {
     layout.setVgap(0);
     layout.setHgap(0);
 
-    String actionArgument = action.getActionArgument();
-    myDeveloperService = serviceMap.get(actionArgument);
+    myDeveloperService = service;
 
     myButton = new ActionButton(action, listener, this);
     add(myButton);
@@ -84,6 +82,10 @@ public class StatefulButton extends JPanel {
 
     // Initialize the button state. This includes making the proper element visible.
     updateButtonState();
+  }
+
+  public DeveloperService getDeveloperService() {
+    return myDeveloperService;
   }
 
   /**
@@ -147,6 +149,11 @@ public class StatefulButton extends JPanel {
     public void updateState() {
       myButtonWrapper.updateButtonState();
     }
+
+    public DeveloperService getDeveloperService() {
+      return myButtonWrapper.getDeveloperService();
+    }
+
   }
 
 }

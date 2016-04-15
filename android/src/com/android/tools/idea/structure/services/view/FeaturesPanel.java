@@ -50,11 +50,8 @@ public class FeaturesPanel extends JPanel implements ItemListener, ActionListene
   @NotNull
   private TutorialBundleData myTutorialBundle;
 
-  private DeveloperServiceMap myServiceMap;
-
   public FeaturesPanel(@NotNull TutorialBundleData bundle, DeveloperServiceMap serviceMap) {
     myTutorialBundle = bundle;
-    myServiceMap = serviceMap;
 
     setLayout(new BorderLayout());
     setBackground(UIUtils.getBackgroundColor());
@@ -70,8 +67,9 @@ public class FeaturesPanel extends JPanel implements ItemListener, ActionListene
 
     // Add all tutorial cards.
     for (FeatureData feature : myTutorialBundle.getFeatures()) {
+      DeveloperService service = serviceMap.get(feature.getServiceId());
       for (TutorialData tutorial : feature.getTutorials()) {
-        addCard(new TutorialCard(this, tutorial, serviceMap), tutorial.getKey());
+        addCard(new TutorialCard(this, tutorial, service), tutorial.getKey());
       }
     }
     add(myCards);
@@ -112,7 +110,6 @@ public class FeaturesPanel extends JPanel implements ItemListener, ActionListene
     else if (source instanceof StatefulButton.ActionButton) {
       StatefulButton.ActionButton a = (StatefulButton.ActionButton)e.getSource();
       String actionId = a.getKey();
-      String actionArgument = a.getActionArgument();
 
       AssistActionHandler handler = null;
       for (AssistActionHandler actionHandler : AssistActionHandler.EP_NAME.getExtensions()) {
@@ -125,13 +122,11 @@ public class FeaturesPanel extends JPanel implements ItemListener, ActionListene
         throw new IllegalArgumentException("Unhandled action, no handler found for key \"" + actionId + "\".");
       }
 
-      DeveloperService service = myServiceMap.get(actionArgument);
-      // TODO(b/27727855): actionArgument shouldn't be required, but it is because of this RuntimeException.
+      DeveloperService service =  a.getDeveloperService();
       if (service == null) {
-        throw new RuntimeException("Unable to find a service to to complete the requested action: " + actionArgument);
+        throw new RuntimeException("Unable to find a service to to complete the requested action.");
       }
 
-      // TODO(b/27727855): The solution to not requiring the actionArgument needs to still pass the service object with a module & project.
       handler.handleAction(a.getActionArgument(), service);
       a.updateState();
     }
