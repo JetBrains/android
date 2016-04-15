@@ -17,7 +17,7 @@ package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.run.ConsolePrinter;
-import com.android.tools.idea.run.editor.AndroidDebugger;
+import com.android.tools.idea.run.activity.StartActivityFlagsProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -26,10 +26,8 @@ public class SpecificActivityLaunchTask extends ActivityLaunchTask {
 
   public SpecificActivityLaunchTask(@NotNull String applicationId,
                                     @NotNull String activity,
-                                    boolean waitForDebugger,
-                                    @Nullable AndroidDebugger androidDebugger,
-                                    @NotNull String extraAmOptions) {
-    super(applicationId, waitForDebugger, androidDebugger, extraAmOptions);
+                                    @NotNull StartActivityFlagsProvider startActivityFlagsProvider) {
+    super(applicationId, startActivityFlagsProvider);
     myActivity = activity;
   }
 
