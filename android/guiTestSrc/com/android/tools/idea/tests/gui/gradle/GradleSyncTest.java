@@ -1391,13 +1391,18 @@ public class GradleSyncTest {
       @Override
       protected void run(@NotNull Result result) throws Throwable {
         ModifiableRootModel modifiableModel = ModuleRootManager.getInstance(appModule).getModifiableModel();
-        for (OrderEntry orderEntry : modifiableModel.getOrderEntries()) {
-          if (orderEntry instanceof LibraryOrderEntry) {
-            LibraryOrderEntry libraryDependency = (LibraryOrderEntry)orderEntry;
-            if (libraryDependency.getLibrary() == library) {
-              dependencyFound.set(true);
+        try {
+          for (OrderEntry orderEntry : modifiableModel.getOrderEntries()) {
+            if (orderEntry instanceof LibraryOrderEntry) {
+              LibraryOrderEntry libraryDependency = (LibraryOrderEntry)orderEntry;
+              if (libraryDependency.getLibrary() == library) {
+                dependencyFound.set(true);
+              }
             }
           }
+        }
+        finally {
+          modifiableModel.dispose();
         }
       }
     }.execute();
