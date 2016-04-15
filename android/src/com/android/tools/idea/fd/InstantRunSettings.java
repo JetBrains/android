@@ -15,11 +15,7 @@
  */
 package com.android.tools.idea.fd;
 
-import org.jetbrains.annotations.NotNull;
-
 public class InstantRunSettings {
-  public static final boolean SHOW_EXPERT_OPTIONS = Boolean.getBoolean("instant.run.expert.settings");
-
   /**
    * Returns whether instant run is enabled in the given project.
    * Note: Even if instant run is enabled for the project, instant run related information should not be accessed
@@ -50,61 +46,5 @@ public class InstantRunSettings {
   public static void setShowStatusNotifications(boolean en) {
     InstantRunConfiguration configuration = InstantRunConfiguration.getInstance();
     configuration.SHOW_IR_STATUS_NOTIFICATIONS = en;
-  }
-
-  /** If instant run is enabled, is cold swap mode enabled? */
-  public static boolean isColdSwapEnabled() {
-    if (!SHOW_EXPERT_OPTIONS) {
-      // Don't keep using stored settings on disk if the settings are invisible.
-      // If users temporarily tried the flags, we don't want to keep those even
-      // after they've gone back.
-      return true;
-    }
-    InstantRunConfiguration configuration = InstantRunConfiguration.getInstance();
-    return configuration.COLD_SWAP;
-  }
-
-  /** If instant run is enabled, is cold swap mode enabled? */
-  @NotNull
-  public static ColdSwapMode getColdSwapMode() {
-    InstantRunConfiguration configuration = InstantRunConfiguration.getInstance();
-    String value = configuration.COLD_SWAP_MODE;
-    if (value == null) {
-      return ColdSwapMode.DEFAULT;
-    }
-    return ColdSwapMode.fromValue(value, ColdSwapMode.DEFAULT);
-  }
-
-  /** Setting passed to Gradle indicating the scheme to be used for coldswap handling */
-  @SuppressWarnings("SpellCheckingInspection")
-  public enum ColdSwapMode {
-    DEFAULT("Default", "default"),
-    MULTI_APK("APK Splits", "multiapk"),
-    MULTI_DEX("Multidex", "multidex"),
-    NATIVE("Native", "native");
-
-    ColdSwapMode(String display, String value) {
-      this.display = display;
-      this.value = value;
-    }
-
-    @NotNull
-    public static ColdSwapMode fromValue(@NotNull String v, @NotNull ColdSwapMode def) {
-      for (ColdSwapMode mode : values()) {
-        if (mode.value.equals(v)) {
-          return mode;
-        }
-      }
-
-      return def;
-    }
-
-    public final String display;
-    public final String value;
-
-    @Override
-    public String toString() {
-      return display;
-    }
   }
 }
