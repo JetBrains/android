@@ -21,7 +21,6 @@ import com.android.resources.Density;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.devices.Abi;
 import com.android.tools.idea.fd.*;
-import com.android.tools.idea.fd.InstantRunSettings.ColdSwapMode;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
@@ -52,9 +51,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
-import static com.android.builder.model.AndroidProject.PROPERTY_BUILD_API;
-import static com.android.builder.model.AndroidProject.PROPERTY_BUILD_ABI;
-import static com.android.builder.model.AndroidProject.PROPERTY_BUILD_DENSITY;
+import static com.android.builder.model.AndroidProject.*;
 import static com.android.tools.idea.startup.GradleSpecificInitializer.ENABLE_EXPERIMENTAL_PROFILING;
 
 public class GradleInvokerOptions {
@@ -152,9 +149,7 @@ public class GradleInvokerOptions {
         boolean incrementalBuild = canBuildIncrementally(instantRunBuildOptions, runAsValidator);
 
         cmdLineArgs.add(getInstantDevProperty(instantRunBuildOptions, incrementalBuild));
-        if (instantRunBuildOptions.coldSwapEnabled) {
-          cmdLineArgs.add("-Pandroid.injected.coldswap.mode=" + instantRunBuildOptions.coldSwapMode.value);
-        }
+        cmdLineArgs.add("-Pandroid.injected.coldswap.mode=default"); // TODO: remove if gradle doesn't need this
 
         if (instantRunBuildOptions.cleanBuild) {
           tasks.addAll(gradleTasksProvider.getCleanAndGenerateSourcesTasks());
@@ -177,11 +172,6 @@ public class GradleInvokerOptions {
     }
 
     if (!options.isAppRunning) { // freeze-swap or dexswap scenario
-      // We can't do dex swap if cold swap itself is not enabled
-      if (!options.coldSwapEnabled) {
-        return false;
-      }
-
       AndroidDevice device = options.devices.get(0); // Instant Run only supports launching to a single device
       AndroidVersion version = device.getVersion();
       if (!version.isGreaterOrEqualThan(21)) { // don't support cold swap on API < 21
@@ -191,11 +181,6 @@ public class GradleInvokerOptions {
       if (!runAsValidator.hasWorkingRunAs(device)) {
         return false;
       }
-    }
-
-    if (options.usesMultipleProcesses && !options.coldSwapEnabled) {
-      // multi-process forces cold swap, but if cold swap is disabled, then we need a full build
-      return false;
     }
 
     return true;
@@ -230,9 +215,9 @@ public class GradleInvokerOptions {
       return true;
     }
 
-    // using multiple processes, or attempting to update when the app is not running requires cold swap to be enabled
+    // using multiple processes, or attempting to update when the app is not running requires cold swap patches
     if (buildOptions.usesMultipleProcesses || !buildOptions.isAppRunning) {
-      return buildOptions.coldSwapEnabled;
+      return true;
     }
 
     return false;
@@ -322,16 +307,12 @@ public class GradleInvokerOptions {
     public final boolean needsFullBuild;
     public final boolean isAppRunning;
     public final boolean usesMultipleProcesses;
-    public final boolean coldSwapEnabled;
-    public final ColdSwapMode coldSwapMode;
     @NotNull private final FileChangeListener.Changes fileChanges;
 
     InstantRunBuildOptions(boolean cleanBuild,
                            boolean needsFullBuild,
                            boolean isAppRunning,
                            boolean usesMultipleProcesses,
-                           boolean coldSwapEnabled,
-                           @NotNull ColdSwapMode coldSwapMode,
                            @NotNull FileChangeListener.Changes changes,
                            @NotNull List<AndroidDevice> devices) {
       super(devices);
@@ -339,8 +320,6 @@ public class GradleInvokerOptions {
       this.needsFullBuild = needsFullBuild;
       this.isAppRunning = isAppRunning;
       this.usesMultipleProcesses = usesMultipleProcesses;
-      this.coldSwapEnabled = coldSwapEnabled;
-      this.coldSwapMode = coldSwapMode;
       this.fileChanges = changes;
     }
 
@@ -358,8 +337,6 @@ public class GradleInvokerOptions {
                                         InstantRunUtils.needsFullBuild(env),
                                         InstantRunUtils.isAppRunning(env),
                                         InstantRunManager.usesMultipleProcesses(module),
-                                        InstantRunSettings.isColdSwapEnabled(),
-                                        InstantRunSettings.getColdSwapMode(),
                                         changes,
                                         targetDevices);
     }
@@ -371,8 +348,6 @@ public class GradleInvokerOptions {
         .add("needsFullBuild", needsFullBuild)
         .add("isAppRunning", isAppRunning)
         .add("multiProcess", usesMultipleProcesses)
-        .add("coldSwapEnabled", coldSwapEnabled)
-        .add("coldSwapMode", coldSwapMode.display)
         .add("javaFileChange", fileChanges.localJavaChanges)
         .add("resFileChange", fileChanges.localResourceChanges)
         .add("nonSrcFileChange", fileChanges.nonSourceChanges)
