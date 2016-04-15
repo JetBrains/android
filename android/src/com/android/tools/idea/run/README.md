@@ -170,7 +170,7 @@ to be replayed to the new process handler so that the console still has all the 
 
 ### Pre Build
 
-![flowchart](docs/IR-pre-build.png)
+![flowchart](../../../../../../docs/run/IR-pre-build.png)
 
  * First determines the previous device on which the launch took place.
  * Examines if the build on the device matches the build on disk
@@ -181,7 +181,7 @@ to be replayed to the new process handler so that the console still has all the 
 
 ### Build options
 
-![flow](docs/IR-gradle-options.png)
+![flow](../../../../../../docs/run/IR-gradle-options.png)
 
  * The build step looks at all the information from the previous phase, and determines:
    * Which build task to execute (full build vs incremental build)
@@ -190,7 +190,7 @@ to be replayed to the new process handler so that the console still has all the 
 
 ### Post Build
 
-![flow](docs/IR-post-build.png)
+![flow](../../../../../../docs/run/IR-post-build.png)
 
  * Examine the build-info.xml file to figure out what actually happened (See `AndroidLaunchTasksProviderFactory`)
  * Determine the appropriate task to use based on the build result.
