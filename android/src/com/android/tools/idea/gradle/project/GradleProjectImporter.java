@@ -47,7 +47,6 @@ import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.TaskInfo;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.CompilerProjectExtension;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
@@ -80,6 +79,7 @@ import static com.android.tools.idea.gradle.project.SdkSync.syncIdeAndProjectAnd
 import static com.android.tools.idea.gradle.util.FilePaths.pathToIdeaUrl;
 import static com.android.tools.idea.gradle.util.GradleUtil.*;
 import static com.android.tools.idea.gradle.util.Projects.*;
+import static com.android.tools.idea.project.NewProjects.*;
 import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.intellij.notification.NotificationType.ERROR;
@@ -426,35 +426,6 @@ public class GradleProjectImporter {
     String contents = "// Top-level build file where you can add configuration options common to all sub-projects/modules." +
                       SystemProperties.getLineSeparator();
     writeToFile(projectFile, contents);
-  }
-
-  private static void createIdeaProjectDir(@NotNull File projectRootDirPath) throws IOException {
-    File ideaDirPath = new File(projectRootDirPath, Project.DIRECTORY_STORE_FOLDER);
-    if (ideaDirPath.isDirectory()) {
-      // "libraries" is hard-coded in com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable
-      File librariesDir = new File(ideaDirPath, "libraries");
-      if (librariesDir.exists()) {
-        // remove contents of libraries. This is useful when importing existing projects that may have invalid library entries (e.g.
-        // created with Studio 0.4.3 or earlier.)
-        boolean librariesDirDeleted = delete(librariesDir);
-        if (!librariesDirDeleted) {
-          LOG.info(String.format("Failed to delete %1$s'", librariesDir.getPath()));
-        }
-      }
-    }
-    else {
-      ensureExists(ideaDirPath);
-    }
-  }
-
-  @NotNull
-  private static Project createProject(@NotNull String projectName, @NotNull String projectPath) throws ConfigurationException {
-    ProjectManager projectManager = ProjectManager.getInstance();
-    Project newProject = projectManager.createProject(projectName, projectPath);
-    if (newProject == null) {
-      throw new NullPointerException("Failed to create a new IDEA project");
-    }
-    return newProject;
   }
 
   private static void setUpProject(@NotNull final Project newProject, @Nullable final LanguageLevel initialLanguageLevel) {
