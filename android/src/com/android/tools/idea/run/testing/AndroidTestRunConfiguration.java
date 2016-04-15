@@ -201,12 +201,11 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
 
   @Override
   @NotNull
-  protected ApkProvider getApkProvider(@NotNull AndroidFacet facet) {
-    // TODO: Resolve direct AndroidGradleModel dep (b/22596984)
+  protected ApkProvider getApkProvider(@NotNull AndroidFacet facet, @NotNull ApplicationIdProvider applicationIdProvider) {
     if (facet.getAndroidModel() != null && facet.getAndroidModel() instanceof AndroidGradleModel) {
-      return new GradleApkProvider(facet, true);
+      return new GradleApkProvider(facet, applicationIdProvider, true);
     }
-    return new NonGradleApkProvider(facet, null);
+    return new NonGradleApkProvider(facet, applicationIdProvider, null);
   }
 
   private static int getTestSourceRootCount(@NotNull Module module) {
@@ -308,14 +307,14 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
 
   @Nullable
   @Override
-  protected LaunchTask getApplicationLaunchTask(@NotNull ApkProvider apkProvider,
+  protected LaunchTask getApplicationLaunchTask(@NotNull ApplicationIdProvider applicationIdProvider,
                                                 @NotNull AndroidFacet facet,
                                                 boolean waitForDebugger,
                                                 @NotNull LaunchStatus launchStatus) {
     String runner = StringUtil.isEmpty(INSTRUMENTATION_RUNNER_CLASS) ? findInstrumentationRunner(facet) : INSTRUMENTATION_RUNNER_CLASS;
     String testPackage;
     try {
-      testPackage = apkProvider.getTestPackageName();
+      testPackage = applicationIdProvider.getTestPackageName();
       if (testPackage == null) {
         launchStatus.terminateLaunch("Unable to determine test package name");
         return null;

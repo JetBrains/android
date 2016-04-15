@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,23 +15,22 @@
  */
 package com.android.tools.idea.run;
 
-import com.android.ddmlib.IDevice;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.Collection;
-import java.util.List;
+import org.jetbrains.annotations.Nullable;
 
 /**
- * An interface for providing information about the APKs to install on devices and/or emulators
- * during a run configuration execution.
+ * Provides an application id for launching an APK.
  */
-public interface ApkProvider {
+public interface ApplicationIdProvider {
   /**
-   * @return The app and test APKs to install.
+   * @return The package name of the main APK - the app to launch, or the app under test.
    */
   @NotNull
-  Collection<ApkInfo> getApks(@NotNull IDevice device) throws ApkProvisionException;
+  String getPackageName() throws ApkProvisionException;
 
-  @NotNull
-  List<ValidationError> validate();
+  /**
+   * @return The package name of the test APK, or null if none.
+   */
+  @Nullable
+  String getTestPackageName() throws ApkProvisionException;
 }

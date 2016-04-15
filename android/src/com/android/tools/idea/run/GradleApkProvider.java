@@ -46,15 +46,17 @@ import java.util.Set;
 public class GradleApkProvider implements ApkProvider {
   private static final Logger LOG = Logger.getInstance(GradleApkProvider.class);
 
-  /** Default suffix for test packages (as added by Android Gradle plugin) */
-  private static final String DEFAULT_TEST_PACKAGE_SUFFIX = ".test";
-
   @NotNull
   private final AndroidFacet myFacet;
+  @NotNull
+  private final ApplicationIdProvider myApplicationIdProvider;
   private final boolean myTest;
 
-  public GradleApkProvider(@NotNull AndroidFacet facet, boolean test) {
+  public GradleApkProvider(@NotNull AndroidFacet facet,
+                           @NotNull ApplicationIdProvider applicationIdProvider,
+                           boolean test) {
     myFacet = facet;
+    myApplicationIdProvider = applicationIdProvider;
     myTest = test;
   }
 
@@ -73,7 +75,7 @@ public class GradleApkProvider implements ApkProvider {
     // install apk (note that variant.getOutputFile() will point to a .aar in the case of a library)
     if (!androidModel.getAndroidProject().isLibrary()) {
       File apk = getApk(selectedVariant, device);
-      apkList.add(new ApkInfo(apk, getPackageName()));
+      apkList.add(new ApkInfo(apk, myApplicationIdProvider.getPackageName()));
     }
 
     if (myTest) {
@@ -81,7 +83,7 @@ public class GradleApkProvider implements ApkProvider {
       if (testArtifactInfo != null) {
         AndroidArtifactOutput output = GradleUtil.getOutput(testArtifactInfo);
         File testApk = output.getMainOutputFile().getOutputFile();
-        String testPackageName = getTestPackageName();
+        String testPackageName = myApplicationIdProvider.getTestPackageName();
         assert testPackageName != null; // Cannot be null if initialized.
         apkList.add(new ApkInfo(testApk, testPackageName));
       }
@@ -89,22 +91,6 @@ public class GradleApkProvider implements ApkProvider {
     return apkList;
   }
 
-  @Override
-  @NotNull
-  public String getPackageName() throws ApkProvisionException {
-    return ApkProviderUtil.computePackageName(myFacet);
-  }
-
-  @Override
-  public String getTestPackageName() throws ApkProvisionException {
-    AndroidGradleModel androidModel = AndroidGradleModel.get(myFacet);
-    assert androidModel != null; // This is a Gradle project, there must be an AndroidGradleModel.
-    // In the case of Gradle projects, either the merged flavor provides a test package name,
-    // or we just append ".test" to the source package name
-    Variant selectedVariant = androidModel.getSelectedVariant();
-    String testPackageName = selectedVariant.getMergedFlavor().getTestApplicationId();
-    return (testPackageName != null) ? testPackageName : getPackageName() + DEFAULT_TEST_PACKAGE_SUFFIX;
-  }
 
   @NotNull
   private static File getApk(@NotNull Variant variant, @NotNull IDevice device) throws ApkProvisionException {

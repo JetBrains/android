@@ -31,19 +31,12 @@ import java.util.Collection;
  */
 public class NonGradleApkProviderTest extends AndroidTestCase {
 
-  public void testGetPackageName() throws Exception {
-    NonGradleApkProvider provider = new NonGradleApkProvider(myFacet, null);
-    assertEquals("p1.p2", provider.getPackageName());
-    // The test package name matches the main APK package name.
-    assertEquals("p1.p2", provider.getTestPackageName());
-  }
-
   public void testGetApks() throws Exception {
     IDevice device = Mockito.mock(IDevice.class);
 
     myFacet.getProperties().APK_PATH = "artifact.apk";
 
-    NonGradleApkProvider provider = new NonGradleApkProvider(myFacet, null);
+    NonGradleApkProvider provider = new NonGradleApkProvider(myFacet, new NonGradleApplicationIdProvider(myFacet), null);
 
     Collection<ApkInfo> apks = provider.getApks(device);
     assertNotNull(apks);
@@ -63,7 +56,7 @@ public class NonGradleApkProviderTest extends AndroidTestCase {
 
     myFacet.getProperties().APK_PATH = "wrong.apk";
 
-    NonGradleApkProvider provider = new NonGradleApkProvider(myFacet, "customApk");
+    NonGradleApkProvider provider = new NonGradleApkProvider(myFacet, new NonGradleApplicationIdProvider(myFacet), "customApk");
 
     Collection<ApkInfo> apks = provider.getApks(device);
     assertNotNull(apks);
