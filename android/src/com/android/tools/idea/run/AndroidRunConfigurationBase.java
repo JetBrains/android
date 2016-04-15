@@ -581,10 +581,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
                                      InstantRunUserFeedback.LEARN_MORE_LINK);
       }
 
-      if (!InstantRunSettings.isColdSwapEnabled()) {
-        return BooleanStatus.failure(FULL_BUILD_PREFIX + "Instant Run's cold swap feature has been disabled.");
-      }
-
       if (deviceVersion.getApiLevel() < 21) {
         return BooleanStatus.failure(FULL_BUILD_PREFIX +
                                      "Instant Run does not support cold swaps on deployment targets with API level 20 or below.<br><br>" +

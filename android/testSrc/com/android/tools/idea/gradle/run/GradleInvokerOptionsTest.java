@@ -18,13 +18,11 @@ package com.android.tools.idea.gradle.run;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.devices.Abi;
 import com.android.tools.idea.fd.FileChangeListener;
-import com.android.tools.idea.fd.InstantRunSettings.ColdSwapMode;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.run.AndroidDevice;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
-import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -42,19 +40,8 @@ public class GradleInvokerOptionsTest {
   private AndroidDevice myDevice;
   private List<AndroidDevice> myDevices;
 
-  private static final RunAsValidator ourRunAsSupported = new RunAsValidator() {
-    @Override
-    public boolean hasWorkingRunAs(@NotNull AndroidDevice device) {
-      return true;
-    }
-  };
-
-  private static final RunAsValidator ourRunAsNotSupported = new RunAsValidator() {
-    @Override
-    public boolean hasWorkingRunAs(@NotNull AndroidDevice device) {
-      return false;
-    }
-  };
+  private static final RunAsValidator ourRunAsSupported = device -> true;
+  private static final RunAsValidator ourRunAsNotSupported = device -> false;
 
   private static final List<String> ASSEMBLE_TASKS = ImmutableList.of(":app:assemble");
   private static final List<String> CLEAN_TASKS = ImmutableList.of("clean", ":app:generateSources");
@@ -123,7 +110,7 @@ public class GradleInvokerOptionsTest {
     when(myDevice.getAbis()).thenReturn(ImmutableList.of(Abi.ARMEABI, Abi.X86));
 
     GradleInvokerOptions.InstantRunBuildOptions instantRunOptions =
-      new GradleInvokerOptions.InstantRunBuildOptions(true, false, true, false, true, ColdSwapMode.DEFAULT, changes, myDevices);
+      new GradleInvokerOptions.InstantRunBuildOptions(true, false, true, false, changes, myDevices);
 
     GradleInvokerOptions options =
       GradleInvokerOptions.create(GradleInvoker.TestCompileType.NONE, instantRunOptions, myTasksProvider,
@@ -147,7 +134,7 @@ public class GradleInvokerOptionsTest {
     when(myDevice.getDensity()).thenReturn(640);
 
     GradleInvokerOptions.InstantRunBuildOptions instantRunOptions =
-      new GradleInvokerOptions.InstantRunBuildOptions(false, true, true, false, true, ColdSwapMode.DEFAULT, changes, myDevices);
+      new GradleInvokerOptions.InstantRunBuildOptions(false, true, true, false, changes, myDevices);
 
     GradleInvokerOptions options =
       GradleInvokerOptions.create(GradleInvoker.TestCompileType.NONE, instantRunOptions, myTasksProvider,
@@ -165,7 +152,7 @@ public class GradleInvokerOptionsTest {
     when(myDevice.getDensity()).thenReturn(640);
 
     GradleInvokerOptions.InstantRunBuildOptions instantRunOptions =
-      new GradleInvokerOptions.InstantRunBuildOptions(false, false, true, false, true, ColdSwapMode.DEFAULT, changes, myDevices);
+      new GradleInvokerOptions.InstantRunBuildOptions(false, false, true, false, changes, myDevices);
 
     GradleInvokerOptions options =
       GradleInvokerOptions.create(GradleInvoker.TestCompileType.NONE, instantRunOptions, myTasksProvider,
@@ -184,7 +171,7 @@ public class GradleInvokerOptionsTest {
     when(myDevice.getDensity()).thenReturn(640);
 
     GradleInvokerOptions.InstantRunBuildOptions instantRunOptions =
-      new GradleInvokerOptions.InstantRunBuildOptions(false, false, true, true, true, ColdSwapMode.DEFAULT, changes, myDevices);
+      new GradleInvokerOptions.InstantRunBuildOptions(false, false, true, true, changes, myDevices);
 
     GradleInvokerOptions options =
       GradleInvokerOptions.create(GradleInvoker.TestCompileType.NONE, instantRunOptions, myTasksProvider,
@@ -201,7 +188,7 @@ public class GradleInvokerOptionsTest {
     when(myDevice.getDensity()).thenReturn(640);
 
     GradleInvokerOptions.InstantRunBuildOptions instantRunOptions =
-      new GradleInvokerOptions.InstantRunBuildOptions(false, false, false, false, true, ColdSwapMode.DEFAULT, changes, myDevices);
+      new GradleInvokerOptions.InstantRunBuildOptions(false, false, false, false, changes, myDevices);
 
     GradleInvokerOptions options =
       GradleInvokerOptions.create(GradleInvoker.TestCompileType.NONE, instantRunOptions, myTasksProvider,
@@ -214,28 +201,12 @@ public class GradleInvokerOptionsTest {
   }
 
   @Test
-  public void disableDexswapIfColdswapDisabled() {
-    FileChangeListener.Changes changes = new FileChangeListener.Changes(false, false, true);
-    when(myDevice.getVersion()).thenReturn(new AndroidVersion(21, null));
-
-    GradleInvokerOptions.InstantRunBuildOptions instantRunOptions =
-      new GradleInvokerOptions.InstantRunBuildOptions(false, false, false, false, false, ColdSwapMode.DEFAULT, changes, myDevices);
-
-    GradleInvokerOptions options =
-      GradleInvokerOptions.create(GradleInvoker.TestCompileType.NONE, instantRunOptions, myTasksProvider,
-                                  ourRunAsSupported, null, null);
-
-    assertTrue(options.commandLineArguments.contains("-Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY"));
-    assertEquals(ASSEMBLE_TASKS, options.tasks);
-  }
-
-  @Test
   public void disableDexswapOnApiLessThan21() {
     FileChangeListener.Changes changes = new FileChangeListener.Changes(false, false, true);
     when(myDevice.getVersion()).thenReturn(new AndroidVersion(19, null));
 
     GradleInvokerOptions.InstantRunBuildOptions instantRunOptions =
-      new GradleInvokerOptions.InstantRunBuildOptions(false, false, false, false, true, ColdSwapMode.DEFAULT, changes, myDevices);
+      new GradleInvokerOptions.InstantRunBuildOptions(false, false, false, false, changes, myDevices);
 
     GradleInvokerOptions options =
       GradleInvokerOptions.create(GradleInvoker.TestCompileType.NONE, instantRunOptions, myTasksProvider,
@@ -251,7 +222,7 @@ public class GradleInvokerOptionsTest {
     when(myDevice.getVersion()).thenReturn(new AndroidVersion(23, null));
 
     GradleInvokerOptions.InstantRunBuildOptions instantRunOptions =
-      new GradleInvokerOptions.InstantRunBuildOptions(false, false, false, false, true, ColdSwapMode.DEFAULT, changes, myDevices);
+      new GradleInvokerOptions.InstantRunBuildOptions(false, false, false, false, changes, myDevices);
 
     GradleInvokerOptions options =
       GradleInvokerOptions.create(GradleInvoker.TestCompileType.NONE, instantRunOptions, myTasksProvider,
@@ -268,7 +239,7 @@ public class GradleInvokerOptionsTest {
     when(myDevice.getDensity()).thenReturn(640);
 
     GradleInvokerOptions.InstantRunBuildOptions instantRunOptions =
-      new GradleInvokerOptions.InstantRunBuildOptions(false, false, true, false, true, ColdSwapMode.DEFAULT, changes, myDevices);
+      new GradleInvokerOptions.InstantRunBuildOptions(false, false, true, false, changes, myDevices);
 
     GradleInvokerOptions options =
       GradleInvokerOptions.create(GradleInvoker.TestCompileType.NONE, instantRunOptions, myTasksProvider,
