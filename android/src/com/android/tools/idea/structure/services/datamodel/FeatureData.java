@@ -40,6 +40,9 @@ public interface FeatureData {
   @NotNull
   String getDescription();
 
+  @Nullable("Optional if you have no actions requiring DeveloperService")
+  String getServiceId();
+
   @NotNull
   List<? extends TutorialData> getTutorials();
 }
