@@ -17,15 +17,20 @@ package com.android.tools.idea.run;
 
 import com.android.tools.idea.fd.InstantRunManager;
 import com.android.tools.idea.fd.InstantRunUtils;
-import com.intellij.execution.*;
+import com.intellij.execution.Executor;
+import com.intellij.execution.ProgramRunnerUtil;
+import com.intellij.execution.RunManagerEx;
+import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.ExecutionEnvironmentBuilder;
-import com.intellij.execution.ui.RunContentDescriptor;
 import com.intellij.icons.AllIcons;
-import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.ActionPlaces;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import icons.AndroidIcons;
@@ -187,14 +192,5 @@ public class ReRunAction extends DumbAwareAction implements AnAction.Transparent
     }
 
     return false;
-  }
-
-  private static RunContentDescriptor getSelectedRunContentDescriptor(@NotNull DataContext dataContext) {
-    final Project project = CommonDataKeys.PROJECT.getData(dataContext);
-    if (project == null) {
-      return null;
-    }
-
-    return ExecutionManager.getInstance(project).getContentManager().getSelectedContent();
   }
 }
