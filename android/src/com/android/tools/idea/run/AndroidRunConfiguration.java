@@ -119,12 +119,11 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
 
   @Override
   @NotNull
-  protected ApkProvider getApkProvider(@NotNull AndroidFacet facet) {
-    // TODO: Resolve direct AndroidGradleModel dep (b/22596984)
+  protected ApkProvider getApkProvider(@NotNull AndroidFacet facet, @NotNull ApplicationIdProvider applicationIdProvider) {
     if (facet.getAndroidModel() != null && facet.getAndroidModel() instanceof AndroidGradleModel) {
-      return new GradleApkProvider(facet, false);
+      return new GradleApkProvider(facet, applicationIdProvider, false);
     }
-    return new NonGradleApkProvider(facet, ARTIFACT_NAME);
+    return new NonGradleApkProvider(facet, applicationIdProvider, ARTIFACT_NAME);
   }
 
   @NotNull
@@ -194,7 +193,7 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
 
   @Nullable
   @Override
-  protected LaunchTask getApplicationLaunchTask(@NotNull ApkProvider apkProvider,
+  protected LaunchTask getApplicationLaunchTask(@NotNull ApplicationIdProvider applicationIdProvider,
                                                 @NotNull AndroidFacet facet,
                                                 boolean waitForDebugger,
                                                 @NotNull LaunchStatus launchStatus) {
@@ -205,7 +204,7 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
       getAndroidDebugger(), getAndroidDebuggerState(), waitForDebugger, ACTIVITY_EXTRA_FLAGS);
 
     try {
-      return state.getLaunchTask(apkProvider.getPackageName(), facet, startActivityFlagsProvider, getProfilerState());
+      return state.getLaunchTask(applicationIdProvider.getPackageName(), facet, startActivityFlagsProvider, getProfilerState());
     }
     catch (ApkProvisionException e) {
       Logger.getInstance(AndroidRunConfiguration.class).error(e);
