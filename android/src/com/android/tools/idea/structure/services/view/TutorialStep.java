@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.structure.services.view;
 
-import com.android.tools.idea.structure.services.DeveloperServiceMap;
+import com.android.tools.idea.structure.services.DeveloperService;
 import com.android.tools.idea.structure.services.datamodel.StepData;
 import com.android.tools.idea.structure.services.datamodel.StepElementData;
 import com.intellij.openapi.util.text.StringUtil;
@@ -46,7 +46,7 @@ public class TutorialStep extends JPanel {
   private final StepData myStep;
   private final JPanel myContents;
 
-  TutorialStep(StepData step, int index, ActionListener listener, DeveloperServiceMap serviceMap) {
+  TutorialStep(StepData step, int index, ActionListener listener, DeveloperService service) {
     myIndex = index;
     myStep = step;
     myContents = new JPanel();
@@ -71,7 +71,7 @@ public class TutorialStep extends JPanel {
           myContents.add(section);
           break;
         case ACTION:
-          myContents.add(new StatefulButton(element.getAction(), listener, serviceMap));
+          myContents.add(new StatefulButton(element.getAction(), listener, service));
           break;
         case CODE:
           CodePane code = new CodePane();

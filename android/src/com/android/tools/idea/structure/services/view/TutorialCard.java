@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.structure.services.view;
 
-import com.android.tools.idea.structure.services.DeveloperServiceMap;
+import com.android.tools.idea.structure.services.DeveloperService;
 import com.android.tools.idea.structure.services.datamodel.StepData;
 import com.android.tools.idea.structure.services.datamodel.TutorialData;
 import com.intellij.icons.AllIcons;
@@ -37,7 +37,7 @@ import java.awt.event.ActionListener;
  */
 public class TutorialCard extends CardViewPanel {
 
-  TutorialCard(ActionListener listener, TutorialData tutorial, DeveloperServiceMap serviceMap) {
+  TutorialCard(ActionListener listener, TutorialData tutorial, DeveloperService service) {
     super(listener);
 
     // TODO: Migrate this somewhere central.
@@ -74,7 +74,7 @@ public class TutorialCard extends CardViewPanel {
     // Add each of the tutorial steps in order.
     int numericLabel = 1;
     for (StepData step : tutorial.getSteps()) {
-      TutorialStep stepDisplay = new TutorialStep(step, numericLabel, listener, serviceMap);
+      TutorialStep stepDisplay = new TutorialStep(step, numericLabel, listener, service);
       contents.add(stepDisplay, c);
       c.gridy++;
       numericLabel++;
