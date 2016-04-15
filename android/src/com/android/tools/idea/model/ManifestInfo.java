@@ -35,6 +35,7 @@ import com.intellij.lang.xml.XMLLanguage;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VfsUtil;
@@ -175,6 +176,9 @@ public final class ManifestInfo {
       manifestMergerInvoker.withFeatures(ManifestMerger2.Invoker.Feature.REMOVE_TOOLS_DECLARATIONS);
     }
 
+    final Module module = facet.getModule();
+    final Project project = module.getProject();
+
     manifestMergerInvoker.withFileStreamProvider(new ManifestMerger2.FileStreamProvider() {
       @Override
       protected InputStream getInputStream(@NotNull File file) throws FileNotFoundException {
@@ -187,7 +191,17 @@ public final class ManifestInfo {
           vFile = VfsUtil.findFileByIoFile(file, false);
         }
         assert vFile != null : file;
-        PsiFile psiFile = PsiManager.getInstance(facet.getModule().getProject()).findFile(vFile);
+
+        Module fileModule = ModuleUtilCore.findModuleForFile(vFile, project);
+        if (fileModule != null && !module.equals(fileModule)) {
+          MergedManifest manifest = MergedManifest.get(fileModule);
+          XmlTag xmlTag = manifest.getXmlTag();
+          assert xmlTag != null; // we must have a file here as we had a source VirtualFile
+          String text = xmlTag.getContainingFile().getText();
+          return new ByteArrayInputStream(text.getBytes(Charsets.UTF_8));
+        }
+
+        PsiFile psiFile = PsiManager.getInstance(project).findFile(vFile);
         if (psiFile != null) {
           String text = psiFile.getText();
           return new ByteArrayInputStream(text.getBytes(Charsets.UTF_8));
@@ -267,26 +281,22 @@ public final class ManifestInfo {
       long lastGradleSyncTimestamp = GradleSyncState.getInstance(myFacet.getModule().getProject()).getLastGradleSyncTimestamp();
       lastModifiedMap.put("gradle-sync", lastGradleSyncTimestamp);
 
-      // get all other manifests for this module, (NOT including the default one)
-      List<VirtualFile> flavorAndBuildTypeManifests = new ArrayList<VirtualFile>();
-      IdeaSourceProvider defaultSourceProvider = myFacet.getMainIdeaSourceProvider();
-      for (IdeaSourceProvider provider : IdeaSourceProvider.getCurrentSourceProviders(myFacet)) {
-        if (!defaultSourceProvider.equals(provider)) {
-          VirtualFile flavorOrBuildTypeManifest = provider.getManifestFile();
-          if (flavorOrBuildTypeManifest != null) {
-            flavorAndBuildTypeManifests.add(flavorOrBuildTypeManifest);
-            lastModifiedMap.put(flavorOrBuildTypeManifest, getFileModificationStamp(flavorOrBuildTypeManifest));
-          }
-        }
+      List<VirtualFile> flavorAndBuildTypeManifests = getFlavorAndBuildTypeManifests(myFacet);
+      trackChanges(lastModifiedMap, flavorAndBuildTypeManifests);
+
+      List<VirtualFile> libraryManifests = Collections.emptyList();
+      if (!myFacet.isLibraryProject()) {
+        libraryManifests = getLibManifests(myFacet);
+        trackChanges(lastModifiedMap, libraryManifests);
       }
 
-      List<VirtualFile> libraryManifests = new ArrayList<VirtualFile>();
-      if (!myFacet.isLibraryProject()) {
-        for (VirtualFile libraryManifest : getLibManifests(myFacet)) {
-          libraryManifests.add(libraryManifest);
-          lastModifiedMap.put(libraryManifest, getFileModificationStamp(libraryManifest));
-        }
+      // we want to track changes in these files, but we do not actually use them directly
+      List<VirtualFile> flavorAndBuildTypeManifestsOfLibs = new ArrayList<>();
+      List<AndroidFacet> dependencies = AndroidUtils.getAllAndroidDependencies(myFacet.getModule(), true);
+      for (AndroidFacet dependency : dependencies) {
+        flavorAndBuildTypeManifestsOfLibs.addAll(getFlavorAndBuildTypeManifests(dependency));
       }
+      trackChanges(lastModifiedMap, flavorAndBuildTypeManifestsOfLibs);
 
       if (myXmlFile == null || !lastModifiedMap.equals(myLastModifiedMap)) {
         myXmlFile = parseManifest(primaryManifestFile, flavorAndBuildTypeManifests, libraryManifests);
@@ -300,6 +310,28 @@ public final class ManifestInfo {
       }
     }
 
+    private void trackChanges(@NotNull Map<Object, Long> lastModifiedMap, @NotNull List<VirtualFile> files) {
+      for (VirtualFile libraryManifest : files) {
+        lastModifiedMap.put(libraryManifest, getFileModificationStamp(libraryManifest));
+      }
+    }
+
+    @NotNull
+    private static List<VirtualFile> getFlavorAndBuildTypeManifests(@NotNull AndroidFacet facet) {
+      // get all other manifests for this module, (NOT including the default one)
+      List<VirtualFile> flavorAndBuildTypeManifests = new ArrayList<VirtualFile>();
+      IdeaSourceProvider defaultSourceProvider = facet.getMainIdeaSourceProvider();
+      for (IdeaSourceProvider provider : IdeaSourceProvider.getCurrentSourceProviders(facet)) {
+        if (!defaultSourceProvider.equals(provider)) {
+          VirtualFile flavorOrBuildTypeManifest = provider.getManifestFile();
+          if (flavorOrBuildTypeManifest != null) {
+            flavorAndBuildTypeManifests.add(flavorOrBuildTypeManifest);
+          }
+        }
+      }
+      return flavorAndBuildTypeManifests;
+    }
+
     @NotNull
     private static List<VirtualFile> getLibManifests(@NotNull AndroidFacet facet) {
       List<VirtualFile> libraryManifests = new ArrayList<>();
@@ -308,7 +340,7 @@ public final class ManifestInfo {
         Collection<AndroidLibrary> libraries = androidGradleModel.getSelectedMainCompileDependencies().getLibraries();
         Set<File> set = new HashSet<>();
         for (AndroidLibrary dependency : libraries) {
-          getManifests(dependency, set);
+          addAarManifests(dependency, set);
         }
         for (File file : set) {
           VirtualFile libraryManifest = VfsUtil.findFileByIoFile(file, false);
@@ -316,26 +348,31 @@ public final class ManifestInfo {
             libraryManifests.add(libraryManifest);
           }
           else {
-            assert !file.exists();
             Logger.getInstance(ManifestInfo.class).warn("Manifest not found: " + file);
           }
         }
       }
-      else {
-        List<AndroidFacet> dependencies = AndroidUtils.getAllAndroidDependencies(facet.getModule(), true);
-        for (AndroidFacet dependency : dependencies) {
-          // a bit overkill here, as there will only ever be 1 per lib module
-          libraryManifests.addAll(IdeaSourceProvider.getManifestFiles(dependency));
+
+      List<AndroidFacet> dependencies = AndroidUtils.getAllAndroidDependencies(facet.getModule(), true);
+      for (AndroidFacet dependency : dependencies) {
+        // we will NOT actually be reading from this file, as we will need to recursively get the info from the modules MergedManifest
+        VirtualFile vFile = dependency.getMainIdeaSourceProvider().getManifestFile();
+        if (vFile != null) { // user error
+          libraryManifests.add(vFile);
+        }
+        else {
+          Logger.getInstance(ManifestInfo.class).warn("Manifest not found for Module " + dependency.getName());
         }
       }
       return libraryManifests;
     }
 
-    public static void getManifests(@NotNull AndroidLibrary lib, @NotNull Set<File> result) {
-      if (!result.contains(lib.getManifest())) {
+    private static void addAarManifests(@NotNull AndroidLibrary lib, @NotNull Set<File> result) {
+      // we check getProject == null to make sure we don't add a lib that's already a module dependancy
+      if (lib.getProject() == null && !result.contains(lib.getManifest())) {
         result.add(lib.getManifest());
         for (AndroidLibrary dependency : lib.getLibraryDependencies()) {
-          getManifests(dependency, result);
+          addAarManifests(dependency, result);
         }
       }
     }
