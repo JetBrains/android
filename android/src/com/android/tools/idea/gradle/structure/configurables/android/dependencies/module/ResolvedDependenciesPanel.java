@@ -18,9 +18,7 @@ package com.android.tools.idea.gradle.structure.configurables.android.dependenci
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.treeview.DependencySelection;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.treeview.ResolvedDependenciesTreeBuilder;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractDependencyNode;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.GoToModuleAction;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.ModuleDependencyNode;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.*;
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
 import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowPanel;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractBaseCollapseAllAction;
@@ -117,7 +115,6 @@ public class ResolvedDependenciesPanel extends ToolWindowPanel implements Depend
         return;
       }
 
-      myTreeBuilder.updateSelection();
       PsAndroidDependency selected = getSelection();
       if (selected == null) {
         AbstractPsModelNode selectedNode = getSelectionIfSingle();
@@ -146,25 +143,17 @@ public class ResolvedDependenciesPanel extends ToolWindowPanel implements Depend
   }
 
   private void setHeaderActions() {
-    DefaultActionGroup settingsGroup = new DefaultActionGroup();
+    List<AnAction> additionalActions = Lists.newArrayList();
 
-    settingsGroup.add(new ToggleAction("Group Similar") {
+    additionalActions.add(new SelectNodesMatchingCurrentSelectionAction() {
       @Override
-      public boolean isSelected(AnActionEvent e) {
-        return PsUISettings.getInstance().RESOLVED_DEPENDENCIES_GROUP_VARIANTS;
-      }
-
-      @Override
-      public void setSelected(AnActionEvent e, boolean state) {
-        PsUISettings settings = PsUISettings.getInstance();
-        if (settings.RESOLVED_DEPENDENCIES_GROUP_VARIANTS != state) {
-          settings.RESOLVED_DEPENDENCIES_GROUP_VARIANTS = state;
-          settings.fireUISettingsChanged();
-        }
+      @NotNull
+      protected AbstractPsNodeTreeBuilder getTreeBuilder() {
+        return myTreeBuilder;
       }
     });
 
-    List<AnAction> additionalActions = Lists.newArrayList();
+    additionalActions.add(Separator.getInstance());
 
     additionalActions.add(new AbstractBaseExpandAllAction(myTree) {
       @Override
@@ -184,6 +173,22 @@ public class ResolvedDependenciesPanel extends ToolWindowPanel implements Depend
     });
 
     additionalActions.add(Separator.getInstance());
+    DefaultActionGroup settingsGroup = new DefaultActionGroup();
+    settingsGroup.add(new ToggleAction("Group Similar") {
+      @Override
+      public boolean isSelected(AnActionEvent e) {
+        return PsUISettings.getInstance().RESOLVED_DEPENDENCIES_GROUP_VARIANTS;
+      }
+
+      @Override
+      public void setSelected(AnActionEvent e, boolean state) {
+        PsUISettings settings = PsUISettings.getInstance();
+        if (settings.RESOLVED_DEPENDENCIES_GROUP_VARIANTS != state) {
+          settings.RESOLVED_DEPENDENCIES_GROUP_VARIANTS = state;
+          settings.fireUISettingsChanged();
+        }
+      }
+    });
 
     additionalActions.add(new DumbAwareAction("", "", AllIcons.General.Gear) {
       @Override
