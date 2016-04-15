@@ -70,13 +70,13 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel implem
 
   @NotNull private final DeclaredDependenciesTableModel myDependenciesTableModel;
   @NotNull private final TableView<PsAndroidDependency> myDependenciesTable;
-  @NotNull private final ListSelectionListener myTableSelectionListener;
   @NotNull private final IssuesViewer myIssuesViewer;
   @NotNull private final String myPlaceName;
 
   @NotNull private final EventDispatcher<SelectionListener> myEventDispatcher = EventDispatcher.create(SelectionListener.class);
 
   private KeyEventDispatcher myKeyEventDispatcher;
+  private boolean skipSelectionChangeNotification;
 
   DeclaredDependenciesPanel(@NotNull PsAndroidModule module, @NotNull PsContext context) {
     super("Declared Dependencies", context, module);
@@ -131,8 +131,8 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel implem
     ListSelectionModel tableSelectionModel = myDependenciesTable.getSelectionModel();
     tableSelectionModel.setSelectionMode(MULTIPLE_INTERVAL_SELECTION);
 
-    myTableSelectionListener = e -> updateDetailsAndIssues();
-    tableSelectionModel.addListSelectionListener(myTableSelectionListener);
+    ListSelectionListener tableSelectionListener = e -> updateDetailsAndIssues();
+    tableSelectionModel.addListSelectionListener(tableSelectionListener);
 
     if (!myDependenciesTable.getItems().isEmpty()) {
       myDependenciesTable.changeSelection(0, 0, false, false);
@@ -272,25 +272,22 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel implem
 
   @Override
   public void setSelection(@Nullable PsAndroidDependency selection) {
-    ListSelectionModel tableSelectionModel = myDependenciesTable.getSelectionModel();
-    // Remove ListSelectionListener. We only want the selection event when the user selects a table cell directly. If we got here is
-    // because the user selected a dependency in the "Variants" tree view, and we are simply syncing the table.
-    tableSelectionModel.removeListSelectionListener(myTableSelectionListener);
-
+    skipSelectionChangeNotification = true;
     if (selection == null) {
       myDependenciesTable.clearSelection();
     }
     else {
       myDependenciesTable.setSelection(Collections.singleton(selection));
     }
+    skipSelectionChangeNotification = false;
     updateDetailsAndIssues();
-
-    // Add ListSelectionListener again, to react when user selects a table cell directly.
-    tableSelectionModel.addListSelectionListener(myTableSelectionListener);
   }
 
   private void updateDetailsAndIssues() {
-    notifySelectionChanged();
+    if (skipSelectionChangeNotification) {
+      notifySelectionChanged();
+      skipSelectionChangeNotification = false;
+    }
 
     PsAndroidDependency selected = getSelection();
     super.updateDetails(selected);
