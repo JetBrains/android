@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,23 +15,17 @@
  */
 package com.android.tools.idea.run;
 
-import com.android.ddmlib.IDevice;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.Collection;
-import java.util.List;
+import org.jetbrains.android.AndroidTestCase;
 
 /**
- * An interface for providing information about the APKs to install on devices and/or emulators
- * during a run configuration execution.
+ * Tests for {@link NonGradleApplicationIdProvider}.
  */
-public interface ApkProvider {
-  /**
-   * @return The app and test APKs to install.
-   */
-  @NotNull
-  Collection<ApkInfo> getApks(@NotNull IDevice device) throws ApkProvisionException;
+public class NonGradleApplicationIdProviderTest extends AndroidTestCase {
 
-  @NotNull
-  List<ValidationError> validate();
+  public void testGetPackageName() throws Exception {
+    NonGradleApplicationIdProvider provider = new NonGradleApplicationIdProvider(myFacet);
+    assertEquals("p1.p2", provider.getPackageName());
+    // The test package name matches the main APK package name.
+    assertEquals("p1.p2", provider.getTestPackageName());
+  }
 }

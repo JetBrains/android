@@ -30,18 +30,18 @@ public class HotSwapTasksProvider implements LaunchTasksProvider {
   private final AndroidRunConfigurationBase myRunConfig;
   private final ExecutionEnvironment myEnv;
   private final AndroidFacet myFacet;
-  private final ApkProvider myApkProvider;
+  private final ApplicationIdProvider myApplicationIdProvider;
   private final LaunchOptions myLaunchOptions;
 
   public HotSwapTasksProvider(@NotNull AndroidRunConfigurationBase runConfig,
                               @NotNull ExecutionEnvironment env,
                               @NotNull AndroidFacet facet,
-                              @NotNull ApkProvider apkProvider,
+                              @NotNull ApplicationIdProvider applicationIdProvider,
                               @NotNull LaunchOptions launchOptions) {
     myRunConfig = runConfig;
     myEnv = env;
     myFacet = facet;
-    myApkProvider = apkProvider;
+    myApplicationIdProvider = applicationIdProvider;
     myLaunchOptions = launchOptions;
   }
 
@@ -53,7 +53,12 @@ public class HotSwapTasksProvider implements LaunchTasksProvider {
     final HotSwapTask hotSwapTask = new HotSwapTask(myEnv, myFacet);
     tasks.add(hotSwapTask);
 
-    LaunchTask appLaunchTask = myRunConfig.getApplicationLaunchTask(myApkProvider, myFacet, myLaunchOptions.isDebug(), launchStatus);
+    LaunchTask appLaunchTask = myRunConfig.getApplicationLaunchTask(
+      myApplicationIdProvider,
+      myFacet,
+      myLaunchOptions.isDebug(),
+      launchStatus);
+
     if (appLaunchTask != null) {
       tasks.add(new PredicateLaunchTask(appLaunchTask, new PredicateLaunchTask.Predicate() {
         @Override

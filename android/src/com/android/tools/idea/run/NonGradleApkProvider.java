@@ -40,18 +40,23 @@ import java.util.*;
 public class NonGradleApkProvider implements ApkProvider {
   @NotNull
   private final AndroidFacet myFacet;
+  @NotNull
+  private final ApplicationIdProvider myApplicationIdProvider;
   @Nullable
   private final String myArtifactName;
 
-  public NonGradleApkProvider(@NotNull AndroidFacet facet, @Nullable String artifactName) {
+  public NonGradleApkProvider(@NotNull AndroidFacet facet,
+                              @NotNull ApplicationIdProvider applicationIdProvider,
+                              @Nullable String artifactName) {
     myFacet = facet;
+    myApplicationIdProvider = applicationIdProvider;
     myArtifactName = artifactName;
   }
 
   @Override
   @NotNull
   public Collection<ApkInfo> getApks(@NotNull IDevice device) throws ApkProvisionException {
-    String packageName = getPackageName();
+    String packageName = myApplicationIdProvider.getPackageName();
     // Gather up all the dependency APKs to install, and check that none conflict.
     HashMap<AndroidFacet, String> depFacet2PackageName = new HashMap<AndroidFacet, String>();
     fillRuntimeAndTestDependencies(myFacet.getModule(), depFacet2PackageName);
@@ -98,17 +103,6 @@ public class NonGradleApkProvider implements ApkProvider {
     }
 
     apkList.add(new ApkInfo(new File(localPath), packageName));
-  }
-
-  @Override
-  @NotNull
-  public String getPackageName() throws ApkProvisionException {
-    return ApkProviderUtil.computePackageName(myFacet);
-  }
-
-  @Override
-  public String getTestPackageName() throws ApkProvisionException {
-    return ApkProviderUtil.computePackageName(myFacet);
   }
 
   private static void fillRuntimeAndTestDependencies(@NotNull Module module, @NotNull Map<AndroidFacet, String> module2PackageName)

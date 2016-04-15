@@ -43,7 +43,7 @@ public class AndroidRunState implements RunProfileState {
   @NotNull private final ExecutionEnvironment myEnv;
   @NotNull private final String myLaunchConfigName;
   @NotNull private final Module myModule;
-  @NotNull private final ApkProvider myApkProvider;
+  @NotNull private final ApplicationIdProvider myApplicationIdProvider;
   @NotNull private final ConsoleProvider myConsoleProvider;
   @NotNull private final Collection<ListenableFuture<IDevice>> myDeviceFutures;
   @NotNull private final LaunchTasksProviderFactory myLaunchTasksProviderFactory;
@@ -52,7 +52,7 @@ public class AndroidRunState implements RunProfileState {
   public AndroidRunState(@NotNull ExecutionEnvironment env,
                          @NotNull String launchConfigName,
                          @NotNull Module module,
-                         @NotNull ApkProvider apkProvider,
+                         @NotNull ApplicationIdProvider applicationIdProvider,
                          @NotNull ConsoleProvider consoleProvider,
                          @NotNull Collection<ListenableFuture<IDevice>> deviceFutures,
                          @NotNull LaunchTasksProviderFactory launchTasksProviderFactory,
@@ -60,7 +60,7 @@ public class AndroidRunState implements RunProfileState {
     myEnv = env;
     myLaunchConfigName = launchConfigName;
     myModule = module;
-    myApkProvider = apkProvider;
+    myApplicationIdProvider = applicationIdProvider;
     myConsoleProvider = consoleProvider;
     myDeviceFutures = deviceFutures;
     myLaunchTasksProviderFactory = launchTasksProviderFactory;
@@ -75,7 +75,7 @@ public class AndroidRunState implements RunProfileState {
 
     String applicationId;
     try {
-      applicationId = myApkProvider.getPackageName();
+      applicationId = myApplicationIdProvider.getPackageName();
     }
     catch (ApkProvisionException e) {
       throw new ExecutionException("Unable to obtain application id", e);
