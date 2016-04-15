@@ -65,6 +65,8 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
   private RenderResult myRenderResult;
   private XmlFile myFile;
   private boolean isActive = true;
+  private NlActionsToolbar myActionsToolbar;
+
   /**
    * When {@link #deactivate()} is called, the file will be saved here and the preview will not be rendered anymore.
    * On {@link #activate()} the file will be restored to {@link #myFile} and the preview will be rendered again.
@@ -108,8 +110,9 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
     // The {@link LightFillLayout} provides the UI for the minimized forms of the {@link LightToolWindow}
     // used for the palette and the structure/properties panes.
     JPanel contentPanel = new JPanel(new LightFillLayout());
-    JComponent toolbar = NlEditorPanel.createToolbar(mySurface);
-    contentPanel.add(toolbar);
+
+    myActionsToolbar = new NlActionsToolbar(mySurface);
+    contentPanel.add(myActionsToolbar.getToolbarComponent());
     contentPanel.add(mySurface);
 
     myContentSplitter.setDividerWidth(0);
@@ -171,13 +174,13 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
         int offset = myCaretModel.getOffset();
         if (offset != -1) {
           List<NlComponent> views = screenView.getModel().findByOffset(offset);
-          if (views != null && views.size() == 1 && views.get(0).isRoot()) {
-            views = null;
+          if (views == null || views.isEmpty()) {
+            views = screenView.getModel().getComponents();
           }
           try {
             myIgnoreListener = true;
             SelectionModel selectionModel = screenView.getSelectionModel();
-            selectionModel.setSelection(views != null ? views : Collections.emptyList());
+            selectionModel.setSelection(views);
             myRenderingQueue.queue(new Update("Preview update") {
               @Override
               public void run() {
@@ -308,6 +311,7 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
       setEditor(myManager.getActiveLayoutXmlEditor());
       model.activate();
       myManager.setDesignSurface(mySurface);
+      myActionsToolbar.setModel(model);
 
       NlPaletteManager.get(myManager.getProject()).bind(this);
     }
