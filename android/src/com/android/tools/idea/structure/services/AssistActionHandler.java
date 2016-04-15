@@ -17,6 +17,7 @@ package com.android.tools.idea.structure.services;
 
 import com.intellij.openapi.extensions.ExtensionPointName;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Extension point to provide custom action handling.
@@ -38,6 +39,6 @@ public interface AssistActionHandler {
    *                       complete the desired action.
    * @param service        A module scoped service instance. May be used for things like installing dependencies.
    */
-  void handleAction(@NotNull String actionArgument, @NotNull DeveloperService service);
+  void handleAction(@Nullable("Arguments are optional") String actionArgument, @NotNull DeveloperService service);
 
 }
