@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.dependencies;
 
+import com.android.tools.idea.gradle.structure.dependencies.android.AndroidDependencyScopesForm;
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
@@ -49,7 +50,7 @@ import static org.jetbrains.android.util.AndroidUiUtil.setUpAsHtmlLabel;
 class AddLibraryDependencyPanel extends JPanel implements Disposable {
   @NotNull private final PsModule myModule;
   @NotNull private final LibraryDependencyForm myLibraryDependencyForm;
-  @NotNull private final DependencyConfigurationsForm myScopesForm;
+  @NotNull private final DependencyScopesForm myScopesForm;
 
   AddLibraryDependencyPanel(@NotNull PsModule module) {
     super(new BorderLayout());
@@ -65,7 +66,7 @@ class AddLibraryDependencyPanel extends JPanel implements Disposable {
     splitter.setFirstComponent(libraryDependencyPanel);
 
     if (myModule instanceof PsAndroidModule) {
-      myScopesForm = new AndroidDependencyConfigurationsForm((PsAndroidModule)myModule);
+      myScopesForm = new AndroidDependencyScopesForm((PsAndroidModule)myModule);
       JPanel scopesPanel = myScopesForm.getPanel();
       scopesPanel.setBorder(createMainPanelBorder());
       splitter.setSecondComponent(scopesPanel);
@@ -122,11 +123,7 @@ class AddLibraryDependencyPanel extends JPanel implements Disposable {
       }
     }
 
-    List<String> selectedConfigurations = myScopesForm.getSelectedConfigurations();
-    if (selectedConfigurations.isEmpty()) {
-      return new ValidationInfo("Please specify the configuration(s) for the library dependency");
-    }
-    return null;
+    return myScopesForm.validateInput();
   }
 
   @NotNull
@@ -144,6 +141,7 @@ class AddLibraryDependencyPanel extends JPanel implements Disposable {
 
   @Override
   public void dispose() {
+    Disposer.dispose(myScopesForm);
     Disposer.dispose(myLibraryDependencyForm);
   }
 
@@ -158,12 +156,10 @@ class AddLibraryDependencyPanel extends JPanel implements Disposable {
 
       JEditorPane instructionsPane = new JEditorPane();
       setUpAsHtmlLabel(instructionsPane, getTreeFont());
-      instructionsPane.setText("<html><body>To add a library dependency:<ol>" +
-                               "<li>Use the form below to find the library to add. This form uses the repositories specified in " +
-                               "the project's build files (e.g. Maven Central, JCenter, etc.)</li>" +
-                               "<li>Assign a configuration to the new dependency by selecting the scopes, build types and product " +
-                               "flavors where the dependency will be used.</li></ol></body></html>");
-      instructionsPane.setBorder(createEmptyBorder(5, 5, 2, 5));
+      instructionsPane.setText("<html><body><b>Step 1.</b><br/>" +
+                               "Use the form below to find the library to add. This form uses the repositories specified in " +
+                               "the project's build files (e.g. Maven Central, JCenter, etc.)</body></html>");
+      instructionsPane.setBorder(createEmptyBorder(8, 5, 0, 5));
       add(instructionsPane, BorderLayout.CENTER);
 
       setBorder(createEmptyBorder(5, 5, 5, 5));

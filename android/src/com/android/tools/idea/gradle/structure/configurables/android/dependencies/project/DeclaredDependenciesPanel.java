@@ -23,6 +23,8 @@ import com.android.tools.idea.gradle.structure.configurables.android.dependencie
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.*;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractPsNodeTreeBuilder.MatchingNodeCollector;
 import com.android.tools.idea.gradle.structure.configurables.issues.IssuesViewer;
+import com.android.tools.idea.gradle.structure.configurables.ui.SelectionChangeEventDispatcher;
+import com.android.tools.idea.gradle.structure.configurables.ui.SelectionChangeListener;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractBaseCollapseAllAction;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractBaseExpandAllAction;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsModelNode;
@@ -38,7 +40,6 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.PopupHandler;
 import com.intellij.ui.navigation.Place;
 import com.intellij.ui.treeStructure.Tree;
-import com.intellij.util.EventDispatcher;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -48,8 +49,10 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import java.awt.*;
 import java.awt.event.MouseEvent;
-import java.util.*;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static com.android.tools.idea.gradle.structure.configurables.android.dependencies.UiUtil.setUp;
 import static com.intellij.icons.AllIcons.Actions.Collapseall;
@@ -66,7 +69,8 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel {
   @NotNull private final NodeHyperlinkSupport<ModuleDependencyNode> myHyperlinkSupport;
   @NotNull private final IssuesViewer myIssuesViewer;
 
-  @NotNull private final EventDispatcher<SelectionListener> myEventDispatcher = EventDispatcher.create(SelectionListener.class);
+  @NotNull private final SelectionChangeEventDispatcher<List<AbstractDependencyNode<? extends PsAndroidDependency>>> myEventDispatcher =
+    new SelectionChangeEventDispatcher<>();
 
   private boolean myIgnoreTreeSelectionEvents;
 
@@ -193,7 +197,7 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel {
   }
 
   private void notifySelectionChanged(@NotNull List<AbstractDependencyNode<? extends PsAndroidDependency>> selected) {
-    myEventDispatcher.getMulticaster().dependencySelected(selected);
+    myEventDispatcher.selectionChanged(selected);
   }
 
   private void popupInvoked(int x, int y) {
@@ -216,7 +220,7 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel {
     addDetails(new ModuleDependencyDetails(getContext(), false));
   }
 
-  void add(@NotNull SelectionListener listener) {
+  void add(@NotNull SelectionChangeListener<List<AbstractDependencyNode<? extends PsAndroidDependency>>> listener) {
     myEventDispatcher.addListener(listener, this);
   }
 
@@ -283,10 +287,6 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel {
   @Override
   public void queryPlace(@NotNull Place place) {
     // TODO implement
-  }
-
-  public interface SelectionListener extends EventListener {
-    void dependencySelected(@NotNull List<AbstractDependencyNode<? extends PsAndroidDependency>> selectedNodes);
   }
 
   private static class NodeSelectionDetector {
