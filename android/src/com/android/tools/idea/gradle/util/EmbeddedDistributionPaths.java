@@ -15,11 +15,15 @@
  */
 package com.android.tools.idea.gradle.util;
 
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.util.LinkedList;
+import java.util.List;
 
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
@@ -28,41 +32,42 @@ import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 public class EmbeddedDistributionPaths {
   private static final Logger LOG = Logger.getInstance(EmbeddedDistributionPaths.class);
 
-  @Nullable
-  public static File findAdditionalGradlePluginsLocation() {
+  @NotNull
+  public static List<File> findAndroidStudioLocalMavenRepoPaths() {
     File defaultRootDirPath = getDefaultRootDirPath();
-    if (defaultRootDirPath != null) {
-      return new File(defaultRootDirPath, "plugins");
-    } else {
-      // In development builds these files are built as artifacts.
-      String relativePath = toSystemDependentName("/out/artifacts/gradle_plugins");
-      return new File(PathManager.getHomePath() + relativePath);
-    }
-  }
-
-  @Nullable
-  public static File findAndroidStudioLocalMavenRepoPath() {
-    File defaultRootDirPath = getDefaultRootDirPath();
-    File repoPath;
     if (defaultRootDirPath != null) {
       // Release build
-      repoPath = new File(defaultRootDirPath, "m2repository");
+      File repoPath = new File(defaultRootDirPath, "m2repository");
+      return repoPath.isDirectory() ? ImmutableList.of(repoPath) : ImmutableList.of();
     }
-    else {
-      // Development build
-      String studioCustomRepo = System.getenv("STUDIO_CUSTOM_REPO");
-      if (studioCustomRepo != null) {
-        repoPath = new File(toCanonicalPath(toSystemDependentName(studioCustomRepo)));
-        if (!repoPath.isDirectory()) {
-          throw new IllegalArgumentException("Invalid path in STUDIO_CUSTOM_REPO environment variable");
-        }
-      } else {
-        String relativePath = toSystemDependentName("/../../prebuilts/tools/common/offline-m2");
-        repoPath = new File(toCanonicalPath(toSystemDependentName(PathManager.getHomePath()) + relativePath));
+    // Development build
+    List<File> repoPaths = new LinkedList<>();
+    File repoPath;
+
+    // Add prebuilt offline repo
+    String studioCustomRepo = System.getenv("STUDIO_CUSTOM_REPO");
+    if (studioCustomRepo != null) {
+      repoPath = new File(toCanonicalPath(toSystemDependentName(studioCustomRepo)));
+      if (!repoPath.isDirectory()) {
+        throw new IllegalArgumentException("Invalid path in STUDIO_CUSTOM_REPO environment variable");
       }
+    } else {
+      String relativePath = toSystemDependentName("/../../prebuilts/tools/common/offline-m2");
+      repoPath = new File(toCanonicalPath(toSystemDependentName(PathManager.getHomePath()) + relativePath));
     }
     LOG.info("Looking for embedded Maven repo at '" + repoPath.getPath() + "'");
-    return repoPath.isDirectory() ? repoPath : null;
+    if (repoPath.isDirectory()) {
+      repoPaths.add(repoPath);
+    }
+
+    // Add locally published studio repo
+    String relativePath = toSystemDependentName("/../../out/studio");
+    repoPath = new File(PathManager.getHomePath() + relativePath);
+    if (repoPath.isDirectory()) {
+      repoPaths.add(repoPath);
+    }
+
+    return repoPaths;
   }
 
   @Nullable
