@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.editor;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.res.ResourceNotificationManager;
@@ -52,6 +50,8 @@ import org.jetbrains.android.uipreview.AndroidEditorSettings;
 import org.jetbrains.android.uipreview.AndroidLayoutPreviewToolWindowManager;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.event.HierarchyEvent;
@@ -123,6 +123,15 @@ public class NlPreviewManager implements ProjectComponent {
         if (window != null && window.isAvailable()) {
           final boolean visible = window.isVisible();
           AndroidEditorSettings.getInstance().getGlobalState().setVisible(visible);
+
+          if (myToolWindowForm != null) {
+            if (visible) {
+              myToolWindowForm.activate();
+            }
+            else {
+              myToolWindowForm.deactivate();
+            }
+          }
         }
       }
     });
@@ -283,17 +292,10 @@ public class NlPreviewManager implements ProjectComponent {
         }
 
         final PsiFile psiFile = PsiDocumentManager.getInstance(myProject).getPsiFile(activeEditor.getDocument());
+        myToolWindowForm.setFile(psiFile);
         if (psiFile == null) {
-          myToolWindowForm.setFile(null);
           myToolWindow.setAvailable(!hideForNonLayoutFiles, null);
           return;
-        }
-
-        final boolean toRender = myToolWindowForm.getFile() != psiFile;
-        if (toRender) {
-          if (!myToolWindowForm.setFile(psiFile)) {
-            return;
-          }
         }
 
         myToolWindow.setAvailable(true, null);
@@ -346,6 +348,7 @@ public class NlPreviewManager implements ProjectComponent {
     return isInResourceFolder(psiFile);
   }
 
+  @NotNull
   public NlPreviewForm getPreviewForm() {
     if (myToolWindow == null) {
       initToolWindow();
