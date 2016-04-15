@@ -22,6 +22,7 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.psi.*;
 import com.intellij.util.containers.ContainerUtil;
 import org.apache.commons.io.FileUtils;
@@ -130,6 +131,7 @@ public class GeneratedCodeMatchTest extends AndroidGradleTestCase {
     String javaHome = System.getenv().get("JAVA7_HOME");
     assertTrue("this test requires java 7+", StringUtil.isNotEmpty(javaHome));
     assertBuildsCleanly(getProject(), true, "-Dorg.gradle.java.home=" + javaHome);
+    LocalFileSystem.getInstance().refreshFiles(Collections.singletonList(myFixture.getProject().getBaseDir()), false, true, null);
   }
 
   @NotNull
