@@ -127,11 +127,12 @@ abstract class ConfigurationAction extends AnAction implements ConfigurationList
       if (!editors.isEmpty()) {
         for (FileEditor editor : editors) {
           if (editor instanceof TextEditor && editor.getComponent().isShowing()) {
-            AndroidLayoutPreviewToolWindowManager previewManager = AndroidLayoutPreviewToolWindowManager.getInstance(project);
-            previewManager.notifyFileShown((TextEditor)editor, true);
             if (RenderService.NELE_ENABLED) {
               // TODO
               // Notify nele preview manager instead
+            } else {
+              AndroidLayoutPreviewToolWindowManager previewManager = AndroidLayoutPreviewToolWindowManager.getInstance(project);
+              previewManager.notifyFileShown((TextEditor)editor, true);
             }
             break;
           }
