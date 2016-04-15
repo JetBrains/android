@@ -16,6 +16,7 @@
 package com.android.tools.idea.model;
 
 import com.android.SdkConstants;
+import com.android.builder.model.AndroidLibrary;
 import com.android.builder.model.BuildType;
 import com.android.builder.model.BuildTypeContainer;
 import com.android.manifmerger.Actions;
@@ -281,12 +282,9 @@ public final class ManifestInfo {
 
       List<VirtualFile> libraryManifests = new ArrayList<VirtualFile>();
       if (!myFacet.isLibraryProject()) {
-        for (AndroidFacet dependency : AndroidUtils.getAllAndroidDependencies(myFacet.getModule(), true)) {
-          // a bit overkill here, as there will only ever be 1 per lib module
-          for (VirtualFile libraryManifest : IdeaSourceProvider.getManifestFiles(dependency)) {
-            libraryManifests.add(libraryManifest);
-            lastModifiedMap.put(libraryManifest, getFileModificationStamp(libraryManifest));
-          }
+        for (VirtualFile libraryManifest : getLibManifests(myFacet)) {
+          libraryManifests.add(libraryManifest);
+          lastModifiedMap.put(libraryManifest, getFileModificationStamp(libraryManifest));
         }
       }
 
@@ -299,6 +297,46 @@ public final class ManifestInfo {
         return true;
       } else {
         return false;
+      }
+    }
+
+    @NotNull
+    private static List<VirtualFile> getLibManifests(@NotNull AndroidFacet facet) {
+      List<VirtualFile> libraryManifests = new ArrayList<>();
+      AndroidGradleModel androidGradleModel = AndroidGradleModel.get(facet);
+      if (androidGradleModel != null) {
+        Collection<AndroidLibrary> libraries = androidGradleModel.getSelectedMainCompileDependencies().getLibraries();
+        Set<File> set = new HashSet<>();
+        for (AndroidLibrary dependency : libraries) {
+          getManifests(dependency, set);
+        }
+        for (File file : set) {
+          VirtualFile libraryManifest = VfsUtil.findFileByIoFile(file, false);
+          if (libraryManifest != null) { // some sort of user error, they don't have a manifest for a lib
+            libraryManifests.add(libraryManifest);
+          }
+          else {
+            assert !file.exists();
+            Logger.getInstance(ManifestInfo.class).warn("Manifest not found: " + file);
+          }
+        }
+      }
+      else {
+        List<AndroidFacet> dependencies = AndroidUtils.getAllAndroidDependencies(facet.getModule(), true);
+        for (AndroidFacet dependency : dependencies) {
+          // a bit overkill here, as there will only ever be 1 per lib module
+          libraryManifests.addAll(IdeaSourceProvider.getManifestFiles(dependency));
+        }
+      }
+      return libraryManifests;
+    }
+
+    public static void getManifests(@NotNull AndroidLibrary lib, @NotNull Set<File> result) {
+      if (!result.contains(lib.getManifest())) {
+        result.add(lib.getManifest());
+        for (AndroidLibrary dependency : lib.getLibraryDependencies()) {
+          getManifests(dependency, result);
+        }
       }
     }
 
