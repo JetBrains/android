@@ -134,15 +134,6 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
             return null;
           }
 
-          if (!InstantRunSettings.isColdSwapEnabled() && !buildInfo.getVerifierStatus().isEmpty()) {
-            InstantRunManager.LOG.info("Coldswap disabled by user setting, restarting build.");
-            // We should update the id on the device even if there were no artifact changes, since otherwise the next build will mismatch
-            InstantRunManager.transferLocalIdToDeviceId(device, myFacet.getModule());
-            DeployApkTask.cacheManifestInstallationData(device, myFacet, pkgName);
-            restartBuild(device);
-            return null;
-          }
-
           List<InstantRunArtifact> artifacts = buildInfo.getArtifacts();
           if (artifacts.isEmpty()) {
             // We should update the id on the device even if there were no artifact changes, since otherwise the next build will mismatch
