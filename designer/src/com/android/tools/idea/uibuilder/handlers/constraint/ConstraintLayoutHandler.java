@@ -40,6 +40,7 @@ import java.awt.*;
  */
 public class ConstraintLayoutHandler extends ViewGroupHandler {
 
+  private static final boolean UPDATE_CURSOR = false;
   private final Cursor myUnlinkAnchorCursor;
   private final Cursor myLeftAnchorCursor;
   private final Cursor myTopAnchorCursor;
@@ -99,86 +100,91 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
   public boolean updateCursor(@NotNull DesignSurface designSurface,
                               @AndroidCoordinate int x, @AndroidCoordinate int y) {
     ConstraintModel model = ConstraintModel.getModel();
-    int ax = model.pxToDp(x);
-    int ay = model.pxToDp(y);
+    if (UPDATE_CURSOR) {
+      int ax = model.pxToDp(x);
+      int ay = model.pxToDp(y);
 
-    Cursor newCursor = null;
+      Cursor newCursor = null;
 
-    ViewTransform transform = model.getViewTransform();
-
-    // First check for anchors
-    ConstraintAnchor constraintAnchor = model.getScene().findAnchor(ax, ay, false, false, transform);
-    if (constraintAnchor != null) {
-      if (constraintAnchor.isConnected()) {
-        newCursor = myUnlinkAnchorCursor;
-      }
-      else {
-        switch (constraintAnchor.getType()) {
-          case LEFT: {
-            newCursor = myLeftAnchorCursor;
+      ViewTransform transform = model.getViewTransform();
+      // First check for anchors
+      ConstraintAnchor constraintAnchor = model.getScene().findAnchor(ax, ay, false, false, transform);
+      if (constraintAnchor != null) {
+        if (constraintAnchor.isConnected()) {
+          newCursor = myUnlinkAnchorCursor;
+        }
+        else {
+          switch (constraintAnchor.getType()) {
+            case LEFT: {
+              newCursor = myLeftAnchorCursor;
+            }
+            break;
+            case TOP: {
+              newCursor = myTopAnchorCursor;
+            }
+            break;
+            case RIGHT: {
+              newCursor = myRightAnchorCursor;
+            }
+            break;
+            case BOTTOM: {
+              newCursor = myBottomAnchorCursor;
+            }
+            break;
           }
-          break;
-          case TOP: {
-            newCursor = myTopAnchorCursor;
-          }
-          break;
-          case RIGHT: {
-            newCursor = myRightAnchorCursor;
-          }
-          break;
-          case BOTTOM: {
-            newCursor = myBottomAnchorCursor;
-          }
-          break;
         }
       }
-    }
 
-    // Then for resize handles
-    if (newCursor == null) {
-      ResizeHandle resizeHandle = model.getScene().findResizeHandle(ax, ay, transform);
-      if (resizeHandle != null) {
-        switch (resizeHandle.getType()) {
-          case LEFT_TOP: {
-            newCursor = Cursor.getPredefinedCursor(Cursor.NW_RESIZE_CURSOR);
+      // Then for resize handles
+      if (newCursor == null) {
+        ResizeHandle resizeHandle = model.getScene().findResizeHandle(ax, ay, transform);
+        if (resizeHandle != null) {
+          switch (resizeHandle.getType()) {
+            case LEFT_TOP: {
+              newCursor = Cursor.getPredefinedCursor(Cursor.NW_RESIZE_CURSOR);
+            }
+            break;
+            case LEFT_SIDE: {
+              newCursor = Cursor.getPredefinedCursor(Cursor.W_RESIZE_CURSOR);
+            }
+            break;
+            case LEFT_BOTTOM: {
+              newCursor = Cursor.getPredefinedCursor(Cursor.SW_RESIZE_CURSOR);
+            }
+            break;
+            case RIGHT_TOP: {
+              newCursor = Cursor.getPredefinedCursor(Cursor.NE_RESIZE_CURSOR);
+            }
+            break;
+            case RIGHT_SIDE: {
+              newCursor = Cursor.getPredefinedCursor(Cursor.E_RESIZE_CURSOR);
+            }
+            break;
+            case RIGHT_BOTTOM: {
+              newCursor = Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR);
+            }
+            break;
+            case TOP_SIDE: {
+              newCursor = Cursor.getPredefinedCursor(Cursor.N_RESIZE_CURSOR);
+            }
+            break;
+            case BOTTOM_SIDE: {
+              newCursor = Cursor.getPredefinedCursor(Cursor.S_RESIZE_CURSOR);
+            }
+            break;
           }
-          break;
-          case LEFT_SIDE: {
-            newCursor = Cursor.getPredefinedCursor(Cursor.W_RESIZE_CURSOR);
-          }
-          break;
-          case LEFT_BOTTOM: {
-            newCursor = Cursor.getPredefinedCursor(Cursor.SW_RESIZE_CURSOR);
-          }
-          break;
-          case RIGHT_TOP: {
-            newCursor = Cursor.getPredefinedCursor(Cursor.NE_RESIZE_CURSOR);
-          }
-          break;
-          case RIGHT_SIDE: {
-            newCursor = Cursor.getPredefinedCursor(Cursor.E_RESIZE_CURSOR);
-          }
-          break;
-          case RIGHT_BOTTOM: {
-            newCursor = Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR);
-          }
-          break;
-          case TOP_SIDE: {
-            newCursor = Cursor.getPredefinedCursor(Cursor.N_RESIZE_CURSOR);
-          }
-          break;
-          case BOTTOM_SIDE: {
-            newCursor = Cursor.getPredefinedCursor(Cursor.S_RESIZE_CURSOR);
-          }
-          break;
         }
       }
+
+      // Set the mouse cursor
+      // TODO: we should only update if we are above a component we manage, not simply all component that
+      // is a child of this viewgroup
+      designSurface.setCursor(newCursor);
+      return true;
+    } else if (model.mouseMoved(x, y)) {
+      designSurface.repaint();
     }
 
-    // Set the mouse cursor
-    // TODO: we should only update if we are above a component we manage, not simply all component that
-    // is a child of this viewgroup
-    designSurface.setCursor(newCursor);
     return true;
   }
 

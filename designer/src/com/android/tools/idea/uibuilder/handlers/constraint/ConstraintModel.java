@@ -402,6 +402,23 @@ public class ConstraintModel {
   }
 
   /**
+   * Handles mouse move interactions
+   *
+   * @param x x mouse coordinate
+   * @param y y mouse coordinate
+   * @return true if we need to repaint
+   */
+  public boolean mouseMoved(@AndroidCoordinate int x, @AndroidCoordinate int y) {
+    if (myMouseInteraction != null) {
+      myMouseInteraction.mouseMoved(pxToDp(x), pxToDp(y));
+    }
+    if (mySceneDraw.getCurrentUnderneathAnchor() != null) {
+      return true;
+    }
+    return false;
+  }
+
+  /**
    * Update the key modifiers mask
    *
    * @param modifiers new mask
