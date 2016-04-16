@@ -19,7 +19,6 @@ package com.android.tools.sherpa.interaction;
 import com.android.tools.sherpa.animation.AnimatedDestroyCircle;
 import com.android.tools.sherpa.animation.AnimatedDestroyLine;
 import com.android.tools.sherpa.drawing.SceneDraw;
-import com.android.tools.sherpa.drawing.SnapDraw;
 import com.android.tools.sherpa.drawing.ViewTransform;
 import com.android.tools.sherpa.drawing.decorator.WidgetDecorator;
 import com.android.tools.sherpa.structure.Selection;
@@ -31,11 +30,15 @@ import com.google.tnt.solver.widgets.Guideline;
 import com.google.tnt.solver.widgets.Snapshot;
 
 import javax.swing.SwingUtilities;
+import javax.swing.Timer;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
+import java.util.Collection;
 
 /**
  * Encapsulate the mouse interactions
@@ -251,6 +254,175 @@ public class MouseInteraction {
     // Mouse handling
     /*-----------------------------------------------------------------------*/
 
+    private HitListener mHoverListener = new HitListener(HitListener.HOVER_MODE);
+    private HitListener mClickListener = new HitListener(HitListener.CLICK_MODE);
+    private HitListener mDragListener = new HitListener(HitListener.DRAG_MODE);
+
+    private Timer mBaselineTimer = new Timer(1000, new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            mClickListener.mEnableBaseline = true;
+            mHoverListener.mEnableBaseline = true;
+            updateFromHoverListener(mHoverListener.mLastX, mHoverListener.mLastY);
+            mBaselineTimer.stop();
+        }
+    });
+
+    /**
+     * Internal helper class handling mouse hits on the various elements
+     */
+    class HitListener implements DrawPicker.HitElementListener {
+        private DrawPicker mPicker = new DrawPicker();
+
+        private ConstraintWidget mHitWidget = null;
+        private double mHitWidgetDistance = 0;
+        private ConstraintHandle mHitConstraintHandle = null;
+        private double mHitConstraintHandleDistance = 0;
+        private ResizeHandle mHitResizeHandle = null;
+        private double mHitResizeHandleDistance = 0;
+        public boolean mEnableBaseline = true;
+
+        static final int CLICK_MODE = 0;
+        static final int HOVER_MODE = 1;
+        static final int DRAG_MODE = 2;
+
+        private final int mMode;
+
+        private int mLastX;
+        private int mLastY;
+
+        public HitListener(int mode) {
+            mMode = mode;
+            mPicker.setSelectListener(this);
+        }
+
+        public void reset() {
+            mPicker.reset();
+            clearSelection();
+        }
+
+        public void clearSelection() {
+            mHitWidget = null;
+            mHitWidgetDistance = Double.MAX_VALUE;
+            mHitConstraintHandle = null;
+            mHitConstraintHandleDistance = Double.MAX_VALUE;
+            mHitResizeHandle = null;
+            mHitResizeHandleDistance = Double.MAX_VALUE;
+        }
+
+        public void populate() {
+            reset();
+            Collection<ConstraintWidget> widgets = mWidgetsScene.getWidgets();
+            for (ConstraintWidget widget : widgets) {
+                if (widget == mWidgetsScene.getRoot() && mMode != DRAG_MODE) {
+                    continue;
+                }
+                addWidgetToPicker(widget, mPicker);
+            }
+        }
+
+        public ConstraintAnchor getConstraintAnchor() {
+            if (mHitConstraintHandle == null) {
+                return null;
+            }
+            return mHitConstraintHandle.getAnchor();
+        }
+
+        @Override
+        public void over(Object over, double dist) {
+            if (over instanceof ConstraintWidget) {
+                ConstraintWidget widget = (ConstraintWidget) over;
+                if ((mHitWidget == null) || (mHitWidgetDistance > dist)) {
+                    mHitWidget = widget;
+                    mHitWidgetDistance = dist;
+                }
+            } else if (over instanceof ConstraintHandle) {
+                ConstraintHandle handle = (ConstraintHandle) over;
+                if ((mHitConstraintHandle == null) || (mHitConstraintHandleDistance > dist)) {
+                    if (handle.getAnchor().getType() == ConstraintAnchor.Type.BASELINE) {
+                        if (mEnableBaseline) {
+                            mHitConstraintHandle = handle;
+                            mHitConstraintHandleDistance = dist;
+                        }
+                    } else {
+                        mHitConstraintHandle = handle;
+                        mHitConstraintHandleDistance = dist;
+                    }
+                }
+            } else if (over instanceof ResizeHandle) {
+                ResizeHandle handle = (ResizeHandle) over;
+                if ((mHitConstraintHandle == null) || (mHitResizeHandleDistance > dist)) {
+                    mHitResizeHandle = handle;
+                    mHitResizeHandleDistance = dist;
+                }
+            }
+        }
+
+        private void addWidgetToPicker(ConstraintWidget widget, DrawPicker picker) {
+            int l = mViewTransform.getSwingX(widget.getDrawX());
+            int t = mViewTransform.getSwingY(widget.getDrawY());
+            int r = l + mViewTransform.getSwingDimension(widget.getDrawWidth());
+            int b = t + mViewTransform.getSwingDimension(widget.getDrawHeight());
+            int widgetSelectionMargin = 8;
+            int handleSelectionMargin = 16;
+            picker.addRect(widget, widgetSelectionMargin, l, t, r, b);
+            WidgetCompanion companion = (WidgetCompanion) widget.getCompanionWidget();
+            WidgetInteractionTargets targets = companion.getWidgetInteractionTargets();
+            if (mMode == HOVER_MODE && !mSelection.contains(widget)) {
+                return;
+            }
+            for (ConstraintHandle handle : targets.getConstraintHandles()) {
+                int x = mViewTransform.getSwingX(handle.getDrawX());
+                int y = mViewTransform.getSwingX(handle.getDrawY());
+                ConstraintAnchor.Type type = handle.getAnchor().getType();
+                if (type == ConstraintAnchor.Type.CENTER
+                        || type == ConstraintAnchor.Type.CENTER_X
+                        || type == ConstraintAnchor.Type.CENTER_Y) {
+                    continue;
+                }
+                if (type == ConstraintAnchor.Type.BASELINE) {
+                    if (widget.getBaselineDistance()>0) {
+                        picker.addLine(handle, handleSelectionMargin, l, y, r, y);
+                    }
+                } else {
+                    if (mMode == DRAG_MODE) {
+                        switch (type) {
+                            case LEFT: {
+                                picker.addLine(handle, handleSelectionMargin, l, t, l, b);
+                            } break;
+                            case RIGHT: {
+                                picker.addLine(handle, handleSelectionMargin, r, t, r, b);
+                            } break;
+                            case TOP: {
+                                picker.addLine(handle, handleSelectionMargin, l, t, r, t);
+                            } break;
+                            case BOTTOM: {
+                                picker.addLine(handle, handleSelectionMargin, l, b, r, b);
+                            } break;
+                            default: {
+                                picker.addPoint(handle, handleSelectionMargin, x, y);
+                            }
+                        }
+                    } else {
+                        picker.addPoint(handle, handleSelectionMargin, x, y);
+                    }
+                }
+            }
+            for (ResizeHandle handle : targets.getResizeHandles()) {
+                Rectangle bounds = handle.getBounds();
+                int x = mViewTransform.getSwingFX((float) bounds.getCenterX());
+                int y = mViewTransform.getSwingFY((float) bounds.getCenterY());
+                picker.addPoint(handle, handleSelectionMargin, x, y);
+            }
+        }
+
+        public void find(int x, int y) {
+            mPicker.find(x, y);
+            mLastX = x;
+            mLastY = y;
+        }
+    }
+
     /**
      * Mouse press handling
      *
@@ -270,12 +442,17 @@ public class MouseInteraction {
 
         mMouseMode = MouseMode.INACTIVE;
 
+        mWidgetsScene.updatePositions(mViewTransform);
+
+        // First, let's populate the draw picker
+        mClickListener.populate();
+        mClickListener.find(mViewTransform.getSwingFX(x), mViewTransform.getSwingFY(y));
+
         // check for widget, anchors, resize handle hits
 
-        mWidgetsScene.updatePositions(mViewTransform);
-        ConstraintWidget widget = mWidgetsScene.findWidget(mWidgetsScene.getRoot(), x, y);
-        ConstraintAnchor anchor = mWidgetsScene.findAnchor(x, y, false, true, mViewTransform);
-        ResizeHandle resizeHandle = mWidgetsScene.findResizeHandle(x, y, mViewTransform);
+        ConstraintWidget widget = mClickListener.mHitWidget;
+        ConstraintAnchor anchor = mClickListener.getConstraintAnchor();
+        ResizeHandle resizeHandle = mClickListener.mHitResizeHandle;
 
         // don't allow direct interactions with root
         if (widget == mWidgetsScene.getRoot()) {
@@ -416,8 +593,10 @@ public class MouseInteraction {
 
         // First check anchors that are not guidelines, to deal with the case
         // where we want to delete the connection
-        ConstraintAnchor anchor = mWidgetsScene.findAnchor(
-                getLastPoint().x, getLastPoint().y, false, false, mViewTransform);
+        mClickListener.clearSelection();
+        mClickListener.find(mViewTransform.getSwingFX(x), mViewTransform.getSwingFY(y));
+        ConstraintAnchor anchor = mClickListener.getConstraintAnchor();
+
         if (mSelection.getSelectedAnchor() != null
                 && mSelection.getConnectionCandidateAnchor() == null
                 && anchor == mSelection.getSelectedAnchor()) {
@@ -566,9 +745,12 @@ public class MouseInteraction {
                 if (mSelection.getSelectedAnchor() != null && mSelection.hasSingleElement()) {
                     // we have a selected anchor, let's check against other available anchors
                     ConstraintWidget selectedWidget = mSelection.getFirstElement().widget;
-                    ConstraintAnchor anchor = mWidgetsScene
-                            .findAnchor(getLastPoint().x, getLastPoint().y, true, false,
-                                    mViewTransform);
+
+                    mDragListener.populate();
+                    mDragListener.find(mViewTransform.getSwingFX(getLastPoint().x),
+                            mViewTransform.getSwingFX(getLastPoint().y));
+                    ConstraintAnchor anchor = mDragListener.getConstraintAnchor();
+
                     if (anchor != null
                             && anchor != mSelection.getSelectedAnchor()
                             && mSelection.getSelectedAnchor().isValidConnection(anchor)
@@ -642,10 +824,35 @@ public class MouseInteraction {
         if (mMoveOnlyMode) {
             return;
         }
-        // In Mouse Moved, find any anchors we are hovering above
-        ConstraintAnchor anchor =
-                mWidgetsScene.findAnchorInSelection(x, y, false, true, mViewTransform);
+        mBaselineTimer.stop();
+        updateFromHoverListener(mViewTransform.getSwingFX(x), mViewTransform.getSwingFY(y));
+    }
+
+    /**
+     * Check the hover listener for any anchor to lit
+     * @param x
+     * @param y
+     */
+    private void updateFromHoverListener(int x, int y) {
+        mHoverListener.populate();
+        mHoverListener.find(x, y);
+        ConstraintWidget widget = mHoverListener.mHitWidget;
+        ConstraintAnchor anchor = mHoverListener.getConstraintAnchor();
+        if (widget != null && mSelection.contains(widget)) {
+            mBaselineTimer.restart();
+        } else {
+            mClickListener.mEnableBaseline = false;
+            mHoverListener.mEnableBaseline = false;
+        }
+        if (mHoverListener.mEnableBaseline
+                && (anchor == null || (anchor != null && anchor.getType() !=
+                ConstraintAnchor.Type.BASELINE))) {
+            mClickListener.mEnableBaseline = false;
+            mHoverListener.mEnableBaseline = false;
+            mBaselineTimer.restart();
+        }
         mSceneDraw.setCurrentUnderneathAnchor(anchor);
+        mSceneDraw.repaint();
     }
 
     /*-----------------------------------------------------------------------*/
