@@ -154,6 +154,7 @@ public class ImageViewWidget extends WidgetDecorator {
         mWidget.setBaselineDistance(0);
     }
 
+    @Override
     public void onPaintBackground(ViewTransform transform, Graphics2D g) {
         if (mColorSet == null) {
             return;
@@ -163,7 +164,7 @@ public class ImageViewWidget extends WidgetDecorator {
         int t = transform.getSwingY(mWidget.getDrawY());
         int w = transform.getSwingDimension(mWidget.getDrawWidth());
         int h = transform.getSwingDimension(mWidget.getDrawHeight());
-        if (WidgetDecorator.isShowFakeUI()) {
+        if (mColorSet.drawBackground()) {
             fakeUIPaint(transform, g, mWidget.getDrawX(), mWidget.getDrawY());
         }
     }

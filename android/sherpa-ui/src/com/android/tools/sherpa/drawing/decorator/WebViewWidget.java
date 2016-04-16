@@ -87,13 +87,14 @@ public class WebViewWidget extends WidgetDecorator {
         mWidget.setBaselineDistance(0);
     }
 
+    @Override
     public void onPaintBackground(ViewTransform transform, Graphics2D g) {
         super.onPaintBackground(transform, g);
         int l = transform.getSwingX(mWidget.getDrawX());
         int t = transform.getSwingY(mWidget.getDrawY());
         int w = transform.getSwingDimension(mWidget.getDrawWidth());
         int h = transform.getSwingDimension(mWidget.getDrawHeight());
-         if (WidgetDecorator.isShowFakeUI()) {
+         if (mColorSet.drawBackground()) {
             fakeUIPaint(transform,g, mWidget.getDrawX(), mWidget.getDrawY());
         }
     }

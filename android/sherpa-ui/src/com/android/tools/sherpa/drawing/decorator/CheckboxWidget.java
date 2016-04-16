@@ -19,8 +19,7 @@ package com.android.tools.sherpa.drawing.decorator;
 import com.android.tools.sherpa.drawing.ViewTransform;
 import com.google.tnt.solver.widgets.ConstraintWidget;
 
-import java.awt.Color;
-import java.awt.Graphics2D;
+import java.awt.*;
 
 public class CheckboxWidget extends TextWidget {
 
@@ -50,29 +49,34 @@ public class CheckboxWidget extends TextWidget {
     @Override
     public void onPaintBackground(ViewTransform transform, Graphics2D g) {
         super.onPaintBackground(transform, g);
-        if (WidgetDecorator.isShowFakeUI()) {
+        if (mColorSet.drawBackground()) {
             int x = transform.getSwingX(mWidget.getDrawX());
-            int y = transform.getSwingX(mWidget.getDrawY());
+            int y = transform.getSwingY(mWidget.getDrawY());
             int h = transform.getSwingDimension(mWidget.getDrawHeight());
             drawGraphic(g, x, y, h, transform);
         }
     }
 
     public void drawGraphic(Graphics2D g, int x, int y, int h, ViewTransform transform) {
-        g.setColor(Color.WHITE);
-        int margin = 2;
+        Stroke stroke = g.getStroke();
+        int strokeWidth = transform.getSwingDimension(3);
+        g.setStroke(new BasicStroke(strokeWidth));
+        g.setColor(mTextColor.getColor());
+        int margin = transform.getSwingDimension(7);
         x += margin;
         y += margin;
         h -= margin * 2;
-        g.drawRect(x, y, h, h);
-        margin = (int) transform.getSwingDimension(5);
+        g.drawRoundRect(x, y, h, h, 4, 4);
+        margin = transform.getSwingDimension(6);
         x += margin;
         y += margin;
         h -= margin * 2;
         g.drawLine(x, y + h / 2, x + h / 3, y + h);
         g.drawLine(x + h / 3, y + h, x + h, y);
+        g.setStroke(stroke);
     }
 
+    @Override
     protected void drawText(ViewTransform transform, Graphics2D g, int x, int y) {
         int h = mWidget.getDrawHeight();
         super.drawText(transform, g, x + h, y);

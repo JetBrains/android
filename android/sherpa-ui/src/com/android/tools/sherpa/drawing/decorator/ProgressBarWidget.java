@@ -85,9 +85,9 @@ public class ProgressBarWidget extends WidgetDecorator {
     @Override
     public void onPaintBackground(ViewTransform transform, Graphics2D g) {
         super.onPaintBackground(transform, g);
-        if (WidgetDecorator.isShowFakeUI()) {
+        if (mColorSet.drawBackground()) {
             int x = transform.getSwingX(mWidget.getDrawX());
-            int y = transform.getSwingX(mWidget.getDrawY());
+            int y = transform.getSwingY(mWidget.getDrawY());
             int h = transform.getSwingDimension(mWidget.getDrawHeight());
             int w = transform.getSwingDimension(mWidget.getDrawWidth());
             g.setColor(Color.WHITE);
