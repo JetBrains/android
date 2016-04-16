@@ -280,7 +280,7 @@ public class MouseInteraction {
         private double mHitConstraintHandleDistance = 0;
         private ResizeHandle mHitResizeHandle = null;
         private double mHitResizeHandleDistance = 0;
-        public boolean mEnableBaseline = true;
+        public boolean mEnableBaseline = false;
 
         static final int CLICK_MODE = 0;
         static final int HOVER_MODE = 1;
@@ -340,7 +340,7 @@ public class MouseInteraction {
                 ConstraintHandle handle = (ConstraintHandle) over;
                 if ((mHitConstraintHandle == null) || (mHitConstraintHandleDistance > dist)) {
                     if (handle.getAnchor().getType() == ConstraintAnchor.Type.BASELINE) {
-                        if (mEnableBaseline) {
+                        if (mEnableBaseline || mMode == DRAG_MODE) {
                             mHitConstraintHandle = handle;
                             mHitConstraintHandleDistance = dist;
                         }
@@ -364,7 +364,7 @@ public class MouseInteraction {
             int r = l + mViewTransform.getSwingDimension(widget.getDrawWidth());
             int b = t + mViewTransform.getSwingDimension(widget.getDrawHeight());
             int widgetSelectionMargin = 8;
-            int handleSelectionMargin = 16;
+            int handleSelectionMargin = 8;
             picker.addRect(widget, widgetSelectionMargin, l, t, r, b);
             WidgetCompanion companion = (WidgetCompanion) widget.getCompanionWidget();
             WidgetInteractionTargets targets = companion.getWidgetInteractionTargets();
