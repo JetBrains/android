@@ -33,6 +33,8 @@ public class ConstraintHandle {
 
     private int mX;
     private int mY;
+    private int[] mCurve = new int[8];
+    private boolean mHasCurve = false;
 
     /**
      * Default constructor
@@ -81,6 +83,49 @@ public class ConstraintHandle {
             mAnchor = null;
         }
     }
+
+    /**
+     * Set the curve parameters
+     * @param x1
+     * @param y1
+     * @param x2
+     * @param y2
+     * @param x3
+     * @param y3
+     * @param x4
+     * @param y4
+     */
+    public void setCurveParameters(int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4) {
+        mCurve[0] = x1;
+        mCurve[1] = y1;
+        mCurve[2] = x2;
+        mCurve[3] = y2;
+        mCurve[4] = x3;
+        mCurve[5] = y3;
+        mCurve[6] = x4;
+        mCurve[7] = y4;
+        mHasCurve = true;
+    }
+
+    /**
+     * Set true if the connection is represented by a curve
+     * @param hasCurve
+     */
+    public void setCurve(boolean hasCurve) {
+        mHasCurve = hasCurve;
+    }
+
+    /**
+     * Return true if the connection is represented by a curve
+     * @return true if curve, false otherwise
+     */
+    public boolean hasCurve() { return mHasCurve; }
+
+    /**
+     * Return an array of 4 pairs of integers representing a curve
+     * @return the curve parameters
+     */
+    public int[] getCurve() { return mCurve; }
 
     /**
      * Return the x position of this anchor
@@ -263,4 +308,5 @@ public class ConstraintHandle {
         }
         return Integer.MAX_VALUE;
     }
+
 }

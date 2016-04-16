@@ -592,6 +592,7 @@ public class ConnectionDraw {
             ConstraintHandle beginHandle, ConstraintHandle endHandle) {
         ConstraintAnchor begin = beginHandle.getAnchor();
         ConstraintAnchor end = endHandle.getAnchor();
+        beginHandle.setCurve(false);
         boolean isBeginBaselineAnchor = begin.getType() == ConstraintAnchor.Type.BASELINE;
         int endAnchorSize = 0;
         if (end != null && end.isConnected()) {
@@ -671,6 +672,8 @@ public class ConnectionDraw {
         path.lineTo(x1, y1 + CONNECTION_CURVE_SIZE);
         path.curveTo(p1.x, p1.y, p2.x, p2.y, x3, y3 - CONNECTION_CURVE_SIZE);
         path.lineTo(x3, y3);
+        beginHandle.setCurveParameters(x1, y1 + CONNECTION_CURVE_SIZE,
+                p1.x, p1.y, p2.x, p2.y, x3, y3 - CONNECTION_CURVE_SIZE);
         g.draw(path);
     }
 
@@ -689,6 +692,7 @@ public class ConnectionDraw {
             ConstraintHandle beginHandle, ConstraintHandle endHandle) {
         ConstraintAnchor begin = beginHandle.getAnchor();
         ConstraintAnchor end = endHandle.getAnchor();
+        beginHandle.setCurve(false);
         int endAnchorSize = 0;
         if (end != null && end.isConnected()) {
             endAnchorSize = CONNECTION_ANCHOR_SIZE;
@@ -746,6 +750,8 @@ public class ConnectionDraw {
         path.lineTo(x1 + CONNECTION_CURVE_SIZE, y1);
         path.curveTo(p1.x, p1.y, p2.x, p2.y, x3 - CONNECTION_CURVE_SIZE, y3);
         path.lineTo(x3, y3);
+        beginHandle.setCurveParameters(x1 + CONNECTION_CURVE_SIZE, y1,
+                p1.x, p1.y, p2.x, p2.y, x3 - CONNECTION_CURVE_SIZE, y3);
         g.draw(path);
     }
 

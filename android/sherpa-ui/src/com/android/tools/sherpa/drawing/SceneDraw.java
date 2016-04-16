@@ -81,6 +81,12 @@ public class SceneDraw {
     private boolean mApplyConstraints = true;
     private int myCurrentStyle = WidgetDecorator.BLUEPRINT_STYLE;
 
+    private Repaintable mRepaintableSurface;
+
+    public interface Repaintable {
+        void repaint();
+    }
+
     /**
      * Base constructor
      *
@@ -99,6 +105,23 @@ public class SceneDraw {
         mAnimationCandidateAnchors.setDuration(1000);
         mAnimationCreatedConstraints.setDuration(600);
         setColorSet(colorSet);
+    }
+
+    /**
+     * Set a repaintable object
+     * @param repaintableSurface
+     */
+    public void setRepaintableSurface(Repaintable repaintableSurface) {
+        mRepaintableSurface = repaintableSurface;
+    }
+
+    /**
+     * Call repaint() on the repaintable object
+     */
+    public void repaint() {
+        if (mRepaintableSurface != null) {
+            mRepaintableSurface.repaint();;
+        }
     }
 
     public void setColorSet(ColorSet set) {

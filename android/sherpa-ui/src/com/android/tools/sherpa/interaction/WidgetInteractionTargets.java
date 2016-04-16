@@ -147,6 +147,13 @@ public class WidgetInteractionTargets {
     }
 
     /**
+     * Return the array of constraint handles of this widget
+     *
+     * @return array of constraint handles
+     */
+    public ArrayList<ConstraintHandle> getConstraintHandles() { return mConstraintHandles; }
+
+    /**
      * Update the positions of the resize handles
      * @param viewTransform
      */
