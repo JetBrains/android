@@ -258,6 +258,59 @@ public class MouseInteraction {
     private HitListener mClickListener = new HitListener(HitListener.CLICK_MODE);
     private HitListener mDragListener = new HitListener(HitListener.DRAG_MODE);
 
+    private LockTimer mLockTimer = new LockTimer();
+
+    /**
+     * Helper class to lock / unlock the constraints on mouse down
+     */
+    class LockTimer {
+        Timer mTimer = new Timer(1000, new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                run();
+            }
+        });
+        ConstraintWidget mWidget;
+
+        public LockTimer() {
+            mTimer.setRepeats(false);
+        }
+
+        public void start(ConstraintWidget widget) {
+            mWidget = widget;
+            mTimer.start();
+        }
+
+        public void stop() {
+            mTimer.stop();
+        }
+
+        private void run() {
+            if (mSelection.contains(mWidget)) {
+                boolean allLocked = true;
+                for (ConstraintAnchor anchor : mWidget.getAnchors()) {
+                    if (anchor.isConnected()) {
+                        if (anchor.getConnectionCreator() != ConstraintAnchor.USER_CREATOR) {
+                            allLocked = false;
+                        }
+                    }
+                }
+                // Depending if all constraints are locked (== USER_CREATOR) or not,
+                // we will toggle them between all being locked or all being unlocked.
+                for (ConstraintAnchor anchor : mWidget.getAnchors()) {
+                    if (anchor.isConnected()) {
+                        if (allLocked) {
+                            anchor.setConnectionCreator(ConstraintAnchor.AUTO_CONSTRAINT_CREATOR);
+                        } else {
+                            anchor.setConnectionCreator(ConstraintAnchor.USER_CREATOR);
+                        }
+                    }
+                }
+                mSceneDraw.repaint();
+            }
+        }
+    }
+
     private Timer mBaselineTimer = new Timer(1000, new ActionListener() {
         @Override
         public void actionPerformed(ActionEvent e) {
@@ -560,6 +613,13 @@ public class MouseInteraction {
         }
         mSceneDraw.setCurrentUnderneathAnchor(mSelection.getSelectedAnchor());
         mSceneDraw.onMousePress(mSelection.getSelectedAnchor());
+
+        mBaselineTimer.stop();
+        if (widget != null) {
+            mLockTimer.start(widget);
+        } else {
+            mLockTimer.stop();
+        }
     }
 
     /**
@@ -678,6 +738,7 @@ public class MouseInteraction {
         mLastMousePosition.setLocation(0, 0);
         mSnapshot = null;
         mMouseDown = false;
+        mLockTimer.stop();
     }
 
     /**
@@ -688,6 +749,7 @@ public class MouseInteraction {
      * @return the type of direction (locked in x/y or not)
      */
     public int mouseDragged(int x, int y) {
+        mLockTimer.stop();
         mLastMousePosition.setLocation(x, y);
         int directionLockedStatus = Selection.DIRECTION_UNLOCKED;
         switch (mMouseMode) {
