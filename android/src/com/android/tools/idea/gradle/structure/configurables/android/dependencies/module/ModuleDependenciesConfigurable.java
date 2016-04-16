@@ -30,12 +30,15 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 public class ModuleDependenciesConfigurable extends AbstractDependenciesConfigurable<PsAndroidModule> {
+  @NotNull private final PsAndroidModule myModule;
+
   private ModuleDependenciesPanel myDependenciesPanel;
 
   public ModuleDependenciesConfigurable(@NotNull PsAndroidModule module,
                                         @NotNull PsContext context,
                                         @NotNull List<PsModule> extraTopModules) {
     super(module, context, extraTopModules);
+    myModule = module;
   }
 
   @Override
@@ -77,7 +80,7 @@ public class ModuleDependenciesConfigurable extends AbstractDependenciesConfigur
 
   @Override
   public boolean isModified() {
-    return false;
+    return myModule.isModified();
   }
 
   @Override

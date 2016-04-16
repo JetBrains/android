@@ -38,7 +38,7 @@ import java.util.Set;
 
 import static com.intellij.util.PlatformIcons.LIBRARY_ICON;
 
-public class PsLibraryDependency extends PsAndroidDependency {
+public class PsAndroidLibraryDependency extends PsAndroidDependency {
   @NotNull private final PsArtifactDependencySpec myResolvedSpec;
   @NotNull private final List<PsArtifactDependencySpec> myPomDependencies = Lists.newArrayList();
   @NotNull private final Set<String> myTransitiveDependencies = Sets.newHashSet();
@@ -46,11 +46,11 @@ public class PsLibraryDependency extends PsAndroidDependency {
   @Nullable private final Library myResolvedModel;
   @Nullable private PsArtifactDependencySpec myDeclaredSpec;
 
-  PsLibraryDependency(@NotNull PsAndroidModule parent,
-                      @NotNull PsArtifactDependencySpec resolvedSpec,
-                      @Nullable Library resolvedModel,
-                      @Nullable PsAndroidArtifact container,
-                      @Nullable ArtifactDependencyModel parsedModel) {
+  PsAndroidLibraryDependency(@NotNull PsAndroidModule parent,
+                             @NotNull PsArtifactDependencySpec resolvedSpec,
+                             @Nullable Library resolvedModel,
+                             @Nullable PsAndroidArtifact container,
+                             @Nullable ArtifactDependencyModel parsedModel) {
     super(parent, container, parsedModel);
     myResolvedSpec = resolvedSpec;
     myResolvedModel = resolvedModel;
@@ -100,7 +100,7 @@ public class PsLibraryDependency extends PsAndroidDependency {
       }
     }
     for (PsArtifactDependencySpec dependency : myPomDependencies) {
-      PsLibraryDependency found = module.findLibraryDependency(dependency);
+      PsAndroidLibraryDependency found = module.findLibraryDependency(dependency);
       if (found != null) {
         transitive.add(found);
       }
@@ -129,7 +129,7 @@ public class PsLibraryDependency extends PsAndroidDependency {
       if (foundModule instanceof PsAndroidModule) {
         PsAndroidModule androidModule = (PsAndroidModule)foundModule;
 
-        PsLibraryDependency libraryDependency = androidModule.findLibraryDependency(myResolvedSpec);
+        PsAndroidLibraryDependency libraryDependency = androidModule.findLibraryDependency(myResolvedSpec);
         if (libraryDependency != null && libraryDependency.isDeclared()) {
           found.add(androidModule.getName());
         }
@@ -183,7 +183,7 @@ public class PsLibraryDependency extends PsAndroidDependency {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    PsLibraryDependency that = (PsLibraryDependency)o;
+    PsAndroidLibraryDependency that = (PsAndroidLibraryDependency)o;
     return Objects.equal(myResolvedSpec, that.myResolvedSpec);
   }
 

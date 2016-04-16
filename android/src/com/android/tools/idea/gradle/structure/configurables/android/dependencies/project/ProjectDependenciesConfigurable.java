@@ -31,10 +31,13 @@ import javax.swing.*;
 import java.util.List;
 
 public class ProjectDependenciesConfigurable extends AbstractDependenciesConfigurable<PsModule> {
+  @NotNull private final PsModule myModule;
+
   private ProjectDependenciesPanel myDependenciesPanel;
 
   public ProjectDependenciesConfigurable(@NotNull PsModule module, @NotNull PsContext context, @NotNull List<PsModule> extraTopModules) {
     super(module, context, extraTopModules);
+    myModule = module;
     setDisplayName("<All Modules>");
   }
 
@@ -46,7 +49,7 @@ public class ProjectDependenciesConfigurable extends AbstractDependenciesConfigu
   @Override
   public ProjectDependenciesPanel createOptionsPanel() {
     if (myDependenciesPanel == null) {
-      myDependenciesPanel = new ProjectDependenciesPanel(getContext(), getExtraTopModules());
+      myDependenciesPanel = new ProjectDependenciesPanel(myModule, getContext(), getExtraTopModules());
       myDependenciesPanel.setHistory(getHistory());
     }
     return myDependenciesPanel;
@@ -78,7 +81,7 @@ public class ProjectDependenciesConfigurable extends AbstractDependenciesConfigu
 
   @Override
   public boolean isModified() {
-    return false;
+    return myModule.isModified();
   }
 
   @Override

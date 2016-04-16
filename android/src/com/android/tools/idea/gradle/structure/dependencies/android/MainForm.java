@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.structure.model.PsModelNameComparator;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.android.tools.idea.gradle.structure.model.android.PsBuildType;
 import com.android.tools.idea.gradle.structure.model.android.PsProductFlavor;
+import com.android.tools.idea.gradle.structure.model.android.dependency.PsNewDependencyScopes;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
@@ -58,7 +59,7 @@ class MainForm implements Disposable {
 
   @NotNull private final List<PsBuildType> myAllBuildTypes = Lists.newArrayList();
   @NotNull private final List<PsProductFlavor> myAllProductFlavors = Lists.newArrayList();
-  @NotNull private final List<String> mySelectedScopes = Lists.newArrayList();
+  @NotNull private final List<String> mySelectedScopeNames = Lists.newArrayList();
 
   @NotNull private final List<ToolWindowPanel> myToolWindowPanels = Lists.newArrayList();
 
@@ -100,17 +101,17 @@ class MainForm implements Disposable {
     boolean allBuildTypesSelected = buildTypes.size() == myAllBuildTypes.size();
     boolean allProductFlavorsSelected = productFlavors.size() == myAllProductFlavors.size();
 
-    mySelectedScopes.clear();
-    mySelectedScopes.addAll(deduceScopes(configurations, buildTypes, productFlavors, allBuildTypesSelected, allProductFlavorsSelected));
+    mySelectedScopeNames.clear();
+    mySelectedScopeNames.addAll(deduceScopes(configurations, buildTypes, productFlavors, allBuildTypesSelected, allProductFlavorsSelected));
 
     String text = "";
-    int count = mySelectedScopes.size();
+    int count = mySelectedScopeNames.size();
     if (count == 1) {
-      text = mySelectedScopes.get(0);
+      text = mySelectedScopeNames.get(0);
     }
-    else if (mySelectedScopes.size() > 1) {
-      Collections.sort(mySelectedScopes);
-      text = Joiner.on(", ").join(mySelectedScopes);
+    else if (mySelectedScopeNames.size() > 1) {
+      Collections.sort(mySelectedScopeNames);
+      text = Joiner.on(", ").join(mySelectedScopeNames);
     }
     if (text.isEmpty()) {
       text = " ";
@@ -213,7 +214,7 @@ class MainForm implements Disposable {
     if (configurations.isEmpty()) {
       return new ValidationInfo("Please select at least one configuration", myConfigurationsPanel.getPanel());
     }
-    if (mySelectedScopes.isEmpty()) {
+    if (mySelectedScopeNames.isEmpty()) {
       if (configurations.size() == 1 && configurations.contains(ANDROID_TEST)) {
         List<PsBuildType> buildTypes = myBuildTypesPanel.getSelectedBuildTypes();
         boolean hasDebugBuildType = false;
@@ -231,9 +232,21 @@ class MainForm implements Disposable {
     return null;
   }
 
+  @Nullable
+  public PsNewDependencyScopes getNewScopes() {
+    if (!mySelectedScopeNames.isEmpty()) {
+      List<String> artifactNames = Lists.newArrayList();
+      myConfigurationsPanel.getSelectedConfigurations().forEach(configuration -> artifactNames.add(configuration.artifactName));
+
+      return new PsNewDependencyScopes(myBuildTypesPanel.getSelectedBuildTypes(), myProductFlavorsPanel.getSelectedProductFlavors(),
+                                       artifactNames);
+    }
+    return null;
+  }
+
   @NotNull
-  List<String> getSelectedScopes() {
-    return mySelectedScopes;
+  List<String> getSelectedScopeNames() {
+    return mySelectedScopeNames;
   }
 
   @Override

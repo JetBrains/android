@@ -28,7 +28,7 @@ public interface DependencyScopesForm extends Disposable {
   JPanel getPanel();
 
   @NotNull
-  List<String> getSelectedScopes();
+  List<String> getSelectedScopesNames();
 
   @Nullable
   ValidationInfo validateInput();

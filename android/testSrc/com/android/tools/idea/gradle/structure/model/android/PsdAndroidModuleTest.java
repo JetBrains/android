@@ -137,7 +137,7 @@ public class PsdAndroidModuleTest extends AndroidGradleTestCase {
     assertThat(declaredDependencies).hasSize(1);
 
     // Verify that appcompat is considered a "editable" dependency, and it was matched properly
-    PsLibraryDependency appCompatV7 = (PsLibraryDependency)declaredDependencies.get(0);
+    PsAndroidLibraryDependency appCompatV7 = (PsAndroidLibraryDependency)declaredDependencies.get(0);
     assertTrue(appCompatV7.isDeclared());
 
     PsArtifactDependencySpec resolvedSpec = appCompatV7.getResolvedSpec();
@@ -166,7 +166,7 @@ public class PsdAndroidModuleTest extends AndroidGradleTestCase {
     assertThat(declaredDependencies).hasSize(1);
 
     // Verify that appcompat is considered a "editable" dependency, and it was matched properly
-    PsLibraryDependency appCompatV7 = (PsLibraryDependency)declaredDependencies.get(0);
+    PsAndroidLibraryDependency appCompatV7 = (PsAndroidLibraryDependency)declaredDependencies.get(0);
     assertTrue(appCompatV7.isDeclared());
 
     PsArtifactDependencySpec declaredSpec = appCompatV7.getDeclaredSpec();

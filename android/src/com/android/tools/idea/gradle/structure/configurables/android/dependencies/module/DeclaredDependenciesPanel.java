@@ -26,6 +26,7 @@ import com.android.tools.idea.gradle.structure.configurables.ui.SelectionChangeE
 import com.android.tools.idea.gradle.structure.configurables.ui.SelectionChangeListener;
 import com.android.tools.idea.gradle.structure.model.PsIssue;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidLibraryDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.android.tools.idea.gradle.structure.model.android.PsModuleDependency;
 import com.google.common.collect.Lists;
@@ -76,10 +77,11 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel implem
   @NotNull private final SelectionChangeEventDispatcher<PsAndroidDependency> myEventDispatcher = new SelectionChangeEventDispatcher<>();
 
   private KeyEventDispatcher myKeyEventDispatcher;
-  private boolean skipSelectionChangeNotification;
+  private boolean mySkipSelectionChangeNotification;
 
   DeclaredDependenciesPanel(@NotNull PsAndroidModule module, @NotNull PsContext context) {
     super("Declared Dependencies", context, module);
+
     myContext = context;
     myContext.getDaemonAnalyzer().add(model -> {
       if (model == module) {
@@ -127,6 +129,14 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel implem
         super.processMouseEvent(e);
       }
     };
+
+    module.add(spec -> {
+      myDependenciesTableModel.reset();
+      PsAndroidLibraryDependency dependency = myDependenciesTableModel.findDependency(spec);
+      if (dependency != null) {
+        myDependenciesTable.setSelection(Collections.singletonList(dependency));
+      }
+    }, this);
 
     ListSelectionModel tableSelectionModel = myDependenciesTable.getSelectionModel();
     tableSelectionModel.setSelectionMode(MULTIPLE_INTERVAL_SELECTION);
@@ -235,6 +245,11 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel implem
   }
 
   @Override
+  protected void beforeAddingDependency() {
+    myDependenciesTable.clearSelection();
+  }
+
+  @Override
   @NotNull
   protected List<AnAction> getExtraToolbarActions() {
     List<AnAction> actions = Lists.newArrayList();
@@ -272,21 +287,20 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel implem
 
   @Override
   public void setSelection(@Nullable PsAndroidDependency selection) {
-    skipSelectionChangeNotification = true;
+    mySkipSelectionChangeNotification = true;
     if (selection == null) {
       myDependenciesTable.clearSelection();
     }
     else {
       myDependenciesTable.setSelection(Collections.singleton(selection));
     }
-    skipSelectionChangeNotification = false;
     updateDetailsAndIssues();
+    mySkipSelectionChangeNotification = false;
   }
 
   private void updateDetailsAndIssues() {
-    if (skipSelectionChangeNotification) {
+    if (!mySkipSelectionChangeNotification) {
       notifySelectionChanged();
-      skipSelectionChangeNotification = false;
     }
 
     PsAndroidDependency selected = getSelection();

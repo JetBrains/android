@@ -27,6 +27,8 @@ import javax.swing.*;
 import javax.swing.event.ChangeListener;
 import java.util.List;
 
+import static com.android.builder.model.AndroidProject.*;
+
 class ConfigurationsForm {
   private JPanel myMainPanel;
   private JCheckBox myMainCheckBox;
@@ -96,6 +98,12 @@ class ConfigurationsForm {
   }
 
   enum Configuration {
-    MAIN, ANDROID_TEST, UNIT_TEST
+    MAIN(ARTIFACT_MAIN), ANDROID_TEST(ARTIFACT_ANDROID_TEST), UNIT_TEST(ARTIFACT_UNIT_TEST);
+
+    @Nullable final String artifactName;
+
+    Configuration(@Nullable String artifactName) {
+      this.artifactName = artifactName;
+    }
   }
 }

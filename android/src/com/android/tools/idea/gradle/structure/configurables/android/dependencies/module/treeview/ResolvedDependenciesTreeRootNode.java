@@ -44,7 +44,7 @@ class ResolvedDependenciesTreeRootNode extends AbstractRootNode<PsAndroidModule>
     if (PsUISettings.getInstance().RESOLVED_DEPENDENCIES_GROUP_VARIANTS != myGroupVariants) {
       // If the "Group Variants" setting changed, remove all children nodes, so the subsequent call to "queueUpdate" will recreate them.
       myGroupVariants = PsUISettings.getInstance().RESOLVED_DEPENDENCIES_GROUP_VARIANTS;
-      removeChildren();
+      reset();
       return true;
     }
     return false;

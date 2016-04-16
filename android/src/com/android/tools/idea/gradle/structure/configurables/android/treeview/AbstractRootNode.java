@@ -40,7 +40,7 @@ public abstract class AbstractRootNode<T extends PsModel> extends AbstractPsMode
     return myChildren.toArray(new SimpleNode[myChildren.size()]);
   }
 
-  protected void removeChildren() {
+  public void reset() {
     myChildren = null;
   }
 
