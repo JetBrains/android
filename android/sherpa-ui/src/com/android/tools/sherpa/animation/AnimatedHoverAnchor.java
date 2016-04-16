@@ -24,11 +24,12 @@ public class AnimatedHoverAnchor extends Animation {
     private ConstraintHandle mAnchor;
     private boolean mIsBaseline = false;
     private boolean mConnected = false;
+    private Color mTextColor = Color.white;
     protected Color mColor = Color.white;
     private ConstraintAnchor mOriginalTarget;
     private static Font sFont = new Font("Helvetica", Font.PLAIN, 12);
     private Color mFrame;
-    private Color mTooltipColor = new Color(0, 0, 0, 70);
+    private Color mTooltipColor = new Color(0, 0, 0, 100);
 
     /**
      * Constructor, create a new AnimatedCircle at the given anchor's position
@@ -43,10 +44,12 @@ public class AnimatedHoverAnchor extends Animation {
         mFrame = mColorSet.getAnchorCircle();
         if (mAnchor.getAnchor().isConnected()) {
             mColor = mColorSet.getAnchorDisconnectionCircle();
+            mTextColor = Color.red;
             mFrame = mColor;
             mConnected = true;
         } else {
             mColor = mColorSet.getAnchorCreationCircle();
+            mTextColor = mColor;
         }
 
         if (mAnchor.getAnchor().getType() == ConstraintAnchor.Type.BASELINE) {
@@ -161,7 +164,7 @@ public class AnimatedHoverAnchor extends Animation {
                 textWidth + 2*padding, textHeight + 2*padding, 8, 8);
         g.setColor(Color.black);
         g.drawString(text, tx + 1, ty + 1);
-        g.setColor(mColor);
+        g.setColor(mTextColor);
         g.drawString(text, tx, ty);
     }
 }

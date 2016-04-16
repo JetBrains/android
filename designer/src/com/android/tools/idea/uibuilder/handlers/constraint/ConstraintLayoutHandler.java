@@ -254,8 +254,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
     }
 
     boolean showAllConstraints = false;
-
-    needsRepaint |= constraintModel.paint(gc, width, height, showAllConstraints, transparent);
+    needsRepaint |= constraintModel.paint(gc, screenView, width, height, showAllConstraints, transparent);
     return needsRepaint;
   }
 }

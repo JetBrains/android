@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.sherpa.drawing.*;
 import com.android.tools.sherpa.drawing.decorator.*;
 import com.android.tools.sherpa.interaction.WidgetInteractionTargets;
@@ -67,6 +68,8 @@ public class ConstraintModel {
   private boolean mShowFakeUI = false;
   private ColorSet mBlueprintColorSet = new BlueprintColorSet();
   private ColorSet mAndroidColorSet = new AndroidColorSet();
+
+  private RepaintSurface myRepaintSurface = new RepaintSurface();
 
   //////////////////////////////////////////////////////////////////////////////
   // Static functions
@@ -162,6 +165,7 @@ public class ConstraintModel {
     myWidgetMotion = new WidgetMotion(myWidgetsScene, mySelection);
     mySceneDraw = new SceneDraw(new BlueprintColorSet(), myWidgetsScene, mySelection,
                                 myWidgetMotion, myWidgetResize);
+    mySceneDraw.setRepaintableSurface(myRepaintSurface);
     myMouseInteraction = new MouseInteraction(myViewTransform,
                                               myWidgetsScene, mySelection,
                                               myWidgetMotion, myWidgetResize,
@@ -434,16 +438,32 @@ public class ConstraintModel {
   //////////////////////////////////////////////////////////////////////////////
 
   /**
+   * Simple helper class to avoid reallocation
+   */
+  class RepaintSurface implements SceneDraw.Repaintable {
+    ScreenView myScreenView;
+    @Override
+    public void repaint() {
+      myScreenView.getSurface().repaint();
+    }
+  }
+
+  /**
    * Paint ourselves and our children
    *
    * @param gc                  the graphic context
-   * @param width              width of the canvas
+   * @param screenView
+   *@param width              width of the canvas
    * @param height             height of the canvas
    * @param showAllConstraints flag to show or not all the existing constraints
-   * @param isAndroidSurface   android surface (layoutlib)
-   * @return true if we need to repaint
+   * @param isAndroidSurface   android surface (layoutlib)     @return true if we need to repaint
    */
-  public boolean paint(@NotNull Graphics2D gc, int width, int height, boolean showAllConstraints, boolean isAndroidSurface) {
+  public boolean paint(@NotNull Graphics2D gc,
+                       ScreenView screenView,
+                       int width,
+                       int height,
+                       boolean showAllConstraints,
+                       boolean isAndroidSurface) {
     Graphics2D g = (Graphics2D) gc.create();
     WidgetDecorator.setShowFakeUI(mShowFakeUI);
     if (isAndroidSurface) {
@@ -453,6 +473,7 @@ public class ConstraintModel {
       mySceneDraw.setColorSet(mBlueprintColorSet);
       mySceneDraw.setCurrentStyle(WidgetDecorator.BLUEPRINT_STYLE);
     }
+    myRepaintSurface.myScreenView = screenView;
     boolean ret = mySceneDraw.paintWidgets(width, height, myViewTransform, g, showAllConstraints, myMouseInteraction);
     g.dispose();
     return ret;
