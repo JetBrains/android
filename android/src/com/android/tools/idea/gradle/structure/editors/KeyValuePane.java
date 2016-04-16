@@ -19,6 +19,7 @@ import com.android.SdkConstants;
 import com.android.repository.api.LocalPackage;
 import com.android.repository.api.ProgressIndicator;
 import com.android.repository.impl.meta.RepositoryPackages;
+import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.gradle.parser.BuildFileKey;
@@ -44,6 +45,7 @@ import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -115,7 +117,14 @@ public class KeyValuePane extends JPanel implements DocumentListener, ItemListen
         String label = getTargetLabel(target);
         String apiString, platformString;
         if (target.isPlatform()) {
-          platformString = apiString = target.getVersion().getApiString();
+          String value = target.getVersion().getApiString();
+          if (target.getVersion().isPreview()) {
+            platformString = AndroidTargetHash.getPlatformHashString(target.getVersion());
+          }
+          else {
+            platformString = value;
+          }
+          apiString = value;
           apisMapBuilder.put(apiString, label);
         } else {
           platformString = getAddonHashString(target.getVendor(), target.getName(), target.getVersion());
@@ -127,7 +136,15 @@ public class KeyValuePane extends JPanel implements DocumentListener, ItemListen
     BiMap<String, String> installedBuildTools = buildToolsMapBuilder.build();
     BiMap<String, String> installedApis = apisMapBuilder.build();
     BiMap<String, String> installedCompileApis = compiledApisMapBuilder.build();
-    BiMap<String, String> javaCompatibility = ImmutableBiMap.of("JavaVersion.VERSION_1_6", "1.6", "JavaVersion.VERSION_1_7", "1.7");
+
+    BiMap<String, String> javaCompatibility;
+    if (installedApis.containsKey("N")) {
+      javaCompatibility =
+        ImmutableBiMap.of("JavaVersion.VERSION_1_6", "1.6", "JavaVersion.VERSION_1_7", "1.7", "JavaVersion.VERSION_1_8", "1.8");
+    }
+    else {
+      javaCompatibility = ImmutableBiMap.of("JavaVersion.VERSION_1_6", "1.6", "JavaVersion.VERSION_1_7", "1.7");
+    }
 
     myKeysWithKnownValues = ImmutableMap.<BuildFileKey, BiMap<String, String>>builder()
         .put(BuildFileKey.MIN_SDK_VERSION, installedApis)
