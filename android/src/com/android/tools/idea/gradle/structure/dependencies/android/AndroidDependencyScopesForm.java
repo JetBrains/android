@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.structure.dependencies.android;
 
 import com.android.tools.idea.gradle.structure.dependencies.DependencyScopesForm;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
+import com.android.tools.idea.gradle.structure.model.android.dependency.PsNewDependencyScopes;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.HyperlinkAdapter;
@@ -68,8 +69,13 @@ public class AndroidDependencyScopesForm extends JPanel implements DependencySco
 
   @Override
   @NotNull
-  public List<String> getSelectedScopes() {
-    return myMainForm.getSelectedScopes();
+  public List<String> getSelectedScopesNames() {
+    return myMainForm.getSelectedScopeNames();
+  }
+
+  @Nullable
+  public PsNewDependencyScopes getNewScopes() {
+    return myMainForm.getNewScopes();
   }
 
   @Nullable

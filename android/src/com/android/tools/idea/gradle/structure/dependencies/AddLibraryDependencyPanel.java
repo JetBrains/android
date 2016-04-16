@@ -19,7 +19,8 @@ import com.android.tools.idea.gradle.structure.dependencies.android.AndroidDepen
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
-import com.android.tools.idea.gradle.structure.model.android.PsLibraryDependency;
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidLibraryDependency;
+import com.android.tools.idea.gradle.structure.model.android.dependency.PsNewDependencyScopes;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.ui.OnePixelDivider;
 import com.intellij.openapi.ui.ValidationInfo;
@@ -108,8 +109,8 @@ class AddLibraryDependencyPanel extends JPanel implements Disposable {
       PsAndroidModule androidModule = (PsAndroidModule)myModule;
       Ref<Boolean> found = new Ref<>(false);
       androidModule.forEachDeclaredDependency(dependency -> {
-        if (dependency instanceof PsLibraryDependency) {
-          PsLibraryDependency libraryDependency = (PsLibraryDependency)dependency;
+        if (dependency instanceof PsAndroidLibraryDependency) {
+          PsAndroidLibraryDependency libraryDependency = (PsAndroidLibraryDependency)dependency;
           PsArtifactDependencySpec resolvedSpec = libraryDependency.getResolvedSpec();
           if (Objects.equals(spec.group, resolvedSpec.group) && Objects.equals(spec.name, resolvedSpec.name)) {
             found.set(true);
@@ -137,6 +138,19 @@ class AddLibraryDependencyPanel extends JPanel implements Disposable {
       return msg;
     }
     return error.getClass().getName();
+  }
+
+  public void addNewDependency() {
+    String library = myLibraryDependencyForm.getSelectedLibrary();
+    assert library != null;
+
+    List<String> scopesNames = myScopesForm.getSelectedScopesNames();
+    if (myScopesForm instanceof AndroidDependencyScopesForm && myModule instanceof PsAndroidModule) {
+      PsNewDependencyScopes newScopes = ((AndroidDependencyScopesForm)myScopesForm).getNewScopes();
+      assert newScopes != null;
+
+      ((PsAndroidModule)myModule).addLibraryDependency(library, newScopes, scopesNames);
+    }
   }
 
   @Override

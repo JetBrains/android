@@ -109,7 +109,7 @@ public abstract class ArtifactDependencyModel extends DependencyModel {
                                                                version().value(),
                                                                classifier().value(),
                                                                extension().value());
-      return new GradleNotNullValue<String>(myDslElement, spec.compactNotation());
+      return new GradleNotNullValue<>(myDslElement, spec.compactNotation());
     }
 
     @Override
@@ -179,25 +179,25 @@ public abstract class ArtifactDependencyModel extends DependencyModel {
     @NotNull
     @Override
     public GradleNotNullValue<String> compactNotation() {
-      return new GradleNotNullValue<String>(myDslExpression, mySpec.compactNotation());
+      return new GradleNotNullValue<>(myDslExpression, mySpec.compactNotation());
     }
 
     @Override
     @NotNull
     public GradleNotNullValue<String> name() {
-      return new GradleNotNullValue<String>(myDslExpression, mySpec.name);
+      return new GradleNotNullValue<>(myDslExpression, mySpec.name);
     }
 
     @Override
     @NotNull
     public GradleNullableValue<String> group() {
-      return new GradleNullableValue<String>(myDslExpression, mySpec.group);
+      return new GradleNullableValue<>(myDslExpression, mySpec.group);
     }
 
     @Override
     @NotNull
     public GradleNullableValue<String> version() {
-      return new GradleNullableValue<String>(myDslExpression, mySpec.version);
+      return new GradleNullableValue<>(myDslExpression, mySpec.version);
     }
 
     @Override
@@ -209,13 +209,13 @@ public abstract class ArtifactDependencyModel extends DependencyModel {
     @Override
     @NotNull
     public GradleNullableValue<String> classifier() {
-      return new GradleNullableValue<String>(myDslExpression, mySpec.classifier);
+      return new GradleNullableValue<>(myDslExpression, mySpec.classifier);
     }
 
     @Override
     @NotNull
     public GradleNullableValue<String> extension() {
-      return new GradleNullableValue<String>(myDslExpression, mySpec.extension);
+      return new GradleNullableValue<>(myDslExpression, mySpec.extension);
     }
 
     @Override

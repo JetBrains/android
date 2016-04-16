@@ -41,6 +41,12 @@ public class PsParsedDependencies {
   @NotNull private final Map<String, ArtifactDependencyModel> myParsedArtifactDependencies = Maps.newHashMap();
 
   public PsParsedDependencies(@Nullable GradleBuildModel parsedModel) {
+    reset(parsedModel);
+  }
+
+  void reset(@Nullable GradleBuildModel parsedModel) {
+    myParsedArtifactDependencies.clear();
+    myParsedModuleDependencies.clear();
     if (parsedModel != null) {
       for (DependencyModel parsedDependency : parsedModel.dependencies().all()) {
         if (parsedDependency instanceof ArtifactDependencyModel) {
@@ -72,9 +78,26 @@ public class PsParsedDependencies {
     return null;
   }
 
+  @Nullable
+  public ArtifactDependencyModel findMatchingArtifactDependency(@NotNull PsArtifactDependencySpec spec,
+                                                                @NotNull PsAndroidArtifact artifact) {
+    String identifier = getIdentifier(spec);
+    ArtifactDependencyModel parsedDependency = myParsedArtifactDependencies.get(identifier);
+    if (parsedDependency != null && isDependencyInArtifact(parsedDependency, artifact)) {
+      return parsedDependency;
+    }
+    return null;
+  }
+
   @NotNull
   private static String getIdentifier(@NotNull MavenCoordinates coordinates) {
     List<String> segments = Lists.newArrayList(coordinates.getGroupId(), coordinates.getArtifactId());
+    return joinAsGradlePath(segments);
+  }
+
+  @NotNull
+  private static String getIdentifier(@NotNull PsArtifactDependencySpec spec) {
+    List<String> segments = Lists.newArrayList(spec.group, spec.name);
     return joinAsGradlePath(segments);
   }
 

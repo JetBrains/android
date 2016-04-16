@@ -30,6 +30,7 @@ import com.android.tools.idea.gradle.structure.configurables.ui.treeview.Abstrac
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsModelNode;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.NodeHyperlinkSupport;
 import com.android.tools.idea.gradle.structure.model.PsIssue;
+import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsModuleDependency;
 import com.google.common.collect.Lists;
@@ -74,7 +75,7 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel {
 
   private boolean myIgnoreTreeSelectionEvents;
 
-  DeclaredDependenciesPanel(@NotNull PsContext context) {
+  DeclaredDependenciesPanel(@NotNull PsModule fakeModule, @NotNull PsContext context) {
     super("All Dependencies", context, null);
     myContext = context;
 
@@ -161,6 +162,17 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel {
     myTreeBuilder.getInitialized().doWhenDone(this::doEnsureSelection);
 
     myHyperlinkSupport = new NodeHyperlinkSupport<>(myTree, ModuleDependencyNode.class, myContext, true);
+
+    PsModule.DependenciesChangeListener dependenciesChangeListener = spec -> {
+      fakeModule.setModified(true);
+      myTreeBuilder.reset(() -> {
+        LibraryDependencyNode found = myTreeBuilder.find(spec);
+        if (found != null) {
+          myTreeBuilder.select(found);
+        }
+      });
+    };
+    myContext.getProject().forEachModule(module -> module.add(dependenciesChangeListener, this));
   }
 
   @SuppressWarnings("unchecked")

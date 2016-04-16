@@ -24,7 +24,7 @@ import com.android.tools.idea.gradle.structure.model.PsIssue;
 import com.android.tools.idea.gradle.structure.model.PsIssueCollection;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
-import com.android.tools.idea.gradle.structure.model.android.PsLibraryDependency;
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidLibraryDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsModuleDependency;
 import com.google.common.collect.Lists;
 import com.intellij.ui.SimpleTextAttributes;
@@ -46,17 +46,16 @@ import static com.intellij.ui.SimpleTextAttributes.*;
  * Model for the table displaying the "editable" dependencies of a module.
  */
 class DeclaredDependenciesTableModel extends ListTableModel<PsAndroidDependency> {
+  @NotNull private final PsAndroidModule myModule;
   @NotNull private final PsContext myContext;
 
   @Nullable private PsModuleDependency myHoveredDependency;
 
   DeclaredDependenciesTableModel(@NotNull PsAndroidModule module, @NotNull PsContext context) {
+    myModule = module;
     myContext = context;
     createAndSetColumnInfos();
-    List<PsAndroidDependency> dependencies = Lists.newArrayList();
-    module.forEachDeclaredDependency(dependencies::add);
-    Collections.sort(dependencies, PsAndroidDependencyComparator.INSTANCE);
-    setItems(dependencies);
+    reset();
   }
 
   private void createAndSetColumnInfos() {
@@ -101,6 +100,26 @@ class DeclaredDependenciesTableModel extends ListTableModel<PsAndroidDependency>
 
   void setHoveredDependency(@Nullable PsModuleDependency hoveredDependency) {
     myHoveredDependency = hoveredDependency;
+  }
+
+  void reset() {
+    List<PsAndroidDependency> dependencies = Lists.newArrayList();
+    myModule.forEachDeclaredDependency(dependencies::add);
+    Collections.sort(dependencies, PsAndroidDependencyComparator.INSTANCE);
+    setItems(dependencies);
+  }
+
+  @Nullable
+  PsAndroidLibraryDependency findDependency(@NotNull PsArtifactDependencySpec spec) {
+    for (PsAndroidDependency dependency : getItems()) {
+      if (dependency instanceof PsAndroidLibraryDependency) {
+        PsAndroidLibraryDependency libraryDependency = (PsAndroidLibraryDependency)dependency;
+        if (spec.equals(libraryDependency.getDeclaredSpec())) {
+          return libraryDependency;
+        }
+      }
+    }
+    return null;
   }
 
   static class DependencyCellRenderer extends AbstractPsModelTableCellRenderer<PsAndroidDependency> {
@@ -148,8 +167,8 @@ class DeclaredDependenciesTableModel extends ListTableModel<PsAndroidDependency>
       PsAndroidDependency dependency = getModel();
       String text = dependency.getValueAsText();
 
-      if (dependency instanceof PsLibraryDependency) {
-        PsLibraryDependency library = (PsLibraryDependency)dependency;
+      if (dependency instanceof PsAndroidLibraryDependency) {
+        PsAndroidLibraryDependency library = (PsAndroidLibraryDependency)dependency;
         PsArtifactDependencySpec spec = library.getDeclaredSpec();
         assert spec != null;
         text = spec.getDisplayText();

@@ -34,4 +34,8 @@ class ResolvedDependenciesTreeStructure extends AbstractBaseTreeStructure {
   boolean settingsChanged() {
     return myRootNode.settingsChanged();
   }
+
+  void reset() {
+    myRootNode.reset();
+  }
 }

@@ -23,7 +23,7 @@ import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsProject;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
-import com.android.tools.idea.gradle.structure.model.android.PsLibraryDependency;
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidLibraryDependency;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
 import com.intellij.testFramework.IdeaTestCase;
@@ -41,7 +41,7 @@ import static org.mockito.Mockito.when;
  */
 public class DeclaredDependenciesTableModelTest extends IdeaTestCase {
   private boolean myOriginalShowGroupId;
-  private PsLibraryDependency myLibraryDependency;
+  private PsAndroidLibraryDependency myLibraryDependency;
 
   private DeclaredDependenciesTableModel myTableModel;
 
@@ -49,7 +49,7 @@ public class DeclaredDependenciesTableModelTest extends IdeaTestCase {
   public void setUp() throws Exception {
     super.setUp();
     myOriginalShowGroupId = PsUISettings.getInstance().DECLARED_DEPENDENCIES_SHOW_GROUP_ID;
-    myLibraryDependency = mock(PsLibraryDependency.class);
+    myLibraryDependency = mock(PsAndroidLibraryDependency.class);
 
     List<PsAndroidDependency> dependencies = Lists.newArrayList();
     dependencies.add(myLibraryDependency);
