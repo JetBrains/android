@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.logcat;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.ddmlib.*;
 import com.android.ddmlib.logcat.LogCatHeader;
@@ -66,6 +67,10 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
     }
   }
 
+  interface LogcatRunner {
+    void start(@NotNull IDevice device, @NotNull AndroidLogcatReceiver receiver);
+  }
+
   public interface LogLineListener {
     void receiveLogLine(@NotNull LogCatMessage line);
   }
@@ -76,6 +81,8 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
   private final Map<IDevice, List<LogLineListener>> myListeners = new HashMap<IDevice, List<LogLineListener>>();
   private final Object myLock = new Object();
 
+  private final LogcatRunner myLogcatRunner;
+
   @NotNull
   public static AndroidLogcatService getInstance() {
     return ServiceManager.getService(AndroidLogcatService.class);
@@ -83,6 +90,29 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
 
   private AndroidLogcatService() {
     AndroidDebugBridge.addDeviceChangeListener(this);
+    myLogcatRunner = new LogcatRunner() {
+      @Override
+      public void start(@NotNull IDevice device, @NotNull AndroidLogcatReceiver receiver) {
+        ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
+          @Override
+          public void run() {
+            try {
+              AndroidUtils.executeCommandOnDevice(device, "logcat -v long", receiver, true);
+            }
+            catch (Exception e) {
+              getLog().info(e);
+              LogCatHeader dummyHeader = new LogCatHeader(Log.LogLevel.ERROR, 0, 0, "?", "Internal", LogCatTimestamp.ZERO);
+              receiver.notifyLine(dummyHeader, e.getMessage());
+            }
+          }
+        });
+      }
+    };
+  }
+
+  @VisibleForTesting
+  AndroidLogcatService(@NotNull LogcatRunner logcatRunner) {
+    myLogcatRunner = logcatRunner;
   }
 
   private void startReceiving(@NotNull final IDevice device) {
@@ -99,25 +129,11 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
         }
       }
     };
-
     final AndroidLogcatReceiver receiver = new AndroidLogcatReceiver(device, logLineListener);
 
     myLogBuffers.put(device, new LogcatBuffer());
     myLogReceivers.put(device, receiver);
-
-    ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
-      @Override
-      public void run() {
-        try {
-          AndroidUtils.executeCommandOnDevice(device, "logcat -v long", receiver, true);
-        }
-        catch (Exception e) {
-          getLog().info(e);
-          LogCatHeader dummyHeader = new LogCatHeader(Log.LogLevel.ERROR, 0, 0, "?", "Internal", LogCatTimestamp.ZERO);
-          logLineListener.receiveLogLine(new LogCatMessage(dummyHeader, e.getMessage()));
-        }
-      }
-    });
+    myLogcatRunner.start(device, receiver);
   }
 
   private void stopReceiving(@NotNull IDevice device) {
@@ -156,6 +172,10 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
         myListeners.put(device, new ArrayList<LogLineListener>());
       }
       myListeners.get(device).add(listener);
+
+      if (device.isOnline() && !isReceivingFrom(device)) {
+        startReceiving(device);
+      }
     }
   }
 
