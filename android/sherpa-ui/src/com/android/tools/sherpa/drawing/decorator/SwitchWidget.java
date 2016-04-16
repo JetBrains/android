@@ -58,14 +58,14 @@ public class SwitchWidget extends TextWidget {
     @Override
     public void onPaintBackground(ViewTransform transform, Graphics2D g) {
         super.onPaintBackground(transform, g);
-        if (WidgetDecorator.isShowFakeUI()) {
+        if (mColorSet.drawBackground()) {
             int originalSize = mFont.getSize();
             int scaleSize = transform.getSwingDimension(originalSize);
             g.setFont(mFont.deriveFont((float) scaleSize));
             FontMetrics fontMetrics = g.getFontMetrics();
 
             int x = transform.getSwingX(mWidget.getDrawX());
-            int y = transform.getSwingX(mWidget.getDrawY());
+            int y = transform.getSwingY(mWidget.getDrawY());
             int h = transform.getSwingDimension(mWidget.getDrawHeight());
             int w = transform.getSwingDimension(sSwitchWidth);
             g.setColor(Color.WHITE);
@@ -76,6 +76,7 @@ public class SwitchWidget extends TextWidget {
         }
     }
 
+    @Override
     protected void drawText(ViewTransform transform, Graphics2D g, int x, int y) {
         int delta = (mWidget.getHeight() - mOriginalHeight) / 2;
         super.drawText(transform, g, mHorizontalMargin + mHorizontalPadding + x, y + delta);
