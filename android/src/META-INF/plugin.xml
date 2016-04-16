@@ -836,6 +836,7 @@
                     serviceImplementation="com.android.tools.idea.debug.ProjectResourceIdResolver"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.dependencies.GradleDependencyManager"/>
     <projectService serviceImplementation="com.android.tools.idea.res.ProjectResourceRepositoryRootListener"/>
+    <projectService serviceImplementation="com.android.tools.idea.structure.services.DeveloperServices" />
 
     <projectConfigurable instance="org.jetbrains.android.compiler.AndroidDexCompilerSettingsConfigurable" id="android.dex.compiler"
                          key="android.dex.compiler.configurable.display.name" bundle="messages.AndroidBundle" parentId="project.propCompiler"/>
@@ -966,6 +967,10 @@
                     interface="com.android.tools.idea.gradle.editor.ui.GradleEditorEntityUi"/>
     <extensionPoint qualifiedName="com.android.tools.idea.structure.services.developerServiceCreators"
                     interface="com.android.tools.idea.structure.services.DeveloperServiceCreators"/>
+    <extensionPoint qualifiedName="com.android.tools.idea.structure.services.actionHandler"
+                    interface="com.android.tools.idea.structure.services.AssistActionHandler"/>
+    <extensionPoint qualifiedName="com.android.tools.idea.structure.services.actionStateManager"
+                    interface="com.android.tools.idea.structure.services.AssistActionStateManager"/>
     <extensionPoint qualifiedName="com.android.ide.sdkEventListener"
                     interface="com.android.tools.idea.sdk.IdeSdks$AndroidSdkEventListener"/>
     <extensionPoint qualifiedName="com.android.tools.idea.stats.tracker"
