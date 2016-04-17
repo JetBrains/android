@@ -389,13 +389,14 @@ public class ProjectStructureConfigurable extends BaseConfigurable
         return true;
       }
     }
-
     return false;
   }
 
   @Override
   public void apply() throws ConfigurationException {
-
+    for (Configurable configurable : myConfigurables) {
+      configurable.apply();
+    }
   }
 
   @Override
