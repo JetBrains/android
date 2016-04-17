@@ -1,5 +1,7 @@
 package com.android.tools.sherpa.animation;
 
+import com.android.tools.sherpa.drawing.BlueprintColorSet;
+import com.android.tools.sherpa.drawing.ColorSet;
 import com.android.tools.sherpa.drawing.ConnectionDraw;
 import com.android.tools.sherpa.drawing.ViewTransform;
 import com.android.tools.sherpa.interaction.ConstraintHandle;
@@ -34,7 +36,8 @@ public class AnimatedConnection extends Animation {
         ConstraintHandle targetHandle = WidgetInteractionTargets.constraintHandle(mAnchor.getTarget());
         if (sourceHandle != null && targetHandle != null) {
             ConnectionDraw
-                    .drawConnection(transform, g, sourceHandle, targetHandle, true, false);
+                    .drawConnection(transform, g, sourceHandle, targetHandle, true, false,
+                            true);
         }
     }
 }

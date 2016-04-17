@@ -120,9 +120,10 @@ public class AnimatedHoverAnchor extends Animation {
             int extra = radius - 3;
             g.setColor(highlight);
             g.setStroke(new BasicStroke(strokeWidth -1));
-            g.drawRoundRect(l,
+            int padding = 4;
+            g.drawRoundRect(l + padding,
                     t + transform.getSwingDimension(widget.getBaselineDistance()) - extra / 2,
-                    w + 1, extra, radius, radius);
+                    w + 1 - 2 * padding, extra, radius, radius);
         } else {
             if (isNewConnection) {
                 // use smaller circle

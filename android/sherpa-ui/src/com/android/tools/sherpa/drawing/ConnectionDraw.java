@@ -51,7 +51,11 @@ public class ConnectionDraw {
     private static Polygon sRightArrow;
     private static Polygon sBottomArrow;
 
+    static final Color sShadowColor = new Color(0, 0, 0, 50);
+    static final Stroke sShadowStroke = new BasicStroke(3);
+
     static Font sFont = new Font("Helvetica", Font.PLAIN, 12);
+
     private static Font sSmallFont = new Font("Helvetica", Font.PLAIN, 8);
 
     static Stroke
@@ -82,11 +86,15 @@ public class ConnectionDraw {
      * @param endHandle            the anchor target of the connection
      * @param isSelected           if the connection is from a currently selected widget
      * @param showPercentIndicator show the percent indicator if center constraints
+     * @param showMargins          show margin indicators
      */
     public static void drawConnection(ViewTransform transform, Graphics2D g,
             ConstraintHandle beginHandle, ConstraintHandle endHandle,
-            boolean isSelected, boolean showPercentIndicator) {
+            boolean isSelected, boolean showPercentIndicator, boolean showMargins) {
         ConstraintAnchor begin = beginHandle.getAnchor();
+        if (!begin.isConnected()) {
+            return;
+        }
         ConstraintAnchor end = endHandle.getAnchor();
         if (end.getOwner() instanceof ConstraintTableLayout
                 && begin.getOwner().getParent() == end.getOwner()) {
@@ -97,17 +105,44 @@ public class ConnectionDraw {
         }
         boolean isVertical = isVertical(begin.getType());
         boolean hasBothConnections = hasBothConnections(begin);
-        if (hasBothConnections) {
+        Stroke stroke = g.getStroke();
+        boolean drawShadow = isSelected &&
+                begin.getConnectionCreator() != ConstraintAnchor.AUTO_CONSTRAINT_CREATOR;
+        if (hasBothConnections && isSelected) {
+            if (drawShadow) {
+                Stroke pre = g.getStroke();
+                Color prec = g.getColor();
+                g.setStroke(sShadowStroke);
+                g.setColor(sShadowColor);
+                drawCenterConnection(transform, g, isVertical, beginHandle, endHandle,
+                        isSelected, showPercentIndicator);
+                g.setColor(prec);
+                g.setStroke(pre);
+            }
             drawCenterConnection(transform, g, isVertical, beginHandle, endHandle,
                     isSelected, showPercentIndicator);
         } else {
+            if (drawShadow) {
+                Stroke pre = g.getStroke();
+                Color prec = g.getColor();
+                g.setStroke(sShadowStroke);
+                g.setColor(sShadowColor);
+                if (isVertical) {
+                    drawVerticalConnection(transform, g, beginHandle, endHandle);
+                } else {
+                    drawHorizontalConnection(transform, g, beginHandle, endHandle);
+                }
+                g.setColor(prec);
+                g.setStroke(pre);
+            }
             if (isVertical) {
                 drawVerticalConnection(transform, g, beginHandle, endHandle);
             } else {
                 drawHorizontalConnection(transform, g, beginHandle, endHandle);
             }
         }
-        if (begin.getMargin() > 0) {
+        g.setStroke(stroke);
+        if (showMargins && begin.getMargin() > 0) {
             if (!hasBothConnections ||
                     (hasBothConnections
                             && begin.getStrength() == ConstraintAnchor.Strength.STRONG
@@ -827,5 +862,43 @@ public class ConnectionDraw {
             sBottomArrow.addPoint(+CONNECTION_ARROW_SIZE, -ARROW_SIDE);
         }
         return sBottomArrow;
+    }
+
+    /**
+     * Utility function to draw an anchor
+     *
+     * @param g               graphics context
+     * @param backgroundColor
+     * @param x               x coordinate of the anchor
+     * @param y               y coordinate of the anchor
+     * @param dimension       size of the anchor
+     * @param innerMargin     inner margin
+     * @param connected       if the anchor is connected or not
+     */
+    static void drawAnchor(Graphics2D g, Color backgroundColor, boolean isSelected,
+            int x, int y, int dimension, int innerMargin, boolean connected) {
+        int cx = x - dimension / 2;
+        int cy = y - dimension / 2;
+        Ellipse2D.Float outerCircle = new Ellipse2D.Float(cx, cy, dimension, dimension);
+        if (isSelected) {
+            Color pre = g.getColor();
+            Stroke preStroke = g.getStroke();
+            g.setColor(sShadowColor);
+            g.setStroke(sShadowStroke);
+            g.draw(outerCircle);
+            g.setStroke(preStroke);
+            g.setColor(pre);
+        }
+        Graphics2D g2 = (Graphics2D) g.create();
+        g2.setColor(backgroundColor);
+        g2.fill(outerCircle);
+        g2.dispose();
+        g.draw(outerCircle);
+        if (connected) {
+            Ellipse2D.Float innerCircle = new Ellipse2D.Float(cx + innerMargin, cy + innerMargin,
+                    dimension - innerMargin * 2, dimension - innerMargin * 2);
+            g.fill(innerCircle);
+            g.draw(innerCircle);
+        }
     }
 }

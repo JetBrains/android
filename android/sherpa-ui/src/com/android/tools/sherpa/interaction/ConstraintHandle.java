@@ -16,10 +16,16 @@
 
 package com.android.tools.sherpa.interaction;
 
+import com.android.tools.sherpa.drawing.ColorSet;
+import com.android.tools.sherpa.drawing.ConnectionDraw;
 import com.android.tools.sherpa.drawing.ViewTransform;
 import com.google.tnt.solver.widgets.ConstraintAnchor;
 import com.google.tnt.solver.widgets.ConstraintWidget;
 import com.google.tnt.solver.widgets.Guideline;
+
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.Stroke;
 
 /**
  * Represents a constraint handle on the widget.
@@ -40,7 +46,7 @@ public class ConstraintHandle {
      * Default constructor
      *
      * @param owner the owner of this ConstraintHandle
-     * @param type the type of ConstraintHandle
+     * @param type  the type of ConstraintHandle
      */
     public ConstraintHandle(
             WidgetInteractionTargets owner,
@@ -86,6 +92,7 @@ public class ConstraintHandle {
 
     /**
      * Set the curve parameters
+     *
      * @param x1
      * @param y1
      * @param x2
@@ -109,6 +116,7 @@ public class ConstraintHandle {
 
     /**
      * Set true if the connection is represented by a curve
+     *
      * @param hasCurve
      */
     public void setCurve(boolean hasCurve) {
@@ -117,30 +125,43 @@ public class ConstraintHandle {
 
     /**
      * Return true if the connection is represented by a curve
+     *
      * @return true if curve, false otherwise
      */
-    public boolean hasCurve() { return mHasCurve; }
+    public boolean hasCurve() {
+        return mHasCurve;
+    }
 
     /**
      * Return an array of 4 pairs of integers representing a curve
+     *
      * @return the curve parameters
      */
-    public int[] getCurve() { return mCurve; }
+    public int[] getCurve() {
+        return mCurve;
+    }
 
     /**
      * Return the x position of this anchor
+     *
      * @return x position
      */
-    public int getDrawX() { return mX; }
+    public int getDrawX() {
+        return mX;
+    }
 
     /**
      * Return the y position of this anchor
+     *
      * @return y position
      */
-    public int getDrawY() { return mY; }
+    public int getDrawY() {
+        return mY;
+    }
 
     /**
      * Setter for the x position of this anchor
+     *
      * @param x the new x position
      */
     public void setDrawX(int x) {
@@ -149,6 +170,7 @@ public class ConstraintHandle {
 
     /**
      * Setter for the y position of this anchor
+     *
      * @param y the new y position
      */
     public void setDrawY(int y) {
@@ -157,6 +179,7 @@ public class ConstraintHandle {
 
     /**
      * Update the position of the anchor depending on the owner's position
+     *
      * @param viewTransform the view transform
      */
     void updatePosition(ViewTransform viewTransform) {
@@ -174,29 +197,35 @@ public class ConstraintHandle {
             case LEFT: {
                 mX = x;
                 mY = y + h / 2;
-            } break;
+            }
+            break;
             case TOP: {
                 mX = x + w / 2;
                 mY = y;
-            } break;
+            }
+            break;
             case RIGHT: {
                 mX = x + w;
                 mY = y + h / 2;
-            } break;
+            }
+            break;
             case BOTTOM: {
                 mX = x + w / 2;
                 mY = y + h;
-            } break;
+            }
+            break;
             case CENTER:
             case CENTER_X:
             case CENTER_Y: {
                 mX = x + w / 2;
                 mY = y + h / 2;
-            } break;
+            }
+            break;
             case BASELINE: {
                 mX = x + w / 2;
                 mY = y + widget.getBaselineDistance();
-            } break;
+            }
+            break;
         }
     }
 
@@ -212,16 +241,20 @@ public class ConstraintHandle {
         switch (mAnchor.getType()) {
             case LEFT: {
                 distance = mX - anchor.mX;
-            } break;
+            }
+            break;
             case RIGHT: {
                 distance = anchor.mX - mX;
-            } break;
+            }
+            break;
             case TOP: {
                 distance = mY - anchor.mY;
-            } break;
+            }
+            break;
             case BOTTOM: {
                 distance = anchor.mY - mY;
-            } break;
+            }
+            break;
         }
         if (distance < 0) {
             return 0;
@@ -269,6 +302,7 @@ public class ConstraintHandle {
      * (hitting the first compatible side of the component). For example, looking at the
      * left anchor, we'll return the minimum distance between the vertical sides of this anchor's
      * component to the vertical sides of the target component.
+     *
      * @param component the component we are looking at
      * @return the distance between this anchor's component to another component.
      */
@@ -309,4 +343,58 @@ public class ConstraintHandle {
         return Integer.MAX_VALUE;
     }
 
+    /**
+     * Draw function for the ConstraintHandle
+     *
+     * @param transform  the view transform
+     * @param g          the graphics context
+     * @param colorSet   the colorset to use
+     * @param isSelected if the constraint is selected or not
+     */
+    public void draw(ViewTransform transform, Graphics2D g, ColorSet colorSet,
+            boolean isSelected) {
+        if (mType == ConstraintAnchor.Type.BASELINE) {
+            int x = transform.getSwingX(getOwner().getDrawX());
+            int y = transform.getSwingY(getOwner().getDrawY());
+            int w = transform.getSwingDimension(getOwner().getDrawWidth());
+            int h = transform.getSwingDimension(getOwner().getDrawHeight());
+            int baseline = transform.getSwingDimension(getOwner().getBaselineDistance());
+            int padding = 5;
+            int bh = 7;
+            int by = y + baseline;
+
+            if (isSelected) {
+                Color pre = g.getColor();
+                Stroke preStroke = g.getStroke();
+                g.setColor(colorSet.getShadow());
+                g.setStroke(colorSet.getShadowStroke());
+
+                g.drawRoundRect(x + padding, by - bh / 2, w - 2 * padding, bh, bh, bh);
+                g.drawLine(x, by, x + padding, by);
+                g.drawLine(x + w - padding, by, x + w, by);
+
+                g.setStroke(preStroke);
+                g.setColor(pre);
+            }
+
+            Color previous = g.getColor();
+            g.setColor(colorSet.getBackground());
+            g.fillRoundRect(x + padding, by - bh / 2, w - 2 * padding, bh, bh, bh);
+            g.setColor(previous);
+            g.drawRoundRect(x + padding, by - bh / 2, w - 2 * padding, bh, bh, bh);
+            g.drawLine(x, by, x + padding, by);
+            g.drawLine(x + w - padding, by, x + w, by);
+            if (mAnchor.isConnected()) {
+                int margin = 2;
+                g.fillRoundRect(x + padding + margin,
+                        by - bh / 2 + margin,
+                        w - 2 * padding - 2 * margin,
+                        bh - 2 * margin, bh, bh);
+                g.drawRoundRect(x + padding + margin,
+                        by - bh / 2 + margin,
+                        w - 2 * padding - 2 * margin,
+                        bh - 2 * margin, bh, bh);
+            }
+        }
+    }
 }

@@ -126,7 +126,7 @@ public class WidgetDecorator {
                 mColorSet.getSubduedText(),
                 mColorSet.getText(),
                 mColorSet.getText(),
-                mColorSet.getText());
+                mColorSet.getSelectedText());
 
         mConstraintsColor = new ColorTheme(
                 mColorSet.getSubduedConstraints(),
@@ -331,7 +331,7 @@ public class WidgetDecorator {
         }
 
         WidgetDraw.drawWidgetFrame(transform, g, mWidget,
-                mDisplayAnchorsPolicy, mShowResizeHandles,
+                mColorSet, mDisplayAnchorsPolicy, mShowResizeHandles,
                 mShowSizeIndicator, mIsSelected, mStyle);
 
         if (!WidgetDecorator.isShowFakeUI() && mColorSet.drawWidgetInfos()) {
@@ -398,7 +398,8 @@ public class WidgetDecorator {
         }
         g.setColor(mConstraintsColor.getColor());
         if (mIsSelected || isShowAllConstraints()) {
-            WidgetDraw.drawConstraints(transform, g, mWidget, mIsSelected, mShowPercentIndicator);
+            WidgetDraw.drawConstraints(transform, g, mColorSet, mWidget, mIsSelected,
+                    mShowPercentIndicator, false);
         }
     }
 

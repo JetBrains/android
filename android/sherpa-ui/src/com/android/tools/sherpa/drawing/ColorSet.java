@@ -16,7 +16,9 @@
 
 package com.android.tools.sherpa.drawing;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Stroke;
 
 /**
  * Holds a set of colors for drawing a scene
@@ -45,6 +47,7 @@ public class ColorSet {
     protected Color mSelectedBackground;
     protected Color mSelectedFrames;
     protected Color mSelectedConstraints;
+    protected Color mSelectedText;
 
     protected Color mInspectorBackgroundColor;
     protected Color mInspectorFillColor;
@@ -57,6 +60,9 @@ public class ColorSet {
     protected Color mAnchorCreationCircle;
     protected Color mAnchorDisconnectionCircle;
     protected Color mAnchorConnectionCircle;
+
+    protected Color mShadow = new Color(0, 0, 0, 50);
+    protected Stroke mShadowStroke = new BasicStroke(3);
 
     public Color getAnchorCircle() { return mAnchorCircle; }
 
@@ -125,4 +131,17 @@ public class ColorSet {
     public boolean drawBackground() {
         return mDrawBackground;
     }
+
+    public Color getSelectedText() {
+        return mSelectedText;
+    }
+
+    public Color getShadow() {
+        return mShadow;
+    }
+
+    public Stroke getShadowStroke() {
+        return mShadowStroke;
+    }
+
 }
