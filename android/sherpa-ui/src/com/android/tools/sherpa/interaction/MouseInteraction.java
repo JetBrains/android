@@ -84,19 +84,30 @@ public class MouseInteraction {
     /**
      * Base constructor
      *
-     * @param transform    the view transform
+     * @param transform the view transform
      * @param widgetsScene
+     * @param selection
+     * @param widgetMotion
+     * @param widgetResize
+     * @param sceneDraw
+     * @param previous get parameter from previous
      */
     public MouseInteraction(ViewTransform transform,
             WidgetsScene widgetsScene, Selection selection,
             WidgetMotion widgetMotion, WidgetResize widgetResize,
-            SceneDraw sceneDraw) {
+            SceneDraw sceneDraw, MouseInteraction previous) {
         mViewTransform = transform;
         mWidgetsScene = widgetsScene;
         mSelection = selection;
         mWidgetMotion = widgetMotion;
         mWidgetResize = widgetResize;
         mSceneDraw = sceneDraw;
+
+        if (previous != null) { // copy setting from previous mouse interaction
+            mMoveOnlyMode = previous.mMoveOnlyMode;
+            mAutoConnect = previous.mAutoConnect;
+            mUseDefinedMargin = previous.mUseDefinedMargin;
+        }
     }
 
     /*-----------------------------------------------------------------------*/
@@ -629,7 +640,6 @@ public class MouseInteraction {
      * @param y mouse y coordinate
      */
     public void mouseReleased(int x, int y) {
-
         if (mAutoConnect) {
             // Auto-connect to candidates
             for (SnapCandidate candidate : mWidgetMotion.getSnapCandidates()) {
