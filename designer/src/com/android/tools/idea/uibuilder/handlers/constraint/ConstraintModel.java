@@ -169,7 +169,7 @@ public class ConstraintModel {
     myMouseInteraction = new MouseInteraction(myViewTransform,
                                               myWidgetsScene, mySelection,
                                               myWidgetMotion, myWidgetResize,
-                                              mySceneDraw);
+                                              mySceneDraw, myMouseInteraction);
   }
 
   /**
