@@ -57,6 +57,7 @@ public class AndroidColorSet extends ColorSet {
         mSelectedBackground = Color.white;
         mSelectedFrames = Color.blue;
         mSelectedConstraints = Color.blue;
+        mSelectedText = Color.black;
 
         // Anchor colors
 
