@@ -201,7 +201,7 @@ public class SingleWidgetView extends JPanel {
       mMouseInteraction = new MouseInteraction(mViewTransform,
                                                mWidgetsScene, mSelection,
                                                mWidgetMotion, mWidgetResize,
-                                               mSceneDraw);
+                                               mSceneDraw, mMouseInteraction);
       connect();
       Animator.setAnimationEnabled(previousAnimationValue);
     }
