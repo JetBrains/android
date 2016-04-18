@@ -85,7 +85,7 @@ class PsAndroidDependencyCollection implements PsModelCollection<PsAndroidDepend
   private void addModule(@NotNull String gradlePath, @NotNull PsAndroidArtifact artifact, @Nullable String projectVariant) {
     PsParsedDependencies parsedDependencies = myParent.getParsedDependencies();
 
-    ModuleDependencyModel parsedModel = parsedDependencies.findMatchingModuleDependency(gradlePath, artifact);
+    ModuleDependencyModel matchingParsedDependency = parsedDependencies.findModuleDependency(gradlePath, artifact::contains);
 
     Module resolvedModule = null;
     PsModule module = myParent.getParent().findModuleByGradlePath(gradlePath);
@@ -94,12 +94,12 @@ class PsAndroidDependencyCollection implements PsModelCollection<PsAndroidDepend
     }
     PsModuleDependency dependency = findElement(gradlePath, PsModuleDependency.class);
     if (dependency == null) {
-      dependency = new PsModuleDependency(myParent, gradlePath, projectVariant, resolvedModule, artifact, parsedModel);
+      dependency = new PsModuleDependency(myParent, gradlePath, artifact, projectVariant, resolvedModule, matchingParsedDependency);
       myModuleDependenciesByGradlePath.put(gradlePath, dependency);
     }
     else {
-      if (dependency.getParsedModel() == null && parsedModel != null) {
-        dependency.setParsedModel(parsedModel);
+      if (matchingParsedDependency != null) {
+        dependency.addParsedModel(matchingParsedDependency);
       }
     }
     dependency.addContainer(artifact);
@@ -113,7 +113,7 @@ class PsAndroidDependencyCollection implements PsModelCollection<PsAndroidDepend
     if (coordinates != null) {
       PsArtifactDependencySpec spec = PsArtifactDependencySpec.create(coordinates);
 
-      ArtifactDependencyModel matchingParsedDependency = parsedDependencies.findMatchingArtifactDependency(coordinates, artifact);
+      ArtifactDependencyModel matchingParsedDependency = parsedDependencies.findLibraryDependency(coordinates, artifact::contains);
       if (matchingParsedDependency != null) {
         String parsedVersionValue = matchingParsedDependency.version().value();
         if (parsedVersionValue != null) {
@@ -143,7 +143,7 @@ class PsAndroidDependencyCollection implements PsModelCollection<PsAndroidDepend
             // Here 'espresso' brings junit 4.12, but there is no mismatch with junit 4.11, because they are in different artifacts.
             PsAndroidLibraryDependency potentialDuplicate = null;
             for (PsAndroidLibraryDependency dependency : myLibraryDependenciesBySpec.values()) {
-              if (dependency.getParsedModel() == matchingParsedDependency) {
+              if (dependency.getParsedModels().contains(matchingParsedDependency)) {
                 potentialDuplicate = dependency;
                 break;
               }
@@ -264,7 +264,7 @@ class PsAndroidDependencyCollection implements PsModelCollection<PsAndroidDepend
     String compactNotation = resolvedSpec.toString();
     PsAndroidLibraryDependency dependency = myLibraryDependenciesBySpec.get(compactNotation);
     if (dependency == null) {
-      dependency = new PsAndroidLibraryDependency(myParent, resolvedSpec, library, artifact, parsedModel);
+      dependency = new PsAndroidLibraryDependency(myParent, resolvedSpec, artifact, library, parsedModel);
       myLibraryDependenciesBySpec.put(compactNotation, dependency);
 
       File libraryPath = null;
@@ -285,8 +285,8 @@ class PsAndroidDependencyCollection implements PsModelCollection<PsAndroidDepend
       }
     }
     else {
-      if (dependency.getParsedModel() == null && parsedModel != null) {
-        dependency.setParsedModel(parsedModel);
+      if (parsedModel != null) {
+        dependency.addParsedModel(parsedModel);
       }
     }
     return dependency;
@@ -330,13 +330,23 @@ class PsAndroidDependencyCollection implements PsModelCollection<PsAndroidDepend
 
   @Override
   public void forEach(@NotNull Consumer<PsAndroidDependency> consumer) {
-    myLibraryDependenciesBySpec.values().forEach(consumer);
-    myModuleDependenciesByGradlePath.values().forEach(consumer);
+    forEachDependency(myLibraryDependenciesBySpec, consumer);
+    forEachDependency(myModuleDependenciesByGradlePath, consumer);
+  }
+
+  private static void forEachDependency(@NotNull Map<String, ? extends PsAndroidDependency> dependenciesBySpec,
+                                        @NotNull Consumer<PsAndroidDependency> consumer) {
+    dependenciesBySpec.values().forEach(consumer);
   }
 
   public void forEachDeclaredDependency(@NotNull Consumer<PsAndroidDependency> consumer) {
-    myLibraryDependenciesBySpec.values().stream().filter(PsAndroidDependency::isDeclared).forEach(consumer);
-    myModuleDependenciesByGradlePath.values().stream().filter(PsAndroidDependency::isDeclared).forEach(consumer);
+    forEachDeclaredDependency(myLibraryDependenciesBySpec, consumer);
+    forEachDeclaredDependency(myModuleDependenciesByGradlePath, consumer);
+  }
+
+  private static void forEachDeclaredDependency(@NotNull Map<String, ? extends PsAndroidDependency> dependenciesBySpec,
+                                                @NotNull Consumer<PsAndroidDependency> consumer) {
+    dependenciesBySpec.values().stream().filter(PsAndroidDependency::isDeclared).forEach(consumer);
   }
 
   public void forEachModuleDependency(@NotNull Consumer<PsModuleDependency> consumer) {
@@ -348,7 +358,7 @@ class PsAndroidDependencyCollection implements PsModelCollection<PsAndroidDepend
                             @Nullable ArtifactDependencyModel parsedModel) {
     PsAndroidLibraryDependency dependency = myLibraryDependenciesBySpec.get(spec.toString());
     if (dependency == null) {
-      dependency = new PsAndroidLibraryDependency(myParent, spec, null, artifact, parsedModel);
+      dependency = new PsAndroidLibraryDependency(myParent, spec, artifact, null, parsedModel);
       myLibraryDependenciesBySpec.put(spec.toString(), dependency);
     }
     else {
