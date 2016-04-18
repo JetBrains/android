@@ -28,7 +28,7 @@
       <xml reuse="preview,drag-preview">
         <![CDATA[
             <ProgressBar
-              style="@android:style/Widget.ProgressBar.Large"
+              style="?android:attr/progressBarStyleLarge"
               android:layout_width="wrap_content"
               android:layout_height="wrap_content"
             />
@@ -40,7 +40,7 @@
       <xml reuse="preview,drag-preview">
         <![CDATA[
             <ProgressBar
-              style="@android:style/Widget.ProgressBar"
+              style="?android:attr/progressBarStyle"
               android:layout_width="wrap_content"
               android:layout_height="wrap_content"
             />
@@ -53,7 +53,7 @@
       <xml reuse="preview,drag-preview">
         <![CDATA[
             <ProgressBar
-              style="@android:style/Widget.ProgressBar.Small"
+              style="?android:attr/progressBarStyleSmall"
               android:layout_width="wrap_content"
               android:layout_height="wrap_content"
             />
