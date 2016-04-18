@@ -17,6 +17,7 @@ package com.android.tools.idea.tests.gui;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.ScreenshotsDuringTest;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import org.junit.Rule;
 import org.junit.Test;
@@ -30,6 +31,7 @@ import static junit.framework.Assert.assertEquals;
 public class SampleTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
+  @Rule public final ScreenshotsDuringTest screenshotsDuringTest = new ScreenshotsDuringTest();
 
   @Test
   public void testEditor() throws IOException {
