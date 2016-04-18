@@ -915,7 +915,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     ComboBoxActionFixture comboBoxActionFixture = ComboBoxActionFixture.findComboBox(robot(), actionToolbarContainer);
     comboBoxActionFixture.selectItem(appName);
     robot().pressAndReleaseKey(KeyEvent.VK_ENTER);
-    robot().waitForIdle();
+    Wait.seconds(30).expecting("ComboBox to be selected").until(() -> appName.equals(comboBoxActionFixture.getSelectedItemText()));
   }
 
   /**
@@ -960,7 +960,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   public void openAndToggleBreakPoints(String fileName, int[] lines) {
     EditorFixture editor = getEditor().open(fileName);
     for (int line : lines) {
-      editor.moveToLine(line);
+      editor.moveToLine(line - 1); // Editor lines are zero-based.
       invokeMenuPath("Run", "Toggle Line Breakpoint"); // TODO: Use editor.invokeAction instead and provide the mnemonic.
     }
   }
