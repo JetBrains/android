@@ -15,10 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.theme;
 
-import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
+import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.RenameRefactoringDialogFixture;
@@ -47,6 +44,7 @@ import static org.junit.Assert.*;
 public class ThemeSelectorTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
+  @Rule public final ScreenshotsDuringTest screenshotsDuringTest = new ScreenshotsDuringTest();
 
   /**
    * Tests the theme renaming functionality of the theme selector
