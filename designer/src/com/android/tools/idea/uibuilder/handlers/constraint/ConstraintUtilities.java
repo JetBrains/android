@@ -16,13 +16,16 @@
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.uibuilder.model.*;
+import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.android.tools.sherpa.structure.Selection;
 import com.android.tools.sherpa.structure.WidgetCompanion;
+import com.intellij.openapi.application.Result;
+import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.project.Project;
+import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
-import com.android.tools.idea.uibuilder.model.Insets;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.sherpa.drawing.decorator.WidgetDecorator;
 import com.android.tools.sherpa.structure.WidgetsScene;
 import com.google.tnt.solver.widgets.ConstraintAnchor;
@@ -30,6 +33,9 @@ import com.google.tnt.solver.widgets.ConstraintWidget;
 import com.google.tnt.solver.widgets.ConstraintWidgetContainer;
 import com.google.tnt.solver.widgets.WidgetContainer;
 import com.intellij.openapi.projectRoots.Sdk;
+
+import java.util.ArrayList;
+import java.util.Collection;
 
 /**
  * Utility functions managing translation of constants from the solver to the NlModel attributes
@@ -218,6 +224,7 @@ public class ConstraintUtilities {
         component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_LEFT_TO_LEFT_OF, null);
         component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_LEFT_TO_RIGHT_OF, null);
         component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_LEFT_CREATOR, null);
+        component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS, null);
         break;
       }
       case TOP: {
@@ -226,6 +233,7 @@ public class ConstraintUtilities {
         component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF, null);
         component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_TOP_TO_BOTTOM_OF, null);
         component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_TOP_CREATOR, null);
+        component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS, null);
         break;
       }
       case RIGHT: {
@@ -234,6 +242,7 @@ public class ConstraintUtilities {
         component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_RIGHT_TO_LEFT_OF, null);
         component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_RIGHT_TO_RIGHT_OF, null);
         component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_RIGHT_CREATOR, null);
+        component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS, null);
         break;
       }
       case BOTTOM: {
@@ -242,11 +251,13 @@ public class ConstraintUtilities {
         component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF, null);
         component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF, null);
         component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BOTTOM_CREATOR, null);
+        component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS, null);
         break;
       }
       case BASELINE: {
         component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF, null);
         component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BASELINE_CREATOR, null);
+        component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS, null);
       }
       break;
     }
@@ -672,4 +683,88 @@ public class ConstraintUtilities {
     setVerticalBias(component, widget);
   }
 
+  static void saveModelToXMLOnRelease(NlModel nlModel, int modifiers, int ax, int ay) {
+    Project project = nlModel.getProject();
+    XmlFile file = nlModel.getFile();
+
+    String label = "Constraint";
+    WriteCommandAction action = new WriteCommandAction(project, label, file) {
+      @Override
+      protected void run(@NotNull Result result) throws Throwable {
+        ConstraintModel model = ConstraintModel.getModel();
+        model.updateModifiers(modifiers);
+        model.mouseReleased(ax, ay);
+        Selection selection = model.getSelection();
+        if (selection != null) {
+          for (ConstraintWidget widget : selection.getModifiedWidgets()) {
+            commitElement(widget, nlModel);
+          }
+        }
+        selection.clearModifiedWidgets();
+      }
+    };
+    action.execute();
+    nlModel.notifyModified();
+  }
+
+  static void saveBias(NlComponent component, String attribute, final float bias) {
+    NlModel nlModel = component.getModel();
+    Project project = nlModel.getProject();
+    XmlFile file = nlModel.getFile();
+
+    String label = "Constraint";
+    WriteCommandAction action = new WriteCommandAction(project, label, file) {
+      @Override
+      protected void run(@NotNull Result result) throws Throwable {
+        component.setAttribute(SdkConstants.SHERPA_URI, attribute, "" + bias);
+      }
+    };
+    action.execute();
+    nlModel.notifyModified();
+  }
+
+  /**
+   * Utility function to commit to the NlModel the current state of all widgets
+   * @param nlModel
+   */
+  static void saveModelToXML(NlModel nlModel) {
+    Project project = nlModel.getProject();
+    XmlFile file = nlModel.getFile();
+
+    String label = "Constraint";
+    WriteCommandAction action = new WriteCommandAction(project, label, file) {
+      @Override
+      protected void run(@NotNull Result result) throws Throwable {
+        ConstraintModel model = ConstraintModel.getModel();
+        Collection<ConstraintWidget> widgets = model.getScene().getWidgets();
+        for (ConstraintWidget widget : widgets) {
+          commitElement(widget, nlModel);
+        }
+      }
+    };
+    action.execute();
+    nlModel.notifyModified();
+  }
+
+  /**
+   * Utility function to commit to the NlModel the current state of the given widget
+   *
+   * @param widget the widget we want to save to the model
+   * @param model the model to save to
+   */
+  static void commitElement(@NotNull ConstraintWidget widget, @NotNull NlModel model) {
+    WidgetCompanion companion = (WidgetCompanion)widget.getCompanionWidget();
+    NlComponent component = (NlComponent)companion.getWidgetModel();
+    for (NlComponent c : model.getComponents()) {
+      if (c.getId() != null && c.getId().equalsIgnoreCase(component.getId())) {
+        component = c;
+        break;
+      }
+    }
+    setEditorPosition(component, widget.getX(), widget.getY());
+    setDimension(component, widget);
+    for (ConstraintAnchor anchor : widget.getAnchors()) {
+      setConnection(component, anchor);
+    }
+  }
 }

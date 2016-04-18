@@ -20,6 +20,8 @@ import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.sherpa.drawing.ConnectionDraw;
 
 import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.plaf.basic.BasicSliderUI;
 import java.awt.*;
 
@@ -54,6 +56,18 @@ public class WidgetConstraintPanel extends JPanel {
     add(mHorizontalSlider, gbc);
     mVerticalSlider.setUI(new SliderUI(mVerticalSlider));
     mHorizontalSlider.setUI(new SliderUI(mHorizontalSlider));
+    mHorizontalSlider.addChangeListener(new ChangeListener() {
+      @Override
+      public void stateChanged(ChangeEvent e) {
+        ConstraintUtilities.saveBias(mComponent, SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS, mHorizontalSlider.getValue() / 100f);
+      }
+    });
+    mVerticalSlider.addChangeListener(new ChangeListener() {
+      @Override
+      public void stateChanged(ChangeEvent e) {
+        ConstraintUtilities.saveBias(mComponent, SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS, (1f - (mVerticalSlider.getValue() / 100f)));
+      }
+    });
   }
 
   /**
@@ -98,6 +112,8 @@ public class WidgetConstraintPanel extends JPanel {
     String tb = component.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_TOP_TO_BOTTOM_OF);
     String bt = component.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF);
     String bb = component.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF);
+    String hbias = component.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS);
+    String vbias = component.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS);
 
     if (rl == null && rr == null) {
       right = -1;
@@ -115,6 +131,18 @@ public class WidgetConstraintPanel extends JPanel {
     mHorizontalSlider.setEnabled(left >= 0 && right >= 0);
     mHorizontalSlider.invalidate();
     mVerticalSlider.invalidate();
+
+    float horizBias = 0.5f;
+    if (hbias != null && hbias.length() > 0) {
+      horizBias = Float.parseFloat(hbias);
+    }
+    float vertBias = 0.5f;
+    if (vbias != null && vbias.length() > 0) {
+      vertBias = Float.parseFloat(vbias);
+    }
+    mHorizontalSlider.setValue((int)(horizBias * 100));
+    mVerticalSlider.setValue(100 - (int)(vertBias * 100));
+
     mMain.configureUi(mWidgetName, bottom, top, left, right);
   }
 
@@ -137,7 +165,6 @@ public class WidgetConstraintPanel extends JPanel {
 
     @Override
     public void paintTrack(Graphics g) {
-      System.out.println("slider.isEnabled()" + slider.isEnabled());
       if (slider.isEnabled()) {
         super.paintTrack(g);
       }

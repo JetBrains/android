@@ -70,6 +70,7 @@ public class ConstraintModel {
   private ColorSet mAndroidColorSet = new AndroidColorSet();
 
   private RepaintSurface myRepaintSurface = new RepaintSurface();
+  private boolean mAutoConnect = true;
 
   //////////////////////////////////////////////////////////////////////////////
   // Static functions
@@ -433,6 +434,13 @@ public class ConstraintModel {
     myMouseInteraction.setIsAltDown((modifiers & InputEvent.ALT_DOWN_MASK) != 0);
   }
 
+  public void toggleAutoConnect() {
+    mAutoConnect = !mAutoConnect;
+    myMouseInteraction.setAutoConnect(mAutoConnect);
+  }
+
+  public boolean isAutoConnect() { return mAutoConnect; }
+
   //////////////////////////////////////////////////////////////////////////////
   // Painting
   //////////////////////////////////////////////////////////////////////////////
@@ -444,7 +452,9 @@ public class ConstraintModel {
     ScreenView myScreenView;
     @Override
     public void repaint() {
-      myScreenView.getSurface().repaint();
+      if (myScreenView != null) {
+        myScreenView.getSurface().repaint();
+      }
     }
   }
 
