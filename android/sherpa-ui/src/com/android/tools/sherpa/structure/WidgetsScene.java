@@ -51,6 +51,19 @@ public class WidgetsScene {
     }
 
     /**
+     * Clear all constraints
+     */
+    public void clearAllConstraints() {
+        for (ConstraintWidget widget : getWidgets()) {
+            widget.resetAnchors();
+            widget.setVerticalBiasPercent(ConstraintWidget.DEFAULT_BIAS);
+            widget.setHorizontalBiasPercent(ConstraintWidget.DEFAULT_BIAS);
+        }
+        mSelection.clear();
+        mSelection.setSelectedAnchor(null);
+    }
+
+    /**
      * Accessor to the list of widgets
      *
      * @return
