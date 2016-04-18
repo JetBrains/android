@@ -23,8 +23,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.util.ui.UIUtil;
 import net.miginfocom.swing.MigLayout;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -32,21 +32,34 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.*;
 import java.util.Collections;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 public class InspectorPanel extends JPanel {
   private static final boolean DEBUG_BOUNDS = false;
-  private static final Color TITLE_COLOR = JBColor.BLUE;
+
+  private final Font myBoldLabelFont = UIUtil.getLabelFont().deriveFont(Font.BOLD);
+  private final Icon myExpandedIcon;
+  private final Icon myCollapsedIcon;
+  private final JPanel myInspector;
   private List<InspectorComponent> myInspectors = Collections.emptyList();
+  private List<Component> myGroup;
 
   public InspectorPanel() {
     super(new BorderLayout());
+    myExpandedIcon = (Icon)UIManager.get("Tree.expandedIcon");
+    myCollapsedIcon = (Icon)UIManager.get("Tree.collapsedIcon");
+    myInspector = new JPanel();
+    add(myInspector, BorderLayout.CENTER);
+    myInspector.setLayout(createGridLayout());
   }
 
   private static LayoutManager createGridLayout() {
     // 2 column grid by default
-    String layoutConstraints = "wrap 6, insets 1";
+    String layoutConstraints = "wrap 6, insets 2pt, novisualpadding, hidemode 3";
     if (DEBUG_BOUNDS) {
       layoutConstraints += ", debug";
     }
@@ -61,12 +74,7 @@ public class InspectorPanel extends JPanel {
   public void setComponent(@Nullable NlComponent component,
                            @NotNull List<? extends NlProperty> properties,
                            @NotNull NlPropertiesManager propertiesManager) {
-    removeAll();
-
-    JPanel panel = new JPanel();
-    add(panel, BorderLayout.CENTER);
-
-    panel.setLayout(createGridLayout());
+    myInspector.removeAll();
 
     Map<String, NlProperty> propertiesByName = Maps.newHashMapWithExpectedSize(properties.size());
     for (NlProperty property : properties) {
@@ -82,9 +90,10 @@ public class InspectorPanel extends JPanel {
     List<InspectorComponent> inspectors = createInspectorComponents(component, propertiesManager, propertiesByName, allProviders);
 
     for (InspectorComponent inspector : inspectors) {
-      inspector.attachToInspector(panel);
+      inspector.attachToInspector(this);
     }
 
+    endGroup();
     myInspectors = inspectors;
   }
 
@@ -115,65 +124,97 @@ public class InspectorPanel extends JPanel {
     return inspectors;
   }
 
-  public static void addTitle(@NotNull JPanel inspector, @NotNull String title) {
-    JBLabel label = new JBLabel(title);
-    label.setForeground(TITLE_COLOR);
-    inspector.add(label, "gapbottom 1, span, split 2, aligny center");
-    inspector.add(new JSeparator(), "gapleft rel, growx");
+  public void addExpandableTitle(@NotNull String title) {
+    JLabel label = createLabel(title, null, null);
+    label.setFont(myBoldLabelFont);
+    addComponent(label, "span 6");
+
+    startGroup(label);
   }
 
-  public static void addSeparator(@NotNull JPanel inspector) {
-    inspector.add(new JSeparator(), "span 6, grow");
+  public void addSeparator() {
+    endGroup();
+    addComponent(new JSeparator(), "span 6, grow");
   }
 
-  public static void addComponent(@NotNull JPanel inspector,
-                                  @NotNull String labelText,
-                                  @Nullable String tooltip,
-                                  @NotNull Component component) {
-    JBLabel l = new JBLabel(labelText);
-    l.setLabelFor(component);
-    l.setToolTipText(tooltip);
-
-    inspector.add(l, "span 2"); // 30%
-    inspector.add(component, "span 4"); // 70%
+  public void addComponent(@NotNull String labelText,
+                           @Nullable String tooltip,
+                           @NotNull Component component) {
+    addComponent(createLabel(labelText, tooltip, component), "span 2"); // 30%
+    addComponent(component, "span 4"); // 70%
   }
 
-  public static void addSplitComponents(@NotNull JPanel inspector,
-                                        @Nullable String labelText1,
-                                        @Nullable String tooltip1,
-                                        @Nullable Component component1,
-                                        @Nullable String labelText2,
-                                        @Nullable String tooltip2,
-                                        @Nullable Component component2) {
+  public void addSplitComponents(@Nullable String labelText1,
+                                 @Nullable String tooltip1,
+                                 @Nullable Component component1,
+                                 @Nullable String labelText2,
+                                 @Nullable String tooltip2,
+                                 @Nullable Component component2) {
     assert (labelText1 != null || component1 != null) && (labelText2 != null || component2 != null);
     if (labelText1 != null) {
-      JBLabel label1 = new JBLabel(labelText1);
-      label1.setLabelFor(component1);
-      label1.setToolTipText(tooltip1);
       int span = component1 != null ? 1 : 3;
-      inspector.add(label1, "span " + span);
+      addComponent(createLabel(labelText1, tooltip1, component1), "span " + span);
     }
     if (component1 != null) {
       int span = labelText1 != null ? 2 : 3;
-      inspector.add(component1, "span " + span);
+      addComponent(component1, "span " + span);
     }
     if (labelText2 != null) {
-      JBLabel label2 = new JBLabel(labelText2);
-      label2.setLabelFor(component2);
-      label2.setToolTipText(tooltip2);
       int span = component2 != null ? 1 : 3;
-      inspector.add(label2, "span " + span);
+      addComponent(createLabel(labelText2, tooltip2, component2), "span " + span);
     }
     if (component2 != null) {
       int span = labelText2 != null ? 2 : 3;
-      inspector.add(component2, "span " + span);
+      addComponent(component2, "span " + span);
     }
   }
 
   /**
    * Adds a custom panel that spans the entire width, just set the preferred height on the panel
    */
-  public static void addPanel(@NotNull JPanel inspector, @NotNull JPanel panel) {
-    inspector.add(panel, "span 5, grow");
+  public void addPanel(@NotNull JPanel panel) {
+    addComponent(panel, "span 5, grow");
+  }
+
+  public void restartExpansionGroup() {
+    assert myGroup != null;
+    myGroup.stream().forEach(component -> component.setVisible(true));
+    myGroup.clear();
+  }
+
+  private static JLabel createLabel(@NotNull String labelText, @Nullable String tooltip, @Nullable Component component) {
+    JBLabel label = new JBLabel(labelText);
+    label.setLabelFor(component);
+    label.setToolTipText(tooltip);
+    return label;
+  }
+
+  private void addComponent(@NotNull Component component, @NotNull String migConstraints) {
+    myInspector.add(component, migConstraints);
+    if (myGroup != null) {
+      myGroup.add(component);
+      component.setVisible(false);
+    }
+  }
+
+  private void startGroup(@NotNull JLabel label) {
+    assert myGroup == null;
+    List<Component> group = new ArrayList<>();
+
+    label.setIcon(myCollapsedIcon);
+    label.addMouseListener(new MouseAdapter() {
+      @Override
+      public void mouseClicked(MouseEvent event) {
+        boolean wasExpanded = label.getIcon() == myExpandedIcon;
+        label.setIcon(wasExpanded ? myCollapsedIcon : myExpandedIcon);
+        group.stream().forEach(component -> component.setVisible(!wasExpanded));
+      }
+    });
+
+    myGroup = group;
+  }
+
+  private void endGroup() {
+    myGroup = null;
   }
 }

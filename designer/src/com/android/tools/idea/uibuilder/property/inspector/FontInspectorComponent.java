@@ -110,18 +110,18 @@ public class FontInspectorComponent implements InspectorComponent {
   }
 
   @Override
-  public void attachToInspector(@NotNull JPanel inspector) {
-    InspectorPanel.addSeparator(inspector);
-    InspectorPanel.addComponent(inspector, "Font", myStyle.getTooltipText(), myStyleEditor.getComponent());
-    InspectorPanel.addComponent(inspector, "Font family", myFontFamily.getTooltipText(), myFontFamilyEditor.getComponent());
-    InspectorPanel.addSplitComponents(inspector,
-                                      "Size", myFontSize.getTooltipText(), myFontSizeEditor.getComponent(),
-                                      "Spacing", mySpacing.getTooltipText(), mySpacingEditor.getComponent());
-    InspectorPanel.addSplitComponents(inspector,
-                                      "Decoration", myTextStyle.getTooltipText(), null,
-                                      "Alignment", myAlignment.getTooltipText(), null);
-    InspectorPanel.addSplitComponents(inspector, null, null, myTextStylePanel, null, null, myAlignmentPanel);
-    InspectorPanel.addComponent(inspector, "Color", myColor.getTooltipText(), myColorEditor.getComponent());
+  public void attachToInspector(@NotNull InspectorPanel inspector) {
+    inspector.addSeparator();
+    inspector.addExpandableTitle("Text Attributes");
+    inspector.addComponent("Appearance", myStyle.getTooltipText(), myStyleEditor.getComponent());
+    inspector.restartExpansionGroup();
+    inspector.addComponent("Font family", myFontFamily.getTooltipText(), myFontFamilyEditor.getComponent());
+    inspector.addSplitComponents("Size", myFontSize.getTooltipText(), myFontSizeEditor.getComponent(),
+                                 "Spacing", mySpacing.getTooltipText(), mySpacingEditor.getComponent());
+    inspector.addSplitComponents("Decoration", myTextStyle.getTooltipText(), null,
+                                 "Alignment", myAlignment.getTooltipText(), null);
+    inspector.addSplitComponents(null, null, myTextStylePanel, null, null, myAlignmentPanel);
+    inspector.addComponent("Color", myColor.getTooltipText(), myColorEditor.getComponent());
     refresh();
   }
 
