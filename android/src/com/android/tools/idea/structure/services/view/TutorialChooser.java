@@ -48,7 +48,7 @@ public class TutorialChooser extends CardViewPanel {
     header.setOpaque(false);
     JBLabel title = new JBLabel(bundle.getName());
     title.setAlignmentX(0);
-    title.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
+    title.setBorder(BorderFactory.createEmptyBorder(10, 10, 0, 10));
     title.setIcon(bundle.getIcon());
     header.add(title);
 
