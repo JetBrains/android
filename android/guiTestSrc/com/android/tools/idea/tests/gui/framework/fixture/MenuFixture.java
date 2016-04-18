@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.tools.idea.tests.gui.framework.Wait;
+import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Ref;
@@ -30,6 +31,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth.assertWithMessage;
 import static org.junit.Assert.assertNotNull;
 
 class MenuFixture {
@@ -48,6 +50,7 @@ class MenuFixture {
    */
   void invokeMenuPath(@NotNull String... path) {
     JMenuItem menuItem = findActionMenuItem(false, path);
+    assertWithMessage("Menu path \"" + Joiner.on(" -> ").join(path) + "\" is not enabled").that(menuItem.isEnabled()).isTrue();
     myRobot.click(menuItem);
   }
 
@@ -60,6 +63,7 @@ class MenuFixture {
    */
   void invokeMenuPathRegex(@NotNull String... path) {
     JMenuItem menuItem = findActionMenuItem(true, path);
+    assertWithMessage("Menu path \"" + Joiner.on(" -> ").join(path) + "\" is not enabled").that(menuItem.isEnabled()).isTrue();
     myRobot.click(menuItem);
   }
 
