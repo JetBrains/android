@@ -20,6 +20,8 @@ import com.android.tools.idea.gradle.structure.configurables.android.dependencie
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.treeview.ResolvedDependenciesTreeBuilder;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.*;
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
+import com.android.tools.idea.gradle.structure.configurables.ui.SelectionChangeEventDispatcher;
+import com.android.tools.idea.gradle.structure.configurables.ui.SelectionChangeListener;
 import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowPanel;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractBaseCollapseAllAction;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractBaseExpandAllAction;
@@ -38,7 +40,6 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.ui.PopupHandler;
 import com.intellij.ui.treeStructure.Tree;
-import com.intellij.util.EventDispatcher;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -50,7 +51,6 @@ import javax.swing.tree.DefaultTreeModel;
 import java.awt.*;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
-import java.util.EventListener;
 import java.util.List;
 import java.util.Set;
 
@@ -65,7 +65,7 @@ public class ResolvedDependenciesPanel extends ToolWindowPanel implements Depend
   @NotNull private final PsContext myContext;
   @NotNull private final NodeHyperlinkSupport<ModuleDependencyNode> myHyperlinkSupport;
 
-  @NotNull private final EventDispatcher<SelectionListener> myEventDispatcher = EventDispatcher.create(SelectionListener.class);
+  @NotNull private final SelectionChangeEventDispatcher<PsAndroidDependency> myEventDispatcher = new SelectionChangeEventDispatcher<>();
 
   private boolean myIgnoreTreeSelectionEvents;
 
@@ -107,6 +107,8 @@ public class ResolvedDependenciesPanel extends ToolWindowPanel implements Depend
 
     myTreeBuilder = new ResolvedDependenciesTreeBuilder(module, myTree, treeModel, dependencySelection, this);
 
+    module.add(spec -> myTreeBuilder.reset(), this);
+
     JScrollPane scrollPane = setUp(myTreeBuilder);
     add(scrollPane, BorderLayout.CENTER);
 
@@ -139,7 +141,7 @@ public class ResolvedDependenciesPanel extends ToolWindowPanel implements Depend
   }
 
   private void notifySelectionChanged(@Nullable PsAndroidDependency selected) {
-    myEventDispatcher.getMulticaster().dependencySelected(selected);
+    myEventDispatcher.selectionChanged(selected);
   }
 
   private void setHeaderActions() {
@@ -240,13 +242,13 @@ public class ResolvedDependenciesPanel extends ToolWindowPanel implements Depend
     }
     else {
       myIgnoreTreeSelectionEvents = true;
-      myTreeBuilder.selectMatchingNodes(selection, true);
+      myTreeBuilder.selectMatchingNodes(selection, false);
       myIgnoreTreeSelectionEvents = false;
     }
   }
 
-  public void add(@NotNull SelectionListener listener) {
-    myEventDispatcher.addListener(listener);
+  public void add(@NotNull SelectionChangeListener<PsAndroidDependency> listener) {
+    myEventDispatcher.addListener(listener, this);
   }
 
   @Override
@@ -277,9 +279,5 @@ public class ResolvedDependenciesPanel extends ToolWindowPanel implements Depend
     super.dispose();
     Disposer.dispose(myTreeBuilder);
     Disposer.dispose(myHyperlinkSupport);
-  }
-
-  public interface SelectionListener extends EventListener {
-    void dependencySelected(@Nullable PsAndroidDependency dependency);
   }
 }

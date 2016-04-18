@@ -26,7 +26,7 @@ import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.PsProject;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
-import com.android.tools.idea.gradle.structure.model.android.PsLibraryDependency;
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidLibraryDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsModuleDependency;
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
@@ -51,7 +51,7 @@ class DeclaredDependenciesTreeRootNode extends AbstractRootNode<PsProject> {
     project.forEachModule(module -> collectDeclaredDependencies(module, collector));
 
     List<AbstractDependencyNode> children = Lists.newArrayList();
-    for (Map.Entry<LibraryDependencySpecs, List<PsLibraryDependency>> entry : collector.libraryDependenciesBySpec.entrySet()) {
+    for (Map.Entry<LibraryDependencySpecs, List<PsAndroidLibraryDependency>> entry : collector.libraryDependenciesBySpec.entrySet()) {
       LibraryDependencyNode child = new LibraryDependencyNode(this, entry.getValue());
       children.add(child);
     }
@@ -73,21 +73,21 @@ class DeclaredDependenciesTreeRootNode extends AbstractRootNode<PsProject> {
   }
 
   private static class DeclaredDependencyCollector {
-    @NotNull final Map<LibraryDependencySpecs, List<PsLibraryDependency>> libraryDependenciesBySpec = Maps.newHashMap();
+    @NotNull final Map<LibraryDependencySpecs, List<PsAndroidLibraryDependency>> libraryDependenciesBySpec = Maps.newHashMap();
     @NotNull final Map<String, List<PsModuleDependency>> moduleDependenciesByGradlePath = Maps.newHashMap();
 
     void add(@NotNull PsAndroidDependency dependency) {
-      if (dependency instanceof PsLibraryDependency) {
-        add((PsLibraryDependency)dependency);
+      if (dependency instanceof PsAndroidLibraryDependency) {
+        add((PsAndroidLibraryDependency)dependency);
       }
       else if (dependency instanceof PsModuleDependency) {
         add((PsModuleDependency)dependency);
       }
     }
 
-    private void add(@NotNull PsLibraryDependency dependency) {
+    private void add(@NotNull PsAndroidLibraryDependency dependency) {
       LibraryDependencySpecs specs = new LibraryDependencySpecs(dependency);
-      List<PsLibraryDependency> dependencies = libraryDependenciesBySpec.get(specs);
+      List<PsAndroidLibraryDependency> dependencies = libraryDependenciesBySpec.get(specs);
       if (dependencies == null) {
         dependencies = Lists.newArrayList();
         libraryDependenciesBySpec.put(specs, dependencies);
@@ -110,7 +110,7 @@ class DeclaredDependenciesTreeRootNode extends AbstractRootNode<PsProject> {
     @NotNull final PsArtifactDependencySpec declaredSpec;
     @NotNull final PsArtifactDependencySpec resolvedSpec;
 
-    LibraryDependencySpecs(@NotNull PsLibraryDependency dependency) {
+    LibraryDependencySpecs(@NotNull PsAndroidLibraryDependency dependency) {
       PsArtifactDependencySpec declaredSpec = dependency.getDeclaredSpec();
       assert declaredSpec != null;
       this.declaredSpec = declaredSpec;

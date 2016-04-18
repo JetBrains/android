@@ -16,22 +16,25 @@
 package com.android.tools.idea.gradle.structure.model.android;
 
 import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.PsParsedDependencies;
 import com.android.tools.idea.gradle.structure.model.PsProject;
+import com.android.tools.idea.gradle.structure.model.android.dependency.PsNewDependencyScopes;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.util.List;
 import java.util.function.Consumer;
 
 public class PsAndroidModule extends PsModule implements PsAndroidModel {
   @NotNull private final AndroidGradleModel myGradleModel;
 
-  private PsParsedDependencies myParsedDependencies;
   private PsVariantCollection myVariantCollection;
   private PsBuildTypeCollection myBuildTypeCollection;
   private PsProductFlavorCollection myProductFlavorCollection;
@@ -100,23 +103,18 @@ public class PsAndroidModule extends PsModule implements PsAndroidModel {
   }
 
   @Nullable
-  public PsLibraryDependency findLibraryDependency(@NotNull String compactNotation) {
-    return getOrCreateDependencyCollection().findElement(compactNotation, PsLibraryDependency.class);
+  public PsAndroidLibraryDependency findLibraryDependency(@NotNull String compactNotation) {
+    return getOrCreateDependencyCollection().findElement(compactNotation, PsAndroidLibraryDependency.class);
   }
 
   @Nullable
-  public PsLibraryDependency findLibraryDependency(@NotNull PsArtifactDependencySpec spec) {
-    return getOrCreateDependencyCollection().findElement(spec.toString(), PsLibraryDependency.class);
+  public PsAndroidLibraryDependency findLibraryDependency(@NotNull PsArtifactDependencySpec spec) {
+    return getOrCreateDependencyCollection().findElement(spec);
   }
 
   @NotNull
   private PsAndroidDependencyCollection getOrCreateDependencyCollection() {
     return myDependencyCollection == null ? myDependencyCollection = new PsAndroidDependencyCollection(this) : myDependencyCollection;
-  }
-
-  @NotNull
-  public PsParsedDependencies getParsedDependencies() {
-    return myParsedDependencies == null ? myParsedDependencies = new PsParsedDependencies(getParsedModel()) : myParsedDependencies;
   }
 
   @Override
@@ -144,5 +142,35 @@ public class PsAndroidModule extends PsModule implements PsAndroidModel {
     Module model = super.getResolvedModel();
     assert model != null;
     return model;
+  }
+
+  public void addLibraryDependency(@NotNull String library, @NotNull PsNewDependencyScopes newScopes, @NotNull List<String> scopesNames) {
+    // Update/reset the "parsed" model.
+    addLibraryDependencyToParsedModel(scopesNames, library);
+
+    // Reset dependencies.
+    myDependencyCollection = null;
+    PsAndroidDependencyCollection dependencyCollection = getOrCreateDependencyCollection();
+
+    List<PsAndroidArtifact> targetArtifacts = Lists.newArrayList();
+    forEachVariant(variant -> variant.forEachArtifact(artifact -> {
+      if (newScopes.contains(artifact)) {
+        targetArtifacts.add(artifact);
+      }
+    }));
+    assert !targetArtifacts.isEmpty();
+
+    PsArtifactDependencySpec spec = PsArtifactDependencySpec.create(library);
+    assert spec != null;
+
+    PsParsedDependencies parsedDependencies = getParsedDependencies();
+    for (PsAndroidArtifact artifact : targetArtifacts) {
+      ArtifactDependencyModel parsedDependency = parsedDependencies.findMatchingArtifactDependency(spec, artifact);
+      assert parsedDependency != null;
+      dependencyCollection.addLibraryDependency(spec, artifact, parsedDependency);
+    }
+
+    fireLibraryDependencyAddedEvent(spec);
+    setModified(true);
   }
 }

@@ -35,7 +35,6 @@ import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreePath;
 import java.awt.*;
-import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Collections;
@@ -149,29 +148,26 @@ public class NodeHyperlinkSupport<T extends SimpleNode> implements Disposable {
     myTree.addMouseMotionListener(mouseListener);
 
     // Make the cursor change to 'hand' if the mouse pointer is over a supported node and the user presses Ctrl or Cmd.
-    myKeyEventDispatcher = new KeyEventDispatcher() {
-      @Override
-      public boolean dispatchKeyEvent(KeyEvent e) {
-        T node = null;
-        if (e.getID() == KEY_PRESSED) {
-          Cursor cursor = getDefaultCursor();
-          if (isMetaOrCtrlKeyPressed(e)) {
-            node = getNodeUnderMousePointer();
-            if (node != null) {
-              cursor = getPredefinedCursor(HAND_CURSOR);
-            }
+    myKeyEventDispatcher = e -> {
+      T node = null;
+      if (e.getID() == KEY_PRESSED) {
+        Cursor cursor = getDefaultCursor();
+        if (isMetaOrCtrlKeyPressed(e)) {
+          node = getNodeUnderMousePointer();
+          if (node != null) {
+            cursor = getPredefinedCursor(HAND_CURSOR);
           }
-          setHoveredNode(node);
-          myTree.setCursor(cursor);
         }
-        else if (e.getID() == KEY_RELEASED) {
-          if (isMetaOrCtrlKeyPressed(e)) {
-            setHoveredNode(null);
-          }
-          myTree.setCursor(getDefaultCursor());
-        }
-        return false;
+        setHoveredNode(node);
+        myTree.setCursor(cursor);
       }
+      else if (e.getID() == KEY_RELEASED) {
+        if (isMetaOrCtrlKeyPressed(e)) {
+          setHoveredNode(null);
+        }
+        myTree.setCursor(getDefaultCursor());
+      }
+      return false;
     };
 
     KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(myKeyEventDispatcher);

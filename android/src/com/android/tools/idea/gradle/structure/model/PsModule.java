@@ -16,12 +16,17 @@
 package com.android.tools.idea.gradle.structure.model;
 
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
+import com.intellij.util.EventDispatcher;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.util.EventListener;
+import java.util.List;
 
 public abstract class PsModule extends PsChildModel {
   @Nullable private String myGradlePath;
@@ -32,6 +37,10 @@ public abstract class PsModule extends PsChildModel {
   private boolean myInitParsedModel;
   private GradleBuildModel myParsedModel;
   private String myModuleName;
+  private PsParsedDependencies myParsedDependencies;
+
+  private final EventDispatcher<DependenciesChangeListener> myDependenciesChangeEventDispatcher =
+    EventDispatcher.create(DependenciesChangeListener.class);
 
   protected PsModule(@NotNull PsProject parent,
                      @NotNull Module resolvedModel,
@@ -65,6 +74,11 @@ public abstract class PsModule extends PsChildModel {
     return myParsedModel != null;
   }
 
+  @NotNull
+  public PsParsedDependencies getParsedDependencies() {
+    return myParsedDependencies == null ? myParsedDependencies = new PsParsedDependencies(getParsedModel()) : myParsedDependencies;
+  }
+
   @Nullable
   public GradleBuildModel getParsedModel() {
     if (!myInitParsedModel) {
@@ -74,6 +88,24 @@ public abstract class PsModule extends PsChildModel {
       }
     }
     return myParsedModel;
+  }
+
+  protected void addLibraryDependencyToParsedModel(@NotNull List<String> configurationNames, @NotNull String compactNotation) {
+    GradleBuildModel parsedModel = getParsedModel();
+    if (parsedModel != null) {
+      DependenciesModel dependencies = parsedModel.dependencies();
+      configurationNames.forEach(configurationName -> dependencies.addArtifact(configurationName, compactNotation));
+
+      getParsedDependencies().reset(getParsedModel());
+    }
+  }
+
+  public void add(@NotNull DependenciesChangeListener listener, @NotNull Disposable parentDisposable) {
+    myDependenciesChangeEventDispatcher.addListener(listener, parentDisposable);
+  }
+
+  protected void fireLibraryDependencyAddedEvent(@NotNull PsArtifactDependencySpec spec) {
+    myDependenciesChangeEventDispatcher.getMulticaster().libraryDependencyAdded(spec);
   }
 
   @Nullable
@@ -90,5 +122,9 @@ public abstract class PsModule extends PsChildModel {
   @Override
   public Icon getIcon() {
     return AllIcons.Nodes.Module;
+  }
+
+  public interface DependenciesChangeListener extends EventListener {
+    void libraryDependencyAdded(@NotNull PsArtifactDependencySpec spec);
   }
 }

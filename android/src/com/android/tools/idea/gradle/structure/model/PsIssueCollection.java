@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.structure.model;
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
-import com.android.tools.idea.gradle.structure.model.android.PsLibraryDependency;
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidLibraryDependency;
 import com.android.tools.idea.gradle.structure.navigation.PsLibraryDependencyPath;
 import com.android.tools.idea.gradle.structure.navigation.PsModulePath;
 import com.android.tools.idea.gradle.structure.navigation.PsNavigationPath;
@@ -57,8 +57,8 @@ public class PsIssueCollection {
       PsModule module = (PsModule)model;
       path = new PsModulePath(module);
     }
-    if (model instanceof PsLibraryDependency) {
-      PsLibraryDependency dependency = (PsLibraryDependency)model;
+    if (model instanceof PsAndroidLibraryDependency) {
+      PsAndroidLibraryDependency dependency = (PsAndroidLibraryDependency)model;
       path = new PsLibraryDependencyPath(myContext, dependency);
     }
     if (path != null) {

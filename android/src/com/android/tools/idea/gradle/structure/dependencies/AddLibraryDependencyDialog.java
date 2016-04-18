@@ -39,6 +39,10 @@ public class AddLibraryDependencyDialog extends DialogWrapper {
     getContentPanel().setBorder(BorderFactory.createEmptyBorder());
   }
 
+  public void addNewDependency() {
+    myAddLibraryDependencyPanel.addNewDependency();
+  }
+
   @Override
   @NotNull
   protected String getDimensionServiceKey() {
