@@ -16,9 +16,20 @@
 package com.android.tools.idea.editors.manifest;
 
 import com.android.SdkConstants;
+import com.android.ide.common.blame.SourceFile;
+import com.android.ide.common.blame.SourceFilePosition;
+import com.android.ide.common.blame.SourcePosition;
+import com.android.manifmerger.Actions;
+import com.android.manifmerger.XmlNode;
+import com.android.tools.idea.model.MergedManifest;
+import com.android.xml.AndroidManifest;
+import com.google.common.base.Joiner;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleUtilCore;
+import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
@@ -35,6 +46,7 @@ import org.jetbrains.android.inspections.lint.SuppressLintIntentionAction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -42,6 +54,89 @@ import java.util.List;
 public class ManifestUtils {
 
   private ManifestUtils() {
+  }
+
+  @NotNull
+  static List<? extends Actions.Record> getRecords(@NotNull MergedManifest manifest, @NotNull XmlElement item) {
+    Actions actions = manifest.getActions();
+    if (actions != null) {
+      if (item instanceof XmlTag) {
+        XmlTag xmlTag = (XmlTag)item;
+        XmlNode.NodeKey key = getNodeKey(manifest, xmlTag);
+        return actions.getNodeRecords(key);
+      }
+      else if (item instanceof XmlAttribute) {
+        XmlAttribute xmlAttribute = (XmlAttribute)item;
+        XmlTag xmlTag = xmlAttribute.getParent();
+        XmlNode.NodeKey key = getNodeKey(manifest, xmlTag);
+        XmlNode.NodeName name = XmlNode.fromXmlName(xmlAttribute.getName());
+        List<? extends Actions.Record> attributeRecords = actions.getAttributeRecords(key, name);
+        if (!attributeRecords.isEmpty()) {
+          return attributeRecords;
+        }
+        return actions.getNodeRecords(key);
+      }
+    }
+    return Collections.emptyList();
+  }
+
+  @Nullable("can not find report node for xml tag")
+  static XmlNode.NodeKey getNodeKey(@NotNull MergedManifest manifest, @NotNull XmlTag xmlTag) {
+    XmlNode.NodeKey key = manifest.getNodeKey(xmlTag.getName());
+    if (key == null) {
+      XmlAttribute nameAttribute = xmlTag.getAttribute(SdkConstants.ATTR_NAME, SdkConstants.ANDROID_URI);
+      if (nameAttribute != null) {
+        key = manifest.getNodeKey(xmlTag.getName() + "#" + nameAttribute.getValue());
+      }
+      else {
+        XmlAttribute glEsVersionAttribute = xmlTag.getAttribute(AndroidManifest.ATTRIBUTE_GLESVERSION, SdkConstants.ANDROID_URI);
+        if (glEsVersionAttribute != null) {
+          key = manifest.getNodeKey(xmlTag.getName() + "#" + glEsVersionAttribute.getValue());
+        }
+        else {
+          XmlTag[] children = xmlTag.getSubTags();
+          List<String> names = new ArrayList<String>();
+          for (XmlTag child : children) {
+            XmlAttribute childAttribute = child.getAttribute(SdkConstants.ATTR_NAME, SdkConstants.ANDROID_URI);
+            if (childAttribute != null) {
+              names.add(childAttribute.getValue());
+            }
+          }
+          Collections.sort(names);
+          key = manifest.getNodeKey(xmlTag.getName() + "#" + Joiner.on('+').join(names));
+        }
+      }
+    }
+    return key;
+  }
+
+  @NotNull
+  static SourceFilePosition getActionLocation(@NotNull Module module, @NotNull Actions.Record record) {
+    SourceFilePosition sourceFilePosition = record.getActionLocation();
+    SourceFile sourceFile = sourceFilePosition.getFile();
+    File file = sourceFile.getSourceFile();
+    SourcePosition sourcePosition = sourceFilePosition.getPosition();
+    if (file != null && !SourcePosition.UNKNOWN.equals(sourcePosition)) {
+      VirtualFile vFile = VfsUtil.findFileByIoFile(file, false);
+      assert vFile != null;
+      Module fileModule = ModuleUtilCore.findModuleForFile(vFile, module.getProject());
+      if (fileModule != null && !fileModule.equals(module)) {
+        MergedManifest manifest = MergedManifest.get(fileModule);
+        XmlTag root = manifest.getXmlTag();
+        assert root != null;
+        XmlElement xmlElement = getXmlElement((XmlFile)root.getContainingFile(), sourcePosition.getStartLine() + 1, sourcePosition.getStartColumn() + 1);
+        if (xmlElement == null) {
+          Logger.getInstance(ManifestPanel.class).warn("can not find xmlElement in " + fileModule + " for " + sourceFilePosition);
+        }
+        else {
+          List<? extends Actions.Record> records = getRecords(manifest, xmlElement);
+          if (!records.isEmpty()) {
+            return getActionLocation(fileModule, records.get(0));
+          }
+        }
+      }
+    }
+    return sourceFilePosition;
   }
 
   @Nullable("this file is not from the main module")
@@ -66,14 +161,27 @@ public class ManifestUtils {
    * @param line Line number in human form: starting from 1, NOT 0!
    * @param col Column number in human readable form, starting from 1, NOT 0!
    */
-  @Nullable("could not find tag at that location")
-  public static XmlTag getXmlTag(XmlFile file, int line, int col) {
+  @Nullable("could not find xml element at that location")
+  public static XmlElement getXmlElement(@NotNull XmlFile file, int line, int col) {
+    if (line <= 0 || col <= 0) {
+      throw new IllegalArgumentException();
+    }
     Document doc = PsiDocumentManager.getInstance(file.getProject()).getDocument(file);
     assert doc != null;
     int offset = doc.getLineStartOffset(line - 1) + col - 1;
-    PsiElement psiElement = file.findElementAt(offset); // this will find the "<" tag
-    PsiElement tag = psiElement == null ? null : psiElement.getParent(); // the parent is the XmlTag
-    return tag instanceof XmlTag ? (XmlTag)tag : null;
+    PsiElement psiElement = file.findElementAt(offset);
+    PsiElement parent = psiElement == null ? null : psiElement.getParent();
+    return parent instanceof XmlElement ? (XmlElement)parent : null;
+  }
+
+  /**
+   * @param line Line number in human form: starting from 1, NOT 0!
+   * @param col Column number in human readable form, starting from 1, NOT 0!
+   */
+  @Nullable("could not find tag at that location")
+  public static XmlTag getXmlTag(@NotNull XmlFile file, int line, int col) {
+    XmlElement element = getXmlElement(file, line, col);
+    return element instanceof XmlTag ? (XmlTag)element : null;
   }
 
   static void toolsRemove(@NotNull XmlFile manifest, @NotNull XmlElement item) {
