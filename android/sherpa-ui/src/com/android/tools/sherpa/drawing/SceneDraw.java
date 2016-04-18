@@ -347,8 +347,7 @@ public class SceneDraw {
         if (!decorator.isVisible()) {
             return needsRepaint;
         }
-        WidgetCompanion companion = (WidgetCompanion) container.getCompanionWidget();
-        companion.getWidgetInteractionTargets().updatePosition(transform);
+
         needsRepaint |= decorator.onPaint(transform, g);
         if (container == mWidgetsScene.getRoot()) {
             int xr = transform.getSwingX(container.getDrawX());
@@ -386,8 +385,6 @@ public class SceneDraw {
                 WidgetDecorator widgetDecorator =
                         getDecorator(widget, selectedWidget, selectedAnchor, selectedResizeHandle);
                 if (widgetDecorator.isVisible()) {
-                    WidgetCompanion widgetCompanion = (WidgetCompanion) widget.getCompanionWidget();
-                    widgetCompanion.getWidgetInteractionTargets().updatePosition(transform);
                     needsRepaint |= widgetDecorator.onPaint(transform, g);
                 }
             }
@@ -445,10 +442,6 @@ public class SceneDraw {
         // Adapt the anchor size
         ConnectionDraw.CONNECTION_ANCHOR_SIZE = (int) getAnchorSize(transform.getScale());
 
-        WidgetCompanion companion = (WidgetCompanion) root.getCompanionWidget();
-        WidgetInteractionTargets widgetInteraction = companion.getWidgetInteractionTargets();
-        widgetInteraction.updatePosition(transform);
-
         ConstraintAnchor selectedAnchor = mSelection.getSelectedAnchor();
         ResizeHandle selectedResizeHandle = mSelection.getSelectedResizeHandle();
 
@@ -462,6 +455,8 @@ public class SceneDraw {
         for (ConstraintWidget widget : mWidgetsScene.getWidgets()) {
             WidgetCompanion widgetCompanion = (WidgetCompanion) widget.getCompanionWidget();
             WidgetDecorator decorator = widgetCompanion.getWidgetDecorator(myCurrentStyle);
+            WidgetInteractionTargets widgetInteraction = widgetCompanion.getWidgetInteractionTargets();
+            widgetInteraction.updatePosition(transform);
             decorator.setColorSet(mColorSet);
             if (mSelection.contains(widget)) {
                 decorator.setIsSelected(true);
@@ -479,6 +474,15 @@ public class SceneDraw {
             decorator.applyLook();
         }
 
+        // Draw the constraints
+        for (ConstraintWidget widget : mWidgetsScene.getWidgets()) {
+            WidgetCompanion widgetCompanion = (WidgetCompanion) widget.getCompanionWidget();
+            WidgetDecorator decorator = widgetCompanion.getWidgetDecorator(myCurrentStyle);
+            if (decorator.isVisible() && !decorator.isSelected()) {
+                decorator.onPaintConstraints(transform, g);
+            }
+        }
+
         // Draw all the widgets
         ConstraintWidget selectedWidget = null;
         if (mSelection.hasSingleElement()) {
@@ -487,11 +491,11 @@ public class SceneDraw {
         needsRepaint |= paintWidgets(transform, g, mWidgetsScene.getRoot(), selectedWidget,
                 selectedAnchor, selectedResizeHandle);
 
-        // Then draw the constraints
+        // Draw the selected constraints
         for (ConstraintWidget widget : mWidgetsScene.getWidgets()) {
             WidgetCompanion widgetCompanion = (WidgetCompanion) widget.getCompanionWidget();
             WidgetDecorator decorator = widgetCompanion.getWidgetDecorator(myCurrentStyle);
-            if (decorator.isVisible()) {
+            if (decorator.isVisible() && decorator.isSelected()) {
                 decorator.onPaintConstraints(transform, g);
             }
         }
@@ -520,7 +524,8 @@ public class SceneDraw {
                 g.setColor(mColorSet.getSelectedConstraints());
                 ConstraintHandle targetHandle = WidgetInteractionTargets.constraintHandle(anchor);
                 ConnectionDraw
-                        .drawConnection(transform, g, selectedHandle, targetHandle, true, false);
+                        .drawConnection(transform, g, selectedHandle, targetHandle, true, false,
+                                true);
             } else {
                 g.setColor(mColorSet.getHighlightedConstraints());
                 ConnectionDraw
