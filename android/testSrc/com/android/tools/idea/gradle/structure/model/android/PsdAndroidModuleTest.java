@@ -29,7 +29,6 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
@@ -145,7 +144,7 @@ public class PsdAndroidModuleTest extends AndroidGradleTestCase {
     assertEquals("appcompat-v7", resolvedSpec.name);
 
     // Verify that the variants where appcompat is are properly registered.
-    Set<String> variants = appCompatV7.getVariants();
+    Collection<String> variants = appCompatV7.getVariants();
     assertThat(variants).containsExactly("paidDebug", "paidRelease", "basicDebug", "basicRelease");
 
     for (String variant : variants) {
@@ -179,7 +178,7 @@ public class PsdAndroidModuleTest extends AndroidGradleTestCase {
     assertThat(resolvedSpec.version).isNotEqualTo("+");
 
     // Verify that the variants where appcompat is are properly registered.
-    Set<String> variants = appCompatV7.getVariants();
+    Collection<String> variants = appCompatV7.getVariants();
     assertThat(variants).containsExactly("paidDebug", "paidRelease", "basicDebug", "basicRelease");
 
     for (String variant : variants) {

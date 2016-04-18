@@ -26,17 +26,17 @@ import javax.swing.*;
 import javax.swing.tree.DefaultTreeModel;
 import java.util.List;
 
-public class TargetModelsTreeBuilder extends AbstractPsNodeTreeBuilder {
-  public TargetModelsTreeBuilder(@NotNull PsProject project,
-                                 @NotNull JTree tree,
-                                 @NotNull DefaultTreeModel treeModel) {
-    super(tree, treeModel, new TargetModelsTreeStructure(project));
+public class TargetModulesTreeBuilder extends AbstractPsNodeTreeBuilder {
+  public TargetModulesTreeBuilder(@NotNull PsProject project,
+                                  @NotNull JTree tree,
+                                  @NotNull DefaultTreeModel treeModel) {
+    super(tree, treeModel, new TargetModulesTreeStructure(project));
   }
 
   public void displayTargetModules(@NotNull List<AbstractDependencyNode<? extends PsAndroidDependency>> dependencyNodes) {
     AbstractTreeStructure treeStructure = getTreeStructure();
-    if (treeStructure instanceof TargetModelsTreeStructure) {
-      ((TargetModelsTreeStructure)treeStructure).displayTargetModules(dependencyNodes);
+    if (treeStructure instanceof TargetModulesTreeStructure) {
+      ((TargetModulesTreeStructure)treeStructure).displayTargetModules(dependencyNodes);
       queueUpdate();
     }
   }

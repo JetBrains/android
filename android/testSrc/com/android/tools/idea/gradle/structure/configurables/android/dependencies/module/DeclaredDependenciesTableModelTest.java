@@ -92,7 +92,7 @@ public class DeclaredDependenciesTableModelTest extends IdeaTestCase {
   }
 
   public void testShowConfigurationName() {
-    when(myLibraryDependency.getConfigurationName()).thenReturn("compile");
+    when(myLibraryDependency.getJoinedConfigurationNames()).thenReturn("compile");
 
     ColumnInfo[] columnInfos = myTableModel.getColumnInfos();
     //noinspection unchecked
