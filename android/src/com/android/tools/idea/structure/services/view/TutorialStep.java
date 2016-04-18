@@ -85,6 +85,8 @@ public class TutorialStep extends JPanel {
       // Add 10px spacing between elements.
       myContents.add(Box.createRigidArea(new Dimension(0, 10)));
     }
+    // NOTE: Due to some calculation issues with html rendered content, we're forcing the element to do a relayout.
+    SwingUtilities.updateComponentTreeUI(this);
   }
 
   /**
