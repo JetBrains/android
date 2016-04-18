@@ -13,26 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.configurables.android.dependencies.project.treeview;
+package com.android.tools.idea.gradle.structure.dependencies;
 
-import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractBaseTreeStructure;
-import com.android.tools.idea.gradle.structure.model.PsProject;
+import com.intellij.openapi.Disposable;
+import com.intellij.openapi.ui.ValidationInfo;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-class DeclaredDependenciesTreeStructure extends AbstractBaseTreeStructure {
-  @NotNull private final DeclaredDependenciesTreeRootNode myRootNode;
+import javax.swing.*;
+import java.util.List;
 
-  DeclaredDependenciesTreeStructure(@NotNull PsProject project) {
-    myRootNode = new DeclaredDependenciesTreeRootNode(project);
-  }
-
-  @Override
+public interface DependencyScopesForm extends Disposable {
   @NotNull
-  public Object getRootElement() {
-    return myRootNode;
-  }
+  JPanel getPanel();
 
-  void reset() {
-    myRootNode.reset();
-  }
+  @NotNull
+  List<String> getSelectedScopesNames();
+
+  @Nullable
+  ValidationInfo validateInput();
 }

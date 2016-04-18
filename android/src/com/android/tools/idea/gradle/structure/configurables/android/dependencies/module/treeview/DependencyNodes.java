@@ -22,7 +22,7 @@ import com.android.tools.idea.gradle.structure.configurables.android.dependencie
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsModelNode;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidArtifact;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
-import com.android.tools.idea.gradle.structure.model.android.PsLibraryDependency;
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidLibraryDependency;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.Lists;
@@ -91,8 +91,8 @@ final class DependencyNodes {
       return;
     }
 
-    if (dependency instanceof PsLibraryDependency) {
-      PsLibraryDependency libraryDependency = (PsLibraryDependency)dependency;
+    if (dependency instanceof PsAndroidLibraryDependency) {
+      PsAndroidLibraryDependency libraryDependency = (PsAndroidLibraryDependency)dependency;
       ImmutableCollection<PsAndroidDependency> transitives = libraryDependency.getTransitiveDependencies();
       allTransitive.putAll(dependency, transitives);
 

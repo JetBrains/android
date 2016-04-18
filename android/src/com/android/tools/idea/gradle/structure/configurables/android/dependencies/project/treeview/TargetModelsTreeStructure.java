@@ -66,8 +66,8 @@ public class TargetModelsTreeStructure extends AbstractBaseTreeStructure {
       // Create the module and version used.
       Map<String, String> versionByModule = Maps.newHashMap();
       for (PsAndroidDependency dependency : node.getModels()) {
-        if (dependency instanceof PsLibraryDependency) {
-          PsLibraryDependency libraryDependency = (PsLibraryDependency)dependency;
+        if (dependency instanceof PsAndroidLibraryDependency) {
+          PsAndroidLibraryDependency libraryDependency = (PsAndroidLibraryDependency)dependency;
           PsArtifactDependencySpec spec = libraryDependency.getDeclaredSpec();
           if (spec == null) {
             spec = libraryDependency.getResolvedSpec();

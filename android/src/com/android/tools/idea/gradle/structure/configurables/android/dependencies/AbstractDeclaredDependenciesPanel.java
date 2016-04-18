@@ -220,6 +220,9 @@ public abstract class AbstractDeclaredDependenciesPanel extends JPanel implement
     return myHistory;
   }
 
+  protected void beforeAddingDependency() {
+  }
+
   private class AddDependencyAction extends AbstractPopupAction {
     AddDependencyAction() {
       super("Artifact Dependency", LIBRARY_ICON, 1);
@@ -233,12 +236,15 @@ public abstract class AbstractDeclaredDependenciesPanel extends JPanel implement
         dialog.showAndGet();
         return;
       }
+      beforeAddingDependency();
       showAddLibraryDependencyDialog(myModule);
     }
 
     private void showAddLibraryDependencyDialog(@NotNull PsModule module) {
       AddLibraryDependencyDialog dialog = new AddLibraryDependencyDialog(module);
-      dialog.showAndGet();
+      if (dialog.showAndGet()) {
+        dialog.addNewDependency();
+      }
     }
   }
 

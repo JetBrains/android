@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.model.repositories.search;
 
-import com.google.android.collect.Lists;
+import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;

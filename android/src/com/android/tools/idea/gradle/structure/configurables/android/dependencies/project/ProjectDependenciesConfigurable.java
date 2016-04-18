@@ -15,10 +15,14 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.project;
 
+import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.AbstractDependenciesConfigurable;
 import com.android.tools.idea.gradle.structure.model.PsModule;
+import com.google.android.collect.Lists;
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.application.Result;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.util.ActionCallback;
 import com.intellij.openapi.util.Disposer;
@@ -31,10 +35,15 @@ import javax.swing.*;
 import java.util.List;
 
 public class ProjectDependenciesConfigurable extends AbstractDependenciesConfigurable<PsModule> {
+  @NotNull private final PsModule myModule;
+  @NotNull private final PsContext myContext;
+
   private ProjectDependenciesPanel myDependenciesPanel;
 
   public ProjectDependenciesConfigurable(@NotNull PsModule module, @NotNull PsContext context, @NotNull List<PsModule> extraTopModules) {
     super(module, context, extraTopModules);
+    myModule = module;
+    myContext = context;
     setDisplayName("<All Modules>");
   }
 
@@ -46,7 +55,7 @@ public class ProjectDependenciesConfigurable extends AbstractDependenciesConfigu
   @Override
   public ProjectDependenciesPanel createOptionsPanel() {
     if (myDependenciesPanel == null) {
-      myDependenciesPanel = new ProjectDependenciesPanel(getContext(), getExtraTopModules());
+      myDependenciesPanel = new ProjectDependenciesPanel(myModule, getContext(), getExtraTopModules());
       myDependenciesPanel.setHistory(getHistory());
     }
     return myDependenciesPanel;
@@ -78,11 +87,36 @@ public class ProjectDependenciesConfigurable extends AbstractDependenciesConfigu
 
   @Override
   public boolean isModified() {
-    return false;
+    return myModule.isModified();
   }
 
   @Override
   public void apply() throws ConfigurationException {
+    if (myModule.isModified()) {
+      List<PsModule> toUpdate = Lists.newArrayList();
+      myContext.getProject().forEachModule(module -> {
+        if (module.isModified()) {
+          GradleBuildModel parsedModel = module.getParsedModel();
+          if (parsedModel != null && parsedModel.isModified()) {
+            toUpdate.add(module);
+          }
+        }
+      });
+      if (!toUpdate.isEmpty()) {
+        new WriteCommandAction(myContext.getProject().getResolvedModel(), "Applying changes...") {
+          @Override
+          protected void run(@NotNull Result result) throws Throwable {
+            for (PsModule module : toUpdate) {
+              GradleBuildModel parsedModel = module.getParsedModel();
+              assert parsedModel != null;
+              parsedModel.applyChanges();
+              module.setModified(false);
+              myModule.setModified(false);
+            }
+          }
+        }.execute();
+      }
+    }
   }
 
   @Override

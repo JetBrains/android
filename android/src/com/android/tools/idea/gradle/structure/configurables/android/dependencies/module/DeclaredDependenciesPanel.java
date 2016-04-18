@@ -22,8 +22,11 @@ import com.android.tools.idea.gradle.structure.configurables.android.dependencie
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.details.ModuleLibraryDependencyDetails;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.treeview.DependencySelection;
 import com.android.tools.idea.gradle.structure.configurables.issues.IssuesViewer;
+import com.android.tools.idea.gradle.structure.configurables.ui.SelectionChangeEventDispatcher;
+import com.android.tools.idea.gradle.structure.configurables.ui.SelectionChangeListener;
 import com.android.tools.idea.gradle.structure.model.PsIssue;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidLibraryDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.android.tools.idea.gradle.structure.model.android.PsModuleDependency;
 import com.google.common.collect.Lists;
@@ -36,7 +39,6 @@ import com.intellij.openapi.util.ActionCallback;
 import com.intellij.ui.navigation.History;
 import com.intellij.ui.navigation.Place;
 import com.intellij.ui.table.TableView;
-import com.intellij.util.EventDispatcher;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -47,7 +49,6 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.EventListener;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.structure.configurables.android.dependencies.UiUtil.isMetaOrCtrlKeyPressed;
@@ -73,13 +74,14 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel implem
   @NotNull private final IssuesViewer myIssuesViewer;
   @NotNull private final String myPlaceName;
 
-  @NotNull private final EventDispatcher<SelectionListener> myEventDispatcher = EventDispatcher.create(SelectionListener.class);
+  @NotNull private final SelectionChangeEventDispatcher<PsAndroidDependency> myEventDispatcher = new SelectionChangeEventDispatcher<>();
 
   private KeyEventDispatcher myKeyEventDispatcher;
-  private boolean skipSelectionChangeNotification;
+  private boolean mySkipSelectionChangeNotification;
 
   DeclaredDependenciesPanel(@NotNull PsAndroidModule module, @NotNull PsContext context) {
     super("Declared Dependencies", context, module);
+
     myContext = context;
     myContext.getDaemonAnalyzer().add(model -> {
       if (model == module) {
@@ -127,6 +129,14 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel implem
         super.processMouseEvent(e);
       }
     };
+
+    module.add(spec -> {
+      myDependenciesTableModel.reset();
+      PsAndroidLibraryDependency dependency = myDependenciesTableModel.findDependency(spec);
+      if (dependency != null) {
+        myDependenciesTable.setSelection(Collections.singletonList(dependency));
+      }
+    }, this);
 
     ListSelectionModel tableSelectionModel = myDependenciesTable.getSelectionModel();
     tableSelectionModel.setSelectionMode(MULTIPLE_INTERVAL_SELECTION);
@@ -235,6 +245,11 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel implem
   }
 
   @Override
+  protected void beforeAddingDependency() {
+    myDependenciesTable.clearSelection();
+  }
+
+  @Override
   @NotNull
   protected List<AnAction> getExtraToolbarActions() {
     List<AnAction> actions = Lists.newArrayList();
@@ -253,7 +268,7 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel implem
     }
   }
 
-  void add(@NotNull SelectionListener listener) {
+  void add(@NotNull SelectionChangeListener<PsAndroidDependency> listener) {
     myEventDispatcher.addListener(listener, this);
     notifySelectionChanged();
   }
@@ -272,21 +287,20 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel implem
 
   @Override
   public void setSelection(@Nullable PsAndroidDependency selection) {
-    skipSelectionChangeNotification = true;
+    mySkipSelectionChangeNotification = true;
     if (selection == null) {
       myDependenciesTable.clearSelection();
     }
     else {
       myDependenciesTable.setSelection(Collections.singleton(selection));
     }
-    skipSelectionChangeNotification = false;
     updateDetailsAndIssues();
+    mySkipSelectionChangeNotification = false;
   }
 
   private void updateDetailsAndIssues() {
-    if (skipSelectionChangeNotification) {
+    if (!mySkipSelectionChangeNotification) {
       notifySelectionChanged();
-      skipSelectionChangeNotification = false;
     }
 
     PsAndroidDependency selected = getSelection();
@@ -302,7 +316,7 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel implem
   private void notifySelectionChanged() {
     PsAndroidDependency selected = getSelection();
     if (selected != null) {
-      myEventDispatcher.getMulticaster().dependencySelected(selected);
+      myEventDispatcher.selectionChanged(selected);
     }
   }
 
@@ -351,10 +365,6 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel implem
 
   public void putPath(@NotNull Place place, @NotNull String dependency) {
     place.putPath(myPlaceName, dependency);
-  }
-
-  public interface SelectionListener extends EventListener {
-    void dependencySelected(@NotNull PsAndroidDependency dependency);
   }
 
   private class EditDependencyAction extends DumbAwareAction {

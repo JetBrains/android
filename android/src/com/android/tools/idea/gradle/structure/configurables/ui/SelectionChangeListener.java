@@ -13,17 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.dependencies;
+package com.android.tools.idea.gradle.structure.configurables.ui;
 
-import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
-import java.util.List;
+import java.util.EventListener;
 
-interface DependencyConfigurationsForm {
-  @NotNull
-  JPanel getPanel();
-
-  @NotNull
-  List<String> getSelectedConfigurations();
+public interface SelectionChangeListener<T> extends EventListener {
+  void selectionChanged(@Nullable T newSelection);
 }

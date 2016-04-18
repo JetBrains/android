@@ -383,8 +383,20 @@ public class ProjectStructureConfigurable extends BaseConfigurable
   }
 
   @Override
-  public void apply() throws ConfigurationException {
+  public boolean isModified() {
+    for (Configurable configurable : myConfigurables) {
+      if (configurable.isModified()) {
+        return true;
+      }
+    }
+    return false;
+  }
 
+  @Override
+  public void apply() throws ConfigurationException {
+    for (Configurable configurable : myConfigurables) {
+      configurable.apply();
+    }
   }
 
   @Override

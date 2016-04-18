@@ -20,7 +20,7 @@ import com.android.tools.idea.gradle.structure.configurables.ui.treeview.Abstrac
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsModel;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
-import com.android.tools.idea.gradle.structure.model.android.PsLibraryDependency;
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidLibraryDependency;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.Lists;
 import com.intellij.ui.treeStructure.SimpleNode;
@@ -33,28 +33,28 @@ import java.util.List;
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
-public class LibraryDependencyNode extends AbstractDependencyNode<PsLibraryDependency> {
+public class LibraryDependencyNode extends AbstractDependencyNode<PsAndroidLibraryDependency> {
   @NotNull private final List<AbstractDependencyNode> myChildren = Lists.newArrayList();
 
-  public LibraryDependencyNode(@NotNull AbstractPsModelNode parent, @NotNull PsLibraryDependency dependency) {
+  public LibraryDependencyNode(@NotNull AbstractPsModelNode parent, @NotNull PsAndroidLibraryDependency dependency) {
     super(parent, dependency);
     setUp(dependency);
   }
 
-  public LibraryDependencyNode(@NotNull AbstractPsModelNode parent, @NotNull List<PsLibraryDependency> dependencies) {
+  public LibraryDependencyNode(@NotNull AbstractPsModelNode parent, @NotNull List<PsAndroidLibraryDependency> dependencies) {
     super(parent, dependencies);
     assert !dependencies.isEmpty();
     setUp(dependencies.get(0));
   }
 
-  private void setUp(@NotNull PsLibraryDependency dependency) {
+  private void setUp(@NotNull PsAndroidLibraryDependency dependency) {
     myName = getText(dependency);
 
     ImmutableCollection<PsAndroidDependency> transitiveDependencies = dependency.getTransitiveDependencies();
 
-    transitiveDependencies.stream().filter(transitive -> transitive instanceof PsLibraryDependency)
+    transitiveDependencies.stream().filter(transitive -> transitive instanceof PsAndroidLibraryDependency)
                                    .forEach(transitive -> {
-      PsLibraryDependency transitiveLibrary = (PsLibraryDependency)transitive;
+      PsAndroidLibraryDependency transitiveLibrary = (PsAndroidLibraryDependency)transitive;
       LibraryDependencyNode child = new LibraryDependencyNode(this, transitiveLibrary);
       myChildren.add(child);
     });
@@ -63,9 +63,10 @@ public class LibraryDependencyNode extends AbstractDependencyNode<PsLibraryDepen
   }
 
   @NotNull
-  private static String getText(@NotNull PsLibraryDependency dependency) {
+  private String getText(@NotNull PsAndroidLibraryDependency dependency) {
     PsArtifactDependencySpec resolvedSpec = dependency.getResolvedSpec();
-    if (dependency.hasPromotedVersion()) {
+    if (dependency.hasPromotedVersion() && !(getParent() instanceof LibraryDependencyNode)) {
+      // Show only "promoted" version for declared nodes.
       PsArtifactDependencySpec declaredSpec = dependency.getDeclaredSpec();
       assert declaredSpec != null;
       String version = declaredSpec.version + "→" + resolvedSpec.version;
@@ -92,11 +93,11 @@ public class LibraryDependencyNode extends AbstractDependencyNode<PsLibraryDepen
 
   @Override
   public boolean matches(@NotNull PsModel model) {
-    if (model instanceof PsLibraryDependency) {
-      PsLibraryDependency other = (PsLibraryDependency)model;
+    if (model instanceof PsAndroidLibraryDependency) {
+      PsAndroidLibraryDependency other = (PsAndroidLibraryDependency)model;
 
-      List<PsLibraryDependency> models = getModels();
-      for (PsLibraryDependency dependency : models) {
+      List<PsAndroidLibraryDependency> models = getModels();
+      for (PsAndroidLibraryDependency dependency : models) {
         if (dependency.getResolvedSpec().equals(other.getResolvedSpec())) {
           return true;
         }

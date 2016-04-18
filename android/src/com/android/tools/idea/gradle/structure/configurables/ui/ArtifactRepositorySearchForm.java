@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui;
 
+import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.structure.model.repositories.search.*;
-import com.android.tools.idea.structure.dialog.Header;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
 import com.intellij.ui.DocumentAdapter;
@@ -24,10 +24,8 @@ import com.intellij.ui.JBSplitter;
 import com.intellij.ui.OnePixelSplitter;
 import com.intellij.ui.TableSpeedSearch;
 import com.intellij.ui.components.JBLabel;
-import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBTextField;
 import com.intellij.ui.table.TableView;
-import com.intellij.util.EventDispatcher;
 import com.intellij.util.ui.ColumnInfo;
 import com.intellij.util.ui.ListTableModel;
 import org.jetbrains.annotations.NonNls;
@@ -40,7 +38,6 @@ import java.awt.*;
 import java.awt.event.ActionListener;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.EventListener;
 import java.util.List;
 
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
@@ -64,14 +61,13 @@ public class ArtifactRepositorySearchForm {
 
   private JButton mySearchButton;
 
-  private JScrollPane myResultsScrollPane;
   private JPanel myResultsPanel;
   private TableView<FoundArtifact> myResultsTable;
   private AvailableVersionsPanel myVersionsPanel;
 
   private JPanel myPanel;
 
-  @NotNull private final EventDispatcher<SelectionListener> myEventDispatcher = EventDispatcher.create(SelectionListener.class);
+  @NotNull private final SelectionChangeEventDispatcher<String> myEventDispatcher = new SelectionChangeEventDispatcher<>();
   @NotNull private final List<Exception> mySearchErrors = Lists.newArrayList();
 
   public ArtifactRepositorySearchForm(@NotNull List<ArtifactRepository> repositories) {
@@ -111,24 +107,20 @@ public class ArtifactRepositorySearchForm {
 
     myResultsTable.getSelectionModel().addListSelectionListener(e -> {
       FoundArtifact artifact = getSelection();
-      String version = null;
 
       if (artifact != null) {
         List<String> versions = artifact.getVersions();
         myVersionsPanel.setVersions(versions);
-        version = versions.isEmpty() ? "" : versions.get(0);
       }
-
-      notifySelectionChanged(artifact, version);
+      else {
+        notifySelectionChanged(null, null);
+      }
     });
 
     myVersionsPanel = new AvailableVersionsPanel();
 
-    myResultsScrollPane = createScrollPane(myResultsTable);
-    myResultsScrollPane.setViewportView(myResultsTable);
-
     JBSplitter splitter = new OnePixelSplitter(false, 0.7f);
-    splitter.setFirstComponent(myResultsScrollPane);
+    splitter.setFirstComponent(createScrollPane(myResultsTable));
     splitter.setSecondComponent(myVersionsPanel);
 
     myResultsPanel.add(splitter, BorderLayout.CENTER);
@@ -159,7 +151,7 @@ public class ArtifactRepositorySearchForm {
 
       selected = groupId + GRADLE_PATH_SEPARATOR + name + GRADLE_PATH_SEPARATOR + version;
     }
-    myEventDispatcher.getMulticaster().selectionChanged(selected);
+    myEventDispatcher.selectionChanged(selected);
   }
 
   private void performSearch() {
@@ -198,8 +190,8 @@ public class ArtifactRepositorySearchForm {
 
   private void clearResults() {
     myResultsTable.getListTableModel().setItems(Collections.emptyList());
-    myResultsScrollPane.setViewportView(myResultsTable);
     mySearchErrors.clear();
+    myVersionsPanel.clear();
   }
 
   private void showSearchStopped() {
@@ -223,7 +215,7 @@ public class ArtifactRepositorySearchForm {
     return isNotEmpty(groupId) ? groupId : null;
   }
 
-  public void add(@NotNull SelectionListener listener, @NotNull Disposable parentDisposable) {
+  public void add(@NotNull SelectionChangeListener<String> listener, @NotNull Disposable parentDisposable) {
     myEventDispatcher.addListener(listener, parentDisposable);
   }
 
@@ -290,51 +282,56 @@ public class ArtifactRepositorySearchForm {
     }
   }
 
-  public interface SelectionListener extends EventListener {
-    void selectionChanged(@Nullable String selectedLibrary);
-  }
-
   private class AvailableVersionsPanel extends JPanel {
-    private final JBList myVersionsList;
-    private final DefaultListModel<String> myVersionsListModel;
+    private final TableView<GradleVersion> myVersionsTable;
 
     AvailableVersionsPanel() {
       super(new BorderLayout());
-      myVersionsListModel = new DefaultListModel<>();
-      myVersionsList = new JBList(myVersionsListModel);
-      myVersionsList.setSelectionMode(SINGLE_SELECTION);
-      myVersionsList.addListSelectionListener(e -> {
-        FoundArtifact artifact = getSelection();
-        String version = null;
-        Object selected = myVersionsList.getSelectedValue();
-        if (selected instanceof String) {
-          version = (String)selected;
+      myVersionsTable = new TableView<>();
+      myVersionsTable.setShowGrid(false);
+      myVersionsTable.setSelectionMode(SINGLE_SELECTION);
+      myVersionsTable.getListTableModel().setColumnInfos(new ColumnInfo[] {
+        new ColumnInfo<GradleVersion, String>("Versions") {
+          @Override
+          @Nullable
+          public String valueOf(GradleVersion version) {
+            return version.toString();
+          }
         }
-        notifySelectionChanged(artifact, version);
       });
-      JScrollPane scrollPane = createScrollPane(myVersionsList);
-      add(scrollPane, BorderLayout.CENTER);
 
-      Header titleLabel = new Header("Versions:");
-      titleLabel.setDisplayedMnemonic('V');
-      titleLabel.setLabelFor(myVersionsList);
-      add(titleLabel, BorderLayout.NORTH);
+      myVersionsTable.getSelectionModel().addListSelectionListener(e -> {
+        FoundArtifact artifact = getSelection();
+        GradleVersion version = myVersionsTable.getSelectedObject();
+        notifySelectionChanged(artifact, version != null ? version.toString() : null);
+      });
+      JScrollPane scrollPane = createScrollPane(myVersionsTable);
+      add(scrollPane, BorderLayout.CENTER);
     }
 
     void setVersions(@NotNull List<String> versions) {
       clear();
-      versions.forEach(myVersionsListModel::addElement);
-      if (!myVersionsListModel.isEmpty()) {
-        myVersionsList.getSelectionModel().setSelectionInterval(0, 0);
+      List<GradleVersion> versionsToSet = Lists.newArrayList();
+      for (String version : versions) {
+        GradleVersion gradleVersion = GradleVersion.tryParse(version);
+        if (gradleVersion != null) {
+          versionsToSet.add(gradleVersion);
+        }
+      }
+      Collections.sort(versionsToSet, Collections.reverseOrder());
+
+      myVersionsTable.getListTableModel().setItems(versionsToSet);
+      if (!versions.isEmpty()) {
+        myVersionsTable.getSelectionModel().setSelectionInterval(0, 0);
       }
     }
 
     void setEmptyText(@NotNull String text) {
-      myVersionsList.getEmptyText().setText(text);
+      myVersionsTable.getEmptyText().setText(text);
     }
 
     void clear() {
-      myVersionsListModel.clear();
+      myVersionsTable.getListTableModel().setItems(Collections.emptyList());
     }
   }
 }
