@@ -21,6 +21,8 @@ import com.android.tools.idea.uibuilder.api.DragHandler;
 import com.android.tools.idea.uibuilder.api.DragType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
+import com.android.annotations.NonNull;
+import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
@@ -57,5 +59,11 @@ public class AdapterViewHandler extends ViewGroupHandler {
         graphics.drawRect(layout.x, layout.y, layout.w, layout.h);
       }
     };
+  }
+
+  @Override
+  @Nullable
+  public ScrollHandler createScrollHandler(@NonNull ViewEditor editor, @NonNull NlComponent component) {
+    return null;
   }
 }

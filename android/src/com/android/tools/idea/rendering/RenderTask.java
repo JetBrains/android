@@ -957,10 +957,7 @@ public class RenderTask implements IImageFactory {
       if (currentMode != RenderPreviewMode.NONE) {
         return;
       }
-      if (SCROLL_VIEW.equals(tagName)) {
-        setRenderingMode(RenderingMode.V_SCROLL);
-        setDecorations(false);
-      } else if (HORIZONTAL_SCROLL_VIEW.equals(tagName)) {
+      if (HORIZONTAL_SCROLL_VIEW.equals(tagName)) {
         setRenderingMode(RenderingMode.H_SCROLL);
         setDecorations(false);
       }
@@ -1109,6 +1106,7 @@ public class RenderTask implements IImageFactory {
                 session.dispose();
                 continue;
               }
+
               return session;
             }
             retries++;
