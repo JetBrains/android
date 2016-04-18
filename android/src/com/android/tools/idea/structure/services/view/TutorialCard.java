@@ -20,6 +20,7 @@ import com.android.tools.idea.structure.services.datamodel.StepData;
 import com.android.tools.idea.structure.services.datamodel.TutorialData;
 import com.intellij.icons.AllIcons;
 import com.intellij.ui.Gray;
+import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.UIUtil;
 
@@ -141,7 +142,7 @@ public class TutorialCard extends CardViewPanel {
 
       add(new BackButton(ROOT_TITLE));
 
-      JLabel label = new JLabel(location);
+      JBLabel label = new JBLabel(location);
       // TODO: Color stolen from ContentTabLabel passive label color, find a better fit.
       label.setForeground(UIUtil.isUnderDarcula() ? UIUtil.getLabelDisabledForeground() : Gray._75);
       add(label);
@@ -173,7 +174,8 @@ public class TutorialCard extends CardViewPanel {
       setOpaque(false);
       setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
-      Font font = getFont();
+      // As the button is presented as a label, use the label font.
+      Font font = new JBLabel().getFont();
       setFont(new Font(font.getFontName(), Font.BOLD, font.getSize()));
     }
   }

@@ -121,6 +121,7 @@ public class FeatureEntryPoint extends JPanel {
     // TODO: Determine how we can add a scroller to the service list without
     // breaking line wrapping.
     descriptionPane.setOpaque(false);
+    descriptionPane.addMouseListener(mySummaryClickHandler);
     UIUtils.setHtml(descriptionPane, myDescription);
 
     mySummary.add(descriptionPane, descriptionConstraints);
