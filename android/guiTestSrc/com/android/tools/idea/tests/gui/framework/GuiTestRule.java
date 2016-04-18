@@ -82,12 +82,14 @@ public class GuiTestRule implements TestRule {
     .around(new TestPerformance())
     .around(new ScreenshotOnFailure());
   private final PropertyChangeListener myGlobalFocusListener = e -> {
+    System.out.println("Focus Listener: name = " + e.getPropertyName() + " old = " + e.getOldValue() + " new = " + e.getNewValue());
     Object oldValue = e.getOldValue();
-    if (oldValue instanceof Component && e.getNewValue() == null) {
+    if ("permanentFocusOwner".equals(e.getPropertyName()) && oldValue instanceof Component && e.getNewValue() == null) {
       Window parentWindow = oldValue instanceof Window ? (Window)oldValue : SwingUtilities.getWindowAncestor((Component)oldValue);
       if (parentWindow instanceof Dialog) {
         Container parent = parentWindow.getParent();
         if (parent != null && parent.isVisible()) {
+          System.out.println("Focus Listener: Request focus!");
           parent.requestFocus();
         }
       }
@@ -155,7 +157,7 @@ public class GuiTestRule implements TestRule {
     GuiTests.setUpSdks();
 
     if (!HAS_EXTERNAL_WINDOW_MANAGER) {
-      KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener("permanentFocusOwner", myGlobalFocusListener);
+      KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener(myGlobalFocusListener);
     }
   }
 
@@ -173,7 +175,7 @@ public class GuiTestRule implements TestRule {
       GuiTests.refreshFiles();
     }
     if (!HAS_EXTERNAL_WINDOW_MANAGER) {
-      KeyboardFocusManager.getCurrentKeyboardFocusManager().removePropertyChangeListener("permanentFocusOwner", myGlobalFocusListener);
+      KeyboardFocusManager.getCurrentKeyboardFocusManager().removePropertyChangeListener(myGlobalFocusListener);
     }
     errors.addAll(GuiTests.fatalErrorsFromIde());
 
