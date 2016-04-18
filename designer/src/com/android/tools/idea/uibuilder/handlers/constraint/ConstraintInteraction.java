@@ -20,7 +20,6 @@ import org.jetbrains.annotations.NotNull;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.surface.Interaction;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
-import com.android.tools.sherpa.drawing.decorator.WidgetDecorator;
 import com.android.tools.sherpa.structure.Selection;
 import com.google.tnt.solver.widgets.ConstraintAnchor;
 import com.google.tnt.solver.widgets.ConstraintWidget;
@@ -104,6 +103,7 @@ public class ConstraintInteraction extends Interaction {
     if (canceled) {
       return;
     }
+
     Project project = myScreenView.getModel().getProject();
     final NlModel nlModel = myScreenView.getModel();
     final int ax = Coordinates.getAndroidX(myScreenView, x);
@@ -123,7 +123,7 @@ public class ConstraintInteraction extends Interaction {
         Selection selection = model.getSelection();
         if (selection != null) {
           for (ConstraintWidget widget : selection.getModifiedWidgets()) {
-            commitElement(widget, nlModel);
+            ConstraintUtilities.commitElement(widget, nlModel);
           }
         }
         selection.clearModifiedWidgets();
@@ -143,25 +143,4 @@ public class ConstraintInteraction extends Interaction {
     myScreenView.getSurface().repaint();
   }
 
-  /**
-   * Utility function to commit to the NlModel the current state of the given widget
-   *
-   * @param widget the widget we want to save to the model
-   * @param model the model to save to
-   */
-  private void commitElement(@NotNull ConstraintWidget widget, @NotNull NlModel model) {
-    WidgetCompanion companion = (WidgetCompanion)widget.getCompanionWidget();
-    NlComponent component = (NlComponent)companion.getWidgetModel();
-    for (NlComponent c : model.getComponents()) {
-      if (c.getId() != null && c.getId().equalsIgnoreCase(component.getId())) {
-        component = c;
-        break;
-      }
-    }
-    ConstraintUtilities.setEditorPosition(component, widget.getX(), widget.getY());
-    ConstraintUtilities.setDimension(component, widget);
-    for (ConstraintAnchor anchor : widget.getAnchors()) {
-      ConstraintUtilities.setConnection(component, anchor);
-    }
-  }
 }
