@@ -21,9 +21,6 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
@@ -42,20 +39,28 @@ public class AndroidLogcatServiceTest {
       assertEquals(EXPECTED_LOGS[myCurrentIndex++], line.toString());
     }
 
+    public void reset() {
+      myCurrentIndex = 0;
+    }
+
     public void assertAllReceived() {
       assertEquals(EXPECTED_LOGS.length, myCurrentIndex);
     }
-  };
 
-  private AndroidLogcatService.LogcatRunner myLogcatRunner;
+    public void assertNothingReceived() {
+      assertEquals(0, myCurrentIndex);
+    }
+  }
+
   private LogLineReceiver myLogLineListener;
-  private IDevice mockDevice = Mockito.mock(IDevice.class);
+  private IDevice mockDevice = mock(IDevice.class);
   private AndroidLogcatService myLogcatService;
+
+  private String myBufferSize;
 
   @Before
   public void setUp() throws Exception {
-    System.setProperty("idea.cycle.buffer.size", "disabled");
-    myLogcatRunner = new AndroidLogcatService.LogcatRunner() {
+    AndroidLogcatService.LogcatRunner logcatRunner = new AndroidLogcatService.LogcatRunner() {
 
       @Override
       public void start(@NotNull IDevice device, @NotNull AndroidLogcatReceiver receiver) {
@@ -67,8 +72,19 @@ public class AndroidLogcatServiceTest {
         receiver.processNewLine("Second Line1");
       }
     };
-    myLogcatService = new AndroidLogcatService(myLogcatRunner);
+    myLogcatService = new AndroidLogcatService(logcatRunner);
     myLogLineListener =  new LogLineReceiver();
+
+    myBufferSize = System.setProperty("idea.cycle.buffer.size", "disabled");
+  }
+
+  @After
+  public void tearDown() {
+    if (myBufferSize != null) {
+      System.setProperty("idea.cycle.buffer.size", myBufferSize);
+    } else {
+      System.clearProperty("idea.cycle.buffer.size");
+    }
   }
 
   @Test
@@ -98,8 +114,85 @@ public class AndroidLogcatServiceTest {
     verifyNoMoreInteractions(mockDevice);
   }
 
-  @After
-  public void tearDown() {
-    System.clearProperty("idea.cycle.buffer.size");
+  /**
+   * Tests {@link AndroidLogcatService#addListener(IDevice, AndroidLogcatService.LogLineListener, boolean)},
+   * to make sure that it adds correctly old logs from buffer
+   */
+  @Test
+  public void testAddOldLogs() {
+    when(mockDevice.isOnline()).thenReturn(true);
+    myLogcatService.deviceConnected(mockDevice);
+    myLogcatService.addListener(mockDevice, myLogLineListener, true);
+
+    myLogLineListener.assertAllReceived();
+    verify(mockDevice, times(2)).isOnline();
+    verify(mockDevice, times(2)).getClientName(1493);
+    verifyNoMoreInteractions(mockDevice);
+  }
+
+  @Test
+  public void testDeviceDisconnectedAndConnected() {
+    when(mockDevice.isOnline()).thenReturn(false);
+    myLogcatService.addListener(mockDevice, myLogLineListener);
+
+    when(mockDevice.isOnline()).thenReturn(true);
+    myLogcatService.deviceConnected(mockDevice);
+    myLogLineListener.assertAllReceived();
+
+    when(mockDevice.isOnline()).thenReturn(false);
+    myLogcatService.deviceDisconnected(mockDevice);
+
+    myLogLineListener.reset();
+    when(mockDevice.isOnline()).thenReturn(true);
+    myLogcatService.deviceConnected(mockDevice);
+    myLogLineListener.assertAllReceived();
+
+    verify(mockDevice, times(3)).isOnline();
+    verify(mockDevice, times(4)).getClientName(1493);
+    verifyNoMoreInteractions(mockDevice);
+  }
+
+  @Test
+  public void testDeviceChanged() {
+    when(mockDevice.isOnline()).thenReturn(true);
+    myLogcatService.deviceConnected(mockDevice);
+    myLogcatService.addListener(mockDevice, myLogLineListener, true);
+    myLogLineListener.assertAllReceived();
+
+    myLogLineListener.reset();
+    when(mockDevice.isOnline()).thenReturn(false);
+    myLogcatService.deviceChanged(mockDevice, 0);
+    myLogLineListener.assertNothingReceived();
+
+    myLogLineListener.reset();
+    when(mockDevice.isOnline()).thenReturn(true);
+    myLogcatService.deviceChanged(mockDevice, 0);
+    myLogLineListener.assertAllReceived();
+
+    verify(mockDevice, times(4)).isOnline();
+    verify(mockDevice, times(4)).getClientName(1493);
+    verifyNoMoreInteractions(mockDevice);
+  }
+
+  @Test
+  public void testRemoveListener() {
+    when(mockDevice.isOnline()).thenReturn(true);
+    myLogcatService.deviceConnected(mockDevice);
+    myLogcatService.addListener(mockDevice, myLogLineListener, true);
+    myLogLineListener.assertAllReceived();
+
+    myLogcatService.removeListener(mockDevice, myLogLineListener);
+    when(mockDevice.isOnline()).thenReturn(false);
+    myLogcatService.deviceDisconnected(mockDevice);
+
+    // Try to reconnect and make sure that it received nothing
+    myLogLineListener.reset();
+    when(mockDevice.isOnline()).thenReturn(true);
+    myLogcatService.deviceConnected(mockDevice);
+    myLogLineListener.assertNothingReceived();
+
+    verify(mockDevice, times(3)).isOnline();
+    verify(mockDevice, times(4)).getClientName(1493);
+    verifyNoMoreInteractions(mockDevice);
   }
 }

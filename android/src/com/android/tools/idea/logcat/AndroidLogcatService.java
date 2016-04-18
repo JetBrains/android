@@ -213,7 +213,7 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
     if (!isReceivingFrom(device) && device.isOnline()) {
       startReceiving(device);
     }
-    else if (isReceivingFrom(device) && device.isOffline()) {
+    else if (isReceivingFrom(device) && !device.isOnline()) {
       stopReceiving(device);
     }
   }
