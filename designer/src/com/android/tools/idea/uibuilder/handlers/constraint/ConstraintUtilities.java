@@ -372,6 +372,24 @@ public class ConstraintUtilities {
                            height);
   }
 
+  static void setHorizontalBias(@NotNull NlComponent component, @NotNull ConstraintWidget widget) {
+    String biasString = component.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS);
+    float bias = 0.5f;
+    if (biasString != null && biasString.length() > 0) {
+      bias = Float.parseFloat(biasString);
+    }
+    widget.setHorizontalBiasPercent(bias);
+  }
+
+  static void setVerticalBias(@NotNull NlComponent component, @NotNull ConstraintWidget widget) {
+    String biasString = component.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS);
+    float bias = 0.5f;
+    if (biasString != null && biasString.length() > 0) {
+      bias = Float.parseFloat(biasString);
+    }
+    widget.setVerticalBiasPercent(bias);
+  }
+
   /**
    * Set the constraint strength if defined
    *
@@ -650,6 +668,8 @@ public class ConstraintUtilities {
     setStrength(SdkConstants.ATTR_LAYOUT_RIGHT_STRENGTH, ConstraintAnchor.Type.RIGHT, component, widget);
     setStrength(SdkConstants.ATTR_LAYOUT_TOP_STRENGTH, ConstraintAnchor.Type.TOP, component, widget);
     setStrength(SdkConstants.ATTR_LAYOUT_BOTTOM_STRENGTH, ConstraintAnchor.Type.BOTTOM, component, widget);
+    setHorizontalBias(component, widget);
+    setVerticalBias(component, widget);
   }
 
 }
