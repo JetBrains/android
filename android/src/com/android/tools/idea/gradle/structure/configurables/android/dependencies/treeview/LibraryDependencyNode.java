@@ -63,9 +63,10 @@ public class LibraryDependencyNode extends AbstractDependencyNode<PsAndroidLibra
   }
 
   @NotNull
-  private static String getText(@NotNull PsAndroidLibraryDependency dependency) {
+  private String getText(@NotNull PsAndroidLibraryDependency dependency) {
     PsArtifactDependencySpec resolvedSpec = dependency.getResolvedSpec();
-    if (dependency.hasPromotedVersion()) {
+    if (dependency.hasPromotedVersion() && !(getParent() instanceof LibraryDependencyNode)) {
+      // Show only "promoted" version for declared nodes.
       PsArtifactDependencySpec declaredSpec = dependency.getDeclaredSpec();
       assert declaredSpec != null;
       String version = declaredSpec.version + "→" + resolvedSpec.version;

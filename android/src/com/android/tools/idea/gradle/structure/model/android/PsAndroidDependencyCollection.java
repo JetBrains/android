@@ -26,6 +26,7 @@ import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.PsParsedDependencies;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
@@ -35,9 +36,11 @@ import java.io.File;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Consumer;
 
 import static com.android.tools.idea.gradle.structure.model.pom.MavenPoms.findDependenciesInPomFile;
+import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 
 class PsAndroidDependencyCollection implements PsModelCollection<PsAndroidDependency> {
   @NotNull private final PsAndroidModule myParent;
@@ -289,6 +292,30 @@ class PsAndroidDependencyCollection implements PsModelCollection<PsAndroidDepend
     return dependency;
   }
 
+  @Nullable
+  public PsAndroidLibraryDependency findElement(PsArtifactDependencySpec spec) {
+    PsAndroidLibraryDependency dependency = findElement(spec.toString(), PsAndroidLibraryDependency.class);
+    if (dependency != null) {
+      return dependency;
+    }
+    if (isEmpty(spec.version)) {
+      List<String> found = Lists.newArrayList();
+      for (String specText : myLibraryDependenciesBySpec.keySet()) {
+        PsArtifactDependencySpec storedSpec = PsArtifactDependencySpec.create(specText);
+        if (storedSpec != null && Objects.equals(storedSpec.group, spec.group) && Objects.equals(storedSpec.name, spec.name)) {
+          found.add(specText);
+        }
+      }
+
+      if (found.size() == 1) {
+        // The spec did not have a version, we match with an existing one, only if there is one stored.
+        return myLibraryDependenciesBySpec.get(found.get(0));
+      }
+    }
+
+    return null;
+  }
+
   @Override
   @Nullable
   public <S extends PsAndroidDependency> S findElement(@NotNull String name, @Nullable Class<S> type) {
@@ -318,7 +345,7 @@ class PsAndroidDependencyCollection implements PsModelCollection<PsAndroidDepend
 
   void addLibraryDependency(@NotNull PsArtifactDependencySpec spec,
                             @NotNull PsAndroidArtifact artifact,
-                            @NotNull ArtifactDependencyModel parsedModel) {
+                            @Nullable ArtifactDependencyModel parsedModel) {
     PsAndroidLibraryDependency dependency = myLibraryDependenciesBySpec.get(spec.toString());
     if (dependency == null) {
       dependency = new PsAndroidLibraryDependency(myParent, spec, null, artifact, parsedModel);

@@ -242,7 +242,7 @@ public class ResolvedDependenciesPanel extends ToolWindowPanel implements Depend
     }
     else {
       myIgnoreTreeSelectionEvents = true;
-      myTreeBuilder.selectMatchingNodes(selection, true);
+      myTreeBuilder.selectMatchingNodes(selection, false);
       myIgnoreTreeSelectionEvents = false;
     }
   }
