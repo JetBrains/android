@@ -432,9 +432,15 @@ public class ConstraintModel {
     myMouseInteraction.setIsAltDown((modifiers & InputEvent.ALT_DOWN_MASK) != 0);
   }
 
+  public void setAutoConnect(boolean autoConnect) {
+    if (autoConnect != mAutoConnect) {
+      mAutoConnect = autoConnect;
+      myMouseInteraction.setAutoConnect(autoConnect);
+    }
+  }
+
   public void toggleAutoConnect() {
-    mAutoConnect = !mAutoConnect;
-    myMouseInteraction.setAutoConnect(mAutoConnect);
+    setAutoConnect(!mAutoConnect);
   }
 
   public boolean isAutoConnect() { return mAutoConnect; }

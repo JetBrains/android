@@ -16,11 +16,8 @@
 
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
-import org.jetbrains.annotations.NotNull;
-import com.android.tools.idea.uibuilder.api.DragHandler;
-import com.android.tools.idea.uibuilder.api.DragType;
-import com.android.tools.idea.uibuilder.api.ViewEditor;
-import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
+import com.android.tools.idea.uibuilder.api.*;
+import com.android.tools.idea.uibuilder.api.actions.*;
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.SelectionModel;
@@ -29,11 +26,15 @@ import com.android.tools.idea.uibuilder.surface.Interaction;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.sherpa.drawing.ViewTransform;
 import com.android.tools.sherpa.interaction.ResizeHandle;
+import com.android.tools.sherpa.scout.Scout;
+import com.android.tools.sherpa.structure.WidgetsScene;
 import com.google.tnt.solver.widgets.ConstraintAnchor;
 import icons.AndroidIcons;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.List;
 
 /**
  * Handles interactions for the ConstraintLayout viewgroups
@@ -46,6 +47,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
   private final Cursor myTopAnchorCursor;
   private final Cursor myRightAnchorCursor;
   private final Cursor myBottomAnchorCursor;
+  private boolean myShowAllConstraints = true;
 
   /**
    * Base constructor
@@ -56,6 +58,16 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
     myTopAnchorCursor = createCursor(AndroidIcons.SherpaIcons.TopConstraintCursor, 12, 18, "top constraint");
     myRightAnchorCursor = createCursor(AndroidIcons.SherpaIcons.RightConstraintCursor, 6, 12, "right constraint");
     myBottomAnchorCursor = createCursor(AndroidIcons.SherpaIcons.BottomConstraintCursor, 12, 6, "bottom constraint");
+  }
+
+  @Override
+  public void addViewActions(@NotNull List<ViewAction> actions) {
+    actions.add(new ToggleConstraintModeAction());
+    actions.add(new ViewActionSeparator());
+    actions.add(new ToggleAutoConnectAction());
+    actions.add(new ViewActionSeparator());
+    actions.add(new ClearConstraintsAction());
+    actions.add((new InferAction()));
   }
 
   /**
@@ -253,8 +265,104 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
       }
     }
 
-    boolean showAllConstraints = false;
-    needsRepaint |= constraintModel.paint(gc, screenView, width, height, showAllConstraints, transparent);
+    needsRepaint |= constraintModel.paint(gc, screenView, width, height, myShowAllConstraints, transparent);
     return needsRepaint;
+  }
+
+  private static class ToggleAutoConnectAction extends ToggleViewAction {
+    public ToggleAutoConnectAction() {
+      super(AndroidIcons.Configs.SmallestWidth, AndroidIcons.Configs.Dimension, "Turn on Autoconnect", "Turn off Autoconnect");
+    }
+
+    @Override
+    public boolean isSelected(@NotNull ViewEditor editor,
+                              @NotNull ViewHandler handler,
+                              @NotNull NlComponent parent,
+                              @NotNull List<NlComponent> selectedChildren) {
+      return ConstraintModel.getModel().isAutoConnect();
+    }
+
+    @Override
+    public void setSelected(@NotNull ViewEditor editor,
+                            @NotNull ViewHandler handler,
+                            @NotNull NlComponent parent,
+                            @NotNull List<NlComponent> selectedChildren,
+                            boolean selected) {
+      ConstraintModel.getModel().setAutoConnect(selected);
+    }
+
+    @Override
+    public boolean affectsUndo() {
+      return false;
+    }
+  }
+
+  private static class ClearConstraintsAction extends DirectViewAction {
+    @Override
+    public void perform(@NotNull ViewEditor editor,
+                        @NotNull ViewHandler handler,
+                        @NotNull NlComponent component,
+                        @NotNull List<NlComponent> selectedChildren) {
+      ConstraintModel model = ConstraintModel.getModel();
+      WidgetsScene scene = model.getScene();
+      scene.clearAllConstraints();
+      ConstraintUtilities.saveModelToXML(component.getModel());
+    }
+
+    @Override
+    public void updatePresentation(@NotNull ViewActionPresentation presentation,
+                                   @NotNull ViewEditor editor,
+                                   @NotNull ViewHandler handler,
+                                   @NotNull NlComponent component,
+                                   @NotNull List<NlComponent> selectedChildren) {
+      presentation.setIcon(AndroidIcons.SherpaIcons.Delete);
+      presentation.setLabel("Clear all constraints");
+    }
+  }
+
+  private static class InferAction extends DirectViewAction {
+    @Override
+    public void perform(@NotNull ViewEditor editor,
+                        @NotNull ViewHandler handler,
+                        @NotNull NlComponent component,
+                        @NotNull List<NlComponent> selectedChildren) {
+      ConstraintModel model = ConstraintModel.getModel();
+      WidgetsScene scene = model.getScene();
+      Scout.inferConstraints(scene);
+      ConstraintUtilities.saveModelToXML(component.getModel());
+    }
+
+    @Override
+    public void updatePresentation(@NotNull ViewActionPresentation presentation,
+                                   @NotNull ViewEditor editor,
+                                   @NotNull ViewHandler handler,
+                                   @NotNull NlComponent component,
+                                   @NotNull List<NlComponent> selectedChildren) {
+      presentation.setIcon(AndroidIcons.SherpaIcons.ShowConstraints);
+      presentation.setLabel("Infer constraints");
+    }
+  }
+
+  private class ToggleConstraintModeAction extends ToggleViewAction {
+    public ToggleConstraintModeAction() {
+      super(AndroidIcons.SherpaIcons.ShowConstraints, AndroidIcons.SherpaIcons.ShowNoConstraints, "Show constraints", "Show No constraints");
+    }
+
+    @Override
+    public boolean isSelected(@NotNull ViewEditor editor,
+                              @NotNull ViewHandler handler,
+                              @NotNull NlComponent parent,
+                              @NotNull List<NlComponent> selectedChildren) {
+      return myShowAllConstraints;
+    }
+
+    @Override
+    public void setSelected(@NotNull ViewEditor editor,
+                            @NotNull ViewHandler handler,
+                            @NotNull NlComponent parent,
+                            @NotNull List<NlComponent> selectedChildren,
+                            boolean selected) {
+      myShowAllConstraints = selected;
+    }
   }
 }
