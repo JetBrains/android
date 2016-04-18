@@ -49,6 +49,12 @@ public class UIUtils {
    */
   private static final Color FAILURE_COLOR = new JBColor(0x660000, 0xC93B48);
 
+
+  /**
+   * Default color for inline <code></code> tags. Currently set to Material Teal 600/200.
+   */
+  private static final Color CODE_COLOR = new JBColor(0x00897B, 0x80CBC4);
+
   // TODO: Find or create a better background reference, we're not a tree but
   // this does currently match our desired color treatment. This is pulled
   // from the Maven Projects side panel.
@@ -72,6 +78,13 @@ public class UIUtils {
 
   public static Color getFailureColor() {
     return FAILURE_COLOR;
+  }
+
+  /**
+   * Gets a CSS string representation of a given color. Useful for mapping themed colors to css rules in html blocks.
+   */
+  public static String getCssColor(Color color) {
+    return "rgb(" + color.getRed() + ", " + color.getGreen() + ", " + color.getBlue() + ")";
   }
 
   public static GridBagConstraints getVerticalGlueConstraints(int gridy) {
@@ -113,9 +126,9 @@ public class UIUtils {
    * @param pane The element to set the html content on.
    * @param content The html body content, excluding the <body></body> tags.
    * @param css Extra css to add. Example ".testClass { color: red}\n.anotherClass { border: 1px solid blue}".
-   * @param headers Extra header content to add. Example "<title>My Favorite!!</title>".
+   * @param headContent Extra header content to add. Example "<title>My Favorite!!</title>".
    */
-  public static void setHtml(JTextPane pane, String content, String css, String headers) {
+  public static void setHtml(JTextPane pane, String content, String css, String headContent) {
     pane.setContentType("text/html");
     // It's assumed that markup is for display purposes in our context.
     pane.setEditable(false);
@@ -129,17 +142,24 @@ public class UIUtils {
     // TODO: Determine if the label font is the ideal font choice.
     Font defaultFont = new JBLabel().getFont();
 
-    // HTMLBuilder has insufficient support for granular/structured css and header manipulation. The rest is just a more verbose way
-    // of emitting string constants like "<html>" which isn't useful.
-    // TODO: If we build up a larger set of css, break out into a constant or external file.
-    // TODO: Determine if we want to extract size or other font properties for use.
-    String text = "<html><head><style>body { font-family: " + defaultFont.getFamily() + "; margin: 0px;}";
+    // NOTE: HTMLBuilder has poor support for granular/structured css and header manipulation. The rest of its methods are just a more
+    // verbose way of emitting string constants like "<html>" which isn't useful. Opting to directly manipulate markup instead.
+
+    // See https://docs.oracle.com/javase/8/docs/api/javax/swing/text/html/CSS.html for supported css.
+    // Summary of changes:
+    // * Use standard label font family so this is more in sync with labels and text based panels.
+    // * Defeat default list item treatment. It's hard coded in ListView as a poorly rendered 8px disc + large margins.
+    // * Add bottom margins to list items for legibility.
+    // * Colorizes <code>.
+    String text = "<html><head><style>body { font-family: " + defaultFont.getFamily() + "; margin: 0px; } " +
+                  "ol {margin: 0 0 0 20px} ul {list-style-type: circle; margin: 0 0 0 20px} " +
+                  "li {margin: 0 0 10px 10px; } code { color: " + getCssColor(CODE_COLOR) + "}";
     if (css != null) {
       text += "\n" + css;
     }
     text += "</style>";
-    if (headers != null) {
-      text += "\n" + css;
+    if (headContent != null) {
+      text += "\n" + headContent;
     }
     text += "</head><body>" + content + "</body></html>";
     pane.setText(text);
