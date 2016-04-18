@@ -204,6 +204,7 @@ public class ThemeSelectorTest {
     TableCell parentCell = row(0).column(0);
     assertEquals("android:Theme.Holo", themeEditorTable.getComboBoxSelectionAt(parentCell));
 
+    themeEditor.focus(); // required to ensure that the Select Previous Tab action is available
     guiTest.ideFrame().invokeMenuPath("Window", "Editor Tabs", "Select Previous Tab");
     EditorFixture editor = guiTest.ideFrame().getEditor();
     assertNotEquals(-1, editor.findOffset(null, "name=\"AppTheme", true));
