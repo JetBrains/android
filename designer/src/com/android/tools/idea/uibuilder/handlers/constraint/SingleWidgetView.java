@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
 import com.android.tools.sherpa.drawing.BlueprintColorSet;
+import com.android.tools.sherpa.drawing.ColorSet;
 import com.android.tools.sherpa.drawing.SceneDraw;
 import com.android.tools.sherpa.drawing.ViewTransform;
 import com.android.tools.sherpa.drawing.decorator.TextWidget;
@@ -45,6 +46,15 @@ public class SingleWidgetView extends JPanel {
   Color mBackgroundColor = new Color(47, 75, 126);
   static Color mLinesColor = new Color(100, 152, 199);
   static Color sStrokeColor = mLinesColor;
+
+  ColorSet mColorSet = new InspectorColorSet();
+
+  class InspectorColorSet extends BlueprintColorSet {
+    public InspectorColorSet() {
+      mDrawBackground = false;
+      mDrawWidgetInfos = true;
+    }
+  }
 
   int mWidth;
   int mHeight;
@@ -193,7 +203,7 @@ public class SingleWidgetView extends JPanel {
       Selection mSelection = new Selection(null);
       WidgetMotion mWidgetMotion = new WidgetMotion(mWidgetsScene, mSelection);
       WidgetResize mWidgetResize = new WidgetResize();
-      mSceneDraw = new SceneDraw(new BlueprintColorSet(), mWidgetsScene, mSelection,
+      mSceneDraw = new SceneDraw(mColorSet, mWidgetsScene, mSelection,
                                  mWidgetMotion, mWidgetResize);
       mSceneDraw.setApplyConstraints(false);
       mSceneDraw.setDrawOutsideShade(true);
@@ -230,7 +240,6 @@ public class SingleWidgetView extends JPanel {
       widget.setCompanionWidget(companion);
       decorator.setTextSize(h * 1.2f);
       decorator.applyDimensionBehaviour();
-      decorator.setShowFakeUI(false);
       widget.setWidth(w);
       widget.setHeight(h);
       mRoot.add(widget);

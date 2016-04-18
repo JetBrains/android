@@ -28,6 +28,7 @@ public class BlueprintColorSet extends ColorSet {
     public BlueprintColorSet() {
 
         mDrawBackground = true;
+        mDrawWidgetInfos = false;
 
         // Base colors
 
