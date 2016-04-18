@@ -319,7 +319,6 @@ public class WidgetDecorator {
             return false;
         }
         onPaintBackground(transform, g);
-        g.setColor(mFrameColor.getColor());
         if (mIsSelected) {
             updateShowAnchorsPolicy();
         } else {
@@ -327,11 +326,7 @@ public class WidgetDecorator {
             mShowSizeIndicator = false;
         }
 
-        WidgetDraw.drawWidgetFrame(transform, g, mWidget,
-                mColorSet, mDisplayAnchorsPolicy, mShowResizeHandles,
-                mShowSizeIndicator, mIsSelected, mStyle);
-
-        if (!WidgetDecorator.isShowFakeUI() && mColorSet.drawWidgetInfos()) {
+        if (mColorSet.drawWidgetInfos()) {
             if (mWidget.getVisibility() == ConstraintWidget.INVISIBLE) {
                 Color c = mTextColor.getColor();
                 g.setColor(new Color(c.getRed(), c.getGreen(), c.getBlue(), 100));
@@ -340,6 +335,11 @@ public class WidgetDecorator {
             }
             WidgetDraw.drawWidgetInfo(transform, g, mWidget);
         }
+
+        g.setColor(mFrameColor.getColor());
+        WidgetDraw.drawWidgetFrame(transform, g, mWidget,
+                mColorSet, mDisplayAnchorsPolicy, mShowResizeHandles,
+                mShowSizeIndicator, mIsSelected, mStyle);
 
         return isAnimating();
     }
