@@ -28,9 +28,6 @@ import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
 import java.awt.*;
 import java.awt.event.ActionListener;
-import java.awt.geom.Area;
-import java.awt.geom.Rectangle2D;
-import java.awt.geom.RoundRectangle2D;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -142,7 +139,7 @@ public class TutorialStep extends JPanel {
     stepNumber.setOpaque(false);
     stepNumber.setForeground(UIUtils.getLinkColor());
     stepNumber.setBorder(new NumberBorder());
-    Dimension size = new Dimension(20, 20);
+    Dimension size = new Dimension(21, 21);
     stepNumber.setSize(size);
     stepNumber.setPreferredSize(size);
     stepNumber.setMinimumSize(size);
@@ -173,17 +170,10 @@ public class TutorialStep extends JPanel {
     public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
       Graphics2D g2 = (Graphics2D)g.create();
       g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-      int r = height - 1;
-      RoundRectangle2D round = new RoundRectangle2D.Float(x, y, width - 1, height - 1, r, r);
-      Container parent = c.getParent();
-      if (parent != null) {
-        g2.setColor(UIUtils.getBackgroundColor());
-        Area corner = new Area(new Rectangle2D.Float(x, y, width, height));
-        corner.subtract(new Area(round));
-        g2.fill(corner);
-      }
+      // Shrink the diameter by 1px as attempting to use full bounds results in clipping.
+      int d = height - 1;
       g2.setColor(UIUtils.getLinkColor());
-      g2.draw(round);
+      g2.drawOval(x, y, d, d);
       g2.dispose();
     }
 
@@ -203,9 +193,6 @@ public class TutorialStep extends JPanel {
   /**
    * A text pane designed to display code samples, this should live inside a
    * {@code NaturalHeightScrollPane} to render properly.
-   *
-   * TODO: While this generally avoids wrapping, it still does in some
-   * scenario. Either fix via code properties or render the contents as html.
    */
   private class CodePane extends JTextPane {
 
@@ -216,12 +203,6 @@ public class TutorialStep extends JPanel {
       setMargin(new Insets(5, 5, 5, 5));
       setFont(new Font(Font.MONOSPACED, Font.PLAIN, 10));
       setContentType("text/html");
-    }
-
-    // Always scroll horizontally, avoids text wrapping.
-    @Override
-    public boolean getScrollableTracksViewportWidth() {
-      return false;
     }
 
     /**
