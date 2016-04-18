@@ -20,9 +20,6 @@ import com.android.tools.idea.uibuilder.property.inspector.InspectorComponent;
 import com.android.tools.idea.uibuilder.property.inspector.InspectorPanel;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
-import java.awt.*;
-
 /**
  * This is the builder for the Constraint panel
  */
@@ -34,9 +31,9 @@ public class ConstraintInspectorComponent implements InspectorComponent {
   }
 
   @Override
-  public void attachToInspector(@NotNull JPanel inspector) {
-    InspectorPanel.addPanel(inspector, new WidgetConstraintPanel(mComponent));
-    InspectorPanel.addSeparator(inspector);
+  public void attachToInspector(@NotNull InspectorPanel inspector) {
+    inspector.addPanel(new WidgetConstraintPanel(mComponent));
+    inspector.addSeparator();
 
     refresh();
   }

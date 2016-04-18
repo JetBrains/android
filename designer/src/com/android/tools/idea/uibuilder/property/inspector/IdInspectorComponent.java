@@ -23,7 +23,6 @@ import com.android.tools.idea.uibuilder.property.editors.NlReferenceEditor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
 import java.util.Map;
 
 public class IdInspectorComponent implements InspectorComponent {
@@ -53,11 +52,11 @@ public class IdInspectorComponent implements InspectorComponent {
   }
 
   @Override
-  public void attachToInspector(@NotNull JPanel inspector) {
-    InspectorPanel.addComponent(inspector, "ID", getTooltip(myIdAttr), myIdField.getComponent());
-    InspectorPanel.addSeparator(inspector);
-    InspectorPanel.addComponent(inspector, "Width", getTooltip(myWidthAttr), myWidthEditor.getComponent());
-    InspectorPanel.addComponent(inspector, "Height", getTooltip(myHeightAttr), myHeightEditor.getComponent());
+  public void attachToInspector(@NotNull InspectorPanel inspector) {
+    inspector.addComponent("ID", getTooltip(myIdAttr), myIdField.getComponent());
+    inspector.addSeparator();
+    inspector.addComponent("Width", getTooltip(myWidthAttr), myWidthEditor.getComponent());
+    inspector.addComponent("Height", getTooltip(myHeightAttr), myHeightEditor.getComponent());
     refresh();
   }
 

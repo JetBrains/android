@@ -20,6 +20,6 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 
 public interface InspectorComponent {
-  void attachToInspector(@NotNull JPanel inspector);
+  void attachToInspector(@NotNull InspectorPanel inspector);
   void refresh();
 }
