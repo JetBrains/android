@@ -109,7 +109,7 @@ public class PsAndroidModule extends PsModule implements PsAndroidModel {
 
   @Nullable
   public PsAndroidLibraryDependency findLibraryDependency(@NotNull PsArtifactDependencySpec spec) {
-    return getOrCreateDependencyCollection().findElement(spec.toString(), PsAndroidLibraryDependency.class);
+    return getOrCreateDependencyCollection().findElement(spec);
   }
 
   @NotNull
