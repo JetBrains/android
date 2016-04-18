@@ -33,6 +33,7 @@ import java.awt.Graphics2D;
 import java.awt.Polygon;
 import java.awt.Rectangle;
 import java.awt.Shape;
+import java.awt.Stroke;
 import java.awt.geom.Ellipse2D;
 import java.util.ArrayList;
 import java.util.EnumSet;
@@ -76,7 +77,7 @@ public class WidgetDraw {
      * @param widgetStyle       current widget style
      */
     public static void drawWidgetFrame(ViewTransform transform, Graphics2D g,
-            ConstraintWidget widget,
+            ConstraintWidget widget, ColorSet colorSet,
             EnumSet<ANCHORS_DISPLAY> showAnchors, boolean showResizeHandles,
             boolean showSizeIndicator, boolean isSelected, int widgetStyle) {
         g.setStroke(SnapDraw.sNormalStroke);
@@ -165,7 +166,7 @@ public class WidgetDraw {
         boolean showBaselineAnchor =
                 displayAllAnchors || showAnchors.contains(ANCHORS_DISPLAY.BASELINE);
 
-        if (showAnchors.contains(ANCHORS_DISPLAY.CONNECTED)) {
+        if (true || showAnchors.contains(ANCHORS_DISPLAY.CONNECTED)) {
             showLeftAnchor |= leftAnchorIsConnected;
             showRightAnchor |= rightAnchorIsConnected;
             showTopAnchor |= topAnchorIsConnected;
@@ -173,6 +174,7 @@ public class WidgetDraw {
             showCenterAnchor |= centerAnchorIsConnected;
             showBaselineAnchor |= baselineAnchorIsConnected;
         }
+
         if (!ConstraintAnchor.USE_CENTER_ANCHOR) {
             showCenterAnchor = false;
         }
@@ -182,36 +184,50 @@ public class WidgetDraw {
         WidgetCompanion widgetCompanion = (WidgetCompanion) widget.getCompanionWidget();
         WidgetDecorator decorator = widgetCompanion.getWidgetDecorator(widgetStyle);
         Color backgroundColor = decorator.getBackgroundColor();
-        if (!(widget instanceof ConstraintWidgetContainer) && widget.getBaselineDistance() > 0) {
+        Color previousColor = g.getColor();
+        if (isSelected) {
+            g.setColor(colorSet.getSelectedConstraints());
+        }
+        if (showBaselineAnchor && !(widget instanceof ConstraintWidgetContainer) && widget.getBaselineDistance() > 0) {
             int baselineY = transform
                     .getSwingY(
                             WidgetInteractionTargets.constraintHandle(
                                     widget.getAnchor(ConstraintAnchor.Type.BASELINE)).getDrawY());
             Graphics2D g2 = (Graphics2D) g.create();
-            g2.setStroke(ConnectionDraw.sDashedStroke);
+            if (!isSelected) {
+                g2.setStroke(ConnectionDraw.sDashedStroke);
+            }
             g2.drawLine(l, baselineY, r, baselineY);
             g2.dispose();
+            if (isSelected) {
+                ConstraintHandle handle = widgetCompanion.getWidgetInteractionTargets()
+                        .getConstraintHandle(widget.getAnchor(
+                                ConstraintAnchor.Type.BASELINE));
+                handle.draw(transform, g, colorSet, isSelected);
+            }
         }
         if (showLeftAnchor) {
-            drawAnchor(g, backgroundColor, l, midY, circleDimension, anchorInnerMargin,
+            ConnectionDraw.drawAnchor(g, backgroundColor, isSelected, l, midY, circleDimension, anchorInnerMargin,
                     leftAnchorIsConnected);
         }
         if (showRightAnchor) {
-            drawAnchor(g, backgroundColor, r, midY, circleDimension, anchorInnerMargin,
+            ConnectionDraw.drawAnchor(g, backgroundColor, isSelected, r, midY, circleDimension, anchorInnerMargin,
                     rightAnchorIsConnected);
         }
         if (showTopAnchor) {
-            drawAnchor(g, backgroundColor, midX, t, circleDimension, anchorInnerMargin,
+            ConnectionDraw.drawAnchor(g, backgroundColor, isSelected, midX, t, circleDimension, anchorInnerMargin,
                     topAnchorIsConnected);
         }
         if (showBottomAnchor) {
-            drawAnchor(g, backgroundColor, midX, b, circleDimension, anchorInnerMargin,
+            ConnectionDraw.drawAnchor(g, backgroundColor, isSelected, midX, b, circleDimension, anchorInnerMargin,
                     bottomAnchorIsConnected);
         }
         if (showCenterAnchor) {
-            drawAnchor(g, backgroundColor, midX, midY, circleDimension, anchorInnerMargin,
+            ConnectionDraw.drawAnchor(g, backgroundColor, isSelected, midX, midY, circleDimension, anchorInnerMargin,
                     centerAnchorIsConnected);
         }
+
+        g.setColor(previousColor);
 
         // Now, let's draw the widget's frame
 
@@ -298,35 +314,6 @@ public class WidgetDraw {
             g.drawLine(l, b, r, t);
         }
         g.setStroke(SnapDraw.sNormalStroke);
-    }
-
-    /**
-     * Utility function to draw an anchor
-     *
-     * @param g               graphics context
-     * @param backgroundColor
-     * @param x               x coordinate of the anchor
-     * @param y               y coordinate of the anchor
-     * @param dimension       size of the anchor
-     * @param innerMargin     inner margin
-     * @param connected       if the anchor is connected or not
-     */
-    private static void drawAnchor(Graphics2D g, Color backgroundColor,
-            int x, int y, int dimension, int innerMargin, boolean connected) {
-        int cx = x - dimension / 2;
-        int cy = y - dimension / 2;
-        Ellipse2D.Float outerCircle = new Ellipse2D.Float(cx, cy, dimension, dimension);
-        Graphics2D g2 = (Graphics2D) g.create();
-        g2.setColor(backgroundColor);
-        g2.fill(outerCircle);
-        g2.dispose();
-        g.draw(outerCircle);
-        if (connected) {
-            Ellipse2D.Float innerCircle = new Ellipse2D.Float(cx + innerMargin, cy + innerMargin,
-                    dimension - innerMargin * 2, dimension - innerMargin * 2);
-            g.fill(innerCircle);
-            g.draw(innerCircle);
-        }
     }
 
     /**
@@ -523,20 +510,27 @@ public class WidgetDraw {
      * @param showPercentIndicator show the percent indicator if center constraints
      */
     public static void drawConstraints(ViewTransform transform, Graphics2D g,
-            ConstraintWidget widget, boolean isSelected, boolean showPercentIndicator) {
+            ColorSet colorSet,
+            ConstraintWidget widget, boolean isSelected, boolean showPercentIndicator,
+            boolean showMargins) {
         if (widget.getVisibility() == ConstraintWidget.INVISIBLE) {
             g.setStroke(SnapDraw.sDashedStroke);
         }
         ArrayList<ConstraintAnchor.Type> anchors = new ArrayList<ConstraintAnchor.Type>();
+        if (isSelected && widget.hasBaseline()) {
+            anchors.add(ConstraintAnchor.Type.BASELINE);
+        }
         anchors.add(ConstraintAnchor.Type.LEFT);
         anchors.add(ConstraintAnchor.Type.TOP);
         anchors.add(ConstraintAnchor.Type.RIGHT);
         anchors.add(ConstraintAnchor.Type.BOTTOM);
-        anchors.add(ConstraintAnchor.Type.BASELINE);
         Color currentColor = g.getColor();
         for (ConstraintAnchor.Type type : anchors) {
             ConstraintAnchor anchor = widget.getAnchor(type);
-            if (anchor != null && anchor.isConnected()) {
+            if (anchor == null) {
+                continue;
+            }
+            if (anchor.isConnected()) {
                 ConstraintAnchor target = anchor.getTarget();
                 if (target.getOwner().getVisibility() == ConstraintWidget.GONE) {
                     continue;
@@ -555,7 +549,14 @@ public class WidgetDraw {
                     g.setColor(currentColor);
                 }
                 ConnectionDraw.drawConnection(transform, g, startHandle, endHandle,
-                        isSelected, showPercentIndicator);
+                        isSelected, showPercentIndicator, isSelected);
+            } else if (isSelected) {
+                ConstraintHandle startHandle = WidgetInteractionTargets.constraintHandle(anchor);
+                if (startHandle == null) {
+                    continue;
+                }
+                ConnectionDraw.drawConnection(transform, g, startHandle, null,
+                        isSelected, showPercentIndicator, isSelected);
             }
         }
         g.setStroke(SnapDraw.sNormalStroke);

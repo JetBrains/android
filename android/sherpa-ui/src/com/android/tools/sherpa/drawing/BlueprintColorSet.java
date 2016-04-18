@@ -54,10 +54,11 @@ public class BlueprintColorSet extends ColorSet {
         // Selected colors
 
         mSelectedBackground = ColorTheme.updateBrightness(mBackground, 1.3f);
-        mSelectedFrames = ColorTheme.updateBrightness(mFrames, 2f);
         mSelectedConstraints = ColorTheme.fadeToColor(
                 ColorTheme.updateBrightness(mConstraints, 2f),
                 Color.white, 0.7f);
+        mSelectedFrames = ColorTheme.fadeToColor(mSelectedConstraints, mSelectedBackground, 0.2f);
+        mSelectedText = ColorTheme.fadeToColor(mText, mSelectedBackground, 0.7f);
 
         // Anchor colors
 
