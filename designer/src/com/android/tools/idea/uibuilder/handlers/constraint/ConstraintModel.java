@@ -65,7 +65,7 @@ public class ConstraintModel {
   private MouseInteraction myMouseInteraction;
 
   private static Lock ourLock = new ReentrantLock();
-  private boolean mShowFakeUI = false;
+  private boolean mShowFakeUI = true;
   private ColorSet mBlueprintColorSet = new BlueprintColorSet();
   private ColorSet mAndroidColorSet = new AndroidColorSet();
 
@@ -331,18 +331,18 @@ public class ConstraintModel {
     if (component.getTagName().equalsIgnoreCase(SdkConstants.TEXT_VIEW)) {
       String text = component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT);
       decorator = new TextWidget(widget, text);
-    }
-    if (component.getTagName().equalsIgnoreCase(SdkConstants.BUTTON)) {
+    } else if (component.getTagName().equalsIgnoreCase(SdkConstants.BUTTON)) {
       String text = component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT);
       decorator = new ButtonWidget(widget, text);
-    }
-    if (component.getTagName().equalsIgnoreCase(SdkConstants.RADIO_BUTTON)) {
+    } else if (component.getTagName().equalsIgnoreCase(SdkConstants.RADIO_BUTTON)) {
       String text = component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT);
       decorator = new RadiobuttonWidget(widget, text);
-    }
-    if (component.getTagName().equalsIgnoreCase(SdkConstants.CHECK_BOX)) {
+    } else if (component.getTagName().equalsIgnoreCase(SdkConstants.CHECK_BOX)) {
       String text = component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT);
       decorator = new CheckboxWidget(widget, text);
+    } else if (component.getTagName().equalsIgnoreCase(SdkConstants.SWITCH)) {
+      String text = component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT);
+      decorator = new SwitchWidget(widget, text);
     }
     if (decorator == null) {
       decorator = new WidgetDecorator(widget);

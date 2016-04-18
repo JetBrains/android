@@ -19,7 +19,7 @@ package com.android.tools.sherpa.drawing.decorator;
 import com.android.tools.sherpa.drawing.ViewTransform;
 import com.google.tnt.solver.widgets.ConstraintWidget;
 
-import java.awt.Graphics2D;
+import java.awt.*;
 
 /**
  * Button ui element
@@ -44,13 +44,17 @@ public class ButtonWidget extends TextWidget {
     @Override
     public void onPaintBackground(ViewTransform transform, Graphics2D g) {
         super.onPaintBackground(transform, g);
-        if (WidgetDecorator.isShowFakeUI()) {
+        if (mColorSet.drawBackground()) {
             int x = transform.getSwingX(mWidget.getDrawX() + mHorizontalMargin);
-            int y = transform.getSwingX(mWidget.getDrawY() + mVerticalMargin);
+            int y = transform.getSwingY(mWidget.getDrawY() + mVerticalMargin);
             int w = transform.getSwingDimension(mWidget.getDrawWidth() - mHorizontalMargin * 2);
             int h = transform.getSwingDimension(mWidget.getDrawHeight() - mVerticalMargin * 2);
             int round = transform.getSwingDimension(5);
+            Stroke stroke = g.getStroke();
+            int strokeWidth = transform.getSwingDimension(3);
+            g.setStroke(new BasicStroke(strokeWidth));
             g.drawRoundRect(x, y, w, h, round, round);
+            g.setStroke(stroke);
         }
     }
 }

@@ -27,6 +27,8 @@ public class AndroidColorSet extends ColorSet {
 
     public AndroidColorSet() {
 
+        mShadow = new Color(255, 255, 255, 50);
+
         mDrawBackground = false;
         mDrawWidgetInfos = false;
 
