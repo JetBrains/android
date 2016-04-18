@@ -37,6 +37,8 @@ import java.awt.event.ActionListener;
  */
 public class TutorialCard extends CardViewPanel {
 
+  JBScrollPane myContentsScroller = new JBScrollPane();
+
   TutorialCard(ActionListener listener, TutorialData tutorial, DeveloperService service) {
     super(listener);
 
@@ -86,19 +88,30 @@ public class TutorialCard extends CardViewPanel {
 
     contents.add(new FooterNav(), c);
 
-    JBScrollPane contentsScroller = new JBScrollPane();
     // HACK ALERT: For an unknown reason (possibly race condition calculating inner contents)
     // this scrolls exceptionally slowly without an explicit increment. Using fixed values is not
     // uncommon and the values appear to range by use (ranging from 10 to 20). Choosing a middling
     // rate to account for typically long content.
-    contentsScroller.getVerticalScrollBar().setUnitIncrement(16);
-    contentsScroller.setViewportView(contents);
-    contentsScroller.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, UIUtils.getSeparatorColor()));
-    contentsScroller.setViewportBorder(BorderFactory.createEmptyBorder());
-    contentsScroller.setOpaque(false);
-    contentsScroller.getViewport().setOpaque(false);
-    contentsScroller.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-    add(contentsScroller, BorderLayout.CENTER);
+    myContentsScroller.getVerticalScrollBar().setUnitIncrement(16);
+    myContentsScroller.setViewportView(contents);
+    myContentsScroller.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, UIUtils.getSeparatorColor()));
+    myContentsScroller.setViewportBorder(BorderFactory.createEmptyBorder());
+    myContentsScroller.setOpaque(false);
+    myContentsScroller.getViewport().setOpaque(false);
+    myContentsScroller.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+    add(myContentsScroller, BorderLayout.CENTER);
+  }
+
+  /**
+   * Using the visibility being enabled on card change as a cheap way to do re-init of of the component.
+   */
+  @Override
+  public void setVisible(boolean aFlag) {
+    super.setVisible(aFlag);
+    JScrollBar verticalScrollBar = myContentsScroller.getVerticalScrollBar();
+    JScrollBar horizontalScrollBar = myContentsScroller.getHorizontalScrollBar();
+    verticalScrollBar.setValue(verticalScrollBar.getMinimum());
+    horizontalScrollBar.setValue(horizontalScrollBar.getMinimum());
   }
 
   private class TutorialDescription extends JTextPane {
