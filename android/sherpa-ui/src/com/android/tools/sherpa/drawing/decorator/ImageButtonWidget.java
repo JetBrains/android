@@ -18,10 +18,14 @@ package com.android.tools.sherpa.drawing.decorator;
 
 import com.google.tnt.solver.widgets.ConstraintWidget;
 
+import java.awt.*;
+
 /**
  * ImageButton Widget widget decorator
  */
 public class ImageButtonWidget extends WidgetDecorator {
+
+    private static Stroke sThickStroke = new BasicStroke(3);
 
     /**
      * Base constructor

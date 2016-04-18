@@ -149,7 +149,7 @@ public class TextWidget extends WidgetDecorator {
     @Override
     public void onPaintBackground(ViewTransform transform, Graphics2D g) {
         super.onPaintBackground(transform, g);
-        if (WidgetDecorator.isShowFakeUI()) {
+        if (mColorSet.drawBackground()) {
             drawText(transform, g, mWidget.getDrawX(), mWidget.getDrawY());
         }
     }

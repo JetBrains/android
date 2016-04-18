@@ -19,8 +19,7 @@ package com.android.tools.sherpa.drawing.decorator;
 import com.android.tools.sherpa.drawing.ViewTransform;
 import com.google.tnt.solver.widgets.ConstraintWidget;
 
-import java.awt.Color;
-import java.awt.Graphics2D;
+import java.awt.*;
 
 /**
  * Radiobutton
@@ -37,17 +36,23 @@ public class RadiobuttonWidget extends CheckboxWidget {
         super(widget, text);
     }
 
+    @Override
     public void drawGraphic(Graphics2D g, int x, int y, int h, ViewTransform transform) {
-        g.setColor(Color.WHITE);
-        int margin = 3;
+        g.setColor(mTextColor.getColor());
+        Stroke stroke = g.getStroke();
+        int strokeWidth = transform.getSwingDimension(2);
+        g.setStroke(new BasicStroke(strokeWidth));
+        int margin = transform.getSwingDimension(6);
         x += margin;
         y += margin;
         h -= margin * 2;
         g.drawRoundRect(x, y, h, h, h, h);
-        margin = (int) transform.getSwingDimension(5);
+        margin = transform.getSwingDimension(6);
         x += margin;
         y += margin;
         h -= margin * 2;
+        g.setStroke(stroke);
         g.drawRoundRect(x, y, h, h, h, h);
+        g.fillRoundRect(x, y, h, h, h, h);
     }
 }
