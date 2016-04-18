@@ -16,11 +16,12 @@
 package org.jetbrains.android.uipreview;
 
 import com.intellij.ui.ColorUtil;
-import java.awt.Color;
-import java.awt.Dimension;
+import junit.framework.TestCase;
+
+import java.awt.*;
+import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import junit.framework.TestCase;
 
 public class ColorPickerTest extends TestCase {
 
@@ -29,7 +30,7 @@ public class ColorPickerTest extends TestCase {
     saturationBrightnessComponent.setSize(new Dimension(1010, 710));
     saturationBrightnessComponent.setHue(0.75f);
     saturationBrightnessComponent.setOpacity(100);
-    MouseEvent event = new MouseEvent(saturationBrightnessComponent, MouseEvent.MOUSE_CLICKED, 1, MouseEvent.BUTTON1, 805, 505, 1, false);
+    MouseEvent event = new MouseEvent(saturationBrightnessComponent, MouseEvent.MOUSE_CLICKED, 1, InputEvent.BUTTON1_MASK, 805, 505, 1, false);
     for (MouseListener mouseListener : saturationBrightnessComponent.getMouseListeners()) {
       mouseListener.mousePressed(event);
     }
@@ -39,7 +40,7 @@ public class ColorPickerTest extends TestCase {
     saturationBrightnessComponent.setSize(new Dimension(1510, 1010));
     saturationBrightnessComponent.setHue(0.0f);
     saturationBrightnessComponent.setOpacity(100);
-    event = new MouseEvent(saturationBrightnessComponent, MouseEvent.MOUSE_CLICKED, 1, MouseEvent.BUTTON1, 1505, 1005, 1, false);
+    event = new MouseEvent(saturationBrightnessComponent, MouseEvent.MOUSE_CLICKED, 1, InputEvent.BUTTON1_MASK, 1505, 1005, 1, false);
     for (MouseListener mouseListener : saturationBrightnessComponent.getMouseListeners()) {
       mouseListener.mousePressed(event);
     }
@@ -49,7 +50,7 @@ public class ColorPickerTest extends TestCase {
     saturationBrightnessComponent.setSize(new Dimension(1510, 1010));
     saturationBrightnessComponent.setHue(0.0f);
     saturationBrightnessComponent.setOpacity(100);
-    event = new MouseEvent(saturationBrightnessComponent, MouseEvent.MOUSE_CLICKED, 1, MouseEvent.BUTTON1, 1505, 5, 1, false);
+    event = new MouseEvent(saturationBrightnessComponent, MouseEvent.MOUSE_CLICKED, 1, InputEvent.BUTTON1_MASK, 1505, 5, 1, false);
     for (MouseListener mouseListener : saturationBrightnessComponent.getMouseListeners()) {
       mouseListener.mousePressed(event);
     }
