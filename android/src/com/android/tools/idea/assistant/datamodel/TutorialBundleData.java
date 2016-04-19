@@ -13,19 +13,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.structure.services.datamodel;
+package com.android.tools.idea.assistant.datamodel;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
+import java.util.List;
 
 /**
- * An action represents a single button and its behaviors.
+ * TODO document me
  */
-public interface ActionData {
-  String getLabel();
+public interface TutorialBundleData {
+  @NotNull
+  String getName();
 
-  String getKey();
+  @Nullable("Optionally rendered")
+  Icon getIcon();
 
-  String getActionArgument();
+  @NotNull
+  String getId();
 
-  String getSuccessMessage();
+  @NotNull
+  String getContentRoot();
 
-  String getEditAction();
+  @NotNull
+  List<? extends FeatureData> getFeatures();
+
+  @Nullable("Optionally supported")
+  Integer getMinPluginVersion();
+
+  @NotNull
+  String getWelcome();
+
+  @Nullable("Optionally rendered")
+  String getLearnMoreLink();
 }

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.structure.services.view;
+package com.android.tools.idea.assistant.view;
 
 import com.intellij.ui.BrowserHyperlinkListener;
 import com.intellij.ui.JBColor;
@@ -48,7 +48,6 @@ public class UIUtils {
    * NOTE: The colors may be found at Settings -> Editor -> Colors & Fonts -> Custom [Keyword4].
    */
   private static final Color FAILURE_COLOR = new JBColor(0x660000, 0xC93B48);
-
 
   /**
    * Default color for inline <code></code> tags. Currently set to Material Teal 600/200.

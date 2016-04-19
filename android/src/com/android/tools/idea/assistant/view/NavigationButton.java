@@ -13,39 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.structure.services.datamodel;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+package com.android.tools.idea.assistant.view;
 
 import javax.swing.*;
-import java.util.List;
+import java.awt.event.ActionListener;
 
 /**
- * TODO document me
+ * Generic button used for navigating between cards. No display properties should be overridden here, make them directly or in a subclass.
  */
-public interface TutorialBundleData {
-  @NotNull
-  String getName();
+public class NavigationButton extends JButton {
+  private String myKey;
 
-  @Nullable("Optionally rendered")
-  Icon getIcon();
+  public NavigationButton(String label, String key, ActionListener listener) {
+    super(label);
 
-  @NotNull
-  String getId();
+    myKey = key;
+    addActionListener(listener);
+  }
 
-  @NotNull
-  String getContentRoot();
-
-  @NotNull
-  List<? extends FeatureData> getFeatures();
-
-  @Nullable("Optionally supported")
-  Integer getMinPluginVersion();
-
-  @NotNull
-  String getWelcome();
-
-  @Nullable("Optionally rendered")
-  String getLearnMoreLink();
+  public String getKey() {
+    return myKey;
+  }
 }

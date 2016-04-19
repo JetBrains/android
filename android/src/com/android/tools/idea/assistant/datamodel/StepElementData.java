@@ -13,16 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.structure.services.datamodel;
-
-import java.util.List;
+package com.android.tools.idea.assistant.datamodel;
 
 /**
- * A single step in a tutorial. All tutorials are made of one or more steps
- * which may contain one or more of a variety of presentation objects.
+ * TODO document me
  */
-public interface StepData {
-  List<? extends StepElementData> getStepElements();
+public interface StepElementData {
+  StepElementType getType();
 
-  String getLabel();
+  String getCode();
+
+  String getSection();
+
+  ActionData getAction();
 }
