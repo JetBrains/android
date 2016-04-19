@@ -50,6 +50,7 @@ public class NlPropertiesManager implements DesignSurfaceListener, ModelListener
   @Nullable private ScreenView myScreenView;
 
   private MergingUpdateQueue myUpdateQueue;
+  private boolean myFirstLoad = true;
 
   public NlPropertiesManager(@NotNull Project project, @NotNull DesignSurface designSurface) {
     myProject = project;
@@ -186,7 +187,10 @@ public class NlPropertiesManager implements DesignSurfaceListener, ModelListener
       return;
     }
 
-    myLoadingPanel.startLoading();
+    if (myFirstLoad) {
+      myFirstLoad = false;
+      myLoadingPanel.startLoading();
+    }
     queue.queue(new Update("updateProperties") {
       @Override
       public void run() {

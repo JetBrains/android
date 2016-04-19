@@ -75,6 +75,7 @@ public class InspectorPanel extends JPanel {
                            @NotNull List<? extends NlProperty> properties,
                            @NotNull NlPropertiesManager propertiesManager) {
     myInspector.removeAll();
+    myInspector.repaint();
 
     Map<String, NlProperty> propertiesByName = Maps.newHashMapWithExpectedSize(properties.size());
     for (NlProperty property : properties) {
