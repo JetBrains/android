@@ -44,13 +44,13 @@ import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.keymap.Keymap;
 import com.intellij.openapi.keymap.KeymapManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.RowIcon;
 import com.intellij.ui.components.JBList;
-import com.intellij.xml.breadcrumbs.BreadcrumbsComponent;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.driver.ComponentDriver;
@@ -457,6 +457,8 @@ public class EditorFixture {
   @NotNull
   public EditorFixture moveToLine(final int lineNumber) {
     assertThat(lineNumber).isAtLeast(0);
+    final Ref<Boolean> doneScrolling = new Ref<>(false);
+
     Point lineStartPoint = execute(new GuiQuery<Point>() {
       @Override
       protected Point executeInEDT() throws Throwable {
@@ -467,11 +469,14 @@ public class EditorFixture {
           int offset = document.getLineStartOffset(lineNumber);
           LogicalPosition position = editor.offsetToLogicalPosition(offset);
           editor.getScrollingModel().scrollTo(position, ScrollType.MAKE_VISIBLE);
+          editor.getScrollingModel().runActionOnScrollingFinished(() -> doneScrolling.set(true));
           return editor.logicalPositionToXY(position);
         }
         return null;
       }
     });
+
+    Wait.seconds(10).expecting("scrolling to finish").until(() -> doneScrolling.get());
 
     JComponent focusedEditor = getFocusedEditor();
     if (focusedEditor != null && lineStartPoint != null) {
@@ -490,6 +495,8 @@ public class EditorFixture {
    */
   public EditorFixture moveTo(final int offset) {
     assertThat(offset).isAtLeast(0);
+    final Ref<Boolean> doneScrolling = new Ref<>(false);
+
     Point offsetPoint = execute(new GuiQuery<Point>() {
       @Override
       protected Point executeInEDT() throws Throwable {
@@ -498,11 +505,14 @@ public class EditorFixture {
         if (editor != null) {
           LogicalPosition position = editor.offsetToLogicalPosition(offset);
           editor.getScrollingModel().scrollTo(position, ScrollType.MAKE_VISIBLE);
+          editor.getScrollingModel().runActionOnScrollingFinished(() -> doneScrolling.set(true));
           return editor.logicalPositionToXY(position);
         }
         return null;
       }
     });
+
+    Wait.seconds(10).expecting("scrolling to finish").until(() -> doneScrolling.get());
 
     JComponent focusedEditor = getFocusedEditor();
     if (focusedEditor != null && offsetPoint != null) {
