@@ -25,12 +25,12 @@ import java.io.IOException;
 
 public final class StatePath extends Path {
   @Override
-  public StringBuilder stringPath(StringBuilder builder) {
-    return myAfter.stringPath(builder).append(".State");
+  public String getSegmentString() {
+    return "State";
   }
 
   @Override
-  public Path getParent() {
+  public AtomPath getParent() {
     return myAfter;
   }
 

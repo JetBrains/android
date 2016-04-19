@@ -27,8 +27,8 @@ import java.io.IOException;
 
 public final class ResourcePath extends Path {
   @Override
-  public StringBuilder stringPath(StringBuilder builder) {
-    return myAfter.stringPath(builder).append(".Resource<").append(myID).append(">");
+  public String getSegmentString() {
+    return "Resource<" + myID + '>';
   }
 
   @Override

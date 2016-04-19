@@ -187,7 +187,7 @@ public final class Render {
       SnippetObject paramValue = SnippetObject.param(atom, i);
       SimpleTextAttributes attr = paramAttributes(highlightedParameter, i, paramValue, attributes);
       component.append(field.getDeclared() + ":", attr, i);
-      render(paramValue, field.getType(), component, attr, NO_TAG);
+      render(paramValue, field.getType(), component, attr, i);
     }
 
     component.append(")", SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES, NO_TAG);
