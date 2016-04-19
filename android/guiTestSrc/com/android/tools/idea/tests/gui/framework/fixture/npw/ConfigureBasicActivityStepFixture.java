@@ -16,13 +16,36 @@
 package com.android.tools.idea.tests.gui.framework.fixture.npw;
 
 
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.AbstractWizardStepFixture;
+import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
 public class ConfigureBasicActivityStepFixture extends AbstractWizardStepFixture<ConfigureBasicActivityStepFixture> {
+
+  /**
+   * This is the list of labels used to find the right text input field.
+   * There is no really good way to access this fields programmatically, as they are defined on the template files.
+   * For example see: tools/base/templates/activities/BasicActivity/template.xml
+   */
+  public enum ActivityTextField {
+    NAME("Activity Name:"),
+    LAYOUT("Layout Name:"),
+    TITLE("Title:");
+
+    private final String labelText;
+
+    ActivityTextField(String labelText) {
+      this.labelText = labelText;
+    }
+
+    private String getLabelText() {
+      return labelText;
+    }
+  }
 
   protected ConfigureBasicActivityStepFixture(@NotNull Robot robot, @NotNull JRootPane target) {
     super(ConfigureBasicActivityStepFixture.class, robot, target);
@@ -37,6 +60,35 @@ public class ConfigureBasicActivityStepFixture extends AbstractWizardStepFixture
   @NotNull
   public ConfigureBasicActivityStepFixture selectUseFragment() {
     findCheckBoxWithLabel("Use a Fragment").select();
+    return this;
+  }
+
+  @NotNull
+  public ConfigureBasicActivityStepFixture enterTextFieldValue(@NotNull ActivityTextField activityField, @NotNull String text) {
+    JTextField textField = findTextFieldWithLabel(activityField.getLabelText());
+    replaceText(textField, text);
+    return this;
+  }
+
+  @NotNull
+  public String getTextFieldValue(@NotNull ActivityTextField activityField) {
+    return findTextFieldWithLabel(activityField.getLabelText()).getText();
+  }
+
+  @NotNull
+  public ConfigureBasicActivityStepFixture undoTextFieldValue(@NotNull ActivityTextField activityField) {
+    JTextField textField = findTextFieldWithLabel(activityField.getLabelText());
+    robot().rightClick(textField);
+
+    JMenuItem popup = GuiTests.waitUntilShowing(robot(), null, new GenericTypeMatcher<JMenuItem>(JMenuItem.class) {
+      @Override
+      protected boolean isMatching(@NotNull JMenuItem menuItem) {
+        return "Restore default value".equals(menuItem.getText());
+      }
+    });
+
+    robot().click(popup);
+
     return this;
   }
 }

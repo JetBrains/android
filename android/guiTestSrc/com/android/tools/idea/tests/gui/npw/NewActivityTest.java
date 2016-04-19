@@ -20,8 +20,11 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.npw.ConfigureBasicActivityStepFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.npw.ConfigureBasicActivityStepFixture.ActivityTextField;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewActivityWizardFixture;
 import com.intellij.openapi.util.text.StringUtil;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -31,13 +34,10 @@ import java.io.IOException;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static com.google.common.truth.Truth.assertThat;
 
 /*
   TODO: Missing Tests
-- Changing "Activity Name" causes "Title" and "Layout Name" to change
-- Once you change something, you can right-click on it and choose "Restore default value"
-- Change "Activity Name", then "Title", the "Activity Name" again. "Title" should not update since it's been manually modified.
-  However, "Restore default value" updates it correctly
 - Create a project that already has another activity. Make sure you can set it as the "Hierarchical Parent" in the new activity that we're
   creating
 */
@@ -47,10 +47,16 @@ import static org.junit.Assert.assertNotNull;
 public class NewActivityTest {
   private static final String PROVIDED_ACTIVITY = "app/src/main/java/google/simpleapplication/MyActivity.java";
   private static final String PROVIDED_MANIFEST = "app/src/main/AndroidManifest.xml";
+  private static final String DEFAULT_ACTIVITY_NAME = "MainActivity";
+  private static final String DEFAULT_LAYOUT_NAME = "activity_main";
+  private static final String DEFAULT_ACTIVITY_TITLE = "MainActivity";
+
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
   private EditorFixture myEditor;
+  private NewActivityWizardFixture myDialog;
+  private ConfigureBasicActivityStepFixture myConfigActivity;
 
   @Before
   public void setUp() throws IOException {
@@ -64,16 +70,17 @@ public class NewActivityTest {
       PROVIDED_ACTIVITY,
       PROVIDED_MANIFEST
     );
-  }
 
-  private NewActivityWizardFixture invokeNewActivityDialog() {
     guiTest.ideFrame().invokeMenuPath("File", "New", "Activity", "Basic Activity");
-    return NewActivityWizardFixture.find(guiTest.robot());
+    myDialog = NewActivityWizardFixture.find(guiTest.robot());
+
+    myConfigActivity = myDialog.getConfigureActivityStep();
+    assertTextFieldValues(DEFAULT_ACTIVITY_NAME, DEFAULT_LAYOUT_NAME, DEFAULT_ACTIVITY_TITLE);
   }
 
   @Test
   public void createDefaultActivity() {
-    invokeNewActivityDialog().clickFinish();
+    myDialog.clickFinish();
 
     guiTest.ideFrame().waitForGradleProjectSyncToFinish();
     guiTest.ideFrame().getProjectView().assertFilesExist(
@@ -92,9 +99,8 @@ public class NewActivityTest {
 
   @Test
   public void createLauncherActivity() {
-    NewActivityWizardFixture dialog = invokeNewActivityDialog();
-    dialog.getConfigureActivityStep().selectLauncherActivity();
-    dialog.clickFinish();
+    myConfigActivity.selectLauncherActivity();
+    myDialog.clickFinish();
 
     guiTest.ideFrame().waitForGradleProjectSyncToFinish();
 
@@ -107,9 +113,8 @@ public class NewActivityTest {
 
   @Test
   public void createActivityWithFragment() {
-    NewActivityWizardFixture dialog = invokeNewActivityDialog();
-    dialog.getConfigureActivityStep().selectUseFragment();
-    dialog.clickFinish();
+    myConfigActivity.selectUseFragment();
+    myDialog.clickFinish();
 
     guiTest.ideFrame().waitForGradleProjectSyncToFinish();
 
@@ -117,5 +122,104 @@ public class NewActivityTest {
       "app/src/main/java/google/simpleapplication/MainActivity.java",
       "app/src/main/res/layout/fragment_main.xml"
     );
+  }
+
+  @Test
+  public void changeActivityName() {
+    // Changing "Activity Name" causes "Title" and "Layout Name" to change
+    myConfigActivity.enterTextFieldValue(ActivityTextField.NAME, "MainActivityTest");
+    assertTextFieldValues("MainActivityTest", "activity_main_activity_test", "MainActivityTest");
+
+    myDialog.clickFinish();
+
+    guiTest.ideFrame().waitForGradleProjectSyncToFinish();
+
+    guiTest.ideFrame().getProjectView().assertFilesExist(
+      "app/src/main/java/google/simpleapplication/MainActivityTest.java",
+      "app/src/main/res/layout/activity_main_activity_test.xml"
+    );
+  }
+
+  @Test
+  public void changeActivityNameUndo() throws Exception {
+    // Changing "Activity Name" causes "Title" and "Layout Name" to change
+    myConfigActivity.enterTextFieldValue(ActivityTextField.NAME, "MainActivityTest");
+    assertTextFieldValues("MainActivityTest", "activity_main_activity_test", "MainActivityTest");
+
+    // Undo "Activity Name" (Right-click and choose "Restore default value") should revert all changes
+    myConfigActivity.undoTextFieldValue(ActivityTextField.NAME);
+    assertTextFieldValues(DEFAULT_ACTIVITY_NAME, DEFAULT_LAYOUT_NAME, DEFAULT_ACTIVITY_TITLE);
+
+    myDialog.clickCancel();
+  }
+
+  @Test
+  public void changeLayoutNameUndo() throws Exception {
+    // Changing "Layout Name" causes "Activity Name" and "Title" to change
+    myConfigActivity.enterTextFieldValue(ActivityTextField.LAYOUT, "activity_main_test1");
+    assertTextFieldValues("MainTest1Activity", "activity_main_test1", "MainTest1Activity");
+
+    // Undo "Layout Name", should revert all changes
+    myConfigActivity.undoTextFieldValue(ActivityTextField.LAYOUT);
+    assertTextFieldValues(DEFAULT_ACTIVITY_NAME, DEFAULT_LAYOUT_NAME, DEFAULT_ACTIVITY_TITLE);
+
+    myDialog.clickCancel();
+  }
+
+  @Test
+  public void changeTitleNameUndo() throws Exception {
+    // Changing "Title" does not change "Activity Name" or "Layout Name"
+    myConfigActivity.enterTextFieldValue(ActivityTextField.TITLE, "Main Activity Test3");
+    assertTextFieldValues(DEFAULT_ACTIVITY_NAME, DEFAULT_LAYOUT_NAME, "Main Activity Test3");
+
+    // Undo "Title"
+    myConfigActivity.undoTextFieldValue(ActivityTextField.TITLE);
+    assertTextFieldValues(DEFAULT_ACTIVITY_NAME, DEFAULT_LAYOUT_NAME, DEFAULT_ACTIVITY_TITLE);
+
+    myDialog.clickCancel();
+  }
+
+  @Test
+  public void changeActivityThenLayoutNameUndo() throws Exception {
+    // Changing "Activity Name" causes "Title" and "Layout Name" to change, after that
+    // "Activity Name" should be "locked", changing LAYOUT should not update any other field
+    myConfigActivity.enterTextFieldValue(ActivityTextField.NAME, "MainActivityTest1");
+    myConfigActivity.enterTextFieldValue(ActivityTextField.LAYOUT, "main_activity2");
+    assertTextFieldValues("MainActivityTest1", "main_activity2", "MainActivityTest1");
+
+    // Undo "Layout Name" should only undo that field
+    myConfigActivity.undoTextFieldValue(ActivityTextField.LAYOUT);
+    assertTextFieldValues("MainActivityTest1", "activity_main_activity_test1", "MainActivityTest1");
+
+    // Undo "Activity Name" should revert all changes
+    myConfigActivity.undoTextFieldValue(ActivityTextField.NAME);
+    assertTextFieldValues(DEFAULT_ACTIVITY_NAME, DEFAULT_LAYOUT_NAME, DEFAULT_ACTIVITY_TITLE);
+
+    myDialog.clickCancel();
+  }
+
+  @Test
+  public void changeActivityThenTitleNameUndo() throws Exception {
+    // Changing "Activity Name", then "Title", then "Activity Name" again. "Title" should not update since it's been manually modified.
+    myConfigActivity.enterTextFieldValue(ActivityTextField.NAME, "MainActivityTest1");
+    myConfigActivity.enterTextFieldValue(ActivityTextField.TITLE, "Main Activity Test3");
+    myConfigActivity.enterTextFieldValue(ActivityTextField.NAME, "MainActivityTest123");
+    assertTextFieldValues("MainActivityTest123", "activity_main_activity_test123", "Main Activity Test3");
+
+    // Undo "Activity Name", should update "Activity Name" and LAYOUT, but not the title
+    myConfigActivity.undoTextFieldValue(ActivityTextField.NAME);
+    assertTextFieldValues(DEFAULT_ACTIVITY_NAME, DEFAULT_LAYOUT_NAME, "Main Activity Test3");
+
+    // And undo of "Title" should bring everything to its default values
+    myConfigActivity.undoTextFieldValue(ActivityTextField.TITLE);
+    assertTextFieldValues(DEFAULT_ACTIVITY_NAME, DEFAULT_LAYOUT_NAME, DEFAULT_ACTIVITY_TITLE);
+
+    myDialog.clickCancel();
+  }
+
+  private void assertTextFieldValues(@NotNull String activityName, @NotNull String layoutName, @NotNull String title) {
+    assertThat(myConfigActivity.getTextFieldValue(ActivityTextField.NAME)).isEqualTo(activityName);
+    assertThat(myConfigActivity.getTextFieldValue(ActivityTextField.LAYOUT)).isEqualTo(layoutName);
+    assertThat(myConfigActivity.getTextFieldValue(ActivityTextField.TITLE)).isEqualTo(title);
   }
 }
