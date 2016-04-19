@@ -34,6 +34,10 @@ public class TextWidget extends WidgetDecorator {
     protected int mVerticalMargin = 0;
     protected int mHorizontalMargin = 0;
     protected boolean mToUpperCase = false;
+    protected static final int TEXT_ALIGNMENT_VIEW_START = 5;
+    protected static final int TEXT_ALIGNMENT_VIEW_END = 6;
+    protected static final int TEXT_ALIGNMENT_CENTER = 4;
+    protected int mAlignment = TEXT_ALIGNMENT_VIEW_START;
     private String mText;
     protected Font mFont = new Font("Helvetica", Font.PLAIN, 12);
     private float mFontSize = 18;
@@ -158,6 +162,7 @@ public class TextWidget extends WidgetDecorator {
         int tx = transform.getSwingX(x);
         int ty = transform.getSwingY(y);
         int h = transform.getSwingDimension(mWidget.getDrawHeight());
+        int w = transform.getSwingDimension(mWidget.getDrawWidth());
 
         int horizontalPadding = transform.getSwingDimension(mHorizontalPadding+mHorizontalMargin);
         int verticalPadding = transform.getSwingDimension(mVerticalPadding+mVerticalMargin);
@@ -176,7 +181,30 @@ public class TextWidget extends WidgetDecorator {
         if (mToUpperCase) {
             string = string.toUpperCase();
         }
-        g.drawString(string, tx + horizontalPadding,
-                ty + fontMetrics.getAscent() + fontMetrics.getMaxDescent() + verticalPadding);
+        switch (mAlignment) {
+            case TEXT_ALIGNMENT_VIEW_START:
+                g.drawString(string, tx + horizontalPadding,
+                        ty + fontMetrics.getAscent() + fontMetrics.getMaxDescent() +
+                                verticalPadding);
+                break;
+            case TEXT_ALIGNMENT_CENTER: {
+                int stringWidth = fontMetrics.stringWidth(string);
+                int padd = (w - stringWidth) / 2;
+                g.drawString(string, tx + padd,
+                        ty + fontMetrics.getAscent() + fontMetrics.getMaxDescent() +
+                                verticalPadding);
+                break;
+
+            }
+            case TEXT_ALIGNMENT_VIEW_END: {
+                int stringWidth = fontMetrics.stringWidth(string);
+                int padd = w - stringWidth + horizontalPadding;
+                g.drawString(string, tx + padd,
+                        ty + fontMetrics.getAscent() + fontMetrics.getMaxDescent() +
+                                verticalPadding);
+                break;
+
+            }
+        }
     }
 }
