@@ -64,6 +64,8 @@ public class ColorSet {
     protected Color mShadow = new Color(0, 0, 0, 50);
     protected Stroke mShadowStroke = new BasicStroke(3);
 
+    protected int mStyle;
+
     public Color getAnchorCircle() { return mAnchorCircle; }
 
     public Color getAnchorCreationCircle() { return mAnchorCreationCircle; }
@@ -142,6 +144,10 @@ public class ColorSet {
 
     public Stroke getShadowStroke() {
         return mShadowStroke;
+    }
+
+    public int getStyle() {
+        return mStyle;
     }
 
 }
