@@ -76,10 +76,10 @@ public class MouseInteraction {
 
     // Represent the different mouse interaction modes
     enum MouseMode {
-        INACTIVE, RESIZE, MOVE, CONNECT
+       INACTIVE, SELECT, RESIZE, MOVE, CONNECT
     }
 
-    private MouseMode mMouseMode = MouseMode.INACTIVE;
+    private MouseMode mMouseMode = MouseMode.SELECT;
 
     /**
      * Base constructor
@@ -495,6 +495,10 @@ public class MouseInteraction {
      * @param isRightClick
      */
     public void mousePressed(float x, float y, boolean isRightClick) {
+        if (isRightClick) {
+            mMouseMode = MouseMode.INACTIVE;
+            return;
+        }
         mMouseDown = true;
         mStartPoint.setLocation(x, y);
         mLastMousePosition.setLocation(x, y);
@@ -504,7 +508,7 @@ public class MouseInteraction {
         mSelection.setSelectedGuideline(null);
         mSelection.setLastConnectedAnchor(null);
 
-        mMouseMode = MouseMode.INACTIVE;
+        mMouseMode = MouseMode.SELECT;
 
         mWidgetsScene.updatePositions(mViewTransform);
 
@@ -547,7 +551,7 @@ public class MouseInteraction {
 
         // If we hit a widget, update the selection
         if (widget != null) {
-            if (mMouseMode == MouseMode.INACTIVE) {
+            if (mMouseMode == MouseMode.SELECT) {
                 if (!mSelection.contains(widget)) {
                     // replace the current selection
                     if (!(isShiftDown() || isControlDown())) {
@@ -582,7 +586,7 @@ public class MouseInteraction {
             mSelection.setSelectedResizeHandle(resizeHandle);
             mSelection.add(mSelection.getSelectedGuideline());
             widget = mSelection.getSelectedGuideline();
-            if (mMouseMode == MouseMode.INACTIVE) {
+            if (mMouseMode == MouseMode.SELECT) {
                 mMouseMode = MouseMode.MOVE;
             }
         }
@@ -619,9 +623,6 @@ public class MouseInteraction {
             setSnapshot(null);
         }
 
-        if (isRightClick) {
-            mMouseMode = MouseMode.INACTIVE;
-        }
         mSceneDraw.setCurrentUnderneathAnchor(mSelection.getSelectedAnchor());
         mSceneDraw.onMousePress(mSelection.getSelectedAnchor());
 
@@ -640,6 +641,9 @@ public class MouseInteraction {
      * @param y mouse y coordinate
      */
     public void mouseReleased(int x, int y) {
+        if (mMouseMode == MouseMode.INACTIVE) {
+            return;
+        }
         if (mAutoConnect) {
             // Auto-connect to candidates
             for (SnapCandidate candidate : mWidgetMotion.getSnapCandidates()) {
