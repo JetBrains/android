@@ -274,7 +274,10 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
           try {
             XmlPullParser parser = getParserFactory().createParser(fileName);
             parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, true);
-            parser.setInput(new StringReader(psiFile.getText()));
+            String psiText = ApplicationManager.getApplication().isReadAccessAllowed()
+                             ? psiFile.getText()
+                             : ApplicationManager.getApplication().runReadAction((Computable<String>)psiFile::getText);
+            parser.setInput(new StringReader(psiText));
             return parser;
           }
           catch (XmlPullParserException e) {
