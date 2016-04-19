@@ -60,11 +60,51 @@ public class GradleInvokerOptionsTest {
   }
 
   @Test
-  public void userGoalsHaveNoInstantRunOptions() throws Exception {
-    GradleInvokerOptions.BuildOptions buildOptions = new GradleInvokerOptions.BuildOptions(myDevices);
+  public void deviceSpecificArguments() {
+    when(myDevice.getVersion()).thenReturn(new AndroidVersion(20, null));
+    when(myDevice.getDensity()).thenReturn(640);
+    when(myDevice.getAbis()).thenReturn(ImmutableList.of(Abi.ARMEABI, Abi.X86));
 
+    List<String> arguments = GradleInvokerOptions.getDeviceSpecificArguments(myDevices);
+
+    assertTrue(arguments.contains("-Pandroid.injected.build.api=20"));
+    assertTrue(arguments.contains("-Pandroid.injected.build.abi=armeabi,x86"));
+  }
+
+  @Test
+  public void previewDeviceArguments() {
+    when(myDevice.getVersion()).thenReturn(new AndroidVersion(23, "N"));
+    when(myDevice.getDensity()).thenReturn(640);
+    when(myDevice.getAbis()).thenReturn(ImmutableList.of(Abi.ARMEABI));
+
+    List<String> arguments = GradleInvokerOptions.getDeviceSpecificArguments(myDevices);
+
+    assertTrue(arguments.contains("-Pandroid.injected.build.api=24"));
+  }
+
+  @Test
+  public void multipleDeviceArguments() {
+    AndroidDevice device1 = mock(AndroidDevice.class);
+    AndroidDevice device2 = mock(AndroidDevice.class);
+
+    when(device1.getVersion()).thenReturn(new AndroidVersion(23, null));
+    when(device1.getDensity()).thenReturn(640);
+    when(device1.getAbis()).thenReturn(ImmutableList.of(Abi.ARMEABI, Abi.X86));
+
+    when(device2.getVersion()).thenReturn(new AndroidVersion(22, null));
+    when(device2.getDensity()).thenReturn(480);
+    when(device2.getAbis()).thenReturn(ImmutableList.of(Abi.X86, Abi.X86_64));
+
+    List<String> arguments = GradleInvokerOptions.getDeviceSpecificArguments(ImmutableList.of(device1, device2));
+
+    assertTrue(arguments.contains("-Pandroid.injected.build.api=22"));
+    assertTrue(arguments.contains("-Pandroid.injected.build.abi=armeabi,x86,x86_64"));
+  }
+
+  @Test
+  public void userGoalsHaveNoInstantRunOptions() throws Exception {
     GradleInvokerOptions options =
-      GradleInvokerOptions.create(GradleInvoker.TestCompileType.NONE, buildOptions, myTasksProvider, ourRunAsSupported, "foo", null);
+      GradleInvokerOptions.create(GradleInvoker.TestCompileType.NONE, null, myTasksProvider, ourRunAsSupported, "foo", null);
 
     assertEquals(options.tasks, Collections.singletonList("foo"));
     assertTrue("Command line arguments aren't set for user goals", options.commandLineArguments.isEmpty());
@@ -75,39 +115,17 @@ public class GradleInvokerOptionsTest {
     List<String> tasks = Collections.singletonList("compileUnitTest");
     when(myTasksProvider.getUnitTestTasks(BuildMode.COMPILE_JAVA)).thenReturn(tasks);
 
-    GradleInvokerOptions.BuildOptions buildOptions = new GradleInvokerOptions.BuildOptions(myDevices);
-
     GradleInvokerOptions options =
-      GradleInvokerOptions.create(GradleInvoker.TestCompileType.JAVA_TESTS, buildOptions, myTasksProvider, ourRunAsSupported, null, null);
+      GradleInvokerOptions.create(GradleInvoker.TestCompileType.JAVA_TESTS, null, myTasksProvider, ourRunAsSupported, null, null);
 
     assertEquals(tasks, options.tasks);
     assertTrue("Command line arguments aren't set for unit test tasks", options.commandLineArguments.isEmpty());
   }
 
   @Test
-  public void buildWithoutInstantRun() throws Exception {
-    when(myDevice.getVersion()).thenReturn(new AndroidVersion(20, null));
-    when(myDevice.getDensity()).thenReturn(640);
-    when(myDevice.getAbis()).thenReturn(ImmutableList.of(Abi.ARMEABI, Abi.X86));
-
-    GradleInvokerOptions.BuildOptions buildOptions = new GradleInvokerOptions.BuildOptions(myDevices);
-
-    GradleInvokerOptions options =
-      GradleInvokerOptions.create(GradleInvoker.TestCompileType.NONE, buildOptions, myTasksProvider,
-                                  ourRunAsSupported, null, null);
-
-    assertTrue(options.commandLineArguments.contains("-Pandroid.injected.build.api=20"));
-    assertTrue(options.commandLineArguments.contains("-Pandroid.injected.build.abi=armeabi,x86"));
-    assertTrue(options.commandLineArguments.contains("-Pandroid.injected.build.density=xxxhdpi"));
-    assertEquals(ASSEMBLE_TASKS, options.tasks);
-  }
-
-  @Test
   public void cleanBuild() throws Exception {
     FileChangeListener.Changes changes = new FileChangeListener.Changes(true, false, false);
     when(myDevice.getVersion()).thenReturn(new AndroidVersion(20, null));
-    when(myDevice.getDensity()).thenReturn(640);
-    when(myDevice.getAbis()).thenReturn(ImmutableList.of(Abi.ARMEABI, Abi.X86));
 
     GradleInvokerOptions.InstantRunBuildOptions instantRunOptions =
       new GradleInvokerOptions.InstantRunBuildOptions(true, false, true, false, changes, myDevices);
@@ -117,8 +135,6 @@ public class GradleInvokerOptionsTest {
                                   ourRunAsSupported, null, null);
 
     assertTrue(options.commandLineArguments.contains("-Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY"));
-    assertTrue(options.commandLineArguments.contains("-Pandroid.injected.build.api=20"));
-    assertTrue(options.commandLineArguments.contains("-Pandroid.injected.build.abi=armeabi,x86"));
 
     // should have clean + build tasks
     HashSet<String> expected = Sets.newHashSet(CLEAN_TASKS);
@@ -130,8 +146,6 @@ public class GradleInvokerOptionsTest {
   @Test
   public void fullBuild() throws Exception {
     FileChangeListener.Changes changes = new FileChangeListener.Changes(true, false, false);
-    when(myDevice.getVersion()).thenReturn(new AndroidVersion(20, null));
-    when(myDevice.getDensity()).thenReturn(640);
 
     GradleInvokerOptions.InstantRunBuildOptions instantRunOptions =
       new GradleInvokerOptions.InstantRunBuildOptions(false, true, true, false, changes, myDevices);
@@ -141,7 +155,6 @@ public class GradleInvokerOptionsTest {
                                   ourRunAsSupported, null, null);
 
     assertTrue(options.commandLineArguments.contains("-Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY"));
-    assertTrue(options.commandLineArguments.contains("-Pandroid.injected.build.api=20"));
     assertEquals(ASSEMBLE_TASKS, options.tasks);
   }
 
@@ -149,7 +162,6 @@ public class GradleInvokerOptionsTest {
   public void incrementalBuild() throws Exception {
     FileChangeListener.Changes changes = new FileChangeListener.Changes(false, true, false);
     when(myDevice.getVersion()).thenReturn(new AndroidVersion(21, null));
-    when(myDevice.getDensity()).thenReturn(640);
 
     GradleInvokerOptions.InstantRunBuildOptions instantRunOptions =
       new GradleInvokerOptions.InstantRunBuildOptions(false, false, true, false, changes, myDevices);
@@ -159,8 +171,6 @@ public class GradleInvokerOptionsTest {
                                   ourRunAsSupported, null, null);
 
     assertTrue(options.commandLineArguments.contains("-Pandroid.optional.compilation=INSTANT_DEV,LOCAL_RES_ONLY"));
-    assertTrue(options.commandLineArguments.contains("-Pandroid.injected.build.api=21"));
-    assertTrue(options.commandLineArguments.contains("-Pandroid.injected.build.density=xxxhdpi"));
     assertEquals(INCREMENTAL_TASKS, options.tasks);
   }
 
@@ -185,7 +195,6 @@ public class GradleInvokerOptionsTest {
   public void incrementalBuildAppNotRunning() throws Exception {
     FileChangeListener.Changes changes = new FileChangeListener.Changes(false, false, true);
     when(myDevice.getVersion()).thenReturn(new AndroidVersion(21, null));
-    when(myDevice.getDensity()).thenReturn(640);
 
     GradleInvokerOptions.InstantRunBuildOptions instantRunOptions =
       new GradleInvokerOptions.InstantRunBuildOptions(false, false, false, false, changes, myDevices);
@@ -195,8 +204,6 @@ public class GradleInvokerOptionsTest {
                                   ourRunAsSupported, null, null);
 
     assertTrue(options.commandLineArguments.contains("-Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY,LOCAL_JAVA_ONLY"));
-    assertTrue(options.commandLineArguments.contains("-Pandroid.injected.build.api=21"));
-    assertTrue(options.commandLineArguments.contains("-Pandroid.injected.build.density=xxxhdpi"));
     assertEquals(INCREMENTAL_TASKS, options.tasks);
   }
 
@@ -230,21 +237,5 @@ public class GradleInvokerOptionsTest {
 
     assertTrue(options.commandLineArguments.contains("-Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY"));
     assertEquals(ASSEMBLE_TASKS, options.tasks);
-  }
-
-  @Test
-  public void previewPlatformOptions() throws Exception {
-    FileChangeListener.Changes changes = new FileChangeListener.Changes(false, true, false);
-    when(myDevice.getVersion()).thenReturn(new AndroidVersion(23, "N"));
-    when(myDevice.getDensity()).thenReturn(640);
-
-    GradleInvokerOptions.InstantRunBuildOptions instantRunOptions =
-      new GradleInvokerOptions.InstantRunBuildOptions(false, false, true, false, changes, myDevices);
-
-    GradleInvokerOptions options =
-      GradleInvokerOptions.create(GradleInvoker.TestCompileType.NONE, instantRunOptions, myTasksProvider,
-                                  ourRunAsSupported, null, null);
-
-    assertTrue(options.commandLineArguments.contains("-Pandroid.injected.build.api=24"));
   }
 }
