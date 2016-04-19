@@ -51,6 +51,7 @@ import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.RowIcon;
 import com.intellij.ui.components.JBList;
+import com.intellij.ui.tabs.impl.TabLabel;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.driver.ComponentDriver;
@@ -1167,6 +1168,19 @@ public class EditorFixture {
     // Wait for it to be fully opened
     robot.waitForIdle();
     return new ThemePreviewFixture(robot, myFrame.getProject());
+  }
+
+  /**
+   * Switch to an open tab
+   */
+  public void switchToTab(@NotNull String tabName) {
+    TabLabel tab = waitUntilShowing(robot, new GenericTypeMatcher<TabLabel>(TabLabel.class) {
+      @Override
+      protected boolean isMatching(@NotNull TabLabel tabLabel) {
+        return tabName.equals(tabLabel.getAccessibleContext().getAccessibleName());
+      }
+    });
+    robot.click(tab);
   }
 
   /**
