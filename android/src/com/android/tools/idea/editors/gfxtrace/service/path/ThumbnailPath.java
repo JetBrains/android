@@ -26,9 +26,8 @@ import java.io.IOException;
 
 public final class ThumbnailPath extends Path {
   @Override
-  public StringBuilder stringPath(StringBuilder builder) {
-    return myObject.stringPath(builder).append(".Thumbnail<").append(myDesiredFormat).append(',').append(myDesiredMaxWidth).append('x')
-      .append(myDesiredMaxHeight).append('>');
+  public String getSegmentString() {
+    return "Thumbnail<" + myDesiredFormat + ',' + myDesiredMaxWidth + 'x' + myDesiredMaxHeight + '>';
   }
 
   @Override
