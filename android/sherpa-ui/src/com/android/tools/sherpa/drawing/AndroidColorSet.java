@@ -17,6 +17,7 @@
 package com.android.tools.sherpa.drawing;
 
 import com.android.tools.sherpa.drawing.decorator.ColorTheme;
+import com.android.tools.sherpa.drawing.decorator.WidgetDecorator;
 
 import java.awt.Color;
 
@@ -26,6 +27,8 @@ import java.awt.Color;
 public class AndroidColorSet extends ColorSet {
 
     public AndroidColorSet() {
+
+        mStyle = WidgetDecorator.ANDROID_STYLE;
 
         mShadow = new Color(255, 255, 255, 50);
 

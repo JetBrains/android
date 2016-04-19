@@ -19,6 +19,8 @@ package com.android.tools.sherpa.interaction;
 import com.android.tools.sherpa.drawing.ColorSet;
 import com.android.tools.sherpa.drawing.ConnectionDraw;
 import com.android.tools.sherpa.drawing.ViewTransform;
+import com.android.tools.sherpa.drawing.decorator.WidgetDecorator;
+import com.android.tools.sherpa.structure.WidgetCompanion;
 import com.google.tnt.solver.widgets.ConstraintAnchor;
 import com.google.tnt.solver.widgets.ConstraintWidget;
 import com.google.tnt.solver.widgets.Guideline;
@@ -378,7 +380,12 @@ public class ConstraintHandle {
             }
 
             Color previous = g.getColor();
-            g.setColor(colorSet.getBackground());
+            ConstraintWidget widget = getOwner();
+            WidgetCompanion companion = (WidgetCompanion) widget.getCompanionWidget();
+            WidgetDecorator decorator = companion.getWidgetDecorator(colorSet.getStyle());
+            Color backgroundColor = decorator.getBackgroundColor();
+
+            g.setColor(backgroundColor);
             g.fillRoundRect(x + padding, by - bh / 2, w - 2 * padding, bh, bh, bh);
             g.setColor(previous);
             g.drawRoundRect(x + padding, by - bh / 2, w - 2 * padding, bh, bh, bh);

@@ -17,6 +17,7 @@
 package com.android.tools.sherpa.drawing;
 
 import com.android.tools.sherpa.drawing.decorator.ColorTheme;
+import com.android.tools.sherpa.drawing.decorator.WidgetDecorator;
 
 import java.awt.Color;
 
@@ -26,6 +27,8 @@ import java.awt.Color;
 public class BlueprintColorSet extends ColorSet {
 
     public BlueprintColorSet() {
+
+        mStyle = WidgetDecorator.BLUEPRINT_STYLE;
 
         mDrawBackground = true;
         mDrawWidgetInfos = false;
