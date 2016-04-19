@@ -17,8 +17,10 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.run.LaunchCompatibility;
+import com.android.tools.idea.tests.gui.framework.Wait;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.ThreeState;
+import com.intellij.util.ui.AnimatedIcon;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.core.matcher.DialogMatcher;
@@ -46,6 +48,8 @@ public class ChooseDeviceDialogFixture extends ComponentFixture<ChooseDeviceDial
                                 .withTimeout(TimeUnit.MINUTES.toMillis(2)).using(robot)
                                 .target();
     assertThat(dialog).isInstanceOf(JDialog.class);
+    AnimatedIcon busyIcon = waitUntilShowing(robot, dialog, matcherForType(AnimatedIcon.class));
+    Wait.seconds(30).expecting("devices to load").until(() -> busyIcon.isRunning() == false);
     return new ChooseDeviceDialogFixture(robot, (JDialog)dialog);
   }
 
