@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.ContentRootSourcePaths;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
@@ -100,14 +101,16 @@ public class ContentRootModuleCustomizerTest extends IdeaTestCase {
 
   public void testCustomizeModule() throws Exception {
     final IdeModifiableModelsProviderImpl modelsProvider = new IdeModifiableModelsProviderImpl(myProject);
-    try {
-      myCustomizer.customizeModule(myProject, myModule, modelsProvider, myAndroidModel);
-      modelsProvider.commit();
-    }
-    catch (Throwable t) {
-      modelsProvider.dispose();
-      ExceptionUtil.rethrowAllAsUnchecked(t);
-    }
+    ApplicationManager.getApplication().runWriteAction(() -> {
+      try {
+        myCustomizer.customizeModule(myProject, myModule, modelsProvider, myAndroidModel);
+        modelsProvider.commit();
+      }
+      catch (Throwable t) {
+        modelsProvider.dispose();
+        ExceptionUtil.rethrowAllAsUnchecked(t);
+      }
+    });
 
     ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(myModule);
     ContentEntry contentEntry = moduleRootManager.getContentEntries()[0];
