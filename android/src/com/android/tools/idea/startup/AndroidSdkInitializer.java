@@ -18,6 +18,7 @@ package com.android.tools.idea.startup;
 import com.android.SdkConstants;
 import com.android.tools.idea.sdk.SystemInfoStatsMonitor;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.sdk.install.PatchInstallerFactory;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.wizard.AndroidStudioWelcomeScreenProvider;
 import com.intellij.openapi.application.ApplicationManager;
@@ -31,8 +32,7 @@ import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.util.List;
 import java.util.Properties;
 
@@ -80,6 +80,7 @@ public class AndroidSdkInitializer implements Runnable {
     }
 
     if (androidSdkPath != null) {
+      PatchInstallerFactory.restartAndInstallIfNecessary(androidSdkPath);
       // We need to start the system info monitoring even in case when user never
       // runs a single emulator instance: e.g., incompatible hypervisor might be
       // the reason why emulator is never run, and that's exactly the data
@@ -98,40 +99,37 @@ public class AndroidSdkInitializer implements Runnable {
     }
 
     // Called in a 'invokeLater' block, otherwise file chooser will hang forever.
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
-      @Override
-      public void run() {
-        File androidSdkPath = findOrGetAndroidSdkPath();
-        if (androidSdkPath == null) {
-          return;
-        }
+    ApplicationManager.getApplication().invokeLater(() -> {
+      File androidSdkPath = findOrGetAndroidSdkPath();
+      if (androidSdkPath == null) {
+        return;
+      }
 
-        FirstRunWizardMode wizardMode = AndroidStudioWelcomeScreenProvider.getWizardMode();
-        // Only show "Select SDK" dialog if the "First Run" wizard is not displayed.
-        boolean promptSdkSelection = wizardMode == null;
+      FirstRunWizardMode wizardMode = AndroidStudioWelcomeScreenProvider.getWizardMode();
+      // Only show "Select SDK" dialog if the "First Run" wizard is not displayed.
+      boolean promptSdkSelection = wizardMode == null;
 
-        Sdk sdk = createNewAndroidPlatform(androidSdkPath.getPath(), promptSdkSelection);
-        if (sdk != null) {
-          // Rename the SDK to fit our default naming convention.
-          if (sdk.getName().startsWith(SDK_NAME_PREFIX)) {
-            SdkModificator sdkModificator = sdk.getSdkModificator();
-            sdkModificator.setName(SDK_NAME_PREFIX + sdk.getName().substring(SDK_NAME_PREFIX.length()));
-            sdkModificator.commitChanges();
+      Sdk newSdk = createNewAndroidPlatform(androidSdkPath.getPath(), promptSdkSelection);
+      if (newSdk != null) {
+        // Rename the SDK to fit our default naming convention.
+        if (newSdk.getName().startsWith(SDK_NAME_PREFIX)) {
+          SdkModificator sdkModificator = newSdk.getSdkModificator();
+          sdkModificator.setName(SDK_NAME_PREFIX + newSdk.getName().substring(SDK_NAME_PREFIX.length()));
+          sdkModificator.commitChanges();
 
-            // Rename the JDK that goes along with this SDK.
-            AndroidSdkAdditionalData additionalData = getAndroidSdkAdditionalData(sdk);
-            if (additionalData != null) {
-              Sdk jdk = additionalData.getJavaSdk();
-              if (jdk != null) {
-                sdkModificator = jdk.getSdkModificator();
-                sdkModificator.setName(DEFAULT_JDK_NAME);
-                sdkModificator.commitChanges();
-              }
+          // Rename the JDK that goes along with this SDK.
+          AndroidSdkAdditionalData additionalData = getAndroidSdkAdditionalData(newSdk);
+          if (additionalData != null) {
+            Sdk jdk = additionalData.getJavaSdk();
+            if (jdk != null) {
+              sdkModificator = jdk.getSdkModificator();
+              sdkModificator.setName(DEFAULT_JDK_NAME);
+              sdkModificator.commitChanges();
             }
-
-            // Fill out any missing build APIs for this new SDK.
-            IdeSdks.createAndroidSdkPerAndroidTarget(androidSdkPath);
           }
+
+          // Fill out any missing build APIs for this new SDK.
+          IdeSdks.createAndroidSdkPerAndroidTarget(androidSdkPath);
         }
       }
     });
