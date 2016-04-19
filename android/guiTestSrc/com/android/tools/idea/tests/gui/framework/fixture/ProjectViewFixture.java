@@ -85,6 +85,18 @@ public class ProjectViewFixture extends ToolWindowFixture {
     return new PaneFixture(projectView.getCurrentProjectViewPane());
   }
 
+  /**
+   * Given a list of relative paths, finds if they all belong to the Project.
+   * @param paths The list of relative paths with / used as separators
+   */
+  public void assertFilesExist(@NotNull String... paths) {
+    VirtualFile baseDir = myProject.getBaseDir();
+    for (String path : paths) {
+      VirtualFile file = baseDir.findFileByRelativePath(path);
+      assertTrue("File doesn't exist: " + path, file != null && file.exists());
+    }
+  }
+
   private void changePane(@NotNull ProjectView projectView, @NotNull String paneName) {
     Keymap keymap = KeymapManager.getInstance().getActiveKeymap();
     Shortcut[] shortcuts = keymap.getShortcuts("ShowContent");
