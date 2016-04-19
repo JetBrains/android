@@ -22,6 +22,7 @@ import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.UIUtil;
@@ -53,6 +54,7 @@ public class InspectorPanel extends JPanel {
   private boolean mySplitComponentsOnSeparateLines;
   private List<InspectorComponent> myInspectors = Collections.emptyList();
   private List<Component> myGroup;
+  private boolean myGroupInitiallyOpen;
 
   public InspectorPanel() {
     super(new BorderLayout());
@@ -142,12 +144,12 @@ public class InspectorPanel extends JPanel {
     return inspectors;
   }
 
-  public void addExpandableTitle(@NotNull String title) {
+  public void addExpandableTitle(@NotNull String title, @NotNull NlProperty groupStartProperty) {
     JLabel label = createLabel(title, null, null);
     label.setFont(myBoldLabelFont);
     addComponent(label, "span 5");
 
-    startGroup(label);
+    startGroup(label, groupStartProperty);
   }
 
   public void addSeparator() {
@@ -205,7 +207,7 @@ public class InspectorPanel extends JPanel {
     myInspector.add(component, migConstraints, index);
     if (myGroup != null) {
       myGroup.add(component);
-      component.setVisible(false);
+      component.setVisible(myGroupInitiallyOpen);
     }
   }
 
@@ -213,17 +215,20 @@ public class InspectorPanel extends JPanel {
     myInspector.remove(index);
   }
 
-  private void startGroup(@NotNull JLabel label) {
+  private void startGroup(@NotNull JLabel label, @NotNull NlProperty groupStartProperty) {
     assert myGroup == null;
     List<Component> group = new ArrayList<>();
+    String savedKey = "inspector.open." + groupStartProperty.getName();
+    myGroupInitiallyOpen = PropertiesComponent.getInstance().getBoolean(savedKey);
 
-    label.setIcon(myCollapsedIcon);
+    label.setIcon(myGroupInitiallyOpen ? myExpandedIcon : myCollapsedIcon);
     label.addMouseListener(new MouseAdapter() {
       @Override
       public void mouseClicked(MouseEvent event) {
         boolean wasExpanded = label.getIcon() == myExpandedIcon;
         label.setIcon(wasExpanded ? myCollapsedIcon : myExpandedIcon);
         group.stream().forEach(component -> component.setVisible(!wasExpanded));
+        PropertiesComponent.getInstance().setValue(savedKey, !wasExpanded);
       }
     });
 
