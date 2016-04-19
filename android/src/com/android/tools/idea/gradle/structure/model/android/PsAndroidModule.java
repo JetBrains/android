@@ -165,9 +165,10 @@ public class PsAndroidModule extends PsModule implements PsAndroidModel {
 
     PsParsedDependencies parsedDependencies = getParsedDependencies();
     for (PsAndroidArtifact artifact : targetArtifacts) {
-      ArtifactDependencyModel parsedDependency = parsedDependencies.findLibraryDependency(spec, artifact::contains);
-      assert parsedDependency != null;
-      dependencyCollection.addLibraryDependency(spec, artifact, parsedDependency);
+      List<ArtifactDependencyModel> matchingParsedDependencies = parsedDependencies.findLibraryDependencies(spec, artifact::contains);
+      for (ArtifactDependencyModel parsedDependency : matchingParsedDependencies) {
+        dependencyCollection.addLibraryDependency(spec, artifact, parsedDependency);
+      }
     }
 
     fireLibraryDependencyAddedEvent(spec);

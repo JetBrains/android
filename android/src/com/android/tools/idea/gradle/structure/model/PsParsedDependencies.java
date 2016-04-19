@@ -31,6 +31,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
 
@@ -68,10 +69,12 @@ public class PsParsedDependencies {
     return joinAsGradlePath(segments);
   }
 
-  @Nullable
-  public ArtifactDependencyModel findLibraryDependency(@NotNull PsArtifactDependencySpec spec,
-                                                       @NotNull Predicate<ArtifactDependencyModel> predicate) {
-    return findLibraryDependency(createIdFrom(spec), predicate);
+  @NotNull
+  public List<ArtifactDependencyModel> findLibraryDependencies(@NotNull PsArtifactDependencySpec spec,
+                                                               @NotNull Predicate<ArtifactDependencyModel> predicate) {
+    String id = createIdFrom(spec);
+    Collection<ArtifactDependencyModel> potentialMatches = myParsedArtifactDependencies.get(id);
+    return potentialMatches.stream().filter(predicate).collect(Collectors.toList());
   }
 
   @NotNull
@@ -83,24 +86,19 @@ public class PsParsedDependencies {
   @Nullable
   public ArtifactDependencyModel findLibraryDependency(@NotNull MavenCoordinates coordinates,
                                                        @NotNull Predicate<ArtifactDependencyModel> predicate) {
-    return findLibraryDependency(createIdFrom(coordinates), predicate);
-  }
-
-  @NotNull
-  private static String createIdFrom(@NotNull MavenCoordinates coordinates) {
-    List<String> segments = Lists.newArrayList(coordinates.getGroupId(), coordinates.getArtifactId());
-    return joinAsGradlePath(segments);
-  }
-
-  @Nullable
-  private ArtifactDependencyModel findLibraryDependency(@NotNull String id, @NotNull Predicate<ArtifactDependencyModel> predicate) {
-    Collection<ArtifactDependencyModel> potentialMatches = myParsedArtifactDependencies.get(id);
+    Collection<ArtifactDependencyModel> potentialMatches = myParsedArtifactDependencies.get(createIdFrom(coordinates));
     for (ArtifactDependencyModel dependency : potentialMatches) {
       if (predicate.test(dependency)) {
         return dependency;
       }
     }
     return null;
+  }
+
+  @NotNull
+  private static String createIdFrom(@NotNull MavenCoordinates coordinates) {
+    List<String> segments = Lists.newArrayList(coordinates.getGroupId(), coordinates.getArtifactId());
+    return joinAsGradlePath(segments);
   }
 
   @NotNull
