@@ -49,12 +49,12 @@ public class EditorFixtureTest {
     editor.enterText("// lastLine");
 
     editor.moveTo(0);
-    assertEquals(editor.getCurrentLineNumber(), 0);
+    assertEquals(editor.getCurrentLineNumber(), 1);
 
-    editor.moveToLine(numLines);
-    assertEquals(editor.getCurrentLineNumber(), numLines);
+    editor.moveToLine(numLines+1);
+    assertEquals(editor.getCurrentLineNumber(), numLines+1);
 
-    editor.moveToLine(0);
-    assertEquals(editor.getCurrentLineNumber(), 0);
+    editor.moveToLine(1);
+    assertEquals(editor.getCurrentLineNumber(), 1);
   }
 }
