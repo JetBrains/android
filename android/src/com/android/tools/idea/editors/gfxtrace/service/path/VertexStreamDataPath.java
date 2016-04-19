@@ -26,8 +26,8 @@ import java.io.IOException;
 
 public final class VertexStreamDataPath extends Path {
   @Override
-  public StringBuilder stringPath(StringBuilder builder) {
-    return builder.append("VertexStreamData(").append(myID).append(")");
+  public String getSegmentString() {
+    return "VertexStreamData(" + myID + ')';
   }
 
   @Override

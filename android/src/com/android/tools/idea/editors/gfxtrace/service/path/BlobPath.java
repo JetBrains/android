@@ -25,8 +25,8 @@ import java.io.IOException;
 
 public final class BlobPath extends Path {
   @Override
-  public StringBuilder stringPath(StringBuilder builder) {
-    return builder.append("Blob(").append(myID).append(")");
+  public String getSegmentString() {
+    return "Blob(" + myID + ')';
   }
 
   @Override

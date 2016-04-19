@@ -25,8 +25,8 @@ import java.io.IOException;
 
 public final class ImageInfoPath extends Path {
   @Override
-  public StringBuilder stringPath(StringBuilder builder) {
-    return builder.append("ImageInfo(").append(myID).append(")");
+  public String getSegmentString() {
+    return "ImageInfo(" + myID + ')';
   }
 
   @Override
