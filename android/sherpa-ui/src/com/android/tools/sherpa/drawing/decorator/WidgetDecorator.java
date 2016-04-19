@@ -17,9 +17,14 @@
 package com.android.tools.sherpa.drawing.decorator;
 
 import com.android.tools.sherpa.drawing.ColorSet;
+import com.android.tools.sherpa.drawing.ConnectionDraw;
+import com.android.tools.sherpa.drawing.SnapDraw;
 import com.android.tools.sherpa.drawing.ViewTransform;
+import com.android.tools.sherpa.interaction.ConstraintHandle;
+import com.android.tools.sherpa.interaction.WidgetInteractionTargets;
 import com.android.tools.sherpa.structure.Selection;
 import com.android.tools.sherpa.drawing.WidgetDraw;
+import com.android.tools.sherpa.structure.WidgetCompanion;
 import com.google.tnt.solver.widgets.ConstraintAnchor;
 import com.google.tnt.solver.widgets.ConstraintWidget;
 import com.google.tnt.solver.widgets.ConstraintWidgetContainer;
@@ -29,6 +34,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.EnumSet;
 
 /**
@@ -47,6 +53,63 @@ public class WidgetDecorator {
     private boolean mShowSizeIndicator = false;
     private boolean mShowPercentIndicator = false;
     protected ColorSet mColorSet;
+
+    private AnimationProgress mShowBaseline = new AnimationProgress();
+
+    class AnimationProgress {
+        long mStart = 0;
+        long mDelay = 1000;
+        long mDuration = 300;
+
+        float mProgress = 0;
+
+        public void setDelay(long delay) {
+            mDelay = delay;
+        }
+
+        public void setDuration(long duration) {
+            mDuration = duration;
+        }
+
+        public void start() {
+            mStart = System.currentTimeMillis() + mDelay;
+        }
+
+        public float getProgress() {
+            if (mStart == 0) {
+                return 0;
+            }
+            long current = System.currentTimeMillis();
+            long delta = current - mStart;
+            if (delta < 0) {
+                return 0;
+            }
+            if (delta > mDuration) {
+                return 1;
+            }
+            return (current - mStart) / (float) mDuration;
+        }
+
+        public boolean isDone() {
+            if (mStart == 0) {
+                return false;
+            }
+            long current = System.currentTimeMillis();
+            long delta = current - mStart;
+            if (delta > mDuration) {
+                return true;
+            }
+            return false;
+        }
+
+        public void reset() {
+            mStart = 0;
+        }
+
+        public boolean isRunning() {
+            return mStart != 0 && !isDone();
+        }
+    }
 
     private EnumSet<WidgetDraw.ANCHORS_DISPLAY> mDisplayAnchorsPolicy =
             EnumSet.of(WidgetDraw.ANCHORS_DISPLAY.NONE);
@@ -171,6 +234,9 @@ public class WidgetDecorator {
         if (mConstraintsColor.isAnimating()) {
             return true;
         }
+        if (mShowBaseline.isRunning()) {
+            return true;
+        }
         return false;
     }
 
@@ -216,6 +282,9 @@ public class WidgetDecorator {
      * @param value
      */
     public void setIsSelected(boolean value) {
+        if (mIsSelected == value && mLook != null) {
+            return;
+        }
         mIsSelected = value;
         if (!mIsSelected) {
             // we reset the percent indicator so that it won't show
@@ -224,8 +293,10 @@ public class WidgetDecorator {
         }
         if (mIsSelected) {
             setLook(ColorTheme.Look.SELECTED);
+            mShowBaseline.start();
         } else {
             setLook(ColorTheme.Look.NORMAL);
+            mShowBaseline.reset();
         }
     }
 
@@ -337,6 +408,8 @@ public class WidgetDecorator {
         }
 
         g.setColor(mFrameColor.getColor());
+        onPaintAnchors(transform, g);
+
         WidgetDraw.drawWidgetFrame(transform, g, mWidget,
                 mColorSet, mDisplayAnchorsPolicy, mShowResizeHandles,
                 mShowSizeIndicator, mIsSelected, mStyle);
@@ -381,6 +454,41 @@ public class WidgetDecorator {
     }
 
     /**
+     * Paint the anchors of this object
+     *
+     * @param transform the view transform
+     * @param g         the graphics context
+     */
+    public void onPaintAnchors(ViewTransform transform, Graphics2D g) {
+        if (mColorSet == null) {
+            return;
+        }
+        if (mWidget.getVisibility() == ConstraintWidget.GONE) {
+            return;
+        }
+        g.setColor(mConstraintsColor.getColor());
+        if (mIsSelected && mWidget.hasBaseline()) {
+            Color c = g.getColor();
+            ConstraintAnchor baseline = mWidget.getAnchor(ConstraintAnchor.Type.BASELINE);
+            float progress = 1;
+            if (!baseline.isConnected()) {
+                progress = mShowBaseline.getProgress();
+                if (progress > 0) {
+                    int alpha = (int) (255 * progress);
+                    g.setColor(new Color(c.getRed(), c.getGreen(), c.getBlue(), alpha));
+                }
+            }
+            if (progress > 0) {
+                WidgetCompanion widgetCompanion = (WidgetCompanion) mWidget.getCompanionWidget();
+                ConstraintHandle handle = widgetCompanion.getWidgetInteractionTargets()
+                        .getConstraintHandle(baseline);
+                handle.draw(transform, g, mColorSet, mIsSelected);
+            }
+            g.setColor(c);
+        }
+    }
+
+    /**
      * Paint the constraints of this widget
      *
      * @param transform the view transform
@@ -395,8 +503,57 @@ public class WidgetDecorator {
         }
         g.setColor(mConstraintsColor.getColor());
         if (mIsSelected || isShowAllConstraints()) {
-            WidgetDraw.drawConstraints(transform, g, mColorSet, mWidget, mIsSelected,
-                    mShowPercentIndicator, false);
+            if (mWidget.getVisibility() == ConstraintWidget.INVISIBLE) {
+                g.setStroke(SnapDraw.sDashedStroke);
+            }
+            ArrayList<ConstraintAnchor.Type> anchors = new ArrayList<ConstraintAnchor.Type>();
+            if (mIsSelected && mWidget.hasBaseline()
+                    && (mShowBaseline.isDone()
+                    || mWidget.getAnchor(ConstraintAnchor.Type.BASELINE).isConnected())) {
+                anchors.add(ConstraintAnchor.Type.BASELINE);
+            }
+            anchors.add(ConstraintAnchor.Type.LEFT);
+            anchors.add(ConstraintAnchor.Type.TOP);
+            anchors.add(ConstraintAnchor.Type.RIGHT);
+            anchors.add(ConstraintAnchor.Type.BOTTOM);
+            Color currentColor = g.getColor();
+            for (ConstraintAnchor.Type type : anchors) {
+                ConstraintAnchor anchor = mWidget.getAnchor(type);
+                if (anchor == null) {
+                    continue;
+                }
+                if (anchor.isConnected()) {
+                    ConstraintAnchor target = anchor.getTarget();
+                    if (target.getOwner().getVisibility() == ConstraintWidget.GONE) {
+                        continue;
+                    }
+                    ConstraintHandle startHandle =
+                            WidgetInteractionTargets.constraintHandle(anchor);
+                    ConstraintHandle endHandle = WidgetInteractionTargets.constraintHandle(target);
+                    if (startHandle == null || endHandle == null) {
+                        continue;
+                    }
+                    if (startHandle.getAnchor().isConnected()
+                            && startHandle.getAnchor().getConnectionCreator()
+                            == ConstraintAnchor.AUTO_CONSTRAINT_CREATOR) {
+                        g.setColor(new Color(currentColor.getRed(), currentColor.getGreen(),
+                                currentColor.getBlue(), 60));
+                    } else {
+                        g.setColor(currentColor);
+                    }
+                    ConnectionDraw.drawConnection(transform, g, startHandle, endHandle,
+                            mIsSelected, mShowPercentIndicator, mIsSelected);
+                } else if (mIsSelected) {
+                    ConstraintHandle startHandle =
+                            WidgetInteractionTargets.constraintHandle(anchor);
+                    if (startHandle == null) {
+                        continue;
+                    }
+                    ConnectionDraw.drawConnection(transform, g, startHandle, null,
+                            mIsSelected, mShowPercentIndicator, mIsSelected);
+                }
+            }
+            g.setStroke(SnapDraw.sNormalStroke);
         }
     }
 
