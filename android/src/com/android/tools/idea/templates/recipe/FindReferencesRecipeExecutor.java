@@ -68,6 +68,11 @@ final class FindReferencesRecipeExecutor implements RecipeExecutor {
   }
 
   @Override
+  public void addClasspath(@NotNull String mavenUrl) {
+    myContext.getDependencies().add(mavenUrl);
+  }
+
+  @Override
   public void addDependency(@NotNull String mavenUrl) {
     myContext.getDependencies().add(mavenUrl);
   }
