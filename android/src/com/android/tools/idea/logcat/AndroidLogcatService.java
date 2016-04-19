@@ -100,10 +100,13 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
               AndroidUtils.executeCommandOnDevice(device, "logcat -v long", receiver, true);
             }
             catch (Exception e) {
-              getLog().info(e);
+              getLog().info(String.format(
+                "Caught exception when capturing logcat output from the device %1$s. Receiving logcat output from this device will be " +
+                "stopped, and the listeners will be notified with this exception as the last message", device.getName()), e);
               LogCatHeader dummyHeader = new LogCatHeader(Log.LogLevel.ERROR, 0, 0, "?", "Internal", LogCatTimestamp.ZERO);
               receiver.notifyLine(dummyHeader, e.getMessage());
             }
+            stopReceiving(device);
           }
         });
       }
@@ -125,20 +128,26 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
               listener.receiveLogLine(line);
             }
           }
-          myLogBuffers.get(device).addMessage(line);
+          if (myLogBuffers.containsKey(device)) {
+            myLogBuffers.get(device).addMessage(line);
+          }
         }
       }
     };
     final AndroidLogcatReceiver receiver = new AndroidLogcatReceiver(device, logLineListener);
 
-    myLogBuffers.put(device, new LogcatBuffer());
-    myLogReceivers.put(device, receiver);
-    myLogcatRunner.start(device, receiver);
+    synchronized (myLock) {
+      myLogBuffers.put(device, new LogcatBuffer());
+      myLogReceivers.put(device, receiver);
+      myLogcatRunner.start(device, receiver);
+    }
   }
 
   private void stopReceiving(@NotNull IDevice device) {
     synchronized (myLock) {
-      myLogReceivers.get(device).cancel();
+      if (myLogReceivers.containsKey(device)) {
+        myLogReceivers.get(device).cancel();
+      }
       myLogReceivers.remove(device);
       myLogBuffers.remove(device);
     }
@@ -161,16 +170,16 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
    */
   public void addListener(@NotNull IDevice device, @NotNull LogLineListener listener, boolean addOldLogs) {
     synchronized (myLock) {
-      if (addOldLogs) {
-        if (myLogBuffers.containsKey(device)) {
-          for (LogCatMessage line : myLogBuffers.get(device).getMessages()) {
-            listener.receiveLogLine(line);
-          }
+      if (addOldLogs && myLogBuffers.containsKey(device)) {
+        for (LogCatMessage line : myLogBuffers.get(device).getMessages()) {
+          listener.receiveLogLine(line);
         }
       }
+
       if (!myListeners.containsKey(device)) {
-        myListeners.put(device, new ArrayList<LogLineListener>());
+        myListeners.put(device, new ArrayList<>());
       }
+
       myListeners.get(device).add(listener);
 
       if (device.isOnline() && !isReceivingFrom(device)) {
