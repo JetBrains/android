@@ -346,6 +346,25 @@ public class ConstraintHandle {
     }
 
     /**
+     * Return the current size of the baseline handle
+     *
+     * @param transform
+     * @param g
+     * @return
+     */
+    public int getBaselineHandleWidth(ViewTransform transform) {
+        if (mType != ConstraintAnchor.Type.BASELINE) {
+            return 0;
+        }
+        int w = transform.getSwingDimension(getOwner().getDrawWidth());
+        int padding = (int) ((w * 0.4) / 2f);
+        if (w - 2 * padding < 16) {
+            padding = (w - 16) / 2;
+        }
+        return w - 2 * padding;
+    }
+
+    /**
      * Draw function for the ConstraintHandle
      *
      * @param transform  the view transform
@@ -361,7 +380,7 @@ public class ConstraintHandle {
             int w = transform.getSwingDimension(getOwner().getDrawWidth());
             int h = transform.getSwingDimension(getOwner().getDrawHeight());
             int baseline = transform.getSwingDimension(getOwner().getBaselineDistance());
-            int padding = 5;
+            int padding = (w - getBaselineHandleWidth(transform)) / 2;
             int bh = 7;
             int by = y + baseline;
 
@@ -385,7 +404,8 @@ public class ConstraintHandle {
             WidgetDecorator decorator = companion.getWidgetDecorator(colorSet.getStyle());
             Color backgroundColor = decorator.getBackgroundColor();
 
-            g.setColor(backgroundColor);
+            g.setColor(new Color(backgroundColor.getRed(), backgroundColor.getGreen(),
+                    backgroundColor.getBlue(), previous.getAlpha()));
             g.fillRoundRect(x + padding, by - bh / 2, w - 2 * padding, bh, bh, bh);
             g.setColor(previous);
             g.drawRoundRect(x + padding, by - bh / 2, w - 2 * padding, bh, bh, bh);
