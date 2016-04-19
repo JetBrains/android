@@ -401,4 +401,22 @@ public class ThemeEditorTableTest {
 
     quickDoc.requireText(expected);
   }
+
+  @Test
+  public void testTabSwitchingWhileEditing() throws IOException {
+    guiTest.importSimpleApplication();
+    ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(guiTest.ideFrame());
+    final ThemeEditorTableFixture themeEditorTable = themeEditor.getPropertiesTable();
+
+    final TableCell cell = row(3).column(0);
+    JTableCellFixture tableCell = themeEditorTable.cell(cell);
+    ResourceComponentFixture resourceComponent = new ResourceComponentFixture(guiTest.robot(), (ResourceComponent)tableCell.editor());
+    tableCell.startEditing();
+    EditorTextFieldFixture textComponent = resourceComponent.getTextField();
+    textComponent.enterText("text");
+
+    EditorFixture editor = guiTest.ideFrame().getEditor();
+    editor.switchToTab("styles.xml");
+    editor.switchToTab("Theme Editor");
+  }
 }
