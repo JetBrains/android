@@ -84,6 +84,7 @@ import static com.intellij.util.ui.update.Update.LOW_PRIORITY;
 public class NlModel implements Disposable, ResourceChangeListener, ModificationTracker {
   private static final Logger LOG = Logger.getInstance(NlModel.class);
   @AndroidCoordinate private static final int VISUAL_EMPTY_COMPONENT_SIZE = 14;
+  private static final int RENDER_DELAY_MS = 10;
 
   @NotNull private final DesignSurface mySurface;
   @NotNull private final AndroidFacet myFacet;
@@ -99,7 +100,6 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   private boolean myActive;
   private ResourceVersion myRenderedVersion;
   private long myModificationCount;
-  private int myRenderDelay = 10;
   private AndroidPreviewProgressIndicator myCurrentIndicator;
   private static final Object PROGRESS_LOCK = new Object();
   private RenderTask myRenderTask;
@@ -124,10 +124,6 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     if (parent != null) {
       Disposer.register(parent, this);
     }
-  }
-
-  public void setRenderDelay(int renderDelay) {
-    myRenderDelay = renderDelay;
   }
 
   /**
@@ -219,10 +215,9 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
   @NotNull
   private MergingUpdateQueue getRenderingQueue() {
-    int delay = myRenderDelay;
     synchronized (myRenderingQueueLock) {
       if (myRenderingQueue == null) {
-        myRenderingQueue = new MergingUpdateQueue("android.layout.rendering", delay, true, null, myParent, null,
+        myRenderingQueue = new MergingUpdateQueue("android.layout.rendering", RENDER_DELAY_MS, true, null, myParent, null,
                                                   Alarm.ThreadToUse.OWN_THREAD);
       }
       return myRenderingQueue;
