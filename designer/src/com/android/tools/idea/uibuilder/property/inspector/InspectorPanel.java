@@ -31,6 +31,8 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.util.Collections;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -40,11 +42,15 @@ import java.util.Map;
 
 public class InspectorPanel extends JPanel {
   private static final boolean DEBUG_BOUNDS = false;
+  // TODO: We may want this size to depend on the actual font used instead of hardcoding it
+  private static final int SPLIT_THRESHOLD_WIDTH = 220;
 
   private final Font myBoldLabelFont = UIUtil.getLabelFont().deriveFont(Font.BOLD);
   private final Icon myExpandedIcon;
   private final Icon myCollapsedIcon;
   private final JPanel myInspector;
+  private final List<SplitComponents> mySplitComponents;
+  private boolean mySplitComponentsOnSeparateLines;
   private List<InspectorComponent> myInspectors = Collections.emptyList();
   private List<Component> myGroup;
 
@@ -53,20 +59,31 @@ public class InspectorPanel extends JPanel {
     myExpandedIcon = (Icon)UIManager.get("Tree.expandedIcon");
     myCollapsedIcon = (Icon)UIManager.get("Tree.collapsedIcon");
     myInspector = new JPanel();
+    mySplitComponents = new ArrayList<>();
     add(myInspector, BorderLayout.CENTER);
     myInspector.setLayout(createGridLayout());
+    myInspector.addComponentListener(new ComponentAdapter() {
+      @Override
+      public void componentResized(ComponentEvent event) {
+        boolean useSeparateLines = myInspector.getWidth() < SPLIT_THRESHOLD_WIDTH;
+        if (useSeparateLines != mySplitComponentsOnSeparateLines) {
+          mySplitComponents.stream().forEach(splitComponent -> splitComponent.addComponents(InspectorPanel.this, useSeparateLines));
+          mySplitComponentsOnSeparateLines = useSeparateLines;
+        }
+      }
+    });
   }
 
   private static LayoutManager createGridLayout() {
-    // 2 column grid by default
-    String layoutConstraints = "wrap 6, insets 2pt, novisualpadding, hidemode 3";
+    // 5 column grid by default
+    String layoutConstraints = "wrap 5, insets 2pt, novisualpadding, hidemode 3";
     if (DEBUG_BOUNDS) {
       layoutConstraints += ", debug";
     }
     // Dual configuration:
     // 1) [Single component] 1st column 30%, 2nd column 70%
-    // 2) [Two components]   1st and 3rd column 15%, 2nd and 4th column 35%
-    String columnConstraints = "[15%!][15%!][20%!][15%!][15%!][20%!]";
+    // 2) [Two components]   1st and 3rd column 20%, 2nd and 4th column 30%
+    String columnConstraints = "[20%!][10%!][grow,fill][20%!][grow,fill]";
 
     return new MigLayout(layoutConstraints, columnConstraints);
   }
@@ -128,46 +145,36 @@ public class InspectorPanel extends JPanel {
   public void addExpandableTitle(@NotNull String title) {
     JLabel label = createLabel(title, null, null);
     label.setFont(myBoldLabelFont);
-    addComponent(label, "span 6");
+    addComponent(label, "span 5");
 
     startGroup(label);
   }
 
   public void addSeparator() {
     endGroup();
-    addComponent(new JSeparator(), "span 6, grow");
+    addComponent(new JSeparator(), "span 5, grow");
   }
 
   public void addComponent(@NotNull String labelText,
                            @Nullable String tooltip,
                            @NotNull Component component) {
     addComponent(createLabel(labelText, tooltip, component), "span 2"); // 30%
-    addComponent(component, "span 4"); // 70%
+    addComponent(component, "span 3"); // 70%
   }
 
-  public void addSplitComponents(@Nullable String labelText1,
+  public void addSplitComponents(@NotNull SplitLayout layout,
+                                 @NotNull String labelText1,
                                  @Nullable String tooltip1,
-                                 @Nullable Component component1,
-                                 @Nullable String labelText2,
+                                 @NotNull Component component1,
+                                 @NotNull String labelText2,
                                  @Nullable String tooltip2,
-                                 @Nullable Component component2) {
-    assert (labelText1 != null || component1 != null) && (labelText2 != null || component2 != null);
-    if (labelText1 != null) {
-      int span = component1 != null ? 1 : 3;
-      addComponent(createLabel(labelText1, tooltip1, component1), "span " + span);
-    }
-    if (component1 != null) {
-      int span = labelText1 != null ? 2 : 3;
-      addComponent(component1, "span " + span);
-    }
-    if (labelText2 != null) {
-      int span = component2 != null ? 1 : 3;
-      addComponent(createLabel(labelText2, tooltip2, component2), "span " + span);
-    }
-    if (component2 != null) {
-      int span = labelText2 != null ? 2 : 3;
-      addComponent(component2, "span " + span);
-    }
+                                 @NotNull Component component2) {
+    int index = myInspector.getComponentCount();
+    JLabel label1 = createLabel(labelText1, tooltip1, component1);
+    JLabel label2 = createLabel(labelText2, tooltip2, component2);
+    SplitComponents split = new SplitComponents(index, layout, label1, component1, label2, component2);
+    mySplitComponents.add(split);
+    split.addComponents(this, false);
   }
 
   /**
@@ -191,11 +198,19 @@ public class InspectorPanel extends JPanel {
   }
 
   private void addComponent(@NotNull Component component, @NotNull String migConstraints) {
-    myInspector.add(component, migConstraints);
+    addComponent(component, migConstraints, -1);
+  }
+
+  private void addComponent(@NotNull Component component, @NotNull String migConstraints, int index) {
+    myInspector.add(component, migConstraints, index);
     if (myGroup != null) {
       myGroup.add(component);
       component.setVisible(false);
     }
+  }
+
+  private void removeComponent(int index) {
+    myInspector.remove(index);
   }
 
   private void startGroup(@NotNull JLabel label) {
@@ -217,5 +232,63 @@ public class InspectorPanel extends JPanel {
 
   private void endGroup() {
     myGroup = null;
+  }
+
+  public enum SplitLayout {SINGLE_ROW, STACKED, SEPARATE}
+
+  private static class SplitComponents {
+    private final int myIndex;
+    private final SplitLayout myOriginalLayout;
+    private final Component myLabel1;
+    private final Component myComponent1;
+    private final Component myLabel2;
+    private final Component myComponent2;
+
+    public SplitComponents(int index,
+                           @NotNull SplitLayout layout,
+                           @NotNull Component label1,
+                           @NotNull Component component1,
+                           @NotNull Component label2,
+                           @NotNull Component component2) {
+      myIndex = index;
+      myOriginalLayout = layout;
+      myLabel1 = label1;
+      myComponent1 = component1;
+      myLabel2 = label2;
+      myComponent2 = component2;
+    }
+
+    public void addComponents(@NotNull InspectorPanel inspector, boolean onSeparateLines) {
+      if (inspector.myInspector.getComponentCount() > myIndex) {
+        inspector.removeComponent(myIndex);
+        inspector.removeComponent(myIndex);
+        inspector.removeComponent(myIndex);
+        inspector.removeComponent(myIndex);
+      }
+
+      SplitLayout layout = onSeparateLines ? SplitLayout.SEPARATE : myOriginalLayout;
+      switch (layout) {
+        case SEPARATE:
+          inspector.addComponent(myLabel1, "span 2", myIndex);
+          inspector.addComponent(myComponent1, "span 3", myIndex + 1);
+          inspector.addComponent(myLabel2, "span 2", myIndex + 2);
+          inspector.addComponent(myComponent2, "span 3", myIndex + 3);
+          break;
+
+        case SINGLE_ROW:
+          inspector.addComponent(myLabel1, "span 1", myIndex);
+          inspector.addComponent(myComponent1, "span 2", myIndex + 1);
+          inspector.addComponent(myLabel2, "span 1", myIndex + 2);
+          inspector.addComponent(myComponent2, "span 1", myIndex + 3);
+          break;
+
+        case STACKED:
+          inspector.addComponent(myLabel1, "span 3", myIndex);
+          inspector.addComponent(myLabel2, "span 2", myIndex + 1);
+          inspector.addComponent(myComponent1, "span 3", myIndex + 2);
+          inspector.addComponent(myComponent2, "span 2", myIndex + 3);
+          break;
+      }
+    }
   }
 }
