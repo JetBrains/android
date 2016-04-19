@@ -31,6 +31,7 @@ import java.util.Collections;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 
 /**
@@ -182,11 +183,7 @@ public class LayoutEditorTest {
                                 "    *RelativeLayout\n" +
                                 "        TextView - @string/hello_world\n", true);
 
-    guiTest.ideFrame().invokeMenuPath("Edit", "Delete");
-
-    layout.requireComponentTree("Device Screen\n" +
-                                "    RelativeLayout\n" + // still there!
-                                "        TextView - @string/hello_world\n", false);
+    assertFalse("The menu \"Edit -> Delete\" should be disabled", guiTest.ideFrame().isMenuPathEnabled("Edit", "Delete"));
   }
 
   @Ignore("b.android.com/173576")
