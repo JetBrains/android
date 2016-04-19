@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.run;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.builder.model.AndroidProject;
 import com.android.resources.Density;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.devices.Abi;
@@ -30,6 +29,7 @@ import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.DeviceFutures;
 import com.google.common.base.Charsets;
+import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
@@ -46,10 +46,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.android.builder.model.AndroidProject.*;
 import static com.android.tools.idea.startup.GradleSpecificInitializer.ENABLE_EXPERIMENTAL_PROFILING;
@@ -77,38 +75,20 @@ public class GradleInvokerOptions {
 
     GradleInvoker.TestCompileType testCompileType = getTestCompileType(configuration);
 
-    BuildOptions buildOptions = null;
-
     List<AndroidDevice> targetDevices = getTargetDevices(env);
 
+    List<String> cmdLineArgs = Lists.newArrayList();
+    cmdLineArgs.addAll(getDeviceSpecificArguments(targetDevices));
+    cmdLineArgs.addAll(getProfilingOptions(configuration));
+
+    InstantRunBuildOptions buildOptions = null;
     if (configuration instanceof AndroidRunConfigurationBase &&
         ((AndroidRunConfigurationBase)configuration).supportsInstantRun() &&
         InstantRunUtils.isInstantRunEnabled(env) &&
         InstantRunSettings.isInstantRunEnabled()) {
       buildOptions = InstantRunBuildOptions.createAndReset(modules[0], env, targetDevices);
-      InstantRunManager.LOG.info(buildOptions.toString());
-    } else {
-      buildOptions = new BuildOptions(targetDevices);
-    }
-
-    List<String> cmdLineArgs = null;
-    if (System.getProperty(ENABLE_EXPERIMENTAL_PROFILING) != null) {
-      if (configuration instanceof AndroidRunConfigurationBase) {
-        Properties profilerProperties = ((AndroidRunConfigurationBase)configuration).getProfilerState().toProperties();
-        try {
-          File propertiesFile = File.createTempFile("profiler", ".properties");
-          propertiesFile.deleteOnExit(); // TODO: It'd be nice to clean this up sooner than at exit.
-
-          Writer writer = new OutputStreamWriter(new FileOutputStream(propertiesFile), Charsets.UTF_8);
-          profilerProperties.store(writer, "Android Studio Profiler Gradle Plugin Properties");
-          writer.close();
-
-          cmdLineArgs = Collections.singletonList(
-            AndroidGradleSettings.createProjectProperty("android.profiler.properties", propertiesFile.getAbsolutePath()));
-        }
-        catch (IOException e) {
-          Throwables.propagate(e);
-        }
+      if (buildOptions != null) {
+        InstantRunManager.LOG.info(buildOptions.toString());
       }
     }
 
@@ -116,9 +96,37 @@ public class GradleInvokerOptions {
                   userGoal, cmdLineArgs);
   }
 
+  @NotNull
+  private static List<String> getProfilingOptions(@NotNull RunConfiguration configuration) {
+    if (System.getProperty(ENABLE_EXPERIMENTAL_PROFILING) == null) {
+      return Collections.emptyList();
+    }
+
+    if (!(configuration instanceof AndroidRunConfigurationBase)) {
+      return Collections.emptyList();
+    }
+
+    Properties profilerProperties = ((AndroidRunConfigurationBase)configuration).getProfilerState().toProperties();
+    try {
+      File propertiesFile = File.createTempFile("profiler", ".properties");
+      propertiesFile.deleteOnExit(); // TODO: It'd be nice to clean this up sooner than at exit.
+
+      Writer writer = new OutputStreamWriter(new FileOutputStream(propertiesFile), Charsets.UTF_8);
+      profilerProperties.store(writer, "Android Studio Profiler Gradle Plugin Properties");
+      writer.close();
+
+      return Collections
+        .singletonList(AndroidGradleSettings.createProjectProperty("android.profiler.properties", propertiesFile.getAbsolutePath()));
+    }
+    catch (IOException e) {
+      Throwables.propagate(e);
+      return Collections.emptyList();
+    }
+  }
+
   @VisibleForTesting()
   static GradleInvokerOptions create(@NotNull GradleInvoker.TestCompileType testCompileType,
-                                     @NotNull BuildOptions buildOptions,
+                                     @Nullable InstantRunBuildOptions buildOptions,
                                      @NotNull GradleTasksProvider gradleTasksProvider,
                                      @NotNull RunAsValidator runAsValidator,
                                      @Nullable String userGoal,
@@ -139,19 +147,16 @@ public class GradleInvokerOptions {
       cmdLineArgs.addAll(additionalArguments);
     }
 
-    cmdLineArgs.addAll(getDeviceSpecificArguments(buildOptions.devices));
-
-    if (buildOptions instanceof InstantRunBuildOptions) {
+    if (buildOptions != null) {
       // Inject instant run attributes
       // Note that these are specifically not injected for the unit or instrumentation tests
-      InstantRunBuildOptions instantRunBuildOptions = (InstantRunBuildOptions)buildOptions;
       if (testCompileType == GradleInvoker.TestCompileType.NONE) {
-        boolean incrementalBuild = canBuildIncrementally(instantRunBuildOptions, runAsValidator);
+        boolean incrementalBuild = canBuildIncrementally(buildOptions, runAsValidator);
 
-        cmdLineArgs.add(getInstantDevProperty(instantRunBuildOptions, incrementalBuild));
+        cmdLineArgs.add(getInstantDevProperty(buildOptions, incrementalBuild));
         cmdLineArgs.add("-Pandroid.injected.coldswap.mode=default"); // TODO: remove if gradle doesn't need this
 
-        if (instantRunBuildOptions.cleanBuild) {
+        if (buildOptions.cleanBuild) {
           tasks.addAll(gradleTasksProvider.getCleanAndGenerateSourcesTasks());
         }
         else if (incrementalBuild) {
@@ -189,7 +194,7 @@ public class GradleInvokerOptions {
   @NotNull
   private static String getInstantDevProperty(@NotNull InstantRunBuildOptions buildOptions, boolean incrementalBuild) {
     StringBuilder sb = new StringBuilder(50);
-    sb.append("-P" + AndroidProject.OPTIONAL_COMPILATION_STEPS + "=INSTANT_DEV");
+    sb.append("-P" + OPTIONAL_COMPILATION_STEPS + "=INSTANT_DEV");
 
     if (needsRestartOnly(incrementalBuild, buildOptions)) {
       sb.append(",RESTART_ONLY");
@@ -249,65 +254,57 @@ public class GradleInvokerOptions {
   }
 
   @NotNull
-  private static List<String> getDeviceSpecificArguments(@NotNull List<AndroidDevice> devices) {
+  static List<String> getDeviceSpecificArguments(@NotNull List<AndroidDevice> devices) {
     if (devices.isEmpty()) {
       return Collections.emptyList();
     }
 
-    List<String> properties = new ArrayList<String>(2);
+    List<String> properties = new ArrayList<>(2);
 
     // Find the minimum value of the build API level and pass it to Gradle as a property
-    AndroidDevice device = devices.get(0); // Instant Run only supports launching to a single device
-    AndroidVersion version = device.getVersion();
-    properties.add(AndroidGradleSettings.createProjectProperty(PROPERTY_BUILD_API, Integer.toString(version.getFeatureLevel())));
+    AndroidVersion minVersion = devices.get(0).getVersion();
+    for (int i = 1; i < devices.size(); i++) {
+      AndroidDevice androidDevice = devices.get(i);
+      if (androidDevice.getVersion().compareTo(minVersion) < 0) {
+        minVersion = androidDevice.getVersion();
+      }
+    }
+    properties.add(AndroidGradleSettings.createProjectProperty(PROPERTY_BUILD_API, Integer.toString(minVersion.getFeatureLevel())));
 
     // If we are building for only one device, pass the density.
-    Density density = Density.getEnum(device.getDensity());
-    if (density != null) {
-      properties.add(AndroidGradleSettings.createProjectProperty(PROPERTY_BUILD_DENSITY, density.getResourceValue()));
+    if (devices.size() == 1) {
+      Density density = Density.getEnum(devices.get(0).getDensity());
+      if (density != null) {
+        properties.add(AndroidGradleSettings.createProjectProperty(PROPERTY_BUILD_DENSITY, density.getResourceValue()));
+      }
     }
 
-    String abis = join(device.getAbis());
+    // Collect the set of all abis supported by all the devices
+    Set<String> abis =
+      devices.stream().map(AndroidDevice::getAbis)
+        .flatMap(Collection::stream)
+        .map(Abi::toString)
+        .collect(Collectors.toCollection(TreeSet::new));
     if (!abis.isEmpty()) {
-      properties.add(AndroidGradleSettings.createProjectProperty(PROPERTY_BUILD_ABI, abis));
+      properties.add(AndroidGradleSettings.createProjectProperty(PROPERTY_BUILD_ABI, Joiner.on(',').join(abis)));
     }
 
     return properties;
   }
 
   @NotNull
-  private static String join(@NotNull List<Abi> abis) {
-    StringBuilder sb = new StringBuilder();
-
-    String separator = "";
-    for (Abi abi : abis) {
-      sb.append(separator);
-      sb.append(abi.toString());
-      separator = ",";
-    }
-
-    return sb.toString();
-  }
-
-  @NotNull
   private static List<AndroidDevice> getTargetDevices(@NotNull ExecutionEnvironment env) {
     DeviceFutures deviceFutures = env.getCopyableUserData(AndroidRunConfigurationBase.DEVICE_FUTURES_KEY);
-    return deviceFutures == null ? Collections.<AndroidDevice>emptyList() : deviceFutures.getDevices();
+    return deviceFutures == null ? Collections.emptyList() : deviceFutures.getDevices();
   }
 
-  static class BuildOptions {
-    @NotNull public final List<AndroidDevice> devices;
-    BuildOptions(@NotNull List<AndroidDevice> devices) {
-      this.devices = devices;
-    }
-  }
-
-  static class InstantRunBuildOptions extends BuildOptions {
+  static class InstantRunBuildOptions {
     public final boolean cleanBuild;
     public final boolean needsFullBuild;
     public final boolean isAppRunning;
     public final boolean usesMultipleProcesses;
     @NotNull private final FileChangeListener.Changes fileChanges;
+    @NotNull public final List<AndroidDevice> devices;
 
     InstantRunBuildOptions(boolean cleanBuild,
                            boolean needsFullBuild,
@@ -315,12 +312,12 @@ public class GradleInvokerOptions {
                            boolean usesMultipleProcesses,
                            @NotNull FileChangeListener.Changes changes,
                            @NotNull List<AndroidDevice> devices) {
-      super(devices);
       this.cleanBuild = cleanBuild;
       this.needsFullBuild = needsFullBuild;
       this.isAppRunning = isAppRunning;
       this.usesMultipleProcesses = usesMultipleProcesses;
       this.fileChanges = changes;
+      this.devices = devices;
     }
 
     @Nullable
