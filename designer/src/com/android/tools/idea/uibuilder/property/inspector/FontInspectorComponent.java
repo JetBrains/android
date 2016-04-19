@@ -113,7 +113,7 @@ public class FontInspectorComponent implements InspectorComponent {
   @Override
   public void attachToInspector(@NotNull InspectorPanel inspector) {
     inspector.addSeparator();
-    inspector.addExpandableTitle("Text Attributes");
+    inspector.addExpandableTitle("Text Attributes", myStyle);
     inspector.addComponent("Appearance", myStyle.getTooltipText(), myStyleEditor.getComponent());
     inspector.restartExpansionGroup();
     inspector.addComponent("Font family", myFontFamily.getTooltipText(), myFontFamilyEditor.getComponent());
