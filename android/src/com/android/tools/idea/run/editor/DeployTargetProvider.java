@@ -16,6 +16,7 @@
 package com.android.tools.idea.run.editor;
 
 import com.android.tools.idea.run.DeviceCount;
+import com.android.tools.idea.run.LaunchCompatibilityChecker;
 import com.intellij.execution.Executor;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.Disposable;
@@ -79,12 +80,13 @@ public abstract class DeployTargetProvider<S extends DeployTargetState> {
    */
   @Nullable
   public DeployTarget<S> showPrompt(@NotNull Executor executor,
-                            @NotNull ExecutionEnvironment env,
-                            @NotNull AndroidFacet facet,
-                            @NotNull DeviceCount deviceCount,
-                            boolean androidTests,
-                            @NotNull Map<String, DeployTargetState> deployTargetStates,
-                            int runConfigId) {
+                                    @NotNull ExecutionEnvironment env,
+                                    @NotNull AndroidFacet facet,
+                                    @NotNull DeviceCount deviceCount,
+                                    boolean androidTests,
+                                    @NotNull Map<String, DeployTargetState> deployTargetStates,
+                                    int runConfigId,
+                                    @NotNull LaunchCompatibilityChecker compatibilityChecker) {
     throw new IllegalStateException();
   }
 

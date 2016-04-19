@@ -90,7 +90,11 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
 
   private List<AvdInfo> myAvdInfos = Lists.newArrayList();
 
-  public DevicePicker(@NotNull Disposable parent, int runContextId, @NotNull final AndroidFacet facet, @NotNull DeviceCount deviceCount) {
+  public DevicePicker(@NotNull Disposable parent,
+                      int runContextId,
+                      @NotNull final AndroidFacet facet,
+                      @NotNull DeviceCount deviceCount,
+                      @NotNull LaunchCompatibilityChecker compatibilityChecker) {
     myRunContextId = runContextId;
     myFacet = facet;
 
@@ -101,7 +105,7 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
       }
     });
 
-    myCompatibilityChecker = createChecker(facet);
+    myCompatibilityChecker = compatibilityChecker;
 
     mySpeedSearch = new ListSpeedSearch(myDevicesList) {
       @Override
@@ -146,28 +150,6 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
   public void dispose() {
     AndroidDebugBridge.removeDebugBridgeChangeListener(this);
     AndroidDebugBridge.removeDeviceChangeListener(this);
-  }
-
-  private static LaunchCompatibilityChecker createChecker(@NotNull AndroidFacet facet) {
-    AndroidVersion minSdkVersion = AndroidModuleInfo.get(facet).getRuntimeMinSdkVersion();
-
-    AndroidPlatform platform = facet.getConfiguration().getAndroidPlatform();
-    if (platform == null) {
-      throw new IllegalStateException("Android platform not set for module: " + facet.getModule().getName());
-    }
-
-    // Currently, we only look at whether the device supports the watch feature.
-    // We may not want to search the device for every possible feature, but only a small subset of important
-    // features, starting with hardware type watch.
-    EnumSet<IDevice.HardwareFeature> requiredHardwareFeatures;
-    if (LaunchUtils.isWatchFeatureRequired(facet)) {
-      requiredHardwareFeatures = EnumSet.of(IDevice.HardwareFeature.WATCH);
-    }
-    else {
-      requiredHardwareFeatures = EnumSet.noneOf(IDevice.HardwareFeature.class);
-    }
-
-    return new LaunchCompatibilityChecker(minSdkVersion, platform.getTarget(), requiredHardwareFeatures);
   }
 
   public JComponent getComponent() {
