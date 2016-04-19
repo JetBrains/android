@@ -16,6 +16,7 @@
 
 package org.jetbrains.android.sdk;
 
+import com.android.repository.Revision;
 import com.android.repository.api.ProgressIndicator;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
@@ -122,7 +123,8 @@ public class AndroidSdkData {
     mySdkHandler = AndroidSdkHandler.getInstance(localSdk);
     File location = getLocation();
     String locationPath = location.getPath();
-    myPlatformToolsRevision = parsePackageRevision(locationPath, FD_PLATFORM_TOOLS);
+    Revision platformToolsRevision = parsePackageRevision(locationPath, FD_PLATFORM_TOOLS);
+    myPlatformToolsRevision = platformToolsRevision == null ? -1 : platformToolsRevision.getMajor();
     myDeviceManager = DeviceManager.createInstance(location, new MessageBuildingSdkLog());
   }
 
