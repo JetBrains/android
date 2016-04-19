@@ -25,8 +25,8 @@ import java.io.IOException;
 
 public final class DevicePath extends Path {
   @Override
-  public StringBuilder stringPath(StringBuilder builder) {
-    return builder.append("Device(").append(myID).append(")");
+  public String getSegmentString() {
+    return "Device(" + myID + ')';
   }
 
   @Override

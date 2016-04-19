@@ -26,8 +26,13 @@ import java.io.IOException;
 
 public final class MapIndexPath extends Path {
   @Override
-  public StringBuilder stringPath(StringBuilder builder) {
-    return myMap.stringPath(builder).append("[").append(myKey).append("]");
+  public String getSegmentString() {
+    return '[' + String.valueOf(myKey) + ']';
+  }
+
+  @Override
+  public void appendSegmentToPath(StringBuilder builder) {
+    builder.append(getSegmentString());
   }
 
   @Override

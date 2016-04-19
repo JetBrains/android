@@ -25,8 +25,8 @@ import java.io.IOException;
 
 public final class ReportPath extends Path {
   @Override
-  public StringBuilder stringPath(StringBuilder builder) {
-    return myCapture.stringPath(builder).append(".Report");
+  public String getSegmentString() {
+    return "Report";
   }
 
   @Override

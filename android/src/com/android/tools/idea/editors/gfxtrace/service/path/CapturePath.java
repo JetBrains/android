@@ -25,8 +25,8 @@ import java.io.IOException;
 
 public final class CapturePath extends Path {
   @Override
-  public StringBuilder stringPath(StringBuilder builder) {
-    return builder.append("Capture(").append(myID).append(")");
+  public String getSegmentString() {
+    return "Capture(" + myID + ')';
   }
 
   @Override

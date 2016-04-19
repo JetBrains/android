@@ -25,8 +25,8 @@ import java.io.IOException;
 
 public final class AtomsPath extends Path {
   @Override
-  public StringBuilder stringPath(StringBuilder builder) {
-    return myCapture.stringPath(builder).append(".Atoms");
+  public String getSegmentString() {
+    return "Atoms";
   }
 
   @Override
