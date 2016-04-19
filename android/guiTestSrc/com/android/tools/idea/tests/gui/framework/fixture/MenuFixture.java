@@ -27,6 +27,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.KeyEvent;
 import java.util.Arrays;
 import java.util.List;
 
@@ -122,5 +123,17 @@ class MenuFixture {
     List<JPopupMenu> popupMenus = ref.get();
     assertThat(popupMenus).hasSize(expectedCount);
     return popupMenus;
+  }
+
+  /**
+   * Returns whether a menu path is enabled
+   *
+   * @param path the series of menu names, e.g. {@link isMenuPathEnabled("Build", "Make Project ")}
+   */
+  public boolean isMenuPathEnabled(String... path) {
+    boolean isEnabled = findActionMenuItem(false, path).isEnabled();
+    myRobot.pressAndReleaseKey(KeyEvent.VK_ESCAPE); // Close the menu before continuing.
+
+    return isEnabled;
   }
 }
