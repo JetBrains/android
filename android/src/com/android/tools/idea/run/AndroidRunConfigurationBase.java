@@ -653,7 +653,16 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     DeployTarget deployTarget;
     if (currentTargetProvider.requiresRuntimePrompt()) {
       deployTarget =
-        currentTargetProvider.showPrompt(executor, env, facet, getDeviceCount(debug), myAndroidTests, myDeployTargetStates, getUniqueID());
+        currentTargetProvider.showPrompt(
+          executor,
+          env,
+          facet,
+          getDeviceCount(debug),
+          myAndroidTests,
+          myDeployTargetStates,
+          getUniqueID(),
+          LaunchCompatibilityCheckerImpl.create(facet)
+        );
       if (deployTarget == null) {
         return null;
       }

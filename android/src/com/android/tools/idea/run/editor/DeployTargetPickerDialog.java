@@ -79,7 +79,8 @@ public class DeployTargetPickerDialog extends DialogWrapper {
                                   @NotNull final AndroidFacet facet,
                                   @NotNull DeviceCount deviceCount,
                                   @NotNull List<DeployTargetProvider> deployTargetProviders,
-                                  @NotNull Map<String, DeployTargetState> deployTargetStates) {
+                                  @NotNull Map<String, DeployTargetState> deployTargetStates,
+                                  @NotNull LaunchCompatibilityChecker compatibilityChecker) {
     super(facet.getModule().getProject(), true);
 
     // TODO: Eventually we may support more than 1 custom run provider. In such a case, there should be
@@ -99,7 +100,7 @@ public class DeployTargetPickerDialog extends DialogWrapper {
     }
 
     // Tab 1
-    myDevicePicker = new DevicePicker(getDisposable(), runContextId, facet, deviceCount);
+    myDevicePicker = new DevicePicker(getDisposable(), runContextId, facet, deviceCount, compatibilityChecker);
     myDevicesPanel.add(myDevicePicker.getComponent(), BorderLayout.CENTER);
     myDevicesPanel.setBorder(new EmptyBorder(0, 0, 0, 0));
     myDevicePicker.installDoubleClickListener(new DoubleClickListener() {
