@@ -119,7 +119,7 @@ public abstract class GraphicalResourceRendererEditor extends TypedCellRendererE
           stopCellEditing();
         }
       });
-      myComponent.addTextFocusListener(new FocusAdapter() {
+      myComponent.addTextFocusListener(new FocusListener() {
         @Override
         public void focusGained(FocusEvent e) {
           DumbService dumbService = DumbService.getInstance(myContext.getProject());
@@ -132,6 +132,11 @@ public abstract class GraphicalResourceRendererEditor extends TypedCellRendererE
             assert facet != null;
             myComponent.setCompletionStrings(ResourceHelper.getCompletionFromTypes(facet, getAllowedResourceTypes()));
           }
+        }
+
+        @Override
+        public void focusLost(FocusEvent e) {
+          cancelCellEditing();
         }
       });
     }
