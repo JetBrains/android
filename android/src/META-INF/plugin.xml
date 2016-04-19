@@ -968,9 +968,9 @@
     <extensionPoint qualifiedName="com.android.tools.idea.structure.services.developerServiceCreators"
                     interface="com.android.tools.idea.structure.services.DeveloperServiceCreators"/>
     <extensionPoint qualifiedName="com.android.tools.idea.structure.services.actionHandler"
-                    interface="com.android.tools.idea.structure.services.AssistActionHandler"/>
+                    interface="com.android.tools.idea.assistant.AssistActionHandler"/>
     <extensionPoint qualifiedName="com.android.tools.idea.structure.services.actionStateManager"
-                    interface="com.android.tools.idea.structure.services.AssistActionStateManager"/>
+                    interface="com.android.tools.idea.assistant.AssistActionStateManager"/>
     <extensionPoint qualifiedName="com.android.ide.sdkEventListener"
                     interface="com.android.tools.idea.sdk.IdeSdks$AndroidSdkEventListener"/>
     <extensionPoint qualifiedName="com.android.tools.idea.stats.tracker"

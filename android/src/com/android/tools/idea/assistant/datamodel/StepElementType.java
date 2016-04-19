@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.structure.services.datamodel;
+package com.android.tools.idea.assistant.datamodel;
 
 /**
  * Supported types of a {@link StepElementData}.

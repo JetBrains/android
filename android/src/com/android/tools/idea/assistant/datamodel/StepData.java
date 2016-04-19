@@ -13,17 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.structure.services;
+package com.android.tools.idea.assistant.datamodel;
 
-import com.intellij.util.messages.Topic;
+import java.util.List;
 
 /**
- * Notifier for underlying state of a button being updated. Does not pass the state as this is retrievable separately.
+ * A single step in a tutorial. All tutorials are made of one or more steps
+ * which may contain one or more of a variety of presentation objects.
  */
-public interface StatefulButtonNotifier {
+public interface StepData {
+  List<? extends StepElementData> getStepElements();
 
-  Topic<StatefulButtonNotifier> BUTTON_STATE_TOPIC = Topic.create("Button state change", StatefulButtonNotifier.class);
-
-  void stateUpdated();
-
+  String getLabel();
 }

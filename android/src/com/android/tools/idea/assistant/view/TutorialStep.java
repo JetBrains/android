@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.structure.services.view;
+package com.android.tools.idea.assistant.view;
 
 import com.android.tools.idea.structure.services.DeveloperService;
-import com.android.tools.idea.structure.services.datamodel.StepData;
-import com.android.tools.idea.structure.services.datamodel.StepElementData;
+import com.android.tools.idea.assistant.datamodel.StepData;
+import com.android.tools.idea.assistant.datamodel.StepElementData;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.components.JBScrollPane;
 
