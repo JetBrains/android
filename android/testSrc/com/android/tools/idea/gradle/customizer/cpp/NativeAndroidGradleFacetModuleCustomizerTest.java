@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.NativeAndroidGradleModel;
 import com.android.tools.idea.gradle.TestProjects;
 import com.android.tools.idea.gradle.facet.NativeAndroidGradleFacet;
 import com.android.tools.idea.gradle.stubs.android.NativeAndroidProjectStub;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testFramework.IdeaTestCase;
@@ -47,14 +48,16 @@ public class NativeAndroidGradleFacetModuleCustomizerTest extends IdeaTestCase {
     File rootDir = myNativeAndroidProject.getRootDir();
     NativeAndroidGradleModel model = new NativeAndroidGradleModel(SYSTEM_ID, myNativeAndroidProject.getName(), rootDir, myNativeAndroidProject);
     final IdeModifiableModelsProviderImpl modelsProvider = new IdeModifiableModelsProviderImpl(myProject);
-    try {
-      myCustomizer.customizeModule(myProject, myModule, modelsProvider, model);
-      modelsProvider.commit();
-    }
-    catch (Throwable t) {
-      modelsProvider.dispose();
-      ExceptionUtil.rethrowAllAsUnchecked(t);
-    }
+    ApplicationManager.getApplication().runWriteAction(() -> {
+      try {
+        myCustomizer.customizeModule(myProject, myModule, modelsProvider, model);
+        modelsProvider.commit();
+      }
+      catch (Throwable t) {
+        modelsProvider.dispose();
+        ExceptionUtil.rethrowAllAsUnchecked(t);
+      }
+    });
 
     // Verify that NativeAndroidGradleFacet was added and configured.
     NativeAndroidGradleFacet facet = NativeAndroidGradleFacet.getInstance(myModule);

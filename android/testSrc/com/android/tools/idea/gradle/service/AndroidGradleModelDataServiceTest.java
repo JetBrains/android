@@ -15,13 +15,14 @@
  */
 package com.android.tools.idea.gradle.service;
 
-import com.android.tools.idea.gradle.AndroidProjectKeys;
 import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.AndroidProjectKeys;
 import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.sdk.Jdks;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.Key;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
@@ -105,7 +106,12 @@ public class AndroidGradleModelDataServiceTest extends IdeaTestCase {
     replay(myCustomizer1, myCustomizer2);
 
     service.importData(nodes, null, myProject, modelsProvider);
-    modelsProvider.commit();
+    ApplicationManager.getApplication().runWriteAction(new Runnable() {
+      @Override
+      public void run() {
+        modelsProvider.commit();
+      }
+    });
 
     verify(myCustomizer1, myCustomizer2);
   }
