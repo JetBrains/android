@@ -55,6 +55,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class NlReferenceEditor {
+  private static final int SPACING = 4;
+
   private final EditingListener myListener;
   private final boolean myIncludeBrowseButton;
   private final JPanel myPanel;
@@ -99,6 +101,7 @@ public class NlReferenceEditor {
 
     myCompletionProvider = new CompletionProvider();
     myTextFieldWithAutoCompletion = new TextFieldWithAutoCompletion<>(project, myCompletionProvider, true, null);
+    myTextFieldWithAutoCompletion.setBorder(BorderFactory.createEmptyBorder(0, SPACING, 0, SPACING));
     myPanel.add(myTextFieldWithAutoCompletion, BorderLayout.CENTER);
 
     myBrowseButton = new FixedSizeButton(new JBCheckBox());

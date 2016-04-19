@@ -47,6 +47,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class NlEnumEditor {
+  private static final int SMALL_WIDTH = 65;
   private static final JBColor DIM_TEXT_COLOR = new JBColor(Gray._128, Gray._128);
   // TODO: Add a test that checks these patterns
   private static final Pattern QUANTITY_PATTERN = Pattern.compile("^(\\d+)(.*)$");
@@ -91,7 +92,7 @@ public class NlEnumEditor {
     myPanel = new JPanel(new BorderLayout(SystemInfo.isMac ? 0 : 2, 0));
 
     //noinspection unchecked
-    myCombo = new ComboBox();
+    myCombo = new ComboBox(SMALL_WIDTH);
     if (useDarculaUI) {
       // Some LAF will draw a beveled border which does not look good in the table grid.
       // Avoid that by explicit use of the Darcula UI for combo boxes when used as a cell editor in the table.

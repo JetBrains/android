@@ -22,6 +22,7 @@ import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.editors.NlBooleanIconEditor;
 import com.android.tools.idea.uibuilder.property.editors.NlEnumEditor;
 import com.android.tools.idea.uibuilder.property.editors.NlReferenceEditor;
+import com.android.tools.idea.uibuilder.property.inspector.InspectorPanel.SplitLayout;
 import com.google.common.collect.ImmutableSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -116,11 +117,12 @@ public class FontInspectorComponent implements InspectorComponent {
     inspector.addComponent("Appearance", myStyle.getTooltipText(), myStyleEditor.getComponent());
     inspector.restartExpansionGroup();
     inspector.addComponent("Font family", myFontFamily.getTooltipText(), myFontFamilyEditor.getComponent());
-    inspector.addSplitComponents("Size", myFontSize.getTooltipText(), myFontSizeEditor.getComponent(),
+    inspector.addSplitComponents(SplitLayout.SINGLE_ROW,
+                                 "Size", myFontSize.getTooltipText(), myFontSizeEditor.getComponent(),
                                  "Spacing", mySpacing.getTooltipText(), mySpacingEditor.getComponent());
-    inspector.addSplitComponents("Decoration", myTextStyle.getTooltipText(), null,
-                                 "Alignment", myAlignment.getTooltipText(), null);
-    inspector.addSplitComponents(null, null, myTextStylePanel, null, null, myAlignmentPanel);
+    inspector.addSplitComponents(SplitLayout.STACKED,
+                                 "Decoration", myTextStyle.getTooltipText(), myTextStylePanel,
+                                 "Alignment", myAlignment.getTooltipText(), myAlignmentPanel);
     inspector.addComponent("Color", myColor.getTooltipText(), myColorEditor.getComponent());
     refresh();
   }
