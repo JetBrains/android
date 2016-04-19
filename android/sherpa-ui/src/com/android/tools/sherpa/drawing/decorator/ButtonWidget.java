@@ -39,6 +39,7 @@ public class ButtonWidget extends TextWidget {
         mHorizontalMargin = 4;
         mVerticalMargin = 6;
         mToUpperCase = true;
+        mAlignment = TEXT_ALIGNMENT_CENTER;
     }
 
     @Override
