@@ -192,13 +192,18 @@ public final class ManifestInfo {
         }
         assert vFile != null : file;
 
-        Module fileModule = ModuleUtilCore.findModuleForFile(vFile, project);
-        if (fileModule != null && !module.equals(fileModule)) {
-          MergedManifest manifest = MergedManifest.get(fileModule);
-          XmlTag xmlTag = manifest.getXmlTag();
-          assert xmlTag != null; // we must have a file here as we had a source VirtualFile
-          String text = xmlTag.getContainingFile().getText();
-          return new ByteArrayInputStream(text.getBytes(Charsets.UTF_8));
+        // we do not want to do this check if we have no lib manifests
+        // findModuleForFile does not work for other build systems (e.g. bazel)
+        if (!libManifests.isEmpty()) {
+          Module fileModule = ModuleUtilCore.findModuleForFile(vFile, project);
+          if (fileModule != null && !module.equals(fileModule)) {
+            assert libManifests.contains(vFile); // if it's a different module, it must be one of the lib manifests
+            MergedManifest manifest = MergedManifest.get(fileModule);
+            XmlTag xmlTag = manifest.getXmlTag();
+            assert xmlTag != null; // we must have a file here as we had a source VirtualFile
+            String text = xmlTag.getContainingFile().getText();
+            return new ByteArrayInputStream(text.getBytes(Charsets.UTF_8));
+          }
         }
 
         PsiFile psiFile = PsiManager.getInstance(project).findFile(vFile);
