@@ -19,6 +19,7 @@ import com.android.builder.model.*;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
+import com.android.tools.idea.gradle.dsl.model.dependencies.DependencyModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ModuleDependencyModel;
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsModelCollection;
@@ -97,12 +98,7 @@ class PsAndroidDependencyCollection implements PsModelCollection<PsAndroidDepend
       dependency = new PsModuleDependency(myParent, gradlePath, artifact, projectVariant, resolvedModule, matchingParsedDependency);
       myModuleDependenciesByGradlePath.put(gradlePath, dependency);
     }
-    else {
-      if (matchingParsedDependency != null) {
-        dependency.addParsedModel(matchingParsedDependency);
-      }
-    }
-    dependency.addContainer(artifact);
+    updateDependency(dependency, artifact, matchingParsedDependency);
   }
 
   @Nullable
@@ -202,7 +198,7 @@ class PsAndroidDependencyCollection implements PsModelCollection<PsAndroidDepend
       }
     }
 
-    dependency.addContainer(artifact);
+    updateDependency(dependency, artifact, parsedModel);
     return dependency;
   }
 
@@ -216,8 +212,7 @@ class PsAndroidDependencyCollection implements PsModelCollection<PsAndroidDepend
     for (Library library : javaLibrary.getDependencies()) {
       addTransitive(library, artifact, dependency);
     }
-
-    dependency.addContainer(artifact);
+    updateDependency(dependency, artifact, parsedModel);
     return dependency;
   }
 
@@ -362,7 +357,16 @@ class PsAndroidDependencyCollection implements PsModelCollection<PsAndroidDepend
       myLibraryDependenciesBySpec.put(spec.toString(), dependency);
     }
     else {
-      dependency.addContainer(artifact);
+      updateDependency(dependency, artifact, parsedModel);
     }
+  }
+
+  private static void updateDependency(@NotNull PsAndroidDependency dependency,
+                                       @NotNull PsAndroidArtifact artifact,
+                                       @Nullable DependencyModel parsedModel) {
+    if (parsedModel != null) {
+      dependency.addParsedModel(parsedModel);
+    }
+    dependency.addContainer(artifact);
   }
 }
