@@ -188,24 +188,6 @@ public class WidgetDraw {
         if (isSelected) {
             g.setColor(colorSet.getSelectedConstraints());
         }
-        if (showBaselineAnchor && !(widget instanceof ConstraintWidgetContainer) && widget.getBaselineDistance() > 0) {
-            int baselineY = transform
-                    .getSwingY(
-                            WidgetInteractionTargets.constraintHandle(
-                                    widget.getAnchor(ConstraintAnchor.Type.BASELINE)).getDrawY());
-            Graphics2D g2 = (Graphics2D) g.create();
-            if (!isSelected) {
-                g2.setStroke(ConnectionDraw.sDashedStroke);
-            }
-            g2.drawLine(l, baselineY, r, baselineY);
-            g2.dispose();
-            if (isSelected) {
-                ConstraintHandle handle = widgetCompanion.getWidgetInteractionTargets()
-                        .getConstraintHandle(widget.getAnchor(
-                                ConstraintAnchor.Type.BASELINE));
-                handle.draw(transform, g, colorSet, isSelected);
-            }
-        }
         if (showLeftAnchor) {
             ConnectionDraw.drawAnchor(g, backgroundColor, isSelected, l, midY, circleDimension, anchorInnerMargin,
                     leftAnchorIsConnected);
