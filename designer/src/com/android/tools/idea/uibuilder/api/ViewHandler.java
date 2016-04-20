@@ -15,14 +15,20 @@
  */
 package com.android.tools.idea.uibuilder.api;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.android.tools.idea.uibuilder.api.actions.*;
 import com.android.tools.idea.uibuilder.model.FillPolicy;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
+import icons.AndroidDesignerIcons;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.util.EnumSet;
+import java.util.List;
+
+import static com.android.SdkConstants.ATTR_LAYOUT_HEIGHT;
+import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
 
 /** A view handler is a tool handler for a given Android view class */
 public class ViewHandler extends StructurePaneComponentHandler {
@@ -84,5 +90,29 @@ public class ViewHandler extends StructurePaneComponentHandler {
 
   public FillPolicy getFillPolicy() {
     return FillPolicy.WIDTH_IN_VERTICAL;
+  }
+
+  /**
+   * Adds relevant view actions that apply for views of this type to the given list.
+   * They do not need to be in sorted order; actions from multiple sources will
+   * all be merged and sorted before display by the IDE. Note that this method
+   * may only be called once, so the set of actions should not depend on specific
+   * current circumstances; instead, actions which do not apply should be made
+   * disabled or invisible by calling the right methods from
+   * {@link ViewAction#updatePresentation(ViewActionPresentation, ViewHandler, NlComponent, List)}
+   *
+   * @param actions a list of view actions, such as a
+   *                {@link DirectViewAction}, {@link ToggleViewAction}, {@link ToggleViewActionGroup}, etc.
+   */
+  public void addViewActions(@NotNull List<ViewAction> actions) {
+    addDefaultViewActions(actions, 100);
+  }
+
+  protected void addDefaultViewActions(@NotNull List<ViewAction> actions, int startRank) {
+    actions.add(new ToggleSizeViewAction("Toggle Width", ATTR_LAYOUT_WIDTH, AndroidDesignerIcons.FillWidth,
+                                         AndroidDesignerIcons.WrapWidth).setRank(startRank));
+    actions.add(new ToggleSizeViewAction("Toggle Height", ATTR_LAYOUT_HEIGHT, AndroidDesignerIcons.FillHeight,
+                                         AndroidDesignerIcons.WrapHeight).setRank(startRank + 20));
+    // TODO: Gravity, etc
   }
 }
