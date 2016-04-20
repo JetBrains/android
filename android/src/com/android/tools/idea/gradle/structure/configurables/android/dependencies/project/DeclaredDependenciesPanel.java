@@ -198,13 +198,11 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel {
 
   private void updateIssues(@NotNull List<AbstractDependencyNode<? extends PsAndroidDependency>> selection) {
     List<PsIssue> issues = Lists.newArrayList();
-
     for (AbstractDependencyNode<? extends PsAndroidDependency> node : selection) {
       for (PsAndroidDependency dependency : node.getModels()) {
         issues.addAll(myContext.getDaemonAnalyzer().getIssues().findIssues(dependency, null));
       }
     }
-
     myIssuesViewer.display(issues);
   }
 

@@ -322,11 +322,9 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel implem
 
   private void updateIssues(@Nullable PsAndroidDependency selected) {
     List<PsIssue> issues = Collections.emptyList();
-
     if (selected != null) {
       issues = myContext.getDaemonAnalyzer().getIssues().findIssues(selected, null);
     }
-
     myIssuesViewer.display(issues);
   }
 
