@@ -18,7 +18,7 @@ package com.android.tools.idea.uibuilder.property.inspector;
 import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.uibuilder.property.NlProperty;
-import com.android.tools.idea.uibuilder.property.editors.NlEnumEditor;
+import com.android.tools.idea.uibuilder.property.editors.NlLayoutEditor;
 import com.android.tools.idea.uibuilder.property.editors.NlReferenceEditor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -29,34 +29,24 @@ public class IdInspectorComponent implements InspectorComponent {
   @NotNull private final NlPropertiesManager myPropertiesManager;
 
   private final NlProperty myIdAttr;
-  private final NlProperty myWidthAttr;
-  private final NlProperty myHeightAttr;
-
   private final NlReferenceEditor myIdField;
-  private final NlEnumEditor myWidthEditor;
-  private final NlEnumEditor myHeightEditor;
+  private final NlLayoutEditor myLayoutEditor;
 
   public IdInspectorComponent(@NotNull Map<String, NlProperty> properties,
                               @NotNull NlPropertiesManager propertiesManager) {
     myPropertiesManager = propertiesManager;
 
     myIdAttr = properties.get(SdkConstants.ATTR_ID);
-    myWidthAttr = properties.get(SdkConstants.ATTR_LAYOUT_WIDTH);
-    myHeightAttr = properties.get(SdkConstants.ATTR_LAYOUT_HEIGHT);
-
-    NlEnumEditor.Listener enumListener = createEnumListener();
 
     myIdField = NlReferenceEditor.createForInspector(propertiesManager.getProject(), createReferenceListener());
-    myWidthEditor = NlEnumEditor.createForInspector(enumListener);
-    myHeightEditor = NlEnumEditor.createForInspector(enumListener);
+    myLayoutEditor = new NlLayoutEditor();
+    myLayoutEditor.setProperties(properties);
   }
 
   @Override
   public void attachToInspector(@NotNull InspectorPanel inspector) {
     inspector.addComponent("ID", getTooltip(myIdAttr), myIdField.getComponent());
-    inspector.addSeparator();
-    inspector.addComponent("Width", getTooltip(myWidthAttr), myWidthEditor.getComponent());
-    inspector.addComponent("Height", getTooltip(myHeightAttr), myHeightEditor.getComponent());
+    inspector.addPanel(myLayoutEditor);
     refresh();
   }
 
@@ -76,37 +66,7 @@ public class IdInspectorComponent implements InspectorComponent {
     if (enabled) {
       myIdField.setProperty(myIdAttr);
     }
-
-    enabled = myWidthAttr != null;
-    myWidthEditor.setEnabled(enabled);
-    if (enabled) {
-      myWidthEditor.setProperty(myWidthAttr);
-    }
-
-    enabled = myHeightAttr != null;
-    myHeightEditor.setEnabled(enabled);
-    if (enabled) {
-      myHeightEditor.setProperty(myHeightAttr);
-    }
-  }
-
-  private NlEnumEditor.Listener createEnumListener() {
-    return new NlEnumEditor.Listener() {
-      @Override
-      public void itemPicked(@NotNull NlEnumEditor source, @Nullable String value) {
-        NlProperty property = source == myWidthEditor ? myWidthAttr : myHeightAttr;
-        myPropertiesManager.setValue(property, value);
-      }
-
-      @Override
-      public void resourcePicked(@NotNull NlEnumEditor source, @NotNull String value) {
-        itemPicked(source, value);
-      }
-
-      @Override
-      public void resourcePickerCancelled(@NotNull NlEnumEditor source) {
-      }
-    };
+    myLayoutEditor.refresh();
   }
 
   private NlReferenceEditor.EditingListener createReferenceListener() {
