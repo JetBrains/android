@@ -21,12 +21,10 @@ import junit.framework.TestCase;
 public class AndroidDeepLinkLaunchTaskTest extends TestCase {
   public void testAmStartCommandForDeepLink() {
     assertEquals("am start -a android.intent.action.VIEW -c android.intent.category.BROWSABLE -d example://host/path",
-                 AndroidDeepLinkLaunchTask.getLaunchDeepLinkCommand("example://host/path", null, ""));
+                 AndroidDeepLinkLaunchTask.getLaunchDeepLinkCommand("example://host/path", ""));
     assertEquals("am start -a android.intent.action.VIEW -c android.intent.category.BROWSABLE -d example://host/path -D",
-                 AndroidDeepLinkLaunchTask.getLaunchDeepLinkCommand("example://host/path", null, "-D"));
+                 AndroidDeepLinkLaunchTask.getLaunchDeepLinkCommand("example://host/path", "-D"));
     assertEquals("am start -a android.intent.action.VIEW -c android.intent.category.BROWSABLE -d example://host/path -D --es aa 'bb'",
-                 AndroidDeepLinkLaunchTask.getLaunchDeepLinkCommand("example://host/path", null, "-D --es aa 'bb'"));
-    assertEquals("am start -a android.intent.action.VIEW -c android.intent.category.BROWSABLE -d example://host/path com.example",
-                 AndroidDeepLinkLaunchTask.getLaunchDeepLinkCommand("example://host/path", "com.example", ""));
+                 AndroidDeepLinkLaunchTask.getLaunchDeepLinkCommand("example://host/path", "-D --es aa 'bb'"));
   }
 }
