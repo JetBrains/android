@@ -15,17 +15,22 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.uibuilder.api.*;
+import com.android.tools.idea.uibuilder.api.actions.DirectViewAction;
+import com.android.tools.idea.uibuilder.api.actions.ViewAction;
+import com.android.tools.idea.uibuilder.api.actions.ViewActionPresentation;
+import com.android.tools.idea.uibuilder.api.actions.ViewActionSeparator;
 import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.model.Insets;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.psi.xml.XmlTag;
+import icons.AndroidDesignerIcons;
 import icons.AndroidIcons;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -892,5 +897,179 @@ public class LinearLayoutHandler extends ViewGroupHandler {
     }
 
     return sum;
+  }
+
+  private void clearWeights(@NotNull NlComponent component, @NotNull List<NlComponent> selectedChildren) {
+    // Clear attributes
+    String sizeAttribute = isVertical(component) ? ATTR_LAYOUT_HEIGHT : ATTR_LAYOUT_WIDTH;
+    for (NlComponent selected : selectedChildren) {
+      selected.setAttribute(ANDROID_URI, ATTR_LAYOUT_WEIGHT, null);
+      String size = selected.getAttribute(ANDROID_URI, sizeAttribute);
+      if (size != null && size.startsWith("0")) {
+        selected.setAttribute(ANDROID_URI, sizeAttribute, VALUE_WRAP_CONTENT);
+      }
+    }
+  }
+
+  private void distributeWeights(@NotNull NlComponent component, @NotNull List<NlComponent> selectedChildren) {
+    // Any XML to get weight sum?
+    String weightSum = component.getAttribute(ANDROID_URI, ATTR_WEIGHT_SUM);
+    double sum = -1.0;
+    if (weightSum != null && !weightSum.isEmpty()) {
+      // Distribute
+      try {
+        sum = Double.parseDouble(weightSum);
+      }
+      catch (NumberFormatException nfe) {
+        // Just keep using the default
+      }
+    }
+    int numTargets = selectedChildren.size();
+    double share;
+    if (sum <= 0.0) {
+      // The sum will be computed from the children, so just
+      // use arbitrary amount
+      share = 1.0;
+    }
+    else {
+      share = sum / numTargets;
+    }
+    String value = formatFloatAttribute((float)share);
+    String sizeAttribute = isVertical(component) ? ATTR_LAYOUT_HEIGHT : ATTR_LAYOUT_WIDTH;
+    for (NlComponent selected : selectedChildren) {
+      selected.setAttribute(ANDROID_URI, ATTR_LAYOUT_WEIGHT, value);
+
+      // Also set the width/height to 0dp to ensure actual equal
+      // size (without this, only the remaining space is
+      // distributed)
+      if (VALUE_WRAP_CONTENT.equals(selected.getAttribute(ANDROID_URI, sizeAttribute))) {
+        selected.setAttribute(ANDROID_URI, sizeAttribute, VALUE_ZERO_DP);
+      }
+    }
+  }
+
+  @Override
+  public void addViewActions(@NotNull List<ViewAction> actions) {
+    int rank = 0;
+    actions.add(new ToggleOrientationAction().setRank(rank += 20));
+    actions.add(new BaselineAction().setRank(rank += 20));
+    actions.add(new DistributeWeightsAction().setRank(rank += 20));
+    actions.add(new DominateWeightsAction().setRank(rank += 20));
+    actions.add(new ClearWeightsAction().setRank(rank += 20));
+    actions.add(new ViewActionSeparator().setRank(rank += 20));
+    addDefaultViewActions(actions, rank);
+  }
+
+  private class ToggleOrientationAction extends DirectViewAction {
+    @Override
+    public void perform(@NotNull ViewEditor editor, @NotNull ViewHandler handler, @NotNull NlComponent component,
+                        @NotNull List<NlComponent> selectedChildren) {
+      boolean isHorizontal = !isVertical(component);
+      String value = isHorizontal ? VALUE_VERTICAL : null; // null: horizontal is the default
+      component.setAttribute(ANDROID_URI, ATTR_ORIENTATION, value);
+    }
+
+    @Override
+    public void updatePresentation(@NotNull ViewActionPresentation presentation,
+                                   @NotNull ViewEditor editor,
+                                   @NotNull ViewHandler handler,
+                                   @NotNull NlComponent component,
+                                   @NotNull List<NlComponent> selectedChildren) {
+      boolean vertical = isVertical(component);
+
+      presentation.setLabel("Convert orientation to " + (!vertical ? VALUE_VERTICAL : VALUE_HORIZONTAL));
+      Icon icon = vertical ? AndroidDesignerIcons.SwitchVerticalLinear : AndroidDesignerIcons.SwitchHorizontalLinear;
+      presentation.setIcon(icon);
+    }
+  }
+
+  private class DistributeWeightsAction extends DirectViewAction {
+    public DistributeWeightsAction() {
+      super(AndroidDesignerIcons.DistributeWeights, "Distribute Weights Evenly");
+    }
+
+    @Override
+    public void updatePresentation(@NotNull ViewActionPresentation presentation,
+                                   @NotNull ViewEditor editor,
+                                   @NotNull ViewHandler handler,
+                                   @NotNull NlComponent component,
+                                   @NotNull List<NlComponent> selectedChildren) {
+      presentation.setVisible(selectedChildren.size() > 1);
+    }
+
+    @Override
+    public void perform(@NotNull ViewEditor editor, @NotNull ViewHandler handler, @NotNull NlComponent component,
+                        @NotNull List<NlComponent> selectedChildren) {
+      distributeWeights(component, selectedChildren);
+    }
+  }
+
+  private class DominateWeightsAction extends DirectViewAction {
+    public DominateWeightsAction() {
+      super(AndroidDesignerIcons.DominateWeight, "Assign All Weight");
+    }
+
+    @Override
+    public void perform(@NotNull ViewEditor editor, @NotNull ViewHandler handler, @NotNull NlComponent component,
+                        @NotNull List<NlComponent> selectedChildren) {
+      distributeWeights(component, selectedChildren);
+    }
+
+    @Override
+    public void updatePresentation(@NotNull ViewActionPresentation presentation,
+                                   @NotNull ViewEditor editor,
+                                   @NotNull ViewHandler handler,
+                                   @NotNull NlComponent component,
+                                   @NotNull List<NlComponent> selectedChildren) {
+      presentation.setVisible(selectedChildren.size() > 1);
+    }
+  }
+
+  private class ClearWeightsAction extends DirectViewAction {
+    public ClearWeightsAction() {
+      super(AndroidDesignerIcons.ClearWeights, "Clear All Weights");
+    }
+
+    @Override
+    public void perform(@NotNull ViewEditor editor, @NotNull ViewHandler handler, @NotNull NlComponent component,
+                        @NotNull List<NlComponent> selectedChildren) {
+      clearWeights(component, selectedChildren);
+    }
+
+
+    @Override
+    public void updatePresentation(@NotNull ViewActionPresentation presentation,
+                                   @NotNull ViewEditor editor,
+                                   @NotNull ViewHandler handler,
+                                   @NotNull NlComponent component,
+                                   @NotNull List<NlComponent> selectedChildren) {
+      presentation.setVisible(selectedChildren.size() > 1);
+    }
+  }
+
+  private static class BaselineAction extends DirectViewAction {
+    @Override
+    public void perform(@NotNull ViewEditor editor, @NotNull ViewHandler handler, @NotNull NlComponent component,
+                        @NotNull List<NlComponent> selectedChildren) {
+      boolean align = !isBaselineAligned(component);
+      component.setAttribute(ANDROID_URI, ATTR_BASELINE_ALIGNED, align ? null : VALUE_FALSE);
+    }
+
+
+    @Override
+    public void updatePresentation(@NotNull ViewActionPresentation presentation,
+                                   @NotNull ViewEditor editor,
+                                   @NotNull ViewHandler handler,
+                                   @NotNull NlComponent component,
+                                   @NotNull List<NlComponent> selectedChildren) {
+      boolean align = !isBaselineAligned(component);
+      presentation.setIcon(align ? AndroidDesignerIcons.Baseline : AndroidDesignerIcons.NoBaseline);
+      presentation.setLabel(align ? "Align with the baseline" : "Do not align with the baseline");
+    }
+
+    private static boolean isBaselineAligned(NlComponent component) {
+      String value = component.getAttribute(ANDROID_URI, ATTR_BASELINE_ALIGNED);
+      return value == null ? true : Boolean.valueOf(value);
+    }
   }
 }
