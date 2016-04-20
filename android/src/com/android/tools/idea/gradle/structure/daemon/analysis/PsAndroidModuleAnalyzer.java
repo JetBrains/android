@@ -42,6 +42,8 @@ import static com.android.tools.idea.gradle.structure.model.PsIssue.Type.*;
 import static com.google.common.base.Strings.nullToEmpty;
 
 public class PsAndroidModuleAnalyzer extends PsModelAnalyzer<PsAndroidModule> {
+  private static final Pattern URL_PATTERN = Pattern.compile("\\(?http://[-A-Za-z0-9+&@#/%?=~_()|!:,.;]*[-A-Za-z0-9+&@#/%=~_()|]");
+
   @NotNull private final PsContext myContext;
 
   public PsAndroidModuleAnalyzer(@NotNull PsContext context) {
@@ -105,8 +107,7 @@ public class PsAndroidModuleAnalyzer extends PsModelAnalyzer<PsAndroidModule> {
   @NotNull
   static PsIssue createIssueFrom(@NotNull SyncIssue issue, @NotNull PsNavigationPath path) {
     String message = issue.getMessage();
-    Pattern pattern = Pattern.compile("\\(?http://[-A-Za-z0-9+&@#/%?=~_()|!:,.;]*[-A-Za-z0-9+&@#/%=~_()|]");
-    Matcher matcher = pattern.matcher(message);
+    Matcher matcher = URL_PATTERN.matcher(message);
     boolean result = matcher.find();
     // Replace URLs with <a href='url'>url</a>.
     while (result) {

@@ -107,7 +107,7 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel implem
         buffer.append("</li>");
       }
 
-      buffer.append("</ul></body></html");
+      buffer.append("</ol></body></html>");
       return buffer.toString();
     });
     setIssuesViewer(myIssuesViewer);
