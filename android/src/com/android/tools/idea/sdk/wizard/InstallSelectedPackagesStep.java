@@ -23,6 +23,7 @@ import com.android.tools.idea.sdk.StudioDownloader;
 import com.android.tools.idea.sdk.StudioSettingsController;
 import com.android.tools.idea.sdk.install.StudioSdkInstallerUtil;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
+import com.android.tools.idea.sdk.progress.ThrottledProgressWrapper;
 import com.android.tools.idea.ui.properties.core.BoolProperty;
 import com.android.tools.idea.ui.properties.core.BoolValueProperty;
 import com.android.tools.idea.ui.properties.core.ObservableBool;
@@ -47,7 +48,6 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
-import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.components.JBLabel;
@@ -86,7 +86,7 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
   // Ok to keep a reference, since the wizard is short-lived and modal.
   private final RepoManager myRepoManager;
   private final AndroidSdkHandler mySdkHandler;
-  private CustomLogger myCustomLogger;
+  private com.android.repository.api.ProgressIndicator myLogger;
   private static final Object LOGGER_LOCK = new Object();
   private final BackgroundAction myBackgroundAction = new BackgroundAction();
   private final boolean myBackgroundable;
@@ -180,18 +180,19 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
   public void dispose() {
     synchronized (LOGGER_LOCK) {
       // If we're backgrounded, don't cancel when the window closes; allow the operation to continue.
-      if (myCustomLogger != null && !myBackgroundAction.isBackgrounded()) {
-        myCustomLogger.cancel();
+      if (myLogger != null && !myBackgroundAction.isBackgrounded()) {
+        myLogger.cancel();
       }
     }
   }
 
   private void startSdkInstall() {
+    CustomLogger customLogger = new CustomLogger();
     synchronized (LOGGER_LOCK) {
-      myCustomLogger = new CustomLogger();
+      myLogger = new ThrottledProgressWrapper(customLogger);
     }
 
-    InstallTask task = new InstallTask(myInstallRequests, myCustomLogger);
+    InstallTask task = new InstallTask(myInstallRequests, myLogger);
     ProgressIndicator indicator;
     boolean hasOpenProjects = ProjectManager.getInstance().getOpenProjects().length > 0;
     if (hasOpenProjects) {
@@ -202,12 +203,12 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
       // Instead use an empty progress indicator to suppress that.
       indicator = new EmptyProgressIndicator();
     }
-    myCustomLogger.setIndicator(indicator);
-    myCustomLogger.logInfo("To install:");
+    customLogger.setIndicator(indicator);
+    myLogger.logInfo("To install:");
     for (RemotePackage p : myInstallRequests) {
-      myCustomLogger.logInfo(String.format("- %1$s (%2$s)", p.getDisplayName(), p.getPath()));
+      myLogger.logInfo(String.format("- %1$s (%2$s)", p.getDisplayName(), p.getPath()));
     }
-    myCustomLogger.logInfo("");
+    myLogger.logInfo("");
     ProgressManager.getInstance().runProcessWithProgressAsynchronously(task, indicator);
   }
 
@@ -244,7 +245,7 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
           else {
             installer = (Installer)op;
           }
-          myCustomLogger.logInfo(String.format("Installing %1$s", remote.getDisplayName()));
+          myLogger.logInfo(String.format("Installing %1$s", remote.getDisplayName()));
           try {
             success = installer.prepareInstall(new StudioDownloader(indicator), myProgress);
           }
@@ -253,13 +254,13 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
           }
           if (success) {
             preparedPackages.put(remote, installer);
-            myCustomLogger.logInfo(String.format("%1$s ready to install.", remote.getDisplayName()));
+            myLogger.logInfo(String.format("%1$s ready to install.", remote.getDisplayName()));
           }
           else {
-            myCustomLogger.logInfo(String.format("Failed to install %1$s!", remote.getDisplayName()));
+            myLogger.logInfo(String.format("Failed to install %1$s!", remote.getDisplayName()));
             failures.add(remote);
           }
-          myCustomLogger.logInfo("");
+          myLogger.logInfo("");
         }
         // Disable the background action so the final part can't be backgrounded.
         myBackgroundAction.setEnabled(false);
@@ -267,9 +268,9 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
           Installer installer = preparedPackages.get(remote);
           if (!myBackgroundAction.isBackgrounded()) {
             // If we're not backgrounded, go on to the final part immediately.
-            myCustomLogger.logInfo(String.format("Finishing installation of %1$s.", remote.getDisplayName()));
+            myLogger.logInfo(String.format("Finishing installation of %1$s.", remote.getDisplayName()));
             installer.completeInstall(myProgress);
-            myCustomLogger.logInfo(String.format("Installation of %1$s complete.", remote.getDisplayName()));
+            myLogger.logInfo(String.format("Installation of %1$s complete.", remote.getDisplayName()));
           }
           else {
             // Otherwise show a notification that we're ready to complete.
@@ -280,39 +281,36 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
       }
       finally {
         if (!failures.isEmpty()) {
-          myCustomLogger.logInfo("Failed packages:");
+          myLogger.logInfo("Failed packages:");
           for (RemotePackage p : failures) {
-            myCustomLogger.logInfo(String.format("- %1$s (%2$s)", p.getDisplayName(), p.getPath()));
+            myLogger.logInfo(String.format("- %1$s (%2$s)", p.getDisplayName(), p.getPath()));
           }
         }
         synchronized (LOGGER_LOCK) {
-          myCustomLogger = null;
+          myLogger = null;
         }
       }
       // Use a simple progress indicator here so we don't pick up the log messages from the reload.
       StudioLoggerProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
       myRepoManager.loadSynchronously(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, progress, null, StudioSettingsController.getInstance());
 
-      UIUtil.invokeLaterIfNeeded(new Runnable() {
-        @Override
-        public void run() {
-          myProgressBar.setValue(100);
-          myProgressOverallLabel.setText("");
+      UIUtil.invokeLaterIfNeeded(() -> {
+        myProgressBar.setValue(100);
+        myProgressOverallLabel.setText("");
 
-          if (!failures.isEmpty()) {
-            myInstallFailed.set(true);
-            myProgressBar.setEnabled(false);
-          }
-          else {
-            myProgressDetailLabel.setText("Done");
-            checkForUpgrades(myRequestedPackages);
-          }
-          myInstallationFinished.set(true);
+        if (!failures.isEmpty()) {
+          myInstallFailed.set(true);
+          myProgressBar.setEnabled(false);
+        }
+        else {
+          myProgressDetailLabel.setText("Done");
+          checkForUpgrades(myRequestedPackages);
+        }
+        myInstallationFinished.set(true);
 
-          VirtualFile sdkDir = LocalFileSystem.getInstance().findFileByIoFile(myRepoManager.getLocalPath());
-          if (sdkDir != null) {
-            sdkDir.refresh(true, true);
-          }
+        VirtualFile sdkDir = LocalFileSystem.getInstance().findFileByIoFile(myRepoManager.getLocalPath());
+        if (sdkDir != null) {
+          sdkDir.refresh(true, true);
         }
       });
     }
@@ -338,26 +336,20 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
       Project[] openProjects = ProjectManager.getInstance().getOpenProjects();
       final Project[] openProjectsOrNull = openProjects.length == 0 ? new Project[] {null} : openProjects;
       ApplicationManager.getApplication().invokeLater(
-        new Runnable() {
-          @Override
-          public void run() {
-            for (Project p : openProjectsOrNull) {
-              group.createNotification(
-                "SDK Install",
-                String.format("Installation of '%1$s' is ready to continue<br/><a href=\"install\">Install Now</a>",
-                              remotePackage.getDisplayName()),
-                NotificationType.INFORMATION, notificationListener).notify(p);
-            }
+        () -> {
+          for (Project p : openProjectsOrNull) {
+            group.createNotification(
+              "SDK Install",
+              String.format("Installation of '%1$s' is ready to continue<br/><a href=\"install\">Install Now</a>",
+                            remotePackage.getDisplayName()),
+              NotificationType.INFORMATION, notificationListener).notify(p);
           }
         },
         ModalityState.NON_MODAL,  // Don't show while we're in a modal context (e.g. sdk manager)
-        new Condition() {
-          @Override
-          public boolean value(Object o) {
-            // We don't show the bubble until we're out of a modal context. If the install has already completed, don't show it at all.
-            PackageOperation installer = myRepoManager.getInProgressInstallOperation(remotePackage);
-            return installer == null || installer.getInstallStatus() != PackageOperation.InstallStatus.PREPARED;
-          }
+        o -> {
+          // We don't show the bubble until we're out of a modal context. If the install has already completed, don't show it at all.
+          PackageOperation installer = myRepoManager.getInProgressInstallOperation(remotePackage);
+          return installer == null || installer.getInstallStatus() != PackageOperation.InstallStatus.PREPARED;
         });
     }
   }
@@ -370,12 +362,7 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
 
     @Override
     public void setText(@Nullable final String s) {
-      UIUtil.invokeLaterIfNeeded(new Runnable() {
-        @Override
-        public void run() {
-          myProgressOverallLabel.setText(s);
-        }
-      });
+      UIUtil.invokeLaterIfNeeded(() -> myProgressOverallLabel.setText(s));
       if (myIndicator != null) {
         myIndicator.setText(s);
       }
@@ -406,12 +393,7 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
 
     @Override
     public void setIndeterminate(final boolean indeterminate) {
-      UIUtil.invokeLaterIfNeeded(new Runnable() {
-        @Override
-        public void run() {
-          myProgressBar.setIndeterminate(indeterminate);
-        }
-      });
+      UIUtil.invokeLaterIfNeeded(() -> myProgressBar.setIndeterminate(indeterminate));
       if (myIndicator != null) {
         myIndicator.setIndeterminate(indeterminate);
       }
@@ -424,12 +406,9 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
 
     @Override
     public void setFraction(final double v) {
-      UIUtil.invokeLaterIfNeeded(new Runnable() {
-        @Override
-        public void run() {
-          myProgressBar.setIndeterminate(false);
-          myProgressBar.setValue((int)(v * (double)(myProgressBar.getMaximum() - myProgressBar.getMinimum())));
-        }
+      UIUtil.invokeLaterIfNeeded(() -> {
+        myProgressBar.setIndeterminate(false);
+        myProgressBar.setValue((int)(v * (double)(myProgressBar.getMaximum() - myProgressBar.getMinimum())));
       });
       if (myIndicator != null) {
         myIndicator.setFraction(v);
@@ -443,12 +422,7 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
 
     @Override
     public void setSecondaryText(@Nullable final String s) {
-      UIUtil.invokeLaterIfNeeded(new Runnable() {
-        @Override
-        public void run() {
-          myProgressDetailLabel.setText(s);
-        }
-      });
+      UIUtil.invokeLaterIfNeeded(() -> myProgressDetailLabel.setText(s));
       if (myIndicator != null) {
         myIndicator.setText2(s);
       }
@@ -485,15 +459,12 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
     }
 
     private void appendText(@NotNull final String s) {
-      UIUtil.invokeLaterIfNeeded(new Runnable() {
-        @Override
-        public void run() {
-          String current = mySdkManagerOutput.getText();
-          if (current == null) {
-            current = "";
-          }
-          mySdkManagerOutput.setText(current + "\n" + s);
+      UIUtil.invokeLaterIfNeeded(() -> {
+        String current = mySdkManagerOutput.getText();
+        if (current == null) {
+          current = "";
         }
+        mySdkManagerOutput.setText(current + "\n" + s);
       });
     }
 
