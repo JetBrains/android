@@ -130,7 +130,7 @@ public final class AndroidLogcatFormatter extends DefaultLogFormatter {
   }
 
   @NotNull
-  private static String formatMessage(@NotNull String format, @NotNull LogCatHeader header, @NotNull String message) {
+  public static String formatMessage(@NotNull String format, @NotNull LogCatHeader header, @NotNull String message) {
     String ids = String.format(Locale.US, "%s-%s", header.getPid(), header.getTid());
 
     // For parsing later, tags should not have spaces in them. Replace spaces with
