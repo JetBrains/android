@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.templates.recipe;
 
+import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.model.GradleSettingsModel;
+import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpec;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateProcessingException;
@@ -69,6 +72,35 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
     myIO = dryRun ? new DryRunRecipeIO() : new RecipeIO();
     myReadonlyStatusHandler = ReadonlyStatusHandler.getInstance(context.getProject());
   }
+
+  @Override
+  public void addClasspath(@NotNull String mavenUrl) {
+    myReferences.addClasspath(mavenUrl);
+
+    if (ArtifactDependencySpec.create(mavenUrl) == null) {
+      throw new RuntimeException(mavenUrl + " is not a valid classpath dependency");
+    }
+
+    Project project = myContext.getProject();
+    if (!project.isInitialized()) {
+      // TODO: Fall back to GradleFileSimpleMerger to marge the classpath dependency when project is not initialized.
+      throw new RuntimeException("Project '" + project.getName() + "' is not initialized");
+    }
+
+    GradleSettingsModel gradleSettingsModel = GradleSettingsModel.get(project);
+    if (gradleSettingsModel == null) {
+      throw new RuntimeException("Failed to find " + FN_SETTINGS_GRADLE + "file for project '" + project.getName() + "'");
+    }
+
+    GradleBuildModel rootBuildModel = gradleSettingsModel.moduleModel(":");
+    if (rootBuildModel == null) {
+      throw new RuntimeException("Failed to find the root module " + FN_BUILD_GRADLE + "file for project '" + project.getName() + "'");
+    }
+
+    myIO.addClasspath(mavenUrl, rootBuildModel);
+    myNeedsGradleSync = true;
+  }
+
 
   /**
    * Add a library dependency into the project.
@@ -504,6 +536,11 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
       checkedCreateDirectoryIfMissing(directory);
     }
 
+    public void addClasspath(@NotNull String mavenUrl, @NotNull GradleBuildModel buildModel) {
+      buildModel.buildscript().dependencies().addArtifact("classpath", mavenUrl);
+      buildModel.applyChanges();
+    }
+
     public String mergeGradleFiles(@NotNull String dependencies,
                                    @NotNull String destinationContents,
                                    Project project,
@@ -546,6 +583,10 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
     @Override
     public void mkDir(@NotNull File directory) throws IOException {
       checkDirectoryIsWriteable(directory);
+    }
+
+    @Override
+    public void addClasspath(@NotNull String mavenUrl, @NotNull GradleBuildModel buildModel) {
     }
 
     @Override
