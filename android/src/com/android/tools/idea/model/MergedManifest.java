@@ -16,6 +16,7 @@
 package com.android.tools.idea.model;
 
 import com.android.SdkConstants;
+import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.manifmerger.Actions;
 import com.android.manifmerger.MergingReport;
@@ -106,7 +107,7 @@ public class MergedManifest {
    * Clears the cached manifest information. The next get call on one of the
    * properties will cause the information to be refreshed.
    */
-
+  @VisibleForTesting
   public void clear() {
     myLastChecked = 0;
   }
@@ -510,14 +511,15 @@ public class MergedManifest {
   public XmlNode.NodeKey getNodeKey(String name) {
     sync();
     if (myNodeKeys == null) {
-      myNodeKeys = new HashMap<>();
+      HashMap<String, XmlNode.NodeKey> nodeKeys = new HashMap<>();
       Actions actions = getActions();
       if (actions != null) {
         Set<XmlNode.NodeKey> keys = actions.getNodeKeys();
         for (XmlNode.NodeKey key : keys) {
-          myNodeKeys.put(key.toString(), key);
+          nodeKeys.put(key.toString(), key);
         }
       }
+      myNodeKeys = nodeKeys;
     }
     return myNodeKeys.get(name);
   }
