@@ -60,6 +60,7 @@ public class RenderingContext {
   private final Collection<File> mySourceFiles;
   private final Collection<File> myTargetFiles;
   private final Collection<File> myFilesToOpen;
+  private final Collection<String> myClasspathEntries;
   private final Collection<String> myDependencies;
   private final Collection<String> myWarnings;
   private final boolean myDryRun;
@@ -78,6 +79,7 @@ public class RenderingContext {
                            @Nullable Collection<File> outSourceFiles,
                            @Nullable Collection<File> outTargetFiles,
                            @Nullable Collection<File> outOpenFiles,
+                           @Nullable Collection<String> outClasspathEntries,
                            @Nullable Collection<String> outDependencies) {
     myProject = useDefaultProjectIfNeeded(project);
     myTitle = commandName;
@@ -91,10 +93,11 @@ public class RenderingContext {
     myLoader = new StudioTemplateLoader(initialTemplatePath);
     myFreemarker = new FreemarkerConfiguration();
     myFreemarker.setTemplateLoader(myLoader);
-    mySourceFiles = outSourceFiles != null ? outSourceFiles : Lists.<File>newArrayList();
-    myTargetFiles = outTargetFiles != null ? outTargetFiles : Lists.<File>newArrayList();
-    myFilesToOpen = outOpenFiles != null ? outOpenFiles : Lists.<File>newArrayList();
-    myDependencies = outDependencies != null ? outDependencies : Lists.<String>newArrayList();
+    mySourceFiles = outSourceFiles != null ? outSourceFiles : Lists.newArrayList();
+    myTargetFiles = outTargetFiles != null ? outTargetFiles : Lists.newArrayList();
+    myFilesToOpen = outOpenFiles != null ? outOpenFiles : Lists.newArrayList();
+    myClasspathEntries = outClasspathEntries != null ? outClasspathEntries : Lists.newArrayList();
+    myDependencies = outDependencies != null ? outDependencies : Lists.newArrayList();
     myWarnings = Lists.newArrayList();
   }
 
@@ -195,6 +198,14 @@ public class RenderingContext {
   }
 
   /**
+   * List of classpath entries added by a previous template rendering.
+   */
+  @NotNull
+  public Collection<String> getClasspathEntries() {
+    return myClasspathEntries;
+  }
+
+  /**
    * List of dependencies added by a previous template rendering.
    */
   @NotNull
@@ -264,6 +275,7 @@ public class RenderingContext {
     private Collection<File> mySourceFiles;
     private Collection<File> myTargetFiles;
     private Collection<File> myOpenFiles;
+    private Collection<String> myClasspathEntries;
     private Collection<String> myDependencies;
 
     private Builder(@NotNull File initialTemplatePath, @NotNull Project project) {
@@ -407,6 +419,14 @@ public class RenderingContext {
     }
 
     /**
+     * Collect all classpath entries required for the template in the specified collection.
+     */
+    public Builder intoClasspathEntries(@Nullable Collection<String> classpathEntries) {
+      myClasspathEntries = classpathEntries;
+      return this;
+    }
+
+    /**
      * Collect all dependencies required for the template in the specified collection.
      */
     public Builder intoDependencies(@Nullable Collection<String> dependencies) {
@@ -423,10 +443,12 @@ public class RenderingContext {
         mySourceFiles = null;
         myTargetFiles = null;
         myOpenFiles = null;
+        myClasspathEntries = null;
         myDependencies = null;
       }
       return new RenderingContext(myProject, myInitialTemplatePath, myCommandName, myParams, myOutputRoot, myModuleRoot, myGradleSync,
-                                  myFindOnlyReferences, myDryRun, myShowErrors, mySourceFiles, myTargetFiles, myOpenFiles, myDependencies);
+                                  myFindOnlyReferences, myDryRun, myShowErrors, mySourceFiles, myTargetFiles, myOpenFiles,
+                                  myClasspathEntries, myDependencies);
     }
   }
 }

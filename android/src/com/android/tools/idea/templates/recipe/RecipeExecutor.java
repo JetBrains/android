@@ -58,6 +58,11 @@ public interface RecipeExecutor {
   void addFilesToOpen(@NotNull File file);
 
   /**
+   * Record a classpath dependency.
+   */
+  void addClasspath(@NotNull String plugin);
+
+  /**
    * Record a library dependency.
    */
   void addDependency(@NotNull String mavenUrl);
