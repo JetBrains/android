@@ -18,27 +18,33 @@ package com.android.tools.idea.gradle.structure.model.android;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependencyModel;
 import com.android.tools.idea.gradle.structure.model.PsChildModel;
+import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableCollection;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 public abstract class PsAndroidDependency extends PsChildModel implements PsAndroidModel {
   @NotNull private final Set<PsDependencyContainer> myContainers = Sets.newHashSet();
-
-  @Nullable private DependencyModel myParsedModel;
+  @NotNull private final Set<DependencyModel> myParsedModels = Sets.newHashSet();
 
   PsAndroidDependency(@NotNull PsAndroidModule parent,
-                      @Nullable PsAndroidArtifact container,
+                      @NotNull PsAndroidArtifact container,
                       @Nullable DependencyModel parsedModel) {
     super(parent);
-    myParsedModel = parsedModel;
-    if (container != null) {
-      addContainer(container);
+    if (parsedModel != null) {
+      myParsedModels.add(parsedModel);
     }
+    addContainer(container);
   }
 
   @Override
@@ -59,35 +65,50 @@ public abstract class PsAndroidDependency extends PsChildModel implements PsAndr
 
   @TestOnly
   @NotNull
-  public Set<String> getVariants() {
-    Set<String> variants = Sets.newHashSet();
-    variants.addAll(myContainers.stream().map(PsDependencyContainer::getVariant)
-                                         .collect(Collectors.toList()));
-    return variants;
+  public Collection<String> getVariants() {
+    return myContainers.stream().map(PsDependencyContainer::getVariant).collect(Collectors.toSet());
   }
 
   @NotNull
-  public Set<PsDependencyContainer> getContainers() {
+  public Collection<PsDependencyContainer> getContainers() {
     return myContainers;
   }
 
-  @Nullable
-  public String getConfigurationName() {
-    return myParsedModel != null ? myParsedModel.configurationName() : null;
+  @NotNull
+  public String getJoinedConfigurationNames() {
+    List<String> configurationNames = getConfigurationNames();
+    int count = configurationNames.size();
+    if (count == 1) {
+      return configurationNames.get(0);
+    }
+    else if (count > 1) {
+      return Joiner.on(", ").join(configurationNames);
+    }
+    return "";
+  }
+
+  @NotNull
+  public List<String> getConfigurationNames() {
+    if (myParsedModels.isEmpty()) {
+      return Collections.emptyList();
+    }
+    List<String> names = Lists.newArrayList(myParsedModels.stream().map(DependencyModel::configurationName).collect(Collectors.toSet()));
+    Collections.sort(names);
+    return names;
   }
 
   @Override
   public boolean isDeclared() {
-    return myParsedModel != null;
+    return !myParsedModels.isEmpty();
   }
 
-  @Nullable
-  public DependencyModel getParsedModel() {
-    return myParsedModel;
+  public void addParsedModel(@NotNull DependencyModel parsedModel) {
+    myParsedModels.add(parsedModel);
   }
 
-  protected void setParsedModel(@Nullable DependencyModel parsedModel) {
-    myParsedModel = parsedModel;
+  @NotNull
+  public ImmutableCollection<DependencyModel> getParsedModels() {
+    return myParsedModels.isEmpty() ? ImmutableSet.of() : ImmutableSet.copyOf(myParsedModels);
   }
 
   @NotNull
@@ -104,7 +125,6 @@ public abstract class PsAndroidDependency extends PsChildModel implements PsAndr
         }
       }
     }
-
     return false;
   }
 }

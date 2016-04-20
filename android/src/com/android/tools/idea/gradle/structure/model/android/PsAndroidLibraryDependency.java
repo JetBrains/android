@@ -22,7 +22,6 @@ import com.android.tools.idea.gradle.dsl.model.dependencies.DependencyModel;
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.PsProject;
-import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
@@ -31,10 +30,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static com.intellij.util.PlatformIcons.LIBRARY_ICON;
 
@@ -48,8 +44,8 @@ public class PsAndroidLibraryDependency extends PsAndroidDependency {
 
   PsAndroidLibraryDependency(@NotNull PsAndroidModule parent,
                              @NotNull PsArtifactDependencySpec resolvedSpec,
+                             @NotNull PsAndroidArtifact container,
                              @Nullable Library resolvedModel,
-                             @Nullable PsAndroidArtifact container,
                              @Nullable ArtifactDependencyModel parsedModel) {
     super(parent, container, parsedModel);
     myResolvedSpec = resolvedSpec;
@@ -72,20 +68,8 @@ public class PsAndroidLibraryDependency extends PsAndroidDependency {
     myPomDependencies.addAll(pomDependencies);
   }
 
-  @Override
-  protected void setParsedModel(@Nullable DependencyModel parsedModel) {
-    super.setParsedModel(parsedModel);
-    assert parsedModel instanceof ArtifactDependencyModel;
-    setDeclaredSpec((ArtifactDependencyModel)parsedModel);
-  }
-
   private void setDeclaredSpec(@Nullable ArtifactDependencyModel parsedModel) {
-    PsArtifactDependencySpec declaredSpec = null;
-    if (parsedModel != null) {
-      String compactNotation = parsedModel.compactNotation().value();
-      declaredSpec = PsArtifactDependencySpec.create(compactNotation);
-    }
-    myDeclaredSpec = declaredSpec;
+    myDeclaredSpec = createSpec(parsedModel);
   }
 
   @NotNull
@@ -139,6 +123,15 @@ public class PsAndroidLibraryDependency extends PsAndroidDependency {
     });
   }
 
+  @Override
+  public void addParsedModel(@NotNull DependencyModel parsedModel) {
+    assert parsedModel instanceof ArtifactDependencyModel;
+    if (getParsedModels().isEmpty()) {
+      myDeclaredSpec = PsArtifactDependencySpec.create((ArtifactDependencyModel)parsedModel);
+    }
+    super.addParsedModel(parsedModel);
+  }
+
   @Nullable
   public PsArtifactDependencySpec getDeclaredSpec() {
     return myDeclaredSpec;
@@ -184,12 +177,21 @@ public class PsAndroidLibraryDependency extends PsAndroidDependency {
       return false;
     }
     PsAndroidLibraryDependency that = (PsAndroidLibraryDependency)o;
-    return Objects.equal(myResolvedSpec, that.myResolvedSpec);
+    return Objects.equals(myResolvedSpec, that.myResolvedSpec);
+  }
+
+  @Nullable
+  private static PsArtifactDependencySpec createSpec(@Nullable ArtifactDependencyModel parsedModel) {
+    if (parsedModel != null) {
+      String compactNotation = parsedModel.compactNotation().value();
+      return PsArtifactDependencySpec.create(compactNotation);
+    }
+    return null;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(myDeclaredSpec);
+    return Objects.hash(myDeclaredSpec);
   }
 
   @Override

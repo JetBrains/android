@@ -84,7 +84,7 @@ class DeclaredDependenciesTableModel extends ListTableModel<PsAndroidDependency>
       @Override
       @Nullable
       public String valueOf(PsAndroidDependency dependency) {
-        return dependency.getConfigurationName();
+        return dependency.getJoinedConfigurationNames();
       }
 
       @Override

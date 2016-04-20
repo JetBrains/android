@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.model.android;
 
+import com.android.tools.idea.gradle.dsl.model.dependencies.DependencyModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ModuleDependencyModel;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.module.Module;
@@ -32,9 +33,9 @@ public class PsModuleDependency extends PsAndroidDependency {
 
   PsModuleDependency(@NotNull PsAndroidModule parent,
                      @NotNull String gradlePath,
+                     @NotNull PsAndroidArtifact artifact,
                      @Nullable String variant,
                      @Nullable Module resolvedModel,
-                     @Nullable PsAndroidArtifact artifact,
                      @Nullable ModuleDependencyModel parsedModel) {
     super(parent, artifact, parsedModel);
     myGradlePath = gradlePath;
@@ -71,6 +72,12 @@ public class PsModuleDependency extends PsAndroidDependency {
   @Nullable
   public Icon getIcon() {
     return AllIcons.Nodes.Module;
+  }
+
+  @Override
+  public void addParsedModel(@NotNull DependencyModel parsedModel) {
+    assert parsedModel instanceof ModuleDependencyModel;
+    super.addParsedModel(parsedModel);
   }
 
   @Override

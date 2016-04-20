@@ -17,7 +17,9 @@ package com.android.tools.idea.gradle.structure.model.android;
 
 import com.android.builder.model.BaseArtifact;
 import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.dsl.model.dependencies.DependencyModel;
 import com.android.tools.idea.gradle.structure.model.PsChildModel;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
 import org.jetbrains.annotations.NonNls;
@@ -107,8 +109,18 @@ public class PsAndroidArtifact extends PsChildModel implements PsAndroidModel {
     return false;
   }
 
+  public boolean contains(@NotNull DependencyModel parsedDependency) {
+    String configurationName = parsedDependency.configurationName();
+    return containsConfigurationName(configurationName);
+  }
+
+  public boolean containsConfigurationName(@NotNull String configurationName) {
+    return getPossibleConfigurationNames().contains(configurationName);
+  }
+
+  @VisibleForTesting
   @NotNull
-  public List<String> getPossibleConfigurationNames() {
+  List<String> getPossibleConfigurationNames() {
     List<String> configurationNames = Lists.newArrayList();
     switch (myResolvedName) {
       case ARTIFACT_MAIN:
