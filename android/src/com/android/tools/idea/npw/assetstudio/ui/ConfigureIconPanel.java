@@ -39,6 +39,7 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.ColorPanel;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.ListCellRendererWrapper;
+import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import org.jetbrains.annotations.NotNull;
 
@@ -139,6 +140,20 @@ public final class ConfigureIconPanel extends JPanel implements Disposable {
   private ImageAssetBrowser myImageAssetBrowser;
   private VectorIconButton myClipartAssetButton;
   private TextAssetEditor myTextAssetEditor;
+  private JBLabel myOutputNameLabel;
+  private JLabel myAssetTypeLabel;
+  private JBLabel myImagePathLabel;
+  private JBLabel myClipartLabel;
+  private JBLabel myTextLabel;
+  private JBLabel myTrimLabel;
+  private JBLabel myPaddingLabel;
+  private JBLabel myForegroundLabel;
+  private JBLabel myThemeLabel;
+  private JBLabel myCustomColorLabel;
+  private JBLabel myBackgroundLabel;
+  private JBLabel myScalingLabel;
+  private JBLabel myShapeLabel;
+  private JBLabel myEffectLabel;
 
   private AbstractProperty<Color> myForegroundColor;
   private AbstractProperty<Color> myBackgroundColor;
@@ -187,6 +202,23 @@ public final class ConfigureIconPanel extends JPanel implements Disposable {
       myTextRadioButton, myTextAssetEditor
     );
     // @formatter:on
+
+    // Call "setLabelFor" in code instead of designer since designer is so inconsistent about
+    // valid targets
+    myOutputNameLabel.setLabelFor(myOutputNameTextField);
+    myAssetTypeLabel.setLabelFor(myAssetRadioButtonsPanel);
+    myImagePathLabel.setLabelFor(myImageAssetBrowser);
+    myClipartLabel.setLabelFor(myClipartAssetButton);
+    myTextLabel.setLabelFor(myTextAssetEditor);
+    myTrimLabel.setLabelFor(myTrimOptionsPanel);
+    myPaddingLabel.setLabelFor(myPaddingSliderPanel);
+    myForegroundLabel.setLabelFor(myForegroundColorPanel);
+    myThemeLabel.setLabelFor(myThemeComboBox);
+    myCustomColorLabel.setLabelFor(myCustomThemeColorPanel);
+    myBackgroundLabel.setLabelFor(myBackgroundColorPanel);
+    myScalingLabel.setLabelFor(myScalingRadioButtonsPanel);
+    myShapeLabel.setLabelFor(myShapeComboBox);
+    myEffectLabel.setLabelFor(myEffectRadioButtonsPanel);
 
     // Default the active asset type to "clipart", it's the most visually appealing and easy to
     // play around with.
