@@ -20,7 +20,7 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.layout.LayoutPreviewFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.layout.NlPreviewFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemePreviewFixture;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindowManager;
@@ -68,9 +68,9 @@ public class ThemePreviewTest {
     EditorFixture editor = guiTest.ideFrame().getEditor();
 
     editor.open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR);
-    LayoutPreviewFixture layoutPreview = editor.getLayoutPreview(true);
+    NlPreviewFixture layoutPreview = editor.getLayoutPreview(true);
     assertNotNull(layoutPreview);
-    int savedApiLevel = layoutPreview.getToolbar().getApiLevel();
+    int savedApiLevel = layoutPreview.getConfigToolbar().getApiLevel();
 
     editor.open("app/src/main/res/values-v19/styles.xml", EditorFixture.Tab.EDITOR);
     editor.moveTo(editor.findOffset("PreviewTheme^"));
@@ -93,6 +93,6 @@ public class ThemePreviewTest {
     layoutPreview = editor.getLayoutPreview(true);
     assertNotNull(layoutPreview);
     // The API level shouldn't be modified by the theme preview. Regression test for http://b.android.com/201313
-    layoutPreview.getToolbar().requireApi(savedApiLevel);
+    layoutPreview.getConfigToolbar().requireApi(savedApiLevel);
   }
 }

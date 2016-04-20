@@ -17,10 +17,7 @@ package com.android.tools.idea.uibuilder.editor;
 
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.configurations.RenderContext;
-import com.android.tools.idea.rendering.RenderResult;
-import com.android.tools.idea.rendering.RenderedViewHierarchy;
-import com.android.tools.idea.rendering.multi.RenderPreviewManager;
+import com.android.tools.idea.configurations.ConfigurationHolder;
 import com.android.tools.idea.uibuilder.api.DragType;
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
@@ -39,7 +36,6 @@ import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.ide.CopyPasteManager;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
 import com.intellij.openapi.util.Disposer;
@@ -53,7 +49,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.image.BufferedImage;
 import java.util.List;
 
 /**
@@ -277,10 +272,10 @@ public class NlEditorPanel extends JPanel implements DesignerEditorPanelFacade, 
    * and old layout editors, we no longer needs this level of indirection to let the configuration actions
    * talk to multiple different editor implementations, and the render actions can directly address DesignSurface.
    */
-  static class NlRenderContext implements RenderContext {
+  public static class NlConfigurationHolder implements ConfigurationHolder {
     @NotNull private final DesignSurface mySurface;
 
-    public NlRenderContext(@NotNull DesignSurface surface) {
+    public NlConfigurationHolder(@NotNull DesignSurface surface) {
       mySurface = surface;
     }
 
@@ -294,124 +289,6 @@ public class NlEditorPanel extends JPanel implements DesignerEditorPanelFacade, 
     public void setConfiguration(@NotNull Configuration configuration) {
       // This method is used in the layout editor to support the multi-preview
       // At the moment we don't do anything as we only have a single Configuration (updated from the drop down).
-    }
-
-    @Override
-    public void requestRender() {
-      if (mySurface.getCurrentScreenView() != null) {
-        mySurface.getCurrentScreenView().getModel().notifyModified();
-      }
-    }
-
-    @NotNull
-    @Override
-    public UsageType getType() {
-      return UsageType.LAYOUT_EDITOR;
-    }
-
-    @Nullable
-    @Override
-    public XmlFile getXmlFile() {
-      final Configuration configuration = mySurface.getConfiguration();
-      if (configuration != null) {
-        return (XmlFile)configuration.getPsiFile();
-      }
-      return null;
-    }
-
-    @Nullable
-    @Override
-    public VirtualFile getVirtualFile() {
-      final Configuration configuration = mySurface.getConfiguration();
-      if (configuration != null) {
-        return configuration.getFile();
-      }
-      return null;
-    }
-
-    @Nullable
-    @Override
-    public Module getModule() {
-      final Configuration configuration = mySurface.getConfiguration();
-      if (configuration != null) {
-        return configuration.getModule();
-      }
-      return null;
-    }
-
-    @Override
-    public boolean hasAlphaChannel() {
-      return false;
-    }
-
-    @NotNull
-    @Override
-    public Component getComponent() {
-      return mySurface;
-    }
-
-    @NotNull
-    @Override
-    public Dimension getFullImageSize() {
-      throw new UnsupportedOperationException();
-    }
-
-    @NotNull
-    @Override
-    public Dimension getScaledImageSize() {
-      throw new UnsupportedOperationException();
-    }
-
-    @NotNull
-    @Override
-    public Rectangle getClientArea() {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean supportsPreviews() {
-      return false;
-    }
-
-    @Nullable
-    @Override
-    public RenderPreviewManager getPreviewManager(boolean createIfNecessary) {
-      return null;
-    }
-
-    @Override
-    public void setMaxSize(int width, int height) {
-    }
-
-    @Override
-    public void zoomFit(boolean onlyZoomOut, boolean allowZoomIn) {
-      mySurface.zoomToFit();
-    }
-
-    @Override
-    public void updateLayout() {
-    }
-
-    @Override
-    public void setDeviceFramesEnabled(boolean on) {
-    }
-
-    @Nullable
-    @Override
-    public BufferedImage getRenderedImage() {
-      throw new UnsupportedOperationException();
-    }
-
-    @Nullable
-    @Override
-    public RenderResult getLastResult() {
-      return null;
-    }
-
-    @Nullable
-    @Override
-    public RenderedViewHierarchy getViewHierarchy() {
-      return null;
     }
   }
 }

@@ -1186,4 +1186,11 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
       }
     }
   }
+
+  public void requestRender() {
+    ScreenView screenView = getCurrentScreenView();
+    if (screenView != null) {
+      screenView.getModel().requestRender();
+    }
+  }
 }

@@ -55,7 +55,6 @@ import org.jetbrains.android.dom.converters.ResourceReferenceConverter;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.dom.resources.ResourceValue;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.uipreview.AndroidLayoutPreviewToolWindowManager;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
@@ -231,7 +230,6 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
 
     PsiDocumentManager.getInstance(project).commitAllDocuments();
     UndoUtil.markPsiFileForUndo(file);
-    AndroidLayoutPreviewToolWindowManager.renderIfApplicable(project);
   }
 
   private static final String STRING_RES_ANNOTATION = SUPPORT_ANNOTATIONS_PREFIX + "StringRes";

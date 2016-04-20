@@ -35,14 +35,14 @@ import javax.swing.*;
 import java.util.List;
 
 public class OrientationMenuAction extends FlatComboAction {
-  private final RenderContext myRenderContext;
+  private final ConfigurationHolder myRenderContext;
   private final boolean myClassicStyle;
 
-  public OrientationMenuAction(RenderContext renderContext) {
+  public OrientationMenuAction(ConfigurationHolder renderContext) {
     this(renderContext, !RenderService.NELE_ENABLED);
   }
 
-  public OrientationMenuAction(RenderContext renderContext, boolean classicStyle) {
+  public OrientationMenuAction(ConfigurationHolder renderContext, boolean classicStyle) {
     myRenderContext = renderContext;
     myClassicStyle = classicStyle;
     Presentation presentation = getTemplatePresentation();
@@ -184,7 +184,7 @@ public class OrientationMenuAction extends FlatComboAction {
   private static class SetDeviceStateAction extends ConfigurationAction {
     @NotNull private final State myState;
 
-    private SetDeviceStateAction(@NotNull RenderContext renderContext,
+    private SetDeviceStateAction(@NotNull ConfigurationHolder renderContext,
                                  @NotNull String title,
                                  @NotNull State state,
                                  boolean checked,
@@ -198,7 +198,6 @@ public class OrientationMenuAction extends FlatComboAction {
     public void perform() {
       tryUpdateConfiguration();
       updatePresentation();
-      myRenderContext.requestRender();
     }
 
     @Override
@@ -210,7 +209,7 @@ public class OrientationMenuAction extends FlatComboAction {
   private static class SetUiModeAction extends ConfigurationAction {
     @NotNull private final UiMode myUiMode;
 
-    private SetUiModeAction(@NotNull RenderContext renderContext, @NotNull String title, @NotNull UiMode uiMode, boolean checked) {
+    private SetUiModeAction(@NotNull ConfigurationHolder renderContext, @NotNull String title, @NotNull UiMode uiMode, boolean checked) {
       super(renderContext, title);
       myUiMode = uiMode;
       if (checked) {
@@ -227,7 +226,7 @@ public class OrientationMenuAction extends FlatComboAction {
   private static class SetNightModeAction extends ConfigurationAction {
     @NotNull private final NightMode myNightMode;
 
-    private SetNightModeAction(@NotNull RenderContext renderContext, @NotNull String title, @NotNull NightMode nightMode, boolean checked) {
+    private SetNightModeAction(@NotNull ConfigurationHolder renderContext, @NotNull String title, @NotNull NightMode nightMode, boolean checked) {
       super(renderContext, title);
       myNightMode = nightMode;
       if (checked) {

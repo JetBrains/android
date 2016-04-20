@@ -23,7 +23,6 @@ import com.android.tools.idea.ui.resourcechooser.ResourceItem;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.renderer.NlDefaultRenderer;
 import com.google.common.collect.Lists;
-import com.intellij.android.designer.propertyTable.editors.ResourceEditor;
 import com.intellij.codeInsight.completion.PrefixMatcher;
 import com.intellij.codeInsight.completion.impl.CamelHumpMatcher;
 import com.intellij.openapi.editor.Editor;
@@ -189,7 +188,7 @@ public class NlReferenceEditor {
     Set<AttributeFormat> formats = definition != null ? definition.getFormats() : EnumSet.allOf(AttributeFormat.class);
     // for some special known properties, we can narrow down the possible types (rather than the all encompassing reference type)
     ResourceType type = definition != null ? AndroidDomUtil.SPECIAL_RESOURCE_TYPES.get(definition.getName()) : null;
-    return type == null ? ResourceEditor.convertTypes(formats) : new ResourceType[]{type};
+    return type == null ? AttributeFormat.convertTypes(formats) : new ResourceType[]{type};
   }
 
   private static class CompletionProvider extends TextFieldWithAutoCompletionListProvider<String> {

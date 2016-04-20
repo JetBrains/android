@@ -37,21 +37,12 @@
       <implementation-class>org.jetbrains.android.AndroidPropertyFilesUpdater</implementation-class>
     </component>
     <component>
-      <implementation-class>org.jetbrains.android.uipreview.AndroidLayoutPreviewToolWindowManager</implementation-class>
-      <skipForDefaultProject/>
-      <headless-implementation-class></headless-implementation-class>
-    </component>
-    <component>
       <implementation-class>com.android.tools.idea.editors.theme.AndroidThemePreviewToolWindowManager</implementation-class>
       <skipForDefaultProject/>
       <headless-implementation-class/>
     </component>
     <component>
       <implementation-class>com.android.tools.idea.gradle.project.AndroidGradleProjectComponent</implementation-class>
-      <skipForDefaultProject/>
-    </component>
-    <component>
-      <implementation-class>com.android.tools.idea.editors.navigation.macros.Macros</implementation-class>
       <skipForDefaultProject/>
     </component>
     <component>
@@ -144,8 +135,6 @@
     </action>
     <group id="AndroidToolsGroup" popup="true" text="Android" icon="AndroidIcons.Android"
            class="org.jetbrains.android.actions.AndroidToolsActionGroup">
-      <!--<action id="Android.ShowNavigationEditor" class="com.android.tools.idea.actions.AndroidShowNavigationEditor"-->
-              <!--icon="AndroidIcons.NavigationEditor"/>-->
       <action id="Android.SyncProject" class="com.android.tools.idea.gradle.actions.SyncProjectAction" icon="AndroidIcons.GradleSync"/>
       <action id="Android.RunDdms" class="org.jetbrains.android.actions.AndroidRunDdmsAction" icon="AndroidIcons.Android"/>
       <action id="Android.RunAndroidAvdManager" class="org.jetbrains.android.actions.RunAndroidAvdManagerAction"
@@ -370,7 +359,6 @@
 
     <languageInjector implementation="com.android.tools.idea.lang.databinding.DbLanguageInjector" />
     <fileEditorProvider implementation="com.android.tools.idea.editors.NinePatchEditorProvider" />
-    <!--<fileEditorProvider implementation="com.android.tools.idea.editors.navigation.NavigationEditorProvider" />-->
     <fileEditorProvider implementation="com.android.tools.idea.editors.strings.StringResourceEditorProvider" />
     <fileEditorProvider implementation="com.android.tools.idea.editors.theme.ThemeEditorProvider"/>
     <fileEditorProvider implementation="com.android.tools.idea.editors.manifest.ManifestEditorProvider"/>
@@ -1057,20 +1045,7 @@
     <androidDebugger implementation="com.android.tools.idea.run.editor.AndroidJavaDebugger"/>
   </extensions>
 
-  <!-- Layout editor -->
-
-  <extensions defaultExtensionNs="com.intellij">
-    <fileEditorProvider implementation="com.intellij.android.designer.AndroidDesignerEditorProvider"/>
-    <fileEditorProvider implementation="com.android.tools.idea.gradle.editor.GradleFileEditorProvider"/>
-
-    <projectService serviceInterface="com.intellij.android.designer.model.ViewsMetaManager"
-                    serviceImplementation="com.intellij.android.designer.model.ViewsMetaManager"/>
-  </extensions>
-
   <project-components>
-    <component>
-      <implementation-class>com.intellij.android.designer.designSurface.BuildProjectListener</implementation-class>
-    </component>
     <component>
       <implementation-class>com.android.tools.idea.res.AarResourceClassRegistry</implementation-class>
     </component>
@@ -1078,14 +1053,6 @@
       <implementation-class>com.android.tools.idea.fd.InstantRunManager</implementation-class>
     </component>
   </project-components>
-
-  <extensions defaultExtensionNs="org.jetbrains.android">
-    <refactoringContextProvider implementation="com.intellij.android.designer.AndroidDesignerRefactoringContextProvider"/>
-  </extensions>
-
-  <extensions defaultExtensionNs="Designer">
-    <customizations implementation="com.intellij.android.designer.AndroidDesignerCustomizations" />
-  </extensions>
 
   <!-- data binding-->
   <extensions defaultExtensionNs="com.intellij">
@@ -1123,5 +1090,33 @@
       <implementation-class>com.android.tools.idea.model.MergedManifest</implementation-class>
     </component>
   </module-components>
+
+  <!-- New layout editor -->
+
+  <extensions defaultExtensionNs="com.intellij">
+    <fileEditorProvider implementation="com.android.tools.idea.uibuilder.editor.NlEditorProvider"/>
+  </extensions>
+
+  <project-components>
+    <component>
+      <implementation-class>com.android.tools.idea.uibuilder.editor.NlPaletteManager</implementation-class>
+    </component>
+    <component>
+      <implementation-class>com.android.tools.idea.uibuilder.editor.NlStructureManager</implementation-class>
+    </component>
+    <component>
+      <implementation-class>com.android.tools.idea.uibuilder.handlers.ViewHandlerManager</implementation-class>
+    </component>
+    <component>
+      <implementation-class>com.android.tools.idea.uibuilder.palette.NlPaletteModel</implementation-class>
+    </component>
+    <component>
+      <implementation-class>com.android.tools.idea.uibuilder.editor.NlPreviewManager</implementation-class>
+      <skipForDefaultProject/>
+      <headless-implementation-class/>
+    </component>
+
+  </project-components>
+
 
 </idea-plugin>

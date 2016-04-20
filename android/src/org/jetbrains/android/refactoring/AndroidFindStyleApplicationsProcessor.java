@@ -44,7 +44,6 @@ import org.jetbrains.android.dom.layout.LayoutDomFileDescription;
 import org.jetbrains.android.dom.layout.LayoutViewElement;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.resourceManagers.ValueResourceInfoImpl;
-import org.jetbrains.android.uipreview.AndroidLayoutPreviewToolWindowManager;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
@@ -167,7 +166,6 @@ public class AndroidFindStyleApplicationsProcessor extends BaseRefactoringProces
 
     if (myContext != null) {
       UndoUtil.markPsiFileForUndo(myContext);
-      AndroidLayoutPreviewToolWindowManager.renderIfApplicable(myContext.getProject());
     }
   }
 

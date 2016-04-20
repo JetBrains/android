@@ -15,13 +15,17 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.uibuilder.api.*;
+import com.android.tools.idea.uibuilder.api.actions.ToggleViewAction;
+import com.android.tools.idea.uibuilder.api.actions.ViewAction;
 import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.NlModel;
+import icons.AndroidDesignerIcons;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -92,6 +96,35 @@ public class ScrollViewHandler extends ViewGroupHandler {
         graphics.useStyle(NlDrawingStyle.DROP_RECIPIENT);
         graphics.drawRect(layout.x, layout.y, layout.w, layout.h);
       }
+    }
+  }
+
+  @Override
+  public void addViewActions(@NotNull List<ViewAction> actions) {
+    actions.add(new ToggleRenderModeAction());
+  }
+
+  static class ToggleRenderModeAction extends ToggleViewAction {
+    public ToggleRenderModeAction() {
+      super(AndroidDesignerIcons.ViewportRender, AndroidDesignerIcons.NormalRender, "Toggle Viewport Render Mode", null);
+    }
+
+    @Override
+    public boolean isSelected(@NotNull ViewEditor editor,
+                              @NotNull ViewHandler handler,
+                              @NotNull NlComponent parent,
+                              @NotNull List<NlComponent> selectedChildren) {
+      return NlModel.isRenderViewPort();
+    }
+
+    @Override
+    public void setSelected(@NotNull ViewEditor editor,
+                            @NotNull ViewHandler handler,
+                            @NotNull NlComponent parent,
+                            @NotNull List<NlComponent> selectedChildren,
+                            boolean selected) {
+      NlModel.setRenderViewPort(selected);
+      parent.getModel().requestRender();
     }
   }
 }

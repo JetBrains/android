@@ -25,7 +25,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.FileFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.InspectionsFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.layout.LayoutEditorFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.layout.NlEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.RenderErrorPanelFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.ConfigureAndroidProjectStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewProjectWizardFixture;
@@ -45,6 +45,7 @@ import java.io.IOException;
 
 import static com.android.tools.idea.npw.FormFactor.MOBILE;
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.fail;
 
 @RunWith(GuiTestRunner.class)
 public class NewProjectTest {
@@ -145,12 +146,13 @@ public class NewProjectTest {
     editor.requireName("A.java");
     editor.close();
     editor.requireName("activity_a.xml");
-    LayoutEditorFixture layoutEditor = editor.getLayoutEditor(true);
+
+    NlEditorFixture layoutEditor = editor.getLayoutEditor(true);
     assertThat(layoutEditor).isNotNull();
-    layoutEditor.waitForNextRenderToFinish();
+    layoutEditor.waitForRenderToFinish();
     guiTest.ideFrame().invokeProjectMake();
-    layoutEditor.waitForNextRenderToFinish();
-    layoutEditor.requireRenderSuccessful();
+    layoutEditor.waitForRenderToFinish();
+    layoutEditor.getRenderErrors().requireRenderSuccessful(false, false);
     guiTest.waitForBackgroundTasks();
   }
 
@@ -183,9 +185,10 @@ public class NewProjectTest {
     Wait.seconds(30).expecting("file to open").until(() -> "A.java".equals(editor.getCurrentFileName()));
 
     editor.open("app/src/main/res/layout/activity_a.xml", EditorFixture.Tab.EDITOR);
-    LayoutEditorFixture layoutEditor = editor.getLayoutEditor(true);
+
+    NlEditorFixture layoutEditor = editor.getLayoutEditor(true);
     assertThat(layoutEditor).isNotNull();
-    layoutEditor.waitForNextRenderToFinish();
+    layoutEditor.waitForRenderToFinish();
 
     RenderErrorPanelFixture renderErrors = layoutEditor.getRenderErrors();
     String html = renderErrors.getErrorHtml();

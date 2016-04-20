@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.layout;
 
+import com.android.sdklib.AndroidVersion;
+import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.idea.configurations.Configuration;
@@ -56,6 +58,38 @@ public class NlConfigurationToolbarFixture {
         State deviceState = configuration.getDeviceState();
         if (deviceState != null) {
           return name.equals(deviceState.getOrientation().getShortDisplayValue());
+        }
+      }
+      return false;
+    });
+    return this;
+  }
+
+  /** Returns the current API level of the toolbar's configuration */
+  public int getApiLevel() {
+    Configuration configuration = mySurface.getConfiguration();
+    IAndroidTarget target = null;
+    if (configuration != null) {
+      target = configuration.getTarget();
+      if (target != null) {
+        return target.getVersion().getApiLevel();
+      }
+    }
+
+    return -1;
+  }
+
+  /**
+   * Requires the API level to be the given API level
+   */
+  @NotNull
+  public NlConfigurationToolbarFixture requireApi(int apiLevel)  {
+    Wait.seconds(30).expecting("configuration to be updated").until(() -> {
+      Configuration configuration = mySurface.getConfiguration();
+      if (configuration != null) {
+        IAndroidTarget target = configuration.getTarget();
+        if (target != null) {
+          return apiLevel == target.getVersion().getApiLevel();
         }
       }
       return false;
