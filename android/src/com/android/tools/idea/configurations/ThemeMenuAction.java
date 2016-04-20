@@ -24,9 +24,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class ThemeMenuAction extends FlatAction {
-  private final RenderContext myRenderContext;
+  private final ConfigurationHolder myRenderContext;
 
-  public ThemeMenuAction(@NotNull RenderContext renderContext) {
+  public ThemeMenuAction(@NotNull ConfigurationHolder renderContext) {
     myRenderContext = renderContext;
     Presentation presentation = getTemplatePresentation();
     presentation.setDescription("Theme to render layout with");
@@ -91,7 +91,6 @@ public class ThemeMenuAction extends FlatAction {
         String theme = dialog.getTheme();
         if (theme != null) {
           configuration.setTheme(theme);
-          myRenderContext.requestRender();
         }
       }
     }

@@ -21,14 +21,11 @@ import com.android.ide.common.rendering.api.MergeCookie;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.resources.Density;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.configurations.ConfigurationHolder;
 import com.android.tools.idea.configurations.ConfigurationListener;
-import com.android.tools.idea.configurations.RenderContext;
 import com.android.tools.idea.editors.theme.ThemeEditorContext;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.editors.theme.preview.ThemePreviewBuilder.ComponentDefinition;
-import com.android.tools.idea.rendering.RenderResult;
-import com.android.tools.idea.rendering.RenderedViewHierarchy;
-import com.android.tools.idea.rendering.multi.RenderPreviewManager;
 import com.android.tools.swing.layoutlib.AndroidPreviewPanel;
 import com.android.tools.swing.ui.NavigationComponent;
 import com.google.common.base.Objects;
@@ -37,17 +34,14 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.ProjectScope;
 import com.intellij.psi.search.searches.ClassInheritorsSearch;
-import com.intellij.psi.xml.XmlFile;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.Processor;
 import com.intellij.util.Query;
@@ -68,7 +62,6 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.image.BufferedImage;
 import java.util.*;
 import java.util.List;
 
@@ -78,7 +71,7 @@ import java.util.List;
  * for all devices.
  * Implements RenderContext to support Configuration toolbar in Theme Editor.
  */
-public class AndroidThemePreviewPanel extends Box implements RenderContext, Disposable {
+public class AndroidThemePreviewPanel extends Box implements ConfigurationHolder, Disposable {
   private static final Logger LOG = Logger.getInstance(AndroidThemePreviewPanel.class);
 
   private static final Map<String, ComponentDefinition> SUPPORT_LIBRARY_COMPONENTS =
@@ -561,7 +554,7 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext, Disp
   public void dispose() {
   }
 
-  // Implements RenderContext
+  // Implements ConfigurationHolder
   // Only methods relevant to the configuration selection have been implemented
 
   @Nullable
@@ -576,112 +569,5 @@ public class AndroidThemePreviewPanel extends Box implements RenderContext, Disp
     if (myContext != null) {
       myContext.setConfiguration(configuration);
     }
-  }
-
-  @Override
-  public void requestRender() {
-
-  }
-
-  @NotNull
-  @Override
-  public UsageType getType() {
-    return UsageType.UNKNOWN;
-  }
-
-  @Nullable
-  @Override
-  public XmlFile getXmlFile() {
-    return null;
-  }
-
-  @Nullable
-  @Override
-  public VirtualFile getVirtualFile() {
-    return null;
-  }
-
-  @Nullable
-  @Override
-  public Module getModule() {
-    return null;
-  }
-
-  @Override
-  public boolean hasAlphaChannel() {
-    return false;
-  }
-
-  @NotNull
-  @Override
-  public Component getComponent() {
-    return this;
-  }
-
-  @NotNull
-  @Override
-  public Dimension getFullImageSize() {
-    return NO_SIZE;
-  }
-
-  @NotNull
-  @Override
-  public Dimension getScaledImageSize() {
-    return NO_SIZE;
-  }
-
-  @NotNull
-  @Override
-  public Rectangle getClientArea() {
-    return new Rectangle();
-  }
-
-  @Override
-  public boolean supportsPreviews() {
-    return false;
-  }
-
-  @Nullable
-  @Override
-  public RenderPreviewManager getPreviewManager(boolean createIfNecessary) {
-    return null;
-  }
-
-  @Override
-  public void setMaxSize(int width, int height) {
-
-  }
-
-  @Override
-  public void zoomFit(boolean onlyZoomOut, boolean allowZoomIn) {
-
-  }
-
-  @Override
-  public void updateLayout() {
-
-  }
-
-  @Override
-  public void setDeviceFramesEnabled(boolean on) {
-
-  }
-
-  @Nullable
-  @Override
-  public BufferedImage getRenderedImage() {
-    return null;
-  }
-
-  @Nullable
-  @Override
-  public RenderResult getLastResult() {
-    return null;
-  }
-
-  @Nullable
-  @Override
-  public RenderedViewHierarchy getViewHierarchy() {
-    return null;
   }
 }

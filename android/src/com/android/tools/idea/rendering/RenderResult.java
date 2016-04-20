@@ -39,7 +39,6 @@ public class RenderResult {
   @Nullable private final List<ViewInfo> myRootViews;
   @Nullable private final List<ViewInfo> mySystemRootViews;
   @Nullable private final RenderedImage myImage;
-  @Nullable private RenderedViewHierarchy myHierarchy;
   @Nullable private final RenderTask myRenderTask;
   @NotNull private final Result myRenderResult;
   @Nullable private IncludeReference myIncludedWithin = IncludeReference.NONE;
@@ -105,16 +104,6 @@ public class RenderResult {
   @NotNull
   public RenderLogger getLogger() {
     return myLogger;
-  }
-
-  @Nullable
-  public RenderedViewHierarchy getHierarchy() {
-    List<ViewInfo> rootViews = mySystemRootViews != null ? mySystemRootViews : myRootViews;
-    if (myHierarchy == null && rootViews != null) {
-      myHierarchy = RenderedViewHierarchy.create(myFile, rootViews, myIncludedWithin != IncludeReference.NONE);
-    }
-
-    return myHierarchy;
   }
 
   @Nullable

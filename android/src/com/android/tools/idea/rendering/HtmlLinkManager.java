@@ -16,11 +16,12 @@
 package com.android.tools.idea.rendering;
 
 import com.android.resources.ResourceType;
-import com.android.tools.idea.configurations.RenderContext;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.android.tools.idea.model.MergedManifest;
+import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
+import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.android.utils.SdkUtils;
 import com.android.utils.SparseArray;
@@ -54,7 +55,6 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.PsiNavigateUtil;
 import org.jetbrains.android.inspections.lint.SuppressLintIntentionAction;
 import org.jetbrains.android.uipreview.ChooseClassDialog;
-import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -864,9 +864,9 @@ public class HtmlLinkManager {
     if (result != null) {
       RenderTask renderTask = result.getRenderTask();
       if (renderTask != null) {
-        RenderContext renderContext = renderTask.getRenderContext();
-        if (renderContext != null) {
-          RefreshRenderAction.clearCache(renderContext);
+        DesignSurface surface = renderTask.getDesignSurface();
+        if (surface != null) {
+          RefreshRenderAction.clearCache(surface);
         }
       }
     }
@@ -876,9 +876,9 @@ public class HtmlLinkManager {
     if (result != null) {
       RenderTask renderTask = result.getRenderTask();
       if (renderTask != null) {
-        RenderContext renderContext = renderTask.getRenderContext();
-        if (renderContext != null) {
-          renderContext.requestRender();
+        DesignSurface surface = renderTask.getDesignSurface();
+        if (surface != null) {
+          surface.requestRender();
         }
       }
     }

@@ -27,7 +27,6 @@ public class AndroidIcons {
   public static final Icon AvdManager = load("/icons/avd_manager.png"); // 16x16
   public static final Icon SdkManager = load("/icons/sdk_manager.png"); // 16x16
   public static final Icon SdkManagerLarge = load("/icons/sdk_manager_large.png"); // 32x32
-  public static final Icon NavigationEditor = load("/icons/navigation_editor.png"); // 16x16
 
   public static final Icon ZoomActual = load("/icons/zoomActual.png"); // 16x16
   public static final Icon ZoomFit = load("/icons/zoomFit.png"); // 16x16
