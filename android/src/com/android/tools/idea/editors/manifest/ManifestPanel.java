@@ -47,6 +47,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiManager;
@@ -99,7 +100,6 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
   private JMenuItem myRemoveItem;
 
   private MergedManifest myManifest;
-  private final Map<String, XmlNode.NodeKey> myNodeKeys = new HashMap<String, XmlNode.NodeKey>();
   private final List<File> myFiles = new ArrayList<File>();
   private final HtmlLinkManager myHtmlLinkManager = new HtmlLinkManager();
 
@@ -246,15 +246,6 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
     myManifest = manifest;
     XmlTag root = myManifest.getXmlTag();
     myTree.setModel(root == null ? null : new DefaultTreeModel(new ManifestTreeNode(root)));
-    Actions actions = myManifest.getActions();
-
-    myNodeKeys.clear();
-    if (actions != null) {
-      Set<XmlNode.NodeKey> keys = actions.getNodeKeys();
-      for (XmlNode.NodeKey key : keys) {
-        myNodeKeys.put(key.toString(), key);
-      }
-    }
 
     myFiles.clear();
     // make sure that the selected manifest is always the first color
@@ -273,13 +264,13 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
     if (e != null && e.isAddedPath()) {
       TreePath treePath = e.getPath();
       ManifestTreeNode node = (ManifestTreeNode)treePath.getLastPathComponent();
-      List<? extends Actions.Record> records = getRecords(node.getUserObject());
+      List<? extends Actions.Record> records = ManifestUtils.getRecords(myManifest, node.getUserObject());
       HtmlBuilder sb = new HtmlBuilder();
       sb.openHtmlBody();
       for (Actions.Record record : records) {
         sb.add(StringUtil.capitalize(String.valueOf(record.getActionType()).toLowerCase(Locale.US)));
         sb.add(" from ");
-        sb.addHtml(getHtml(myFacet, record.getActionLocation()));
+        sb.addHtml(getHtml(myFacet, ManifestUtils.getActionLocation(myFacet.getModule(), record)));
 
         String reason = record.getReason();
         if (reason != null) {
@@ -316,9 +307,9 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
 
   @NotNull
   private Color getBackgroundColorForXmlElement(@NotNull XmlElement item) {
-    List<? extends Actions.Record> records = getRecords(item);
+    List<? extends Actions.Record> records = ManifestUtils.getRecords(myManifest, item);
     if (!records.isEmpty()) {
-      File file = records.get(0).getActionLocation().getFile().getSourceFile();
+      File file = ManifestUtils.getActionLocation(myFacet.getModule(), records.get(0)).getFile().getSourceFile();
       if (file != null) {
         return getFileColor(file);
       }
@@ -340,7 +331,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
   }
 
   private boolean canRemove(@NotNull XmlElement node) {
-    List<? extends Actions.Record> records = getRecords(node);
+    List<? extends Actions.Record> records = ManifestUtils.getRecords(myManifest, node);
     if (records.isEmpty()) {
       // if we don't know where we are coming from, we are prob displaying the main manifest with a merge error.
       return false;
@@ -348,7 +339,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
     File mainManifest = VfsUtilCore.virtualToIoFile(ManifestUtils.getMainManifest(myFacet).getVirtualFile());
     for (Actions.Record record : records) {
       // if we are already coming from the main file, then we can't remove it using this editor
-      if (FileUtil.filesEqual(record.getActionLocation().getFile().getSourceFile(), mainManifest)) {
+      if (FileUtil.filesEqual(ManifestUtils.getActionLocation(myFacet.getModule(), record).getFile().getSourceFile(), mainManifest)) {
         return false;
       }
     }
@@ -365,9 +356,9 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
   }
 
   private void goToDeclaration(XmlElement element) {
-    List<? extends Actions.Record> records = getRecords(element);
+    List<? extends Actions.Record> records = ManifestUtils.getRecords(myManifest, element);
     for (Actions.Record record : records) {
-      SourceFilePosition sourceFilePosition = record.getActionLocation();
+      SourceFilePosition sourceFilePosition = ManifestUtils.getActionLocation(myFacet.getModule(), record);
       SourceFile sourceFile = sourceFilePosition.getFile();
       if (!SourceFile.UNKNOWN.equals(sourceFile)) {
         File ioFile = sourceFile.getSourceFile();
@@ -701,60 +692,6 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
       sb.addHtml("</a>");
     }
     return sb.getHtml();
-  }
-
-  @NotNull
-  private List<? extends Actions.Record> getRecords(@NotNull XmlElement item) {
-    Actions actions = myManifest.getActions();
-    if (actions != null) {
-      if (item instanceof XmlTag) {
-        XmlTag xmlTag = (XmlTag)item;
-        XmlNode.NodeKey key = getNodeKey(xmlTag);
-        return actions.getNodeRecords(key);
-      }
-      else if (item instanceof XmlAttribute) {
-        XmlAttribute xmlAttribute = (XmlAttribute)item;
-        XmlTag xmlTag = xmlAttribute.getParent();
-        XmlNode.NodeKey key = getNodeKey(xmlTag);
-        XmlNode.NodeName name = XmlNode.fromXmlName(xmlAttribute.getName());
-        List<? extends Actions.Record> attributeRecords = actions.getAttributeRecords(key, name);
-        if (!attributeRecords.isEmpty()) {
-          return attributeRecords;
-        }
-        return actions.getNodeRecords(key);
-      }
-    }
-    return Collections.emptyList();
-  }
-
-  @Nullable("can not find report node for xml tag")
-  private XmlNode.NodeKey getNodeKey(@NotNull XmlTag xmlTag) {
-    XmlNode.NodeKey key = myNodeKeys.get(xmlTag.getName());
-    if (key == null) {
-      XmlAttribute nameAttribute = xmlTag.getAttribute(SdkConstants.ATTR_NAME, SdkConstants.ANDROID_URI);
-      if (nameAttribute != null) {
-        key = myNodeKeys.get(xmlTag.getName() + "#" + nameAttribute.getValue());
-      }
-      else {
-        XmlAttribute glEsVersionAttribute = xmlTag.getAttribute(AndroidManifest.ATTRIBUTE_GLESVERSION, SdkConstants.ANDROID_URI);
-        if (glEsVersionAttribute != null) {
-          key = myNodeKeys.get(xmlTag.getName() + "#" + glEsVersionAttribute.getValue());
-        }
-        else {
-          XmlTag[] children = xmlTag.getSubTags();
-          List<String> names = new ArrayList<String>();
-          for (XmlTag child : children) {
-            XmlAttribute childAttribute = child.getAttribute(SdkConstants.ATTR_NAME, SdkConstants.ANDROID_URI);
-            if (childAttribute != null) {
-              names.add(childAttribute.getValue());
-            }
-          }
-          Collections.sort(names);
-          key = myNodeKeys.get(xmlTag.getName() + "#" + Joiner.on('+').join(names));
-        }
-      }
-    }
-    return key;
   }
 
   /**
