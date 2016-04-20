@@ -207,7 +207,7 @@ public final class ManifestInfo {
           String text = psiFile.getText();
           return new ByteArrayInputStream(text.getBytes(Charsets.UTF_8));
         }
-        Logger.getInstance(ManifestInfo.class).warn("can not find PSI FIle for " + file);
+        Logger.getInstance(ManifestInfo.class).warn("can not find PSI File for " + file);
         return super.getInputStream(file);
       }
     });
