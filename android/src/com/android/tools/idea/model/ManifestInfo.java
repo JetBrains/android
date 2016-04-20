@@ -228,7 +228,7 @@ public final class ManifestInfo {
     }
 
     @NotNull
-    public static synchronized ManifestFile create(@NotNull AndroidFacet facet) {
+    public static ManifestFile create(@NotNull AndroidFacet facet) {
       return new ManifestFile(facet);
     }
 
@@ -270,7 +270,7 @@ public final class ManifestInfo {
       return (psiFile instanceof XmlFile) ? (XmlFile)psiFile : null;
     }
 
-    public synchronized boolean refresh() {
+    public boolean refresh() {
       Map<Object, Long> lastModifiedMap = new HashMap<Object, Long>();
 
       VirtualFile primaryManifestFile = AndroidRootUtil.getPrimaryManifestFile(myFacet);
@@ -384,7 +384,7 @@ public final class ManifestInfo {
     }
 
     @Nullable
-    public synchronized XmlFile getXmlFile() {
+    public XmlFile getXmlFile() {
       return myXmlFile;
     }
 
