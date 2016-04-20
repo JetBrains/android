@@ -22,7 +22,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class InstantRunUtils {
-  private static final Key<Boolean> CLEAN_BUILD = Key.create("android.instant.run.clean");
   private static final Key<Boolean> FULL_BUILD = Key.create("android.instant.run.full.build");
   private static final Key<Boolean> APP_RUNNING = Key.create("android.instant.run.app.running");
   private static final Key<IDevice> RESTART_ON_DEVICE = Key.create("android.instant.run.restart.device");
@@ -38,24 +37,8 @@ public class InstantRunUtils {
     return Boolean.TRUE.equals(env.getCopyableUserData(IR_ENABLED));
   }
 
-  public static boolean needsFullBuild(@NotNull ExecutionEnvironment env) {
-    return Boolean.TRUE.equals(env.getCopyableUserData(FULL_BUILD));
-  }
-
   public static void setNeedsFullBuild(@NotNull ExecutionEnvironment env, boolean en) {
     env.putCopyableUserData(FULL_BUILD, en);
-  }
-
-  public static boolean needsCleanBuild(@NotNull ExecutionEnvironment env) {
-    return Boolean.TRUE.equals(env.getCopyableUserData(CLEAN_BUILD));
-  }
-
-  public static void setNeedsCleanBuild(@NotNull ExecutionEnvironment env, boolean en) {
-    env.putCopyableUserData(CLEAN_BUILD, en);
-  }
-
-  public static boolean isAppRunning(@NotNull ExecutionEnvironment env) {
-    return Boolean.TRUE.equals(env.getCopyableUserData(APP_RUNNING));
   }
 
   public static void setAppRunning(@NotNull ExecutionEnvironment env, boolean en) {

@@ -19,13 +19,13 @@ import com.android.ddmlib.IDevice;
 import com.android.tools.fd.client.InstantRunBuildInfo;
 import com.android.tools.fd.client.InstantRunPushFailedException;
 import com.android.tools.fd.client.UpdateMode;
-import com.android.tools.idea.fd.*;
+import com.android.tools.idea.fd.InstantRunGradleUtils;
+import com.android.tools.idea.fd.InstantRunManager;
+import com.android.tools.idea.fd.InstantRunStatsService;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.intellij.execution.runners.ExecutionEnvironment;
-import com.intellij.execution.runners.ExecutionUtil;
-import com.intellij.openapi.application.ApplicationManager;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
@@ -67,17 +67,8 @@ public class HotSwapTask implements LaunchTask {
       // and the InstalledPatchCache, so we don't have to do it again.
     }
     catch (InstantRunPushFailedException e) {
-      launchStatus.terminateLaunch("Restarting launch, Error installing hot swap patches: " + e);
-
-      ApplicationManager.getApplication().invokeLater(new Runnable() {
-        @Override
-        public void run() {
-          InstantRunUtils.setRestartSession(myEnv, device);
-          ExecutionUtil.restart(myEnv);
-        }
-      });
-
-      return true; // not an error condition since we've already terminated and restarted the launch
+      launchStatus.terminateLaunch("Error installing hot swap patches: " + e);
+      return false;
     }
 
     InstantRunStatsService.get(myEnv.getProject()).notifyDeployType(InstantRunStatsService.DeployType.HOTSWAP);

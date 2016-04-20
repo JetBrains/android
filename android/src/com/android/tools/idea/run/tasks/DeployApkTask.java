@@ -19,18 +19,18 @@ import com.android.ddmlib.IDevice;
 import com.android.tools.fd.client.InstantRunClient;
 import com.android.tools.idea.fd.InstantRunManager;
 import com.android.tools.idea.fd.InstantRunStatsService;
+import com.android.tools.idea.gradle.run.GradleInstantRunContext;
+import com.android.tools.idea.fd.InstantRunContext;
 import com.android.tools.idea.run.*;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.stats.UsageTracker;
 import com.google.common.base.Charsets;
-import com.google.common.hash.HashCode;
 import com.google.common.hash.Hashing;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
 import java.util.Collection;
 
 public class DeployApkTask implements LaunchTask {
@@ -76,14 +76,6 @@ public class DeployApkTask implements LaunchTask {
       return false;
     }
 
-    if (myInstantRunAware) {
-      try {
-        InstantRunManager.transferLocalIdToDeviceId(device, myFacet.getModule());
-      } catch (Exception e) {
-        printer.stderr(e.toString());
-      }
-    }
-
     ApkInstaller installer = new ApkInstaller(myFacet, myLaunchOptions, ServiceManager.getService(InstalledApkCache.class), printer);
     for (ApkInfo apk : apks) {
       if (!apk.getFile().exists()) {
@@ -99,7 +91,9 @@ public class DeployApkTask implements LaunchTask {
       }
 
       if (myInstantRunAware) {
-        cacheManifestInstallationData(device, myFacet, pkgName);
+        GradleInstantRunContext context = new GradleInstantRunContext(pkgName, myFacet);
+        InstantRunManager.transferLocalIdToDeviceId(device, context);
+        cacheManifestInstallationData(device, context);
       }
       else {
         // If not using IR, we need to transfer an empty build id over to the device. This assures that a subsequent IR
@@ -119,13 +113,10 @@ public class DeployApkTask implements LaunchTask {
     return true;
   }
 
-  public static void cacheManifestInstallationData(@NotNull IDevice device, @NotNull AndroidFacet facet, @NotNull String pkgName) {
+  public static void cacheManifestInstallationData(@NotNull IDevice device, @NotNull InstantRunContext context) {
     InstalledPatchCache patchCache = ServiceManager.getService(InstalledPatchCache.class);
-
-    patchCache.setInstalledManifestTimestamp(device, pkgName, InstantRunManager.getManifestLastModified(facet));
-
-    HashCode currentHash = InstalledPatchCache.computeManifestResources(facet);
-    patchCache.setInstalledManifestResourcesHash(device, pkgName, currentHash);
+    patchCache.setInstalledManifestTimestamp(device, context.getApplicationId(), context.getManifestHash());
+    patchCache.setInstalledManifestResourcesHash(device, context.getApplicationId(), context.getManifestResourcesHash());
   }
 
   private static int ourInstallationCount = 0;

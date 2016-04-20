@@ -98,7 +98,6 @@ public class InstalledApkCache implements Disposable {
    * A null return value indicates that the package was not found.
    */
   @Nullable
-  @VisibleForTesting
   public InstallState getInstallState(@NotNull IDevice device, @NotNull String pkgName) {
     boolean deviceHasPackage = false;
     myDiagnosticOutput = null;
@@ -164,7 +163,6 @@ public class InstalledApkCache implements Disposable {
     return receiver.getOutput();
   }
 
-  @VisibleForTesting
   public static class InstallState {
     @NotNull public final String lastUpdateTime;
     @NotNull public final Set<Integer> users;

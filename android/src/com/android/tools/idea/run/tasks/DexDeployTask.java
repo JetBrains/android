@@ -24,7 +24,7 @@ import com.android.tools.fd.client.InstantRunPushFailedException;
 import com.android.tools.idea.fd.InstantRunStatsService;
 import com.android.tools.idea.fd.InstantRunUserFeedback;
 import com.android.tools.idea.fd.InstantRunUtils;
-import com.android.tools.idea.gradle.run.RunAsValidityService;
+import com.android.tools.idea.fd.RunAsValidityService;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.intellij.execution.runners.ExecutionEnvironment;
