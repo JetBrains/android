@@ -17,7 +17,6 @@ package com.android.tools.idea.tests.gui.framework.fixture.layout;
 
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.res.ResourceHelper;
-import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.Wait;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
@@ -37,7 +36,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
-import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowing;
 import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.junit.Assert.assertNotNull;
 
@@ -89,8 +87,9 @@ public class NlPreviewFixture extends ToolWindowFixture {
   }
 
   @NotNull
-  public NlConfigurationToolbarFixture getToolbar() {
-    ActionToolbar toolbar = waitUntilShowing(myRobot, getContent().getContentPanel(), GuiTests.matcherForType(ActionToolbarImpl.class));
+  public NlConfigurationToolbarFixture getConfigToolbar() {
+    ActionToolbar toolbar = myRobot.finder().findByName(getContent().getContentPanel(), "NlConfigToolbar", ActionToolbarImpl.class, false);
+    Wait.seconds(30).expecting("Configuration toolbar to be showing").until(() -> toolbar.getComponent().isShowing());
     return new NlConfigurationToolbarFixture(myRobot, getContent().getSurface(), toolbar);
   }
 
