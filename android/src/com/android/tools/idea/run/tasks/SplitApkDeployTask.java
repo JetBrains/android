@@ -22,6 +22,7 @@ import com.android.tools.fd.client.InstantRunArtifactType;
 import com.android.tools.fd.client.InstantRunBuildInfo;
 import com.android.tools.idea.fd.InstantRunManager;
 import com.android.tools.idea.fd.InstantRunStatsService;
+import com.android.tools.idea.gradle.run.GradleInstantRunContext;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.google.common.base.Joiner;
@@ -81,8 +82,9 @@ public class SplitApkDeployTask implements LaunchTask {
     try {
       device.installPackages(apks, true, installOptions, 5, TimeUnit.MINUTES);
 
-      InstantRunManager.transferLocalIdToDeviceId(device, myFacet.getModule());
-      DeployApkTask.cacheManifestInstallationData(device, myFacet, myPkgName);
+      GradleInstantRunContext context = new GradleInstantRunContext(myPkgName, myFacet);
+      InstantRunManager.transferLocalIdToDeviceId(device, context);
+      DeployApkTask.cacheManifestInstallationData(device, context);
 
       InstantRunStatsService.get(myFacet.getModule().getProject())
         .notifyDeployType(InstantRunStatsService.DeployType.SPLITAPK);

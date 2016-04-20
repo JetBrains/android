@@ -15,17 +15,25 @@
  */
 package com.android.tools.idea.fd.actions;
 
+import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
+import com.android.tools.fd.client.AppState;
 import com.android.tools.idea.fd.InstantRunGradleUtils;
 import com.android.tools.idea.fd.InstantRunManager;
 import com.android.tools.idea.fd.InstantRunSettings;
 import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.fd.InstantRunContext;
+import com.android.tools.idea.run.AndroidProcessHandler;
+import com.android.tools.idea.run.AndroidProgramRunner;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.execution.ExecutionManager;
 import com.intellij.execution.process.ProcessHandler;
+import com.intellij.execution.ui.RunContentDescriptor;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.LangDataKeys;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.xdebugger.XDebugSession;
@@ -105,16 +113,79 @@ public class RestartActivityAction extends AnAction {
     restartActivity(module);
   }
 
-  /** Restarts the activity associated with the given module */
+  /**
+   * Restarts the activity associated with the given module
+   */
   public static void restartActivity(@NotNull Module module) {
     Project project = module.getProject();
-    for (IDevice device : InstantRunManager.findDevices(project)) {
-      if (InstantRunManager.isAppInForeground(device, module)) {
+
+    InstantRunContext context = InstantRunGradleUtils.createGradleProjectContext(module);
+    if (context == null) {
+      Logger.getInstance(RestartActivityAction.class).info("Unable to obtain instant run context for module: " + module.getName());
+      return;
+    }
+
+    for (IDevice device : findDevices(project)) {
+      if (InstantRunManager.getInstantRunClient(context).getAppState(device) == AppState.FOREGROUND) {
         if (InstantRunSettings.isShowToastEnabled()) {
-          InstantRunManager.showToast(device, module, "Activity Restarted");
+          showToast(device, module, "Activity Restarted");
         }
-        InstantRunManager.restartActivity(device, module);
+        InstantRunManager.getInstantRunClient(module).restartActivity(device);
       }
+    }
+  }
+
+  /**
+   * Finds the devices associated with all run configurations for the given project
+   */
+  @NotNull
+  private static List<IDevice> findDevices(@Nullable Project project) {
+    if (project == null) {
+      return Collections.emptyList();
+    }
+
+    List<RunContentDescriptor> runningProcesses = ExecutionManager.getInstance(project).getContentManager().getAllDescriptors();
+    if (runningProcesses.isEmpty()) {
+      return Collections.emptyList();
+    }
+    List<IDevice> devices = Lists.newArrayList();
+    for (RunContentDescriptor descriptor : runningProcesses) {
+      ProcessHandler processHandler = descriptor.getProcessHandler();
+      if (processHandler == null || processHandler.isProcessTerminated() || processHandler.isProcessTerminating()) {
+        continue;
+      }
+
+      devices.addAll(getConnectedDevices(processHandler));
+    }
+
+    return devices;
+  }
+
+  @NotNull
+  private static List<IDevice> getConnectedDevices(@NotNull ProcessHandler processHandler) {
+    if (processHandler.isProcessTerminated() || processHandler.isProcessTerminating()) {
+      return Collections.emptyList();
+    }
+
+    if (processHandler instanceof AndroidProcessHandler) {
+      return ImmutableList.copyOf(((AndroidProcessHandler)processHandler).getDevices());
+    }
+    else {
+      Client c = processHandler.getUserData(AndroidProgramRunner.ANDROID_DEBUG_CLIENT);
+      if (c != null && c.isValid()) {
+        return Collections.singletonList(c.getDevice());
+      }
+    }
+
+    return Collections.emptyList();
+  }
+
+  private static void showToast(@NotNull IDevice device, @NotNull Module module, @NotNull final String message) {
+    try {
+      InstantRunManager.getInstantRunClient(module).showToast(device, message);
+    }
+    catch (Throwable e) {
+      InstantRunManager.LOG.warn(e);
     }
   }
 }

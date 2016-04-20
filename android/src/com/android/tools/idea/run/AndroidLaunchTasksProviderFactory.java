@@ -98,11 +98,6 @@ public class AndroidLaunchTasksProviderFactory implements LaunchTasksProviderFac
       return false;
     }
 
-    if (InstantRunUtils.needsFullBuild(myEnv) || !InstantRunUtils.isAppRunning(myEnv)) {
-      // We knew before the build that we couldn't hot swap..
-      return false;
-    }
-
     boolean canHotswap = info.canHotswap();
     if (!canHotswap) {
       InstantRunManager.LOG.info("Cannot hot swap according to build-info.xml");
