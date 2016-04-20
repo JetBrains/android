@@ -110,7 +110,6 @@ public class RenderErrorPanelTest extends AndroidTestCase {
       logOperation.addErrors(logger, render);
     }
 
-    assertTrue(logger.hasProblems());
     RenderErrorPanel panel = new RenderErrorPanel();
     String html = panel.showErrors(render);
     assert html != null;
@@ -120,7 +119,7 @@ public class RenderErrorPanelTest extends AndroidTestCase {
   public void testPanel() {
     String html = getRenderOutput(myFixture.copyFileToProject(BASE_PATH + "layout1.xml", "res/layout/layout1.xml"), null);
     assertHtmlEquals(
-      "<html><body><A HREF=\"action:close\"></A><font style=\"font-weight:bold; color:#005555;\">Rendering Problems</font><BR/>" +
+      "<html><body><A HREF=\"action:close\"></A>&nbsp;<font style=\"font-weight:bold; color:#005555;\">Rendering Problems</font><BR/>" +
       "<B>NOTE: One or more layouts are missing the layout_width or layout_height attributes. These are required in most layouts.</B><BR/>" +
       "&lt;LinearLayout> does not set the required layout_width attribute: <BR/>" +
       "&nbsp;&nbsp;&nbsp;&nbsp;<A HREF=\"command:0\">Set to wrap_content</A>, <A HREF=\"command:1\">Set to match_parent</A><BR/>" +
@@ -142,7 +141,7 @@ public class RenderErrorPanelTest extends AndroidTestCase {
     // We shouldn't get quickfix notifications for data binding tags
     String html = getRenderOutput(myFixture.copyFileToProject(BASE_PATH + "db.xml", "res/layout/db.xml"), null);
     assertHtmlEquals(
-      "<html><body><A HREF=\"action:close\"></A><font style=\"font-weight:bold; color:#005555;\">Rendering Problems</font><BR/>" +
+      "<html><body><A HREF=\"action:close\"></A>&nbsp;<font style=\"font-weight:bold; color:#005555;\">Rendering Problems</font><BR/>" +
       "<B>NOTE: One or more layouts are missing the layout_width or layout_height attributes. These are required in most layouts.</B><BR/>" +
       "&lt;LinearLayout> does not set the required layout_width attribute: <BR/>" +
       "&nbsp;&nbsp;&nbsp;&nbsp;<A HREF=\"command:0\">Set to wrap_content</A>, <A HREF=\"command:1\">Set to match_parent</A><BR/>" +
@@ -162,7 +161,7 @@ public class RenderErrorPanelTest extends AndroidTestCase {
   public void testTypo() {
     String html = getRenderOutput(myFixture.copyFileToProject(BASE_PATH + "layout3.xml", "res/layout/layout3.xml"), null);
     assertHtmlEquals(
-      "<html><body><A HREF=\"action:close\"></A><font style=\"font-weight:bold; color:#005555;\">Rendering Problems</font><BR/>" +
+      "<html><body><A HREF=\"action:close\"></A>&nbsp;<font style=\"font-weight:bold; color:#005555;\">Rendering Problems</font><BR/>" +
       "The following classes could not be found:<DL>" +
       "<DD>-&NBSP;Bitton (<A HREF=\"action:classpath\">Fix Build Path</A>)" +
       "</DL>Tip: Try to <A HREF=\"action:build\">build</A> the project.<BR/>" +
@@ -245,7 +244,7 @@ public class RenderErrorPanelTest extends AndroidTestCase {
     String html = getRenderOutput(myFixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"), operation);
 
     assertHtmlEquals(
-      "<html><body><A HREF=\"action:close\"></A><font style=\"font-weight:bold; color:#005555;\">Rendering Problems</font><BR/>" +
+      "<html><body><A HREF=\"action:close\"></A>&nbsp;<font style=\"font-weight:bold; color:#005555;\">Rendering Problems</font><BR/>" +
       "This is an error with entities: &amp; &lt; \"<BR/>" +
       "<BR/>" +
       "&lt;CalendarView> and &lt;DatePicker> are broken in this version of the rendering library. " +
@@ -322,7 +321,7 @@ public class RenderErrorPanelTest extends AndroidTestCase {
     boolean havePlatformSources = AndroidSdkUtils.findPlatformSources(target.get()) != null;
     if (havePlatformSources) {
       assertHtmlEquals(
-        "<html><body><A HREF=\"action:close\"></A><font style=\"font-weight:bold; color:#005555;\">Rendering Problems</font><BR/>" +
+        "<html><body><A HREF=\"action:close\"></A>&nbsp;<font style=\"font-weight:bold; color:#005555;\">Rendering Problems</font><BR/>" +
         "java.lang.ArithmeticException: / by zero<BR/>" +
         "&nbsp;&nbsp;at com.example.myapplication574.MyCustomView.&lt;init>(<A HREF=\"open:com.example.myapplication574.MyCustomView#<init>;MyCustomView.java:13\">MyCustomView.java:13</A>)<BR/>" +
         "&nbsp;&nbsp;at java.lang.reflect.Constructor.newInstance(<A HREF=\"file://$SDK_HOME/sources/android-18/java/lang/reflect/Constructor.java:513\">Constructor.java:513</A>)<BR/>" +
@@ -335,7 +334,7 @@ public class RenderErrorPanelTest extends AndroidTestCase {
         "</body></html>", html);
     } else {
       assertHtmlEquals(
-        "<html><body><A HREF=\"action:close\"></A><font style=\"font-weight:bold; color:#005555;\">Rendering Problems</font><BR/>" +
+        "<html><body><A HREF=\"action:close\"></A>&nbsp;<font style=\"font-weight:bold; color:#005555;\">Rendering Problems</font><BR/>" +
         "java.lang.ArithmeticException: / by zero<BR/>" +
         "&nbsp;&nbsp;at com.example.myapplication574.MyCustomView.&lt;init>(<A HREF=\"open:com.example.myapplication574.MyCustomView#<init>;MyCustomView.java:13\">MyCustomView.java:13</A>)<BR/>" +
         "&nbsp;&nbsp;at java.lang.reflect.Constructor.newInstance(Constructor.java:513)<BR/>" +
@@ -427,7 +426,7 @@ public class RenderErrorPanelTest extends AndroidTestCase {
 
     String html = getRenderOutput(myFixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"), operation);
     assertHtmlEquals(
-      "<html><body><A HREF=\"action:close\"></A><font style=\"font-weight:bold; color:#005555;\">Rendering Problems</font><BR/>" +
+      "<html><body><A HREF=\"action:close\"></A>&nbsp;<font style=\"font-weight:bold; color:#005555;\">Rendering Problems</font><BR/>" +
       "Resource error: Attempted to load a bitmap as a color state list.<BR/>" +
       "Verify that your style/theme attributes are correct, and make sure layouts are using the right attributes.<BR/>" +
       "<BR/>" +
@@ -461,7 +460,7 @@ public class RenderErrorPanelTest extends AndroidTestCase {
     }
 
     assertHtmlEquals(
-      "<html><body><A HREF=\"action:close\"></A><font style=\"font-weight:bold; color:#005555;\">Rendering Problems</font><BR/>" +
+      "<html><body><A HREF=\"action:close\"></A>&nbsp;<font style=\"font-weight:bold; color:#005555;\">Rendering Problems</font><BR/>" +
       "Preview might be incorrect: unsupported class version.<BR/>" +
       "Tip: You need to run the IDE with the highest JDK version that you are compiling custom views with. " +
       "For example, if you are compiling with sourceCompatibility 1.7, you must run the IDE with JDK 1.7. " +
@@ -555,7 +554,7 @@ public class RenderErrorPanelTest extends AndroidTestCase {
     boolean havePlatformSources = AndroidSdkUtils.findPlatformSources(target.get()) != null;
     if (havePlatformSources) {
       assertHtmlEquals(
-        "<html><body><A HREF=\"action:close\"></A><font style=\"font-weight:bold; color:#005555;\">Rendering Problems</font><BR/>" +
+        "<html><body><A HREF=\"action:close\"></A>&nbsp;<font style=\"font-weight:bold; color:#005555;\">Rendering Problems</font><BR/>" +
         "<A HREF=\"disableSandbox:\">Turn off custom view rendering sandbox</A><BR/>" +
         "<BR/>" +
         "Read access not allowed during rendering (/)<BR/>" +
@@ -583,7 +582,7 @@ public class RenderErrorPanelTest extends AndroidTestCase {
         "</body></html>", html);
     } else {
       assertHtmlEquals(
-        "<html><body><A HREF=\"action:close\"></A><font style=\"font-weight:bold; color:#005555;\">Rendering Problems</font><BR/>" +
+        "<html><body><A HREF=\"action:close\"></A>&nbsp;<font style=\"font-weight:bold; color:#005555;\">Rendering Problems</font><BR/>" +
         "<A HREF=\"disableSandbox:\">Turn off custom view rendering sandbox</A><BR/>" +
         "<BR/>" +
         "Read access not allowed during rendering (/)<BR/>" +
@@ -610,6 +609,24 @@ public class RenderErrorPanelTest extends AndroidTestCase {
         "<A HREF=\"runnable:1\">Copy stack to clipboard</A><BR/>" +
         "</body></html>", html);
     }
+  }
+
+  public void testFidelityErrors() {
+    LogOperation operation = (logger, render) -> logger.fidelityWarning("Fidelity", "Fidelity issue", null, null);
+    String html = getRenderOutput(myFixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"), operation);
+    assertHtmlEquals("<html><body>&nbsp;Fidelity warnings <A HREF=\"runnable:0\">(show)</A></body></html>", html);
+
+    operation = (logger, render) -> {
+      logger.fidelityWarning("Fidelity", "Fidelity issue", null, null);
+      logger.error("Error", "An error", null, null);
+    };
+    html = getRenderOutput(myFixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"), operation);
+    // When there is an error, the fidelity warnings should not be collapsed
+    assertHtmlEquals("<html><body><A HREF=\"action:close\"></A>&nbsp;<font style=\"font-weight:bold; color:#005555;\">" +
+                     "Rendering Problems</font><BR/>An error<BR/><BR/>The graphics preview in the layout editor may not" +
+                     " be accurate:<BR/><DL><DD>-&NBSP;Fidelity issue <A HREF=\"runnable:0\">(Ignore for this session)</A><BR/>" +
+                     "</DL><A HREF=\"runnable:1\">Ignore all fidelity warnings for this session</A><BR/>" +
+                     "</body></html>", html);
   }
 
   // Image paths will include full resource urls which depends on the test environment

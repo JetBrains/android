@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import com.android.annotations.VisibleForTesting;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
@@ -51,6 +49,8 @@ import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
 import org.intellij.lang.annotations.JdkConstants;
 import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.plaf.ScrollBarUI;
@@ -65,7 +65,6 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Random;
 
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.*;
 
@@ -78,6 +77,7 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
   public static final boolean SIZE_ERROR_PANEL_DYNAMICALLY = true;
   private static final Integer LAYER_PROGRESS = JLayeredPane.POPUP_LAYER + 100;
   private final Project myProject;
+  private boolean myRenderHasProblems;
 
   public enum ScreenMode {
     SCREEN_ONLY, BLUEPRINT_ONLY, BOTH;
@@ -103,7 +103,6 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
   private final InteractionManager myInteractionManager;
   private final GlassPane myGlassPane;
   private final RenderErrorPanel myErrorPanel;
-  private int myErrorPanelHeight = -1;
   private List<DesignSurfaceListener> myListeners;
   private boolean myCentered;
 
@@ -326,7 +325,7 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
   }
 
   public void hover(@SwingCoordinate int x, @SwingCoordinate int y) {
-    if (myErrorPanel.isVisible() && HighlightSeverity.ERROR.equals(myErrorPanel.getSeverity())) {
+    if (myErrorPanel.isVisible() && myRenderHasProblems) {
       // don't show any warnings on hover if there is already some errors that are being displayed
       // TODO: we should really move this logic into the error panel itself
       return;
@@ -349,11 +348,12 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
   }
 
   public void resetHover() {
+    if (myRenderHasProblems) {
+      return;
+    }
     // if we were showing some warnings, then close it.
     // TODO: similar to hover() method above, this logic of warning/error should be inside the error panel itself
-    if (HighlightSeverity.WARNING.equals(myErrorPanel.getSeverity())) {
-      myErrorPanel.setVisible(false);
-    }
+    myErrorPanel.setVisible(false);
   }
 
   public void zoom(@NotNull ZoomType type) {
@@ -956,16 +956,12 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
   public void updateErrorDisplay(@NotNull ScreenView view, @Nullable final RenderResult result) {
     if (view == myScreenView) {
       getErrorQueue().cancelAllUpdates();
-      boolean hasProblems = result != null && result.getLogger().hasProblems();
-      if (hasProblems != myErrorPanel.isVisible()) {
-        if (hasProblems) {
-          myErrorPanelHeight = -1;
-          updateErrors(result);
-          myErrorPanel.showErrors(result);
-        } else {
-          myErrorPanel.setVisible(false);
-          repaint();
-        }
+      myRenderHasProblems = result != null && result.getLogger().hasProblems();
+      if (myRenderHasProblems) {
+        updateErrors(result);
+      } else {
+        myErrorPanel.setVisible(false);
+        repaint();
       }
     }
   }
@@ -981,22 +977,17 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
       public void run() {
         // Look up *current* result; a newer one could be available
         final RenderResult result = myScreenView != null ? myScreenView.getResult() : null;
-        boolean hasProblems = result != null && result.getLogger().hasProblems();
-        final String html = hasProblems ? myErrorPanel.generateHtml(result, result.getLogger().getLinkManager()) : null;
-        if (hasProblems) {
-          ApplicationManager.getApplication().invokeLater(new Runnable() {
-            @Override
-            public void run() {
-              myErrorPanel.showErrors(html, result, result.getLogger().getLinkManager());
-              if (!myErrorPanel.isVisible()) {
-                myErrorPanel.setVisible(true);
-                revalidate();
-              } else {
-                repaint();
-              }
-            }
-          });
+        if (result == null) {
+          return;
         }
+        ApplicationManager.getApplication().invokeLater(() -> {
+          myErrorPanel.showErrors(result);
+          if (!myErrorPanel.isVisible()) {
+            myErrorPanel.setVisible(true);
+          }
+          revalidate();
+          repaint();
+        });
       }
 
       @Override
