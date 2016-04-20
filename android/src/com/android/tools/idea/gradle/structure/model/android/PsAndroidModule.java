@@ -35,9 +35,9 @@ import java.util.function.Consumer;
 public class PsAndroidModule extends PsModule implements PsAndroidModel {
   @NotNull private final AndroidGradleModel myGradleModel;
 
-  private PsVariantCollection myVariantCollection;
   private PsBuildTypeCollection myBuildTypeCollection;
   private PsProductFlavorCollection myProductFlavorCollection;
+  private PsVariantCollection myVariantCollection;
   private PsAndroidDependencyCollection myDependencyCollection;
 
   public PsAndroidModule(@NotNull PsProject parent,
@@ -165,9 +165,10 @@ public class PsAndroidModule extends PsModule implements PsAndroidModel {
 
     PsParsedDependencies parsedDependencies = getParsedDependencies();
     for (PsAndroidArtifact artifact : targetArtifacts) {
-      ArtifactDependencyModel parsedDependency = parsedDependencies.findMatchingArtifactDependency(spec, artifact);
-      assert parsedDependency != null;
-      dependencyCollection.addLibraryDependency(spec, artifact, parsedDependency);
+      List<ArtifactDependencyModel> matchingParsedDependencies = parsedDependencies.findLibraryDependencies(spec, artifact::contains);
+      for (ArtifactDependencyModel parsedDependency : matchingParsedDependencies) {
+        dependencyCollection.addLibraryDependency(spec, artifact, parsedDependency);
+      }
     }
 
     fireLibraryDependencyAddedEvent(spec);

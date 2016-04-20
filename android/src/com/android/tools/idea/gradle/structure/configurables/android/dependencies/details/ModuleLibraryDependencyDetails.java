@@ -128,7 +128,7 @@ public class ModuleLibraryDependencyDetails implements DependencyDetails<PsAndro
     mySourceInfoHint = null;
 
     myRequestedVersionLabel.setText(declaredSpec.version);
-    myScopeLabel.setText(myDependency.getConfigurationName());
+    myScopeLabel.setText(myDependency.getJoinedConfigurationNames());
   }
 
   @Override
