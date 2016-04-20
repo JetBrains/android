@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.layout;
 
+import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -27,7 +28,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import static org.junit.Assert.assertNotNull;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.waitForBackgroundTasks;
+import static org.junit.Assert.*;
 
 /**
  * UI test for the layout preview window
@@ -80,5 +82,67 @@ public class NlPreviewTest {
     editor.open("app/src/main/res/layout/layout2.xml", EditorFixture.Tab.EDITOR);
     preview.waitForRenderToFinish();
     toolbar.requireDevice("Nexus 4"); // because it's the most recently configured small screen compatible device
+  }
+
+  @Test
+  public void testEditCustomView() throws Exception {
+    // Opens the LayoutTest project, opens a layout with a custom view, checks
+    // that it can't render yet (because the project hasn't been built),
+    // builds the project, checks that the render works, edits the custom view
+    // source code, ensures that the render lists the custom view as out of date,
+    // applies the suggested fix to build the project, and finally asserts that the
+    // build is now successful.
+
+    guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest");
+    EditorFixture editor = guiTest.ideFrame().getEditor();
+    editor.open("app/src/main/res/layout/layout1.xml", EditorFixture.Tab.EDITOR);
+    NlPreviewFixture preview = NlPreviewFixture.getNlPreview(editor, guiTest.ideFrame(), false);
+    assertNotNull(preview);
+    preview.waitForRenderToFinish();
+
+    assertTrue(preview.hasRenderErrors());
+    assertTrue(preview.errorPanelContains("The following classes could not be found"));
+    assertTrue(preview.errorPanelContains("com.android.tools.tests.layout.MyButton"));
+    assertTrue(preview.errorPanelContains("Change to android.widget.Button"));
+
+    GradleInvocationResult result = guiTest.ideFrame().invokeProjectMake();
+    assertTrue(result.isBuildSuccessful());
+
+    // Build completion should trigger re-render
+    preview.waitForRenderToFinish();
+    assertFalse(preview.hasRenderErrors());
+
+    // Next let's edit the custom view source file
+    editor.open("app/src/main/java/com/android/tools/tests/layout/MyButton.java", EditorFixture.Tab.EDITOR);
+    editor.moveTo(editor.findOffset("extends Button {", null, true));
+    editor.enterText(" // test");
+
+    // Switch back; should trigger render:
+    editor.open("app/src/main/res/layout/layout1.xml", EditorFixture.Tab.EDITOR);
+    preview.waitForRenderToFinish();
+    assertTrue(preview.errorPanelContains("The MyButton custom view has been edited more recently than the last build"));
+    preview.performSuggestion("Build");
+    waitForBackgroundTasks(guiTest.robot());
+    preview.waitForRenderToFinish();
+    assertFalse(preview.hasRenderErrors());
+
+    // Now make some changes to the file which updates the modification timestamp of the source. However,
+    // also edit them back and save again (which still leaves a new modification timestamp). Gradle will
+    // *not* rebuild if the file contents have not changed (it uses checksums rather than file timestamps).
+    // Make sure that we don't get render errors in this scenario! (Regression test for http://b.android.com/76676)
+    editor.open("app/src/main/java/com/android/tools/tests/layout/MyButton.java", EditorFixture.Tab.EDITOR);
+    editor.moveTo(editor.findOffset("extends Button {", null, true));
+    editor.enterText(" ");
+    editor.invokeAction(EditorFixture.EditorAction.SAVE);
+    editor.invokeAction(EditorFixture.EditorAction.BACK_SPACE);
+    editor.invokeAction(EditorFixture.EditorAction.SAVE);
+    waitForBackgroundTasks(guiTest.robot());
+    editor.open("app/src/main/res/layout/layout1.xml", EditorFixture.Tab.EDITOR);
+    preview.waitForRenderToFinish();
+    assertTrue(preview.errorPanelContains("The MyButton custom view has been edited more recently than the last build"));
+    preview.performSuggestion("Build"); // this build won't do anything this time, since Gradle notices checksum has not changed
+    waitForBackgroundTasks(guiTest.robot());
+    preview.waitForRenderToFinish();
+    assertFalse(preview.hasRenderErrors()); // but our build timestamp check this time will mask the out of date warning
   }
 }
