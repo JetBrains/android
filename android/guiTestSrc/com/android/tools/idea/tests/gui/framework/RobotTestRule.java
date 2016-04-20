@@ -15,18 +15,18 @@
  */
 package com.android.tools.idea.tests.gui.framework;
 
-import org.fest.swing.core.BasicRobot;
+import org.fest.swing.core.StudioRobot;
 import org.fest.swing.core.Robot;
 import org.junit.rules.ExternalResource;
 
-/** Holds a {@link BasicRobot} and associated {@link org.fest.swing.lock.ScreenLock}. */
+/** Holds a {@link StudioRobot} and associated {@link org.fest.swing.lock.ScreenLock}. */
 class RobotTestRule extends ExternalResource {
 
   private Robot myRobot;
 
   @Override
   protected void before() {
-    myRobot = BasicRobot.robotWithCurrentAwtHierarchy();  // acquires ScreenLock
+    myRobot = StudioRobot.robotWithCurrentAwtHierarchy();  // acquires ScreenLock
     myRobot.settings().delayBetweenEvents(30);
   }
 
