@@ -19,6 +19,7 @@ import com.android.SdkConstants;
 import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.manifmerger.Actions;
 import com.android.manifmerger.MergingReport;
+import com.android.manifmerger.XmlNode;
 import com.android.resources.ScreenSize;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
@@ -41,10 +42,7 @@ import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.android.SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX;
 import static com.android.SdkConstants.VALUE_TRUE;
@@ -70,6 +68,7 @@ public class MergedManifest {
   private boolean myApplicationSupportsRtl;
   private Boolean myApplicationDebuggable;
   private @Nullable("user error, no manifest file") Manifest myManifest;
+  private @Nullable("is lazy initialised") Map<String, XmlNode.NodeKey> myNodeKeys;
 
   /**
    * Constructs a new MergedManifest
@@ -339,6 +338,7 @@ public class MergedManifest {
     myApplicationIcon = null;
     myApplicationLabel = null;
     myApplicationSupportsRtl = false;
+    myNodeKeys = null;
 
     try {
       XmlFile xmlFile = myManifestFile.getXmlFile();
@@ -501,6 +501,22 @@ public class MergedManifest {
   public XmlTag getXmlTag() {
     sync();
     return myManifest == null ? null : myManifest.getXmlTag();
+  }
+
+  @Nullable("can not find a node key with that name")
+  public XmlNode.NodeKey getNodeKey(String name) {
+    sync();
+    if (myNodeKeys == null) {
+      myNodeKeys = new HashMap<>();
+      Actions actions = getActions();
+      if (actions != null) {
+        Set<XmlNode.NodeKey> keys = actions.getNodeKeys();
+        for (XmlNode.NodeKey key : keys) {
+          myNodeKeys.put(key.toString(), key);
+        }
+      }
+    }
+    return myNodeKeys.get(name);
   }
 
   public static class ActivityAttributes {
