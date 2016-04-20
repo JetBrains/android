@@ -363,7 +363,7 @@ public class StateController extends TreeController implements GpuState.Listener
     public TypedValue value;
     private final List<Node> childrenByIndex = Lists.newArrayList();
     private final HashMap<TypedValue, Node> childrenByKey = Maps.newHashMap();
-    private @Nullable Path followPath;
+    private @Nullable("not made server request yet") Path followPath;
 
     public Node(TypedValue key, TypedValue value) {
       this.key = key;
@@ -379,6 +379,8 @@ public class StateController extends TreeController implements GpuState.Listener
       IntArrayList changedIndecies = new IntArrayList(Math.max(getChildCount(), other.getChildCount()));
       List<Node> changedChildren = Lists.newArrayListWithCapacity(Math.max(getChildCount(), other.getChildCount()));
       path.add(this);
+      // if we are merging in another Node. we want to clear the cached server follow link response
+      followPath = null;
 
       // First handle deletions.
       for (int i = 0; i < childrenByIndex.size(); i++) {
