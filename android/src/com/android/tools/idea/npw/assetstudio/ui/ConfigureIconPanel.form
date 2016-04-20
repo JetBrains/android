@@ -35,7 +35,7 @@
                 <properties/>
                 <border type="none"/>
                 <children>
-                  <component id="d4572" class="javax.swing.JLabel">
+                  <component id="d4572" class="javax.swing.JLabel" binding="myAssetTypeLabel">
                     <constraints>
                       <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                     </constraints>
@@ -100,7 +100,7 @@
                     </properties>
                     <border type="none"/>
                     <children>
-                      <component id="a5253" class="com.intellij.ui.components.JBLabel">
+                      <component id="a5253" class="com.intellij.ui.components.JBLabel" binding="myTrimLabel">
                         <constraints>
                           <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                         </constraints>
@@ -154,7 +154,7 @@
                     </properties>
                     <border type="none"/>
                     <children>
-                      <component id="ca778" class="com.intellij.ui.components.JBLabel">
+                      <component id="ca778" class="com.intellij.ui.components.JBLabel" binding="myPaddingLabel">
                         <constraints>
                           <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                         </constraints>
@@ -213,7 +213,7 @@
                     <properties/>
                     <border type="none"/>
                     <children>
-                      <component id="43705" class="com.intellij.ui.components.JBLabel">
+                      <component id="43705" class="com.intellij.ui.components.JBLabel" binding="myForegroundLabel">
                         <constraints>
                           <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                         </constraints>
@@ -239,7 +239,7 @@
                     <properties/>
                     <border type="none"/>
                     <children>
-                      <component id="418c4" class="com.intellij.ui.components.JBLabel">
+                      <component id="418c4" class="com.intellij.ui.components.JBLabel" binding="myBackgroundLabel">
                         <constraints>
                           <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                         </constraints>
@@ -265,7 +265,7 @@
                     <properties/>
                     <border type="none"/>
                     <children>
-                      <component id="ba20a" class="com.intellij.ui.components.JBLabel">
+                      <component id="ba20a" class="com.intellij.ui.components.JBLabel" binding="myScalingLabel">
                         <constraints>
                           <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                         </constraints>
@@ -317,7 +317,7 @@
                     <properties/>
                     <border type="none"/>
                     <children>
-                      <component id="42061" class="com.intellij.ui.components.JBLabel">
+                      <component id="42061" class="com.intellij.ui.components.JBLabel" binding="myShapeLabel">
                         <constraints>
                           <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                         </constraints>
@@ -358,7 +358,7 @@
                     <properties/>
                     <border type="none"/>
                     <children>
-                      <component id="49143" class="com.intellij.ui.components.JBLabel">
+                      <component id="49143" class="com.intellij.ui.components.JBLabel" binding="myEffectLabel">
                         <constraints>
                           <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                         </constraints>
@@ -410,7 +410,7 @@
                     <properties/>
                     <border type="none"/>
                     <children>
-                      <component id="40a52" class="com.intellij.ui.components.JBLabel">
+                      <component id="40a52" class="com.intellij.ui.components.JBLabel" binding="myThemeLabel">
                         <constraints>
                           <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                         </constraints>
@@ -449,7 +449,7 @@
                     <properties/>
                     <border type="none"/>
                     <children>
-                      <component id="2d113" class="com.intellij.ui.components.JBLabel">
+                      <component id="2d113" class="com.intellij.ui.components.JBLabel" binding="myCustomColorLabel">
                         <constraints>
                           <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                         </constraints>
@@ -490,7 +490,7 @@
                     <properties/>
                     <border type="none"/>
                     <children>
-                      <component id="af719" class="com.intellij.ui.components.JBLabel">
+                      <component id="af719" class="com.intellij.ui.components.JBLabel" binding="myImagePathLabel">
                         <constraints>
                           <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                         </constraints>
@@ -514,7 +514,7 @@
                     <properties/>
                     <border type="none"/>
                     <children>
-                      <component id="51b07" class="com.intellij.ui.components.JBLabel">
+                      <component id="51b07" class="com.intellij.ui.components.JBLabel" binding="myClipartLabel">
                         <constraints>
                           <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                         </constraints>
@@ -538,7 +538,7 @@
                     <properties/>
                     <border type="none"/>
                     <children>
-                      <component id="34083" class="com.intellij.ui.components.JBLabel">
+                      <component id="34083" class="com.intellij.ui.components.JBLabel" binding="myTextLabel">
                         <constraints>
                           <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                         </constraints>
@@ -566,7 +566,7 @@
                 </properties>
                 <border type="none"/>
                 <children>
-                  <component id="4701c" class="com.intellij.ui.components.JBLabel">
+                  <component id="4701c" class="com.intellij.ui.components.JBLabel" binding="myOutputNameLabel">
                     <constraints>
                       <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                     </constraints>
