@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.structure.services.view;
+package com.android.tools.idea.assistant.view;
 
 import com.android.tools.idea.structure.services.DeveloperService;
-import com.android.tools.idea.structure.services.datamodel.StepData;
-import com.android.tools.idea.structure.services.datamodel.TutorialData;
+import com.android.tools.idea.assistant.datamodel.StepData;
+import com.android.tools.idea.assistant.datamodel.TutorialData;
 import com.intellij.icons.AllIcons;
 import com.intellij.ui.Gray;
 import com.intellij.ui.components.JBLabel;

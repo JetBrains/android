@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.devservices;
+package com.android.tools.idea.assistant;
 
 import com.android.tools.idea.structure.services.DeveloperServiceCreators;
 import com.android.tools.idea.structure.services.DeveloperServiceMap;
@@ -28,9 +28,9 @@ import java.awt.*;
  * TODO: Refactor package to reflect current use, something like
  * "AssistantSidePanel" may be appropriate.
  */
-public final class DeveloperServicesSidePanel extends JPanel {
+public final class AssistSidePanel extends JPanel {
 
-  public DeveloperServicesSidePanel(@NotNull String actionId, @NotNull DeveloperServiceMap serviceMap) {
+  public AssistSidePanel(@NotNull String actionId, @NotNull DeveloperServiceMap serviceMap) {
     Component customPanel = null;
 
     // TODO: Move layout to a form.

@@ -13,25 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.structure.services.datamodel;
-
-import java.util.List;
+package com.android.tools.idea.assistant.datamodel;
 
 /**
- * A tutorial consists of a relatively small number of instructions to
- * achieve a targeted task. It is treated as a single view hanging off of a
- * parent feature.
+ * An action represents a single button and its behaviors.
  */
-public interface TutorialData {
+public interface ActionData {
   String getLabel();
-
-  String getDescription();
-
-  String getRemoteLink();
-
-  String getRemoteLinkLabel();
 
   String getKey();
 
-  List<? extends StepData> getSteps();
+  String getActionArgument();
+
+  String getSuccessMessage();
+
+  String getEditAction();
 }

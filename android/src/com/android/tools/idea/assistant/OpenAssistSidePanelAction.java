@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.devservices;
+package com.android.tools.idea.assistant;
 
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.structure.services.DeveloperService;
@@ -38,7 +38,7 @@ import java.util.List;
 /**
  * Triggers the creation of the Developer Services side panel.
  */
-public class OpenDeveloperServicesSidePanelAction extends AnAction {
+public class OpenAssistSidePanelAction extends AnAction {
 
   private static final String TOOL_WINDOW_TITLE = "Assistant";
 
@@ -74,7 +74,7 @@ public class OpenDeveloperServicesSidePanelAction extends AnAction {
           }
         }
 
-        DeveloperServicesToolWindowFactory factory = new DeveloperServicesToolWindowFactory(actionId, serviceMap);
+        AssistToolWindowFactory factory = new AssistToolWindowFactory(actionId, serviceMap);
         ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(thisProject);
         ToolWindow toolWindow = toolWindowManager.getToolWindow(TOOL_WINDOW_TITLE);
 
