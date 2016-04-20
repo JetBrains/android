@@ -305,12 +305,15 @@ public class MergedManifest {
 
     // TODO remove this time based checking
 
-    ApplicationManager.getApplication().runReadAction(new Runnable() {
-      @Override
-      public void run() {
-        syncWithReadPermission();
-      }
-    });
+    // Ensure that two simultaneous sync requests from different threads don't interfere with each other.
+    synchronized (this) {
+      ApplicationManager.getApplication().runReadAction(new Runnable() {
+        @Override
+        public void run() {
+          syncWithReadPermission();
+        }
+      });
+    }
   }
 
   private void syncWithReadPermission() {
