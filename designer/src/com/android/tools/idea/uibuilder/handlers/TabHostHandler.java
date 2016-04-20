@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import org.jetbrains.annotations.NotNull;
+import com.android.tools.idea.uibuilder.api.XmlBuilder;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import org.intellij.lang.annotations.Language;
+import org.jetbrains.annotations.NotNull;
+
+import static com.android.SdkConstants.*;
 
 /**
  * Handler for the {@code <TabHost>} layout
@@ -42,37 +45,45 @@ public class TabHostHandler extends FrameLayoutHandler {
     }
   }
 
-  @NotNull
   @Language("XML")
+  @NotNull
   private static String getXmlWithTabs(@NotNull String tagName, int tabs) {
-    StringBuilder builder = new StringBuilder();
+    // @formatter:off
+    XmlBuilder builder = new XmlBuilder()
+      .startTag(tagName)
+      .androidAttribute(ATTR_LAYOUT_WIDTH, "200dip")
+      .androidAttribute(ATTR_LAYOUT_HEIGHT, "300dip")
+        .startTag(LINEAR_LAYOUT)
+        .androidAttribute(ATTR_LAYOUT_WIDTH, VALUE_MATCH_PARENT)
+        .androidAttribute(ATTR_LAYOUT_HEIGHT, VALUE_MATCH_PARENT)
+        .androidAttribute(ATTR_ORIENTATION, VALUE_VERTICAL)
+          .startTag(TAB_WIDGET)
+          .androidAttribute(ATTR_ID, "@android:id/tabs")
+          .androidAttribute(ATTR_LAYOUT_WIDTH, VALUE_MATCH_PARENT)
+          .androidAttribute(ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT)
+          .endTag(TAB_WIDGET)
+          .startTag(FRAME_LAYOUT)
+          .androidAttribute(ATTR_ID, "@android:id/tabcontent")
+          .androidAttribute(ATTR_LAYOUT_WIDTH, VALUE_MATCH_PARENT)
+          .androidAttribute(ATTR_LAYOUT_HEIGHT, VALUE_MATCH_PARENT);
+    // @formatter:on
+
     for (int tab = 0; tab < tabs; tab++) {
-      builder.append(String.format("<LinearLayout\n" +
-                                   "    android:id=\"@+id/tab%1$d\"\n" +
-                                   "    android:layout_width=\"match_parent\"\n" +
-                                   "    android:layout_height=\"match_parent\"\n" +
-                                   "    android:orientation=\"vertical\">\n" +
-                                   "</LinearLayout>\n", tab + 1));
+      builder
+        .startTag(LINEAR_LAYOUT)
+        .androidAttribute(ATTR_ID, "@+id/tab" + (tab + 1))
+        .androidAttribute(ATTR_LAYOUT_WIDTH, VALUE_MATCH_PARENT)
+        .androidAttribute(ATTR_LAYOUT_HEIGHT, VALUE_MATCH_PARENT)
+        .androidAttribute(ATTR_ORIENTATION, VALUE_VERTICAL)
+        .endTag(LINEAR_LAYOUT);
     }
-    return String.format("<%1$s\n" +
-                         "    android:layout_width=\"200dip\"\n" +
-                         "    android:layout_height=\"300dip\">\n" +
-                         "  <LinearLayout\n" +
-                         "      android:layout_width=\"match_parent\"\n" +
-                         "      android:layout_height=\"match_parent\"\n" +
-                         "      android:orientation=\"vertical\">\n" +
-                         "    <TabWidget\n" +
-                         "        android:id=\"@android:id/tabs\"\n" +
-                         "        android:layout_width=\"match_parent\"\n" +
-                         "        android:layout_height=\"wrap_content\">\n" +
-                         "    </TabWidget>\n" +
-                         "    <FrameLayout\n" +
-                         "        android:id=\"@android:id/tabcontent\"\n" +
-                         "        android:layout_width=\"match_parent\"\n" +
-                         "        android:layout_height=\"match_parent\">\n" +
-                         "        %2$s" +
-                         "    </FrameLayout>\n" +
-                         "  </LinearLayout>\n" +
-                         "</%1$s>\n", tagName, builder);
+
+    // @formatter:off
+    return builder
+          .endTag(FRAME_LAYOUT)
+        .endTag(LINEAR_LAYOUT)
+      .endTag(tagName)
+      .toString();
+    // @formatter:on
   }
 }

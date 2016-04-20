@@ -15,15 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import org.jetbrains.annotations.NotNull;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.api.XmlType;
-import com.google.common.collect.ImmutableList;
 import org.intellij.lang.annotations.Language;
-
-import java.util.List;
-
-import static com.android.SdkConstants.*;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Handler for the widgets for which no preview should be rendered.

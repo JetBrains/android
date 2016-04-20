@@ -15,20 +15,26 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import com.android.tools.idea.uibuilder.api.ElementBuilder;
+import com.android.tools.idea.uibuilder.api.XmlBuilder;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
+
+import static com.android.SdkConstants.ATTR_TITLE;
+import static com.android.SdkConstants.PreferenceAttributes.DEFAULT_VALUE;
+import static com.android.SdkConstants.PreferenceAttributes.KEY;
 
 final class SwitchPreferenceHandler extends PreferenceHandler {
   @Language("XML")
   @NotNull
   @Override
-  public String getXml(@NotNull String tag, @NotNull XmlType type) {
-    return new ElementBuilder(tag)
-      .addAndroidAttribute("defaultValue", false)
-      .addAndroidAttribute("key", "")
-      .addAndroidAttribute("title", "Switch preference")
-      .build();
+  public String getXml(@NotNull String tagName, @NotNull XmlType xmlType) {
+    return new XmlBuilder()
+      .startTag(tagName)
+      .androidAttribute(DEFAULT_VALUE, false)
+      .androidAttribute(KEY, "")
+      .androidAttribute(ATTR_TITLE, "Switch preference")
+      .endTag(tagName)
+      .toString();
   }
 }

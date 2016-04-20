@@ -15,12 +15,13 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import org.jetbrains.annotations.NotNull;
+import com.android.tools.idea.uibuilder.api.XmlBuilder;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import org.intellij.lang.annotations.Language;
+import org.jetbrains.annotations.NotNull;
 
-import static com.android.SdkConstants.RADIO_GROUP;
+import static com.android.SdkConstants.*;
 
 /**
  * Handler for the {@code <RadioGroup>} layout
@@ -44,10 +45,12 @@ public class RadioGroupHandler extends LinearLayoutHandler {
     // Use the default layout parameters for a horizontal RadioGroup:
     switch (xmlType) {
       case COMPONENT_CREATION:
-        return String.format("<%1$s\n" +
-                             "  android:layout_width=\"wrap_content\"\n" +
-                             "  android:layout_height=\"wrap_content\">\n" +
-                             "</%1$s>\n", tagName);
+        return new XmlBuilder()
+          .startTag(tagName)
+          .androidAttribute(ATTR_LAYOUT_WIDTH, VALUE_WRAP_CONTENT)
+          .androidAttribute(ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT)
+          .endTag(tagName)
+          .toString();
       default:
         return super.getXml(tagName, xmlType);
     }

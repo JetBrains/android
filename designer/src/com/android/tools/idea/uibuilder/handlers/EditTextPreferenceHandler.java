@@ -15,22 +15,29 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import com.android.tools.idea.uibuilder.api.ElementBuilder;
+import com.android.tools.idea.uibuilder.api.XmlBuilder;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
+
+import static com.android.SdkConstants.ATTR_SINGLE_LINE;
+import static com.android.SdkConstants.ATTR_TITLE;
+import static com.android.SdkConstants.PreferenceAttributes.DEFAULT_VALUE;
+import static com.android.SdkConstants.PreferenceAttributes.KEY;
 
 final class EditTextPreferenceHandler extends PreferenceHandler {
   @Language("XML")
   @NotNull
   @Override
-  public String getXml(@NotNull String tag, @NotNull XmlType type) {
-    return new ElementBuilder(tag)
-      .addAndroidAttribute("defaultValue", "")
-      .addAndroidAttribute("key", "")
-      .addAndroidAttribute("selectAllOnFocus", true)
-      .addAndroidAttribute("singleLine", true)
-      .addAndroidAttribute("title", "Edit text preference")
-      .build();
+  public String getXml(@NotNull String tagName, @NotNull XmlType xmlType) {
+    return new XmlBuilder()
+      .startTag(tagName)
+      .androidAttribute(DEFAULT_VALUE, "")
+      .androidAttribute(KEY, "")
+      .androidAttribute("selectAllOnFocus", true)
+      .androidAttribute(ATTR_SINGLE_LINE, true)
+      .androidAttribute(ATTR_TITLE, "Edit text preference")
+      .endTag(tagName)
+      .toString();
   }
 }

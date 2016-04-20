@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers;
 
 import com.android.tools.idea.uibuilder.api.ViewHandler;
+import com.android.tools.idea.uibuilder.api.XmlBuilder;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.google.common.collect.ImmutableSet;
@@ -49,11 +50,13 @@ public class TextViewHandler extends ViewHandler {
   @Language("XML")
   @NotNull
   public String getXml(@NotNull String tagName, @NotNull XmlType xmlType) {
-    return String.format("<%1$s\n" +
-                         "  android:text=\"%1$s\"\n" +
-                         "  android:layout_width=\"wrap_content\"\n" +
-                         "  android:layout_height=\"wrap_content\">\n" +
-                         "</%1$s>\n", tagName);
+    return new XmlBuilder()
+      .startTag(tagName)
+      .androidAttribute(ATTR_TEXT, tagName)
+      .androidAttribute(ATTR_LAYOUT_WIDTH, VALUE_WRAP_CONTENT)
+      .androidAttribute(ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT)
+      .endTag(tagName)
+      .toString();
   }
 
   @Override

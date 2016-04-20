@@ -15,20 +15,16 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.uibuilder.api.InsertType;
-import com.android.tools.idea.uibuilder.api.ViewEditor;
-import com.android.tools.idea.uibuilder.api.ViewHandler;
-import com.android.tools.idea.uibuilder.api.XmlType;
+import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import org.intellij.lang.annotations.Language;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.EnumSet;
 
-import static com.android.SdkConstants.ANDROID_URI;
-import static com.android.SdkConstants.ATTR_SRC;
+import static com.android.SdkConstants.*;
 
 /**
  * Handler for the {@code <ImageView>} widget
@@ -39,11 +35,13 @@ public class ImageViewHandler extends ViewHandler {
   @NotNull
   @Language("XML")
   public String getXml(@NotNull String tagName, @NotNull XmlType xmlType) {
-    return String.format("<%1$s\n" +
-                         "  android:src=\"%2$s\"\n" +
-                         "  android:layout_width=\"wrap_content\"\n" +
-                         "  android:layout_height=\"wrap_content\">\n" +
-                         "</%1$s>\n", tagName, getSampleImageSrc());
+    return new XmlBuilder()
+      .startTag(tagName)
+      .androidAttribute(ATTR_SRC, getSampleImageSrc())
+      .androidAttribute(ATTR_LAYOUT_WIDTH, VALUE_WRAP_CONTENT)
+      .androidAttribute(ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT)
+      .endTag(tagName)
+      .toString();
   }
 
   @Override
