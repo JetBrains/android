@@ -455,7 +455,7 @@ public class LayoutPreviewTest {
 
     // Ensure that all the references are properly resolved
     FileFixture file = guiTest.ideFrame().findExistingFileByRelativePath(layoutFilePath);
-    file.requireCodeAnalysisHighlightCount(ERROR, 0);
+    file.waitForCodeAnalysisHighlightCount(ERROR, 0);
 
     String buildGradlePath = "app/build.gradle";
     editor.open(buildGradlePath, EditorFixture.Tab.EDITOR);
@@ -470,6 +470,6 @@ public class LayoutPreviewTest {
     string1 = preview.find(new AttributeMatcher(ATTR_TEXT, ANDROID_URI, "@string/dynamic_string1"));
     string1.requireActualText("String 1 defined only by edited defaultConfig");
 
-    file.requireCodeAnalysisHighlightCount(ERROR, 0);
+    editor.waitForCodeAnalysisHighlightCount(ERROR, 0);
   }
 }
