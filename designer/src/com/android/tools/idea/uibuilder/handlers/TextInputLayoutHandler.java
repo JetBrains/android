@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import org.jetbrains.annotations.NotNull;
+import com.android.SdkConstants;
+import com.android.tools.idea.uibuilder.api.XmlBuilder;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import org.intellij.lang.annotations.Language;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Handler for the {@code <TextInputLayout>} layout
@@ -30,10 +32,12 @@ public class TextInputLayoutHandler extends LinearLayoutHandler {
   public String getXml(@NotNull String tagName, @NotNull XmlType xmlType) {
     switch (xmlType) {
       case COMPONENT_CREATION:
-        return "<android.support.design.widget.TextInputLayout\n" +
-               "  android:layout_width=\"match_parent\"\n" +
-               "  android:layout_height=\"wrap_content\">\n" +
-               "</android.support.design.widget.TextInputLayout>\n";
+        return new XmlBuilder()
+          .startTag(tagName)
+          .androidAttribute(SdkConstants.ATTR_LAYOUT_WIDTH, SdkConstants.VALUE_MATCH_PARENT)
+          .androidAttribute(SdkConstants.ATTR_LAYOUT_HEIGHT, SdkConstants.VALUE_WRAP_CONTENT)
+          .endTag(tagName)
+          .toString();
       default:
         return super.getXml(tagName, xmlType);
     }

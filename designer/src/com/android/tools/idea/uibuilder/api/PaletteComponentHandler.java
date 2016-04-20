@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.api;
 
-import org.jetbrains.annotations.NotNull;
 import com.intellij.openapi.util.IconLoader;
 import icons.AndroidIcons;
 import org.intellij.lang.annotations.Language;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
@@ -91,17 +91,18 @@ public abstract class PaletteComponentHandler {
    * </ul>
    *
    * @param tagName the tag name of the component
-   * @param xmlType how the caller intend to use the XML returned
+   * @param xmlType how the caller intends to use the XML returned
    * @return the XML for a newly created component
    */
   @NotNull
   @Language("XML")
   public String getXml(@NotNull String tagName, @NotNull XmlType xmlType) {
-    // Most components that are not containers are rendered by this simple XML
-    return String.format("<%1$s\n" +
-                         "  android:layout_width=\"wrap_content\"\n" +
-                         "  android:layout_height=\"wrap_content\">\n" +
-                         "</%1$s>\n", tagName);
+    return new XmlBuilder()
+      .startTag(tagName)
+      .androidAttribute(ATTR_LAYOUT_WIDTH, VALUE_WRAP_CONTENT)
+      .androidAttribute(ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT)
+      .endTag(tagName)
+      .toString();
   }
 
   /**
