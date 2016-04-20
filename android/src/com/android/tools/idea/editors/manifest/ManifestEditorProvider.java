@@ -35,7 +35,7 @@ public class ManifestEditorProvider implements FileEditorProvider {
     Module module = ModuleUtilCore.findModuleForFile(file, project);
     if (module != null) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
-      if (facet != null && !facet.isLibraryProject()) {
+      if (facet != null) {
         return SdkConstants.FN_ANDROID_MANIFEST_XML.equals(file.getName());
       }
     }
