@@ -87,7 +87,7 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel {
 
       for (PsIssue issue : issues) {
         buffer.append("<li>")
-              .append(issue.getPath().toHtml()).append(": ").append(issue.getText()).append("<p>&nbsp;</p>")
+              .append(issue.getPath().toHtml()).append(": ").append(issue.getText())
               .append("</li>");
       }
 

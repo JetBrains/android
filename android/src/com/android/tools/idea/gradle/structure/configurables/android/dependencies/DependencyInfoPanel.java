@@ -21,11 +21,16 @@ import com.android.tools.idea.gradle.structure.configurables.ui.CollapsiblePanel
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import java.awt.*;
 
 class DependencyInfoPanel {
   private JPanel myMainPanel;
   private JPanel myDependencyDetailsPanel;
   private JPanel myIssuesPanel;
+
+  DependencyInfoPanel() {
+    myMainPanel.setPreferredSize(new Dimension(100, 50));
+  }
 
   void setDependencyDetails(@NotNull DependencyDetails details) {
     ((CollapsiblePanel)myDependencyDetailsPanel).setContents(details.getPanel());
