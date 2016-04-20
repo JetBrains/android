@@ -17,6 +17,7 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.tools.idea.tests.gui.framework.Wait;
 import com.intellij.codeInsight.daemon.impl.DaemonCodeAnalyzerEx;
+import com.intellij.codeInsight.daemon.impl.DaemonCodeAnalyzerImpl;
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.editor.Document;
@@ -97,16 +98,14 @@ public class FileFixture {
         new GuiQuery<Boolean>() {
           @Override
           protected Boolean executeInEDT() throws Throwable {
-            return DaemonCodeAnalyzerEx.getInstanceEx(myProject).isErrorAnalyzingFinished(getPsiFile());
+            // isRunningOrPending() should be enough, but tests fail. During code analysis, DaemonCodeAnalyzerImpl, keeps calling
+            // cancelUpdateProgress(), and then restarting again, but the restart is queued on the UI Thread, so for some moments,
+            // isRunningOrPending() returns false, while technically there is in an event, on the UI queue, waiting.
+            // isErrorAnalyzingFinished() checks a dirty flag, and the flag is not clean until the analysis is done.
+            DaemonCodeAnalyzerImpl codeAnalyzer = (DaemonCodeAnalyzerImpl)DaemonCodeAnalyzerEx.getInstanceEx(myProject);
+            return !codeAnalyzer.isRunningOrPending() && codeAnalyzer.isErrorAnalyzingFinished(getPsiFile());
           }
         }));
-    return this;
-  }
-
-  @NotNull
-  public FileFixture requireCodeAnalysisHighlightCount(@NotNull HighlightSeverity severity, int expected) {
-    Collection<HighlightInfo> highlightInfos = getHighlightInfos(severity);
-    assertThat(highlightInfos).hasSize(expected);
     return this;
   }
 
@@ -140,22 +139,9 @@ public class FileFixture {
   }
 
   @NotNull
-  public FileFixture waitForCodeAnalysisHighlightCount(@NotNull final HighlightSeverity severity, final int expected) {
-    final Document document = getNotNullDocument();
-    Wait.minutes(2).expecting("code analysis " + severity + " count to reach " + expected)
-      .until(() -> {
-        Collection<HighlightInfo> highlightInfos = execute(new GuiQuery<Collection<HighlightInfo>>() {
-          @Override
-          protected Collection<HighlightInfo> executeInEDT() throws Throwable {
-            CommonProcessors.CollectProcessor<HighlightInfo> processor = new CommonProcessors.CollectProcessor<>();
-            DaemonCodeAnalyzerEx.processHighlights(document, myProject, severity, 0, document.getTextLength(), processor);
-            return processor.getResults();
-          }
-        });
-        assertNotNull(highlightInfos);
-        return highlightInfos.size() == expected;
-      });
-
+  public FileFixture waitForCodeAnalysisHighlightCount(@NotNull HighlightSeverity severity, int expected) {
+    waitUntilErrorAnalysisFinishes();
+    assertThat(getHighlightInfos(severity)).hasSize(expected);
     return this;
   }
 

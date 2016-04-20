@@ -778,9 +778,7 @@ public class GradleSyncTest {
 
     String stringsXmlPath = "app/src/main/res/values/strings.xml";
     guiTest.ideFrame().getEditor().open(stringsXmlPath, Tab.EDITOR);
-
-    FileFixture file = guiTest.ideFrame().findExistingFileByRelativePath(stringsXmlPath);
-    file.requireCodeAnalysisHighlightCount(HighlightSeverity.ERROR, 0);
+    guiTest.ideFrame().getEditor().waitForCodeAnalysisHighlightCount(HighlightSeverity.ERROR, 0);
   }
 
   @Test
