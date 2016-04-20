@@ -18,9 +18,9 @@ package com.android.tools.idea.gradle.structure.configurables.android.dependenci
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.details.DependencyDetails;
 import com.android.tools.idea.gradle.structure.configurables.issues.IssuesViewer;
+import com.android.tools.idea.gradle.structure.configurables.ui.ChooseModuleDialog;
 import com.android.tools.idea.gradle.structure.configurables.ui.EmptyPanel;
 import com.android.tools.idea.gradle.structure.dependencies.AddLibraryDependencyDialog;
-import com.android.tools.idea.gradle.structure.configurables.ui.ChooseModuleDialog;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
@@ -57,8 +57,6 @@ import java.util.function.Consumer;
 import static com.intellij.ui.IdeBorderFactory.createEmptyBorder;
 import static com.intellij.ui.ScrollPaneFactory.createScrollPane;
 import static com.intellij.util.PlatformIcons.LIBRARY_ICON;
-import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
-import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 
 public abstract class AbstractDeclaredDependenciesPanel extends JPanel implements Place.Navigator, Disposable {
   @NotNull private final PsContext myContext;
@@ -86,7 +84,7 @@ public abstract class AbstractDeclaredDependenciesPanel extends JPanel implement
     myEmptyDetailsPanel = new EmptyPanel(myEmptyText);
     myInfoPanel = new DependencyInfoPanel();
 
-    myInfoScrollPane = createScrollPane(myEmptyDetailsPanel, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER);
+    myInfoScrollPane = createScrollPane(myEmptyDetailsPanel);
     myInfoScrollPane.setBorder(createEmptyBorder());
 
     Header header = new Header(title);

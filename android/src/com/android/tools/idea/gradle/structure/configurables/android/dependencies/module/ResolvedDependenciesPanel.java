@@ -54,7 +54,7 @@ import java.awt.event.MouseEvent;
 import java.util.List;
 import java.util.Set;
 
-import static com.android.tools.idea.gradle.structure.configurables.android.dependencies.UiUtil.setUp;
+import static com.android.tools.idea.gradle.structure.configurables.ui.UiUtil.setUp;
 import static com.intellij.openapi.wm.impl.content.ToolWindowContentUi.POPUP_PLACE;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static java.awt.event.MouseEvent.MOUSE_PRESSED;

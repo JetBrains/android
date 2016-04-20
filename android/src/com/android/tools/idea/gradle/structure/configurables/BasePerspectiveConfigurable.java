@@ -37,6 +37,7 @@ import java.awt.*;
 import java.util.Collections;
 import java.util.List;
 
+import static com.android.tools.idea.gradle.structure.configurables.ui.UiUtil.revalidateAndRepaint;
 import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
 
 public abstract class BasePerspectiveConfigurable extends MasterDetailsComponent
@@ -63,8 +64,7 @@ public abstract class BasePerspectiveConfigurable extends MasterDetailsComponent
       if (myTree.isShowing()) {
         // If issues are updated and the tree is showing, trigger a repaint so the proper highlight and tooltip is applied.
         invokeLaterIfNeeded(() -> {
-          myTree.revalidate();
-          myTree.repaint();
+          revalidateAndRepaint(myTree);
         });
       }
     }, this);
@@ -139,7 +139,7 @@ public abstract class BasePerspectiveConfigurable extends MasterDetailsComponent
       splitter.setSecondComponent(null);
       myWholePanel.remove(splitter);
       myWholePanel.add(myCenterComponent, BorderLayout.CENTER);
-      revalidateAndRepaintWholePanel();
+      revalidateAndRepaint(myWholePanel);
     }
     else {
       if (myWholePanel == null) {
@@ -152,7 +152,7 @@ public abstract class BasePerspectiveConfigurable extends MasterDetailsComponent
         myWholePanel.remove(myCenterComponent);
         splitter.setSecondComponent(myCenterComponent);
         myWholePanel.add(splitter);
-        revalidateAndRepaintWholePanel();
+        revalidateAndRepaint(myWholePanel);
       }
 
       myCenterComponent = splitter;
@@ -168,11 +168,6 @@ public abstract class BasePerspectiveConfigurable extends MasterDetailsComponent
         });
       }
     }
-  }
-
-  private void revalidateAndRepaintWholePanel() {
-    myWholePanel.revalidate();
-    myWholePanel.repaint();
   }
 
   private void modulesTreeMinimized() {
