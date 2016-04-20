@@ -35,7 +35,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public abstract class TreeController extends Controller {
-  public static final int TREE_ROW_HEIGHT = 19;
+  public static final int TREE_ROW_HEIGHT = JBUI.scale(19);
 
   @NotNull protected final LoadablePanel myLoadingPanel;
   @NotNull protected final JPanel myPanel = new JPanel(new BorderLayout());
