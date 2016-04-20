@@ -40,12 +40,14 @@ import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
-import com.intellij.util.ui.accessibility.AccessibleContextUtil;
+import com.intellij.util.ui.accessibility.AccessibleContextDelegate;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.accessibility.Accessible;
+import javax.accessibility.AccessibleContext;
 import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
@@ -58,6 +60,7 @@ import javax.swing.table.TableColumn;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
@@ -116,7 +119,8 @@ public class SdkComponentsStep extends FirstRunWizardStep {
     myComponentsTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
       @Override
       public void valueChanged(ListSelectionEvent e) {
-        myComponentDescription.setText(myTableModel.getComponentDescription(myComponentsTable.getSelectedRow()));
+        int row = myComponentsTable.getSelectedRow();
+        myComponentDescription.setText(row < 0 ? "" : myTableModel.getComponentDescription(row));
       }
     });
     TableColumn column = myComponentsTable.getColumnModel().getColumn(0);
@@ -315,18 +319,28 @@ public class SdkComponentsStep extends FirstRunWizardStep {
   }
 
   private final class SdkComponentRenderer extends AbstractCellEditor implements TableCellRenderer, TableCellEditor {
-    private final JPanel myPanel;
-    private final JCheckBox myCheckBox;
+    private final RendererPanel myPanel;
+    private final RendererCheckBox myCheckBox;
     private Border myEmptyBorder;
 
     public SdkComponentRenderer() {
-      myPanel = new JPanel(new GridLayoutManager(1, 1));
-      myCheckBox = new JCheckBox();
+      myPanel = new RendererPanel();
+      myCheckBox = new RendererCheckBox();
       myCheckBox.setOpaque(false);
       myCheckBox.addActionListener(new ActionListener() {
         @Override
         public void actionPerformed(ActionEvent e) {
-          stopCellEditing();
+          if (myComponentsTable.isEditing()) {
+            // Stop cell editing as soon as the SPACE key is pressed. This allows the SPACE key
+            // to toggle the checkbox while allowing the other navigation keys to function as
+            // soon as the toggle action is finished.
+            // Note: This calls "setValueAt" on "myTableModel" automatically.
+            stopCellEditing();
+          } else {
+            // This happens when the "pressed" action is invoked programmatically through
+            // accessibility, so we need to call "setValueAt" manually.
+            myTableModel.setValueAt(myCheckBox.isSelected(), myCheckBox.getRow(), 0);
+          }
         }
       });
     }
@@ -338,6 +352,7 @@ public class SdkComponentsStep extends FirstRunWizardStep {
     }
 
     private void setupControl(JTable table, Object value, int row, boolean isSelected, boolean hasFocus) {
+      myCheckBox.setRow(row);
       myPanel.setBorder(getCellBorder(table, isSelected && hasFocus));
       Color foreground;
       Color background;
@@ -365,8 +380,6 @@ public class SdkComponentsStep extends FirstRunWizardStep {
       myPanel.add(myCheckBox,
                   new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
                                       GridConstraints.SIZEPOLICY_FIXED, null, null, null, indent * 2));
-      AccessibleContextUtil.setName(myPanel, myCheckBox);
-      AccessibleContextUtil.setDescription(myPanel, myTableModel.getComponentDescription(row));
     }
 
     private Border getCellBorder(JTable table, boolean isSelectedFocus) {
@@ -393,6 +406,110 @@ public class SdkComponentsStep extends FirstRunWizardStep {
     @Override
     public Object getCellEditorValue() {
       return myCheckBox.isSelected();
+    }
+
+    /**
+     * A specialization of {@link JPanel} that provides complete accessibility support by
+     * delegating most of its behavior to {@link #myCheckBox}.
+     */
+    protected class RendererPanel extends JPanel {
+      public RendererPanel() {
+        super(new GridLayoutManager(1, 1));
+      }
+
+      @Override
+      protected void processKeyEvent(KeyEvent e) {
+        if (myComponentsTable.isEditing()) {
+          myCheckBox._processKeyEvent(e);
+        } else {
+          super.processKeyEvent(e);
+        }
+      }
+
+      @Override
+      protected boolean processKeyBinding(KeyStroke ks, KeyEvent e, int condition, boolean pressed) {
+        if (myComponentsTable.isEditing()) {
+          return myCheckBox._processKeyBinding(ks, e, condition, pressed);
+        } else {
+          return super.processKeyBinding(ks, e, condition, pressed);
+        }
+      }
+
+      @Override
+      public AccessibleContext getAccessibleContext() {
+        if (accessibleContext == null) {
+          accessibleContext = new AccessibleRendererPanel();
+        }
+        return accessibleContext;
+      }
+
+      /**
+       * Delegate accessible implementation to the embedded {@link #myCheckBox}.
+       */
+      protected class AccessibleRendererPanel extends AccessibleContextDelegate {
+        public AccessibleRendererPanel() {
+          super(myCheckBox.getAccessibleContext());
+        }
+
+        /**
+         * The parent should be the Swing parent of this panel, not the {@link #myCheckBox} parent,
+         * because the parent of {@link #myCheckBox} is ourselves, i.e. this would result in
+         * an infinite accessible parent chain.
+         */
+        @Override
+        public Accessible getAccessibleParent() {
+          if (accessibleParent != null) {
+            return accessibleParent;
+          } else {
+            Container parent = RendererPanel.this.getParent();
+            if (parent instanceof Accessible) {
+              return (Accessible) parent;
+            }
+          }
+          return null;
+        }
+
+        @Override
+        public String getAccessibleDescription() {
+          return myTableModel.getComponentDescription(myCheckBox.getRow());
+        }
+      }
+    }
+
+    /**
+     * A specialization of {@link JCheckBox} that provides keyboard friendly behavior
+     * when contained inside {@link RendererPanel} inside a table cell editor.
+     */
+    protected class RendererCheckBox extends JCheckBox {
+      private int myRow;
+
+      public int getRow() {
+        return myRow;
+      }
+
+      public void setRow(int row) {
+        myRow = row;
+      }
+
+      public boolean _processKeyBinding(KeyStroke ks, KeyEvent e, int condition, boolean pressed) {
+        return super.processKeyBinding(ks, e, condition, pressed);
+      }
+
+      public void _processKeyEvent(KeyEvent e) {
+        super.processKeyEvent(e);
+      }
+
+      @Override
+      public void requestFocus() {
+        // Ignore focus requests when editing cells. If we were to accept the focus request
+        // the focus manager would move the focus to some other component when the checkbox
+        // exits editing mode.
+        if (myComponentsTable.isEditing()) {
+          return;
+        }
+
+        super.requestFocus();
+      }
     }
   }
 
@@ -444,6 +561,10 @@ public class SdkComponentsStep extends FirstRunWizardStep {
     public void setValueAt(Object aValue, int row, int column) {
       ComponentTreeNode node = getInstallableComponent(row);
       node.toggle(((Boolean)aValue));
+      // We need to repaint as a change in a single row may affect the state of
+      // our parent and/or children in other rows.
+      // Note: Don't use fireTableDataChanged to avoid clearing the selection.
+      fireTableRowsUpdated(0, getRowCount());
     }
 
     public String getComponentDescription(int index) {
