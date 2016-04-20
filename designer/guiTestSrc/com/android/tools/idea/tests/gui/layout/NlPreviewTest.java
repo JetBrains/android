@@ -46,7 +46,7 @@ public class NlPreviewTest {
     editor.open("app/src/main/res/layout/layout2.xml", EditorFixture.Tab.EDITOR);
     NlPreviewFixture preview = NlPreviewFixture.getNlPreview(editor, ideFrame, true);
     assertNotNull(preview);
-    NlConfigurationToolbarFixture toolbar = preview.getToolbar();
+    NlConfigurationToolbarFixture toolbar = preview.getConfigToolbar();
     toolbar.chooseDevice("Nexus 5");
     preview.waitForRenderToFinish();
     toolbar.requireDevice("Nexus 5");

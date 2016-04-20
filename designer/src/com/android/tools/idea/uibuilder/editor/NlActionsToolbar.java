@@ -86,12 +86,14 @@ public class NlActionsToolbar implements DesignSurfaceListener, ModelListener {
 
     ActionManager actionManager = ActionManager.getInstance();
     myActionToolbar = actionManager.createActionToolbar("NlConfigToolbar", configGroup, true);
+    myActionToolbar.getComponent().setName("NlConfigToolbar");
     myActionToolbar.setLayoutPolicy(ActionToolbar.WRAP_LAYOUT_POLICY);
     JComponent actionToolbarComponent = myActionToolbar.getComponent();
     actionToolbarComponent.setBorder(IdeBorderFactory.createBorder(SideBorder.BOTTOM));
     panel.add(actionToolbarComponent, BorderLayout.NORTH);
 
     final ActionToolbar layoutToolBar = actionManager.createActionToolbar("NlLayoutToolbar", myDynamicGroup, true);
+    layoutToolBar.getComponent().setName("NlLayoutToolbar");
     layoutToolBar.setLayoutPolicy(ActionToolbar.WRAP_LAYOUT_POLICY);
 
     // The default toolbar layout adds too much spacing between the buttons. Switch to mini mode,
