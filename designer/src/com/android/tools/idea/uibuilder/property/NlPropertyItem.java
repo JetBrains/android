@@ -121,12 +121,9 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
   }
 
   @Override
-  @Nullable
-  public String resolveValue(@Nullable String value) {
-    if (value == null) {
-      return null;
-    }
-    if (myDefaultValue != null && isDefaultValue(value)) {
+  @NotNull
+  public String resolveValue(@NotNull String value) {
+    if (myDefaultValue != null && myDefaultValue.value != null && isDefaultValue(value)) {
       return myDefaultValue.value;
     }
     if (value.startsWith("?") || value.startsWith("@") && !isId(value)) {

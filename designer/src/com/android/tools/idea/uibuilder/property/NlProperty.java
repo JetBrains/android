@@ -45,8 +45,8 @@ public interface NlProperty {
   /**
    * Resolves the specified value.
    */
-  @Nullable
-  String resolveValue(@Nullable String value);
+  @NotNull
+  String resolveValue(@NotNull String value);
 
   /**
    * Set the property value.

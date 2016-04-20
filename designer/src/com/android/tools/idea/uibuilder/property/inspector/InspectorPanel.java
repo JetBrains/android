@@ -93,6 +93,7 @@ public class InspectorPanel extends JPanel {
   public void setComponent(@Nullable NlComponent component,
                            @NotNull List<? extends NlProperty> properties,
                            @NotNull NlPropertiesManager propertiesManager) {
+    mySplitComponents.clear();
     myInspector.removeAll();
     myInspector.repaint();
 

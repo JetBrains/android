@@ -333,9 +333,6 @@ public class NlEnumEditor {
         return UNSET;
       }
       String display = property.resolveValue(value);
-      if (display == null) {
-        display = value;
-      }
       if (property.getName().equals(SdkConstants.ATTR_TEXT_APPEARANCE)) {
         ValueWithDisplayString attr = createTextAppearanceValue(display, "");
         if (attr != null) {

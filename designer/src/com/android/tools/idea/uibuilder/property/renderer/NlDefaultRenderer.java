@@ -104,9 +104,6 @@ public class NlDefaultRenderer extends NlAttributeRenderer {
       return null;
     }
     String text = property.resolveValue(value.toString());
-    if (text == null) {
-      return null;
-    }
 
     if (isColorValue(text)) {
       return getColorIcon(text);
