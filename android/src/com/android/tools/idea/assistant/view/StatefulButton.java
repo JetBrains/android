@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.structure.services.view;
+package com.android.tools.idea.assistant.view;
 
-import com.android.tools.idea.structure.services.AssistActionStateManager;
+import com.android.tools.idea.assistant.AssistActionStateManager;
 import com.android.tools.idea.structure.services.DeveloperService;
-import com.android.tools.idea.structure.services.StatefulButtonNotifier;
-import com.android.tools.idea.structure.services.datamodel.ActionData;
+import com.android.tools.idea.assistant.StatefulButtonNotifier;
+import com.android.tools.idea.assistant.datamodel.ActionData;
 import com.intellij.openapi.module.Module;
 import com.intellij.util.messages.MessageBusConnection;
 import org.jetbrains.annotations.NotNull;

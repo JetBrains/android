@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.structure.services.view;
+package com.android.tools.idea.assistant.view;
 
 
-import com.android.tools.idea.structure.services.AssistActionHandler;
+import com.android.tools.idea.assistant.AssistActionHandler;
 import com.android.tools.idea.structure.services.DeveloperService;
 import com.android.tools.idea.structure.services.DeveloperServiceMap;
-import com.android.tools.idea.structure.services.datamodel.FeatureData;
-import com.android.tools.idea.structure.services.datamodel.TutorialBundleData;
-import com.android.tools.idea.structure.services.datamodel.TutorialData;
+import com.android.tools.idea.assistant.datamodel.FeatureData;
+import com.android.tools.idea.assistant.datamodel.TutorialBundleData;
+import com.android.tools.idea.assistant.datamodel.TutorialData;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 

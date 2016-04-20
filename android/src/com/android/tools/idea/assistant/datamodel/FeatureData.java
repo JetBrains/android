@@ -13,17 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.structure.services.datamodel;
+package com.android.tools.idea.assistant.datamodel;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
+import java.util.List;
 
 /**
  * TODO document me
  */
-public interface StepElementData {
-  StepElementType getType();
+public interface FeatureData {
+  @NotNull
+  List<String> getResources();
 
-  String getCode();
+  @NotNull
+  String getResourceRoot();
 
-  String getSection();
+  @NotNull
+  String getName();
 
-  ActionData getAction();
+  @Nullable("Feature icons are optional")
+  Icon getIcon();
+
+  @NotNull
+  String getDescription();
+
+  @Nullable("Optional if you have no actions requiring DeveloperService")
+  String getServiceId();
+
+  @NotNull
+  List<? extends TutorialData> getTutorials();
 }

@@ -13,36 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.structure.services.datamodel;
+package com.android.tools.idea.assistant.datamodel;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
 import java.util.List;
 
 /**
- * TODO document me
+ * A tutorial consists of a relatively small number of instructions to
+ * achieve a targeted task. It is treated as a single view hanging off of a
+ * parent feature.
  */
-public interface FeatureData {
-  @NotNull
-  List<String> getResources();
+public interface TutorialData {
+  String getLabel();
 
-  @NotNull
-  String getResourceRoot();
-
-  @NotNull
-  String getName();
-
-  @Nullable("Feature icons are optional")
-  Icon getIcon();
-
-  @NotNull
   String getDescription();
 
-  @Nullable("Optional if you have no actions requiring DeveloperService")
-  String getServiceId();
+  String getRemoteLink();
 
-  @NotNull
-  List<? extends TutorialData> getTutorials();
+  String getRemoteLinkLabel();
+
+  String getKey();
+
+  List<? extends StepData> getSteps();
 }

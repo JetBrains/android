@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.structure.services.view;
+package com.android.tools.idea.assistant.view;
 
-import com.android.tools.idea.structure.services.datamodel.FeatureData;
-import com.android.tools.idea.structure.services.datamodel.TutorialBundleData;
+import com.android.tools.idea.assistant.datamodel.FeatureData;
+import com.android.tools.idea.assistant.datamodel.TutorialBundleData;
 import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;

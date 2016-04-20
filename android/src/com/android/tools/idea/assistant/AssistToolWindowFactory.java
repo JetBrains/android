@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.devservices;
+package com.android.tools.idea.assistant;
 
 import com.android.tools.idea.structure.services.DeveloperServiceMap;
 import com.intellij.openapi.project.Project;
@@ -24,12 +24,12 @@ import com.intellij.ui.content.ContentFactory;
 import com.intellij.ui.content.ContentManager;
 import org.jetbrains.annotations.NotNull;
 
-public final class DeveloperServicesToolWindowFactory implements ToolWindowFactory {
-  private DeveloperServicesSidePanel myDeveloperServicesSidePanel;
+public final class AssistToolWindowFactory implements ToolWindowFactory {
+  private AssistSidePanel myAssistSidePanel;
   private String myActionId;
   private DeveloperServiceMap myServiceMap;
 
-  public DeveloperServicesToolWindowFactory(
+  public AssistToolWindowFactory(
     @NotNull String actionId, @NotNull DeveloperServiceMap serviceMap) {
     myActionId = actionId;
     myServiceMap = serviceMap;
@@ -37,13 +37,13 @@ public final class DeveloperServicesToolWindowFactory implements ToolWindowFacto
 
   @Override
   public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
-    if (myDeveloperServicesSidePanel == null) {
-      myDeveloperServicesSidePanel = new DeveloperServicesSidePanel(myActionId, myServiceMap);
+    if (myAssistSidePanel == null) {
+      myAssistSidePanel = new AssistSidePanel(myActionId, myServiceMap);
     }
 
     ContentFactory contentFactory = ContentFactory.SERVICE.getInstance();
     Content content = contentFactory.createContent(
-      myDeveloperServicesSidePanel, null, false);
+      myAssistSidePanel, null, false);
     ContentManager contentManager = toolWindow.getContentManager();
     contentManager.removeAllContents(true);
     contentManager.addContent(content);
