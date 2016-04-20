@@ -20,24 +20,18 @@ import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 
 import java.io.File;
-import java.text.SimpleDateFormat;
-import java.util.GregorianCalendar;
 
 /** Rule that takes a screenshot when the test fails. */
 class ScreenshotOnFailure extends TestWatcher {
-
-  private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH_mm_ss");
-  private static final GregorianCalendar CALENDAR = new GregorianCalendar();
 
   private final ScreenshotTaker myScreenshotTaker = new ScreenshotTaker();
 
   @Override
   protected void failed(Throwable throwable, Description description) {
-    String fileNamePrefix = description.getTestClass().getSimpleName() + "." + description.getMethodName();
-    String now = DATE_FORMAT.format(CALENDAR.getTime());
+    String fileName = description.getTestClass().getSimpleName() + "." + description.getMethodName() + ".png";
 
     try {
-      String filePath = new File(IdeTestApplication.getFailedTestScreenshotDirPath(), fileNamePrefix + "." + now + ".png").getPath();
+      String filePath = new File(IdeTestApplication.getFailedTestScreenshotDirPath(), fileName).getPath();
       myScreenshotTaker.saveDesktopAsPng(filePath);
       System.out.println("Screenshot: " + filePath);
     }
