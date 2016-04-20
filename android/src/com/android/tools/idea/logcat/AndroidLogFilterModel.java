@@ -57,7 +57,7 @@ public abstract class AndroidLogFilterModel extends LogFilterModel {
 
   /**
    * A regex which is tested against unprocessed log input. Contrast with
-   * {@link #getLogcatFilter()} which, if non-null, does additional filtering on input after
+   * {@link #myConfiguredFilter} which, if non-null, does additional filtering on input after
    * it has been parsed and broken up into component parts.
    * This is normally set by the Android Monitor search bar.
    */
@@ -143,24 +143,6 @@ public abstract class AndroidLogFilterModel extends LogFilterModel {
     for (LogFilterListener listener : myListeners) {
       listener.onFilterStateChange(filter);
     }
-  }
-
-  private static Key getProcessOutputType(@NotNull Log.LogLevel level) {
-    switch (level) {
-      case VERBOSE:
-        return AndroidLogcatConstants.VERBOSE;
-      case INFO:
-        return AndroidLogcatConstants.INFO;
-      case DEBUG:
-        return AndroidLogcatConstants.DEBUG;
-      case WARN:
-        return AndroidLogcatConstants.WARNING;
-      case ERROR:
-        return AndroidLogcatConstants.ERROR;
-      case ASSERT:
-        return AndroidLogcatConstants.ASSERT;
-    }
-    return ProcessOutputTypes.STDOUT;
   }
 
   @Override
@@ -277,7 +259,7 @@ public abstract class AndroidLogFilterModel extends LogFilterModel {
       myMessageSoFar.append('\n');
     }
 
-    Key key = getProcessOutputType(myPrevHeader.getLogLevel());
+    Key key = AndroidLogcatUtils.getProcessOutputType(myPrevHeader.getLogLevel());
     MyProcessingResult result = new MyProcessingResult(key, isApplicable, myMessageSoFar.toString());
 
     if (isApplicable) {
