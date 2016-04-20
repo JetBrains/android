@@ -40,7 +40,7 @@ import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.util.List;
 
-import static com.android.tools.idea.gradle.structure.configurables.android.dependencies.UiUtil.setUp;
+import static com.android.tools.idea.gradle.structure.configurables.ui.UiUtil.setUp;
 import static java.awt.event.MouseEvent.MOUSE_PRESSED;
 
 class TargetModulesPanel extends ToolWindowPanel {
