@@ -39,6 +39,7 @@ public final class UiUtil {
   }
 
   public static void revalidateAndRepaint(@NotNull JComponent c) {
+    c.doLayout();
     c.revalidate();
     c.repaint();
   }

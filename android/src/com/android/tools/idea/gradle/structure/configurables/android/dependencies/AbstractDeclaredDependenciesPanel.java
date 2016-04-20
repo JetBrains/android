@@ -57,6 +57,8 @@ import java.util.function.Consumer;
 import static com.intellij.ui.IdeBorderFactory.createEmptyBorder;
 import static com.intellij.ui.ScrollPaneFactory.createScrollPane;
 import static com.intellij.util.PlatformIcons.LIBRARY_ICON;
+import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
+import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 
 public abstract class AbstractDeclaredDependenciesPanel extends JPanel implements Place.Navigator, Disposable {
   @NotNull private final PsContext myContext;
@@ -84,7 +86,7 @@ public abstract class AbstractDeclaredDependenciesPanel extends JPanel implement
     myEmptyDetailsPanel = new EmptyPanel(myEmptyText);
     myInfoPanel = new DependencyInfoPanel();
 
-    myInfoScrollPane = createScrollPane(myEmptyDetailsPanel);
+    myInfoScrollPane = createScrollPane(myEmptyDetailsPanel, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER);
     myInfoScrollPane.setBorder(createEmptyBorder());
 
     Header header = new Header(title);
