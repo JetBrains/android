@@ -13,13 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.configurables.android.dependencies;
+package com.android.tools.idea.gradle.structure.configurables.ui;
 
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.TreeBuilderSpeedSearch;
 import com.intellij.ide.util.treeView.AbstractTreeBuilder;
 import com.intellij.ui.IdeBorderFactory;
-import com.intellij.ui.JBSplitter;
-import com.intellij.ui.OnePixelSplitter;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -40,9 +38,10 @@ public final class UiUtil {
   private UiUtil() {
   }
 
-  @NotNull
-  public static JBSplitter createMainVerticalSplitter() {
-    return new OnePixelSplitter(false, "psd.dependencies.main.vertical.splitter.proportion", .75f);
+  public static void revalidateAndRepaint(@NotNull JComponent c) {
+    c.doLayout();
+    c.revalidate();
+    c.repaint();
   }
 
   @NotNull

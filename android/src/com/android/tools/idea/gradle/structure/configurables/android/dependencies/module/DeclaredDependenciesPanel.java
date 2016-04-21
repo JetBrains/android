@@ -51,7 +51,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import static com.android.tools.idea.gradle.structure.configurables.android.dependencies.UiUtil.isMetaOrCtrlKeyPressed;
+import static com.android.tools.idea.gradle.structure.configurables.ui.UiUtil.isMetaOrCtrlKeyPressed;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.ui.IdeBorderFactory.createEmptyBorder;
 import static com.intellij.ui.ScrollPaneFactory.createScrollPane;
@@ -322,11 +322,9 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel implem
 
   private void updateIssues(@Nullable PsAndroidDependency selected) {
     List<PsIssue> issues = Collections.emptyList();
-
     if (selected != null) {
       issues = myContext.getDaemonAnalyzer().getIssues().findIssues(selected, null);
     }
-
     myIssuesViewer.display(issues);
   }
 

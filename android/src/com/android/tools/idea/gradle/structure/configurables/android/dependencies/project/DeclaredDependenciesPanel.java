@@ -55,7 +55,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static com.android.tools.idea.gradle.structure.configurables.android.dependencies.UiUtil.setUp;
+import static com.android.tools.idea.gradle.structure.configurables.ui.UiUtil.setUp;
 import static com.intellij.icons.AllIcons.Actions.Collapseall;
 import static com.intellij.icons.AllIcons.Actions.Expandall;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
@@ -198,13 +198,11 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel {
 
   private void updateIssues(@NotNull List<AbstractDependencyNode<? extends PsAndroidDependency>> selection) {
     List<PsIssue> issues = Lists.newArrayList();
-
     for (AbstractDependencyNode<? extends PsAndroidDependency> node : selection) {
       for (PsAndroidDependency dependency : node.getModels()) {
         issues.addAll(myContext.getDaemonAnalyzer().getIssues().findIssues(dependency, null));
       }
     }
-
     myIssuesViewer.display(issues);
   }
 
