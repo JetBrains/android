@@ -15,10 +15,14 @@
  */
 package com.android.tools.idea.assistant.view;
 
-import com.android.tools.idea.structure.services.DeveloperService;
 import com.android.tools.idea.assistant.datamodel.StepData;
 import com.android.tools.idea.assistant.datamodel.StepElementData;
-import com.intellij.openapi.util.text.StringUtil;
+import com.android.tools.idea.structure.services.DeveloperService;
+import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.editor.ex.EditorEx;
+import com.intellij.openapi.fileTypes.StdFileTypes;
+import com.intellij.openapi.project.Project;
+import com.intellij.ui.EditorTextField;
 import com.intellij.ui.components.JBScrollPane;
 
 import javax.swing.*;
@@ -42,10 +46,12 @@ public class TutorialStep extends JPanel {
   private final int myIndex;
   private final StepData myStep;
   private final JPanel myContents;
+  private final Project myProject;
 
   TutorialStep(StepData step, int index, ActionListener listener, DeveloperService service) {
     myIndex = index;
     myStep = step;
+    myProject = service.getModule().getProject();
     myContents = new JPanel();
     setOpaque(false);
     setLayout(new GridBagLayout());
@@ -71,8 +77,7 @@ public class TutorialStep extends JPanel {
           myContents.add(new StatefulButton(element.getAction(), listener, service));
           break;
         case CODE:
-          CodePane code = new CodePane();
-          code.setCode(element.getCode());
+          CodePane code = new CodePane(element);
           NaturalHeightScrollPane codeScroller = new NaturalHeightScrollPane(code);
           myContents.add(codeScroller);
           break;
@@ -191,29 +196,66 @@ public class TutorialStep extends JPanel {
   }
 
   /**
-   * A text pane designed to display code samples, this should live inside a
+   * A read-only code editor designed to display code samples, this should live inside a
    * {@code NaturalHeightScrollPane} to render properly.
+   *
+   * TODO: Add a listener to select all code when clicked. Potentially do a hover listener instead that surfaces a button that copies all
+   * content to your clipboard.
    */
-  private class CodePane extends JTextPane {
+  private class CodePane extends EditorTextField {
 
-    public CodePane() {
-      super();
-      setEditable(false);
-      setOpaque(false);
-      setMargin(new Insets(5, 5, 5, 5));
-      setFont(new Font(Font.MONOSPACED, Font.PLAIN, 10));
-      setContentType("text/html");
+    private static final int PAD = 5;
+
+    public CodePane(StepElementData element) {
+      // TODO: Use the file type hint from the element when supported.
+      super(element.getCode(), myProject, StdFileTypes.JAVA);
+      // NOTE: Monospace must be used or the preferred width will be inaccurate (most likely due to line length calculations based on the
+      // width of a sample character.
+      setFont(new Font(Font.MONOSPACED, Font.PLAIN, 11));
+      ensureWillComputePreferredSize();
+      Document doc = getDocument();
+      getDocument().setReadOnly(true);
+
+      setPreferredSize(new Dimension(getActualPreferredWidth(), getActualPreferredHeight()));
     }
 
     /**
-     * Alternative to {@code setText} that formats appropriately as markup. Prior implementations as plain text did not honor wrapping
-     * rules. Note that this is not overriding {@code setText} as {@code UIUtils.setHtml} calls that internally which would cause a loop.
+     * Gets the actual preferred width, accounting for padding added to internal borders.
      */
-    public void setCode(String text) {
-      // {@code escapeXml} is sufficient as we merely want to prevent the contents as being interpreted as html, not deal with the myriad of
-      // html entities.
-      UIUtils.setHtml(this, "<pre>" + StringUtil.escapeXml(text) + "</pre>", "pre {padding: 0 5px 0 5px;");
+    private int getActualPreferredWidth() {
+      return (int)getPreferredSize().getWidth() + (2 * PAD);
     }
+
+    /**
+     * Gets the actual preferred height by calculating internal content heights and accounting for borders.
+     *
+     * HACK ALERT: EditorTextField does not return a reasonable preferred height and creating the editor without a file appears to leave
+     * the internal editor instance null. As the internal editor would have been the best place to get the height, we fall back to
+     * calculating the height of the contents by finding the line height and multiplying by the number of lines.
+     */
+    private int getActualPreferredHeight() {
+      return (getFontMetrics(getFont()).getHeight() * getDocument().getLineCount()) + (2 * PAD);
+    }
+
+    /**
+     * HACK ALERT: CodePane must reside in a scroller to be properly sized, so the border normally present on the internal scroller
+     * are both unnecessary and will become hidden when the outer scroller scrolls. The editor is not set after this class is instantiated,
+     * being released after it's created, so the override is placed in this method, each time the editor is created.
+     *
+     * This is also a convenient place to add padding to the editor.
+     */
+    @Override
+    protected EditorEx createEditor() {
+      EditorEx editor = super.createEditor();
+
+      JScrollPane scroll = editor.getScrollPane();
+      if (scroll != null) {
+        scroll.setBorder(BorderFactory.createEmptyBorder());
+        scroll.setViewportBorder(BorderFactory.createEmptyBorder(PAD, PAD, PAD, PAD));
+      }
+      return editor;
+    }
+
   }
 
   /**
@@ -232,7 +274,6 @@ public class TutorialStep extends JPanel {
     }
 
     private void init() {
-      // TODO: If reused elsewhere, the border may not be appropriate.
       setBorder(BorderFactory.createMatteBorder(1, 1, 1, 1, UIUtils.getSeparatorColor()));
       setViewportBorder(BorderFactory.createEmptyBorder());
       setOpaque(false);
