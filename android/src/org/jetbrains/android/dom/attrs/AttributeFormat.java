@@ -15,9 +15,54 @@
  */
 package org.jetbrains.android.dom.attrs;
 
+import com.android.resources.ResourceType;
+
+import java.util.EnumSet;
+import java.util.Set;
+
 /**
  * @author yole
  */
 public enum AttributeFormat {
-    Reference, String, Color, Dimension, Boolean, Integer, Float, Fraction, Enum, Flag
+    Reference, String, Color, Dimension, Boolean, Integer, Float, Fraction, Enum, Flag;
+
+    public static ResourceType[] convertTypes(Set<AttributeFormat> formats) {
+        Set<ResourceType> types = EnumSet.noneOf(ResourceType.class);
+        for (AttributeFormat format : formats) {
+            switch (format) {
+                case Boolean:
+                    types.add(ResourceType.BOOL);
+                    break;
+                case Color:
+                    types.add(ResourceType.COLOR);
+                    types.add(ResourceType.DRAWABLE);
+                    types.add(ResourceType.MIPMAP);
+                    break;
+                case Dimension:
+                    types.add(ResourceType.DIMEN);
+                    break;
+                case Integer:
+                    types.add(ResourceType.INTEGER);
+                    break;
+                case Fraction:
+                    types.add(ResourceType.FRACTION);
+                    break;
+                case String:
+                    types.add(ResourceType.STRING);
+                    break;
+                case Reference:
+                    types.add(ResourceType.COLOR);
+                    types.add(ResourceType.DRAWABLE);
+                    types.add(ResourceType.MIPMAP);
+                    types.add(ResourceType.STRING);
+                    types.add(ResourceType.ID);
+                    types.add(ResourceType.STYLE);
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        return types.toArray(new ResourceType[types.size()]);
+    }
 }

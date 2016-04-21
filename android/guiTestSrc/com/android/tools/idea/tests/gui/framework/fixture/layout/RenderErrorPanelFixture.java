@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.layout;
 
-import com.android.tools.idea.configurations.RenderContext;
 import com.android.tools.idea.rendering.RenderErrorPanel;
 import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderResult;
+import com.android.tools.idea.uibuilder.surface.ScreenView;
 import org.fest.swing.core.Robot;
 import org.jetbrains.annotations.NotNull;
 
@@ -31,17 +31,15 @@ public class RenderErrorPanelFixture {
   @SuppressWarnings({"FieldCanBeLocal", "UnusedDeclaration"})
   private final Robot myRobot;
   @SuppressWarnings({"FieldCanBeLocal", "UnusedDeclaration"})
-  private final LayoutFixture myLayoutFixture;
-  private final RenderContext myRenderContext;
+  private final ScreenView myScreenView;
 
-  public RenderErrorPanelFixture(@NotNull Robot robot, @NotNull LayoutFixture layoutFixture, @NotNull RenderContext renderContext) {
-    myLayoutFixture = layoutFixture;
-    myRenderContext = renderContext;
+  public RenderErrorPanelFixture(@NotNull Robot robot, @NotNull ScreenView screenView) {
+    myScreenView = screenView;
     myRobot = robot;
   }
 
   public void requireHaveRenderError(@NotNull String error) {
-    RenderResult lastResult = myRenderContext.getLastResult();
+    RenderResult lastResult = myScreenView.getResult();
     assertNotNull("No render result available", lastResult);
     RenderErrorPanel panel = new RenderErrorPanel();
     String html = panel.showErrors(lastResult);
@@ -50,7 +48,7 @@ public class RenderErrorPanelFixture {
   }
 
   public void performSuggestion(@NotNull String linkText) {
-    RenderResult lastResult = myRenderContext.getLastResult();
+    RenderResult lastResult = myScreenView.getResult();
     assertNotNull("No render result available", lastResult);
     RenderErrorPanel panel = new RenderErrorPanel();
     String html = panel.showErrors(lastResult);
@@ -68,7 +66,7 @@ public class RenderErrorPanelFixture {
 
   /** Asserts that the render was successful, optionally with some errors or no errors at all.  */
   public void requireRenderSuccessful(boolean allowErrors, boolean allowWarnings) {
-    RenderResult lastResult = myRenderContext.getLastResult();
+    RenderResult lastResult = myScreenView.getResult();
     assertNotNull("No render result available", lastResult);
     RenderLogger logger = lastResult.getLogger();
 
@@ -85,7 +83,7 @@ public class RenderErrorPanelFixture {
   }
 
   public boolean haveErrors(boolean includeWarnings) {
-    RenderResult lastResult = myRenderContext.getLastResult();
+    RenderResult lastResult = myScreenView.getResult();
     assertNotNull("No render result available", lastResult);
     RenderLogger logger = lastResult.getLogger();
 
@@ -94,7 +92,7 @@ public class RenderErrorPanelFixture {
 
   @NotNull
   public String getErrorHtml() {
-    RenderResult lastResult = myRenderContext.getLastResult();
+    RenderResult lastResult = myScreenView.getResult();
     assertNotNull("No render result available", lastResult);
     RenderLogger logger = lastResult.getLogger();
 

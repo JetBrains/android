@@ -33,7 +33,8 @@ import java.util.Map;
 public class ConstraintInspectorProvider implements InspectorProvider {
   @Override
   public boolean isApplicable(@NonNull NlComponent component, @NonNull Map<String, NlProperty> properties) {
-    return SdkConstants.CONSTRAINT_LAYOUT.equals(component.getParent().getTagName());
+    NlComponent parent = component.getParent();
+    return parent != null && SdkConstants.CONSTRAINT_LAYOUT.equals(parent.getTagName());
   }
 
   @NonNull

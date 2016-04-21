@@ -29,7 +29,6 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.configurations.RenderContext;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.AndroidModuleInfo;
@@ -40,6 +39,7 @@ import com.android.tools.idea.rendering.multi.RenderPreviewMode;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.AssetRepositoryImpl;
 import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.swing.layoutlib.FakeImageFactory;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ApplicationManager;
@@ -122,7 +122,7 @@ public class RenderTask implements IImageFactory {
   private Set<XmlTag> myExpandNodes;
 
   @Nullable
-  private RenderContext myRenderContext;
+  private DesignSurface mySurface;
 
   @NotNull
   private final Locale myLocale;
@@ -342,8 +342,8 @@ public class RenderTask implements IImageFactory {
    * preview data
    */
   @Nullable
-  public RenderContext getRenderContext() {
-    return myRenderContext;
+  public DesignSurface getDesignSurface() {
+    return mySurface;
   }
 
   /**
@@ -351,12 +351,12 @@ public class RenderTask implements IImageFactory {
    * control for example how {@code <fragment/>} tags are processed when missing
    * preview data
    *
-   * @param renderContext the render context
+   * @param surface the design surface
    * @return this, for constructor chaining
    */
   @Nullable
-  public RenderTask setRenderContext(@Nullable RenderContext renderContext) {
-    myRenderContext = renderContext;
+  public RenderTask setDesignSurface(@Nullable DesignSurface surface) {
+    mySurface = surface;
     return this;
   }
 

@@ -19,8 +19,8 @@ import com.android.ide.common.resources.LocaleManager;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.LocaleQualifier;
 import com.android.tools.idea.editors.strings.StringResourceEditorProvider;
-import com.android.tools.idea.rendering.*;
-import com.android.tools.idea.rendering.multi.RenderPreviewMode;
+import com.android.tools.idea.rendering.Locale;
+import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ProjectResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
@@ -43,14 +43,14 @@ import java.util.Set;
 import static com.android.ide.common.resources.configuration.LocaleQualifier.BCP_47_PREFIX;
 
 public class LocaleMenuAction extends FlatComboAction {
-  private final RenderContext myRenderContext;
+  private final ConfigurationHolder myRenderContext;
   private final boolean myClassicStyle;
 
-  public LocaleMenuAction(RenderContext renderContext) {
+  public LocaleMenuAction(ConfigurationHolder renderContext) {
     this(renderContext, !RenderService.NELE_ENABLED);
   }
 
-  public LocaleMenuAction(RenderContext renderContext, boolean classicStyle) {
+  public LocaleMenuAction(ConfigurationHolder renderContext, boolean classicStyle) {
     myRenderContext = renderContext;
     myClassicStyle = classicStyle;
     Presentation presentation = getTemplatePresentation();
@@ -93,6 +93,7 @@ public class LocaleMenuAction extends FlatComboAction {
 
     group.add(new EditTranslationAction());
 
+    /* TODO: Restore multi-configuration editing
     group.addSeparator();
     RenderPreviewMode currentMode = RenderPreviewMode.getCurrent();
     if (currentMode != RenderPreviewMode.LOCALES && currentMode != RenderPreviewMode.RTL) {
@@ -103,6 +104,7 @@ public class LocaleMenuAction extends FlatComboAction {
     } else {
       ConfigurationMenuAction.addRemovePreviewsAction(myRenderContext, group);
     }
+    */
 
     return group;
   }
@@ -282,7 +284,7 @@ public class LocaleMenuAction extends FlatComboAction {
   private static class SetLocaleAction extends ConfigurationAction {
     private final Locale myLocale;
 
-    public SetLocaleAction(RenderContext renderContext, String title, @NotNull Locale locale) {
+    public SetLocaleAction(ConfigurationHolder renderContext, String title, @NotNull Locale locale) {
       // TODO: Rather than passing in the title, update the code to implement update() instead; that
       // way we can lazily compute the label as part of the list rendering
       super(renderContext, title, locale.getFlagImage());
@@ -317,7 +319,6 @@ public class LocaleMenuAction extends FlatComboAction {
       if (configuration != null) {
         // Also set the project-wide locale, since locales (and rendering targets) are project wide
         configuration.getConfigurationManager().setLocale(myLocale);
-        myRenderContext.requestRender();
       }
     }
   }

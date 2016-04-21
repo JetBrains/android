@@ -17,8 +17,6 @@ package com.android.tools.idea.configurations;
 
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.rendering.RenderService;
-import com.intellij.android.designer.AndroidDesignerEditor;
-import com.intellij.android.designer.AndroidDesignerEditorProvider;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.fileEditor.FileEditor;
@@ -32,7 +30,6 @@ import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.vfs.VirtualFile;
 import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.uipreview.AndroidLayoutPreviewToolWindowManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -44,14 +41,14 @@ import static com.android.SdkConstants.FD_RES_LAYOUT;
 
 abstract class ConfigurationAction extends AnAction implements ConfigurationListener {
   private static final String FILE_ARROW = " \u2192 ";
-  protected final RenderContext myRenderContext;
+  protected final ConfigurationHolder myRenderContext;
   private int myFlags;
 
-  public ConfigurationAction(@NotNull RenderContext renderContext, @NotNull String title) {
+  public ConfigurationAction(@NotNull ConfigurationHolder renderContext, @NotNull String title) {
     this(renderContext, title, null);
   }
 
-  public ConfigurationAction(@NotNull RenderContext renderContext, @NotNull String title, @Nullable Icon icon) {
+  public ConfigurationAction(@NotNull ConfigurationHolder renderContext, @NotNull String title, @Nullable Icon icon) {
     super(title, null, icon);
     myRenderContext = renderContext;
   }
@@ -63,7 +60,6 @@ abstract class ConfigurationAction extends AnAction implements ConfigurationList
   public void actionPerformed(AnActionEvent e) {
     tryUpdateConfiguration();
     updatePresentation();
-    myRenderContext.requestRender();
   }
 
   /**
@@ -84,9 +80,9 @@ abstract class ConfigurationAction extends AnAction implements ConfigurationList
       boolean affectsFileSelection = (myFlags & MASK_FILE_ATTRS) != 0;
       // get the resources of the file's project.
       if (affectsFileSelection) {
-        Module module = myRenderContext.getModule();
+        Module module = myRenderContext.getConfiguration().getModule();
         if (module != null) {
-          VirtualFile file = myRenderContext.getVirtualFile();
+          VirtualFile file = myRenderContext.getConfiguration().getFile();
           if (file != null) {
             ConfigurationMatcher matcher = new ConfigurationMatcher(clone, AppResourceRepository.getAppResources(module, true), file);
             List<VirtualFile> matchingFiles = matcher.getBestFileMatches();
@@ -109,7 +105,7 @@ abstract class ConfigurationAction extends AnAction implements ConfigurationList
 
   protected void pickedBetterMatch(@NotNull VirtualFile file, @NotNull VirtualFile old) {
     // Switch files, and leave this configuration alone
-    Module module = myRenderContext.getModule();
+    Module module = myRenderContext.getConfiguration().getModule();
     assert module != null;
     Project project = module.getProject();
     OpenFileDescriptor descriptor = new OpenFileDescriptor(project, file, -1);
@@ -118,9 +114,7 @@ abstract class ConfigurationAction extends AnAction implements ConfigurationList
     List<FileEditor> editors = manager.openEditor(descriptor, true);
 
     // Switch to the same type of editor (XML or Layout Editor) in the target file
-    if (selectedEditor instanceof AndroidDesignerEditor) {
-      manager.setSelectedEditor(file, AndroidDesignerEditorProvider.ANDROID_DESIGNER_ID);
-    } else if (selectedEditor != null) {
+    if (selectedEditor != null) {
       manager.setSelectedEditor(file, TextEditorProvider.getInstance().getEditorTypeId());
 
       // Proactively switch to the new editor right away in the layout XML preview, if applicable
@@ -129,10 +123,9 @@ abstract class ConfigurationAction extends AnAction implements ConfigurationList
           if (editor instanceof TextEditor && editor.getComponent().isShowing()) {
             if (RenderService.NELE_ENABLED) {
               // TODO
+              //AndroidLayoutPreviewToolWindowManager previewManager = AndroidLayoutPreviewToolWindowManager.getInstance(project);
+              //previewManager.notifyFileShown((TextEditor)editor, true);
               // Notify nele preview manager instead
-            } else {
-              AndroidLayoutPreviewToolWindowManager previewManager = AndroidLayoutPreviewToolWindowManager.getInstance(project);
-              previewManager.notifyFileShown((TextEditor)editor, true);
             }
             break;
           }

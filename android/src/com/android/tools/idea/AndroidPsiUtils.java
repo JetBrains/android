@@ -350,6 +350,21 @@ public class AndroidPsiUtils {
   }
 
   /**
+   * Locates the given class by fully qualified name visible from the given module
+   *
+   * @param module    the module scope to search
+   * @param className the class to find
+   * @return the class, if found
+   */
+  @Nullable
+  public static PsiClass getPsiClass(@NotNull Module module, @NotNull String className) {
+    Project project = module.getProject();
+    JavaPsiFacade facade = JavaPsiFacade.getInstance(project);
+    GlobalSearchScope scope = module.getModuleWithLibrariesScope();
+    return facade.findClass(className, scope);
+  }
+
+  /**
    * Returns the value of the given tag's attribute and acquires a read lock if necessary
    *
    * @param tag the tag to look up the attribute for

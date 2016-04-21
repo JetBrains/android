@@ -18,8 +18,8 @@ package com.android.tools.idea.rendering;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
-import com.android.tools.idea.configurations.RenderContext;
 import com.android.tools.idea.res.AarResourceClassRegistry;
+import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -30,21 +30,21 @@ import org.jetbrains.android.uipreview.ModuleClassLoader;
 import org.jetbrains.android.util.AndroidBundle;
 
 public class RefreshRenderAction extends AnAction {
-  private final RenderContext myContext;
+  private final DesignSurface mySurface;
 
-  public RefreshRenderAction(RenderContext context) {
+  public RefreshRenderAction(DesignSurface surface) {
     super(AndroidBundle.message("android.layout.preview.refresh.action.text"), null, AllIcons.Actions.Refresh);
-    myContext = context;
+    mySurface = surface;
   }
 
   @Override
   public void actionPerformed(AnActionEvent e) {
-    clearCache(myContext);
+    clearCache(mySurface);
   }
 
-  public static void clearCache(RenderContext context) {
+  public static void clearCache(DesignSurface surface) {
     ModuleClassLoader.clearCache();
-    Configuration configuration = context.getConfiguration();
+    Configuration configuration = surface.getConfiguration();
 
     if (configuration != null) {
       // Clear layoutlib bitmap cache (in case files have been modified externally)
@@ -68,6 +68,6 @@ public class RefreshRenderAction extends AnAction {
       configuration.updated(ConfigurationListener.MASK_RENDERING);
     }
 
-    context.requestRender();
+    surface.requestRender();
   }
 }

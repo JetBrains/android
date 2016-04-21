@@ -25,11 +25,14 @@ import com.android.sdklib.devices.Device;
 import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.configurations.RenderContext;
 import com.android.tools.idea.gradle.structure.editors.AndroidProjectSettingsService;
 import com.android.tools.idea.gradle.util.Projects;
+import com.android.tools.idea.layoutlib.LayoutLibraryLoader;
+import com.android.tools.idea.layoutlib.RenderingException;
+import com.android.tools.idea.layoutlib.UnsupportedJavaRuntimeException;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
+import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.android.utils.HtmlBuilder;
 import com.google.common.collect.Lists;
@@ -43,9 +46,6 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.maven.AndroidMavenUtil;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
-import com.android.tools.idea.layoutlib.LayoutLibraryLoader;
-import com.android.tools.idea.layoutlib.RenderingException;
-import com.android.tools.idea.layoutlib.UnsupportedJavaRuntimeException;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -147,7 +147,7 @@ public class RenderService {
   public RenderTask createTask(@Nullable final PsiFile psiFile,
                                @NotNull final Configuration configuration,
                                @NotNull final RenderLogger logger,
-                               @Nullable final RenderContext renderContext) {
+                               @Nullable final DesignSurface surface) {
     Module module = myFacet.getModule();
     final Project project = module.getProject();
     AndroidPlatform platform = getPlatform(module, logger);
@@ -161,7 +161,7 @@ public class RenderService {
       return null;
     }
 
-    warnIfObsoleteLayoutLib(module, logger, renderContext, target);
+    warnIfObsoleteLayoutLib(module, logger, surface, target);
 
     LayoutLibrary layoutLib;
     try {
@@ -212,7 +212,7 @@ public class RenderService {
     if (psiFile != null) {
       task.setPsiFile(psiFile);
     }
-    task.setRenderContext(renderContext);
+    task.setDesignSurface(surface);
 
     return task;
   }
@@ -267,7 +267,7 @@ public class RenderService {
   private static boolean ourWarnAboutObsoleteLayoutLibVersions = true;
   private static void warnIfObsoleteLayoutLib(@NotNull final Module module,
                                               @NotNull RenderLogger logger,
-                                              @Nullable final RenderContext renderContext,
+                                              @Nullable final DesignSurface surface,
                                               @NotNull IAndroidTarget target) {
     if (!ourWarnAboutObsoleteLayoutLibVersions) {
       return;
@@ -324,13 +324,13 @@ public class RenderService {
           ModelWizardDialog dialog = SdkQuickfixUtils.createDialogForPaths(module.getProject(), requested);
 
           if (dialog != null && dialog.showAndGet()) {
-            if (renderContext != null) {
+            if (surface != null) {
               // Force the target to be recomputed; this will pick up the new revision object from the local sdk.
-              Configuration configuration = renderContext.getConfiguration();
+              Configuration configuration = surface.getConfiguration();
               if (configuration != null) {
                 configuration.getConfigurationManager().setTarget(null);
               }
-              renderContext.requestRender();
+              surface.requestRender();
               // However, due to issue https://code.google.com/p/android/issues/detail?id=76096 it may not yet
               // take effect.
               Messages.showInfoMessage(module.getProject(),
@@ -345,8 +345,8 @@ public class RenderService {
         public void run() {
           //noinspection AssignmentToStaticFieldFromInstanceMethod
           ourWarnAboutObsoleteLayoutLibVersions = false;
-          if (renderContext != null) {
-            renderContext.requestRender();
+          if (surface != null) {
+            surface.requestRender();
           }
         }
       }));

@@ -47,7 +47,6 @@ import com.intellij.util.ui.update.Update;
 import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.AndroidEditorSettings;
-import org.jetbrains.android.uipreview.AndroidLayoutPreviewToolWindowManager;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -209,10 +208,6 @@ public class NlPreviewManager implements ProjectComponent {
   private boolean myRenderImmediately;
 
   private void processFileEditorChange(@Nullable final TextEditor newEditor) {
-    if (!RenderService.NELE_ENABLED) {
-      return;
-    }
-
     if (myPendingShowComponent != null) {
       myPendingShowComponent.removeHierarchyListener(myHierarchyListener);
       myPendingShowComponent = null;

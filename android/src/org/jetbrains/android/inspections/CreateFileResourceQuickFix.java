@@ -21,7 +21,6 @@ import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.android.actions.CreateResourceFileAction;
 import org.jetbrains.android.actions.CreateTypedResourceFileAction;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.uipreview.AndroidLayoutPreviewToolWindowManager;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
@@ -114,7 +113,6 @@ public class CreateFileResourceQuickFix implements LocalQuickFix, IntentionActio
       AndroidResourceUtil.createFileResource(myResourceName, resSubdir, CreateTypedResourceFileAction.getDefaultRootTagByResourceType(
         ResourceFolderType.getFolderType(resDirName)), resDirName, false);
       UndoUtil.markPsiFileForUndo(myFile);
-      AndroidLayoutPreviewToolWindowManager.renderIfApplicable(project);
     }
     catch (Exception e) {
       LOG.error(e);

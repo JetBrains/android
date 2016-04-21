@@ -22,8 +22,8 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
-import com.android.tools.idea.configurations.RenderContext;
 import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.utils.Pair;
 import com.google.common.collect.Lists;
 import com.intellij.codeInsight.intention.AbstractIntentionAction;
@@ -279,23 +279,27 @@ public class OverrideResourceAction extends AbstractIntentionAction {
   /**
    * Create a variation (copy) of a given layout file
    *
-   * @param context   the render context for the layout file to fork
+   * @param surface   the design surface for the layout file to fork
    * @param newFolder the resource folder to create, or null to ask the user
    * @param open      if true, open the file after creating it
    */
-  public static void forkResourceFile(@NotNull RenderContext context, @Nullable String newFolder, boolean open) {
-    final VirtualFile file = context.getVirtualFile();
+  public static void forkResourceFile(@NotNull DesignSurface surface, @Nullable String newFolder, boolean open) {
+    Configuration configuration = surface.getConfiguration();
+    if (configuration == null) {
+      assert false;
+      return; // Should not happen
+    }
+    final VirtualFile file = configuration.getFile();
     if (file == null) {
       assert false;
       return; // Should not happen
     }
-    Module module = context.getModule();
+    Module module = configuration.getModule();
     if (module == null) {
       assert false;
       return; // Should not happen
     }
-    XmlFile xmlFile = context.getXmlFile();
-    Configuration configuration = context.getConfiguration();
+    XmlFile xmlFile = (XmlFile)configuration.getPsiFile();
     forkResourceFile(module, ResourceFolderType.LAYOUT, file, xmlFile, newFolder, configuration, open);
   }
 

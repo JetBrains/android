@@ -34,7 +34,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.intellij.android.designer.model.layout.actions.ToggleRenderModeAction;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
@@ -228,6 +227,17 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   private MergingUpdateQueue myRenderingQueue;
   private static final Object RENDERING_LOCK = new Object();
 
+  /** Whether we should render just the viewport */
+  private static boolean ourRenderViewPort;
+
+  public static void setRenderViewPort(boolean state) {
+    ourRenderViewPort = state;
+  }
+
+  public static boolean isRenderViewPort() {
+    return ourRenderViewPort;
+  }
+
   /**
    * Synchronously inflates the model and updates the view hierarchy
    */
@@ -254,9 +264,9 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       if (myRenderTask != null) {
         myRenderTask.dispose();
       }
-      myRenderTask = renderService.createTask(myFile, configuration, logger, new NlRenderContextAdapter(this));
+      myRenderTask = renderService.createTask(myFile, configuration, logger, mySurface);
       if (myRenderTask != null) {
-        if (!ToggleRenderModeAction.isRenderViewPort()) {
+        if (!isRenderViewPort()) {
           myRenderTask.useDesignMode(myFile);
         }
         result = myRenderTask.inflate();
