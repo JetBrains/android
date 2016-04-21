@@ -157,7 +157,7 @@ public class EmulatorProcessHandler extends ProcessHandler implements TaskExecut
       myBufferedReader = new BufferedReader(new InputStreamReader(stream));
       myProcessOutputType = processOutputType;
 
-      start();
+      start("emulator output");
     }
 
     @Override

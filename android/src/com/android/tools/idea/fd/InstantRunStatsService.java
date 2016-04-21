@@ -74,7 +74,7 @@ public class InstantRunStatsService {
   }
 
   private InstantRunStatsService() {
-    JobScheduler.getScheduler().scheduleAtFixedRate(new Runnable() {
+    JobScheduler.getScheduler().scheduleWithFixedDelay(new Runnable() {
       @Override
       public void run() {
         uploadStats();
