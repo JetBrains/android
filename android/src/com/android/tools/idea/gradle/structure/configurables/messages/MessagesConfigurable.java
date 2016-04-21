@@ -15,20 +15,14 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.messages;
 
+import com.android.tools.idea.gradle.structure.configurables.AbstractCounterDisplayConfigurable;
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.issues.IssuesByTypeComparator;
 import com.android.tools.idea.gradle.structure.configurables.issues.IssuesViewer;
 import com.android.tools.idea.gradle.structure.model.PsIssue;
 import com.android.tools.idea.gradle.structure.navigation.PsModulePath;
-import com.android.tools.idea.structure.dialog.CounterDisplayConfigurable;
-import com.intellij.openapi.Disposable;
-import com.intellij.openapi.options.Configurable;
-import com.intellij.openapi.options.ConfigurationException;
-import com.intellij.openapi.util.Disposer;
-import com.intellij.util.EventDispatcher;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -40,16 +34,12 @@ import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
 import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
 import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 
-public class MessagesConfigurable extends JPanel implements Configurable, CounterDisplayConfigurable, Disposable {
-  @NotNull private final PsContext myContext;
+public class MessagesConfigurable extends AbstractCounterDisplayConfigurable {
   @NotNull private final IssuesViewer myIssuesViewer;
   private int myMessageCount;
 
-  private final EventDispatcher<CountChangeListener> myEventDispatcher = EventDispatcher.create(CountChangeListener.class);
-
   public MessagesConfigurable(@NotNull PsContext context) {
-    super(new BorderLayout());
-    myContext = context;
+    super(context);
 
     myIssuesViewer = new IssuesViewer(context, issues -> {
       StringBuilder buffer = new StringBuilder();
@@ -71,14 +61,14 @@ public class MessagesConfigurable extends JPanel implements Configurable, Counte
     add(scrollPane, BorderLayout.CENTER);
 
     renderIssues();
-    myContext.getDaemonAnalyzer().add(model -> {
-      myEventDispatcher.getMulticaster().countChanged();
+    getContext().getAnalyzerDaemon().add(model -> {
+      fireCountChangeListener();
       invokeLaterIfNeeded(this::renderIssues);
     }, this);
   }
 
   private void renderIssues() {
-    List<PsIssue> issues = myContext.getDaemonAnalyzer().getIssues().getValues(PsModulePath.class);
+    List<PsIssue> issues = getContext().getAnalyzerDaemon().getIssues().getValues(PsModulePath.class);
     if (issues.size() > 1) {
       Collections.sort(issues, IssuesByTypeComparator.INSTANCE);
     }
@@ -92,47 +82,8 @@ public class MessagesConfigurable extends JPanel implements Configurable, Counte
   }
 
   @Override
-  public void add(@NotNull CountChangeListener listener, @NotNull Disposable parentDisposable) {
-    myEventDispatcher.addListener(listener, parentDisposable);
-  }
-
-  @Override
   @Nls
   public String getDisplayName() {
     return "Messages";
-  }
-
-  @Nullable
-  @Override
-  public String getHelpTopic() {
-    return null;
-  }
-
-  @Nullable
-  @Override
-  public JComponent createComponent() {
-    return this;
-  }
-
-  @Override
-  public boolean isModified() {
-    return false;
-  }
-
-  @Override
-  public void apply() throws ConfigurationException {
-  }
-
-  @Override
-  public void reset() {
-  }
-
-  @Override
-  public void disposeUIResources() {
-    Disposer.dispose(this);
-  }
-
-  @Override
-  public void dispose() {
   }
 }

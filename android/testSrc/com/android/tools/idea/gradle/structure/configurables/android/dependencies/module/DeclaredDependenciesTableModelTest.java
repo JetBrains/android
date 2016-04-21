@@ -101,11 +101,11 @@ public class DeclaredDependenciesTableModelTest extends IdeaTestCase {
     assertEquals("compile", columnText);
   }
 
-  private static class PsAndroidModuleStub extends PsAndroidModule {
+  private class PsAndroidModuleStub extends PsAndroidModule {
     @NotNull private final List<PsAndroidDependency> myDeclaredDependencies;
 
     public PsAndroidModuleStub(@NotNull List<PsAndroidDependency> declaredDependencies) {
-      super(mock(PsProject.class), mock(Module.class), "", mock(AndroidGradleModel.class));
+      super(new PsProject(myProject), myModule, "", mock(AndroidGradleModel.class));
       myDeclaredDependencies = declaredDependencies;
     }
 

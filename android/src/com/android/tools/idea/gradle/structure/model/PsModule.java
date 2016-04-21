@@ -17,6 +17,13 @@ package com.android.tools.idea.gradle.structure.model;
 
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
+import com.android.tools.idea.gradle.dsl.model.repositories.JCenterDefaultRepositoryModel;
+import com.android.tools.idea.gradle.dsl.model.repositories.MavenCentralRepositoryModel;
+import com.android.tools.idea.gradle.dsl.model.repositories.RepositoryModel;
+import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepository;
+import com.android.tools.idea.gradle.structure.model.repositories.search.JCenterRepository;
+import com.android.tools.idea.gradle.structure.model.repositories.search.MavenCentralRepository;
+import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
@@ -34,7 +41,6 @@ public abstract class PsModule extends PsChildModel {
   // Module can be null in the case of new modules created in the PSD.
   @Nullable private final Module myResolvedModel;
 
-  private boolean myInitParsedModel;
   private GradleBuildModel myParsedModel;
   private String myModuleName;
   private PsParsedDependencies myParsedDependencies;
@@ -49,6 +55,7 @@ public abstract class PsModule extends PsChildModel {
     myResolvedModel = resolvedModel;
     myGradlePath = moduleGradlePath;
     myModuleName = resolvedModel.getName();
+    myParsedModel = GradleBuildModel.get(myResolvedModel);
   }
 
   protected PsModule(@NotNull PsProject parent, @NotNull String name) {
@@ -81,12 +88,6 @@ public abstract class PsModule extends PsChildModel {
 
   @Nullable
   public GradleBuildModel getParsedModel() {
-    if (!myInitParsedModel) {
-      myInitParsedModel = true;
-      if (myResolvedModel != null) {
-        myParsedModel = GradleBuildModel.get(myResolvedModel);
-      }
-    }
     return myParsedModel;
   }
 
@@ -122,6 +123,28 @@ public abstract class PsModule extends PsChildModel {
   @Override
   public Icon getIcon() {
     return AllIcons.Nodes.Module;
+  }
+
+  @NotNull
+  public List<ArtifactRepository> getArtifactRepositories() {
+    List<ArtifactRepository> repositories = Lists.newArrayList();
+    populateRepositories(repositories);
+    return repositories;
+  }
+
+  protected final void populateRepositories(@NotNull List<ArtifactRepository> repositories) {
+    GradleBuildModel parsedModel = getParsedModel();
+    if (parsedModel != null) {
+      for (RepositoryModel repositoryModel : parsedModel.repositories().repositories()) {
+        if (repositoryModel instanceof JCenterDefaultRepositoryModel) {
+          repositories.add(new JCenterRepository());
+          continue;
+        }
+        if (repositoryModel instanceof MavenCentralRepositoryModel) {
+          repositories.add(new MavenCentralRepository());
+        }
+      }
+    }
   }
 
   public interface DependenciesChangeListener extends EventListener {

@@ -15,11 +15,16 @@
  */
 package com.android.tools.idea.gradle.structure.daemon;
 
+import com.android.SdkConstants;
+import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.daemon.analysis.PsAndroidModuleAnalyzer;
 import com.android.tools.idea.gradle.structure.daemon.analysis.PsModelAnalyzer;
-import com.android.tools.idea.gradle.structure.model.PsIssueCollection;
-import com.android.tools.idea.gradle.structure.model.PsModel;
+import com.android.tools.idea.gradle.structure.model.*;
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
+import com.android.tools.idea.gradle.structure.model.repositories.search.FoundArtifact;
+import com.android.tools.idea.gradle.structure.navigation.PsLibraryDependencyPath;
+import com.android.tools.idea.gradle.structure.navigation.PsModulePath;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ReadAction;
@@ -27,29 +32,23 @@ import com.intellij.openapi.application.Result;
 import com.intellij.openapi.application.RunResult;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.ActionCallback;
-import com.intellij.openapi.util.Disposer;
-import com.intellij.util.Alarm.ThreadToUse;
 import com.intellij.util.EventDispatcher;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
 import java.util.EventListener;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static com.android.tools.idea.gradle.structure.model.PsIssue.Type.INFO;
 import static com.intellij.util.ui.update.MergingUpdateQueue.ANY_COMPONENT;
 
-public class PsDaemonAnalyzer implements Disposable {
-  private static final Logger LOG = Logger.getInstance(PsDaemonAnalyzer.class);
+public class PsAnalyzerDaemon extends PsDaemon {
+  private static final Logger LOG = Logger.getInstance(PsAnalyzerDaemon.class);
 
-  @NotNull private final PsContext myContext;
-
-  @NotNull private final MergingUpdateQueue myAnalyzerQueue;
+  @NotNull private final MergingUpdateQueue myMainQueue;
   @NotNull private final MergingUpdateQueue myResultsUpdaterQueue;
-  @NotNull private final AtomicBoolean myStopped;
   @NotNull private final PsIssueCollection myIssues;
 
   @NotNull private final Map<Class<?>, PsModelAnalyzer<?>> myModelAnalyzers = Maps.newHashMap();
@@ -57,25 +56,58 @@ public class PsDaemonAnalyzer implements Disposable {
   @NotNull private final EventDispatcher<IssuesUpdatedListener> myIssuesUpdatedEventDispatcher =
     EventDispatcher.create(IssuesUpdatedListener.class);
 
-  public PsDaemonAnalyzer(@NotNull PsContext context) {
-    myContext = context;
-    Disposer.register(context, this);
+  public PsAnalyzerDaemon(@NotNull PsContext context, @NotNull PsLibraryUpdateCheckerDaemon libraryUpdateCheckerDaemon) {
+    super(context);
 
-    myAnalyzerQueue = createQueue("Project Structure Daemon Analyzer", null);
+    myMainQueue = createQueue("Project Structure Daemon Analyzer", null);
     myResultsUpdaterQueue = createQueue("Project Structure Analysis Results Updater", ANY_COMPONENT);
-    myStopped = new AtomicBoolean(false);
-    myIssues = new PsIssueCollection(myContext);
+    myIssues = new PsIssueCollection(getContext());
+
+    libraryUpdateCheckerDaemon.add(this::addApplicableUpdatesAsIssues, this);
 
     createModelAnalyzers();
   }
 
-  @NotNull
-  private MergingUpdateQueue createQueue(@NotNull String name, @Nullable JComponent modalityStateComponent) {
-    return new MergingUpdateQueue(name, 300, false, modalityStateComponent, this, null, ThreadToUse.POOLED_THREAD);
+  private void addApplicableUpdatesAsIssues() {
+    PsContext context = getContext();
+    AvailableLibraryUpdates results = context.getLibraryUpdateCheckerDaemon().getResults();
+    context.getProject().forEachModule(module -> {
+      if (module instanceof PsAndroidModule) {
+        PsAndroidModule androidModule = (PsAndroidModule)module;
+
+        AtomicBoolean updatesFound = new AtomicBoolean(false);
+
+        androidModule.forEachDeclaredDependency(dependency -> {
+          if (dependency instanceof PsLibraryDependency) {
+            PsLibraryDependency libraryDependency = (PsLibraryDependency)dependency;
+            PsArtifactDependencySpec spec = libraryDependency.getDeclaredSpec();
+            if (spec != null) {
+              FoundArtifact update = results.findUpdateFor(spec);
+              if (update != null) {
+                String library = spec.group + SdkConstants.GRADLE_PATH_SEPARATOR + spec.name;
+                GradleVersion version = update.getVersions().get(0);
+                String text = String.format("A newer version of %1$s is available: %2$s", library, version.toString());
+
+                PsLibraryDependencyPath mainPath = new PsLibraryDependencyPath(context, libraryDependency);
+                PsIssue issue = new PsIssue(text, mainPath, INFO);
+                issue.setExtraPath(new PsModulePath(module));
+
+                myIssues.add(issue);
+                updatesFound.set(true);
+              }
+            }
+          }
+        });
+
+        if (updatesFound.get()) {
+          myResultsUpdaterQueue.queue(new IssuesComputed(module));
+        }
+      }
+    });
   }
 
   private void createModelAnalyzers() {
-    add(new PsAndroidModuleAnalyzer(myContext));
+    add(new PsAndroidModuleAnalyzer(getContext()));
   }
 
   private void add(@NotNull PsModelAnalyzer<? extends PsModel> analyzer) {
@@ -86,8 +118,8 @@ public class PsDaemonAnalyzer implements Disposable {
     myIssuesUpdatedEventDispatcher.addListener(listener, parentDisposable);
   }
 
-  public void queueUpdate(@NotNull PsModel model) {
-    myAnalyzerQueue.queue(new AnalyzeModelUpdate(model));
+  public void queueCheck(@NotNull PsModel model) {
+    myMainQueue.queue(new AnalyzeStructure(model));
   }
 
   private void doCheck(@NotNull PsModel model) {
@@ -106,44 +138,19 @@ public class PsDaemonAnalyzer implements Disposable {
         result.setResult(ActionCallback.DONE);
       }
     }.execute();
-    result.getResultObject().doWhenDone(() -> myResultsUpdaterQueue.queue(new PsIssuesComputedUpdate(model)));
+    result.getResultObject().doWhenDone(() -> myResultsUpdaterQueue.queue(new IssuesComputed(model)));
   }
 
-  public void reset() {
-    reset(myAnalyzerQueue, myResultsUpdaterQueue);
-    myAnalyzerQueue.queue(new Update("reset") {
-      @Override
-      public void run() {
-        myStopped.set(false);
-      }
-    });
+  @Override
+  @NotNull
+  protected MergingUpdateQueue getMainQueue() {
+    return myMainQueue;
   }
 
-  private static void reset(@NotNull MergingUpdateQueue... queues) {
-    for (MergingUpdateQueue queue : queues) {
-      queue.activate();
-    }
-  }
-
-  public void stop() {
-    myStopped.set(true);
-    stop(myAnalyzerQueue, myResultsUpdaterQueue);
-    clearCaches();
-  }
-
-  private static void stop(@NotNull MergingUpdateQueue... queues) {
-    for (MergingUpdateQueue queue : queues) {
-      queue.cancelAllUpdates();
-      queue.deactivate();
-    }
-  }
-
-  private void clearCaches() {
-
-  }
-
-  private boolean isStopped() {
-    return myStopped.get();
+  @Override
+  @NotNull
+  protected MergingUpdateQueue getResultsUpdaterQueue() {
+    return myResultsUpdaterQueue;
   }
 
   @NotNull
@@ -151,15 +158,10 @@ public class PsDaemonAnalyzer implements Disposable {
     return myIssues;
   }
 
-  @Override
-  public void dispose() {
-    stop();
-  }
-
-  private class AnalyzeModelUpdate extends Update {
+  private class AnalyzeStructure extends Update {
     @NotNull private final PsModel myModel;
 
-    AnalyzeModelUpdate(@NotNull PsModel model) {
+    AnalyzeStructure(@NotNull PsModel model) {
       super(model);
       myModel = model;
     }
@@ -175,10 +177,10 @@ public class PsDaemonAnalyzer implements Disposable {
     }
   }
 
-  private class PsIssuesComputedUpdate extends Update {
+  private class IssuesComputed extends Update {
     @NotNull private final PsModel myModel;
 
-    public PsIssuesComputedUpdate(@NotNull PsModel model) {
+    public IssuesComputed(@NotNull PsModel model) {
       super(model);
       myModel = model;
     }

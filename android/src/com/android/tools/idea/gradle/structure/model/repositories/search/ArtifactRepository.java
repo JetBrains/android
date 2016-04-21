@@ -21,6 +21,8 @@ public abstract class ArtifactRepository {
   @NotNull
   public abstract String getName();
 
+  public abstract boolean isRemote();
+
   @NotNull
   public final SearchResult search(@NotNull SearchRequest request) {
     try {

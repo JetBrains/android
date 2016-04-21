@@ -141,7 +141,7 @@ class DeclaredDependenciesTableModel extends ListTableModel<PsAndroidDependency>
       setIconOpaque(true);
       setFocusBorderAroundIcon(true);
 
-      PsIssueCollection issueCollection = myContext.getDaemonAnalyzer().getIssues();
+      PsIssueCollection issueCollection = myContext.getAnalyzerDaemon().getIssues();
       List<PsIssue> issues = issueCollection.findIssues(myDependency, IssuesByTypeComparator.INSTANCE);
 
       setToolTipText(getTooltipText(issues));

@@ -60,7 +60,7 @@ public abstract class BasePerspectiveConfigurable extends MasterDetailsComponent
         selectModule(moduleName);
       }
     }, this);
-    myContext.getDaemonAnalyzer().add(model -> {
+    myContext.getAnalyzerDaemon().add(model -> {
       if (myTree.isShowing()) {
         // If issues are updated and the tree is showing, trigger a repaint so the proper highlight and tooltip is applied.
         invokeLaterIfNeeded(() -> {

@@ -30,6 +30,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.regex.Matcher;
@@ -71,8 +72,7 @@ public class PsAndroidModuleAnalyzer extends PsModelAnalyzer<PsAndroidModule> {
         String issueKey = resolvedSpec.group + GRADLE_PATH_SEPARATOR + resolvedSpec.name;
         Collection<SyncIssue> librarySyncIssues = issuesByData.get(issueKey);
         for (SyncIssue syncIssue : librarySyncIssues) {
-          PsIssue issue = createIssueFrom(syncIssue, path);
-          issue.setExtraPath(modulePath);
+          PsIssue issue = createIssueFrom(syncIssue, path, modulePath);
           issueCollection.add(issue);
         }
 
@@ -106,8 +106,8 @@ public class PsAndroidModuleAnalyzer extends PsModelAnalyzer<PsAndroidModule> {
 
   @VisibleForTesting
   @NotNull
-  static PsIssue createIssueFrom(@NotNull SyncIssue issue, @NotNull PsNavigationPath path) {
-    String message = escapeString(issue.getMessage());
+  static PsIssue createIssueFrom(@NotNull SyncIssue syncIssue, @NotNull PsNavigationPath path, @Nullable PsNavigationPath extraPath) {
+    String message = escapeString(syncIssue.getMessage());
     Matcher matcher = URL_PATTERN.matcher(message);
     boolean result = matcher.find();
     // Replace URLs with <a href='url'>url</a>.
@@ -116,7 +116,9 @@ public class PsAndroidModuleAnalyzer extends PsModelAnalyzer<PsAndroidModule> {
       message = message.replace(url, "<a href='" + url + "'>" + url + "</a>");
       result = matcher.find();
     }
-    return new PsIssue(message, path, getType(issue));
+    PsIssue issue = new PsIssue(message, path, getType(syncIssue));
+    issue.setExtraPath(extraPath);
+    return issue;
   }
 
   @NotNull

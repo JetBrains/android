@@ -13,38 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.navigation;
+package com.android.tools.idea.gradle.structure.model;
 
-import org.jetbrains.annotations.NonNls;
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidModel;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public abstract class PsNavigationPath {
-  @NonNls public static final String GO_TO_PATH_TYPE = "psdGoTo://";
+import java.util.List;
+
+public interface PsLibraryDependency extends PsAndroidModel {
+  @NotNull
+  PsModule getParent();
+
+  @Nullable
+  PsArtifactDependencySpec getDeclaredSpec();
 
   @NotNull
-  public static final PsNavigationPath EMPTY_PATH = new PsNavigationPath() {
-    @Override
-    @NotNull
-    public String toHtml() {
-      return "";
-    }
+  PsArtifactDependencySpec getResolvedSpec();
 
-    @Override
-    public boolean equals(Object obj) {
-      return this == obj;
-    }
+  void setPomDependencies(@NotNull List<PsArtifactDependencySpec> pomDependencies);
 
-    @Override
-    public int hashCode() {
-      return 1;
-    }
-
-    @Override
-    public String toString() {
-      return "<Empty Path>";
-    }
-  };
+  boolean hasPromotedVersion();
 
   @NotNull
-  public abstract String toHtml();
+  String getValueAsText();
 }

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.model.android;
 
+import com.android.builder.model.AndroidProject;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
@@ -22,6 +23,8 @@ import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.PsParsedDependencies;
 import com.android.tools.idea.gradle.structure.model.PsProject;
 import com.android.tools.idea.gradle.structure.model.android.dependency.PsNewDependencyScopes;
+import com.android.tools.idea.gradle.structure.model.repositories.search.AndroidSdkRepository;
+import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepository;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
 import icons.AndroidIcons;
@@ -142,6 +145,17 @@ public class PsAndroidModule extends PsModule implements PsAndroidModel {
     Module model = super.getResolvedModel();
     assert model != null;
     return model;
+  }
+
+  @Override
+  @NotNull
+  public List<ArtifactRepository> getArtifactRepositories() {
+    List<ArtifactRepository> repositories = Lists.newArrayList();
+    populateRepositories(repositories);
+    AndroidProject androidProject = getGradleModel().getAndroidProject();
+    repositories.add(new AndroidSdkRepository(androidProject));
+
+    return repositories;
   }
 
   public void addLibraryDependency(@NotNull String library, @NotNull PsNewDependencyScopes newScopes, @NotNull List<String> scopesNames) {

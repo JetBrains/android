@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.gradle.structure.model.repositories.search;
 
+import com.android.ide.common.repository.GradleVersion;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.TestOnly;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -29,16 +31,24 @@ public class FoundArtifact {
   @NotNull private final String myGroupId;
   @NotNull private final String myName;
 
-  @NotNull private final List<String> myVersions = Lists.newArrayList();
+  @NotNull private final List<GradleVersion> myVersions = Lists.newArrayList();
 
-  FoundArtifact(@NotNull String repositoryName, @NotNull String groupId, @NotNull String name, @NotNull String version) {
+  FoundArtifact(@NotNull String repositoryName, @NotNull String groupId, @NotNull String name, @NotNull GradleVersion version) {
     this(repositoryName, groupId, name);
     myVersions.add(version);
+    sortVersionsFromNewestToOldest();
   }
 
-  FoundArtifact(@NotNull String repositoryName, @NotNull String groupId, @NotNull String name, @NotNull List<String> versions) {
+  FoundArtifact(@NotNull String repositoryName, @NotNull String groupId, @NotNull String name, @NotNull List<GradleVersion> versions) {
     this(repositoryName, groupId, name);
     myVersions.addAll(versions);
+    sortVersionsFromNewestToOldest();
+  }
+
+  private void sortVersionsFromNewestToOldest() {
+    if (myVersions.size() > 1) {
+      Collections.sort(myVersions, Collections.reverseOrder());
+    }
   }
 
   private FoundArtifact(@NotNull String repositoryName, @NotNull String groupId, @NotNull String name) {
@@ -63,19 +73,23 @@ public class FoundArtifact {
   }
 
   @NotNull
-  public List<String> getVersions() {
+  public List<GradleVersion> getVersions() {
     return myVersions;
   }
 
   @TestOnly
   @NotNull
   public List<String> getCoordinates() {
-    List<String> coordinates = Lists.newArrayList();
-
     String groupIdAndName = myGroupId + GRADLE_PATH_SEPARATOR + myName;
-    coordinates.addAll(myVersions.stream().map(version -> groupIdAndName + GRADLE_PATH_SEPARATOR + version)
-                                          .collect(Collectors.toList()));
+    return myVersions.stream().map(version -> groupIdAndName + GRADLE_PATH_SEPARATOR + version).collect(Collectors.toList());
+  }
 
-    return coordinates;
+  @Override
+  public String toString() {
+    return "{repository='" + myRepositoryName + '\'' +
+           ", group='" + myGroupId + '\'' +
+           ", name='" + myName + '\'' +
+           ", versions=" + myVersions +
+           '}';
   }
 }

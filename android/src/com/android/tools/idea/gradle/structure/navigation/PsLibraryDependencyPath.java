@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.structure.navigation;
 
 import com.android.tools.idea.gradle.structure.configurables.DependenciesPerspectiveConfigurable;
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidLibraryDependency;
+import com.android.tools.idea.gradle.structure.model.PsLibraryDependency;
 import com.android.tools.idea.structure.dialog.ProjectStructureConfigurable;
 import com.google.common.base.Objects;
 import com.intellij.ui.navigation.Place;
@@ -31,7 +31,7 @@ public class PsLibraryDependencyPath extends PsNavigationPath {
   @NotNull private final String myModuleName;
   @NotNull private final String myDependency;
 
-  public PsLibraryDependencyPath(@NotNull PsContext context, @NotNull PsAndroidLibraryDependency dependency) {
+  public PsLibraryDependencyPath(@NotNull PsContext context, @NotNull PsLibraryDependency dependency) {
     myContext = context;
     myModuleName = dependency.getParent().getName();
     myDependency = dependency.getValueAsText();

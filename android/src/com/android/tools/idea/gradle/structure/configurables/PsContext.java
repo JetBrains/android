@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.gradle.structure.configurables;
 
-import com.android.tools.idea.gradle.structure.daemon.PsDaemonAnalyzer;
+import com.android.tools.idea.gradle.structure.daemon.PsAnalyzerDaemon;
+import com.android.tools.idea.gradle.structure.daemon.PsLibraryUpdateCheckerDaemon;
 import com.android.tools.idea.gradle.structure.model.PsProject;
 import com.android.tools.idea.structure.dialog.ProjectStructureConfigurable;
 import com.intellij.openapi.Disposable;
@@ -28,7 +29,8 @@ import java.util.EventListener;
 
 public class PsContext implements Disposable {
   @NotNull private final PsProject myProject;
-  @NotNull private final PsDaemonAnalyzer myDaemonAnalyzer;
+  @NotNull private final PsAnalyzerDaemon myAnalyzerDaemon;
+  @NotNull private final PsLibraryUpdateCheckerDaemon myLibraryUpdateCheckerDaemon;
 
   @NotNull private final EventDispatcher<ChangeListener> myEventDispatcher = EventDispatcher.create(ChangeListener.class);
 
@@ -36,17 +38,26 @@ public class PsContext implements Disposable {
 
   public PsContext(@NotNull PsProject project, @NotNull Disposable parentDisposable) {
     myProject = project;
-    myDaemonAnalyzer = new PsDaemonAnalyzer(this);
-    myDaemonAnalyzer.reset();
 
-    myProject.forEachModule(myDaemonAnalyzer::queueUpdate);
+    myLibraryUpdateCheckerDaemon = new PsLibraryUpdateCheckerDaemon(this);
+    myLibraryUpdateCheckerDaemon.reset();
+    myLibraryUpdateCheckerDaemon.queueUpdateCheck();
+
+    myAnalyzerDaemon = new PsAnalyzerDaemon(this, myLibraryUpdateCheckerDaemon);
+    myAnalyzerDaemon.reset();
+    myProject.forEachModule(myAnalyzerDaemon::queueCheck);
 
     Disposer.register(parentDisposable, this);
   }
 
   @NotNull
-  public PsDaemonAnalyzer getDaemonAnalyzer() {
-    return myDaemonAnalyzer;
+  public PsAnalyzerDaemon getAnalyzerDaemon() {
+    return myAnalyzerDaemon;
+  }
+
+  @NotNull
+  public PsLibraryUpdateCheckerDaemon getLibraryUpdateCheckerDaemon() {
+    return myLibraryUpdateCheckerDaemon;
   }
 
   @Nullable
