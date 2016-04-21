@@ -21,7 +21,6 @@ import com.android.tools.idea.gradle.structure.model.PsIssue;
 import com.android.tools.idea.structure.dialog.ProjectStructureConfigurable;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.intellij.ide.BrowserUtil;
 import com.intellij.ui.HyperlinkAdapter;
 import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.components.JBLabel;
@@ -35,8 +34,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import static com.android.tools.idea.gradle.structure.configurables.ui.UiUtil.revalidateAndRepaint;
 import static com.android.tools.idea.gradle.structure.navigation.Places.deserialize;
 import static com.android.tools.idea.gradle.structure.navigation.PsNavigationPath.GO_TO_PATH_TYPE;
+import static com.intellij.ide.BrowserUtil.browse;
 import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
 import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
 import static com.intellij.util.ui.UIUtil.getTreeFont;
@@ -68,7 +69,7 @@ public class IssuesViewer {
       myIssuesPanel1.setVisible(false);
       myIssuesPanel2.setVisible(false);
       myIssuesPanel3.setVisible(false);
-      revalidateAndRepaint();
+      revalidateAndRepaintPanels();
       return;
     }
     else {
@@ -106,7 +107,7 @@ public class IssuesViewer {
     if (currentIssueIndex < 0) {
       myIssuesPanel1.setVisible(false);
       myIssuesPanel2.setVisible(false);
-      revalidateAndRepaint();
+      revalidateAndRepaintPanels();
       return;
     }
 
@@ -118,7 +119,7 @@ public class IssuesViewer {
     currentIssueIndex--;
     if (currentIssueIndex < 0) {
       myIssuesPanel1.setVisible(false);
-      revalidateAndRepaint();
+      revalidateAndRepaintPanels();
       return;
     }
 
@@ -127,12 +128,14 @@ public class IssuesViewer {
     updateTitle(((CollapsiblePanel)myIssuesPanel1), type, group);
     myIssuesView1.setText(myRenderer.render(group));
 
-    revalidateAndRepaint();
+    revalidateAndRepaintPanels();
   }
 
-  private void revalidateAndRepaint() {
-    myMainPanel.revalidate();
-    myMainPanel.repaint();
+  private void revalidateAndRepaintPanels() {
+    revalidateAndRepaint(myIssuesPanel1);
+    revalidateAndRepaint(myIssuesPanel2);
+    revalidateAndRepaint(myIssuesPanel3);
+    revalidateAndRepaint(myMainPanel);
   }
 
   private static void updateTitle(@NotNull CollapsiblePanel panel, @NotNull PsIssue.Type type, @NotNull List<PsIssue> issues) {
@@ -185,7 +188,7 @@ public class IssuesViewer {
         return;
       }
       if (target.startsWith("https://") || target.startsWith("http://")) {
-        BrowserUtil.browse(target);
+        browse(target);
       }
     }
   }
