@@ -80,7 +80,7 @@ public class AndroidRunConfigurationType implements ConfigurationType {
 
   @Override
   public Icon getIcon() {
-    return AndroidIcons.Android;
+    return AndroidIcons.AndroidModule;
   }
 
   @Override
