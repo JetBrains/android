@@ -960,7 +960,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   public void openAndToggleBreakPoints(String fileName, int[] lines) {
     EditorFixture editor = getEditor().open(fileName);
     for (int line : lines) {
-      editor.moveToLine(line - 1); // Editor lines are zero-based.
+      editor.moveToLine(line);
       invokeMenuPath("Run", "Toggle Line Breakpoint"); // TODO: Use editor.invokeAction instead and provide the mnemonic.
     }
   }

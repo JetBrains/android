@@ -138,9 +138,10 @@ public class EditorFixture {
   }
 
   /**
-   * Returns the line number of the current caret position (0-based).
+   * Returns the line number of the current caret position (1-based). Note that
+   * internal editor line numbers are 0-based.
    *
-   * @return the current 0-based line number, or -1 if there is no current file
+   * @return the current 1-based line number, or -1 if there is no current file
    */
   public int getCurrentLineNumber() {
     //noinspection ConstantConditions
@@ -155,7 +156,7 @@ public class EditorFixture {
           Caret primaryCaret = caretModel.getPrimaryCaret();
           int offset = primaryCaret.getOffset();
           Document document = editor.getDocument();
-          return document.getLineNumber(offset);
+          return document.getLineNumber(offset) + 1;
         }
 
         return -1;
@@ -451,7 +452,8 @@ public class EditorFixture {
   }
 
   /**
-   * Moves the caret to the start of the given line number (0-based).
+   * Moves the caret to the start of the given line number (1-based). Note that
+   * the internal editor lines are 0-based.
    *
    * @param lineNumber the line number.
    */
@@ -467,7 +469,7 @@ public class EditorFixture {
         Editor editor = manager.getSelectedTextEditor();
         if (editor != null) {
           Document document = editor.getDocument();
-          int offset = document.getLineStartOffset(lineNumber);
+          int offset = document.getLineStartOffset(lineNumber - 1);
           LogicalPosition position = editor.offsetToLogicalPosition(offset);
           editor.getScrollingModel().scrollTo(position, ScrollType.MAKE_VISIBLE);
           editor.getScrollingModel().runActionOnScrollingFinished(() -> doneScrolling.set(true));
