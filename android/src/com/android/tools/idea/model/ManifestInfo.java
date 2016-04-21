@@ -19,9 +19,7 @@ import com.android.SdkConstants;
 import com.android.builder.model.AndroidLibrary;
 import com.android.builder.model.BuildType;
 import com.android.builder.model.BuildTypeContainer;
-import com.android.manifmerger.Actions;
-import com.android.manifmerger.ManifestMerger2;
-import com.android.manifmerger.MergingReport;
+import com.android.manifmerger.*;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.GradleSyncState;
@@ -46,7 +44,7 @@ import com.intellij.psi.PsiFileFactory;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import org.jetbrains.android.dom.manifest.*;
+import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.facet.IdeaSourceProvider;
@@ -122,19 +120,19 @@ public final class ManifestInfo {
     if (androidModel != null) {
       AndroidVersion minSdkVersion = androidModel.getMinSdkVersion();
       if (minSdkVersion != null) {
-        manifestMergerInvoker.setOverride(ManifestMerger2.SystemProperty.MIN_SDK_VERSION, minSdkVersion.getApiString());
+        manifestMergerInvoker.setOverride(ManifestSystemProperty.MIN_SDK_VERSION, minSdkVersion.getApiString());
       }
       AndroidVersion targetSdkVersion = androidModel.getTargetSdkVersion();
       if (targetSdkVersion != null) {
-        manifestMergerInvoker.setOverride(ManifestMerger2.SystemProperty.TARGET_SDK_VERSION, targetSdkVersion.getApiString());
+        manifestMergerInvoker.setOverride(ManifestSystemProperty.TARGET_SDK_VERSION, targetSdkVersion.getApiString());
       }
       Integer versionCode = androidModel.getVersionCode();
       if (versionCode != null && versionCode > 0) {
-        manifestMergerInvoker.setOverride(ManifestMerger2.SystemProperty.VERSION_CODE, String.valueOf(versionCode));
+        manifestMergerInvoker.setOverride(ManifestSystemProperty.VERSION_CODE, String.valueOf(versionCode));
       }
       String packageOverride = androidModel.getApplicationId();
       if (!Strings.isNullOrEmpty(packageOverride)) {
-        manifestMergerInvoker.setOverride(ManifestMerger2.SystemProperty.PACKAGE, packageOverride);
+        manifestMergerInvoker.setOverride(ManifestSystemProperty.PACKAGE, packageOverride);
       }
     }
 
@@ -151,7 +149,7 @@ public final class ManifestInfo {
       // @deprecated maxSdkVersion has been ignored since Android 2.1 (API level 7)
       Integer maxSdkVersion = gradleModel.getSelectedVariant().getMergedFlavor().getMaxSdkVersion();
       if (maxSdkVersion != null) {
-        manifestMergerInvoker.setOverride(ManifestMerger2.SystemProperty.MAX_SDK_VERSION, maxSdkVersion.toString());
+        manifestMergerInvoker.setOverride(ManifestSystemProperty.MAX_SDK_VERSION, maxSdkVersion.toString());
       }
 
       // TODO we should have version Name for non-gradle projects
@@ -168,7 +166,7 @@ public final class ManifestInfo {
         if (!Strings.isNullOrEmpty(versionNameSuffix)) {
           versionName = Strings.nullToEmpty(versionName) + versionNameSuffix;
         }
-        manifestMergerInvoker.setOverride(ManifestMerger2.SystemProperty.VERSION_NAME, versionName);
+        manifestMergerInvoker.setOverride(ManifestSystemProperty.VERSION_NAME, versionName);
       }
     }
 
