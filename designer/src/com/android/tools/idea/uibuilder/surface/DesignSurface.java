@@ -135,6 +135,7 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
     add(myScrollPane, BorderLayout.CENTER);
 
     myErrorPanel = new RenderErrorPanel();
+    myErrorPanel.setName("Layout Editor Error Panel");
     myErrorPanel.setVisible(false);
     myLayeredPane.add(myErrorPanel, JLayeredPane.POPUP_LAYER);
 
@@ -222,6 +223,10 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
     myLayers.clear();
     if (model != null) {
       myScreenView = new ScreenView(this, model);
+
+      // If the model has already rendered, there may be errors to display,
+      // so update the error panel to reflect that.
+      updateErrorDisplay(myScreenView, myScreenView.getResult());
 
       Dimension screenSize = myScreenView.getPreferredSize();
       myLayeredPane.setPreferredSize(screenSize);
@@ -1083,6 +1088,7 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
     private MyProgressPanel() {
       super(new BorderLayout());
       setOpaque(false);
+      setVisible(false);
     }
 
     /** The "small" icon mode isn't just for the icon size; it's for the layout position too; see {@link #doLayout} */
