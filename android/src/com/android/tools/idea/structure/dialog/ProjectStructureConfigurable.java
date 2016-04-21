@@ -26,7 +26,6 @@ import com.intellij.openapi.options.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectBundle;
 import com.intellij.openapi.project.ProjectManager;
-import com.intellij.openapi.roots.ui.configuration.SidePanel;
 import com.intellij.openapi.ui.MasterDetailsComponent;
 import com.intellij.openapi.util.ActionCallback;
 import com.intellij.openapi.util.Disposer;
@@ -49,8 +48,7 @@ import java.awt.*;
 import java.util.List;
 
 import static com.intellij.ui.navigation.Place.goFurther;
-import static com.intellij.util.ui.UIUtil.SIDE_PANEL_BACKGROUND;
-import static com.intellij.util.ui.UIUtil.requestFocus;
+import static com.intellij.util.ui.UIUtil.*;
 
 public class ProjectStructureConfigurable extends BaseConfigurable
   implements SearchableConfigurable, Place.Navigator, Configurable.NoMargin, Configurable.NoScroll {
@@ -348,6 +346,9 @@ public class ProjectStructureConfigurable extends BaseConfigurable
       navigator.setHistory(myHistory);
     }
     mySidePanel.addPlace(createPlaceFor(configurable), new Presentation(configurable.getDisplayName()));
+    if (configurable instanceof CounterDisplayConfigurable) {
+      ((CounterDisplayConfigurable)configurable).add(() -> invokeLaterIfNeeded(() -> mySidePanel.repaint()), myDisposable);
+    }
   }
 
   public static void putPath(@NotNull Place place, @NotNull Configurable configurable) {

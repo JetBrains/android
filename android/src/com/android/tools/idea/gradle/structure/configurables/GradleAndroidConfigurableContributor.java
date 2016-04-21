@@ -45,7 +45,7 @@ public class GradleAndroidConfigurableContributor extends AndroidConfigurableCon
   @NotNull
   public List<ProjectStructureItemGroup> getAdditionalConfigurableGroups() {
     assert myContext != null;
-    ProjectStructureItemGroup messagesGroup = new ProjectStructureItemGroup("", new MessagesConfigurable(myContext));
+    ProjectStructureItemGroup messagesGroup = new ProjectStructureItemGroup("--", new MessagesConfigurable(myContext));
     return com.google.android.collect.Lists.newArrayList(messagesGroup);
   }
 }
