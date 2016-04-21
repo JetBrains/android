@@ -149,21 +149,25 @@ public abstract class AndroidLogcatView implements Disposable {
 
     myLogFilterModel =
       new AndroidLogFilterModel() {
-        final AndroidLogcatPreferences myPreferences = AndroidLogcatPreferences.getInstance(project);
+
+        @NotNull
+        private AndroidLogcatPreferences getPreferences() {
+          return AndroidLogcatPreferences.getInstance(project);
+        }
 
         @Override
         protected void saveLogLevel(String logLevelName) {
-          myPreferences.TOOL_WINDOW_LOG_LEVEL = logLevelName;
+          getPreferences().TOOL_WINDOW_LOG_LEVEL = logLevelName;
         }
 
         @Override
         public String getSelectedLogLevelName() {
-          return myPreferences.TOOL_WINDOW_LOG_LEVEL;
+          return getPreferences().TOOL_WINDOW_LOG_LEVEL;
         }
 
         @Override
         protected void saveConfiguredFilterName(String filterName) {
-          myPreferences.TOOL_WINDOW_CONFIGURED_FILTER = filterName;
+          getPreferences().TOOL_WINDOW_CONFIGURED_FILTER = filterName;
         }
       };
 
@@ -427,7 +431,9 @@ public abstract class AndroidLogcatView implements Disposable {
 
   @Override
   public final void dispose() {
-    AndroidLogcatService.getInstance().removeListener(myDevice, myFormattedLogLineReceiver);
+    if (myDevice != null) {
+      AndroidLogcatService.getInstance().removeListener(myDevice, myFormattedLogLineReceiver);
+    }
   }
 
   private final class MyRestartAction extends AnAction {
