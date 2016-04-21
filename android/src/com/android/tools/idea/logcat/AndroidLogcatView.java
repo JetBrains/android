@@ -427,6 +427,7 @@ public abstract class AndroidLogcatView implements Disposable {
 
   @Override
   public final void dispose() {
+    AndroidLogcatService.getInstance().removeListener(myDevice, myFormattedLogLineReceiver);
   }
 
   private final class MyRestartAction extends AnAction {
