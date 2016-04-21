@@ -20,10 +20,12 @@ import com.android.tools.idea.gradle.structure.configurables.issues.IssuesByType
 import com.android.tools.idea.gradle.structure.configurables.issues.IssuesViewer;
 import com.android.tools.idea.gradle.structure.model.PsIssue;
 import com.android.tools.idea.gradle.structure.navigation.PsModulePath;
+import com.android.tools.idea.structure.dialog.CounterDisplayConfigurable;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.util.EventDispatcher;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -38,13 +40,15 @@ import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
 import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
 import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 
-public class MessagesConfigurable extends JPanel implements Configurable, Disposable {
+public class MessagesConfigurable extends JPanel implements Configurable, CounterDisplayConfigurable, Disposable {
   @NotNull private final PsContext myContext;
   @NotNull private final IssuesViewer myIssuesViewer;
+  private int myMessageCount;
+
+  private final EventDispatcher<CountChangeListener> myEventDispatcher = EventDispatcher.create(CountChangeListener.class);
 
   public MessagesConfigurable(@NotNull PsContext context) {
     super(new BorderLayout());
-    setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
     myContext = context;
 
     myIssuesViewer = new IssuesViewer(context, issues -> {
@@ -63,10 +67,14 @@ public class MessagesConfigurable extends JPanel implements Configurable, Dispos
 
     JPanel issuesViewerPanel = myIssuesViewer.getPanel();
     JScrollPane scrollPane = createScrollPane(issuesViewerPanel, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER);
+    scrollPane.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
     add(scrollPane, BorderLayout.CENTER);
 
     renderIssues();
-    myContext.getDaemonAnalyzer().add(model -> invokeLaterIfNeeded(this::renderIssues), this);
+    myContext.getDaemonAnalyzer().add(model -> {
+      myEventDispatcher.getMulticaster().countChanged();
+      invokeLaterIfNeeded(this::renderIssues);
+    }, this);
   }
 
   private void renderIssues() {
@@ -74,8 +82,18 @@ public class MessagesConfigurable extends JPanel implements Configurable, Dispos
     if (issues.size() > 1) {
       Collections.sort(issues, IssuesByTypeComparator.INSTANCE);
     }
-
+    myMessageCount = issues.size();
     myIssuesViewer.display(issues);
+  }
+
+  @Override
+  public int getCount() {
+    return myMessageCount;
+  }
+
+  @Override
+  public void add(@NotNull CountChangeListener listener, @NotNull Disposable parentDisposable) {
+    myEventDispatcher.addListener(listener, parentDisposable);
   }
 
   @Override
