@@ -41,6 +41,10 @@ public class HardwareProfileTest {
     AvdManagerDialogFixture avdManagerDialog = guiTest.ideFrame().invokeAvdManager();
     AvdEditWizardFixture avdEditWizard = avdManagerDialog.createNew();
     ChooseDeviceDefinitionStepFixture step = avdEditWizard.selectHardware();
+    if (step.deviceNames().contains(deviceName)) {
+      step.deleteHardwareProfile(deviceName);
+    }
+
     assertWithMessage("initial state").that(step.deviceNames()).doesNotContain(deviceName);
 
     HardwareProfileWizardFixture hardwareProfileWizard = step.newHardwareProfile();
