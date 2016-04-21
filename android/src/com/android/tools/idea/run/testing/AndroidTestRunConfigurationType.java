@@ -36,7 +36,7 @@ public class AndroidTestRunConfigurationType implements ConfigurationType {
 
   static {
     LayeredIcon icon = new LayeredIcon(2);
-    icon.setIcon(AndroidIcons.Android, 0);
+    icon.setIcon(AndroidIcons.AndroidModule, 0);
     icon.setIcon(AllIcons.Nodes.JunitTestMark, 1);
     ANDROID_TEST_ICON = icon;
   }

@@ -18,10 +18,10 @@ public class AndroidIcons {
   public static final Icon AndroidLarge = load("/icons/androidLarge.png"); // 64x64
   public static final Icon AndroidPreview = load("/icons/androidPreview.png"); // 13x13
   public static final Icon AndroidToolWindow = load("/icons/androidToolWindow.png"); // 13x13
+  public static final Icon AndroidModule = load("/icons/androidModule.png"); // 16x16
 
   public static final Icon AvdManager = load("/icons/avd_manager.png"); // 16x16
   public static final Icon SdkManager = load("/icons/sdk_manager.png"); // 16x16
-  public static final Icon SdkManagerLarge = load("/icons/sdk_manager_large.png"); // 32x32
   public static final Icon NavigationEditor = load("/icons/navigation_editor.png"); // 16x16
 
   public static final Icon ZoomActual = load("/icons/zoomActual.png"); // 16x16
@@ -188,8 +188,6 @@ public class AndroidIcons {
   }
 
   public static class RunIcons {
-    public static final Icon Attach = load("/icons/run/attach.png");
-
     public static final Icon Debug = load("/icons/run/debug.png");
     public static final Icon DebugReattach = load("/icons/run/debug2.png");
 
