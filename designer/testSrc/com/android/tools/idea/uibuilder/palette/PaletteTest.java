@@ -50,44 +50,44 @@ public class PaletteTest extends PaletteTestCase {
 
   @Language("XML")
   private static final String PALETTE =
-  "<palette>\n" +
-  "  <group name=\"Widgets\">\n" +
-  "    <item tag=\"TextView\"/>\n" +
-  "    <item tag=\"LinearLayout\" " +
-  "          title=\"LinearLayout (horizontal)\"/>\n" +
-  "    <item tag=\"ProgressBar\"\n" +
-  "          id=\"LargeProgressBar\"\n" +
-  "          title=\"ProgressBar (Large)\">\n" +
-  "      <xml reuse=\"preview,drag-preview\">\n" +
-  "        <![CDATA[\n" +
-  "              <ProgressBar\n" +
-  "                style=\"@android:style/Widget.ProgressBar.Large\"\n" +
-  "                android:layout_width=\"wrap_content\"\n" +
-  "                android:layout_height=\"wrap_content\"\n" +
-  "              />\n" +
-  "            ]]>\n" +
-  "      </xml>\n" +
-  "    </item>\n" +
-  "    <item tag=\"ProgressBar\"\n" +
-  "          title=\"ProgressBar\">\n" +
-  "      <xml reuse=\"preview,drag-preview\">\n" +
-  "        <![CDATA[\n" +
-  "            <ProgressBar\n" +
-  "              style=\"@android:style/Widget.ProgressBar\"\n" +
-  "              android:layout_width=\"wrap_content\"\n" +
-  "              android:layout_height=\"wrap_content\"\n" +
-  "            />\n" +
-  "          ]]>\n" +
-  "      </xml>\n" +
-  "    </item>\n" +
-  "  </group>\n" +
-  "  <group name=\"Advanced\">\n" +
-  "    <group name=\"Distinct\">\n" +
-  "      <item tag=\"include\"/>\n" +
-  "      <item tag=\"android.support.design.widget.CoordinatorLayout\"/>\n" +
-  "    </group>\n" +
-  "  </group>\n" +
-  "</palette>\n";
+    "<palette>\n" +
+    "  <group name=\"Widgets\">\n" +
+    "    <item tag=\"TextView\"/>\n" +
+    "    <item tag=\"LinearLayout\" " +
+    "          title=\"LinearLayout (horizontal)\"/>\n" +
+    "    <item tag=\"ProgressBar\"\n" +
+    "          id=\"LargeProgressBar\"\n" +
+    "          title=\"ProgressBar (Large)\">\n" +
+    "      <xml reuse=\"preview,drag-preview\">\n" +
+    "        <![CDATA[\n" +
+    "              <ProgressBar\n" +
+    "                style=\"?android:attr/progressBarStyleLarge\"\n" +
+    "                android:layout_width=\"wrap_content\"\n" +
+    "                android:layout_height=\"wrap_content\"\n" +
+    "              />\n" +
+    "            ]]>\n" +
+    "      </xml>\n" +
+    "    </item>\n" +
+    "    <item tag=\"ProgressBar\"\n" +
+    "          title=\"ProgressBar\">\n" +
+    "      <xml reuse=\"preview,drag-preview\">\n" +
+    "        <![CDATA[\n" +
+    "            <ProgressBar\n" +
+    "              style=\"?android:attr/progressBarStyle\"\n" +
+    "              android:layout_width=\"wrap_content\"\n" +
+    "              android:layout_height=\"wrap_content\"\n" +
+    "            />\n" +
+    "          ]]>\n" +
+    "      </xml>\n" +
+    "    </item>\n" +
+    "  </group>\n" +
+    "  <group name=\"Advanced\">\n" +
+    "    <group name=\"Distinct\">\n" +
+    "      <item tag=\"include\"/>\n" +
+    "      <item tag=\"android.support.design.widget.CoordinatorLayout\"/>\n" +
+    "    </group>\n" +
+    "  </group>\n" +
+    "</palette>\n";
 
   private Palette loadPalette() throws Exception {
     ViewHandlerManager manager = new ViewHandlerManager(getProject());

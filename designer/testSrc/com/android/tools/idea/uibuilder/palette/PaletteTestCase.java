@@ -99,7 +99,7 @@ public abstract class PaletteTestCase extends AndroidTestCase {
   @Language("XML")
   private static final String LARGE_PROGRESS_XML =
     "<ProgressBar\n" +
-    "  style=\"@android:style/Widget.ProgressBar.Large\"\n" +
+    "  style=\"?android:attr/progressBarStyleLarge\"\n" +
     "  android:layout_width=\"wrap_content\"\n" +
     "  android:layout_height=\"wrap_content\"\n" +
     "/>\n";
@@ -108,7 +108,7 @@ public abstract class PaletteTestCase extends AndroidTestCase {
   private static final String LARGE_PROGRESS_PREVIEW_XML =
     "<ProgressBar\n" +
     "  android:id=\"@+id/LargeProgressBar\"\n" +
-    "  style=\"@android:style/Widget.ProgressBar.Large\"\n" +
+    "  style=\"?android:attr/progressBarStyleLarge\"\n" +
     "  android:layout_width=\"wrap_content\"\n" +
     "  android:layout_height=\"wrap_content\"\n" +
     "/>\n";
@@ -124,7 +124,7 @@ public abstract class PaletteTestCase extends AndroidTestCase {
   @Language("XML")
   private static final String NORMAL_PROGRESS_XML =
     "<ProgressBar\n" +
-    "  style=\"@android:style/Widget.ProgressBar\"\n" +
+    "  style=\"?android:attr/progressBarStyle\"\n" +
     "  android:layout_width=\"wrap_content\"\n" +
     "  android:layout_height=\"wrap_content\"\n" +
     "/>\n";
@@ -138,7 +138,7 @@ public abstract class PaletteTestCase extends AndroidTestCase {
   @Language("XML")
   private static final String SMALL_PROGRESS_XML =
     "<ProgressBar\n" +
-    "  style=\"@android:style/Widget.ProgressBar.Small\"\n" +
+    "  style=\"?android:attr/progressBarStyleSmall\"\n" +
     "  android:layout_width=\"wrap_content\"\n" +
     "  android:layout_height=\"wrap_content\"\n" +
     "/>\n";
@@ -147,7 +147,7 @@ public abstract class PaletteTestCase extends AndroidTestCase {
   private static final String SMALL_PROGRESS_PREVIEW_XML =
     "<ProgressBar\n" +
     "  android:id=\"@+id/SmallProgressBar\"\n" +
-    "  style=\"@android:style/Widget.ProgressBar.Small\"\n" +
+    "  style=\"?android:attr/progressBarStyleSmall\"\n" +
     "  android:layout_width=\"wrap_content\"\n" +
     "  android:layout_height=\"wrap_content\"\n" +
     "/>\n";
