@@ -70,6 +70,7 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.util.containers.HashSet;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
@@ -136,6 +137,11 @@ public class RenderErrorPanel extends JPanel {
   private HighlightSeverity mySeverity; // severity of messages shown, currently just warning or error
   private HtmlLinkManager myLinkManager;
   private final JScrollPane myScrollPane;
+  /**
+   * By default, if ONLY fidelity warnings are found, they are showed collapsed in one warning line. If true, the
+   * fidelity warnings will be showed expanded as any other errors.
+   */
+  private boolean myExpandFidelityWarnings;
 
   public RenderErrorPanel() {
     super(new BorderLayout());
@@ -164,7 +170,7 @@ public class RenderErrorPanel extends JPanel {
       }
     };
     myHTMLViewer.addHyperlinkListener(myHyperLinkListener);
-    myHTMLViewer.setMargin(new Insets(3, 3, 3, 3));
+    myHTMLViewer.setMargin(JBUI.insets(3, 3, 3, 3));
 
     myScrollPane = ScrollPaneFactory.createScrollPane(myHTMLViewer);
     setupStyle();
@@ -200,7 +206,8 @@ public class RenderErrorPanel extends JPanel {
   }
 
   public void showErrors(@Nullable String html, @Nullable RenderResult result, @Nullable HtmlLinkManager linkManager) {
-    showErrors(HighlightSeverity.ERROR, html, result, linkManager);
+    HighlightSeverity maxSeverity = result != null && result.getLogger().hasErrors() ? HighlightSeverity.ERROR : HighlightSeverity.WARNING;
+    showErrors(maxSeverity, html, result, linkManager);
   }
 
   public void showWarning(@Nullable String html) {
@@ -300,28 +307,49 @@ public class RenderErrorPanel extends JPanel {
     HtmlBuilder builder = new HtmlBuilder(new StringBuilder(300));
     builder.openHtmlBody();
 
-    // Construct close button. Sadly <img align="right"> doesn't work in JEditorPanes; would
-    // have looked a lot nicer with the image flushed to the right!
-    builder.addHtml("<A HREF=\"");
-    builder.addHtml(URL_ACTION_CLOSE);
-    builder.addHtml("\">");
-    builder.addIcon(HtmlBuilderHelper.getCloseIconPath());
-    builder.addHtml("</A>");
-    builder.addHeading("Rendering Problems", HtmlBuilderHelper.getHeaderFontColor()).newline();
+    if (logger.hasErrors() || myExpandFidelityWarnings) {
+      // Construct close button. Sadly <img align="right"> doesn't work in JEditorPanes; would
+      // have looked a lot nicer with the image flushed to the right!
+      builder.addHtml("<A HREF=\"");
+      builder.addHtml(URL_ACTION_CLOSE);
+      builder.addHtml("\">");
+      builder.addIcon(HtmlBuilderHelper.getCloseIconPath());
+      builder.addHtml("</A>");
+      builder.addNbsp();
+      builder.addHeading("Rendering Problems", HtmlBuilderHelper.getHeaderFontColor()).newline();
 
-    reportMissingStyles(logger, builder);
-    if (renderTask != null) {
-      reportOldNinePathRenderLib(logger, builder, renderTask);
-      reportRelevantCompilationErrors(logger, builder, renderTask);
-      reportMissingSizeAttributes(logger, builder, renderTask);
-      reportMissingClasses(logger, builder, renderTask);
+      reportMissingStyles(logger, builder);
+      if (renderTask != null) {
+        reportOldNinePathRenderLib(logger, builder, renderTask);
+        reportRelevantCompilationErrors(logger, builder, renderTask);
+        reportMissingSizeAttributes(logger, builder, renderTask);
+        reportMissingClasses(logger, builder, renderTask);
+      }
+      reportBrokenClasses(logger, builder);
+      reportInstantiationProblems(logger, builder);
+      reportOtherProblems(logger, builder);
+      reportUnknownFragments(logger, builder);
+
+      if (renderTask != null) {
+        reportRenderingFidelityProblems(logger, builder, renderTask);
+      }
     }
-    reportBrokenClasses(logger, builder);
-    reportInstantiationProblems(logger, builder);
-    reportOtherProblems(logger, builder);
-    reportUnknownFragments(logger, builder);
-    if (renderTask != null) {
-      reportRenderingFidelityProblems(logger, builder, renderTask);
+    else {
+      // We only have fidelity warnings so display a small warning that allows the user to fully expand them
+      builder
+        .addIcon(HtmlBuilderHelper.getWarningIconPath())
+        .addNbsp()
+        .add("Fidelity warnings")
+        .addLink(" (show) ", myLinkManager.createRunnableLink(() -> {
+          myExpandFidelityWarnings = true;
+          if (myResult != null) {
+            RenderTask task = myResult.getRenderTask();
+            RenderContext context = task != null ? task.getRenderContext() : null;
+            if (context != null) {
+              context.requestRender();
+            }
+          }
+        }));
     }
 
     builder.closeHtmlBody();
@@ -1446,12 +1474,12 @@ public class RenderErrorPanel extends JPanel {
 
     @Nullable
     public static String getWarningIconPath() {
-      return getIconPath("/actions/warning.png");
+      return getIconPath("/general/warningDialog.png");
     }
 
     @Nullable
     public static String getErrorIconPath() {
-      return getIconPath("/actions/error.png");
+      return getIconPath("/general/error.png");
     }
 
     public static String getHeaderFontColor() {
