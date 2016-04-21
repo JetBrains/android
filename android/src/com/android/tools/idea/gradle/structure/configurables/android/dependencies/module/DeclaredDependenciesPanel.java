@@ -83,7 +83,7 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel implem
     super("Declared Dependencies", context, module);
 
     myContext = context;
-    myContext.getDaemonAnalyzer().add(model -> {
+    myContext.getAnalyzerDaemon().add(model -> {
       if (model == module) {
         // TODO Implement once updating adding/deleting/updating dependencies is implemented.
       }
@@ -323,7 +323,7 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel implem
   private void updateIssues(@Nullable PsAndroidDependency selected) {
     List<PsIssue> issues = Collections.emptyList();
     if (selected != null) {
-      issues = myContext.getDaemonAnalyzer().getIssues().findIssues(selected, null);
+      issues = myContext.getAnalyzerDaemon().getIssues().findIssues(selected, null);
     }
     myIssuesViewer.display(issues);
   }

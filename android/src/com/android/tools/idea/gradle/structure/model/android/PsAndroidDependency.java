@@ -17,33 +17,23 @@ package com.android.tools.idea.gradle.structure.model.android;
 
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependencyModel;
-import com.android.tools.idea.gradle.structure.model.PsChildModel;
-import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableCollection;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
+import com.android.tools.idea.gradle.structure.model.PsDependency;
 import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
 import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public abstract class PsAndroidDependency extends PsChildModel implements PsAndroidModel {
+public abstract class PsAndroidDependency extends PsDependency {
   @NotNull private final Set<PsDependencyContainer> myContainers = Sets.newHashSet();
-  @NotNull private final Set<DependencyModel> myParsedModels = Sets.newHashSet();
 
   PsAndroidDependency(@NotNull PsAndroidModule parent,
                       @NotNull PsAndroidArtifact container,
                       @Nullable DependencyModel parsedModel) {
-    super(parent);
-    if (parsedModel != null) {
-      myParsedModels.add(parsedModel);
-    }
+    super(parent, parsedModel);
     addContainer(container);
   }
 
@@ -73,46 +63,6 @@ public abstract class PsAndroidDependency extends PsChildModel implements PsAndr
   public Collection<PsDependencyContainer> getContainers() {
     return myContainers;
   }
-
-  @NotNull
-  public String getJoinedConfigurationNames() {
-    List<String> configurationNames = getConfigurationNames();
-    int count = configurationNames.size();
-    if (count == 1) {
-      return configurationNames.get(0);
-    }
-    else if (count > 1) {
-      return Joiner.on(", ").join(configurationNames);
-    }
-    return "";
-  }
-
-  @NotNull
-  public List<String> getConfigurationNames() {
-    if (myParsedModels.isEmpty()) {
-      return Collections.emptyList();
-    }
-    List<String> names = Lists.newArrayList(myParsedModels.stream().map(DependencyModel::configurationName).collect(Collectors.toSet()));
-    Collections.sort(names);
-    return names;
-  }
-
-  @Override
-  public boolean isDeclared() {
-    return !myParsedModels.isEmpty();
-  }
-
-  public void addParsedModel(@NotNull DependencyModel parsedModel) {
-    myParsedModels.add(parsedModel);
-  }
-
-  @NotNull
-  public ImmutableCollection<DependencyModel> getParsedModels() {
-    return myParsedModels.isEmpty() ? ImmutableSet.of() : ImmutableSet.copyOf(myParsedModels);
-  }
-
-  @NotNull
-  public abstract String getValueAsText();
 
   public boolean isIn(@NotNull String artifactName, @Nullable String variantName) {
     for (PsDependencyContainer container : myContainers) {

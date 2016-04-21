@@ -109,8 +109,7 @@ public class ArtifactRepositorySearchForm {
       FoundArtifact artifact = getSelection();
 
       if (artifact != null) {
-        List<String> versions = artifact.getVersions();
-        myVersionsPanel.setVersions(versions);
+        myVersionsPanel.setVersions(artifact.getVersions());
       }
       else {
         notifySelectionChanged(null, null);
@@ -145,19 +144,22 @@ public class ArtifactRepositorySearchForm {
       String name = artifact.getName();
 
       if (version == null) {
-        List<String> versions = artifact.getVersions();
-        version = versions.isEmpty() ? "" : versions.get(0);
+        List<GradleVersion> versions = artifact.getVersions();
+        version = versions.isEmpty() ? "" : versions.get(0).toString();
       }
 
-      selected = groupId + GRADLE_PATH_SEPARATOR + name + GRADLE_PATH_SEPARATOR + version;
+      selected = groupId + GRADLE_PATH_SEPARATOR + name;
+      if (isNotEmpty(version)) {
+        selected += (GRADLE_PATH_SEPARATOR + version);
+      }
     }
     myEventDispatcher.selectionChanged(selected);
   }
 
   private void performSearch() {
     mySearchButton.setEnabled(false);
-    myResultsTable.getEmptyText().setText(SEARCHING_EMPTY_TEXT);
     myVersionsPanel.setEmptyText(SEARCHING_EMPTY_TEXT);
+    myResultsTable.getEmptyText().setText(SEARCHING_EMPTY_TEXT);
     myResultsTable.setPaintBusy(true);
     clearResults();
 
@@ -278,7 +280,7 @@ public class ArtifactRepositorySearchForm {
           return found.getRepositoryName();
         }
       };
-      setColumnInfos(new ColumnInfo[]{groupId, artifactName, /*version,*/ repository});
+      setColumnInfos(new ColumnInfo[]{groupId, artifactName, repository});
     }
   }
 
@@ -309,18 +311,9 @@ public class ArtifactRepositorySearchForm {
       add(scrollPane, BorderLayout.CENTER);
     }
 
-    void setVersions(@NotNull List<String> versions) {
+    void setVersions(@NotNull List<GradleVersion> versions) {
       clear();
-      List<GradleVersion> versionsToSet = Lists.newArrayList();
-      for (String version : versions) {
-        GradleVersion gradleVersion = GradleVersion.tryParse(version);
-        if (gradleVersion != null) {
-          versionsToSet.add(gradleVersion);
-        }
-      }
-      Collections.sort(versionsToSet, Collections.reverseOrder());
-
-      myVersionsTable.getListTableModel().setItems(versionsToSet);
+      myVersionsTable.getListTableModel().setItems(versions);
       if (!versions.isEmpty()) {
         myVersionsTable.getSelectionModel().setSelectionInterval(0, 0);
       }

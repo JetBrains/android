@@ -44,7 +44,7 @@ public class ArtifactRepositorySearch {
 
     Application application = ApplicationManager.getApplication();
     application.executeOnPooledThread(() -> {
-      for (final ArtifactRepository repository : myRepositories) {
+      for (ArtifactRepository repository : myRepositories) {
         jobs.add(application.executeOnPooledThread(() -> repository.search(request)));
       }
 

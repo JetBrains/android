@@ -20,6 +20,7 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependencyModel;
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
+import com.android.tools.idea.gradle.structure.model.PsLibraryDependency;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.PsProject;
 import com.google.common.collect.ImmutableCollection;
@@ -34,7 +35,7 @@ import java.util.*;
 
 import static com.intellij.util.PlatformIcons.LIBRARY_ICON;
 
-public class PsAndroidLibraryDependency extends PsAndroidDependency {
+public class PsAndroidLibraryDependency extends PsAndroidDependency implements PsLibraryDependency {
   @NotNull private final PsArtifactDependencySpec myResolvedSpec;
   @NotNull private final List<PsArtifactDependencySpec> myPomDependencies = Lists.newArrayList();
   @NotNull private final Set<String> myTransitiveDependencies = Sets.newHashSet();
@@ -63,6 +64,7 @@ public class PsAndroidLibraryDependency extends PsAndroidDependency {
     myTransitiveDependencies.add(dependency);
   }
 
+  @Override
   public void setPomDependencies(@NotNull List<PsArtifactDependencySpec> pomDependencies) {
     myPomDependencies.clear();
     myPomDependencies.addAll(pomDependencies);
@@ -132,11 +134,13 @@ public class PsAndroidLibraryDependency extends PsAndroidDependency {
     super.addParsedModel(parsedModel);
   }
 
+  @Override
   @Nullable
   public PsArtifactDependencySpec getDeclaredSpec() {
     return myDeclaredSpec;
   }
 
+  @Override
   @NotNull
   public PsArtifactDependencySpec getResolvedSpec() {
     return myResolvedSpec;
@@ -160,6 +164,7 @@ public class PsAndroidLibraryDependency extends PsAndroidDependency {
     return myResolvedSpec.toString();
   }
 
+  @Override
   public boolean hasPromotedVersion() {
     if (myResolvedSpec.version != null && myDeclaredSpec != null && myDeclaredSpec.version != null) {
       GradleVersion declaredVersion = GradleVersion.tryParse(myDeclaredSpec.version);

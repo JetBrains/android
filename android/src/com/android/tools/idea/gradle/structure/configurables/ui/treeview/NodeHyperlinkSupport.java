@@ -177,7 +177,7 @@ public class NodeHyperlinkSupport<T extends SimpleNode> implements Disposable {
   private List<PsIssue> findIssues(@NotNull AbstractPsModelNode<? extends PsModel> modelNode, @Nullable Comparator<PsIssue> comparator) {
     List<PsIssue> issues = Lists.newArrayList();
 
-    PsIssueCollection issueCollection = myContext.getDaemonAnalyzer().getIssues();
+    PsIssueCollection issueCollection = myContext.getAnalyzerDaemon().getIssues();
     for (PsModel model : modelNode.getModels()) {
       issues.addAll(issueCollection.findIssues(model, null));
     }
