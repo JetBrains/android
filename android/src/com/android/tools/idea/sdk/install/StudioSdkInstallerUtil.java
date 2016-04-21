@@ -15,11 +15,10 @@
  */
 package com.android.tools.idea.sdk.install;
 
-import com.android.repository.api.*;
+import com.android.repository.api.InstallerFactory;
+import com.android.repository.api.RepoPackage;
 import com.android.repository.impl.installer.BasicInstallerFactory;
-import com.android.repository.impl.meta.Archive;
 import com.android.sdklib.repository.AndroidSdkHandler;
-import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -27,23 +26,14 @@ import org.jetbrains.annotations.NotNull;
  */
 public final class StudioSdkInstallerUtil {
 
-  private static final ProgressIndicator LOGGER = new StudioLoggerProgressIndicator(StudioSdkInstallerUtil.class);
-
   /**
    * Find the best {@link InstallerFactory} for the given {@link RepoPackage}.
    */
   @NotNull
   public static InstallerFactory createInstallerFactory(@NotNull RepoPackage p, @NotNull AndroidSdkHandler sdkHandler) {
     InstallerFactory factory = null;
-    if (Boolean.getBoolean("sdk.patches")) {
-      if (p instanceof RemotePackage) {
-        LocalPackage local = sdkHandler.getLocalPackage(p.getPath(), LOGGER);
-        Archive archive = ((RemotePackage)p).getArchive();
-        assert archive != null;
-        if (local != null && archive.getPatch(local.getVersion()) != null) {
-          factory = new PatchInstallerFactory();
-        }
-      }
+    if (Boolean.getBoolean("sdk.patches") && PatchInstallerFactory.canHandlePackage(p, sdkHandler)) {
+      factory = new PatchInstallerFactory();
     }
     if (factory == null) {
       factory = new BasicInstallerFactory();
