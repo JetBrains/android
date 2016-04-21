@@ -31,6 +31,13 @@ public interface TutorialBundleData {
   @Nullable("Optionally rendered")
   Icon getIcon();
 
+  /**
+   * Supersedes {@code getIcon} if non-null.
+   * @return
+   */
+  @Nullable("Optionally rendered")
+  Icon getLogo();
+
   @NotNull
   String getId();
 
