@@ -49,7 +49,7 @@ public class AndroidUiUtil {
     editorPane.setEditable(false);
     editorPane.setOpaque(false);
     String bodyRule = "body { font-family: " + font.getFamily() + "; " + "font-size: " + font.getSize() + "pt; } " +
-                      "ol { padding-left: 0px; margin-left: 15px; margin-top: 0px; } " +
+                      "ol { padding-left: 5px; margin-left: 15px; margin-top: 0px; } " +
                       "ol li { margin-left: 0px; padding-left: 0px; list-style-type: decimal; }";
     ((HTMLDocument)editorPane.getDocument()).getStyleSheet().addRule(bodyRule);
   }
