@@ -254,7 +254,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       if (myRenderTask != null) {
         myRenderTask.dispose();
       }
-      myRenderTask = renderService.createTask(myFile, configuration, logger, null);
+      myRenderTask = renderService.createTask(myFile, configuration, logger, new NlRenderContextAdapter(this));
       if (myRenderTask != null) {
         if (!ToggleRenderModeAction.isRenderViewPort()) {
           myRenderTask.useDesignMode(myFile);
