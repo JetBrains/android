@@ -38,7 +38,6 @@ import com.intellij.ui.navigation.BackAction;
 import com.intellij.ui.navigation.ForwardAction;
 import com.intellij.ui.navigation.History;
 import com.intellij.ui.navigation.Place;
-import com.intellij.util.SystemProperties;
 import com.intellij.util.io.storage.HeavyProcessLatch;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NonNls;
@@ -327,30 +326,18 @@ public class ProjectStructureConfigurable extends BaseConfigurable
   }
 
   private void addConfigurables() {
-    if (SystemProperties.getBooleanProperty("psd.enable.prototype", false)) {
-      for (ModuleStructureConfigurableContributor contributor : ModuleStructureConfigurableContributor.EP_NAME.getExtensions()) {
-        Configurable configurable = contributor.getModuleStructureConfigurable(myProject);
-        if (configurable != null) {
-          addConfigurable(configurable);
-          break;
-        }
-      }
-
-      for (ProjectStructureItemsContributor contributor : ProjectStructureItemsContributor.EP_NAME.getExtensions()) {
-        List<ProjectStructureItemGroup> itemGroups = contributor.getItemGroups(myProject);
-        for (ProjectStructureItemGroup group : itemGroups) {
-          String name = group.getGroupName();
-          mySidePanel.addSeparator(name);
-          group.getItems().forEach(this::addConfigurable);
-        }
-      }
-    }
-
     if (myDisposable.disposed) {
       myDisposable = new MyDisposable();
     }
-    for (MainGroupConfigurableContributor contributor : MainGroupConfigurableContributor.EP_NAME.getExtensions()) {
-      contributor.getConfigurables(myProject, myDisposable).forEach(this::addConfigurable);
+    List<ProjectStructureItemGroup> additionalConfigurableGroups = Lists.newArrayList();
+    for (AndroidConfigurableContributor contributor : AndroidConfigurableContributor.EP_NAME.getExtensions()) {
+      contributor.getMainConfigurables(myProject, myDisposable).forEach(this::addConfigurable);
+      additionalConfigurableGroups.addAll(contributor.getAdditionalConfigurableGroups());
+    }
+    for (ProjectStructureItemGroup group : additionalConfigurableGroups) {
+      String name = group.getGroupName();
+      mySidePanel.addSeparator(name);
+      group.getItems().forEach(this::addConfigurable);
     }
   }
 
