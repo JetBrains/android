@@ -24,12 +24,11 @@ import com.android.tools.idea.editors.theme.ThemeEditorComponent;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.Wait;
-import com.android.tools.idea.tests.gui.framework.fixture.layout.LayoutEditorFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.layout.LayoutPreviewFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.layout.NlEditorFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.layout.NlPreviewFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemePreviewFixture;
 import com.google.common.collect.Lists;
-import com.intellij.android.designer.AndroidDesignerEditor;
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
 import com.intellij.icons.AllIcons;
 import com.intellij.lang.annotation.HighlightSeverity;
@@ -60,8 +59,6 @@ import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.finder.WindowFinder;
 import org.fest.swing.fixture.DialogFixture;
-import org.jetbrains.android.uipreview.AndroidLayoutPreviewToolWindowForm;
-import org.jetbrains.android.uipreview.AndroidLayoutPreviewToolWindowManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -994,33 +991,8 @@ public class EditorFixture {
    *     wrong tab is showing
    */
   @Nullable
-  public LayoutEditorFixture getLayoutEditor(boolean switchToTabIfNecessary) {
-    VirtualFile currentFile = getCurrentFile();
-    if (ResourceHelper.getFolderType(currentFile) != ResourceFolderType.LAYOUT) {
-      return null;
-    }
-
-    if (switchToTabIfNecessary) {
-      selectEditorTab(Tab.DESIGN);
-    }
-
-    return execute(new GuiQuery<LayoutEditorFixture>() {
-      @Override
-      @Nullable
-      protected LayoutEditorFixture executeInEDT() throws Throwable {
-        FileEditorManager manager = FileEditorManager.getInstance(myFrame.getProject());
-        FileEditor[] editors = manager.getSelectedEditors();
-        if (editors.length == 0) {
-          return null;
-        }
-        FileEditor selected = editors[0];
-        if (!(selected instanceof AndroidDesignerEditor)) {
-          return null;
-        }
-
-        return new LayoutEditorFixture(robot, (AndroidDesignerEditor)selected);
-      }
-    });
+  public NlEditorFixture getLayoutEditor(boolean switchToTabIfNecessary) {
+    return NlEditorFixture.getNlEditor(this, myFrame, switchToTabIfNecessary);
   }
 
   /**
@@ -1032,36 +1004,8 @@ public class EditorFixture {
    *     wrong tab is showing
    */
   @Nullable
-  public LayoutPreviewFixture getLayoutPreview(boolean switchToTabIfNecessary) {
-    VirtualFile currentFile = getCurrentFile();
-    if (ResourceHelper.getFolderType(currentFile) != ResourceFolderType.LAYOUT) {
-      return null;
-    }
-
-    if (switchToTabIfNecessary) {
-      selectEditorTab(Tab.EDITOR);
-    }
-
-    Boolean visible = GuiActionRunner.execute(new GuiQuery<Boolean>() {
-      @Override
-      protected Boolean executeInEDT() throws Throwable {
-        AndroidLayoutPreviewToolWindowManager manager = AndroidLayoutPreviewToolWindowManager.getInstance(myFrame.getProject());
-        AndroidLayoutPreviewToolWindowForm toolWindowForm = manager.getToolWindowForm();
-        return toolWindowForm != null && toolWindowForm.getPreviewPanel().isShowing();
-      }
-    });
-    if (visible == null || !visible) {
-      myFrame.invokeMenuPath("View", "Tool Windows", "Preview");
-    }
-
-    Wait.minutes(2).expecting("Preview window to be visible")
-      .until(() -> {
-        AndroidLayoutPreviewToolWindowManager manager = AndroidLayoutPreviewToolWindowManager.getInstance(myFrame.getProject());
-        AndroidLayoutPreviewToolWindowForm toolWindowForm = manager.getToolWindowForm();
-        return toolWindowForm != null && toolWindowForm.getPreviewPanel().isShowing();
-      });
-
-    return new LayoutPreviewFixture(robot, myFrame.getProject());
+  public NlPreviewFixture getLayoutPreview(boolean switchToTabIfNecessary) {
+    return NlPreviewFixture.getNlPreview(this, myFrame, switchToTabIfNecessary);
   }
 
   /**

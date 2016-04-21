@@ -15,11 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.handlers.relative;
 
-import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.uibuilder.model.Segment;
 import com.android.tools.idea.uibuilder.model.TextDirection;
-import com.intellij.android.designer.designSurface.feedbacks.TextFeedback;
+import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.SimpleTextAttributes;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 
@@ -110,31 +111,26 @@ class Match {
                                                                                        new Color(60, 139, 186));
 
   /**
-   * Describes this match in the given {@link TextFeedback}
+   * Describes this match in the given {@link SimpleColoredComponent}
    *
-   * @param feedback        the feedback to write the description into
+   * @param renderer        the feedback to write the description into
    * @param margin          the number of pixels to use as a margin
    * @param marginAttribute the name of the applicable margin attribute
    */
-  //public void describe(TextFeedback feedback, int margin, String marginAttribute) {
-  //  // Display the constraint. Remove the @id/ and @+id/ prefixes to make the text
-  //  // shorter and easier to read. This doesn't use stripPrefix() because the id is
-  //  // usually not a prefix of the value (for example, 'layout_alignBottom=@+id/foo').
-  //  feedback.clear();
-  //  String constraint = getConstraint(false /* generateId */);
-  //  String description = constraint.replace(NEW_ID_PREFIX, "").replace(ID_PREFIX, "");
-  //  if (description.startsWith(ATTR_LAYOUT_RESOURCE_PREFIX)) {
-  //    description = description.substring(ATTR_LAYOUT_RESOURCE_PREFIX.length());
-  //  }
-  //  // Instead of "alignParentLeft=true", just display "alignParentLeft"
-  //  if (description.endsWith("=true")) {
-  //    description = description.substring(0, description.length() - "=true".length());
-  //  }
-  //  feedback.append(description, SNAP_ATTRIBUTES);
-  //  if (margin > 0) {
-  //    feedback.append(String.format(", margin=%1$d dp", margin));
-  //  }
-  //}
+  public void describe(SimpleColoredComponent renderer, int margin, String marginAttribute) {
+    // Display the constraint. Remove the @id/ and @+id/ prefixes to make the text
+    // shorter and easier to read. This doesn't use stripPrefix() because the id is
+    // usually not a prefix of the value (for example, 'layout_alignBottom=@+id/foo').
+    String constraint = getConstraint(false /* generateId */);
+    String description = constraint.replace(NEW_ID_PREFIX, "").replace(ID_PREFIX, "");
+    description = StringUtil.trimStart(description, ATTR_LAYOUT_RESOURCE_PREFIX);
+    // Instead of "alignParentLeft=true", just display "alignParentLeft"
+    description = StringUtil.trimEnd(description, "=true");
+    renderer.append(description, SNAP_ATTRIBUTES);
+    if (margin > 0) {
+      renderer.append(String.format(", margin=%1$d dp", margin));
+    }
+  }
 
   @Nullable
   public String getRtlConstraint(TextDirection textDirection, boolean generateId) {

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
+import com.android.tools.idea.uibuilder.api.actions.ViewAction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.uibuilder.api.*;
@@ -57,5 +58,10 @@ public class HorizontalScrollViewHandler extends ViewGroupHandler {
                                        @NotNull List<NlComponent> components,
                                        @NotNull DragType type) {
     return new OneChildDragHandler(editor, this, layout, components, type);
+  }
+
+  @Override
+  public void addViewActions(@NotNull List<ViewAction> actions) {
+    actions.add(new ScrollViewHandler.ToggleRenderModeAction());
   }
 }

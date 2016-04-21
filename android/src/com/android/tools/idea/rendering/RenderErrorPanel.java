@@ -23,10 +23,10 @@ import com.android.ide.common.rendering.api.LayoutLog;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.Density;
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.idea.configurations.RenderContext;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.service.notification.hyperlink.FixAndroidGradlePluginVersionHyperlink;
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.utils.HtmlBuilder;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
@@ -106,7 +106,6 @@ import java.util.regex.Pattern;
 import static com.android.SdkConstants.*;
 import static com.android.ide.common.rendering.api.LayoutLog.TAG_RESOURCES_PREFIX;
 import static com.android.ide.common.rendering.api.LayoutLog.TAG_RESOURCES_RESOLVE_THEME_ATTR;
-import static com.android.tools.idea.configurations.RenderContext.UsageType.LAYOUT_EDITOR;
 import static com.android.tools.idea.gradle.util.GradleUtil.hasLayoutRenderingIssue;
 import static com.android.tools.idea.rendering.HtmlLinkManager.URL_ACTION_CLOSE;
 import static com.android.tools.idea.rendering.RenderLogger.TAG_STILL_BUILDING;
@@ -344,9 +343,9 @@ public class RenderErrorPanel extends JPanel {
           myExpandFidelityWarnings = true;
           if (myResult != null) {
             RenderTask task = myResult.getRenderTask();
-            RenderContext context = task != null ? task.getRenderContext() : null;
-            if (context != null) {
-              context.requestRender();
+            DesignSurface surface = task != null ? task.getDesignSurface() : null;
+            if (surface != null) {
+              surface.requestRender();
             }
           }
         }));
@@ -413,11 +412,11 @@ public class RenderErrorPanel extends JPanel {
 
         builder.addLink("Fix Build Path", myLinkManager.createEditClassPathUrl());
 
-        RenderContext renderContext = renderTask.getRenderContext();
-        if (renderContext != null && renderContext.getType() == LAYOUT_EDITOR) {
+        //DesignSurface surface = renderTask.getDesignSurface();
+        //if (surface != null && surface.getType() == LAYOUT_EDITOR) {
           builder.add(", ");
           builder.addLink("Edit XML", myLinkManager.createShowTagUrl(className));
-        }
+        //}
 
         // Offer to create the class, but only if it looks like a custom view
         // TODO: Check to see if it looks like it's the name of a custom view and the
@@ -792,9 +791,9 @@ public class RenderErrorPanel extends JPanel {
             @Override
             public void run() {
               RenderLogger.ignoreFidelityWarning(clientData);
-              RenderContext renderContext = renderTask.getRenderContext();
-              if (renderContext != null) {
-                renderContext.requestRender();
+              DesignSurface surface = renderTask.getDesignSurface();
+              if (surface != null) {
+                surface.requestRender();
               }
             }
           }));
@@ -816,9 +815,9 @@ public class RenderErrorPanel extends JPanel {
         @Override
         public void run() {
           RenderLogger.ignoreAllFidelityWarnings();
-          RenderContext renderContext = renderTask.getRenderContext();
-          if (renderContext != null) {
-            renderContext.requestRender();
+          DesignSurface surface = renderTask.getDesignSurface();
+          if (surface != null) {
+            surface.requestRender();
           }
         }
       }));

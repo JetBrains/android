@@ -9,6 +9,12 @@
       <sourceFolder url="file://$MODULE_DIR$/gen" isTestSource="false" generated="true" />
       <sourceFolder url="file://$MODULE_DIR$/guiTestSrc" isTestSource="true" />
     </content>
+    <content url="file://$MODULE_DIR$/../designer">
+      <sourceFolder url="file://$MODULE_DIR$/../designer/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../designer/testSrc" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/../designer/guiTestSrc" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/../designer/resources" type="java-resource" />
+    </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="openapi" />
@@ -59,7 +65,6 @@
     <orderEntry type="module" module-name="perflib" />
     <orderEntry type="library" name="swingx" level="project" />
     <orderEntry type="module" module-name="util" />
-    <orderEntry type="module" module-name="ui-designer-core" />
     <orderEntry type="module" module-name="testutils" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="Eclipse" level="project" />
     <orderEntry type="module" module-name="properties-psi-api" />
@@ -145,5 +150,7 @@
     <orderEntry type="module" module-name="gradle" />
     <orderEntry type="module" module-name="gradle-tests" scope="TEST" />
     <orderEntry type="module" module-name="layoutlib" />
+    <orderEntry type="module" module-name="sherpa-solver" />
+    <orderEntry type="module" module-name="sherpa-ui" />
   </component>
 </module>

@@ -40,9 +40,7 @@ import java.awt.*;
 import java.util.List;
 
 import static org.fest.swing.edt.GuiActionRunner.execute;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * Fixture wrapping the the layout editor for a particular file
@@ -163,5 +161,12 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, Component
     for (NlComponent child : component.getChildren()) {
       addComponents(tag, child, components);
     }
+  }
+
+  @NotNull
+  public RenderErrorPanelFixture getRenderErrors() {
+    ScreenView screenView = myPanel.getSurface().getCurrentScreenView();
+    assertNotNull(screenView);
+    return new RenderErrorPanelFixture(robot(), screenView);
   }
 }

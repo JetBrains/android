@@ -81,8 +81,8 @@ public class NlActionsToolbar implements DesignSurfaceListener, ModelListener {
     // +---------------------------------------------+------------------------------+
     // | Dynamic layout actions                      | Zoom actions and file status |
     // +---------------------------------------------+------------------------------+
-    RenderContext context = new NlEditorPanel.NlRenderContext(mySurface);
-    ActionGroup configGroup = createConfigActions(context);
+    ConfigurationHolder context = new NlEditorPanel.NlConfigurationHolder(mySurface);
+    ActionGroup configGroup = createConfigActions(context, mySurface);
 
     ActionManager actionManager = ActionManager.getInstance();
     myActionToolbar = actionManager.createActionToolbar("NlConfigToolbar", configGroup, true);
@@ -135,7 +135,7 @@ public class NlActionsToolbar implements DesignSurfaceListener, ModelListener {
     return group;
   }
 
-  private static DefaultActionGroup createConfigActions(RenderContext configurationHolder) {
+  private static DefaultActionGroup createConfigActions(ConfigurationHolder configurationHolder, DesignSurface surface) {
     DefaultActionGroup group = new DefaultActionGroup();
 
     OrientationMenuAction orientationAction = new OrientationMenuAction(configurationHolder);
@@ -154,7 +154,7 @@ public class NlActionsToolbar implements DesignSurfaceListener, ModelListener {
     LocaleMenuAction localeAction = new LocaleMenuAction(configurationHolder);
     group.add(localeAction);
 
-    ConfigurationMenuAction configAction = new ConfigurationMenuAction(configurationHolder);
+    ConfigurationMenuAction configAction = new ConfigurationMenuAction(surface);
     group.add(configAction);
 
     return group;
@@ -446,7 +446,7 @@ public class NlActionsToolbar implements DesignSurfaceListener, ModelListener {
       // Also clear any in the group (if any)
       if (state) {
         ToggleViewActionWrapper groupSibling = myGroupSibling;
-        while (groupSibling != null && groupSibling != ToggleViewActionWrapper.this) { // This is a circular list.
+        while (groupSibling != null && groupSibling != this) { // This is a circular list.
           groupSibling.myAction.setSelected(myEditor, myHandler, myComponent, mySelectedChildren, false);
           groupSibling = groupSibling.myGroupSibling;
         }
