@@ -44,13 +44,7 @@ public class TutorialChooser extends CardViewPanel {
     // TODO: Migrate this somewhere central.
     String font = getFont().getFamily();
 
-    JPanel header = new JPanel(new VerticalFlowLayout());
-    header.setOpaque(false);
-    JBLabel title = new JBLabel(bundle.getName());
-    title.setAlignmentX(0);
-    title.setBorder(BorderFactory.createEmptyBorder(10, 10, 0, 10));
-    title.setIcon(bundle.getIcon());
-    header.add(title);
+    JPanel header = new TutorialChooserHeader(bundle);
 
     // TODO: Figure out where extra padding is coming from.
     JTextPane welcome = new JTextPane();
@@ -124,7 +118,6 @@ public class TutorialChooser extends CardViewPanel {
    */
   private class NaturalWidthScrollClient extends JPanel implements Scrollable {
 
-
     @Override
     public Dimension getPreferredScrollableViewportSize() {
       return getPreferredSize();
@@ -153,6 +146,31 @@ public class TutorialChooser extends CardViewPanel {
     public boolean getScrollableTracksViewportHeight() {
       return false;
     }
+  }
+
+  private class TutorialChooserHeader extends JPanel {
+
+    TutorialChooserHeader(TutorialBundleData bundle) {
+      super(new VerticalFlowLayout());
+      setOpaque(false);
+
+      // When a logo is present, this contains the textual representation of the tutorial set and supersedes the name and icon.
+      if (bundle.getLogo() != null) {
+        JBLabel logo = new JBLabel();
+        logo.setAlignmentX(0);
+        logo.setBorder(BorderFactory.createEmptyBorder(10, 10, 0, 10));
+        logo.setIcon(bundle.getLogo());
+        add(logo);
+        return;
+      }
+
+      JBLabel title = new JBLabel(bundle.getName());
+      title.setAlignmentX(0);
+      title.setBorder(BorderFactory.createEmptyBorder(10, 10, 0, 10));
+      title.setIcon(bundle.getIcon());
+      add(title);
+    }
+
   }
 
 }
