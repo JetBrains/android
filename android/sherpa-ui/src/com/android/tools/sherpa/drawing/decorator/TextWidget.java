@@ -41,6 +41,7 @@ public class TextWidget extends WidgetDecorator {
     private String mText;
     protected Font mFont = new Font("Helvetica", Font.PLAIN, 12);
     private float mFontSize = 18;
+    private boolean mDisplayText = true;
 
     /**
      * Base constructor
@@ -70,13 +71,15 @@ public class TextWidget extends WidgetDecorator {
     public void setTextSize(float fontSize) {
         mFontSize = fontSize;
         // regression derived approximation of Android to Java font size
-        int size = (int) Math.round((mFontSize * 1.333f + 4.5f) / 2.41f);
-        System.out.println("size = " + size);
+        int size = androidToSwingFontSize(mFontSize);
         mFont = new Font("Helvetica", Font.PLAIN, size);
 
         wrapContent();
     }
 
+    public static int androidToSwingFontSize(float fontSize) {
+        return  (int) Math.round((fontSize * 1.333f + 4.5f) / 2.41f);
+    }
     /**
      * Accessor for the text content
      *
@@ -153,7 +156,7 @@ public class TextWidget extends WidgetDecorator {
     @Override
     public void onPaintBackground(ViewTransform transform, Graphics2D g) {
         super.onPaintBackground(transform, g);
-        if (mColorSet.drawBackground()) {
+        if (mColorSet.drawBackground() && mDisplayText) {
             drawText(transform, g, mWidget.getDrawX(), mWidget.getDrawY());
         }
     }
@@ -206,5 +209,9 @@ public class TextWidget extends WidgetDecorator {
 
             }
         }
+    }
+
+    public void setDisplayText(boolean displayText) {
+        mDisplayText = displayText;
     }
 }
