@@ -23,7 +23,7 @@ package com.android.tools.sherpa.drawing;
 public class ViewTransform {
     float dx;
     float dy;
-    float scale;
+    float scale = 1;
 
     /**
      * Return the corresponding swing coordinate in X given a X android coordinate
