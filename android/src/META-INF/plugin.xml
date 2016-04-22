@@ -156,14 +156,19 @@
       <action id="Android.GenerateSourcesAction" class="org.jetbrains.android.actions.AndroidRegenerateSourcesAction"/>
       <add-to-group group-id="ToolsMenu" anchor="last"/>
     </group>
+
     <group id="Android.MainToolBarActionGroup">
       <separator/>
-      <reference id="Android.SyncProject" />
       <reference id="Android.RunAndroidAvdManager" />
-      <reference id="Android.RunAndroidSdkManager" />
-      <reference id="Android.RunDdms" />
       <separator/>
+      <reference id="Android.SyncProject" />
+      <add-to-group group-id="MainToolBar" anchor="before" relative-to-action="MainToolBarSettings" />
+    </group>
 
+    <group id="Android.MainToolBarSdkGroup">
+      <separator/>
+      <reference id="Android.RunAndroidSdkManager" />
+      <separator/>
       <add-to-group group-id="MainToolBar" anchor="before" relative-to-action="HelpTopics" />
     </group>
 
