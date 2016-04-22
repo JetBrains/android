@@ -15,14 +15,19 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
+import com.android.tools.idea.uibuilder.api.InsertType;
+import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.XmlBuilder;
 import com.android.tools.idea.uibuilder.api.XmlType;
+import com.android.tools.idea.uibuilder.model.NlComponent;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import static com.android.SdkConstants.ATTR_TITLE;
 import static com.android.SdkConstants.PreferenceAttributes.DEFAULT_VALUE;
 import static com.android.SdkConstants.PreferenceAttributes.KEY;
+import static com.android.SdkConstants.PreferenceTags.MULTI_SELECT_LIST_PREFERENCE;
 
 final class MultiSelectListPreferenceHandler extends PreferenceHandler {
   @Language("XML")
@@ -34,9 +39,19 @@ final class MultiSelectListPreferenceHandler extends PreferenceHandler {
       .androidAttribute(DEFAULT_VALUE, "@array/multi_select_list_preference_default_value")
       .androidAttribute("entries", "@array/list_preference_entries")
       .androidAttribute("entryValues", "@array/list_preference_entry_values")
-      .androidAttribute(KEY, "")
       .androidAttribute(ATTR_TITLE, "Multi select list preference")
       .endTag(tagName)
       .toString();
+  }
+
+  @Override
+  public boolean onCreate(@NotNull ViewEditor editor,
+                          @Nullable NlComponent parent,
+                          @NotNull NlComponent newChild,
+                          @NotNull InsertType type) {
+    super.onCreate(editor, parent, newChild, type);
+    newChild.setAndroidAttribute(KEY, generateKey(newChild, MULTI_SELECT_LIST_PREFERENCE, "multi_select_list_preference_"));
+
+    return true;
   }
 }

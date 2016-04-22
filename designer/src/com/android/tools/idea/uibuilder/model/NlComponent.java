@@ -479,6 +479,10 @@ public class NlComponent {
     return describe(this);
   }
 
+  public void setAndroidAttribute(@NotNull String name, @Nullable String value) {
+    setAttribute(ANDROID_URI, name, value);
+  }
+
   /**
    * Convenience wrapper for now; this should be replaced with property lookup
    */
