@@ -15,14 +15,15 @@
  */
 package com.android.tools.idea.assistant.view;
 
-import com.android.tools.idea.structure.services.DeveloperService;
 import com.android.tools.idea.assistant.datamodel.StepData;
 import com.android.tools.idea.assistant.datamodel.TutorialData;
+import com.android.tools.idea.structure.services.DeveloperService;
 import com.intellij.icons.AllIcons;
 import com.intellij.ui.Gray;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.UIUtil;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
@@ -40,24 +41,28 @@ public class TutorialCard extends CardViewPanel {
 
   JBScrollPane myContentsScroller = new JBScrollPane();
 
-  TutorialCard(ActionListener listener, TutorialData tutorial, DeveloperService service) {
+  TutorialCard(@NotNull ActionListener listener,
+               @NotNull TutorialData tutorial,
+               @NotNull String featureTitle,
+               @NotNull DeveloperService service) {
     super(listener);
 
     // TODO: Migrate this somewhere central.
     String font = getFont().getFamily();
 
     // TODO: Add a short label to the xml and use that here instead.
-    add(new HeaderNav(tutorial.getLabel(), myListener), BorderLayout.NORTH);
+    add(new HeaderNav(featureTitle, myListener), BorderLayout.NORTH);
 
     TutorialDescription description = new TutorialDescription();
-    String text = "<p class=\"description\">" +
+    String text = "<p class=\"title\">" + tutorial.getLabel() + "</p><p class=\"description\">" +
                   tutorial.getDescription() +
                   "<br><br><a href=\"" +
                   tutorial.getRemoteLink() +
                   "\" target=\"_blank\">" +
                   tutorial.getRemoteLinkLabel() +
                   "</a></p>";
-    UIUtils.setHtml(description, text, ".description { margin: 10px;}");
+    UIUtils.setHtml(description, text,
+                    ".title {margin: 10px 10px 0 10px; font-size: 18px; font-weight: bold;}\n.description { margin: 10px;}");
 
     JPanel contents = new JPanel();
     contents.setLayout(new GridBagLayout());
