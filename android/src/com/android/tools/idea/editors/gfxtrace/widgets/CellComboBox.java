@@ -56,7 +56,9 @@ public abstract class CellComboBox<T extends CellWidget.Data> extends CellWidget
     component.addItemListener(new ItemListener() {
       @Override
       public void itemStateChanged(ItemEvent itemEvent) {
-        selectionListener.selected((T)itemEvent.getItem());
+        if (itemEvent.getStateChange() == ItemEvent.SELECTED) {
+          selectionListener.selected((T)itemEvent.getItem());
+        }
       }
     });
   }
