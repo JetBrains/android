@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.structure.dialog;
 
+import com.google.android.collect.Lists;
 import com.intellij.openapi.options.Configurable;
 import org.jetbrains.annotations.NotNull;
 
@@ -23,6 +24,10 @@ import java.util.List;
 public class ProjectStructureItemGroup {
   @NotNull private final String myGroupName;
   @NotNull private final List<? extends Configurable> myItems;
+
+  public ProjectStructureItemGroup(@NotNull String groupName, @NotNull Configurable...items) {
+    this(groupName, Lists.newArrayList(items));
+  }
 
   public ProjectStructureItemGroup(@NotNull String groupName, @NotNull  List<? extends Configurable> items) {
     myGroupName = groupName;

@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.gradle.structure.configurables;
 
+import com.android.tools.idea.gradle.structure.configurables.messages.MessagesConfigurable;
 import com.android.tools.idea.gradle.structure.model.PsProject;
-import com.android.tools.idea.structure.dialog.MainGroupConfigurableContributor;
+import com.android.tools.idea.structure.dialog.AndroidConfigurableContributor;
+import com.android.tools.idea.structure.dialog.ProjectStructureItemGroup;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.options.Configurable;
@@ -25,15 +27,25 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-public class GradleMainGroupConfigurableContributor extends MainGroupConfigurableContributor {
+public class GradleAndroidConfigurableContributor extends AndroidConfigurableContributor {
+  private PsContext myContext;
+
   @Override
   @NotNull
-  public List<Configurable> getConfigurables(@NotNull Project project, @NotNull Disposable parentDisposable) {
-    PsContext context = new PsContext(new PsProject(project), parentDisposable);
+  public List<Configurable> getMainConfigurables(@NotNull Project project, @NotNull Disposable parentDisposable) {
+    myContext = new PsContext(new PsProject(project), parentDisposable);
 
     List<Configurable> configurables = Lists.newArrayList();
-    configurables.add(new DependenciesPerspectiveConfigurable(context));
+    configurables.add(new DependenciesPerspectiveConfigurable(myContext));
 
     return configurables;
+  }
+
+  @Override
+  @NotNull
+  public List<ProjectStructureItemGroup> getAdditionalConfigurableGroups() {
+    assert myContext != null;
+    ProjectStructureItemGroup messagesGroup = new ProjectStructureItemGroup("--", new MessagesConfigurable(myContext));
+    return com.google.android.collect.Lists.newArrayList(messagesGroup);
   }
 }

@@ -40,7 +40,7 @@ public class PsAndroidModuleAnalyzerTest {
     PsNavigationPath path = mock(PsNavigationPath.class);
 
     PsIssue issue = PsAndroidModuleAnalyzer.createIssueFrom(syncIssue, path);
-    assertThat(issue.getText()).isEqualTo("Conflict with dependency &#39;com.google.guava:guava&#39;. Resolved versions for app (16.0) " +
+    assertThat(issue.getText()).isEqualTo("Conflict with dependency 'com.google.guava:guava'. Resolved versions for app (16.0) " +
                                           "and test app (16.0.1) differ. See " +
                                           "<a href='http://g.co/androidstudio/app-test-app-conflict'>http://g.co/androidstudio/app-test-app-conflict</a> " +
                                           "for details.");
