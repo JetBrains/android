@@ -50,7 +50,7 @@ public class TutorialChooser extends CardViewPanel {
     JTextPane welcome = new JTextPane();
     welcome.setOpaque(false);
     String text = "<p class=\"welcome\">" + bundle.getWelcome() + "</p>";
-    UIUtils.setHtml(welcome, text, ".welcome { margin: 10px;}");
+    UIUtils.setHtml(welcome, text, ".welcome { margin: 10px; color: " + UIUtils.getCssColor(UIUtils.getSecondaryColor()) + "}");
     header.add(welcome);
     add(header, BorderLayout.NORTH);
 
