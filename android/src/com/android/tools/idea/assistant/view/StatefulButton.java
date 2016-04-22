@@ -16,14 +16,15 @@
 package com.android.tools.idea.assistant.view;
 
 import com.android.tools.idea.assistant.AssistActionStateManager;
-import com.android.tools.idea.structure.services.DeveloperService;
 import com.android.tools.idea.assistant.StatefulButtonNotifier;
 import com.android.tools.idea.assistant.datamodel.ActionData;
+import com.android.tools.idea.structure.services.DeveloperService;
 import com.intellij.openapi.module.Module;
 import com.intellij.util.messages.MessageBusConnection;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import javax.swing.plaf.ButtonUI;
 import java.awt.*;
 import java.awt.event.ActionListener;
 
@@ -52,6 +53,8 @@ public class StatefulButton extends JPanel {
     myDeveloperService = service;
 
     myButton = new ActionButton(action, listener, this);
+    // Override the button's ui to avoid white-on-white that appears with Mac rendering.
+    myButton.setUI((ButtonUI)StatefulButtonUI.createUI(myButton));
     add(myButton);
     // Initialize to hidden until state management is completed.
     myButton.setVisible(false);
