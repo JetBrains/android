@@ -145,12 +145,13 @@ public class InspectorPanel extends JPanel {
     return inspectors;
   }
 
-  public void addExpandableTitle(@NotNull String title, @NotNull NlProperty groupStartProperty) {
+  public JLabel addExpandableTitle(@NotNull String title, @NotNull NlProperty groupStartProperty) {
     JLabel label = createLabel(title, null, null);
     label.setFont(myBoldLabelFont);
     addComponent(label, "span 5");
 
     startGroup(label, groupStartProperty);
+    return label;
   }
 
   public void addSeparator() {
@@ -158,11 +159,19 @@ public class InspectorPanel extends JPanel {
     addComponent(new JSeparator(), "span 5, grow");
   }
 
-  public void addComponent(@NotNull String labelText,
-                           @Nullable String tooltip,
-                           @NotNull Component component) {
-    addComponent(createLabel(labelText, tooltip, component), "span 2"); // 30%
+  public JLabel addLabel(@NotNull String title) {
+    JLabel label = createLabel(title, null, null);
+    addComponent(label, "span 5");
+    return label;
+  }
+
+  public JLabel addComponent(@NotNull String labelText,
+                             @Nullable String tooltip,
+                             @NotNull Component component) {
+    JLabel label = createLabel(labelText, tooltip, component);
+    addComponent(label, "span 2"); // 30%
     addComponent(component, "span 3"); // 70%
+    return label;
   }
 
   public void addSplitComponents(@NotNull SplitLayout layout,
@@ -183,7 +192,7 @@ public class InspectorPanel extends JPanel {
   /**
    * Adds a custom panel that spans the entire width, just set the preferred height on the panel
    */
-  public void addPanel(@NotNull JPanel panel) {
+  public void addPanel(@NotNull JComponent panel) {
     addComponent(panel, "span 5, grow");
   }
 
