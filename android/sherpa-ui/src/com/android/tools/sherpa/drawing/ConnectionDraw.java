@@ -864,41 +864,4 @@ public class ConnectionDraw {
         return sBottomArrow;
     }
 
-    /**
-     * Utility function to draw an anchor
-     *
-     * @param g               graphics context
-     * @param backgroundColor
-     * @param x               x coordinate of the anchor
-     * @param y               y coordinate of the anchor
-     * @param dimension       size of the anchor
-     * @param innerMargin     inner margin
-     * @param connected       if the anchor is connected or not
-     */
-    static void drawAnchor(Graphics2D g, Color backgroundColor, boolean isSelected,
-            int x, int y, int dimension, int innerMargin, boolean connected) {
-        int cx = x - dimension / 2;
-        int cy = y - dimension / 2;
-        Ellipse2D.Float outerCircle = new Ellipse2D.Float(cx, cy, dimension, dimension);
-        if (isSelected) {
-            Color pre = g.getColor();
-            Stroke preStroke = g.getStroke();
-            g.setColor(sShadowColor);
-            g.setStroke(sShadowStroke);
-            g.draw(outerCircle);
-            g.setStroke(preStroke);
-            g.setColor(pre);
-        }
-        Graphics2D g2 = (Graphics2D) g.create();
-        g2.setColor(backgroundColor);
-        g2.fill(outerCircle);
-        g2.dispose();
-        g.draw(outerCircle);
-        if (connected) {
-            Ellipse2D.Float innerCircle = new Ellipse2D.Float(cx + innerMargin, cy + innerMargin,
-                    dimension - innerMargin * 2, dimension - innerMargin * 2);
-            g.fill(innerCircle);
-            g.draw(innerCircle);
-        }
-    }
 }

@@ -179,6 +179,16 @@ public class SceneDraw {
         }
         mAnimationCandidateAnchors.clear();
         mChoreographer.removeAnimation(mAnimationCandidateAnchors);
+
+        // Reset the widget looks on mouse release
+        for (ConstraintWidget widget : mWidgetsScene.getWidgets()) {
+            WidgetCompanion companion = (WidgetCompanion) widget.getCompanionWidget();
+            WidgetDecorator decorator = companion.getWidgetDecorator(myCurrentStyle);
+            if (decorator.getLook() == ColorTheme.Look.HIGHLIGHTED
+                    || decorator.getLook() == ColorTheme.Look.SUBDUED) {
+                decorator.setLook(ColorTheme.Look.NORMAL);
+            }
+        }
     }
 
     /**
@@ -232,7 +242,6 @@ public class SceneDraw {
                 }
             }
         }
-
         mChoreographer.addAnimation(mAnimationCandidateAnchors);
     }
 
