@@ -54,19 +54,20 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class NlReferenceEditor {
+public class NlReferenceEditor implements NlComponentEditor {
   private static final int SPACING = 4;
 
   private final EditingListener myListener;
   private final boolean myIncludeBrowseButton;
   private final JPanel myPanel;
-  private final JBLabel myLabel;
+  private final JLabel myIconLabel;
   private final TextFieldWithAutoCompletion myTextFieldWithAutoCompletion;
   private final CompletionProvider myCompletionProvider;
   private final FixedSizeButton myBrowseButton;
 
   private NlProperty myProperty;
   private String myLastReadValue;
+  private JLabel myLabel;
 
   public interface EditingListener {
     void stopEditing(@NotNull NlReferenceEditor editor, @NotNull String value);
@@ -90,9 +91,9 @@ public class NlReferenceEditor {
     myListener = listener;
     myPanel = new JPanel(new BorderLayout(SystemInfo.isMac ? 0 : 2, 0));
 
-    myLabel = new JBLabel();
-    myPanel.add(myLabel, BorderLayout.LINE_START);
-    myLabel.addMouseListener(new MouseAdapter() {
+    myIconLabel = new JBLabel();
+    myPanel.add(myIconLabel, BorderLayout.LINE_START);
+    myIconLabel.addMouseListener(new MouseAdapter() {
       @Override
       public void mouseClicked(MouseEvent mouseEvent) {
         displayResourcePicker();
@@ -142,15 +143,18 @@ public class NlReferenceEditor {
     }
   }
 
+  @Override
   public void setEnabled(boolean enabled) {
     myTextFieldWithAutoCompletion.setEnabled(enabled);
     myBrowseButton.setVisible(enabled && myIncludeBrowseButton);
   }
 
+  @Override
   public NlProperty getProperty() {
     return myProperty;
   }
 
+  @Override
   public void setProperty(@NotNull NlProperty property) {
     if (myProperty != property) {
       myProperty = property;
@@ -161,8 +165,8 @@ public class NlReferenceEditor {
     }
 
     Icon icon = NlDefaultRenderer.getIcon(myProperty);
-    myLabel.setIcon(icon);
-    myLabel.setVisible(icon != null);
+    myIconLabel.setIcon(icon);
+    myIconLabel.setVisible(icon != null);
 
     String propValue = StringUtil.notNullize(myProperty.getValue());
     if (!propValue.equals(myLastReadValue)) {
@@ -171,7 +175,40 @@ public class NlReferenceEditor {
     }
   }
 
-  public Component getComponent() {
+  @Override
+  public void refresh() {
+    if (myProperty != null) {
+      setProperty(myProperty);
+    }
+  }
+
+  @Override
+  public void requestFocus() {
+    myTextFieldWithAutoCompletion.requestFocus();
+  }
+
+  @Override
+  @Nullable
+  public JLabel getLabel() {
+    return myLabel;
+  }
+
+  @Override
+  public void setLabel(@NotNull JLabel label) {
+    myLabel = label;
+  }
+
+  @Override
+  public void setVisible(boolean visible) {
+    myPanel.setVisible(visible);
+    if (myLabel != null) {
+      myLabel.setVisible(visible);
+    }
+  }
+
+  @NotNull
+  @Override
+  public JComponent getComponent() {
     return myPanel;
   }
 

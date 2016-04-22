@@ -26,7 +26,6 @@ import com.intellij.ide.ui.laf.darcula.ui.DarculaComboBoxUI;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.FixedSizeButton;
 import com.intellij.openapi.util.SystemInfo;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
@@ -40,19 +39,18 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.util.*;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class NlEnumEditor {
+public class NlEnumEditor implements NlComponentEditor {
   private static final int SMALL_WIDTH = 65;
   private static final JBColor DIM_TEXT_COLOR = new JBColor(Gray._128, Gray._128);
-  // TODO: Add a test that checks these patterns
   private static final Pattern QUANTITY_PATTERN = Pattern.compile("^(\\d+)(.*)$");
-  private static final Pattern TEXT_APPEARANCE_PATTERN =
-    Pattern.compile("^((@(\\w+:)?)style/)?TextAppearance.([^\\.]+\\.(Body\\d+|Display\\d+|Small|Medium|Large)|AppTheme\\..+)$");
   private static final List<String> AVAILABLE_TEXT_SIZES = ImmutableList.of("8sp", "10sp", "12sp", "14sp", "18sp", "24sp", "30sp", "36sp");
   private static final List<String> AVAILABLE_LINE_SPACINGS = AVAILABLE_TEXT_SIZES;
 
@@ -60,11 +58,12 @@ public class NlEnumEditor {
   private final JComboBox<ValueWithDisplayString> myCombo;
   private final FixedSizeButton myBrowseButton;
   private final boolean myIncludeBrowseButton;
-
   private final Listener myListener;
+
   private NlProperty myProperty;
   private boolean myUpdatingProperty;
   private int myAddedValueIndex;
+  private JLabel myLabel;
 
   public interface Listener {
     /** Invoked when one of the enums is selected. */
@@ -108,16 +107,9 @@ public class NlEnumEditor {
 
     myBrowseButton.addActionListener(event -> resourcePicked());
     myCombo.addActionListener(this::comboValuePicked);
-    myCombo.addFocusListener(new FocusAdapter() {
-      @Override
-      public void focusLost(FocusEvent event) {
-        myListener.itemPicked(NlEnumEditor.this, myCombo.getEditor().getItem().toString());
-      }
-    });
-    JComponent editor = (JComponent) myCombo.getEditor().getEditorComponent();
-    editor.registerKeyboardAction(event -> enter(),
-                                  KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0),
-                                  JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+    myCombo.registerKeyboardAction(event -> enter(),
+                                   KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0),
+                                   JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
     myCombo.registerKeyboardAction(event -> resourcePicked(),
                                    KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, InputEvent.ALT_MASK),
                                    JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
@@ -138,11 +130,13 @@ public class NlEnumEditor {
     });
   }
 
+  @Override
   public void setEnabled(boolean en) {
     myCombo.setEnabled(en);
     myBrowseButton.setEnabled(en);
   }
 
+  @Override
   public void setProperty(@NotNull NlProperty property) {
     if (property != myProperty) {
       setModel(property);
@@ -153,6 +147,36 @@ public class NlEnumEditor {
     }
     finally {
       myUpdatingProperty = false;
+    }
+  }
+
+  @Override
+  public void refresh() {
+    if (myProperty != null) {
+      setProperty(myProperty);
+    }
+  }
+
+  @Override
+  public void requestFocus() {
+    myCombo.requestFocus();
+  }
+
+  @Override
+  public JLabel getLabel() {
+    return myLabel;
+  }
+
+  @Override
+  public void setLabel(@NotNull JLabel label) {
+    myLabel = label;
+  }
+
+  @Override
+  public void setVisible(boolean visible) {
+    myPanel.setVisible(visible);
+    if (myLabel != null) {
+      myLabel.setVisible(visible);
     }
   }
 
@@ -180,11 +204,21 @@ public class NlEnumEditor {
         values = definition == null ? ValueWithDisplayString.EMPTY_ARRAY : ValueWithDisplayString.create(definition.getValues());
     }
 
-    DefaultComboBoxModel<ValueWithDisplayString> newModel = new DefaultComboBoxModel<>(values);
+    DefaultComboBoxModel<ValueWithDisplayString> newModel = new DefaultComboBoxModel<ValueWithDisplayString>(values) {
+      @Override
+      public void setSelectedItem(Object object) {
+        if (object instanceof String) {
+          String newValue = (String)object;
+          object = new ValueWithDisplayString(newValue, newValue);
+        }
+        super.setSelectedItem(object);
+      }
+    };
     newModel.insertElementAt(ValueWithDisplayString.UNSET, 0);
     myCombo.setModel(newModel);
   }
 
+  @Override
   @Nullable
   public NlProperty getProperty() {
     return myProperty;
@@ -238,8 +272,9 @@ public class NlEnumEditor {
     return value.getValue();
   }
 
+  @Override
   @NotNull
-  public Component getComponent() {
+  public JComponent getComponent() {
     return myPanel;
   }
 
@@ -297,95 +332,10 @@ public class NlEnumEditor {
         list.add(value);
       }
     }
-    list.sort((value, other) -> value.myDisplay.compareTo(other.myDisplay));
+    list.sort((value, other) -> value.toString().compareTo(other.toString()));
     ValueWithDisplayString[] array = new ValueWithDisplayString[list.size()];
     list.toArray(array);
     return array;
-  }
-
-  private static class ValueWithDisplayString {
-    public static final ValueWithDisplayString UNSET = new ValueWithDisplayString("none", null);
-    public static final ValueWithDisplayString[] EMPTY_ARRAY = new ValueWithDisplayString[0];
-
-    private final String myDisplay;
-    private final String myValue;
-
-    public static ValueWithDisplayString[] create(@NotNull String[] values) {
-      ValueWithDisplayString[] array = new ValueWithDisplayString[values.length];
-      int index = 0;
-      for (String value : values) {
-        array[index++] = new ValueWithDisplayString(value, value);
-      }
-      return array;
-    }
-
-    public static ValueWithDisplayString[] create(@NotNull List<String> values) {
-      ValueWithDisplayString[] array = new ValueWithDisplayString[values.size()];
-      int index = 0;
-      for (String value : values) {
-        array[index++] = new ValueWithDisplayString(value, value);
-      }
-      return array;
-    }
-
-    public static ValueWithDisplayString create(@Nullable String value, @NotNull NlProperty property) {
-      if (value == null) {
-        return UNSET;
-      }
-      String display = property.resolveValue(value);
-      if (property.getName().equals(SdkConstants.ATTR_TEXT_APPEARANCE)) {
-        ValueWithDisplayString attr = createTextAppearanceValue(display, "");
-        if (attr != null) {
-          return attr;
-        }
-      }
-      return new ValueWithDisplayString(display, value);
-    }
-
-    public static ValueWithDisplayString createTextAppearanceValue(@NotNull String value, @NotNull String defaultPrefix) {
-      Matcher matcher = TEXT_APPEARANCE_PATTERN.matcher(value);
-      if (!matcher.matches()) {
-        return null;
-      }
-      String prefix = matcher.group(1);
-      if (StringUtil.isEmpty(prefix)) {
-        prefix = defaultPrefix;
-      } else {
-        prefix = "";
-      }
-      String display = matcher.group(4);
-      String style = prefix + matcher.group(0);
-      return new ValueWithDisplayString(display, style);
-    }
-
-    public ValueWithDisplayString(@NotNull String display, @Nullable String value) {
-      myDisplay = display;
-      myValue = value;
-    }
-
-    @Override
-    @NotNull
-    public String toString() {
-      return myDisplay;
-    }
-
-    @Nullable
-    public String getValue() {
-      return myValue;
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hashCode(myValue);
-    }
-
-    @Override
-    public boolean equals(Object other) {
-      if (!(other instanceof ValueWithDisplayString)) {
-        return false;
-      }
-      return Objects.equals(myValue, ((ValueWithDisplayString)other).myValue);
-    }
   }
 
   private static class Quantity implements Comparable<Quantity> {
