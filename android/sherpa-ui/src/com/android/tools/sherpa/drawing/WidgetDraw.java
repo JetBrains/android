@@ -88,7 +88,6 @@ public class WidgetDraw {
         int r = transform.getSwingX(widget.getDrawX() + widget.getDrawWidth());
         int b = transform.getSwingY(widget.getDrawY() + widget.getDrawHeight());
         int radius = ConnectionDraw.CONNECTION_ANCHOR_SIZE;
-        int circleDimension = radius * 2;
         int radiusRect = ConnectionDraw.CONNECTION_RESIZE_SIZE;
         int rectDimension = radiusRect * 2;
         int midX = transform.getSwingX((int) (widget.getDrawX() + widget.getDrawWidth() / 2f));
@@ -175,41 +174,20 @@ public class WidgetDraw {
             showBaselineAnchor |= baselineAnchorIsConnected;
         }
 
-        if (!ConstraintAnchor.USE_CENTER_ANCHOR) {
-            showCenterAnchor = false;
+        if (showBaselineAnchor && !(widget instanceof ConstraintWidgetContainer) && widget.getBaselineDistance() > 0) {
+            int baselineY = transform
+                    .getSwingY(
+                            WidgetInteractionTargets.constraintHandle(
+                                    widget.getAnchor(ConstraintAnchor.Type.BASELINE)).getDrawY());
+            if (!isSelected) {
+                Stroke previousStroke = g.getStroke();
+                g.setStroke(ConnectionDraw.sDashedStroke);
+                g.drawLine(l, baselineY, r, baselineY);
+                g.setStroke(previousStroke);
+            } else {
+                g.drawLine(l, baselineY, r, baselineY);
+            }
         }
-
-        int anchorInnerMargin = 3;
-
-        WidgetCompanion widgetCompanion = (WidgetCompanion) widget.getCompanionWidget();
-        WidgetDecorator decorator = widgetCompanion.getWidgetDecorator(widgetStyle);
-        Color backgroundColor = decorator.getBackgroundColor();
-        Color previousColor = g.getColor();
-        if (isSelected) {
-            g.setColor(colorSet.getSelectedConstraints());
-        }
-        if (showLeftAnchor) {
-            ConnectionDraw.drawAnchor(g, backgroundColor, isSelected, l, midY, circleDimension, anchorInnerMargin,
-                    leftAnchorIsConnected);
-        }
-        if (showRightAnchor) {
-            ConnectionDraw.drawAnchor(g, backgroundColor, isSelected, r, midY, circleDimension, anchorInnerMargin,
-                    rightAnchorIsConnected);
-        }
-        if (showTopAnchor) {
-            ConnectionDraw.drawAnchor(g, backgroundColor, isSelected, midX, t, circleDimension, anchorInnerMargin,
-                    topAnchorIsConnected);
-        }
-        if (showBottomAnchor) {
-            ConnectionDraw.drawAnchor(g, backgroundColor, isSelected, midX, b, circleDimension, anchorInnerMargin,
-                    bottomAnchorIsConnected);
-        }
-        if (showCenterAnchor) {
-            ConnectionDraw.drawAnchor(g, backgroundColor, isSelected, midX, midY, circleDimension, anchorInnerMargin,
-                    centerAnchorIsConnected);
-        }
-
-        g.setColor(previousColor);
 
         // Now, let's draw the widget's frame
 

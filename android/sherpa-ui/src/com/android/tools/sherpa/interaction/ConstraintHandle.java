@@ -25,9 +25,11 @@ import com.google.tnt.solver.widgets.ConstraintAnchor;
 import com.google.tnt.solver.widgets.ConstraintWidget;
 import com.google.tnt.solver.widgets.Guideline;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Stroke;
+import java.awt.geom.Ellipse2D;
 
 /**
  * Represents a constraint handle on the widget.
@@ -43,6 +45,9 @@ public class ConstraintHandle {
     private int mY;
     private int[] mCurve = new int[8];
     private boolean mHasCurve = false;
+
+    static final Color sShadowColor = new Color(0, 0, 0, 50);
+    static final Stroke sShadowStroke = new BasicStroke(3);
 
     /**
      * Default constructor
@@ -349,7 +354,6 @@ public class ConstraintHandle {
      * Return the current size of the baseline handle
      *
      * @param transform
-     * @param g
      * @return
      */
     public int getBaselineHandleWidth(ViewTransform transform) {
@@ -367,13 +371,19 @@ public class ConstraintHandle {
     /**
      * Draw function for the ConstraintHandle
      *
-     * @param transform  the view transform
-     * @param g          the graphics context
-     * @param colorSet   the colorset to use
-     * @param isSelected if the constraint is selected or not
+     * @param transform       the view transform
+     * @param g               the graphics context
+     * @param colorSet        the colorset to use
+     * @param isSelected      if the constraint is selected or not
      */
-    public void draw(ViewTransform transform, Graphics2D g, ColorSet colorSet,
-            boolean isSelected) {
+    public void draw(ViewTransform transform, Graphics2D g,
+            ColorSet colorSet, boolean isSelected) {
+
+        ConstraintWidget widget = getOwner();
+        WidgetCompanion companion = (WidgetCompanion) widget.getCompanionWidget();
+        WidgetDecorator decorator = companion.getWidgetDecorator(colorSet.getStyle());
+        Color backgroundColor = decorator.getBackgroundColor();
+
         if (mType == ConstraintAnchor.Type.BASELINE) {
             int x = transform.getSwingX(getOwner().getDrawX());
             int y = transform.getSwingY(getOwner().getDrawY());
@@ -389,20 +399,12 @@ public class ConstraintHandle {
                 Stroke preStroke = g.getStroke();
                 g.setColor(colorSet.getShadow());
                 g.setStroke(colorSet.getShadowStroke());
-
                 g.drawRoundRect(x + padding, by - bh / 2, w - 2 * padding, bh, bh, bh);
-                g.drawLine(x, by, x + padding, by);
-                g.drawLine(x + w - padding, by, x + w, by);
-
                 g.setStroke(preStroke);
                 g.setColor(pre);
             }
 
             Color previous = g.getColor();
-            ConstraintWidget widget = getOwner();
-            WidgetCompanion companion = (WidgetCompanion) widget.getCompanionWidget();
-            WidgetDecorator decorator = companion.getWidgetDecorator(colorSet.getStyle());
-            Color backgroundColor = decorator.getBackgroundColor();
 
             g.setColor(new Color(backgroundColor.getRed(), backgroundColor.getGreen(),
                     backgroundColor.getBlue(), previous.getAlpha()));
@@ -421,6 +423,32 @@ public class ConstraintHandle {
                         by - bh / 2 + margin,
                         w - 2 * padding - 2 * margin,
                         bh - 2 * margin, bh, bh);
+            }
+        } else {
+            int innerMargin = 3;
+            int radius = ConnectionDraw.CONNECTION_ANCHOR_SIZE;
+            int dimension = radius * 2;
+            int cx = mX - dimension / 2;
+            int cy = mY - dimension / 2;
+            Ellipse2D.Float outerCircle = new Ellipse2D.Float(cx, cy, dimension, dimension);
+            if (isSelected) {
+                Color pre = g.getColor();
+                Stroke preStroke = g.getStroke();
+                g.setColor(sShadowColor);
+                g.setStroke(sShadowStroke);
+                g.draw(outerCircle);
+                g.setStroke(preStroke);
+                g.setColor(pre);
+            }
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setColor(backgroundColor);
+            g2.fill(outerCircle);
+            g2.dispose();
+            g.draw(outerCircle);
+            if (mAnchor.isConnected()) {
+                int d = dimension - innerMargin * 2;
+                g.fillRoundRect(cx + innerMargin, cy + innerMargin, d, d, d, d);
+                g.drawRoundRect(cx + innerMargin, cy + innerMargin, d, d, d, d);
             }
         }
     }
