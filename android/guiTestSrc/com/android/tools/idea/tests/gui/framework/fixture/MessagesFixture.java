@@ -43,7 +43,7 @@ public class MessagesFixture {
   @NotNull
   public static MessagesFixture findByTitle(@NotNull Robot robot, @NotNull Container root, @NotNull String title) {
     if (Messages.canShowMacSheetPanel()) {
-      return new MessagesFixture(findMacSheetByTitle(robot, root, title));
+      return new MessagesFixture(findMacSheetByTitle(robot, title));
     }
     MessageDialogFixture dialog = MessageDialogFixture.findByTitle(robot, title);
     return new MessagesFixture(dialog);
@@ -82,8 +82,8 @@ public class MessagesFixture {
   }
 
   @NotNull
-  static JPanelFixture findMacSheetByTitle(@NotNull Robot robot, @NotNull Container root, @NotNull String title) {
-    JPanel sheetPanel = waitUntilShowing(robot, root, new GenericTypeMatcher<JPanel>(JPanel.class) {
+  static JPanelFixture findMacSheetByTitle(@NotNull Robot robot, @NotNull String title) {
+    JPanel sheetPanel = waitUntilShowing(robot, new GenericTypeMatcher<JPanel>(JPanel.class) {
       @Override
       protected boolean isMatching(@NotNull JPanel panel) {
         if (panel.getClass().getName().startsWith(SheetController.class.getName())) {
