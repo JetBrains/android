@@ -15,14 +15,19 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
+import com.android.tools.idea.uibuilder.api.InsertType;
+import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.XmlBuilder;
 import com.android.tools.idea.uibuilder.api.XmlType;
+import com.android.tools.idea.uibuilder.model.NlComponent;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import static com.android.SdkConstants.ATTR_TITLE;
 import static com.android.SdkConstants.PreferenceAttributes.DEFAULT_VALUE;
 import static com.android.SdkConstants.PreferenceAttributes.KEY;
+import static com.android.SdkConstants.PreferenceTags.LIST_PREFERENCE;
 
 final class ListPreferenceHandler extends PreferenceHandler {
   @Language("XML")
@@ -34,9 +39,19 @@ final class ListPreferenceHandler extends PreferenceHandler {
       .androidAttribute(DEFAULT_VALUE, 1)
       .androidAttribute("entries", "@array/list_preference_entries")
       .androidAttribute("entryValues", "@array/list_preference_entry_values")
-      .androidAttribute(KEY, "")
       .androidAttribute(ATTR_TITLE, "List preference")
       .endTag(tagName)
       .toString();
+  }
+
+  @Override
+  public boolean onCreate(@NotNull ViewEditor editor,
+                          @Nullable NlComponent parent,
+                          @NotNull NlComponent newChild,
+                          @NotNull InsertType type) {
+    super.onCreate(editor, parent, newChild, type);
+    newChild.setAndroidAttribute(KEY, generateKey(newChild, LIST_PREFERENCE, "list_preference_"));
+
+    return true;
   }
 }
