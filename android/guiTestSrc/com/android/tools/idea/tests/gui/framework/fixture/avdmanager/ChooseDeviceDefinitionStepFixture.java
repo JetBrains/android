@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.avdmanager;
 
+import com.android.tools.idea.tests.gui.framework.Wait;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.AbstractWizardStepFixture;
 import com.google.common.collect.ImmutableList;
@@ -74,6 +75,9 @@ public class ChooseDeviceDefinitionStepFixture extends AbstractWizardStepFixture
     }).click();
 
     MessagesFixture.findByTitle(robot(), target(), "Confirm Deletion").clickYes();
+
+    Wait.seconds(10).expecting("device to be deleted").until(() -> !deviceNames().contains(deviceName));
+
     return this;
   }
 
