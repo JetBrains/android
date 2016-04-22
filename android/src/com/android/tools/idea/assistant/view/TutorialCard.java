@@ -142,10 +142,11 @@ public class TutorialCard extends CardViewPanel {
 
     HeaderNav(String location, ActionListener listener) {
       super();
-      setLayout(new FlowLayout(FlowLayout.LEADING));
-      setBorder(BorderFactory.createEmptyBorder());
+      setLayout(new BoxLayout(this, BoxLayout.LINE_AXIS));
+      setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
 
       add(new BackButton(ROOT_TITLE));
+      add(Box.createRigidArea(new Dimension(5, 0)));
 
       JBLabel label = new JBLabel(location);
       // TODO: Color stolen from ContentTabLabel passive label color, find a better fit.
