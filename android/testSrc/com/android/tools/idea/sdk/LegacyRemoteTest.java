@@ -60,7 +60,7 @@ public class LegacyRemoteTest extends AndroidTestCase {
     progress.assertNoErrorsOrWarnings();
 
     FakeSettingsController settings = new FakeSettingsController(false);
-    LegacyRemoteRepoLoader sdk = new LegacyRemoteRepoLoader(settings);
+    LegacyRemoteRepoLoader sdk = new LegacyRemoteRepoLoader();
     sdk.setDownloadCache(new DownloadCache(fop, DownloadCache.Strategy.ONLY_CACHE));
     mgr.setFallbackRemoteRepoLoader(sdk);
     FakeDownloader downloader = new FakeDownloader(fop);
