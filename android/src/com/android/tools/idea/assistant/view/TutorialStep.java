@@ -88,7 +88,11 @@ public class TutorialStep extends JPanel {
       myContents.add(Box.createRigidArea(new Dimension(0, 10)));
     }
     // NOTE: Due to some calculation issues with html rendered content, we're forcing the element to do a relayout.
-    SwingUtilities.updateComponentTreeUI(this);
+    // TODO: SwingUtilities.updateComponentTreeUI(this) reverted some overridden properties and is no longer in use even though it might
+    // generally have been the better choice.Investigate the root cause and determine the best path forward.
+    invalidate();
+    validate();
+    repaint();
   }
 
   /**
