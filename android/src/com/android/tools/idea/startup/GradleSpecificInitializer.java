@@ -285,8 +285,6 @@ public class GradleSpecificInitializer implements Runnable {
   private static void setupSdks() {
     File androidHome = IdeSdks.getAndroidSdkPath();
 
-    AndroidSdkHandler.setRemoteFallback(new LegacyRemoteRepoLoader(StudioSettingsController.getInstance()));
-
     if (androidHome != null) {
       WizardUtils.ValidationResult sdkValidationResult =
         WizardUtils.validateLocation(androidHome.getAbsolutePath(), "Android SDK location", false, WritableCheckMode.DO_NOT_CHECK);
