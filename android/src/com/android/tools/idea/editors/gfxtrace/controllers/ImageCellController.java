@@ -102,14 +102,14 @@ public abstract class ImageCellController<T extends ImageCellList.Data> extends 
 
       @Override
       protected void onUiThreadSuccess(BufferedImage image) {
-        cell.icon = new ImageIcon(image);
+        cell.stopLoading(new ImageIcon(image));
         onLoad.run();
         myList.repaint();
       }
 
       @Override
       protected void onUiThreadError(String message) {
-        cell.icon = null;
+        cell.stopLoading(null);
         myList.repaint();
       }
     });
