@@ -122,7 +122,7 @@ public class FeatureEntryPoint extends JPanel {
     // breaking line wrapping.
     descriptionPane.setOpaque(false);
     descriptionPane.addMouseListener(mySummaryClickHandler);
-    UIUtils.setHtml(descriptionPane, myDescription);
+    UIUtils.setHtml(descriptionPane, myDescription, "body {color: " + UIUtils.getCssColor(UIUtils.getSecondaryColor()) + "}");
 
     mySummary.add(descriptionPane, descriptionConstraints);
     add(mySummary, BorderLayout.NORTH);
