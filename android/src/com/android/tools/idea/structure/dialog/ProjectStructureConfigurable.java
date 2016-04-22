@@ -26,7 +26,6 @@ import com.intellij.openapi.options.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectBundle;
 import com.intellij.openapi.project.ProjectManager;
-import com.intellij.openapi.roots.ui.configuration.SidePanel;
 import com.intellij.openapi.ui.MasterDetailsComponent;
 import com.intellij.openapi.util.ActionCallback;
 import com.intellij.openapi.util.Disposer;
@@ -38,7 +37,6 @@ import com.intellij.ui.navigation.BackAction;
 import com.intellij.ui.navigation.ForwardAction;
 import com.intellij.ui.navigation.History;
 import com.intellij.ui.navigation.Place;
-import com.intellij.util.SystemProperties;
 import com.intellij.util.io.storage.HeavyProcessLatch;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NonNls;
@@ -50,8 +48,7 @@ import java.awt.*;
 import java.util.List;
 
 import static com.intellij.ui.navigation.Place.goFurther;
-import static com.intellij.util.ui.UIUtil.SIDE_PANEL_BACKGROUND;
-import static com.intellij.util.ui.UIUtil.requestFocus;
+import static com.intellij.util.ui.UIUtil.*;
 
 public class ProjectStructureConfigurable extends BaseConfigurable
   implements SearchableConfigurable, Place.Navigator, Configurable.NoMargin, Configurable.NoScroll {
@@ -327,30 +324,18 @@ public class ProjectStructureConfigurable extends BaseConfigurable
   }
 
   private void addConfigurables() {
-    if (SystemProperties.getBooleanProperty("psd.enable.prototype", false)) {
-      for (ModuleStructureConfigurableContributor contributor : ModuleStructureConfigurableContributor.EP_NAME.getExtensions()) {
-        Configurable configurable = contributor.getModuleStructureConfigurable(myProject);
-        if (configurable != null) {
-          addConfigurable(configurable);
-          break;
-        }
-      }
-
-      for (ProjectStructureItemsContributor contributor : ProjectStructureItemsContributor.EP_NAME.getExtensions()) {
-        List<ProjectStructureItemGroup> itemGroups = contributor.getItemGroups(myProject);
-        for (ProjectStructureItemGroup group : itemGroups) {
-          String name = group.getGroupName();
-          mySidePanel.addSeparator(name);
-          group.getItems().forEach(this::addConfigurable);
-        }
-      }
-    }
-
     if (myDisposable.disposed) {
       myDisposable = new MyDisposable();
     }
-    for (MainGroupConfigurableContributor contributor : MainGroupConfigurableContributor.EP_NAME.getExtensions()) {
-      contributor.getConfigurables(myProject, myDisposable).forEach(this::addConfigurable);
+    List<ProjectStructureItemGroup> additionalConfigurableGroups = Lists.newArrayList();
+    for (AndroidConfigurableContributor contributor : AndroidConfigurableContributor.EP_NAME.getExtensions()) {
+      contributor.getMainConfigurables(myProject, myDisposable).forEach(this::addConfigurable);
+      additionalConfigurableGroups.addAll(contributor.getAdditionalConfigurableGroups());
+    }
+    for (ProjectStructureItemGroup group : additionalConfigurableGroups) {
+      String name = group.getGroupName();
+      mySidePanel.addSeparator(name);
+      group.getItems().forEach(this::addConfigurable);
     }
   }
 
@@ -361,6 +346,9 @@ public class ProjectStructureConfigurable extends BaseConfigurable
       navigator.setHistory(myHistory);
     }
     mySidePanel.addPlace(createPlaceFor(configurable), new Presentation(configurable.getDisplayName()));
+    if (configurable instanceof CounterDisplayConfigurable) {
+      ((CounterDisplayConfigurable)configurable).add(() -> invokeLaterIfNeeded(() -> mySidePanel.repaint()), myDisposable);
+    }
   }
 
   public static void putPath(@NotNull Place place, @NotNull Configurable configurable) {

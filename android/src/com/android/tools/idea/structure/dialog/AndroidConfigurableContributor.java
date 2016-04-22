@@ -21,12 +21,18 @@ import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collections;
 import java.util.List;
 
-public abstract class MainGroupConfigurableContributor {
-  public static final ExtensionPointName<MainGroupConfigurableContributor> EP_NAME =
-    ExtensionPointName.create("com.android.ide.mainGroupConfigurableContributor");
+public abstract class AndroidConfigurableContributor {
+  public static final ExtensionPointName<AndroidConfigurableContributor> EP_NAME =
+    ExtensionPointName.create("com.android.ide.androidConfigurableContributor");
 
   @NotNull
-  public abstract List<Configurable> getConfigurables(@NotNull Project project, @NotNull Disposable parentDisposable);
+  public abstract List<Configurable> getMainConfigurables(@NotNull Project project, @NotNull Disposable parentDisposable);
+
+  @NotNull
+  public List<ProjectStructureItemGroup> getAdditionalConfigurableGroups() {
+    return Collections.emptyList();
+  }
 }

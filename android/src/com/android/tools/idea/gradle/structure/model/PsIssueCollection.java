@@ -32,8 +32,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.intellij.xml.util.XmlStringUtil.escapeString;
-
 public class PsIssueCollection {
   @NotNull private final ConcurrentMultiMap<PsNavigationPath, PsIssue> myIssues = new ConcurrentMultiMap<>();
   @NotNull private final PsContext myContext;
@@ -77,8 +75,15 @@ public class PsIssueCollection {
   }
 
   @NotNull
-  public List<PsIssue> getIssues() {
+  public List<PsIssue> getValues() {
     return Lists.newArrayList(myIssues.values());
+  }
+
+  @NotNull
+  public List<PsIssue> getValues(@NotNull Class<? extends PsNavigationPath> pathType) {
+    List<PsIssue> issues = Lists.newArrayList();
+    myIssues.keySet().stream().filter(pathType::isInstance).forEachOrdered(path -> issues.addAll(myIssues.get(path)));
+    return issues;
   }
 
   public boolean isEmpty() {
@@ -93,8 +98,7 @@ public class PsIssueCollection {
 
     // Removed duplicated lines.
     Set<String> lines = Sets.newLinkedHashSet();
-    lines.addAll(issues.stream().map(issue -> escapeString(issue.getText()))
-                                .collect(Collectors.toList()));
+    lines.addAll(issues.stream().map(PsIssue::getText).collect(Collectors.toList()));
 
     StringBuilder buffer = new StringBuilder();
     buffer.append("<html><body>");
@@ -103,7 +107,7 @@ public class PsIssueCollection {
 
     int count = 0;
     for (String line : lines) {
-      buffer.append(escapeString(line)).append("<br>");
+      buffer.append(line).append("<br>");
       problems++;
 
       if (count++ > 9 && issueCount > 12) {

@@ -40,7 +40,7 @@ import static com.android.builder.model.SyncIssue.SEVERITY_ERROR;
 import static com.android.builder.model.SyncIssue.SEVERITY_WARNING;
 import static com.android.tools.idea.gradle.structure.model.PsIssue.Type.*;
 import static com.google.common.base.Strings.nullToEmpty;
-import static com.intellij.openapi.util.text.StringUtil.escapeXml;
+import static com.intellij.xml.util.XmlStringUtil.escapeString;
 
 public class PsAndroidModuleAnalyzer extends PsModelAnalyzer<PsAndroidModule> {
   private static final Pattern URL_PATTERN = Pattern.compile("\\(?http://[-A-Za-z0-9+&@#/%?=~_()|!:,.;]*[-A-Za-z0-9+&@#/%=~_()|]");
@@ -107,7 +107,7 @@ public class PsAndroidModuleAnalyzer extends PsModelAnalyzer<PsAndroidModule> {
   @VisibleForTesting
   @NotNull
   static PsIssue createIssueFrom(@NotNull SyncIssue issue, @NotNull PsNavigationPath path) {
-    String message = escapeXml(issue.getMessage());
+    String message = escapeString(issue.getMessage());
     Matcher matcher = URL_PATTERN.matcher(message);
     boolean result = matcher.find();
     // Replace URLs with <a href='url'>url</a>.

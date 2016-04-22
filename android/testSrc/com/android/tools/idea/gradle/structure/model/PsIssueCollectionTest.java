@@ -42,14 +42,14 @@ public class PsIssueCollectionTest {
     for (int i = 0; i < 5; i++) {
       myIssueCollection.add(new PsIssue("Issue " + (i + 1), EMPTY_PATH, WARNING));
     }
-    List<PsIssue> issues = myIssueCollection.getIssues();
+    List<PsIssue> issues = myIssueCollection.getValues();
     String expected = "<html><body>Issue 1<br>Issue 2<br>Issue 3<br>Issue 4<br>Issue 5<br></body></html>";
     assertEquals(expected, PsIssueCollection.getTooltipText(issues));
 
     for (int i = 5; i < 20; i++) {
       myIssueCollection.add(new PsIssue("Issue " + (i + 1), EMPTY_PATH, WARNING));
     }
-    issues = myIssueCollection.getIssues();
+    issues = myIssueCollection.getValues();
     expected = "<html><body>Issue 1<br>Issue 2<br>Issue 3<br>Issue 4<br>Issue 5<br>Issue 6<br>Issue 7<br>Issue 8<br>Issue 9<br>" +
                "Issue 10<br>Issue 11<br>9 more problems...<br></body></html>";
     assertEquals(expected, PsIssueCollection.getTooltipText(issues));
