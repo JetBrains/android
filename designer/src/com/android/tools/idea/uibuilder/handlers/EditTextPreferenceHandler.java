@@ -32,7 +32,7 @@ final class EditTextPreferenceHandler extends PreferenceHandler {
   public String getXml(@NotNull String tagName, @NotNull XmlType xmlType) {
     return new XmlBuilder()
       .startTag(tagName)
-      .androidAttribute(DEFAULT_VALUE, "")
+      .androidAttribute(DEFAULT_VALUE, "Default value")
       .androidAttribute(KEY, "")
       .androidAttribute("selectAllOnFocus", true)
       .androidAttribute(ATTR_SINGLE_LINE, true)
