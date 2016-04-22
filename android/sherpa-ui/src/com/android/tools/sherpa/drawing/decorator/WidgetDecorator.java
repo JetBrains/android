@@ -408,11 +408,12 @@ public class WidgetDecorator {
         }
 
         g.setColor(mFrameColor.getColor());
-        onPaintAnchors(transform, g);
-
         WidgetDraw.drawWidgetFrame(transform, g, mWidget,
                 mColorSet, mDisplayAnchorsPolicy, mShowResizeHandles,
                 mShowSizeIndicator, mIsSelected, mStyle);
+
+        g.setColor(mConstraintsColor.getColor());
+        onPaintAnchors(transform, g);
 
         return isAnimating();
     }
@@ -466,7 +467,45 @@ public class WidgetDecorator {
         if (mWidget.getVisibility() == ConstraintWidget.GONE) {
             return;
         }
+
+        ConstraintAnchor leftAnchor = mWidget.getAnchor(ConstraintAnchor.Type.LEFT);
+        ConstraintAnchor rightAnchor = mWidget.getAnchor(ConstraintAnchor.Type.RIGHT);
+        ConstraintAnchor topAnchor = mWidget.getAnchor(ConstraintAnchor.Type.TOP);
+        ConstraintAnchor bottomAnchor = mWidget.getAnchor(ConstraintAnchor.Type.BOTTOM);
+
+        boolean leftAnchorIsConnected = leftAnchor.isConnected();
+        boolean rightAnchorIsConnected = rightAnchor.isConnected();
+        boolean topAnchorIsConnected = topAnchor.isConnected();
+        boolean bottomAnchorIsConnected = bottomAnchor.isConnected();
+
+        boolean displayAllAnchors = mDisplayAnchorsPolicy.contains(WidgetDraw.ANCHORS_DISPLAY.ALL);
+        boolean showLeftAnchor = displayAllAnchors
+                || mDisplayAnchorsPolicy.contains(WidgetDraw.ANCHORS_DISPLAY.LEFT)
+                || mDisplayAnchorsPolicy.contains(WidgetDraw.ANCHORS_DISPLAY.HORIZONTAL);
+        boolean showRightAnchor = displayAllAnchors
+                || mDisplayAnchorsPolicy.contains(WidgetDraw.ANCHORS_DISPLAY.RIGHT)
+                || mDisplayAnchorsPolicy.contains(WidgetDraw.ANCHORS_DISPLAY.HORIZONTAL);
+        boolean showTopAnchor = displayAllAnchors
+                || mDisplayAnchorsPolicy.contains(WidgetDraw.ANCHORS_DISPLAY.TOP)
+                || mDisplayAnchorsPolicy.contains(WidgetDraw.ANCHORS_DISPLAY.VERTICAL);
+        boolean showBottomAnchor = displayAllAnchors
+                || mDisplayAnchorsPolicy.contains(WidgetDraw.ANCHORS_DISPLAY.BOTTOM)
+                || mDisplayAnchorsPolicy.contains(WidgetDraw.ANCHORS_DISPLAY.VERTICAL);
+
+        showLeftAnchor |= leftAnchorIsConnected;
+        showRightAnchor |= rightAnchorIsConnected;
+        showTopAnchor |= topAnchorIsConnected;
+        showBottomAnchor |= bottomAnchorIsConnected;
+
+        WidgetCompanion widgetCompanion = (WidgetCompanion) mWidget.getCompanionWidget();
+        WidgetDecorator decorator = widgetCompanion.getWidgetDecorator(mColorSet.getStyle());
+        WidgetInteractionTargets interactionTargets = widgetCompanion.getWidgetInteractionTargets();
+
+        // Let's draw all the anchors
+
         g.setColor(mConstraintsColor.getColor());
+
+        // Draw the baseline first, if needed
         if (mIsSelected && mWidget.hasBaseline()) {
             Color c = g.getColor();
             ConstraintAnchor baseline = mWidget.getAnchor(ConstraintAnchor.Type.BASELINE);
@@ -479,12 +518,30 @@ public class WidgetDecorator {
                 }
             }
             if (progress > 0) {
-                WidgetCompanion widgetCompanion = (WidgetCompanion) mWidget.getCompanionWidget();
-                ConstraintHandle handle = widgetCompanion.getWidgetInteractionTargets()
-                        .getConstraintHandle(baseline);
+                ConstraintHandle handle = interactionTargets.getConstraintHandle(baseline);
                 handle.draw(transform, g, mColorSet, mIsSelected);
             }
             g.setColor(c);
+        }
+
+        if (mIsSelected) {
+            g.setColor(mColorSet.getSelectedConstraints());
+        }
+        if (showLeftAnchor) {
+            ConstraintHandle handle = interactionTargets.getConstraintHandle(leftAnchor);
+            handle.draw(transform, g, mColorSet, mIsSelected);
+        }
+        if (showRightAnchor) {
+            ConstraintHandle handle = interactionTargets.getConstraintHandle(rightAnchor);
+            handle.draw(transform, g, mColorSet, mIsSelected);
+        }
+        if (showTopAnchor) {
+            ConstraintHandle handle = interactionTargets.getConstraintHandle(topAnchor);
+            handle.draw(transform, g, mColorSet, mIsSelected);
+        }
+        if (showBottomAnchor) {
+            ConstraintHandle handle = interactionTargets.getConstraintHandle(bottomAnchor);
+            handle.draw(transform, g, mColorSet, mIsSelected);
         }
     }
 
