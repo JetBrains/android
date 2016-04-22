@@ -47,7 +47,7 @@
     <action
         id="WelcomeScreen.RunAndroidSdkManager"
         class="org.jetbrains.android.actions.RunAndroidSdkManagerAction"
-        icon="AndroidIcons.SdkManagerLarge" >
+        icon="AndroidIcons.SdkManager" >
       <add-to-group group-id="WelcomeScreen.Configure" anchor="first" />
     </action>
 
