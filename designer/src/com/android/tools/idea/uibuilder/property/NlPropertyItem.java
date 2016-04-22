@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.property;
 
 import com.android.SdkConstants;
+import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.model.NlComponent;
@@ -23,6 +24,7 @@ import com.android.tools.idea.uibuilder.property.editors.NlPropertyEditors;
 import com.android.tools.idea.uibuilder.property.ptable.PTableCellEditor;
 import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
 import com.android.tools.idea.uibuilder.property.renderer.NlPropertyRenderers;
+import com.android.util.PropertiesMap;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.application.ApplicationManager;
@@ -52,6 +54,7 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
   @Nullable protected final AttributeDefinition myDefinition;
   @NotNull private final String myName;
   @Nullable private final String myNamespace;
+  @Nullable private PropertiesMap.Property myDefaultValue;
 
   public static NlPropertyItem create(@NotNull NlComponent component,
                                       @NotNull XmlAttributeDescriptor descriptor,
@@ -93,12 +96,79 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
     return myName;
   }
 
+  public void setDefaultValue(@Nullable PropertiesMap.Property defaultValue) {
+    myDefaultValue = defaultValue;
+  }
+
   @Override
   @Nullable
   public String getValue() {
     // TODO: Consider making getApplication() a field to avoid statics
     ApplicationManager.getApplication().assertIsDispatchThread();
-    return myComponent.getAttribute(myNamespace, myName);
+    String value = myComponent.getAttribute(myNamespace, myName);
+    return value == null && myDefaultValue != null ? myDefaultValue.resource : value;
+  }
+
+  @Override
+  public boolean isDefaultValue(@Nullable String value) {
+    if (value == null) {
+      return true;
+    }
+    if (myDefaultValue == null) {
+      return false;
+    }
+    return value.equals(myDefaultValue.resource);
+  }
+
+  @Override
+  @Nullable
+  public String resolveValue(@Nullable String value) {
+    if (value == null) {
+      return null;
+    }
+    if (myDefaultValue != null && isDefaultValue(value)) {
+      return myDefaultValue.value;
+    }
+    if (value.startsWith("?") || value.startsWith("@") && !isId(value)) {
+      ResourceResolver resolver = getResolver();
+      if (resolver != null) {
+        ResourceValue resource = resolver.findResValue(value, false);
+        if (resource == null) {
+          resource = resolver.findResValue(value, true);
+        }
+        if (resource != null) {
+          if (resource.getValue() != null) {
+            value = resource.getValue();
+            if (resource.isFramework()) {
+              value = addAndroidPrefix(value);
+            }
+          }
+          ResourceValue resolved = resolver.resolveResValue(resource);
+          if (resolved != null && resolved.getValue() != null) {
+            value = resolved.getValue();
+            if (resource.isFramework()) {
+              value = addAndroidPrefix(value);
+            }
+          }
+        }
+      }
+    }
+    return value;
+  }
+
+  @NotNull
+  private static String addAndroidPrefix(@NotNull String value) {
+    if (value.startsWith("@") && !value.startsWith(SdkConstants.ANDROID_PREFIX)) {
+      return SdkConstants.ANDROID_PREFIX + value.substring(1);
+    }
+    return value;
+  }
+
+  private static boolean isId(@NotNull String value) {
+    return value.startsWith(SdkConstants.ID_PREFIX) ||
+           value.startsWith(SdkConstants.NEW_ID_PREFIX) ||
+           value.startsWith(SdkConstants.ANDROID_ID_PREFIX) ||
+           value.startsWith(SdkConstants.ANDROID_NEW_ID_PREFIX);
   }
 
   @NotNull
@@ -124,7 +194,11 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
   public void setValue(Object value) {
     // TODO: Consider making getApplication() a field to avoid statics
     assert ApplicationManager.getApplication().isDispatchThread();
-    final String attrValue = value == null ? null : value.toString();
+    String strValue = value == null ? null : value.toString();
+    if (StringUtil.isEmpty(strValue) || isDefaultValue(strValue)) {
+      strValue = null;
+    }
+    final String attrValue = strValue;
     String msg = String.format("Set %1$s.%2$s to %3$s", myComponent.getTagName(), myName, attrValue);
     new WriteCommandAction.Simple(myComponent.getModel().getProject(), msg, myComponent.getTag().getContainingFile()) {
       @Override
@@ -137,7 +211,7 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
 
   @NotNull
   public List<String> getParentStylables() {
-    return myDefinition == null ? Collections.<String>emptyList() : myDefinition.getParentStyleables();
+    return myDefinition == null ? Collections.emptyList() : myDefinition.getParentStyleables();
   }
 
   @Override

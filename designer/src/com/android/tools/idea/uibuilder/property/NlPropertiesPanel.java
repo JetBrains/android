@@ -20,6 +20,7 @@ import com.android.tools.idea.uibuilder.property.inspector.InspectorPanel;
 import com.android.tools.idea.uibuilder.property.ptable.PTable;
 import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
 import com.android.tools.idea.uibuilder.property.ptable.PTableModel;
+import com.android.util.PropertiesMap;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
@@ -40,11 +41,14 @@ public class NlPropertiesPanel extends JPanel implements ShowExpertProperties.Mo
   private static final String CARD_ADVANCED = "table";
   private static final String CARD_DEFAULT = "default";
 
+  private final PTable myTable;
   private final PTableModel myModel;
   private final InspectorPanel myInspectorPanel;
 
   private JBLabel mySelectedComponentLabel;
   private JPanel myCardPanel;
+  private NlComponent myComponent;
+  private List<NlPropertyItem> myProperties;
   private boolean myShowAdvancedProperties;
 
   public NlPropertiesPanel() {
@@ -56,8 +60,8 @@ public class NlPropertiesPanel extends JPanel implements ShowExpertProperties.Mo
 
     myModel = new PTableModel();
 
-    PTable propertiesTable = new PTable(myModel);
-    propertiesTable.getEmptyText().setText("No selected component");
+    myTable = new PTable(myModel);
+    myTable.getEmptyText().setText("No selected component");
     myInspectorPanel = new InspectorPanel();
 
     myCardPanel = new JPanel(new JBCardLayout());
@@ -69,7 +73,7 @@ public class NlPropertiesPanel extends JPanel implements ShowExpertProperties.Mo
     myCardPanel.add(CARD_DEFAULT, ScrollPaneFactory.createScrollPane(myInspectorPanel,
                                                                      ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
                                                                      ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER));
-    myCardPanel.add(CARD_ADVANCED, ScrollPaneFactory.createScrollPane(propertiesTable));
+    myCardPanel.add(CARD_ADVANCED, ScrollPaneFactory.createScrollPane(myTable));
   }
 
   @NotNull
@@ -91,6 +95,8 @@ public class NlPropertiesPanel extends JPanel implements ShowExpertProperties.Mo
                        @NotNull List<NlPropertyItem> properties,
                        @NotNull NlPropertiesManager propertiesManager) {
     String componentName = component == null ? "" : component.getTagName();
+    myComponent = component;
+    myProperties = properties;
     mySelectedComponentLabel.setText(componentName);
 
     List<PTableItem> sortedProperties;
@@ -101,9 +107,31 @@ public class NlPropertiesPanel extends JPanel implements ShowExpertProperties.Mo
       final List<PTableItem> groupedProperties = new NlPropertiesGrouper().group(properties, component);
       sortedProperties = new NlPropertiesSorter().sort(groupedProperties, component);
     }
+    if (myTable.isEditing()) {
+      myTable.removeEditor();
+    }
     myModel.setItems(sortedProperties);
 
+    updateDefaultProperties(propertiesManager);
     myInspectorPanel.setComponent(component, properties, propertiesManager);
+  }
+
+  public void modelRendered(@NotNull NlPropertiesManager propertiesManager) {
+    updateDefaultProperties(propertiesManager);
+    myInspectorPanel.refresh();
+  }
+
+  private void updateDefaultProperties(@NotNull NlPropertiesManager propertiesManager) {
+    if (myComponent == null || myProperties == null) {
+      return;
+    }
+    PropertiesMap defaultValues = propertiesManager.getDefaultProperties(myComponent);
+    if (defaultValues.isEmpty()) {
+      return;
+    }
+    for (NlPropertyItem property : myProperties) {
+      property.setDefaultValue(defaultValues.get(property.getName()));
+    }
   }
 
   @Override

@@ -22,8 +22,10 @@ import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.editors.NlBooleanIconEditor;
 import com.android.tools.idea.uibuilder.property.editors.NlEnumEditor;
 import com.android.tools.idea.uibuilder.property.editors.NlReferenceEditor;
+import com.android.tools.idea.uibuilder.property.inspector.InspectorPanel.SplitLayout;
 import com.google.common.collect.ImmutableSet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.util.Map;
@@ -79,12 +81,12 @@ public class FontInspectorComponent implements InspectorComponent {
     myAlignment = properties.get(ATTR_TEXT_ALIGNMENT);
     myColor = properties.get(ATTR_TEXT_COLOR);
 
-    EnumListener enumListener = new EnumListener();
+    NlEnumEditor.Listener enumListener = createEnumListener();
 
-    myStyleEditor = NlEnumEditor.createWithoutBrowseButton(enumListener);
-    myFontFamilyEditor = NlEnumEditor.createWithoutBrowseButton(enumListener);
-    myFontSizeEditor = NlEnumEditor.createWithoutBrowseButton(enumListener);
-    mySpacingEditor = NlEnumEditor.createWithoutBrowseButton(enumListener);
+    myStyleEditor = NlEnumEditor.createForInspector(enumListener);
+    myFontFamilyEditor = NlEnumEditor.createForInspector(enumListener);
+    myFontSizeEditor = NlEnumEditor.createForInspector(enumListener);
+    mySpacingEditor = NlEnumEditor.createForInspector(enumListener);
     myBoldEditor = new NlBooleanIconEditor(AndroidVectorIcons.EditorIcons.Bold);
     myItalicsEditor = new NlBooleanIconEditor(AndroidVectorIcons.EditorIcons.Italic);
     myAllCapsEditor = new NlBooleanIconEditor(AndroidVectorIcons.EditorIcons.AllCaps);
@@ -93,7 +95,7 @@ public class FontInspectorComponent implements InspectorComponent {
     myCenterEditor = new NlBooleanIconEditor(AndroidVectorIcons.EditorIcons.AlignCenter, TextAlignment.CENTER);
     myRightEditor = new NlBooleanIconEditor(AndroidVectorIcons.EditorIcons.AlignRight, TextAlignment.TEXT_END);
     myEndEditor = new NlBooleanIconEditor(AndroidVectorIcons.EditorIcons.AlignRight, TextAlignment.VIEW_END);
-    myColorEditor = NlReferenceEditor.createWithoutBrowseButton(propertiesManager.getProject(), new ReferenceListener());
+    myColorEditor = NlReferenceEditor.createForInspectorWithBrowseButton(propertiesManager.getProject(), createReferenceListener());
 
     myTextStylePanel = new JPanel();
     myTextStylePanel.add(myBoldEditor.getComponent());
@@ -109,18 +111,19 @@ public class FontInspectorComponent implements InspectorComponent {
   }
 
   @Override
-  public void attachToInspector(@NotNull JPanel inspector) {
-    InspectorPanel.addSeparator(inspector);
-    InspectorPanel.addComponent(inspector, "Font", myStyle.getTooltipText(), myStyleEditor.getComponent());
-    InspectorPanel.addComponent(inspector, "Font family", myFontFamily.getTooltipText(), myFontFamilyEditor.getComponent());
-    InspectorPanel.addSplitComponents(inspector,
-                                      "Size", myFontSize.getTooltipText(), myFontSizeEditor.getComponent(),
-                                      "Spacing", mySpacing.getTooltipText(), mySpacingEditor.getComponent());
-    InspectorPanel.addSplitComponents(inspector,
-                                      "Decoration", myTextStyle.getTooltipText(), null,
-                                      "Alignment", myAlignment.getTooltipText(), null);
-    InspectorPanel.addSplitComponents(inspector, null, null, myTextStylePanel, null, null, myAlignmentPanel);
-    InspectorPanel.addComponent(inspector, "Color", myColor.getTooltipText(), myColorEditor.getComponent());
+  public void attachToInspector(@NotNull InspectorPanel inspector) {
+    inspector.addSeparator();
+    inspector.addExpandableTitle("Text Attributes", myStyle);
+    inspector.addComponent("Appearance", myStyle.getTooltipText(), myStyleEditor.getComponent());
+    inspector.restartExpansionGroup();
+    inspector.addComponent("Font family", myFontFamily.getTooltipText(), myFontFamilyEditor.getComponent());
+    inspector.addSplitComponents(SplitLayout.SINGLE_ROW,
+                                 "Size", myFontSize.getTooltipText(), myFontSizeEditor.getComponent(),
+                                 "Spacing", mySpacing.getTooltipText(), mySpacingEditor.getComponent());
+    inspector.addSplitComponents(SplitLayout.STACKED,
+                                 "Decoration", myTextStyle.getTooltipText(), myTextStylePanel,
+                                 "Alignment", myAlignment.getTooltipText(), myAlignmentPanel);
+    inspector.addComponent("Color", myColor.getTooltipText(), myColorEditor.getComponent());
     refresh();
   }
 
@@ -141,35 +144,49 @@ public class FontInspectorComponent implements InspectorComponent {
     myColorEditor.setProperty(myColor);
   }
 
-  private class EnumListener implements NlEnumEditor.Listener {
-    @Override
-    public void itemPicked(@NotNull NlEnumEditor source, @NotNull String value) {
-      if (source.getProperty() != null) {
-        myPropertiesManager.setValue(source.getProperty(), value);
+  private NlEnumEditor.Listener createEnumListener() {
+    return new NlEnumEditor.Listener() {
+      @Override
+      public void itemPicked(@NotNull NlEnumEditor source, @Nullable String value) {
+        if (source.getProperty() != null) {
+          myPropertiesManager.setValue(source.getProperty(), value);
+          if (source == myStyleEditor) {
+            myFontFamily.setValue(null);
+            myFontSize.setValue(null);
+            mySpacing.setValue(null);
+            myTextStyle.setValue(null);
+            myTextAllCaps.setValue(null);
+            myAlignment.setValue(null);
+            myColor.setValue(null);
+            refresh();
+          }
+        }
       }
-    }
 
-    @Override
-    public void resourcePicked(@NotNull NlEnumEditor source, @NotNull String value) {
-      itemPicked(source, value);
-    }
+      @Override
+      public void resourcePicked(@NotNull NlEnumEditor source, @NotNull String value) {
+        itemPicked(source, value);
+      }
 
-    @Override
-    public void resourcePickerCancelled(@NotNull NlEnumEditor source) {
-    }
+      @Override
+      public void resourcePickerCancelled(@NotNull NlEnumEditor source) {
+      }
+    };
   }
 
-  private class ReferenceListener implements NlReferenceEditor.EditingListener {
-    @Override
-    public void stopEditing(@NotNull NlReferenceEditor source, @NotNull String value) {
-      if (source.getProperty() != null) {
-        myPropertiesManager.setValue(source.getProperty(), value);
-        source.setProperty(source.getProperty());
+  private NlReferenceEditor.EditingListener createReferenceListener() {
+    return new NlReferenceEditor.EditingListener() {
+      @Override
+      public void stopEditing(@NotNull NlReferenceEditor source, @NotNull String value) {
+        if (source.getProperty() != null) {
+          myPropertiesManager.setValue(source.getProperty(), value);
+          source.setProperty(source.getProperty());
+        }
       }
-    }
 
-    @Override
-    public void cancelEditing(@NotNull NlReferenceEditor editor) {
-    }
+      @Override
+      public void cancelEditing(@NotNull NlReferenceEditor editor) {
+      }
+    };
   }
 }

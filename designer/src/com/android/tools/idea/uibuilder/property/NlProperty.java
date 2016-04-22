@@ -30,9 +30,23 @@ public interface NlProperty {
 
   /**
    * Get the value of the property as a string.
+   * If the value exists in the XML tag return that value,
+   * otherwise return the default value determined from the
+   * current theme and text appearance.
    */
   @Nullable
   String getValue();
+
+  /**
+   * Returns true if the specified value is the default value.
+   */
+  boolean isDefaultValue(@Nullable String value);
+
+  /**
+   * Resolves the specified value.
+   */
+  @Nullable
+  String resolveValue(@Nullable String value);
 
   /**
    * Set the property value.

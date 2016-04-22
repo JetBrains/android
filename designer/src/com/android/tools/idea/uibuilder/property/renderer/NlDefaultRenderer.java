@@ -26,6 +26,8 @@ import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.editors.NlReferenceEditor;
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.util.ui.ColorIcon;
@@ -81,12 +83,14 @@ public class NlDefaultRenderer extends NlAttributeRenderer {
   }
 
   private void appendValue(@NotNull NlProperty property) {
-    Object value = property.getValue();
-    String text = value == null ? "" : value.toString();
-
+    String value = property.getValue();
+    String text = StringUtil.notNullize(value);
     Icon icon = getIcon(property);
     if (icon != null) {
       myLabel.setIcon(icon);
+    }
+    if (!property.isDefaultValue(value)) {
+      myLabel.setForeground(JBColor.BLUE);
     }
 
     myLabel.append(text, SimpleTextAttributes.REGULAR_ATTRIBUTES);
@@ -99,7 +103,10 @@ public class NlDefaultRenderer extends NlAttributeRenderer {
     if (value == null) {
       return null;
     }
-    String text = value.toString();
+    String text = property.resolveValue(value.toString());
+    if (text == null) {
+      return null;
+    }
 
     if (isColorValue(text)) {
       return getColorIcon(text);

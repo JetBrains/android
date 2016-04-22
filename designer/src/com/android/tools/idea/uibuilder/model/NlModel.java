@@ -29,6 +29,7 @@ import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.lint.LintAnnotationsModel;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.android.util.PropertiesMap;
 import com.android.utils.XmlUtils;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -67,8 +68,6 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.dnd.InvalidDnDOperationException;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.util.*;
 import java.util.List;
@@ -408,6 +407,16 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   }
 
   @NotNull
+  public Map<Object, PropertiesMap> getDefaultProperties() {
+    synchronized (RENDERING_LOCK) {
+      if (myRenderResult == null) {
+        return Collections.emptyMap();
+      }
+      return myRenderResult.getDefaultProperties();
+    }
+  }
+
+  @NotNull
   public AndroidFacet getFacet() {
     return myFacet;
   }
@@ -458,13 +467,10 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     }
 
     // TODO: Use result from rendering instead, if available!
-    ApplicationManager.getApplication().runReadAction(new Runnable() {
-      @Override
-      public void run() {
-        for (NlComponent root : newRoots) {
-          TagSnapshot snapshot = TagSnapshot.createTagSnapshot(root.getTag());
-          updateSnapshot(root, snapshot);
-        }
+    ApplicationManager.getApplication().runReadAction(() -> {
+      for (NlComponent root : newRoots) {
+        TagSnapshot snapshot = TagSnapshot.createTagSnapshot(root.getTag());
+        updateSnapshot(root, snapshot);
       }
     });
 
@@ -798,7 +804,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    */
   @NotNull
   private static Map<NlComponent, List<NlComponent>> groupSiblings(@NotNull Collection<? extends NlComponent> components) {
-    Map<NlComponent, List<NlComponent>> siblingLists = new HashMap<NlComponent, List<NlComponent>>();
+    Map<NlComponent, List<NlComponent>> siblingLists = new HashMap<>();
 
     if (components.isEmpty()) {
       return siblingLists;
@@ -813,7 +819,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       NlComponent parent = component.getParent();
       List<NlComponent> children = siblingLists.get(parent);
       if (children == null) {
-        children = new ArrayList<NlComponent>();
+        children = new ArrayList<>();
         siblingLists.put(parent, children);
       }
       children.add(component);
@@ -1053,10 +1059,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       String defaultXml = "<placeholder xmlns:android=\"http://schemas.android.com/apk/res/android\"/>";
       item = new DnDTransferItem(new DnDTransferComponent("", defaultXml, 200, 100));
     }
-    catch (IOException ex) {
-      LOG.warn(ex);
-    }
-    catch (UnsupportedFlavorException ex) {
+    catch (IOException | UnsupportedFlavorException ex) {
       LOG.warn(ex);
     }
     return item;
@@ -1066,7 +1069,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   public List<NlComponent> createComponents(@NotNull ScreenView screenView,
                                             @NotNull DnDTransferItem item,
                                             @NotNull InsertType insertType) {
-    List<NlComponent> components = new ArrayList<NlComponent>(item.getComponents().size());
+    List<NlComponent> components = new ArrayList<>(item.getComponents().size());
     for (DnDTransferComponent dndComponent : item.getComponents()) {
       XmlTag tag = createTagFromTransferItem(screenView, dndComponent.getRepresentation());
       NlComponent component = createComponent(screenView, tag, null, null, insertType);
@@ -1191,22 +1194,16 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     @Override
     public void start() {
       super.start();
-      UIUtil.invokeLaterIfNeeded(new Runnable() {
-        @Override
-        public void run() {
-          final Timer timer = UIUtil.createNamedTimer("Android rendering progress timer", 0, new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-              synchronized (myLock) {
-                if (isRunning()) {
-                  mySurface.registerIndicator(AndroidPreviewProgressIndicator.this);
-                }
-              }
+      UIUtil.invokeLaterIfNeeded(() -> {
+        final Timer timer = UIUtil.createNamedTimer("Android rendering progress timer", 0, event -> {
+          synchronized (myLock) {
+            if (isRunning()) {
+              mySurface.registerIndicator(this);
             }
-          });
-          timer.setRepeats(false);
-          timer.start();
-        }
+          }
+        });
+        timer.setRepeats(false);
+        timer.start();
       });
     }
 
@@ -1214,12 +1211,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     public void stop() {
       synchronized (myLock) {
         super.stop();
-        ApplicationManager.getApplication().invokeLater(new Runnable() {
-          @Override
-          public void run() {
-            mySurface.unregisterIndicator(AndroidPreviewProgressIndicator.this);
-          }
-        });
+        ApplicationManager.getApplication().invokeLater(() -> mySurface.unregisterIndicator(this));
       }
     }
   }

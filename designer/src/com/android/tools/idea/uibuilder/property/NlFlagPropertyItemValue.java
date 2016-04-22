@@ -50,6 +50,17 @@ public class NlFlagPropertyItemValue extends PTableItem implements NlProperty {
   }
 
   @Override
+  public boolean isDefaultValue(@Nullable String value) {
+    return false;
+  }
+
+  @Override
+  @Nullable
+  public String resolveValue(@Nullable String value) {
+    return value;
+  }
+
+  @Override
   public void setValue(@Nullable Object value) {
     if (value == null) {
       value = SdkConstants.VALUE_FALSE;
