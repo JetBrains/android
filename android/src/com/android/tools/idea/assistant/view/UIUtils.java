@@ -54,6 +54,18 @@ public class UIUtils {
    */
   private static final Color CODE_COLOR = new JBColor(0x00897B, 0x80CBC4);
 
+  /**
+   * Secondary text color to be used with non-emphasized content such as subtitles.
+   * Colors are Material Grey 600/400.
+   */
+  private static final Color SECONDARY_COLOR =  new JBColor(0x757575, 0xBDBDBD);
+
+  /**
+   * Default color for links. These are treated differently to make it clear that they are not the same as internal links.
+   * Colors are Material Blue Grey 400/200.
+   */
+  private static final Color OFFSITE_LINK_COLOR = new JBColor(0x78909C, 0xB0BEC5);
+
   // TODO: Find or create a better background reference, we're not a tree but
   // this does currently match our desired color treatment. This is pulled
   // from the Maven Projects side panel.
@@ -77,6 +89,10 @@ public class UIUtils {
 
   public static Color getFailureColor() {
     return FAILURE_COLOR;
+  }
+
+  public static Color getSecondaryColor() {
+    return SECONDARY_COLOR;
   }
 
   /**
@@ -122,9 +138,9 @@ public class UIUtils {
   /**
    * Sets html content on a {@code JTextPane} with default properties and convenience support for css and headers.
    *
-   * @param pane The element to set the html content on.
-   * @param content The html body content, excluding the <body></body> tags.
-   * @param css Extra css to add. Example ".testClass { color: red}\n.anotherClass { border: 1px solid blue}".
+   * @param pane        The element to set the html content on.
+   * @param content     The html body content, excluding the <body></body> tags.
+   * @param css         Extra css to add. Example ".testClass { color: red}\n.anotherClass { border: 1px solid blue}".
    * @param headContent Extra header content to add. Example "<title>My Favorite!!</title>".
    */
   public static void setHtml(JTextPane pane, String content, String css, String headContent) {
@@ -152,7 +168,8 @@ public class UIUtils {
     // * Colorizes <code>.
     String text = "<html><head><style>body { font-family: " + defaultFont.getFamily() + "; margin: 0px; } " +
                   "ol {margin: 0 0 0 20px} ul {list-style-type: circle; margin: 0 0 0 20px} " +
-                  "li {margin: 0 0 10px 10px; } code { color: " + getCssColor(CODE_COLOR) + "}";
+                  "li {margin: 0 0 10px 10px; } code { color: " + getCssColor(CODE_COLOR) + "}" +
+                  "a, a:visited, a:active { color: " + getCssColor(OFFSITE_LINK_COLOR) + "}";
     if (css != null) {
       text += "\n" + css;
     }
