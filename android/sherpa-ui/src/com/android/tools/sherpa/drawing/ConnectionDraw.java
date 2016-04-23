@@ -58,7 +58,7 @@ public class ConnectionDraw {
 
     private static Font sSmallFont = new Font("Helvetica", Font.PLAIN, 8);
 
-    static Stroke
+    public static Stroke
             sDashedStroke = new BasicStroke(1, BasicStroke.CAP_BUTT,
             BasicStroke.JOIN_BEVEL, 0, new float[] { 2 }, 0);
 
@@ -68,10 +68,10 @@ public class ConnectionDraw {
 
     static final int SECONDARY_INFORMATION_ALPHA = 128;
 
-    static final int ARROW_SIDE = 8;
+    public static final int ARROW_SIDE = 8;
 
     public static int CONNECTION_ANCHOR_SIZE = 6;
-    static final int CONNECTION_ARROW_SIZE = 4;
+    public static final int CONNECTION_ARROW_SIZE = 4;
     static final int CONNECTION_RESIZE_SIZE = 4;
     static final int CONNECTION_CURVE_SIZE = 4;
     static final int CURVE_OFFSET = 40;
