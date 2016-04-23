@@ -473,10 +473,10 @@ public class WidgetDecorator {
         ConstraintAnchor topAnchor = mWidget.getAnchor(ConstraintAnchor.Type.TOP);
         ConstraintAnchor bottomAnchor = mWidget.getAnchor(ConstraintAnchor.Type.BOTTOM);
 
-        boolean leftAnchorIsConnected = leftAnchor.isConnected();
-        boolean rightAnchorIsConnected = rightAnchor.isConnected();
-        boolean topAnchorIsConnected = topAnchor.isConnected();
-        boolean bottomAnchorIsConnected = bottomAnchor.isConnected();
+        boolean leftAnchorIsConnected = leftAnchor != null ? leftAnchor.isConnected() : false;
+        boolean rightAnchorIsConnected = rightAnchor != null ? rightAnchor.isConnected() : false;
+        boolean topAnchorIsConnected = topAnchor != null ? topAnchor.isConnected() : false;
+        boolean bottomAnchorIsConnected = bottomAnchor != null ? bottomAnchor.isConnected() : false;
 
         boolean displayAllAnchors = mDisplayAnchorsPolicy.contains(WidgetDraw.ANCHORS_DISPLAY.ALL);
         boolean showLeftAnchor = displayAllAnchors
@@ -581,15 +581,12 @@ public class WidgetDecorator {
                 }
                 if (anchor.isConnected()) {
                     ConstraintAnchor target = anchor.getTarget();
+                    ConstraintAnchor opposite = anchor.getOpposite();
                     if (target.getOwner().getVisibility() == ConstraintWidget.GONE) {
                         continue;
                     }
                     ConstraintHandle startHandle =
                             WidgetInteractionTargets.constraintHandle(anchor);
-                    ConstraintHandle endHandle = WidgetInteractionTargets.constraintHandle(target);
-                    if (startHandle == null || endHandle == null) {
-                        continue;
-                    }
                     if (startHandle.getAnchor().isConnected()
                             && startHandle.getAnchor().getConnectionCreator()
                             == ConstraintAnchor.AUTO_CONSTRAINT_CREATOR) {
@@ -598,8 +595,19 @@ public class WidgetDecorator {
                     } else {
                         g.setColor(currentColor);
                     }
-                    ConnectionDraw.drawConnection(transform, g, startHandle, endHandle,
-                            mIsSelected, mShowPercentIndicator, mIsSelected);
+                    if (opposite != null
+                            && opposite.isConnected()
+                            && opposite.getTarget() == anchor.getTarget()) {
+                        startHandle.drawConnection(transform, g, mIsSelected);
+                    } else {
+                        ConstraintHandle endHandle =
+                                WidgetInteractionTargets.constraintHandle(target);
+                        if (startHandle == null || endHandle == null) {
+                            continue;
+                        }
+                        ConnectionDraw.drawConnection(transform, g, startHandle, endHandle,
+                                mIsSelected, mShowPercentIndicator, mIsSelected);
+                    }
                 } else if (mIsSelected) {
                     ConstraintHandle startHandle =
                             WidgetInteractionTargets.constraintHandle(anchor);
