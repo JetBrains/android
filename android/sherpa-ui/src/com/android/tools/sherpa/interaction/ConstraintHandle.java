@@ -374,7 +374,7 @@ public class ConstraintHandle {
      *
      * @param transform  the view transform
      * @param g          the graphics context
-     * @param colorSet   the colorset to use
+     * @param colorSet   the current colorset
      * @param isSelected if the constraint is selected or not
      */
     public void draw(ViewTransform transform, Graphics2D g,
@@ -461,10 +461,13 @@ public class ConstraintHandle {
     /**
      * Implements the drawing of the connection from this anchor to its target
      *
-     * @param transform the view transform
-     * @param g         the graphics context
+     * @param transform  the view transform
+     * @param g          the graphics context
+     * @param colorSet   the current colorset
+     * @param isSelected if the connection is selected
      */
-    public void drawConnection(ViewTransform transform, Graphics2D g, boolean isSelected) {
+    public void drawConnection(ViewTransform transform, Graphics2D g,
+            ColorSet colorSet, boolean isSelected) {
         if (!mAnchor.isConnected()) {
             return;
         }
@@ -483,9 +486,16 @@ public class ConstraintHandle {
                 // Center connection on same anchor
                 addPathCenteredConnectionOnSameAnchor(transform, g, isSelected, path, targetHandle,
                         targetWidget);
-            } else if (mAnchor.getType() == mAnchor.getTarget().getType()) {
-                // Center connection on same widget
-                addPathCenteredConnectionOnSameWidget(transform, g, isSelected, path, targetHandle,
+            } else if ((mAnchor.getOpposite().getTarget().getOwner() ==
+                    mAnchor.getTarget().getOwner())
+                    && targetWidget != getOwner().getParent()) {
+                // Center connection on same widget (save our parent)
+                addPathCenteredConnectionOnSameWidget(transform, g, isSelected, path, colorSet,
+                        targetHandle,
+                        targetWidget);
+            } else {
+                // Center connection on different widgets (or our parent)
+                addPathCenteredConnection(transform, g, isSelected, path, colorSet, targetHandle,
                         targetWidget);
             }
         } else {
@@ -505,6 +515,104 @@ public class ConstraintHandle {
         }
         g.draw(path);
     }
+
+    /**
+     * Add to a given path to represent a centered connection
+     *
+     * @param transform    the view transform
+     * @param g            the graphics context
+     * @param isSelected   if the connection is selected
+     * @param path         the path to add to
+     * @param colorSet     the current colorset
+     * @param targetHandle the target handle
+     * @param targetWidget the target widget
+     */
+    private void addPathCenteredConnection(ViewTransform transform, Graphics2D g,
+            boolean isSelected,
+            Path2D.Float path, ColorSet colorSet, ConstraintHandle targetHandle,
+            ConstraintWidget targetWidget) {
+        boolean isVertical = mAnchor.isVerticalAnchor();
+        int x0 = transform.getSwingFX(mX);
+        int y0 = transform.getSwingFY(mY);
+        int x1 = transform.getSwingFX(targetHandle.getDrawX());
+        int y1 = transform.getSwingFX(targetHandle.getDrawY());
+        path.moveTo(x0, y0);
+        if (isVertical) {
+            boolean isTopConnection = targetHandle.getDrawY() < getDrawY();
+            if (isSelected) {
+                int start = y0;
+                int end = y1;
+                if (mAnchor.getMargin() > 0) {
+                    if (isTopConnection) {
+                        end += transform.getSwingDimensionF(mAnchor.getMargin());
+                    } else {
+                        end -= transform.getSwingDimensionF(mAnchor.getMargin());
+                    }
+                    Color pre = g.getColor();
+                    g.setColor(colorSet.getMargins());
+                    ConnectionDraw.drawVerticalMarginIndicator(g, "" + mAnchor.getMargin(),
+                            x0, end, y1);
+                    g.setColor(pre);
+                    g.drawLine(x0 - transform.getSwingDimension(4),
+                            end, x0 + transform.getSwingDimension(4), end);
+                }
+                addVerticalSmallSpring(path, x0,
+                        start, end);
+                g.drawLine(x0 - transform.getSwingDimension(4),
+                        y1, x0 + transform.getSwingDimension(4), y1);
+            } else {
+                path.lineTo(x0, y1);
+                if (isTopConnection) {
+                    ConnectionDraw.drawArrow(g, ConnectionDraw.getTopArrow(), x0, y1);
+                } else {
+                    ConnectionDraw.drawArrow(g, ConnectionDraw.getBottomArrow(), x0, y1);
+                }
+            }
+            if (targetWidget != getOwner().getParent()) {
+                Stroke pre = g.getStroke();
+                g.setStroke(ConnectionDraw.sDashedStroke);
+                g.drawLine(x0, y1, x1, y1);
+                g.setStroke(pre);
+            }
+        } else {
+            boolean isLeftConnection = targetHandle.getDrawX() < getDrawX();
+            if (isSelected) {
+                int start = x0;
+                int end = x1;
+                if (mAnchor.getMargin() > 0) {
+                    if (isLeftConnection) {
+                        end += transform.getSwingDimensionF(mAnchor.getMargin());
+                    } else {
+                        end -= transform.getSwingDimensionF(mAnchor.getMargin());
+                    }
+                    Color pre = g.getColor();
+                    g.setColor(colorSet.getMargins());
+                    ConnectionDraw.drawHorizontalMarginIndicator(g, "" + mAnchor.getMargin(),
+                            end, x1, y0);
+                    g.setColor(pre);
+                    g.drawLine(end, y0 - transform.getSwingDimension(4),
+                            end, y0 + transform.getSwingDimension(4));
+                }
+                addHorizontalSmallSpring(path, y0, start, end);
+                g.drawLine(x1, y0 - transform.getSwingDimension(4),
+                        x1, y0 + transform.getSwingDimension(4));
+            } else {
+                path.lineTo(x1, y0);
+                if (isLeftConnection) {
+                    ConnectionDraw.drawArrow(g, ConnectionDraw.getLeftArrow(), x1, y0);
+                } else {
+                    ConnectionDraw.drawArrow(g, ConnectionDraw.getRightArrow(), x1, y0);
+                }
+            }
+            if (targetWidget != getOwner().getParent()) {
+                Stroke pre = g.getStroke();
+                g.setStroke(ConnectionDraw.sDashedStroke);
+                g.drawLine(x1, y0, x1, y1);
+                g.setStroke(pre);
+            }
+        }
+    }
+
 
     /**
      * Add to a given path to represent a centered connection on the same anchor
@@ -761,12 +869,14 @@ public class ConstraintHandle {
      * @param g            the graphics context
      * @param isSelected   if the connection is selected
      * @param path         the path to add to
+     * @param colorSet     the current colorset
      * @param targetHandle the target handle
      * @param targetWidget the target widget
      */
     private void addPathCenteredConnectionOnSameWidget(ViewTransform transform, Graphics2D g,
             boolean isSelected,
-            Path2D.Float path, ConstraintHandle targetHandle, ConstraintWidget targetWidget) {
+            Path2D.Float path, ColorSet colorSet, ConstraintHandle targetHandle,
+            ConstraintWidget targetWidget) {
 
         int radius = 8;
 
@@ -778,9 +888,7 @@ public class ConstraintHandle {
         boolean isTopConnection = mAnchor.getType() == ConstraintAnchor.Type.TOP;
         boolean isLeftConnection = targetHandle.getDrawX() < getDrawX();
 
-        boolean isVerticalConnection =
-                mAnchor.getType() == ConstraintAnchor.Type.TOP || mAnchor.getType() ==
-                        ConstraintAnchor.Type.BOTTOM;
+        boolean isVerticalConnection = mAnchor.isVerticalAnchor();
 
         if (isVerticalConnection) {
             float base = Math.min(transform.getSwingFY(y0),
@@ -800,6 +908,12 @@ public class ConstraintHandle {
                     } else {
                         end -= transform.getSwingDimensionF(mAnchor.getMargin());
                     }
+                    Color pre = g.getColor();
+                    g.setColor(colorSet.getMargins());
+                    ConnectionDraw.drawVerticalMarginIndicator(g, "" + mAnchor.getMargin(),
+                            transform.getSwingFX(x0) + ConnectionDraw.ARROW_SIDE, end,
+                            transform.getSwingFY(yt));
+                    g.setColor(pre);
                     g.drawLine(transform.getSwingFX(x0 - 4),
                             end, transform.getSwingFX(x0 + 4), end);
                 }
@@ -898,6 +1012,12 @@ public class ConstraintHandle {
                     } else {
                         end -= transform.getSwingDimensionF(mAnchor.getMargin());
                     }
+                    Color pre = g.getColor();
+                    g.setColor(colorSet.getMargins());
+                    ConnectionDraw.drawHorizontalMarginIndicator(g, "" + mAnchor.getMargin(),
+                            end, transform.getSwingFX(xt),
+                            transform.getSwingFY(y0) + ConnectionDraw.ARROW_SIDE);
+                    g.setColor(pre);
                     g.drawLine(end, transform.getSwingFX(y0 - 4),
                             end, transform.getSwingFX(y0 + 4));
                 }
@@ -995,7 +1115,7 @@ public class ConstraintHandle {
      */
     private void addVerticalSmallSpring(Path2D.Float path, int x0, int y1, int y2) {
         int springHeight = 2;
-        int springWidth = 3;
+        int springWidth = 2;
         int distance = Math.abs(y2 - y1);
         int numSprings = (distance / (springHeight));
         int leftOver = (distance - (numSprings * springHeight)) / 2;
@@ -1029,7 +1149,7 @@ public class ConstraintHandle {
      */
     private void addHorizontalSmallSpring(Path2D.Float path, int y0, int x1, int x2) {
         int springHeight = 2;
-        int springWidth = 3;
+        int springWidth = 2;
         int distance = Math.abs(x2 - x1);
         int numSprings = (distance / (springHeight));
         int leftOver = (distance - (numSprings * springHeight)) / 2;

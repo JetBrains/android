@@ -529,19 +529,27 @@ public class WidgetDecorator {
         }
         if (showLeftAnchor) {
             ConstraintHandle handle = interactionTargets.getConstraintHandle(leftAnchor);
-            handle.draw(transform, g, mColorSet, mIsSelected);
+            if (handle != null) {
+                handle.draw(transform, g, mColorSet, mIsSelected);
+            }
         }
         if (showRightAnchor) {
             ConstraintHandle handle = interactionTargets.getConstraintHandle(rightAnchor);
-            handle.draw(transform, g, mColorSet, mIsSelected);
+            if (handle != null) {
+                handle.draw(transform, g, mColorSet, mIsSelected);
+            }
         }
         if (showTopAnchor) {
             ConstraintHandle handle = interactionTargets.getConstraintHandle(topAnchor);
-            handle.draw(transform, g, mColorSet, mIsSelected);
+            if (handle != null) {
+                handle.draw(transform, g, mColorSet, mIsSelected);
+            }
         }
         if (showBottomAnchor) {
             ConstraintHandle handle = interactionTargets.getConstraintHandle(bottomAnchor);
-            handle.draw(transform, g, mColorSet, mIsSelected);
+            if (handle != null) {
+                handle.draw(transform, g, mColorSet, mIsSelected);
+            }
         }
     }
 
@@ -595,14 +603,8 @@ public class WidgetDecorator {
                     } else {
                         g.setColor(currentColor);
                     }
-                    if (opposite != null
-                            && opposite.isConnected()
-                            && opposite.getTarget() == anchor.getTarget()) {
-                        startHandle.drawConnection(transform, g, mIsSelected);
-                    } else if (opposite != null && opposite.isConnected()
-                            && opposite.getTarget().getOwner() == anchor.getTarget().getOwner()
-                            && anchor.getTarget().getOwner() != mWidget.getParent()) {
-                        startHandle.drawConnection(transform, g, mIsSelected);
+                    if (opposite != null && opposite.isConnected()) {
+                        startHandle.drawConnection(transform, g, mColorSet, mIsSelected);
                     } else {
                         ConstraintHandle endHandle =
                                 WidgetInteractionTargets.constraintHandle(target);

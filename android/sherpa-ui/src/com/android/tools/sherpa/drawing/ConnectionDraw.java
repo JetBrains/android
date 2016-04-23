@@ -276,7 +276,8 @@ public class ConnectionDraw {
      * @param x2   x2 coordinate
      * @param y    y coordinate
      */
-    static void drawHorizontalMarginIndicator(Graphics2D g, String text, int x1, int x2, int y) {
+    public static void drawHorizontalMarginIndicator(Graphics2D g, String text, int x1, int x2,
+            int y) {
         if (x1 > x2) {
             int temp = x1;
             x1 = x2;
@@ -328,7 +329,7 @@ public class ConnectionDraw {
      * @param y1   y1 coordinate
      * @param y2   y2 coordinate
      */
-    static void drawVerticalMarginIndicator(Graphics2D g, String text, int x, int y1, int y2) {
+    public static void drawVerticalMarginIndicator(Graphics2D g, String text, int x, int y1, int y2) {
         if (y1 > y2) {
             int temp = y1;
             y1 = y2;
