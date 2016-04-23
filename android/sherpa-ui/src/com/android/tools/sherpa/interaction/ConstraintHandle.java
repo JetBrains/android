@@ -454,273 +454,622 @@ public class ConstraintHandle {
         }
     }
 
+    /*-----------------------------------------------------------------------*/
+    // Connection drawings
+    /*-----------------------------------------------------------------------*/
+
     /**
      * Implements the drawing of the connection from this anchor to its target
      *
-     * @param transform
-     * @param g
+     * @param transform the view transform
+     * @param g         the graphics context
      */
     public void drawConnection(ViewTransform transform, Graphics2D g, boolean isSelected) {
         if (!mAnchor.isConnected()) {
             return;
         }
-        if (mAnchor.getOpposite().isConnected()
-                && mAnchor.getOpposite().getTarget() == mAnchor.getTarget()) {
-            Path2D.Float path = new Path2D.Float();
-            float l = getOwner().getDrawX();
-            float t = getOwner().getDrawY();
-            float r = getOwner().getDrawRight();
-            float b = getOwner().getDrawBottom();
-            float w = getOwner().getDrawWidth();
-            float h = getOwner().getDrawHeight();
 
-            int radius = 8;
-            int connectionRadius = 16;
-            int curvature = 2;
-            float connectionX = l + w / 2f + radius;
-            float connectionY = t + h / 2f + radius;
+        Path2D.Float path = new Path2D.Float();
 
-            ConstraintHandle targetHandle = null;
-            ConstraintWidget targetWidget = mAnchor.getTarget().getOwner();
-            WidgetCompanion targetCompanion = (WidgetCompanion) targetWidget.getCompanionWidget();
-            WidgetInteractionTargets interactionTargets =
-                    targetCompanion.getWidgetInteractionTargets();
-            targetHandle = interactionTargets.getConstraintHandle(mAnchor.getTarget());
-            connectionX = Math.max(targetHandle.getDrawX() + ConnectionDraw.ARROW_SIDE + radius,
-                    connectionX);
-            connectionY = Math.max(targetHandle.getDrawY() + ConnectionDraw.ARROW_SIDE + radius,
-                    connectionY);
+        ConstraintWidget targetWidget = mAnchor.getTarget().getOwner();
+        WidgetCompanion targetCompanion = (WidgetCompanion) targetWidget.getCompanionWidget();
+        WidgetInteractionTargets interactionTargets =
+                targetCompanion.getWidgetInteractionTargets();
+        ConstraintHandle targetHandle = interactionTargets.getConstraintHandle(mAnchor.getTarget());
 
-            boolean rightConnection = true;
-            if (targetHandle.getAnchor().getType() == ConstraintAnchor.Type.LEFT) {
-                rightConnection = false;
-                connectionX = l + w / 2f - radius;
-                connectionX = Math.min(targetHandle.getDrawX() - ConnectionDraw.ARROW_SIDE - radius,
-                        connectionX);
+        if (mAnchor.getOpposite().isConnected()) {
+            // Draw centered connections
+            if (mAnchor.getOpposite().getTarget() == mAnchor.getTarget()) {
+                // Center connection on same anchor
+                addPathCenteredConnectionOnSameAnchor(transform, g, isSelected, path, targetHandle,
+                        targetWidget);
+            } else if (mAnchor.getType() == mAnchor.getTarget().getType()) {
+                // Center connection on same widget
+                addPathCenteredConnectionOnSameWidget(transform, g, isSelected, path, targetHandle,
+                        targetWidget);
             }
-            boolean bottomConnection = true;
-            if (targetHandle.getAnchor().getType() == ConstraintAnchor.Type.TOP) {
-                bottomConnection = false;
-                connectionY = t + h / 2f - radius;
-                connectionY = Math.min(targetHandle.getDrawY() - ConnectionDraw.ARROW_SIDE - radius,
-                        connectionY);
-            }
-
-            // TODO: handle cases when w is too small to have the current values for connection
-
-            if (mAnchor.getType() == ConstraintAnchor.Type.LEFT
-                    || mAnchor.getType() == ConstraintAnchor.Type.RIGHT) {
-
-                float x0 = mX;
-                float y0 = mY;
-                float x1 = mX - radius;
-                float y1 = mY - radius;
-                boolean isRightConnection = mAnchor.getType() == ConstraintAnchor.Type.RIGHT;
-                boolean isAboveConnection = targetWidget.getDrawBottom() < getOwner().getDrawY();
-
-                // First, draw a dashed line if we are selected
-                if (isSelected) {
-                    Stroke preStroke = g.getStroke();
-                    g.setStroke(ConnectionDraw.sDashedStroke);
-                    int centerX = transform.getSwingFX(l + w / 2f);
-                    if (isAboveConnection) {
-                        g.drawLine(centerX, transform.getSwingFY(t), centerX,
-                                transform.getSwingY(targetWidget.getDrawBottom()));
-                    } else {
-                        g.drawLine(centerX, transform.getSwingFY(b), centerX,
-                                transform.getSwingY(targetWidget.getDrawY()));
-                    }
-                    g.setStroke(preStroke);
-                }
-                if (isRightConnection) {
-                    x1 = mX + radius;
-                }
-                if (!isAboveConnection) {
-                    y1 = mY + radius;
-                }
-                addQuarterArc(transform, path, transform.getSwingFX(x0), transform.getSwingFY(y0),
-                        transform.getSwingFX(x1), transform.getSwingFY(y1), radius, curvature,
-                        false);
-                float x2 = x1;
-                float y2 = Math.min(t, y1);
-                float x3 = mX;
-                float y3 = Math.min(t - radius, y2 - radius);
-                if (!isAboveConnection) {
-                    y2 = Math.max(b, y1);
-                    y3 = Math.min(b + radius, y2 + radius);
-                }
-                path.lineTo(transform.getSwingFX(x2), transform.getSwingFY(y2));
-                addQuarterArc(transform, path, transform.getSwingFX(x2), transform.getSwingFY(y2),
-                        transform.getSwingFX(x3), transform.getSwingFY(y3), radius, curvature,
-                        true);
-                float x4 = Math.max(x3, connectionX - connectionRadius);
-                if (isRightConnection) {
-                    x4 = Math.min(x3, connectionX + connectionRadius);
-                }
-                float y4 = y3;
-                path.lineTo(transform.getSwingFX(x4), transform.getSwingFY(y4));
-                float x5 = connectionX;
-                float y5 = y4 - radius;
-                if (!isAboveConnection) {
-                    y5 = y4 + radius;
-                }
-
-                addQuarterArc(transform, path, transform.getSwingFX(x4), transform.getSwingFY(y4),
-                        transform.getSwingFX(x5), transform.getSwingFY(y5), radius, curvature,
-                        false);
-
-                // Now draw the final connection to the anchor
-
-                float xt = targetHandle.getDrawX();
-                float yt = targetHandle.getDrawY();
-                float y6 = yt + radius;
-
-                if (!isAboveConnection) {
-                    y6 = yt - radius;
-                }
-                path.lineTo(transform.getSwingFX(connectionX), transform.getSwingFY(y6));
-                if (rightConnection) {
-                    addQuarterArc(transform, path, transform.getSwingFX(connectionX),
-                            transform.getSwingFY(y6),
-                            transform.getSwingFX(xt) + ConnectionDraw.ARROW_SIDE,
-                            transform.getSwingFY(yt), radius, curvature, true);
-                    ConnectionDraw
-                            .drawArrow(g, ConnectionDraw.getLeftArrow(), transform.getSwingFX(xt),
-                                    transform.getSwingFY(yt));
-                } else {
-                    addQuarterArc(transform, path, transform.getSwingFX(connectionX),
-                            transform.getSwingFY(y6),
-                            transform.getSwingFX(xt) - ConnectionDraw.ARROW_SIDE,
-                            transform.getSwingFY(yt), radius, curvature, true);
-                    ConnectionDraw
-                            .drawArrow(g, ConnectionDraw.getRightArrow(), transform.getSwingFX(xt),
-                                    transform.getSwingFY(yt));
-                }
-
-            } else if (mAnchor.getType() == ConstraintAnchor.Type.TOP
-                    || mAnchor.getType() == ConstraintAnchor.Type.BOTTOM) {
-
-                float x0 = mX;
-                float y0 = mY;
-                float x1 = mX - radius;
-                float y1 = mY - radius;
-                boolean isBottomConnection = mAnchor.getType() == ConstraintAnchor.Type.BOTTOM;
-                boolean isLeftConnection =
-                        targetWidget.getDrawRight() < getOwner().getDrawX();
-
-                // First, draw a dashed line if we are selected
-                if (isSelected) {
-                    Stroke preStroke = g.getStroke();
-                    g.setStroke(ConnectionDraw.sDashedStroke);
-                    int centerY = transform.getSwingFY(t + h / 2f);
-                    if (isLeftConnection) {
-                        g.drawLine(transform.getSwingFX(targetWidget.getDrawRight()),
-                                centerY, transform.getSwingFX(l), centerY);
-                    } else {
-                        g.drawLine(transform.getSwingFX(r), centerY,
-                                transform.getSwingFX(targetWidget.getDrawX()), centerY);
-                    }
-                    g.setStroke(preStroke);
-                }
-                if (isBottomConnection) {
-                    y1 = mY + radius;
-                }
-                if (!isLeftConnection) {
-                    x1 = mX + radius;
-                }
-                addQuarterArc(transform, path, transform.getSwingFX(x0),
-                        transform.getSwingFY(y0),
-                        transform.getSwingFX(x1), transform.getSwingFY(y1), radius, curvature,
-                        true);
-
-                float y2 = y1;
-                float x2 = Math.min(l, x1);
-                float y3 = mY;
-                float x3 = Math.min(l - radius, x2 - radius);
-                if (!isLeftConnection) {
-                    x2 = Math.max(r, x1);
-                    x3 = Math.min(r + radius, x2 + radius);
-                }
-                path.lineTo(transform.getSwingFX(x2), transform.getSwingFY(y2));
-
-                addQuarterArc(transform, path, transform.getSwingFX(x2),
-                        transform.getSwingFY(y2),
-                        transform.getSwingFX(x3), transform.getSwingFY(y3), radius, curvature,
-                        false);
-
-                float y4 = Math.max(y3, connectionY - connectionRadius);
-                if (isBottomConnection) {
-                    y4 = Math.min(y3, connectionY + connectionRadius);
-                }
-                float x4 = x3;
-                path.lineTo(transform.getSwingFX(x4), transform.getSwingFY(y4));
-                float y5 = connectionY;
-                float x5 = x4 - radius;
-                if (!isLeftConnection) {
-                    x5 = x4 + radius;
-                }
-
-                addQuarterArc(transform, path, transform.getSwingFX(x4),
-                        transform.getSwingFY(y4),
-                        transform.getSwingFX(x5), transform.getSwingFY(y5), radius, curvature,
-                        true);
-
-                // Now draw the final connection to the anchor
-
-                float xt = targetHandle.getDrawX();
-                float yt = targetHandle.getDrawY();
-                float x6 = xt + radius;
-
-                if (!isLeftConnection) {
-                    x6 = xt - radius;
-                }
-                path.lineTo(transform.getSwingFX(x6), transform.getSwingFY(connectionY));
-                if (bottomConnection) {
-                    addQuarterArc(transform, path,
-                            transform.getSwingFX(x6),
-                            transform.getSwingFY(connectionY),
-                            transform.getSwingFX(xt),
-                            transform.getSwingFY(yt) + ConnectionDraw.ARROW_SIDE, radius, curvature, false);
-                    ConnectionDraw
-                            .drawArrow(g, ConnectionDraw.getTopArrow(),
-                                    transform.getSwingFX(xt),
-                                    transform.getSwingFY(yt));
-                } else {
-                    addQuarterArc(transform, path,
-                            transform.getSwingFX(x6),
-                            transform.getSwingFY(connectionY),
-                            transform.getSwingFX(xt),
-                            transform.getSwingFY(yt) - ConnectionDraw.ARROW_SIDE, radius, curvature, false);
-                    ConnectionDraw
-                            .drawArrow(g, ConnectionDraw.getBottomArrow(),
-                                    transform.getSwingFX(xt),
-                                    transform.getSwingFY(yt));
-                }
-            }
-
-            boolean drawShadow = isSelected
-                    && mAnchor.getConnectionCreator() != ConstraintAnchor.AUTO_CONSTRAINT_CREATOR;
-            if (drawShadow) {
-                Color pre = g.getColor();
-                Stroke s = g.getStroke();
-                g.setColor(sShadowColor);
-                g.setStroke(sShadowStroke);
-                g.draw(path);
-                g.setColor(pre);
-                g.setStroke(s);
-            }
-            g.draw(path);
         } else {
-            // TODO: add the other connections here, deprecated ConnectionDraw
+            // TODO: add the other connections here, deprecating ConnectionDraw
+        }
+
+        boolean drawShadow = isSelected
+                && mAnchor.getConnectionCreator() != ConstraintAnchor.AUTO_CONSTRAINT_CREATOR;
+        if (drawShadow) {
+            Color pre = g.getColor();
+            Stroke s = g.getStroke();
+            g.setColor(sShadowColor);
+            g.setStroke(sShadowStroke);
+            g.draw(path);
+            g.setColor(pre);
+            g.setStroke(s);
+        }
+        g.draw(path);
+    }
+
+    /**
+     * Add to a given path to represent a centered connection on the same anchor
+     *
+     * @param transform    the view transform
+     * @param g            the graphics context
+     * @param isSelected   if the connection is selected
+     * @param path         the path to add to
+     * @param targetHandle the target handle
+     * @param targetWidget the target widget
+     */
+    private void addPathCenteredConnectionOnSameAnchor(ViewTransform transform, Graphics2D g,
+            boolean isSelected,
+            Path2D.Float path, ConstraintHandle targetHandle, ConstraintWidget targetWidget) {
+
+        float l = getOwner().getDrawX();
+        float t = getOwner().getDrawY();
+        float r = getOwner().getDrawRight();
+        float b = getOwner().getDrawBottom();
+        float w = getOwner().getDrawWidth();
+        float h = getOwner().getDrawHeight();
+
+        int radius = 8;
+
+        float connectionX = l + w / 2f + radius;
+        float connectionY = t + h / 2f + radius;
+        int connectionRadius = 16;
+        int curvature = 2;
+
+        connectionX = Math.max(targetHandle.getDrawX() + ConnectionDraw.ARROW_SIDE + radius,
+                connectionX);
+        connectionY = Math.max(targetHandle.getDrawY() + ConnectionDraw.ARROW_SIDE + radius,
+                connectionY);
+
+        boolean rightConnection = true;
+        if (targetHandle.getAnchor().getType() == ConstraintAnchor.Type.LEFT) {
+            rightConnection = false;
+            connectionX = l + w / 2f - radius;
+            connectionX = Math.min(targetHandle.getDrawX() - ConnectionDraw.ARROW_SIDE - radius,
+                    connectionX);
+        }
+        boolean bottomConnection = true;
+        if (targetHandle.getAnchor().getType() == ConstraintAnchor.Type.TOP) {
+            bottomConnection = false;
+            connectionY = t + h / 2f - radius;
+            connectionY = Math.min(targetHandle.getDrawY() - ConnectionDraw.ARROW_SIDE - radius,
+                    connectionY);
+        }
+
+        // TODO: handle cases when w is too small to have the current values for connection
+
+        if (mAnchor.getType() == ConstraintAnchor.Type.LEFT
+                || mAnchor.getType() == ConstraintAnchor.Type.RIGHT) {
+
+            float x0 = mX;
+            float y0 = mY;
+            float x1 = mX - radius;
+            float y1 = mY - radius;
+            boolean isRightConnection = mAnchor.getType() == ConstraintAnchor.Type.RIGHT;
+            boolean isAboveConnection = targetWidget.getDrawBottom() < getOwner().getDrawY();
+
+            path.moveTo(transform.getSwingFX(x0), transform.getSwingFY(y0));
+
+            // First, draw a dashed line if we are selected
+            if (isSelected) {
+                Stroke preStroke = g.getStroke();
+                g.setStroke(ConnectionDraw.sDashedStroke);
+                int centerX = transform.getSwingFX(l + w / 2f);
+                if (isAboveConnection) {
+                    g.drawLine(centerX, transform.getSwingFY(t), centerX,
+                            transform.getSwingY(targetWidget.getDrawBottom()));
+                } else {
+                    g.drawLine(centerX, transform.getSwingFY(b), centerX,
+                            transform.getSwingY(targetWidget.getDrawY()));
+                }
+                g.setStroke(preStroke);
+            }
+            if (isRightConnection) {
+                x1 = mX + radius;
+            }
+            if (!isAboveConnection) {
+                y1 = mY + radius;
+            }
+            addQuarterArc(path, transform.getSwingFX(x0), transform.getSwingFY(y0),
+                    transform.getSwingFX(x1), transform.getSwingFY(y1), curvature,
+                    false);
+            float x2 = x1;
+            float y2 = Math.min(t, y1);
+            float x3 = mX;
+            float y3 = Math.min(t - radius, y2 - radius);
+            if (!isAboveConnection) {
+                y2 = Math.max(b, y1);
+                y3 = Math.min(b + radius, y2 + radius);
+            }
+            path.lineTo(transform.getSwingFX(x2), transform.getSwingFY(y2));
+            addQuarterArc(path, transform.getSwingFX(x2), transform.getSwingFY(y2),
+                    transform.getSwingFX(x3), transform.getSwingFY(y3), curvature,
+                    true);
+            float x4 = Math.max(x3, connectionX - connectionRadius);
+            if (isRightConnection) {
+                x4 = Math.min(x3, connectionX + connectionRadius);
+            }
+            float y4 = y3;
+            path.lineTo(transform.getSwingFX(x4), transform.getSwingFY(y4));
+            float x5 = connectionX;
+            float y5 = y4 - radius;
+            if (!isAboveConnection) {
+                y5 = y4 + radius;
+            }
+
+            addQuarterArc(path, transform.getSwingFX(x4), transform.getSwingFY(y4),
+                    transform.getSwingFX(x5), transform.getSwingFY(y5), curvature,
+                    false);
+
+            // Now draw the final connection to the anchor
+
+            float xt = targetHandle.getDrawX();
+            float yt = targetHandle.getDrawY();
+            float y6 = yt + radius;
+
+            if (!isAboveConnection) {
+                y6 = yt - radius;
+            }
+            path.lineTo(transform.getSwingFX(connectionX), transform.getSwingFY(y6));
+            if (rightConnection) {
+                addQuarterArc(path, transform.getSwingFX(connectionX),
+                        transform.getSwingFY(y6),
+                        transform.getSwingFX(xt) + ConnectionDraw.ARROW_SIDE,
+                        transform.getSwingFY(yt), curvature, true);
+                ConnectionDraw
+                        .drawArrow(g, ConnectionDraw.getLeftArrow(), transform.getSwingFX(xt),
+                                transform.getSwingFY(yt));
+            } else {
+                addQuarterArc(path, transform.getSwingFX(connectionX),
+                        transform.getSwingFY(y6),
+                        transform.getSwingFX(xt) - ConnectionDraw.ARROW_SIDE,
+                        transform.getSwingFY(yt), curvature, true);
+                ConnectionDraw
+                        .drawArrow(g, ConnectionDraw.getRightArrow(), transform.getSwingFX(xt),
+                                transform.getSwingFY(yt));
+            }
+
+        } else if (mAnchor.getType() == ConstraintAnchor.Type.TOP
+                || mAnchor.getType() == ConstraintAnchor.Type.BOTTOM) {
+
+            float x0 = mX;
+            float y0 = mY;
+            float x1 = mX - radius;
+            float y1 = mY - radius;
+            boolean isBottomConnection = mAnchor.getType() == ConstraintAnchor.Type.BOTTOM;
+            boolean isLeftConnection =
+                    targetWidget.getDrawRight() < getOwner().getDrawX();
+
+            path.moveTo(transform.getSwingFX(x0), transform.getSwingFY(y0));
+
+            // First, draw a dashed line if we are selected
+            if (isSelected) {
+                Stroke preStroke = g.getStroke();
+                g.setStroke(ConnectionDraw.sDashedStroke);
+                int centerY = transform.getSwingFY(t + h / 2f);
+                if (isLeftConnection) {
+                    g.drawLine(transform.getSwingFX(targetWidget.getDrawRight()),
+                            centerY, transform.getSwingFX(l), centerY);
+                } else {
+                    g.drawLine(transform.getSwingFX(r), centerY,
+                            transform.getSwingFX(targetWidget.getDrawX()), centerY);
+                }
+                g.setStroke(preStroke);
+            }
+            if (isBottomConnection) {
+                y1 = mY + radius;
+            }
+            if (!isLeftConnection) {
+                x1 = mX + radius;
+            }
+            addQuarterArc(path, transform.getSwingFX(x0),
+                    transform.getSwingFY(y0),
+                    transform.getSwingFX(x1), transform.getSwingFY(y1), curvature,
+                    true);
+
+            float y2 = y1;
+            float x2 = Math.min(l, x1);
+            float y3 = mY;
+            float x3 = Math.min(l - radius, x2 - radius);
+            if (!isLeftConnection) {
+                x2 = Math.max(r, x1);
+                x3 = Math.min(r + radius, x2 + radius);
+            }
+            path.lineTo(transform.getSwingFX(x2), transform.getSwingFY(y2));
+
+            addQuarterArc(path, transform.getSwingFX(x2),
+                    transform.getSwingFY(y2),
+                    transform.getSwingFX(x3), transform.getSwingFY(y3), curvature,
+                    false);
+
+            float y4 = Math.max(y3, connectionY - connectionRadius);
+            if (isBottomConnection) {
+                y4 = Math.min(y3, connectionY + connectionRadius);
+            }
+            float x4 = x3;
+            path.lineTo(transform.getSwingFX(x4), transform.getSwingFY(y4));
+            float y5 = connectionY;
+            float x5 = x4 - radius;
+            if (!isLeftConnection) {
+                x5 = x4 + radius;
+            }
+
+            addQuarterArc(path, transform.getSwingFX(x4),
+                    transform.getSwingFY(y4),
+                    transform.getSwingFX(x5), transform.getSwingFY(y5), curvature,
+                    true);
+
+            // Now draw the final connection to the anchor
+
+            float xt = targetHandle.getDrawX();
+            float yt = targetHandle.getDrawY();
+            float x6 = xt + radius;
+
+            if (!isLeftConnection) {
+                x6 = xt - radius;
+            }
+            path.lineTo(transform.getSwingFX(x6), transform.getSwingFY(connectionY));
+            if (bottomConnection) {
+                addQuarterArc(path,
+                        transform.getSwingFX(x6),
+                        transform.getSwingFY(connectionY),
+                        transform.getSwingFX(xt),
+                        transform.getSwingFY(yt) + ConnectionDraw.ARROW_SIDE, curvature,
+                        false);
+                ConnectionDraw
+                        .drawArrow(g, ConnectionDraw.getTopArrow(),
+                                transform.getSwingFX(xt),
+                                transform.getSwingFY(yt));
+            } else {
+                addQuarterArc(path,
+                        transform.getSwingFX(x6),
+                        transform.getSwingFY(connectionY),
+                        transform.getSwingFX(xt),
+                        transform.getSwingFY(yt) - ConnectionDraw.ARROW_SIDE, curvature,
+                        false);
+                ConnectionDraw
+                        .drawArrow(g, ConnectionDraw.getBottomArrow(),
+                                transform.getSwingFX(xt),
+                                transform.getSwingFY(yt));
+            }
+        }
+
+    }
+
+    /**
+     * Add to a given path to represent a centered connection on the same widget
+     *
+     * @param transform    the view transform
+     * @param g            the graphics context
+     * @param isSelected   if the connection is selected
+     * @param path         the path to add to
+     * @param targetHandle the target handle
+     * @param targetWidget the target widget
+     */
+    private void addPathCenteredConnectionOnSameWidget(ViewTransform transform, Graphics2D g,
+            boolean isSelected,
+            Path2D.Float path, ConstraintHandle targetHandle, ConstraintWidget targetWidget) {
+
+        int radius = 8;
+
+        float x0 = mX;
+        float y0 = mY;
+        float xt = targetHandle.getDrawX();
+        float yt = targetHandle.getDrawY();
+
+        boolean isTopConnection = mAnchor.getType() == ConstraintAnchor.Type.TOP;
+        boolean isLeftConnection = targetHandle.getDrawX() < getDrawX();
+
+        boolean isVerticalConnection =
+                mAnchor.getType() == ConstraintAnchor.Type.TOP || mAnchor.getType() ==
+                        ConstraintAnchor.Type.BOTTOM;
+
+        if (isVerticalConnection) {
+            float base = Math.min(transform.getSwingFY(y0),
+                    transform.getSwingFY(yt) - ConnectionDraw.ARROW_SIDE);
+            if (!isTopConnection) {
+                base = Math.max(transform.getSwingFY(y0),
+                        transform.getSwingFY(yt) + ConnectionDraw.ARROW_SIDE);
+            }
+            path.moveTo(transform.getSwingFX(x0), transform.getSwingFY(y0));
+
+            if (isSelected && Math.abs(transform.getSwingFY(y0) - base) > 0) {
+                int start = transform.getSwingFY(y0);
+                int end = transform.getSwingFY(yt);
+                if (mAnchor.getMargin() > 0) {
+                    if (isTopConnection) {
+                        end += transform.getSwingDimensionF(mAnchor.getMargin());
+                    } else {
+                        end -= transform.getSwingDimensionF(mAnchor.getMargin());
+                    }
+                    g.drawLine(transform.getSwingFX(x0 - 4),
+                            end, transform.getSwingFX(x0 + 4), end);
+                }
+                addVerticalSmallSpring(path, transform.getSwingFX(x0),
+                        start, end);
+            }
+            path.lineTo(transform.getSwingFX(x0), base);
+
+            float x1 = x0 - radius;
+            float sy1 = base - transform.getSwingDimension(radius);
+
+            if (!isTopConnection) {
+                sy1 = base + transform.getSwingDimension(radius);
+            }
+            if (!isLeftConnection) {
+                x1 = x0 + radius;
+            }
+
+            addQuarterArc(path,
+                    transform.getSwingFX(x0),
+                    base,
+                    transform.getSwingFX(x1),
+                    sy1, 1,
+                    true);
+
+            float x2 = xt + 2 * radius;
+
+            if (!isLeftConnection) {
+                x2 = xt - 2 * radius;
+            }
+
+            path.lineTo(transform.getSwingFX(x2), sy1);
+
+            float syt = transform.getSwingFY(yt) - ConnectionDraw.ARROW_SIDE;
+            if (!isTopConnection) {
+                syt = transform.getSwingFY(yt) + ConnectionDraw.ARROW_SIDE;
+            }
+
+            addQuarterArc(path,
+                    transform.getSwingFX(x2),
+                    sy1,
+                    transform.getSwingFX(xt),
+                    syt, radius,
+                    false);
+
+            if (isSelected) {
+                Stroke pre = g.getStroke();
+                g.setStroke(ConnectionDraw.sDashedStroke);
+                if (isLeftConnection) {
+                    g.drawLine(transform.getSwingFX(targetWidget.getDrawRight()),
+                            transform.getSwingFY(yt),
+                            transform.getSwingFX(x0 - 4), transform.getSwingFY(yt));
+                } else {
+                    g.drawLine(transform.getSwingFX(targetWidget.getDrawX()),
+                            transform.getSwingFY(yt),
+                            transform.getSwingFX(x0 - 4), transform.getSwingFY(yt));
+                }
+                g.setStroke(pre);
+                g.drawLine(transform.getSwingFX(x0 - 4), transform.getSwingFX(yt),
+                        transform.getSwingFX(x0 + 4), transform.getSwingFX(yt));
+            }
+
+            if (isTopConnection) {
+                ConnectionDraw
+                        .drawArrow(g, ConnectionDraw.getBottomArrow(),
+                                transform.getSwingFX(xt),
+                                transform.getSwingFY(yt));
+            } else {
+                ConnectionDraw
+                        .drawArrow(g, ConnectionDraw.getTopArrow(),
+                                transform.getSwingFX(xt),
+                                transform.getSwingFY(yt));
+            }
+
+        } else {
+
+            // Horizontal connection
+
+            isTopConnection = targetHandle.getDrawY() < getDrawY();
+            isLeftConnection = mAnchor.getType() == ConstraintAnchor.Type.LEFT;
+
+            float base = Math.min(transform.getSwingFX(x0),
+                    transform.getSwingFX(xt) - ConnectionDraw.ARROW_SIDE);
+            if (!isLeftConnection) {
+                base = Math.max(transform.getSwingFX(x0),
+                        transform.getSwingFX(xt) + ConnectionDraw.ARROW_SIDE);
+            }
+            path.moveTo(transform.getSwingFX(x0), transform.getSwingFY(y0));
+
+            if (isSelected && Math.abs(transform.getSwingFX(x0) - base) > 0) {
+                int start = transform.getSwingFX(x0);
+                int end = transform.getSwingFX(xt);
+                if (mAnchor.getMargin() > 0) {
+                    if (isLeftConnection) {
+                        end += transform.getSwingDimensionF(mAnchor.getMargin());
+                    } else {
+                        end -= transform.getSwingDimensionF(mAnchor.getMargin());
+                    }
+                    g.drawLine(end, transform.getSwingFX(y0 - 4),
+                            end, transform.getSwingFX(y0 + 4));
+                }
+                addHorizontalSmallSpring(path, transform.getSwingFY(y0),
+                        start, end);
+            }
+            path.lineTo(base, transform.getSwingFY(y0));
+
+            float y1 = y0 - radius;
+            float sx1 = base - transform.getSwingDimension(radius);
+
+            if (!isLeftConnection) {
+                sx1 = base + transform.getSwingDimension(radius);
+            }
+            if (!isTopConnection) {
+                y1 = y0 + radius;
+            }
+
+            addQuarterArc(path,
+                    base,
+                    transform.getSwingFY(y0),
+                    sx1,
+                    transform.getSwingFY(y1),
+                    1,
+                    false);
+
+            float y2 = yt + 2 * radius;
+
+            if (!isTopConnection) {
+                y2 = yt - 2 * radius;
+            }
+
+            path.lineTo(sx1, transform.getSwingFY(y2));
+
+            float sxt = transform.getSwingFX(xt) - ConnectionDraw.ARROW_SIDE;
+            if (!isLeftConnection) {
+                sxt = transform.getSwingFX(xt) + ConnectionDraw.ARROW_SIDE;
+            }
+
+            addQuarterArc(path,
+                    sx1,
+                    transform.getSwingFY(y2),
+                    sxt,
+                    transform.getSwingFY(yt),
+                    radius,
+                    true);
+
+            if (isSelected) {
+                Stroke pre = g.getStroke();
+                g.setStroke(ConnectionDraw.sDashedStroke);
+                if (isTopConnection) {
+                    g.drawLine(
+                            transform.getSwingFX(xt),
+                            transform.getSwingFY(targetWidget.getDrawBottom()),
+                            transform.getSwingFX(xt),
+                            transform.getSwingFY(y0 - 4));
+                } else {
+                    g.drawLine(
+                            transform.getSwingFX(xt),
+                            transform.getSwingFY(targetWidget.getDrawY()),
+                            transform.getSwingFX(xt),
+                            transform.getSwingFY(y0 - 4));
+                }
+                g.setStroke(pre);
+                g.drawLine(transform.getSwingFX(xt), transform.getSwingFY(y0 - 4),
+                        transform.getSwingFX(xt), transform.getSwingFY(y0 + 4));
+            }
+
+            if (isLeftConnection) {
+                ConnectionDraw
+                        .drawArrow(g, ConnectionDraw.getRightArrow(),
+                                transform.getSwingFX(xt),
+                                transform.getSwingFY(yt));
+            } else {
+                ConnectionDraw
+                        .drawArrow(g, ConnectionDraw.getLeftArrow(),
+                                transform.getSwingFX(xt),
+                                transform.getSwingFY(yt));
+            }
+
         }
     }
 
-    private void addQuarterArc(ViewTransform transform, Path2D.Float path, float x1, float y1,
+    /*-----------------------------------------------------------------------*/
+    // Utilities draw functions for path
+    /*-----------------------------------------------------------------------*/
+
+    /**
+     * Add an vertical spring between (x0, y1) and (x0, y1) to the given path object
+     *
+     * @param path the path object we'll add the spring to
+     * @param x0   the x coordinate of the spring
+     * @param y1   the y start coordinate
+     * @param y2   the y end coordiante
+     */
+    private void addVerticalSmallSpring(Path2D.Float path, int x0, int y1, int y2) {
+        int springHeight = 2;
+        int springWidth = 3;
+        int distance = Math.abs(y2 - y1);
+        int numSprings = (distance / (springHeight));
+        int leftOver = (distance - (numSprings * springHeight)) / 2;
+        path.lineTo(x0, y1);
+        path.lineTo(x0, y1 - leftOver);
+        int count = 0;
+        if (y1 > y2) {
+            for (int y = y1 - leftOver; y > y2 + leftOver; y -= springHeight) {
+                int x = (count % 2 == 0) ? x0 - springWidth : x0 + springWidth;
+                path.lineTo(x, y);
+                count++;
+            }
+        } else {
+            for (int y = y1 + leftOver; y < y2 - leftOver; y += springHeight) {
+                int x = (count % 2 == 0) ? x0 - springWidth : x0 + springWidth;
+                path.lineTo(x, y);
+                count++;
+            }
+        }
+        path.lineTo(x0, y2 + leftOver);
+        path.lineTo(x0, y2);
+    }
+
+    /**
+     * Add an horizontal spring between (x1, y0) and (x2, y0) to the given path object
+     *
+     * @param path the path object we'll add the spring to
+     * @param y0   the y coordinate of the spring
+     * @param x1   the x start coordinate
+     * @param x2   the x end coordiante
+     */
+    private void addHorizontalSmallSpring(Path2D.Float path, int y0, int x1, int x2) {
+        int springHeight = 2;
+        int springWidth = 3;
+        int distance = Math.abs(x2 - x1);
+        int numSprings = (distance / (springHeight));
+        int leftOver = (distance - (numSprings * springHeight)) / 2;
+        path.lineTo(x1, y0);
+        path.lineTo(x1 - leftOver, y0 - leftOver);
+        int count = 0;
+        if (x1 > x2) {
+            for (int x = x1 - leftOver; x > x2 + leftOver; x -= springHeight) {
+                int y = (count % 2 == 0) ? y0 - springWidth : y0 + springWidth;
+                path.lineTo(x, y);
+                count++;
+            }
+        } else {
+            for (int x = x1 + leftOver; x < x2 - leftOver; x += springHeight) {
+                int y = (count % 2 == 0) ? y0 - springWidth : y0 + springWidth;
+                path.lineTo(x, y);
+                count++;
+            }
+        }
+        path.lineTo(x2 + leftOver, y0);
+        path.lineTo(x2, y0);
+    }
+
+    /**
+     * Add a quarter circular path to a given path object, starting from (x1, y1) to (x2, y2).
+     *
+     * @param path          the path object we'll add the arc to
+     * @param x1            x start coordinate
+     * @param y1            y start coordinate
+     * @param x2            x end coordinate
+     * @param y2            y end coordinate
+     * @param curvature     the curvature of the path
+     * @param verticalStart true to start the arc vertically, false otherwise
+     */
+    private void addQuarterArc(Path2D.Float path, float x1, float y1,
             float x2, float y2,
-            float radius, float curvature, boolean verticalStart) {
+            float curvature, boolean verticalStart) {
         boolean down = y1 < y2;
         boolean left = x1 > x2;
-        path.moveTo(x1, y1);
+
         float cx1 = 0;
         float cy1 = 0;
         float cx2 = 0;

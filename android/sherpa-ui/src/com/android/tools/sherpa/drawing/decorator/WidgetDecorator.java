@@ -599,6 +599,10 @@ public class WidgetDecorator {
                             && opposite.isConnected()
                             && opposite.getTarget() == anchor.getTarget()) {
                         startHandle.drawConnection(transform, g, mIsSelected);
+                    } else if (opposite != null && opposite.isConnected()
+                            && opposite.getTarget().getOwner() == anchor.getTarget().getOwner()
+                            && anchor.getTarget().getOwner() != mWidget.getParent()) {
+                        startHandle.drawConnection(transform, g, mIsSelected);
                     } else {
                         ConstraintHandle endHandle =
                                 WidgetInteractionTargets.constraintHandle(target);

@@ -506,6 +506,7 @@ public class SceneDraw {
             WidgetDecorator decorator = widgetCompanion.getWidgetDecorator(myCurrentStyle);
             if (decorator.isVisible() && decorator.isSelected()) {
                 decorator.onPaintConstraints(transform, g);
+                decorator.onPaintAnchors(transform, g);
             }
         }
 
