@@ -214,51 +214,56 @@ public class WidgetInteractionTargets {
         ConstraintAnchor baselineAnchor = mWidget.getAnchor(ConstraintAnchor.Type.BASELINE);
         for (ResizeHandle handle : mResizeHandles) {
             if (handle.hit(x, y)) {
+                boolean leftAnchorIsConnected = leftAnchor != null ? leftAnchor.isConnected() : false;
+                boolean topAnchorIsConnected = topAnchor != null ? topAnchor.isConnected() : false;
+                boolean rightAnchorIsConnected = rightAnchor != null ? rightAnchor.isConnected() : false;
+                boolean bottomAnchorIsConnected = bottomAnchor != null ? bottomAnchor.isConnected() : false;
+                boolean baselineAnchorIsConnected = baselineAnchor != null ? baselineAnchor.isConnected() : false;
                 switch (handle.getType()) {
                     case LEFT_TOP: {
-                        if (leftAnchor.isConnected() || topAnchor.isConnected()) {
+                        if (leftAnchorIsConnected || topAnchorIsConnected) {
                             continue;
                         }
                     }
                     break;
                     case RIGHT_TOP: {
-                        if (rightAnchor.isConnected() || topAnchor.isConnected()) {
+                        if (rightAnchorIsConnected || topAnchorIsConnected) {
                             continue;
                         }
                     }
                     break;
                     case LEFT_BOTTOM: {
-                        if (leftAnchor.isConnected() || bottomAnchor.isConnected()) {
+                        if (leftAnchorIsConnected || bottomAnchorIsConnected) {
                             continue;
                         }
                     }
                     break;
                     case RIGHT_BOTTOM: {
-                        if (rightAnchor.isConnected() || bottomAnchor.isConnected()) {
+                        if (rightAnchorIsConnected || bottomAnchorIsConnected) {
                             continue;
                         }
                     }
                     break;
                     case LEFT_SIDE: {
-                        if (leftAnchor.isConnected()) {
+                        if (leftAnchorIsConnected) {
                             continue;
                         }
                     }
                     break;
                     case RIGHT_SIDE: {
-                        if (rightAnchor.isConnected()) {
+                        if (rightAnchorIsConnected) {
                             continue;
                         }
                     }
                     break;
                     case TOP_SIDE: {
-                        if (topAnchor.isConnected() || baselineAnchor.isConnected()) {
+                        if (topAnchorIsConnected || baselineAnchorIsConnected) {
                             continue;
                         }
                     }
                     break;
                     case BOTTOM_SIDE: {
-                        if (bottomAnchor.isConnected()) {
+                        if (bottomAnchorIsConnected) {
                             continue;
                         }
                     }
