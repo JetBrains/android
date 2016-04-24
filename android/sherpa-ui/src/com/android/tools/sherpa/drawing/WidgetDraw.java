@@ -125,18 +125,10 @@ public class WidgetDraw {
 
         // First, resize handles...
         if (showResizeHandles) {
-            if (!leftAnchorIsConnected && !topAnchorIsConnected) {
-                g.fillRect(l - radiusRect, t - radiusRect, rectDimension, rectDimension);
-            }
-            if (!rightAnchorIsConnected && !topAnchorIsConnected) {
-                g.fillRect(r - radiusRect, t - radiusRect, rectDimension, rectDimension);
-            }
-            if (!leftAnchorIsConnected && !bottomAnchorIsConnected) {
-                g.fillRect(l - radiusRect, b - radiusRect, rectDimension, rectDimension);
-            }
-            if (!rightAnchorIsConnected && !bottomAnchorIsConnected) {
-                g.fillRect(r - radiusRect, b - radiusRect, rectDimension, rectDimension);
-            }
+            g.fillRect(l - radiusRect, t - radiusRect, rectDimension, rectDimension);
+            g.fillRect(r - radiusRect, t - radiusRect, rectDimension, rectDimension);
+            g.fillRect(l - radiusRect, b - radiusRect, rectDimension, rectDimension);
+            g.fillRect(r - radiusRect, b - radiusRect, rectDimension, rectDimension);
             if (showSizeIndicator) {
                 ConnectionDraw
                         .drawHorizontalMarginIndicator(g, "" + widget.getWidth(), l, r, t - 20);

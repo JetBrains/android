@@ -31,6 +31,7 @@ import com.google.tnt.solver.widgets.Snapshot;
 
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
+import java.awt.Cursor;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
@@ -69,6 +70,7 @@ public class MouseInteraction {
 
     private boolean mUseDefinedMargin = true;
     private boolean mAutoConnect = true;
+    private int mMouseCursor = Cursor.DEFAULT_CURSOR;
 
     public static void setMargin(int margin) {
         sMargin = margin;
@@ -260,6 +262,13 @@ public class MouseInteraction {
     public void setAutoConnect(boolean autoConnect) {
         mAutoConnect = autoConnect;
     }
+
+    /**
+     * Getter for the current mouse cursor
+     *
+     * @return mouse cursor type
+     */
+    public int getMouseCursor() { return mMouseCursor; }
 
     /*-----------------------------------------------------------------------*/
     // Mouse handling
@@ -914,6 +923,8 @@ public class MouseInteraction {
         mHoverListener.find(x, y);
         ConstraintWidget widget = mHoverListener.mHitWidget;
         ConstraintAnchor anchor = mHoverListener.getConstraintAnchor();
+        ResizeHandle handle = mHoverListener.mHitResizeHandle;
+        mMouseCursor = updateMouseCursor(handle);
         if (widget != null && mSelection.contains(widget)) {
             mBaselineTimer.restart();
         } else {
@@ -929,6 +940,45 @@ public class MouseInteraction {
         }
         mSceneDraw.setCurrentUnderneathAnchor(anchor);
         mSceneDraw.repaint();
+    }
+
+    /**
+     * Return the mouse cursor type given the current handle we hit
+     *
+     * @param handle the resize handle we find under the mouse (if any)
+     * @return the mouse cursor type
+     */
+    private int updateMouseCursor(ResizeHandle handle) {
+        if (handle == null) {
+            return Cursor.DEFAULT_CURSOR;
+        }
+        switch (handle.getType()) {
+            case LEFT_BOTTOM: {
+                return Cursor.SW_RESIZE_CURSOR;
+            }
+            case LEFT_TOP: {
+                return Cursor.NW_RESIZE_CURSOR;
+            }
+            case RIGHT_BOTTOM: {
+                return Cursor.SE_RESIZE_CURSOR;
+            }
+            case RIGHT_TOP: {
+                return Cursor.NE_RESIZE_CURSOR;
+            }
+            case LEFT_SIDE: {
+                return Cursor.W_RESIZE_CURSOR;
+            }
+            case RIGHT_SIDE: {
+                return Cursor.E_RESIZE_CURSOR;
+            }
+            case TOP_SIDE: {
+                return Cursor.N_RESIZE_CURSOR;
+            }
+            case BOTTOM_SIDE: {
+                return Cursor.S_RESIZE_CURSOR;
+            }
+        }
+        return Cursor.DEFAULT_CURSOR;
     }
 
     /*-----------------------------------------------------------------------*/
