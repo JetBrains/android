@@ -62,7 +62,7 @@ public class TutorialCard extends CardViewPanel {
                   tutorial.getRemoteLinkLabel() +
                   "</a></p>";
     UIUtils.setHtml(description, text,
-                    ".title {margin: 10px 10px 0 10px; font-size: 18px; font-weight: bold;}\n.description { margin: 10px;}");
+                    ".title {margin: 10px 10px 0 10px; font-size: 16px; font-weight: bold;}\n.description { margin: 10px;}");
 
     JPanel contents = new JPanel();
     contents.setLayout(new GridBagLayout());
