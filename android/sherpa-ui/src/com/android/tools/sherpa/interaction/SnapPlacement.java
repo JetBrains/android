@@ -135,7 +135,6 @@ public class SnapPlacement {
                         if (useGridSnap) {
                             SnapPlacement.snapVerticalGrid(widget, candidatePoint);
                         }
-
                     } else {
                         snapCandidates.add(candidate);
                     }
@@ -514,12 +513,13 @@ public class SnapPlacement {
                 distance = Math.sqrt(anchorDistance * anchorDistance);
             }
             if (anchorDistance < slope && distance <= candidate.distance
-                    && (ALLOWS_ALL_SNAP_MARGIN || distance < MAX_SNAP_MARGIN_DISTANCE)) {
+                    && (ALLOWS_ALL_SNAP_MARGIN || distance < MAX_SNAP_MARGIN_DISTANCE)
+                    && (candidate.target == null ||
+                    (candidate.target != null && candidate.margin > margin))) {
                 candidate.distance = distance;
                 candidate.target = target;
                 candidate.source = source;
                 candidate.margin = margin;
-                break;
             }
         }
     }
