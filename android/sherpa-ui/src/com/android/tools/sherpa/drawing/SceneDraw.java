@@ -66,7 +66,7 @@ public class SceneDraw {
     // Animations
     private Choreographer mChoreographer = new Choreographer();
 
-    private Animation mAnimationCurrentAnchor = null;
+    private AnimatedHoverAnchor mAnimationCurrentAnchor = null;
     private AnimationSet mAnimationCandidateAnchors = new AnimationSet();
     private AnimationSet mAnimationCreatedConstraints = new AnimationSet();
 
@@ -172,6 +172,9 @@ public class SceneDraw {
             mCurrentAnimation.start();
         } else {
             mCurrentAnimation = null;
+        }
+        if (mAnimationCurrentAnchor != null) {
+            mAnimationCurrentAnchor.setShowTooltip(false);
         }
     }
 
