@@ -27,6 +27,7 @@ public class ColorSet {
 
     protected boolean mDrawBackground = true;
     protected boolean mDrawWidgetInfos = true;
+    protected boolean mUseTooltips = true;
 
     protected Color mBackground;
     protected Color mFrames;
@@ -64,6 +65,8 @@ public class ColorSet {
 
     protected Color mShadow = new Color(0, 0, 0, 50);
     protected Stroke mShadowStroke = new BasicStroke(3);
+
+    protected Color mTooltipBackground = new Color(0, 0, 0, 110);
 
     protected int mStyle;
 
@@ -153,4 +156,11 @@ public class ColorSet {
         return mStyle;
     }
 
+    public boolean useTooltips() { return mUseTooltips; }
+
+    public void setUseTooltips(boolean value) { mUseTooltips = value; }
+
+    public Color getTooltipBackground() {
+        return mTooltipBackground;
+    }
 }

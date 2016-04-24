@@ -23,23 +23,26 @@ public class AnimatedHoverAnchor extends Animation {
     private final ColorSet mColorSet;
     private ConstraintHandle mAnchor;
     private boolean mIsBaseline = false;
+    private ConstraintAnchor mTargetAnchor;
     private boolean mConnected = false;
     private Color mTextColor = Color.white;
     protected Color mColor = Color.white;
     private ConstraintAnchor mOriginalTarget;
     private static Font sFont = new Font("Helvetica", Font.PLAIN, 12);
     private Color mFrame;
-    private Color mTooltipColor = new Color(0, 0, 0, 100);
+    private Color mTooltipColor;
+    private boolean mShowTooltip = true;
 
     /**
      * Constructor, create a new AnimatedCircle at the given anchor's position
      *
      * @param colorSet
-     * @param anchor ConstraintAnchor we animate on
+     * @param anchor   ConstraintAnchor we animate on
      */
     public AnimatedHoverAnchor(ColorSet colorSet, ConstraintHandle anchor) {
         mAnchor = anchor;
         mColorSet = colorSet;
+        mTooltipColor = mColorSet.getTooltipBackground();
         mOriginalTarget = mAnchor.getAnchor().getTarget();
         mFrame = mColorSet.getAnchorCircle();
         if (mAnchor.getAnchor().isConnected()) {
@@ -47,6 +50,7 @@ public class AnimatedHoverAnchor extends Animation {
             mTextColor = Color.red;
             mFrame = mColor;
             mConnected = true;
+            mTargetAnchor = mAnchor.getAnchor().getTarget();
         } else {
             mColor = mColorSet.getAnchorCreationCircle();
             mTextColor = mColor;
@@ -72,19 +76,24 @@ public class AnimatedHoverAnchor extends Animation {
         switch (mAnchor.getAnchor().getType()) {
             case LEFT: {
                 text += "Left";
-            } break;
+            }
+            break;
             case RIGHT: {
                 text += "Right";
-            } break;
+            }
+            break;
             case TOP: {
                 text += "Top";
-            } break;
+            }
+            break;
             case BOTTOM: {
                 text += "Bottom";
-            } break;
+            }
+            break;
             case BASELINE: {
                 text += "Baseline";
-            } break;
+            }
+            break;
         }
         text += " Constraint";
         return text;
@@ -119,7 +128,7 @@ public class AnimatedHoverAnchor extends Animation {
         if (mIsBaseline) {
             int extra = radius - 3;
             g.setColor(highlight);
-            g.setStroke(new BasicStroke(strokeWidth -1));
+            g.setStroke(new BasicStroke(strokeWidth - 1));
             int handleWidth = mAnchor.getBaselineHandleWidth(transform);
             int padding = (w - handleWidth) / 2;
             g.drawRoundRect(l + padding,
@@ -153,6 +162,18 @@ public class AnimatedHoverAnchor extends Animation {
             g.setStroke(new BasicStroke(strokeWidth - 1));
             g.draw(circle);
         }
+        if (!mColorSet.useTooltips()) {
+            return;
+        }
+        boolean showTooltip = mShowTooltip;
+        boolean newConnection = mAnchor.getAnchor().getTarget() != mTargetAnchor;
+        showTooltip |= newConnection;
+        if (!showTooltip) {
+            return;
+        }
+        if (mAnchor.getAnchor().getTarget() != null && newConnection) {
+            mTextColor = mColorSet.getAnchorCreationCircle();
+        }
         g.setFont(sFont);
         String text = getText();
         FontMetrics fm = g.getFontMetrics(sFont);
@@ -163,10 +184,14 @@ public class AnimatedHoverAnchor extends Animation {
         g.setColor(mTooltipColor);
         int padding = 10;
         g.fillRoundRect(tx - padding, ty - fm.getMaxAscent() - padding,
-                textWidth + 2*padding, textHeight + 2*padding, 8, 8);
+                textWidth + 2 * padding, textHeight + 2 * padding, 8, 8);
         g.setColor(Color.black);
         g.drawString(text, tx + 1, ty + 1);
         g.setColor(mTextColor);
         g.drawString(text, tx, ty);
+    }
+
+    public void setShowTooltip(boolean showTooltip) {
+        mShowTooltip = showTooltip;
     }
 }
