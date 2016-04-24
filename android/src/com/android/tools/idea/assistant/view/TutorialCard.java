@@ -79,6 +79,9 @@ public class TutorialCard extends CardViewPanel {
     contents.add(description, c);
     c.gridy++;
 
+    // Add extra padding for tutorial steps.
+    c.insets = new Insets(0, 5, 5, 5);
+
     // Add each of the tutorial steps in order.
     int numericLabel = 1;
     for (StepData step : tutorial.getSteps()) {

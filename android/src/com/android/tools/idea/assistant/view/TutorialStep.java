@@ -18,7 +18,6 @@ package com.android.tools.idea.assistant.view;
 import com.android.tools.idea.assistant.datamodel.StepData;
 import com.android.tools.idea.assistant.datamodel.StepElementData;
 import com.android.tools.idea.structure.services.DeveloperService;
-import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.ex.EditorEx;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.project.Project;
@@ -76,8 +75,7 @@ public class TutorialStep extends JPanel {
           myContents.add(new StatefulButton(element.getAction(), listener, service));
           break;
         case CODE:
-          CodePane code = new CodePane(element);
-          myContents.add(code);
+          myContents.add(new CodePane(element));
           break;
         default:
           logger.log(Level.SEVERE, "Found a StepElement of unknown type. " + element.toString());
@@ -218,20 +216,22 @@ public class TutorialStep extends JPanel {
     public CodePane(StepElementData element) {
       // TODO: Use the file type hint from the element when supported.
       super(element.getCode(), myProject, StdFileTypes.JAVA);
+      // Tell the editor that it's a multiline editor, defaults to false and can't be overridden in ctor unless passing in a document
+      // instead of text as first argument.
+      setOneLineMode(false);
       // NOTE: Monospace must be used or the preferred width will be inaccurate (most likely due to line length calculations based on the
       // width of a sample character.
       setFont(new Font(Font.MONOSPACED, Font.PLAIN, 11));
       ensureWillComputePreferredSize();
-      Document doc = getDocument();
       getDocument().setReadOnly(true);
 
-      // NO-OP to ensure that the editor is created, which has the side effect of instantiating the scroll pane.
+      // NO-OP to ensure that the editor is created, which has the side effect of instantiating the scroll pane, necessary to get the scroll
+      // track height.
       getPreferredSize();
 
-      int height = Math.min(MAX_HEIGHT, getActualPreferredHeight() + myScrollBarHeight);
+      int height = Math.min(MAX_HEIGHT, getActualPreferredHeight());
       // Preferred height is ignored for some reason, setting the the desired final height via minimum.
       setMinimumSize(new Dimension(1, height));
-
       setPreferredSize(new Dimension(getActualPreferredWidth(), height));
     }
 
@@ -250,7 +250,7 @@ public class TutorialStep extends JPanel {
      * calculating the height of the contents by finding the line height and multiplying by the number of lines.
      */
     private int getActualPreferredHeight() {
-      return (getFontMetrics(getFont()).getHeight() * getDocument().getLineCount()) + (2 * PAD);
+      return (getFontMetrics(getFont()).getHeight() * getDocument().getLineCount()) + (2 * PAD) + myScrollBarHeight;
     }
 
     /**
