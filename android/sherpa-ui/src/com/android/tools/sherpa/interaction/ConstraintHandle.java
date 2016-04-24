@@ -626,9 +626,12 @@ public class ConstraintHandle {
                     int offset1 =
                             (int) (transform.getSwingDimension(mAnchor.getOwner().getDrawWidth()) *
                                     0.2f);
-                    int offset2 = (int) (transform
-                            .getSwingDimension(mAnchor.getTarget().getOwner().getDrawWidth()) *
-                            0.2f);
+                    int offset2 = 0;
+                    if (mAnchor.getTarget() != null) {
+                        offset2 = (int) (transform
+                                .getSwingDimension(mAnchor.getTarget().getOwner().getDrawWidth()) *
+                                0.2f);
+                    }
                     if (x0 < y1) {
                         x0 += offset1;
                         x1 -= offset2;
@@ -788,6 +791,7 @@ public class ConstraintHandle {
      * @param targetHandle the target handle
      * @param targetWidget the target widget
      */
+
     private void addPathCenteredConnection(ViewTransform transform, Graphics2D g,
             boolean isSelected,
             Path2D.Float path, ColorSet colorSet, ConstraintHandle targetHandle,

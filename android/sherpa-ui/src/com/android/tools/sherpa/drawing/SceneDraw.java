@@ -79,7 +79,6 @@ public class SceneDraw {
     private ConstraintAnchor mCurrentUnderneathAnchor;
     private boolean mMoveOnlyMode = false;
     private boolean mApplyConstraints = true;
-    private int myCurrentStyle = WidgetDecorator.BLUEPRINT_STYLE;
 
     private Repaintable mRepaintableSurface;
 
@@ -100,6 +99,7 @@ public class SceneDraw {
         mWidgetsScene = list;
         mSelection = selection;
         mWidgetMotion = motion;
+        mWidgetMotion.setSceneDraw(this);
         mWidgetResize = resize;
         mAnimationCandidateAnchors.setLoop(true);
         mAnimationCandidateAnchors.setDuration(1000);
@@ -125,6 +125,11 @@ public class SceneDraw {
         }
     }
 
+    /**
+     * Set a new ColorSet for this scene
+     *
+     * @param set a new colorset
+     */
     public void setColorSet(ColorSet set) {
         if (mColorSet == set) {
             return;
@@ -184,7 +189,7 @@ public class SceneDraw {
         // Reset the widget looks on mouse release
         for (ConstraintWidget widget : mWidgetsScene.getWidgets()) {
             WidgetCompanion companion = (WidgetCompanion) widget.getCompanionWidget();
-            WidgetDecorator decorator = companion.getWidgetDecorator(myCurrentStyle);
+            WidgetDecorator decorator = companion.getWidgetDecorator(getCurrentStyle());
             if (decorator.getLook() == ColorTheme.Look.HIGHLIGHTED
                     || decorator.getLook() == ColorTheme.Look.SUBDUED) {
                 decorator.setLook(ColorTheme.Look.NORMAL);
@@ -234,7 +239,7 @@ public class SceneDraw {
                 }
             }
             WidgetCompanion companion = (WidgetCompanion) widget.getCompanionWidget();
-            WidgetDecorator decorator = companion.getWidgetDecorator(myCurrentStyle);
+            WidgetDecorator decorator = companion.getWidgetDecorator(getCurrentStyle());
             if (decorator.getLook() == ColorTheme.Look.NORMAL) {
                 if (highlighted) {
                     decorator.setLook(ColorTheme.Look.HIGHLIGHTED);
@@ -321,7 +326,7 @@ public class SceneDraw {
     private WidgetDecorator getDecorator(ConstraintWidget widget, ConstraintWidget selectedWidget,
             ConstraintAnchor selectedAnchor, ResizeHandle selectedResizeHandle) {
         WidgetCompanion companion = (WidgetCompanion) widget.getCompanionWidget();
-        WidgetDecorator decorator = companion.getWidgetDecorator(myCurrentStyle);
+        WidgetDecorator decorator = companion.getWidgetDecorator(getCurrentStyle());
         if (!decorator.isSelected()) {
             decorator.updateShowAnchorsPolicy(selectedWidget, selectedAnchor);
         } else {
@@ -466,7 +471,7 @@ public class SceneDraw {
         // First, mark which widgets is selected.
         for (ConstraintWidget widget : mWidgetsScene.getWidgets()) {
             WidgetCompanion widgetCompanion = (WidgetCompanion) widget.getCompanionWidget();
-            WidgetDecorator decorator = widgetCompanion.getWidgetDecorator(myCurrentStyle);
+            WidgetDecorator decorator = widgetCompanion.getWidgetDecorator(getCurrentStyle());
             WidgetInteractionTargets widgetInteraction =
                     widgetCompanion.getWidgetInteractionTargets();
             widgetInteraction.updatePosition(transform);
@@ -483,14 +488,14 @@ public class SceneDraw {
 
         for (ConstraintWidget widget : mWidgetsScene.getWidgets()) {
             WidgetCompanion widgetCompanion = (WidgetCompanion) widget.getCompanionWidget();
-            WidgetDecorator decorator = widgetCompanion.getWidgetDecorator(myCurrentStyle);
+            WidgetDecorator decorator = widgetCompanion.getWidgetDecorator(getCurrentStyle());
             decorator.applyLook();
         }
 
         // Draw the constraints
         for (ConstraintWidget widget : mWidgetsScene.getWidgets()) {
             WidgetCompanion widgetCompanion = (WidgetCompanion) widget.getCompanionWidget();
-            WidgetDecorator decorator = widgetCompanion.getWidgetDecorator(myCurrentStyle);
+            WidgetDecorator decorator = widgetCompanion.getWidgetDecorator(getCurrentStyle());
             if (decorator.isVisible() && !decorator.isSelected()) {
                 decorator.onPaintConstraints(transform, g);
             }
@@ -507,7 +512,7 @@ public class SceneDraw {
         // Draw the selected constraints
         for (ConstraintWidget widget : mWidgetsScene.getWidgets()) {
             WidgetCompanion widgetCompanion = (WidgetCompanion) widget.getCompanionWidget();
-            WidgetDecorator decorator = widgetCompanion.getWidgetDecorator(myCurrentStyle);
+            WidgetDecorator decorator = widgetCompanion.getWidgetDecorator(getCurrentStyle());
             if (decorator.isVisible() && decorator.isSelected()) {
                 decorator.onPaintConstraints(transform, g);
                 decorator.onPaintAnchors(transform, g);
@@ -602,6 +607,11 @@ public class SceneDraw {
         return needsRepaint;
     }
 
+    /**
+     * Getter for the anchor currently underneath the cursor, if any
+     *
+     * @return the anchor currently underneath the cursor
+     */
     public ConstraintAnchor getCurrentUnderneathAnchor() {
         return mCurrentUnderneathAnchor;
     }
@@ -639,11 +649,15 @@ public class SceneDraw {
         this.mApplyConstraints = applyConstraints;
     }
 
-    public void setCurrentStyle(int currentStyle) {
-        myCurrentStyle = currentStyle;
-    }
-
+    /**
+     * Return the current style from the color set
+     *
+     * @return the current colorset style
+     */
     public int getCurrentStyle() {
-        return myCurrentStyle;
+        if (mColorSet == null) {
+            return WidgetDecorator.BLUEPRINT_STYLE;
+        }
+        return mColorSet.getStyle();
     }
 }
