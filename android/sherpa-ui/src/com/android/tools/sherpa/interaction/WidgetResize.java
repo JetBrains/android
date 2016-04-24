@@ -53,7 +53,60 @@ public class WidgetResize {
         int w = widget.getDrawWidth();
         int h = widget.getDrawHeight();
 
-        switch (handle.getType()) {
+        ResizeHandle.Type resize = handle.getType();
+        ConstraintAnchor left = widget.getAnchor(ConstraintAnchor.Type.LEFT);
+        ConstraintAnchor top = widget.getAnchor(ConstraintAnchor.Type.TOP);
+        ConstraintAnchor right = widget.getAnchor(ConstraintAnchor.Type.RIGHT);
+        ConstraintAnchor bottom = widget.getAnchor(ConstraintAnchor.Type.BOTTOM);
+        ConstraintAnchor baseline = widget.getAnchor(ConstraintAnchor.Type.BASELINE);
+        boolean leftIsConnected = left != null && left.isConnected();
+        boolean rightIsConnected = right != null && right.isConnected();
+        boolean topIsConnected = top != null && top.isConnected();
+        boolean bottomIsConnected = bottom != null && bottom.isConnected();
+        boolean baselineIsConnected = baseline != null && baseline.isConnected();
+
+        // Limits range of motion depending on which anchor is connected
+        if (leftIsConnected && !rightIsConnected) {
+            switch (resize) {
+                case LEFT_TOP: {
+                    resize = ResizeHandle.Type.TOP_SIDE;
+                } break;
+                case LEFT_BOTTOM: {
+                    resize = ResizeHandle.Type.BOTTOM_SIDE;
+                } break;
+            }
+        }
+        if (rightIsConnected && !leftIsConnected) {
+            switch (resize) {
+                case RIGHT_TOP: {
+                    resize = ResizeHandle.Type.TOP_SIDE;
+                } break;
+                case RIGHT_BOTTOM: {
+                    resize = ResizeHandle.Type.BOTTOM_SIDE;
+                } break;
+            }
+        }
+        if ((topIsConnected || baselineIsConnected) && !bottomIsConnected) {
+            switch (resize) {
+                case LEFT_TOP: {
+                    resize = ResizeHandle.Type.LEFT_SIDE;
+                } break;
+                case RIGHT_TOP: {
+                    resize = ResizeHandle.Type.RIGHT_SIDE;
+                } break;
+            }
+        }
+        if (bottomIsConnected && !topIsConnected) {
+            switch (resize) {
+                case LEFT_BOTTOM: {
+                    resize = ResizeHandle.Type.LEFT_SIDE;
+                } break;
+                case RIGHT_BOTTOM: {
+                    resize = ResizeHandle.Type.RIGHT_SIDE;
+                } break;
+            }
+        }
+        switch (resize) {
             case LEFT_TOP: {
                 int newX = Math.min(originalBounds.x + originalBounds.width
                         - widget.getMinWidth(), posX);
