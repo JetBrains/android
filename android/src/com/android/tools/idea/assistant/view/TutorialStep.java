@@ -23,7 +23,6 @@ import com.intellij.openapi.editor.ex.EditorEx;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.EditorTextField;
-import com.intellij.ui.components.JBScrollPane;
 
 import javax.swing.*;
 import javax.swing.border.AbstractBorder;
@@ -78,8 +77,7 @@ public class TutorialStep extends JPanel {
           break;
         case CODE:
           CodePane code = new CodePane(element);
-          NaturalHeightScrollPane codeScroller = new NaturalHeightScrollPane(code);
-          myContents.add(codeScroller);
+          myContents.add(code);
           break;
         default:
           logger.log(Level.SEVERE, "Found a StepElement of unknown type. " + element.toString());
@@ -205,10 +203,17 @@ public class TutorialStep extends JPanel {
    *
    * TODO: Add a listener to select all code when clicked. Potentially do a hover listener instead that surfaces a button that copies all
    * content to your clipboard.
+   * TODO(b/28357327): Try to reduce the number of hacks and fragile code paths.
    */
   private class CodePane extends EditorTextField {
 
     private static final int PAD = 5;
+    private static final int MAX_HEIGHT = 500;
+
+    // Scrollbar height, used for calculating preferred height when the horizontal scrollbar is present. This is somewhat of a hack in that
+    // the value is set as a side effect of the scroll pane being instantiated. Unfortunately the pane is released before we can get access
+    // so we cache the value (which should be the same across instantiations) each time the scrollpane is created.
+    private int myScrollBarHeight = 0;
 
     public CodePane(StepElementData element) {
       // TODO: Use the file type hint from the element when supported.
@@ -220,7 +225,14 @@ public class TutorialStep extends JPanel {
       Document doc = getDocument();
       getDocument().setReadOnly(true);
 
-      setPreferredSize(new Dimension(getActualPreferredWidth(), getActualPreferredHeight()));
+      // NO-OP to ensure that the editor is created, which has the side effect of instantiating the scroll pane.
+      getPreferredSize();
+
+      int height = Math.min(MAX_HEIGHT, getActualPreferredHeight() + myScrollBarHeight);
+      // Preferred height is ignored for some reason, setting the the desired final height via minimum.
+      setMinimumSize(new Dimension(1, height));
+
+      setPreferredSize(new Dimension(getActualPreferredWidth(), height));
     }
 
     /**
@@ -242,65 +254,44 @@ public class TutorialStep extends JPanel {
     }
 
     /**
-     * HACK ALERT: CodePane must reside in a scroller to be properly sized, so the border normally present on the internal scroller
-     * are both unnecessary and will become hidden when the outer scroller scrolls. The editor is not set after this class is instantiated,
-     * being released after it's created, so the override is placed in this method, each time the editor is created.
+     * HACK ALERT: The editor is not set after this class is instantiated, being released after it's created. Any necessary overrides to
+     * the scroll pane (which resides in the editor) must be made while the scroll pane exists... so the override is placed in this method
+     * which is called each time the editor is created.
      *
-     * This is also a convenient place to add padding to the editor.
+     * TODO: Only do this on the final editor creation, but ensure that we've got the track height when setting the preffered height in
+     * the constructor.
      */
     @Override
     protected EditorEx createEditor() {
       EditorEx editor = super.createEditor();
 
       JScrollPane scroll = editor.getScrollPane();
-      if (scroll != null) {
-        scroll.setBorder(BorderFactory.createEmptyBorder());
-        scroll.setViewportBorder(BorderFactory.createEmptyBorder(PAD, PAD, PAD, PAD));
+
+      // Escape early, should not occur when we're doing the final render.
+      if (scroll == null) {
+        return editor;
       }
+
+      // Set margins on the code scroll pane.
+      scroll.setViewportBorder(BorderFactory.createEmptyBorder(PAD, PAD, PAD, PAD));
+
+      // Code typically overflows width, causing a horizontal scrollbar, and we need to account for the additional height so as to not
+      // occlude the last line in the code sample. Value is used in the constructor so this method _must_ be triggered at least once prior
+      // to setting minimum and preferred heights.
+      myScrollBarHeight = scroll.getHorizontalScrollBar().getPreferredSize().height;
+
+      // Set the scrollbars to show if the content overflows.
+      // TODO(b/28357327): Why isn't this the default...
+      scroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+      scroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
+
+      // Due to some unidentified race condition in calculations, we default to being partially scrolled. Reset the scrollbars.
+      JScrollBar verticalScrollBar = scroll.getVerticalScrollBar();
+      JScrollBar horizontalScrollBar = scroll.getHorizontalScrollBar();
+      verticalScrollBar.setValue(verticalScrollBar.getMinimum());
+      horizontalScrollBar.setValue(horizontalScrollBar.getMinimum());
+
       return editor;
-    }
-
-  }
-
-  /**
-   * A scrollpane that uses natural height of the contents up to a max height.
-   * This addresses issues where it reports the correct preferred size but
-   * does not grow unless you set a minimum height.
-   *
-   * TODO: If reused, ensure all ctors init, max height is settable, etc.
-   */
-  private class NaturalHeightScrollPane extends JBScrollPane {
-    private final static int MAX_HEIGHT = 500;
-
-    public NaturalHeightScrollPane(Component view) {
-      super(view);
-      init();
-    }
-
-    private void init() {
-      setBorder(BorderFactory.createMatteBorder(1, 1, 1, 1, UIUtils.getSeparatorColor()));
-      setViewportBorder(BorderFactory.createEmptyBorder());
-      setOpaque(false);
-      getViewport().setOpaque(false);
-
-      // TODO: Find a cleaner way to manage this display such that we don't
-      // game the min height and preferred size.
-
-      // Due to the scroll pane default rendering with 0 height regardless
-      // of the preferred height of the child, override the minimum to be a
-      // calculated value that is the natural height inside the bounds of a
-      // maximum and minimum height.
-      Dimension preferred = getViewport().getView().getPreferredSize();
-      // Code typically overflows width and we need to account for the
-      // scrollbar height.
-      int trackHeight = getHorizontalScrollBar().getPreferredSize().height;
-      int height = Math.min(MAX_HEIGHT, preferred.height + trackHeight);
-      setMinimumSize(new Dimension(1, height));
-      // Due to the encapsulating scroller using the sum of the preferred
-      // heights of it's children to size the scroll size, reset the
-      // preferred size to the actual size so that it doesn't allocate extra space.
-      // Note that this changes the behavior in some cases as some
-      setPreferredSize(new Dimension(preferred.width, height));
     }
   }
 }
