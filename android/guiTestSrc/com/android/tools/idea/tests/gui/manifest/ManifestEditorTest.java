@@ -20,12 +20,10 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MergedManifestFixture;
-import com.intellij.ui.JBColor;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.fixture.JPopupMenuFixture;
 import org.fest.swing.fixture.JTreeFixture;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -40,11 +38,8 @@ import static org.junit.Assert.*;
 @RunWith(GuiTestRunner.class)
 public class ManifestEditorTest {
 
-  private static final Color CURRENT_MANIFEST_COLOR = JBColor.WHITE;
-
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
-  @Ignore("Disabled until preview 2")
   @Test
   public void testManifestGoToSource() throws IOException {
     guiTest.importSimpleApplication();
@@ -56,12 +51,12 @@ public class ManifestEditorTest {
     JTreeFixture tree = mergedManifestFixture.getTree();
     tree.clickPath("manifest/application/android:allowBackup = true");
     mergedManifestFixture.checkAllRowsColored();
-    assertEquals(CURRENT_MANIFEST_COLOR, mergedManifestFixture.getSelectedNodeColor());
-    mergedManifestFixture.clickLinkAtOffset(15);
+    Color defaultBackgroundColor = mergedManifestFixture.getDefaultBackgroundColor();
+    assertEquals(defaultBackgroundColor, mergedManifestFixture.getSelectedNodeColor());
+    mergedManifestFixture.clickLinkText("app main manifest (this file), line 5");
     assertEquals("^android:allowBackup=\"true\"", editor.getCurrentLineContents(true, true, 0));
   }
 
-  @Ignore("Disabled until preview 2")
   @Test
   public void testEditManifest() throws IOException {
     guiTest.importMultiModule();
@@ -72,13 +67,11 @@ public class ManifestEditorTest {
     MergedManifestFixture mergedManifestFixture = editor.getMergedManifestEditor();
     JTreeFixture tree = mergedManifestFixture.getTree();
     mergedManifestFixture.checkAllRowsColored();
-    mergedManifestFixture.getInfoPane().requireText("<html>\n" +
-                                                    "  <head>\n" +
-                                                    "    \n" +
-                                                    "  </head>\n" +
-                                                    "  <body>\n" +
-                                                    "  </body>\n" +
-                                                    "</html>\n");
+    mergedManifestFixture.requireText("Manifest Sources \n" +
+                                      "\n" +
+                                      "app main manifest (this file)\n" +
+                                      "\n" +
+                                      "library manifest", false);
     editor.selectEditorTab(EditorFixture.Tab.EDITOR);
     editor.moveTo(editor.findOffset("<application", null, true));
     editor.enterText(" android:isGame=\"true\"");
@@ -88,7 +81,6 @@ public class ManifestEditorTest {
     assertEquals("android:isGame = true", tree.valueAt(tree.target().getLeadSelectionRow()));
   }
 
-  @Ignore("Disabled until preview 2")
   @Test
   public void testNonPrimaryManifest() throws IOException {
     guiTest.importProjectAndWaitForProjectSyncToFinish("Flavoredapp");
@@ -98,32 +90,56 @@ public class ManifestEditorTest {
     editor.open("src/main/AndroidManifest.xml");
     editor.selectEditorTab(EditorFixture.Tab.MERGED_MANIFEST);
     MergedManifestFixture mergedManifestFixture = editor.getMergedManifestEditor();
+
+    Color defaultBackgroundColor = mergedManifestFixture.getDefaultBackgroundColor();
     mergedManifestFixture.getTree().clickRow(1);
-    assertEquals(CURRENT_MANIFEST_COLOR, mergedManifestFixture.getSelectedNodeColor());
+    assertEquals(defaultBackgroundColor, mergedManifestFixture.getSelectedNodeColor());
+    mergedManifestFixture.getTree().clickRow(2);
+
+    mergedManifestFixture.requireText(
+      "Manifest Sources \n" +
+      "\n" +
+      "main manifest (this file)\n" +
+      "\n" +
+      "play-services-base:7.3.0 manifest\n" +
+      " Other Manifest Files (Included in merge, but did not contribute any elements)\n" +
+      "debug manifest, flavor1 manifest, support-v13:22.1.1 manifest, support-v4:22.1.1\n" +
+      "manifest, play-services-ads:7.3.0 manifest, play-services-analytics:7.3.0\n" +
+      "manifest, play-services-appindexing:7.3.0 manifest,\n" +
+      "play-services-appinvite:7.3.0 manifest, play-services-appstate:7.3.0 manifest,\n" +
+      "play-services-cast:7.3.0 manifest, play-services-drive:7.3.0 manifest,\n" +
+      "play-services-fitness:7.3.0 manifest, play-services-games:7.3.0 manifest,\n" +
+      "play-services-gcm:7.3.0 manifest, play-services-identity:7.3.0 manifest,\n" +
+      "play-services-location:7.3.0 manifest, play-services-maps:7.3.0 manifest,\n" +
+      "play-services-nearby:7.3.0 manifest, play-services-panorama:7.3.0 manifest,\n" +
+      "play-services-plus:7.3.0 manifest, play-services-safetynet:7.3.0 manifest,\n" +
+      "play-services-wallet:7.3.0 manifest, play-services-wearable:7.3.0 manifest,\n" +
+      "play-services:7.3.0 manifest  Merging Log Value provided by Gradle Added from\n" +
+      "the main manifest (this file), line 1 Value provided by Gradle\n", true);
+
 
     editor.open("src/debug/AndroidManifest.xml");
     editor.selectEditorTab(EditorFixture.Tab.MERGED_MANIFEST);
     mergedManifestFixture = editor.getMergedManifestEditor();
     mergedManifestFixture.getTree().clickRow(1);
-    assertNotEquals(CURRENT_MANIFEST_COLOR, mergedManifestFixture.getSelectedNodeColor());
+    assertNotEquals(defaultBackgroundColor, mergedManifestFixture.getSelectedNodeColor());
 
     editor.open("src/flavor1/AndroidManifest.xml");
     editor.selectEditorTab(EditorFixture.Tab.MERGED_MANIFEST);
     mergedManifestFixture = editor.getMergedManifestEditor();
     mergedManifestFixture.getTree().clickRow(1);
-    assertNotEquals(CURRENT_MANIFEST_COLOR, mergedManifestFixture.getSelectedNodeColor());
+    assertNotEquals(defaultBackgroundColor, mergedManifestFixture.getSelectedNodeColor());
   }
 
-  @Ignore("Disabled until preview 2")
   @Test
   public void testRemoveFromManifest() throws IOException {
     guiTest.importMultiModule();
     IdeFrameFixture projectFrame = guiTest.ideFrame();
     EditorFixture editor = projectFrame.getEditor();
     editor.open("app/src/main/AndroidManifest.xml");
-    String addedText = "<activity\n" +
+    String addedText = "        <activity\n" +
                        "            android:name=\"com.android.mylibrary.MainActivity\"\n" +
-                       "            tools:node=\"remove\" />";
+                       "            tools:remove=\"android:label\" />\n";
     assertThat(editor.getCurrentFileContents()).doesNotContain(addedText);
     editor.selectEditorTab(EditorFixture.Tab.MERGED_MANIFEST);
     MergedManifestFixture mergedManifestFixture = editor.getMergedManifestEditor();

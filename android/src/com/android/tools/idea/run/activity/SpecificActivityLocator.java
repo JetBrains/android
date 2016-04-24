@@ -26,15 +26,13 @@ import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.ProjectScope;
-import org.jetbrains.android.dom.AndroidDomUtil;
-import org.jetbrains.android.dom.manifest.Activity;
-import org.jetbrains.android.dom.manifest.ActivityAlias;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.Element;
 
 import java.util.List;
 
@@ -73,12 +71,12 @@ public class SpecificActivityLocator extends ActivityLocator {
     PsiClass c = JavaExecutionUtil.findMainClass(project, myActivityName, GlobalSearchScope.projectScope(project));
 
     if (c == null || !c.isInheritor(activityClass, true)) {
-      final ActivityAlias activityAlias = findActivityAlias(myFacet, myActivityName);
+      final Element activityAlias = findActivityAlias(myFacet, myActivityName);
       if (activityAlias == null) {
         throw new ActivityLocatorException(AndroidBundle.message("not.activity.subclass.error", myActivityName));
       }
 
-      if (!ActivityLocatorUtils.containsLauncherIntent(activityAlias.getIntentFilters())) {
+      if (!ActivityLocatorUtils.containsLauncherIntent(DefaultActivityLocator.ActivityWrapper.get(activityAlias))) {
         throw new ActivityLocatorException(AndroidBundle.message("activity.not.launchable.error", AndroidUtils.LAUNCH_ACTION_NAME));
       }
 
@@ -91,21 +89,21 @@ public class SpecificActivityLocator extends ActivityLocator {
     }
 
     // check whether activity is declared in the manifest
-    List<Activity> activities = MergedManifest.get(module).getActivities();
-    Activity activity = AndroidDomUtil.getActivityDomElementByClass(activities, c);
+    String qualifiedName = ActivityLocatorUtils.getQualifiedActivityName(c);
+    Element activity = MergedManifest.get(module).findActivity(qualifiedName, false);
     if (activity == null) {
       throw new ActivityLocatorException(AndroidBundle.message("activity.not.declared.in.manifest", c.getName()));
     }
   }
 
   @Nullable
-  private static ActivityAlias findActivityAlias(@NotNull AndroidFacet facet, @NotNull final String qualifiedName) {
-    final List<ActivityAlias> aliases = MergedManifest.get(facet).getActivityAliases();
+  private static Element findActivityAlias(@NotNull AndroidFacet facet, @NotNull final String qualifiedName) {
+    final List<Element> aliases = MergedManifest.get(facet).getActivityAliases();
 
-    return ApplicationManager.getApplication().runReadAction(new Computable<ActivityAlias>() {
+    return ApplicationManager.getApplication().runReadAction(new Computable<Element>() {
       @Override
-      public ActivityAlias compute() {
-        for (ActivityAlias alias : aliases) {
+      public Element compute() {
+        for (Element alias : aliases) {
           if (qualifiedName.equals(ActivityLocatorUtils.getQualifiedName(alias))) {
             return alias;
           }

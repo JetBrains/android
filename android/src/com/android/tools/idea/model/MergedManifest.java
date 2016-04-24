@@ -27,30 +27,30 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.devices.Device;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
+import com.android.tools.idea.run.activity.ActivityLocatorUtils;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProcessCanceledException;
-import com.intellij.openapi.util.Computable;
-import com.intellij.psi.xml.XmlFile;
-import com.intellij.psi.xml.XmlTag;
-import com.intellij.util.Function;
-import org.jetbrains.android.dom.manifest.*;
+import com.intellij.openapi.vfs.VirtualFile;
+import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
 import java.util.*;
 
-import static com.android.SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX;
-import static com.android.SdkConstants.VALUE_TRUE;
+import static com.android.SdkConstants.*;
 import static com.android.xml.AndroidManifest.*;
 
 /**
- * To get a MergedManifest use {@link MergedManifest#get(AndroidFacet)} or {@link MergedManifest#get(Module)}
+ * To get a {@linkplain MergedManifest} use {@link MergedManifest#get(AndroidFacet)} or {@link MergedManifest#get(Module)}
  */
 public class MergedManifest {
 
@@ -68,8 +68,9 @@ public class MergedManifest {
   private String myApplicationLabel;
   private boolean myApplicationSupportsRtl;
   private Boolean myApplicationDebuggable;
-  private @Nullable("user error, no manifest file") Manifest myManifest;
   private @Nullable("is lazy initialised") Map<String, XmlNode.NodeKey> myNodeKeys;
+  private Document myDocument;
+  private List<VirtualFile> myManifestFiles;
 
   /**
    * Constructs a new MergedManifest
@@ -101,6 +102,22 @@ public class MergedManifest {
   @NotNull
   public static MergedManifest get(@NotNull AndroidFacet facet) {
     return get(facet.getModule());
+  }
+
+  @Nullable
+  public Document getDocument() {
+    sync();
+    return myDocument;
+  }
+
+  /**
+   * Returns the manifest files relevant to this merge
+   *
+   * @return the list of files that participated in the merge
+   */
+  @Nullable
+  public List<VirtualFile> getManifestFiles() {
+    return myManifestFiles;
   }
 
   /**
@@ -317,6 +334,12 @@ public class MergedManifest {
     }
   }
 
+  static String getAttributeValue(@NotNull Element element,
+                                  @Nullable String namespace,
+                                  @NotNull String localName) {
+    return Strings.emptyToNull(element.getAttributeNS(namespace, localName));
+  }
+
   private void syncWithReadPermission() {
     AndroidFacet facet = AndroidFacet.getInstance(myModule);
     assert facet != null;
@@ -343,61 +366,80 @@ public class MergedManifest {
     myApplicationLabel = null;
     myApplicationSupportsRtl = false;
     myNodeKeys = null;
+    myActivities = Lists.newArrayList();
+    myActivityAliases = Lists.newArrayListWithExpectedSize(4);
+    myServices = Lists.newArrayListWithExpectedSize(4);
 
     try {
-      XmlFile xmlFile = myManifestFile.getXmlFile();
-      if (xmlFile == null) {
+      Document document = myManifestFile.getXmlDocument();
+      if (document == null) {
         return;
       }
+      myDocument = document;
+      myManifestFiles = myManifestFile.getManifestFiles();
 
-      XmlTag root = xmlFile.getRootTag();
+      Element root = document.getDocumentElement();
       if (root == null) {
         return;
       }
 
-      myApplicationId = ManifestInfo.getAttributeValue(root, ATTRIBUTE_PACKAGE, null);
+      myApplicationId = getAttributeValue(root, null, ATTRIBUTE_PACKAGE);
 
       // The package comes from the main manifest, NOT from the merged manifest.
       Manifest manifest = facet.getManifest();
       myPackage = manifest == null ? myApplicationId : manifest.getPackage().getValue();
 
-      String versionCode = ManifestInfo.getAttributeValue(root, SdkConstants.ATTR_VERSION_CODE);
+      String versionCode = getAttributeValue(root, ANDROID_URI, SdkConstants.ATTR_VERSION_CODE);
       try {
         myVersionCode = Integer.valueOf(versionCode);
       }
       catch (NumberFormatException ignored) {}
 
-      XmlTag[] applications = root.findSubTags(NODE_APPLICATION);
-      if (applications.length > 0) {
-        assert applications.length == 1;
-        XmlTag application = applications[0];
-        myApplicationIcon = ManifestInfo.getAttributeValue(application, ATTRIBUTE_ICON);
-        myApplicationLabel = ManifestInfo.getAttributeValue(application, ATTRIBUTE_LABEL);
-        myManifestTheme = ManifestInfo.getAttributeValue(application, ATTRIBUTE_THEME);
-        myApplicationSupportsRtl = VALUE_TRUE.equals(ManifestInfo.getAttributeValue(application, ATTRIBUTE_SUPPORTS_RTL));
+      Node node = root.getFirstChild();
+      while (node != null) {
+        if (node.getNodeType() == Node.ELEMENT_NODE) {
+          String nodeName = node.getNodeName();
+          if (NODE_APPLICATION.equals(nodeName)) {
+            Element application = (Element) node;
+            myApplicationIcon = getAttributeValue(application, ANDROID_URI, ATTRIBUTE_ICON);
+            myApplicationLabel = getAttributeValue(application, ANDROID_URI, ATTRIBUTE_LABEL);
+            myManifestTheme = getAttributeValue(application, ANDROID_URI, ATTRIBUTE_THEME);
+            myApplicationSupportsRtl = VALUE_TRUE.equals(getAttributeValue(application, ANDROID_URI, ATTRIBUTE_SUPPORTS_RTL));
 
-        String debuggable = ManifestInfo.getAttributeValue(application, ATTRIBUTE_DEBUGGABLE);
-        myApplicationDebuggable = debuggable == null ? null : VALUE_TRUE.equals(debuggable);
+            String debuggable = getAttributeValue(application, ANDROID_URI, ATTRIBUTE_DEBUGGABLE);
+            myApplicationDebuggable = debuggable == null ? null : VALUE_TRUE.equals(debuggable);
 
-        XmlTag[] activities = application.findSubTags(NODE_ACTIVITY);
-        for (XmlTag activity : activities) {
-          ActivityAttributes attributes = new ActivityAttributes(activity, myApplicationId);
-          myActivityAttributesMap.put(attributes.getName(), attributes);
+            Node child = node.getFirstChild();
+            while (child != null) {
+              if (child.getNodeType() == Node.ELEMENT_NODE) {
+                String childNodeName = child.getNodeName();
+                if (NODE_ACTIVITY.equals(childNodeName)) {
+                  Element element = (Element)child;
+                  ActivityAttributes attributes = new ActivityAttributes(element, myApplicationId);
+                  myActivityAttributesMap.put(attributes.getName(), attributes);
+                  myActivities.add(element);
+                } else if (NODE_ACTIVITY_ALIAS.equals(childNodeName)) {
+                  myActivityAliases.add((Element) child);
+                } else if (NODE_SERVICE.equals(childNodeName)) {
+                  myServices.add((Element) child);
+                }
+              }
+              child = child.getNextSibling();
+            }
+          } else if (NODE_USES_SDK.equals(nodeName)) {
+            // Look up target SDK
+            Element usesSdk = (Element) node;
+            myMinSdk = getApiVersion(usesSdk, ATTRIBUTE_MIN_SDK_VERSION, AndroidVersion.DEFAULT);
+            myTargetSdk = getApiVersion(usesSdk, ATTRIBUTE_TARGET_SDK_VERSION, myMinSdk);
+          }
         }
-      }
 
-      // Look up target SDK
-      XmlTag[] usesSdks = root.findSubTags(NODE_USES_SDK);
-      if (usesSdks.length > 0) {
-        XmlTag usesSdk = usesSdks[0];
-        myMinSdk = getApiVersion(usesSdk, ATTRIBUTE_MIN_SDK_VERSION, AndroidVersion.DEFAULT);
-        myTargetSdk = getApiVersion(usesSdk, ATTRIBUTE_TARGET_SDK_VERSION, myMinSdk);
+        node = node.getNextSibling();
       }
-
-      myManifest = AndroidUtils.loadDomElementWithReadPermission(facet.getModule().getProject(), xmlFile, Manifest.class);
     }
     catch (ProcessCanceledException e) {
       myManifestFile = null; // clear the file, to make sure we reload everything on next call to this method
+      myDocument = null;
       throw e;
     }
     catch (Exception e) {
@@ -405,8 +447,8 @@ public class MergedManifest {
     }
   }
 
-  private static AndroidVersion getApiVersion(XmlTag usesSdk, String attribute, AndroidVersion defaultApiLevel) {
-    String valueString = ManifestInfo.getAttributeValue(usesSdk, attribute);
+  private static AndroidVersion getApiVersion(Element usesSdk, String attribute, AndroidVersion defaultApiLevel) {
+    String valueString = getAttributeValue(usesSdk, ANDROID_URI, attribute);
     if (valueString != null) {
       // TODO: Pass in platforms if we have them
       AndroidVersion version = SdkVersionInfo.getVersion(valueString, null);
@@ -417,76 +459,47 @@ public class MergedManifest {
     return defaultApiLevel;
   }
 
-  /**
-   * @return the list of activities defined in the manifest.
-   */
   @NotNull
-  public List<Activity> getActivities() {
-    return getApplicationComponents(new Function<Application, List<Activity>>() {
-      @Override
-      public List<Activity> fun(Application application) {
-        return application.getActivities();
-      }
-    });
+  public List<Element> getActivities() {
+    sync();
+    return myActivities;
   }
+
+  private List<Element> myActivities = Collections.emptyList();
+  private List<Element> myActivityAliases = Collections.emptyList();
+  private List<Element> myServices = Collections.emptyList();
 
   /**
    * @return the list of activity aliases defined in the manifest.
    */
   @NotNull
-  public List<ActivityAlias> getActivityAliases() {
-    return getApplicationComponents(new Function<Application, List<ActivityAlias>>() {
-      @Override
-      public List<ActivityAlias> fun(Application application) {
-        return application.getActivityAliass();
-      }
-    });
+  public List<Element> getActivityAliases() {
+    sync();
+    return myActivityAliases;
   }
 
   /**
    * @return the list of services defined in the manifest.
    */
   @NotNull
-  public List<Service> getServices() {
-    return getApplicationComponents(new Function<Application, List<Service>>() {
-      @Override
-      public List<Service> fun(Application application) {
-        return application.getServices();
-      }
-    });
+  public List<Element> getServices() {
+    return myServices;
   }
 
-  @NotNull
-  private <T> List<T> getApplicationComponents(final Function<Application, List<T>> accessor) {
-    sync();
-    return ApplicationManager.getApplication().runReadAction(new Computable<List<T>>() {
-      @Override
-      public List<T> compute() {
-        List<T> components = Lists.newArrayList();
-        if (myManifest != null) { // User error, no manifest file
-          Application application = myManifest.getApplication();
-          if (application != null) {
-            components.addAll(accessor.fun(application));
-          }
+  @Nullable
+  public Element findUsedFeature(@NotNull String name) {
+    Node node = myDocument.getDocumentElement().getFirstChild();
+    while (node != null) {
+      if (node.getNodeType() == Node.ELEMENT_NODE && NODE_USES_FEATURE.equals(node.getNodeName())) {
+        Element element = (Element)node;
+        if (name.equals(element.getAttributeNS(ANDROID_URI, ATTR_NAME))) {
+          return element;
         }
-        return components;
       }
-    });
-  }
+      node = node.getNextSibling();
+    }
 
-  @NotNull
-  public List<UsesFeature> getUsedFeatures() {
-    sync();
-    return ApplicationManager.getApplication().runReadAction(new Computable<List<UsesFeature>>() {
-      @Override
-      public List<UsesFeature> compute() {
-        List<UsesFeature> usesFeatures = Lists.newArrayList();
-        if (myManifest != null) { // User error, no manifest file
-          usesFeatures.addAll(myManifest.getUsesFeatures());
-        }
-        return usesFeatures;
-      }
-    });
+    return null;
   }
 
   @NotNull
@@ -499,12 +512,6 @@ public class MergedManifest {
   public Actions getActions() {
     sync();
     return myManifestFile == null ? null : myManifestFile.getActions();
-  }
-
-  @Nullable
-  public XmlTag getXmlTag() {
-    sync();
-    return myManifest == null ? null : myManifest.getXmlTag();
   }
 
   @Nullable("can not find a node key with that name")
@@ -524,7 +531,31 @@ public class MergedManifest {
     return myNodeKeys.get(name);
   }
 
+  @Nullable
+  public Element findActivity(@Nullable String qualifiedName, boolean includeAliases) {
+    sync();
+    if (qualifiedName != null) {
+      if (myActivities != null) {
+        for (Element activity : myActivities) {
+          if (qualifiedName.equals(ActivityLocatorUtils.getQualifiedName(activity))) {
+            return activity;
+          }
+        }
+      }
+      if (includeAliases && myActivityAliases != null) {
+        for (Element activity : myActivityAliases) {
+          if (qualifiedName.equals(ActivityLocatorUtils.getQualifiedName(activity))) {
+            return activity;
+          }
+        }
+      }
+    }
+
+    return null;
+  }
+
   public static class ActivityAttributes {
+    @NotNull private final Element myElement;
     @Nullable private final String myIcon;
     @Nullable private final String myLabel;
     @NotNull private final String myName;
@@ -532,9 +563,11 @@ public class MergedManifest {
     @Nullable private final String myTheme;
     @Nullable private final String myUiOptions;
 
-    public ActivityAttributes(@NotNull XmlTag activity, @Nullable String packageName) {
+    public ActivityAttributes(@NotNull Element activity, @Nullable String packageName) {
+      myElement = activity;
+
       // Get activity name.
-      String name = ManifestInfo.getAttributeValue(activity, ATTRIBUTE_NAME);
+      String name = getAttributeValue(activity, ANDROID_URI, ATTRIBUTE_NAME);
       if (name == null || name.length() == 0) {
         throw new RuntimeException("Activity name cannot be empty.");
       }
@@ -545,7 +578,7 @@ public class MergedManifest {
       myName = name;
 
       // Get activity icon.
-      String value = ManifestInfo.getAttributeValue(activity, ATTRIBUTE_ICON);
+      String value = getAttributeValue(activity, ANDROID_URI, ATTRIBUTE_ICON);
       if (value != null && value.length() > 0) {
         myIcon = value;
       }
@@ -554,7 +587,7 @@ public class MergedManifest {
       }
 
       // Get activity label.
-      value = ManifestInfo.getAttributeValue(activity, ATTRIBUTE_LABEL);
+      value = getAttributeValue(activity, ANDROID_URI, ATTRIBUTE_LABEL);
       if (value != null && value.length() > 0) {
         myLabel = value;
       }
@@ -563,22 +596,26 @@ public class MergedManifest {
       }
 
       // Get activity parent. Also search the meta-data for parent info.
-      value = ManifestInfo.getAttributeValue(activity, ATTRIBUTE_PARENT_ACTIVITY_NAME);
+      value = getAttributeValue(activity, ANDROID_URI, ATTRIBUTE_PARENT_ACTIVITY_NAME);
       if (value == null || value.length() == 0) {
+        Node child = activity.getFirstChild();
         // TODO: Not sure if meta data can be used for API Level > 16
-        XmlTag[] metaData = activity.findSubTags(NODE_METADATA);
-        for (XmlTag data : metaData) {
-          String metaDataName = ManifestInfo.getAttributeValue(data, ATTRIBUTE_NAME);
-          if (VALUE_PARENT_ACTIVITY.equals(metaDataName)) {
-            value = ManifestInfo.getAttributeValue(activity, ATTRIBUTE_VALUE);
-            if (value != null) {
-              index = value.indexOf('.');
-              if (index <= 0 && packageName != null && !packageName.isEmpty()) {
-                value = packageName + (index == -1 ? "." : "") + value;
-                break;
+        while (child != null) {
+          if (child.getNodeType() == Node.ELEMENT_NODE && child.getNodeName().equals(NODE_METADATA)) {
+            String metaDataName = getAttributeValue((Element)child, ANDROID_URI, ATTRIBUTE_NAME);
+            if (VALUE_PARENT_ACTIVITY.equals(metaDataName)) {
+              value = getAttributeValue(activity, ANDROID_URI, ATTRIBUTE_VALUE);
+              if (value != null) {
+                index = value.indexOf('.');
+                if (index <= 0 && packageName != null && !packageName.isEmpty()) {
+                  value = packageName + (index == -1 ? "." : "") + value;
+                  break;
+                }
               }
             }
+
           }
+          child = child.getNextSibling();
         }
       }
       if (value != null && value.length() > 0) {
@@ -589,7 +626,7 @@ public class MergedManifest {
       }
 
       // Get activity theme.
-      value = ManifestInfo.getAttributeValue(activity, ATTRIBUTE_THEME);
+      value = getAttributeValue(activity, ANDROID_URI, ATTRIBUTE_THEME);
       if (value != null && value.length() > 0) {
         myTheme = value;
       }
@@ -598,13 +635,18 @@ public class MergedManifest {
       }
 
       // Get UI options.
-      value = ManifestInfo.getAttributeValue(activity, ATTRIBUTE_UI_OPTIONS);
+      value = getAttributeValue(activity, ANDROID_URI, ATTRIBUTE_UI_OPTIONS);
       if (value != null && value.length() > 0) {
         myUiOptions = value;
       }
       else {
         myUiOptions = null;
       }
+    }
+
+    @NotNull
+    public Element getElement() {
+      return myElement;
     }
 
     @Nullable

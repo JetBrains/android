@@ -94,14 +94,12 @@ public class Analyser {
   private static Set<String> getActivitiesFromManifestFile(Module module) {
     Set<String> result = new HashSet<String>();
     MergedManifest manifestInfo = MergedManifest.get(module);
-    String packageName = manifestInfo.getPackage();
-    List<Activity> activities = manifestInfo.getActivities();
-    for (Activity activity : activities) {
-      AndroidAttributeValue<PsiClass> activityClass = activity.getActivityClass();
-      String className = activityClass.getRawText();
-      String qualifiedName = qualifyClassNameIfNecessary(packageName, className);
-      result.add(qualifiedName);
+    assert false;
+    /* No longer used
+    for (MergedManifest.ActivityAttributes activity : manifestInfo.getActivities()) {
+      result.add(activity.getName());
     }
+    */
     return result;
   }
 
