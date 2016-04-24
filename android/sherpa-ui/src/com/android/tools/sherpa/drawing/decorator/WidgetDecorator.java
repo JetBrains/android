@@ -589,7 +589,6 @@ public class WidgetDecorator {
                 }
                 if (anchor.isConnected()) {
                     ConstraintAnchor target = anchor.getTarget();
-                    ConstraintAnchor opposite = anchor.getOpposite();
                     if (target.getOwner().getVisibility() == ConstraintWidget.GONE) {
                         continue;
                     }
@@ -603,25 +602,7 @@ public class WidgetDecorator {
                     } else {
                         g.setColor(currentColor);
                     }
-                    if (opposite != null && opposite.isConnected()) {
-                        startHandle.drawConnection(transform, g, mColorSet, mIsSelected);
-                    } else {
-                        ConstraintHandle endHandle =
-                                WidgetInteractionTargets.constraintHandle(target);
-                        if (startHandle == null || endHandle == null) {
-                            continue;
-                        }
-                        ConnectionDraw.drawConnection(transform, g, startHandle, endHandle,
-                                mIsSelected, mShowPercentIndicator, mIsSelected);
-                    }
-                } else if (mIsSelected) {
-                    ConstraintHandle startHandle =
-                            WidgetInteractionTargets.constraintHandle(anchor);
-                    if (startHandle == null) {
-                        continue;
-                    }
-                    ConnectionDraw.drawConnection(transform, g, startHandle, null,
-                            mIsSelected, mShowPercentIndicator, mIsSelected);
+                    startHandle.drawConnection(transform, g, mColorSet, mIsSelected);
                 }
             }
             g.setStroke(SnapDraw.sNormalStroke);

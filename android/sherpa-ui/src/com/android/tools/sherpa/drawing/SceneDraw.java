@@ -109,6 +109,7 @@ public class SceneDraw {
 
     /**
      * Set a repaintable object
+     *
      * @param repaintableSurface
      */
     public void setRepaintableSurface(Repaintable repaintableSurface) {
@@ -120,7 +121,7 @@ public class SceneDraw {
      */
     public void repaint() {
         if (mRepaintableSurface != null) {
-            mRepaintableSurface.repaint();;
+            mRepaintableSurface.repaint();
         }
     }
 
@@ -365,8 +366,10 @@ public class SceneDraw {
             int hr = transform.getSwingDimension(container.getDrawHeight());
             if (mDrawOutsideShade && mColorSet.drawBackground()) {
                 g.setColor(mColorSet.getSubduedBackground());
-                g.fillRect((int) transform.getTranslateX(), (int) transform.getTranslateY(), mViewWidth, yr);
-                g.fillRect((int) transform.getTranslateX(), yr + hr, mViewWidth, mViewHeight - yr - hr);
+                g.fillRect((int) transform.getTranslateX(), (int) transform.getTranslateY(),
+                        mViewWidth, yr);
+                g.fillRect((int) transform.getTranslateX(), yr + hr, mViewWidth,
+                        mViewHeight - yr - hr);
                 g.fillRect((int) transform.getTranslateX(), yr, xr, hr);
                 g.fillRect(wr + xr, yr, mViewWidth - xr - wr, hr);
                 g.setStroke(SnapDraw.sLongDashedStroke);
@@ -464,7 +467,8 @@ public class SceneDraw {
         for (ConstraintWidget widget : mWidgetsScene.getWidgets()) {
             WidgetCompanion widgetCompanion = (WidgetCompanion) widget.getCompanionWidget();
             WidgetDecorator decorator = widgetCompanion.getWidgetDecorator(myCurrentStyle);
-            WidgetInteractionTargets widgetInteraction = widgetCompanion.getWidgetInteractionTargets();
+            WidgetInteractionTargets widgetInteraction =
+                    widgetCompanion.getWidgetInteractionTargets();
             widgetInteraction.updatePosition(transform);
             decorator.setColorSet(mColorSet);
             if (mSelection.contains(widget)) {
@@ -527,21 +531,9 @@ public class SceneDraw {
             ConstraintAnchor anchor = mSelection.getConnectionCandidateAnchor();
             ConstraintHandle selectedHandle =
                     WidgetInteractionTargets.constraintHandle(selectedAnchor);
-            if (anchor != null
-                    && anchor != selectedAnchor
-                    && selectedAnchor.isValidConnection(anchor)
-                    && selectedAnchor.isConnectionAllowed(anchor.getOwner())) {
-                g.setColor(mColorSet.getSelectedConstraints());
-                ConstraintHandle targetHandle = WidgetInteractionTargets.constraintHandle(anchor);
-                ConnectionDraw
-                        .drawConnection(transform, g, selectedHandle, targetHandle, true, false,
-                                true);
-            } else {
-                g.setColor(mColorSet.getHighlightedConstraints());
-                ConnectionDraw
-                        .drawConnection(transform, g, selectedHandle,
-                                mouseInteraction.getLastPoint());
-            }
+            g.setColor(mColorSet.getHighlightedConstraints());
+            selectedHandle
+                    .drawConnection(transform, g, mColorSet, true, mouseInteraction.getLastPoint());
         }
 
         if (selectedResizeHandle != null) {
