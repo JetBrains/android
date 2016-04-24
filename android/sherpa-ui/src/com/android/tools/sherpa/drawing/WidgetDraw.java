@@ -179,14 +179,7 @@ public class WidgetDraw {
                     .getSwingY(
                             WidgetInteractionTargets.constraintHandle(
                                     widget.getAnchor(ConstraintAnchor.Type.BASELINE)).getDrawY());
-            if (!isSelected) {
-                Stroke previousStroke = g.getStroke();
-                g.setStroke(ConnectionDraw.sDashedStroke);
-                g.drawLine(l, baselineY, r, baselineY);
-                g.setStroke(previousStroke);
-            } else {
-                g.drawLine(l, baselineY, r, baselineY);
-            }
+            g.drawLine(l, baselineY, r, baselineY);
         }
 
         // Now, let's draw the widget's frame
@@ -205,6 +198,10 @@ public class WidgetDraw {
         if (!widget.isRoot() && (horizontalSpring || verticalSpring)) {
             int x = l;
             int y = t;
+            Stroke previousStroke = g.getStroke();
+            if (baselineAnchorIsConnected) {
+                g2.setStroke(ConnectionDraw.sDashedStroke);
+            }
             if (horizontalSpring) {
                 if (showTopAnchor) {
                     drawHorizontalZigZagLine(g2, l, midX - radius, t, ZIGZAG, 0);
@@ -222,6 +219,7 @@ public class WidgetDraw {
                 g2.drawLine(x, y, x + w, y);
                 g2.drawLine(x, y + h, x + w, y + h);
             }
+            g2.setStroke(previousStroke);
 
             if (verticalSpring) {
                 if (showLeftAnchor) {
@@ -241,23 +239,28 @@ public class WidgetDraw {
                 g2.drawLine(x + w, y, x + w, y + h);
             }
         } else {
+            Stroke previousStroke = g.getStroke();
+            if (baselineAnchorIsConnected) {
+                g2.setStroke(ConnectionDraw.sDashedStroke);
+            }
             if (showTopAnchor) {
                 g2.drawLine(l, t, midX - radius, t);
                 g2.drawLine(midX + radius, t, r, t);
             } else {
                 g2.drawLine(l, t, r, t);
             }
-            if (showLeftAnchor) {
-                g2.drawLine(l, t, l, midY - radius);
-                g2.drawLine(l, midY + radius, l, b);
-            } else {
-                g2.drawLine(l, t, l, b);
-            }
             if (showBottomAnchor) {
                 g2.drawLine(l, b, midX - radius, b);
                 g2.drawLine(midX + radius, b, r, b);
             } else {
                 g2.drawLine(l, b, r, b);
+            }
+            g2.setStroke(previousStroke);
+            if (showLeftAnchor) {
+                g2.drawLine(l, t, l, midY - radius);
+                g2.drawLine(l, midY + radius, l, b);
+            } else {
+                g2.drawLine(l, t, l, b);
             }
             if (showRightAnchor) {
                 g2.drawLine(r, t, r, midY - radius);

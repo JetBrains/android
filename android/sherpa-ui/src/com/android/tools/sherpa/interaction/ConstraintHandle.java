@@ -28,6 +28,7 @@ import com.google.tnt.solver.widgets.Guideline;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.Point;
 import java.awt.Stroke;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Path2D;
@@ -476,11 +477,14 @@ public class ConstraintHandle {
 
         ConstraintWidget targetWidget = mAnchor.getTarget().getOwner();
         WidgetCompanion targetCompanion = (WidgetCompanion) targetWidget.getCompanionWidget();
+        if (targetCompanion == null) {
+            return;
+        }
         WidgetInteractionTargets interactionTargets =
                 targetCompanion.getWidgetInteractionTargets();
         ConstraintHandle targetHandle = interactionTargets.getConstraintHandle(mAnchor.getTarget());
 
-        if (mAnchor.getOpposite().isConnected()) {
+        if (mAnchor.getOpposite() != null && mAnchor.getOpposite().isConnected()) {
             // Draw centered connections
             if (mAnchor.getOpposite().getTarget() == mAnchor.getTarget()) {
                 // Center connection on same anchor
@@ -499,7 +503,15 @@ public class ConstraintHandle {
                         targetWidget);
             }
         } else {
-            // TODO: add the other connections here, deprecating ConnectionDraw
+            if (mAnchor.isConnected() && mAnchor.getTarget().getOwner() == getOwner().getParent()) {
+                // If the connection points to our parent, draw the connection in the same manner
+                // as a centered connection (straight lines)
+                addPathCenteredConnection(transform, g, isSelected, path, colorSet, targetHandle,
+                        targetWidget);
+            } else {
+                addPathConnection(transform, g, isSelected, true, path, colorSet,
+                        targetHandle.getDrawX(), targetHandle.getDrawY());
+            }
         }
 
         boolean drawShadow = isSelected
@@ -514,6 +526,255 @@ public class ConstraintHandle {
             g.setStroke(s);
         }
         g.draw(path);
+    }
+
+    /**
+     * Draw a connection from an anchor to a given position
+     *
+     * @param transform  the view transform
+     * @param g          the graphics context
+     * @param colorSet   the current colorset
+     * @param isSelected if the connection is selected
+     * @param target     the geometry point the connection should point to
+     */
+    public void drawConnection(ViewTransform transform, Graphics2D g, ColorSet colorSet,
+            boolean isSelected,
+            Point target) {
+
+        Path2D.Float path = new Path2D.Float();
+        addPathConnection(transform, g, isSelected, false, path, colorSet,
+                (int) target.getX(), (int) target.getY());
+
+        boolean drawShadow = isSelected
+                && mAnchor.getConnectionCreator() != ConstraintAnchor.AUTO_CONSTRAINT_CREATOR;
+        if (drawShadow) {
+            Color pre = g.getColor();
+            Stroke s = g.getStroke();
+            g.setColor(sShadowColor);
+            g.setStroke(sShadowStroke);
+            g.draw(path);
+            g.setColor(pre);
+            g.setStroke(s);
+        }
+        g.draw(path);
+    }
+
+    /**
+     * Add to a given path to represent a single connection
+     *
+     * @param transform  the view transform
+     * @param g          the graphics context
+     * @param isSelected if the connection is selected
+     * @param showMargin
+     * @param path       the path to add to
+     * @param colorSet   the current colorset
+     */
+    private void addPathConnection(ViewTransform transform, Graphics2D g,
+            boolean isSelected,
+            boolean showMargin, Path2D.Float path, ColorSet colorSet, int targetX,
+            int targetY) {
+
+        int radius = 4;
+        int sradius = transform.getSwingDimension(radius);
+        int scurvature = transform.getSwingDimension(2);
+        int scurvature2 = transform.getSwingDimension(3);
+        int marginLineOffset = transform.getSwingDimension(16);
+        boolean isVertical = mAnchor.isVerticalAnchor();
+        int x0 = transform.getSwingFX(mX);
+        int y0 = transform.getSwingFY(mY);
+        int x1 = transform.getSwingFX(targetX);
+        int y1 = transform.getSwingFY(targetY);
+        path.moveTo(x0, y0);
+        int distanceX = Math.abs(targetX - mX);
+        int distanceY = Math.abs(targetY - mY);
+        int distance = (int) Math.sqrt(distanceX * distanceX + distanceY * distanceY);
+        int maxDistance = Math.min(24 + (int) (0.1f * distance), 64);
+        maxDistance = distance > maxDistance ? maxDistance : distance;
+        int controlDistance = transform.getSwingDimension(maxDistance);
+        if (isVertical) {
+            boolean isTopConnection = mAnchor.getType() == ConstraintAnchor.Type.TOP;
+            if (isTopConnection) {
+                controlDistance = -controlDistance;
+            }
+            if (mAnchor.getTarget() != null
+                    && mAnchor.getType() == mAnchor.getTarget().getType()
+                    && mAnchor.getType() != ConstraintAnchor.Type.BASELINE
+                    && mAnchor.getMargin() == 0) {
+                int base = y0 - sradius - ConnectionDraw.ARROW_SIDE;
+                if (!isTopConnection) {
+                    base = y0 + sradius + ConnectionDraw.ARROW_SIDE;
+                }
+                if (x0 > x1) {
+                    sradius = -sradius;
+                }
+                addQuarterArc(path, x0, y0, x0 + sradius, base, scurvature, true);
+                path.lineTo(x1 - 2 * sradius, base);
+                int yt = y1 - ConnectionDraw.ARROW_SIDE;
+                if (!isTopConnection) {
+                    yt = y1 + ConnectionDraw.ARROW_SIDE;
+                }
+                addQuarterArc(path, x1 - 2 * sradius, base, x1, yt, scurvature2, false);
+                if (isTopConnection) {
+                    ConnectionDraw.drawArrow(g, ConnectionDraw.getBottomArrow(), x1, y1);
+                } else {
+                    ConnectionDraw.drawArrow(g, ConnectionDraw.getTopArrow(), x1, y1);
+                }
+            } else {
+                if (mAnchor.getType() == ConstraintAnchor.Type.BASELINE) {
+                    // In case of baseline connections, we don't want to connect directly from the
+                    // center of the widget (where the baseline anchor (mX, mY) is, so we offset a little
+                    int offset1 =
+                            (int) (transform.getSwingDimension(mAnchor.getOwner().getDrawWidth()) *
+                                    0.2f);
+                    int offset2 = (int) (transform
+                            .getSwingDimension(mAnchor.getTarget().getOwner().getDrawWidth()) *
+                            0.2f);
+                    if (x0 < y1) {
+                        x0 += offset1;
+                        x1 -= offset2;
+                    } else {
+                        x0 -= offset1;
+                        x1 += offset2;
+                    }
+                    path.moveTo(x0, y0);
+                }
+                int cx1 = x0;
+                int cy1 = y0 + controlDistance;
+                int cx2 = x1;
+                int cy2 = y1 - controlDistance;
+                int yt = y1 + ConnectionDraw.ARROW_SIDE;
+                if (!isTopConnection) {
+                    yt = y1 - ConnectionDraw.ARROW_SIDE;
+                }
+                path.curveTo(cx1, cy1, cx2, cy2, x1, yt);
+                if (!isTopConnection) {
+                    ConnectionDraw.drawArrow(g, ConnectionDraw.getBottomArrow(), x1, y1);
+                } else {
+                    ConnectionDraw.drawArrow(g, ConnectionDraw.getTopArrow(), x1, y1);
+                }
+            }
+            if (isSelected && mAnchor.getMargin() > 0 && showMargin) {
+                Color pre = g.getColor();
+                g.setColor(colorSet.getMargins());
+
+                // We may want to position the margin draw a little offset to the center,
+                // depending on the direction of the other connections
+                int marginPosition = x0;
+                ConstraintAnchor left = getOwner().getAnchor(ConstraintAnchor.Type.LEFT);
+                ConstraintAnchor right = getOwner().getAnchor(ConstraintAnchor.Type.RIGHT);
+                boolean centerConnectionAnchor = (left != null
+                        && right != null
+                        && left.isConnected()
+                        && left.getTarget() == right.getTarget());
+                boolean drawMarginToTheRight = x0 > x1;
+                if (centerConnectionAnchor) {
+                    if (left.getTarget().getType() == ConstraintAnchor.Type.LEFT) {
+                        drawMarginToTheRight = true;
+                    } else {
+                        drawMarginToTheRight = false;
+                    }
+                }
+                if (drawMarginToTheRight) {
+                    marginPosition = x0 + marginLineOffset;
+                } else {
+                    marginPosition = x0 - marginLineOffset;
+                }
+
+                ConnectionDraw.drawVerticalMarginIndicator(g, "" + mAnchor.getMargin(),
+                        marginPosition, y0, y1);
+                Stroke pres = g.getStroke();
+                g.setStroke(ConnectionDraw.sDashedStroke);
+                if (x0 > x1) {
+                    g.drawLine(marginPosition + marginLineOffset, y1, x1, y1);
+                } else {
+                    g.drawLine(marginPosition - marginLineOffset, y1, x1, y1);
+                }
+                g.setColor(pre);
+                g.setStroke(pres);
+            }
+        } else {
+            boolean isLeftConnection = mAnchor.getType() == ConstraintAnchor.Type.LEFT;
+            if (isLeftConnection) {
+                controlDistance = -controlDistance;
+            }
+            if (mAnchor.getTarget() != null
+                    && mAnchor.getType() == mAnchor.getTarget().getType()
+                    & mAnchor.getMargin() == 0) {
+                int base = x0 - sradius - ConnectionDraw.ARROW_SIDE;
+                if (!isLeftConnection) {
+                    base = x0 + sradius + ConnectionDraw.ARROW_SIDE;
+                }
+                if (y0 > y1) {
+                    sradius = -sradius;
+                }
+                addQuarterArc(path, x0, y0, base, y0 + sradius, scurvature, false);
+                path.lineTo(base, y1 - 2 * sradius);
+                int xt = x1 - ConnectionDraw.ARROW_SIDE;
+                if (!isLeftConnection) {
+                    xt = x1 + ConnectionDraw.ARROW_SIDE;
+                }
+                addQuarterArc(path, base, y1 - 2 * sradius, xt, y1, scurvature2, true);
+                if (isLeftConnection) {
+                    ConnectionDraw.drawArrow(g, ConnectionDraw.getRightArrow(), x1, y1);
+                } else {
+                    ConnectionDraw.drawArrow(g, ConnectionDraw.getLeftArrow(), x1, y1);
+                }
+            } else {
+                int cx1 = x0 + controlDistance;
+                int cy1 = y0;
+                int cx2 = x1 - controlDistance;
+                int cy2 = y1;
+                int xt = x1 + ConnectionDraw.ARROW_SIDE;
+                if (!isLeftConnection) {
+                    xt = x1 - ConnectionDraw.ARROW_SIDE;
+                }
+                path.curveTo(cx1, cy1, cx2, cy2, xt, y1);
+                if (!isLeftConnection) {
+                    ConnectionDraw.drawArrow(g, ConnectionDraw.getRightArrow(), x1, y1);
+                } else {
+                    ConnectionDraw.drawArrow(g, ConnectionDraw.getLeftArrow(), x1, y1);
+                }
+            }
+            if (isSelected && mAnchor.getMargin() > 0 && showMargin) {
+                Color pre = g.getColor();
+                g.setColor(colorSet.getMargins());
+
+                // We may want to position the margin draw a little offset to the center,
+                // depending on the direction of the other connections
+                int marginPosition = y0;
+                ConstraintAnchor top = getOwner().getAnchor(ConstraintAnchor.Type.TOP);
+                ConstraintAnchor bottom = getOwner().getAnchor(ConstraintAnchor.Type.BOTTOM);
+                boolean centerConnectionAnchor = (top != null
+                        && bottom != null
+                        && top.isConnected()
+                        && top.getTarget() == bottom.getTarget());
+                boolean drawMarginToTheBottom = y0 > y1;
+                if (centerConnectionAnchor) {
+                    if (top.getTarget().getType() == ConstraintAnchor.Type.TOP) {
+                        drawMarginToTheBottom = true;
+                    } else {
+                        drawMarginToTheBottom = false;
+                    }
+                }
+                if (drawMarginToTheBottom) {
+                    marginPosition = y0 + marginLineOffset;
+                } else {
+                    marginPosition = y0 - marginLineOffset;
+                }
+
+                ConnectionDraw.drawHorizontalMarginIndicator(g, "" + mAnchor.getMargin(),
+                        x0, x1, marginPosition);
+                Stroke pres = g.getStroke();
+                g.setStroke(ConnectionDraw.sDashedStroke);
+                if (y0 > y1) {
+                    g.drawLine(x1, y0 + marginLineOffset, x1, y1);
+                } else {
+                    g.drawLine(x1, y0 - marginLineOffset, x1, y1);
+                }
+                g.setColor(pre);
+                g.setStroke(pres);
+            }
+        }
     }
 
     /**
@@ -535,7 +796,7 @@ public class ConstraintHandle {
         int x0 = transform.getSwingFX(mX);
         int y0 = transform.getSwingFY(mY);
         int x1 = transform.getSwingFX(targetHandle.getDrawX());
-        int y1 = transform.getSwingFX(targetHandle.getDrawY());
+        int y1 = transform.getSwingFY(targetHandle.getDrawY());
         path.moveTo(x0, y0);
         if (isVertical) {
             boolean isTopConnection = targetHandle.getDrawY() < getDrawY();
@@ -1224,4 +1485,5 @@ public class ConstraintHandle {
         }
         path.curveTo(cx1, cy1, cx2, cy2, x2, y2);
     }
+
 }
