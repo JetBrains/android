@@ -28,6 +28,7 @@ public class ColorSet {
     protected boolean mDrawBackground = true;
     protected boolean mDrawWidgetInfos = true;
     protected boolean mUseTooltips = true;
+    protected boolean mAlwaysShowMargins = false;
 
     protected Color mBackground;
     protected Color mFrames;
@@ -160,6 +161,10 @@ public class ColorSet {
     public boolean useTooltips() { return mUseTooltips; }
 
     public void setUseTooltips(boolean value) { mUseTooltips = value; }
+
+    public boolean alwaysShowMargins() { return mAlwaysShowMargins; }
+
+    public void setAlwaysShowMargins(boolean value) { mAlwaysShowMargins = value; }
 
     public Color getTooltipBackground() {
         return mTooltipBackground;
