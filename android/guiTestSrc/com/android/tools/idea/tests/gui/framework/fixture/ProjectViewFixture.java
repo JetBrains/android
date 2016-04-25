@@ -27,18 +27,16 @@ import com.intellij.ide.projectView.impl.nodes.NamedLibraryElement;
 import com.intellij.ide.projectView.impl.nodes.NamedLibraryElementNode;
 import com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode;
 import com.intellij.ide.util.treeView.AbstractTreeStructure;
-import com.intellij.openapi.actionSystem.KeyboardShortcut;
-import com.intellij.openapi.actionSystem.Shortcut;
-import com.intellij.openapi.keymap.Keymap;
-import com.intellij.openapi.keymap.KeymapManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.JdkOrderEntry;
 import com.intellij.openapi.roots.LibraryOrSdkOrderEntry;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.wm.impl.content.BaseLabel;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.util.ui.tree.TreeUtil;
+import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
@@ -67,7 +65,7 @@ public class ProjectViewFixture extends ToolWindowFixture {
     final ProjectView projectView = ProjectView.getInstance(myProject);
 
     if (!"ProjectView".equals(projectView.getCurrentViewId())) {
-      changePane(projectView, "Project");
+      changePane("Project");
     }
 
     return new PaneFixture(projectView.getCurrentProjectViewPane());
@@ -79,7 +77,7 @@ public class ProjectViewFixture extends ToolWindowFixture {
     final ProjectView projectView = ProjectView.getInstance(myProject);
 
     if (!"AndroidView".equals(projectView.getCurrentViewId())) {
-      changePane(projectView, "Android");
+      changePane("Android");
     }
 
     return new PaneFixture(projectView.getCurrentProjectViewPane());
@@ -97,27 +95,16 @@ public class ProjectViewFixture extends ToolWindowFixture {
     }
   }
 
-  private void changePane(@NotNull ProjectView projectView, @NotNull String paneName) {
-    Keymap keymap = KeymapManager.getInstance().getActiveKeymap();
-    Shortcut[] shortcuts = keymap.getShortcuts("ShowContent");
-    assertNotNull(shortcuts);
-    assertThat(shortcuts).isNotEmpty();
-    Shortcut shortcut = shortcuts[0];
-    assertTrue(shortcut instanceof KeyboardShortcut);
-    KeyboardShortcut cs = (KeyboardShortcut)shortcut;
+  private void changePane(@NotNull String paneName) {
+    Component projectDropDown = GuiTests.waitUntilFound(myRobot, new GenericTypeMatcher<BaseLabel>(BaseLabel.class) {
+      @Override
+      protected boolean isMatching(@NotNull BaseLabel component) {
+        return "Project:".equals(component.getText());
+      }
+    });
 
-    Component component = projectView.getCurrentProjectViewPane().getComponentToFocus();
-    myRobot.focusAndWaitForFocusGain(component);
-
-    KeyStroke firstKeyStroke = cs.getFirstKeyStroke();
-    myRobot.pressAndReleaseKey(firstKeyStroke.getKeyCode(), firstKeyStroke.getModifiers());
-
-    KeyStroke secondKeyStroke = cs.getSecondKeyStroke();
-    if (secondKeyStroke != null) {
-      myRobot.pressAndReleaseKey(secondKeyStroke.getKeyCode(), secondKeyStroke.getModifiers());
-    }
-
-    GuiTests.clickPopupMenuItem(paneName, component, myRobot);
+    myRobot.click(projectDropDown.getParent());
+    GuiTests.clickPopupMenuItem(paneName, projectDropDown, myRobot);
   }
 
   public static class PaneFixture {
