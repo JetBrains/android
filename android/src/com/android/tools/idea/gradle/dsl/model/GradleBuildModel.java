@@ -24,18 +24,23 @@ import com.android.tools.idea.gradle.dsl.model.repositories.RepositoriesModel;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslFile;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslParser;
 import com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement;
+import com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement;
 import com.android.tools.idea.gradle.dsl.parser.build.BuildScriptDslElement;
 import com.android.tools.idea.gradle.dsl.parser.build.SubProjectsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslReference;
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
 import com.android.tools.idea.gradle.dsl.parser.java.JavaDslElement;
 import com.android.tools.idea.gradle.dsl.parser.repositories.RepositoriesDslElement;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Sets;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyElementVisitor;
@@ -47,11 +52,15 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrAssign
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrMethodCallExpression;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 
 import static com.android.SdkConstants.FN_GRADLE_PROPERTIES;
 import static com.android.tools.idea.gradle.dsl.model.GradlePropertiesModel.parsePropertiesFile;
 import static com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement.ANDROID_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement.APPLY_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.build.BuildScriptDslElement.BUILDSCRIPT_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.build.SubProjectsDslElement.SUBPROJECTS_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement.DEPENDENCIES_BLOCK_NAME;
@@ -64,6 +73,10 @@ import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
 public class GradleBuildModel extends GradleFileModel {
+  @NonNls private static final String PLUGIN = "plugin";
+
+  @NotNull private List<String> myToBeAppliedPlugins = new ArrayList<>();
+
   @Nullable
   public static GradleBuildModel get(@NotNull Module module) {
     VirtualFile file = getGradleBuildFile(module);
@@ -136,6 +149,45 @@ public class GradleBuildModel extends GradleFileModel {
   }
 
   @NotNull
+  public List<String> appliedPlugins() {
+    ApplyDslElement applyDslElement = myGradleDslFile.getProperty(APPLY_BLOCK_NAME, ApplyDslElement.class);
+    if (applyDslElement == null) {
+      return ImmutableList.of();
+    }
+
+    List<String> listProperty = applyDslElement.getListProperty(PLUGIN, String.class);
+    if (listProperty == null) {
+      return ImmutableList.of();
+    }
+
+    LinkedHashSet<String> plugins = Sets.newLinkedHashSet(listProperty); // Remove duplicates and preserve the order.
+    plugins.addAll(myToBeAppliedPlugins);
+    return ImmutableList.copyOf(plugins);
+  }
+
+  @NotNull
+  public GradleBuildModel applyPlugin(String plugin) {
+    plugin = plugin.trim();
+    if(!appliedPlugins().contains(plugin)) {
+      myToBeAppliedPlugins.add(plugin);
+    }
+    return this;
+  }
+
+  @NotNull
+  public GradleBuildModel removePlugin(String plugin) {
+    plugin = plugin.trim();
+    ApplyDslElement applyDslElement = myGradleDslFile.getProperty(APPLY_BLOCK_NAME, ApplyDslElement.class);
+    if (applyDslElement != null) {
+      while (appliedPlugins().contains(plugin)) {
+        myToBeAppliedPlugins.remove(plugin);
+        applyDslElement.removeFromExpressionList(PLUGIN, plugin);
+      }
+    }
+    return this;
+  }
+
+  @NotNull
   public AndroidModel android() {
     AndroidDslElement androidDslElement = myGradleDslFile.getProperty(ANDROID_BLOCK_NAME, AndroidDslElement.class);
     if (androidDslElement == null) {
@@ -194,6 +246,26 @@ public class GradleBuildModel extends GradleFileModel {
     return new RepositoriesModel(repositoriesDslElement);
   }
 
+  @Override
+  public void resetState() {
+    myToBeAppliedPlugins.clear();
+    super.resetState();
+  }
+
+  @Override
+  public void applyChanges() {
+    // The apply plugin statements requires special handling, because we want to add a new map with same name (apply) for every plugin
+    // needs to be added.
+    for (String plugin : myToBeAppliedPlugins) {
+      GradleDslExpressionMap applyMap = new GradleDslExpressionMap(myGradleDslFile, APPLY_BLOCK_NAME);
+      applyMap.addNewLiteral(PLUGIN, plugin);
+      applyMap.create();
+      applyMap.applyChanges();
+      myGradleDslFile.addParsedElement(APPLY_BLOCK_NAME, applyMap);
+    }
+    super.applyChanges();
+  }
+
   private static class GradleBuildDslFile extends GradleDslFile {
     private GradleBuildDslFile(@NotNull VirtualFile file, @NotNull Project project, @NotNull String moduleName) {
       super(file, project, moduleName);
@@ -226,6 +298,22 @@ public class GradleBuildModel extends GradleFileModel {
           GradleDslParser.parse(e, GradleBuildDslFile.this);
         }
       }));
+    }
+
+    @Override
+    public void addParsedElement(@NotNull String property, @NotNull GradleDslElement element) {
+      if (APPLY_BLOCK_NAME.equals(property) && element instanceof GradleDslExpressionMap) {
+        ApplyDslElement applyDslElement = getProperty(APPLY_BLOCK_NAME, ApplyDslElement.class);
+        if (applyDslElement == null) {
+          applyDslElement = new ApplyDslElement(this);
+          super.addParsedElement(APPLY_BLOCK_NAME, applyDslElement);
+        }
+        for (Map.Entry<String, GradleDslElement> entry : ((GradleDslExpressionMap)element).getPropertyElements().entrySet()) {
+          applyDslElement.addParsedElement(entry.getKey(), entry.getValue());
+        }
+        return;
+      }
+      super.addParsedElement(property, element);
     }
 
     @Override

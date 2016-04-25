@@ -24,6 +24,7 @@ import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyElementVisitor;
+import org.jetbrains.plugins.groovy.lang.psi.GroovyFile;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
 import org.jetbrains.plugins.groovy.lang.psi.api.auxiliary.GrListOrMap;
@@ -158,7 +159,13 @@ public abstract class GradleDslElement {
       // Workaround to create an application statement.
       ((GrApplicationStatement)statement).getArgumentList().delete();
     }
-    PsiElement addedElement = parentPsiElement.addBefore(statement, parentPsiElement.getLastChild());
+    PsiElement addedElement;
+    if (parentPsiElement instanceof GroovyFile) {
+      addedElement = parentPsiElement.addAfter(statement, parentPsiElement.getLastChild());
+    }
+    else {
+      addedElement = parentPsiElement.addBefore(statement, parentPsiElement.getLastChild());
+    }
     if (isBlockElement()) {
       GrClosableBlock closableBlock = getClosableBlock(addedElement);
       if (closableBlock != null) {

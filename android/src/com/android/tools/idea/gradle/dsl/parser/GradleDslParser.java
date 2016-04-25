@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.dsl.parser;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.parser.android.*;
+import com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement;
 import com.android.tools.idea.gradle.dsl.parser.build.BuildScriptDslElement;
 import com.android.tools.idea.gradle.dsl.parser.build.SubProjectsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement;
@@ -49,6 +50,7 @@ import java.util.List;
 import static com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement.ANDROID_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.BuildTypesDslElement.BUILD_TYPES_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorsDslElement.PRODUCT_FLAVORS_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement.APPLY_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.build.BuildScriptDslElement.BUILDSCRIPT_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.build.SubProjectsDslElement.SUBPROJECTS_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement.DEPENDENCIES_BLOCK_NAME;
@@ -456,7 +458,10 @@ public final class GradleDslParser {
       if (element == null) {
         GradlePropertiesDslElement newElement;
         if (resultElement instanceof GradleDslFile || resultElement instanceof SubProjectsDslElement) {
-          if (EXT_BLOCK_NAME.equals(nestedElementName)) {
+          if (APPLY_BLOCK_NAME.equals(nestedElementName)) {
+            newElement = new ApplyDslElement(resultElement);
+          }
+          else if (EXT_BLOCK_NAME.equals(nestedElementName)) {
             newElement = new ExtDslElement(resultElement);
           }
           else if (ANDROID_BLOCK_NAME.equals(nestedElementName)) {
