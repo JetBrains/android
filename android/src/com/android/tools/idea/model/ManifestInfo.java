@@ -172,6 +172,10 @@ public final class ManifestInfo {
       }
     }
 
+    if (mergeType == ManifestMerger2.MergeType.APPLICATION) {
+      manifestMergerInvoker.withFeatures(ManifestMerger2.Invoker.Feature.REMOVE_TOOLS_DECLARATIONS);
+    }
+
     final Module module = facet.getModule();
     final Project project = module.getProject();
 
