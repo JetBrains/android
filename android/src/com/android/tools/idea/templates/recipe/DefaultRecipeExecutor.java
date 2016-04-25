@@ -134,7 +134,8 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
     myNeedsGradleSync = true;
   }
 
-  private static String formatClasspath(String dependency) {
+  @NotNull
+  private static String formatClasspath(@NotNull String dependency) {
     String lineSeparator = LineSeparator.getSystemLineSeparator().getSeparatorString();
     return "buildscript {" + lineSeparator +
            "  dependencies {" + lineSeparator +
