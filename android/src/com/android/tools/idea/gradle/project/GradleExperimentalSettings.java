@@ -28,6 +28,8 @@ import org.jetbrains.annotations.NotNull;
   @Storage("gradle.experimental.xml")}
 )
 public class GradleExperimentalSettings implements PersistentStateComponent<GradleExperimentalSettings> {
+  public static final String ENABLE_NEW_PSD_SYSTEM_PROPERTY = "enable.new.psd";
+
   public boolean SELECT_MODULES_ON_PROJECT_IMPORT;
   public boolean SKIP_SOURCE_GEN_ON_PROJECT_SYNC;
   public int MAX_MODULE_COUNT_FOR_SOURCE_GEN = 5;
