@@ -72,7 +72,7 @@ public class ColorUtilsTest extends AndroidTestCase {
     colorsWithDescription.put("color a little transparent", new Color(0, 0, 0, 200));
     assertEquals("<html>Not enough contrast with color very transparent",
                  ColorUtils.getContrastWarningMessage(colorsWithDescription, new Color(255, 255, 255, 200), false));
-    assertEquals("<html>Not enough contrast with color a little transparent and color very transparent",
+    assertEquals("<html>Not enough contrast with color very transparent and color a little transparent",
                  ColorUtils.getContrastWarningMessage(colorsWithDescription, new Color(255, 0, 0, 200), false));
     assertEquals("<html>Not enough contrast with color very transparent",
                  ColorUtils.getContrastWarningMessage(colorsWithDescription, new Color(255, 0, 0), false));
