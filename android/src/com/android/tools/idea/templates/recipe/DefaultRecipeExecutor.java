@@ -92,7 +92,9 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
     Project project = myContext.getProject();
     File rootBuildFile = getGradleBuildFilePath(getBaseDirPath(project));
     if (project.isInitialized()) {
-      myIO.applyPlugin(plugin, getBuildModel(rootBuildFile, project));
+      GradleBuildModel buildModel = getBuildModel(rootBuildFile, project);
+      buildModel.applyPlugin(plugin);
+      myIO.applyChanges(buildModel);
     }
     else {
       String destinationContents = rootBuildFile.exists() ? nullToEmpty(readTextFile(rootBuildFile)) : "";
@@ -119,7 +121,9 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
     Project project = myContext.getProject();
     File rootBuildFile = getGradleBuildFilePath(getBaseDirPath(project));
     if (project.isInitialized()) {
-      myIO.addClasspath(mavenUrl, getBuildModel(rootBuildFile, project));
+      GradleBuildModel buildModel = getBuildModel(rootBuildFile, project);
+      buildModel.buildscript().dependencies().addArtifact("classpath", mavenUrl);
+      myIO.applyChanges(buildModel);
     }
     else {
       String destinationContents = rootBuildFile.exists() ? nullToEmpty(readTextFile(rootBuildFile)) : "";
@@ -571,13 +575,7 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
       checkedCreateDirectoryIfMissing(directory);
     }
 
-    public void applyPlugin(@NotNull String plugin, @NotNull GradleBuildModel buildModel) {
-      buildModel.applyPlugin(plugin);
-      buildModel.applyChanges();
-    }
-
-    public void addClasspath(@NotNull String mavenUrl, @NotNull GradleBuildModel buildModel) {
-      buildModel.buildscript().dependencies().addArtifact("classpath", mavenUrl);
+    public void applyChanges(@NotNull GradleBuildModel buildModel) {
       buildModel.applyChanges();
     }
 
@@ -626,11 +624,7 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
     }
 
     @Override
-    public void applyPlugin(@NotNull String plugin, @NotNull GradleBuildModel buildModel) {
-    }
-
-    @Override
-    public void addClasspath(@NotNull String mavenUrl, @NotNull GradleBuildModel buildModel) {
+    public void applyChanges(@NotNull GradleBuildModel buildModel) {
     }
 
     @Override
