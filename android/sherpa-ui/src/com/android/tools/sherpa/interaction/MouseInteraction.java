@@ -283,8 +283,10 @@ public class MouseInteraction {
     /**
      * Helper class to lock / unlock the constraints on mouse down
      */
-    class LockTimer {
-        Timer mTimer = new Timer(1000, new ActionListener() {
+    public class LockTimer {
+        long mStart = 0;
+        int mDuration = 1000;
+        Timer mTimer = new Timer(mDuration, new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 run();
@@ -299,13 +301,24 @@ public class MouseInteraction {
         public void start(ConstraintWidget widget) {
             mWidget = widget;
             mTimer.start();
+            mStart = System.currentTimeMillis();
         }
 
         public void stop() {
             mTimer.stop();
+            mStart = 0;
+            if (mWidget != null) {
+                WidgetCompanion companion = (WidgetCompanion) mWidget.getCompanionWidget();
+                WidgetDecorator decorator = companion.getWidgetDecorator(mSceneDraw.getCurrentStyle());
+                decorator.setLockTimer(null);
+                mWidget = null;
+            }
         }
 
         private void run() {
+            if (mWidget == null) {
+                return;
+            }
             if (mSelection.contains(mWidget)) {
                 boolean allLocked = true;
                 for (ConstraintAnchor anchor : mWidget.getAnchors()) {
@@ -328,6 +341,13 @@ public class MouseInteraction {
                 }
                 mSceneDraw.repaint();
             }
+        }
+
+        public float getProgress() {
+            if (mStart == 0) {
+                return 0;
+            }
+            return (System.currentTimeMillis() - mStart) / (float) mDuration;
         }
     }
 
@@ -638,6 +658,9 @@ public class MouseInteraction {
         mBaselineTimer.stop();
         if (widget != null) {
             mLockTimer.start(widget);
+            WidgetCompanion companion = (WidgetCompanion) widget.getCompanionWidget();
+            WidgetDecorator decorator = companion.getWidgetDecorator(mSceneDraw.getCurrentStyle());
+            decorator.setLockTimer(mLockTimer);
         } else {
             mLockTimer.stop();
         }

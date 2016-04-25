@@ -29,9 +29,13 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.Stroke;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Path2D;
+import java.awt.geom.PathIterator;
+import java.awt.geom.Rectangle2D;
 
 /**
  * Represents a constraint handle on the widget.
@@ -459,6 +463,11 @@ public class ConstraintHandle {
     // Connection drawings
     /*-----------------------------------------------------------------------*/
 
+    public void drawConnection(ViewTransform transform, Graphics2D g,
+            ColorSet colorSet, boolean isSelected) {
+        drawConnection(transform, g, colorSet, isSelected, 1);
+    }
+
     /**
      * Implements the drawing of the connection from this anchor to its target
      *
@@ -468,7 +477,7 @@ public class ConstraintHandle {
      * @param isSelected if the connection is selected
      */
     public void drawConnection(ViewTransform transform, Graphics2D g,
-            ColorSet colorSet, boolean isSelected) {
+            ColorSet colorSet, boolean isSelected, float progress) {
         if (!mAnchor.isConnected()) {
             return;
         }
@@ -514,7 +523,7 @@ public class ConstraintHandle {
             }
         }
 
-        boolean drawShadow = isSelected
+        boolean drawShadow = progress == 1 && isSelected
                 && mAnchor.getConnectionCreator() != ConstraintAnchor.AUTO_CONSTRAINT_CREATOR;
         if (drawShadow) {
             Color pre = g.getColor();
@@ -526,6 +535,30 @@ public class ConstraintHandle {
             g.setStroke(s);
         }
         g.draw(path);
+        // If a lock timer is active, draw the path a second time
+        if (progress < 1 && progress > 0.2) {
+            Stroke s = g.getStroke();
+            int distance = lengthOfPath(path);
+            int dashFull = (int) (distance * progress);
+            int dashEmpty = (int) (distance * (1 - progress));
+            if (dashFull > 0) {
+                Stroke progressStroke = new BasicStroke(2, BasicStroke.CAP_BUTT,
+                        BasicStroke.JOIN_BEVEL, 0, new float[] { dashFull, dashEmpty }, 0);
+                g.setStroke(progressStroke);
+                if (mAnchor.getConnectionCreator() == ConstraintAnchor.AUTO_CONSTRAINT_CREATOR) {
+                    g.setColor(colorSet.getSelectedConstraints());
+                } else {
+                    g.setColor(colorSet.getSubduedConstraints());
+                }
+                g.draw(path);
+                g.setStroke(s);
+            }
+        }
+    }
+
+    private int lengthOfPath(Path2D.Float path) {
+        Rectangle bounds = path.getBounds();
+        return (int) Math.max(bounds.getWidth(), bounds.getHeight());
     }
 
     /**
