@@ -482,10 +482,8 @@ public class ConstraintModel {
     WidgetDecorator.setShowFakeUI(mShowFakeUI);
     if (isAndroidSurface) {
       mySceneDraw.setColorSet(mAndroidColorSet);
-      mySceneDraw.setCurrentStyle(WidgetDecorator.ANDROID_STYLE);
     } else {
       mySceneDraw.setColorSet(mBlueprintColorSet);
-      mySceneDraw.setCurrentStyle(WidgetDecorator.BLUEPRINT_STYLE);
     }
     myRepaintSurface.myScreenView = screenView;
     boolean ret = mySceneDraw.paintWidgets(width, height, myViewTransform, g, showAllConstraints, myMouseInteraction);
