@@ -44,12 +44,14 @@ import java.util.List;
 import java.util.Map;
 
 import static com.android.SdkConstants.*;
+import static com.android.tools.idea.gradle.dsl.model.GradleBuildModel.parseBuildFile;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFilePath;
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
 import static com.android.tools.idea.templates.FreemarkerUtils.processFreemarkerTemplate;
 import static com.android.tools.idea.templates.TemplateUtils.*;
 import static com.google.common.base.Strings.nullToEmpty;
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
 /**
  * Executor support for recipe instructions.
@@ -74,6 +76,38 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
     myReadonlyStatusHandler = ReadonlyStatusHandler.getInstance(context.getProject());
   }
 
+  @NotNull
+  private static GradleBuildModel getBuildModel(@NotNull File buildFile, @NotNull Project project) {
+    VirtualFile virtualFile = findFileByIoFile(buildFile, true);
+    if (virtualFile == null) {
+      throw new RuntimeException("Failed to find the root module " + FN_BUILD_GRADLE + "file for project '" + project.getName() + "'");
+    }
+    return parseBuildFile(virtualFile, project, project.getName());
+  }
+
+  @Override
+  public void applyPlugin(@NotNull String plugin) {
+    myReferences.applyPlugin(plugin);
+
+    Project project = myContext.getProject();
+    File rootBuildFile = getGradleBuildFilePath(getBaseDirPath(project));
+    if (project.isInitialized()) {
+      myIO.applyPlugin(plugin, getBuildModel(rootBuildFile, project));
+    }
+    else {
+      String destinationContents = rootBuildFile.exists() ? nullToEmpty(readTextFile(rootBuildFile)) : "";
+      String lineSeparator = LineSeparator.getSystemLineSeparator().getSeparatorString();
+      String result = (destinationContents.isEmpty() ? "" : destinationContents + lineSeparator) + "apply plugin: '" + plugin + "'";
+      try {
+        myIO.writeFile(this, result, rootBuildFile);
+      }
+      catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    }
+    myNeedsGradleSync = true;
+  }
+
   @Override
   public void addClasspath(@NotNull String mavenUrl) {
     myReferences.addClasspath(mavenUrl);
@@ -85,12 +119,7 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
     Project project = myContext.getProject();
     File rootBuildFile = getGradleBuildFilePath(getBaseDirPath(project));
     if (project.isInitialized()) {
-      VirtualFile virtualFile = VfsUtil.findFileByIoFile(rootBuildFile, true);
-      if (virtualFile == null) {
-        throw new RuntimeException("Failed to find the root module " + FN_BUILD_GRADLE + "file for project '" + project.getName() + "'");
-      }
-      GradleBuildModel rootBuildModel = GradleBuildModel.parseBuildFile(virtualFile, project, project.getName());
-      myIO.addClasspath(mavenUrl, rootBuildModel);
+      myIO.addClasspath(mavenUrl, getBuildModel(rootBuildFile, project));
     }
     else {
       String destinationContents = rootBuildFile.exists() ? nullToEmpty(readTextFile(rootBuildFile)) : "";
@@ -106,11 +135,12 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
   }
 
   private static String formatClasspath(String dependency) {
-    return "buildscript {\n" +
-           "  dependencies {\n" +
-           "    classpath '" + dependency + "'\n" +
-           "  }\n" +
-           "}\n";
+    String lineSeparator = LineSeparator.getSystemLineSeparator().getSeparatorString();
+    return "buildscript {" + lineSeparator +
+           "  dependencies {" + lineSeparator +
+           "    classpath '" + dependency + "'" + lineSeparator +
+           "  }" + lineSeparator +
+           "}" + lineSeparator;
   }
 
   /**
@@ -212,7 +242,7 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
 
       if (targetFile.exists()) {
         if (myContext.getProject().isInitialized()) {
-          VirtualFile toFile = VfsUtil.findFileByIoFile(targetFile, true);
+          VirtualFile toFile = findFileByIoFile(targetFile, true);
           final ReadonlyStatusHandler.OperationStatus status = myReadonlyStatusHandler.ensureFilesWritable(toFile);
           if (status.hasReadonlyFiles()) {
             throw new TemplateUserVisibleException(
@@ -414,7 +444,7 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
     File source = myContext.getLoader().getSourceFile(from);
     File target = getTargetFile(to);
 
-    VirtualFile sourceFile = VfsUtil.findFileByIoFile(source, true);
+    VirtualFile sourceFile = findFileByIoFile(source, true);
     assert sourceFile != null : source;
     sourceFile.refresh(false, false);
     File destPath = (source.isDirectory() ? target : target.getParentFile());
@@ -488,7 +518,7 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
    */
   public boolean compareFile(@NotNull VirtualFile sourceVFile, @NotNull File targetFile)
     throws IOException {
-    VirtualFile targetVFile = VfsUtil.findFileByIoFile(targetFile, true);
+    VirtualFile targetVFile = findFileByIoFile(targetFile, true);
     if (targetVFile == null) {
       return false;
     }
@@ -540,6 +570,11 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
       checkedCreateDirectoryIfMissing(directory);
     }
 
+    public void applyPlugin(@NotNull String plugin, @NotNull GradleBuildModel buildModel) {
+      buildModel.applyPlugin(plugin);
+      buildModel.applyChanges();
+    }
+
     public void addClasspath(@NotNull String mavenUrl, @NotNull GradleBuildModel buildModel) {
       buildModel.buildscript().dependencies().addArtifact("classpath", mavenUrl);
       buildModel.applyChanges();
@@ -587,6 +622,10 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
     @Override
     public void mkDir(@NotNull File directory) throws IOException {
       checkDirectoryIsWriteable(directory);
+    }
+
+    @Override
+    public void applyPlugin(@NotNull String plugin, @NotNull GradleBuildModel buildModel) {
     }
 
     @Override
