@@ -49,7 +49,7 @@ public class Recipe implements RecipeInstruction {
     @XmlElement(name = "open", type = OpenInstruction.class),
     @XmlElement(name = "recipe", type = Recipe.class),
     // Gradle specific recipes
-    @XmlElement(name = "apply", type = Recipe.class),
+    @XmlElement(name = "apply", type = ApplyInstruction.class),
     @XmlElement(name = "classpath", type = ClasspathInstruction.class),
     @XmlElement(name = "dependency", type = DependencyInstruction.class),
   })

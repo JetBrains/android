@@ -69,6 +69,8 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
    */
   private static final String CLASSPATH_CONFIGURATION_NAME = "classpath";
 
+  private static final String LINE_SEPARATOR = LineSeparator.getSystemLineSeparator().getSeparatorString();
+
   private final FindReferencesRecipeExecutor myReferences;
   private final RenderingContext myContext;
   private final RecipeIO myIO;
@@ -86,28 +88,32 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
   private static GradleBuildModel getBuildModel(@NotNull File buildFile, @NotNull Project project) {
     VirtualFile virtualFile = findFileByIoFile(buildFile, true);
     if (virtualFile == null) {
-      throw new RuntimeException("Failed to find the root module " + FN_BUILD_GRADLE + "file for project '" + project.getName() + "'");
+      throw new RuntimeException("Failed to find " + buildFile.getPath());
     }
     return parseBuildFile(virtualFile, project, project.getName());
   }
 
   @Override
   public void applyPlugin(@NotNull String plugin) {
+    plugin = plugin.trim();
+
     myReferences.applyPlugin(plugin);
 
     Project project = myContext.getProject();
-    File rootBuildFile = getGradleBuildFilePath(getBaseDirPath(project));
+    File buildFile = getGradleBuildFilePath(myContext.getModuleRoot());
     if (project.isInitialized()) {
-      GradleBuildModel buildModel = getBuildModel(rootBuildFile, project);
-      buildModel.applyPlugin(plugin);
-      myIO.applyChanges(buildModel);
+      GradleBuildModel buildModel = getBuildModel(buildFile, project);
+      if (!buildModel.appliedPlugins().contains(plugin)) {
+        buildModel.applyPlugin(plugin);
+        myIO.applyChanges(buildModel);
+      }
     }
     else {
-      String destinationContents = rootBuildFile.exists() ? nullToEmpty(readTextFile(rootBuildFile)) : "";
-      String lineSeparator = LineSeparator.getSystemLineSeparator().getSeparatorString();
-      String result = (destinationContents.isEmpty() ? "" : destinationContents + lineSeparator) + "apply plugin: '" + plugin + "'";
+      String destinationContents = buildFile.exists() ? nullToEmpty(readTextFile(buildFile)) : "";
+      String applyPluginStatement = "apply plugin: '" + plugin + "'";
+      String result = destinationContents.isEmpty() ? applyPluginStatement : destinationContents + LINE_SEPARATOR + applyPluginStatement;
       try {
-        myIO.writeFile(this, result, rootBuildFile);
+        myIO.writeFile(this, result, buildFile);
       }
       catch (IOException e) {
         throw new RuntimeException(e);
@@ -118,6 +124,8 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
 
   @Override
   public void addClasspath(@NotNull String mavenUrl) {
+    mavenUrl = mavenUrl.trim();
+
     myReferences.addClasspath(mavenUrl);
 
     ArtifactDependencySpec toBeAddedDependency = ArtifactDependencySpec.create(mavenUrl);
@@ -150,12 +158,11 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
 
   @NotNull
   private static String formatClasspath(@NotNull String dependency) {
-    String lineSeparator = LineSeparator.getSystemLineSeparator().getSeparatorString();
-    return "buildscript {" + lineSeparator +
-           "  dependencies {" + lineSeparator +
-           "    classpath '" + dependency + "'" + lineSeparator +
-           "  }" + lineSeparator +
-           "}" + lineSeparator;
+    return "buildscript {" + LINE_SEPARATOR +
+           "  dependencies {" + LINE_SEPARATOR +
+           "    classpath '" + dependency + "'" + LINE_SEPARATOR +
+           "  }" + LINE_SEPARATOR +
+           "}" + LINE_SEPARATOR;
   }
 
   /**
@@ -333,8 +340,7 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
 
       if (targetFile.exists()) {
         final String targetContents = readTextFromDisk(targetFile);
-        final String lineSeparator = LineSeparator.getSystemLineSeparator().getSeparatorString();
-        final String resultContents = (targetContents == null ? "" : targetContents + lineSeparator) + sourceText;
+        final String resultContents = (targetContents == null ? "" : targetContents + LINE_SEPARATOR) + sourceText;
 
         myIO.writeFile(this, resultContents, targetFile);
       }
