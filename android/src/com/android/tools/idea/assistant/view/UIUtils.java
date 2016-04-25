@@ -126,12 +126,12 @@ public class UIUtils {
     return glueConstraints;
   }
 
-  public static void setHtml(JTextPane pane, String content) {
+  public static void setHtml(JEditorPane pane, String content) {
     setHtml(pane, content, null, null);
   }
 
 
-  public static void setHtml(JTextPane pane, String content, String css) {
+  public static void setHtml(JEditorPane pane, String content, String css) {
     setHtml(pane, content, css, null);
   }
 
@@ -143,7 +143,7 @@ public class UIUtils {
    * @param css         Extra css to add. Example ".testClass { color: red}\n.anotherClass { border: 1px solid blue}".
    * @param headContent Extra header content to add. Example "<title>My Favorite!!</title>".
    */
-  public static void setHtml(JTextPane pane, String content, String css, String headContent) {
+  public static void setHtml(JEditorPane pane, String content, String css, String headContent) {
     pane.setContentType("text/html");
     // It's assumed that markup is for display purposes in our context.
     pane.setEditable(false);
