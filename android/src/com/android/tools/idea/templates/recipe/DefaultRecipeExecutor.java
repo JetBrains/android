@@ -17,6 +17,7 @@ package com.android.tools.idea.templates.recipe;
 
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpec;
+import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateProcessingException;
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateUserVisibleException;
@@ -62,6 +63,11 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
    * The settings.gradle lives at project root and points gradle at the build files for individual modules in their subdirectories
    */
   private static final String GRADLE_PROJECT_SETTINGS_FILE = "settings.gradle";
+
+  /**
+   * 'classpath' is the configuration name used to specify buildscript dependencies.
+   */
+  private static final String CLASSPATH_CONFIGURATION_NAME = "classpath";
 
   private final FindReferencesRecipeExecutor myReferences;
   private final RenderingContext myContext;
@@ -114,7 +120,8 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
   public void addClasspath(@NotNull String mavenUrl) {
     myReferences.addClasspath(mavenUrl);
 
-    if (ArtifactDependencySpec.create(mavenUrl) == null) {
+    ArtifactDependencySpec toBeAddedDependency = ArtifactDependencySpec.create(mavenUrl);
+    if (toBeAddedDependency == null) {
       throw new RuntimeException(mavenUrl + " is not a valid classpath dependency");
     }
 
@@ -122,8 +129,11 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
     File rootBuildFile = getGradleBuildFilePath(getBaseDirPath(project));
     if (project.isInitialized()) {
       GradleBuildModel buildModel = getBuildModel(rootBuildFile, project);
-      buildModel.buildscript().dependencies().addArtifact("classpath", mavenUrl);
-      myIO.applyChanges(buildModel);
+      DependenciesModel buildscriptDependencies = buildModel.buildscript().dependencies();
+      if (!buildscriptDependencies.containsArtifact(CLASSPATH_CONFIGURATION_NAME, toBeAddedDependency)) {
+        buildscriptDependencies.addArtifact(CLASSPATH_CONFIGURATION_NAME, toBeAddedDependency);
+        myIO.applyChanges(buildModel);
+      }
     }
     else {
       String destinationContents = rootBuildFile.exists() ? nullToEmpty(readTextFile(rootBuildFile)) : "";
