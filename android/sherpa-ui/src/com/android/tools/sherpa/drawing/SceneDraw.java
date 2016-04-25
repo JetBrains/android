@@ -264,7 +264,7 @@ public class SceneDraw {
                 if (!a.isConnected()) {
                     continue;
                 }
-                mAnimationCreatedConstraints.add(new AnimatedConnection(a));
+                mAnimationCreatedConstraints.add(new AnimatedConnection(mColorSet, a));
             }
         }
         mChoreographer.addAnimation(mAnimationCreatedConstraints);
@@ -540,8 +540,13 @@ public class SceneDraw {
             ConstraintHandle selectedHandle =
                     WidgetInteractionTargets.constraintHandle(selectedAnchor);
             g.setColor(mColorSet.getHighlightedConstraints());
-            selectedHandle
-                    .drawConnection(transform, g, mColorSet, true, mouseInteraction.getLastPoint());
+
+            if (!selectedHandle.getAnchor().isConnected()
+                    || selectedHandle.getAnchor().getTarget() != anchor) {
+                selectedHandle
+                        .drawConnection(transform, g, mColorSet, true,
+                                mouseInteraction.getLastPoint());
+            }
         }
 
         if (selectedResizeHandle != null) {
