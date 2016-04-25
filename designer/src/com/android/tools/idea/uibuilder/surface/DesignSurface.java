@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
-import com.android.annotations.VisibleForTesting;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.idea.configurations.Configuration;
@@ -31,7 +30,6 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
@@ -41,7 +39,6 @@ import com.intellij.ui.components.JBScrollBar;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.Magnificator;
 import com.intellij.util.Alarm;
-import com.intellij.util.ReflectionUtil;
 import com.intellij.util.ui.AsyncProcessIcon;
 import com.intellij.util.ui.ButtonlessScrollBarUI;
 import com.intellij.util.ui.UIUtil;
@@ -54,14 +51,11 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.plaf.ScrollBarUI;
-import javax.swing.plaf.basic.BasicScrollBarUI;
 import java.awt.*;
-import java.awt.Insets;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -73,7 +67,6 @@ import static com.android.tools.idea.uibuilder.graphics.NlConstants.*;
  * or more device renderings, etc
  */
 public class DesignSurface extends JPanel implements Disposable, ScalableDesignSurface {
-  private static final Logger LOG = Logger.getInstance(DesignSurface.class);
   public static final boolean SIZE_ERROR_PANEL_DYNAMICALLY = true;
   private static final Integer LAYER_PROGRESS = JLayeredPane.POPUP_LAYER + 100;
   private final Project myProject;
@@ -174,10 +167,6 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
     return myProject;
   }
 
-  public boolean isCentered() {
-    return myCentered;
-  }
-
   public void setCentered(boolean centered) {
     myCentered = centered;
   }
@@ -231,34 +220,31 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
       Dimension screenSize = myScreenView.getPreferredSize();
       myLayeredPane.setPreferredSize(screenSize);
 
-      if (myScreenMode == ScreenMode.SCREEN_ONLY) {
-        myLayers.add(new ScreenViewLayer(myScreenView));
-        myLayers.add(new SelectionLayer(myScreenView));
-        myLayers.add(new ConstraintsLayer(this, myScreenView, true));
-        myLayers.add(new WarningLayer(myScreenView));
-      } else if (myScreenMode == ScreenMode.BOTH) {
-        myBlueprintView = new ScreenView(this, model);
-        myBlueprintView.setLocation(myScreenX + screenSize.width + 10, myScreenY);
-        myLayers.add(new ScreenViewLayer(myScreenView));
-        myLayers.add(new SelectionLayer(myScreenView));
-        myLayers.add(new ConstraintsLayer(this, myScreenView, true));
-        myLayers.add(new WarningLayer(myScreenView));
-        myLayers.add(new BlueprintLayer(myBlueprintView));
-        myLayers.add(new SelectionLayer(myBlueprintView));
-        myLayers.add(new ConstraintsLayer(this, myBlueprintView, false));
-      } else if (myScreenMode == ScreenMode.BLUEPRINT_ONLY) {
-        myLayers.add(new BlueprintLayer(myScreenView));
-        myLayers.add(new SelectionLayer(myScreenView));
-        myLayers.add(new ConstraintsLayer(this, myScreenView, false));
-      } else {
-        assert false : myScreenMode;
+      switch (myScreenMode) {
+        case SCREEN_ONLY:
+          addScreenLayers();
+          break;
+        case BLUEPRINT_ONLY:
+          addBlueprintLayers(myScreenView);
+          break;
+        case BOTH:
+          myBlueprintView = new ScreenView(this, model);
+          myBlueprintView.setLocation(myScreenX + screenSize.width + 10, myScreenY);
+
+          addScreenLayers();
+          addBlueprintLayers(myBlueprintView);
+
+          break;
+        default:
+          assert false : myScreenMode;
       }
 
       positionScreens();
       SelectionModel selectionModel = model.getSelectionModel();
       selectionModel.addListener(mySelectionListener);
       selectionAfter = selectionModel.getSelection();
-    } else {
+    }
+    else {
       myScreenView = null;
       myBlueprintView = null;
     }
@@ -268,6 +254,23 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
       notifySelectionListeners(selectionAfter);
     }
     notifyScreenViewChanged();
+  }
+
+  private void addScreenLayers() {
+    myLayers.add(new ScreenViewLayer(myScreenView));
+    myLayers.add(new SelectionLayer(myScreenView));
+
+    if (ResourceType.valueOf(myScreenView.getModel().getFile()).equals(ResourceType.LAYOUT)) {
+      myLayers.add(new ConstraintsLayer(this, myScreenView, true));
+    }
+
+    myLayers.add(new WarningLayer(myScreenView));
+  }
+
+  private void addBlueprintLayers(@NotNull ScreenView view) {
+    myLayers.add(new BlueprintLayer(view));
+    myLayers.add(new SelectionLayer(view));
+    myLayers.add(new ConstraintsLayer(this, view, false));
   }
 
   @Override
@@ -295,7 +298,8 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
       myLayeredPane.setPreferredSize(dimension);
       myScrollPane.revalidate();
       myProgressPanel.setBounds(myScreenX, myScreenY, size.width, size.height);
-    } else {
+    }
+    else {
       myProgressPanel.setBounds(0, 0, getWidth(), getHeight());
     }
   }
@@ -344,7 +348,8 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
         if (!myErrorPanel.isVisible()) {
           myErrorPanel.setVisible(true);
           revalidate();
-        } else {
+        }
+        else {
           repaint();
         }
         break;
@@ -368,13 +373,14 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
         repaint();
         break;
       case OUT:
-        setScale(myScale * (1/1.1));
+        setScale(myScale * (1 / 1.1));
         repaint();
         break;
       case ACTUAL:
         if (SystemInfo.isMac && UIUtil.isRetina()) {
           setScale(0.5);
-        } else {
+        }
+        else {
           setScale(1);
         }
         repaint();
@@ -399,7 +405,8 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
             if (isVerticalScreenConfig(availableWidth, availableHeight, preferredSize)) {
               requiredHeight *= 2;
               requiredHeight += SCREEN_DELTA;
-            } else {
+            }
+            else {
               requiredWidth *= 2;
               requiredWidth += SCREEN_DELTA;
             }
@@ -438,7 +445,9 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
     zoom(ZoomType.FIT);
   }
 
-  /** Returns true if we want to arrange screens vertically instead of horizontally */
+  /**
+   * Returns true if we want to arrange screens vertically instead of horizontally
+   */
   private static boolean isVerticalScreenConfig(int availableWidth, int availableHeight, @NotNull Dimension preferredSize) {
     boolean stackVertically = preferredSize.width > preferredSize.height;
     if (availableWidth > 10 && availableHeight > 3 * availableWidth / 2) {
@@ -460,9 +469,11 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
   private void setScale(double scale) {
     if (Math.abs(scale - 1) < 0.0001) {
       scale = 1;
-    } else if (scale < 0.01) {
+    }
+    else if (scale < 0.01) {
       scale = 0.01;
-    } else if (scale > 10) {
+    }
+    else if (scale > 10) {
       scale = 10;
     }
     myScale = scale;
@@ -493,7 +504,8 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
       }
       if (requiredWidth < availableWidth) {
         myScreenX = (availableWidth - requiredWidth) / 2;
-      } else {
+      }
+      else {
         myScreenX = 0;
       }
 
@@ -504,14 +516,17 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
       }
       if (requiredHeight < availableHeight) {
         myScreenY = (availableHeight - requiredHeight) / 2;
-      } else {
+      }
+      else {
         myScreenY = 0;
       }
-    } else {
+    }
+    else {
       if (myDeviceFrames) {
         myScreenX = RULER_SIZE_PX + 2 * DEFAULT_SCREEN_OFFSET_X;
         myScreenY = RULER_SIZE_PX + 2 * DEFAULT_SCREEN_OFFSET_Y;
-      } else {
+      }
+      else {
         myScreenX = RULER_SIZE_PX + DEFAULT_SCREEN_OFFSET_X;
         myScreenY = RULER_SIZE_PX + DEFAULT_SCREEN_OFFSET_Y;
       }
@@ -543,12 +558,6 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
     return myLayeredPane;
   }
 
-  @VisibleForTesting
-  @NotNull
-  public InteractionManager getInteractionManager() {
-    return myInteractionManager;
-  }
-
   private void notifySelectionListeners(@NotNull List<NlComponent> newSelection) {
     if (myListeners != null) {
       List<DesignSurfaceListener> listeners = Lists.newArrayList(myListeners);
@@ -573,7 +582,8 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
   public void addListener(@NotNull DesignSurfaceListener listener) {
     if (myListeners == null) {
       myListeners = Lists.newArrayList();
-    } else {
+    }
+    else {
       myListeners.remove(listener); // ensure single registration
     }
     myListeners.add(listener);
@@ -590,13 +600,16 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
     public void selectionChanged(@NotNull SelectionModel model, @NotNull List<NlComponent> selection) {
       if (myScreenView != null) {
         notifySelectionListeners(selection);
-      } else {
+      }
+      else {
         notifySelectionListeners(Collections.<NlComponent>emptyList());
       }
     }
   };
 
-  /** The editor has been activated */
+  /**
+   * The editor has been activated
+   */
   public void activate() {
     if (myScreenView != null) {
       myScreenView.getModel().activate();
@@ -619,7 +632,8 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
     if (SIZE_ERROR_PANEL_DYNAMICALLY) { // TODO: Only do this when the error panel is showing
       boolean showingErrors = HighlightSeverity.ERROR.equals(myErrorPanel.getSeverity());
       size = computeErrorPanelHeight(showingErrors, height, myErrorPanel.getPreferredHeight(width) + 16);
-    } else {
+    }
+    else {
       size = height / 2;
     }
 
@@ -628,7 +642,7 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
   }
 
   private static int computeErrorPanelHeight(boolean showingErrors, int designerHeight, int preferredHeight) {
-    int maxSize = designerHeight * 3/4; // error panel can take up to 3/4th of the designer
+    int maxSize = designerHeight * 3 / 4; // error panel can take up to 3/4th of the designer
     int minSize = showingErrors ? designerHeight / 4 : 16; // but is at least 1/4th if errors are being shown
     if (preferredHeight < maxSize) {
       return Math.max(preferredHeight, minSize);
@@ -664,21 +678,12 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
     }
   }
 
-  private static final Field decrButtonField = ReflectionUtil.getDeclaredField(BasicScrollBarUI.class, "decrButton");
-  private static final Field incrButtonField = ReflectionUtil.getDeclaredField(BasicScrollBarUI.class, "incrButton");
-
   private static class MyScrollBar extends JBScrollBar implements IdeGlassPane.TopComponent {
-    @NonNls private static final String APPLE_LAF_AQUA_SCROLL_BAR_UI_CLASS = "apple.laf.AquaScrollBarUI";
     private ScrollBarUI myPersistentUI;
 
     private MyScrollBar(@JdkConstants.AdjustableOrientation int orientation) {
       super(orientation);
       setOpaque(false);
-    }
-
-    void setPersistentUI(ScrollBarUI ui) {
-      myPersistentUI = ui;
-      setUI(ui);
     }
 
     @Override
@@ -691,60 +696,6 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
       if (myPersistentUI == null) myPersistentUI = ui;
       super.setUI(myPersistentUI);
       setOpaque(false);
-    }
-
-    /**
-     * This is helper method. It returns h of the top (decrease) scroll bar
-     * button. Please note, that it's possible to return real h only if scroll bar
-     * is instance of BasicScrollBarUI. Otherwise it returns fake (but good enough :) )
-     * value.
-     */
-    int getDecScrollButtonHeight() {
-      ScrollBarUI barUI = getUI();
-      Insets insets = getInsets();
-      int top = Math.max(0, insets.top);
-      if (barUI instanceof ButtonlessScrollBarUI) {
-        return top + ((ButtonlessScrollBarUI)barUI).getDecrementButtonHeight();
-      }
-      if (barUI instanceof BasicScrollBarUI) {
-        try {
-          JButton decrButtonValue = (JButton)decrButtonField.get(barUI);
-          LOG.assertTrue(decrButtonValue != null);
-          return top + decrButtonValue.getHeight();
-        }
-        catch (Exception exc) {
-          throw new IllegalStateException(exc);
-        }
-      }
-      return top + 15;
-    }
-
-    /**
-     * This is helper method. It returns h of the bottom (increase) scroll bar
-     * button. Please note, that it's possible to return real h only if scroll bar
-     * is instance of BasicScrollBarUI. Otherwise it returns fake (but good enough :) )
-     * value.
-     */
-    int getIncScrollButtonHeight() {
-      ScrollBarUI barUI = getUI();
-      Insets insets = getInsets();
-      if (barUI instanceof ButtonlessScrollBarUI) {
-        return insets.top + ((ButtonlessScrollBarUI)barUI).getIncrementButtonHeight();
-      }
-      if (barUI instanceof BasicScrollBarUI) {
-        try {
-          JButton incrButtonValue = (JButton)incrButtonField.get(barUI);
-          LOG.assertTrue(incrButtonValue != null);
-          return insets.bottom + incrButtonValue.getHeight();
-        }
-        catch (Exception exc) {
-          throw new IllegalStateException(exc);
-        }
-      }
-      if (APPLE_LAF_AQUA_SCROLL_BAR_UI_CLASS.equals(barUI.getClass().getName())) {
-        return insets.bottom + 30;
-      }
-      return insets.bottom + 15;
     }
 
     @Override
@@ -813,7 +764,8 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
       if (paintedFrame) {
         // Only use alpha on the ruler bar if overlaying the device art
         g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.9f));
-      } else {
+      }
+      else {
         // Only show bounds dashed lines when there's no device
         paintBoundsRectangle(g2d);
       }
@@ -964,15 +916,18 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
       myRenderHasProblems = result != null && result.getLogger().hasProblems();
       if (myRenderHasProblems) {
         updateErrors(result);
-      } else {
+      }
+      else {
         myErrorPanel.setVisible(false);
         repaint();
       }
     }
   }
 
-  /** When we have render errors for a given result, kick off a background computation
-   * of the error panel HTML, which when done will update the UI thread */
+  /**
+   * When we have render errors for a given result, kick off a background computation
+   * of the error panel HTML, which when done will update the UI thread
+   */
   private void updateErrors(@Nullable final RenderResult result) {
     assert result != null && result.getLogger().hasProblems();
 
@@ -1007,7 +962,7 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
     synchronized (myErrorQueueLock) {
       if (myErrorQueue == null) {
         myErrorQueue = new MergingUpdateQueue("android.error.computation", 200, true, null, myProject, null,
-                                                  Alarm.ThreadToUse.POOLED_THREAD);
+                                              Alarm.ThreadToUse.POOLED_THREAD);
       }
       return myErrorQueue;
     }
@@ -1091,7 +1046,9 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
       setVisible(false);
     }
 
-    /** The "small" icon mode isn't just for the icon size; it's for the layout position too; see {@link #doLayout} */
+    /**
+     * The "small" icon mode isn't just for the icon size; it's for the layout position too; see {@link #doLayout}
+     */
     private void setSmallIcon(boolean small) {
       if (small != mySmall) {
         if (myProgressVisible && getComponentCount() != 0) {
@@ -1118,7 +1075,8 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
         AsyncProcessIcon icon = getProgressIcon();
         if (getComponentCount() == 0) { // First time: haven't added icon yet?
           add(getProgressIcon(), BorderLayout.CENTER);
-        } else {
+        }
+        else {
           icon.setVisible(true);
         }
         icon.resume();
@@ -1153,7 +1111,8 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
       Dimension size = icon.getPreferredSize();
       if (mySmall) {
         icon.setBounds(getWidth() - size.width - 1, 1, size.width, size.height);
-      } else {
+      }
+      else {
         icon.setBounds(getWidth() / 2 - size.width / 2, getHeight() / 2 - size.height / 2, size.width, size.height);
       }
     }
