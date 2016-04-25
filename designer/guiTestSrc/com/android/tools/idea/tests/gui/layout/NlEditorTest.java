@@ -47,7 +47,7 @@ public class NlEditorTest {
     EditorFixture editor = guiTest.ideFrame().getEditor();
     editor.open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN);
 
-    NlEditorFixture layout = NlEditorFixture.getNlEditor(editor, guiTest.ideFrame(), false);
+    NlEditorFixture layout = editor.getLayoutEditor(false);
     assertNotNull(layout);
     layout.waitForRenderToFinish();
 

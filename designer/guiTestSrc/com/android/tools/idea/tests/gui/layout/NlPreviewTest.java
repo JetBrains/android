@@ -46,7 +46,7 @@ public class NlPreviewTest {
     IdeFrameFixture ideFrame = guiTest.ideFrame();
     EditorFixture editor = ideFrame.getEditor();
     editor.open("app/src/main/res/layout/layout2.xml", EditorFixture.Tab.EDITOR);
-    NlPreviewFixture preview = NlPreviewFixture.getNlPreview(editor, ideFrame, true);
+    NlPreviewFixture preview = editor.getLayoutPreview(true);
     assertNotNull(preview);
     NlConfigurationToolbarFixture toolbar = preview.getConfigToolbar();
     toolbar.chooseDevice("Nexus 5");
@@ -96,7 +96,7 @@ public class NlPreviewTest {
     guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest");
     EditorFixture editor = guiTest.ideFrame().getEditor();
     editor.open("app/src/main/res/layout/layout1.xml", EditorFixture.Tab.EDITOR);
-    NlPreviewFixture preview = NlPreviewFixture.getNlPreview(editor, guiTest.ideFrame(), false);
+    NlPreviewFixture preview = editor.getLayoutPreview(false);
     assertNotNull(preview);
     preview.waitForRenderToFinish();
 
