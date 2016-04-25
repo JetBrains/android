@@ -28,6 +28,9 @@ import com.android.tools.idea.tests.gui.framework.fixture.layout.NlEditorFixture
 import com.android.tools.idea.tests.gui.framework.fixture.layout.NlPreviewFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemePreviewFixture;
+import com.android.tools.idea.uibuilder.editor.NlEditor;
+import com.android.tools.idea.uibuilder.editor.NlPreviewForm;
+import com.android.tools.idea.uibuilder.editor.NlPreviewManager;
 import com.google.common.collect.Lists;
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
 import com.intellij.icons.AllIcons;
@@ -992,7 +995,32 @@ public class EditorFixture {
    */
   @Nullable
   public NlEditorFixture getLayoutEditor(boolean switchToTabIfNecessary) {
-    return NlEditorFixture.getNlEditor(this, myFrame, switchToTabIfNecessary);
+    VirtualFile currentFile = getCurrentFile();
+    if (ResourceHelper.getFolderType(currentFile) != ResourceFolderType.LAYOUT) {
+      return null;
+    }
+
+    if (switchToTabIfNecessary) {
+      selectEditorTab(Tab.DESIGN);
+    }
+
+    return execute(new GuiQuery<NlEditorFixture>() {
+      @Override
+      @Nullable
+      protected NlEditorFixture executeInEDT() throws Throwable {
+        FileEditorManager manager = FileEditorManager.getInstance(myFrame.getProject());
+        FileEditor[] editors = manager.getSelectedEditors();
+        if (editors.length == 0) {
+          return null;
+        }
+        FileEditor selected = editors[0];
+        if (!(selected instanceof NlEditor)) {
+          return null;
+        }
+
+        return new NlEditorFixture(myFrame.robot(), (NlEditor)selected);
+      }
+    });
   }
 
   /**
@@ -1005,7 +1033,35 @@ public class EditorFixture {
    */
   @Nullable
   public NlPreviewFixture getLayoutPreview(boolean switchToTabIfNecessary) {
-    return NlPreviewFixture.getNlPreview(this, myFrame, switchToTabIfNecessary);
+    VirtualFile currentFile = getCurrentFile();
+    if (ResourceHelper.getFolderType(currentFile) != ResourceFolderType.LAYOUT) {
+      return null;
+    }
+
+    if (switchToTabIfNecessary) {
+      selectEditorTab(Tab.EDITOR);
+    }
+
+    Boolean visible = execute(new GuiQuery<Boolean>() {
+      @Override
+      protected Boolean executeInEDT() throws Throwable {
+        NlPreviewManager manager = NlPreviewManager.getInstance(myFrame.getProject());
+        NlPreviewForm toolWindowForm = manager.getPreviewForm();
+        return toolWindowForm != null && toolWindowForm.getSurface().isShowing();
+      }
+    });
+    if (visible == null || !visible) {
+      myFrame.invokeMenuPath("View", "Tool Windows", "Preview");
+    }
+
+    Wait.minutes(2).expecting("Preview window to be visible")
+      .until(() -> {
+        NlPreviewManager manager = NlPreviewManager.getInstance(myFrame.getProject());
+        NlPreviewForm toolWindowForm = manager.getPreviewForm();
+        return toolWindowForm != null && toolWindowForm.getSurface().isShowing();
+      });
+
+    return new NlPreviewFixture(myFrame.getProject(), myFrame.robot());
   }
 
   /**

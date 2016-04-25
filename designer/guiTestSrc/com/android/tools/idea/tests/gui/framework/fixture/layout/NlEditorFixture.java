@@ -15,31 +15,21 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.layout;
 
-import com.android.resources.ResourceFolderType;
-import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.tests.gui.framework.Wait;
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.uibuilder.editor.NlEditor;
 import com.android.tools.idea.uibuilder.editor.NlEditorPanel;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.Lists;
-import com.intellij.openapi.fileEditor.FileEditor;
-import com.intellij.openapi.fileEditor.FileEditorManager;
-import com.intellij.openapi.vfs.VirtualFile;
 import org.fest.swing.core.Robot;
-import org.fest.swing.edt.GuiQuery;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.List;
 
-import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.junit.Assert.*;
 
 /**
@@ -49,38 +39,7 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, Component
   private final NlEditorPanel myPanel;
   private final JPanel myProgressPanel;
 
-  @Nullable
-  public static NlEditorFixture getNlEditor(@NotNull final EditorFixture editor, @NotNull final IdeFrameFixture frame,
-                                            boolean switchToTabIfNecessary) {
-    VirtualFile currentFile = editor.getCurrentFile();
-    if (ResourceHelper.getFolderType(currentFile) != ResourceFolderType.LAYOUT) {
-      return null;
-    }
-
-    if (switchToTabIfNecessary) {
-      editor.selectEditorTab(EditorFixture.Tab.DESIGN);
-    }
-
-    return execute(new GuiQuery<NlEditorFixture>() {
-      @Override
-      @Nullable
-      protected NlEditorFixture executeInEDT() throws Throwable {
-        FileEditorManager manager = FileEditorManager.getInstance(frame.getProject());
-        FileEditor[] editors = manager.getSelectedEditors();
-        if (editors.length == 0) {
-          return null;
-        }
-        FileEditor selected = editors[0];
-        if (!(selected instanceof NlEditor)) {
-          return null;
-        }
-
-        return new NlEditorFixture(frame.robot(), (NlEditor)selected);
-      }
-    });
-  }
-
-  private NlEditorFixture(@NotNull Robot robot, @NotNull NlEditor editor) {
+  public NlEditorFixture(@NotNull Robot robot, @NotNull NlEditor editor) {
     super(NlEditorFixture.class, robot, editor.getComponent());
     myPanel = editor.getComponent();
     myProgressPanel = robot.finder().findByName(myPanel, "Layout Editor Progress Panel", JPanel.class, false);

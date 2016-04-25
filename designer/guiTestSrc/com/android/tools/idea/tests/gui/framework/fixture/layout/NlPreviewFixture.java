@@ -15,16 +15,12 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.layout;
 
-import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.rendering.ImageUtils;
 import com.android.tools.idea.rendering.RenderErrorPanel;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderedImage;
-import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.Wait;
-import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ToolWindowFixture;
 import com.android.tools.idea.uibuilder.editor.NlPreviewForm;
 import com.android.tools.idea.uibuilder.editor.NlPreviewManager;
@@ -33,11 +29,8 @@ import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VirtualFile;
 import org.fest.swing.core.Robot;
-import org.fest.swing.edt.GuiQuery;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.text.BadLocationException;
@@ -46,7 +39,6 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 
-import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -58,45 +50,11 @@ public class NlPreviewFixture extends ToolWindowFixture {
   private final JPanel myProgressPanel;
   private final RenderErrorPanel myRenderErrorPanel;
 
-  protected NlPreviewFixture(@NotNull Project project, @NotNull Robot robot) {
+  public NlPreviewFixture(@NotNull Project project, @NotNull Robot robot) {
     super("Preview", project, robot);
     myProject = project;
     myProgressPanel = robot.finder().findByName(getContent().getContentPanel(), "Layout Editor Progress Panel", JPanel.class, false);
     myRenderErrorPanel = robot.finder().findByName(getContent().getContentPanel(), "Layout Editor Error Panel", RenderErrorPanel.class, false);
-  }
-
-  @Nullable
-  public static NlPreviewFixture getNlPreview(@NotNull final EditorFixture editor, @NotNull final IdeFrameFixture frame,
-                                              boolean switchToTabIfNecessary) {
-    VirtualFile currentFile = editor.getCurrentFile();
-    if (ResourceHelper.getFolderType(currentFile) != ResourceFolderType.LAYOUT) {
-      return null;
-    }
-
-    if (switchToTabIfNecessary) {
-      editor.selectEditorTab(EditorFixture.Tab.EDITOR);
-    }
-
-    Boolean visible = execute(new GuiQuery<Boolean>() {
-      @Override
-      protected Boolean executeInEDT() throws Throwable {
-        NlPreviewManager manager = NlPreviewManager.getInstance(frame.getProject());
-        NlPreviewForm toolWindowForm = manager.getPreviewForm();
-        return toolWindowForm != null && toolWindowForm.getSurface().isShowing();
-      }
-    });
-    if (visible == null || !visible) {
-      frame.invokeMenuPath("View", "Tool Windows", "Preview");
-    }
-
-    Wait.minutes(2).expecting("Preview window to be visible")
-      .until(() -> {
-        NlPreviewManager manager = NlPreviewManager.getInstance(frame.getProject());
-        NlPreviewForm toolWindowForm = manager.getPreviewForm();
-        return toolWindowForm != null && toolWindowForm.getSurface().isShowing();
-      });
-
-    return new NlPreviewFixture(frame.getProject(), frame.robot());
   }
 
   @NotNull
