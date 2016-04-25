@@ -163,7 +163,7 @@ public class WidgetDecorator {
     public WidgetDecorator(ConstraintWidget widget) {
         mWidget = widget;
         mShowBias.setDelay(0);
-        mShowBias.setDuration(3000);
+        mShowBias.setDuration(1000);
     }
 
     /**
