@@ -199,7 +199,7 @@ public class ResolutionUtils {
         target = facet.getConfigurationManager().getDefaultTarget(); // same as getHighestApiTarget();
       }
       else {
-        target = configuration.getRealTarget();
+        target = configuration.getTarget();
       }
       assert target != null;
 

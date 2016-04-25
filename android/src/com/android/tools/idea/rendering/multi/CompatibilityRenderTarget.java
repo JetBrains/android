@@ -51,14 +51,6 @@ public class CompatibilityRenderTarget implements IAndroidTarget {
     myVersion = realTarget != null ? realTarget.getVersion() : new AndroidVersion(apiLevel, null);
   }
 
-  /**
-   * Copies an existing {@link CompatibilityRenderTarget} but updates the the render delegate. It will keep the API level and
-   * the real target.
-   */
-  public static IAndroidTarget copyWithNewDelegate(@NotNull CompatibilityRenderTarget original, @NotNull IAndroidTarget newDelegate) {
-    return new CompatibilityRenderTarget(newDelegate, original.myApiLevel, original.myRealTarget);
-  }
-
   /** The {@link com.android.sdklib.IAndroidTarget} we're using for actual rendering */
   @NotNull
   public IAndroidTarget getRenderTarget() {
