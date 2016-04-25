@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.structure.dialog;
 
-import com.google.android.collect.Lists;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.options.Configurable;
 import org.jetbrains.annotations.NotNull;
 
