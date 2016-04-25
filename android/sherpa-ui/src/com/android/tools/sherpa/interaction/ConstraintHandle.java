@@ -689,7 +689,7 @@ public class ConstraintHandle {
                     ConnectionDraw.drawArrow(g, ConnectionDraw.getTopArrow(), x1, y1);
                 }
             }
-            if (isSelected && mAnchor.getMargin() > 0 && showMargin) {
+            if ((colorSet.alwaysShowMargins() || isSelected) && mAnchor.getMargin() > 0 && showMargin) {
                 Color pre = g.getColor();
                 g.setColor(colorSet.getMargins());
 
@@ -771,7 +771,7 @@ public class ConstraintHandle {
                     ConnectionDraw.drawArrow(g, ConnectionDraw.getLeftArrow(), x1, y1);
                 }
             }
-            if (isSelected && mAnchor.getMargin() > 0 && showMargin) {
+            if ((colorSet.alwaysShowMargins() || isSelected) && mAnchor.getMargin() > 0 && showMargin) {
                 Color pre = g.getColor();
                 g.setColor(colorSet.getMargins());
 
@@ -840,7 +840,7 @@ public class ConstraintHandle {
             if (isSelected) {
                 int start = y0;
                 int end = y1;
-                if (mAnchor.getMargin() > 0) {
+                if ((colorSet.alwaysShowMargins() || isSelected) && mAnchor.getMargin() > 0) {
                     if (isTopConnection) {
                         end += transform.getSwingDimensionF(mAnchor.getMargin());
                     } else {
@@ -877,7 +877,7 @@ public class ConstraintHandle {
             if (isSelected) {
                 int start = x0;
                 int end = x1;
-                if (mAnchor.getMargin() > 0) {
+                if ((colorSet.alwaysShowMargins() || isSelected) && mAnchor.getMargin() > 0) {
                     if (isLeftConnection) {
                         end += transform.getSwingDimensionF(mAnchor.getMargin());
                     } else {
@@ -1200,7 +1200,7 @@ public class ConstraintHandle {
             if (isSelected && Math.abs(transform.getSwingFY(y0) - base) > 0) {
                 int start = transform.getSwingFY(y0);
                 int end = transform.getSwingFY(yt);
-                if (mAnchor.getMargin() > 0) {
+                if ((colorSet.alwaysShowMargins() || isSelected) && mAnchor.getMargin() > 0) {
                     if (isTopConnection) {
                         end += transform.getSwingDimensionF(mAnchor.getMargin());
                     } else {
@@ -1304,7 +1304,7 @@ public class ConstraintHandle {
             if (isSelected && Math.abs(transform.getSwingFX(x0) - base) > 0) {
                 int start = transform.getSwingFX(x0);
                 int end = transform.getSwingFX(xt);
-                if (mAnchor.getMargin() > 0) {
+                if ((colorSet.alwaysShowMargins() || isSelected) && mAnchor.getMargin() > 0) {
                     if (isLeftConnection) {
                         end += transform.getSwingDimensionF(mAnchor.getMargin());
                     } else {
