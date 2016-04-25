@@ -16,10 +16,8 @@
 package com.android.tools.idea.templates.recipe;
 
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.model.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpec;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
-import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateProcessingException;
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateUserVisibleException;
 import com.android.tools.idea.templates.GradleFilePsiMerger;
@@ -46,9 +44,12 @@ import java.util.List;
 import java.util.Map;
 
 import static com.android.SdkConstants.*;
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFilePath;
+import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
 import static com.android.tools.idea.templates.FreemarkerUtils.processFreemarkerTemplate;
 import static com.android.tools.idea.templates.TemplateUtils.*;
+import static com.google.common.base.Strings.nullToEmpty;
 
 /**
  * Executor support for recipe instructions.
@@ -82,25 +83,35 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
     }
 
     Project project = myContext.getProject();
-    if (!project.isInitialized()) {
-      // TODO: Fall back to GradleFileSimpleMerger to marge the classpath dependency when project is not initialized.
-      throw new RuntimeException("Project '" + project.getName() + "' is not initialized");
+    File rootBuildFile = getGradleBuildFilePath(getBaseDirPath(project));
+    if (project.isInitialized()) {
+      VirtualFile virtualFile = VfsUtil.findFileByIoFile(rootBuildFile, true);
+      if (virtualFile == null) {
+        throw new RuntimeException("Failed to find the root module " + FN_BUILD_GRADLE + "file for project '" + project.getName() + "'");
+      }
+      GradleBuildModel rootBuildModel = GradleBuildModel.parseBuildFile(virtualFile, project, project.getName());
+      myIO.addClasspath(mavenUrl, rootBuildModel);
     }
-
-    GradleSettingsModel gradleSettingsModel = GradleSettingsModel.get(project);
-    if (gradleSettingsModel == null) {
-      throw new RuntimeException("Failed to find " + FN_SETTINGS_GRADLE + "file for project '" + project.getName() + "'");
+    else {
+      String destinationContents = rootBuildFile.exists() ? nullToEmpty(readTextFile(rootBuildFile)) : "";
+      String result = myIO.mergeGradleFiles(formatClasspath(mavenUrl), destinationContents, project, "");
+      try {
+        myIO.writeFile(this, result, rootBuildFile);
+      }
+      catch (IOException e) {
+        throw new RuntimeException(e);
+      }
     }
-
-    GradleBuildModel rootBuildModel = gradleSettingsModel.moduleModel(":");
-    if (rootBuildModel == null) {
-      throw new RuntimeException("Failed to find the root module " + FN_BUILD_GRADLE + "file for project '" + project.getName() + "'");
-    }
-
-    myIO.addClasspath(mavenUrl, rootBuildModel);
     myNeedsGradleSync = true;
   }
 
+  private static String formatClasspath(String dependency) {
+    return "buildscript {\n" +
+           "  dependencies {\n" +
+           "    classpath '" + dependency + "'\n" +
+           "  }\n" +
+           "}\n";
+  }
 
   /**
    * Add a library dependency into the project.
@@ -361,15 +372,8 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
    * Merge the URLs from our gradle template into the target module's build.gradle file
    */
   private void mergeDependenciesIntoGradle() throws Exception {
-    File gradleBuildFile = GradleUtil.getGradleBuildFilePath(myContext.getModuleRoot());
-
-    String destinationContents = null;
-    if (gradleBuildFile.exists()) {
-      destinationContents = readTextFile(gradleBuildFile);
-    }
-    if (destinationContents == null) {
-      destinationContents = "";
-    }
+    File gradleBuildFile = getGradleBuildFilePath(myContext.getModuleRoot());
+    String destinationContents = gradleBuildFile.exists() ? nullToEmpty(readTextFile(gradleBuildFile)) : "";
     Object buildApi = getParamMap().get(TemplateMetadata.ATTR_BUILD_API);
     String supportLibVersionFilter = buildApi != null ? buildApi.toString() : "";
     String result = myIO.mergeGradleFiles(formatDependencies(), destinationContents, myContext.getProject(), supportLibVersionFilter);
