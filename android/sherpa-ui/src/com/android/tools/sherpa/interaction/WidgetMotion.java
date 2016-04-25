@@ -16,11 +16,14 @@
 
 package com.android.tools.sherpa.interaction;
 
+import com.android.tools.sherpa.drawing.SceneDraw;
 import com.android.tools.sherpa.drawing.ViewTransform;
+import com.android.tools.sherpa.drawing.decorator.WidgetDecorator;
 import com.android.tools.sherpa.structure.WidgetCompanion;
 import com.android.tools.sherpa.structure.WidgetsScene;
 import com.android.tools.sherpa.structure.Selection;
 import com.google.tnt.solver.widgets.Animator;
+import com.google.tnt.solver.widgets.ConstraintAnchor;
 import com.google.tnt.solver.widgets.ConstraintWidget;
 
 import java.awt.Point;
@@ -46,6 +49,7 @@ public class WidgetMotion {
     private boolean mShowDecorations = true;
 
     private static final int GRID_SPACING = 8; // Material Design 8dp grid
+    private SceneDraw mSceneDraw;
 
     private enum Direction {
         LEFT,
@@ -58,7 +62,7 @@ public class WidgetMotion {
      * Base constructor, takes the current list of widgets and the selection
      *
      * @param widgetsScene list of widgets
-     * @param selection   current selection
+     * @param selection    current selection
      */
     public WidgetMotion(WidgetsScene widgetsScene, Selection selection) {
         mWidgetsScene = widgetsScene;
@@ -128,18 +132,25 @@ public class WidgetMotion {
             }
             widgetsToCheck.add(w);
         }
+        // lock direction before applying the snap
+        if (widget.directionLocked == Selection.DIRECTION_LOCKED_X) {
+            candidatePoint.y = widget.origin.y;
+        } else if (widget.directionLocked == Selection.DIRECTION_LOCKED_Y) {
+            candidatePoint.x = widget.origin.x;
+        }
         if (snap) {
             SnapPlacement.snapWidget(widgetsToCheck, widget.widget,
                     candidatePoint, false, mSnapCandidates, transform);
         }
-        if (widget.directionLocked == Selection.DIRECTION_LOCKED_X) {
-            candidatePoint.y = widget.origin.y;
-        } else if (widget.directionLocked == Selection.DIRECTION_LOCKED_Y){
-            candidatePoint.x = widget.origin.x;
-        }
-        widget.widget.setDrawOrigin(candidatePoint.x, candidatePoint.y);
+
         WidgetCompanion widgetCompanion = (WidgetCompanion) widget.widget.getCompanionWidget();
         WidgetInteractionTargets widgetInteraction = widgetCompanion.getWidgetInteractionTargets();
+
+        // check if we have centered connections, if so allow moving and snapping
+        // on specific percentage positions
+        snapBias(widget.widget, candidatePoint);
+
+        widget.widget.setDrawOrigin(candidatePoint.x, candidatePoint.y);
         widgetInteraction.updatePosition(transform);
 
         mSimilarMargins.clear();
@@ -157,12 +168,100 @@ public class WidgetMotion {
     }
 
     /**
+     * Snap the widget's horizontal or vertical bias if we have horizontal/vertical
+     * centered connections
+     *
+     * @param widget         the current widget
+     * @param candidatePoint the candidate point containing the current location
+     */
+    private void snapBias(ConstraintWidget widget, Point candidatePoint) {
+        WidgetCompanion widgetCompanion = (WidgetCompanion) widget.getCompanionWidget();
+        int currentStyle = WidgetDecorator.BLUEPRINT_STYLE;
+        if (mSceneDraw != null) {
+            currentStyle = mSceneDraw.getCurrentStyle();
+        }
+        WidgetDecorator decorator = widgetCompanion.getWidgetDecorator(currentStyle);
+
+        ConstraintAnchor leftAnchor = widget.getAnchor(ConstraintAnchor.Type.LEFT);
+        ConstraintAnchor rightAnchor = widget.getAnchor(ConstraintAnchor.Type.RIGHT);
+        if (leftAnchor != null && rightAnchor != null
+                && leftAnchor.isConnected() && rightAnchor.isConnected()
+                && leftAnchor.getTarget() != rightAnchor.getTarget()) {
+            int begin =
+                    WidgetInteractionTargets.constraintHandle(leftAnchor.getTarget()).getDrawX();
+            int end = WidgetInteractionTargets.constraintHandle(rightAnchor.getTarget()).getDrawX();
+            int width = widget.getDrawWidth();
+            int delta = candidatePoint.x - begin;
+            float percent = delta / (float) (end - begin - width);
+            percent = Math.max(0, Math.min(1, percent));
+            percent = snapPercent(percent);
+            widget.setHorizontalBiasPercent(percent);
+            decorator.updateBias();
+        }
+        ConstraintAnchor topAnchor = widget.getAnchor(ConstraintAnchor.Type.TOP);
+        ConstraintAnchor bottomAnchor = widget.getAnchor(ConstraintAnchor.Type.BOTTOM);
+        if (topAnchor != null && bottomAnchor != null
+                && topAnchor.isConnected() && bottomAnchor.isConnected()
+                && topAnchor.getTarget() != bottomAnchor.getTarget()) {
+            int begin = WidgetInteractionTargets.constraintHandle(topAnchor.getTarget()).getDrawY();
+            int end =
+                    WidgetInteractionTargets.constraintHandle(bottomAnchor.getTarget()).getDrawY();
+            int height = widget.getDrawHeight();
+            int delta = candidatePoint.y - begin;
+            float percent = delta / (float) (end - begin - height);
+            percent = Math.max(0, Math.min(1, percent));
+            percent = snapPercent(percent);
+            widget.setVerticalBiasPercent(percent);
+            decorator.updateBias();
+        }
+    }
+
+    /**
+     * Snap the percent value to common values
+     *
+     * @param percent
+     * @return the modified percent value
+     */
+    private float snapPercent(float percent) {
+        // We'll snap on the following values:
+        // 1/4, 1/3, 1/2, 2/3, 3/4
+        // as well as percents
+        int value = (int) (percent * 100);
+        int slope = 2;
+        if (Math.abs(value - 25) <= slope) {
+            value = 25;
+        }
+        if (Math.abs(value - 33) <= slope) {
+            value = 33;
+        }
+        if (Math.abs(value - 50) <= slope) {
+            value = 50;
+        }
+        if (Math.abs(value - 66) <= slope) {
+            value = 66;
+        }
+        if (Math.abs(value - 75) <= slope) {
+            value = 75;
+        }
+        return (value / 100f);
+    }
+
+    /**
      * Need to be called when the mouse is released
      */
     public void mouseReleased() {
         mShowDecorations = true;
         mSnapCandidates.clear();
         mSimilarMargins.clear();
+    }
+
+    /**
+     * Setter for the SceneDraw
+     *
+     * @param sceneDraw
+     */
+    public void setSceneDraw(SceneDraw sceneDraw) {
+        mSceneDraw = sceneDraw;
     }
 
     /**

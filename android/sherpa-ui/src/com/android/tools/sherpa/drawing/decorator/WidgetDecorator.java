@@ -51,17 +51,20 @@ public class WidgetDecorator {
     private boolean mIsSelected = false;
     private boolean mShowResizeHandles = false;
     private boolean mShowSizeIndicator = false;
-    private boolean mShowPercentIndicator = false;
     protected ColorSet mColorSet;
 
     private AnimationProgress mShowBaseline = new AnimationProgress();
+    private AnimationProgress mShowBias = new AnimationProgress();
 
+    public static Font sInfoFont = new Font("Helvetica", Font.PLAIN, 12);
+
+    /**
+     * Utility class encapsulating a simple animation timer
+     */
     class AnimationProgress {
         long mStart = 0;
         long mDelay = 1000;
         long mDuration = 300;
-
-        float mProgress = 0;
 
         public void setDelay(long delay) {
             mDelay = delay;
@@ -153,8 +156,23 @@ public class WidgetDecorator {
      */
     public WidgetDecorator(ConstraintWidget widget) {
         mWidget = widget;
+        mShowBias.setDelay(0);
+        mShowBias.setDuration(3000);
     }
 
+    /**
+     * Tell us that the horizontal or vertical bias value has been changed.
+     * We'll use it to start showing the bias labels.
+     */
+    public void updateBias() {
+        mShowBias.start();
+    }
+
+    /**
+     * Set the current color set, and create the local color themes from it
+     *
+     * @param colorSet the new color set
+     */
     public void setColorSet(ColorSet colorSet) {
         if (mColorSet == colorSet) {
             return;
@@ -237,6 +255,9 @@ public class WidgetDecorator {
         if (mShowBaseline.isRunning()) {
             return true;
         }
+        if (mShowBias.isRunning()) {
+            return true;
+        }
         return false;
     }
 
@@ -286,17 +307,14 @@ public class WidgetDecorator {
             return;
         }
         mIsSelected = value;
-        if (!mIsSelected) {
-            // we reset the percent indicator so that it won't show
-            // automatically upon selection (but rather, only if the inspector tells us)
-            mShowPercentIndicator = false;
-        }
         if (mIsSelected) {
             setLook(ColorTheme.Look.SELECTED);
             mShowBaseline.start();
+            mShowBias.start();
         } else {
             setLook(ColorTheme.Look.NORMAL);
             mShowBaseline.reset();
+            mShowBias.reset();
         }
     }
 
@@ -333,7 +351,9 @@ public class WidgetDecorator {
      * @param value
      */
     public void setShowPercentIndicator(boolean value) {
-        mShowPercentIndicator = value;
+        if (value) {
+            mShowBias.start();
+        }
     }
 
     /**
@@ -606,7 +626,103 @@ public class WidgetDecorator {
                 }
             }
             g.setStroke(SnapDraw.sNormalStroke);
+            paintBias(transform, g);
         }
+    }
+
+    /**
+     * Paint the horizontal and vertical informations of this widget, if appropriate
+     *
+     * @param transform the view transform
+     * @param g         the graphics context
+     */
+    private void paintBias(ViewTransform transform, Graphics2D g) {
+        ConstraintAnchor left = mWidget.getAnchor(ConstraintAnchor.Type.LEFT);
+        ConstraintAnchor right = mWidget.getAnchor(ConstraintAnchor.Type.RIGHT);
+        if (left != null && right != null
+                && left.isConnected() && right.isConnected()) {
+            if (mShowBias.isRunning()) {
+                float progress = 1 - mShowBias.getProgress();
+                int percent = (int) (mWidget.getHorizontalBiasPercent() * 100);
+                int x = mWidget.getDrawX() - 32;
+                int y = (int) (mWidget.getDrawY() + mWidget.getDrawHeight() / 2f);
+                x = transform.getSwingFX(x);
+                y = transform.getSwingFY(y);
+                Color c = mConstraintsColor.getColor();
+                Color pre = g.getColor();
+                int alpha = (int) (progress * 255);
+                g.setColor(new Color(c.getRed(), c.getGreen(), c.getBlue(), alpha));
+                ConnectionDraw
+                        .drawCircledText(g, sInfoFont, formatPercent(percent, true),
+                                x, y);
+                x = mWidget.getDrawRight() + 32;
+                x = transform.getSwingFX(x);
+                ConnectionDraw
+                        .drawCircledText(g, sInfoFont, formatPercent(percent, false),
+                                x, y);
+                g.setColor(pre);
+            }
+        }
+        ConstraintAnchor top = mWidget.getAnchor(ConstraintAnchor.Type.TOP);
+        ConstraintAnchor bottom = mWidget.getAnchor(ConstraintAnchor.Type.BOTTOM);
+        if (top != null && bottom != null
+                && top.isConnected() && bottom.isConnected()) {
+            if (mShowBias.isRunning()) {
+                float progress = 1 - mShowBias.getProgress();
+                int percent = (int) (mWidget.getVerticalBiasPercent() * 100);
+                int y = mWidget.getDrawY() - 32;
+                int x = (int) (mWidget.getDrawX() + mWidget.getDrawWidth() / 2f);
+                x = transform.getSwingFX(x);
+                y = transform.getSwingFY(y);
+                Color c = mConstraintsColor.getColor();
+                Color pre = g.getColor();
+                int alpha = (int) (progress * 255);
+                g.setColor(new Color(c.getRed(), c.getGreen(), c.getBlue(), alpha));
+                ConnectionDraw
+                        .drawCircledText(g, sInfoFont, formatPercent(percent, true),
+                                x, y);
+                y = mWidget.getDrawBottom() + 32;
+                y = transform.getSwingFY(y);
+                ConnectionDraw
+                        .drawCircledText(g, sInfoFont, formatPercent(percent, false),
+                                x, y);
+                g.setColor(pre);
+            }
+        }
+    }
+
+    /**
+     * Utility function to format the percent message
+     *
+     * @param percent the percent value (0-100)
+     * @param begin   if this message will be used in left or top side
+     * @return the formatted string representing the percentage
+     */
+    private String formatPercent(int percent, boolean begin) {
+        String message = "" + percent + "%";
+        if (begin) {
+            if (percent == 25) {
+                message = "1/4";
+            } else if (percent == 33) {
+                message = "1/3";
+            } else if (percent == 66) {
+                message = "2/3";
+            } else if (percent == 75) {
+                message = "3/4";
+            }
+        } else {
+            message = "" + (100 - percent) + "%";
+            if (percent == 25) {
+                message = "3/4";
+            } else if (percent == 33) {
+                message = "2/3";
+            } else if (percent == 66) {
+                message = "1/3";
+            } else if (percent == 75) {
+                message = "1/4";
+            }
+        }
+        return message;
     }
 
     /**
