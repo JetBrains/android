@@ -21,6 +21,7 @@ import com.android.tools.sherpa.drawing.ConnectionDraw;
 import com.android.tools.sherpa.drawing.SnapDraw;
 import com.android.tools.sherpa.drawing.ViewTransform;
 import com.android.tools.sherpa.interaction.ConstraintHandle;
+import com.android.tools.sherpa.interaction.MouseInteraction;
 import com.android.tools.sherpa.interaction.WidgetInteractionTargets;
 import com.android.tools.sherpa.structure.Selection;
 import com.android.tools.sherpa.drawing.WidgetDraw;
@@ -57,6 +58,11 @@ public class WidgetDecorator {
     private AnimationProgress mShowBias = new AnimationProgress();
 
     public static Font sInfoFont = new Font("Helvetica", Font.PLAIN, 12);
+    private MouseInteraction.LockTimer mLockTimer;
+
+    public void setLockTimer(MouseInteraction.LockTimer lockTimer) {
+        mLockTimer = lockTimer;
+    }
 
     /**
      * Utility class encapsulating a simple animation timer
@@ -256,6 +262,9 @@ public class WidgetDecorator {
             return true;
         }
         if (mShowBias.isRunning()) {
+            return true;
+        }
+        if (mLockTimer != null) {
             return true;
         }
         return false;
@@ -623,6 +632,10 @@ public class WidgetDecorator {
                         g.setColor(currentColor);
                     }
                     startHandle.drawConnection(transform, g, mColorSet, mIsSelected);
+                    if (mLockTimer != null) {
+                        float progress = mLockTimer.getProgress();
+                        startHandle.drawConnection(transform, g, mColorSet, mIsSelected, progress);
+                    }
                 }
             }
             g.setStroke(SnapDraw.sNormalStroke);
