@@ -22,6 +22,7 @@ import com.google.common.collect.Iterables;
 
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.stream.Collectors;
 
 /**
  * Tests for {@link AndroidModel}.
@@ -409,25 +410,21 @@ public class AndroidModelTest extends GradleFileModelTestCase {
     Collection<ProductFlavorModel> productFlavors = android.productFlavors();
     assertNotNull(productFlavors);
     assertEquals("productFlavors", 2, productFlavors.size());
-    Iterator<ProductFlavorModel> iterator = productFlavors.iterator();
-    assertEquals("productFlavors", "flavor2", iterator.next().name());
-    assertEquals("productFlavors", "flavor1", iterator.next().name());
+    assertSameElements(productFlavors.stream().map(ProductFlavorModel::name).sorted().collect(Collectors.toList()), "flavor1", "flavor2");
 
     android.removeProductFlavor("flavor1");
 
     productFlavors = android.productFlavors();
     assertNotNull(productFlavors);
     assertEquals("productFlavors", 1, productFlavors.size());
-    iterator = productFlavors.iterator();
+    Iterator<ProductFlavorModel> iterator = productFlavors.iterator();
     assertEquals("productFlavors", "flavor2", iterator.next().name());
 
     buildModel.resetState();
     productFlavors = android.productFlavors();
     assertNotNull(productFlavors);
     assertEquals("productFlavors", 2, productFlavors.size());
-    iterator = productFlavors.iterator();
-    assertEquals("productFlavors", "flavor2", iterator.next().name());
-    assertEquals("productFlavors", "flavor1", iterator.next().name());
+    assertSameElements(productFlavors.stream().map(ProductFlavorModel::name).sorted().collect(Collectors.toList()), "flavor1", "flavor2");
   }
 
   public void testRemoveAndApplyElements() throws Exception {
@@ -568,9 +565,7 @@ public class AndroidModelTest extends GradleFileModelTestCase {
     Collection<ProductFlavorModel> productFlavors = android.productFlavors();
     assertNotNull(productFlavors);
     assertEquals("productFlavors", 2, productFlavors.size());
-    Iterator<ProductFlavorModel> iterator = productFlavors.iterator();
-    assertEquals("productFlavors", "flavor2", iterator.next().name());
-    assertEquals("productFlavors", "flavor1", iterator.next().name());
+    assertSameElements(productFlavors.stream().map(ProductFlavorModel::name).sorted().collect(Collectors.toList()), "flavor1", "flavor2");
 
     android.defaultConfig().removeApplicationId();
     android.removeProductFlavor("flavor1");
@@ -580,7 +575,7 @@ public class AndroidModelTest extends GradleFileModelTestCase {
     productFlavors = android.productFlavors();
     assertNotNull(productFlavors);
     assertEquals("productFlavors", 1, productFlavors.size());
-    iterator = productFlavors.iterator();
+    Iterator<ProductFlavorModel> iterator = productFlavors.iterator();
     assertEquals("productFlavors", "flavor2", iterator.next().name());
 
     applyChanges(buildModel);
