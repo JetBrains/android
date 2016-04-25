@@ -25,6 +25,7 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
+import com.intellij.util.SystemProperties;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -32,6 +33,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import javax.swing.text.NumberFormatter;
 
+import static com.android.tools.idea.gradle.project.GradleExperimentalSettings.ENABLE_NEW_PSD_SYSTEM_PROPERTY;
 import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
 
 public class GradleExperimentalSettingsConfigurable implements SearchableConfigurable, Configurable.NoScroll {
@@ -50,6 +52,7 @@ public class GradleExperimentalSettingsConfigurable implements SearchableConfigu
 
   public GradleExperimentalSettingsConfigurable() {
     mySettings = GradleExperimentalSettings.getInstance();
+    myUseNewProjectStructureCheckBox.setVisible(SystemProperties.getBooleanProperty(ENABLE_NEW_PSD_SYSTEM_PROPERTY, false));
   }
 
   @Override

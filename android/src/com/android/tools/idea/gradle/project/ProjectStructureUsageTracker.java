@@ -28,10 +28,12 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Set;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.getDependencies;
@@ -52,17 +54,14 @@ class ProjectStructureUsageTracker {
   }
 
   void trackProjectStructure() {
-    ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
-      @Override
-      public void run() {
-        ModuleManager moduleManager = ModuleManager.getInstance(myProject);
-        try {
-          trackProjectStructure(moduleManager.getModules());
-        }
-        catch (Throwable e) {
-          // Any errors in project tracking should not be displayed to the user.
-          LOG.warn("Failed to track project structure", e);
-        }
+    ApplicationManager.getApplication().executeOnPooledThread(() -> {
+      ModuleManager moduleManager = ModuleManager.getInstance(myProject);
+      try {
+        trackProjectStructure(moduleManager.getModules());
+      }
+      catch (Throwable e) {
+        // Any errors in project tracking should not be displayed to the user.
+        LOG.warn("Failed to track project structure", e);
       }
     });
   }
@@ -117,10 +116,22 @@ class ProjectStructureUsageTracker {
                                                         androidModel.getAndroidProject().getSigningConfigs().size(),
                                                         androidModel.getBuildTypeNames().size(),
                                                         androidModel.getProductFlavorNames().size(),
-                                                        androidModel.getAndroidProject().getFlavorDimensions().size());
+                                                        getFlavorDimensions(androidModel).size());
         }
       }
     }
+  }
+
+  @NotNull
+  private static Collection<String> getFlavorDimensions(@NotNull AndroidGradleModel androidModel) {
+    AndroidProject androidProject = androidModel.getAndroidProject();
+    try {
+      return androidProject.getFlavorDimensions();
+    }
+    catch (UnsupportedMethodException e) {
+      LOG.warn("Invoking 'getFlavorDimensions' on old Gradle model", e);
+    }
+    return Collections.emptyList();
   }
 
   private static void trackExternalDependenciesInAndroidApp(@NotNull AndroidGradleModel model) {
