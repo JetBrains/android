@@ -27,9 +27,7 @@ import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
-import com.android.tools.idea.rendering.Locale;
-import com.android.tools.idea.rendering.RenderService;
-import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
+import com.android.tools.idea.rendering.*;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
@@ -49,17 +47,14 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.android.resourceManagers.LocalResourceManager;
-import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.configurations.ConfigurationListener.*;
-import static org.jetbrains.android.uipreview.LayoutLibraryLoader.USE_SDK_LAYOUTLIB;
 
 /**
  * A {@linkplain Configuration} is a selection of device, orientation, theme,
@@ -602,31 +597,13 @@ public class Configuration implements Disposable, ModificationTracker {
       // a target which matches.
       VersionQualifier version = myEditedConfig.getVersionQualifier();
       if (target != null && version != null && version.getVersion() > target.getVersion().getFeatureLevel()) {
-        target = myManager.getTarget(version.getVersion());
+        return myManager.getTarget(version.getVersion());
       }
 
-      return getTargetForRendering(target);
+      return target;
     }
 
     return myTarget;
-  }
-
-  /**
-   * Returns the configuration target. This will be different of {#getTarget} when using newer targets to render on screen.
-   * This method can be used to obtain a target that can be used for attribute resolution.
-   */
-  @Nullable
-  public IAndroidTarget getRealTarget() {
-    IAndroidTarget target = getTarget();
-
-    if (target instanceof CompatibilityRenderTarget) {
-      CompatibilityRenderTarget compatTarget = (CompatibilityRenderTarget)target;
-      if (compatTarget.getRealTarget() != null) {
-        return compatTarget.getRealTarget();
-      }
-    }
-
-    return target;
   }
 
   /**
@@ -891,7 +868,7 @@ public class Configuration implements Disposable, ModificationTracker {
    */
   public void setTarget(@Nullable IAndroidTarget target) {
     if (myTarget != target) {
-      myTarget = getTargetForRendering(target);
+      myTarget = target;
       updated(CFG_TARGET);
     }
   }
@@ -1280,23 +1257,5 @@ public class Configuration implements Disposable, ModificationTracker {
   @Override
   public long getModificationCount() {
     return myModificationCount;
-  }
-
-
-  /**
-   * Returns a target that is only suitable to be used for rendering (as opposed to a target that can be used for attribute resolution).
-   */
-  @Nullable
-  private static IAndroidTarget getTargetForRendering(@Nullable IAndroidTarget target) {
-    if (target != null && !USE_SDK_LAYOUTLIB) {
-      try {
-        target = StudioEmbeddedRenderTarget.getCompatibilityTarget(target);
-      }
-      catch (IOException e) {
-        assert false : "Unable to load embedded layoutlib";
-      }
-    }
-
-    return target;
   }
 }
