@@ -60,6 +60,11 @@ public interface RecipeExecutor {
   /**
    * Record a classpath dependency.
    */
+  void applyPlugin(@NotNull String plugin);
+
+  /**
+   * Record a classpath dependency.
+   */
   void addClasspath(@NotNull String plugin);
 
   /**
