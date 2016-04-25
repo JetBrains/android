@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.property.editors;
 
 import com.android.tools.idea.uibuilder.handlers.ui.RotatedLabel;
+import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.NlFlagPropertyItem;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.google.common.collect.ImmutableList;
@@ -52,7 +53,6 @@ public class NlLayoutEditor extends JPanel {
   private static final JBColor ORANGE = new JBColor(new Color(249, 203, 156), new Color(183, 149, 114));
   private static final JBColor GREEN = new JBColor(new Color(182, 215, 168), new Color(134, 158, 123));
   private static final JBColor RED = new JBColor(new Color(234, 153, 153), new Color(172, 112, 112));
-  private static final JBColor BLUE = new JBColor(new Color(153, 204, 255), new Color(0, 89, 179));
   private static final JBColor YELLOW = new JBColor(new Color(255, 252, 170), new Color(187, 187, 0));
   private static final JBColor BLACK = new JBColor(Gray._0, Gray._0);
   private static final JBColor WHITE = new JBColor(Gray._255, Gray._255);
@@ -75,25 +75,23 @@ public class NlLayoutEditor extends JPanel {
   private final NlEnumEditor myEnumEditor;
   private final NlReferenceEditor myReferenceEditor;
   private final NlGravityEditor myGravityEditor;
+  private final JPanel myConstraintMarginPanel;
+  private final JPanel myLayoutGravityPanel;
+  private final JPanel myLayoutMarginPanel;
+  private final JPanel myPaddingPanel;
+  private final JPanel myGravityPanel;
+  private final JPanel myLayoutPanel;
   private Map<String, NlProperty> myProperties;
   private NlComponentEditor myActiveEditor;
 
   public NlLayoutEditor(@NotNull Project project) {
     super(new BorderLayout());
-    JPanel constraintMargin = createPanel(ControlGroup.CONSTRAINT_MARGIN, "Constraint Margin", PURPLE);
-    JPanel layoutGravity = createPanel(ControlGroup.LAYOUT_GRAVITY, "Layout Gravity", ORANGE);
-    JPanel layoutMargin = createPanel(ControlGroup.LAYOUT_MARGIN, "Layout Margin", GREEN);
-    JPanel padding = createPanel(ControlGroup.PADDING, "Padding", BLUE);
-    JPanel gravity = createPanel(ControlGroup.GRAVITY, "Gravity", RED);
-    JPanel layout = createPanel(ControlGroup.LAYOUT, "Layout", YELLOW);
-
-    gravity.add(layout, BorderLayout.CENTER);
-    padding.add(gravity, BorderLayout.CENTER);
-    layoutMargin.add(padding, BorderLayout.CENTER);
-    layoutGravity.add(layoutMargin, BorderLayout.CENTER);
-    constraintMargin.add(layoutGravity, BorderLayout.CENTER);
-    add(constraintMargin, BorderLayout.CENTER);
-
+    myConstraintMarginPanel = createPanel(ControlGroup.CONSTRAINT_MARGIN, "Constraint Margin", GREEN);
+    myLayoutGravityPanel = createPanel(ControlGroup.LAYOUT_GRAVITY, "Layout Gravity", ORANGE);
+    myLayoutMarginPanel = createPanel(ControlGroup.LAYOUT_MARGIN, "Layout Margin", GREEN);
+    myPaddingPanel = createPanel(ControlGroup.PADDING, "Padding", PURPLE);
+    myGravityPanel = createPanel(ControlGroup.GRAVITY, "Gravity", RED);
+    myLayoutPanel = createPanel(ControlGroup.LAYOUT, "Layout", YELLOW);
     myEnumEditor = NlEnumEditor.createForInspector(createEnumListener());
     myReferenceEditor = NlReferenceEditor.createForInspector(project, createReferenceListener());
     myGravityEditor = new NlGravityEditor();
@@ -111,8 +109,25 @@ public class NlLayoutEditor extends JPanel {
     return myGravityEditor;
   }
 
-  public void setProperties(@NotNull Map<String, NlProperty> properties) {
+  public void setSelectedComponent(@Nullable NlComponent component, @NotNull Map<String, NlProperty> properties) {
     myProperties = properties;
+    myGravityPanel.add(myLayoutPanel, BorderLayout.CENTER);
+    myPaddingPanel.add(myGravityPanel, BorderLayout.CENTER);
+    NlComponent parent = null;
+    if (component != null) {
+      parent = component.getParent();
+    }
+    if (parent != null && parent.getTagName().equals(CONSTRAINT_LAYOUT)) {
+      myConstraintMarginPanel.add(myPaddingPanel, BorderLayout.CENTER);
+      removeAll();
+      add(myConstraintMarginPanel, BorderLayout.CENTER);
+    }
+    else {
+      myLayoutMarginPanel.add(myPaddingPanel, BorderLayout.CENTER);
+      myLayoutGravityPanel.add(myLayoutMarginPanel, BorderLayout.CENTER);
+      removeAll();
+      add(myLayoutGravityPanel, BorderLayout.CENTER);
+    }
   }
 
   public void refresh() {
