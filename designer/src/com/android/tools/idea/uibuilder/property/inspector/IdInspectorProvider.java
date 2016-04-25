@@ -34,6 +34,6 @@ public class IdInspectorProvider implements InspectorProvider {
   public InspectorComponent createCustomInspector(@Nullable NlComponent component,
                                                   @NotNull Map<String, NlProperty> properties,
                                                   @NotNull NlPropertiesManager propertiesManager) {
-    return new IdInspectorComponent(properties, propertiesManager);
+    return new IdInspectorComponent(component, properties, propertiesManager);
   }
 }

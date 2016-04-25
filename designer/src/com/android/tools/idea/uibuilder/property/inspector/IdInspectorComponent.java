@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.property.inspector;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.editors.*;
@@ -31,7 +32,8 @@ public class IdInspectorComponent implements InspectorComponent {
   private final NlReferenceEditor myIdField;
   private final NlLayoutEditor myLayoutEditor;
 
-  public IdInspectorComponent(@NotNull Map<String, NlProperty> properties,
+  public IdInspectorComponent(@Nullable NlComponent component,
+                              @NotNull Map<String, NlProperty> properties,
                               @NotNull NlPropertiesManager propertiesManager) {
     myPropertiesManager = propertiesManager;
 
@@ -39,7 +41,7 @@ public class IdInspectorComponent implements InspectorComponent {
 
     myIdField = NlReferenceEditor.createForInspector(propertiesManager.getProject(), createReferenceListener());
     myLayoutEditor = new NlLayoutEditor(propertiesManager.getProject());
-    myLayoutEditor.setProperties(properties);
+    myLayoutEditor.setSelectedComponent(component, properties);
   }
 
   @Override
