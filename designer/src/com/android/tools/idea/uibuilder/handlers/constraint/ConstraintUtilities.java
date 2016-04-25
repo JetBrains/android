@@ -707,7 +707,13 @@ public class ConstraintUtilities {
     nlModel.notifyModified();
   }
 
-  static void saveBias(NlComponent component, String attribute, final float bias) {
+  /**
+   *  Utility function to commit an attribute to the NlModel
+   * @param component
+   * @param attribute
+   * @param value String or null to clear attribute
+   */
+  static void saveNlAttribute(NlComponent component, String attribute, final String value) {
     NlModel nlModel = component.getModel();
     Project project = nlModel.getProject();
     XmlFile file = nlModel.getFile();
@@ -716,7 +722,7 @@ public class ConstraintUtilities {
     WriteCommandAction action = new WriteCommandAction(project, label, file) {
       @Override
       protected void run(@NotNull Result result) throws Throwable {
-        component.setAttribute(SdkConstants.SHERPA_URI, attribute, "" + bias);
+        component.setAttribute(SdkConstants.SHERPA_URI, attribute, value);
       }
     };
     action.execute();
