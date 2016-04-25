@@ -18,16 +18,15 @@ package com.android.tools.idea.uibuilder.property.inspector;
 import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.uibuilder.property.NlProperty;
-import com.android.tools.idea.uibuilder.property.editors.NlLayoutEditor;
-import com.android.tools.idea.uibuilder.property.editors.NlReferenceEditor;
+import com.android.tools.idea.uibuilder.property.editors.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
 import java.util.Map;
 
 public class IdInspectorComponent implements InspectorComponent {
-  @NotNull private final NlPropertiesManager myPropertiesManager;
-
+  private final NlPropertiesManager myPropertiesManager;
   private final NlProperty myIdAttr;
   private final NlReferenceEditor myIdField;
   private final NlLayoutEditor myLayoutEditor;
@@ -39,7 +38,7 @@ public class IdInspectorComponent implements InspectorComponent {
     myIdAttr = properties.get(SdkConstants.ATTR_ID);
 
     myIdField = NlReferenceEditor.createForInspector(propertiesManager.getProject(), createReferenceListener());
-    myLayoutEditor = new NlLayoutEditor();
+    myLayoutEditor = new NlLayoutEditor(propertiesManager.getProject());
     myLayoutEditor.setProperties(properties);
   }
 
@@ -47,7 +46,23 @@ public class IdInspectorComponent implements InspectorComponent {
   public void attachToInspector(@NotNull InspectorPanel inspector) {
     inspector.addComponent("ID", getTooltip(myIdAttr), myIdField.getComponent());
     inspector.addPanel(myLayoutEditor);
+    addEditor(inspector, myLayoutEditor.getEnumPropertyEditor());
+    addEditor(inspector, myLayoutEditor.getReferencePropertyEditor());
+    addEditorWithLabelOnSeparateLine(inspector, myLayoutEditor.getGravityEditor());
     refresh();
+  }
+
+  private static void addEditor(@NotNull InspectorPanel inspector, @NotNull NlComponentEditor editor) {
+    JLabel label = inspector.addComponent("", null, editor.getComponent());
+    editor.setLabel(label);
+    editor.setVisible(false);
+  }
+
+  private static void addEditorWithLabelOnSeparateLine(@NotNull InspectorPanel inspector, @NotNull NlComponentEditor editor) {
+    JLabel label = inspector.addLabel("");
+    inspector.addPanel(editor.getComponent());
+    editor.setLabel(label);
+    editor.setVisible(false);
   }
 
   @Nullable
