@@ -43,7 +43,7 @@ public final class GradleDslExpressionMap extends GradlePropertiesDslElement {
     super(parent, psiElement, name);
   }
 
-  void addNewLiteral(String key, Object value) {
+  public void addNewLiteral(String key, Object value) {
     GradleDslElement propertyElement = getPropertyElement(key);
     if (propertyElement instanceof GradleDslLiteral) {
       ((GradleDslLiteral)propertyElement).setValue(value);
