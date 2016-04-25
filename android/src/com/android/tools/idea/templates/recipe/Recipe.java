@@ -46,10 +46,12 @@ public class Recipe implements RecipeInstruction {
     @XmlElement(name = "merge", type = MergeInstruction.class),
     @XmlElement(name = "append", type = AppendInstruction.class),
     @XmlElement(name = "mkdir", type = MkDirInstruction.class),
+    @XmlElement(name = "open", type = OpenInstruction.class),
+    @XmlElement(name = "recipe", type = Recipe.class),
+    // Gradle specific recipes
+    @XmlElement(name = "apply", type = Recipe.class),
     @XmlElement(name = "classpath", type = ClasspathInstruction.class),
     @XmlElement(name = "dependency", type = DependencyInstruction.class),
-    @XmlElement(name = "open", type = OpenInstruction.class),
-    @XmlElement(name = "recipe", type = Recipe.class)
   })
   private List<RecipeInstruction> instructions = Lists.newArrayList();
   // @formatter:on
@@ -234,6 +236,18 @@ public class Recipe implements RecipeInstruction {
     @Override
     public void execute(@NotNull RecipeExecutor executor) {
       executor.addFilesToOpen(file);
+    }
+  }
+
+  @SuppressWarnings({"NullableProblems", "unused"})
+  private static final class ApplyInstruction implements RecipeInstruction {
+    @XmlAttribute(required = true)
+    @NotNull
+    private String plugin;
+
+    @Override
+    public void execute(@NotNull RecipeExecutor executor) {
+      executor.applyPlugin(plugin);
     }
   }
 

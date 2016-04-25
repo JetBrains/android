@@ -60,6 +60,7 @@ public class RenderingContext {
   private final Collection<File> mySourceFiles;
   private final Collection<File> myTargetFiles;
   private final Collection<File> myFilesToOpen;
+  private final Collection<String> myPlugins;
   private final Collection<String> myClasspathEntries;
   private final Collection<String> myDependencies;
   private final Collection<String> myWarnings;
@@ -79,6 +80,7 @@ public class RenderingContext {
                            @Nullable Collection<File> outSourceFiles,
                            @Nullable Collection<File> outTargetFiles,
                            @Nullable Collection<File> outOpenFiles,
+                           @Nullable Collection<String> outPlugins,
                            @Nullable Collection<String> outClasspathEntries,
                            @Nullable Collection<String> outDependencies) {
     myProject = useDefaultProjectIfNeeded(project);
@@ -96,6 +98,7 @@ public class RenderingContext {
     mySourceFiles = outSourceFiles != null ? outSourceFiles : Lists.newArrayList();
     myTargetFiles = outTargetFiles != null ? outTargetFiles : Lists.newArrayList();
     myFilesToOpen = outOpenFiles != null ? outOpenFiles : Lists.newArrayList();
+    myPlugins = outPlugins != null ? outPlugins : Lists.newArrayList();
     myClasspathEntries = outClasspathEntries != null ? outClasspathEntries : Lists.newArrayList();
     myDependencies = outDependencies != null ? outDependencies : Lists.newArrayList();
     myWarnings = Lists.newArrayList();
@@ -198,6 +201,14 @@ public class RenderingContext {
   }
 
   /**
+   * List of "apply plugin" entries added by a previous template rendering.
+   */
+  @NotNull
+  public Collection<String> getPlugins() {
+    return myPlugins;
+  }
+
+  /**
    * List of classpath entries added by a previous template rendering.
    */
   @NotNull
@@ -275,6 +286,7 @@ public class RenderingContext {
     private Collection<File> mySourceFiles;
     private Collection<File> myTargetFiles;
     private Collection<File> myOpenFiles;
+    private Collection<String> myPlugins;
     private Collection<String> myClasspathEntries;
     private Collection<String> myDependencies;
 
@@ -419,6 +431,14 @@ public class RenderingContext {
     }
 
     /**
+     * Collect all "apply plugin" entries required for the template in the specified collection.
+     */
+    public Builder intoPlugins(@Nullable Collection<String> plugins) {
+      myPlugins = plugins;
+      return this;
+    }
+
+    /**
      * Collect all classpath entries required for the template in the specified collection.
      */
     public Builder intoClasspathEntries(@Nullable Collection<String> classpathEntries) {
@@ -448,7 +468,7 @@ public class RenderingContext {
       }
       return new RenderingContext(myProject, myInitialTemplatePath, myCommandName, myParams, myOutputRoot, myModuleRoot, myGradleSync,
                                   myFindOnlyReferences, myDryRun, myShowErrors, mySourceFiles, myTargetFiles, myOpenFiles,
-                                  myClasspathEntries, myDependencies);
+                                  myPlugins, myClasspathEntries, myDependencies);
     }
   }
 }
