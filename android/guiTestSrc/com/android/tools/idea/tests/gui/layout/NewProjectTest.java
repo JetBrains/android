@@ -26,7 +26,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.FileFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.InspectionsFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.NlEditorFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.layout.RenderErrorPanelFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.ConfigureAndroidProjectStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewProjectWizardFixture;
 import com.intellij.openapi.module.Module;
@@ -45,7 +44,7 @@ import java.io.IOException;
 
 import static com.android.tools.idea.npw.FormFactor.MOBILE;
 import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.assertFalse;
 
 @RunWith(GuiTestRunner.class)
 public class NewProjectTest {
@@ -152,7 +151,7 @@ public class NewProjectTest {
     layoutEditor.waitForRenderToFinish();
     guiTest.ideFrame().invokeProjectMake();
     layoutEditor.waitForRenderToFinish();
-    layoutEditor.getRenderErrors().requireRenderSuccessful(false, false);
+    assertFalse(layoutEditor.hasRenderErrors());
     guiTest.waitForBackgroundTasks();
   }
 
@@ -190,11 +189,9 @@ public class NewProjectTest {
     assertThat(layoutEditor).isNotNull();
     layoutEditor.waitForRenderToFinish();
 
-    RenderErrorPanelFixture renderErrors = layoutEditor.getRenderErrors();
-    String html = renderErrors.getErrorHtml();
     // We could be showing an error message, but if we do, it should *not* say missing styles
     // (should only be showing project render errors)
-    assertThat(html).doesNotContain("Missing styles");
+    assertFalse(layoutEditor.errorPanelContains("Missing styles"));
   }
 
   @NotNull

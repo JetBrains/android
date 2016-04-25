@@ -15,21 +15,28 @@
  */
 package com.android.tools.idea.tests.gui.layout;
 
+import com.android.repository.Revision;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.FileFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.layout.NlConfigurationToolbarFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.layout.NlPreviewFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.layout.*;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_TEXT;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitForBackgroundTasks;
+import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
+import static junit.framework.Assert.assertNotNull;
 import static org.junit.Assert.*;
+import static org.junit.Assume.assumeTrue;
 
 /**
  * UI test for the layout preview window
@@ -144,5 +151,72 @@ public class NlPreviewTest {
     waitForBackgroundTasks(guiTest.robot());
     preview.waitForRenderToFinish();
     assertFalse(preview.hasRenderErrors()); // but our build timestamp check this time will mask the out of date warning
+  }
+
+  @Test
+  public void testRenderingDynamicResources() throws Exception {
+    // Opens a layout which contains dynamic resources (defined only in build.gradle)
+    // and checks that the values have been resolved correctly (both that there are no
+    // unresolved reference errors in the XML file, and that the rendered layout strings
+    // matches the expected overlay semantics); also edits these in the Gradle file and
+    // checks that the layout rendering is updated after a Gradle sync.
+
+    guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest");
+
+    AndroidGradleModel androidModel = guiTest.ideFrame().getAndroidModel("app");
+    String modelVersion = androidModel.getAndroidProject().getModelVersion();
+    assertNotNull(modelVersion);
+    Revision version = Revision.parseRevision(modelVersion);
+    assertNotNull("Could not parse version " + modelVersion, version);
+    assumeTrue("This test tests behavior that starts working in 0.14.+", version.getMajor() != 0 || version.getMinor() >= 14);
+
+    EditorFixture editor = guiTest.ideFrame().getEditor();
+    String layoutFilePath = "app/src/main/res/layout/dynamic_layout.xml";
+    editor.open(layoutFilePath, EditorFixture.Tab.EDITOR);
+    NlPreviewFixture preview = editor.getLayoutPreview(true);
+    assertNotNull(preview);
+    preview.waitForRenderToFinish();
+
+    assertFalse(preview.hasRenderErrors());
+
+    NlComponentFixture string1 = preview.findView("TextView", 0);
+    string1.requireAttribute(ANDROID_URI, ATTR_TEXT, "@string/dynamic_string1");
+    string1.requireViewClass("android.widget.TextView");
+    string1.requireActualText("String 1 defined only by defaultConfig");
+
+    NlComponentFixture string2 = preview.findView("TextView", 1);
+    string2.requireAttribute(ANDROID_URI, ATTR_TEXT, "@string/dynamic_string2");
+    string2.requireActualText("String 1 defined only by defaultConfig");
+
+    NlComponentFixture string3 = preview.findView("TextView", 2);
+    string3.requireAttribute(ANDROID_URI, ATTR_TEXT, "@string/dynamic_string3");
+    string3.requireActualText("String 3 defined by build type debug");
+
+    NlComponentFixture string4 = preview.findView("TextView", 3);
+    string4.requireAttribute(ANDROID_URI, ATTR_TEXT, "@string/dynamic_string4");
+    string4.requireActualText("String 4 defined by flavor free");
+
+    NlComponentFixture string5 = preview.findView("TextView", 4);
+    string5.requireAttribute(ANDROID_URI, ATTR_TEXT, "@string/dynamic_string5");
+    string5.requireActualText("String 5 defined by build type debug");
+
+    // Ensure that all the references are properly resolved
+    FileFixture file = guiTest.ideFrame().findExistingFileByRelativePath(layoutFilePath);
+    file.requireCodeAnalysisHighlightCount(ERROR, 0);
+
+    String buildGradlePath = "app/build.gradle";
+    editor.open(buildGradlePath, EditorFixture.Tab.EDITOR);
+    editor.moveTo(editor.findOffset("String 1 defined only by |defaultConfig"));
+    editor.enterText("edited ");
+    guiTest.ideFrame().requireEditorNotification("Gradle files have changed since last project sync").performAction("Sync Now");
+    guiTest.ideFrame().waitForGradleProjectSyncToFinish();
+
+    editor.open(layoutFilePath, EditorFixture.Tab.EDITOR);
+    preview.waitForRenderToFinish();
+
+    string1 = preview.findView("TextView", 0);
+    string1.requireActualText("String 1 defined only by edited defaultConfig");
+
+    file.requireCodeAnalysisHighlightCount(ERROR, 0);
   }
 }
