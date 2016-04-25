@@ -18,8 +18,6 @@ package com.android.tools.idea.gradle.run;
 import com.android.tools.idea.gradle.GradleModel;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
-import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
-import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.util.Projects;
@@ -39,14 +37,13 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.ThreeState;
-import com.intellij.util.concurrency.Semaphore;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -117,7 +114,8 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
         task.setEnabled(true);
       }
       return task;
-    } else {
+    }
+    else {
       return null;
     }
   }
@@ -184,73 +182,53 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
       return regularMake.executeTask(context, configuration, env, new CompileStepBeforeRun.MakeBeforeRunTask());
     }
 
-    final AtomicBoolean success = new AtomicBoolean();
-    try {
-      final Semaphore done = new Semaphore();
-      done.down();
+    final AtomicReference<String> errorMsgRef = new AtomicReference<String>();
 
-      final AtomicReference<String> errorMsgRef = new AtomicReference<String>();
-
-      // If the model needs a sync, we need to sync "synchronously" before running.
-      // See: https://code.google.com/p/android/issues/detail?id=70718
-      GradleSyncState syncState = GradleSyncState.getInstance(myProject);
-      if (syncState.isSyncNeeded() != ThreeState.NO) {
-        GradleProjectImporter.getInstance().syncProjectSynchronously(myProject, false, new GradleSyncListener.Adapter() {
-          @Override
-          public void syncFailed(@NotNull Project project, @NotNull String errorMessage) {
-            errorMsgRef.set(errorMessage);
-          }
-        });
-      }
-
-      String errorMsg = errorMsgRef.get();
-      if (errorMsg != null) {
-        // Sync failed. There is no point on continuing, because most likely the model is either not there, or has stale information,
-        // including the path of the APK.
-        LOG.info("Unable to launch '" + TASK_NAME + "' task. Project sync failed with message: " + errorMsg);
-        return false;
-      }
-
-      if (myProject.isDisposed()) {
-        return false;
-      }
-
-      final GradleInvoker gradleInvoker = GradleInvoker.getInstance(myProject);
-
-      final GradleInvoker.AfterGradleInvocationTask afterTask = new GradleInvoker.AfterGradleInvocationTask() {
+    // If the model needs a sync, we need to sync "synchronously" before running.
+    // See: https://code.google.com/p/android/issues/detail?id=70718
+    GradleSyncState syncState = GradleSyncState.getInstance(myProject);
+    if (syncState.isSyncNeeded() != ThreeState.NO) {
+      GradleProjectImporter.getInstance().syncProjectSynchronously(myProject, false, new GradleSyncListener.Adapter() {
         @Override
-        public void execute(@NotNull GradleInvocationResult result) {
-          success.set(result.isBuildSuccessful());
-          gradleInvoker.removeAfterGradleInvocationTask(this);
-          done.up();
-        }
-      };
-
-      final GradleInvokerOptions options = GradleInvokerOptions.create(myProject, context, configuration, env, task.getGoal());
-      if (options.tasks.isEmpty()) {
-        // should not happen, but if it does happen, then GradleInvoker with an empty list of tasks seems to hang forever
-        // So we error out earlier.
-        LOG.error("Unable to determine gradle tasks to execute for run configuration: " + configuration.getName());
-        return false;
-      }
-
-      // To ensure that the "Run Configuration" waits for the Gradle tasks to be executed, we use SwingUtilities.invokeAndWait. I tried
-      // using Application.invokeAndWait but it never worked. IDEA also uses SwingUtilities in this scenario (see CompileStepBeforeRun.)
-      SwingUtilities.invokeAndWait(new Runnable() {
-        @Override
-        public void run() {
-          gradleInvoker.addAfterGradleInvocationTask(afterTask);
-          gradleInvoker.executeTasks(options.tasks, options.buildMode, options.commandLineArguments);
+        public void syncFailed(@NotNull Project project, @NotNull String errorMessage) {
+          errorMsgRef.set(errorMessage);
         }
       });
-
-      done.waitFor();
     }
-    catch (Throwable t) {
-      LOG.info("Unable to launch '" + TASK_NAME + "' task", t);
+
+    String errorMsg = errorMsgRef.get();
+    if (errorMsg != null) {
+      // Sync failed. There is no point on continuing, because most likely the model is either not there, or has stale information,
+      // including the path of the APK.
+      LOG.info("Unable to launch '" + TASK_NAME + "' task. Project sync failed with message: " + errorMsg);
       return false;
     }
-    LOG.info("Gradle invocation complete, success = " + success.get());
-    return success.get();
+
+    if (myProject.isDisposed()) {
+      return false;
+    }
+
+    final GradleInvokerOptions options = GradleInvokerOptions.create(myProject, context, configuration, env, task.getGoal());
+    if (options.tasks.isEmpty()) {
+      // should not happen, but if it does happen, then GradleInvoker with an empty list of tasks seems to hang forever
+      // So we error out earlier.
+      LOG.error("Unable to determine gradle tasks to execute for run configuration: " + configuration.getName());
+      return false;
+    }
+
+    try {
+      boolean success = new GradleTaskRunner(myProject).run(options.tasks, options.buildMode, options.commandLineArguments);
+      LOG.info("Gradle invocation complete, success = " + success);
+      return success;
+    }
+    catch (InvocationTargetException e) {
+      LOG.info("Unexpected error while launching gradle before run tasks", e);
+      return false;
+    }
+    catch (InterruptedException e) {
+      LOG.info("Interrupted while launching gradle before run tasks");
+      Thread.currentThread().interrupt();
+      return false;
+    }
   }
 }
