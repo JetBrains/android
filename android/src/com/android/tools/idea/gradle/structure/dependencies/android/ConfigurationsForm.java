@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.structure.dependencies.android;
 
-import android.annotation.NonNull;
 import com.android.tools.idea.gradle.structure.configurables.ui.SelectionChangeEventDispatcher;
 import com.android.tools.idea.gradle.structure.configurables.ui.SelectionChangeListener;
 import com.google.common.collect.Lists;
@@ -78,7 +77,7 @@ class ConfigurationsForm {
     }
   }
 
-  @NonNull
+  @NotNull
   JPanel getPanel() {
     return myMainPanel;
   }
