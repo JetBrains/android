@@ -16,13 +16,16 @@ import java.awt.Graphics2D;
  */
 public class AnimatedConnection extends Animation {
     final ConstraintAnchor mAnchor;
-    protected Color mColor = Color.white;
+    private final ColorSet mColorSet;
+    protected Color mColor;
 
-    public AnimatedConnection(ConstraintAnchor anchor) {
+    public AnimatedConnection(ColorSet colorSet, ConstraintAnchor anchor) {
         super();
         mAnchor = anchor;
+        mColorSet = colorSet;
+        mColor = colorSet.getSelectedConstraints();
         if (mAnchor.getConnectionCreator() == ConstraintAnchor.SCOUT_CREATOR) {
-            mColor = new Color(250, 135, 52);
+            mColor = colorSet.getCreatedConstraints();
         }
     }
 
@@ -35,9 +38,7 @@ public class AnimatedConnection extends Animation {
         ConstraintHandle sourceHandle = WidgetInteractionTargets.constraintHandle(mAnchor);
         ConstraintHandle targetHandle = WidgetInteractionTargets.constraintHandle(mAnchor.getTarget());
         if (sourceHandle != null && targetHandle != null) {
-            ConnectionDraw
-                    .drawConnection(transform, g, sourceHandle, targetHandle, true, false,
-                            true);
+            sourceHandle.drawConnection(transform, g, mColorSet, true);
         }
     }
 }

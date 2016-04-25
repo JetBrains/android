@@ -35,6 +35,7 @@ public class ColorSet {
     protected Color mMargins;
     protected Color mText;
     protected Color mSnapGuides;
+    protected Color mCreatedConstraints = new Color(250, 135, 52);
 
     protected Color mSubduedText;
     protected Color mSubduedBackground;
@@ -162,5 +163,9 @@ public class ColorSet {
 
     public Color getTooltipBackground() {
         return mTooltipBackground;
+    }
+
+    public Color getCreatedConstraints() {
+        return mCreatedConstraints;
     }
 }

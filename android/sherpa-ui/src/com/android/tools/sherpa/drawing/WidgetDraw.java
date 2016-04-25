@@ -16,11 +16,8 @@
 
 package com.android.tools.sherpa.drawing;
 
-import com.android.tools.sherpa.drawing.decorator.WidgetDecorator;
-import com.android.tools.sherpa.interaction.ConstraintHandle;
 import com.android.tools.sherpa.interaction.ResizeHandle;
 import com.android.tools.sherpa.interaction.WidgetInteractionTargets;
-import com.android.tools.sherpa.structure.WidgetCompanion;
 import com.google.tnt.solver.widgets.ConstraintAnchor;
 import com.google.tnt.solver.widgets.ConstraintTableLayout;
 import com.google.tnt.solver.widgets.ConstraintWidget;
@@ -28,7 +25,6 @@ import com.google.tnt.solver.widgets.ConstraintWidgetContainer;
 import com.google.tnt.solver.widgets.Guideline;
 
 import java.awt.BasicStroke;
-import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Polygon;
 import java.awt.Rectangle;
@@ -452,69 +448,6 @@ public class WidgetDraw {
             g2.drawString(debugName, l + 2, b - 2);
             g2.dispose();
         }
-    }
-
-    /**
-     * Draw the constraints of a widget.
-     * The color and style used for the drawing will be the current ones in the graphics context.
-     *
-     * @param transform            view transform
-     * @param g                    Graphics context
-     * @param widget               the widget whose constraints we draw
-     * @param isSelected           if the widget is currently selected
-     * @param showPercentIndicator show the percent indicator if center constraints
-     */
-    public static void drawConstraints(ViewTransform transform, Graphics2D g,
-            ColorSet colorSet,
-            ConstraintWidget widget, boolean isSelected, boolean showPercentIndicator,
-            boolean showMargins) {
-        if (widget.getVisibility() == ConstraintWidget.INVISIBLE) {
-            g.setStroke(SnapDraw.sDashedStroke);
-        }
-        ArrayList<ConstraintAnchor.Type> anchors = new ArrayList<ConstraintAnchor.Type>();
-        if (isSelected && widget.hasBaseline()) {
-            anchors.add(ConstraintAnchor.Type.BASELINE);
-        }
-        anchors.add(ConstraintAnchor.Type.LEFT);
-        anchors.add(ConstraintAnchor.Type.TOP);
-        anchors.add(ConstraintAnchor.Type.RIGHT);
-        anchors.add(ConstraintAnchor.Type.BOTTOM);
-        Color currentColor = g.getColor();
-        for (ConstraintAnchor.Type type : anchors) {
-            ConstraintAnchor anchor = widget.getAnchor(type);
-            if (anchor == null) {
-                continue;
-            }
-            if (anchor.isConnected()) {
-                ConstraintAnchor target = anchor.getTarget();
-                if (target.getOwner().getVisibility() == ConstraintWidget.GONE) {
-                    continue;
-                }
-                ConstraintHandle startHandle = WidgetInteractionTargets.constraintHandle(anchor);
-                ConstraintHandle endHandle = WidgetInteractionTargets.constraintHandle(target);
-                if (startHandle == null || endHandle == null) {
-                    continue;
-                }
-                if (startHandle.getAnchor().isConnected()
-                        && startHandle.getAnchor().getConnectionCreator()
-                        == ConstraintAnchor.AUTO_CONSTRAINT_CREATOR) {
-                    g.setColor(new Color(currentColor.getRed(), currentColor.getGreen(),
-                            currentColor.getBlue(), 60));
-                } else {
-                    g.setColor(currentColor);
-                }
-                ConnectionDraw.drawConnection(transform, g, startHandle, endHandle,
-                        isSelected, showPercentIndicator, isSelected);
-            } else if (isSelected) {
-                ConstraintHandle startHandle = WidgetInteractionTargets.constraintHandle(anchor);
-                if (startHandle == null) {
-                    continue;
-                }
-                ConnectionDraw.drawConnection(transform, g, startHandle, null,
-                        isSelected, showPercentIndicator, isSelected);
-            }
-        }
-        g.setStroke(SnapDraw.sNormalStroke);
     }
 
     /**
