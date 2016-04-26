@@ -30,7 +30,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.jar.Pack200;
 
 /**
  * Represent a list of widgets and the associated operations

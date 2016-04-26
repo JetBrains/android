@@ -138,6 +138,10 @@ public class ColorSet {
         return mDrawWidgetInfos;
     }
 
+    public void setDrawWidgetInfos(boolean drawWidgetInfos) {
+        mDrawWidgetInfos = drawWidgetInfos;
+    }
+
     public boolean drawBackground() {
         return mDrawBackground;
     }
@@ -173,4 +177,5 @@ public class ColorSet {
     public Color getCreatedConstraints() {
         return mCreatedConstraints;
     }
+
 }

@@ -418,7 +418,6 @@ public class WidgetDecorator {
         if (mColorSet == null) {
             return false;
         }
-        onPaintBackground(transform, g);
         if (mIsSelected) {
             updateShowAnchorsPolicy();
         } else {
@@ -434,6 +433,8 @@ public class WidgetDecorator {
                 g.setColor(mTextColor.getColor());
             }
             WidgetDraw.drawWidgetInfo(transform, g, mWidget);
+        } else {
+            onPaintBackground(transform, g);
         }
 
         g.setColor(mFrameColor.getColor());
