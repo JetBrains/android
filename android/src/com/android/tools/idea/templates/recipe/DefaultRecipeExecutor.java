@@ -17,6 +17,7 @@ package com.android.tools.idea.templates.recipe;
 
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpec;
+import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateProcessingException;
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateUserVisibleException;
@@ -63,6 +64,13 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
    */
   private static final String GRADLE_PROJECT_SETTINGS_FILE = "settings.gradle";
 
+  /**
+   * 'classpath' is the configuration name used to specify buildscript dependencies.
+   */
+  private static final String CLASSPATH_CONFIGURATION_NAME = "classpath";
+
+  private static final String LINE_SEPARATOR = LineSeparator.getSystemLineSeparator().getSeparatorString();
+
   private final FindReferencesRecipeExecutor myReferences;
   private final RenderingContext myContext;
   private final RecipeIO myIO;
@@ -80,26 +88,32 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
   private static GradleBuildModel getBuildModel(@NotNull File buildFile, @NotNull Project project) {
     VirtualFile virtualFile = findFileByIoFile(buildFile, true);
     if (virtualFile == null) {
-      throw new RuntimeException("Failed to find the root module " + FN_BUILD_GRADLE + "file for project '" + project.getName() + "'");
+      throw new RuntimeException("Failed to find " + buildFile.getPath());
     }
     return parseBuildFile(virtualFile, project, project.getName());
   }
 
   @Override
   public void applyPlugin(@NotNull String plugin) {
+    plugin = plugin.trim();
+
     myReferences.applyPlugin(plugin);
 
     Project project = myContext.getProject();
-    File rootBuildFile = getGradleBuildFilePath(getBaseDirPath(project));
+    File buildFile = getGradleBuildFilePath(myContext.getModuleRoot());
     if (project.isInitialized()) {
-      myIO.applyPlugin(plugin, getBuildModel(rootBuildFile, project));
+      GradleBuildModel buildModel = getBuildModel(buildFile, project);
+      if (!buildModel.appliedPlugins().contains(plugin)) {
+        buildModel.applyPlugin(plugin);
+        myIO.applyChanges(buildModel);
+      }
     }
     else {
-      String destinationContents = rootBuildFile.exists() ? nullToEmpty(readTextFile(rootBuildFile)) : "";
-      String lineSeparator = LineSeparator.getSystemLineSeparator().getSeparatorString();
-      String result = (destinationContents.isEmpty() ? "" : destinationContents + lineSeparator) + "apply plugin: '" + plugin + "'";
+      String destinationContents = buildFile.exists() ? nullToEmpty(readTextFile(buildFile)) : "";
+      String applyPluginStatement = "apply plugin: '" + plugin + "'";
+      String result = destinationContents.isEmpty() ? applyPluginStatement : destinationContents + LINE_SEPARATOR + applyPluginStatement;
       try {
-        myIO.writeFile(this, result, rootBuildFile);
+        myIO.writeFile(this, result, buildFile);
       }
       catch (IOException e) {
         throw new RuntimeException(e);
@@ -110,16 +124,24 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
 
   @Override
   public void addClasspath(@NotNull String mavenUrl) {
+    mavenUrl = mavenUrl.trim();
+
     myReferences.addClasspath(mavenUrl);
 
-    if (ArtifactDependencySpec.create(mavenUrl) == null) {
+    ArtifactDependencySpec toBeAddedDependency = ArtifactDependencySpec.create(mavenUrl);
+    if (toBeAddedDependency == null) {
       throw new RuntimeException(mavenUrl + " is not a valid classpath dependency");
     }
 
     Project project = myContext.getProject();
     File rootBuildFile = getGradleBuildFilePath(getBaseDirPath(project));
     if (project.isInitialized()) {
-      myIO.addClasspath(mavenUrl, getBuildModel(rootBuildFile, project));
+      GradleBuildModel buildModel = getBuildModel(rootBuildFile, project);
+      DependenciesModel buildscriptDependencies = buildModel.buildscript().dependencies();
+      if (!buildscriptDependencies.containsArtifact(CLASSPATH_CONFIGURATION_NAME, toBeAddedDependency)) {
+        buildscriptDependencies.addArtifact(CLASSPATH_CONFIGURATION_NAME, toBeAddedDependency);
+        myIO.applyChanges(buildModel);
+      }
     }
     else {
       String destinationContents = rootBuildFile.exists() ? nullToEmpty(readTextFile(rootBuildFile)) : "";
@@ -136,12 +158,11 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
 
   @NotNull
   private static String formatClasspath(@NotNull String dependency) {
-    String lineSeparator = LineSeparator.getSystemLineSeparator().getSeparatorString();
-    return "buildscript {" + lineSeparator +
-           "  dependencies {" + lineSeparator +
-           "    classpath '" + dependency + "'" + lineSeparator +
-           "  }" + lineSeparator +
-           "}" + lineSeparator;
+    return "buildscript {" + LINE_SEPARATOR +
+           "  dependencies {" + LINE_SEPARATOR +
+           "    classpath '" + dependency + "'" + LINE_SEPARATOR +
+           "  }" + LINE_SEPARATOR +
+           "}" + LINE_SEPARATOR;
   }
 
   /**
@@ -319,8 +340,7 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
 
       if (targetFile.exists()) {
         final String targetContents = readTextFromDisk(targetFile);
-        final String lineSeparator = LineSeparator.getSystemLineSeparator().getSeparatorString();
-        final String resultContents = (targetContents == null ? "" : targetContents + lineSeparator) + sourceText;
+        final String resultContents = (targetContents == null ? "" : targetContents + LINE_SEPARATOR) + sourceText;
 
         myIO.writeFile(this, resultContents, targetFile);
       }
@@ -571,13 +591,7 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
       checkedCreateDirectoryIfMissing(directory);
     }
 
-    public void applyPlugin(@NotNull String plugin, @NotNull GradleBuildModel buildModel) {
-      buildModel.applyPlugin(plugin);
-      buildModel.applyChanges();
-    }
-
-    public void addClasspath(@NotNull String mavenUrl, @NotNull GradleBuildModel buildModel) {
-      buildModel.buildscript().dependencies().addArtifact("classpath", mavenUrl);
+    public void applyChanges(@NotNull GradleBuildModel buildModel) {
       buildModel.applyChanges();
     }
 
@@ -626,11 +640,7 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
     }
 
     @Override
-    public void applyPlugin(@NotNull String plugin, @NotNull GradleBuildModel buildModel) {
-    }
-
-    @Override
-    public void addClasspath(@NotNull String mavenUrl, @NotNull GradleBuildModel buildModel) {
+    public void applyChanges(@NotNull GradleBuildModel buildModel) {
     }
 
     @Override
