@@ -48,8 +48,12 @@ public class AndroidPsiUtils {
    */
   @Nullable
   public static PsiFile getPsiFileSafely(@NotNull final Project project, @NotNull final VirtualFile file) {
-    return ApplicationManager.getApplication().runReadAction(
-      (Computable<PsiFile>)() -> file.isValid() ? PsiManager.getInstance(project).findFile(file) : null);
+    return ApplicationManager.getApplication().runReadAction((Computable<PsiFile>)() -> {
+      if (project.isDisposed()) {
+        return null;
+      }
+      return file.isValid() ? PsiManager.getInstance(project).findFile(file) : null;
+    });
   }
 
   /**
@@ -75,6 +79,9 @@ public class AndroidPsiUtils {
   @Nullable
   public static Module getModuleSafely(@NotNull final Project project, @NotNull final VirtualFile file) {
     return ApplicationManager.getApplication().runReadAction((Computable<Module>)() -> {
+      if (project.isDisposed()) {
+        return null;
+      }
       PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
       return psiFile == null ? null : ModuleUtilCore.findModuleForPsiElement(psiFile);
     });
@@ -125,7 +132,12 @@ public class AndroidPsiUtils {
    */
   @Nullable
   public static PsiDirectory getPsiDirectorySafely(@NotNull final Project project, @NotNull final VirtualFile dir) {
-    return ApplicationManager.getApplication().runReadAction((Computable<PsiDirectory>)() -> PsiManager.getInstance(project).findDirectory(dir));
+    return ApplicationManager.getApplication().runReadAction((Computable<PsiDirectory>)() -> {
+      if (project.isDisposed()) {
+        return null;
+      }
+      return PsiManager.getInstance(project).findDirectory(dir);
+    });
   }
 
   /**
