@@ -51,6 +51,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.XmlElementFactory;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
+import com.intellij.psi.xml.XmlDocument;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.Alarm;
@@ -59,6 +60,7 @@ import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -1016,6 +1018,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       receiver.addChild(component, before);
       if (receiver.getTag() != component.getTag()) {
         XmlTag prev = component.getTag();
+        transferNamespaces(prev);
         if (before != null) {
           component.setTag((XmlTag)receiver.getTag().addBefore(component.getTag(), before.getTag()));
         }
@@ -1027,6 +1030,75 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
         }
       }
       removeNamespaceAttributes(component);
+    }
+  }
+
+  /**
+   * Given a root tag which is not yet part of the current document, (1) look up any namespaces defined on that root tag, transfer
+   * those to the current document, and (2) update all attribute prefixes for namespaces to match those in the current document
+   */
+  private void transferNamespaces(@NotNull XmlTag tag) {
+    // Transfer namespace attributes
+    XmlDocument xmlDocument = myFile.getDocument();
+    assert xmlDocument != null;
+    XmlTag rootTag = xmlDocument.getRootTag();
+    assert rootTag != null;
+    Map<String, String> prefixToNamespace = rootTag.getLocalNamespaceDeclarations();
+    Map<String, String> namespaceToPrefix = Maps.newHashMap();
+    for (Map.Entry<String, String> entry : prefixToNamespace.entrySet()) {
+      namespaceToPrefix.put(entry.getValue(), entry.getKey());
+    }
+    Map<String, String> oldPrefixToPrefix = Maps.newHashMap();
+
+    for (Map.Entry<String, String> entry : tag.getLocalNamespaceDeclarations().entrySet()) {
+      String namespace = entry.getValue();
+      String prefix = entry.getKey();
+      String currentPrefix = namespaceToPrefix.get(namespace);
+      if (currentPrefix == null) {
+        // The namespace isn't used in the document. Import it.
+        String newPrefix = AndroidResourceUtil.ensureNamespaceImported(myFile, namespace, prefix);
+        if (!prefix.equals(newPrefix)) {
+          // We imported the namespace, but the prefix used in the new document isn't available
+          // so we need to update all attribute references to the new name
+          oldPrefixToPrefix.put(prefix, newPrefix);
+          namespaceToPrefix.put(namespace, newPrefix);
+        }
+      } else if (!prefix.equals(currentPrefix)) {
+        // The namespace is already imported, but using a different prefix. We need
+        // to switch the prefixes.
+        oldPrefixToPrefix.put(prefix, currentPrefix);
+      }
+    }
+
+    if (!oldPrefixToPrefix.isEmpty()) {
+      updatePrefixes(tag, oldPrefixToPrefix);
+    }
+  }
+
+  /**
+   * Recursively update all attributes such that XML attributes with prefixes in the {@code oldPrefixToPrefix} keyset
+   * are replaced with the corresponding values
+   */
+  private static void updatePrefixes(@NotNull XmlTag tag, @NotNull Map<String, String> oldPrefixToPrefix) {
+    for (XmlAttribute attribute : tag.getAttributes()) {
+      String prefix = attribute.getNamespacePrefix();
+      if (!prefix.isEmpty()) {
+        if (prefix.equals(XMLNS)) {
+          String newPrefix = oldPrefixToPrefix.get(attribute.getLocalName());
+          if (newPrefix != null) {
+            attribute.setName(XMLNS_PREFIX + newPrefix);
+          }
+        } else {
+          String newPrefix = oldPrefixToPrefix.get(prefix);
+          if (newPrefix != null) {
+            attribute.setName(newPrefix + ':' + attribute.getLocalName());
+          }
+        }
+      }
+    }
+
+    for (XmlTag child : tag.getSubTags()) {
+      updatePrefixes(child, oldPrefixToPrefix);
     }
   }
 
