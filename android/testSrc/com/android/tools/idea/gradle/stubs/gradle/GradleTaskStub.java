@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.stubs.gradle;
 
 import org.gradle.tooling.model.GradleTask;
+import org.gradle.tooling.model.ProjectIdentifier;
 import org.jetbrains.annotations.NotNull;
 
 public class GradleTaskStub implements GradleTask {
@@ -35,6 +36,11 @@ public class GradleTaskStub implements GradleTask {
   @Override
   public String getName() {
     return myName;
+  }
+
+  @Override
+  public ProjectIdentifier getProjectIdentifier() {
+    throw new UnsupportedOperationException();
   }
 
   @Override
