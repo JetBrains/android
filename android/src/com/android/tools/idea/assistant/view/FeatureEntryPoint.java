@@ -19,6 +19,7 @@ import com.android.tools.idea.assistant.datamodel.FeatureData;
 import com.android.tools.idea.assistant.datamodel.TutorialData;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.ui.components.JBLabel;
 
 import javax.swing.*;
@@ -47,95 +48,67 @@ public class FeatureEntryPoint extends JPanel {
   private JPanel mySummary;
   private ActionListener myListener;
   private JLabel myArrow;
-  private SummaryHandler mySummaryClickHandler = new SummaryHandler();
+  private SummaryHandler mySummaryMouseHandler = new SummaryHandler();
+  private JPanel myTargetPane;
 
   public FeatureEntryPoint(FeatureData feature, ActionListener listener) {
+    super(new VerticalFlowLayout(0, 5));
+    setOpaque(false);
+
     myLabel = feature.getName();
     myDescription = feature.getDescription();
     myListener = listener;
 
-    // Create encapsulating layout for ease of event handling, entire section
-    // is clickable to toggle expansion of tutorials.
-    setLayout(new BorderLayout());
-    mySummary = new JPanel(new GridBagLayout());
-    mySummary.setOpaque(false);
-    mySummary.addMouseListener(mySummaryClickHandler);
-    setOpaque(false);
+    myTargetPane = new JPanel();
+    myTargetPane.setOpaque(false);
+    myTargetPane.setLayout(new BoxLayout(myTargetPane, BoxLayout.X_AXIS));
+    add(myTargetPane);
 
-    GridBagConstraints arrowConstraints = new GridBagConstraints();
-    arrowConstraints.insets = new Insets(5, 10, 0, 5);
-    arrowConstraints.gridx = 0;
-    arrowConstraints.gridy = 0;
-    arrowConstraints.weightx = 0;
-    arrowConstraints.weighty = 0;
-    arrowConstraints.anchor = GridBagConstraints.NORTHWEST;
-    arrowConstraints.gridheight = 1;
-    arrowConstraints.gridwidth = 1;
-    arrowConstraints.fill = GridBagConstraints.VERTICAL;
     myArrow = new JLabel();
+    myArrow.addMouseListener(mySummaryMouseHandler);
     myArrow.setIcon(AllIcons.Nodes.TreeRightArrow);
-    mySummary.add(myArrow, arrowConstraints);
+    myArrow.setFocusable(true);
+    myArrow.setBorder(BorderFactory.createEmptyBorder(9, 5, 0, 5));
+    myArrow.setAlignmentY(Component.TOP_ALIGNMENT);
+    myTargetPane.add(myArrow);
+
+    JPanel summary = new JPanel(new VerticalFlowLayout(0,0));
+    summary.setOpaque(false);
+    summary.setAlignmentY(Component.TOP_ALIGNMENT);
+    myTargetPane.add(summary);
 
     // Amount to horizontally offset contents to adjust for the presence
     // of a feature icon.
     int innerContentsOffset = 0;
 
-    GridBagConstraints labelConstraints = new GridBagConstraints();
-    labelConstraints.insets = new Insets(10, 0, 5, 10);
-    labelConstraints.gridx = 1;
-    labelConstraints.gridy = 0;
-    labelConstraints.weightx = 1;
-    labelConstraints.weighty = 1;
-    labelConstraints.fill = GridBagConstraints.BOTH;
-    labelConstraints.anchor = GridBagConstraints.NORTHWEST;
-    labelConstraints.gridheight = 1;
-    labelConstraints.gridwidth = 1;
     JBLabel serviceLabel = new JBLabel();
-    Font font = serviceLabel.getFont();
-    Font boldFont = new Font(font.getFontName(), Font.BOLD, font.getSize());
-    serviceLabel.setFont(boldFont);
+    serviceLabel.addMouseListener(mySummaryMouseHandler);
+    serviceLabel.setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 5));
+    serviceLabel.setFont(serviceLabel.getFont().deriveFont(Font.BOLD));
     serviceLabel.setText(myLabel);
-    serviceLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
     Icon featureIcon = feature.getIcon();
     if (featureIcon != null) {
       serviceLabel.setIcon(featureIcon);
       innerContentsOffset +=  featureIcon.getIconWidth() + serviceLabel.getIconTextGap();
     }
-    mySummary.add(serviceLabel, labelConstraints);
-
-    GridBagConstraints descriptionConstraints = new GridBagConstraints();
-    descriptionConstraints.insets = new Insets(0, innerContentsOffset, 0, 10);
-    descriptionConstraints.gridx = 1;
-    descriptionConstraints.gridy = 1;
-    descriptionConstraints.weightx = 1;
-    descriptionConstraints.weighty = 1;
-    descriptionConstraints.fill = GridBagConstraints.BOTH;
-    descriptionConstraints.anchor = GridBagConstraints.NORTHWEST;
-    descriptionConstraints.gridheight = 1;
-    descriptionConstraints.gridwidth = 1;
+    summary.add(serviceLabel);
 
     JTextPane descriptionPane = new JTextPane();
-    // NOTE: When encapsulated in a scrollpane, content is not wrapping by
-    // default. Setting preferred size addresses this (it expands width as
-    // necessary) but we then have a fixed height.
-    // TODO: Determine how we can add a scroller to the service list without
-    // breaking line wrapping.
     descriptionPane.setOpaque(false);
-    descriptionPane.addMouseListener(mySummaryClickHandler);
+    descriptionPane.addMouseListener(mySummaryMouseHandler);
     UIUtils.setHtml(descriptionPane, myDescription, "body {color: " + UIUtils.getCssColor(UIUtils.getSecondaryColor()) + "}");
-
-    mySummary.add(descriptionPane, descriptionConstraints);
-    add(mySummary, BorderLayout.NORTH);
+    descriptionPane.setBorder(BorderFactory.createEmptyBorder(0, innerContentsOffset, 5, 10));
+    summary.add(descriptionPane);
 
     myTutorialsList = new JPanel();
     myTutorialsList.setOpaque(false);
     myTutorialsList.setLayout(new BoxLayout(myTutorialsList, BoxLayout.Y_AXIS));
-    myTutorialsList.setBorder(BorderFactory.createEmptyBorder(5, 50 + innerContentsOffset, 5, 5));
+    myTutorialsList.setBorder(BorderFactory.createEmptyBorder(0, 50 + innerContentsOffset, 0, 5));
     myTutorialsList.setVisible(false);
     for (TutorialData tutorial : feature.getTutorials()) {
       addTutorial(tutorial.getLabel(), tutorial.getKey());
     }
-    add(myTutorialsList, BorderLayout.CENTER);
+    add(myTutorialsList);
   }
 
   private static Logger getLog() {
@@ -163,9 +136,25 @@ public class FeatureEntryPoint extends JPanel {
   }
 
   private class SummaryHandler extends MouseAdapter {
+
+    private Color myBackground = new JPanel().getBackground();
     @Override
     public void mouseClicked(MouseEvent e) {
       toggleTutorials();
+    }
+
+    @Override
+    public void mouseEntered(MouseEvent e) {
+      // Null out the background before setting otherwise Swing doesn't appear to realize there's a change and doesn't update.
+      myTargetPane.setBackground(null);
+      myTargetPane.setOpaque(true);
+      myTargetPane.setBackground(myBackground);
+    }
+
+    @Override
+    public void mouseExited(MouseEvent e) {
+      myTargetPane.setOpaque(false);
+      myTargetPane.setBackground(null);
     }
   }
 

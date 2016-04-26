@@ -41,5 +41,6 @@ public class TutorialButton extends NavigationButton {
     setBorderPainted(false);
     setBorder(null);
     setOpaque(false);
+    setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
   }
 }
