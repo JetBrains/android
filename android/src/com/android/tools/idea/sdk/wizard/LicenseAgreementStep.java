@@ -17,6 +17,7 @@ package com.android.tools.idea.sdk.wizard;
 
 import com.android.repository.api.License;
 import com.android.repository.api.RemotePackage;
+import com.android.repository.io.FileOpUtils;
 import com.android.tools.idea.ui.properties.InvalidationListener;
 import com.android.tools.idea.ui.properties.ObservableValue;
 import com.android.tools.idea.ui.properties.core.BoolProperty;
@@ -280,7 +281,7 @@ public class LicenseAgreementStep extends ModelWizardStep<LicenseAgreementModel>
         License license = p.getLicense();
         if (license != null) {
           getModel().getLicenses().add(license);
-          if (!license.checkAccepted(getModel().sdkRoot().getValue())) {
+          if (!license.checkAccepted(getModel().sdkRoot().getValue(), FileOpUtils.create())) {
             toReturn.add(new Change(p, license));
           }
         }
