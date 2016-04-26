@@ -82,7 +82,6 @@ public class ThemeEditorTableTest {
     // Checks that selecting a separator does nothing
     Component parentEditor = parentCellFixture.editor();
     parentCellFixture.startEditing();
-    assertTrue(parentEditor instanceof JComponent);
     JComboBoxFixture parentComboBox = new JComboBoxFixture(guiTest.robot(), guiTest
       .robot().finder().findByType((JComponent)parentEditor, JComboBox.class));
     parentComboBox.selectItem(4);
@@ -180,7 +179,6 @@ public class ThemeEditorTableTest {
     // Selects AppCompat as parent
     Component parentEditor = parentCellFixture.editor();
     parentCellFixture.startEditing();
-    assertTrue(parentEditor instanceof JComponent);
     JComboBoxFixture parentComboBox = new JComboBoxFixture(guiTest.robot(), guiTest
       .robot().finder().findByType((JComponent)parentEditor, JComboBox.class));
     parentComboBox.selectItem("Theme.AppCompat.NoActionBar");
