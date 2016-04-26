@@ -162,8 +162,7 @@ public class TutorialCard extends CardViewPanel {
     private static final String BACK_LABEL = "Back to Firebase";
 
     FooterNav() {
-      super();
-      setLayout(new FlowLayout(FlowLayout.LEADING));
+      super(new FlowLayout(FlowLayout.LEADING));
       setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, UIUtils.getSeparatorColor()));
       setOpaque(false);
       add(new BackButton(BACK_LABEL));

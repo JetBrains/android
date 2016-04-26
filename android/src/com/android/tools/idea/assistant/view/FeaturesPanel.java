@@ -38,8 +38,6 @@ import java.util.List;
  * Entry point for the complete set of services and tutorials associated with
  * Firebase. Initializes presentation data from xml and arranges into cards for
  * navigation purposes.
- *
- * TODO: Attempt to move any presentation logic into a form.
  */
 public class FeaturesPanel extends JPanel implements ItemListener, ActionListener {
   private final List<String> myCardKeys = new ArrayList<String>();
@@ -51,9 +49,9 @@ public class FeaturesPanel extends JPanel implements ItemListener, ActionListene
   private TutorialBundleData myTutorialBundle;
 
   public FeaturesPanel(@NotNull TutorialBundleData bundle, DeveloperServiceMap serviceMap) {
+    super(new BorderLayout());
     myTutorialBundle = bundle;
 
-    setLayout(new BorderLayout());
     setBackground(UIUtils.getBackgroundColor());
 
     myCardLayout = new CardLayout();

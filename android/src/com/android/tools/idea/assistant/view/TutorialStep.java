@@ -47,12 +47,12 @@ public class TutorialStep extends JPanel {
   private final Project myProject;
 
   TutorialStep(StepData step, int index, ActionListener listener, DeveloperService service) {
+    super(new GridBagLayout());
     myIndex = index;
     myStep = step;
     myProject = service.getModule().getProject();
     myContents = new JPanel();
     setOpaque(false);
-    setLayout(new GridBagLayout());
 
     // TODO: Consider the setup being in the ctors of customer inner classes.
     initStepNumber();
