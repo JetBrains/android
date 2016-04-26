@@ -17,6 +17,7 @@ import com.intellij.spellchecker.inspections.SpellCheckingInspection;
 import com.intellij.spellchecker.quickfixes.AcceptWordAsCorrect;
 import com.intellij.spellchecker.quickfixes.RenameTo;
 import com.intellij.testFramework.UsefulTestCase;
+import com.intellij.util.BuiltinWebServerAccess;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.inspections.AndroidDomInspection;
 import org.jetbrains.android.inspections.AndroidElementNotAllowedInspection;
@@ -52,6 +53,7 @@ abstract class AndroidDomTest extends AndroidTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
+    BuiltinWebServerAccess.ensureUserAuthenticationToken();
     myFixture.copyFileToProject("R.java", "gen/p1/p2/R.java");
     myFixture.enableInspections(AndroidDomInspection.class,
                                 AndroidUnknownAttributeInspection.class,
