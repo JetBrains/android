@@ -79,28 +79,28 @@ public class IssuesViewer {
       myIssuesPanel3.setVisible(true);
     }
 
-    Map<PsIssue.Type, List<PsIssue>> issuesByType = Maps.newHashMap();
+    Map<PsIssue.Severity, List<PsIssue>> issuesBySeverity = Maps.newHashMap();
     for (PsIssue issue : issues) {
-      PsIssue.Type type = issue.getType();
-      List<PsIssue> currentIssues = issuesByType.get(type);
+      PsIssue.Severity severity = issue.getSeverity();
+      List<PsIssue> currentIssues = issuesBySeverity.get(severity);
       if (currentIssues == null) {
         currentIssues = Lists.newArrayList();
-        issuesByType.put(type, currentIssues);
+        issuesBySeverity.put(severity, currentIssues);
       }
       currentIssues.add(issue);
     }
 
-    List<PsIssue.Type> types = Lists.newArrayList(issuesByType.keySet());
-    Collections.sort(types, (t1, t2) -> t1.getPriority() - t2.getPriority());
+    List<PsIssue.Severity> severities = Lists.newArrayList(issuesBySeverity.keySet());
+    Collections.sort(severities, (t1, t2) -> t1.getPriority() - t2.getPriority());
 
-    int typeCount = types.size();
+    int typeCount = severities.size();
     assert typeCount < 4; // There are only 3 types of issues
 
     // Start displaying from last to first
     int currentIssueIndex = typeCount - 1;
-    PsIssue.Type type = types.get(currentIssueIndex);
-    List<PsIssue> group = issuesByType.get(type);
-    updateTitle(((CollapsiblePanel)myIssuesPanel3), type, group);
+    PsIssue.Severity severity = severities.get(currentIssueIndex);
+    List<PsIssue> group = issuesBySeverity.get(severity);
+    updateTitle(((CollapsiblePanel)myIssuesPanel3), severity, group);
     myIssuesView3.setText(myRenderer.render(group));
 
     currentIssueIndex--;
@@ -111,9 +111,9 @@ public class IssuesViewer {
       return;
     }
 
-    type = types.get(currentIssueIndex);
-    group = issuesByType.get(type);
-    updateTitle(((CollapsiblePanel)myIssuesPanel2), type, group);
+    severity = severities.get(currentIssueIndex);
+    group = issuesBySeverity.get(severity);
+    updateTitle(((CollapsiblePanel)myIssuesPanel2), severity, group);
     myIssuesView2.setText(myRenderer.render(group));
 
     currentIssueIndex--;
@@ -123,9 +123,9 @@ public class IssuesViewer {
       return;
     }
 
-    type = types.get(currentIssueIndex);
-    group = issuesByType.get(type);
-    updateTitle(((CollapsiblePanel)myIssuesPanel1), type, group);
+    severity = severities.get(currentIssueIndex);
+    group = issuesBySeverity.get(severity);
+    updateTitle(((CollapsiblePanel)myIssuesPanel1), severity, group);
     myIssuesView1.setText(myRenderer.render(group));
 
     revalidateAndRepaintPanels();
@@ -138,11 +138,11 @@ public class IssuesViewer {
     revalidateAndRepaint(myMainPanel);
   }
 
-  private static void updateTitle(@NotNull CollapsiblePanel panel, @NotNull PsIssue.Type type, @NotNull List<PsIssue> issues) {
+  private static void updateTitle(@NotNull CollapsiblePanel panel, @NotNull PsIssue.Severity severity, @NotNull List<PsIssue> issues) {
     SimpleColoredComponent title = panel.getTitleComponent();
     title.clear();
-    title.setIcon(type.getIcon());
-    title.append(type.getText(), REGULAR_ATTRIBUTES);
+    title.setIcon(severity.getIcon());
+    title.append(severity.getText(), REGULAR_ATTRIBUTES);
     int issueCount = issues.size();
     title.append(" (" + issueCount + (issueCount == 1 ? " item)" : " items)"), GRAY_ATTRIBUTES);
   }

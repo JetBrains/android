@@ -83,6 +83,7 @@ public class PsLibraryUpdateCheckerDaemon extends PsDaemon {
     myEventDispatcher.addListener(listener, parentDisposable);
   }
 
+  @Override
   public boolean isRunning() {
     return myRunning.get();
   }
@@ -181,8 +182,8 @@ public class PsLibraryUpdateCheckerDaemon extends PsDaemon {
 
     @Override
     public void run() {
-      myRunning.set(false);
       myEventDispatcher.getMulticaster().availableUpdates();
+      myRunning.set(false);
     }
   }
 

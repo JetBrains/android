@@ -87,7 +87,7 @@ public class NodeHyperlinkSupport<T extends SimpleNode> implements Disposable {
         SimpleTextAttributes textAttributes = super.getSimpleTextAttributes(node, color);
         if (!issues.isEmpty()) {
           PsIssue issue = issues.get(0);
-          Color waveColor = issue.getType().getColor();
+          Color waveColor = issue.getSeverity().getColor();
           textAttributes = textAttributes.derive(STYLE_WAVED, null, null, waveColor);
         }
 

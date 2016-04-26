@@ -70,7 +70,7 @@ public class PsModuleCellRenderer extends ColoredTreeCellRenderer {
 
         if (!issues.isEmpty()) {
           PsIssue issue = issues.get(0);
-          Color waveColor = issue.getType().getColor();
+          Color waveColor = issue.getSeverity().getColor();
           textAttributes = textAttributes.derive(STYLE_WAVED, null, null, waveColor);
         }
       }

@@ -41,7 +41,8 @@ import java.util.EventListener;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static com.android.tools.idea.gradle.structure.model.PsIssue.Type.INFO;
+import static com.android.tools.idea.gradle.structure.model.PsIssue.Severity.INFO;
+import static com.android.tools.idea.gradle.structure.model.PsIssueType.LIBRARY_UPDATES_AVAILABLE;
 import static com.intellij.util.ui.update.MergingUpdateQueue.ANY_COMPONENT;
 
 public class PsAnalyzerDaemon extends PsDaemon {
@@ -52,6 +53,7 @@ public class PsAnalyzerDaemon extends PsDaemon {
   @NotNull private final PsIssueCollection myIssues;
 
   @NotNull private final Map<Class<?>, PsModelAnalyzer<?>> myModelAnalyzers = Maps.newHashMap();
+  @NotNull private final AtomicBoolean myRunning = new AtomicBoolean(true);
 
   @NotNull private final EventDispatcher<IssuesUpdatedListener> myIssuesUpdatedEventDispatcher =
     EventDispatcher.create(IssuesUpdatedListener.class);
@@ -89,7 +91,7 @@ public class PsAnalyzerDaemon extends PsDaemon {
                 String text = String.format("A newer version of %1$s is available: %2$s", library, version.toString());
 
                 PsLibraryDependencyPath mainPath = new PsLibraryDependencyPath(context, libraryDependency);
-                PsIssue issue = new PsIssue(text, mainPath, INFO);
+                PsIssue issue = new PsIssue(text, mainPath, LIBRARY_UPDATES_AVAILABLE, INFO);
                 issue.setExtraPath(new PsModulePath(module));
 
                 myIssues.add(issue);
@@ -118,11 +120,17 @@ public class PsAnalyzerDaemon extends PsDaemon {
     myIssuesUpdatedEventDispatcher.addListener(listener, parentDisposable);
   }
 
+  @Override
+  public boolean isRunning() {
+    return myRunning.get();
+  }
+
   public void queueCheck(@NotNull PsModel model) {
     myMainQueue.queue(new AnalyzeStructure(model));
   }
 
   private void doCheck(@NotNull PsModel model) {
+    myRunning.set(true);
     PsModelAnalyzer<?> analyzer = myModelAnalyzers.get(model.getClass());
     if (analyzer == null) {
       LOG.info("Failed to find analyzer for model of type " + model.getClass().getName());
@@ -158,6 +166,11 @@ public class PsAnalyzerDaemon extends PsDaemon {
     return myIssues;
   }
 
+  public void removeIssues(@NotNull PsIssueType type) {
+    myIssues.remove(type);
+    myResultsUpdaterQueue.queue(new IssuesComputed(getContext().getProject()));
+  }
+
   private class AnalyzeStructure extends Update {
     @NotNull private final PsModel myModel;
 
@@ -188,9 +201,11 @@ public class PsAnalyzerDaemon extends PsDaemon {
     @Override
     public void run() {
       if (isStopped()) {
+        myRunning.set(false);
         return;
       }
       myIssuesUpdatedEventDispatcher.getMulticaster().issuesUpdated(myModel);
+      myRunning.set(false);
     }
   }
 
