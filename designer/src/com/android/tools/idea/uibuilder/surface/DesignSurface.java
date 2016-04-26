@@ -222,12 +222,15 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
 
       switch (myScreenMode) {
         case SCREEN_ONLY:
+          myScreenView.setType(ScreenView.ScreenViewType.NORMAL);
           addScreenLayers();
           break;
         case BLUEPRINT_ONLY:
+          myScreenView.setType(ScreenView.ScreenViewType.BLUEPRINT);
           addBlueprintLayers(myScreenView);
           break;
         case BOTH:
+          myScreenView.setType(ScreenView.ScreenViewType.NORMAL);
           myBlueprintView = new ScreenView(this, ScreenView.ScreenViewType.BLUEPRINT, model);
           myBlueprintView.setLocation(myScreenX + screenSize.width + 10, myScreenY);
 
