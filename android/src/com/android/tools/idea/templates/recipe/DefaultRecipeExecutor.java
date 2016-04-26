@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.templates.recipe;
 
+import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpec;
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
@@ -25,6 +27,7 @@ import com.android.tools.idea.templates.GradleFilePsiMerger;
 import com.android.tools.idea.templates.GradleFileSimpleMerger;
 import com.android.tools.idea.templates.RecipeMergeUtils;
 import com.android.tools.idea.templates.TemplateMetadata;
+import com.google.common.base.Objects;
 import com.google.common.collect.SetMultimap;
 import com.intellij.diff.comparison.ComparisonManager;
 import com.intellij.diff.comparison.ComparisonPolicy;
@@ -141,10 +144,23 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
     if (project.isInitialized()) {
       GradleBuildModel buildModel = getBuildModel(rootBuildFile, project);
       DependenciesModel buildscriptDependencies = buildModel.buildscript().dependencies();
-      if (!buildscriptDependencies.containsArtifact(CLASSPATH_CONFIGURATION_NAME, toBeAddedDependency)) {
-        buildscriptDependencies.addArtifact(CLASSPATH_CONFIGURATION_NAME, toBeAddedDependency);
-        myIO.applyChanges(buildModel);
+      ArtifactDependencyModel targetDependencyModel = null;
+      for (ArtifactDependencyModel dependencyModel : buildscriptDependencies.artifacts(CLASSPATH_CONFIGURATION_NAME)) {
+        if(equalsIgnoreVersion(toBeAddedDependency, ArtifactDependencySpec.create(dependencyModel))) {
+          targetDependencyModel = dependencyModel;
+        }
       }
+      if (targetDependencyModel == null) {
+        buildscriptDependencies.addArtifact(CLASSPATH_CONFIGURATION_NAME, toBeAddedDependency);
+      }
+      else {
+        GradleVersion toBeAddedDependencyVersion = GradleVersion.parse(nullToEmpty(toBeAddedDependency.version));
+        GradleVersion existingDependencyVersion = GradleVersion.parse(nullToEmpty(targetDependencyModel.version().value()));
+        if (toBeAddedDependencyVersion.compareTo(existingDependencyVersion) > 0) {
+          targetDependencyModel.setVersion(nullToEmpty(toBeAddedDependency.version));
+        }
+      }
+      myIO.applyChanges(buildModel);
     }
     else {
       String destinationContents = rootBuildFile.exists() ? nullToEmpty(readTextFile(rootBuildFile)) : "";
@@ -157,6 +173,13 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
       }
     }
     myNeedsGradleSync = true;
+  }
+
+  private static boolean equalsIgnoreVersion(@NotNull ArtifactDependencySpec spec1, @NotNull ArtifactDependencySpec spec2) {
+    return Objects.equal(spec1.name, spec2.name) &&
+           Objects.equal(spec1.group, spec2.group) &&
+           Objects.equal(spec1.classifier, spec2.classifier) &&
+           Objects.equal(spec1.extension, spec2.extension);
   }
 
   @NotNull
