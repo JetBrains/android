@@ -128,7 +128,22 @@ public class WidgetsScene {
             child.setY(child.getY() + container.getY());
         }
         parent.remove(container);
-        mWidgets.remove(container.getDebugName());
+        mWidgets.remove(getTag(container));
+    }
+
+    /**
+     * Utility method to return the tag associated with the widget
+     * It will return either the tag set in the companion, or the debugName
+     * @param widget the widget
+     * @return the widget's tag
+     */
+    private Object getTag(ConstraintWidget widget) {
+        WidgetCompanion companion = (WidgetCompanion)widget.getCompanionWidget();
+        Object tag = companion.getWidgetTag();
+        if (tag != null) {
+            return tag;
+        }
+        return widget.getDebugName();
     }
 
     /**
@@ -153,7 +168,7 @@ public class WidgetsScene {
         }
         WidgetContainer parent = (WidgetContainer) widget.getParent();
         parent.remove(widget);
-        mWidgets.remove(widget.getDebugName());
+        mWidgets.remove(getTag(widget));
     }
 
     /**
@@ -520,8 +535,8 @@ public class WidgetsScene {
         }
         parent.remove(oldContainer);
         parent.add(newContainer);
-        mWidgets.remove(oldContainer.getDebugName());
-        mWidgets.put(newContainer.getDebugName(), newContainer);
+        mWidgets.remove(getTag(oldContainer));
+        setWidget(newContainer);
         boolean previousAnimationState = Animator.isAnimationEnabled();
         Animator.setAnimationEnabled(false);
         mRoot.layout();
@@ -574,7 +589,7 @@ public class WidgetsScene {
                 container.setCompanionWidget(WidgetCompanion.create(container));
             }
             parent.add(container);
-            mWidgets.put(container.getDebugName(), container);
+            setWidget(container);
             boolean previousAnimationState = Animator.isAnimationEnabled();
             Animator.setAnimationEnabled(false);
             mRoot.layout();
@@ -642,15 +657,19 @@ public class WidgetsScene {
         return mRoot;
     }
 
-    public void setWidget(Object key, ConstraintWidget widget) {
-        mWidgets.put(key, widget);
+    /**
+     * Set the widget in the scene
+     * @param widget widget to add to the scene
+     */
+    public void setWidget(ConstraintWidget widget) {
+        mWidgets.put(getTag(widget), widget);
     }
 
     public void addWidget(ConstraintWidget widget) {
         if (widget instanceof ConstraintWidgetContainer && widget.getParent() == null) {
             mRoot = (ConstraintWidgetContainer) widget;
         }
-        mWidgets.put(widget.getDebugName(), widget);
+        setWidget(widget);
     }
 
     public void setSelection(Selection selection) {
