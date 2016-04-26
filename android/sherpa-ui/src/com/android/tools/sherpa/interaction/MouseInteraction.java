@@ -285,8 +285,9 @@ public class MouseInteraction {
      */
     public class LockTimer {
         long mStart = 0;
+        int mDelay = 500;
         int mDuration = 1000;
-        Timer mTimer = new Timer(mDuration, new ActionListener() {
+        Timer mTimer = new Timer(mDuration + mDelay, new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 run();
@@ -301,7 +302,7 @@ public class MouseInteraction {
         public void start(ConstraintWidget widget) {
             mWidget = widget;
             mTimer.start();
-            mStart = System.currentTimeMillis();
+            mStart = System.currentTimeMillis() + mDelay;
         }
 
         public void stop() {
@@ -320,25 +321,7 @@ public class MouseInteraction {
                 return;
             }
             if (mSelection.contains(mWidget)) {
-                boolean allLocked = true;
-                for (ConstraintAnchor anchor : mWidget.getAnchors()) {
-                    if (anchor.isConnected()) {
-                        if (anchor.getConnectionCreator() != ConstraintAnchor.USER_CREATOR) {
-                            allLocked = false;
-                        }
-                    }
-                }
-                // Depending if all constraints are locked (== USER_CREATOR) or not,
-                // we will toggle them between all being locked or all being unlocked.
-                for (ConstraintAnchor anchor : mWidget.getAnchors()) {
-                    if (anchor.isConnected()) {
-                        if (allLocked) {
-                            anchor.setConnectionCreator(ConstraintAnchor.AUTO_CONSTRAINT_CREATOR);
-                        } else {
-                            anchor.setConnectionCreator(ConstraintAnchor.USER_CREATOR);
-                        }
-                    }
-                }
+                mWidgetsScene.toggleLockConstraints(mWidget);
                 mSceneDraw.repaint();
             }
         }
@@ -347,7 +330,15 @@ public class MouseInteraction {
             if (mStart == 0) {
                 return 0;
             }
-            return (System.currentTimeMillis() - mStart) / (float) mDuration;
+            long delta = (System.currentTimeMillis() - mStart);
+            if (delta < 0) {
+                return 0;
+            }
+            float progress = delta / (float) mDuration;
+            if (progress > 1) {
+                progress = 1;
+            }
+            return progress;
         }
     }
 

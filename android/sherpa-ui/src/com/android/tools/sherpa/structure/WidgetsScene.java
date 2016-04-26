@@ -19,6 +19,7 @@ package com.android.tools.sherpa.structure;
 import com.android.tools.sherpa.drawing.ConnectionDraw;
 import com.android.tools.sherpa.drawing.ViewTransform;
 import com.android.tools.sherpa.drawing.decorator.WidgetDecorator;
+import com.android.tools.sherpa.interaction.ConstraintHandle;
 import com.android.tools.sherpa.interaction.ResizeHandle;
 import com.android.tools.sherpa.interaction.WidgetInteractionTargets;
 import com.google.tnt.solver.widgets.*;
@@ -29,6 +30,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.jar.Pack200;
 
 /**
  * Represent a list of widgets and the associated operations
@@ -134,11 +136,12 @@ public class WidgetsScene {
     /**
      * Utility method to return the tag associated with the widget
      * It will return either the tag set in the companion, or the debugName
+     *
      * @param widget the widget
      * @return the widget's tag
      */
     private Object getTag(ConstraintWidget widget) {
-        WidgetCompanion companion = (WidgetCompanion)widget.getCompanionWidget();
+        WidgetCompanion companion = (WidgetCompanion) widget.getCompanionWidget();
         Object tag = companion.getWidgetTag();
         if (tag != null) {
             return tag;
@@ -200,7 +203,8 @@ public class WidgetsScene {
         ArrayList<ConstraintWidget> selection = mSelection.getWidgets();
         for (ConstraintWidget widget : selection) {
             WidgetCompanion companion = (WidgetCompanion) widget.getCompanionWidget();
-            WidgetDecorator decorator = companion.getWidgetDecorator(WidgetDecorator.BLUEPRINT_STYLE);
+            WidgetDecorator decorator =
+                    companion.getWidgetDecorator(WidgetDecorator.BLUEPRINT_STYLE);
             if (!decorator.isVisible()) {
                 continue;
             }
@@ -231,7 +235,8 @@ public class WidgetsScene {
      */
     public ConstraintWidget findWidget(ConstraintWidgetContainer container, float x, float y) {
         WidgetCompanion companion = (WidgetCompanion) container.getCompanionWidget();
-        WidgetDecorator containerDecorator = companion.getWidgetDecorator(WidgetDecorator.BLUEPRINT_STYLE);
+        WidgetDecorator containerDecorator =
+                companion.getWidgetDecorator(WidgetDecorator.BLUEPRINT_STYLE);
         if (!containerDecorator.isVisible()) {
             return null;
         }
@@ -253,7 +258,8 @@ public class WidgetsScene {
         }
         for (ConstraintWidget widget : container.getChildren()) {
             WidgetCompanion widgetCompanion = (WidgetCompanion) widget.getCompanionWidget();
-            WidgetDecorator widgetDecorator = widgetCompanion.getWidgetDecorator(WidgetDecorator.BLUEPRINT_STYLE);
+            WidgetDecorator widgetDecorator =
+                    widgetCompanion.getWidgetDecorator(WidgetDecorator.BLUEPRINT_STYLE);
             if (!widgetDecorator.isVisible()) {
                 continue;
             }
@@ -291,7 +297,8 @@ public class WidgetsScene {
         Rectangle area = new Rectangle(x, y, width, height);
         for (ConstraintWidget widget : container.getChildren()) {
             WidgetCompanion companion = (WidgetCompanion) widget.getCompanionWidget();
-            WidgetDecorator decorator = companion.getWidgetDecorator(WidgetDecorator.BLUEPRINT_STYLE);
+            WidgetDecorator decorator =
+                    companion.getWidgetDecorator(WidgetDecorator.BLUEPRINT_STYLE);
             if (!decorator.isVisible()) {
                 continue;
             }
@@ -308,8 +315,8 @@ public class WidgetsScene {
      * Find which ResizeHandle is close to the (x, y) coordinates
      *
      * @param widget the widget we are checking
-     * @param x x coordinate
-     * @param y y coordinate
+     * @param x      x coordinate
+     * @param y      y coordinate
      * @return the ResizeHandle close to (x, y), or null if none are close enough
      */
     private ResizeHandle findResizeHandleInWidget(ConstraintWidget widget,
@@ -439,7 +446,8 @@ public class WidgetsScene {
                 continue;
             }
             WidgetCompanion companion = (WidgetCompanion) widget.getCompanionWidget();
-            WidgetDecorator decorator = companion.getWidgetDecorator(WidgetDecorator.BLUEPRINT_STYLE);
+            WidgetDecorator decorator =
+                    companion.getWidgetDecorator(WidgetDecorator.BLUEPRINT_STYLE);
             if (!decorator.isVisible()) {
                 continue;
             }
@@ -659,6 +667,7 @@ public class WidgetsScene {
 
     /**
      * Set the widget in the scene
+     *
      * @param widget widget to add to the scene
      */
     public void setWidget(ConstraintWidget widget) {
@@ -814,5 +823,63 @@ public class WidgetsScene {
             WidgetInteractionTargets widgetInteraction = companion.getWidgetInteractionTargets();
             widgetInteraction.updatePosition(viewTransform);
         }
+    }
+
+    /**
+     * For the given widget, return true if a majority of its constraints were created
+     * by the user (and so in "lock" mode)
+     *
+     * @param widget the widget we are looking at
+     * @return USER_CREATOR if the majority of the constraints hvae been created by the user,
+     * AUTO_CONSTRAINT_CREATOR otherwise. If no constraints are set, returns -1
+     */
+    public int getMainConstraintsCreator(ConstraintWidget widget) {
+        int numAuto = 0;
+        int numUser = 0;
+        for (ConstraintAnchor anchor : widget.getAnchors()) {
+            if (anchor.isConnected()) {
+                if (anchor.getConnectionCreator() == ConstraintAnchor.USER_CREATOR) {
+                    numUser++;
+                } else {
+                    numAuto++;
+                }
+            }
+        }
+        if (numAuto == 0 && numUser == 0) {
+            return -1;
+        }
+        if (numUser > numAuto) {
+            return ConstraintAnchor.USER_CREATOR;
+        }
+        return ConstraintAnchor.AUTO_CONSTRAINT_CREATOR;
+    }
+
+    /**
+     * Set the connected constraints creator to USER_CREATOR or AUTO_CONSTRAINT_CREATOR
+     *
+     * @param widget  the widget we operate on
+     * @param creator the creator
+     */
+    public void setConstraintsCreator(ConstraintWidget widget, int creator) {
+        for (ConstraintAnchor anchor : widget.getAnchors()) {
+            if (anchor.isConnected()) {
+                anchor.setConnectionCreator(creator);
+            }
+        }
+    }
+
+    /**
+     * Toggle the constraints of the given widget
+     *
+     * @param widget the widget to toggle the constraints' creator status
+     */
+    public void toggleLockConstraints(ConstraintWidget widget) {
+        int constraintsCreator = getMainConstraintsCreator(widget);
+        if (constraintsCreator == ConstraintAnchor.USER_CREATOR) {
+            setConstraintsCreator(widget, ConstraintAnchor.AUTO_CONSTRAINT_CREATOR);
+        } else if (constraintsCreator == ConstraintAnchor.AUTO_CONSTRAINT_CREATOR) {
+            setConstraintsCreator(widget, ConstraintAnchor.USER_CREATOR);
+        }
+        mSelection.selectionHasChanged();
     }
 }
