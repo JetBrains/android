@@ -44,7 +44,7 @@ public class ConstraintInteraction extends Interaction {
    * Base constructor
    *
    * @param screenView the ScreenView we belong to
-   * @param component the component we belong to
+   * @param component  the component we belong to
    */
   public ConstraintInteraction(@NotNull ScreenView screenView,
                                @NotNull NlComponent component) {
@@ -65,8 +65,7 @@ public class ConstraintInteraction extends Interaction {
     int androidY = Coordinates.getAndroidY(myScreenView, myStartY);
 
     final NlModel nlModel = myScreenView.getModel();
-    ConstraintModel.useNewModel(nlModel);
-    ConstraintModel model = ConstraintModel.getModel();
+    DrawConstraintModel model = ConstraintModel.getDrawConstraintModel(myScreenView);
 
     model.updateModifiers(startMask);
     model.mousePressed(androidX, androidY);
@@ -82,7 +81,7 @@ public class ConstraintInteraction extends Interaction {
   @Override
   public void update(@SwingCoordinate int x, @SwingCoordinate int y, int modifiers) {
     super.update(x, y, modifiers);
-    ConstraintModel model = ConstraintModel.getModel();
+    DrawConstraintModel model = ConstraintModel.getDrawConstraintModel(myScreenView);
     model.updateModifiers(modifiers);
     int androidX = Coordinates.getAndroidX(myScreenView, x);
     int androidY = Coordinates.getAndroidY(myScreenView, y);
@@ -112,16 +111,16 @@ public class ConstraintInteraction extends Interaction {
 
     XmlFile file = nlModel.getFile();
 
-    ConstraintModel model = ConstraintModel.getModel();
+    DrawConstraintModel model = ConstraintModel.getDrawConstraintModel(myScreenView);
     model.updateModifiers(theModifiers);
     model.mouseReleased(ax, ay);
 
-    Selection selection = model.getSelection();
+    Selection selection = model.getConstraintModel().getSelection();
     if (!selection.getModifiedWidgets().isEmpty()) {
       WriteCommandAction action = new WriteCommandAction(project, "Constraint", file) {
         @Override
         protected void run(@NotNull Result result) throws Throwable {
-          Selection selection = model.getSelection();
+          Selection selection = model.getConstraintModel().getSelection();
           for (ConstraintWidget widget : selection.getModifiedWidgets()) {
             ConstraintUtilities.commitElement(widget, nlModel);
           }
@@ -130,7 +129,8 @@ public class ConstraintInteraction extends Interaction {
       };
       action.execute();
     }
-
+    myScreenView.getModel().notifyModified();
+    model.getConstraintModel().setModificationCount(myScreenView.getModel().getModificationCount());
     SelectionModel selectionModel = myScreenView.getSelectionModel();
     selectionModel.clear();
     ArrayList<NlComponent> components = new ArrayList<>();

@@ -151,6 +151,7 @@ public class WidgetMotion {
         snapBias(widget.widget, candidatePoint);
 
         widget.widget.setDrawOrigin(candidatePoint.x, candidatePoint.y);
+        widget.widget.forceUpdateDrawPosition();
         widgetInteraction.updatePosition(transform);
 
         mSimilarMargins.clear();

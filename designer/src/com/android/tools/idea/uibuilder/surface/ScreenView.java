@@ -36,7 +36,7 @@ import java.util.List;
  */
 public class ScreenView {
   private final DesignSurface mySurface;
-  private final ScreenViewType myType;
+  private ScreenViewType myType;
   private final NlModel myModel;
 
   public enum ScreenViewType { NORMAL, BLUEPRINT }
@@ -86,6 +86,15 @@ public class ScreenView {
    */
   @NotNull
   public ScreenViewType getScreenViewType() { return myType; }
+
+  /**
+   * Set the type of this ScreenvVew
+
+   * @param type ScreenViewType (NORMAL or BLUEPRINT)
+   */
+  public void setType(ScreenViewType type) {
+    myType = type;
+  }
 
   /**
    * Returns the current size of the view. This is the same as {@link #getPreferredSize()} but accounts for the current zoom level.
