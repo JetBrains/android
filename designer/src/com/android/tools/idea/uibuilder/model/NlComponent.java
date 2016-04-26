@@ -40,8 +40,10 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -487,10 +489,15 @@ public class NlComponent {
    * Convenience wrapper for now; this should be replaced with property lookup
    */
   public void setAttribute(@Nullable String namespace, @NotNull String attribute, @Nullable String value) {
+    String prefix = null;
+    if (namespace != null) {
+      prefix = AndroidResourceUtil.ensureNamespaceImported((XmlFile)myTag.getContainingFile(), namespace, null);
+    }
+
     // Handle validity
     myTag.setAttribute(attribute, namespace, value);
     if (snapshot != null) {
-      snapshot.setAttribute(attribute, namespace, null, value);
+      snapshot.setAttribute(attribute, namespace, prefix, value);
     }
   }
 
@@ -531,24 +538,7 @@ public class NlComponent {
   }
 
   public String ensureNamespace(@NotNull String prefix, @NotNull String namespace) {
-    //todo: Merge with functionality in {@link SuppressLintIntentionAction#ensureNamespaceImported}
-    assert isRoot();
-    // Handle validity
-    String existingPrefix = myTag.getPrefixByNamespace(namespace);
-    if (existingPrefix != null) {
-      return existingPrefix;
-    }
-    if (myTag.getAttribute(XMLNS_PREFIX + prefix) != null) {
-      String base = prefix;
-      for (int i = 2; ; i++) {
-        prefix = base + Integer.toString(i);
-        if (myTag.getAttribute(XMLNS_PREFIX + prefix) == null) {
-          break;
-        }
-      }
-    }
-    myTag.setAttribute(XMLNS_PREFIX + prefix, namespace);
-    return prefix;
+    return AndroidResourceUtil.ensureNamespaceImported((XmlFile)myTag.getContainingFile(), namespace, prefix);
   }
 
   public boolean isShowing() {

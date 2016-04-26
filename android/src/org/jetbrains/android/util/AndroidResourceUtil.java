@@ -73,8 +73,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
-import static com.android.SdkConstants.ATTR_TYPE;
-import static com.android.SdkConstants.TAG_ITEM;
+import static com.android.SdkConstants.*;
 import static com.android.resources.ResourceType.ATTR;
 import static com.android.resources.ResourceType.STYLEABLE;
 
@@ -1431,4 +1430,63 @@ public class AndroidResourceUtil {
     }.execute();
   }
 
+
+  /**
+   * Ensures that the given namespace is imported in the given XML document.
+   */
+  @NotNull
+  public static String ensureNamespaceImported(@NotNull XmlFile file, @NotNull String namespaceUri, @Nullable String suggestedPrefix) {
+    ApplicationManager.getApplication().assertWriteAccessAllowed();
+
+    final XmlTag rootTag = file.getRootTag();
+
+    assert rootTag != null;
+    final XmlElementFactory elementFactory = XmlElementFactory.getInstance(file.getProject());
+
+    String prefix = rootTag.getPrefixByNamespace(namespaceUri);
+    if (prefix != null) {
+      return prefix;
+    }
+
+    if (suggestedPrefix != null) {
+      prefix = suggestedPrefix;
+    }
+    else if (TOOLS_URI.equals(namespaceUri)) {
+      prefix = TOOLS_PREFIX;
+    }
+    else if (ANDROID_URI.equals(namespaceUri)) {
+      prefix = ANDROID_NS_NAME;
+    }
+    else {
+      prefix = APP_PREFIX;
+    }
+    if (rootTag.getAttribute(XMLNS_PREFIX + prefix) != null) {
+      String base = prefix;
+      for (int i = 2; ; i++) {
+        prefix = base + Integer.toString(i);
+        if (rootTag.getAttribute(XMLNS_PREFIX + prefix) == null) {
+          break;
+        }
+      }
+    }
+    String name = XMLNS_PREFIX + prefix;
+    final XmlAttribute xmlnsAttr = elementFactory.createXmlAttribute(name, namespaceUri);
+    final XmlAttribute[] attributes = rootTag.getAttributes();
+    XmlAttribute next = attributes.length > 0 ? attributes[0] : null;
+    for (XmlAttribute attribute : attributes) {
+      String attributeName = attribute.getName();
+      if (!attributeName.startsWith(XMLNS_PREFIX) || attributeName.compareTo(name) > 0) {
+        next = attribute;
+        break;
+      }
+    }
+    if (next != null) {
+      rootTag.addBefore(xmlnsAttr, next);
+    }
+    else {
+      rootTag.add(xmlnsAttr);
+    }
+
+    return prefix;
+  }
 }
