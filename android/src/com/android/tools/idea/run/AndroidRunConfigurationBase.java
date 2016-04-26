@@ -16,6 +16,7 @@
 
 package com.android.tools.idea.run;
 
+import com.android.builder.model.AndroidProject;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.fd.*;
@@ -44,7 +45,10 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.*;
+import com.intellij.openapi.util.DefaultJDOMExternalizer;
+import com.intellij.openapi.util.InvalidDataException;
+import com.intellij.openapi.util.Pair;
+import com.intellij.openapi.util.WriteExternalException;
 import icons.AndroidIcons;
 import org.intellij.lang.annotations.Language;
 import org.jdom.Element;
@@ -66,7 +70,9 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
   private static final String GRADLE_SYNC_FAILED_ERR_MSG = "Gradle project sync failed. Please fix your project and try again.";
 
-  /** Element name used to group the {@link ProfilerState} settings */
+  /**
+   * Element name used to group the {@link ProfilerState} settings
+   */
   private static final String PROFILERS_ELEMENT_NAME = "Profilers";
 
   private static final DialogWrapper.DoNotAskOption ourKillLaunchOption = new MyDoNotPromptOption();
@@ -101,7 +107,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     }
     myDeployTargetStates = builder.build();
     DEBUGGER_TYPE = getDefaultAndroidDebuggerType();
-    for (AndroidDebugger androidDebugger: getAndroidDebuggers()) {
+    for (AndroidDebugger androidDebugger : getAndroidDebuggers()) {
       myAndroidDebuggerStates.put(androidDebugger.getId(), androidDebugger.createState());
     }
   }
@@ -174,13 +180,17 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     return errors;
   }
 
-  /** Returns whether the configuration supports running library projects, and if it doesn't, then an explanation as to why it doesn't. */
-  protected abstract Pair<Boolean,String> supportsRunningLibraryProjects(@NotNull AndroidFacet facet);
+  /**
+   * Returns whether the configuration supports running library projects, and if it doesn't, then an explanation as to why it doesn't.
+   */
+  protected abstract Pair<Boolean, String> supportsRunningLibraryProjects(@NotNull AndroidFacet facet);
 
   @NotNull
   protected abstract List<ValidationError> checkConfiguration(@NotNull AndroidFacet facet);
 
-  /** Subclasses should override to adjust the launch options. */
+  /**
+   * Subclasses should override to adjust the launch options.
+   */
   @NotNull
   protected LaunchOptions.Builder getLaunchOptions() {
     return LaunchOptions.builder()
@@ -315,13 +325,15 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     }
 
     DeviceFutures deviceFutures = null;
-    AndroidSessionInfo info = AndroidSessionInfo.findOldSession(project, null, getUniqueID()); // note: we look for this run config with any executor
+    AndroidSessionInfo info = AndroidSessionInfo.findOldSession(project, null, getUniqueID());
+    // note: we look for this run config with any executor
 
     IDevice rerunDevice = InstantRunUtils.getRestartDevice(env);
     if (rerunDevice != null) { // first check if this is a session that has been restarted with some info pre-filled in the env
       deviceFutures = DeviceFutures.forDevices(Collections.singletonList(rerunDevice));
     }
-    else if (info != null && supportsInstantRun()) { // if there is an existing previous session, then see if we can detect devices to fast deploy to
+    else if (info != null && supportsInstantRun()) {
+      // if there is an existing previous session, then see if we can detect devices to fast deploy to
       deviceFutures = getFastDeployDevices(executor, facet, info);
 
       // HACK: We also need to support re-run
@@ -374,8 +386,8 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       List<AndroidDevice> devices = deviceFutures.getDevices();
       if (devices.size() > 1) {
         @Language("HTML") String message = "Instant Run is disabled:<br>" +
-                         "Instant Run does not support deploying to multiple targets.<br>" +
-                         "To enable Instant Run, deploy to a single target.";
+                                           "Instant Run does not support deploying to multiple targets.<br>" +
+                                           "To enable Instant Run, deploy to a single target.";
         new InstantRunUserFeedback(module).notifyDisabledForLaunch(message);
         LOG.info(message);
       }
@@ -416,7 +428,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       new AndroidLaunchTasksProviderFactory(this, env, facet, applicationIdProvider, apkProvider, launchOptions, processHandler);
 
     InstantRunStatsService.get(project).notifyBuildStarted();
-    return new AndroidRunState(env, getName(), module, applicationIdProvider, getConsoleProvider(), deviceFutures.get(), providerFactory,
+    return new AndroidRunState(env, getName(), module, applicationIdProvider, getConsoleProvider(), deviceFutures, providerFactory,
                                processHandler);
   }
 
@@ -564,10 +576,14 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     return DeviceCount.fromBoolean(supportMultipleDevices() && !debug);
   }
 
-  /** @return true iff this run configuration supports deploying to multiple devices. */
+  /**
+   * @return true iff this run configuration supports deploying to multiple devices.
+   */
   protected abstract boolean supportMultipleDevices();
 
-  /** @return true iff this run configuration supports instant run. */
+  /**
+   * @return true iff this run configuration supports instant run.
+   */
   public boolean supportsInstantRun() {
     return false;
   }
@@ -582,7 +598,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       DefaultJDOMExternalizer.readExternal(state, element);
     }
 
-    for (Map.Entry<String, AndroidDebuggerState> entry: myAndroidDebuggerStates.entrySet()) {
+    for (Map.Entry<String, AndroidDebuggerState> entry : myAndroidDebuggerStates.entrySet()) {
       Element optionElement = element.getChild(entry.getKey());
       if (optionElement != null) {
         entry.getValue().readExternal(optionElement);
@@ -605,7 +621,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       DefaultJDOMExternalizer.writeExternal(state, element);
     }
 
-    for (Map.Entry<String, AndroidDebuggerState> entry: myAndroidDebuggerStates.entrySet()) {
+    for (Map.Entry<String, AndroidDebuggerState> entry : myAndroidDebuggerStates.entrySet()) {
       Element optionElement = new Element(entry.getKey());
       element.addContent(optionElement);
       entry.getValue().writeExternal(optionElement);
@@ -626,17 +642,37 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
   @NotNull
   protected String getDefaultAndroidDebuggerType() {
+    int pluginGeneration = determinePluginGeneration();
+    if (pluginGeneration == AndroidProject.GENERATION_ORIGINAL) {
+      return AndroidJavaDebugger.ID;
+    }
+
+    for (AndroidDebugger androidDebugger : getAndroidDebuggers()) {
+      if (androidDebugger.shouldBeDefault(pluginGeneration)) {
+        return androidDebugger.getId();
+      }
+    }
+
     return AndroidJavaDebugger.ID;
   }
 
   @NotNull
   public List<AndroidDebugger> getAndroidDebuggers() {
-    return Arrays.asList(AndroidDebugger.EP_NAME.getExtensions());
+    AndroidDebugger[] debuggerArray = AndroidDebugger.EP_NAME.getExtensions();
+    List<AndroidDebugger> debuggerList = Lists.newArrayListWithCapacity(debuggerArray.length);
+    int pluginGeneration = determinePluginGeneration();
+    for (AndroidDebugger debugger : debuggerArray) {
+      if (debugger.supportsPluginGeneration(pluginGeneration)) {
+        debuggerList.add(debugger);
+      }
+    }
+
+    return debuggerList;
   }
 
   @Nullable
   public AndroidDebugger getAndroidDebugger() {
-    for (AndroidDebugger androidDebugger: getAndroidDebuggers()) {
+    for (AndroidDebugger androidDebugger : getAndroidDebuggers()) {
       if (androidDebugger.getId().equals(DEBUGGER_TYPE)) {
         return androidDebugger;
       }
@@ -660,6 +696,25 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
    */
   public ProfilerState getProfilerState() {
     return myProfilerState;
+  }
+
+  private int determinePluginGeneration() {
+    AndroidProject androidProject;
+    Module module = getConfigurationModule().getModule();
+    if (module != null) {
+      AndroidGradleModel androidGradleModel = AndroidGradleModel.get(module);
+      if (androidGradleModel != null) {
+        androidProject = androidGradleModel.getAndroidProject();
+        try {
+          return androidProject.getPluginGeneration();
+        }
+        catch (Throwable t) {
+          return AndroidProject.GENERATION_COMPONENT;
+        }
+      }
+    }
+
+    return AndroidProject.GENERATION_COMPONENT;
   }
 
   private static class MyDoNotPromptOption implements DialogWrapper.DoNotAskOption {

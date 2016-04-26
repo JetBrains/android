@@ -24,7 +24,7 @@ import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.run.AndroidProcessHandler;
 import com.android.tools.idea.run.editor.AndroidDebugger;
 import com.google.common.collect.Lists;
-import com.intellij.execution.*;
+import com.intellij.execution.ExecutionManager;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.process.ProcessOutputTypes;
 import com.intellij.facet.ProjectFacetManager;
@@ -65,8 +65,8 @@ import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.*;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author Eugene.Kudelevsky
