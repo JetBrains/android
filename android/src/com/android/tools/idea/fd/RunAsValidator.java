@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.run;
+package com.android.tools.idea.fd;
 
-import com.android.tools.idea.run.AndroidDevice;
+import com.android.ddmlib.IDevice;
 import org.jetbrains.annotations.NotNull;
 
 public interface RunAsValidator {
-  boolean hasWorkingRunAs(@NotNull AndroidDevice device);
+  boolean hasWorkingRunAs(@NotNull IDevice device);
 }

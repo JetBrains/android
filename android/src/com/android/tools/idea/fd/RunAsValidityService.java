@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.run;
+package com.android.tools.idea.fd;
 
 import com.android.ddmlib.IDevice;
-import com.android.tools.idea.run.AndroidDevice;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.components.ServiceManager;
 import org.jetbrains.annotations.NotNull;
@@ -37,15 +36,6 @@ public class RunAsValidityService implements RunAsValidator {
   }
 
   @Override
-  public boolean hasWorkingRunAs(@NotNull AndroidDevice device) {
-    if (device.isVirtual()) {
-      // AVD's are all fine
-      return true;
-    }
-
-    return !ourBrokenDevices.contains(device.getSerial());
-  }
-
   public boolean hasWorkingRunAs(@NotNull IDevice device) {
     if (device.isEmulator()) {
       // AVD's are all fine
