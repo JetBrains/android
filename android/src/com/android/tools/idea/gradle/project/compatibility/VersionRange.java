@@ -83,7 +83,12 @@ class VersionRange {
 
   private VersionRange(@NotNull String minVersion, boolean minVersionInclusive, @Nullable String maxVersion, boolean maxVersionInclusive) {
     myMinVersion = minVersion;
-    myParsedMinVersion = GradleVersion.tryParse(minVersion);
+    GradleVersion parsedMinVersion = GradleVersion.tryParse(minVersion);
+    if (parsedMinVersion != null && parsedMinVersion.getMajor() == 0 && minVersion.equals(parsedMinVersion.getMajorSegment().getText())) {
+      // This is a non-numeric version, ignore.
+      parsedMinVersion = null;
+    }
+    myParsedMinVersion = parsedMinVersion;
     myMinVersionInclusive = minVersionInclusive;
     myMaxVersion = maxVersion;
     myParsedMaxVersion = maxVersion != null ? GradleVersion.tryParse(maxVersion) : null;
