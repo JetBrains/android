@@ -435,7 +435,7 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
 
     @Override
     public boolean startInWriteAction() {
-      return true;
+      return myQuickFix.startInWriteAction();
     }
   }
 

@@ -21,6 +21,9 @@ import com.android.builder.model.JavaLibrary;
 import com.android.builder.model.MavenCoordinates;
 import com.android.ide.common.gradle.model.IdeBaseArtifact;
 import com.android.ide.common.gradle.model.IdeVariant;
+import com.android.ide.common.repository.GradleCoordinate;
+import com.android.ide.common.repository.GradleVersion;
+import com.android.repository.io.FileOpUtils;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.model.android.CompileOptionsModel;
@@ -32,7 +35,11 @@ import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.testartifacts.scopes.TestArtifactSearchScopes;
+import com.android.tools.idea.sdk.AndroidSdks;
+import com.android.tools.idea.templates.RepositoryUrlManager;
+import com.android.tools.idea.templates.SupportLibrary;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
@@ -53,6 +60,7 @@ import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
+import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.concurrency.AsyncPromise;
@@ -63,6 +71,7 @@ import java.io.File;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 
 import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.*;
 import static com.android.tools.idea.gradle.util.GradleProjects.getAndroidModel;
@@ -153,8 +162,10 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
         return null;
       }
       String configurationName = getConfigurationName(module, scope, openedFile);
+      String updatedConfigName =
+        GradleUtil.mapConfigurationName(configurationName, GradleUtil.getAndroidGradleModelVersionInUse(module), false);
       DependenciesModel dependencies = buildModel.dependencies();
-      dependencies.addArtifact(configurationName, dependencySpec);
+      dependencies.addArtifact(updatedConfigName, dependencySpec);
       buildModelsToUpdate.add(buildModel);
     }
 
@@ -228,8 +239,34 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
 
   @Nullable
   private static String selectVersion(@NotNull ExternalLibraryDescriptor descriptor) {
-    String groupAndId = descriptor.getLibraryGroupId() + ":" + descriptor.getLibraryArtifactId();
-    return EXTERNAL_LIBRARY_VERSIONS.get(groupAndId);
+    String libraryArtifactId = descriptor.getLibraryArtifactId();
+    String libraryGroupId = descriptor.getLibraryGroupId();
+    String groupAndId = libraryGroupId + ":" + libraryArtifactId;
+    String version = EXTERNAL_LIBRARY_VERSIONS.get(groupAndId);
+    if (version == null) {
+      SupportLibrary library = SupportLibrary.find(libraryGroupId, libraryArtifactId);
+      if (library != null) {
+        String gc = RepositoryUrlManager.get().getLibraryStringCoordinate(library, false);
+        if (gc == null) {
+          AndroidSdkData sdk = AndroidSdks.getInstance().tryToChooseAndroidSdk();
+          if (sdk == null) {
+            return null;
+          }
+          Predicate<GradleVersion> filter =
+            descriptor.getMinVersion() == null ? null : (v -> v.toString().startsWith(descriptor.getMinVersion()));
+
+          gc = RepositoryUrlManager.get().getLibraryRevision(libraryGroupId, libraryArtifactId,
+                                                             filter, false,
+                                                             sdk.getLocation(),
+                                                             FileOpUtils.create());
+        }
+        GradleCoordinate coordinate;
+        if (gc != null && (coordinate = GradleCoordinate.parseCoordinateString(gc)) != null) {
+            version = coordinate.getRevision();
+        }
+      }
+    }
+    return version;
   }
 
   @NotNull
