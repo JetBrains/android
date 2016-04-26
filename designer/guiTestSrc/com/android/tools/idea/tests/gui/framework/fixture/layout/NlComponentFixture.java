@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.layout;
 
+import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.uibuilder.model.Coordinates;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
@@ -27,8 +28,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
 
 /**
  * Represents a view in the layout editor
@@ -54,6 +59,40 @@ public class NlComponentFixture {
     int midX = Coordinates.getSwingX(screenView, myComponent.x + myComponent.w / 2);
     int midY = Coordinates.getSwingX(screenView, myComponent.y + myComponent.h / 2);
     return new Point(midX, midY);
+  }
+
+  public void requireAttribute(@Nullable String namespace, @NotNull String attribute, @Nullable String value) {
+    String actualValue = myComponent.getAttribute(namespace, attribute);
+    assertEquals(value, actualValue);
+  }
+
+  public void requireViewClass(@NotNull String fqn) {
+    ViewInfo viewInfo = myComponent.viewInfo;
+    assertNotNull("No layoutlib ViewInfo", viewInfo);
+    Object viewObject = viewInfo.getViewObject();
+    assertNotNull("No layoutlib view object in the ViewInfo", viewObject);
+    assertEquals(fqn, viewObject.getClass().getName());
+  }
+
+  public void requireActualText(@NotNull String expectedText) {
+    ViewInfo viewInfo = myComponent.viewInfo;
+    assertNotNull("No layoutlib ViewInfo", viewInfo);
+    Object viewObject = viewInfo.getViewObject();
+    assertNotNull("No layoutlib view object in the ViewInfo", viewObject);
+    try {
+      Method getText = viewObject.getClass().getMethod("getText");
+      String actualText = (String)getText.invoke(viewObject);
+      assertEquals(expectedText, actualText);
+    }
+    catch (NoSuchMethodException e) {
+      fail("No getText() method on " + viewObject.getClass().getName());
+    }
+    catch (InvocationTargetException e) {
+      fail("Can't invoke getText() method on " + viewObject.getClass().getName());
+    }
+    catch (IllegalAccessException e) {
+      fail("Can't access getText() method on " + viewObject.getClass().getName());
+    }
   }
 
   /** Click in the middle of the view (typically selects it) */
