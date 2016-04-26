@@ -98,6 +98,7 @@ public final class ChooseDeviceDefinitionPanel extends JPanel implements DeviceU
   @Override
   public void setDevice(@Nullable Device device) {
     myDeviceDefinitionList.setSelectedDevice(device);
+    updateEditButton(device);
   }
 
   @Override
