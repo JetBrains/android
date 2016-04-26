@@ -225,6 +225,10 @@
             description="Removes Unused Resources">
       <add-to-group group-id="RefactoringMenu"/>
     </action>
+    <action id="AndroidMigrateToAppCompatAction" class="org.jetbrains.android.refactoring.MigrateToAppCompatAction" text="Migrate App To AppCompat..."
+            description="Migrate App To AppCompat">
+      <add-to-group group-id="RefactoringMenu"/>
+    </action>
     <action id="AndroidExtractStyleAction" class="org.jetbrains.android.refactoring.AndroidExtractStyleAction" text="St_yle..."
             description="Pull out style-related attributes from layout and extract them as a new style">
       <add-to-group group-id="IntroduceActionsGroup"/>

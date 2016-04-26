@@ -568,7 +568,7 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
   }
 
   /** Wraps quickfixes from {@link LintFix} with default implementations */
-  static AndroidLintQuickFix[] createFixes(@Nullable PsiFile file, @Nullable LintFix lintFix) {
+  public static AndroidLintQuickFix[] createFixes(@Nullable PsiFile file, @Nullable LintFix lintFix) {
     if (lintFix instanceof ReplaceString) {
       ReplaceString data = (ReplaceString)lintFix;
       String regexp;
