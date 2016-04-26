@@ -61,7 +61,7 @@ public class RenderErrorPanelFixture {
     assertTrue("Could not find anchor before link text " + linkText + " in " + html, anchor != -1);
     int begin = anchor + "<A HREF=\"".length();
     int end = html.indexOf('"', begin);
-    assertTrue(end != -1);
+    assertThat(end).isNotEqualTo(-1);
     String url = html.substring(begin, end);
     panel.performClick(url);
   }
