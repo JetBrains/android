@@ -186,13 +186,13 @@ public class InstantRunBuilderTest {
   }
 
   @Test
-  public void cleanBuildIfNoDevice() throws Exception {
+  public void fullBuildIfNoDevice() throws Exception {
     InstantRunBuilder builder =
       new InstantRunBuilder(null, myInstantRunContext, myRunConfigContext, myTasksProvider, ourRunAsSupported, myInstalledApkCache,
                             myInstantRunClientDelegate);
     builder.build(myTaskRunner, Arrays.asList("-Pdevice.api=14", "-Pprofiling=on"));
     assertEquals(
-      "gradlew -Pdevice.api=14 -Pprofiling=on -Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY clean :app:gen :app:assemble",
+      "gradlew -Pdevice.api=14 -Pprofiling=on -Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY :app:assemble",
       myTaskRunner.getBuilds());
   }
 
@@ -207,33 +207,35 @@ public class InstantRunBuilderTest {
   }
 
   @Test
-  public void cleanIfBuildIfNoLocalTimestamp() throws Exception {
+  public void fullBuildIfNoLocalTimestamp() throws Exception {
     when(myInstantRunContext.getInstantRunBuildInfo()).thenReturn(null);
-
+    when(myDevice.getVersion()).thenReturn(new AndroidVersion(23, null));
     myBuilder.build(myTaskRunner, Collections.emptyList());
     assertEquals(
-      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY clean :app:gen :app:assemble",
+      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY :app:assemble",
       myTaskRunner.getBuilds());
   }
 
   @Test
-  public void cleanIfBuildIfPackageNotInstalledOnDevice() throws Exception {
+  public void fullBuildWhenPackageNotInstalledOnDevice() throws Exception {
     myDumpsysPackageOutput = DUMPSYS_NO_SUCH_PACKAGE;
-
+    when(myDevice.getVersion()).thenReturn(new AndroidVersion(23, null));
     myBuilder.build(myTaskRunner, Collections.emptyList());
     assertEquals(
-      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY clean :app:gen :app:assemble",
+      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY :app:assemble",
       myTaskRunner.getBuilds());
   }
 
   @Test
-  public void cleanIfBuildIfTimestampsDontMatch() throws Exception {
+  public void fullBuildIfBuildTimestampsDoNotMatch() throws Exception {
     myDumpsysPackageOutput = DUMPSYS_PACKAGE_EXISTS;
     myDeviceBuildTimetamp = "123";
+    when(myDevice.getVersion()).thenReturn(new AndroidVersion(23, null));
+    setUpDeviceForHotSwap();
 
     myBuilder.build(myTaskRunner, Collections.emptyList());
     assertEquals(
-      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY clean :app:gen :app:assemble",
+      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY :app:assemble",
       myTaskRunner.getBuilds());
   }
 
@@ -242,6 +244,7 @@ public class InstantRunBuilderTest {
     myDumpsysPackageOutput = DUMPSYS_PACKAGE_EXISTS;
     myDeviceBuildTimetamp = "100";
     when(myDevice.getVersion()).thenReturn(new AndroidVersion(10, null));
+    setUpDeviceForHotSwap();
 
     myBuilder.build(myTaskRunner, Collections.emptyList());
     assertEquals(
@@ -266,6 +269,7 @@ public class InstantRunBuilderTest {
     myDumpsysPackageOutput = DUMPSYS_PACKAGE_EXISTS;
     myDeviceBuildTimetamp = "100";
     when(myDevice.getVersion()).thenReturn(new AndroidVersion(23, null));
+    setUpDeviceForHotSwap();
     myInstalledPatchCache.setInstalledManifestTimestamp(myDevice, APPLICATION_ID, HashCode.fromInt(1));
     when(myInstantRunContext.getManifestHash()).thenReturn(HashCode.fromInt(2));
 
@@ -300,14 +304,7 @@ public class InstantRunBuilderTest {
     myDeviceBuildTimetamp = "100";
     myAppInForeground = false;
     when(myDevice.getVersion()).thenReturn(new AndroidVersion(20, null));
-
-    HashCode manifestHash = HashCode.fromInt(1011);
-    myInstalledPatchCache.setInstalledManifestTimestamp(myDevice, APPLICATION_ID, manifestHash);
-    when(myInstantRunContext.getManifestHash()).thenReturn(manifestHash);
-
-    HashCode resourcesHash = HashCode.fromInt(1);
-    myInstalledPatchCache.setInstalledManifestResourcesHash(myDevice, APPLICATION_ID, resourcesHash);
-    when(myInstantRunContext.getManifestResourcesHash()).thenReturn(resourcesHash);
+    setUpDeviceForHotSwap();
 
     myBuilder.build(myTaskRunner, Collections.emptyList());
     assertEquals(
@@ -323,13 +320,7 @@ public class InstantRunBuilderTest {
     myRunConfigContext.setSameExecutorAsPreviousSession(false);
     when(myDevice.getVersion()).thenReturn(new AndroidVersion(20, null));
 
-    HashCode manifestHash = HashCode.fromInt(1011);
-    myInstalledPatchCache.setInstalledManifestTimestamp(myDevice, APPLICATION_ID, manifestHash);
-    when(myInstantRunContext.getManifestHash()).thenReturn(manifestHash);
-
-    HashCode resourcesHash = HashCode.fromInt(1);
-    myInstalledPatchCache.setInstalledManifestResourcesHash(myDevice, APPLICATION_ID, resourcesHash);
-    when(myInstantRunContext.getManifestResourcesHash()).thenReturn(resourcesHash);
+    setUpDeviceForHotSwap();
 
     myBuilder.build(myTaskRunner, Collections.emptyList());
     assertEquals(
@@ -345,13 +336,7 @@ public class InstantRunBuilderTest {
     myRunConfigContext.setSameExecutorAsPreviousSession(true);
     when(myDevice.getVersion()).thenReturn(new AndroidVersion(23, null));
 
-    HashCode manifestHash = HashCode.fromInt(1011);
-    myInstalledPatchCache.setInstalledManifestTimestamp(myDevice, APPLICATION_ID, manifestHash);
-    when(myInstantRunContext.getManifestHash()).thenReturn(manifestHash);
-
-    HashCode resourcesHash = HashCode.fromInt(1);
-    myInstalledPatchCache.setInstalledManifestResourcesHash(myDevice, APPLICATION_ID, resourcesHash);
-    when(myInstantRunContext.getManifestResourcesHash()).thenReturn(resourcesHash);
+    setUpDeviceForHotSwap();
 
     myBuilder =
       new InstantRunBuilder(myDevice, myInstantRunContext, myRunConfigContext, myTasksProvider, ourRunAsNotSupported, myInstalledApkCache,
@@ -369,14 +354,7 @@ public class InstantRunBuilderTest {
     myAppInForeground = false;
     myRunConfigContext.setSameExecutorAsPreviousSession(true);
     when(myDevice.getVersion()).thenReturn(new AndroidVersion(23, null));
-
-    HashCode manifestHash = HashCode.fromInt(1011);
-    myInstalledPatchCache.setInstalledManifestTimestamp(myDevice, APPLICATION_ID, manifestHash);
-    when(myInstantRunContext.getManifestHash()).thenReturn(manifestHash);
-
-    HashCode resourcesHash = HashCode.fromInt(1);
-    myInstalledPatchCache.setInstalledManifestResourcesHash(myDevice, APPLICATION_ID, resourcesHash);
-    when(myInstantRunContext.getManifestResourcesHash()).thenReturn(resourcesHash);
+    setUpDeviceForHotSwap();
 
     myBuilder.build(myTaskRunner, Collections.emptyList());
     assertEquals(
@@ -391,14 +369,7 @@ public class InstantRunBuilderTest {
     myAppInForeground = true;
     myRunConfigContext.setSameExecutorAsPreviousSession(true);
     when(myDevice.getVersion()).thenReturn(new AndroidVersion(23, null));
-
-    HashCode manifestHash = HashCode.fromInt(1011);
-    myInstalledPatchCache.setInstalledManifestTimestamp(myDevice, APPLICATION_ID, manifestHash);
-    when(myInstantRunContext.getManifestHash()).thenReturn(manifestHash);
-
-    HashCode resourcesHash = HashCode.fromInt(1);
-    myInstalledPatchCache.setInstalledManifestResourcesHash(myDevice, APPLICATION_ID, resourcesHash);
-    when(myInstantRunContext.getManifestResourcesHash()).thenReturn(resourcesHash);
+    setUpDeviceForHotSwap();
 
     when(myInstantRunContext.usesMultipleProcesses()).thenReturn(true);
 
@@ -415,14 +386,7 @@ public class InstantRunBuilderTest {
     myAppInForeground = true;
     myRunConfigContext.setSameExecutorAsPreviousSession(true);
     when(myDevice.getVersion()).thenReturn(new AndroidVersion(23, null));
-
-    HashCode manifestHash = HashCode.fromInt(1011);
-    myInstalledPatchCache.setInstalledManifestTimestamp(myDevice, APPLICATION_ID, manifestHash);
-    when(myInstantRunContext.getManifestHash()).thenReturn(manifestHash);
-
-    HashCode resourcesHash = HashCode.fromInt(1);
-    myInstalledPatchCache.setInstalledManifestResourcesHash(myDevice, APPLICATION_ID, resourcesHash);
-    when(myInstantRunContext.getManifestResourcesHash()).thenReturn(resourcesHash);
+    setUpDeviceForHotSwap();
 
     myBuilder.build(myTaskRunner, Collections.emptyList());
     assertEquals(
@@ -437,14 +401,7 @@ public class InstantRunBuilderTest {
     myAppInForeground = true;
     myRunConfigContext.setSameExecutorAsPreviousSession(true);
     when(myDevice.getVersion()).thenReturn(new AndroidVersion(23, null));
-
-    HashCode manifestHash = HashCode.fromInt(1011);
-    myInstalledPatchCache.setInstalledManifestTimestamp(myDevice, APPLICATION_ID, manifestHash);
-    when(myInstantRunContext.getManifestHash()).thenReturn(manifestHash);
-
-    HashCode resourcesHash = HashCode.fromInt(1);
-    myInstalledPatchCache.setInstalledManifestResourcesHash(myDevice, APPLICATION_ID, resourcesHash);
-    when(myInstantRunContext.getManifestResourcesHash()).thenReturn(resourcesHash);
+    setUpDeviceForHotSwap();
 
     when(myInstantRunContext.getInstantRunBuildInfo())
       .thenReturn(InstantRunBuildInfo.get(BUILD_INFO))
@@ -457,6 +414,15 @@ public class InstantRunBuilderTest {
       myTaskRunner.getBuilds());
   }
 
+  private void setUpDeviceForHotSwap() {
+    HashCode manifestHash = HashCode.fromInt(1011);
+    myInstalledPatchCache.setInstalledManifestTimestamp(myDevice, APPLICATION_ID, manifestHash);
+    when(myInstantRunContext.getManifestHash()).thenReturn(manifestHash);
+
+    HashCode resourcesHash = HashCode.fromInt(1);
+    myInstalledPatchCache.setInstalledManifestResourcesHash(myDevice, APPLICATION_ID, resourcesHash);
+    when(myInstantRunContext.getManifestResourcesHash()).thenReturn(resourcesHash);
+  }
 
   private static class RecordingTaskRunner implements GradleTaskRunner {
     private StringBuilder sb = new StringBuilder(100);
