@@ -21,7 +21,10 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.fd.client.InstantRunBuildInfo;
 import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.run.GradleInstantRunContext;
 import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.run.ApkProviderUtil;
+import com.android.tools.idea.run.ApkProvisionException;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import com.intellij.openapi.module.Module;
@@ -191,5 +194,26 @@ public class InstantRunGradleUtils {
   private static File getLocalBuildInfoFile(@NotNull AndroidGradleModel model) {
     InstantRun instantRun = model.getSelectedVariant().getMainArtifact().getInstantRun();
     return instantRun.getInfoFile();
+  }
+
+  @Nullable
+  public static InstantRunContext createGradleProjectContext(@NotNull Module module) {
+    AndroidFacet appFacet = findAppModule(module, module.getProject());
+    if (appFacet == null) {
+      return null;
+    }
+
+    return createGradleProjectContext(appFacet);
+  }
+
+  @Nullable
+  public static InstantRunContext createGradleProjectContext(@NotNull AndroidFacet facet) {
+    try {
+      String pkgName = ApkProviderUtil.computePackageName(facet);
+      return new GradleInstantRunContext(pkgName, facet);
+    }
+    catch (ApkProvisionException e) {
+      return null;
+    }
   }
 }

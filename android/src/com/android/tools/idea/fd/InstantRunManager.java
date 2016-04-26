@@ -16,9 +16,6 @@
 package com.android.tools.idea.fd;
 
 import com.android.SdkConstants;
-import com.android.builder.model.AndroidArtifact;
-import com.android.builder.model.AndroidArtifactOutput;
-import com.android.builder.model.SourceProvider;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
 import com.android.ide.common.packaging.PackagingUtils;
@@ -26,15 +23,10 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.fd.client.*;
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.run.*;
 import com.android.tools.idea.stats.UsageTracker;
 import com.android.utils.ILogger;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
-import com.google.common.hash.HashCode;
-import com.google.common.io.Files;
 import com.intellij.debugger.DebuggerManagerEx;
 import com.intellij.debugger.engine.JavaExecutionStack;
 import com.intellij.debugger.engine.SuspendContextImpl;
@@ -42,13 +34,10 @@ import com.intellij.debugger.engine.events.DebuggerCommandImpl;
 import com.intellij.debugger.impl.DebuggerContextImpl;
 import com.intellij.debugger.impl.DebuggerSession;
 import com.intellij.debugger.ui.breakpoints.Breakpoint;
-import com.intellij.execution.ExecutionManager;
 import com.intellij.execution.process.ProcessHandler;
-import com.intellij.execution.ui.RunContentDescriptor;
 import com.intellij.notification.NotificationGroup;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ProjectComponent;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -61,14 +50,10 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.List;
+import java.util.Locale;
 
 import static com.android.tools.fd.client.InstantRunBuildInfo.VALUE_VERIFIER_STATUS_COMPATIBLE;
-import static com.google.common.base.Charsets.UTF_8;
 
 /**
  * The {@linkplain InstantRunManager} is responsible for handling Instant Run related functionality
@@ -80,7 +65,7 @@ public final class InstantRunManager implements ProjectComponent {
   public static final NotificationGroup NOTIFICATION_GROUP = NotificationGroup.toolWindowGroup("InstantRun", ToolWindowId.RUN);
 
   public static final Logger LOG = Logger.getInstance("#InstantRun");
-  private static final ILogger ILOGGER = new LogWrapper(LOG);
+  public static final ILogger ILOGGER = new LogWrapper(LOG);
 
   /**
    * White list of processes whose presence will not disable hotswap.
@@ -90,7 +75,7 @@ public final class InstantRunManager implements ProjectComponent {
    * a 3rd party library (e.g. leakcanary). In this case, we are ok doing a hotswap to just the main process (assuming that the
    * main process starts up first).
    */
-  public static final ImmutableSet<String> ALLOWED_PROCESSES = ImmutableSet.of(":leakcanary");
+  public static final ImmutableSet<String> ALLOWED_MULTI_PROCESSES = ImmutableSet.of(":leakcanary");
 
   @NotNull private final Project myProject;
   @NotNull private final FileChangeListener myFileChangeListener;
@@ -110,49 +95,6 @@ public final class InstantRunManager implements ProjectComponent {
     return project.getComponent(InstantRunManager.class);
   }
 
-  /** Finds the devices associated with all run configurations for the given project */
-  @NotNull
-  public static List<IDevice> findDevices(@Nullable Project project) {
-    if (project == null) {
-      return Collections.emptyList();
-    }
-
-    List<RunContentDescriptor> runningProcesses = ExecutionManager.getInstance(project).getContentManager().getAllDescriptors();
-    if (runningProcesses.isEmpty()) {
-      return Collections.emptyList();
-    }
-    List<IDevice> devices = Lists.newArrayList();
-    for (RunContentDescriptor descriptor : runningProcesses) {
-      ProcessHandler processHandler = descriptor.getProcessHandler();
-      if (processHandler == null || processHandler.isProcessTerminated() || processHandler.isProcessTerminating()) {
-        continue;
-      }
-
-      devices.addAll(getConnectedDevices(processHandler));
-    }
-
-    return devices;
-  }
-
-  @NotNull
-  private static List<IDevice> getConnectedDevices(@NotNull ProcessHandler processHandler) {
-    if (processHandler.isProcessTerminated() || processHandler.isProcessTerminating()) {
-      return Collections.emptyList();
-    }
-
-    if (processHandler instanceof AndroidProcessHandler) {
-      return ImmutableList.copyOf(((AndroidProcessHandler)processHandler).getDevices());
-    }
-    else {
-      Client c = processHandler.getUserData(AndroidProgramRunner.ANDROID_DEBUG_CLIENT);
-      if (c != null && c.isValid()) {
-        return Collections.singletonList(c.getDevice());
-      }
-    }
-
-    return Collections.emptyList();
-  }
-
   @NotNull
   public static AndroidVersion getMinDeviceApiLevel(@NotNull ProcessHandler processHandler) {
     AndroidVersion version = processHandler.getUserData(AndroidProgramRunner.ANDROID_DEVICE_API_LEVEL);
@@ -160,74 +102,14 @@ public final class InstantRunManager implements ProjectComponent {
   }
 
   /**
-   * Checks whether the app associated with the given module is already running on the given device
-   *
-   * @param device the device to check
-   * @param module a module context, normally the main app module (but if it's a library module
-   *               the infrastructure will look for other app modules
-   * @return true if the app is already running in foreground and is listening for incremental updates
-   */
-  public static boolean isAppInForeground(@NotNull IDevice device, @NotNull Module module) {
-    return getInstantRunClient(module).getAppState(device) == AppState.FOREGROUND;
-  }
-
-  /**
    * Returns the build id in the project as seen by the IDE
    *
-   * @param module a module context, normally the main app module (but if it's a library module
-   *               the infrastructure will look for other app modules
    * @return the build id, if found
    */
   @Nullable
-  private static String getLocalBuildTimestamp(@NotNull Module module) {
-    AndroidGradleModel model = InstantRunGradleUtils.getAppModel(module);
-    InstantRunBuildInfo buildInfo = model == null ? null : InstantRunGradleUtils.getBuildInfo(model);
+  private static String getLocalBuildTimestamp(@NotNull InstantRunContext context) {
+    InstantRunBuildInfo buildInfo = context.getInstantRunBuildInfo();
     return buildInfo == null ? null : buildInfo.getTimeStamp();
-  }
-
-  /**
-   * Checks whether the local and remote build timestamps match.
-   *
-   * @param device the device to pull the id from
-   * @param module a module context, normally the main app module (but if it's a library module
-   *               the infrastructure will look for other app modules
-   * @return true if the build timestamps match. If not, there has been some intermediate build locally (or a clean)
-   *              such that Gradle state doesn't match what's on the device
-   */
-  public static boolean buildTimestampsMatch(@NotNull IDevice device, @NotNull Module module) {
-    String localTimestamp = getLocalBuildTimestamp(module);
-    if (StringUtil.isEmpty(localTimestamp)) {
-      LOG.info("Local build timestamp is empty!");
-      return false;
-    }
-
-    if (InstantRunClient.USE_BUILD_ID_TEMP_FILE) {
-      // If the build id is saved in /data/local/tmp, then the build id isn't cleaned when the package is uninstalled.
-      // So we first check that the app is still installed. Note: this doesn't yet guarantee that you have uninstalled and then
-      // re-installed a different apk with the same package name..
-      // https://code.google.com/p/android/issues/detail?id=198715
-
-      AndroidFacet facet = AndroidFacet.getInstance(module);
-      assert facet != null : "Instant Run requires a Gradle model";
-      String pkgName;
-      try {
-        pkgName = ApkProviderUtil.computePackageName(facet);
-      }
-      catch (ApkProvisionException e) {
-        throw new RuntimeException(e); // should not happen for Gradle projects..
-      }
-
-      // check whether the package is installed on the device: we do this by checking the package manager for whether the app exists,
-      // but we could potentially simplify this to just checking whether the package folder exists
-      if (ServiceManager.getService(InstalledApkCache.class).getInstallState(device, pkgName) == null) {
-        LOG.info("Package " + pkgName + " was not detected on the device.");
-        return false;
-      }
-    }
-
-    String deviceBuildTimestamp = getInstantRunClient(module).getDeviceBuildTimestamp(device);
-    LOG.info(String.format("Build timestamps: Local: %1$s, Device: %2$s", localTimestamp, deviceBuildTimestamp));
-    return localTimestamp.equals(deviceBuildTimestamp);
   }
 
   /**
@@ -238,21 +120,11 @@ public final class InstantRunManager implements ProjectComponent {
    * @param module a module context, normally the main app module (but if it's a library module
    *               the infrastructure will look for other app modules
    */
-  public static void transferLocalIdToDeviceId(@NotNull IDevice device, @NotNull Module module) {
-    String buildId = getLocalBuildTimestamp(module);
+  public static void transferLocalIdToDeviceId(@NotNull IDevice device, @NotNull InstantRunContext context) {
+    String buildId = getLocalBuildTimestamp(context);
     assert !StringUtil.isEmpty(buildId) : "Unable to detect build timestamp";
 
-    getInstantRunClient(module).transferLocalIdToDeviceId(device, buildId);
-  }
-
-  /**
-   * Restart the activity on this device, if it's running and is in the foreground
-   * @param device the device to apply the change to
-   * @param module a module context, normally the main app module (but if it's a library module
-   *               the infrastructure will look for other app modules
-   */
-  public static void restartActivity(@NotNull IDevice device, @NotNull Module module) {
-    getInstantRunClient(module).restartActivity(device);
+    InstantRunClient.transferBuildIdToDevice(device, buildId, context.getApplicationId(), ILOGGER);
   }
 
   /** Returns true if the device is capable of running Instant Run */
@@ -260,112 +132,9 @@ public final class InstantRunManager implements ProjectComponent {
     return version.getApiLevel() >= 15;
   }
 
-  /**
-   * Returns true if the manifest has changed since the last manifest push to the device.
-   */
-  public static boolean manifestChanged(@NotNull IDevice device, @NotNull AndroidFacet facet, @NotNull String pkgName) {
-    InstalledPatchCache cache = ServiceManager.getService(InstalledPatchCache.class);
-
-    long currentTimeStamp = getManifestLastModified(facet);
-    long installedTimeStamp = cache.getInstalledManifestTimestamp(device, pkgName);
-
-    return currentTimeStamp > installedTimeStamp;
-  }
-
-  /**
-   * Returns true if a resource referenced from the manifest has changed since the last manifest push to the device.
-   */
-  public static boolean manifestResourceChanged(@NotNull IDevice device, @NotNull AndroidFacet facet, @NotNull String pkgName) {
-    InstalledPatchCache cache = ServiceManager.getService(InstalledPatchCache.class);
-
-    // See if the resources have changed.
-    // Since this method can be called before we've built, we're looking at the previous
-    // manifest now. However, manifest edits are treated separately (see manifestChanged()),
-    // so the goal here is to look for the referenced resources from the manifest
-    // (when the manifest itself hasn't been edited) and see if any of *them* have changed.
-    HashCode currentHash = InstalledPatchCache.computeManifestResources(facet);
-    HashCode installedHash = cache.getInstalledManifestResourcesHash(device, pkgName);
-    if (installedHash != null && !installedHash.equals(currentHash)) {
-      return true;
-    }
-
-    return false;
-  }
-
-  public static boolean hasLocalCacheOfDeviceData(@NotNull IDevice device, @NotNull Module module) {
-    AndroidFacet facet = InstantRunGradleUtils.findAppModule(module, module.getProject());
-    if (facet == null) {
-      return false;
-    }
-
-    String pkgName = getPackageName(facet);
-    if (pkgName == null) {
-      return true;
-    }
-
-    InstalledPatchCache cache = ServiceManager.getService(InstalledPatchCache.class);
-    return cache.getInstalledManifestTimestamp(device, pkgName) > 0;
-  }
-
-  /**
-   * Returns the timestamp of the most recently modified manifest file applicable for the given facet
-   */
-  public static long getManifestLastModified(@NotNull AndroidFacet facet) {
-    long maxLastModified = 0L;
-    AndroidModel androidModel = facet.getAndroidModel();
-    if (androidModel != null) {
-      // Suppress deprecation: the recommended replacement is not suitable
-      // (that's an API for VirtualFiles; we need the java.io.File instances)
-      //noinspection deprecation
-      for (SourceProvider provider : androidModel.getActiveSourceProviders()) {
-        File manifest = provider.getManifestFile();
-        long lastModified = manifest.lastModified();
-        maxLastModified = Math.max(maxLastModified, lastModified);
-      }
-    }
-
-    return maxLastModified;
-  }
-
-  public static boolean usesMultipleProcesses(@NotNull Module module) {
-    AndroidFacet facet = AndroidFacet.getInstance(module);
-    if (facet == null) {
-      return false;
-    }
-
-    // Note: Relying on the merged manifest implies that this will not work if a build has not already taken place.
-    // But in this particular scenario (i.e. for instant run), we are ok with such a situation because:
-    //      a) if there is no existing build, we are doing a full build anyway
-    //      b) if there is an existing build, then we can examine the previous merged manifest
-    //      c) if there is an existing build, and the manifest has since been changed, then a full build will be triggered anyway
-    File manifest = findMergedManifestFile(facet);
-    if (manifest == null || !manifest.exists()) {
-      return false;
-    }
-
-    String xml;
-    try {
-      xml = Files.toString(manifest, UTF_8);
-    }
-    catch (IOException e) {
-      LOG.warn("Error while reading merged manifest", e);
-      return false;
-    }
-
-    return manifestSpecifiesMultiProcess(xml, ALLOWED_PROCESSES);
-  }
-
-  /** Returns whether the given manifest file uses multiple processes other than the specified ones. */
-  static boolean manifestSpecifiesMultiProcess(@NotNull String manifest, @NotNull Set<String> allowedProcesses) {
-    Matcher m = Pattern.compile("android:process\\s?=\\s?\"(.*)\"").matcher(manifest);
-    while (m.find()) {
-      String group = m.group(1);
-      if (!allowedProcesses.contains(group)) {
-        return true;
-      }
-    }
-
-    return false;
+  public static boolean hasLocalCacheOfDeviceData(@NotNull IDevice device, @NotNull InstantRunContext context) {
+    InstalledPatchCache cache = context.getInstalledPatchCache();
+    return cache.getInstalledManifestTimestamp(device, context.getApplicationId()) != null;
   }
 
   @NotNull
@@ -400,27 +169,8 @@ public final class InstantRunManager implements ProjectComponent {
     manager.myFileChangeListener.setEnabled(InstantRunSettings.isInstantRunEnabled());
   }
 
-  /** Looks up the merged manifest file for a given facet */
-  @Nullable
-  public static File findMergedManifestFile(@NotNull AndroidFacet facet) {
-    AndroidGradleModel model = AndroidGradleModel.get(facet);
-    if (model != null) {
-      AndroidArtifact mainArtifact = model.getSelectedVariant().getMainArtifact();
-      Collection<AndroidArtifactOutput> outputs = mainArtifact.getOutputs();
-      for (AndroidArtifactOutput output : outputs) {
-        // For now, use first manifest file that exists
-        File manifest = output.getGeneratedManifest();
-        if (manifest.exists()) {
-          return manifest;
-        }
-      }
-    }
-
-    return null;
-  }
-
   @NotNull
-  private static InstantRunClient getInstantRunClient(@NotNull Module module) {
+  public static InstantRunClient getInstantRunClient(@NotNull Module module) {
     AndroidFacet facet = InstantRunGradleUtils.findAppModule(module, module.getProject());
     assert facet != null : module;
     AndroidGradleModel model = AndroidGradleModel.get(facet);
@@ -434,6 +184,11 @@ public final class InstantRunManager implements ProjectComponent {
     assert packageName != null : "Unable to obtain package name for " + facet.getModule().getName();
     long token = PackagingUtils.computeApplicationHash(model.getAndroidProject().getBuildFolder());
     return new InstantRunClient(packageName, new InstantRunUserFeedback(facet.getModule()), ILOGGER, token);
+  }
+
+  @NotNull
+  public static InstantRunClient getInstantRunClient(@NotNull InstantRunContext context) {
+    return new InstantRunClient(context.getApplicationId(), null, ILOGGER, context.getSecretToken());
   }
 
   /**
@@ -558,15 +313,6 @@ public final class InstantRunManager implements ProjectComponent {
     }
     catch (ApkProvisionException e) {
       return null;
-    }
-  }
-
-  public static void showToast(@NotNull IDevice device, @NotNull Module module, @NotNull final String message) {
-    try {
-      getInstantRunClient(module).showToast(device, message);
-    }
-    catch (Throwable e) {
-      LOG.warn(e);
     }
   }
 }
