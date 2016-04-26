@@ -16,6 +16,7 @@
 package com.android.tools.idea.run;
 
 import com.android.ddmlib.IDevice;
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.tasks.DebugConnectorTask;
 import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.run.tasks.LaunchTasksProvider;
@@ -33,7 +34,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -44,7 +44,7 @@ public class LaunchTaskRunner extends Task.Backgroundable {
   @NotNull private final String myConfigName;
   @NotNull private final LaunchInfo myLaunchInfo;
   @NotNull private final ProcessHandler myProcessHandler;
-  @NotNull private final Collection<ListenableFuture<IDevice>> myDeviceFutures;
+  @NotNull private final DeviceFutures myDeviceFutures;
   @NotNull private final LaunchTasksProvider myLaunchTasksProvider;
 
   @Nullable private String myError;
@@ -53,7 +53,7 @@ public class LaunchTaskRunner extends Task.Backgroundable {
                           @NotNull String configName,
                           @NotNull LaunchInfo launchInfo,
                           @NotNull ProcessHandler processHandler,
-                          @NotNull Collection<ListenableFuture<IDevice>> deviceFutures,
+                          @NotNull DeviceFutures deviceFutures,
                           @NotNull LaunchTasksProvider launchTasksProvider) {
     super(project, "Launching " + configName);
 
@@ -71,10 +71,13 @@ public class LaunchTaskRunner extends Task.Backgroundable {
 
     LaunchStatus launchStatus = new ProcessHandlerLaunchStatus(myProcessHandler);
     ConsolePrinter consolePrinter = new ProcessHandlerConsolePrinter(myProcessHandler);
+    List<ListenableFuture<IDevice>> listenableDeviceFutures = myDeviceFutures.get();
+    AndroidVersion androidVersion = myDeviceFutures.getDevices().size() == 1
+                                    ? myDeviceFutures.getDevices().get(0).getVersion()
+                                    : null;
+    DebugConnectorTask debugSessionTask = myLaunchTasksProvider.getConnectDebuggerTask(launchStatus, androidVersion);
 
-    DebugConnectorTask debugSessionTask = myLaunchTasksProvider.getConnectDebuggerTask(launchStatus);
-
-    if (debugSessionTask != null && myDeviceFutures.size() != 1) {
+    if (debugSessionTask != null && listenableDeviceFutures.size() != 1) {
       launchStatus.terminateLaunch("Cannot launch a debug session on more than 1 device.");
     }
 
@@ -86,7 +89,7 @@ public class LaunchTaskRunner extends Task.Backgroundable {
     DateFormat dateFormat = new SimpleDateFormat("MM/dd HH:mm:ss");
     consolePrinter.stdout("\n" + dateFormat.format(new Date()) + ": Launching " + myConfigName);
 
-    for (ListenableFuture<IDevice> deviceFuture : myDeviceFutures) {
+    for (ListenableFuture<IDevice> deviceFuture : listenableDeviceFutures) {
       indicator.setText("Waiting for target device to come online");
       IDevice device = waitForDevice(deviceFuture, indicator, launchStatus);
       if (device == null) {
@@ -94,7 +97,7 @@ public class LaunchTaskRunner extends Task.Backgroundable {
       }
 
       List<LaunchTask> launchTasks = myLaunchTasksProvider.getTasks(device, launchStatus, consolePrinter);
-      int totalDuration = myDeviceFutures.size() * getTotalDuration(launchTasks, debugSessionTask);
+      int totalDuration = listenableDeviceFutures.size() * getTotalDuration(launchTasks, debugSessionTask);
       int elapsed = 0;
 
       for (LaunchTask task : launchTasks) {
@@ -108,7 +111,7 @@ public class LaunchTaskRunner extends Task.Backgroundable {
 
         // update progress
         elapsed += task.getDuration();
-        indicator.setFraction((double)elapsed/totalDuration);
+        indicator.setFraction((double)elapsed / totalDuration);
 
         // check for cancellation via progress bar
         if (indicator.isCanceled()) {

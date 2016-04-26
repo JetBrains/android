@@ -38,7 +38,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Set;
 
 public abstract class AndroidDebuggerImplBase<S extends AndroidDebuggerState> implements AndroidDebugger<S> {
-
   @GuardedBy("this")
   private Set<XBreakpointType<?, ?>> mySupportedBreakpointTypes;
   private final Set<Class<? extends XBreakpointType<?, ?>>> breakpointTypeClasses;
@@ -84,11 +83,11 @@ public abstract class AndroidDebuggerImplBase<S extends AndroidDebuggerState> im
 
   @Override
   @NotNull
-  public synchronized Set<XBreakpointType<?, ?>> getSupportedBreakpointTypes(@NotNull AndroidVersion version) {
+  public synchronized Set<XBreakpointType<?, ?>> getSupportedBreakpointTypes(@NotNull Project project, @NotNull AndroidVersion version) {
     if (mySupportedBreakpointTypes == null) {
       XDebuggerUtil debuggerUtil = XDebuggerUtil.getInstance();
       mySupportedBreakpointTypes = Sets.newHashSet();
-      for (Class bpTypeCls: breakpointTypeClasses) {
+      for (Class bpTypeCls : breakpointTypeClasses) {
         mySupportedBreakpointTypes.add(debuggerUtil.findBreakpointType(bpTypeCls));
       }
     }
@@ -96,8 +95,19 @@ public abstract class AndroidDebuggerImplBase<S extends AndroidDebuggerState> im
   }
 
   @Override
+  public boolean supportsPluginGeneration(int generation) {
+    return true;
+  }
+
+  @Override
+  public boolean shouldBeDefault(int generation) {
+    return false;
+  }
+
+  @Override
   @NotNull
-  public String getAmStartOptions(@NotNull S state, @NotNull AndroidVersion version) {
+  public String getAmStartOptions(@NotNull S state, @NotNull Project project, @NotNull AndroidVersion version) {
+
     return "";
   }
 }

@@ -15,14 +15,12 @@
  */
 package com.android.tools.idea.run;
 
-import com.android.ddmlib.IDevice;
 import com.android.tools.fd.client.InstantRunBuildInfo;
 import com.android.tools.idea.fd.BooleanStatus;
 import com.android.tools.idea.fd.InstantRunGradleUtils;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.run.tasks.LaunchTasksProvider;
 import com.android.tools.idea.run.tasks.LaunchTasksProviderFactory;
-import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.execution.DefaultExecutionResult;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.ExecutionResult;
@@ -37,15 +35,13 @@ import com.intellij.openapi.progress.ProgressManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
-
 public class AndroidRunState implements RunProfileState {
   @NotNull private final ExecutionEnvironment myEnv;
   @NotNull private final String myLaunchConfigName;
   @NotNull private final Module myModule;
   @NotNull private final ApplicationIdProvider myApplicationIdProvider;
   @NotNull private final ConsoleProvider myConsoleProvider;
-  @NotNull private final Collection<ListenableFuture<IDevice>> myDeviceFutures;
+  @NotNull private final DeviceFutures myDeviceFutures;
   @NotNull private final LaunchTasksProviderFactory myLaunchTasksProviderFactory;
   @Nullable private final ProcessHandler myPreviousSessionProcessHandler;
 
@@ -54,7 +50,7 @@ public class AndroidRunState implements RunProfileState {
                          @NotNull Module module,
                          @NotNull ApplicationIdProvider applicationIdProvider,
                          @NotNull ConsoleProvider consoleProvider,
-                         @NotNull Collection<ListenableFuture<IDevice>> deviceFutures,
+                         @NotNull DeviceFutures deviceFutures,
                          @NotNull LaunchTasksProviderFactory launchTasksProviderFactory,
                          @Nullable ProcessHandler processHandler) {
     myEnv = env;
