@@ -29,13 +29,14 @@ import java.awt.*;
  * UI component for Constraint Inspector
  */
 public class WidgetConstraintPanel extends JPanel {
-  SingleWidgetView mMain = new SingleWidgetView();
+  SingleWidgetView mMain;
   JSlider mVerticalSlider = new JSlider(JSlider.VERTICAL);
   JSlider mHorizontalSlider = new JSlider(JSlider.HORIZONTAL);
   NlComponent mComponent;
 
   public WidgetConstraintPanel(NlComponent component) {
     super(new GridBagLayout());
+    mMain = new SingleWidgetView(this);
     setPreferredSize(new Dimension(200, 216));
     mComponent = component;
     configureUI(component);
@@ -59,13 +60,13 @@ public class WidgetConstraintPanel extends JPanel {
     mHorizontalSlider.addChangeListener(new ChangeListener() {
       @Override
       public void stateChanged(ChangeEvent e) {
-        ConstraintUtilities.saveBias(mComponent, SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS, mHorizontalSlider.getValue() / 100f);
+        ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS,"" + mHorizontalSlider.getValue() / 100f);
       }
     });
     mVerticalSlider.addChangeListener(new ChangeListener() {
       @Override
       public void stateChanged(ChangeEvent e) {
-        ConstraintUtilities.saveBias(mComponent, SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS, (1f - (mVerticalSlider.getValue() / 100f)));
+        ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS, "" + (1f - (mVerticalSlider.getValue() / 100f)));
       }
     });
   }
@@ -144,6 +145,22 @@ public class WidgetConstraintPanel extends JPanel {
     mVerticalSlider.setValue(100 - (int)(vertBias * 100));
 
     mMain.configureUi(mWidgetName, bottom, top, left, right);
+  }
+
+  public void setTopMargin(int margin) {
+    ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.ATTR_LAYOUT_TOP_MARGIN, (margin < 0) ? null : (margin + "dp"));
+  }
+
+  public void setLeftMargin(int margin) {
+    ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.ATTR_LAYOUT_LEFT_MARGIN, (margin < 0) ? null : (margin + "dp"));
+  }
+
+  public void setRightMargin(int margin) {
+    ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.ATTR_LAYOUT_RIGHT_MARGIN, (margin < 0) ? null : (margin + "dp"));
+  }
+
+  public void setBottomMargin(int margin) {
+    ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.ATTR_LAYOUT_BOTTOM_MARGIN, (margin < 0) ? null : (margin + "dp"));
   }
 
   public WidgetConstraintPanel() {

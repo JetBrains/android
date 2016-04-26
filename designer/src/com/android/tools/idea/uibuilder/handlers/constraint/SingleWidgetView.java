@@ -20,7 +20,6 @@ import com.android.tools.sherpa.drawing.ColorSet;
 import com.android.tools.sherpa.drawing.SceneDraw;
 import com.android.tools.sherpa.drawing.ViewTransform;
 import com.android.tools.sherpa.drawing.decorator.TextWidget;
-import com.android.tools.sherpa.drawing.decorator.WidgetDecorator;
 import com.android.tools.sherpa.interaction.MouseInteraction;
 import com.android.tools.sherpa.interaction.WidgetInteractionTargets;
 import com.android.tools.sherpa.interaction.WidgetMotion;
@@ -35,8 +34,7 @@ import com.google.tnt.solver.widgets.ConstraintWidgetContainer;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
+import java.awt.event.*;
 import java.util.ArrayList;
 
 /**
@@ -46,7 +44,7 @@ public class SingleWidgetView extends JPanel {
   Color mBackgroundColor = new Color(47, 75, 126);
   static Color mLinesColor = new Color(100, 152, 199);
   static Color sStrokeColor = mLinesColor;
-
+  WidgetConstraintPanel mWidgetConstraintPanel;
   ColorSet mColorSet = new InspectorColorSet();
 
   class InspectorColorSet extends BlueprintColorSet {
@@ -62,14 +60,62 @@ public class SingleWidgetView extends JPanel {
 
   WidgetRender mWidgetRender = new WidgetRender();
   ArrayList<Graphic> mGraphicList = new ArrayList<Graphic>();
+  MarginWidget mTopMargin = new MarginWidget(JLabel.LEFT);
+  MarginWidget mLeftMargin = new MarginWidget(JLabel.CENTER);
+  MarginWidget mRightMargin = new MarginWidget(JLabel.CENTER);
+  MarginWidget mBottomMargin = new MarginWidget(JLabel.LEFT);
 
-  public SingleWidgetView() {
+  public SingleWidgetView(WidgetConstraintPanel constraintPanel) {
+    super(null);
+    mWidgetConstraintPanel = constraintPanel;
     addComponentListener(new ComponentAdapter() {
       @Override
       public void componentResized(ComponentEvent e) {
         resize();
       }
     });
+
+    add(mTopMargin);
+    add(mLeftMargin);
+    add(mRightMargin);
+    add(mBottomMargin);
+    mTopMargin.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        mWidgetConstraintPanel.setTopMargin(mTopMargin.getMargin());
+      }
+    });
+    mLeftMargin.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        mWidgetConstraintPanel.setLeftMargin(mLeftMargin.getMargin());
+      }
+    });
+    mRightMargin.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        mWidgetConstraintPanel.setRightMargin(mRightMargin.getMargin());
+      }
+    });
+    mBottomMargin.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        mWidgetConstraintPanel.setBottomMargin(mBottomMargin.getMargin());
+      }
+    });
+
+    setBackground(null);
+    addMouseMotionListener(new MouseMotionAdapter() {
+      @Override
+      public void mouseMoved(MouseEvent e) {
+        System.out.println("move");
+        mTopMargin.showUI(mTopMargin.getBounds().contains(e.getPoint()));
+        mLeftMargin.showUI(mLeftMargin.getBounds().contains(e.getPoint()));
+        mRightMargin.showUI(mRightMargin.getBounds().contains(e.getPoint()));
+        mBottomMargin.showUI(mBottomMargin.getBounds().contains(e.getPoint()));
+      }
+    });
+
     mGraphicList.add(mWidgetRender);
   }
 
@@ -78,10 +124,25 @@ public class SingleWidgetView extends JPanel {
     mHeight = getHeight();
     mWidgetRender.build(mWidth, mHeight);
     mBoxSize = Math.min(mWidth, mHeight) / 2;
+
+    int vgap = 8;
+    int hgap = 4;
+    int cw = 50;
+    int ch = 30;
+    int inset = 5 + mWidth / 100;
+    int boxLeft = (mWidth - mBoxSize) / 2;
+    int boxTop = (mHeight - mBoxSize) / 2;
+    int vSpace = (mHeight - mBoxSize - inset * 2) / 2;
+    int hSpace = (mWidth - mBoxSize - inset * 2) / 2;
+    mTopMargin.setBounds(hgap + mWidth / 2, inset + (vSpace - ch) / 2, cw, ch);
+    mLeftMargin.setBounds((boxLeft + inset - cw) / 2, vgap + (mHeight - ch) / 2, cw, ch);
+    mRightMargin.setBounds(boxLeft + mBoxSize + (hSpace - cw) / 2, vgap + (mHeight - ch) / 2, cw, ch);
+    mBottomMargin.setBounds(hgap + mWidth / 2, boxTop + mBoxSize + (vSpace - ch) / 2, cw, ch);
   }
 
   @Override
   protected void paintComponent(Graphics g) {
+    super.paintComponent(g);
     if (mWidth != getWidth() || mHeight != getHeight()) {
       resize();
     }
@@ -94,17 +155,27 @@ public class SingleWidgetView extends JPanel {
     if (redraw) {
       repaint();
     }
+
   }
 
   /**
    * This configures the display
-   * @param name sets the id of the widget
+   *
+   * @param name   sets the id of the widget
    * @param bottom sets the margin -1 = no margin
-   * @param top sets the margin -1 = no margin
-   * @param left sets the margin -1 = no margin
-   * @param right sets the margin -1 = no margin
+   * @param top    sets the margin -1 = no margin
+   * @param left   sets the margin -1 = no margin
+   * @param right  sets the margin -1 = no margin
    */
   public void configureUi(String name, int bottom, int top, int left, int right) {
+    mTopMargin.setVisible(top >= 0);
+    mLeftMargin.setVisible(left >= 0);
+    mRightMargin.setVisible(right >= 0);
+    mBottomMargin.setVisible(bottom >= 0);
+    mTopMargin.setMargin(top);
+    mLeftMargin.setMargin(left);
+    mRightMargin.setMargin(right);
+    mBottomMargin.setMargin(bottom);
     mWidgetRender.mWidgetName = name;
     mWidgetRender.mMarginBottom = bottom;
     mWidgetRender.mMarginTop = top;
@@ -117,6 +188,7 @@ public class SingleWidgetView extends JPanel {
    */
   interface Graphic {
     boolean paint(Graphics2D g);
+
     boolean click(Point p);
   }
 
@@ -166,6 +238,7 @@ public class SingleWidgetView extends JPanel {
 
     /**
      * build the widgets used to render the scene
+     *
      * @param width
      * @param height
      */
@@ -218,6 +291,7 @@ public class SingleWidgetView extends JPanel {
 
     /**
      * Utility used to build a single widget in the scene
+     *
      * @param str
      * @param x
      * @param y
