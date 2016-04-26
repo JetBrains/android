@@ -167,7 +167,7 @@ public class AddGradleDependencyTest {
     EditorFixture editor = guiTest.ideFrame().getEditor().open("library/src/main/java/com/android/library/MainActivity.java");
     String classToImport = "com.android.multimodule.MainActivity";
     addImport(editor, classToImport);
-    editor.waitForCodeAnalysisHighlightCount(ERROR, 1);
+    editor.waitForCodeAnalysisHighlightCount(ERROR, 2);
     moveCaretToClassName(editor, classToImport);
     editor.waitForQuickfix();
 
