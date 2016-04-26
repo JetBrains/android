@@ -16,6 +16,7 @@
 package com.android.tools.idea.run;
 
 import com.android.ddmlib.IDevice;
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.fd.client.InstantRunArtifact;
 import com.android.tools.fd.client.InstantRunBuildInfo;
 import com.android.tools.idea.fd.*;
@@ -110,7 +111,9 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
   }
 
   @Nullable
-  private LaunchTask getDeployTask(@NotNull final IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter consolePrinter) {
+  private LaunchTask getDeployTask(@NotNull final IDevice device,
+                                   @NotNull LaunchStatus launchStatus,
+                                   @NotNull ConsolePrinter consolePrinter) {
     if (!myLaunchOptions.isDeploy()) {
       return null;
     }
@@ -179,7 +182,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
 
   @Nullable
   @Override
-  public DebugConnectorTask getConnectDebuggerTask(@NotNull LaunchStatus launchStatus) {
+  public DebugConnectorTask getConnectDebuggerTask(@NotNull LaunchStatus launchStatus, @Nullable AndroidVersion version) {
     if (!myLaunchOptions.isDebug()) {
       return null;
     }
@@ -209,7 +212,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
     AndroidDebuggerState androidDebuggerState = myRunConfig.getAndroidDebuggerState();
     if (debugger != null && androidDebuggerState != null) {
       //noinspection unchecked
-      return debugger.getConnectDebuggerTask(myEnv, packageIds, myFacet, androidDebuggerState, myRunConfig.getType().getId());
+      return debugger.getConnectDebuggerTask(myEnv, version, packageIds, myFacet, androidDebuggerState, myRunConfig.getType().getId());
     }
 
     return null;
