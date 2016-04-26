@@ -39,7 +39,10 @@ public class ButtonWidget extends TextWidget {
         mHorizontalMargin = 4;
         mVerticalMargin = 6;
         mToUpperCase = true;
-        mAlignment = TEXT_ALIGNMENT_CENTER;
+        mAlignmentX = TEXT_ALIGNMENT_CENTER;
+        mAlignmentY = TEXT_ALIGNMENT_CENTER;
+        mWidget.setMinWidth(48);
+        mWidget.setMinHeight(48);
     }
 
     @Override

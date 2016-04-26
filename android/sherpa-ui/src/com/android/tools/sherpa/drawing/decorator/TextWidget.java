@@ -37,7 +37,8 @@ public class TextWidget extends WidgetDecorator {
     protected static final int TEXT_ALIGNMENT_VIEW_START = 5;
     protected static final int TEXT_ALIGNMENT_VIEW_END = 6;
     protected static final int TEXT_ALIGNMENT_CENTER = 4;
-    protected int mAlignment = TEXT_ALIGNMENT_VIEW_START;
+    protected int mAlignmentX = TEXT_ALIGNMENT_VIEW_START;
+    protected int mAlignmentY = TEXT_ALIGNMENT_VIEW_START;
     private String mText;
     protected Font mFont = new Font("Helvetica", Font.PLAIN, 12);
     private float mFontSize = 18;
@@ -125,8 +126,12 @@ public class TextWidget extends WidgetDecorator {
         }
         int tw = fm.stringWidth(string) + 2 * (mHorizontalPadding + mHorizontalMargin);
         int th = fm.getMaxAscent() + 2*fm.getMaxDescent() + 2 * (mVerticalPadding + mVerticalMargin);
-        mWidget.setMinWidth(tw);
-        mWidget.setMinHeight(th);
+        if (tw > mWidget.getMinWidth()) {
+            mWidget.setMinWidth(tw);
+        }
+        if (th > mWidget.getMinHeight()) {
+            mWidget.setMinHeight(th);
+        }
         if (mWidget.getHorizontalDimensionBehaviour()
                 == ConstraintWidget.DimensionBehaviour.WRAP_CONTENT) {
             mWidget.setWidth(tw);
@@ -184,31 +189,36 @@ public class TextWidget extends WidgetDecorator {
         if (mToUpperCase) {
             string = string.toUpperCase();
         }
-        switch (mAlignment) {
-            case TEXT_ALIGNMENT_VIEW_START:
-                g.drawString(string, tx + horizontalPadding,
-                        ty + fontMetrics.getAscent() + fontMetrics.getMaxDescent() +
-                                verticalPadding);
-                break;
+        int ftx = 0;
+        int fty = 0;
+        int stringWidth = fontMetrics.stringWidth(string);
+
+        switch (mAlignmentX) {
+            case TEXT_ALIGNMENT_VIEW_START: {
+                ftx = tx + horizontalPadding;
+            } break;
             case TEXT_ALIGNMENT_CENTER: {
-                int stringWidth = fontMetrics.stringWidth(string);
-                int padd = (w - stringWidth) / 2;
-                g.drawString(string, tx + padd,
-                        ty + fontMetrics.getAscent() + fontMetrics.getMaxDescent() +
-                                verticalPadding);
-                break;
-
-            }
+                int paddx = (w - stringWidth) / 2;
+                ftx = tx + paddx;
+            } break;
             case TEXT_ALIGNMENT_VIEW_END: {
-                int stringWidth = fontMetrics.stringWidth(string);
                 int padd = w - stringWidth + horizontalPadding;
-                g.drawString(string, tx + padd,
-                        ty + fontMetrics.getAscent() + fontMetrics.getMaxDescent() +
-                                verticalPadding);
-                break;
-
-            }
+                ftx = tx + padd;
+            } break;
         }
+        switch (mAlignmentY) {
+            case TEXT_ALIGNMENT_VIEW_START: {
+                fty = ty + fontMetrics.getAscent() + fontMetrics.getMaxDescent() +
+                        verticalPadding;
+            } break;
+            case TEXT_ALIGNMENT_CENTER: {
+                fty = ty + fontMetrics.getAscent() + (h - fontMetrics.getAscent()) / 2;
+            } break;
+            case TEXT_ALIGNMENT_VIEW_END: {
+                fty = ty + h - fontMetrics.getMaxDescent() - verticalPadding;
+            } break;
+        }
+        g.drawString(string, ftx, fty);
     }
 
     public void setDisplayText(boolean displayText) {

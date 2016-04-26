@@ -40,14 +40,17 @@ public class SwitchWidget extends TextWidget {
      */
     public SwitchWidget(ConstraintWidget widget, String text) {
         super(widget, text);
+        mAlignmentY = TEXT_ALIGNMENT_CENTER;
+        mWidget.setMinWidth(28);
+        mWidget.setMinHeight(28);
     }
 
     @Override
     protected void wrapContent() {
-        super.wrapContent();
         if (mWidget == null) {
             return;
         }
+        super.wrapContent();
         int extra = sSwitchWidth + 2 * mHorizontalPadding;
         mWidget.setMinWidth(mWidget.getMinWidth() + extra);
         mOriginalHeight = mWidget.getMinHeight();
