@@ -36,6 +36,7 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyFile;
@@ -151,62 +152,11 @@ public class SuppressLintIntentionAction implements IntentionAction, Iconable {
   }
 
   /**
-   * TODO: There is probably an existing utility method somewhere in IntelliJ for this;
-   * find it and inline. Possible candidate: {@link com.intellij.xml.XmlNamespaceHelper#insertNamespaceDeclaration}.
-   * See also code in {@link com.intellij.codeInsight.completion.XmlAttributeInsertHandler} for additional useful
-   * code such as code to pick a unique prefix, look up the prefix from the schema provider etc (which presumably would
-   * consult {@link org.jetbrains.android.AndroidXmlSchemaProvider}).
-   *
+   * TODO: Inline
    */
   @NotNull
   public static String ensureNamespaceImported(@NotNull Project project, @NotNull XmlFile file, @NotNull String namespaceUri) {
-    ApplicationManager.getApplication().assertWriteAccessAllowed();
-
-    final XmlTag rootTag = file.getRootTag();
-
-    assert rootTag != null;
-    final XmlElementFactory elementFactory = XmlElementFactory.getInstance(project);
-
-    String prefix = rootTag.getPrefixByNamespace(namespaceUri);
-    if (prefix != null) {
-      return prefix;
-    }
-
-    if (TOOLS_URI.equals(namespaceUri)) {
-      prefix = TOOLS_PREFIX;
-    } else if (ANDROID_URI.equals(namespaceUri)) {
-      prefix = ANDROID_NS_NAME;
-    } else {
-      prefix = APP_PREFIX;
-    }
-    if (rootTag.getAttribute(XMLNS_PREFIX + prefix) != null) {
-      String base = prefix;
-      for (int i = 2; ; i++) {
-        prefix = base + Integer.toString(i);
-        if (rootTag.getAttribute(XMLNS_PREFIX + prefix) == null) {
-          break;
-        }
-      }
-    }
-    String name = XMLNS_PREFIX + prefix;
-    final XmlAttribute xmlnsAttr = elementFactory.createXmlAttribute(name, namespaceUri);
-    final XmlAttribute[] attributes = rootTag.getAttributes();
-    XmlAttribute next = attributes.length > 0 ? attributes[0] : null;
-    for (XmlAttribute attribute : attributes) {
-      String attributeName = attribute.getName();
-      if (!attributeName.startsWith(XMLNS_PREFIX) || attributeName.compareTo(name) > 0) {
-        next = attribute;
-        break;
-      }
-    }
-    if (next != null) {
-      rootTag.addBefore(xmlnsAttr, next);
-    }
-    else {
-      rootTag.add(xmlnsAttr);
-    }
-
-    return prefix;
+    return AndroidResourceUtil.ensureNamespaceImported(file, namespaceUri, null);
   }
 
   static String getLintId(String intentionId) {
