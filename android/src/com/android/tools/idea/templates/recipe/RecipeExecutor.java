@@ -58,14 +58,14 @@ public interface RecipeExecutor {
   void addFilesToOpen(@NotNull File file);
 
   /**
-   * Record a classpath dependency.
+   * Adds "apply plugin: '{@code plugin}'" statement to the module build.gradle file.
    */
   void applyPlugin(@NotNull String plugin);
 
   /**
    * Record a classpath dependency.
    */
-  void addClasspath(@NotNull String plugin);
+  void addClasspath(@NotNull String mavenUrl);
 
   /**
    * Record a library dependency.
