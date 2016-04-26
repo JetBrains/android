@@ -82,7 +82,6 @@ public class GuiTestRule implements TestRule {
     .around(new TestPerformance())
     .around(new ScreenshotOnFailure());
   private final PropertyChangeListener myGlobalFocusListener = e -> {
-    System.out.println("Focus Listener: name = " + e.getPropertyName() + " old = " + e.getOldValue() + " new = " + e.getNewValue());
     Object oldValue = e.getOldValue();
     if ("permanentFocusOwner".equals(e.getPropertyName()) && oldValue instanceof Component && e.getNewValue() == null) {
       Window parentWindow = oldValue instanceof Window ? (Window)oldValue : SwingUtilities.getWindowAncestor((Component)oldValue);
