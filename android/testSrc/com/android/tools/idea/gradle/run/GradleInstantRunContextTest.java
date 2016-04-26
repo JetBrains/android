@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.fd;
+package com.android.tools.idea.gradle.run;
 
 import com.google.common.collect.ImmutableSet;
 import org.intellij.lang.annotations.Language;
@@ -22,7 +22,7 @@ import org.junit.Test;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-public class InstantRunManagerTest {
+public class GradleInstantRunContextTest {
   @Test
   public void multiProcessCheck() {
     @Language("XML") String manifest =
@@ -30,7 +30,7 @@ public class InstantRunManagerTest {
       "            android:name=\".MainActivity\"\n" +
       "            android:theme=\"@style/AppTheme.NoActionBar\">\n" +
       "        </activity>\n";
-    assertFalse(InstantRunManager.manifestSpecifiesMultiProcess(manifest, ImmutableSet.<String>of()));
+    assertFalse(GradleInstantRunContext.manifestSpecifiesMultiProcess(manifest, ImmutableSet.<String>of()));
 
     manifest =
       "        <activity\n" +
@@ -38,7 +38,7 @@ public class InstantRunManagerTest {
       "            android:process = \":foo\"\n" +
       "            android:theme=\"@style/AppTheme.NoActionBar\">\n" +
       "        </activity>\n";
-    assertTrue(InstantRunManager.manifestSpecifiesMultiProcess(manifest, ImmutableSet.<String>of()));
+    assertTrue(GradleInstantRunContext.manifestSpecifiesMultiProcess(manifest, ImmutableSet.<String>of()));
 
     manifest =
       "        <activity\n" +
@@ -46,9 +46,10 @@ public class InstantRunManagerTest {
       "            android:process=\":leakcanary\"\n" +
       "            android:theme=\"@style/AppTheme.NoActionBar\">\n" +
       "        </activity>\n";
-    assertFalse(InstantRunManager.manifestSpecifiesMultiProcess(manifest, ImmutableSet.of(":leakcanary")));
+    assertFalse(GradleInstantRunContext.manifestSpecifiesMultiProcess(manifest, ImmutableSet.of(":leakcanary")));
 
     manifest =
+      "     <application>\n" +
       "        <activity\n" +
       "            android:name=\".MainActivity\"\n" +
       "            android:process=\":leakcanary\"\n" +
@@ -58,7 +59,8 @@ public class InstantRunManagerTest {
       "            android:name=\".MainActivity\"\n" +
       "            android:process =\":foo\"\n" +
       "            android:theme=\"@style/AppTheme.NoActionBar\">\n" +
-      "        </activity>\n";
-    assertTrue(InstantRunManager.manifestSpecifiesMultiProcess(manifest, ImmutableSet.of(":leakcanary")));
+      "        </activity>\n" +
+      "    </application>\n";
+    assertTrue(GradleInstantRunContext.manifestSpecifiesMultiProcess(manifest, ImmutableSet.of(":leakcanary")));
   }
 }

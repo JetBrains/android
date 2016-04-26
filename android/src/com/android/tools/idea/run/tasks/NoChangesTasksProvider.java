@@ -18,6 +18,7 @@ package com.android.tools.idea.run.tasks;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.fd.InstantRunManager;
 import com.android.tools.idea.fd.InstantRunUserFeedback;
+import com.android.tools.idea.gradle.run.GradleInstantRunContext;
 import com.android.tools.idea.run.ApkProviderUtil;
 import com.android.tools.idea.run.ApkProvisionException;
 import com.android.tools.idea.run.ConsolePrinter;
@@ -49,8 +50,9 @@ public class NoChangesTasksProvider implements LaunchTasksProvider {
     }
 
     // We should update the id on the device even if there were no artifact changes, since otherwise the next build will mismatch
-    InstantRunManager.transferLocalIdToDeviceId(device, myFacet.getModule());
-    DeployApkTask.cacheManifestInstallationData(device, myFacet, pkgName);
+    GradleInstantRunContext context = new GradleInstantRunContext(pkgName, myFacet);
+    InstantRunManager.transferLocalIdToDeviceId(device, context);
+    DeployApkTask.cacheManifestInstallationData(device, context);
 
     consolePrinter.stdout("No changes.");
     new InstantRunUserFeedback(myFacet.getModule()).info("No changes to deploy");
