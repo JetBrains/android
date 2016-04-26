@@ -308,10 +308,10 @@ public class ConstraintModel {
       companion.addDecorator(androidDecorator);
       companion.setWidgetInteractionTargets(new WidgetInteractionTargets(widget));
       companion.setWidgetModel(component);
-
+      companion.setWidgetTag(component.getTag());
       widget.setCompanionWidget(companion);
       widget.setDebugName(component.getId());
-      myWidgetsScene.setWidget(component.getTag(), widget);
+      myWidgetsScene.setWidget(widget);
     }
 
     for (NlComponent child : component.getChildren()) {

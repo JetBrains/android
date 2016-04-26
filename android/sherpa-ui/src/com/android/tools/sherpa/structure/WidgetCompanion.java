@@ -28,6 +28,7 @@ import java.util.ArrayList;
 public class WidgetCompanion {
     ArrayList<WidgetDecorator> mWidgetDecorators = new ArrayList<>();
     Object mWidgetModel;
+    Object mWidgetTag;
     WidgetInteractionTargets mWidgetInteractionTargets;
 
     public static WidgetCompanion create(ConstraintWidget widget) {
@@ -71,4 +72,8 @@ public class WidgetCompanion {
     }
 
     public void setWidgetModel(Object model) { mWidgetModel = model; }
+
+    public void setWidgetTag(Object tag) { mWidgetTag = tag; }
+
+    public Object getWidgetTag() { return mWidgetTag; }
 }
