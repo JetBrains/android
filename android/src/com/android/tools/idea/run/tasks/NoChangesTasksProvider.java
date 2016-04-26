@@ -16,6 +16,7 @@
 package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.IDevice;
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.fd.InstantRunManager;
 import com.android.tools.idea.fd.InstantRunUserFeedback;
 import com.android.tools.idea.gradle.run.GradleInstantRunContext;
@@ -61,7 +62,7 @@ public class NoChangesTasksProvider implements LaunchTasksProvider {
 
   @Nullable
   @Override
-  public DebugConnectorTask getConnectDebuggerTask(@NotNull LaunchStatus launchStatus) {
+  public DebugConnectorTask getConnectDebuggerTask(@NotNull LaunchStatus launchStatus, @Nullable AndroidVersion version) {
     return null;
   }
 

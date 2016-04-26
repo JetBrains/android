@@ -16,6 +16,7 @@
 package com.android.tools.idea.run;
 
 import com.android.ddmlib.IDevice;
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.tasks.*;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.google.common.collect.Lists;
@@ -73,7 +74,7 @@ public class HotSwapTasksProvider implements LaunchTasksProvider {
 
   @Nullable
   @Override
-  public DebugConnectorTask getConnectDebuggerTask(@NotNull LaunchStatus launchStatus) {
+  public DebugConnectorTask getConnectDebuggerTask(@NotNull LaunchStatus launchStatus, @Nullable AndroidVersion version) {
     return null;
   }
 
