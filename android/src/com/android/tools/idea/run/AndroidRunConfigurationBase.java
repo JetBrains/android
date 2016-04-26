@@ -18,18 +18,13 @@ package com.android.tools.idea.run;
 
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.fd.client.InstantRunBuildInfo;
 import com.android.tools.idea.fd.*;
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.invoker.GradleInvoker;
-import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.gradle.run.RunAsValidityService;
 import com.android.tools.idea.run.editor.*;
 import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.run.tasks.LaunchTasksProviderFactory;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.run.util.LaunchUtils;
-import com.android.tools.idea.stats.UsageTracker;
 import com.google.common.collect.*;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -43,7 +38,6 @@ import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.PropertiesComponent;
-import com.intellij.notification.NotificationType;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -51,7 +45,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.*;
-import com.intellij.openapi.util.text.StringUtil;
 import icons.AndroidIcons;
 import org.intellij.lang.annotations.Language;
 import org.jdom.Element;
@@ -75,9 +68,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
   /** Element name used to group the {@link ProfilerState} settings */
   private static final String PROFILERS_ELEMENT_NAME = "Profilers";
-
-  /** The key used to store the selected device target as copyable user data on each execution environment. */
-  public static final Key<DeviceFutures> DEVICE_FUTURES_KEY = Key.create("android.device.futures");
 
   private static final DialogWrapper.DoNotAskOption ourKillLaunchOption = new MyDoNotPromptOption();
 
@@ -378,6 +368,8 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       throw new ExecutionException(AndroidBundle.message("deployment.target.not.found"));
     }
 
+    ApplicationIdProvider applicationIdProvider = getApplicationIdProvider(facet);
+
     if (supportsInstantRun() && InstantRunSettings.isInstantRunEnabled()) {
       List<AndroidDevice> devices = deviceFutures.getDevices();
       if (devices.size() > 1) {
@@ -389,7 +381,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       }
       else if (InstantRunGradleUtils.getIrSupportStatus(module, devices.get(0).getVersion()).success) {
         InstantRunUtils.setInstantRunEnabled(env, true);
-        setInstantRunBuildOptions(env, info, module, deviceFutures);
 
         if (!AndroidEnableAdbServiceAction.isAdbServiceEnabled()) {
           throw new ExecutionException("Instant Run requires 'Tools | Android | Enable ADB integration' to be enabled.");
@@ -398,7 +389,11 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     }
 
     // Store the chosen target on the execution environment so before-run tasks can access it.
-    env.putCopyableUserData(DEVICE_FUTURES_KEY, deviceFutures);
+    AndroidRunConfigContext runConfigContext = new AndroidRunConfigContext();
+    env.putCopyableUserData(AndroidRunConfigContext.KEY, runConfigContext);
+    runConfigContext.setTargetDevices(deviceFutures);
+    runConfigContext.setSameExecutorAsPreviousSession(info != null && executor.getId().equals(info.getExecutorId()));
+    runConfigContext.setCleanRerun(InstantRunUtils.isCleanReRun(env));
 
     if (debug) {
       String error = canDebug(deviceFutures, facet, module.getName());
@@ -416,7 +411,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       processHandler = info.getProcessHandler();
     }
 
-    ApplicationIdProvider applicationIdProvider = getApplicationIdProvider(facet);
     ApkProvider apkProvider = getApkProvider(facet, applicationIdProvider);
     LaunchTasksProviderFactory providerFactory =
       new AndroidLaunchTasksProviderFactory(this, env, facet, applicationIdProvider, apkProvider, launchOptions, processHandler);
@@ -463,167 +457,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     }
 
     return DeviceFutures.forDevices(devices);
-  }
-
-  private static void setInstantRunBuildOptions(@NotNull ExecutionEnvironment env,
-                                                @Nullable AndroidSessionInfo existingSession,
-                                                @NotNull Module module,
-                                                @NotNull DeviceFutures deviceFutures) {
-    AndroidFacet facet = AndroidFacet.getInstance(module);
-    if (facet == null) {
-      InstantRunManager.LOG.info("Module doesn't have Android Facet, not setting Instant Run options");
-      return;
-    }
-
-    AndroidGradleModel model = AndroidGradleModel.get(facet);
-    if (model == null) {
-      InstantRunManager.LOG.info("Module doesn't have Android Gradle Facet, not setting Instant Run options");
-      return;
-    }
-
-    List<IDevice> devices = deviceFutures.getIfReady();
-    IDevice device = devices == null ? null : devices.get(0);
-
-    boolean isRestartedSession = InstantRunUtils.getRestartDevice(env) != null;
-    boolean buildsMatch = device != null && InstantRunManager.buildTimestampsMatch(device, module);
-
-    // handles the scenario where app could still be running, but with the wrong executor (run vs debug)
-    boolean existingSessionOfSameExecutor = existingSession != null && existingSession.getExecutorId().equals(env.getExecutor().getId());
-    boolean appRunning = existingSessionOfSameExecutor && isAppRunning(module, devices);
-    InstantRunUtils.setAppRunning(env, appRunning);
-    if (!appRunning) {
-      InstantRunManager.LOG.info("Instant run: app is not running on the selected device.");
-    }
-
-    boolean needsCleanBuild = needsCleanBuild(isRestartedSession, InstantRunUtils.isCleanReRun(env), buildsMatch);
-    InstantRunUtils.setNeedsCleanBuild(env, needsCleanBuild);
-    if (needsCleanBuild) {
-      // implied that a clean build requires a full build
-      InstantRunUtils.setNeedsFullBuild(env, true);
-      return;
-    }
-
-    BooleanStatus canBuildIncrementally = canBuildIncrementally(env, facet, model, device);
-    InstantRunUtils.setNeedsFullBuild(env, !canBuildIncrementally.success);
-
-    if (!canBuildIncrementally.success) {
-      @Language("HTML") String message = canBuildIncrementally.getCause();
-      boolean show = true;
-      if (StringUtil.isEmpty(message)) {
-        message = "Installed APK cache not populated (first deployment)";
-        show = false;
-      }
-
-      LOG.info(message);
-      UsageTracker.getInstance().trackEvent(
-        UsageTracker.CATEGORY_INSTANTRUN, UsageTracker.ACTION_INSTANTRUN_FULLBUILD, message, null);
-
-      if (show) {
-        new InstantRunUserFeedback(module).postHtml(NotificationType.INFORMATION, message, null);
-      }
-    }
-  }
-
-  private static boolean needsCleanBuild(boolean isRestartedSession, boolean isCleanRerun, boolean buildsMatch) {
-    // restarted sessions don't need a clean build
-    if (isRestartedSession) {
-      return false;
-    }
-
-    if (isCleanRerun) {
-      return true;
-    }
-
-    // Otherwise, we only need a clean build if the build ids don't match
-    // Note: build id's not matching takes care of all device specific settings in the build (i.e. if any of api level, abi, etc,
-    // change, then the build id will also have changed)
-    return !buildsMatch;
-  }
-
-  private static BooleanStatus canBuildIncrementally(@NotNull ExecutionEnvironment env,
-                                                     @NotNull AndroidFacet facet,
-                                                     @NotNull AndroidGradleModel model,
-                                                     @Nullable IDevice device) {
-    @Language("HTML") String FULL_BUILD_PREFIX = "Performing full build &amp; install: <br>";
-    @Language("HTML") String DISABLED_PREFIX = "Instant Run is disabled: <br>";
-
-    if (device == null) {
-      return BooleanStatus.failure(FULL_BUILD_PREFIX + "Device API level unknown");
-    }
-
-    AndroidVersion deviceVersion = device.getVersion();
-    if (!InstantRunManager.isInstantRunCapableDeviceVersion(deviceVersion)) {
-      return BooleanStatus.failure(DISABLED_PREFIX +
-                                   "Instant Run does not support deployment to targets with API levels 14 or below.<br><br>" +
-                                   "To use Instant Run, deploy to a target with API level 15 or higher.");
-    }
-
-    boolean isRestartedSession = InstantRunUtils.getRestartDevice(env) != null;
-    if (isRestartedSession) {
-      // Also look up the verifier failure and include it here; without this; the verifier failure
-      // is displayed, but is quickly hidden as we realize we can't coldswap, and the below
-      // full build message is shown instead.
-      InstantRunBuildInfo buildInfo = InstantRunGradleUtils.getBuildInfo(model);
-      String verifierFailure = "";
-      if (buildInfo != null) {
-        verifierFailure = InstantRunManager.getVerifierMessage(buildInfo);
-        if (!StringUtil.isEmpty(verifierFailure)) {
-          verifierFailure += "<br>";
-        }
-        else {
-          verifierFailure = "";
-        }
-      }
-
-      if (!RunAsValidityService.getInstance().hasWorkingRunAs(device)) {
-        return BooleanStatus.failure(FULL_BUILD_PREFIX +
-                                     "Instant Run detected that the deployment target does not properly support the 'run-as' command." +
-                                     InstantRunUserFeedback.LEARN_MORE_LINK);
-      }
-
-      if (deviceVersion.getApiLevel() < 21) {
-        return BooleanStatus.failure(FULL_BUILD_PREFIX +
-                                     "Instant Run does not support cold swaps on deployment targets with API level 20 or below.<br><br>" +
-                                     "To enable cold swaps, deploy to a target with API level 21 or higher.");
-      }
-
-      String verifierStatus = buildInfo == null ? null : buildInfo.getVerifierStatus();
-      if (verifierStatus != null) {
-        if ("BINARY_MANIFEST_FILE_CHANGE".equals(verifierStatus)) {
-          return BooleanStatus.failure(FULL_BUILD_PREFIX + "Resource ids changed");
-        }
-      }
-
-      // If we get here, we don't know why the session was restarted, so show a generic message.
-      return BooleanStatus.failure(verifierFailure + FULL_BUILD_PREFIX + "Session restarted");
-    }
-
-    if (!InstantRunManager.hasLocalCacheOfDeviceData(device, facet.getModule())) {
-      return BooleanStatus.failure("");
-    }
-
-    String pkgName = AndroidModuleInfo.get(facet).getPackage();
-    if (StringUtil.isEmpty(pkgName)) {
-      return BooleanStatus.failure(FULL_BUILD_PREFIX + "Could not determine package name of application");
-    }
-
-    // Normally, all files are saved when Gradle runs (in GradleInvoker#executeTasks). However,
-    // we need to save the files a bit earlier than that here (turning the Gradle file save into
-    // a no-op) because we need to check whether the manifest file has been edited since an
-    // edited manifest changes what the incremental run build has to do.
-    GradleInvoker.saveAllFilesSafely();
-
-    if (InstantRunManager.manifestChanged(device, facet, pkgName)) {
-      return BooleanStatus.failure(FULL_BUILD_PREFIX + "Instant Run detected that one of the AndroidManifest.xml files have changed." +
-                                   InstantRunUserFeedback.LEARN_MORE_LINK);
-    }
-
-    if (InstantRunManager.manifestResourceChanged(device, facet, pkgName)) {
-      return BooleanStatus.failure(FULL_BUILD_PREFIX +
-                                   "Instant Run detected that a resource referenced from the AndroidManifest.xml file has changed");
-    }
-
-    return BooleanStatus.SUCCESS;
   }
 
   private static String canDebug(@NotNull DeviceFutures deviceFutures, @NotNull AndroidFacet facet, @NotNull String moduleName) {
@@ -699,20 +532,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
     LOG.info("Disconnecting existing session of the same launch configuration");
     info.getProcessHandler().detachProcess();
-    return true;
-  }
-
-  private static boolean isAppRunning(@NotNull Module module, @Nullable Collection<IDevice> usedDevices) {
-    if (usedDevices == null) {
-      return false;
-    }
-
-    for (IDevice device : usedDevices) {
-      if (!InstantRunManager.isAppInForeground(device, module)) {
-        return false;
-      }
-    }
-
     return true;
   }
 

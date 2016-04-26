@@ -20,6 +20,7 @@ import com.android.tools.fd.client.InstantRunArtifact;
 import com.android.tools.fd.client.InstantRunBuildInfo;
 import com.android.tools.idea.fd.*;
 import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.run.GradleInstantRunContext;
 import com.android.tools.idea.run.editor.AndroidDebugger;
 import com.android.tools.idea.run.editor.AndroidDebuggerState;
 import com.android.tools.idea.run.tasks.*;
@@ -27,8 +28,6 @@ import com.android.tools.idea.run.util.LaunchStatus;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.execution.runners.ExecutionEnvironment;
-import com.intellij.execution.runners.ExecutionUtil;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -141,18 +140,12 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
           List<InstantRunArtifact> artifacts = buildInfo.getArtifacts();
           if (artifacts.isEmpty()) {
             // We should update the id on the device even if there were no artifact changes, since otherwise the next build will mismatch
-            InstantRunManager.transferLocalIdToDeviceId(device, myFacet.getModule());
-            DeployApkTask.cacheManifestInstallationData(device, myFacet, pkgName);
+            GradleInstantRunContext context = new GradleInstantRunContext(pkgName, myFacet);
+            InstantRunManager.transferLocalIdToDeviceId(device, context);
+            DeployApkTask.cacheManifestInstallationData(device, context);
 
-            // if we are forced to do a cold swap, but we didn't get any artifacts, then issue a rebuild
-            // Note that this check looks at the verifier status being set because the verifier status could be empty if there were no changes,
-            // but the buildInfo.canHotswap() treats that differently
-            if (!buildInfo.getVerifierStatus().isEmpty()) {
-              InstantRunManager.LOG.info("Build info reports verifier failure, but no artifacts were provided. Restarting launch.");
-              launchStatus.terminateLaunch("Re-launching since we cannot push the current build results to device");
-              restartBuild(device);
-              return null;
-            }
+            // we should have already done a rebuild if the verifier status was not empty and we had no artifacts
+            assert buildInfo.getVerifierStatus().isEmpty();
 
             consolePrinter.stdout("No local changes, not deploying APK");
             InstantRunManager.LOG.info("List of artifacts is empty, no deployment necessary.");
@@ -182,20 +175,6 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
       InstantRunSettings.isInstantRunEnabled() &&
       InstantRunGradleUtils.getIrSupportStatus(myFacet.getModule(), device.getVersion()).success;
     return new DeployApkTask(myFacet, myLaunchOptions, myApkProvider, instantRunAware);
-  }
-
-  private void restartBuild(@NotNull final IDevice device) {
-    InstantRunStatsService.get(myFacet.getModule().getProject()).incrementRestartLaunchCount();
-
-    // There was a verifier failure, but no artifacts: this means
-    // we need to kick off a full build (coldswap not available)
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
-      @Override
-      public void run() {
-        InstantRunUtils.setRestartSession(myEnv, device);
-        ExecutionUtil.restart(myEnv);
-      }
-    });
   }
 
   @Nullable

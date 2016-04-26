@@ -15,17 +15,32 @@
  */
 package com.android.tools.idea.gradle.run;
 
+import com.android.ddmlib.IDevice;
+import com.android.resources.Density;
+import com.android.sdklib.AndroidVersion;
+import com.android.sdklib.devices.Abi;
+import com.android.tools.idea.fd.*;
 import com.android.tools.idea.gradle.GradleModel;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
+import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
+import com.android.tools.idea.gradle.util.AndroidGradleSettings;
+import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.Projects;
+import com.android.tools.idea.run.AndroidDevice;
+import com.android.tools.idea.run.AndroidRunConfigContext;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.startup.AndroidStudioInitializer;
+import com.google.common.base.Charsets;
+import com.google.common.base.Joiner;
+import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import com.intellij.compiler.options.CompileStepBeforeRun;
 import com.intellij.execution.BeforeRunTaskProvider;
+import com.intellij.execution.configurations.ModuleBasedConfiguration;
+import com.intellij.execution.configurations.ModuleRunProfile;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.junit.JUnitConfiguration;
 import com.intellij.execution.runners.ExecutionEnvironment;
@@ -38,13 +53,22 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.ThreeState;
 import icons.AndroidIcons;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.io.*;
 import java.lang.reflect.InvocationTargetException;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
+
+import static com.android.builder.model.AndroidProject.*;
+import static com.android.tools.idea.startup.GradleSpecificInitializer.ENABLE_EXPERIMENTAL_PROFILING;
 
 /**
  * Provides the "Gradle-aware Make" task for Run Configurations, which
@@ -182,7 +206,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
       return regularMake.executeTask(context, configuration, env, new CompileStepBeforeRun.MakeBeforeRunTask());
     }
 
-    final AtomicReference<String> errorMsgRef = new AtomicReference<String>();
+    final AtomicReference<String> errorMsgRef = new AtomicReference<>();
 
     // If the model needs a sync, we need to sync "synchronously" before running.
     // See: https://code.google.com/p/android/issues/detail?id=70718
@@ -208,16 +232,15 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
       return false;
     }
 
-    final GradleInvokerOptions options = GradleInvokerOptions.create(myProject, context, configuration, env, task.getGoal());
-    if (options.tasks.isEmpty()) {
-      // should not happen, but if it does happen, then GradleInvoker with an empty list of tasks seems to hang forever
-      // So we error out earlier.
-      LOG.error("Unable to determine gradle tasks to execute for run configuration: " + configuration.getName());
-      return false;
-    }
+    AndroidRunConfigContext runConfigContext = env.getCopyableUserData(AndroidRunConfigContext.KEY);
+    List<AndroidDevice> targetDevices = runConfigContext.getTargetDevices().getDevices();
+    List<String> cmdLineArgs = getCommonArguments(configuration, targetDevices);
+
+    BeforeRunBuilder builder =
+      createBuilder(getModules(myProject, context, configuration), configuration, runConfigContext, env, task.getGoal());
 
     try {
-      boolean success = new GradleTaskRunner(myProject).run(options.tasks, options.buildMode, options.commandLineArguments);
+      boolean success = builder.build(GradleTaskRunner.newRunner(myProject), cmdLineArgs);
       LOG.info("Gradle invocation complete, success = " + success);
       return success;
     }
@@ -230,5 +253,190 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
       Thread.currentThread().interrupt();
       return false;
     }
+  }
+
+  /**
+   * Returns the list of arguments to Gradle that are common to both instant and non-instant builds.
+   */
+  @NotNull
+  private static List<String> getCommonArguments(@NotNull RunConfiguration configuration, @NotNull List<AndroidDevice> targetDevices) {
+    List<String> cmdLineArgs = Lists.newArrayList();
+    cmdLineArgs.addAll(getDeviceSpecificArguments(targetDevices));
+    cmdLineArgs.addAll(getProfilingOptions(configuration));
+    return cmdLineArgs;
+  }
+
+  @NotNull
+  public static List<String> getDeviceSpecificArguments(@NotNull List<AndroidDevice> devices) {
+    if (devices.isEmpty()) {
+      return Collections.emptyList();
+    }
+
+    List<String> properties = new ArrayList<>(2);
+
+    // Find the minimum value of the build API level and pass it to Gradle as a property
+    AndroidVersion minVersion = devices.get(0).getVersion();
+    for (int i = 1; i < devices.size(); i++) {
+      AndroidDevice androidDevice = devices.get(i);
+      if (androidDevice.getVersion().compareTo(minVersion) < 0) {
+        minVersion = androidDevice.getVersion();
+      }
+    }
+    properties.add(AndroidGradleSettings.createProjectProperty(PROPERTY_BUILD_API, Integer.toString(minVersion.getFeatureLevel())));
+
+    // If we are building for only one device, pass the density.
+    if (devices.size() == 1) {
+      Density density = Density.getEnum(devices.get(0).getDensity());
+      if (density != null) {
+        properties.add(AndroidGradleSettings.createProjectProperty(PROPERTY_BUILD_DENSITY, density.getResourceValue()));
+      }
+    }
+
+    // Collect the set of all abis supported by all the devices
+    Set<String> abis =
+      devices.stream().map(AndroidDevice::getAbis)
+        .flatMap(Collection::stream)
+        .map(Abi::toString)
+        .collect(Collectors.toCollection(TreeSet::new));
+    if (!abis.isEmpty()) {
+      properties.add(AndroidGradleSettings.createProjectProperty(PROPERTY_BUILD_ABI, Joiner.on(',').join(abis)));
+    }
+
+    return properties;
+  }
+
+  @NotNull
+  public static List<String> getProfilingOptions(@NotNull RunConfiguration configuration) {
+    if (System.getProperty(ENABLE_EXPERIMENTAL_PROFILING) == null) {
+      return Collections.emptyList();
+    }
+
+    if (!(configuration instanceof AndroidRunConfigurationBase)) {
+      return Collections.emptyList();
+    }
+
+    Properties profilerProperties = ((AndroidRunConfigurationBase)configuration).getProfilerState().toProperties();
+    try {
+      File propertiesFile = File.createTempFile("profiler", ".properties");
+      propertiesFile.deleteOnExit(); // TODO: It'd be nice to clean this up sooner than at exit.
+
+      Writer writer = new OutputStreamWriter(new FileOutputStream(propertiesFile), Charsets.UTF_8);
+      profilerProperties.store(writer, "Android Studio Profiler Gradle Plugin Properties");
+      writer.close();
+
+      return Collections
+        .singletonList(AndroidGradleSettings.createProjectProperty("android.profiler.properties", propertiesFile.getAbsolutePath()));
+    }
+    catch (IOException e) {
+      Throwables.propagate(e);
+      return Collections.emptyList();
+    }
+  }
+
+  public static BeforeRunBuilder createBuilder(@NotNull Module[] modules,
+                                               @NotNull RunConfiguration configuration,
+                                               @NotNull AndroidRunConfigContext runConfigContext,
+                                               @NotNull ExecutionEnvironment env,
+                                               @Nullable String userGoal) {
+    if (modules.length == 0) {
+      throw new IllegalStateException("Unable to determine list of modules to build");
+    }
+
+    if (!StringUtil.isEmpty(userGoal)) {
+      return new DefaultGradleBuilder(Collections.singletonList(userGoal), null);
+    }
+
+    GradleModuleTasksProvider gradleTasksProvider = new GradleModuleTasksProvider(modules);
+
+    GradleInvoker.TestCompileType testCompileType = GradleInvoker.getTestCompileType(configuration.getType().getId());
+    if (testCompileType == GradleInvoker.TestCompileType.JAVA_TESTS) {
+      BuildMode buildMode = BuildMode.COMPILE_JAVA;
+      return new DefaultGradleBuilder(gradleTasksProvider.getUnitTestTasks(buildMode), buildMode);
+    }
+
+    List<AndroidDevice> targetDevices = runConfigContext.getTargetDevices().getDevices();
+    if (!canInstantRun(modules[0], configuration, env, testCompileType, targetDevices)) {
+      return new DefaultGradleBuilder(gradleTasksProvider.getTasksFor(BuildMode.ASSEMBLE, testCompileType), BuildMode.ASSEMBLE);
+    }
+
+    assert targetDevices.size() == 1; // enforced by canInstantRun above
+
+    Module mainModule = null;
+    if (configuration instanceof ModuleBasedConfiguration) {
+      mainModule = ((ModuleBasedConfiguration)configuration).getConfigurationModule().getModule();
+    }
+    if (mainModule == null) {
+      mainModule = modules[0];
+    }
+
+    AndroidFacet appFacet = InstantRunGradleUtils.findAppModule(mainModule, mainModule.getProject());
+    if (appFacet == null) {
+      return new DefaultGradleBuilder(gradleTasksProvider.getTasksFor(BuildMode.ASSEMBLE, testCompileType), BuildMode.ASSEMBLE);
+    }
+
+    InstantRunContext irContext = InstantRunGradleUtils.createGradleProjectContext(appFacet);
+    assert irContext != null;
+
+    return new InstantRunBuilder(getLaunchedDevice(targetDevices.get(0)), irContext, runConfigContext, gradleTasksProvider,
+                                 RunAsValidityService.getInstance());
+  }
+
+  @NotNull
+  private static Module[] getModules(@NotNull Project project, @Nullable DataContext context, @Nullable RunConfiguration configuration) {
+    if (configuration instanceof ModuleRunProfile) {
+      // ModuleBasedConfiguration includes Android and JUnit run configurations, including "JUnit: Rerun Failed Tests",
+      // which is AbstractRerunFailedTestsAction.MyRunProfile.
+      return ((ModuleRunProfile)configuration).getModules();
+    }
+    else {
+      return Projects.getModulesToBuildFromSelection(project, context);
+    }
+  }
+
+  @Nullable
+  private static IDevice getLaunchedDevice(@NotNull AndroidDevice device) {
+    if (!device.getLaunchedDevice().isDone()) {
+      // If we don't have access to the device (this happens if the AVD is still launching)
+      return null;
+    }
+
+    try {
+      return device.getLaunchedDevice().get(1, TimeUnit.MILLISECONDS);
+    }
+    catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      return null;
+    }
+    catch (ExecutionException | TimeoutException e) {
+      return null;
+    }
+  }
+
+  public static boolean canInstantRun(@NotNull Module module,
+                                      @NotNull RunConfiguration configuration,
+                                      @NotNull ExecutionEnvironment env,
+                                      @NotNull GradleInvoker.TestCompileType testCompileType,
+                                      @NotNull List<AndroidDevice> targetDevices) {
+    if (!InstantRunUtils.isInstantRunEnabled(env)) {
+      return false;
+    }
+
+    if (!(configuration instanceof AndroidRunConfigurationBase)) {
+      return false;
+    }
+
+    if (!((AndroidRunConfigurationBase)configuration).supportsInstantRun()) {
+      return false;
+    }
+
+    if (targetDevices.size() != 1) {
+      return false;
+    }
+
+    if (!InstantRunGradleUtils.getIrSupportStatus(module, targetDevices.get(0).getVersion()).success) {
+      return false;
+    }
+
+    return testCompileType == GradleInvoker.TestCompileType.NONE;
   }
 }

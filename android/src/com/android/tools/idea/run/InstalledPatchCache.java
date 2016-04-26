@@ -46,16 +46,17 @@ public class InstalledPatchCache implements Disposable {
   private final DeviceStateCache<PatchState> myCache;
 
   public InstalledPatchCache() {
-    myCache = new DeviceStateCache<PatchState>(this);
+    myCache = new DeviceStateCache<>(this);
   }
 
-  public long getInstalledManifestTimestamp(@NotNull IDevice device, @NotNull String pkgName) {
+  @Nullable
+  public HashCode getInstalledManifestTimestamp(@NotNull IDevice device, @NotNull String pkgName) {
     PatchState state = getState(device, pkgName, false);
-    return state == null ? 0 : state.manifestModified;
+    return state == null ? null : state.manifest;
   }
 
-  public void setInstalledManifestTimestamp(@NotNull IDevice device, @NotNull String pkgName, long timestamp) {
-    getState(device, pkgName, true).manifestModified = timestamp;
+  public void setInstalledManifestTimestamp(@NotNull IDevice device, @NotNull String pkgName, @NotNull HashCode hashCode) {
+    getState(device, pkgName, true).manifest = hashCode;
   }
 
   @Nullable
@@ -79,91 +80,12 @@ public class InstalledPatchCache implements Disposable {
     return state;
   }
 
-  /**
-   * Computes a hashcode which encapsulates the set of resources referenced from the
-   * merged manifest along with the values of those resources
-   *
-   * @param facet the app module whose merged manifest we're analyzing
-   * @return a hashcode
-   */
-  @NotNull
-  public static HashCode computeManifestResources(@NotNull AndroidFacet facet) {
-    File manifest = InstantRunManager.findMergedManifestFile(facet);
-    if (manifest != null) { // ensures exists too
-      HashFunction hashFunction = Hashing.goodFastHash(32);
-      final AppResourceRepository resources = AppResourceRepository.getAppResources(facet, true);
-      final Hasher hasher = hashFunction.newHasher();
-
-      // Read XML for manifest file
-      // Look through resource references, and for each one look up the app resource repository, and for each one,
-      // read the value and hash them.
-      try {
-        String xml = Files.toString(manifest, UTF_8);
-        // Hack: turns out we *sometimes* see the injected bootstrap application,
-        // and sometimes we don't. We Don't want this to be part of the checksum.
-        // This should go away when we do our own merged manifest model (or when
-        // the Gradle plugin's bootstrap application injection no longer handles
-        // it this way.)
-        // TODO: Remove when 2.0-alpha4 or later is fixed to not do this anymore.
-        xml = xml.replace("        android:name=\"com.android.tools.fd.runtime.BootstrapApplication\"\n", "");
-        hasher.putString(xml, UTF_8);
-        final Document document = XmlUtils.parseDocumentSilently(xml, true);
-        if (document != null && document.getDocumentElement() != null) {
-          ApplicationManager.getApplication().runReadAction(new Runnable() {
-            @Override
-            public void run() {
-              hashResources(document.getDocumentElement(), hasher, resources);
-            }
-          });
-        }
-      } catch (IOException ignore) {
-      }
-
-      return hasher.hash();
-    }
-
-    return HashCode.fromInt(0);
-  }
-
-  private static void hashResources(Element element, Hasher hasher, AppResourceRepository resources) {
-    NamedNodeMap attributes = element.getAttributes();
-    for (int i = 0, n = attributes.getLength(); i < n; i++) {
-      Node attribute = attributes.item(i);
-      String value = attribute.getNodeValue();
-      if (value.startsWith(PREFIX_RESOURCE_REF)) {
-        ResourceUrl url = ResourceUrl.parse(value);
-        if (url != null && !url.framework) {
-          List<ResourceItem> items = resources.getResourceItem(url.type, url.name);
-          if (items != null) {
-            for (ResourceItem item : items) {
-              ResourceValue resourceValue = item.getResourceValue(false);
-              if (resourceValue != null) {
-                String text = resourceValue.getValue();
-                if (text != null) {
-                  hasher.putString(text, UTF_8);
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-
-    NodeList children = element.getChildNodes();
-    for (int i = 0, n = children.getLength(); i < n; i++) {
-      Node child = children.item(i);
-      if (child.getNodeType() == Node.ELEMENT_NODE) {
-        hashResources((Element)child, hasher, resources);
-      }
-    }
-  }
-
   @Override
   public void dispose() {
   }
 
   private static class PatchState {
-    public long manifestModified;
+    @Nullable public HashCode manifest;
     @Nullable public HashCode manifestResources;
   }
 }

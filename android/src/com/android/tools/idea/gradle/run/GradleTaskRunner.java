@@ -29,40 +29,42 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class GradleTaskRunner {
-  private final Project myProject;
+public interface GradleTaskRunner {
+  boolean run(@NotNull List<String> tasks, @Nullable BuildMode buildMode, @NotNull List<String> commandLineArguments)
+    throws InvocationTargetException, InterruptedException;
 
-  public GradleTaskRunner(@NotNull Project project) {
-    myProject = project;
-  }
-
-  public boolean run(@NotNull List<String> tasks, @Nullable BuildMode buildMode, @NotNull List<String> commandLineArguments)
-    throws InvocationTargetException, InterruptedException {
-    assert !ApplicationManager.getApplication().isDispatchThread();
-
-    final GradleInvoker gradleInvoker = GradleInvoker.getInstance(myProject);
-
-    final AtomicBoolean success = new AtomicBoolean();
-    final Semaphore done = new Semaphore();
-    done.down();
-
-    final GradleInvoker.AfterGradleInvocationTask afterTask = new GradleInvoker.AfterGradleInvocationTask() {
+  static GradleTaskRunner newRunner(@NotNull Project project) {
+    return new GradleTaskRunner() {
       @Override
-      public void execute(@NotNull GradleInvocationResult result) {
-        success.set(result.isBuildSuccessful());
-        gradleInvoker.removeAfterGradleInvocationTask(this);
-        done.up();
+      public boolean run(@NotNull List<String> tasks, @Nullable BuildMode buildMode, @NotNull List<String> commandLineArguments)
+        throws InvocationTargetException, InterruptedException {
+        assert !ApplicationManager.getApplication().isDispatchThread();
+
+        final GradleInvoker gradleInvoker = GradleInvoker.getInstance(project);
+
+        final AtomicBoolean success = new AtomicBoolean();
+        final Semaphore done = new Semaphore();
+        done.down();
+
+        final GradleInvoker.AfterGradleInvocationTask afterTask = new GradleInvoker.AfterGradleInvocationTask() {
+          @Override
+          public void execute(@NotNull GradleInvocationResult result) {
+            success.set(result.isBuildSuccessful());
+            gradleInvoker.removeAfterGradleInvocationTask(this);
+            done.up();
+          }
+        };
+
+        // To ensure that the "Run Configuration" waits for the Gradle tasks to be executed, we use SwingUtilities.invokeAndWait. I tried
+        // using Application.invokeAndWait but it never worked. IDEA also uses SwingUtilities in this scenario (see CompileStepBeforeRun.)
+        SwingUtilities.invokeAndWait(() -> {
+          gradleInvoker.addAfterGradleInvocationTask(afterTask);
+          gradleInvoker.executeTasks(tasks, buildMode, commandLineArguments);
+        });
+
+        done.waitFor();
+        return success.get();
       }
     };
-
-    // To ensure that the "Run Configuration" waits for the Gradle tasks to be executed, we use SwingUtilities.invokeAndWait. I tried
-    // using Application.invokeAndWait but it never worked. IDEA also uses SwingUtilities in this scenario (see CompileStepBeforeRun.)
-    SwingUtilities.invokeAndWait(() -> {
-      gradleInvoker.addAfterGradleInvocationTask(afterTask);
-      gradleInvoker.executeTasks(tasks, buildMode, commandLineArguments);
-    });
-
-    done.waitFor();
-    return success.get();
   }
 }
