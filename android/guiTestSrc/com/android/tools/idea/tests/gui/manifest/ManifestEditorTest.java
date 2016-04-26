@@ -25,6 +25,7 @@ import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.fixture.JPopupMenuFixture;
 import org.fest.swing.fixture.JTreeFixture;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -42,6 +43,7 @@ public class ManifestEditorTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
+  @Ignore("Disabled until preview 2")
   @Test
   public void testManifestGoToSource() throws IOException {
     guiTest.importSimpleApplication();
@@ -58,6 +60,7 @@ public class ManifestEditorTest {
     assertEquals("^android:allowBackup=\"true\"", editor.getCurrentLineContents(true, true, 0));
   }
 
+  @Ignore("Disabled until preview 2")
   @Test
   public void testEditManifest() throws IOException {
     guiTest.importMultiModule();
@@ -84,6 +87,7 @@ public class ManifestEditorTest {
     assertEquals("android:isGame = true", tree.valueAt(tree.target().getLeadSelectionRow()));
   }
 
+  @Ignore("Disabled until preview 2")
   @Test
   public void testNonPrimaryManifest() throws IOException {
     guiTest.importProjectAndWaitForProjectSyncToFinish("Flavoredapp");
@@ -109,6 +113,7 @@ public class ManifestEditorTest {
     assertNotEquals(CURRENT_MANIFEST_COLOR, mergedManifestFixture.getSelectedNodeColor());
   }
 
+  @Ignore("Disabled until preview 2")
   @Test
   public void testRemoveFromManifest() throws IOException {
     guiTest.importMultiModule();
