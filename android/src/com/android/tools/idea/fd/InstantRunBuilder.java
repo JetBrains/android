@@ -96,7 +96,7 @@ public class InstantRunBuilder implements BeforeRunBuilder {
     List<String> args = new ArrayList<>(commandLineArguments);
 
     FileChangeListener.Changes fileChanges = myInstantRunContext.getFileChangesAndReset();
-    if (buildModeChoice.mode == BuildMode.HOT || buildModeChoice.mode == BuildMode.COLD) { // incremental build
+    if (buildModeChoice.mode == BuildMode.HOT || buildModeChoice.mode == BuildMode.COLD) { // build for incremental deploy
       List<String> incrementalArgs = new ArrayList<>(args);
       incrementalArgs.add(getInstantDevProperty(buildModeChoice.mode, fileChanges));
       boolean success = taskRunner.run(myTasksProvider.getIncrementalBuildTasks(), null, incrementalArgs);
@@ -124,12 +124,10 @@ public class InstantRunBuilder implements BeforeRunBuilder {
 
   @NotNull
   private BuildModeChoice getBuildMode() {
-    String cleanBuildReason = needsCleanBuild(myDevice);
-    if (cleanBuildReason != null) {
-      return new BuildModeChoice(BuildMode.CLEAN, cleanBuildReason);
+    if (myRunContext.isCleanRerun()) {
+      return new BuildModeChoice(BuildMode.CLEAN, InstantRunBuildCauses.USER_REQUESTED_CLEAN_RERUN);
     }
 
-    assert myDevice != null; // should have resulted in a clean build if that was the case
     String fullBuildReason = needsFullBuild(myDevice);
     if (fullBuildReason != null) {
       return new BuildModeChoice(BuildMode.FULL, fullBuildReason);
@@ -144,24 +142,15 @@ public class InstantRunBuilder implements BeforeRunBuilder {
   }
 
   @Nullable
-  private String needsCleanBuild(@Nullable IDevice device) {
+  private String needsFullBuild(@Nullable IDevice device) {
     if (device == null) {
       return InstantRunBuildCauses.NO_DEVICE;
-    }
-
-    if (myRunContext.isCleanRerun()) {
-      return InstantRunBuildCauses.USER_REQUESTED_CLEAN_RERUN;
     }
 
     if (!buildTimestampsMatch(device)) {
       return InstantRunBuildCauses.MISMATCHING_TIMESTAMPS;
     }
 
-    return null;
-  }
-
-  @Nullable
-  private String needsFullBuild(@NotNull IDevice device) {
     AndroidVersion deviceVersion = device.getVersion();
     if (!InstantRunManager.isInstantRunCapableDeviceVersion(deviceVersion)) {
       return "Instant Run is disabled: <br>" +
