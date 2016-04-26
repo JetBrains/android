@@ -78,10 +78,4 @@ public class SwitchWidget extends TextWidget {
             g.fillArc(x + mHorizontalPadding, y + h / 6, 2 * h / 3, 2 * h / 3, 0, 360);
         }
     }
-
-    @Override
-    protected void drawText(ViewTransform transform, Graphics2D g, int x, int y) {
-        int delta = (mWidget.getHeight() - mOriginalHeight) / 2;
-        super.drawText(transform, g, mHorizontalMargin + mHorizontalPadding + x, y + delta);
-    }
 }

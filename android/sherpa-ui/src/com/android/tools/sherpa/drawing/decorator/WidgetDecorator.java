@@ -535,7 +535,7 @@ public class WidgetDecorator {
         g.setColor(mConstraintsColor.getColor());
 
         // Draw the baseline first, if needed
-        if (mIsSelected && mWidget.hasBaseline()) {
+        if (mIsSelected && mWidget.hasBaseline() && mShowResizeHandles) {
             Color c = g.getColor();
             ConstraintAnchor baseline = mWidget.getAnchor(ConstraintAnchor.Type.BASELINE);
             float progress = 1;
@@ -634,7 +634,10 @@ public class WidgetDecorator {
                     startHandle.drawConnection(transform, g, mColorSet, mIsSelected);
                     if (mLockTimer != null) {
                         float progress = mLockTimer.getProgress();
-                        startHandle.drawConnection(transform, g, mColorSet, mIsSelected, progress);
+                        if (progress > 0) {
+                            startHandle
+                                    .drawConnection(transform, g, mColorSet, mIsSelected, progress);
+                        }
                     }
                 }
             }

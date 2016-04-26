@@ -536,7 +536,7 @@ public class ConstraintHandle {
         }
         g.draw(path);
         // If a lock timer is active, draw the path a second time
-        if (progress < 1 && progress > 0.2) {
+        if (progress < 1 && progress > 0.1) {
             Stroke s = g.getStroke();
             int distance = lengthOfPath(path);
             int dashFull = (int) (distance * progress);
