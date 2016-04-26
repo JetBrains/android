@@ -234,13 +234,6 @@ public class GradleUtilTest {
   }
 
   @Test
-  public void testGetGradleVersionFromJarUsingGradleLibraryJarWithoutVersion() {
-    File jarFile = new File("gradle-core-two.jar");
-    GradleVersion gradleVersion = GradleUtil.getGradleVersionFromJar(jarFile);
-    assertNull(gradleVersion);
-  }
-
-  @Test
   public void testGetGradleVersionFromJarUsingNonGradleLibraryJar() {
     File jarFile = new File("ant-1.9.3.jar");
     GradleVersion gradleVersion = GradleUtil.getGradleVersionFromJar(jarFile);
