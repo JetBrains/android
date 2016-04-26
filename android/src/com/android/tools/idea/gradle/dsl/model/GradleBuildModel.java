@@ -174,10 +174,7 @@ public class GradleBuildModel extends GradleFileModel {
 
   @NotNull
   public GradleBuildModel applyPlugin(String plugin) {
-    plugin = plugin.trim();
-    if(!appliedPlugins().contains(plugin)) {
-      myToBeAppliedPlugins.add(plugin);
-    }
+    myToBeAppliedPlugins.add(plugin.trim());
     return this;
   }
 
