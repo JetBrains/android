@@ -31,15 +31,17 @@ public class CheckboxWidget extends TextWidget {
      */
     public CheckboxWidget(ConstraintWidget widget, String text) {
         super(widget, text);
+        mAlignmentY = TEXT_ALIGNMENT_CENTER;
+        mWidget.setMinWidth(32);
+        mWidget.setMinHeight(32);
     }
 
     @Override
     protected void wrapContent() {
-        super.wrapContent();
         if (mWidget == null) {
             return;
         }
-
+        super.wrapContent();
         int extra = mWidget.getMinHeight() + 2 * mHorizontalPadding;
         mWidget.setMinWidth(mWidget.getMinWidth() + extra);
         mWidget.setMinHeight(mWidget.getMinHeight());
