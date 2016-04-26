@@ -21,7 +21,7 @@ import com.android.tools.idea.gradle.structure.navigation.PsNavigationPath;
 import org.junit.Test;
 
 import static com.android.builder.model.SyncIssue.SEVERITY_ERROR;
-import static com.android.tools.idea.gradle.structure.model.PsIssue.Type.ERROR;
+import static com.android.tools.idea.gradle.structure.model.PsIssue.Severity.ERROR;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -44,7 +44,7 @@ public class PsAndroidModuleAnalyzerTest {
                                           "and test app (16.0.1) differ. See " +
                                           "<a href='http://g.co/androidstudio/app-test-app-conflict'>http://g.co/androidstudio/app-test-app-conflict</a> " +
                                           "for details.");
-    assertThat(issue.getType()).isEqualTo(ERROR);
+    assertThat(issue.getSeverity()).isEqualTo(ERROR);
   }
 
 }

@@ -85,6 +85,8 @@ public abstract class PsDaemon implements Disposable {
     return myContext;
   }
 
+  public abstract boolean isRunning();
+
   @Override
   public void dispose() {
     stop();

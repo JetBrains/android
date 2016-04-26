@@ -39,7 +39,8 @@ import java.util.regex.Pattern;
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
 import static com.android.builder.model.SyncIssue.SEVERITY_ERROR;
 import static com.android.builder.model.SyncIssue.SEVERITY_WARNING;
-import static com.android.tools.idea.gradle.structure.model.PsIssue.Type.*;
+import static com.android.tools.idea.gradle.structure.model.PsIssue.Severity.*;
+import static com.android.tools.idea.gradle.structure.model.PsIssueType.PROJECT_ANALYSIS;
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.intellij.xml.util.XmlStringUtil.escapeString;
 
@@ -86,7 +87,7 @@ public class PsAndroidModuleAnalyzer extends PsModelAnalyzer<PsAndroidModule> {
                                "your builds are not repeatable; you may have tested with a slightly different " +
                                "version than what the build server used. (Using a dynamic version as the major " +
                                "version number is more problematic than using it in the minor version position.)";
-          PsIssue issue = new PsIssue(message, description, path, WARNING);
+          PsIssue issue = new PsIssue(message, description, path, PROJECT_ANALYSIS, WARNING);
           issue.setExtraPath(modulePath);
           issueCollection.add(issue);
         }
@@ -96,7 +97,7 @@ public class PsAndroidModuleAnalyzer extends PsModelAnalyzer<PsAndroidModule> {
           String description = "To resolve version conflicts, Gradle by default uses the newest version of a dependency. " +
                                "<a href='https://docs.gradle.org/current/userguide/dependency_management.html'>Open Gradle " +
                                "documentation</a>";
-          PsIssue issue = new PsIssue(message, description, path, INFO);
+          PsIssue issue = new PsIssue(message, description, path, PROJECT_ANALYSIS, INFO);
           issue.setExtraPath(modulePath);
           issueCollection.add(issue);
         }
@@ -116,13 +117,13 @@ public class PsAndroidModuleAnalyzer extends PsModelAnalyzer<PsAndroidModule> {
       message = message.replace(url, "<a href='" + url + "'>" + url + "</a>");
       result = matcher.find();
     }
-    PsIssue issue = new PsIssue(message, path, getType(syncIssue));
+    PsIssue issue = new PsIssue(message, path, PROJECT_ANALYSIS, getSeverity(syncIssue));
     issue.setExtraPath(extraPath);
     return issue;
   }
 
   @NotNull
-  private static PsIssue.Type getType(@NotNull SyncIssue issue) {
+  private static PsIssue.Severity getSeverity(@NotNull SyncIssue issue) {
     int severity = issue.getSeverity();
     switch (severity) {
       case SEVERITY_ERROR:

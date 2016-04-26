@@ -13,18 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.configurables.issues;
+package com.android.tools.idea.gradle.structure.model;
 
-import com.android.tools.idea.gradle.structure.model.PsIssue;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.Comparator;
-
-public class IssuesByTypeComparator implements Comparator<PsIssue> {
-  @NotNull public static final IssuesByTypeComparator INSTANCE = new IssuesByTypeComparator();
-
-  @Override
-  public int compare(PsIssue i1, PsIssue i2) {
-    return i1.getSeverity().getPriority() - i2.getSeverity().getPriority();
-  }
+public interface PsIssueType {
+  PsIssueType PROJECT_ANALYSIS = new PsIssueType() {};
+  PsIssueType LIBRARY_UPDATES_AVAILABLE = new PsIssueType() {};
 }

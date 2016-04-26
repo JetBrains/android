@@ -26,10 +26,7 @@ import com.intellij.util.containers.ConcurrentMultiMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class PsIssueCollection {
@@ -117,5 +114,18 @@ public class PsIssueCollection {
     }
     buffer.append("</body></html>");
     return buffer.toString();
+  }
+
+  public void remove(@NotNull PsIssueType type) {
+    for (PsNavigationPath path : myIssues.keySet()) {
+      List<PsIssue> toRemove = Collections.emptyList();
+      Collection<PsIssue> issues = myIssues.getModifiable(path);
+      if (!issues.isEmpty()) {
+        toRemove = issues.stream().filter(issue -> issue.getType().equals(type)).collect(Collectors.toList());
+      }
+      if (!toRemove.isEmpty()) {
+        issues.removeAll(toRemove);
+      }
+    }
   }
 }
