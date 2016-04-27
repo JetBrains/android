@@ -202,7 +202,7 @@ public class NlPreviewTest {
 
     // Ensure that all the references are properly resolved
     FileFixture file = guiTest.ideFrame().findExistingFileByRelativePath(layoutFilePath);
-    file.requireCodeAnalysisHighlightCount(ERROR, 0);
+    file.waitForCodeAnalysisHighlightCount(ERROR, 0);
 
     String buildGradlePath = "app/build.gradle";
     editor.open(buildGradlePath, EditorFixture.Tab.EDITOR);
@@ -217,6 +217,6 @@ public class NlPreviewTest {
     string1 = preview.findView("TextView", 0);
     string1.requireActualText("String 1 defined only by edited defaultConfig");
 
-    file.requireCodeAnalysisHighlightCount(ERROR, 0);
+    file.waitForCodeAnalysisHighlightCount(ERROR, 0);
   }
 }
