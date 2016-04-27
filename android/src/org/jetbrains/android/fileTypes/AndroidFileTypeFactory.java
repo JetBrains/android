@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.fileTypes;
 
+import com.android.tools.idea.apk.AndroidApkFileType;
 import com.android.tools.idea.fileTypes.AndroidNinePatchFileType;
 import com.android.tools.idea.fileTypes.AndroidRenderscriptFileType;
 import com.android.tools.idea.lang.aidl.AidlFileType;
@@ -36,5 +37,6 @@ public class AndroidFileTypeFactory extends FileTypeFactory {
     consumer.consume(AndroidNinePatchFileType.INSTANCE, AndroidNinePatchFileType.EXTENSION);
     WebpImageReaderSpi.ensureWebpRegistered();
     consumer.consume(ImageFileTypeManager.getInstance().getImageFileType(), WebpImageReaderSpi.EXT_WEBP);
+    consumer.consume(AndroidApkFileType.INSTANCE, AndroidApkFileType.INSTANCE.getDefaultExtension());
   }
 }
