@@ -496,7 +496,7 @@ public class PatchInstallerFactory extends AbstractInstallerFactory {
     }
     try {
       File patchFile = new File(tempDir, "patch.jar");
-      downloader.downloadFully(url, patchFile, progress);
+      downloader.downloadFully(url, patchFile, patch.getChecksum(), progress);
       return patchFile;
     }
     catch (IOException e) {
