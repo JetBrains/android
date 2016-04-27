@@ -23,16 +23,14 @@ import org.fest.swing.core.Robot;
 import org.fest.swing.driver.JComponentDriver;
 import org.fest.swing.driver.TextDisplayDriver;
 import org.fest.swing.edt.GuiQuery;
-import org.fest.swing.util.Strings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.event.KeyEvent;
 import java.util.regex.Pattern;
 
+import static com.google.common.truth.Truth.assertThat;
 import static org.fest.swing.edt.GuiActionRunner.execute;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 public class EditorTextFieldDriver extends JComponentDriver implements TextDisplayDriver<EditorTextField> {
   /**
@@ -47,13 +45,13 @@ public class EditorTextFieldDriver extends JComponentDriver implements TextDispl
   @RunsInEDT
   @Override
   public void requireText(@NotNull EditorTextField component, @Nullable String expected) {
-    assertEquals(expected, textOf(component));
+    assertThat(textOf(component)).isEqualTo(expected);
   }
 
   @RunsInEDT
   @Override
   public void requireText(@NotNull EditorTextField component, @NotNull Pattern pattern) {
-    assertTrue(Strings.match(pattern, textOf(component)));
+    assertThat(textOf(component)).matches(pattern);
   }
 
   @RunsInEDT
