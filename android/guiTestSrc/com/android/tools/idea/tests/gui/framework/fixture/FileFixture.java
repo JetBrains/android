@@ -22,11 +22,8 @@ import com.intellij.codeInsight.daemon.impl.HighlightInfo;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
-import com.intellij.openapi.fileEditor.FileEditor;
-import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.util.CommonProcessors;
@@ -34,14 +31,12 @@ import org.fest.swing.edt.GuiQuery;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
 import java.io.File;
 import java.util.Collection;
 
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static junit.framework.Assert.assertNotNull;
-import static org.fest.reflect.core.Reflection.method;
 import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.fest.util.Strings.quote;
 
@@ -54,41 +49,6 @@ public class FileFixture {
     myProject = project;
     myPath = virtualToIoFile(file);
     myVirtualFile = file;
-  }
-
-  @NotNull
-  public FileFixture requireOpenAndSelected() {
-    requireVirtualFile();
-    Wait.minutes(2).expecting("file " + quote(myPath.getPath()) + " to be opened").until(
-      () -> execute(
-        new GuiQuery<Boolean>() {
-          @Override
-          protected Boolean executeInEDT() throws Throwable {
-            return isOpenAndSelected();
-          }
-        }));
-    return this;
-  }
-
-  private boolean isOpenAndSelected() {
-    FileEditorManager editorManager = FileEditorManager.getInstance(myProject);
-    FileEditor selectedEditor = editorManager.getSelectedEditor(myVirtualFile);
-    if (selectedEditor != null) {
-      JComponent component = selectedEditor.getComponent();
-      if (component.isVisible() && component.isShowing()) {
-        Document document = FileDocumentManager.getInstance().getDocument(myVirtualFile);
-        if (document != null) {
-          PsiFile psiFile = PsiDocumentManager.getInstance(myProject).getPsiFile(document);
-          if (psiFile != null) {
-            DaemonCodeAnalyzerEx codeAnalyzer = DaemonCodeAnalyzerEx.getInstanceEx(myProject);
-            //noinspection ConstantConditions
-            boolean isRunning = method("isRunning").withReturnType(boolean.class).in(codeAnalyzer).invoke();
-            return !isRunning;
-          }
-        }
-      }
-    }
-    return false;
   }
 
   @NotNull
@@ -150,12 +110,6 @@ public class FileFixture {
     Document document = getDocument(myVirtualFile);
     assertNotNull("No Document found for path " + quote(myPath.getPath()), document);
     return document;
-  }
-
-  @NotNull
-  public FileFixture requireVirtualFile() {
-    assertNotNull("No VirtualFile found for path " + quote(myPath.getPath()), myVirtualFile);
-    return this;
   }
 
   @Nullable
