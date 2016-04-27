@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.sdk;
 
-import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.repository.api.Downloader;
 import com.android.repository.api.ProgressIndicator;
@@ -25,10 +24,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.io.HttpRequests;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.URL;
 
 /**
@@ -63,10 +59,14 @@ public class StudioDownloader implements Downloader {
   }
 
   @Override
-  public void downloadFully(@NonNull URL url,
-                            @NonNull File target,
-                            @NonNull ProgressIndicator indicator)
+  public void downloadFully(@NotNull URL url, @NotNull File target, @Nullable String checksum, @NotNull ProgressIndicator indicator)
     throws IOException {
+    if (target.exists() && checksum != null) {
+      if (checksum.equals(Downloader.hash(new BufferedInputStream(new FileInputStream(target)), target.length(), indicator))) {
+        return;
+      }
+    }
+
     // We don't use the settings here explicitly, since HttpRequests picks up the network settings from studio directly.
     indicator.logInfo("Downloading " + url);
     indicator.setText("Downloading...");
@@ -81,14 +81,14 @@ public class StudioDownloader implements Downloader {
 
   @Nullable
   @Override
-  public File downloadFully(@NonNull URL url,
-                            @NonNull ProgressIndicator indicator) throws IOException {
+  public File downloadFully(@NotNull URL url,
+                            @NotNull ProgressIndicator indicator) throws IOException {
     // TODO: caching
     String suffix = url.getPath();
     suffix = suffix.substring(suffix.lastIndexOf("/") + 1);
     File tempFile = FileUtil.createTempFile("StudioDownloader", suffix, true);
     tempFile.deleteOnExit();
-    downloadFully(url, tempFile, indicator);
+    downloadFully(url, tempFile, null, indicator);
     return tempFile;
   }
 }
