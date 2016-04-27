@@ -903,12 +903,12 @@ public class EditorFixture {
    * @param severity the severity of the issues you want to count
    * @param expected the expected count
    * @return this
+   * @deprecated Replaced by {@link #waitForCodeAnalysisHighlightCount(HighlightSeverity, int)}
    */
+  @Deprecated
   @NotNull
   public EditorFixture requireCodeAnalysisHighlightCount(@NotNull HighlightSeverity severity, int expected) {
-    FileFixture file = getCurrentFileFixture();
-    file.requireCodeAnalysisHighlightCount(severity, expected);
-    return this;
+    return waitForCodeAnalysisHighlightCount(severity, expected);
   }
 
   @NotNull
@@ -932,10 +932,11 @@ public class EditorFixture {
    */
   @NotNull
   public EditorFixture waitForCodeAnalysisHighlightCount(@NotNull final HighlightSeverity severity, int expected) {
+    // Changing Java source level, for example, triggers compilation first; code analysis starts afterward
+    waitForBackgroundTasks(robot);
+
     FileFixture file = getCurrentFileFixture();
     file.waitForCodeAnalysisHighlightCount(severity, expected);
-    file.waitUntilErrorAnalysisFinishes();
-    robot.waitForIdle();
     return this;
   }
 
