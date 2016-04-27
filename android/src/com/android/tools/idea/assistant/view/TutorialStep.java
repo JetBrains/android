@@ -214,8 +214,8 @@ public class TutorialStep extends JPanel {
     private int myScrollBarHeight = 0;
 
     public CodePane(StepElementData element) {
-      // TODO: Use the file type hint from the element when supported.
-      super(element.getCode(), myProject, StdFileTypes.JAVA);
+      // Default to JAVA rather than PLAIN_TEXT display for better support for quoted strings and properties.
+      super(element.getCode(), myProject, element.getCodeType() != null ? element.getCodeType() : StdFileTypes.JAVA);
       // Tell the editor that it's a multiline editor, defaults to false and can't be overridden in ctor unless passing in a document
       // instead of text as first argument.
       setOneLineMode(false);
