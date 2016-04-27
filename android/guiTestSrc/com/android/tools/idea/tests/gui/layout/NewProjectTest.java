@@ -56,8 +56,6 @@ public class NewProjectTest {
     newProject("Test Application").create();
     EditorFixture editor = guiTest.ideFrame().getEditor();
     editor.open("app/src/main/res/layout/activity_main.xml", EditorFixture.Tab.EDITOR);
-    FileFixture layoutFile = guiTest.ideFrame().findExistingFileByRelativePath("app/src/main/res/layout/activity_main.xml");
-    layoutFile.requireOpenAndSelected();
 
     // Verify state of project
     guiTest.ideFrame().requireModuleCount(2);
