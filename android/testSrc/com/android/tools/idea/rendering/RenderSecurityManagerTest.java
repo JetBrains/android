@@ -37,6 +37,7 @@ import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static com.google.common.truth.Truth.assertThat;
 import static java.io.File.separator;
 import static org.junit.Assert.*;
 
@@ -73,7 +74,7 @@ public class RenderSecurityManagerTest {
       manager.dispose(myCredential);
       assertNull(RenderSecurityManager.getCurrent());
       assertNull(System.getSecurityManager());
-      assertEquals(Collections.<String>emptyList(), logger.getWarningMsgs());
+      assertThat(logger.getWarningMsgs()).isEmpty();
     }
   }
 
