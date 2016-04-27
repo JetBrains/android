@@ -287,8 +287,7 @@ public class NlEditorPanel extends JPanel implements DesignerEditorPanelFacade, 
 
     @Override
     public void setConfiguration(@NotNull Configuration configuration) {
-      // This method is used in the layout editor to support the multi-preview
-      // At the moment we don't do anything as we only have a single Configuration (updated from the drop down).
+      mySurface.setConfiguration(configuration);
     }
   }
 }

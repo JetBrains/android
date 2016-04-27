@@ -21,6 +21,7 @@ import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.model.*;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.util.registry.Registry;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.registry.Registry;
@@ -283,6 +284,15 @@ public class InteractionManager {
         return;
       }
     }
+    else {
+      Dimension size = screenView.getSize();
+      // TODO: use constants for those numbers
+      Rectangle resizeIcon = new Rectangle(screenView.getX() + size.width + 3, screenView.getY() + size.height + 3, 12, 12);
+      if (resizeIcon.contains(x, y)) {
+        mySurface.setCursor(Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR));
+        return;
+      }
+    }
 
     mySurface.setCursor(null);
   }
@@ -327,6 +337,13 @@ public class InteractionManager {
 
       ScreenView screenView = mySurface.getScreenView(myLastMouseX, myLastMouseY);
       if (screenView == null) {
+        return;
+      }
+      Dimension size = screenView.getSize();
+      // TODO: use constants for those numbers
+      Rectangle resizeIcon = new Rectangle(screenView.getX() + size.width + 3, screenView.getY() + size.height + 3, 12, 12);
+      if (resizeIcon.contains(myLastMouseX, myLastMouseY)) {
+        startInteraction(myLastMouseX, myLastMouseY, new CanvasResizeInteraction(screenView), myLastStateMask);
         return;
       }
       NlComponent component = Coordinates.findComponent(screenView, myLastMouseX, myLastMouseY);

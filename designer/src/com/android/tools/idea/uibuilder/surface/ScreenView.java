@@ -188,6 +188,10 @@ public class ScreenView {
     return myModel.getConfiguration();
   }
 
+  public void setConfiguration(@NotNull Configuration configuration) {
+    myModel.setConfiguration(configuration);
+  }
+
   @NotNull
   public NlModel getModel() {
     return myModel;
