@@ -45,6 +45,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.junit.Assert.*;
 
@@ -144,9 +145,7 @@ public class LayoutEditorFixture extends ComponentFixture<LayoutEditorFixture, C
     waitForRenderToFinish();
     AndroidDesignerEditorPanel panel = myPanel;
     final List<RadViewComponent> components = Lists.newArrayList();
-    final RadComponent rootComponent = panel.getRootComponent();
-    assertNotNull(rootComponent);
-    assertTrue(rootComponent.getClass().getName(), rootComponent instanceof RadViewComponent);
+    final RadComponent rootComponent = checkNotNull(panel.getRootComponent());
     ApplicationManager.getApplication().runReadAction(
       () -> {
         addComponents(tag, (RadViewComponent)rootComponent, components);
@@ -187,9 +186,7 @@ public class LayoutEditorFixture extends ComponentFixture<LayoutEditorFixture, C
 
     waitForRenderToFinish();
     AndroidDesignerEditorPanel panel = myPanel;
-    final RadComponent rootComponent = panel.getRootComponent();
-    assertNotNull(rootComponent);
-    assertTrue(rootComponent.getClass().getName(), rootComponent instanceof RadViewComponent);
+    final RadComponent rootComponent = checkNotNull(panel.getRootComponent());
     final AtomicReference<RadViewComponent> reference = new AtomicReference<>();
     ApplicationManager.getApplication().runReadAction(
       () -> {
