@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import com.android.tools.idea.tests.gui.framework.Wait;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.ui.messages.SheetController;
@@ -39,23 +40,28 @@ import static org.junit.Assert.assertNotNull;
 
 public class MessagesFixture {
   @NotNull private final ContainerFixture<? extends Container> myDelegate;
+  @NotNull private final JDialog myDialog; // Mac changes the panel window before closing animation. We keep a reference here.
 
   @NotNull
   public static MessagesFixture findByTitle(@NotNull Robot robot, @NotNull Container root, @NotNull String title) {
     if (Messages.canShowMacSheetPanel()) {
-      return new MessagesFixture(findMacSheetByTitle(robot, title));
+      JPanelFixture panelFixture = findMacSheetByTitle(robot, title);
+      JDialog dialog = (JDialog)SwingUtilities.getWindowAncestor(panelFixture.target());
+      return new MessagesFixture(panelFixture, dialog);
     }
     MessageDialogFixture dialog = MessageDialogFixture.findByTitle(robot, title);
-    return new MessagesFixture(dialog);
+    return new MessagesFixture(dialog, dialog.target());
   }
 
-  private MessagesFixture(@NotNull ContainerFixture<? extends Container> delegate) {
+  private MessagesFixture(@NotNull ContainerFixture<? extends Container> delegate, @NotNull JDialog dialog) {
     myDelegate = delegate;
+    myDialog = dialog;
   }
 
   @NotNull
   public MessagesFixture clickOk() {
     findAndClickOkButton(myDelegate);
+    waitUntilNotShowing();
     return this;
   }
 
@@ -79,6 +85,11 @@ public class MessagesFixture {
 
   public void clickCancel() {
     findAndClickCancelButton(myDelegate);
+    waitUntilNotShowing();
+  }
+
+  private void waitUntilNotShowing() {
+    Wait.seconds(15).expecting("not showing").until(() -> !myDialog.isShowing());
   }
 
   @NotNull

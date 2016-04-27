@@ -106,6 +106,7 @@ public abstract class IdeaDialogFixture<T extends DialogWrapper> extends Compone
 
   public void clickCancel() {
     findAndClickCancelButton(this);
+    waitUntilNotShowing(); // Mac dialogs have an animation, wait until it hides
   }
 
   public void close() {
