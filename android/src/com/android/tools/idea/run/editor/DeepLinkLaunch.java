@@ -40,7 +40,7 @@ public class DeepLinkLaunch extends LaunchOption<DeepLinkLaunch.State> {
                                     @NotNull AndroidFacet facet,
                                     @NotNull StartActivityFlagsProvider startActivityFlagsProvider,
                                     @NotNull ProfilerState profilerState) {
-      return new AndroidDeepLinkLaunchTask(applicationId, DEEP_LINK, startActivityFlagsProvider);
+      return new AndroidDeepLinkLaunchTask(DEEP_LINK, startActivityFlagsProvider);
     }
 
     @NotNull
