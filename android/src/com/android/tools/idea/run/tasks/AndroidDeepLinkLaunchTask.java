@@ -21,19 +21,15 @@ import com.android.tools.idea.run.activity.StartActivityFlagsProvider;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.stats.UsageTracker;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.concurrent.TimeUnit;
 
 public class AndroidDeepLinkLaunchTask implements LaunchTask {
-  @NotNull private final String myApplicationId;
   @NotNull private final String myDeepLink;
   @NotNull StartActivityFlagsProvider myStartActivityFlagsProvider;
 
-  public AndroidDeepLinkLaunchTask(@NotNull String applicationId,
-                                   @NotNull String deepLink,
+  public AndroidDeepLinkLaunchTask(@NotNull String deepLink,
                                    @NotNull StartActivityFlagsProvider startActivityFlagsProvider) {
-    myApplicationId = applicationId;
     myDeepLink = deepLink;
     myStartActivityFlagsProvider = startActivityFlagsProvider;
   }
@@ -59,19 +55,17 @@ public class AndroidDeepLinkLaunchTask implements LaunchTask {
     ShellCommandLauncher.execute("setprop log.tag.AppIndexApi VERBOSE", device, launchStatus, printer, 5, TimeUnit.SECONDS);
 
     // Launch deeplink
-    String command = getLaunchDeepLinkCommand(myDeepLink, myApplicationId, myStartActivityFlagsProvider.getFlags(device));
+    String command = getLaunchDeepLinkCommand(myDeepLink, myStartActivityFlagsProvider.getFlags(device));
     return ShellCommandLauncher.execute(command, device, launchStatus, printer, 5, TimeUnit.SECONDS);
   }
 
   @NotNull
   public static String getLaunchDeepLinkCommand(@NotNull String deepLink,
-                                                @Nullable String packageId,
                                                 @NotNull String extraFlags) {
     return "am start" +
            " -a android.intent.action.VIEW" +
            " -c android.intent.category.BROWSABLE" +
            " -d " + deepLink +
-           (packageId == null ? "" : " " + packageId) +
            (extraFlags.isEmpty() ? "" : " " + extraFlags);
   }
 }
