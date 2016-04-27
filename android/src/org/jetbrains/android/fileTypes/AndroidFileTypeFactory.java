@@ -15,7 +15,6 @@
  */
 package org.jetbrains.android.fileTypes;
 
-import com.android.tools.idea.fileTypes.AndroidNavigationFileType;
 import com.android.tools.idea.fileTypes.AndroidNinePatchFileType;
 import com.android.tools.idea.fileTypes.AndroidRenderscriptFileType;
 import com.android.tools.idea.lang.aidl.AidlFileType;
@@ -35,7 +34,6 @@ public class AndroidFileTypeFactory extends FileTypeFactory {
     consumer.consume(AidlFileType.INSTANCE, AidlFileType.DEFAULT_ASSOCIATED_EXTENSION);
     consumer.consume(AndroidRenderscriptFileType.INSTANCE, AndroidRenderscriptFileType.fileNameMatchers());
     consumer.consume(AndroidNinePatchFileType.INSTANCE, AndroidNinePatchFileType.EXTENSION);
-    consumer.consume(AndroidNavigationFileType.INSTANCE, AndroidNavigationFileType.EXTENSION);
     WebpImageReaderSpi.ensureWebpRegistered();
     consumer.consume(ImageFileTypeManager.getInstance().getImageFileType(), WebpImageReaderSpi.EXT_WEBP);
   }
