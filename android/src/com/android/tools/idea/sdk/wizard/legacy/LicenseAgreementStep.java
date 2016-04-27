@@ -266,7 +266,7 @@ public class LicenseAgreementStep extends DynamicWizardStepWithDescription {
               DetailsTypes.getAndroidVersion((DetailsTypes.ApiDetailsType)p.getTypeDetails()).isPreview());
         }
         myLicenses.add(license);
-        if (!license.checkAccepted(mySdkRoot)) {
+        if (!license.checkAccepted(mySdkRoot, mySdkHandler.getFileOp())) {
           toReturn.add(new Change(ChangeType.INSTALL, p, license));
         }
       }
@@ -309,7 +309,7 @@ public class LicenseAgreementStep extends DynamicWizardStepWithDescription {
 
   public void performFinishingActions() {
     for (License license : myLicenses) {
-      license.setAccepted(mySdkRoot);
+      license.setAccepted(mySdkRoot, mySdkHandler.getFileOp());
     }
   }
 
