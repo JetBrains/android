@@ -82,4 +82,24 @@ public class FmActivityToLayoutMethodTest extends TestCase {
   public void test11() throws Exception {
     check("FullScreenActivity", "content", "content_full_screen");
   }
+
+  public void test12() throws Exception {
+    check("ac", "activity", "activity_ac");
+  }
+
+  public void test14() throws Exception {
+    check("Ac", "activity", "activity_");
+  }
+
+  public void test15() throws Exception {
+    check("Main2ActivityB", "activity", "activity_main2_b");
+  }
+
+  public void test16() throws Exception {
+    check("Main2ActivityActiv", "activity", "activity_main2_activity");
+  }
+
+  public void test17() throws Exception {
+    check("ActivityActivity", "activity", "activity_activity");
+  }
 }
