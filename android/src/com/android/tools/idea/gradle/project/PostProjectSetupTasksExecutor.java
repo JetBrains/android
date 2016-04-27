@@ -77,7 +77,6 @@ import com.intellij.openapi.roots.libraries.ui.OrderRoot;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.NonNavigatable;
 import com.intellij.util.SystemProperties;
-import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.AndroidPlugin;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
@@ -184,21 +183,18 @@ public class PostProjectSetupTasksExecutor {
 
     new ProjectStructureUsageTracker(myProject).trackProjectStructure();
 
-    executeProjectChanges(myProject, new Runnable() {
-      @Override
-      public void run() {
-        IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(myProject);
-        try {
-          attachSourcesToLibraries(modelsProvider);
-          adjustModuleStructures(modelsProvider);
-          modelsProvider.commit();
-        }
-        catch (Throwable t) {
-          modelsProvider.dispose();
-          rethrowAllAsUnchecked(t);
-        }
-        ensureValidSdks();
+    executeProjectChanges(myProject, () -> {
+      IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(myProject);
+      try {
+        attachSourcesToLibraries(modelsProvider);
+        adjustModuleStructures(modelsProvider);
+        modelsProvider.commit();
       }
+      catch (Throwable t) {
+        modelsProvider.dispose();
+        rethrowAllAsUnchecked(t);
+      }
+      ensureValidSdks();
     });
     enforceExternalBuild(myProject);
 
@@ -222,8 +218,9 @@ public class PostProjectSetupTasksExecutor {
     setMakeStepInJunitRunConfigurations(taskName);
     updateGradleSyncState();
 
-    if (shouldRecommendPluginVersionUpgrade()) {
-      boolean upgrade = new PluginVersionRecommendedUpdateDialog(myProject).showAndGet();
+    String pluginVersionTooOld = shouldRecommendPluginVersionUpgrade();
+    if (pluginVersionTooOld != null) {
+      boolean upgrade = new PluginVersionRecommendedUpdateDialog(myProject, pluginVersionTooOld).showAndGet();
       if (upgrade) {
         if (updateGradlePluginVersionAndNotifyFailure(myProject, GRADLE_PLUGIN_LATEST_VERSION, GRADLE_LATEST_VERSION, false)) {
           // plugin version updated and a project sync was requested. No need to continue.
@@ -287,20 +284,27 @@ public class PostProjectSetupTasksExecutor {
     return false;
   }
 
-  private boolean shouldRecommendPluginVersionUpgrade() {
+  /**
+   * Indicates whether the IDE should recommend the user to upgrade the Android Gradle plugin.
+   * @return the current version of the plugin being used if an upgrade recommendation is needed, {@code null} otherwise.
+   */
+  @Nullable
+  private String shouldRecommendPluginVersionUpgrade() {
     if (ApplicationManager.getApplication().isUnitTestMode() || AndroidPlugin.isGuiTestingMode()) {
-      return false;
+      return null;
     }
     AndroidProject androidProject = getAppAndroidProject(myProject);
     if (androidProject != null) {
       logProjectVersion(androidProject);
       if (isNonExperimentalPlugin(androidProject)) {
-        GradleVersion latest = GradleVersion.parse(GRADLE_PLUGIN_LATEST_VERSION);
+        GradleVersion latestInstantRunImprovements = new GradleVersion(2, 1, 0);
         String current = androidProject.getModelVersion();
-        return latest.compareTo(current) > 0;
+        if (latestInstantRunImprovements.compareTo(current) > 0) {
+          return current;
+        }
       }
     }
-    return false;
+    return null;
   }
 
   private static boolean isNonExperimentalPlugin(@NotNull AndroidProject androidProject) {
@@ -329,27 +333,24 @@ public class PostProjectSetupTasksExecutor {
     if (modulesToDispose == null || modulesToDispose.isEmpty()) {
       return;
     }
-    ApplicationManager.getApplication().runWriteAction(new Runnable() {
-      @Override
-      public void run() {
-        ModuleManager moduleManager = ModuleManager.getInstance(myProject);
-        List<File> imlFilesToRemove = Lists.newArrayList();
-        ModifiableModuleModel moduleModel = moduleManager.getModifiableModel();
-        try {
-          for (Module module : modulesToDispose) {
-            File imlFile = new File(toSystemDependentName(module.getModuleFilePath()));
-            imlFilesToRemove.add(imlFile);
-            moduleModel.disposeModule(module);
-          }
+    ApplicationManager.getApplication().runWriteAction(() -> {
+      ModuleManager moduleManager = ModuleManager.getInstance(myProject);
+      List<File> imlFilesToRemove = Lists.newArrayList();
+      ModifiableModuleModel moduleModel = moduleManager.getModifiableModel();
+      try {
+        for (Module module : modulesToDispose) {
+          File imlFile = new File(toSystemDependentName(module.getModuleFilePath()));
+          imlFilesToRemove.add(imlFile);
+          moduleModel.disposeModule(module);
         }
-        finally {
-          setModulesToDisposePostSync(myProject, null);
-          moduleModel.commit();
-        }
-        for (File imlFile : imlFilesToRemove) {
-          if (imlFile.isFile()) {
-            delete(imlFile);
-          }
+      }
+      finally {
+        setModulesToDisposePostSync(myProject, null);
+        moduleModel.commit();
+      }
+      for (File imlFile : imlFilesToRemove) {
+        if (imlFile.isFile()) {
+          delete(imlFile);
         }
       }
     });
