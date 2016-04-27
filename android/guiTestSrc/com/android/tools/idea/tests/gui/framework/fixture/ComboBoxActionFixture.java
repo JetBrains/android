@@ -31,6 +31,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.*;
 
+import static com.google.common.truth.Truth.assertThat;
 import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.junit.Assert.*;
 
@@ -136,7 +137,7 @@ public class ComboBoxActionFixture {
       }
     });
     //noinspection ConstantConditions
-    assertTrue(appIndex >= 0);
+    assertThat(appIndex).isAtLeast(0);
 
     execute(new GuiTask() {
       @Override
