@@ -130,7 +130,8 @@ public class RenderErrorPanelTest extends AndroidTestCase {
       "<BR/>" +
       "<BR/>" +
       "The following classes could not be found:<DL>" +
-      "<DD>-&NBSP;LinerLayout (<A HREF=\"action:classpath\">Fix Build Path</A>)" +
+      "<DD>-&NBSP;LinerLayout (<A HREF=\"action:classpath\">Fix Build Path</A>" +
+      ", <A HREF=\"showTag:LinerLayout\">Edit XML</A>)" +
       "</DL>Tip: Try to <A HREF=\"action:build\">build</A> the project.<BR/>" +
       "<BR/>" +
       "</body></html>", html);
@@ -152,7 +153,8 @@ public class RenderErrorPanelTest extends AndroidTestCase {
       "<BR/>" +
       "<BR/>" +
       "The following classes could not be found:<DL>" +
-      "<DD>-&NBSP;LinerLayout (<A HREF=\"action:classpath\">Fix Build Path</A>)" +
+      "<DD>-&NBSP;LinerLayout (<A HREF=\"action:classpath\">Fix Build Path</A>" +
+      ", <A HREF=\"showTag:LinerLayout\">Edit XML</A>)" +
       "</DL>Tip: Try to <A HREF=\"action:build\">build</A> the project.<BR/>" +
       "<BR/>" +
       "</body></html>", html);
@@ -163,7 +165,8 @@ public class RenderErrorPanelTest extends AndroidTestCase {
     assertHtmlEquals(
       "<html><body><A HREF=\"action:close\"></A>&nbsp;<font style=\"font-weight:bold; color:#005555;\">Rendering Problems</font><BR/>" +
       "The following classes could not be found:<DL>" +
-      "<DD>-&NBSP;Bitton (<A HREF=\"action:classpath\">Fix Build Path</A>)" +
+      "<DD>-&NBSP;Bitton (<A HREF=\"action:classpath\">Fix Build Path</A>" +
+      ", <A HREF=\"showTag:Bitton\">Edit XML</A>)" +
       "</DL>Tip: Try to <A HREF=\"action:build\">build</A> the project.<BR/>" +
       "<BR/>" +
       "</body></html>", html);
