@@ -99,6 +99,7 @@ public class ChooseResourceDialogTest {
     assertFalse(state3.getValueComponent().hasWarningIcon());
     assertFalse(state3.isAlphaVisible());
 
+    dialog.waitForErrorLabel();
     dialog.clickCancel();
     stateListCell.stopEditing();
   }

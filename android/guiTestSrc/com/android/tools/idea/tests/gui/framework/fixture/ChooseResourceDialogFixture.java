@@ -64,14 +64,17 @@ public class ChooseResourceDialogFixture extends IdeaDialogFixture<ChooseResourc
 
   @NotNull
   public String getError() {
-    final JLabel error =
-      GuiTests.waitUntilShowing(robot(), new GenericTypeMatcher<JLabel>(JLabel.class) {
-        @Override
-        protected boolean isMatching(@NotNull JLabel component) {
-          return !StringUtil.isEmpty(component.getText()) && component.getIcon() == AllIcons.General.Error;
-        }
-      });
-    return error.getText();
+    return waitForErrorLabel().getText();
+  }
+
+  @NotNull
+  public JLabel waitForErrorLabel() {
+    return GuiTests.waitUntilShowing(robot(), new GenericTypeMatcher<JLabel>(JLabel.class) {
+      @Override
+      protected boolean isMatching(@NotNull JLabel component) {
+        return !StringUtil.isEmpty(component.getText()) && component.getIcon() == AllIcons.General.Error;
+      }
+    });
   }
 
   public void requireNoError() {
