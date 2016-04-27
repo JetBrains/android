@@ -17,10 +17,7 @@ package com.android.tools.idea.templates;
 
 import com.android.SdkConstants;
 import com.android.ide.common.repository.GradleCoordinate;
-import com.google.common.collect.LinkedListMultimap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Multimap;
+import com.google.common.collect.*;
 import com.intellij.ide.startup.impl.StartupManagerImpl;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
@@ -47,11 +44,12 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrC
 
 import java.util.*;
 
+import static com.android.tools.idea.templates.GradleFileMergers.CONFIGURATION_ORDERING;
+
 /**
  * Utility class to help with merging Gradle files into one another
  */
 public class GradleFilePsiMerger {
-  private static final String DEPENDENCIES = "dependencies";
 
   /**
    * Merges the given source build.gradle content into the given destination build.gradle content,
@@ -136,8 +134,8 @@ public class GradleFilePsiMerger {
         }
         // And we're done for this branch
       }
-      else if (child.getFirstChild() != null && child.getFirstChild().getText().equalsIgnoreCase(DEPENDENCIES) &&
-               destination.getFirstChild() != null && destination.getFirstChild().getText().equalsIgnoreCase(DEPENDENCIES)) {
+      else if (child.getFirstChild() != null && child.getFirstChild().getText().equalsIgnoreCase(GradleFileMergers.DEPENDENCIES) &&
+               destination.getFirstChild() != null && destination.getFirstChild().getText().equalsIgnoreCase(GradleFileMergers.DEPENDENCIES)) {
         // Special case dependencies
         // The last child of the dependencies method call is the closable block
         mergeDependencies(child.getLastChild(), destination.getLastChild(), project, supportLibVersionFilter);
@@ -164,10 +162,16 @@ public class GradleFilePsiMerger {
     GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(project);
 
     RepositoryUrlManager urlManager = RepositoryUrlManager.get();
-    for (Map.Entry<String, Multimap<String, GradleCoordinate>> entry : dependencies.entrySet()) {
-      final String configurationName = entry.getKey();
-      for (GradleCoordinate dependency : urlManager.resolveDynamicDependencies(entry.getValue(), supportLibVersionFilter)) {
-        PsiElement dependencyElement = factory.createStatementFromText(String.format("%s '%s'\n", configurationName, dependency.toString()));
+
+    ImmutableList<String> configurations = CONFIGURATION_ORDERING.immutableSortedCopy(dependencies.keySet());
+
+    for (String configurationName : configurations) {
+      List<GradleCoordinate> resolved = urlManager.resolveDynamicDependencies(dependencies.get(configurationName),
+                                                                              supportLibVersionFilter);
+      for (GradleCoordinate dependency : resolved) {
+        PsiElement dependencyElement = factory.createStatementFromText(String.format("%s '%s'\n",
+                                                                                     configurationName,
+                                                                                     dependency.toString()));
         toRoot.addBefore(dependencyElement, toRoot.getLastChild());
       }
     }
