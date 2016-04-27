@@ -88,7 +88,7 @@ public class BuildVariantsTest {
     JpsAndroidModuleProperties androidFacetProperties = androidFacet.getProperties();
     assertEquals("assembleFlavor1Release", androidFacetProperties.ASSEMBLE_TASK_NAME);
     // 'release' variant does not have the _android_test_ artifact.
-    assertEquals("", androidFacetProperties.ASSEMBLE_TEST_TASK_NAME);
+    assertThat(androidFacetProperties.ASSEMBLE_TEST_TASK_NAME).isEmpty();
 
     buildVariants.selectVariantForModule(MODULE_NAME, "flavor1Debug");
 

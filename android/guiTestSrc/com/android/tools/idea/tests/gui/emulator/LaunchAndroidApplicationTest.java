@@ -28,6 +28,7 @@ import org.junit.runner.RunWith;
 import java.io.IOException;
 import java.util.regex.Pattern;
 
+import static com.google.common.truth.Truth.assertThat;
 import static junit.framework.Assert.assertTrue;
 
 @RunWith(GuiTestRunner.class)
@@ -64,7 +65,7 @@ public class LaunchAndroidApplicationTest {
     final EditorFixture editor = guiTest.ideFrame().getEditor();
     final int offset = editor.open("app/src/main/java/google/simpleapplication/MyActivity.java", EditorFixture.Tab.EDITOR).findOffset(
       "setContentView", "(R.layout.activity_my);", true);
-    assertTrue(offset >= 0);
+    assertThat(offset).isAtLeast(0);
 
     guiTest.ideFrame().debugApp(APP_NAME);
     guiTest.ideFrame().findChooseDeviceDialog().selectEmulator("Nexus7")
