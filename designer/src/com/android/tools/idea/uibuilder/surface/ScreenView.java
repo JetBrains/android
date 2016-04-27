@@ -36,13 +36,17 @@ import java.util.List;
  */
 public class ScreenView {
   private final DesignSurface mySurface;
+  private final ScreenViewType myType;
   private final NlModel myModel;
+
+  public enum ScreenViewType { NORMAL, BLUEPRINT }
 
   @SwingCoordinate private int x;
   @SwingCoordinate private int y;
 
-  public ScreenView(@NotNull DesignSurface surface, @NotNull NlModel model) {
+  public ScreenView(@NotNull DesignSurface surface, @NotNull ScreenViewType type, @NotNull NlModel model) {
     mySurface = surface;
+    myType = type;
     myModel = model;
 
     myModel.addListener(new ModelListener() {
@@ -76,6 +80,12 @@ public class ScreenView {
   public RenderResult getResult() {
     return myModel.getRenderResult();
   }
+
+  /**
+   * Returns the current type of this ScreenView
+   */
+  @NotNull
+  public ScreenViewType getScreenViewType() { return myType; }
 
   /**
    * Returns the current size of the view. This is the same as {@link #getPreferredSize()} but accounts for the current zoom level.

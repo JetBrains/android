@@ -211,7 +211,7 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
 
     myLayers.clear();
     if (model != null) {
-      myScreenView = new ScreenView(this, model);
+      myScreenView = new ScreenView(this, ScreenView.ScreenViewType.NORMAL, model);
 
       // If the model has already rendered, there may be errors to display,
       // so update the error panel to reflect that.
@@ -228,7 +228,7 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
           addBlueprintLayers(myScreenView);
           break;
         case BOTH:
-          myBlueprintView = new ScreenView(this, model);
+          myBlueprintView = new ScreenView(this, ScreenView.ScreenViewType.BLUEPRINT, model);
           myBlueprintView.setLocation(myScreenX + screenSize.width + 10, myScreenY);
 
           addScreenLayers();
