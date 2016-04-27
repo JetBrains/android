@@ -73,7 +73,7 @@ void main(void) {
     color += diffuse * uLightColor[i] * uDiffuseColor;
 
     float adjustedRoughness = uRoughness + (1.0 - uRoughness) * uLightSize[i];
-    float specular = brdf(normal, uLightDir[i], diffuse, toCamera, uRoughness);
+    float specular = brdf(normal, uLightDir[i], diffuse, toCamera, adjustedRoughness);
     color += specular * uLightSpecColor[i] * uSpecularColor;
     color += r * diffuse * uLightSpecColor[i];
   }
