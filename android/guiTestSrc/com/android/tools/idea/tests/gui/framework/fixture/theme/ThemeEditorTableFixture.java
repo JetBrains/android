@@ -34,8 +34,8 @@ import javax.swing.*;
 import java.awt.Component;
 import java.util.List;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.fest.swing.edt.GuiActionRunner.execute;
-import static org.junit.Assert.assertTrue;
 
 public class ThemeEditorTableFixture extends JTableFixture {
   private ThemeEditorTableFixture(Robot robot, ThemeEditorTable target) {
@@ -86,8 +86,7 @@ public class ThemeEditorTableFixture extends JTableFixture {
     return execute(new GuiQuery<List<String>>() {
       @Override
       protected List<String> executeInEDT() throws Throwable {
-        Component renderer = rendererComponentAt(cell);
-        assertTrue(renderer instanceof JComponent);
+        Component renderer = checkNotNull(rendererComponentAt(cell));
         JComboBoxFixture comboBox = new JComboBoxFixture(robot(), robot().finder().findByType((JComponent)renderer, JComboBox.class));
         return ImmutableList.copyOf(comboBox.contents());
       }
@@ -99,8 +98,7 @@ public class ThemeEditorTableFixture extends JTableFixture {
     return execute(new GuiQuery<String>() {
       @Override
       protected String executeInEDT() throws Throwable {
-        Component renderer = rendererComponentAt(cell);
-        assertTrue(renderer instanceof JComponent);
+        Component renderer = checkNotNull(rendererComponentAt(cell));
         JComboBoxFixture comboBox = new JComboBoxFixture(robot(), robot().finder().findByType((JComponent)renderer, JComboBox.class));
         return comboBox.selectedItem();
       }
