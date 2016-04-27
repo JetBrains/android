@@ -32,6 +32,10 @@ import org.jetbrains.annotations.NotNull;
 public class ManifestEditorProvider implements FileEditorProvider {
   @Override
   public boolean accept(@NotNull Project project, @NotNull VirtualFile file) {
+    // Hold this feature until preview 2
+    if (true) {
+      return false;
+    }
     Module module = ModuleUtilCore.findModuleForFile(file, project);
     if (module != null) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
