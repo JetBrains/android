@@ -17,6 +17,7 @@ package com.android.tools.idea.templates;
 
 import com.android.utils.SdkUtils;
 import freemarker.template.*;
+import freemarker.template.utility.StringUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -50,9 +51,11 @@ public class FmActivityToLayoutMethod implements TemplateMethodModelEx {
 
     // Convert CamelCase convention used in activity class names to underlined convention
     // used in layout name:
-    String name = layoutNamePrefix + TemplateUtils.camelCaseToUnderlines(activityName);
+    String name = TemplateUtils.camelCaseToUnderlines(activityName);
+    // We are going to add layoutNamePrefix to the result, so make sure we don't have that string already.
+    name = StringUtil.replace(name, layoutNamePrefix, "", false, true);
 
-    return new SimpleScalar(name);
+    return new SimpleScalar(layoutNamePrefix + name);
   }
 
   private static String stripActivitySuffix(@NotNull String activityName) {
@@ -71,6 +74,6 @@ public class FmActivityToLayoutMethod implements TemplateMethodModelEx {
       }
     }
 
-    return stripSuffix(activityName, ACTIVITY_NAME_SUFFIX, true /* recursive strip */);
+    return stripSuffix(activityName, ACTIVITY_NAME_SUFFIX, false);
   }
 }
