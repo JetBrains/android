@@ -70,7 +70,7 @@ public interface RecipeExecutor {
   /**
    * Record a library dependency.
    */
-  void addDependency(@NotNull String mavenUrl);
+  void addDependency(@NotNull String configuration, @NotNull String mavenUrl);
 
   /**
    * Update the project's gradle build file and sync, if necessary. This should only be called

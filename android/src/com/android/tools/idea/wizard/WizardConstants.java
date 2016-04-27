@@ -19,6 +19,7 @@ import com.android.sdklib.repository.legacy.descriptors.IPkgDesc;
 import com.android.tools.idea.npw.ModuleTemplate;
 import com.android.tools.idea.ui.wizard.StudioWizardLayout;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.SetMultimap;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBUI;
 
@@ -76,8 +77,8 @@ public class WizardConstants {
   public static final Key<String> BUILD_TOOLS_VERSION_KEY = createKey(ATTR_BUILD_TOOLS_VERSION, WIZARD, String.class);
   public static final Key<String> COMPANY_DOMAIN_KEY = createKey("companyDomain", STEP, String.class);
   public static final Key<String> DEBUG_KEYSTORE_SHA_1_KEY = createKey(ATTR_DEBUG_KEYSTORE_SHA1, WIZARD, String.class);
-  @SuppressWarnings("unchecked") public static final Key<List<String>> DEPENDENCIES_KEY =
-    createKey(ATTR_DEPENDENCIES_LIST, WIZARD, (Class<List<String>>)(Class)String.class);
+  @SuppressWarnings("unchecked") public static final Key<SetMultimap<String, String>> DEPENDENCIES_KEY =
+    createKey(ATTR_DEPENDENCIES_MULTIMAP, WIZARD, (Class<SetMultimap<String, String>>)(Class) SetMultimap.class);
   public static final Key<String> GRADLE_PLUGIN_VERSION_KEY = createKey(ATTR_GRADLE_PLUGIN_VERSION, WIZARD, String.class);
   public static final Key<String> GRADLE_VERSION_KEY = createKey(ATTR_GRADLE_VERSION, WIZARD, String.class);
   @SuppressWarnings("unchecked") public static final Key<List<String>> INSTALL_REQUESTS_KEY =

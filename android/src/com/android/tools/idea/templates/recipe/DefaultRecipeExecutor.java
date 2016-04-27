@@ -25,13 +25,17 @@ import com.android.tools.idea.templates.GradleFilePsiMerger;
 import com.android.tools.idea.templates.GradleFileSimpleMerger;
 import com.android.tools.idea.templates.RecipeMergeUtils;
 import com.android.tools.idea.templates.TemplateMetadata;
+import com.google.common.collect.SetMultimap;
 import com.intellij.diff.comparison.ComparisonManager;
 import com.intellij.diff.comparison.ComparisonPolicy;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupManager;
-import com.intellij.openapi.vfs.*;
+import com.intellij.openapi.vfs.ReadonlyStatusHandler;
+import com.intellij.openapi.vfs.VfsUtilCore;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileVisitor;
 import com.intellij.util.LineSeparator;
 import freemarker.template.Configuration;
 import freemarker.template.TemplateException;
@@ -41,7 +45,6 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 
 import static com.android.SdkConstants.*;
@@ -169,11 +172,12 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
    * Add a library dependency into the project.
    */
   @Override
-  public void addDependency(@NotNull String mavenUrl) {
-    myReferences.addDependency(mavenUrl);
+  public void addDependency(@NotNull String configuration, @NotNull String mavenUrl) {
+    myReferences.addDependency(configuration, mavenUrl);
     //noinspection unchecked
-    List<String> dependencyList = (List<String>)getParamMap().get(TemplateMetadata.ATTR_DEPENDENCIES_LIST);
-    dependencyList.add(mavenUrl);
+    SetMultimap<String, String> dependencyList =
+      (SetMultimap<String, String>)getParamMap().get(TemplateMetadata.ATTR_DEPENDENCIES_MULTIMAP);
+    dependencyList.put(configuration, mavenUrl);
   }
 
   @Override
@@ -435,8 +439,12 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
   private String formatDependencies() {
     StringBuilder dependencies = new StringBuilder();
     dependencies.append("dependencies {\n");
-    for (String dependency : myContext.getDependencies()) {
-      dependencies.append("  compile '").append(dependency).append("'\n");
+    for (Map.Entry<String, String> dependency : myContext.getDependencies().entries()) {
+      dependencies.append("  ")
+        .append(dependency.getKey())
+        .append(" '")
+        .append(dependency.getValue())
+        .append("'\n");
     }
     dependencies.append("}\n");
     return dependencies.toString();
