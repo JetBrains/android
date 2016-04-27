@@ -31,12 +31,11 @@ import java.awt.*;
 public final class AssistSidePanel extends JPanel {
 
   public AssistSidePanel(@NotNull String actionId, @NotNull DeveloperServiceMap serviceMap) {
-    Component customPanel = null;
-
-    // TODO: Move layout to a form.
-    setLayout(new BorderLayout());
+    super(new BorderLayout());
     setBorder(BorderFactory.createEmptyBorder());
     setOpaque(false);
+
+    Component customPanel = null;
 
     for (DeveloperServiceCreators creators : DeveloperServiceCreators.EP_NAME.getExtensions()) {
       if (creators.getBundleId().equals(actionId)) {
