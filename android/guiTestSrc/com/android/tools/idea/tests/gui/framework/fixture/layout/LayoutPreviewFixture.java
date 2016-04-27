@@ -38,6 +38,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.google.common.truth.Truth.assertThat;
 import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.junit.Assert.*;
 
@@ -231,7 +232,7 @@ public class LayoutPreviewFixture extends ToolWindowFixture implements LayoutFix
   @NotNull
   public LayoutWidgetFixture find(@NotNull TagMatcher matcher) {
     List<LayoutWidgetFixture> all = findAll(matcher);
-    assertTrue("Expected to find exactly one match, but found " + all.size() + ": " + all, all.size() == 1);
+    assertThat(all).hasSize(1);
     return all.get(0);
   }
 
