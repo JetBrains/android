@@ -52,7 +52,7 @@ public class PluginVersionRecommendedUpdateDialog extends DialogWrapper {
   private JEditorPane myMessagePane;
   private JButton[] myButtons;
 
-  public PluginVersionRecommendedUpdateDialog(@NotNull Project project) {
+  public PluginVersionRecommendedUpdateDialog(@NotNull Project project, @NotNull String currentPluginVersion) {
     super(project);
     myProject = project;
     setTitle("Android Gradle Plugin Update Recommended");
@@ -66,7 +66,7 @@ public class PluginVersionRecommendedUpdateDialog extends DialogWrapper {
     init();
 
     setUpAsHtmlLabel(myMessagePane);
-    String msg = "<b>The project is using an old version of the Android Gradle plugin.</b><br/<br/>" +
+    String msg = "<b>The project is using an old version of the Android Gradle plugin (" + currentPluginVersion + ").</b><br/<br/>" +
                  "To take advantage of all the latest features, such as " +
                  "<b><a href='http://tools.android.com/tech-docs/instant-run'>Instant Run</a></b>, we strongly recommend " +
                  "that you update the Android Gradle plugin to version " +
