@@ -22,6 +22,7 @@ import com.android.tools.idea.uibuilder.surface.ScreenView;
 import org.fest.swing.core.Robot;
 import org.jetbrains.annotations.NotNull;
 
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.*;
 
 /**
@@ -43,8 +44,7 @@ public class RenderErrorPanelFixture {
     assertNotNull("No render result available", lastResult);
     RenderErrorPanel panel = new RenderErrorPanel();
     String html = panel.showErrors(lastResult);
-    assertNotNull(html);
-    assertTrue("Did not find '" + error + "' in " + html, html.contains(error));
+    assertThat(html).contains(error);
   }
 
   public void performSuggestion(@NotNull String linkText) {
@@ -59,7 +59,7 @@ public class RenderErrorPanelFixture {
     assertTrue("Could not find anchor before link text " + linkText + " in " + html, anchor != -1);
     int begin = anchor + "<A HREF=\"".length();
     int end = html.indexOf('"', begin);
-    assertTrue(end != -1);
+    assertThat(end).isNotEqualTo(-1);
     String url = html.substring(begin, end);
     panel.performClick(url);
   }

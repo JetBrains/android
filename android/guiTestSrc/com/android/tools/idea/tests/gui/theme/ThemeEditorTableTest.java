@@ -290,18 +290,18 @@ public class ThemeEditorTableTest {
 
     JListFixture completionPopup = ThemeEditorGuiTestUtils.getCompletionPopup(guiTest.robot());
     String[] suggestions = completionPopup.contents();
-    assertTrue(suggestions.length > 0);
+    assertThat(suggestions).isNotEmpty();
     for (String suggestion : suggestions) {
-      assertTrue(suggestion.startsWith(prefix));
+      assertThat(suggestion).startsWith(prefix);
     }
 
     prefix = "@color/back";
     textComponent.replaceText(prefix);
     completionPopup = ThemeEditorGuiTestUtils.getCompletionPopup(guiTest.robot());
     suggestions = completionPopup.contents();
-    assertTrue(suggestions.length > 0);
+    assertThat(suggestions).isNotEmpty();
     for (String suggestion : suggestions) {
-      assertTrue(suggestion.startsWith(prefix));
+      assertThat(suggestion).startsWith(prefix);
     }
 
     completionPopup.item(0).doubleClick();

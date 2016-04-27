@@ -34,6 +34,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.io.IOException;
 
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.*;
 
 @RunWith(GuiTestRunner.class)
@@ -125,7 +126,7 @@ public class ManifestEditorTest {
     String addedText = "<activity\n" +
                        "            android:name=\"com.android.mylibrary.MainActivity\"\n" +
                        "            tools:node=\"remove\" />";
-    assertFalse(text.contains(addedText));
+    assertThat(text).doesNotContain(addedText);
     editor.selectEditorTab(EditorFixture.Tab.MERGED_MANIFEST);
     MergedManifestFixture mergedManifestFixture = editor.getMergedManifestEditor();
     JTreeFixture tree = mergedManifestFixture.getTree();
@@ -140,6 +141,6 @@ public class ManifestEditorTest {
     editor.selectEditorTab(EditorFixture.Tab.EDITOR);
     text = editor.getCurrentFileContents(false);
     assertNotNull(text);
-    assertTrue(text.contains(addedText));
+    assertThat(text).contains(addedText);
   }
 }
