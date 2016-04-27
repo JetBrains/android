@@ -29,6 +29,8 @@ import org.junit.runner.RunWith;
 import java.io.IOException;
 import java.util.regex.Pattern;
 
+import static com.google.common.truth.Truth.assertThat;
+
 /** Tests the editing flow of refactoring */
 @RunIn(TestGroup.EDITING)
 @RunWith(GuiTestRunner.class)
@@ -55,7 +57,7 @@ public class RefactoringFlowTest {
     refactoringDialog.clickRefactor();
 
     ConflictsDialogFixture conflictsDialog = ConflictsDialogFixture.find(guiTest.robot());
-    conflictsDialog.requireMessageTextContains("Resource @string/action_settings already exists");
+    assertThat(conflictsDialog.getText()).contains("Resource @string/action_settings already exists");
     conflictsDialog.clickCancel();
     refactoringDialog.clickCancel();
   }
@@ -81,7 +83,7 @@ public class RefactoringFlowTest {
     refactoringDialog.clickRefactor();
 
     ConflictsDialogFixture conflictsDialog = ConflictsDialogFixture.find(guiTest.robot());
-    conflictsDialog.requireMessageTextMatches(
+    assertThat(conflictsDialog.getText()).matches(
       Pattern.quote("Resource is also only defined in external libraries and\n" +
                     "cannot be renamed.\n" +
                     "\n" +
@@ -101,7 +103,7 @@ public class RefactoringFlowTest {
     refactoringDialog.clickRefactor();
 
     conflictsDialog = ConflictsDialogFixture.find(guiTest.robot());
-    conflictsDialog.requireMessageTextMatches(
+    assertThat(conflictsDialog.getText()).matches(
       Pattern.quote("The resource @string/abc_searchview_description_submit is\n" +
                     "defined outside of the project (in one of the libraries) and\n" +
                     "cannot be updated. This can change the behavior of the\n" +

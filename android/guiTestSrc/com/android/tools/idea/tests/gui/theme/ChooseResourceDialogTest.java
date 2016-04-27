@@ -154,8 +154,7 @@ public class ChooseResourceDialogTest {
     name.deleteText();
     name.enterText("color" + badText);
     String text = name.text();
-    assertNotNull(text);
-    assertTrue(text.endsWith(badText));
+    assertThat(text).endsWith(badText);
 
     final String expectedError = "<html><font color='#ff0000'><left>'" + badText +
                                  "' is not a valid resource name character</left></b></font></html>";
