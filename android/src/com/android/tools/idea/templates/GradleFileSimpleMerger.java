@@ -32,6 +32,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static com.android.tools.idea.templates.GradleFileMergers.CONFIGURATION_ORDERING;
+import static com.android.tools.idea.templates.GradleFileMergers.DEPENDENCIES;
+
 /**
  * Simplified gradle.build merger designed to be used while instantiating android project templates.
  * This merger will not modify the Psi but simply work on the file content.
@@ -44,9 +47,6 @@ import java.util.Set;
  * </ul>
  */
 public class GradleFileSimpleMerger {
-  private static final String DEPENDENCIES = "dependencies";
-  private static final String COMPILE = "compile";
-
   public static String mergeGradleFiles(@NotNull String source,
                                         @NotNull String dest,
                                         @Nullable Project project,
@@ -418,15 +418,16 @@ public class GradleFileSimpleMerger {
       pullDependenciesIntoMap(dependencies, null);
       other.pullDependenciesIntoMap(dependencies, unparseableDependencies);
       RepositoryUrlManager urlManager = RepositoryUrlManager.get();
+      ImmutableList<String> configurations = CONFIGURATION_ORDERING.immutableSortedCopy(dependencies.keySet());
 
       Ast prev = null;
-      for (Map.Entry<String, Multimap<String, GradleCoordinate>> entry : dependencies.entrySet()) {
-        List<GradleCoordinate> resolved = urlManager.resolveDynamicDependencies(entry.getValue(), context.getFilter());
+      for (String configuration : configurations) {
+        List<GradleCoordinate> resolved = urlManager.resolveDynamicDependencies(dependencies.get(configuration), context.getFilter());
 
         // Add the resolved dependencies:
         prev = myParam != null ? myParam.findLast() : null;
         for (GradleCoordinate coordinate : resolved) {
-          AstNode compile = new AstNode(entry.getKey());
+          AstNode compile = new AstNode(configuration);
           compile.myParam = new ValueAst("'" + coordinate + "'");
           if (prev == null) {
             myParam = compile;
