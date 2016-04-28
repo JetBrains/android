@@ -30,14 +30,12 @@ import com.android.tools.idea.editors.gfxtrace.service.atom.Observation;
 import com.android.tools.idea.editors.gfxtrace.service.image.FetchedImage;
 import com.android.tools.idea.editors.gfxtrace.service.memory.MemoryProtos.PoolNames;
 import com.android.tools.idea.editors.gfxtrace.service.path.*;
+import com.android.tools.idea.editors.gfxtrace.widgets.LoadableIcon;
 import com.android.tools.idea.editors.gfxtrace.widgets.LoadingIndicator;
 import com.android.tools.idea.editors.gfxtrace.widgets.Repaintables;
 import com.android.tools.idea.logcat.RegexFilterComponent;
 import com.google.common.base.Objects;
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.MoreExecutors;
+import com.google.common.util.concurrent.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.popup.Balloon;
@@ -65,6 +63,7 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -457,7 +456,8 @@ public class AtomController extends TreeController implements AtomStream.Listene
                 AtomsPath atoms = myEditor.getAtomStream().getPath();
                 if (device != null && atoms != null) {
                   lastShownBalloon = JBPopupFactory.getInstance().createBalloonBuilder(
-                      new PreviewPanel(group.getThumbnail(myEditor.getClient(), device, atoms)))
+                      new LoadableIcon(Group.PREVIEW_SIZE, Group.PREVIEW_SIZE)
+                        .withImage(group.getThumbnail(myEditor.getClient(), device, atoms)))
                     .setAnimationCycle(100)
                     .createBalloon();
                   lastShownBalloon.show(new RelativePoint(myTree, new Point(x, y)), Balloon.Position.atRight);
@@ -466,45 +466,6 @@ public class AtomController extends TreeController implements AtomStream.Listene
             }
           }
         });
-      }
-
-      class PreviewPanel extends JComponent {
-        private Image image;
-
-        public PreviewPanel(final ListenableFuture<BufferedImage> imageFuture) {
-          if (imageFuture.isDone()) {
-            image = Futures.getUnchecked(imageFuture);
-          } else {
-            imageFuture.addListener(new Runnable() {
-              @Override
-              public void run() {
-                image = Futures.getUnchecked(imageFuture);
-                Balloon parent = lastShownBalloon;
-                if (parent != null) {
-                  parent.revalidate();
-                }
-              }
-            }, EdtExecutor.INSTANCE);
-          }
-        }
-
-        @Override
-        public Dimension getPreferredSize() {
-          return (image == null) ?
-                 new Dimension(Group.PREVIEW_SIZE, Group.PREVIEW_SIZE) : new Dimension(image.getWidth(this), image.getHeight(this));
-        }
-
-        @Override
-        protected void paintComponent(Graphics g) {
-          g.setColor(getBackground());
-          g.fillRect(0, 0, getWidth(), getHeight());
-          if (image == null) {
-            LoadingIndicator.paint(this, g, 0, 0, getWidth(), getHeight());
-            LoadingIndicator.scheduleForRedraw(Repaintables.forComponent(this));
-          } else {
-            RenderUtils.drawImage(this, g, image, 0, 0, getWidth(), getHeight());
-          }
-        }
       }
 
       @Override
@@ -552,40 +513,9 @@ public class AtomController extends TreeController implements AtomStream.Listene
         if (userObject instanceof Group && device != null && atoms != null) {
           Group group = (Group)userObject;
           if (shouldShowPreview(group)) {
-            ListenableFuture<BufferedImage> iconFuture = group.getThumbnail(myEditor.getClient(), device, atoms);
-            final BufferedImage image;
-            if (iconFuture.isDone()) {
-              image = Futures.getUnchecked(iconFuture);
-            } else {
-              image = null;
-              iconFuture.addListener(new Runnable() {
-                @Override
-                public void run() {
-                  tree.repaint();
-                }
-              }, MoreExecutors.sameThreadExecutor());
-            }
-            setIcon(new Icon() {
-              @Override
-              public void paintIcon(Component component, Graphics g, int x, int y) {
-                if (image == null) {
-                  LoadingIndicator.paint(tree, g, x, y, Group.THUMBNAIL_SIZE, Group.THUMBNAIL_SIZE);
-                  LoadingIndicator.scheduleForRedraw(Repaintables.forComponent(tree));
-                } else {
-                  RenderUtils.drawImage(tree, g, image, x, y, Group.THUMBNAIL_SIZE, Group.THUMBNAIL_SIZE);
-                }
-              }
-
-              @Override
-              public int getIconWidth() {
-                return Group.THUMBNAIL_SIZE;
-              }
-
-              @Override
-              public int getIconHeight() {
-                return Group.THUMBNAIL_SIZE;
-              }
-            });
+            setIcon(new LoadableIcon(Group.THUMBNAIL_SIZE, Group.THUMBNAIL_SIZE)
+                    .withRepaintComponent(tree)
+                    .withImage(group.getThumbnail(myEditor.getClient(), device, atoms)));
           }
         }
       }
