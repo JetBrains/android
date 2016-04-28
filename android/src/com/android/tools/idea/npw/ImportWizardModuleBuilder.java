@@ -20,7 +20,6 @@ import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.wizard.template.TemplateWizardStep;
 import com.google.common.base.Functions;
-import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
@@ -30,7 +29,6 @@ import com.intellij.ide.util.projectWizard.SettingsStep;
 import com.intellij.ide.util.projectWizard.WizardContext;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.ExternalSystemDataKeys;
 import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.module.StdModuleTypes;
@@ -76,11 +74,6 @@ public class ImportWizardModuleBuilder extends ModuleBuilder
   @Nullable private Project myProject;
   private ImportSourceModulePath myImportSourcesPath;
 
-  @NotNull
-  private static Logger getLog() {
-    return Logger.getInstance(ImportWizardModuleBuilder.class);
-  }
-
   public ImportWizardModuleBuilder(@Nullable File templateFile,
                                    @Nullable Project project,
                                    @Nullable VirtualFile importSource,
@@ -92,24 +85,14 @@ public class ImportWizardModuleBuilder extends ModuleBuilder
     myImportSource = importSource;
     mySteps = steps;
 
-    if (project == null) {
-      myWizardState = new NewProjectWizardState() {
-        @Override
-        public void setTemplateLocation(@NotNull File file) {
-          super.setTemplateLocation(file);
-          update();
-        }
-      };
-    }
-    else {
-      myWizardState = new NewModuleWizardState() {
-        @Override
-        public void setTemplateLocation(@NotNull File file) {
-          super.setTemplateLocation(file);
-          update();
-        }
-      };
-    }
+    myWizardState = new NewProjectWizardState() {
+      @Override
+      public void setTemplateLocation(@NotNull File file) {
+        super.setTemplateLocation(file);
+        update();
+      }
+    };
+
     myWizardState.put(ATTR_IS_LAUNCHER, project == null);
     myWizardState.updateParameters();
 
@@ -126,12 +109,7 @@ public class ImportWizardModuleBuilder extends ModuleBuilder
     Template.convertApisToInt(myWizardState.getParameters());
     Iterable<WizardPath> paths = setupWizardPaths(project, sidePanelIcon, disposable);
     if (inGlobalWizard) {
-      myPaths = Iterables.filter(paths, new Predicate<WizardPath>() {
-        @Override
-        public boolean apply(WizardPath input) {
-          return input.supportsGlobalWizard();
-        }
-      });
+      myPaths = Iterables.filter(paths, WizardPath::supportsGlobalWizard);
     }
     else {
       myPaths = paths;
