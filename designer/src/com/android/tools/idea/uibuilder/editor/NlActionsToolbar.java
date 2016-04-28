@@ -578,6 +578,7 @@ public class NlActionsToolbar implements DesignSurfaceListener, ModelListener {
   @Override
   public void modelChanged(@NotNull DesignSurface surface, @Nullable NlModel model) {
     if (myDynamicGroup.getChildrenCount() == 0) {
+      myModel = model;
       updateViewActions();
     }
   }
