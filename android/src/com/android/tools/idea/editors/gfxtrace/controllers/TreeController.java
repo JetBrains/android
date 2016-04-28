@@ -17,6 +17,7 @@ package com.android.tools.idea.editors.gfxtrace.controllers;
 
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.service.path.Path;
+import com.android.tools.idea.editors.gfxtrace.widgets.CopyEnabledTree;
 import com.android.tools.idea.editors.gfxtrace.widgets.LoadablePanel;
 import com.android.tools.idea.editors.gfxtrace.widgets.Tree;
 import com.intellij.openapi.actionSystem.impl.ActionMenu;
@@ -35,13 +36,14 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class TreeController extends Controller {
+
+public abstract class TreeController extends Controller implements CopyEnabledTree.ColumnTextProvider {
   public static final int TREE_ROW_HEIGHT = JBUI.scale(19);
 
   @NotNull protected final LoadablePanel myLoadingPanel;
   @NotNull protected final JPanel myPanel = new JPanel(new BorderLayout());
   @NotNull protected final JBScrollPane myScrollPane = new JBScrollPane();
-  @NotNull protected final Tree myTree = new Tree(new DefaultTreeModel(new DefaultMutableTreeNode()));
+  @NotNull protected final Tree myTree = new CopyEnabledTree(new DefaultTreeModel(new DefaultMutableTreeNode()), this);
 
   public TreeController(@NotNull GfxTraceEditor editor, @NotNull String emptyText) {
     super(editor);

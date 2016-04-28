@@ -36,6 +36,7 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.ColoredTreeCellRenderer;
+import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.util.containers.IntArrayList;
 import com.intellij.xml.breadcrumbs.BreadcrumbsComponent;
@@ -584,5 +585,33 @@ public class StateController extends TreeController implements GpuState.Listener
         }
       }
     };
+  }
+
+  @NotNull
+  @Override
+  public String[] getColumns(TreePath path) {
+    Object object = path.getLastPathComponent();
+    if (object instanceof StateController.Node) {
+      Node node = (StateController.Node)object;
+      String key = "";
+      if (node.key.type != null) {
+        SimpleColoredComponent component = new SimpleColoredComponent();
+        Render.render(node.key.value, node.key.type, component, SimpleTextAttributes.REGULAR_ATTRIBUTES, 0);
+        key = component.toString();
+      }
+      else {
+        key = String.valueOf(node.key.value.getObject());
+      }
+
+      if (!node.isLeaf() || node.value == null || node.value.value == null || node.value.value.getObject() == null) {
+        return new String[]{key};
+      }
+
+      SimpleColoredComponent component = new SimpleColoredComponent();
+      Render.render(node.value.value, node.value.type, component, SimpleTextAttributes.REGULAR_ATTRIBUTES, 0);
+      String value = component.toString();
+      return new String[]{key, value};
+    }
+    return new String[]{object.toString()};
   }
 }
