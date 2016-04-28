@@ -219,8 +219,11 @@ public class AndroidModuleInfoTest extends AndroidGradleTestCase {
   }
 
   public void testManifestError() throws Exception {
-    loadProject("projects/moduleInfo/manifestError");
-    MergedManifest manifestInfo = MergedManifest.get(myAndroidFacet);
-    assertEquals(0, manifestInfo.getActivities().size());
+    try {
+      loadProject("projects/moduleInfo/manifestError");
+      fail();
+    } catch (Exception e) {
+      assertThat(e.getMessage()).contains("Exception while parsing the supplied manifest file");
+    }
   }
 }
