@@ -18,6 +18,7 @@ package com.android.tools.idea.templates.recipe;
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateProcessingException;
 import com.android.tools.idea.templates.TemplateUtils;
 import com.android.tools.idea.templates.parse.StringFileAdapter;
+import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -269,9 +270,13 @@ public class Recipe implements RecipeInstruction {
     @NotNull
     private String mavenUrl;
 
+    @XmlAttribute
+    private String gradleConfiguration;
+
     @Override
     public void execute(@NotNull RecipeExecutor executor) {
-      executor.addDependency(mavenUrl);
+      String configuration = Objects.firstNonNull(this.gradleConfiguration, "compile");
+      executor.addDependency(configuration, mavenUrl);
     }
   }
 
