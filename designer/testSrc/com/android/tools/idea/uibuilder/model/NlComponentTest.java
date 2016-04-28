@@ -22,6 +22,7 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.Collections;
 
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -51,7 +52,7 @@ public final class NlComponentTest {
     NlComponent textView = new NlComponent(myModel, createTag("TextView"));
     NlComponent button = new NlComponent(myModel, createTag("Button"));
 
-    assertEquals(Collections.emptyList(), linearLayout.getChildren());
+    assertThat(linearLayout.getChildren()).isEmpty();
 
     linearLayout.addChild(textView);
     linearLayout.addChild(button);
