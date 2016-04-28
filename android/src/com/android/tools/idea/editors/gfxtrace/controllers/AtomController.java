@@ -27,6 +27,7 @@ import com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.WireframeMo
 import com.android.tools.idea.editors.gfxtrace.service.atom.Atom;
 import com.android.tools.idea.editors.gfxtrace.service.atom.AtomGroup;
 import com.android.tools.idea.editors.gfxtrace.service.atom.Observation;
+import com.android.tools.idea.editors.gfxtrace.service.atom.Range;
 import com.android.tools.idea.editors.gfxtrace.service.image.FetchedImage;
 import com.android.tools.idea.editors.gfxtrace.service.memory.MemoryProtos.PoolNames;
 import com.android.tools.idea.editors.gfxtrace.service.path.*;
@@ -509,10 +510,9 @@ public class AtomController extends TreeController implements AtomStream.Listene
 
       @Override
       public void mouseClicked(MouseEvent event) {
-        TreePath path = myTree.getPathForLocation(event.getX(), event.getY());
-        if (path != null && path.getLastPathComponent() instanceof DefaultMutableTreeNode &&
-            ((DefaultMutableTreeNode)path.getLastPathComponent()).getUserObject() instanceof Node) {
-          Node node = (Node)((DefaultMutableTreeNode)path.getLastPathComponent()).getUserObject();
+        Object object = getDataObjectAt(myTree.getPathForLocation(event.getX(), event.getY()));
+        if (object instanceof Node) {
+          Node node = (Node)object;
           // The user was hovering over a parameter, fire off the path activation event on click.
           if (node.hoveredParameter >= 0) {
             myEditor.activatePath(node.getFollowPath(node.hoveredParameter), AtomController.this);
@@ -590,6 +590,37 @@ public class AtomController extends TreeController implements AtomStream.Listene
         }
       }
     };
+  }
+
+  @NotNull
+  @Override
+  public String[] getColumns(TreePath path) {
+    Object object = getDataObjectAt(path);
+    if (object instanceof Group) {
+      AtomGroup group = ((Group)object).group;
+      Range range = group.getRange();
+      return new String[] {
+        group.getName(),
+        "(" + range.getStart() + " - " + range.getLast() + ")",
+      };
+    }
+    if (object instanceof Node) {
+      Node node = (Node)object;
+      SimpleColoredComponent component = new SimpleColoredComponent();
+      Render.render(node.atom, component, node.hoveredParameter);
+      return new String[]{ node.index + ":", component.toString() };
+    }
+    return new String[]{ object.toString() };
+  }
+
+  /**
+   * @return the data object (usually a {@link Node}, {@link Group} or {@link Memory} for the
+   * object at the specified path.
+   */
+  @Nullable
+  private Object getDataObjectAt(TreePath path) {
+    DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode)path.getLastPathComponent();
+    return treeNode.getUserObject();
   }
 
   private void findNextNode(Pattern pattern) {
