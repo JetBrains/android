@@ -82,4 +82,10 @@ public interface NlProperty {
    */
   @NotNull
   NlProperty getChildProperty(@NotNull String name);
+
+  /**
+   * Return the same property as a design time property.
+   */
+  @NotNull
+  NlProperty getDesignTimeProperty();
 }
