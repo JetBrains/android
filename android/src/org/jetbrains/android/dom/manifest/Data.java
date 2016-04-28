@@ -15,11 +15,11 @@
  */
 package org.jetbrains.android.dom.manifest;
 
+import org.jetbrains.android.dom.Styleable;
+
 /**
  * http://developer.android.com/guide/topics/manifest/data-element.html
- * <p/>
- * Attribute completion provided by AndroidManifestData styleable and
- * {@link AndroidManifestUtils#getStyleableNameByTagName(String)}
  */
+@Styleable("AndroidManifestData")
 public interface Data extends ManifestElement {
 }

@@ -22,6 +22,7 @@ import com.intellij.util.xml.Convert;
 import com.intellij.util.xml.ExtendClass;
 import org.jetbrains.android.dom.AndroidAttributeValue;
 import org.jetbrains.android.dom.AndroidResourceType;
+import org.jetbrains.android.dom.Styleable;
 import org.jetbrains.android.dom.converters.AndroidBooleanValueConverter;
 import org.jetbrains.android.dom.converters.PackageClassConverter;
 import org.jetbrains.android.dom.converters.ResourceReferenceConverter;
@@ -31,6 +32,7 @@ import org.jetbrains.android.dom.structure.manifest.ApplicationPresentationProvi
 import java.util.List;
 
 @Presentation(provider = ApplicationPresentationProvider.class)
+@Styleable("AndroidManifestApplication")
 public interface Application extends ManifestElement {
   List<Activity> getActivities();
 
