@@ -65,4 +65,8 @@ public abstract class Atom {
   public abstract boolean isEndOfFrame();
 
   public abstract boolean isDrawCall();
+
+  public final boolean isParameter(int fieldIndex) {
+    return fieldIndex != getExtrasIndex() && fieldIndex != getResultIndex();
+  }
 }
