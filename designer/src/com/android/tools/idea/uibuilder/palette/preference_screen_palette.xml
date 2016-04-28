@@ -14,10 +14,16 @@
   ~ limitations under the License.
   -->
 <palette>
-  <item tag="CheckBoxPreference"/>
-  <item tag="EditTextPreference"/>
-  <item tag="ListPreference"/>
-  <item tag="MultiSelectListPreference"/>
-  <item tag="RingtonePreference"/>
-  <item tag="SwitchPreference"/>
+  <group name="Preferences">
+    <item tag="CheckBoxPreference"/>
+    <item tag="EditTextPreference"/>
+    <item tag="ListPreference"/>
+    <item tag="MultiSelectListPreference"/>
+    <item tag="RingtonePreference"/>
+    <item tag="SwitchPreference"/>
+  </group>
+
+  <group name="Groups">
+    <item tag="PreferenceCategory"/>
+  </group>
 </palette>

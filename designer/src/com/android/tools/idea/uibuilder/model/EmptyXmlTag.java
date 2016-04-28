@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.tools.idea.uibuilder.structure;
+package com.android.tools.idea.uibuilder.model;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.Language;

@@ -31,6 +31,7 @@ import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.util.PropertiesMap;
 import com.android.utils.XmlUtils;
+import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -228,7 +229,9 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   private MergingUpdateQueue myRenderingQueue;
   private static final Object RENDERING_LOCK = new Object();
 
-  /** Whether we should render just the viewport */
+  /**
+   * Whether we should render just the viewport
+   */
   private static boolean ourRenderViewPort;
 
   public static void setRenderViewPort(boolean state) {
@@ -451,33 +454,53 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       myComponents.clear();
       return;
     }
-    updateHierarchy(result.getRootViews());
+
+    Iterable<ViewInfo> rootViews = Objects.firstNonNull(result.getRootViews(), Collections.emptyList());
+
+    if (ResourceType.valueOf(myFile).equals(ResourceType.PREFERENCE_SCREEN)) {
+      updatePreferenceScreenHierarchy(rootViews);
+    }
+    else {
+      updateHierarchy(rootViews);
+    }
+  }
+
+  private void updatePreferenceScreenHierarchy(@NotNull Iterable<ViewInfo> rootViews) {
+    ApplicationManager.getApplication().runReadAction(() -> {
+      List<NlComponent> components = new ArrayList<>(1);
+      components.add(new PreferenceScreenModel(rootViews, this).getRootComponent());
+
+      myModificationCount++;
+      myComponents = components;
+    });
   }
 
   @VisibleForTesting
-  public void updateHierarchy(@Nullable List<ViewInfo> rootViews) {
+  public void updateHierarchy(@NotNull Iterable<ViewInfo> rootViews) {
     for (NlComponent component : myComponents) {
       initTagMap(component);
       component.children = null;
     }
 
     final List<NlComponent> newRoots = Lists.newArrayList();
-    if (rootViews != null) {
-      for (ViewInfo info : rootViews) {
-        updateHierarchy(newRoots, null, info, 0, 0);
-      }
+
+    for (ViewInfo info : rootViews) {
+      updateHierarchy(newRoots, null, info, 0, 0);
     }
 
-    // TODO: Use result from rendering instead, if available!
-    ApplicationManager.getApplication().runReadAction(() -> {
-      for (NlComponent root : newRoots) {
-        TagSnapshot snapshot = TagSnapshot.createTagSnapshot(root.getTag());
-        updateSnapshot(root, snapshot);
-      }
-    });
+    updateSnapshot(newRoots);
 
     myModificationCount++;
     myComponents = newRoots;
+  }
+
+  private static void updateSnapshot(@NotNull Iterable<NlComponent> roots) {
+    // TODO: Use result from rendering instead, if available!
+    ApplicationManager.getApplication().runReadAction(() -> {
+      for (NlComponent root : roots) {
+        updateSnapshot(root, TagSnapshot.createTagSnapshot(root.getTag()));
+      }
+    });
   }
 
   private static void updateSnapshot(@NotNull NlComponent component, @NotNull TagSnapshot snapshot) {
@@ -1063,7 +1086,8 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
           oldPrefixToPrefix.put(prefix, newPrefix);
           namespaceToPrefix.put(namespace, newPrefix);
         }
-      } else if (!prefix.equals(currentPrefix)) {
+      }
+      else if (!prefix.equals(currentPrefix)) {
         // The namespace is already imported, but using a different prefix. We need
         // to switch the prefixes.
         oldPrefixToPrefix.put(prefix, currentPrefix);
@@ -1088,7 +1112,8 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
           if (newPrefix != null) {
             attribute.setName(XMLNS_PREFIX + newPrefix);
           }
-        } else {
+        }
+        else {
           String newPrefix = oldPrefixToPrefix.get(prefix);
           if (newPrefix != null) {
             attribute.setName(newPrefix + ':' + attribute.getLocalName());

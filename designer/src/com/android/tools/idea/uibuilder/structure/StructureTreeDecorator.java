@@ -15,16 +15,17 @@
  */
 package com.android.tools.idea.uibuilder.structure;
 
-import org.jetbrains.annotations.NotNull;
 import com.android.tools.idea.uibuilder.api.StructurePaneComponentHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
+import com.android.tools.idea.uibuilder.model.EmptyXmlTag;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.SimpleTextAttributes;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Decorator for the structure pane tree control.

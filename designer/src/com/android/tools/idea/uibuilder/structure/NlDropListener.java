@@ -29,7 +29,6 @@ import com.intellij.openapi.util.Computable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.awt.datatransfer.UnsupportedFlavorException;
@@ -53,7 +52,7 @@ public class NlDropListener extends DropTargetAdapter {
   private NlComponent myNextDragSibling;
 
   public NlDropListener(@NotNull NlComponentTree tree) {
-    myDragged = new ArrayList<NlComponent>(10);
+    myDragged = new ArrayList<>();
     myTree = tree;
   }
 
@@ -112,10 +111,7 @@ public class NlDropListener extends DropTargetAdapter {
         }
         return insertType;
       }
-      catch (IOException exception) {
-        Logger.getInstance(NlDropListener.class).warn(exception);
-      }
-      catch (UnsupportedFlavorException exception) {
+      catch (IOException | UnsupportedFlavorException exception) {
         Logger.getInstance(NlDropListener.class).warn(exception);
       }
     }
@@ -165,8 +161,12 @@ public class NlDropListener extends DropTargetAdapter {
       return null;
     }
     NlModel model = screenView.getModel();
-    DefaultMutableTreeNode node = (DefaultMutableTreeNode)path.getLastPathComponent();
-    NlComponent component = (NlComponent)node.getUserObject();
+    NlComponent component = NlComponentTree.toComponent(path.getLastPathComponent());
+
+    if (component == null) {
+      return null;
+    }
+
     Rectangle bounds = myTree.getPathBounds(path);
     if (bounds == null) {
       return null;
