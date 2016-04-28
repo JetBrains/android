@@ -22,25 +22,27 @@ import com.intellij.util.xml.Convert;
 import com.intellij.util.xml.ExtendClass;
 import com.intellij.util.xml.Required;
 import org.jetbrains.android.dom.AndroidAttributeValue;
+import org.jetbrains.android.dom.Styleable;
 import org.jetbrains.android.dom.converters.PackageClassConverter;
 import org.jetbrains.android.dom.structure.manifest.ActivityPresentationProvider;
 
 import java.util.List;
 
 @Presentation(provider = ActivityPresentationProvider.class)
+@Styleable("AndroidManifestActivity")
 public interface Activity extends ApplicationComponent {
-    @Attribute("name")
-    @Required
-    @Convert(PackageClassConverter.class)
-    @ExtendClass("android.app.Activity")
-    AndroidAttributeValue<PsiClass> getActivityClass();
+  @Attribute("name")
+  @Required
+  @Convert(PackageClassConverter.class)
+  @ExtendClass("android.app.Activity")
+  AndroidAttributeValue<PsiClass> getActivityClass();
 
-    @Attribute("parentActivityName")
-    @Convert(value = PackageClassConverter.class)
-    @ExtendClass("android.app.Activity")
-    AndroidAttributeValue<PsiClass> getParentActivityName();
+  @Attribute("parentActivityName")
+  @Convert(value = PackageClassConverter.class)
+  @ExtendClass("android.app.Activity")
+  AndroidAttributeValue<PsiClass> getParentActivityName();
 
-    List<IntentFilter> getIntentFilters();
+  List<IntentFilter> getIntentFilters();
 
-    IntentFilter addIntentFilter();
+  IntentFilter addIntentFilter();
 }

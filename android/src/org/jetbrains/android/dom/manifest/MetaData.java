@@ -17,6 +17,7 @@ package org.jetbrains.android.dom.manifest;
 
 import com.intellij.util.xml.*;
 import org.jetbrains.android.dom.AndroidAttributeValue;
+import org.jetbrains.android.dom.Styleable;
 import org.jetbrains.android.dom.converters.MetadataValueConverter;
 import org.jetbrains.android.dom.converters.NonExpansibleResourceReferenceConverter;
 import org.jetbrains.android.dom.resources.ResourceValue;
@@ -24,6 +25,7 @@ import org.jetbrains.android.dom.resources.ResourceValue;
 /**
  * DOM element representing "meta-data" Android manifest element.
  */
+@Styleable("AndroidManifestMetaData")
 interface MetaData extends ManifestElementWithName {
 
   AndroidAttributeValue<String> getName();

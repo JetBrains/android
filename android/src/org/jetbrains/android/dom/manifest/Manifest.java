@@ -19,11 +19,13 @@ import com.intellij.util.xml.Convert;
 import com.intellij.util.xml.DefinesXml;
 import com.intellij.util.xml.GenericAttributeValue;
 import com.intellij.util.xml.SubTagList;
+import org.jetbrains.android.dom.Styleable;
 import org.jetbrains.android.dom.converters.AndroidPackageConverter;
 
 import java.util.List;
 
 @DefinesXml
+@Styleable("AndroidManifest")
 public interface Manifest extends ManifestElement {
   Application getApplication();
 
@@ -50,4 +52,10 @@ public interface Manifest extends ManifestElement {
 
   @SubTagList("supports-gl-texture")
   List<SupportsGlTexture> getSupportsGlTextures();
+
+  @SubTagList("supports-screens")
+  List<SupportsScreens> getSupportsScreens();
+
+  @SubTagList("uses-configuration")
+  List<UsesConfiguration> getUsesConfigurations();
 }
