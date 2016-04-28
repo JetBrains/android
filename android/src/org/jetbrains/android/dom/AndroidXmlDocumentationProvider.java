@@ -354,7 +354,7 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
           }
           return null;
         }
-      }, facet, false, true);
+      }, facet, false);
     }
     catch (MyStopException e) {
       // ignore

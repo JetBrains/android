@@ -22,6 +22,7 @@ import com.intellij.util.xml.Convert;
 import com.intellij.util.xml.ExtendClass;
 import com.intellij.util.xml.Required;
 import org.jetbrains.android.dom.AndroidAttributeValue;
+import org.jetbrains.android.dom.Styleable;
 import org.jetbrains.android.dom.converters.PackageClassConverter;
 import org.jetbrains.android.dom.structure.manifest.ReceiverPresentationProvider;
 import org.jetbrains.android.util.AndroidUtils;
@@ -29,6 +30,7 @@ import org.jetbrains.android.util.AndroidUtils;
 import java.util.List;
 
 @Presentation(provider = ReceiverPresentationProvider.class)
+@Styleable("AndroidManifestReceiver")
 public interface Receiver extends ApplicationComponent {
   @Attribute("name")
   @Required

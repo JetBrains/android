@@ -19,6 +19,7 @@ import com.intellij.ide.presentation.Presentation;
 import com.intellij.psi.PsiClass;
 import com.intellij.util.xml.*;
 import org.jetbrains.android.dom.AndroidAttributeValue;
+import org.jetbrains.android.dom.Styleable;
 import org.jetbrains.android.dom.converters.PackageClassConverter;
 import org.jetbrains.android.dom.structure.manifest.ServicePresentationProvider;
 import org.jetbrains.android.util.AndroidUtils;
@@ -26,6 +27,7 @@ import org.jetbrains.android.util.AndroidUtils;
 import java.util.List;
 
 @Presentation(provider = ServicePresentationProvider.class)
+@Styleable("AndroidManifestService")
 public interface Service extends ApplicationComponent {
   @Attribute("name")
   @Required

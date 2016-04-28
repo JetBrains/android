@@ -27,7 +27,6 @@ import com.intellij.psi.PsiReference;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.util.ArrayUtil;
 import com.intellij.util.containers.HashMap;
 import com.intellij.util.xml.*;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
@@ -35,14 +34,10 @@ import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.android.dom.attrs.ToolsAttributeDefinitionsImpl;
 import org.jetbrains.android.dom.converters.*;
-import org.jetbrains.android.dom.layout.LayoutElement;
 import org.jetbrains.android.dom.layout.LayoutViewElement;
 import org.jetbrains.android.dom.manifest.*;
-import org.jetbrains.android.dom.menu.Group;
-import org.jetbrains.android.dom.menu.Menu;
 import org.jetbrains.android.dom.menu.MenuItem;
-import org.jetbrains.android.dom.resources.*;
-import org.jetbrains.android.dom.xml.PreferenceElement;
+import org.jetbrains.android.dom.resources.ResourceValue;
 import org.jetbrains.android.dom.xml.XmlResourceElement;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.resourceManagers.ResourceManager;
@@ -289,51 +284,6 @@ public class AndroidDomUtil {
       }
     }
     return null;
-  }
-
-  public static String[] getStaticallyDefinedSubtags(@NotNull AndroidDomElement element) {
-    if (element instanceof ManifestElement) {
-      return AndroidManifestUtils.getStaticallyDefinedSubtags((ManifestElement)element);
-    }
-    if (element instanceof LayoutViewElement) {
-      return new String[] {VIEW_INCLUDE, REQUEST_FOCUS, TAG};
-    }
-    if (element instanceof LayoutElement) {
-      return new String[]{REQUEST_FOCUS};
-    }
-    if (element instanceof Group || element instanceof StringArray || element instanceof IntegerArray || element instanceof Style) {
-      return new String[]{TAG_ITEM};
-    }
-    if (element instanceof MenuItem) {
-      return new String[]{TAG_MENU};
-    }
-    if (element instanceof Menu) {
-      return new String[]{TAG_ITEM, TAG_GROUP};
-    }
-    if (element instanceof Attr) {
-      return new String[]{TAG_ENUM, TAG_FLAG};
-    }
-    if (element instanceof DeclareStyleable) {
-      return new String[]{TAG_ATTR};
-    }
-    if (element instanceof Resources) {
-      return new String[]{"string", "drawable", "dimen", "color", "style", "string-array", "integer-array", "array", "plurals",
-        "declare-styleable", "integer", "bool", "attr", "item", "eat-comment"};
-    }
-    if (element instanceof StyledText) {
-      // TODO: The documentation suggests that the allowed tags are <u>, <b> and <i>:
-      //   http://developer.android.com/guide/topics/resources/string-resource.html#FormattingAndStyling
-      // However, the full set of tags accepted by Html.fromHtml is much larger. Therefore,
-      // instead consider *any* element nested inside a <string> definition to be a markup
-      // element. See frameworks/base/core/java/android/text/Html.java and look for
-      // HtmlToSpannedConverter#handleStartTag.
-      return new String[]{"b", "i", "u"};
-    }
-    if (element instanceof PreferenceElement) {
-      return new String[]{"intent", "extra"};
-    }
-
-    return ArrayUtil.EMPTY_STRING_ARRAY;
   }
 
   @Nullable
