@@ -15,26 +15,18 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.uibuilder.api.DragType;
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.model.*;
 import com.google.common.collect.Lists;
-import com.intellij.ide.IdeTooltipManager;
-import com.intellij.openapi.application.Result;
-import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.registry.Registry;
-import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.psi.xml.XmlAttribute;
-import com.intellij.psi.xml.XmlFile;
-import com.intellij.psi.xml.XmlTag;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.registry.Registry;
 import com.intellij.util.PsiNavigateUtil;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -620,7 +612,10 @@ public class InteractionManager {
         }
         DragType dragType = event.getDropAction() == DnDConstants.ACTION_COPY ? DragType.COPY : DragType.MOVE;
         InsertType insertType = model.determineInsertType(dragType, item, true /* preview */);
-        List<NlComponent> dragged = model.createComponents(screenView, item, insertType);
+
+        List<NlComponent> dragged = ApplicationManager.getApplication()
+          .runWriteAction((Computable<List<NlComponent>>)() -> model.createComponents(screenView, item, insertType));
+
         if (dragged == null) {
           event.reject();
           return;
