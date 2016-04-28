@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
+import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
 import com.google.common.base.Joiner;
@@ -48,6 +49,10 @@ public class NlFlagPropertyItem extends NlPropertyItem implements NlProperty {
     assert attributeDefinition != null;
   }
 
+  protected NlFlagPropertyItem(@NotNull NlFlagPropertyItem property, @NotNull String namespace) {
+    super(property, namespace);
+  }
+
   @Override
   public boolean hasChildren() {
     return true;
@@ -75,6 +80,15 @@ public class NlFlagPropertyItem extends NlPropertyItem implements NlProperty {
       }
     }
     throw new IllegalArgumentException(itemName);
+  }
+
+  @NotNull
+  @Override
+  public NlProperty getDesignTimeProperty() {
+    if (getNamespace().equals(SdkConstants.TOOLS_URI)) {
+      return this;
+    }
+    return new NlFlagPropertyItem(this, SdkConstants.TOOLS_URI);
   }
 
   @Override
