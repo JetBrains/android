@@ -26,6 +26,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Collection;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
+import static com.google.common.truth.Truth.assertThat;
 
 /**
  * Tests for {@link BuildTypeModel}.
@@ -1475,12 +1476,12 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     buildType
       .removeConsumerProguardFile("proguard-android.txt")
       .removeProguardFile("proguard-rules.pro");
-    assertEquals("consumerProguardFiles", ImmutableList.of(), buildType.consumerProguardFiles());
-    assertEquals("proguardFiles", ImmutableList.of(), buildType.proguardFiles());
+    assertThat(buildType.consumerProguardFiles()).named("consumerProguardFiles").isEmpty();
+    assertThat(buildType.proguardFiles()).named("proguardFiles").isEmpty();
 
     applyChanges(buildModel);
-    assertEquals("consumerProguardFiles", ImmutableList.of(), buildType.consumerProguardFiles());
-    assertEquals("proguardFiles", ImmutableList.of(), buildType.proguardFiles());
+    assertThat(buildType.consumerProguardFiles()).named("consumerProguardFiles").isEmpty();
+    assertThat(buildType.proguardFiles()).named("proguardFiles").isEmpty();
 
     buildModel.reparse();
     AndroidModel android = buildModel.android();
