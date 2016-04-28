@@ -41,7 +41,7 @@ public class PsContext implements Disposable {
 
     myLibraryUpdateCheckerDaemon = new PsLibraryUpdateCheckerDaemon(this);
     myLibraryUpdateCheckerDaemon.reset();
-    myLibraryUpdateCheckerDaemon.queueUpdateCheck();
+    myLibraryUpdateCheckerDaemon.queueAutomaticUpdateCheck();
 
     myAnalyzerDaemon = new PsAnalyzerDaemon(this, myLibraryUpdateCheckerDaemon);
     myAnalyzerDaemon.reset();
