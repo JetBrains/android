@@ -57,7 +57,7 @@ public class LintAnnotationsModel {
     }
 
     IssueData max = findHighestSeverityIssue(issueData);
-    return max.inspection.getStaticDescription();
+    return max.message + "<br><br>\n" + max.inspection.getStaticDescription();
   }
 
   private static IssueData findHighestSeverityIssue(List<IssueData> issueData) {
@@ -70,21 +70,24 @@ public class LintAnnotationsModel {
   }
 
   public void addIssue(@NotNull NlComponent component,
+                       @NotNull String message,
                        @NotNull AndroidLintInspectionBase inspection,
                        @NotNull HighlightDisplayLevel level) {
     if (myIssues == null) {
       myIssues = ArrayListMultimap.create();
     }
 
-    myIssues.put(component, new IssueData(inspection, level));
+    myIssues.put(component, new IssueData(inspection, message, level));
   }
 
   private static class IssueData {
     @NotNull public final AndroidLintInspectionBase inspection;
     @NotNull public final HighlightDisplayLevel level;
+    @NotNull private final String message;
 
-    private IssueData(@NotNull AndroidLintInspectionBase inspection, @NotNull HighlightDisplayLevel level) {
+    private IssueData(@NotNull AndroidLintInspectionBase inspection, @NotNull String message, @NotNull HighlightDisplayLevel level) {
       this.inspection = inspection;
+      this.message = message;
       this.level = level;
     }
   }
