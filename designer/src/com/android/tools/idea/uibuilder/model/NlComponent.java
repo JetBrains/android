@@ -547,11 +547,17 @@ public class NlComponent {
 
   @Nullable
   public ViewHandler getViewHandler() {
+    if (!myTag.isValid()) {
+      return null;
+    }
     return ViewHandlerManager.get(myTag.getProject()).getHandler(this);
   }
 
   @Nullable
   public ViewGroupHandler getViewGroupHandler() {
+    if (!myTag.isValid()) {
+      return null;
+    }
     return ViewHandlerManager.get(myTag.getProject()).findLayoutHandler(this, false);
   }
 
