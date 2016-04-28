@@ -723,8 +723,11 @@ public class EditorFixture {
       }
     });
 
+    selectEditorTab(tab);
+
+    //noinspection ConstantConditions
     Wait.minutes(2).expecting("file " + quote(file.getPath()) + " to be opened").until(
-      () -> GuiActionRunner.execute(
+      () -> execute(
         new GuiQuery<Boolean>() {
           @Override
           protected Boolean executeInEDT() throws Throwable {

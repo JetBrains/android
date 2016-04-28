@@ -24,6 +24,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import static com.google.common.truth.Truth.assertThat;
 import static junit.framework.Assert.assertEquals;
 
 @RunIn(TestGroup.EDITING)
@@ -56,5 +57,19 @@ public class EditorFixtureTest {
 
     editor.moveToLine(1);
     assertEquals(editor.getCurrentLineNumber(), 1);
+  }
+
+  /**
+   * Tests that the editor opens the file in the requested tab, independently of the history of that file.
+   */
+  @Test
+  public void testOpenFileInTab() throws Exception {
+    guiTest.importSimpleApplication();
+
+    EditorFixture editor = guiTest.ideFrame().getEditor();
+    editor.open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR);
+    editor.open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN);
+
+    assertThat(editor.getLayoutEditor(false)).isNotNull();
   }
 }
