@@ -821,6 +821,7 @@
                     serviceImplementation="org.jetbrains.android.maven.AndroidExternalApklibDependenciesManager"/>
     <projectService serviceInterface="com.android.tools.idea.configurations.ConfigurationStateManager"
                     serviceImplementation="com.android.tools.idea.configurations.ConfigurationStateManager"/>
+    <projectService serviceImplementation="com.android.tools.idea.gradle.structure.daemon.AvailableLibraryUpdateStorage"/>
 
     <xml.xmlExtension implementation="org.jetbrains.android.dom.AndroidXmlExtension" order="first"/>
     <psi.referenceProvider language="XML" providerClass="org.jetbrains.android.dom.AndroidXmlReferenceProvider">
