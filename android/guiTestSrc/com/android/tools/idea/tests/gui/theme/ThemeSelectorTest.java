@@ -95,6 +95,7 @@ public class ThemeSelectorTest {
     ideFrame.invokeMenuPathRegex("Edit", "Undo.*");
     ideFrame.findMessageDialog("Undo").clickOk();
     themeEditor.waitForThemeSelection("AppTheme");
+    themeEditor.focus(); // required to ensure that the Select Previous Tab action is available
     ideFrame.invokeMenuPath("Window", "Editor Tabs", "Select Previous Tab");
     assertEquals(-1, editor.findOffset(null, "name=\"NewAppTheme", true));
     editor.moveTo(editor.findOffset(null, "name=\"AppTheme", true));
