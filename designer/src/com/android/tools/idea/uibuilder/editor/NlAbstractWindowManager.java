@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.editor;
 
+import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.intellij.designer.DesignerEditorPanelFacade;
 import com.intellij.designer.LightToolWindowManager;
 import com.intellij.designer.ToggleEditorModeAction;
@@ -61,6 +62,20 @@ public abstract class NlAbstractWindowManager extends LightToolWindowManager {
       }
     }
     return null;
+  }
+
+  @NotNull
+  protected static DesignSurface getDesignSurface(@NotNull DesignerEditorPanelFacade designer) {
+    if (designer instanceof NlEditorPanel) {
+      NlEditorPanel editor = (NlEditorPanel)designer;
+      return editor.getSurface();
+    } else if (designer instanceof NlPreviewForm) {
+      NlPreviewForm form = (NlPreviewForm)designer;
+      return form.getSurface();
+    }
+
+    // Unexpected facade
+    throw new RuntimeException(designer.getClass().getName());
   }
 
   protected void createWindowContent(@NotNull JComponent contentPane, @NotNull JComponent focusedComponent, @Nullable AnAction[] actions) {
