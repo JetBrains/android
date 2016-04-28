@@ -192,7 +192,7 @@ public class InstantRunBuilderTest {
                             myInstantRunClientDelegate);
     builder.build(myTaskRunner, Arrays.asList("-Pdevice.api=14", "-Pprofiling=on"));
     assertEquals(
-      "gradlew -Pdevice.api=14 -Pprofiling=on -Pandroid.injected.coldswap.mode=default -Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY clean :app:gen :app:assemble",
+      "gradlew -Pdevice.api=14 -Pprofiling=on -Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY clean :app:gen :app:assemble",
       myTaskRunner.getBuilds());
   }
 
@@ -202,7 +202,7 @@ public class InstantRunBuilderTest {
 
     myBuilder.build(myTaskRunner, Collections.emptyList());
     assertEquals(
-      "gradlew -Pandroid.injected.coldswap.mode=default -Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY clean :app:gen :app:assemble",
+      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY clean :app:gen :app:assemble",
       myTaskRunner.getBuilds());
   }
 
@@ -212,7 +212,7 @@ public class InstantRunBuilderTest {
 
     myBuilder.build(myTaskRunner, Collections.emptyList());
     assertEquals(
-      "gradlew -Pandroid.injected.coldswap.mode=default -Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY clean :app:gen :app:assemble",
+      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY clean :app:gen :app:assemble",
       myTaskRunner.getBuilds());
   }
 
@@ -222,7 +222,7 @@ public class InstantRunBuilderTest {
 
     myBuilder.build(myTaskRunner, Collections.emptyList());
     assertEquals(
-      "gradlew -Pandroid.injected.coldswap.mode=default -Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY clean :app:gen :app:assemble",
+      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY clean :app:gen :app:assemble",
       myTaskRunner.getBuilds());
   }
 
@@ -233,7 +233,7 @@ public class InstantRunBuilderTest {
 
     myBuilder.build(myTaskRunner, Collections.emptyList());
     assertEquals(
-      "gradlew -Pandroid.injected.coldswap.mode=default -Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY clean :app:gen :app:assemble",
+      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY clean :app:gen :app:assemble",
       myTaskRunner.getBuilds());
   }
 
@@ -245,7 +245,7 @@ public class InstantRunBuilderTest {
 
     myBuilder.build(myTaskRunner, Collections.emptyList());
     assertEquals(
-      "gradlew -Pandroid.injected.coldswap.mode=default -Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY :app:assemble",
+      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY :app:assemble",
       myTaskRunner.getBuilds());
   }
 
@@ -257,7 +257,7 @@ public class InstantRunBuilderTest {
 
     myBuilder.build(myTaskRunner, Collections.emptyList());
     assertEquals(
-      "gradlew -Pandroid.injected.coldswap.mode=default -Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY :app:assemble",
+      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY :app:assemble",
       myTaskRunner.getBuilds());
   }
 
@@ -271,7 +271,7 @@ public class InstantRunBuilderTest {
 
     myBuilder.build(myTaskRunner, Collections.emptyList());
     assertEquals(
-      "gradlew -Pandroid.injected.coldswap.mode=default -Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY :app:assemble",
+      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY :app:assemble",
       myTaskRunner.getBuilds());
   }
 
@@ -290,7 +290,7 @@ public class InstantRunBuilderTest {
 
     myBuilder.build(myTaskRunner, Collections.emptyList());
     assertEquals(
-      "gradlew -Pandroid.injected.coldswap.mode=default -Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY :app:assemble",
+      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY :app:assemble",
       myTaskRunner.getBuilds());
   }
 
@@ -311,7 +311,7 @@ public class InstantRunBuilderTest {
 
     myBuilder.build(myTaskRunner, Collections.emptyList());
     assertEquals(
-      "gradlew -Pandroid.injected.coldswap.mode=default -Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY :app:assemble",
+      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY :app:assemble",
       myTaskRunner.getBuilds());
   }
 
@@ -333,7 +333,7 @@ public class InstantRunBuilderTest {
 
     myBuilder.build(myTaskRunner, Collections.emptyList());
     assertEquals(
-      "gradlew -Pandroid.injected.coldswap.mode=default -Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY :app:assemble",
+      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY :app:assemble",
       myTaskRunner.getBuilds());
   }
 
@@ -358,7 +358,7 @@ public class InstantRunBuilderTest {
                             myInstantRunClientDelegate);
     myBuilder.build(myTaskRunner, Collections.emptyList());
     assertEquals(
-      "gradlew -Pandroid.injected.coldswap.mode=default -Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY :app:assemble",
+      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY :app:assemble",
       myTaskRunner.getBuilds());
   }
 
@@ -380,7 +380,7 @@ public class InstantRunBuilderTest {
 
     myBuilder.build(myTaskRunner, Collections.emptyList());
     assertEquals(
-      "gradlew -Pandroid.injected.coldswap.mode=default -Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY incremental",
+      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY incremental",
       myTaskRunner.getBuilds());
   }
 
@@ -404,7 +404,7 @@ public class InstantRunBuilderTest {
 
     myBuilder.build(myTaskRunner, Collections.emptyList());
     assertEquals(
-      "gradlew -Pandroid.injected.coldswap.mode=default -Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY incremental",
+      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY incremental",
       myTaskRunner.getBuilds());
   }
 
@@ -426,7 +426,7 @@ public class InstantRunBuilderTest {
 
     myBuilder.build(myTaskRunner, Collections.emptyList());
     assertEquals(
-      "gradlew -Pandroid.injected.coldswap.mode=default -Pandroid.optional.compilation=INSTANT_DEV incremental",
+      "gradlew -Pandroid.optional.compilation=INSTANT_DEV incremental",
       myTaskRunner.getBuilds());
   }
 
@@ -452,8 +452,8 @@ public class InstantRunBuilderTest {
 
     myBuilder.build(myTaskRunner, Collections.emptyList());
     assertEquals(
-      "gradlew -Pandroid.injected.coldswap.mode=default -Pandroid.optional.compilation=INSTANT_DEV incremental\n"+
-      "gradlew -Pandroid.injected.coldswap.mode=default -Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY :app:assemble",
+      "gradlew -Pandroid.optional.compilation=INSTANT_DEV incremental\n"+
+      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY :app:assemble",
       myTaskRunner.getBuilds());
   }
 
