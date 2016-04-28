@@ -69,20 +69,6 @@ public class NlPaletteManager extends NlAbstractWindowManager {
     return ToolWindowAnchor.LEFT;
   }
 
-  @NotNull
-  private static DesignSurface getDesignSurface(@NotNull DesignerEditorPanelFacade designer) {
-    if (designer instanceof NlEditorPanel) {
-      NlEditorPanel editor = (NlEditorPanel)designer;
-      return editor.getSurface();
-    } else if (designer instanceof NlPreviewForm) {
-      NlPreviewForm form = (NlPreviewForm)designer;
-      return form.getSurface();
-    }
-
-    // Unexpected facade
-    throw new RuntimeException(designer.getClass().getName());
-  }
-
   public String getVisibilityKeyName(@NotNull DesignerEditorPanelFacade designer) {
     return getComponentName()+ "-" + designer.getClass().getSimpleName();
   }
