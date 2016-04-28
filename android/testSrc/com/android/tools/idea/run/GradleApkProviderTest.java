@@ -16,6 +16,7 @@
 package com.android.tools.idea.run;
 
 import com.android.ddmlib.IDevice;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.templates.AndroidGradleArtifactsTestCase;
 import org.junit.After;
 import org.junit.Before;
@@ -104,6 +105,15 @@ public class GradleApkProviderTest extends AndroidGradleArtifactsTestCase {
 
     assertEquals(testApk.getApplicationId(), "from.gradle.debug.test");
     path = testApk.getFile().getPath();
-    assertThat(path).endsWith(getName() + "-debug-androidTest-unaligned.apk");
+
+    AndroidGradleModel androidGradleModel = AndroidGradleModel.get(myAndroidFacet);
+    if (androidGradleModel != null && androidGradleModel.getModelVersion() != null) {
+      if (androidGradleModel.getModelVersion().compareIgnoringQualifiers("2.2.0") < 0) {
+        assertThat(path).endsWith(getName() + "-debug-androidTest-unaligned.apk");
+      }
+      else {
+        assertThat(path).endsWith(getName() + "-debug-androidTest.apk");
+      }
+    }
   }
 }
