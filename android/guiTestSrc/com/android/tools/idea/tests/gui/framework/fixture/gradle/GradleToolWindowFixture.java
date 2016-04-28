@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.gradle;
 
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.Wait;
 import com.android.tools.idea.tests.gui.framework.fixture.ToolWindowFixture;
 import com.google.common.collect.Lists;
@@ -82,7 +83,7 @@ public class GradleToolWindowFixture extends ToolWindowFixture {
     });
 
     assertNotNull(clickLocation);
-    myRobot.click(clickLocation, LEFT_BUTTON, 2);
+    GuiTests.doubleClick(myRobot, clickLocation);
   }
 
   @NotNull
