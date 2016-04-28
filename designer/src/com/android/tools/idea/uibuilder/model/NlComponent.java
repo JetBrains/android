@@ -63,6 +63,7 @@ public class NlComponent {
     PreferenceTags.EDIT_TEXT_PREFERENCE,
     PreferenceTags.LIST_PREFERENCE,
     PreferenceTags.MULTI_SELECT_LIST_PREFERENCE,
+    PreferenceTags.PREFERENCE_CATEGORY,
     PreferenceTags.RINGTONE_PREFERENCE,
     PreferenceTags.SWITCH_PREFERENCE,
     REQUEST_FOCUS,
@@ -81,12 +82,21 @@ public class NlComponent {
   @NotNull private final NlModel myModel;
   @NotNull private XmlTag myTag;
   @NotNull private String myTagName; // for non-read lock access elsewhere
-  @Nullable private TagSnapshot snapshot;
+  @Nullable private TagSnapshot mySnapshot;
 
   public NlComponent(@NotNull NlModel model, @NotNull XmlTag tag) {
+    this(model, tag, null);
+  }
+
+  NlComponent(@NotNull NlModel model, @Nullable TagSnapshot snapshot) {
+    this(model, snapshot == null ? EmptyXmlTag.INSTANCE : snapshot.tag == null ? EmptyXmlTag.INSTANCE : snapshot.tag, snapshot);
+  }
+
+  private NlComponent(@NotNull NlModel model, @NotNull XmlTag tag, @Nullable TagSnapshot snapshot) {
     myModel = model;
     myTag = tag;
     myTagName = tag.getName();
+    mySnapshot = snapshot;
   }
 
   @NotNull
@@ -105,7 +115,7 @@ public class NlComponent {
   }
 
   public void setSnapshot(@Nullable TagSnapshot snapshot) {
-    this.snapshot = snapshot;
+    mySnapshot = snapshot;
   }
 
   public void setBounds(@AndroidCoordinate int x, @AndroidCoordinate int y, @AndroidCoordinate int w, @AndroidCoordinate int h) {
@@ -496,8 +506,8 @@ public class NlComponent {
 
     // Handle validity
     myTag.setAttribute(attribute, namespace, value);
-    if (snapshot != null) {
-      snapshot.setAttribute(attribute, namespace, prefix, value);
+    if (mySnapshot != null) {
+      mySnapshot.setAttribute(attribute, namespace, prefix, value);
     }
   }
 
@@ -507,8 +517,8 @@ public class NlComponent {
 
   @Nullable
   public String getAttribute(@Nullable String namespace, @NotNull String attribute) {
-    if (snapshot != null) {
-      return snapshot.getAttribute(attribute, namespace);
+    if (mySnapshot != null) {
+      return mySnapshot.getAttribute(attribute, namespace);
     }
     else if (myTag.isValid()) {
       return AndroidPsiUtils.getAttributeSafely(myTag, namespace, attribute);
@@ -521,8 +531,8 @@ public class NlComponent {
 
   @NotNull
   public List<AttributeSnapshot> getAttributes() {
-    if (snapshot != null) {
-      return snapshot.attributes;
+    if (mySnapshot != null) {
+      return mySnapshot.attributes;
     }
 
     if (myTag.isValid()) {
@@ -542,7 +552,7 @@ public class NlComponent {
   }
 
   public boolean isShowing() {
-    return snapshot != null;
+    return mySnapshot != null;
   }
 
   @Nullable
