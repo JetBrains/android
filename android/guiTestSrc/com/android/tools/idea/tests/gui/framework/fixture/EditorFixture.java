@@ -896,21 +896,6 @@ public class EditorFixture {
     }
   }
 
-  /**
-   * Checks that the editor has a given number of issues. This is a convenience wrapper
-   * for {@link FileFixture#requireCodeAnalysisHighlightCount(HighlightSeverity, int)}
-   *
-   * @param severity the severity of the issues you want to count
-   * @param expected the expected count
-   * @return this
-   * @deprecated Replaced by {@link #waitForCodeAnalysisHighlightCount(HighlightSeverity, int)}
-   */
-  @Deprecated
-  @NotNull
-  public EditorFixture requireCodeAnalysisHighlightCount(@NotNull HighlightSeverity severity, int expected) {
-    return waitForCodeAnalysisHighlightCount(severity, expected);
-  }
-
   @NotNull
   public EditorFixture requireHighlights(HighlightSeverity severity, String... highlights) {
     List<String> infos = Lists.newArrayList();
