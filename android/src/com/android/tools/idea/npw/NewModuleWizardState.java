@@ -16,6 +16,7 @@
 
 package com.android.tools.idea.npw;
 
+import com.android.SdkConstants;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
@@ -24,17 +25,19 @@ import com.android.tools.idea.templates.RepositoryUrlManager;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.android.tools.idea.wizard.template.TemplateWizardState;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.SetMultimap;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
 import static com.android.tools.idea.templates.KeystoreUtils.getOrCreateDefaultDebugKeystore;
 import static com.android.tools.idea.templates.RepositoryUrlManager.*;
@@ -173,34 +176,37 @@ public class NewModuleWizardState extends TemplateWizardState {
   }
 
   /**
-   * Call this to update the list of dependencies to be compiled into the template
+   * Updates the dependencies stored in the parameters map, to include support libraries required by the extra features selected.
    */
   public void updateDependencies() {
-    // Take care of dependencies selected through the wizard
-    Set<String> dependencySet = new HashSet<String>();
-    if (myParameters.containsKey(ATTR_DEPENDENCIES_LIST)) {
-      dependencySet.addAll((Collection<String>)get(ATTR_DEPENDENCIES_LIST));
+    @SuppressWarnings("unchecked") SetMultimap<String, String> dependencies = (SetMultimap<String, String>)get(ATTR_DEPENDENCIES_MULTIMAP);
+    if (dependencies == null) {
+      dependencies = HashMultimap.create();
     }
 
     RepositoryUrlManager urlManager = RepositoryUrlManager.get();
 
     // Support Library
-    if ((get(ATTR_FRAGMENTS_EXTRA) != null && Boolean.parseBoolean(get(ATTR_FRAGMENTS_EXTRA).toString())) ||
-        (get(ATTR_NAVIGATION_DRAWER_EXTRA) != null && Boolean.parseBoolean(get(ATTR_NAVIGATION_DRAWER_EXTRA).toString()))) {
-      dependencySet.add(urlManager.getLibraryCoordinate(SUPPORT_ID_V4));
+    Object fragmentsExtra = get(ATTR_FRAGMENTS_EXTRA);
+    Object navigationDrawerExtra = get(ATTR_NAVIGATION_DRAWER_EXTRA);
+    if ((fragmentsExtra != null && Boolean.parseBoolean(fragmentsExtra.toString())) ||
+        (navigationDrawerExtra != null && Boolean.parseBoolean(navigationDrawerExtra.toString()))) {
+      dependencies.put(SdkConstants.GRADLE_COMPILE_CONFIGURATION,  urlManager.getLibraryCoordinate(SUPPORT_ID_V4));
     }
 
     // AppCompat Library
-    if (get(ATTR_ACTION_BAR_EXTRA) != null && Boolean.parseBoolean(get(ATTR_ACTION_BAR_EXTRA).toString())) {
-      dependencySet.add(urlManager.getLibraryCoordinate(APP_COMPAT_ID_V7));
+    Object actionBarExtra = get(ATTR_ACTION_BAR_EXTRA);
+    if (actionBarExtra != null && Boolean.parseBoolean(actionBarExtra.toString())) {
+      dependencies.put(SdkConstants.GRADLE_COMPILE_CONFIGURATION, urlManager.getLibraryCoordinate(APP_COMPAT_ID_V7));
     }
 
     // GridLayout Library
-    if (get(ATTR_GRID_LAYOUT_EXTRA) != null && Boolean.parseBoolean(get(ATTR_GRID_LAYOUT_EXTRA).toString())) {
-      dependencySet.add(urlManager.getLibraryCoordinate(GRID_LAYOUT_ID_V7));
+    Object gridLayoutExtra = get(ATTR_GRID_LAYOUT_EXTRA);
+    if (gridLayoutExtra != null && Boolean.parseBoolean(gridLayoutExtra.toString())) {
+      dependencies.put(SdkConstants.GRADLE_COMPILE_CONFIGURATION, urlManager.getLibraryCoordinate(GRID_LAYOUT_ID_V7));
     }
 
-    put(ATTR_DEPENDENCIES_LIST, new LinkedList<String>(dependencySet));
+    put(ATTR_DEPENDENCIES_MULTIMAP, dependencies);
   }
 
   /**

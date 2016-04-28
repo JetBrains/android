@@ -31,7 +31,7 @@ android {
 dependencies {
   // TODO: Include *.aar once it's supported in the plugin
   compile fileTree(dir: 'libs', include: ['*.jar'])
-  testCompile 'junit:junit:4.11'
   compile 'com.android.support:appcompat-v7:+'
   compile 'com.google.guava:guava:19.0'
+  testCompile 'junit:junit:4.11'
 }

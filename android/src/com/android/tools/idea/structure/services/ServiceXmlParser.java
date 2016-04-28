@@ -30,8 +30,9 @@ import com.android.tools.idea.ui.properties.core.*;
 import com.android.tools.idea.ui.properties.swing.*;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
+import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import com.google.common.collect.SetMultimap;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -55,7 +56,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -208,7 +208,7 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
 
   private void analyzeRecipe(boolean findOnlyReferences,
                              @Nullable Collection<File> openFiles,
-                             @Nullable Collection<String> dependencies,
+                             @Nullable SetMultimap<String, String> dependencies,
                              @Nullable Collection<File> sourceFiles,
                              @Nullable Collection<File> targetFiles) {
     try {
@@ -291,12 +291,13 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
   }
 
   private void closeServiceTag() {
-    HashSet<String> dependencies = Sets.newHashSet();
+    SetMultimap<String, String> dependencies = LinkedHashMultimap.create();
     List<File> sourceFiles = Lists.newArrayList();
     List<File> targetFiles = Lists.newArrayList();
     analyzeRecipe(true, null, dependencies, sourceFiles, targetFiles);
 
-    for (String d : dependencies) {
+    // Ignore test configurations here.
+    for (String d : dependencies.get(SdkConstants.GRADLE_COMPILE_CONFIGURATION)) {
       myDeveloperServiceMetadata.addDependency(d);
     }
     for (File f : sourceFiles) {

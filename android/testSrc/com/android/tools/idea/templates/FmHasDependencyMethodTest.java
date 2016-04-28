@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.templates;
 
+import com.android.SdkConstants;
+import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Maps;
+import com.google.common.collect.SetMultimap;
 import freemarker.template.SimpleScalar;
 import freemarker.template.TemplateBooleanModel;
 import freemarker.template.TemplateModelException;
@@ -49,13 +52,20 @@ public class FmHasDependencyMethodTest extends TestCase {
   }
 
   public void testProvidedDependencies() throws Exception {
-    check(false, "com.android.support:support-v4", createMap(
-      TemplateMetadata.ATTR_DEPENDENCIES_LIST,
-      Arrays.asList("com.android.support:appcompat-v7:21.0.0")));
+    SetMultimap<String, String> dependencies = LinkedHashMultimap.create();
+    dependencies.put(SdkConstants.GRADLE_COMPILE_CONFIGURATION, "com.android.support:appcompat-v7:21.0.0");
 
-    check(true, "com.android.support:support-v4", createMap(
-      TemplateMetadata.ATTR_DEPENDENCIES_LIST,
-      Arrays.asList("com.android.support:appcompat-v7:21.0.0", "com.android.support:support-v4:v21.+")));
+    check(false,
+          "com.android.support:support-v4",
+          createMap(TemplateMetadata.ATTR_DEPENDENCIES_MULTIMAP, dependencies));
+
+    dependencies.clear();
+    dependencies.put(SdkConstants.GRADLE_COMPILE_CONFIGURATION, "com.android.support:appcompat-v7:21.0.0");
+    dependencies.put(SdkConstants.GRADLE_COMPILE_CONFIGURATION, "com.android.support:support-v4:v21.+");
+
+    check(true,
+          "com.android.support:support-v4",
+          createMap(TemplateMetadata.ATTR_DEPENDENCIES_MULTIMAP, dependencies));
   }
 
   public void testAppCompatBasedOnMinAndCompileApis() throws Exception {
