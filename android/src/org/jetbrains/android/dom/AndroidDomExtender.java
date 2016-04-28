@@ -485,64 +485,16 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
     }, type);
   }
 
-  public static void registerExtensionsForManifest(AndroidFacet facet,
-                                                   String tagName,
-                                                   ManifestElement element,
-                                                   MyCallback callback,
-                                                   Set<String> registeredSubtags,
-                                                   Set<XmlName> skippedAttributes,
-                                                   boolean processStaticallyDefinedElements) {
-    String styleableName = AndroidManifestUtils.getStyleableNameForElement(element);
-
-    if (styleableName == null) {
-      styleableName = AndroidManifestUtils.getStyleableNameByTagName(tagName);
-    }
-    final Set<XmlName> newSkippedNames = new HashSet<XmlName>(skippedAttributes);
-
-    if (!processStaticallyDefinedElements) {
-      for (String attrName : AndroidManifestUtils.getStaticallyDefinedAttrs(element)) {
-        newSkippedNames.add(new XmlName(attrName, NS_RESOURCES));
-      }
-    }
-    SystemResourceManager manager = facet.getSystemResourceManager();
-    if (manager == null) return;
-    AttributeDefinitions attrDefs = manager.getAttributeDefinitions();
-    if (attrDefs == null) return;
-    StyleableDefinition styleable = attrDefs.getStyleableByName(styleableName);
-    if (styleable == null) return;
-
-    registerStyleableAttributes(element, styleable, NS_RESOURCES, callback, newSkippedNames);
-
-    Set<String> skippedTagNames;
-    if (!processStaticallyDefinedElements) {
-      skippedTagNames = new HashSet<String>();
-      Collections.addAll(skippedTagNames, AndroidManifestUtils.getStaticallyDefinedSubtags(element));
-    }
-    else {
-      skippedTagNames = Collections.emptySet();
-    }
-    for (StyleableDefinition child : styleable.getChildren()) {
-      String childTagName = AndroidManifestUtils.getTagNameByStyleableName(child.getName());
-      if (childTagName != null && !skippedTagNames.contains(childTagName)) {
-        registerSubtags(childTagName, ManifestElement.class, callback, registeredSubtags);
-      }
-    }
-  }
-
   public static void processAttrsAndSubtags(@NotNull AndroidDomElement element,
                                             @NotNull MyCallback callback,
                                             @NotNull AndroidFacet facet,
-                                            boolean processAllExistingAttrsFirst,
-                                            boolean processStaticallyDefinedElements) {
+                                            boolean processAllExistingAttrsFirst) {
     XmlTag tag = element.getXmlTag();
 
     final Set<XmlName> skippedAttributes =
       processAllExistingAttrsFirst ? registerExistingAttributes(facet, tag, callback, element) : new HashSet<XmlName>();
-    String tagName = tag.getName();
     Set<String> registeredSubtags = new HashSet<String>();
     if (element instanceof ManifestElement) {
-      registerExtensionsForManifest(facet, tagName, (ManifestElement)element, callback, registeredSubtags, skippedAttributes,
-                                    processStaticallyDefinedElements);
       if (tag.getParentTag() != null) {
         // Don't register attributes for root element
         registerToolsAttribute(ToolsAttributeUtil.ATTR_NODE, callback);
@@ -590,7 +542,7 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
     }
     // For Resource Shrinking
     else if (element instanceof XmlRawResourceElement) {
-      if (TAG_RESOURCES.equals(tagName)) {
+      if (TAG_RESOURCES.equals(tag.getName())) {
         registerToolsAttribute(ATTR_SHRINK_MODE, callback);
         registerToolsAttribute(ATTR_KEEP, callback);
         registerToolsAttribute(ATTR_DISCARD, callback);
@@ -725,7 +677,7 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
       public void processSubtag(@NotNull XmlName xmlName, @NotNull Type type) {
         registrar.registerCollectionChildrenExtension(xmlName, type);
       }
-    }, facet, true, false);
+    }, facet, true);
   }
 
   @SuppressWarnings("ClassExplicitlyAnnotation")

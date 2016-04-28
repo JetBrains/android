@@ -15,9 +15,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-/**
- * @author coyote
- */
 public class AndroidManifestDomTest extends AndroidDomTest {
   public AndroidManifestDomTest() {
     super(false, "dom/manifest");
