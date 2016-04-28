@@ -23,6 +23,8 @@ import com.google.common.collect.ImmutableMap;
 
 import java.util.Map;
 
+import static com.google.common.truth.Truth.assertThat;
+
 /**
  * Tests for {@link ProductFlavorModel}.
  *
@@ -1514,12 +1516,12 @@ public class ProductFlavorModelTest extends GradleFileModelTestCase {
       .removeConsumerProguardFile("proguard-android.txt")
       .removeProguardFile("proguard-rules.pro");
 
-    assertEquals("consumerProguardFiles", ImmutableList.of(), defaultConfig.consumerProguardFiles());
-    assertEquals("proguardFiles", ImmutableList.of(), defaultConfig.proguardFiles());
+    assertThat(defaultConfig.consumerProguardFiles()).named("consumerProguardFiles").isEmpty();
+    assertThat(defaultConfig.proguardFiles()).named("proguardFiles").isEmpty();
 
     applyChanges(buildModel);
-    assertEquals("consumerProguardFiles", ImmutableList.of(), defaultConfig.consumerProguardFiles());
-    assertEquals("proguardFiles", ImmutableList.of(), defaultConfig.proguardFiles());
+    assertThat(defaultConfig.consumerProguardFiles()).named("consumerProguardFiles").isEmpty();
+    assertThat(defaultConfig.proguardFiles()).named("proguardFiles").isEmpty();
 
     buildModel.reparse();
     AndroidModel android = buildModel.android();
