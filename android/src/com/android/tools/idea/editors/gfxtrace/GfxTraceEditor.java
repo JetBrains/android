@@ -68,6 +68,7 @@ import java.awt.*;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -95,7 +96,6 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
   @NotNull public static final String SELECT_TEXTURE = "Select a texture";
   @NotNull public static final String NO_TEXTURES = "No textures have been created by this point";
 
-  @NotNull private static final String ERR_INIT_GAPIS_CONNECTION = "Error communicating with the graphics server";
   @NotNull private static final Logger LOG = Logger.getInstance(GfxTraceEditor.class);
 
   @NotNull private final Project myProject;
@@ -138,11 +138,6 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
     ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
       @Override
       public void run() {
-        if (!isEnabled()) {
-          setLoadingErrorTextOnEdt("GFX Trace System not enabled on this host", null);
-          return;
-        }
-
         if (installNeeded()) {
           HyperlinkLabel link = new HyperlinkLabel("(install here)");
           link.addHyperlinkListener(new HyperlinkListener() {
@@ -163,55 +158,47 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
           return;
         }
 
-        if (!connectToServer()) {
-          setLoadingErrorTextOnEdt("Unable to connect to server", null);
-          return;
-        }
-
         try {
-          myClient = new ServiceClientCache(myGapisConnection.createServiceClient(myExecutor), myExecutor);
-        }
-        catch (IOException e) {
-          setLoadingErrorTextOnEdt("Unable to talk to server", null);
-          return;
-        }
-
-        GapisFeatures features = myGapisConnection.getFeatures();
-
-        String status = "";
-        try {
-          status = "fetch schema";
-          fetchSchema();
-
-          status = "fetch feature list";
-          fetchFeatures(features);
-
-          if (features.hasRpcStringTables()) {
-            status = "fetch string table";
-            fetchStringTable();
-          }
-
-          status = "fetch replay device list";
-          fetchReplayDevice();
-
-          status = "load trace";
-          fetchTrace(myFile);
-
-          ApplicationManager.getApplication().invokeLater(new Runnable() {
-            @Override
-            public void run() {
-              myView.add(myMainUi, BorderLayout.CENTER);
-              myLoadingPanel.stopLoading();
-            }
+          doConnect();
+          ApplicationManager.getApplication().invokeLater(() -> {
+            myView.add(myMainUi, BorderLayout.CENTER);
+            myLoadingPanel.stopLoading();
           });
         }
-        catch (Exception e) {
-          LOG.error("Failed to " + status, e);
-          setLoadingErrorTextOnEdt(ERR_INIT_GAPIS_CONNECTION, null);
-          return;
+        catch (GapisInitException e) {
+          setLoadingErrorTextOnEdt(e.getMessage(), null);
         }
       }
     });
+  }
+
+  private void doConnect() throws GapisInitException {
+    if (!isEnabled()) {
+      throw GapisInitException.notEnabled();
+    }
+    connectToServer();
+
+    String status = "";
+    try {
+      status = "fetch schema";
+      fetchSchema();
+
+      status = "fetch feature list";
+      GapisFeatures features = myGapisConnection.getFeatures();
+      fetchFeatures(features);
+
+      if (features.hasRpcStringTables()) {
+        status = "fetch string table";
+        fetchStringTable();
+      }
+    }
+    catch (ExecutionException | RpcException | TimeoutException e) {
+      LOG.error("Failed to " + status, e);
+      throw GapisInitException.initFailed();
+    }
+
+    fetchReplayDevice();
+    fetchTrace(myFile);
   }
 
   private static boolean installNeeded() {
@@ -250,7 +237,7 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
   private void fetchFeatures(GapisFeatures features) throws ExecutionException, RpcException, TimeoutException {
     String[] list = Rpc.get(myClient.getFeatures(), FETCH_FEATURES_TIMEOUT_MS, TimeUnit.MILLISECONDS);
     features.setFeatureList(list);
-    LOG.info("GAPIS features: " + list.toString());
+    LOG.info("GAPIS features: " + Arrays.toString(list));
   }
 
   /**
@@ -270,50 +257,62 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
   /**
    * Requests and blocks for the schema from the server.
    */
-  private void fetchReplayDevice() throws ExecutionException, RpcException, TimeoutException {
+  private void fetchReplayDevice() throws GapisInitException {
     for (int i = 0; i < FETCH_REPLAY_DEVICE_MAX_RETRIES; i++) {
-      DevicePath[] devices = Rpc.get(getClient().getDevices(), FETCH_REPLAY_DEVICE_TIMEOUT_MS, TimeUnit.MILLISECONDS);
-      if (devices != null && devices.length >= 1) {
-        activatePath(devices[0], GfxTraceEditor.this);
-        return;
+      try {
+        DevicePath[] devices = Rpc.get(getClient().getDevices(), FETCH_REPLAY_DEVICE_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+        if (devices != null && devices.length >= 1) {
+          activatePath(devices[0], GfxTraceEditor.this);
+          return;
+        }
+      }
+      catch (RpcException | TimeoutException | ExecutionException e) {
+        // Ignored, retry.
       }
       try {
         Thread.sleep(FETCH_REPLAY_DEVICE_RETRY_DELAY_MS);
       }
       catch (InterruptedException e) {
+        break;
       }
     }
-    throw new RuntimeException("Couldn't find replay device");
+    throw GapisInitException.noReplayDevice();
   }
 
   /**
    * Uploads or requests the capture path from the server and then activates the path.
    */
-  private void fetchTrace(VirtualFile file) throws ExecutionException, RpcException, TimeoutException, IOException {
-    final ListenableFuture<CapturePath> captureF;
-    if (file.getFileSystem().getProtocol().equals(StandardFileSystems.FILE_PROTOCOL)) {
-      LOG.info("Load gfxtrace in " + file.getPresentableName());
-      if (file.getLength() == 0) {
-        throw new RuntimeException("Empty trace file");
+  private void fetchTrace(VirtualFile file) throws GapisInitException {
+    try {
+      final ListenableFuture<CapturePath> captureF;
+      if (file.getFileSystem().getProtocol().equals(StandardFileSystems.FILE_PROTOCOL)) {
+        LOG.info("Load gfxtrace in " + file.getPresentableName());
+        if (file.getLength() == 0) {
+          throw GapisInitException.emptyTrace(file);
+        }
+        captureF = myClient.loadCapture(file.getCanonicalPath());
       }
-      captureF = myClient.loadCapture(file.getCanonicalPath());
-    }
-    else {
-      // Upload the trace file
-      byte[] data = file.contentsToByteArray();
-      LOG.info("Upload " + data.length + " bytes of gfxtrace as " + file.getPresentableName());
-      if (data.length == 0) {
-        throw new RuntimeException("Empty trace file");
+      else {
+        // Upload the trace file
+        byte[] data = file.contentsToByteArray();
+        LOG.info("Upload " + data.length + " bytes of gfxtrace as " + file.getPresentableName());
+        if (data.length == 0) {
+          throw GapisInitException.emptyTrace(file);
+        }
+        captureF = myClient.importCapture(file.getPresentableName(), data);
       }
-      captureF = myClient.importCapture(file.getPresentableName(), data);
-    }
 
-    CapturePath path = Rpc.get(captureF, FETCH_TRACE_TIMEOUT_MS, TimeUnit.MILLISECONDS);
-    if (path == null) {
-      throw new RuntimeException("Invalid capture file " + file.getPresentableName());
-    }
+      CapturePath path = Rpc.get(captureF, FETCH_TRACE_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+      if (path == null) {
+        throw GapisInitException.invalidTrace(file);
+      }
 
-    activatePath(path, GfxTraceEditor.this);
+      activatePath(path, this);
+    }
+    catch (ExecutionException | RpcException | TimeoutException | IOException e) {
+      LOG.warn("Loading trace failed", e);
+      throw GapisInitException.loadTraceFailed(file);
+    }
   }
 
   @NotNull
@@ -449,11 +448,21 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
     shutdown();
   }
 
-  private boolean connectToServer() {
+  private void connectToServer() throws GapisInitException {
     assert !ApplicationManager.getApplication().isDispatchThread();
 
     myGapisConnection = GapisProcess.connect();
-    return myGapisConnection.isConnected();
+    if (!myGapisConnection.isConnected()) {
+      throw GapisInitException.notConnected();
+    }
+
+    try {
+      myClient = new ServiceClientCache(myGapisConnection.createServiceClient(myExecutor), myExecutor);
+    }
+    catch (IOException e) {
+      LOG.error("Unable to create client from connection", e);
+      throw GapisInitException.notConnected();
+    }
   }
 
   private void setLoadingErrorTextOnEdt(@NotNull final String error, @Nullable Component errorComponent) {
@@ -472,5 +481,39 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
     }
 
     myExecutor.shutdown();
+  }
+
+  private static class GapisInitException extends Exception {
+    public GapisInitException(String message) {
+      super(message);
+    }
+
+    public static GapisInitException notEnabled() {
+      return new GapisInitException("Graphics debugger not enabled on this system");
+    }
+
+    public static GapisInitException notConnected() {
+      return new GapisInitException("Failed to connect to the graphics debugger");
+    }
+
+    public static GapisInitException initFailed() {
+      return new GapisInitException("Failed to initialize the graphics debugger");
+    }
+
+    public static GapisInitException noReplayDevice() {
+      return new GapisInitException("No usable replay device found");
+    }
+
+    public static GapisInitException emptyTrace(VirtualFile file) {
+      return new GapisInitException("Empty trace file " + file.getPresentableName());
+    }
+
+    public static GapisInitException invalidTrace(VirtualFile file) {
+      return new GapisInitException("Invalid/Corrupted trace file " + file.getPresentableName());
+    }
+
+    public static GapisInitException loadTraceFailed(VirtualFile file) {
+      return new GapisInitException("Failed to load trace file " + file.getPresentableName());
+    }
   }
 }
