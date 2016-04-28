@@ -624,6 +624,9 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   @NotNull
   public EditorNotificationPanelFixture requireEditorNotification(@NotNull final String message) {
+    // Several notification panels can be created and displayed during user input (eg typing), so we need to wait for any pending tasks
+    waitForBackgroundTasks(robot());
+
     final Ref<EditorNotificationPanel> notificationPanelRef = new Ref<>();
 
     Wait.seconds(30).expecting("EditorNotificationPanel with message '" + message + "' to show up")
