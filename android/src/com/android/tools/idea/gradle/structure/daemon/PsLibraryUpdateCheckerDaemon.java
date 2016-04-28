@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.structure.daemon;
 
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
+import com.android.tools.idea.gradle.structure.daemon.AvailableLibraryUpdateStorage.AvailableLibraryUpdates;
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsLibraryDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
@@ -30,6 +31,7 @@ import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.project.Project;
 import com.intellij.util.EventDispatcher;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
@@ -37,6 +39,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
@@ -46,7 +49,6 @@ public class PsLibraryUpdateCheckerDaemon extends PsDaemon {
   @NotNull private final MergingUpdateQueue myMainQueue;
   @NotNull private final MergingUpdateQueue myResultsUpdaterQueue;
 
-  @NotNull private final AvailableLibraryUpdates myResults = new AvailableLibraryUpdates();
   @NotNull private final AtomicBoolean myRunning = new AtomicBoolean(true);
 
   @NotNull private final EventDispatcher<AvailableUpdatesListener> myEventDispatcher =
@@ -56,6 +58,20 @@ public class PsLibraryUpdateCheckerDaemon extends PsDaemon {
     super(context);
     myMainQueue = createQueue("Project Structure Daemon Update Checker", null);
     myResultsUpdaterQueue = createQueue("Project Structure Available Update Results Updater", ANY_COMPONENT);
+  }
+
+  public void queueAutomaticUpdateCheck() {
+    long searchTimeMillis = getAvailableUpdates().lastSearchTimeMillis;
+    if (searchTimeMillis > 0) {
+      long elapsed = System.currentTimeMillis() - searchTimeMillis;
+      long daysPastSinceLastUpdate = TimeUnit.MILLISECONDS.toDays(elapsed);
+      if (daysPastSinceLastUpdate < 3) {
+        // Display stored updates from previous search
+        myResultsUpdaterQueue.queue(new UpdatesAvailable());
+        return;
+      }
+    }
+    queueUpdateCheck();
   }
 
   public void queueUpdateCheck() {
@@ -75,8 +91,9 @@ public class PsLibraryUpdateCheckerDaemon extends PsDaemon {
   }
 
   @NotNull
-  public AvailableLibraryUpdates getResults() {
-    return myResults;
+  public AvailableLibraryUpdates getAvailableUpdates() {
+    Project project = getContext().getProject().getResolvedModel();
+    return AvailableLibraryUpdateStorage.getInstance(project).getState();
   }
 
   public void add(@NotNull AvailableUpdatesListener listener, @NotNull Disposable parentDisposable) {
@@ -91,7 +108,7 @@ public class PsLibraryUpdateCheckerDaemon extends PsDaemon {
   private void search(@NotNull Collection<ArtifactRepository> repositories,
                       @NotNull Collection<LibraryUpdateId> ids) {
     myRunning.set(true);
-    myResults.clear();
+    getAvailableUpdates().clear();
 
     int resultCount = repositories.size() * ids.size();
     List<Future<SearchResult>> jobs = Lists.newArrayListWithExpectedSize(resultCount);
@@ -129,10 +146,14 @@ public class PsLibraryUpdateCheckerDaemon extends PsDaemon {
         }
       }
 
+      AvailableLibraryUpdates updates = getAvailableUpdates();
+
       for (SearchResult result : results) {
         List<FoundArtifact> artifacts = result.getArtifacts();
-        myResults.add(artifacts.get(0));
+        updates.add(artifacts.get(0));
       }
+
+      updates.lastSearchTimeMillis = System.currentTimeMillis();
 
       myResultsUpdaterQueue.queue(new UpdatesAvailable());
     });
@@ -161,7 +182,7 @@ public class PsLibraryUpdateCheckerDaemon extends PsDaemon {
               if (spec != null && isNotEmpty(spec.version)) {
                 GradleVersion version = GradleVersion.tryParse(spec.version);
                 if (version != null) {
-                  ids.add(new LibraryUpdateId(spec));
+                  ids.add(new LibraryUpdateId(spec.name, spec.group));
                 }
               }
             }

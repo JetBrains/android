@@ -16,13 +16,13 @@
 package com.android.tools.idea.gradle.structure.daemon;
 
 import com.android.SdkConstants;
-import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
+import com.android.tools.idea.gradle.structure.daemon.AvailableLibraryUpdateStorage.AvailableLibraryUpdate;
+import com.android.tools.idea.gradle.structure.daemon.AvailableLibraryUpdateStorage.AvailableLibraryUpdates;
 import com.android.tools.idea.gradle.structure.daemon.analysis.PsAndroidModuleAnalyzer;
 import com.android.tools.idea.gradle.structure.daemon.analysis.PsModelAnalyzer;
 import com.android.tools.idea.gradle.structure.model.*;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
-import com.android.tools.idea.gradle.structure.model.repositories.search.FoundArtifact;
 import com.android.tools.idea.gradle.structure.navigation.PsLibraryDependencyPath;
 import com.android.tools.idea.gradle.structure.navigation.PsModulePath;
 import com.google.common.collect.Maps;
@@ -72,7 +72,7 @@ public class PsAnalyzerDaemon extends PsDaemon {
 
   private void addApplicableUpdatesAsIssues() {
     PsContext context = getContext();
-    AvailableLibraryUpdates results = context.getLibraryUpdateCheckerDaemon().getResults();
+    AvailableLibraryUpdates results = context.getLibraryUpdateCheckerDaemon().getAvailableUpdates();
     context.getProject().forEachModule(module -> {
       if (module instanceof PsAndroidModule) {
         PsAndroidModule androidModule = (PsAndroidModule)module;
@@ -84,11 +84,10 @@ public class PsAnalyzerDaemon extends PsDaemon {
             PsLibraryDependency libraryDependency = (PsLibraryDependency)dependency;
             PsArtifactDependencySpec spec = libraryDependency.getDeclaredSpec();
             if (spec != null) {
-              FoundArtifact update = results.findUpdateFor(spec);
+              AvailableLibraryUpdate update = results.findUpdateFor(spec);
               if (update != null) {
                 String library = spec.group + SdkConstants.GRADLE_PATH_SEPARATOR + spec.name;
-                GradleVersion version = update.getVersions().get(0);
-                String text = String.format("A newer version of %1$s is available: %2$s", library, version.toString());
+                String text = String.format("A newer version of %1$s is available: %2$s", library, update.version);
 
                 PsLibraryDependencyPath mainPath = new PsLibraryDependencyPath(context, libraryDependency);
                 PsIssue issue = new PsIssue(text, mainPath, LIBRARY_UPDATES_AVAILABLE, INFO);

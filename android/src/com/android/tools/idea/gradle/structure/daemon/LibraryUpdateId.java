@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.gradle.structure.daemon;
 
-import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
-import com.android.tools.idea.gradle.structure.model.repositories.search.FoundArtifact;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -29,14 +27,9 @@ class LibraryUpdateId {
 
   @Nullable private final String myGroupId;
 
-  LibraryUpdateId(@NotNull PsArtifactDependencySpec spec) {
-    myName = spec.name;
-    myGroupId = spec.group;
-  }
-
-  LibraryUpdateId(@NotNull FoundArtifact artifact) {
-    myName = artifact.getName();
-    myGroupId = artifact.getGroupId();
+  LibraryUpdateId(@NotNull String name, @Nullable String groupId) {
+    myName = name;
+    myGroupId = groupId;
   }
 
   @Override
