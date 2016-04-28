@@ -42,15 +42,14 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
-import java.util.*;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.Map;
+import java.util.Objects;
 
 public class NlEnumEditor implements NlComponentEditor {
   private static final int SMALL_WIDTH = 65;
   private static final JBColor DIM_TEXT_COLOR = new JBColor(Gray._128, Gray._128);
-  private static final Pattern QUANTITY_PATTERN = Pattern.compile("^(\\d+)(.*)$");
   private static final List<String> AVAILABLE_TEXT_SIZES = ImmutableList.of("8sp", "10sp", "12sp", "14sp", "18sp", "24sp", "30sp", "36sp");
   private static final List<String> AVAILABLE_LINE_SPACINGS = AVAILABLE_TEXT_SIZES;
 
@@ -252,16 +251,20 @@ public class NlEnumEditor implements NlComponentEditor {
     if (!isDimension) {
       return startIndex;
     }
-    Quantity newQuantity = Quantity.parse(newValue);
+    String newTextValue = newValue.getValue();
+    Quantity newQuantity = newTextValue != null ? Quantity.parse(newTextValue) : null;
     if (newQuantity == null) {
       return startIndex;
     }
 
     ComboBoxModel<ValueWithDisplayString> model = myCombo.getModel();
     for (int index = startIndex, size = model.getSize(); index < size; index++) {
-      Quantity quantity = Quantity.parse(model.getElementAt(index));
-      if (newQuantity.compareTo(quantity) <= 0) {
-        return index;
+      String textValue = model.getElementAt(index).getValue();
+      if (textValue != null) {
+        Quantity quantity = Quantity.parse(textValue);
+        if (newQuantity.compareTo(quantity) <= 0) {
+          return index;
+        }
       }
     }
     return model.getSize();
@@ -283,8 +286,13 @@ public class NlEnumEditor implements NlComponentEditor {
   }
 
   private void enter() {
-    myListener.itemPicked(this, myCombo.getEditor().getItem().toString());
+    myListener.itemPicked(this, getText());
     myCombo.hidePopup();
+  }
+
+  private String getText() {
+    String text = myCombo.getEditor().getItem().toString();
+    return Quantity.addUnit(myProperty, text);
   }
 
   private void resourcePicked() {
@@ -336,49 +344,5 @@ public class NlEnumEditor implements NlComponentEditor {
     ValueWithDisplayString[] array = new ValueWithDisplayString[list.size()];
     list.toArray(array);
     return array;
-  }
-
-  private static class Quantity implements Comparable<Quantity> {
-    private final int myValue;
-    private final String myUnit;
-
-    @Nullable
-    private static Quantity parse(@NotNull ValueWithDisplayString value) {
-      Matcher matcher = QUANTITY_PATTERN.matcher(value.toString());
-      if (!matcher.matches()) {
-        return null;
-      }
-      try {
-        return new Quantity(Integer.parseInt(matcher.group(1)), matcher.group(2));
-      }
-      catch (NumberFormatException ignore) {
-        return null;  // Format as if this was not a value with a unit
-      }
-    }
-
-    private Quantity(int value, @NotNull String unit) {
-      myValue = value;
-      myUnit = unit;
-    }
-
-    private int getValue() {
-      return myValue;
-    }
-
-    @NotNull
-    private String getUnit() {
-      return myUnit;
-    }
-
-    @Override
-    public int compareTo(@Nullable Quantity other) {
-      if (other == null) {
-        return -1;
-      }
-      return Comparator
-        .comparing(Quantity::getUnit)
-        .thenComparing(Quantity::getValue)
-        .compare(this, other);
-    }
   }
 }

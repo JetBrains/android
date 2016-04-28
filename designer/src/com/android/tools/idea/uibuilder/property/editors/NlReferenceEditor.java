@@ -109,7 +109,7 @@ public class NlReferenceEditor implements NlComponentEditor {
     myBrowseButton.setToolTipText(UIBundle.message("component.with.browse.button.browse.button.tooltip.text"));
     myPanel.add(myBrowseButton, BorderLayout.LINE_END);
 
-    myTextFieldWithAutoCompletion.registerKeyboardAction(event -> stopEditing(myTextFieldWithAutoCompletion.getDocument().getText()),
+    myTextFieldWithAutoCompletion.registerKeyboardAction(event -> stopEditing(getText()),
                                                          KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0),
                                                          JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
     myTextFieldWithAutoCompletion.registerKeyboardAction(event -> displayResourcePicker(),
@@ -124,11 +124,17 @@ public class NlReferenceEditor implements NlComponentEditor {
 
       @Override
       public void focusLost(FocusEvent event) {
-        stopEditing(myTextFieldWithAutoCompletion.getDocument().getText());
+        stopEditing(getText());
       }
     });
 
     myBrowseButton.addActionListener(event -> displayResourcePicker());
+  }
+
+  @NotNull
+  private String getText() {
+    String text = myTextFieldWithAutoCompletion.getDocument().getText();
+    return Quantity.addUnit(myProperty, text);
   }
 
   private static void selectTextOnFocusGain(@NotNull FocusEvent focusEvent) {
@@ -213,7 +219,7 @@ public class NlReferenceEditor implements NlComponentEditor {
   }
 
   public Object getValue() {
-    return myTextFieldWithAutoCompletion.getDocument().getText();
+    return getText();
   }
 
   private void cancelEditing() {
