@@ -94,7 +94,6 @@ public class InstantRunBuilder implements BeforeRunBuilder {
     }
 
     List<String> args = new ArrayList<>(commandLineArguments);
-    args.add("-Pandroid.injected.coldswap.mode=default"); // TODO: remove if gradle doesn't need this
 
     FileChangeListener.Changes fileChanges = myInstantRunContext.getFileChangesAndReset();
     if (buildModeChoice.mode == BuildMode.HOT || buildModeChoice.mode == BuildMode.COLD) { // incremental build
