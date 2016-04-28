@@ -548,7 +548,10 @@ public class AtomController extends TreeController implements AtomStream.Listene
    * object at the specified path.
    */
   @Nullable
-  private Object getDataObjectAt(TreePath path) {
+  private Object getDataObjectAt(@Nullable TreePath path) {
+    if (path == null) {
+      return null;
+    }
     DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode)path.getLastPathComponent();
     return treeNode.getUserObject();
   }
