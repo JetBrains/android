@@ -15,49 +15,47 @@
  */
 package com.android.tools.idea.uibuilder.editor;
 
+import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import org.jetbrains.annotations.NotNull;
-import com.android.tools.idea.uibuilder.structure.NlStructurePanel;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.intellij.designer.DesignerEditorPanelFacade;
 import com.intellij.designer.LightToolWindow;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindowAnchor;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class NlStructureManager extends NlAbstractWindowManager {
-  private NlStructurePanel myStructurePanel;
+public class NlPropertiesWindowManager extends NlAbstractWindowManager {
+  private NlPropertiesManager myPropertiesManager;
 
-  public NlStructureManager(@NotNull Project project, @NotNull FileEditorManager fileEditorManager) {
+  public NlPropertiesWindowManager(@NotNull Project project, @NotNull FileEditorManager fileEditorManager) {
     super(project, fileEditorManager);
   }
 
   @NotNull
-  public static NlStructureManager get(@NotNull Project project) {
-    return project.getComponent(NlStructureManager.class);
+  public static NlPropertiesWindowManager get(@NotNull Project project) {
+    return project.getComponent(NlPropertiesWindowManager.class);
   }
 
   @Override
   protected void initToolWindow() {
-    initToolWindow("Nl-Structure", AllIcons.Toolwindows.ToolWindowStructure);
+    initToolWindow("Nl-Properties", AllIcons.Toolwindows.ToolWindowStructure);
   }
 
   @Override
   protected void updateToolWindow(@Nullable DesignerEditorPanelFacade designer) {
     if (designer == null) {
       myToolWindow.setAvailable(false, null);
-      if (myStructurePanel != null) {
-        myStructurePanel.setDesignSurface(null);
+      if (myPropertiesManager != null) {
+        myPropertiesManager.setDesignSurface(null);
       }
     }
     else {
-      if (myStructurePanel == null) {
-        myStructurePanel = new NlStructurePanel(myProject, getDesignSurface(designer));
-        createWindowContent(myStructurePanel.getPanel(), myStructurePanel.getPanel(), null);
+      if (myPropertiesManager == null) {
+        myPropertiesManager = new NlPropertiesManager(myProject, getDesignSurface(designer));
+        createWindowContent(myPropertiesManager.getConfigurationPanel(), myPropertiesManager.getConfigurationPanel(), null);
       }
-      myStructurePanel.setDesignSurface(getDesignSurface(designer));
+      myPropertiesManager.setDesignSurface(getDesignSurface(designer));
       myToolWindow.setAvailable(true, null);
       myToolWindow.show(null);
     }
@@ -71,25 +69,22 @@ public class NlStructureManager extends NlAbstractWindowManager {
   @Override
   protected LightToolWindow createContent(@NotNull DesignerEditorPanelFacade designer) {
     if (!(designer instanceof NlEditorPanel)) {
-      // The preview tool window does not have a structure pane.
+      // The preview tool window does not have a properties pane.
       return null;
     }
-    NlStructurePanel structurePanel = new NlStructurePanel(myProject, getDesignSurface(designer));
 
-    return createContent(designer, structurePanel, "Structure", AllIcons.Toolwindows.ToolWindowStructure, structurePanel.getPanel(),
-                         structurePanel.getPanel(), 320, null);
+    myPropertiesManager = new NlPropertiesManager(myProject, getDesignSurface(designer));
+    return createContent(designer, myPropertiesManager, "Properties", AllIcons.Toolwindows.ToolWindowStructure, myPropertiesManager.getConfigurationPanel(),
+                         myPropertiesManager.getConfigurationPanel(), 320, null);
   }
 
   @Override
   public void disposeComponent() {
-    if (myStructurePanel != null) {
-      myStructurePanel.dispose();
-    }
   }
 
   @NotNull
   @Override
   public String getComponentName() {
-    return "NlStructureManager";
+    return "NlPropertiesWindowManager";
   }
 }

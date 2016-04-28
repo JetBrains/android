@@ -1107,7 +1107,7 @@
       <implementation-class>com.android.tools.idea.uibuilder.editor.NlPaletteManager</implementation-class>
     </component>
     <component>
-      <implementation-class>com.android.tools.idea.uibuilder.editor.NlStructureManager</implementation-class>
+      <implementation-class>com.android.tools.idea.uibuilder.editor.NlPropertiesWindowManager</implementation-class>
     </component>
     <component>
       <implementation-class>com.android.tools.idea.uibuilder.handlers.ViewHandlerManager</implementation-class>
