@@ -68,13 +68,6 @@ public class NlStructureManager extends NlAbstractWindowManager {
     return ToolWindowAnchor.RIGHT;
   }
 
-  @NotNull
-  private static DesignSurface getDesignSurface(@NotNull DesignerEditorPanelFacade designer) {
-    assert designer instanceof NlEditorPanel;
-    NlEditorPanel editor = (NlEditorPanel)designer;
-    return editor.getSurface();
-  }
-
   @Override
   protected LightToolWindow createContent(@NotNull DesignerEditorPanelFacade designer) {
     if (!(designer instanceof NlEditorPanel)) {
