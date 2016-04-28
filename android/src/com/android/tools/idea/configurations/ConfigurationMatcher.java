@@ -574,7 +574,21 @@ public class ConfigurationMatcher {
     //Editor activeEditor = AndroidUtils.getSelectedEditor(myManager.getProject());
     if (ApplicationManager.getApplication().isDispatchThread()) {
       FileEditorManager editorManager = FileEditorManager.getInstance(myManager.getProject());
-      Editor activeEditor = editorManager.getSelectedTextEditor();
+      Editor activeEditor;
+      try {
+        activeEditor = editorManager.getSelectedTextEditor();
+      } catch (Throwable t) {
+        // There are cases where this code is invoked *during* startup, where the
+        // editor manager is recreating its open files, and if one of those open
+        // files is a layout editor, it constructs it (which in turns asks for
+        // a configuration, which ends up calling into this function.
+        //
+        // The purpose of asking for the current editor here is to base new configurations
+        // on the currently showing layout editor. That isn't an issue during startup,
+        // so we silently skip this here. (There isn't a way for us to query whether
+        // we're being invoked during EditorManager construction.)
+        activeEditor = null;
+      }
       if (activeEditor != null) {
         FileDocumentManager documentManager = FileDocumentManager.getInstance();
         VirtualFile file = documentManager.getFile(activeEditor.getDocument());
