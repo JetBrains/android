@@ -96,9 +96,9 @@ public abstract class NlAbstractWindowManager extends LightToolWindowManager {
     return new ToggleEditorModeAction(this, myProject, anchor) {
       @Override
       protected LightToolWindowManager getOppositeManager() {
-        LightToolWindowManager designerManager = NlStructureManager.get(myProject);
+        LightToolWindowManager propertiesManager = NlPropertiesWindowManager.get(myProject);
         LightToolWindowManager paletteManager = NlPaletteManager.get(myProject);
-        return myManager == designerManager ? paletteManager : designerManager;
+        return myManager == propertiesManager ? paletteManager : propertiesManager;
       }
     };
   }

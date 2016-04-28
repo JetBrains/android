@@ -15,11 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.editor;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.uibuilder.palette.NlPalettePanel;
 import com.android.tools.idea.uibuilder.palette.ScalableDesignSurface;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.intellij.designer.DesignerEditorPanelFacade;
 import com.intellij.designer.LightToolWindow;
 import com.intellij.icons.AllIcons;
@@ -27,6 +24,8 @@ import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindowAnchor;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class NlPaletteManager extends NlAbstractWindowManager {
   private NlPalettePanel myPalette;
@@ -55,7 +54,7 @@ public class NlPaletteManager extends NlAbstractWindowManager {
     }
     else {
       if (myPalette == null) {
-        myPalette = new NlPalettePanel(myProject, designer);
+        myPalette = new NlPalettePanel(myProject, designer, getDesignSurface(designer));
         createWindowContent(myPalette, myPalette.getFocusedComponent(), myPalette.getActions());
       }
       myPalette.setDesignSurface(getDesignSurface(designer));
@@ -86,7 +85,7 @@ public class NlPaletteManager extends NlAbstractWindowManager {
       return toolWindow;
     }
 
-    NlPalettePanel palette = new NlPalettePanel(myProject, designer);
+    NlPalettePanel palette = new NlPalettePanel(myProject, designer, getDesignSurface(designer));
     palette.setDesignSurface(getDesignSurface(designer));
 
     PropertiesComponent propertiesComponent = PropertiesComponent.getInstance(myProject);

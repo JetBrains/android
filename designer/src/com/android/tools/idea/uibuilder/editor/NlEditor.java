@@ -39,7 +39,7 @@ public class NlEditor extends UserDataHolderBase implements FileEditor {
   private final VirtualFile myFile;
   private final DumbService myDumbService;
   private final LightToolWindowManager myPaletteManager;
-  private final LightToolWindowManager myStructureManager;
+  private final LightToolWindowManager myPropertiesWindowManager;
 
   private NlEditorPanel myEditorPanel;
   private BackgroundEditorHighlighter myBackgroundHighlighter;
@@ -49,7 +49,7 @@ public class NlEditor extends UserDataHolderBase implements FileEditor {
     myFile = file;
     myDumbService = DumbService.getInstance(project);
     myPaletteManager = NlPaletteManager.get(project);
-    myStructureManager = NlStructureManager.get(project);
+    myPropertiesWindowManager = NlPropertiesWindowManager.get(project);
   }
 
   @NotNull
@@ -62,7 +62,7 @@ public class NlEditor extends UserDataHolderBase implements FileEditor {
         @Override
         public void run() {
           myPaletteManager.bind(myEditorPanel);
-          myStructureManager.bind(myEditorPanel);
+          myPropertiesWindowManager.bind(myEditorPanel);
         }
       });
     }
