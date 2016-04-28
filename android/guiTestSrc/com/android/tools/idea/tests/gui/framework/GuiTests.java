@@ -78,6 +78,7 @@ import static com.intellij.openapi.projectRoots.JdkUtil.checkForJdk;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
+import static org.fest.swing.core.MouseButton.LEFT_BUTTON;
 import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.fest.swing.finder.WindowFinder.findFrame;
 import static org.fest.util.Strings.quote;
@@ -491,6 +492,17 @@ public final class GuiTests {
     Wait.minutes(2).expecting("button " + text + " to be enabled")
       .until(() -> button.isEnabled() && button.isVisible() && button.isShowing());
     robot.click(button);
+  }
+
+  /**
+   * Fest API bug work-around - Double click on FEST moves the mouse between clicks (to the same location), and that fails on Mac.
+   */
+  public static void doubleClick(Robot robot, Point clickLocation) {
+    robot.moveMouse(clickLocation);
+    robot.pressMouse(LEFT_BUTTON);
+    robot.releaseMouse(LEFT_BUTTON);
+    robot.pressMouse(LEFT_BUTTON);
+    robot.releaseMouse(LEFT_BUTTON);
   }
 
   @NotNull
