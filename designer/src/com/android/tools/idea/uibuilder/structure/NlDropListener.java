@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.structure;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.uibuilder.api.DragType;
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
@@ -25,7 +23,11 @@ import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.structure.NlComponentTree.InsertionPoint;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.utils.Pair;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.Computable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreePath;
@@ -34,6 +36,7 @@ import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.dnd.*;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import static com.android.tools.idea.uibuilder.structure.NlComponentTree.InsertionPoint.*;
@@ -100,7 +103,9 @@ public class NlDropListener extends DropTargetAdapter {
           myDragged.addAll(model.getSelectionModel().getSelection());
         }
         else {
-          List<NlComponent> captured = model.createComponents(screenView, myTransferItem, insertType);
+          Collection<NlComponent> captured = ApplicationManager.getApplication()
+            .runWriteAction((Computable<Collection<NlComponent>>)() -> model.createComponents(screenView, myTransferItem, insertType));
+
           if (captured != null) {
             myDragged.addAll(captured);
           }

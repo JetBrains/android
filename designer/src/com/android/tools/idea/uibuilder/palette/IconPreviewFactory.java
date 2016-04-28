@@ -122,17 +122,21 @@ public class IconPreviewFactory {
     if (xml.equals(NO_PREVIEW)) {
       return null;
     }
-    XmlTag tag = null;
+
+    XmlTag tag;
+
     try {
       tag = elementFactory.createTagFromText(xml);
     }
-    catch (IncorrectOperationException ignore) {
-    }
-    if (tag == null) {
+    catch (IncorrectOperationException exception) {
       return null;
     }
+
     NlModel model = screenView.getModel();
-    NlComponent component = model.createComponent(screenView, tag, null, null, InsertType.CREATE_PREVIEW);
+
+    NlComponent component = ApplicationManager.getApplication()
+      .runWriteAction((Computable<NlComponent>)() -> model.createComponent(screenView, tag, null, null, InsertType.CREATE_PREVIEW));
+
     if (component == null) {
       return null;
     }
