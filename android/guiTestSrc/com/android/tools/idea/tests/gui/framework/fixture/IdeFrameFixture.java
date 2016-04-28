@@ -667,10 +667,8 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
       return null;
     }
 
-    List<String> labels = Lists.newArrayList();
     for (EditorNotificationPanel panel : panels) {
       List<String> found = getEditorNotificationLabels(panel);
-      labels.addAll(found);
       for (String label : found) {
         if (label.contains(message)) {
           return panel;
