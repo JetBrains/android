@@ -30,20 +30,29 @@ import java.awt.geom.RoundRectangle2D;
 public final class SelectionComponent extends AnimatedComponent {
 
   /**
-   * This component can be in five modes: - OBSERVE: User is not modifying the selection (if any).
-   * - CREATE: User is currently creating a selection. The first handle has been set and the other
-   * will be when the user release the mouse button. - MOVE: User placed the mouse cursor between
-   * the two handle and pressed the button. The two handles are moving together as a block. -
-   * ADJUST User is adjusting a end of the selection.
+   * Default drawing Dimension for the handles.
    */
+  private static final Dimension HANDLE_DIM = new Dimension(12, 40);
+  private static final int DIM_ROUNDING_CORNER = 5;
+  private static final Color SELECTION_FORECOLOR = new Color(0x88aae2);
+  private static final Color SELECTION_BACKCOLOR = new Color(0x5588aae2, true);
+
   private enum Mode {
-    OBSERVE, CREATE, MOVE, ADJUST_MIN, ADJUST_MAX
+    // User is not modifying the selection but one exists.
+    OBSERVE,
+    // User is currently creating a selection. The min/max handles are created at the point
+    // where the user clicks and the selection switches to ADJUST_MIN mode.
+    CREATE,
+    // User click+drag between the two handle and pressed the button. The selection range
+    // shifts and the two handles move together as a block.
+    MOVE,
+    // User is adjusting the min.
+    ADJUST_MIN,
+    // User is adjusting the max.
+    ADJUST_MAX
   }
 
   private Mode mode;
-
-  private static final Color SELECTION_FORECOLOR = new Color(0x88aae2);
-  private static final Color SELECTION_BACKCOLOR = new Color(0x5588aae2, true);
 
   @NonNull
   private final AxisComponent mAxis;
@@ -72,14 +81,7 @@ public final class SelectionComponent extends AnimatedComponent {
    * the selection. This allows to move the block relative to the initial point the selection was
    * "grabbed".
    */
-  double mSelectionBlockClickOffset = 0;
-
-
-  /**
-   * Default drawing Dimension for the handles.
-   */
-  private Dimension handleDim = new Dimension(12, 40);
-  final static private int dimRoundingCorner = 5;
+  private double mSelectionBlockClickOffset = 0;
 
 
   public SelectionComponent(@NonNull AxisComponent axis,
@@ -104,7 +106,7 @@ public final class SelectionComponent extends AnimatedComponent {
         switch (mode) {
           case CREATE:
             double value = mAxis.getValueAtPosition(e.getX());
-            mSelectionRange.setEmptyAt(value);
+            mSelectionRange.set(value, value);
             mode = Mode.ADJUST_MIN;
             break;
           default:
@@ -161,31 +163,30 @@ public final class SelectionComponent extends AnimatedComponent {
 
   @Override
   protected void updateData() {
-    // If component is not showing, there is no point in updating data
-    if (!isShowing()) {
+    // Early return if the component is hidden or in OBSERVE mode
+    // TODO probably abstract the isShowing check to somewhere across all AnimatedComponents
+    if (!isShowing() || mode == Mode.OBSERVE) {
       return;
     }
 
-    Point mMousePosition = getMouseLocation();
-    double valueAtCursor = mAxis.getValueAtPosition(mMousePosition.x);
+    Point mousePosition = getMouseLocation();
+    double valueAtCursor = mAxis.getValueAtPosition(mousePosition.x);
 
     // Clamp to data range.
-    if (valueAtCursor > mDataRange.getMax()) {
-      valueAtCursor = mDataRange.getMax();
-    }
-    if (valueAtCursor < mDataRange.getMin()) {
-      valueAtCursor = mDataRange.getMin();
-    }
+    valueAtCursor = mDataRange.clamp(valueAtCursor);
 
     // Extend view range if necessary
+    // If extended, lock range to force Scrollbar to quit STREAMING mode.
     if (valueAtCursor > mViewRange.getMax()) {
       mViewRange.setMax(valueAtCursor);
+      mViewRange.lockValues();
     }
-    if (valueAtCursor < mViewRange.getMin()) {
+    else if (valueAtCursor < mViewRange.getMin()) {
       mViewRange.setMin(valueAtCursor);
+      mViewRange.lockValues();
     }
 
-    // Check if selection was inverted (min > max or max<min)
+    // Check if selection was inverted (min > max or max < min)
     if (mode == Mode.ADJUST_MIN && valueAtCursor > mSelectionRange.getMax()) {
       mSelectionRange.flip();
       mode = Mode.ADJUST_MAX;
@@ -211,11 +212,11 @@ public final class SelectionComponent extends AnimatedComponent {
 
         // Limit the selection block to viewRange Min
         if (mSelectionRange.getMin() < mViewRange.getMin()) {
-          mSelectionRange.add(mViewRange.getMin() - mSelectionRange.getMin());
+          mSelectionRange.shift(mViewRange.getMin() - mSelectionRange.getMin());
         }
         // Limit the selection block to viewRange Max
         if (mSelectionRange.getMax() > mViewRange.getMax()) {
-          mSelectionRange.add(mViewRange.getMax() - mSelectionRange.getMax());
+          mSelectionRange.shift(mViewRange.getMax() - mSelectionRange.getMax());
         }
         break;
     }
@@ -240,7 +241,6 @@ public final class SelectionComponent extends AnimatedComponent {
       getTopLevelAncestor().setCursor(Cursor.getPredefinedCursor(cursor));
     }
   }
-
 
   @Override
   protected void draw(Graphics2D g) {
@@ -281,20 +281,18 @@ public final class SelectionComponent extends AnimatedComponent {
     g.fill(handle);
   }
 
-
   private RoundRectangle2D.Double getHandleAreaForValue(double value) {
     float x = mAxis.getPositionAtValue(value);
-    return new RoundRectangle2D.Double(x - handleDim.getWidth() / 2, 0, handleDim.getWidth(),
-                                       handleDim.getHeight(), dimRoundingCorner, dimRoundingCorner);
+    return new RoundRectangle2D.Double(x - HANDLE_DIM.getWidth() / 2, 0, HANDLE_DIM.getWidth(),
+                                       HANDLE_DIM.getHeight(), DIM_ROUNDING_CORNER, DIM_ROUNDING_CORNER);
   }
 
   private Rectangle2D.Double getBetweenHandlesArea() {
-
     // Convert range space value to component space value.
     double startXPos = mAxis.getPositionAtValue(mSelectionRange.getMin());
     double endXPos = mAxis.getPositionAtValue(mSelectionRange.getMax());
 
-    return new Rectangle2D.Double(startXPos - handleDim.getWidth() / 2, 0, endXPos - startXPos,
-                                  handleDim.getHeight());
+    return new Rectangle2D.Double(startXPos - HANDLE_DIM.getWidth() / 2, 0, endXPos - startXPos,
+                                  HANDLE_DIM.getHeight());
   }
 }

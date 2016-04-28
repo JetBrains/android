@@ -43,9 +43,8 @@ public class Range implements Animatable {
   }
 
   /**
-   * Sets the fraction at which the min/max interpolates if the values set are
-   * not immediately applied. See {@link Choreographer#lerp(double, double, float, float)}
-   * for details.
+   * Sets the fraction at which the min/max interpolates if the values set are not immediately
+   * applied. See {@link Choreographer#lerp(double, double, float, float)} for details.
    */
   public void setInterpolationFraction(float fraction) {
     mFraction = fraction;
@@ -67,8 +66,8 @@ public class Range implements Animatable {
 
   /**
    * @param fromTarget The target min value to interpolate to.
-   * @return true if the target min was set successfully, false if otherwise
-   * (e.g. the value has been locked).
+   * @return true if the target min was set successfully, false if otherwise (e.g. the value has
+   * been locked).
    */
   public boolean setMinTarget(double fromTarget) {
     if (mLock) {
@@ -95,8 +94,8 @@ public class Range implements Animatable {
 
   /**
    * @param to The max value to interpolate to.
-   * @return true if the target max was set successfully, false if otherwise
-   * (e.g. the value has been locked).
+   * @return true if the target max was set successfully, false if otherwise (e.g. the value has
+   * been locked).
    */
   public boolean setMaxTarget(double to) {
     if (mLock) {
@@ -104,6 +103,26 @@ public class Range implements Animatable {
     }
 
     mTargetMax = to;
+    return true;
+  }
+
+  public boolean set(double min, double max) {
+    if (mLock) {
+      return false;
+    }
+
+    setMin(min);
+    setMax(max);
+    return true;
+  }
+
+  public boolean setTarget(double min, double max) {
+    if (mLock) {
+      return false;
+    }
+
+    setMinTarget(min);
+    setMaxTarget(max);
     return true;
   }
 
@@ -152,6 +171,9 @@ public class Range implements Animatable {
     return mCurrentMax - mCurrentMin;
   }
 
+  public boolean isEmpty() {
+    return getMax() == getMin();
+  }
 
   public double clamp(double value) {
     if (value < getMin()) {
@@ -163,25 +185,17 @@ public class Range implements Animatable {
     return value;
   }
 
-  public void flip() {
-    set(getMax(), getMin());
+  public boolean flip() {
+    return set(getMax(), getMin());
   }
 
-  public void set(double min, double max) {
-    setMin(min);
-    setMax(max);
-  }
+  public boolean shift(double delta) {
+    if (mLock) {
+      return false;
+    }
 
-  public void setEmptyAt(double value) {
-    set(value, value);
-  }
-
-  public void add(double delta) {
     setMax(getMax() + delta);
     setMin(getMin() + delta);
-  }
-
-  public boolean isEmpty() {
-    return getMax() == getMin();
+    return true;
   }
 }
