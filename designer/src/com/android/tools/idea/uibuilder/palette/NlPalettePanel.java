@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.palette;
 
+import com.android.tools.idea.uibuilder.structure.NlComponentTree;
+import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.intellij.openapi.ui.Splitter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import com.android.ide.common.rendering.api.ResourceValue;
@@ -79,7 +82,6 @@ import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.tree.TreeUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -101,7 +103,7 @@ public class NlPalettePanel extends JPanel
   private static final Insets INSETS = new Insets(0, 6, 0, 6);
   private static final int ICON_SPACER = 4;
 
-  private final JTree myTree;
+  private final JTree myPaletteTree;
   private final IconPreviewFactory myIconFactory;
   private final NlPaletteModel myModel;
   private final Set<String> myMissingLibraries;
@@ -111,13 +113,15 @@ public class NlPalettePanel extends JPanel
   private final DnDManager myDndManager;
   private final DnDSource myDndSource;
 
+  private final NlComponentTree myStructureTree;
+
   private ScalableDesignSurface myDesignSurface;
   private Mode myMode;
   private BufferedImage myLastDragImage;
   private Configuration myConfiguration;
 
-  public NlPalettePanel(@NotNull Project project, @NotNull DesignerEditorPanelFacade designer) {
-    myTree = new PaletteTree();
+  public NlPalettePanel(@NotNull Project project, @NotNull DesignerEditorPanelFacade designer, @NotNull DesignSurface designSurface) {
+    myPaletteTree = new PaletteTree();
     myIconFactory = IconPreviewFactory.get();
     myModel = NlPaletteModel.get(project);
     myMissingLibraries = new HashSet<String>();
@@ -129,11 +133,19 @@ public class NlPalettePanel extends JPanel
 
     myDndManager = DnDManager.getInstance();
     myDndSource = new PaletteDnDSource();
-    myDndManager.registerSource(myDndSource, myTree);
+    myDndManager.registerSource(myDndSource, myPaletteTree);
     initTree(project);
-    JScrollPane pane = ScrollPaneFactory.createScrollPane(myTree, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER);
+    JScrollPane palettePane = ScrollPaneFactory.createScrollPane(myPaletteTree, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER);
+
+    myStructureTree = new NlComponentTree(designSurface);
+    JScrollPane structurePane = ScrollPaneFactory.createScrollPane(myStructureTree, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER);
+
+    Splitter splitter = new Splitter(true, 0.6f);
+    splitter.setFirstComponent(palettePane);
+    splitter.setSecondComponent(structurePane);
+
     setLayout(new BorderLayout());
-    add(pane, BorderLayout.CENTER);
+    add(splitter, BorderLayout.CENTER);
   }
 
   @NotNull
@@ -157,7 +169,7 @@ public class NlPalettePanel extends JPanel
 
   @NotNull
   public JComponent getFocusedComponent() {
-    return myTree;
+    return myPaletteTree;
   }
 
   public enum Mode {
@@ -262,8 +274,8 @@ public class NlPalettePanel extends JPanel
         }
       }
     }
-    myTree.setBackground(background);
-    myTree.setForeground(foreground);
+    myPaletteTree.setBackground(background);
+    myPaletteTree.setForeground(foreground);
   }
 
   @Override
@@ -372,33 +384,33 @@ public class NlPalettePanel extends JPanel
 
   private void invalidateUI() {
     // BasicTreeUI keeps a cache of node heights. This will replace the ui and force a new node height computation.
-    IJSwingUtilities.updateComponentTreeUI(myTree);
+    IJSwingUtilities.updateComponentTreeUI(myPaletteTree);
   }
 
   private void initTree(@NotNull Project project) {
     DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode(null);
     DefaultTreeModel treeModel = new DefaultTreeModel(rootNode);
-    myTree.setModel(treeModel);
-    myTree.setRowHeight(0);
-    myTree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
-    myTree.setRootVisible(false);
-    myTree.setShowsRootHandles(false);
-    myTree.setBorder(new EmptyBorder(INSETS));
-    myTree.setToggleClickCount(2);
-    ToolTipManager.sharedInstance().registerComponent(myTree);
-    TreeUtil.installActions(myTree);
-    createCellRenderer(myTree);
-    myTree.setSelectionRow(0);
-    new PaletteSpeedSearch(myTree);
+    myPaletteTree.setModel(treeModel);
+    myPaletteTree.setRowHeight(0);
+    myPaletteTree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
+    myPaletteTree.setRootVisible(false);
+    myPaletteTree.setShowsRootHandles(false);
+    myPaletteTree.setBorder(new EmptyBorder(INSETS));
+    myPaletteTree.setToggleClickCount(2);
+    ToolTipManager.sharedInstance().registerComponent(myPaletteTree);
+    TreeUtil.installActions(myPaletteTree);
+    createCellRenderer(myPaletteTree);
+    myPaletteTree.setSelectionRow(0);
+    new PaletteSpeedSearch(myPaletteTree);
     updateColorsAfterColorThemeChange(true);
     enableClickToLoadMissingDependency();
     DumbService.getInstance(project).smartInvokeLater(new Runnable() {
       @Override
       public void run() {
-        DefaultMutableTreeNode root = (DefaultMutableTreeNode)myTree.getModel().getRoot();
+        DefaultMutableTreeNode root = (DefaultMutableTreeNode)myPaletteTree.getModel().getRoot();
         addItems(myModel.getPalette(myResourceType).getItems(), root);
         checkForNewMissingDependencies();
-        expandAll(myTree, root);
+        expandAll(myPaletteTree, root);
       }
     });
   }
@@ -500,10 +512,10 @@ public class NlPalettePanel extends JPanel
   }
 
   private void enableClickToLoadMissingDependency() {
-    myTree.addMouseListener(new MouseAdapter() {
+    myPaletteTree.addMouseListener(new MouseAdapter() {
       @Override
       public void mousePressed(MouseEvent event) {
-        Palette.BaseItem object = getItemForPath(myTree.getPathForLocation(event.getX(), event.getY()));
+        Palette.BaseItem object = getItemForPath(myPaletteTree.getPathForLocation(event.getX(), event.getY()));
         if (needsLibraryLoad(object)) {
           Palette.Item item = (Palette.Item)object;
           String coordinate = item.getGradleCoordinate();
@@ -625,10 +637,11 @@ public class NlPalettePanel extends JPanel
   @Override
   public void dispose() {
     setDesignSurface(null);
-    myDndManager.unregisterSource(myDndSource, myTree);
-    ToolTipManager.sharedInstance().unregisterComponent(myTree);
+    myDndManager.unregisterSource(myDndSource, myPaletteTree);
+    ToolTipManager.sharedInstance().unregisterComponent(myPaletteTree);
     updateColorsAfterColorThemeChange(false);
     Disposer.dispose(myDisposable);
+    myStructureTree.dispose();
   }
 
   // ---- inner classes ----
@@ -660,13 +673,13 @@ public class NlPalettePanel extends JPanel
 
     @Override
     public boolean canStartDragging(DnDAction action, Point dragOrigin) {
-      Palette.BaseItem content = getItemForPath(myTree.getPathForLocation(dragOrigin.x, dragOrigin.y));
+      Palette.BaseItem content = getItemForPath(myPaletteTree.getPathForLocation(dragOrigin.x, dragOrigin.y));
       return content instanceof Palette.Item && !needsLibraryLoad(content);
     }
 
     @Override
     public DnDDragStartBean startDragging(DnDAction action, Point dragOrigin) {
-      TreePath path = myTree.getClosestPathForLocation(dragOrigin.x, dragOrigin.y);
+      TreePath path = myPaletteTree.getClosestPathForLocation(dragOrigin.x, dragOrigin.y);
       Palette.BaseItem content = getItemForPath(path);
       assert content instanceof Palette.Item;
       Palette.Item item = (Palette.Item)content;
@@ -680,7 +693,7 @@ public class NlPalettePanel extends JPanel
         }
       }
       if (size == null) {
-        Rectangle bounds = myTree.getPathBounds(path);
+        Rectangle bounds = myPaletteTree.getPathBounds(path);
         size = bounds != null ? bounds.getSize() : new Dimension(200, 100);
         if (myDesignSurface != null) {
           double scale = myDesignSurface.getScale();
@@ -702,7 +715,7 @@ public class NlPalettePanel extends JPanel
     @Nullable
     @Override
     public Pair<Image, Point> createDraggedImage(DnDAction action, Point dragOrigin) {
-      TreePath path = myTree.getClosestPathForLocation(dragOrigin.x, dragOrigin.y);
+      TreePath path = myPaletteTree.getClosestPathForLocation(dragOrigin.x, dragOrigin.y);
       BufferedImage image = null;
       if (myLastDragImage != null && myDesignSurface != null) {
         double scale = myDesignSurface.getScale();
@@ -711,12 +724,13 @@ public class NlPalettePanel extends JPanel
       }
       if (image == null) {
         // We do not have a preview image to drag. Use the selected row as an image.
-        int row = myTree.getRowForPath(path);
+        int row = myPaletteTree.getRowForPath(path);
         Component comp =
-          myTree.getCellRenderer().getTreeCellRendererComponent(myTree, path.getLastPathComponent(), false, true, true, row, false);
-        comp.setForeground(myTree.getForeground());
-        comp.setBackground(myTree.getBackground());
-        comp.setFont(myTree.getFont());
+          myPaletteTree
+            .getCellRenderer().getTreeCellRendererComponent(myPaletteTree, path.getLastPathComponent(), false, true, true, row, false);
+        comp.setForeground(myPaletteTree.getForeground());
+        comp.setBackground(myPaletteTree.getBackground());
+        comp.setFont(myPaletteTree.getFont());
         comp.setSize(comp.getPreferredSize());
         // Do not allocate the double size buffer here this will not be drawn as a retina image i.e. don't use UUtil.createImage()
         //noinspection UndesirableClassUsage
@@ -731,7 +745,7 @@ public class NlPalettePanel extends JPanel
 
     @Override
     public void dragDropEnd() {
-      myTree.clearSelection();
+      myPaletteTree.clearSelection();
     }
 
     @Override
@@ -759,7 +773,7 @@ public class NlPalettePanel extends JPanel
 
     @Override
     public void performCopy(@NotNull DataContext dataContext) {
-      TreePath path = myTree.getSelectionPath();
+      TreePath path = myPaletteTree.getSelectionPath();
       Palette.BaseItem content = getItemForPath(path);
       if (content instanceof Palette.Item && !needsLibraryLoad(content)) {
         Palette.Item item = (Palette.Item)content;

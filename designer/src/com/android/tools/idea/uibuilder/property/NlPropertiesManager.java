@@ -22,6 +22,7 @@ import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.DesignSurfaceListener;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.util.PropertiesMap;
+import com.intellij.designer.LightToolWindowContent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.components.JBLoadingPanel;
@@ -39,7 +40,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-public class NlPropertiesManager implements DesignSurfaceListener, ModelListener {
+public class NlPropertiesManager implements DesignSurfaceListener, ModelListener, LightToolWindowContent {
   public final static int UPDATE_DELAY_MSECS = 250;
 
   private final Project myProject;
@@ -219,5 +220,9 @@ public class NlPropertiesManager implements DesignSurfaceListener, ModelListener
   @Override
   public void modelRendered(@NotNull NlModel model) {
     myPropertiesPanel.modelRendered(this);
+  }
+
+  @Override
+  public void dispose() {
   }
 }
