@@ -33,10 +33,13 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 import java.util.List;
 
+import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.Projects.open;
 import static com.android.tools.idea.gradle.util.Projects.populate;
 import static com.intellij.openapi.externalSystem.model.ProjectKeys.MODULE;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.findAll;
+import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.ensureToolWindowContentInitialized;
+import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
 import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
 
 class ProjectSetUpTask implements ExternalProjectRefreshCallback {
@@ -66,34 +69,31 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
 
     populateProject(projectInfo);
 
-    Runnable runnable = new Runnable() {
-      @Override
-      public void run() {
-        boolean isTest = ApplicationManager.getApplication().isUnitTestMode();
-        if (!isTest || !GradleProjectImporter.ourSkipSetupFromTest) {
-          if (myProjectIsNew) {
-            open(myProject);
-          }
-          if (!isTest) {
-            myProject.save();
-          }
-        }
-
+    Runnable runnable = () -> {
+      boolean isTest = ApplicationManager.getApplication().isUnitTestMode();
+      if (!isTest || !GradleProjectImporter.ourSkipSetupFromTest) {
         if (myProjectIsNew) {
-          // We need to do this because AndroidGradleProjectComponent#projectOpened is being called when the project is created, instead
-          // of when the project is opened. When 'projectOpened' is called, the project is not fully configured, and it does not look
-          // like it is Gradle-based, resulting in listeners (e.g. modules added events) not being registered. Here we force the
-          // listeners to be registered.
-          AndroidGradleProjectComponent projectComponent = AndroidGradleProjectComponent.getInstance(myProject);
-          projectComponent.configureGradleProject();
+          open(myProject);
         }
-        if (mySyncListener != null) {
-          if (mySyncSkipped) {
-            mySyncListener.syncSkipped(myProject);
-          }
-          else {
-            mySyncListener.syncSucceeded(myProject);
-          }
+        if (!isTest) {
+          myProject.save();
+        }
+      }
+
+      if (myProjectIsNew) {
+        // We need to do this because AndroidGradleProjectComponent#projectOpened is being called when the project is created, instead
+        // of when the project is opened. When 'projectOpened' is called, the project is not fully configured, and it does not look
+        // like it is Gradle-based, resulting in listeners (e.g. modules added events) not being registered. Here we force the
+        // listeners to be registered.
+        AndroidGradleProjectComponent projectComponent = AndroidGradleProjectComponent.getInstance(myProject);
+        projectComponent.configureGradleProject();
+      }
+      if (mySyncListener != null) {
+        if (mySyncSkipped) {
+          mySyncListener.syncSkipped(myProject);
+        }
+        else {
+          mySyncListener.syncSucceeded(myProject);
         }
       }
     };
@@ -106,12 +106,7 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
   }
 
   private void populateProject(@NotNull final DataNode<ProjectData> projectInfo) {
-    StartupManager.getInstance(myProject).runWhenProjectIsInitialized(new Runnable() {
-      @Override
-      public void run() {
-        populate(myProject, getModulesToImport(projectInfo));
-      }
-    });
+    StartupManager.getInstance(myProject).runWhenProjectIsInitialized(() -> populate(myProject, getModulesToImport(projectInfo)));
   }
 
   @NotNull
@@ -153,6 +148,9 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
 
   @Override
   public void onFailure(@NotNull String errorMessage, @Nullable String errorDetails) {
+    // Initialize the "Gradle Sync" tool window, otherwise any sync errors will not be displayed to the user.
+    invokeAndWaitIfNeeded(() -> ensureToolWindowContentInitialized(myProject, GRADLE_SYSTEM_ID));
+
     if (errorDetails != null) {
       LOG.warn(errorDetails);
     }
