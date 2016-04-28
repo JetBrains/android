@@ -16,6 +16,7 @@
 package com.android.tools.idea.templates;
 
 import com.android.tools.idea.templates.recipe.RenderingContext;
+import com.google.common.collect.LinkedHashMultimap;
 import freemarker.template.TemplateException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -25,7 +26,6 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.Map;
 
 /**
@@ -64,8 +64,8 @@ public final class FreemarkerUtils {
     paramMap.put("getApplicationTheme", new FmGetApplicationThemeMethod(paramMap));
     paramMap.put("getAppManifestDir", new FmGetAppManifestDirMethod(paramMap));
 
-    // Dependency list
-    paramMap.put(TemplateMetadata.ATTR_DEPENDENCIES_LIST, new LinkedList<String>());
+    // Dependencies multimap. Doesn't store duplicates, preserves insertion order.
+    paramMap.put(TemplateMetadata.ATTR_DEPENDENCIES_MULTIMAP, LinkedHashMultimap.create());
 
     // Parameters supplied by user
     paramMap.putAll(args);

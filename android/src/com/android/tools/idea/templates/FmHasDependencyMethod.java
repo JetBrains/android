@@ -18,6 +18,7 @@ package com.android.tools.idea.templates;
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
+import com.google.common.collect.SetMultimap;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
@@ -32,13 +33,16 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Method invoked by FreeMarker to check whether a given dependency
- * is available in this module
+ * Method invoked by FreeMarker to check whether a given dependency is available in this module.
+ *
+ * <p>Arguments:
+ * <ol>
+ *   <li>Maven group and artifact IDs, e.g. {@code "com.android.support:appcompat-v7"}
+ *   <li>(Optional) Name of the Gradle configuration to check. Defaults to {@code "compile"}.
+ * </ol>
+ * <p>Example usage: {@code espresso=hasDependency('com.android.support.test.espresso:espresso-core', 'androidTestCompile')}.
  */
 public class FmHasDependencyMethod implements TemplateMethodModelEx {
-  public static final String MAIN_CONFIGURATION = "compile";
-  public static final String ANDROID_TEST_CONFIGURATION = "androidTestCompile";
-
   private final Map<String, Object> myParamMap;
 
   public FmHasDependencyMethod(Map<String, Object> paramMap) {
@@ -55,12 +59,17 @@ public class FmHasDependencyMethod implements TemplateMethodModelEx {
       return TemplateBooleanModel.FALSE;
     }
 
-    if (myParamMap.containsKey(TemplateMetadata.ATTR_DEPENDENCIES_LIST)) {
-      Object listObject = myParamMap.get(TemplateMetadata.ATTR_DEPENDENCIES_LIST);
-      if (listObject instanceof List) {
-        @SuppressWarnings("unchecked")
-        List<String> dependencyList = (List<String>)listObject;
-        for (String dependency : dependencyList) {
+    // Determine the configuration to check, based on the second argument passed to the function. Defaults to "compile".
+    String configuration = SdkConstants.GRADLE_COMPILE_CONFIGURATION;
+    if (args.size() > 1) {
+      configuration = ((TemplateScalarModel)args.get(1)).getAsString();
+    }
+
+    if (myParamMap.containsKey(TemplateMetadata.ATTR_DEPENDENCIES_MULTIMAP)) {
+      Object untyped = myParamMap.get(TemplateMetadata.ATTR_DEPENDENCIES_MULTIMAP);
+      if (untyped instanceof SetMultimap) {
+        @SuppressWarnings("unchecked") SetMultimap<String, String> dependencies = (SetMultimap<String, String>)untyped;
+        for (String dependency : dependencies.get(configuration)) {
           if (dependency.contains(artifact)) {
             return TemplateBooleanModel.TRUE;
           }
@@ -82,19 +91,16 @@ public class FmHasDependencyMethod implements TemplateMethodModelEx {
               // TODO: b/23032990
               AndroidGradleModel androidModel = AndroidGradleModel.get(facet);
               if (androidModel != null) {
-                String configuration = MAIN_CONFIGURATION;
-                if (args.size() > 1) {
-                  configuration = ((TemplateScalarModel)args.get(1)).getAsString();
-                }
-
                 boolean dependsOn;
-                if (configuration.equals(MAIN_CONFIGURATION)) {
-                  dependsOn = GradleUtil.dependsOn(androidModel, artifact);
-                }
-                else if (configuration.equals(ANDROID_TEST_CONFIGURATION)) {
-                  dependsOn = GradleUtil.dependsOnAndroidTest(androidModel, artifact);
-                } else {
-                  throw new TemplateModelException("Unknown dependency configuration " + configuration);
+                switch (configuration) {
+                  case SdkConstants.GRADLE_COMPILE_CONFIGURATION:
+                    dependsOn = GradleUtil.dependsOn(androidModel, artifact);
+                    break;
+                  case SdkConstants.GRADLE_ANDROID_TEST_COMPILE_CONFIGURATION:
+                    dependsOn = GradleUtil.dependsOnAndroidTest(androidModel, artifact);
+                    break;
+                  default:
+                    throw new TemplateModelException("Unknown dependency configuration " + configuration);
                 }
 
                 return dependsOn ? TemplateBooleanModel.TRUE : TemplateBooleanModel.FALSE;
