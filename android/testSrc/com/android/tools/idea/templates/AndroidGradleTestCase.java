@@ -19,6 +19,7 @@ import com.android.SdkConstants;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.eclipse.GradleImport;
 import com.android.tools.idea.gradle.project.AndroidGradleProjectComponent;
@@ -599,5 +600,13 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     }
 
     latch.await();
+  }
+
+  @NotNull
+  protected AndroidGradleModel getModel() {
+    AndroidGradleModel androidGradleModel = AndroidGradleModel.get(myAndroidFacet);
+    assert androidGradleModel != null;
+
+    return androidGradleModel;
   }
 }

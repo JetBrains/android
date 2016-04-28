@@ -85,7 +85,11 @@ public class TestArtifactSearchScopesTest extends AndroidGradleArtifactsTestCase
     Library junit = libraryTable.getLibraryByName("junit-4.12");  // used by unit test
     Library gson = libraryTable.getLibraryByName("gson-2.4"); // used by android test
 
-    assertAcceptLibrary(scopes.getUnitTestExcludeScope(), guava);
+    if (getModel().supportsDependencyGraph()) {
+      assertNotAcceptLibrary(scopes.getUnitTestExcludeScope(), guava);
+    } else {
+      assertAcceptLibrary(scopes.getUnitTestExcludeScope(), guava);
+    }
     assertAcceptLibrary(scopes.getUnitTestExcludeScope(), gson);
     assertNotAcceptLibrary(scopes.getUnitTestExcludeScope(), junit);
     assertNotAcceptLibrary(scopes.getUnitTestExcludeScope(), hamcrest);
@@ -93,7 +97,11 @@ public class TestArtifactSearchScopesTest extends AndroidGradleArtifactsTestCase
     assertAcceptLibrary(scopes.getAndroidTestExcludeScope(), junit);
     assertNotAcceptLibrary(scopes.getAndroidTestExcludeScope(), gson);
     assertNotAcceptLibrary(scopes.getAndroidTestExcludeScope(), guava);
-    assertNotAcceptLibrary(scopes.getAndroidTestExcludeScope(), hamcrest);
+    if (getModel().supportsDependencyGraph()){
+      assertAcceptLibrary(scopes.getAndroidTestExcludeScope(), hamcrest);
+    } else {
+      assertNotAcceptLibrary(scopes.getAndroidTestExcludeScope(), hamcrest);
+    }
   }
 
   public void testNotExcludeLibrariesInMainArtifact() throws Exception {
