@@ -538,7 +538,8 @@ public class SceneDraw {
         for (ConstraintWidget widget : mWidgetsScene.getWidgets()) {
             WidgetCompanion widgetCompanion = (WidgetCompanion) widget.getCompanionWidget();
             WidgetDecorator decorator = widgetCompanion.getWidgetDecorator(getCurrentStyle());
-            if (decorator.isVisible() && !decorator.isSelected()) {
+            if (decorator.isVisible() && !decorator.isSelected() && decorator.getLook() !=
+                    ColorTheme.Look.HIGHLIGHTED) {
                 decorator.onPaintConstraints(transform, g);
             }
         }
@@ -555,7 +556,8 @@ public class SceneDraw {
         for (ConstraintWidget widget : mWidgetsScene.getWidgets()) {
             WidgetCompanion widgetCompanion = (WidgetCompanion) widget.getCompanionWidget();
             WidgetDecorator decorator = widgetCompanion.getWidgetDecorator(getCurrentStyle());
-            if (decorator.isVisible() && decorator.isSelected()) {
+            if (decorator.isVisible() && (decorator.isSelected() || decorator.getLook() ==
+                    ColorTheme.Look.HIGHLIGHTED)) {
                 decorator.onPaintConstraints(transform, g);
                 decorator.onPaintAnchors(transform, g);
             }

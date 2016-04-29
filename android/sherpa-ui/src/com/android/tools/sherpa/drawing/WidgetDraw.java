@@ -188,7 +188,7 @@ public class WidgetDraw {
             int y = t;
             Stroke previousStroke = g.getStroke();
             if (baselineAnchorIsConnected) {
-                g2.setStroke(ConnectionDraw.sDashedStroke);
+                g2.setStroke(ConnectionDraw.sSpreadDashedStroke);
             }
             if (horizontalSpring) {
                 if (showTopAnchor) {
@@ -229,7 +229,7 @@ public class WidgetDraw {
         } else {
             Stroke previousStroke = g.getStroke();
             if (baselineAnchorIsConnected) {
-                g2.setStroke(ConnectionDraw.sDashedStroke);
+                g2.setStroke(ConnectionDraw.sSpreadDashedStroke);
             }
             if (showTopAnchor) {
                 g2.drawLine(l, t, midX - radius, t);
