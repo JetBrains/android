@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 
 public class SelectionModelTest extends LayoutTestCase {
@@ -70,7 +71,7 @@ public class SelectionModelTest extends LayoutTestCase {
     called.set(false);
     assertNull(model.getPrimary());
     assertTrue(model.isEmpty());
-    assertEquals(Collections.emptyList(), model.getSelection());
+    assertThat(model.getSelection()).isEmpty();
 
     model.toggle(component1);
     assertTrue(called.get());
