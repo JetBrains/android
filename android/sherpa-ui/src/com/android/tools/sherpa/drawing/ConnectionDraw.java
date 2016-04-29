@@ -46,6 +46,10 @@ public class ConnectionDraw {
     private static Font sSmallFont = new Font("Helvetica", Font.PLAIN, 8);
 
     public static Stroke
+            sSpreadDashedStroke = new BasicStroke(1, BasicStroke.CAP_BUTT,
+            BasicStroke.JOIN_BEVEL, 0, new float[] { 1, 4 }, 0);
+
+    public static Stroke
             sDashedStroke = new BasicStroke(1, BasicStroke.CAP_BUTT,
             BasicStroke.JOIN_BEVEL, 0, new float[] { 2 }, 0);
 

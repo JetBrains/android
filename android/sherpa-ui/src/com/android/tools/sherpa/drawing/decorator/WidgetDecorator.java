@@ -215,7 +215,7 @@ public class WidgetDecorator {
         mConstraintsColor = new ColorTheme(
                 mColorSet.getSubduedConstraints(),
                 mColorSet.getConstraints(),
-                mColorSet.getConstraints(),
+                mColorSet.getHighlightedConstraints(),
                 mColorSet.getSelectedConstraints());
     }
 
@@ -536,22 +536,24 @@ public class WidgetDecorator {
         g.setColor(mConstraintsColor.getColor());
 
         // Draw the baseline first, if needed
-        if (mIsSelected && mWidget.hasBaseline() && mShowResizeHandles) {
-            Color c = g.getColor();
+        if (mWidget.hasBaseline()) {
             ConstraintAnchor baseline = mWidget.getAnchor(ConstraintAnchor.Type.BASELINE);
-            float progress = 1;
-            if (!baseline.isConnected()) {
-                progress = mShowBaseline.getProgress();
-                if (progress > 0) {
-                    int alpha = (int) (255 * progress);
-                    g.setColor(new Color(c.getRed(), c.getGreen(), c.getBlue(), alpha));
+            if (baseline.isConnected() || (mIsSelected && mShowResizeHandles)) {
+                Color c = g.getColor();
+                float progress = 1;
+                if (!baseline.isConnected()) {
+                    progress = mShowBaseline.getProgress();
+                    if (progress > 0) {
+                        int alpha = (int) (255 * progress);
+                        g.setColor(new Color(c.getRed(), c.getGreen(), c.getBlue(), alpha));
+                    }
                 }
+                if (progress > 0) {
+                    ConstraintHandle handle = interactionTargets.getConstraintHandle(baseline);
+                    handle.draw(transform, g, mColorSet, mIsSelected);
+                }
+                g.setColor(c);
             }
-            if (progress > 0) {
-                ConstraintHandle handle = interactionTargets.getConstraintHandle(baseline);
-                handle.draw(transform, g, mColorSet, mIsSelected);
-            }
-            g.setColor(c);
         }
 
         if (mIsSelected) {
@@ -602,9 +604,10 @@ public class WidgetDecorator {
                 g.setStroke(SnapDraw.sDashedStroke);
             }
             ArrayList<ConstraintAnchor.Type> anchors = new ArrayList<ConstraintAnchor.Type>();
-            if (mIsSelected && mWidget.hasBaseline()
+            if ((mIsSelected || mLook == ColorTheme.Look.HIGHLIGHTED)
+                    && mWidget.hasBaseline()
                     && (mShowBaseline.isDone()
-                    || mWidget.getAnchor(ConstraintAnchor.Type.BASELINE).isConnected())) {
+                        || mWidget.getAnchor(ConstraintAnchor.Type.BASELINE).isConnected())) {
                 anchors.add(ConstraintAnchor.Type.BASELINE);
             }
             anchors.add(ConstraintAnchor.Type.LEFT);
