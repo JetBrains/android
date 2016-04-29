@@ -247,12 +247,9 @@ public class ProjectSyncMessages {
 
   @Nullable
   private static TextRange findDependency(@NotNull final String dependency, @NotNull String contents) {
-    return findStringLiteral(dependency, contents, new Function<Pair<String, GroovyLexer>, TextRange>() {
-      @Override
-      public TextRange fun(Pair<String, GroovyLexer> pair) {
-        GroovyLexer lexer = pair.getSecond();
-        return TextRange.create(lexer.getTokenStart() + 1, lexer.getTokenEnd() - 1);
-      }
+    return findStringLiteral(dependency, contents, pair -> {
+      GroovyLexer lexer = pair.getSecond();
+      return TextRange.create(lexer.getTokenStart() + 1, lexer.getTokenEnd() - 1);
     });
   }
 
@@ -274,7 +271,6 @@ public class ProjectSyncMessages {
     }
     return null;
   }
-
 
   public void reportDependencySetupErrors() {
     DependencySetupErrors setupErrors = getDependencySetupErrors(myProject);

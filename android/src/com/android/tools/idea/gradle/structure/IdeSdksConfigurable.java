@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.npw.WizardUtils;
 import com.android.tools.idea.npw.WizardUtils.WritableCheckMode;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.sdk.Jdks;
 import com.android.tools.idea.sdk.SdkPaths.ValidationResult;
 import com.android.tools.idea.sdk.StudioDownloader;
 import com.android.tools.idea.sdk.StudioSettingsController;
@@ -40,6 +41,7 @@ import com.intellij.openapi.options.BaseConfigurable;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.JavaSdk;
+import com.intellij.openapi.projectRoots.JavaSdkVersion;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.ui.DetailsComponent;
 import com.intellij.openapi.ui.Messages;
@@ -80,6 +82,7 @@ import static com.android.tools.idea.sdk.SdkPaths.validateAndroidNdk;
 import static com.android.tools.idea.sdk.SdkPaths.validateAndroidSdk;
 import static com.android.tools.idea.sdk.wizard.SdkQuickfixUtils.createDialogForPaths;
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_8;
 import static com.intellij.openapi.util.io.FileUtilRt.toSystemDependentName;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
@@ -544,6 +547,14 @@ public class IdeSdksConfigurable extends BaseConfigurable implements Place.Navig
       ProjectConfigurationError error =
         new ProjectConfigurationError(CHOOSE_VALID_JDK_DIRECTORY_ERR, myJdkLocationTextField.getTextField());
       errors.add(error);
+    }
+    else {
+      JavaSdkVersion version = Jdks.findVersion(jdkLocation);
+      if (version == null || !version.isAtLeast(JDK_1_8)) {
+        ProjectConfigurationError error =
+          new ProjectConfigurationError("Please choose JDK 8 or newer", myJdkLocationTextField.getTextField());
+        errors.add(error);
+      }
     }
 
     msg = validateAndroidNdkPath();

@@ -91,11 +91,8 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
     StaleGradleModelNotificationPanel() {
       setText("Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.");
 
-      createActionLabel("Sync Now", new Runnable() {
-        @Override
-        public void run() {
-          GradleProjectImporter.getInstance().requestProjectSync(myProject, null);
-        }
+      createActionLabel("Sync Now", () -> {
+        GradleProjectImporter.getInstance().requestProjectSync(myProject, null);
       });
     }
   }
@@ -104,26 +101,17 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
     SyncProblemNotificationPanel(@NotNull String text) {
       setText(text);
 
-      createActionLabel("Try Again", new Runnable() {
-        @Override
-        public void run() {
-          GradleProjectImporter.getInstance().requestProjectSync(myProject, null);
-        }
+      createActionLabel("Try Again", () -> {
+        GradleProjectImporter.getInstance().requestProjectSync(myProject, null);
       });
 
-      createActionLabel("Open 'Messages' View", new Runnable() {
-        @Override
-        public void run() {
-          ExternalSystemNotificationManager.getInstance(myProject).openMessageView(GRADLE_SYSTEM_ID, PROJECT_SYNC);
-        }
+      createActionLabel("Open 'Messages' View", () -> {
+        ExternalSystemNotificationManager.getInstance(myProject).openMessageView(GRADLE_SYSTEM_ID, PROJECT_SYNC);
       });
 
-      createActionLabel("Show Log in " + ShowFilePathAction.getFileManagerName(), new Runnable() {
-        @Override
-        public void run() {
-          File logFile = new File(PathManager.getLogPath(), "idea.log");
-          openFile(logFile);
-        }
+      createActionLabel("Show Log in " + ShowFilePathAction.getFileManagerName(), () -> {
+        File logFile = new File(PathManager.getLogPath(), "idea.log");
+        openFile(logFile);
       });
     }
   }
