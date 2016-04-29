@@ -27,7 +27,6 @@ import com.android.tools.idea.sdk.StudioDownloader;
 import com.android.tools.idea.sdk.StudioSettingsController;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.progress.StudioProgressRunner;
-import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
@@ -79,6 +78,7 @@ import static com.android.SdkConstants.NDK_DIR_PROPERTY;
 import static com.android.tools.idea.npw.WizardUtils.validateLocation;
 import static com.android.tools.idea.sdk.SdkPaths.validateAndroidNdk;
 import static com.android.tools.idea.sdk.SdkPaths.validateAndroidSdk;
+import static com.android.tools.idea.sdk.wizard.SdkQuickfixUtils.createDialogForPaths;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.intellij.openapi.util.io.FileUtilRt.toSystemDependentName;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
@@ -315,7 +315,7 @@ public class IdeSdksConfigurable extends BaseConfigurable implements Place.Navig
           return;
         }
         List<String> requested = ImmutableList.of(FD_NDK);
-        ModelWizardDialog dialog = SdkQuickfixUtils.createDialogForPaths(myWholePanel, requested);
+        ModelWizardDialog dialog = createDialogForPaths(myWholePanel, requested);
         if (dialog != null && dialog.showAndGet()) {
           File ndk = IdeSdks.getAndroidNdkPath();
           if (ndk != null) {
@@ -343,14 +343,16 @@ public class IdeSdksConfigurable extends BaseConfigurable implements Place.Navig
       suggestedDir = findFileByIoFile(jdkLocation, false);
     }
     VirtualFile chosen = FileChooser.chooseFile(createSingleFolderDescriptor("Choose JDK Location", file -> {
-      if (!validateAndUpdateJdkPath(file)) {
+      File validJdkLocation = validateJdkPath(file);
+      if (validJdkLocation == null) {
         throw new IllegalArgumentException(CHOOSE_VALID_JDK_DIRECTORY_ERR);
       }
       return null;
     }), null, suggestedDir);
     if (chosen != null) {
-      File f = virtualToIoFile(chosen);
-      myJdkLocationTextField.setText(f.getPath());
+      File validJdkLocation = validateJdkPath(virtualToIoFile(chosen));
+      assert validJdkLocation != null;
+      myJdkLocationTextField.setText(validJdkLocation.getPath());
     }
   }
 
@@ -514,7 +516,8 @@ public class IdeSdksConfigurable extends BaseConfigurable implements Place.Navig
       throw new ConfigurationException(msg);
     }
 
-    if (!validateAndUpdateJdkPath(getJdkLocation())) {
+    File validJdkLocation = validateJdkPath(getJdkLocation());
+    if (validJdkLocation == null) {
       throw new ConfigurationException(CHOOSE_VALID_JDK_DIRECTORY_ERR);
     }
 
@@ -536,7 +539,8 @@ public class IdeSdksConfigurable extends BaseConfigurable implements Place.Navig
       errors.add(error);
     }
 
-    if (!validateAndUpdateJdkPath(getJdkLocation())) {
+    File jdkLocation = validateJdkPath(getJdkLocation());
+    if (jdkLocation == null) {
       ProjectConfigurationError error =
         new ProjectConfigurationError(CHOOSE_VALID_JDK_DIRECTORY_ERR, myJdkLocationTextField.getTextField());
       errors.add(error);
@@ -556,6 +560,7 @@ public class IdeSdksConfigurable extends BaseConfigurable implements Place.Navig
    */
   @Nullable
   private String validateAndroidSdkPath() {
+    //noinspection deprecation
     WizardUtils.ValidationResult wizardValidationResult =
       validateLocation(getSdkLocation().getAbsolutePath(), "Android SDK location", false, WritableCheckMode.DO_NOT_CHECK);
     if (!wizardValidationResult.isOk()) {
@@ -613,18 +618,24 @@ public class IdeSdksConfigurable extends BaseConfigurable implements Place.Navig
     return new File(toSystemDependentName(jdkLocation));
   }
 
-  private boolean validateAndUpdateJdkPath(@NotNull File file) {
+  /**
+   * Validates that the given directory belongs to a JDK installation.
+   * @param file the directory to validate.
+   * @return the path of the JDK installation if valid, or {@code null} if the path is not valid.
+   */
+  @Nullable
+  private File validateJdkPath(@NotNull File file) {
     if (JavaSdk.checkForJdk(file)) {
-      return true;
+      return file;
     }
     if (SystemInfo.isMac) {
       File potentialPath = new File(file, IdeSdks.MAC_JDK_CONTENT_PATH);
       if (potentialPath.isDirectory() && JavaSdk.checkForJdk(potentialPath)) {
         myJdkLocationTextField.setText(potentialPath.getPath());
-        return true;
+        return potentialPath;
       }
     }
-    return false;
+    return null;
   }
 
   /**
