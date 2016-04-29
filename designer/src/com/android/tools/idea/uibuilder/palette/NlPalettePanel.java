@@ -15,11 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.palette;
 
-import com.android.tools.idea.uibuilder.structure.NlComponentTree;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
-import com.intellij.openapi.ui.Splitter;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.resources.ResourceResolver;
@@ -41,6 +36,8 @@ import com.android.tools.idea.uibuilder.model.DnDTransferComponent;
 import com.android.tools.idea.uibuilder.model.DnDTransferItem;
 import com.android.tools.idea.uibuilder.model.ItemTransferable;
 import com.android.tools.idea.uibuilder.model.ResourceType;
+import com.android.tools.idea.uibuilder.structure.NlComponentTree;
+import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.Lists;
 import com.intellij.designer.DesignerEditorPanelFacade;
@@ -67,6 +64,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ex.ProjectEx;
+import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.SystemInfo;
@@ -76,12 +74,15 @@ import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.TreeSpeedSearch;
+import com.intellij.ui.components.JBLabel;
 import com.intellij.util.IJSwingUtilities;
 import com.intellij.util.ui.JBImageIcon;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.tree.TreeUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -138,7 +139,7 @@ public class NlPalettePanel extends JPanel
     JScrollPane palettePane = ScrollPaneFactory.createScrollPane(myPaletteTree, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER);
 
     myStructureTree = new NlComponentTree(designSurface);
-    JScrollPane structurePane = ScrollPaneFactory.createScrollPane(myStructureTree, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER);
+    JComponent structurePane = createStructurePane(myStructureTree);
 
     Splitter splitter = new Splitter(true, 0.6f);
     splitter.setFirstComponent(palettePane);
@@ -146,6 +147,15 @@ public class NlPalettePanel extends JPanel
 
     setLayout(new BorderLayout());
     add(splitter, BorderLayout.CENTER);
+  }
+
+  @NotNull
+  private static JComponent createStructurePane(@NotNull NlComponentTree structureTree) {
+    JPanel panel = new JPanel(new BorderLayout());
+    JBLabel label = new JBLabel("Component Tree");
+    panel.add(label, BorderLayout.NORTH);
+    panel.add(ScrollPaneFactory.createScrollPane(structureTree, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER));
+    return panel;
   }
 
   @NotNull
